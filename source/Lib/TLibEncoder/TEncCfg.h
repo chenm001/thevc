@@ -106,15 +106,11 @@ protected:
   
   Int       m_iQP;                              //  if (AdaptiveQP == OFF)
   
-  Int       m_aiTLayerQPOffset[MAX_TLAYER];
   Int       m_aiPad[2];
   
 
   Int       m_iMaxRefPicNum;                     ///< this is used to mimic the sliding mechanism used by the decoder
                                                  // TODO: We need to have a common sliding mechanism used by both the encoder and decoder
-
-  Bool      m_bTLayering;                        ///< indicates whether temporal IDs are set based on the hierarchical coding structure
-  Bool      m_abTLayerSwitchingFlag[MAX_TLAYER]; ///< temporal layer switching flags corresponding to temporal layer
 #if DISABLE_4x4_INTER
   Bool      m_bDisInter4x4;
 #endif
@@ -234,16 +230,10 @@ public:
   
   Void      setQP                           ( Int   i )      { m_iQP = i; }
   
-  Void      setTemporalLayerQPOffset        ( Int*  piTemporalLayerQPOffset )      { for ( Int i = 0; i < MAX_TLAYER; i++ ) m_aiTLayerQPOffset[i] = piTemporalLayerQPOffset[i]; }
   Void      setPad                          ( Int*  iPad                   )      { for ( Int i = 0; i < 2; i++ ) m_aiPad[i] = iPad[i]; }
   
   Int       getMaxRefPicNum                 ()                              { return m_iMaxRefPicNum;           }
   Void      setMaxRefPicNum                 ( Int iMaxRefPicNum )           { m_iMaxRefPicNum = iMaxRefPicNum;  }
-
-  Bool      getTLayering                    ()                              { return m_bTLayering;              } 
-  Void      setTLayering                    ( Bool bTLayering )             { m_bTLayering = bTLayering;        }
-  Bool      getTLayerSwitchingFlag          ( UInt uiTLayer )               { assert (uiTLayer < MAX_TLAYER ); return  m_abTLayerSwitchingFlag[uiTLayer];                   }
-  Void      setTLayerSwitchingFlag          ( Bool* pbTLayerSwitchingFlag ) { for ( Int i = 0; i < MAX_TLAYER; i++ ) m_abTLayerSwitchingFlag[i] = pbTLayerSwitchingFlag[i]; }
 
 #if DISABLE_4x4_INTER
   Bool      getDisInter4x4                  ()              { return m_bDisInter4x4;        }
@@ -308,7 +298,6 @@ public:
 #endif
   Int       getQP                           ()      { return  m_iQP; }
   
-  Int       getTemporalLayerQPOffset        ( Int i )      { assert (i < MAX_TLAYER ); return  m_aiTLayerQPOffset[i]; }
   Int       getPad                          ( Int i )      { assert (i < 2 );                      return  m_aiPad[i]; }
   
   //======== Transform =============

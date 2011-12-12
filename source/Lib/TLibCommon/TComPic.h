@@ -57,7 +57,6 @@ class SEImessages;
 class TComPic
 {
 private:
-  UInt                  m_uiTLayer;               //  Temporal layer
 #if G1002_RPS
   Bool                  m_bUsedByCurr;            //  Used by current picture
   Bool                  m_bIsLongTerm;            //  IS long term picture
@@ -84,9 +83,6 @@ public:
   Void          destroy();
 #endif
   
-  UInt          getTLayer()                { return m_uiTLayer;   }
-  Void          setTLayer( UInt uiTLayer ) { m_uiTLayer = uiTLayer; }
-
 #if G1002_RPS
   Bool          getUsedByCurr()             { return m_bUsedByCurr; }
   Void          setUsedByCurr( Bool bUsed ) { m_bUsedByCurr = bUsed; }

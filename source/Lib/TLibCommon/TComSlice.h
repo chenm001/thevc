@@ -124,8 +124,6 @@ private:
   Bool        m_bUseSAO; 
 #endif
 
-  Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
-
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD
   Bool        m_bUseNewRefSetting;
@@ -231,9 +229,6 @@ public:
 
   UInt      getMaxTLayers()                           { return m_uiMaxTLayers; }
   Void      setMaxTLayers( UInt uiMaxTLayers )        { assert( uiMaxTLayers <= MAX_TLAYER ); m_uiMaxTLayers = uiMaxTLayers; }
-
-  Bool      getTemporalIdNestingFlag()                { return m_bTemporalIdNestingFlag; }
-  Void      setTemporalIdNestingFlag( Bool bValue )   { m_bTemporalIdNestingFlag = bValue; }
 
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD
@@ -388,10 +383,7 @@ private:
   Bool        m_bLongTermRefsPresent;
   UInt        m_uiBitsForLongTermRefs;
 
-  UInt        m_uiBitsForTemporalId;
 #endif
-  UInt        m_uiNumTlayerSwitchingFlags;            // num_temporal_layer_switching_point_flags
-  Bool        m_abTLayerSwitchingFlag[ MAX_TLAYER ];  // temporal_layer_switching_point_flag
 
 #if !F747_APS
   Bool        m_bSharedPPSInfoEnabled;  //!< Shared info. in PPS is enabled/disabled
@@ -416,15 +408,7 @@ public:
   Bool      getConstrainedIntraPred ()         { return  m_bConstrainedIntraPred; }
   Void      setConstrainedIntraPred ( Bool b ) { m_bConstrainedIntraPred = b;     }
 
-  UInt      getNumTLayerSwitchingFlags()                                  { return m_uiNumTlayerSwitchingFlags; }
-  Void      setNumTLayerSwitchingFlags( UInt uiNumTlayerSwitchingFlags )  { assert( uiNumTlayerSwitchingFlags < MAX_TLAYER ); m_uiNumTlayerSwitchingFlags = uiNumTlayerSwitchingFlags; }
-
-  Bool      getTLayerSwitchingFlag( UInt uiTLayer )                       { assert( uiTLayer < MAX_TLAYER ); return m_abTLayerSwitchingFlag[ uiTLayer ]; }
-  Void      setTLayerSwitchingFlag( UInt uiTLayer, Bool bValue )          { m_abTLayerSwitchingFlag[ uiTLayer ] = bValue; }
 #if G1002_RPS
-  UInt      getBitsForTemporalId()           { return m_uiBitsForTemporalId; }
-  Void      setBitsForTemporalId(UInt bits)  { m_uiBitsForTemporalId = bits; }
-
   Bool      getLongTermRefsPresent()         { return m_bLongTermRefsPresent; }
   Void      setLongTermRefsPresent(Bool b)   { m_bLongTermRefsPresent=b;      }
   UInt      getBitsForLongTermRefs()         { return m_uiBitsForLongTermRefs;}
@@ -575,9 +559,6 @@ private:
   Bool        m_bNoBackPredFlag;
   Bool        m_bRefIdxCombineCoding;
 
-  UInt        m_uiTLayer;
-  Bool        m_bTLayerSwitchingFlag;
-
   UInt        m_uiSliceCurStartCUAddr;
   UInt        m_uiSliceCurEndCUAddr;
   UInt        m_uiSliceIdx;
@@ -668,7 +649,7 @@ public:
   Bool      isReferenced()                                      { return m_bRefenced; }
   
 #if G1002_RPS
-  Void      setPOC              ( Int i )                       { m_iPOC              = i; if(getTLayer()==0) m_iPrevPOC=i; }
+  Void      setPOC              ( Int i )                       { m_iPOC              = i; m_iPrevPOC=i; }
 #else
   Void      setPOC              ( Int i )                       { m_iPOC              = i;      }
 #endif
@@ -729,20 +710,12 @@ public:
   Void setRefIdxCombineCoding( Bool b ) { m_bRefIdxCombineCoding = b; }
   Void generateCombinedList       ();
 
-  UInt getTLayer             ()                            { return m_uiTLayer;                      }
-  Void setTLayer             ( UInt uiTLayer )             { m_uiTLayer = uiTLayer;                  }
-
-  Bool getTLayerSwitchingFlag()                            { return m_bTLayerSwitchingFlag;          }
-  Void setTLayerSwitchingFlag( Bool bValue )               { m_bTLayerSwitchingFlag = bValue;        }
-
-  Void setTLayerInfo( UInt uiTLayer );
   Void decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, Int& iMaxRefPicNum ); 
 #if G1002_RPS
   Void      applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pcRPSList);
   Int       checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool outputFlag);
   Void      createExplicitReferencePictureSetFromReference( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet);
 #else
-  Void decodingTLayerSwitchingMarking( TComList<TComPic*>& rcListPic );
 
 #if REF_SETTING_FOR_LD
   Int getActualRefNumber( TComList<TComPic*>& rcListPic );
@@ -802,8 +775,7 @@ protected:
                          ERBIndex            eERBIndex,
                          UInt                uiPOCCurr,
                          RefPicList          eRefPicList,
-                         UInt                uiNthRefPic,
-                         UInt                uiTLayer );
+                         UInt                uiNthRefPic );
 #endif
 };// END CLASS DEFINITION TComSlice
 

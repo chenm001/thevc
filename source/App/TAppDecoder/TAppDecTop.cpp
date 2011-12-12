@@ -125,12 +125,6 @@ Void TAppDecTop::decode()
     {
       InputNALUnit nalu;
       read(nalu, nalUnit);
-#if G1002_RPS
-      if(m_iMaxTemporalLayer>=0&&nalu.m_TemporalID>m_iMaxTemporalLayer)
-      {
-        continue;
-      }
-#endif
       bNewPicture = m_cTDecTop.decode(nalu, m_iSkipFrame, m_iPOCLastDisplay);
       if (bNewPicture)
       {

@@ -593,42 +593,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setUseSAO( m_bUseSAO );
 #endif
 
-  if ( m_bTLayering )
-  {
-    Int iMaxTLayers = 1;
-    for ( i = 1; ; i++)
-    {
-      iMaxTLayers = i;
-#if G1002_RPS
-      if ( (m_iGOPSize >> i) == 0 ) 
-#else
-      if ( (m_iRateGOPSize >> i) == 0 ) 
-#endif
-      {
-        break;
-      }
-    }
-  
-    m_cSPS.setMaxTLayers( (UInt)iMaxTLayers );
-
-    Bool bTemporalIdNestingFlag = true;
-    for ( i = 0; i < m_cSPS.getMaxTLayers()-1; i++ )
-    {
-      if ( !m_abTLayerSwitchingFlag[i] )
-      {
-        bTemporalIdNestingFlag = false;
-        break;
-      }
-    }
-
-    m_cSPS.setTemporalIdNestingFlag( bTemporalIdNestingFlag );
-  }
-  else
-  {
-    m_cSPS.setMaxTLayers( 1 );
-    m_cSPS.setTemporalIdNestingFlag( false );
-  }
-
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD
   m_cSPS.setUseNewRefSetting( m_bUseNewRefSetting );
@@ -643,34 +607,6 @@ Void TEncTop::xInitSPS()
 Void TEncTop::xInitPPS()
 {
   m_cPPS.setConstrainedIntraPred( m_bUseConstrainedIntraPred );
-  if ( m_cSPS.getTemporalIdNestingFlag() ) 
-  {
-    m_cPPS.setNumTLayerSwitchingFlags( 0 );
-    for ( UInt i = 0; i < m_cSPS.getMaxTLayers() - 1; i++ )
-    {
-      m_cPPS.setTLayerSwitchingFlag( i, true );
-    }
-  }
-  else
-  {
-    m_cPPS.setNumTLayerSwitchingFlags( m_cSPS.getMaxTLayers() - 1 );
-    for ( UInt i = 0; i < m_cPPS.getNumTLayerSwitchingFlags(); i++ )
-    {
-      m_cPPS.setTLayerSwitchingFlag( i, m_abTLayerSwitchingFlag[i] );
-    }
-  }   
-#if G1002_RPS
-  Int max_temporal_layers = m_cPPS.getSPS()->getMaxTLayers();
-  if(max_temporal_layers > 4)
-     m_cPPS.setBitsForTemporalId(3);
-  else if(max_temporal_layers > 2)
-     m_cPPS.setBitsForTemporalId(2);
-  else if(max_temporal_layers > 1)
-     m_cPPS.setBitsForTemporalId(1);
-  else
-     m_cPPS.setBitsForTemporalId(0);
-
-#endif
   if( m_cPPS.getSPS()->getUseDQP() )
   {
     m_cPPS.setMaxCuDQPDepth( m_iMaxCuDQPDepth );

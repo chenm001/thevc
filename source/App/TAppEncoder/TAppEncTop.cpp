@@ -91,12 +91,8 @@ Void TAppEncTop::xInitLibCfg()
   
   m_cTEncTop.setQP                           ( m_iQP );
   
-  m_cTEncTop.setTemporalLayerQPOffset        ( m_aiTLayerQPOffset );
   m_cTEncTop.setPad                          ( m_aiPad );
     
-  m_cTEncTop.setTLayering                    ( m_bTLayering );
-  m_cTEncTop.setTLayerSwitchingFlag          ( m_abTLayerSwitchingFlag );
-
 #if DISABLE_4x4_INTER
   m_cTEncTop.setDisInter4x4                  ( m_bDisInter4x4);
 #endif

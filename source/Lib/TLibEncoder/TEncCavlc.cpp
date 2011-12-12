@@ -326,11 +326,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
     }
   }
 #endif
-  WRITE_UVLC( pcPPS->getNumTLayerSwitchingFlags(),           "num_temporal_layer_switching_point_flags" );
-  for( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ ) 
-  {
-    WRITE_FLAG( pcPPS->getTLayerSwitchingFlag( i ) ? 1 : 0 , "temporal_layer_switching_point_flag" ); 
-  }
+  WRITE_UVLC( 0,                                             "num_temporal_layer_switching_point_flags" );
   //   num_ref_idx_l0_default_active_minus1
   //   num_ref_idx_l1_default_active_minus1
   //   pic_init_qp_minus26  /* relative to 26 */
@@ -435,7 +431,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_FLAG( (pcSPS->getUseDQP ()) ? 1 : 0,                                         "cu_qp_delta_enabled_flag" );
   assert( pcSPS->getMaxTLayers() > 0 );         
 
-  WRITE_FLAG( pcSPS->getTemporalIdNestingFlag() ? 1 : 0,                             "temporal_id_nesting_flag" );
+  WRITE_FLAG( 0,                                                                     "temporal_id_nesting_flag" );
 
   // !!!KS: Syntax not in WD !!!
   

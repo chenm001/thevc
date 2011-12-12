@@ -298,11 +298,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
     }
   }
 #endif
-  READ_UVLC( uiCode, "num_temporal_layer_switching_point_flags" ); pcPPS->setNumTLayerSwitchingFlags( uiCode );
-  for ( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ )
-  {
-    READ_FLAG( uiCode, "temporal_layer_switching_point_flag" );    pcPPS->setTLayerSwitchingFlag( i, uiCode > 0 ? true : false );
-  }
+  READ_UVLC( uiCode, "num_temporal_layer_switching_point_flags" ); assert(uiCode == 0);
   
   // num_ref_idx_l0_default_active_minus1
   // num_ref_idx_l1_default_active_minus1
@@ -427,7 +423,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_FLAG( uiCode, "pcm_loop_filter_disable_flag" );           assert(uiCode == 0);
 #endif
   READ_FLAG( uiCode, "cu_qp_delta_enabled_flag" );               pcSPS->setUseDQP ( uiCode ? true : false );
-  READ_FLAG( uiCode, "temporal_id_nesting_flag" );               pcSPS->setTemporalIdNestingFlag ( uiCode > 0 ? true : false );
+  READ_FLAG( uiCode, "temporal_id_nesting_flag" );               assert( uiCode == 0 );
 
   // !!!KS: Syntax not in WD !!!
 

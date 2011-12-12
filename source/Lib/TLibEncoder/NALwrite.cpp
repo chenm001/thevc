@@ -67,7 +67,7 @@ void write(ostream& out, const OutputNALUnit& nalu)
   case NAL_UNIT_CODED_SLICE:
   case NAL_UNIT_CODED_SLICE_IDR:
   case NAL_UNIT_CODED_SLICE_CDR:
-    bsNALUHeader.write(nalu.m_TemporalID, 3); // temporal_id
+    bsNALUHeader.write(0, 3); // temporal_id
     bsNALUHeader.write(nalu.m_OutputFlag, 1); // output_flag
     bsNALUHeader.write(1, 4); // reserved_one_4bits
     break;
@@ -206,7 +206,6 @@ void copyNaluData(OutputNALUnit& naluDest, const OutputNALUnit& naluSrc)
 {
   naluDest.m_UnitType   = naluSrc.m_UnitType;
   naluDest.m_RefIDC     = naluSrc.m_RefIDC;
-  naluDest.m_TemporalID = naluSrc.m_TemporalID;
   naluDest.m_OutputFlag = naluSrc.m_OutputFlag;
   naluDest.m_Bitstream  = naluSrc.m_Bitstream;
 }

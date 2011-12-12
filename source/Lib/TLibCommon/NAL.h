@@ -46,19 +46,16 @@ struct NALUnit
 {
   NalUnitType m_UnitType; ///< nal_unit_type
   NalRefIdc m_RefIDC; ///< nal_ref_idc
-  unsigned m_TemporalID; ///< temporal_id
   bool m_OutputFlag; ///< output_flag
 
   /** construct an NALunit structure with given header values. */
   NALUnit(
     NalUnitType nalUnitType,
     NalRefIdc nalRefIDC,
-    unsigned temporalID = 0,
     bool outputFlag = true)
   {
     m_UnitType = nalUnitType;
     m_RefIDC = nalRefIDC;
-    m_TemporalID = temporalID;
     m_OutputFlag = outputFlag;
   }
 

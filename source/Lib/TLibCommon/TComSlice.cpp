@@ -70,8 +70,6 @@ TComSlice::TComSlice()
 #endif
 , m_bNoBackPredFlag               ( false )
 , m_bRefIdxCombineCoding          ( false )
-, m_uiTLayer                      ( 0 )
-, m_bTLayerSwitchingFlag          ( false )
 , m_uiSliceCurStartCUAddr         ( 0 )
 , m_uiSliceCurEndCUAddr           ( 0 )
 , m_uiSliceIdx                    ( 0 )
@@ -262,8 +260,7 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
                                 ERBIndex            eERBIndex,
                                 UInt                uiPOCCurr,
                                 RefPicList          eRefPicList,
-                                UInt                uiNthRefPic,
-                                UInt                uiTLayer)
+                                UInt                uiNthRefPic)
 {
   //  find current position
   TComList<TComPic*>::iterator  iterPic = rcListPic.begin();
@@ -297,9 +294,6 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
       if( !pcPic->getSlice(0)->isReferenced() )
         continue;
       
-      if ( pcPic->getTLayer() > uiTLayer )
-        continue;
-      
       uiCount++;
       if (uiCount == uiNthRefPic)
       {
@@ -325,9 +319,6 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
       if( !pcPic->getSlice(0)->isReferenced() )
         continue;
       
-      if ( pcPic->getTLayer() > uiTLayer )
-        continue;
-
       uiCount++;
       if (uiCount == uiNthRefPic)
       {
@@ -360,9 +351,6 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
       if( !pcPic->getSlice(0)->isReferenced() )
         continue;
       
-      if ( pcPic->getTLayer() > uiTLayer )
-        continue;
-
       uiCount++;
       if (uiCount == uiNthRefPic)
       {
@@ -627,7 +615,7 @@ Void TComSlice::setRefPicList       ( TComList<TComPic*>& rcListPic )
     }
     
     //  First DRB
-    pcRefPic = xGetRefPic(rcListPic, true, ERB_NONE, m_iPOC, eRefPicList, uiOrderDRB, m_uiTLayer);
+    pcRefPic = xGetRefPic(rcListPic, true, ERB_NONE, m_iPOC, eRefPicList, uiOrderDRB);
     if (pcRefPic != NULL)
     {
       m_apcRefPicList[eRefPicList][iRefIdx] = pcRefPic;
@@ -649,7 +637,7 @@ Void TComSlice::setRefPicList       ( TComList<TComPic*>& rcListPic )
     // Should be enabled to support long term refernce
     //*
     //  First ERB
-    pcRefPic = xGetRefPic(rcListPic, false, ERB_LTR, m_iPOC, eRefPicList, uiOrderERB, m_uiTLayer);
+    pcRefPic = xGetRefPic(rcListPic, false, ERB_LTR, m_iPOC, eRefPicList, uiOrderERB);
     if (pcRefPic != NULL)
     {
       Bool  bChangeDrbErb = false;
@@ -691,7 +679,7 @@ Void TComSlice::setRefPicList       ( TComList<TComPic*>& rcListPic )
         break;
       }
       
-      pcRefPic = xGetRefPic(rcListPic, true, ERB_NONE, m_iPOC, eRefPicList, uiOrderDRB, m_uiTLayer);
+      pcRefPic = xGetRefPic(rcListPic, true, ERB_NONE, m_iPOC, eRefPicList, uiOrderDRB);
       if (pcRefPic != NULL)
       {
         uiOrderDRB++;
@@ -867,9 +855,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_bNoBackPredFlag      = pSrc->m_bNoBackPredFlag;
   m_bRefIdxCombineCoding = pSrc->m_bRefIdxCombineCoding;
 
-  m_uiTLayer                      = pSrc->m_uiTLayer;
-  m_bTLayerSwitchingFlag          = pSrc->m_bTLayerSwitchingFlag;
-
   m_uiSliceCurStartCUAddr         = pSrc->m_uiSliceCurStartCUAddr;
   m_uiSliceCurEndCUAddr           = pSrc->m_uiSliceCurEndCUAddr;
   m_uiSliceIdx                    = pSrc->m_uiSliceIdx;
@@ -882,34 +867,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
 #if  G1002_RPS
 int TComSlice::m_iPrevPOC = 0;
 #endif
-/** Function for setting the slice's temporal layer ID and corresponding temporal_layer_switching_point_flag.
- * \param uiTLayer Temporal layer ID of the current slice
- * The decoder calls this function to set temporal_layer_switching_point_flag for each temporal layer based on 
- * the SPS's temporal_id_nesting_flag and the parsed PPS.  Then, current slice's temporal layer ID and 
- * temporal_layer_switching_point_flag is set accordingly.
- */
-Void TComSlice::setTLayerInfo( UInt uiTLayer )
-{
-  // If temporal_id_nesting_flag == 1, then num_temporal_layer_switching_point_flags shall be inferred to be 0 and temporal_layer_switching_point_flag shall be inferred to be 1 for all temporal layers
-  if ( m_pcSPS->getTemporalIdNestingFlag() ) 
-  {
-    m_pcPPS->setNumTLayerSwitchingFlags( 0 );
-    for ( UInt i = 0; i < MAX_TLAYER; i++ )
-    {
-      m_pcPPS->setTLayerSwitchingFlag( i, true );
-    }
-  }
-  else 
-  {
-    for ( UInt i = m_pcPPS->getNumTLayerSwitchingFlags(); i < MAX_TLAYER; i++ )
-    {
-      m_pcPPS->setTLayerSwitchingFlag( i, false );
-    }
-  }
-
-  m_uiTLayer = uiTLayer;
-  m_bTLayerSwitchingFlag = m_pcPPS->getTLayerSwitchingFlag( uiTLayer );
-}
 
 #if  G1002_RPS
 /** Function for applying picture marking based on the Reference Picture Set in pReferencePictureSet.
@@ -1214,28 +1171,6 @@ Void TComSlice::decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, In
   }
 }
 
-/** Function for marking reference pictures with higher temporal layer IDs as not used if the current picture is a temporal layer switching point.
- * \param rcListPic List of picture buffers
- * Both the encoder and decoder call this function to mark reference pictures with temporal layer ID higher than current picture's temporal layer ID as not used.
- */
-Void TComSlice::decodingTLayerSwitchingMarking( TComList<TComPic*>& rcListPic )
-{
-  TComPic* rpcPic;
-  if ( m_bTLayerSwitchingFlag ) 
-  {
-    // mark all pictures of temporal layer > m_uiTLyr as not used for reference
-    TComList<TComPic*>::iterator iterPic = rcListPic.begin();
-    while ( iterPic != rcListPic.end() )
-    {
-      rpcPic = *(iterPic);
-      if ( rpcPic->getTLayer() > m_uiTLayer ) 
-      {
-        rpcPic->getSlice( 0 )->setReferenced( false );
-      }
-      iterPic++;
-    }
-  }
-}
 
 #if REF_SETTING_FOR_LD
 Int TComSlice::getActualRefNumber( TComList<TComPic*>& rcListPic )
@@ -1329,7 +1264,6 @@ TComSPS::TComSPS()
 #if SAO
 , m_bUseSAO                   (false) 
 #endif
-, m_bTemporalIdNestingFlag    (false)
 #if  !G1002_RPS
 #if REF_SETTING_FOR_LD
 , m_bUseNewRefSetting         (false)
@@ -1356,7 +1290,6 @@ TComPPS::TComPPS()
 , m_bLongTermRefsPresent        (false)
 , m_uiBitsForLongTermRefs       (0)
 #endif
-, m_uiNumTlayerSwitchingFlags   (0)
 #if !F747_APS
 , m_bSharedPPSInfoEnabled       (false)
 #endif
@@ -1366,10 +1299,6 @@ TComPPS::TComPPS()
 ,  m_iNumSubstreams             (1)
 #endif
 {
-  for ( UInt i = 0; i < MAX_TLAYER; i++ )
-  {
-    m_abTLayerSwitchingFlag[i] = false;
-  }
 }
 
 TComPPS::~TComPPS()

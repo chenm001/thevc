@@ -762,7 +762,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
           m_pcEntropyCoder->resetEntropy      ();
         /* start slice NALunit */
-        OutputNALUnit nalu(pcSlice->getNalUnitType(), pcSlice->isReferenced() ? NAL_REF_IDC_PRIORITY_HIGHEST: NAL_REF_IDC_PRIORITY_LOWEST, pcSlice->getTLayer(), true);
+        OutputNALUnit nalu(pcSlice->getNalUnitType(), pcSlice->isReferenced() ? NAL_REF_IDC_PRIORITY_HIGHEST: NAL_REF_IDC_PRIORITY_LOWEST, true);
 #if TILES_DECODER
         Bool bEntropySlice = (!pcSlice->isNextSlice());
         if (!bEntropySlice)
@@ -1121,10 +1121,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcPic->compressMotion(); 
 #endif 
       
-#if !G1002_RPS
-      // Mark higher temporal layer pictures after switching point as unused
-      pcSlice->decodingTLayerSwitchingMarking( rcListPic );
-#endif
       //-- For time output for each slice
       Double dEncTime = (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
 
@@ -1650,9 +1646,8 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
   Char c = (pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B');
   if (!pcSlice->isReferenced()) c += 32;
 
-  printf("POC %4d TId: %1d ( %c-SLICE, QP %d ) %10d bits",
+  printf("POC %4d ( %c-SLICE, QP %d ) %10d bits",
          pcSlice->getPOC(),
-         pcSlice->getTLayer(),
          c,
          pcSlice->getSliceQp(),
          uibits );

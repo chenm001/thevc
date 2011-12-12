@@ -239,11 +239,6 @@ Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic
 #endif
 #endif
 
-#if !G1002_RPS
-  // Apply decoder picture marking at the end of coding
-  pcPic->getSlice( 0 )->decodingTLayerSwitchingMarking( m_cListPic );
-#endif
-
   TComSlice::sortPicList( m_cListPic ); // sorting for application output
   ruiPOC              = pcPic->getSlice(m_uiSliceIdx-1)->getPOC();
   rpcListPic          = &m_cListPic;  
@@ -428,9 +423,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 
       m_apcSlicePilot->setNalUnitType(nalu.m_UnitType);
       m_apcSlicePilot->setReferenced(nalu.m_RefIDC != NAL_REF_IDC_PRIORITY_LOWEST);
-#if G1002_RPS
-      m_apcSlicePilot->setTLayerInfo(nalu.m_TemporalID);
-#endif
       m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot);
 #if G220_PURE_VLC_SAO_ALF
 #if (TILES_DECODER || OL_USE_WPP)
@@ -458,8 +450,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       {
         xCreateLostPicture(m_apcSlicePilot->checkThatAllRefPicsAreAvailable(m_cListPic, m_apcSlicePilot->getRPS(), false)-1);
       }
-#else
-      m_apcSlicePilot->setTLayerInfo(nalu.m_TemporalID);
 #endif
 
       if (m_apcSlicePilot->isNextSlice() && m_apcSlicePilot->getPOC()!=m_uiPrevPOC && !m_bFirstSliceInSequence)
@@ -571,8 +561,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       assert(pcPic->getNumAllocatedSlice() == (m_uiSliceIdx + 1));
       m_apcSlicePilot = pcPic->getPicSym()->getSlice(m_uiSliceIdx); 
       pcPic->getPicSym()->setSlice(pcSlice, m_uiSliceIdx);
-
-      pcPic->setTLayer(nalu.m_TemporalID);
 
       if (bNextSlice)
       {

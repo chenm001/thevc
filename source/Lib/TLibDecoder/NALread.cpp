@@ -148,14 +148,13 @@ void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
   case NAL_UNIT_CODED_SLICE_IDR:
   case NAL_UNIT_CODED_SLICE_CDR:
     {
-      nalu.m_TemporalID = bs.read(3);
+      /*nalu.m_TemporalID =*/ bs.read(3);
       nalu.m_OutputFlag = bs.read(1);
       unsigned reserved_one_4bits = bs.read(4);
       assert(reserved_one_4bits == 1);
     }
     break;
   default:
-    nalu.m_TemporalID = 0;
     nalu.m_OutputFlag = true;
     break;
   }

@@ -276,11 +276,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     dQP += m_pcCfg->getGOPEntry(iGOPid).m_iQPOffset;
   }
 #else
-  if ( iDepth < MAX_TLAYER && m_pcCfg->getTemporalLayerQPOffset(iDepth) != ( MAX_QP + 1 ) )
-  {
-    dQP += m_pcCfg->getTemporalLayerQPOffset(iDepth);
-  }
-  else
   {
     if ( ( iPOCLast != 0 ) && ( ( uiPOCCurr % m_pcCfg->getIntraPeriod() ) != 0 ) && ( m_pcGOPEncoder->getGOPSize() != 0 ) ) // P or B-slice
     {
@@ -473,26 +468,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   
   rpcSlice->setDepth            ( iDepth );
   
-#if G1002_RPS
-  pcPic->setTLayer( m_pcCfg->getGOPEntry(iGOPid).m_iTemporalId );
-  if(eSliceType==I_SLICE)
-  {
-    pcPic->setTLayer(0);
-  }
-#else
-  if ( pSPS->getMaxTLayers() > 1 )
-  {
-    assert( iDepth < pSPS->getMaxTLayers() );
-    pcPic->setTLayer( iDepth );
-  }
-  else 
-  {
-    pcPic->setTLayer( 0 );
-  }
-#endif
-  rpcSlice->setTLayer( pcPic->getTLayer() );
-  rpcSlice->setTLayerSwitchingFlag( pPPS->getTLayerSwitchingFlag( pcPic->getTLayer() ) );
-
 #if !TILES_DECODER
   rpcSlice->setSPS( pSPS );
   rpcSlice->setPPS( pPPS );
