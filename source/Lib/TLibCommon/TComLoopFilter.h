@@ -154,7 +154,7 @@ protected:
   
 
 #if DEBLK_G590
-  __inline Int xDecisionStrongWeak( Int iOffset, Int d, Int beta, Int tc, Pel* piSrc);
+  __inline Bool xUseStrongFiltering( Int iOffset, Int d, Int beta, Int tc, Pel* piSrc);
 #endif      
   __inline Int xCalcDP( Pel* piSrc, Int iOffset);
   __inline Int xCalcDQ( Pel* piSrc, Int iOffset);

@@ -955,11 +955,11 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
           Bool bFilterQ = (iDQ0+iDQ3 < iSideThreshold);
 
 #if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS        
-          Int iSw =  xDecisionStrongWeak( iOffset, 2*iD0, iBeta, iTc , piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+0))
-                   & xDecisionStrongWeak( iOffset, 2*iD3, iBeta, iTc , piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+3));
+          Bool iSw =  xUseStrongFiltering( iOffset, 2*iD0, iBeta, iTc , piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+0))
+                    & xUseStrongFiltering( iOffset, 2*iD3, iBeta, iTc , piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+3));
 #else          
-          Int iSw =  xDecisionStrongWeak( iOffset, 2*iD0, iBeta, iTc , piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+0))
-                   & xDecisionStrongWeak( iOffset, 2*iD3, iBeta, iTc , piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+3));
+          Bool iSw =  xUseStrongFiltering( iOffset, 2*iD0, iBeta, iTc , piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+0))
+                    & xUseStrongFiltering( iOffset, 2*iD3, iBeta, iTc , piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+3));
 #endif
 
           for ( UInt i = 0; i < DEBLOCK_SMALLEST_BLOCK/2; i++)
@@ -977,11 +977,11 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
           Bool bFilterQ = (iDQ4+iDQ7 < iSideThreshold);
 
 #if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS        
-          Int iSw =  xDecisionStrongWeak( iOffset, 2*iD4, iBeta, iTc , piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+4))
-                   & xDecisionStrongWeak( iOffset, 2*iD7, iBeta, iTc , piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+7));
+          Bool iSw =  xUseStrongFiltering( iOffset, 2*iD4, iBeta, iTc , piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+4))
+                    & xUseStrongFiltering( iOffset, 2*iD7, iBeta, iTc , piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+7));
 #else          
-          Int iSw =  xDecisionStrongWeak( iOffset, 2*iD4, iBeta, iTc , piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+4))
-                   & xDecisionStrongWeak( iOffset, 2*iD7, iBeta, iTc , piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+7));
+          Bool iSw =  xUseStrongFiltering( iOffset, 2*iD4, iBeta, iTc , piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+4))
+                    & xUseStrongFiltering( iOffset, 2*iD7, iBeta, iTc , piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+7));
 #endif
           for ( UInt i = DEBLOCK_SMALLEST_BLOCK/2; i < DEBLOCK_SMALLEST_BLOCK; i++)
           {
@@ -1349,7 +1349,16 @@ __inline Void TComLoopFilter::xPelFilterChroma( Pel* piSrc, Int iOffset, Int tc 
 }
 
 #if DEBLK_G590
-__inline Int TComLoopFilter::xDecisionStrongWeak( Int iOffset, Int d, Int beta, Int tc, Pel* piSrc)
+/**
+ - Decision between strong and weak filter
+ .
+ \param iOffset         offset value for picture data
+ \param d               d value
+ \param beta            beta value
+ \param tc              tc value
+ \param piSrc           pointer to picture data
+ */
+__inline Bool TComLoopFilter::xUseStrongFiltering( Int iOffset, Int d, Int beta, Int tc, Pel* piSrc)
 {
   Pel m4  = piSrc[0];
   Pel m3  = piSrc[-iOffset];
@@ -1358,14 +1367,7 @@ __inline Int TComLoopFilter::xDecisionStrongWeak( Int iOffset, Int d, Int beta, 
 
   Int d_strong = abs(m0-m3) + abs(m7-m4);
 
-  if ( (d_strong < (beta>>3)) && (d<(beta>>2)) && ( abs(m3-m4) < ((tc*5+1)>>1)) ) //strong filtering
-  {
-    return 1;
-  }
-  else
-  {
-    return 0;
-  }
+  return ( (d_strong < (beta>>3)) && (d<(beta>>2)) && ( abs(m3-m4) < ((tc*5+1)>>1)) );
 }
 #endif
 
