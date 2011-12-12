@@ -125,9 +125,9 @@ protected:
 #if DEBLK_G590
   
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
-  __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Int iSw, Bool bPartPNoFilter, Bool bPartQNoFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
+  __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Bool iSw, Bool bPartPNoFilter, Bool bPartQNoFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
 #else
-  __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Int iSw, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
+  __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Bool iSw, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
 #endif  
   
 #else// !DEBLK_G590
