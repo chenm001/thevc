@@ -263,7 +263,12 @@ public:
   Void codeAux (ALFParam* pAlfParam);
   Void codeFilt (ALFParam* pAlfParam);
   Int codeFilterCoeff(ALFParam* ALFp);
+#if G610_ALF_K_BIT_FIX
+  Int writeFilterCodingParams(int minKStart, int minScanVal, int maxScanVal, int kMinTab[]);
+#else
   Int writeFilterCodingParams(int minKStart, int maxScanVal, int kMinTab[]);
+#endif
+
   Int writeFilterCoeffs(int sqrFiltLength, int filters_per_group, int pDepthInt[], 
                         int **FilterCoeff, int kMinTab[]);
   Int golombEncode(int coeff, int k);

@@ -61,6 +61,10 @@
 
 #define G609_NEW_BA_SUB             1   ///< G609: Directional feature calculation on subset of pixels
 #define G216_ALF_MERGE_FLAG_FIX     1   ///< G216: bug fixed: removing 15th merge flag for BA mode
+#define G610_ALF_K_BIT_FIX          1   ///< G610: bug fixed: removing extra alf_golomb_index_bit for cross-shaped filter
+#if G610_ALF_K_BIT_FIX
+#define MIN_SCAN_POS_CROSS          5
+#endif
 #define G214_ALF_CONSTRAINED_COEFF  1   ///< G214: Constrained ALF coefficient value
 #define G215_ALF_NUM_FILTER         1   ///< G215: the number of filters in one picture, encoder only
 #define ALF_DC_OFFSET_REMOVAL       1   ///< G445: Remove DC offset for ALF

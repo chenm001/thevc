@@ -187,6 +187,12 @@ Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
   
   pDepthInt = pDepthIntTabShapes[ALFp->filter_shape];
   maxScanVal = 0;
+#if G610_ALF_K_BIT_FIX
+  int minScanVal = ( ALFp->filter_shape==ALF_STAR5x5 ) ? 0 : MIN_SCAN_POS_CROSS;
+#else
+  int minScanVal = 0;  
+#endif
+
   for(i = 0; i < sqrFiltLength; i++)
   {
     maxScanVal = max(maxScanVal, pDepthInt[i]);
@@ -213,7 +219,7 @@ Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
   { 
     bitsKStart = 0; 
     kStart = k;
-    for(scanPos = 0; scanPos < maxScanVal; scanPos++)
+    for(scanPos = minScanVal; scanPos < maxScanVal; scanPos++)
     {
       kMin = kStart; 
       minBits = bitsCoeffScan[scanPos][kMin];
@@ -234,7 +240,7 @@ Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
   }
   
   kStart = minKStart; 
-  for(scanPos = 0; scanPos < maxScanVal; scanPos++)
+  for(scanPos = minScanVal; scanPos < maxScanVal; scanPos++)
   {
     kMin = kStart; 
     minBits = bitsCoeffScan[scanPos][kMin];
@@ -252,29 +258,41 @@ Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
   // Coding parameters
   ALFp->minKStart = minKStart;
   ALFp->maxScanVal = maxScanVal;
-  for(scanPos = 0; scanPos < maxScanVal; scanPos++)
+  for(scanPos = minScanVal; scanPos < maxScanVal; scanPos++)
   {
     ALFp->kMinTab[scanPos] = kMinTab[scanPos];
   }
+
+#if G610_ALF_K_BIT_FIX
+  len += writeFilterCodingParams(minKStart, minScanVal, maxScanVal, kMinTab);
+#else
   len += writeFilterCodingParams(minKStart, maxScanVal, kMinTab);
-  
+#endif
+
   // Filter coefficients
   len += writeFilterCoeffs(sqrFiltLength, filters_per_group, pDepthInt, ALFp->coeffmulti, kMinTab);
   
   return len;
 }
 
+#if G610_ALF_K_BIT_FIX
+Int TEncEntropy::writeFilterCodingParams(int minKStart, int minScanVal, int maxScanVal, int kMinTab[])
+#else
 Int TEncEntropy::writeFilterCodingParams(int minKStart, int maxScanVal, int kMinTab[])
+#endif
 {
   int scanPos;
   int golombIndexBit;
   int kMin;
-  
+#if !G610_ALF_K_BIT_FIX
+  int minScanVal = 0;
+#endif
+
   // Golomb parameters
   m_pcEntropyCoderIf->codeAlfUvlc(minKStart - 1);
   
   kMin = minKStart; 
-  for(scanPos = 0; scanPos < maxScanVal; scanPos++)
+  for(scanPos = minScanVal; scanPos < maxScanVal; scanPos++)
   {
     golombIndexBit = (kMinTab[scanPos] != kMin)? 1: 0;
     
