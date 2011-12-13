@@ -146,6 +146,44 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
           m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = (Int64) xRoundIbdi((Double)(m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]<<g_uiBitIncrement) / (Double)(m_iCount [iPartIdx][iTypeIdx][iClassIdx]<<m_uiSaoBitIncrease));
 #endif
           m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = Clip3(-m_iOffsetTh, m_iOffsetTh-1, (Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx]);
+#if SAO_RDO_OFFSET
+          {
+              //Clean up, best_q_offset.
+              Int64 iIterOffset, iTempOffset;
+              Int64 iTempDist, iTempRate;
+              Double dTempCost, dTempMinCost;
+              UInt uiLength, uiTemp;
+
+              iIterOffset = m_iOffset[iPartIdx][iTypeIdx][iClassIdx];
+              m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = 0;
+              dTempMinCost = dLambda; // Assuming sending quantized value 0 results in zero offset and sending the value zero needs 1 bit. entropy coder can be used to measure the exact rate here. 
+              
+              while (iIterOffset != 0)
+              {
+                  // Calculate the bits required for signalling the offset
+                  uiLength = 1;
+                  uiTemp = (UInt)((iIterOffset <= 0) ? ( (-iIterOffset<<1) + 1 ) : (iIterOffset<<1));
+                  while( 1 != uiTemp )
+                  {
+                      uiTemp >>= 1;
+                      uiLength += 2;
+                  }
+                  iTempRate = (uiLength >> 1) + ((uiLength+1) >> 1);
+
+                  // Do the dequntization before distorion calculation
+                  iTempOffset    =  iIterOffset << m_uiSaoBitIncrease;
+                  iTempDist  = (( m_iCount [iPartIdx][iTypeIdx][iClassIdx]*iTempOffset*iTempOffset-m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]*iTempOffset*2 ) >> uiShift);
+
+                  dTempCost = ((Double)iTempDist + dLambda * (Double) iTempRate);
+                  if(dTempCost < dTempMinCost)
+                  {
+                      dTempMinCost = dTempCost;
+                      m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = iIterOffset;
+                  }
+                  iIterOffset = (iIterOffset > 0) ? (iIterOffset-1):(iIterOffset+1);
+              }
+          }
+#endif
         }
         else
         {
