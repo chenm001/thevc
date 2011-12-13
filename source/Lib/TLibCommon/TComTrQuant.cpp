@@ -2957,7 +2957,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   UInt       uiGoRiceParam       = 0;
   Double     d64BlockUncodedCost = 0;
   const UInt uiLog2BlkSize       = g_aucConvertToBit[ uiWidth ] + 2;
-  const UInt uiMaxNumCoeff       = 1 << ( uiLog2BlkSize << 1 );
+  const UInt uiMaxNumCoeff       = uiWidth * uiHeight;
 #if DIAG_SCAN
   UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
   uiScanIdx = ( uiScanIdx == SCAN_ZIGZAG ) ? SCAN_DIAG : uiScanIdx; // Map value zigzag to diagonal scan
