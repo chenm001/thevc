@@ -121,9 +121,9 @@
 #if  !G1002_RPS
 #define REF_SETTING_FOR_LD              1           // reference frame setting for low delay setting (JCTVC-F701)
 #else
-#define INTER_RPS_PREDICTION            0           // remove this once tested.
-#define WRITE_BACK                      0           ///< Enable/disable the encoder to replace the deltaPOC and Used by current from the config file with the values derived by the refIdc parameter.
-#define PRINT_RPS_BITS_WRITTEN          1           ///< Enable/disable the printing of bits used to send the RPS.
+#define INTER_RPS_PREDICTION            1           // remove this once tested.
+#define WRITE_BACK                      1           ///< Enable/disable the encoder to replace the deltaPOC and Used by current from the config file with the values derived by the refIdc parameter.
+#define PRINT_RPS_BITS_WRITTEN          0           ///< Enable/disable the printing of bits used to send the RPS.
 #endif
                                                     // using one nearest frame as reference frame, and the other frames are high quality (POC%4==0) frames (1+X)
                                                     // this should be done with encoder only decision
