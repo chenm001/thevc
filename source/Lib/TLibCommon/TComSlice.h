@@ -941,12 +941,12 @@ public:
   Void setTLayerInfo( UInt uiTLayer );
   Void decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, Int& iMaxRefPicNum ); 
 #if G1002_RPS
-  Void decodingTLayerSwitchingMarking( TComList<TComPic*>& rcListPic );
-
   Void      applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pcRPSList);
   Int       checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool outputFlag);
   Void      createExplicitReferencePictureSetFromReference( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet);
 #else
+  Void decodingTLayerSwitchingMarking( TComList<TComPic*>& rcListPic );
+
 #if REF_SETTING_FOR_LD
   Int getActualRefNumber( TComList<TComPic*>& rcListPic );
   Void decodingRefMarkingForLD( TComList<TComPic*>& rcListPic, Int iMaxNumRefFrames, Int iCurrentPOC );
