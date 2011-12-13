@@ -57,6 +57,13 @@ struct GOPEntry {
   Int m_iNumRefPics;
   Int m_aiReferencePics[MAX_NUM_REF_PICS];
   Int m_aiUsedByCurrPic[MAX_NUM_REF_PICS];
+#if INTER_RPS_PREDICTION
+  Bool m_bInterRPSPrediction;
+  Int m_iDeltaRIdxMinus1;
+  Int m_iDeltaRPS;
+  Int m_iNumRefIdc;
+  Int m_aiRefIdc[MAX_NUM_REF_PICS+1];
+#endif
   GOPEntry() : m_iPOC(-1)
   {
   }

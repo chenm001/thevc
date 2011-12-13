@@ -106,6 +106,19 @@ std::istringstream &operator>>(std::istringstream &in, GOPEntry &entry)     //in
   {
     in>>entry.m_aiReferencePics[i];
   }
+#if INTER_RPS_PREDICTION
+  in>>entry.m_bInterRPSPrediction;
+  if (entry.m_bInterRPSPrediction)
+  {
+    in>>entry.m_iDeltaRIdxMinus1;
+    in>>entry.m_iDeltaRPS;
+    in>>entry.m_iNumRefIdc;
+    for ( Int i = 0; i < entry.m_iNumRefIdc; i++ )
+    {
+      in>>entry.m_aiRefIdc[i];
+    }
+  }
+#endif
   return in;
 }
 #endif
@@ -679,6 +692,46 @@ Void TAppEncCfg::xCheckParameter()
         }
         m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iNumRefPics=iNewRefs;
         m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iPOC = iCurPOC;
+#if INTER_RPS_PREDICTION
+        if (m_iExtraRPSs == 0)
+        {
+          m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_bInterRPSPrediction = 0;
+          m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iNumRefIdc = 0;
+        }
+        else
+        {
+          Int rIdx =  m_iGOPSize + m_iExtraRPSs - 1;
+          Int iRefPOC = m_pcGOPList[rIdx].m_iPOC;
+          Int iRefPics = m_pcGOPList[rIdx].m_iNumRefPics;
+          Int iNewIdc=0;
+          for(Int i = 0; i<= iRefPics; i++) 
+          {
+            Int deltaPOC = ((i != iRefPics)? m_pcGOPList[rIdx].m_aiReferencePics[i] : 0);  // check if the reference abs POC is >= 0
+            Int iAbsPOCref = iRefPOC+deltaPOC;
+            Int iRefIdc = 0;
+            for (Int j = 0; j < m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iNumRefPics; j++)
+            {
+              if ( (iAbsPOCref - iCurPOC) == m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiReferencePics[j])
+              {
+                if (m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiUsedByCurrPic[j])
+                {
+                  iRefIdc = 1;
+                }
+                else
+                {
+                  iRefIdc = 2;
+                }
+              }
+            }
+            m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiRefIdc[iNewIdc]=iRefIdc;
+            iNewIdc++;
+          }
+          m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_bInterRPSPrediction = 1;  
+          m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iNumRefIdc = iNewIdc;
+          m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iDeltaRPS = iRefPOC - m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iPOC; 
+          m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iDeltaRIdxMinus1 = 0; 
+        }
+#endif        
         m_iExtraRPSs++;
       }
       iNumRefs=0;

@@ -234,22 +234,61 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
 #if G1002_RPS
 Void TEncCavlc::codeShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet* pcRPS )
 {
-  WRITE_UVLC( pcRPS->getNumberOfNegativePictures(), "num_negative_pics" );
-  WRITE_UVLC( pcRPS->getNumberOfPositivePictures(), "num_positive_pics" );
-  Int prev = 0;
-  for(Int j=0 ; j < pcRPS->getNumberOfNegativePictures(); j++)
+#if PRINT_RPS_BITS_WRITTEN
+  int lastBits = getNumberOfWrittenBits();
+#endif
+#if INTER_RPS_PREDICTION
+  WRITE_FLAG( pcRPS->getInterRPSPrediction(), "inter_ref_pic_set_prediction_flag" ); // inter_RPS_prediction_flag
+  if (pcRPS->getInterRPSPrediction()) 
   {
-    WRITE_UVLC( prev-pcRPS->getDeltaPOC(j)-1, "delta_poc_s0_minus1" );
-    prev = pcRPS->getDeltaPOC(j);
-    WRITE_FLAG( pcRPS->getUsed(j), "used_by_curr_pic_s0_flag"); 
+    //Int rIdx = i - pcRPS->getDeltaRIdxMinus1() - 1;
+    Int deltaRPS = pcRPS->getDeltaRPS();
+    //assert (rIdx <= i);
+    WRITE_UVLC( pcRPS->getDeltaRIdxMinus1(), "delta_idx_minus1" ); // delta index of the Reference Picture Set used for prediction minus 1
+    WRITE_CODE( (deltaRPS >=0 ? 0: 1), 1, "delta_rps_sign" ); //delta_rps_sign
+    WRITE_UVLC( abs(deltaRPS) - 1, "abs_delta_rps_minus1"); // absolute delta RPS minus 1
+
+    for(Int j=0; j < pcRPS->getNumRefIdc(); j++)
+    {
+      Int refIdc = pcRPS->getRefIdc(j);
+      WRITE_CODE( (refIdc==1? 1: 0), 1, "ref_idc0" ); //first bit is "1" if Idc is 1 
+      if (refIdc != 1) 
+      {
+        WRITE_CODE( refIdc>>1, 1, "ref_idc1" ); //second bit is "1" if Idc is 2, "0" otherwise.
+      }
+    }
   }
-  prev = 0;
-  for(Int j=pcRPS->getNumberOfNegativePictures(); j < pcRPS->getNumberOfNegativePictures()+pcRPS->getNumberOfPositivePictures(); j++)
+  else
   {
-    WRITE_UVLC( pcRPS->getDeltaPOC(j)-prev-1, "delta_poc_s1_minus1" );
-    prev = pcRPS->getDeltaPOC(j);
-    WRITE_FLAG( pcRPS->getUsed(j), "used_by_curr_pic_s1_flag" ); 
+#endif //INTER_RPS_PREDICTION
+    WRITE_UVLC( pcRPS->getNumberOfNegativePictures(), "num_negative_pics" );
+    WRITE_UVLC( pcRPS->getNumberOfPositivePictures(), "num_positive_pics" );
+    Int prev = 0;
+    for(Int j=0 ; j < pcRPS->getNumberOfNegativePictures(); j++)
+    {
+      WRITE_UVLC( prev-pcRPS->getDeltaPOC(j)-1, "delta_poc_s0_minus1" );
+      prev = pcRPS->getDeltaPOC(j);
+      WRITE_FLAG( pcRPS->getUsed(j), "used_by_curr_pic_s0_flag"); 
+    }
+    prev = 0;
+    for(Int j=pcRPS->getNumberOfNegativePictures(); j < pcRPS->getNumberOfNegativePictures()+pcRPS->getNumberOfPositivePictures(); j++)
+    {
+      WRITE_UVLC( pcRPS->getDeltaPOC(j)-prev-1, "delta_poc_s1_minus1" );
+      prev = pcRPS->getDeltaPOC(j);
+      WRITE_FLAG( pcRPS->getUsed(j), "used_by_curr_pic_s1_flag" ); 
+    }
+#if INTER_RPS_PREDICTION
   }
+#endif // INTER_RPS_PREDICTION
+
+#if PRINT_RPS_BITS_WRITTEN
+#if INTER_RPS_PREDICTION  
+  printf("irps=%d (%2d bits) ", pcRPS->getInterRPSPrediction(), getNumberOfWrittenBits() - lastBits);
+#else
+  printf("(%2d bits) ", getNumberOfWrittenBits() - lastBits);
+#endif
+  pcRPS->printDeltaPOC();
+#endif
 }
 #endif
 

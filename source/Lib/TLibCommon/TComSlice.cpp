@@ -1148,7 +1148,11 @@ Void TComSlice::createExplicitReferencePictureSetFromReference( TComList<TComPic
   Int nrOfPositivePictures = 0;
   TComReferencePictureSet* pcRPS = this->getLocalRPS();
 
+#if INTER_RPS_PREDICTION
+  pcRPS->create(this->getPPS()->getSPS()->getMaxNumberOfReferencePictures(), this->getPPS()->getSPS()->getMaxNumberOfReferencePictures()+1);
+#else
   pcRPS->create(this->getPPS()->getSPS()->getMaxNumberOfReferencePictures());
+#endif
 
   // loop through all pictures in the Reference Picture Set
   for(i=0;i<pReferencePictureSet->getNumberOfPictures();i++)
@@ -1178,6 +1182,50 @@ Void TComSlice::createExplicitReferencePictureSetFromReference( TComList<TComPic
   pcRPS->setNumberOfNegativePictures(nrOfNegativePictures);
   pcRPS->setNumberOfPositivePictures(nrOfPositivePictures);
   pcRPS->setNumberOfPictures(nrOfNegativePictures+nrOfPositivePictures);
+#if INTER_RPS_PREDICTION
+  // This is a simplistic inter rps example. A smarter encoder will look for a better reference RPS to do the 
+  // inter RPS prediction with.  Here we just use the reference used by pReferencePictureSet.
+  // If pReferencePictureSet is not inter_RPS_predicted, then inter_RPS_prediction is for the current RPS also disabled.
+  if (!pReferencePictureSet->getInterRPSPrediction())
+  {
+    pcRPS->setInterRPSPrediction(false);
+    pcRPS->setNumRefIdc(0);
+  }
+  else
+  {
+    Int rIdx =  this->getRPSidx() - pReferencePictureSet->getDeltaRIdxMinus1() - 1;
+    Int deltaRPS = pReferencePictureSet->getDeltaRPS();
+    TComReferencePictureSet* pcRefRPS = this->getPPS()->getRPSList()->getReferencePictureSet(rIdx);
+    Int iRefPics = pcRefRPS->getNumberOfPictures();
+    Int iNewIdc=0;
+    for(i=0; i<= iRefPics; i++) 
+    {
+      Int deltaPOC = ((i != iRefPics)? pcRefRPS->getDeltaPOC(i) : 0);  // check if the reference abs POC is >= 0
+      Int iRefIdc = 0;
+      for (j=0; j < pcRPS->getNumberOfPictures(); j++) // loop through the  pictures in the new RPS
+      {
+        if ( (deltaPOC + deltaRPS) == pcRPS->getDeltaPOC(j))
+        {
+          if (pcRPS->getUsed(j))
+          {
+            iRefIdc = 1;
+          }
+          else
+          {
+            iRefIdc = 2;
+          }
+        }
+      }
+      pcRPS->setRefIdc(i, iRefIdc);
+      iNewIdc++;
+    }
+    pcRPS->setInterRPSPrediction(true);
+    pcRPS->setNumRefIdc(iNewIdc);
+    pcRPS->setDeltaRPS(deltaRPS); 
+    pcRPS->setDeltaRIdxMinus1(pReferencePictureSet->getDeltaRIdxMinus1() + this->getPPS()->getRPSList()->getNumberOfReferencePictureSets() - this->getRPSidx());
+  }
+#endif      
+
   this->setRPS(pcRPS);
   this->setRPSidx(-1);
 }
@@ -1544,7 +1592,11 @@ TComReferencePictureSet::~TComReferencePictureSet()
 {
 }
 
+#if INTER_RPS_PREDICTION
+Void TComReferencePictureSet::create( UInt uiNumberOfPictures, UInt uiNumberOfRefIdc)
+#else
 Void TComReferencePictureSet::create( UInt uiNumberOfPictures)
+#endif  
 {
   m_uiNumberOfPictures = uiNumberOfPictures;
   m_uiNumberOfNegativePictures = 0;
@@ -1553,6 +1605,13 @@ Void TComReferencePictureSet::create( UInt uiNumberOfPictures)
   m_piDeltaPOC    = new Int[uiNumberOfPictures];
   m_piPOC    = new Int[uiNumberOfPictures];
   m_pbUsed = new Bool[uiNumberOfPictures];
+#if INTER_RPS_PREDICTION
+  m_bInterRPSPrediction = 0; 
+  m_iDeltaRIdxMinus1 = 0;   
+  m_iDeltaRPS = 0; 
+  m_iNumRefIdc = uiNumberOfRefIdc; 
+  m_piRefIdc = new Int[uiNumberOfRefIdc];
+#endif  
 }
 
 Void TComReferencePictureSet::destroy()
@@ -1563,6 +1622,10 @@ Void TComReferencePictureSet::destroy()
   m_piDeltaPOC = NULL;
   delete [] m_pbUsed;     
   m_pbUsed = NULL;
+#if INTER_RPS_PREDICTION
+  delete [] m_piRefIdc;
+  m_piRefIdc = NULL;
+#endif  
 }
 
 Void TComReferencePictureSet::setUsed(UInt uiBufferNum, Bool bUsed)
@@ -1602,6 +1665,88 @@ Int TComReferencePictureSet::getPOC(UInt uiBufferNum)
 Void TComReferencePictureSet::setPOC(UInt uiBufferNum, Int iPOC)
 {
    m_piPOC[uiBufferNum] = iPOC;
+}
+
+#if INTER_RPS_PREDICTION
+/** set the reference idc value at uiBufferNum entry to the value of iRefIdc
+ * \param uiBufferNum
+ * \param iRefIdc
+ * \returns Void
+ */
+Void TComReferencePictureSet::setRefIdc(UInt uiBufferNum, Int iRefIdc)
+{
+   m_piRefIdc[uiBufferNum] = iRefIdc;
+}
+
+/** get the reference idc value at uiBufferNum
+ * \param uiBufferNum
+ * \returns Int
+ */
+Int  TComReferencePictureSet::getRefIdc(UInt uiBufferNum)
+{
+   return m_piRefIdc[uiBufferNum];
+}
+
+/** Sorts the deltaPOC and Used by current values in the RPS based on the deltaPOC values.
+ *  deltaPOC values are sorted with -ve values before the +ve values.  -ve values are in decreasing order.
+ *  +ve values are in increasing order.
+ * \returns Void
+ */
+Void TComReferencePictureSet::sortDeltaPOC()
+{
+  // sort in increasing order (smallest first)
+  for(Int j=1; j < getNumberOfPictures(); j++)
+  { 
+    Int deltaPOC = getDeltaPOC(j);
+    Bool bUsed = getUsed(j);
+    for (Int k=j-1; k >= 0; k--)
+    {
+      Int temp = getDeltaPOC(k);
+      if (deltaPOC < temp)
+      {
+        setDeltaPOC(k+1, temp);
+        setUsed(k+1, getUsed(k));
+        setDeltaPOC(k, deltaPOC);
+        setUsed(k, bUsed);
+      }
+    }
+  }
+  // flip the negative values to largest first
+  Int NumNegPics = getNumberOfNegativePictures();
+  for(Int j=0, k=NumNegPics-1; j < NumNegPics>>1; j++, k--)
+  { 
+    Int deltaPOC = getDeltaPOC(j);
+    Bool bUsed = getUsed(j);
+    setDeltaPOC(j, getDeltaPOC(k));
+    setUsed(j, getUsed(k));
+    setDeltaPOC(k, deltaPOC);
+    setUsed(k, bUsed);
+  }
+}
+
+#endif
+/** Prints the deltaPOC and RefIdc (if available) values in the RPS.
+ *  A "*" is added to the deltaPOC value if it is Used bu current.
+ * \returns Void
+ */
+Void TComReferencePictureSet::printDeltaPOC()
+{
+  printf("DeltaPOC = { ");
+  for(Int j=0; j < getNumberOfPictures(); j++)
+  {
+    printf("%d%s ", getDeltaPOC(j), (getUsed(j)==1)?"*":"");
+  } 
+#if INTER_RPS_PREDICTION
+  if (getInterRPSPrediction()) 
+  {
+    printf("}, RefIdc = { ");
+    for(Int j=0; j < getNumRefIdc(); j++)
+    {
+      printf("%d ", getRefIdc(j));
+    } 
+  }
+#endif
+  printf("}\n");
 }
 
 TComRPS::TComRPS()

@@ -770,7 +770,11 @@ Void TEncTop::xInitRPS()
   {
     GOPEntry pGE = getGOPEntry(i);
     pcRPS = m_cRPSList.getReferencePictureSet(i);
+#if INTER_RPS_PREDICTION
+    pcRPS->create(pGE.m_iNumRefPics, pGE.m_iNumRefIdc);
+#else
     pcRPS->create(pGE.m_iNumRefPics);
+#endif
     int iNumNeg = 0;
     int iNumPos = 0;
     for( Int j = 0; j < pGE.m_iNumRefPics; j++)
@@ -784,6 +788,42 @@ Void TEncTop::xInitRPS()
     }
     pcRPS->setNumberOfNegativePictures(iNumNeg);
     pcRPS->setNumberOfPositivePictures(iNumPos);
+#if INTER_RPS_PREDICTION
+    pcRPS->setInterRPSPrediction(pGE.m_bInterRPSPrediction);
+    if (pGE.m_bInterRPSPrediction)
+    {
+      pcRPS->setDeltaRIdxMinus1(pGE.m_iDeltaRIdxMinus1);
+      pcRPS->setDeltaRPS(pGE.m_iDeltaRPS);
+      pcRPS->setNumRefIdc(pGE.m_iNumRefIdc);
+      for (Int j = 0; j < pGE.m_iNumRefIdc; j++ )
+      {
+        pcRPS->setRefIdc(j, pGE.m_aiRefIdc[j]);
+      }
+#if WRITE_BACK
+      // the folowing code overwrite the deltaPOC and Used by current values read from the config file with the ones
+      // computed from the RefIdc.  This is not necessary if both are identical. Currently there is no check to see if they are identical.
+      iNumNeg = 0;
+      iNumPos = 0;
+      TComReferencePictureSet*     pcRPSRef = m_cRPSList.getReferencePictureSet(i-(pGE.m_iDeltaRIdxMinus1+1));
+      for (Int j = 0; j < pGE.m_iNumRefIdc; j++ )
+      {
+        if (pGE.m_aiRefIdc[j])
+        {
+          int deltaPOC = pGE.m_iDeltaRPS + ((j < pcRPSRef->getNumberOfPictures())? pcRPSRef->getDeltaPOC(j) : 0);
+          pcRPS->setDeltaPOC((iNumNeg+iNumPos),deltaPOC);
+          pcRPS->setUsed((iNumNeg+iNumPos),pGE.m_aiRefIdc[j]==1?1:0);
+          if (deltaPOC<0)
+            iNumNeg++;
+          else
+            iNumPos++;
+        }
+      }
+      pcRPS->setNumberOfNegativePictures(iNumNeg);
+      pcRPS->setNumberOfPositivePictures(iNumPos);
+      pcRPS->sortDeltaPOC();
+#endif
+    }
+#endif
   }
   
 }

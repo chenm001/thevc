@@ -345,12 +345,23 @@ private:
   Int*      m_piDeltaPOC;
   Int*      m_piPOC;
   Bool*     m_pbUsed;
-  
+#if INTER_RPS_PREDICTION
+  Bool m_bInterRPSPrediction;
+  Int m_iDeltaRIdxMinus1;   
+  Int m_iDeltaRPS; 
+  Int m_iNumRefIdc; 
+  Int* m_piRefIdc;
+#endif  
+
 public:
   TComReferencePictureSet();
   virtual ~TComReferencePictureSet();
   
+#if INTER_RPS_PREDICTION
+  Void  create                    (UInt uiNumberOfPictures, UInt uiNumberOfRefIdc);
+#else
   Void  create                    (UInt uiNumberOfPictures);
+#endif  
   Void  destroy                   ();
 
   Void setUsed(UInt uiBufferNum, Bool bUsed);
@@ -370,7 +381,22 @@ public:
   Void setNumberOfLongtermPictures(UInt Number) { m_uiNumberOfLongtermPictures = Number; }
   UInt getNumberOfLongtermPictures() { return m_uiNumberOfLongtermPictures; }
 
+#if INTER_RPS_PREDICTION
+  Void setInterRPSPrediction(Bool flag) { m_bInterRPSPrediction = flag; }
+  Bool getInterRPSPrediction() { return m_bInterRPSPrediction; }
+  Void setDeltaRIdxMinus1(Int x) { m_iDeltaRIdxMinus1 = x; }
+  Int getDeltaRIdxMinus1() { return m_iDeltaRIdxMinus1; }
+  Void setDeltaRPS(Int x) { m_iDeltaRPS = x; }
+  Int getDeltaRPS() { return m_iDeltaRPS; }
+  Void setNumRefIdc(Int x) { m_iNumRefIdc = x; }
+  Int getNumRefIdc() { return m_iNumRefIdc; }
 
+  Void setRefIdc(UInt uiBufferNum, Int iRefIdc);
+  Int  getRefIdc(UInt uiBufferNum);
+
+  Void sortDeltaPOC();
+#endif
+  Void printDeltaPOC();
 };
 
 /// Reference Picture Set set class
