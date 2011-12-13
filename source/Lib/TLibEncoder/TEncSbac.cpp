@@ -1098,11 +1098,10 @@ Void TEncSbac::codeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
  * \param width  Block width
  * \param height Block height
  * \param eTType plane type / luminance or chrominance
- * \param uiCTXIdx block size context
  * \param uiScanIdx scan type (zig-zag, hor, ver)
  * This method encodes the X and Y component within a block of the last significant coefficient.
  */
-Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int height, TextType eTType, UInt uiCTXIdx, UInt uiScanIdx )
+Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int height, TextType eTType, UInt uiScanIdx )
 {  
   // swap
   if( uiScanIdx == SCAN_VER )
@@ -1306,18 +1305,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   }
   
   UInt uiNumSig = 0;
-  UInt uiCTXIdx = 0;
-  
-  switch( uiWidth )
-  {
-    case  2: uiCTXIdx = 6; break;
-    case  4: uiCTXIdx = 5; break;
-    case  8: uiCTXIdx = 4; break;
-    case 16: uiCTXIdx = 3; break;
-    case 32: uiCTXIdx = 2; break;
-    case 64: uiCTXIdx = 1; break;
-    default: uiCTXIdx = 0; break;
-  }
   
   // compute number of significant coefficients
   uiNumSig = TEncEntropy::countNonZeroCoeffs(pcCoef, uiWidth);
@@ -1401,7 +1388,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   // Code position of last coefficient
   Int posLastY = posLast >> uiLog2BlockSize;
   Int posLastX = posLast - ( posLastY << uiLog2BlockSize );
-  codeLastSignificantXY(posLastX, posLastY, uiWidth, uiWidth, eTType, uiCTXIdx, uiScanIdx);
+  codeLastSignificantXY(posLastX, posLastY, uiWidth, uiWidth, eTType, uiScanIdx);
   
   //===== code significance flag =====
 #if MULTI_LEVEL_SIGNIFICANCE
