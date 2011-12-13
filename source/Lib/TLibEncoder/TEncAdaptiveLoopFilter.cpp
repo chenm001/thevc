@@ -712,7 +712,11 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
 {
   Int     yposEnd = ypos + iHeight -1;
   Int     xposEnd = xpos + iWidth  -1;
+#if ALF_DC_OFFSET_REMOVAL
+  Int     N       = m_sqrFiltLengthTab[filtNo];
+#else
   Int     N       = m_sqrFiltLengthTab[filtNo] - 1;
+#endif
 
   Int ELocal[ALF_MAX_NUM_COEF];
   Pel *pImgPad1, *pImgPad2, *pImgPad3, *pImgPad4;
@@ -759,10 +763,15 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
               m_ppdAlfCorr[k][l] += ELocal[k]*ELocal[l];
             }
 
+#if ALF_DC_OFFSET_REMOVAL
+            m_ppdAlfCorr[k][N] += yLocal*ELocal[k];
+#else
             // DC offset
             m_ppdAlfCorr[k][N]   += ELocal[k];
             m_ppdAlfCorr[k][N+1] += yLocal*ELocal[k];
+#endif
           }
+#if !ALF_DC_OFFSET_REMOVAL
           // DC offset
           for(k=0; k<N; k++)
           {
@@ -770,6 +779,7 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
           }
           m_ppdAlfCorr[N][N]   += 1;
           m_ppdAlfCorr[N][N+1] += yLocal;
+#endif
         }
         pImgPad+= iCmpStride;
         pImgOrg+= iOrgStride;
@@ -812,10 +822,15 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
               m_ppdAlfCorr[k][l] += ELocal[k]*ELocal[l];
             }
 
+#if ALF_DC_OFFSET_REMOVAL
+            m_ppdAlfCorr[k][N] += yLocal*ELocal[k];
+#else
             // DC offset
             m_ppdAlfCorr[k][N]   += ELocal[k];
             m_ppdAlfCorr[k][N+1] += yLocal*ELocal[k];
+#endif
           }
+#if !ALF_DC_OFFSET_REMOVAL
           // DC offset
           for(k=0; k<N; k++)
           {
@@ -823,6 +838,7 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
           }
           m_ppdAlfCorr[N][N]   += 1;
           m_ppdAlfCorr[N][N+1] += yLocal;
+#endif
         }
         pImgPad+= iCmpStride;
         pImgOrg+= iOrgStride;
@@ -976,8 +992,12 @@ Void TEncAdaptiveLoopFilter::xQuantFilterCoef(Double* h, Int* qh, Int tap, int b
   Double *dh;
   Int    *nc;
   const Int    *pFiltMag;
-  
+
+#if ALF_DC_OFFSET_REMOVAL
+  N = m_sqrFiltLengthTab[tap];
+#else
   N = m_sqrFiltLengthTab[tap] - 1;
+#endif
   // star shape
   if(tap == 0)
   {
@@ -1076,7 +1096,8 @@ Void TEncAdaptiveLoopFilter::xQuantFilterCoef(Double* h, Int* qh, Int tap, int b
   {
     qh[i] = max(min_value,min(max_value, qh[i]));
   }
-  
+
+#if !ALF_DC_OFFSET_REMOVAL
   // DC offset
   //  max_value = Min(  (1<<(3+Max(img_bitdepth_luma,img_bitdepth_chroma)))-1, (1<<14)-1);
   //  min_value = Max( -(1<<(3+Max(img_bitdepth_luma,img_bitdepth_chroma))),  -(1<<14)  );
@@ -1085,9 +1106,14 @@ Void TEncAdaptiveLoopFilter::xQuantFilterCoef(Double* h, Int* qh, Int tap, int b
   
   qh[N] =  (h[N]>=0.0)? (Int)( h[N]*(1<<(ALF_NUM_BIT_SHIFT-bit_depth+8)) + 0.5) : -(Int)(-h[N]*(1<<(ALF_NUM_BIT_SHIFT-bit_depth+8)) + 0.5);
   qh[N] = max(min_value,min(max_value, qh[N]));
-  
+#endif
+
 #if G214_ALF_CONSTRAINED_COEFF
+#if ALF_DC_OFFSET_REMOVAL
+  checkFilterCoeffValue(qh, N, true);
+#else
   checkFilterCoeffValue(qh, N+1, true);
+#endif
 #endif
 
 
@@ -1104,7 +1130,11 @@ Void TEncAdaptiveLoopFilter::xClearFilterCoefInt(Int* qh, Int N)
   memset( qh, 0, sizeof( Int ) * N );
   
   // center pos
+#if ALF_DC_OFFSET_REMOVAL
+  qh[N-1]  = 1<<ALF_NUM_BIT_SHIFT;
+#else
   qh[N-2]  = 1<<ALF_NUM_BIT_SHIFT;
+#endif
 }
 
 /** Calculate RD cost
@@ -1548,7 +1578,11 @@ Void TEncAdaptiveLoopFilter::predictALFCoeffLumaEnc(ALFParam* pcAlfParam, Int **
   for(ind = 0; ind < pcAlfParam->filters_per_group; ++ind)
   {
     sum = 0;
+#if ALF_DC_OFFSET_REMOVAL
+    for(Int i = 0; i < pcAlfParam->num_coeff-2; i++)
+#else
     for(Int i = 0; i < pcAlfParam->num_coeff-3; i++)
+#endif
     {
       sum +=  pFiltMag[i]*pfilterCoeffSym[ind][i];
     }
@@ -1561,7 +1595,11 @@ Void TEncAdaptiveLoopFilter::predictALFCoeffLumaEnc(ALFParam* pcAlfParam, Int **
     {
       coeffPred = (0-sum) >> 2;
     }
+#if ALF_DC_OFFSET_REMOVAL
+    if(abs(pfilterCoeffSym[ind][pcAlfParam->num_coeff-2]-coeffPred) < abs(pfilterCoeffSym[ind][pcAlfParam->num_coeff-2]))
+#else
     if(abs(pfilterCoeffSym[ind][pcAlfParam->num_coeff-3]-coeffPred) < abs(pfilterCoeffSym[ind][pcAlfParam->num_coeff-3]))
+#endif
     {
       pcAlfParam->nbSPred[ind] = 0; 
     }
@@ -1570,8 +1608,13 @@ Void TEncAdaptiveLoopFilter::predictALFCoeffLumaEnc(ALFParam* pcAlfParam, Int **
       pcAlfParam->nbSPred[ind] = 1; 
       coeffPred = 0;
     }
+#if ALF_DC_OFFSET_REMOVAL
+    sum += pFiltMag[pcAlfParam->num_coeff-2]*pfilterCoeffSym[ind][pcAlfParam->num_coeff-2];
+    pfilterCoeffSym[ind][pcAlfParam->num_coeff-2] -= coeffPred; 
+#else
     sum += pFiltMag[pcAlfParam->num_coeff-3]*pfilterCoeffSym[ind][pcAlfParam->num_coeff-3];
     pfilterCoeffSym[ind][pcAlfParam->num_coeff-3] -= coeffPred; 
+#endif
     if((pcAlfParam->predMethod==0)|(ind==0))
     {
       coeffPred = (1<<ALF_NUM_BIT_SHIFT)-sum;
@@ -1580,7 +1623,11 @@ Void TEncAdaptiveLoopFilter::predictALFCoeffLumaEnc(ALFParam* pcAlfParam, Int **
     {
       coeffPred = -sum;
     }
+#if ALF_DC_OFFSET_REMOVAL
+    pfilterCoeffSym[ind][pcAlfParam->num_coeff-1] -= coeffPred;
+#else
     pfilterCoeffSym[ind][pcAlfParam->num_coeff-2] -= coeffPred;
+#endif
   }
 }
 #endif
@@ -2143,8 +2190,10 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
             ELocal[7] = (pImgPad[j+1] + pImgPad[j-1]);
             ELocal[8] = (pImgPad[j  ]);
 
+#if !ALF_DC_OFFSET_REMOVAL
             //DC offset
             ELocal[9]=1;
+#endif
 
             yLocal= pImgOrg[j];
             m_pixAcc[varInd]+=(yLocal*yLocal);
@@ -2195,8 +2244,10 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
             ELocal[6] = (pImgPad[j+1] + pImgPad[j-1]);
             ELocal[7] = (pImgPad[j  ] );
 
+#if !ALF_DC_OFFSET_REMOVAL
             //DC offset
             ELocal[8]=1;
+#endif
 
             yLocal= pImgOrg[j];
             m_pixAcc[varInd]+=(yLocal*yLocal);
@@ -2256,12 +2307,18 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
             {
               ELocal[k++] = ( pImgPadTTemp[jj] + pImgPadBTemp[-jj]);
             }
+#if ALF_DC_OFFSET_REMOVAL
+            assert(k==sqrFiltLength -1);
+#else
             assert(k==sqrFiltLength -2);
+#endif
 
             ELocal[k] = pImgPadTTemp[5];
 
+#if !ALF_DC_OFFSET_REMOVAL
             //DC offset
             ELocal[sqrFiltLength-1]=1;
+#endif
 
             yLocal= pImgOrg[j];
             m_pixAcc[varInd]+=(yLocal*yLocal);
@@ -4513,11 +4570,17 @@ Int64 TEncAdaptiveLoopFilter::xFastFiltDistEstimationChroma(Double** ppdCorr, In
   Int    i,j;
   Int64  iDist;
   Double dDist, dsum;
+#if ALF_DC_OFFSET_REMOVAL
+  for(i=0; i< iSqrFiltLength; i++)
+#else
   for(i=0; i< iSqrFiltLength-1; i++)
+#endif
   {
     pdcoeff[i]= (Double)piCoeff[i] / (Double)(1<< ((Int)ALF_NUM_BIT_SHIFT) );
   }
+#if !ALF_DC_OFFSET_REMOVAL
   pdcoeff[i]= (Double)piCoeff[i] / (Double)(1<< ((Int)ALF_NUM_BIT_SHIFT - g_uiBitIncrement) );
+#endif
 
   dDist =0;
   for(i=0; i< iSqrFiltLength; i++)

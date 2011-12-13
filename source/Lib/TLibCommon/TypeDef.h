@@ -63,6 +63,7 @@
 #define G216_ALF_MERGE_FLAG_FIX     1   ///< G216: bug fixed: removing 15th merge flag for BA mode
 #define G214_ALF_CONSTRAINED_COEFF  1   ///< G214: Constrained ALF coefficient value
 #define G215_ALF_NUM_FILTER         1   ///< G215: the number of filters in one picture, encoder only
+#define ALF_DC_OFFSET_REMOVAL       1   ///< G445: Remove DC offset for ALF
 
 ////////////////////////////
 // JCT-VC F start
