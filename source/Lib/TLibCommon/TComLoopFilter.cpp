@@ -278,7 +278,12 @@ Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiD
   {
     for( UInt uiPartIdx = uiAbsZorderIdx; uiPartIdx < uiAbsZorderIdx + uiCurNumParts; uiPartIdx++ )
     {
+#if BS_DISABLE_INSIDE_8x8
+      UInt uiBSCheck = ((iDir == EDGE_VER && uiPartIdx%2 == 0) || (iDir == EDGE_HOR && (uiPartIdx-((uiPartIdx>>2)<<2))/2 == 0));
+      if ( m_aapbEdgeFilter[iDir][0][uiPartIdx] && uiBSCheck )
+#else
       if ( m_aapbEdgeFilter[iDir][0][uiPartIdx] )
+#endif
       {
         xGetBoundaryStrengthSingle ( pcCU, uiAbsZorderIdx, iDir, uiPartIdx );
       }
