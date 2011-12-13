@@ -1380,7 +1380,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   
   //----- parse significance map -----
   const UInt  uiLog2BlockSize   = g_aucConvertToBit[ uiWidth ] + 2;
-  const UInt  uiMaxNumCoeff     = 1 << ( uiLog2BlockSize << 1 );
+  const UInt  uiMaxNumCoeff     = uiWidth * uiHeight;
   const UInt  uiMaxNumCoeffM1   = uiMaxNumCoeff - 1;
 #if DIAG_SCAN
   UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
