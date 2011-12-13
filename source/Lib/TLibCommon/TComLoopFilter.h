@@ -125,9 +125,9 @@ protected:
 #if DEBLK_G590
   
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
-  __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Bool iSw, Bool bPartPNoFilter, Bool bPartQNoFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
+  __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Bool sw, Bool bPartPNoFilter, Bool bPartQNoFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
 #else
-  __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Bool iSw, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
+  __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Bool sw, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
 #endif  
   
 #else// !DEBLK_G590
@@ -154,7 +154,7 @@ protected:
   
 
 #if DEBLK_G590
-  __inline Bool xUseStrongFiltering( Int iOffset, Int d, Int beta, Int tc, Pel* piSrc);
+  __inline Bool xUseStrongFiltering( Int offset, Int d, Int beta, Int tc, Pel* piSrc);
 #endif      
   __inline Int xCalcDP( Pel* piSrc, Int iOffset);
   __inline Int xCalcDQ( Pel* piSrc, Int iOffset);
