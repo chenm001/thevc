@@ -1966,7 +1966,11 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   if (orgHeight != orgWidth)
   {
     TCoeff  orgCoeff[ 256 ];
+#if NSQT_TX_ORDER
     Int tableIdx = ( orgWidth * orgHeight ) == 64 ? 2 * ( orgHeight > orgWidth ) : 2 * ( orgHeight > orgWidth ) + 1;
+#else
+    Int tableIdx = ( orgWidth * orgHeight ) == 64 ? 0 : 1;
+#endif
     memcpy( &orgCoeff[0], pcCoef, orgWidth * orgHeight * sizeof( TCoeff ) ); 
     for( Int scanPos = 0; scanPos < orgWidth * orgHeight; scanPos++ )
     {
