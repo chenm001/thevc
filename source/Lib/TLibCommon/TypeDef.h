@@ -41,7 +41,7 @@
 //! \ingroup TLibCommon
 //! \{
 
-#define DBF_DQP 1    ///< average QP for deblocking filter parameter lookup
+#define DBF_DQP                   1    ///< average QP for deblocking filter parameter lookup
 #define BS_DISABLE_INSIDE_8x8     1
 
 #define CABAC_RICE_FIX            1 ///< G495: fixing an entry in g_auiGoRicePrefixLen table

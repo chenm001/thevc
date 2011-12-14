@@ -770,11 +770,11 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
   Int iQP_Q = 0;
 #else
   Int  iQP = pcCU->getQP( uiAbsZorderIdx );
-#endif
   if(pcCU->getIPCMFlag( uiAbsZorderIdx )) 
   {
     iQP = 0; 
   }
+#endif
   UInt uiNumParts = pcCU->getPic()->getNumPartInWidth()>>uiDepth;
   
   UInt  uiPelsInPart = g_uiMaxCUWidth >> g_uiMaxCUDepth;
@@ -859,6 +859,16 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
         pcCUP = pcCUQ->getPUAbove(uiPartPIdx, uiPartQIdx);
       }
       iQP_P = pcCUP->getQP(uiPartPIdx);
+
+      if(pcCU->getIPCMFlag(uiPartQIdx)) 
+      {
+        iQP_Q = 0; 
+      }
+      if(pcCUP->getIPCMFlag(uiPartQIdx)) 
+      {
+        iQP_P = 0; 
+      }
+
       iQP = (iQP_P + iQP_Q + 1) >> 1;
 #endif
     Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
@@ -1055,12 +1065,17 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
   Int         iStride     = pcPicYuvRec->getCStride();
   Pel*        piSrcCb     = pcPicYuvRec->getCbAddr( pcCU->getAddr(), uiAbsZorderIdx );
   Pel*        piSrcCr     = pcPicYuvRec->getCrAddr( pcCU->getAddr(), uiAbsZorderIdx );
-  
+#if DBF_DQP
+  Int iQP = 0;
+  Int iQP_P = 0;
+  Int iQP_Q = 0;
+#else
   Int   iQP = QpUV((Int) pcCU->getQP( uiAbsZorderIdx ));
   if(pcCU->getIPCMFlag( uiAbsZorderIdx )) 
   {
     iQP = QpUV(0); 
   }
+#endif
 
   UInt  uiPelsInPartChroma = g_uiMaxCUWidth >> (g_uiMaxCUDepth+1);
   
@@ -1126,6 +1141,31 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
     if ( ucBs > 1)
     {
 #endif
+#if DBF_DQP
+      iQP_Q = pcCU->getQP( uiBsAbsIdx );
+      uiPartQIdx = uiBsAbsIdx;
+      // Derive neighboring PU index
+      if (iDir == EDGE_VER)
+      {
+        pcCUP = pcCUQ->getPULeft (uiPartPIdx, uiPartQIdx);
+      }
+      else  // (iDir == EDGE_HOR)
+      {
+        pcCUP = pcCUQ->getPUAbove(uiPartPIdx, uiPartQIdx);
+      }
+      iQP_P = pcCUP->getQP(uiPartPIdx);
+
+      if(pcCU->getIPCMFlag(uiPartQIdx)) 
+      {
+        iQP_Q = 0; 
+      }
+      if(pcCUP->getIPCMFlag(uiPartQIdx)) 
+      {
+        iQP_P = 0; 
+      }
+
+      iQP = QpUV((iQP_P + iQP_Q + 1) >> 1);
+#endif
     Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
     
 #if !DEBLK_CLEANUP_G175_G620_G638
@@ -1145,6 +1185,7 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
       if(bPCMFilter)
       {
+#if !DBF_DQP
         // Derive current PU index
         uiPartQIdx = xCalcBsIdx(pcCUQ, uiAbsZorderIdx, iDir, iEdge, iIdx);
 
@@ -1157,7 +1198,7 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
         {
           pcCUP = pcCUQ->getPUAbove(uiPartPIdx, uiPartQIdx);
         }
-
+#endif
         // Check if each of PUs is IPCM
         bPartPNoFilter = (pcCUP->getIPCMFlag(uiPartPIdx));
         bPartQNoFilter = (pcCUQ->getIPCMFlag(uiPartQIdx));
