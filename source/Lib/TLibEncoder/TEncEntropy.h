@@ -137,7 +137,11 @@ public:
   virtual Void codeSaoUvlc          ( UInt uiCode ) = 0;
   virtual Void codeSaoSvlc          ( Int   iCode ) = 0;
 #endif
+#if NSQT_DIAG_SCAN
+  virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType) = 0;
+#else
   virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType) = 0;
+#endif
   
 #if TILES
   virtual Void updateContextTables ( SliceType eSliceType, Int iQp, Bool bExecuteFinish )   = 0;
@@ -267,7 +271,11 @@ public:
   
   Void encodeCoeffNxN         ( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPartIdx, UInt uiTrWidth, UInt uiTrHeight, UInt uiDepth, TextType eType );
   
+#if NSQT_DIAG_SCAN
+  Void estimateBit             ( estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType);
+#else
   Void estimateBit             ( estBitsSbacStruct* pcEstBitsSbac, UInt uiWidth, TextType eTType);
+#endif
   
   // ALF-related
   Void codeAuxCountBit(ALFParam* pAlfParam, Int64* ruiRate);

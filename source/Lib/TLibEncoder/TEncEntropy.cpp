@@ -1241,8 +1241,13 @@ Void TEncEntropy::encodeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsP
   m_pcEntropyCoderIf->codeCoeffNxN( pcCU, pcCoeff, uiAbsPartIdx, uiTrWidth, uiTrHeight, uiDepth, eType );
 }
 
+#if NSQT_DIAG_SCAN
+Void TEncEntropy::estimateBit (estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType)
+#else
 Void TEncEntropy::estimateBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiWidth, TextType eTType)
+#endif
 {
+#if !NSQT_DIAG_SCAN
   UInt uiCTXIdx;
   
   switch(uiWidth)
@@ -1255,10 +1260,15 @@ Void TEncEntropy::estimateBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiWidth, T
     case 64: uiCTXIdx = 1; break;
     default: uiCTXIdx = 0; break;
   }
+#endif
   
   eTType = eTType == TEXT_LUMA ? TEXT_LUMA : TEXT_CHROMA;
   
+#if NSQT_DIAG_SCAN
+  m_pcEntropyCoderIf->estBit ( pcEstBitsSbac, width, height, eTType );
+#else
   m_pcEntropyCoderIf->estBit ( pcEstBitsSbac, uiCTXIdx, eTType );
+#endif
 }
 
 #if SAO
@@ -1362,7 +1372,11 @@ Int TEncEntropy::countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize )
 {
   Int count = 0;
   
+#if NSQT_DIAG_SCAN
+  for ( Int i = 0; i < uiSize; i++ )
+#else
   for ( Int i = 0; i < uiSize * uiSize; i++ )
+#endif
   {
     count += pcCoef[i] != 0;
   }

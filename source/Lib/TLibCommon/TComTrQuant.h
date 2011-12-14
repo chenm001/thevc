@@ -179,13 +179,32 @@ public:
                                      const UInt                      uiPosX,
                                      const UInt                      uiPosY,
                                      const UInt                      uiLog2BlkSize,
+#if NSQT_DIAG_SCAN
+#if SIGMAP_CTX_RED
+                                    Int uiStride, Int height, Int eTType );
+#else
+                                    Int uiStride, Int height );
+#endif
+#else
 #if SIGMAP_CTX_RED
                                      const UInt                       uiStride,
                                      const UInt                       eTType );
 #else
                                      const UInt                      uiStride );
 #endif
+#endif
 #if MULTI_LEVEL_SIGNIFICANCE
+#if NSQT_DIAG_SCAN
+  static UInt getSigCoeffGroupCtxInc  ( const UInt*                   uiSigCoeffGroupFlag,
+                                       const UInt                       uiCGPosX,
+                                       const UInt                       uiCGPosY,
+                                       Int width, Int height);
+  
+  static Bool bothCGNeighboursOne  ( const UInt*                      uiSigCoeffGroupFlag,
+                                    const UInt                       uiCGPosX,
+                                    const UInt                       uiCGPosY,
+                                    Int width, Int height);
+#else
   static UInt getSigCoeffGroupCtxInc  ( const UInt*                   uiSigCoeffGroupFlag,
                                      const UInt                       uiCGPosX,
                                      const UInt                       uiCGPosY,
@@ -195,6 +214,7 @@ public:
                                      const UInt                       uiCGPosX,
                                      const UInt                       uiCGPosY,
                                      const UInt                       uiLog2BlockSize);
+#endif
 #endif
 protected:
   Int*    m_plTempCoeff;

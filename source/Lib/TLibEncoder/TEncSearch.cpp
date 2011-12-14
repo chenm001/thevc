@@ -1006,7 +1006,11 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
   //--- init rate estimation arrays for RDOQ ---
   if( m_pcEncCfg->getUseRDOQ() )
   {
+#if NSQT_DIAG_SCAN
+    m_pcEntropyCoder->estimateBit( m_pcTrQuant->m_pcEstBitsSbac, uiWidth, uiWidth, TEXT_LUMA );
+#else
     m_pcEntropyCoder->estimateBit( m_pcTrQuant->m_pcEstBitsSbac, uiWidth, TEXT_LUMA );
+#endif
   }
   //--- transform and quantization ---
   UInt uiAbsSum = 0;
@@ -1161,7 +1165,11 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
     //--- init rate estimation arrays for RDOQ ---
     if( m_pcEncCfg->getUseRDOQ() )
     {
+#if NSQT_DIAG_SCAN
+      m_pcEntropyCoder->estimateBit( m_pcTrQuant->m_pcEstBitsSbac, uiWidth, uiWidth, eText );
+#else
       m_pcEntropyCoder->estimateBit( m_pcTrQuant->m_pcEstBitsSbac, uiWidth, eText );
+#endif
     }
     //--- transform and quantization ---
     UInt uiAbsSum = 0;
@@ -4122,7 +4130,18 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
     pcCU->setTrIdxSubParts( uiDepth - pcCU->getDepth( 0 ), uiAbsPartIdx, uiDepth );
     if (m_pcEncCfg->getUseRDOQ())
     {
+#if NSQT_DIAG_SCAN
+      if (bNonSquareFlag)
+      {
+        m_pcEntropyCoder->estimateBit(m_pcTrQuant->m_pcEstBitsSbac, uiTrWidth, uiTrHeight, TEXT_LUMA );        
+      }
+      else
+      {
+        m_pcEntropyCoder->estimateBit(m_pcTrQuant->m_pcEstBitsSbac, 1<< uiLog2TrSize, 1<< uiLog2TrSize, TEXT_LUMA );        
+      }
+#else
       m_pcEntropyCoder->estimateBit(m_pcTrQuant->m_pcEstBitsSbac, 1<< uiLog2TrSize, TEXT_LUMA );
+#endif
     }
     m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_LUMA );
 #if RDOQ_CHROMA_LAMBDA 
@@ -4141,7 +4160,18 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
     {
       if (m_pcEncCfg->getUseRDOQ())
       {
+#if NSQT_DIAG_SCAN
+        if (bNonSquareFlagChroma)
+        {
+          m_pcEntropyCoder->estimateBit(m_pcTrQuant->m_pcEstBitsSbac, uiTrWidthC, uiTrHeightC, TEXT_CHROMA );          
+        }
+        else
+        {
+          m_pcEntropyCoder->estimateBit(m_pcTrQuant->m_pcEstBitsSbac, 1<<uiLog2TrSizeC, 1<<uiLog2TrSizeC, TEXT_CHROMA );          
+        }
+#else
         m_pcEntropyCoder->estimateBit(m_pcTrQuant->m_pcEstBitsSbac, 1<<uiLog2TrSizeC, TEXT_CHROMA );
+#endif
       }
       m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_CHROMA );
 #if RDOQ_CHROMA_LAMBDA 
