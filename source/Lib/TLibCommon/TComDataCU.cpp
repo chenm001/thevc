@@ -4352,6 +4352,40 @@ Bool TComDataCU::useNonSquareTrans(UInt uiTrMode)
    }
 }
 
+#if NSQT_MOD
+Bool TComDataCU::useNonSquareTrans(UInt uiTrMode, Int absPartIdx)
+{
+  const UInt uiLog2TrSize = g_aucConvertToBit[ getSlice()->getSPS()->getMaxCUWidth() >> ( m_puhDepth[ absPartIdx ] + uiTrMode ) ] + 2;
+  if ( uiTrMode && uiLog2TrSize < getSlice()->getSPS()->getQuadtreeTULog2MaxSize() && getWidth( absPartIdx ) > 8 &&
+#if AMP
+      ( m_pePartSize[absPartIdx] == SIZE_Nx2N || m_pePartSize[absPartIdx] == SIZE_2NxN || ( m_pePartSize[absPartIdx] >= SIZE_2NxnU && m_pePartSize[absPartIdx] <= SIZE_nRx2N ) ) )
+#else
+    ( m_pePartSize[absPartIdx] == SIZE_Nx2N || m_pePartSize[absPartIdx] == SIZE_2NxN ) )
+#endif
+  {
+    return getSlice()->getSPS()->getUseNSQT();
+  }
+  else
+  {
+    return false;
+  }
+}
+
+Void TComDataCU::getNSQTSize(Int trMode, Int absPartIdx, Int &trWidth, Int &trHeight)
+{
+  if ( useNonSquareTrans( trMode, absPartIdx ) && trWidth > 4 )
+  {
+#if AMP
+    trWidth  = ( m_pePartSize[absPartIdx] == SIZE_Nx2N || m_pePartSize[absPartIdx] == SIZE_nLx2N || m_pePartSize[absPartIdx] == SIZE_nRx2N )? trWidth >> 1 : trWidth << 1;
+    trHeight = ( m_pePartSize[absPartIdx] == SIZE_Nx2N || m_pePartSize[absPartIdx] == SIZE_nLx2N || m_pePartSize[absPartIdx] == SIZE_nRx2N )? trHeight << 1 : trHeight >> 1;
+#else
+    trWidth  = ( m_pePartSize[absPartIdx] == SIZE_Nx2N )? trWidth >> 1 : trWidth << 1;
+    trHeight = ( m_pePartSize[absPartIdx] == SIZE_Nx2N )? trHeight << 1 : trHeight >> 1;
+#endif
+  }
+}
+#endif
+  
 Void TComDataCU::getPixOffset(UInt uiTrMode,  UInt ui, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiPix_X, UInt& uiPix_Y, TextType eTxt)
 {
 #if AMP

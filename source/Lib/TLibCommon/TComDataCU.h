@@ -472,6 +472,10 @@ public:
 
 #if NSQT
   Bool useNonSquareTrans( UInt uiTrMode );
+#if NSQT_MOD
+  Bool useNonSquareTrans( UInt uiTrMode, Int absPartIdx );
+  Void getNSQTSize(Int trMode, Int absPartIdx, Int &trWidth, Int &trHeight);
+#endif
   Void getPixOffset( UInt uiTrMode, UInt ui, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiPix_X, UInt& uiPix_Y, TextType eTxt );
 #endif
 

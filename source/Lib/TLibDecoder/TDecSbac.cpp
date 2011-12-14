@@ -1370,6 +1370,17 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   DTRACE_CABAC_V(  pcCU->getPredictionMode( uiAbsPartIdx ) )
   DTRACE_CABAC_T( "\n" )
   
+#if NSQT_MOD
+  Int orgWidth = uiWidth;
+  Int orgHeight = uiHeight;
+  if (orgWidth != orgHeight)
+  {
+    int log2BlkSize = 2 + ( ( g_aucConvertToBit[ orgWidth ] + g_aucConvertToBit [ orgHeight ] ) >> 1 );
+    uiWidth = 1 << log2BlkSize;
+    uiHeight = 1 << log2BlkSize;
+  }
+#endif
+  
   if( uiWidth > pcCU->getSlice()->getSPS()->getMaxTrSize() )
   {
     uiWidth  = pcCU->getSlice()->getSPS()->getMaxTrSize();
@@ -1779,6 +1790,20 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       uiNumOne >>= 1;
     }
   }
+  
+#if NSQT_MOD
+  if (orgHeight != orgWidth)
+  {
+    TCoeff  orgCoeff[ 256 ];
+    Int tableIdx = ( orgWidth * orgHeight ) == 64 ? 2 * ( orgHeight > orgWidth ) : 2 * ( orgHeight > orgWidth ) + 1;
+    memcpy( &orgCoeff[0], pcCoef, orgWidth * orgHeight * sizeof( TCoeff ) ); 
+    for( Int scanPos = 0; scanPos < orgWidth * orgHeight; scanPos++ )
+    {
+      Int blkPos = g_auiNonSquareSigLastScan[ tableIdx ][ scanPos ];
+      pcCoef[ blkPos ] = orgCoeff[ g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ scanPos ] ];
+    }
+  }
+#endif
   return;
 }
 
