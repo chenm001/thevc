@@ -2379,6 +2379,9 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, 
       uiAcSum += iLevel;
       iLevel *= iSign;        
       piQCoef[uiBlockPos] = iLevel;
+#if LEVEL_LIMIT
+      piQCoef[uiBlockPos] = Clip3(-32768,32767,piQCoef[uiBlockPos]);
+#endif
     } // for n
   } //if RDOQ
   //return;
@@ -3012,7 +3015,9 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     Int lLevelDouble          = plSrcCoeff[ uiBlkPos ];
     lLevelDouble              = abs(lLevelDouble * uiQ);     
     UInt uiMaxAbsLevel        = (lLevelDouble + (1 << (iQBits - 1))) >> iQBits;
-    
+#if LEVEL_LIMIT
+    uiMaxAbsLevel=plSrcCoeff[ uiBlkPos ]>=0 ? min<UInt>(uiMaxAbsLevel,32767): min<UInt>(uiMaxAbsLevel,32768);
+#endif
     Double dErr               = Double( lLevelDouble );
     pdCostCoeff0[ iScanPos ]  = dErr * dErr * dTemp;
     d64BlockUncodedCost      += pdCostCoeff0[ iScanPos ];

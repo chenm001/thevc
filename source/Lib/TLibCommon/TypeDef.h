@@ -79,6 +79,7 @@
 #define PREDTYPE_CLEANUP                    1      ///< G1042: Harmonization of the prediction and partitioning mode binarization of P and B slices
 #define TU_LEVEL_COEFF_INTERLEAVE           1      ///< G112 / G381: TU level luma/chroma coefficient interleaving
 
+#define LEVEL_LIMIT                         1      ///< G719 : Restriction for limits to 16 bits (signed) diapason
 ////////////////////////////
 // JCT-VC G end
 ////////////////////////////
