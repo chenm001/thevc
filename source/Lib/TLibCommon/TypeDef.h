@@ -78,10 +78,6 @@
 #define CHROMA_CBF_CTX_REDUCTION            1      ///< G718 : Sharing contexts for cbf_cb and cbf_cr
 #define PREDTYPE_CLEANUP                    1      ///< G1042: Harmonization of the prediction and partitioning mode binarization of P and B slices
 #define TU_LEVEL_COEFF_INTERLEAVE           1      ///< G112 / G381: TU level luma/chroma coefficient interleaving
-#define NSQT_DIAG_SCAN                      1      ///< G1038: use diagonal and subblock scans for NSQT
-#if NSQT_DIAG_SCAN && !(UNIFIED_SCAN_PASSES && SUBBLOCK_SCAN && MULTI_LEVEL_SIGNIFICANCE)
-#error
-#endif
 
 #define LEVEL_LIMIT                         1      ///< G719 : Restriction for limits to 16 bits (signed) diapason
 #define COEFF_CTXSET_RED                    1      ///< G783 : reduce level context set of chroma
@@ -97,6 +93,10 @@
 #define MRG_AMVP_ADD_CAND_F470               1       // 1:add new candidates following original ones
 #define NSQT                                 1       // F410 & F412 : Non-Square Quadtree Transform
 #define NSQT_MOD (NSQT && 1) // Modify NSQT such as to always pass proper width/height to coeff coding functions
+#define NSQT_DIAG_SCAN                      1      ///< G1038: use diagonal and subblock scans for NSQT
+#if NSQT_DIAG_SCAN && !(SUBBLOCK_SCAN && NSQT_MOD)
+#error
+#endif
 
 #define F747_APS                             1       // F747 : Adaptation Parameter Set (APS)
 #if F747_APS
