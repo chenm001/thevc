@@ -139,12 +139,6 @@ Void TEncBinCABAC::resetBits()
   m_bitsLeft         = 23;
   m_numBufferedBytes = 0;
   m_bufferedByte     = 0xff;
-#if FINE_GRANULARITY_SLICES
-  if ( m_binCountIncrement )
-  {
-    m_uiBinsCoded = 0;
-  }
-#endif
 }
 
 UInt TEncBinCABAC::getNumWrittenBits()

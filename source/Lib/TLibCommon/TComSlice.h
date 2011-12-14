@@ -567,10 +567,6 @@ private:
   Bool        m_bNextSlice;
   Bool        m_bNextEntropySlice;
   UInt        m_uiSliceBits;
-#if FINE_GRANULARITY_SLICES
-  UInt        m_uiEntropySliceCounter;
-  Bool        m_bFinalized;
-#endif
 
 #if OL_USE_WPP
   UInt*       m_puiSubstreamSizes;
@@ -739,12 +735,6 @@ public:
   Bool isNextEntropySlice               ()                  { return m_bNextEntropySlice;                 }
   Void setSliceBits                     ( UInt uiVal )      { m_uiSliceBits = uiVal;                      }
   UInt getSliceBits                     ()                  { return m_uiSliceBits;                       }  
-#if FINE_GRANULARITY_SLICES
-  Void setEntropySliceCounter           ( UInt uiVal )      { m_uiEntropySliceCounter = uiVal;            }
-  UInt getEntropySliceCounter           ()                  { return m_uiEntropySliceCounter;             }
-  Void setFinalized                     ( Bool uiVal )      { m_bFinalized = uiVal;                       }
-  Bool getFinalized                     ()                  { return m_bFinalized;                        }
-#endif
 #if OL_USE_WPP
   Void allocSubstreamSizes              ( UInt uiNumSubstreams );
   UInt* getSubstreamSizes               ()                  { return m_puiSubstreamSizes; }

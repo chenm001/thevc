@@ -683,29 +683,10 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 #if FINE_GRANULARITY_SLICES
   int iNumCUs = ((rpcSlice->getSPS()->getWidth()+rpcSlice->getSPS()->getMaxCUWidth()-1)/rpcSlice->getSPS()->getMaxCUWidth())*((rpcSlice->getSPS()->getHeight()+rpcSlice->getSPS()->getMaxCUHeight()-1)/rpcSlice->getSPS()->getMaxCUHeight());
   int iMaxParts = (1<<(rpcSlice->getSPS()->getMaxCUDepth()<<1));
-  int iNumParts = 1;
-  UInt uiLCUAddress = 0;
-  int iReqBitsOuter = 0;
-  while(iNumCUs>(1<<iReqBitsOuter))
-  {
-    iReqBitsOuter++;
-  }
-  int iReqBitsInner = 0;
-  while((iNumParts)>(1<<iReqBitsInner)) 
-  {
-    iReqBitsInner++;
-  }
   READ_FLAG( uiCode, "first_slice_in_pic_flag" );
-  UInt uiAddress;
-  UInt uiInnerAddress = 0;
-  if(!uiCode)
-  {
-    READ_CODE( iReqBitsOuter+iReqBitsInner, uiAddress, "slice_address" );
-    uiLCUAddress = uiAddress >> iReqBitsInner;
-    uiInnerAddress = uiAddress - (uiLCUAddress<<iReqBitsInner);
-  }
+  assert( uiCode == 1 );
   //set uiCode to equal slice start address (or entropy slice start address)
-  uiCode=(iMaxParts*uiLCUAddress)+(uiInnerAddress*iMaxParts);
+  uiCode=0;
   
   rpcSlice->setEntropySliceCurStartCUAddr( uiCode );
   rpcSlice->setEntropySliceCurEndCUAddr(iNumCUs*iMaxParts);
@@ -714,24 +695,14 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   {
     rpcSlice->setNextSlice        ( false );
     rpcSlice->setNextEntropySlice ( true  );
-#if !FINE_GRANULARITY_SLICES
-    READ_UVLC( uiCode, "slice_address" );
-    rpcSlice->setEntropySliceCurStartCUAddr( uiCode ); // start CU addr for entropy slice
-#endif
   }
   else
   {
     rpcSlice->setNextSlice        ( true  );
     rpcSlice->setNextEntropySlice ( false );
     
-#if !FINE_GRANULARITY_SLICES
-    READ_UVLC( uiCode, "slice_address" );
-    rpcSlice->setSliceCurStartCUAddr( uiCode );        // start CU addr for slice
-    rpcSlice->setEntropySliceCurStartCUAddr( uiCode ); // start CU addr for entropy slice  
-#else
     rpcSlice->setSliceCurStartCUAddr(uiCode);
     rpcSlice->setSliceCurEndCUAddr(iNumCUs*iMaxParts);
-#endif
     // if( !lightweight_slice_flag ) {
     //   slice_qp_delta
     // should be delta

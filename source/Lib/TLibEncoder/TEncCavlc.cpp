@@ -610,55 +610,25 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   //    slice_address
   // the slice start address seems to be aligned with the WD if FINE_GRANULARITY_SLICES is enabled
 #if FINE_GRANULARITY_SLICES
-  //calculate number of bits required for slice address
-  Int iMaxAddrOuter = pcSlice->getPic()->getNumCUsInFrame();
-  Int iReqBitsOuter = 0;
-  while(iMaxAddrOuter>(1<<iReqBitsOuter)) 
-  {
-    iReqBitsOuter++;
-  }
-  Int iMaxAddrInner = pcSlice->getPic()->getNumPartInCU()>>(2);
-  iMaxAddrInner = 1;
-  int iReqBitsInner = 0;
-  
-  while(iMaxAddrInner>(1<<iReqBitsInner))
-  {
-    iReqBitsInner++;
-  }
   Int iLCUAddress;
   Int iInnerAddress;
 #endif
   if (pcSlice->isNextSlice())
   {
-#if !FINE_GRANULARITY_SLICES
-    WRITE_UVLC( pcSlice->getSliceCurStartCUAddr(), "slice_address" );        // Start CU addr for slice
-#else
     // Calculate slice address
     // CHECK_ME: pcSlice->getSliceCurStartCUAddr() always zero!
     iLCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
     iInnerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>(pcSlice->getSPS()->getMaxCUDepth()<<1);
-#endif
   }
   else
   {
-#if !FINE_GRANULARITY_SLICES
-    WRITE_UVLC( pcSlice->getEntropySliceCurStartCUAddr(), "slice_address" ); // Start CU addr for entropy slice
-#else
-    // Calculate slice address
+//    // Calculate slice address
     iLCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
     iInnerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>(pcSlice->getSPS()->getMaxCUDepth()<<1);
-    
-#endif
   }
-#if FINE_GRANULARITY_SLICES
   //write slice address
-  int iAddress    = (iLCUAddress << iReqBitsInner) + iInnerAddress;
-  WRITE_FLAG( iAddress==0, "first_slice_in_pic_flag" );
-  if(iAddress>0) 
-  {
-    WRITE_CODE( iAddress, iReqBitsOuter+iReqBitsInner, "slice_address" );
-  }
-#endif
+  assert( iLCUAddress + iInnerAddress == 0 );
+  WRITE_FLAG( 1, "first_slice_in_pic_flag" );
   
   // if( !lightweight_slice_flag ) {
   if (!bEntropySlice)

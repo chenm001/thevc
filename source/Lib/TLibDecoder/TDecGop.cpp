@@ -224,7 +224,29 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
         m_pcEntropyDecoder->decodeSaoParam(&m_cSaoParam);
       }
 #endif
+
+      if ( rpcPic->getSlice(0)->getSPS()->getUseALF() )
+      {
+        m_pcAdaptiveLoopFilter->allocALFParam(&m_cAlfParam);
+      }
     }
+   
+    if(uiSliceStartCuAddr == uiStartCUAddr)
+    {
+      if( pcSlice->getSPS()->getUseALF())
+      {
+        if(!pcSlice->getPPS()->getSharedPPSInfoEnabled())
+        {
+          m_pcEntropyDecoder->decodeAlfParam( &m_cAlfParam );
+        }
+        else
+        {
+          copySharedAlfParamFromPPS(&m_cAlfParam, pcSlice->getPPS()->getSharedAlfParam());
+        }
+        m_pcEntropyDecoder->decodeAlfCtrlParam( &m_cAlfParam, (uiStartCUAddr==0));
+      }
+    }
+
 #endif
 
 #if OL_USE_WPP
@@ -270,72 +292,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     // deblocking filter
     m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0);
     m_pcLoopFilter->loopFilterPic( rpcPic );
-#if SAO
-    {
-
-#if SAO && FINE_GRANULARITY_SLICES 
-      if( pcSlice->getSPS()->getUseSAO() )
-      {
-        m_pcSAO->setNumSlicesInPic( uiILSliceCount );
-#if F747_APS
-        if(pcSlice->getAPS()->getSaoEnabled())
-        {
-#endif
-        if(uiILSliceCount == 1)
-        {
-          m_pcSAO->setUseNIF(false);
-        }
-        else
-        {
-#if !F747_APS
-          if(m_cSaoParam.bSaoFlag)
-          {
-#endif
-            m_pcSAO->setPic(rpcPic);
-            puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU();
-            m_pcSAO->setUseNIF(!true);
-            if (m_pcSAO->getUseNIF())
-            {
-              m_pcSAO->InitIsFineSliceCu();
-
-              for(UInt i=0; i< uiILSliceCount ; i++)
-              {
-                UInt uiStartAddr = puiILSliceStartLCU[i];
-                UInt uiEndAddr   = puiILSliceStartLCU[i+1]-1;
-                m_pcSAO->createSliceMap(i, uiStartAddr, uiEndAddr);
-              }
-            }
-#if !F747_APS
-          }
-#endif
-        }
-#if !F747_APS
-      }
-#endif
-
-#endif
-
-#if !F747_APS
-      if( rpcPic->getSlice(0)->getSPS()->getUseSAO())
-      {
-#endif
-
-#if F747_APS
-        m_pcSAO->SAOProcess(rpcPic, pcSlice->getAPS()->getSaoParam());  
-#else
-        m_pcSAO->SAOProcess(rpcPic, &m_cSaoParam);  
-#endif
-#if !F747_APS
-        m_pcSAO->freeSaoParam(&m_cSaoParam);
-      }
-#endif
-#if F747_APS
-      }
-    }
-#endif
-
-    }
-#endif
 
 #if AMVP_BUFFERCOMPRESS
     rpcPic->compressMotion(); 

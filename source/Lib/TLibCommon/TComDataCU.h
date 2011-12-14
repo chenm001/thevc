@@ -138,14 +138,8 @@ private:
   Double        m_dTotalCost;         ///< sum of partition RD costs
   UInt          m_uiTotalDistortion;  ///< sum of partition distortion
   UInt          m_uiTotalBits;        ///< sum of partition bits
-#if FINE_GRANULARITY_SLICES
-  UInt          m_uiTotalBins;       ///< sum of partition bins
-  UInt*         m_uiSliceStartCU;    ///< Start CU address of current slice
-  UInt*         m_uiEntropySliceStartCU; ///< Start CU address of current slice
-#else
   UInt          m_uiSliceStartCU;    ///< Start CU address of current slice
   UInt          m_uiEntropySliceStartCU; ///< Start CU address of current slice
-#endif
   
 protected:
   
@@ -207,9 +201,6 @@ public:
   TComSlice*    getSlice              ()                        { return m_pcSlice;         }
   UInt&         getAddr               ()                        { return m_uiCUAddr;        }
   UInt&         getZorderIdxInCU      ()                        { return m_uiAbsIdxInLCU; }
-#if FINE_GRANULARITY_SLICES
-  UInt          getSCUAddr            ()                        { return m_uiCUAddr*(1<<(m_pcSlice->getSPS()->getMaxCUDepth()<<1))+m_uiAbsIdxInLCU;}
-#endif
   UInt          getCUPelX             ()                        { return m_uiCUPelX;        }
   UInt          getCUPelY             ()                        { return m_uiCUPelY;        }
   TComPattern*  getPattern            ()                        { return m_pcPattern;       }
@@ -424,16 +415,10 @@ public:
   UInt          getCtxSkipFlag                  ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxInterDir                  ( UInt   uiAbsPartIdx                                 );
   
-#if FINE_GRANULARITY_SLICES
-  UInt          getSliceStartCU         ( UInt pos )                  { return m_uiSliceStartCU[pos-m_uiAbsIdxInLCU];                                                                                          }
-  UInt          getEntropySliceStartCU  ( UInt pos )                  { return m_uiEntropySliceStartCU[pos-m_uiAbsIdxInLCU];                                                                                   }
-  UInt&         getTotalBins            ()                            { return m_uiTotalBins;                                                                                                  }
-#else
   Void          setSliceStartCU  ( UInt uiStartCU )    { m_uiSliceStartCU = uiStartCU;    }  
   UInt          getSliceStartCU  ()                    { return m_uiSliceStartCU;         }
   Void          setEntropySliceStartCU ( UInt uiStartCU ) { m_uiEntropySliceStartCU = uiStartCU;     }  
   UInt          getEntropySliceStartCU ()                 { return m_uiEntropySliceStartCU;          }
-#endif
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for RD cost storage
   // -------------------------------------------------------------------------------------------------------------------

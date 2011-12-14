@@ -59,8 +59,6 @@ TComSampleAdaptiveOffset::TComSampleAdaptiveOffset()
   m_iUpBuff2 = NULL;
   m_iUpBufft = NULL;
   ipSwap = NULL;
-  m_bIsFineSliceCu = NULL;
-  m_pcPicYuvMap = NULL;
 
   m_pTmpU1 = NULL;
   m_pTmpU2 = NULL;

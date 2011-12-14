@@ -78,10 +78,6 @@ TComSlice::TComSlice()
 , m_bNextSlice                    ( false )
 , m_bNextEntropySlice             ( false )
 , m_uiSliceBits                   ( 0 )
-#if FINE_GRANULARITY_SLICES
-, m_uiEntropySliceCounter         ( 0 )
-, m_bFinalized                    ( false )
-#endif
 #if OL_USE_WPP
 , m_puiSubstreamSizes             ( NULL )
 #endif
@@ -136,10 +132,6 @@ Void TComSlice::initSlice()
   m_bCheckLDC = false;
 
   m_aiNumRefIdx[REF_PIC_LIST_C]      = 0;
-
-#if FINE_GRANULARITY_SLICES
-  m_bFinalized=false;
-#endif
 }
 
 #if OL_USE_WPP

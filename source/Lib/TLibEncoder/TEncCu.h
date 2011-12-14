@@ -116,9 +116,6 @@ public:
   Void  encodeCU            ( TComDataCU*    pcCU, Bool bForceTerminate = false  );
   
 protected:
-#if FINE_GRANULARITY_SLICES
-  Void  finishCU            ( TComDataCU*  pcCU, UInt uiAbsPartIdx,           UInt uiDepth        );
-#endif
 #if AMP_ENC_SPEEDUP
   Void  xCompressCU         ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth, PartSize eParentPartSize = SIZE_NONE );
 #else
