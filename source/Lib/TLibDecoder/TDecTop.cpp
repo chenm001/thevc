@@ -372,6 +372,22 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       m_apcSlicePilot->setNalUnitType(nalu.m_UnitType);
       m_apcSlicePilot->setReferenced(nalu.m_RefIDC != NAL_REF_IDC_PRIORITY_LOWEST);
       m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot);
+#if G220_PURE_VLC_SAO_ALF
+      if(m_apcSlicePilot->isNextSlice())
+      {
+        if(m_cSPS.getUseALF())
+        {
+          if(m_vAPS[m_apcSlicePilot->getAPSId()].back().getAlfEnabled())
+          {
+            m_cGopDecoder.decodeAlfOnOffCtrlParam();
+          }
+        }
+      }
+#if (TILES_DECODER || OL_USE_WPP)
+      m_cEntropyDecoder.decodeWPPTileInfoToSliceHeader(m_apcSlicePilot);
+#endif
+
+#endif
 
 #if !DISABLE_CAVLC
       if ( m_apcSlicePilot->getSymbolMode() )
@@ -784,14 +800,15 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
  */
 Void TDecTop::decodeAPS(TComInputBitstream* bs, TComAPS& cAPS)
 {
+#if !G220_PURE_VLC_SAO_ALF
   Int iBitLeft;
-
+#endif
   m_cEntropyDecoder.decodeAPSInitInfo(cAPS);
 
   if(cAPS.getSaoEnabled())
   {
     cAPS.getSaoParam()->bSaoFlag[0] = true;
-
+#if !G220_PURE_VLC_SAO_ALF
     //read SAO bitstream length in byte
     UInt uiBsLength = bs->read(APS_BITS_FOR_SAO_BYTE_LENGTH);
     assert(uiBsLength > 0);
@@ -819,16 +836,20 @@ Void TDecTop::decodeAPS(TComInputBitstream* bs, TComAPS& cAPS)
       m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
       m_cEntropyDecoder.setBitstream(bs);
     }
+#endif
     m_cEntropyDecoder.decodeSaoParam( cAPS.getSaoParam());
+#if !G220_PURE_VLC_SAO_ALF
     iBitLeft = bs->getNumBitsLeft() - (iBitLeft - (uiBsLength << 3));
     assert(iBitLeft >= 0);
     if(iBitLeft) bs->read(iBitLeft); //garbage bits. 
     //else  trailing bits
+#endif
   }
 
   if(cAPS.getAlfEnabled())
   {
     cAPS.getAlfParam()->alf_flag = 1;
+#if !G220_PURE_VLC_SAO_ALF
     //read ALF bitstream length in byte
     UInt uiBsLength = bs->read(APS_BITS_FOR_ALF_BYTE_LENGTH);
     assert(uiBsLength > 0);
@@ -854,6 +875,7 @@ Void TDecTop::decodeAPS(TComInputBitstream* bs, TComAPS& cAPS)
       m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
       m_cEntropyDecoder.setBitstream(bs);
     }
+#endif
     m_cEntropyDecoder.decodeAlfParam( cAPS.getAlfParam());
   }
 

@@ -76,6 +76,12 @@ public:
   virtual Void  codePPS                 ( TComPPS* pcPPS )                                      = 0;
   virtual void codeSEI(const SEI&) = 0;
   virtual Void  codeSliceHeader         ( TComSlice* pcSlice )                                  = 0;
+#if G220_PURE_VLC_SAO_ALF
+#if TILES_DECODER
+  virtual Void codeTileMarkerFlag      ( TComSlice* pcSlice )                                  = 0;
+#endif
+#endif
+
 #if OL_USE_WPP
   virtual Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice )                             = 0;
 #endif
@@ -169,6 +175,11 @@ public:
   Void    resetEntropy              ()                        { m_pcEntropyCoderIf->resetEntropy();  }
   
   Void    encodeSliceHeader         ( TComSlice* pcSlice );
+#if G220_PURE_VLC_SAO_ALF
+#if TILES_DECODER
+  Void    encodeTileMarkerFlag       (TComSlice* pcSlice) {m_pcEntropyCoderIf->codeTileMarkerFlag(pcSlice);}
+#endif
+#endif
 #if OL_USE_WPP
   Void    encodeSliceHeaderSubstreamTable( TComSlice* pcSlice );
 #endif

@@ -286,9 +286,14 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     {
       if(pcSlice->getSPS()->getUseALF())
       {
+#if !G220_PURE_VLC_SAO_ALF
         AlfCUCtrlInfo cAlfCUCtrlOneSlice;
+#endif
         if(pcSlice->getAPS()->getAlfEnabled())
         {
+#if G220_PURE_VLC_SAO_ALF
+          vAlfCUCtrlSlices.push_back(m_cAlfCUCtrlOneSlice);
+#else
           m_pcEntropyDecoder->decodeAlfCtrlParam( cAlfCUCtrlOneSlice, m_pcAdaptiveLoopFilter->getNumCUsInPic());
 #if F747_CABAC_FLUSH_SLICE_HEADER
 #if !DISABLE_CAVLC
@@ -322,6 +327,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
           }
 #endif
           vAlfCUCtrlSlices.push_back(cAlfCUCtrlOneSlice);
+#endif
         }
       }
     }

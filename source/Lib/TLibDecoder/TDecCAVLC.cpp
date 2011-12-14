@@ -151,7 +151,7 @@ Void TDecCavlc::parseAPSInitInfo(TComAPS& cAPS)
   xReadFlag(uiCode);      cAPS.setSaoEnabled( (uiCode==1)?true:false );
   //ALF flag
   xReadFlag(uiCode);      cAPS.setAlfEnabled( (uiCode==1)?true:false );
-
+#if !G220_PURE_VLC_SAO_ALF
   if(cAPS.getSaoEnabled() || cAPS.getAlfEnabled())
   {
     //CABAC usage flag
@@ -165,6 +165,7 @@ Void TDecCavlc::parseAPSInitInfo(TComAPS& cAPS)
       xReadSvlc(iCode);    cAPS.setCABACinitQP( iCode + 26);
     }
   }
+#endif
 }
 #endif
 
@@ -644,7 +645,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
     }      
   }
-
+#if !G220_PURE_VLC_SAO_ALF
 #if TILES_DECODER
   rpcSlice->setTileMarkerFlag ( 0 ); // default
   if (!bEntropySlice)
@@ -741,9 +742,118 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     }
   }
 #endif
-  
+#endif
   return;
 }
+
+#if G220_PURE_VLC_SAO_ALF
+#if (TILES_DECODER || OL_USE_WPP)
+Void TDecCavlc::parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice)
+{
+  Bool bEntropySlice = (!rpcSlice->isNextSlice());
+  UInt uiCode;
+
+#if TILES_DECODER
+  rpcSlice->setTileMarkerFlag ( 0 ); // default
+  if (!bEntropySlice)
+  {
+    if (rpcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+    {   
+      xReadCode(1, uiCode); // read flag indicating if tile markers transmitted
+      rpcSlice->setTileMarkerFlag( uiCode );
+    }
+  }
+#endif
+
+#if OL_USE_WPP
+  if (rpcSlice->getPPS()->getEntropyCodingSynchro())
+  {
+    UInt uiNumSubstreams = rpcSlice->getPPS()->getNumSubstreams();
+    rpcSlice->allocSubstreamSizes(uiNumSubstreams);
+    UInt *puiSubstreamSizes = rpcSlice->getSubstreamSizes();
+
+    for (UInt ui = 0; ui+1 < uiNumSubstreams; ui++)
+    {
+      xReadCode(2, uiCode);
+
+      switch ( uiCode )
+      {
+      case 0:
+        xReadCode(8,  uiCode);
+        break;
+      case 1:
+        xReadCode(16, uiCode);
+        break;
+      case 2:
+        xReadCode(24, uiCode);
+        break;
+      case 3:
+        xReadCode(32, uiCode);
+        break;
+      default:
+        printf("Error in parseSliceHeader\n");
+        exit(-1);
+        break;
+      }
+      puiSubstreamSizes[ui] = uiCode;
+    }
+  }
+#endif
+
+#if TILES_DECODER
+  if (!bEntropySlice)
+  {
+    // Reading location information
+    if (rpcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+    {   
+      xReadCode(1, uiCode); // read flag indicating if location information signaled in slice header
+      Bool bTileLocationInformationInSliceHeaderFlag = (uiCode)? true : false;
+
+      if (bTileLocationInformationInSliceHeaderFlag)
+      {
+        // location count
+        xReadCode(5, uiCode); // number of tiles for which location information signaled
+        rpcSlice->setTileLocationCount ( uiCode + 1 );
+
+        xReadCode(5, uiCode); // number of bits used by diff
+        Int iBitsUsedByDiff = uiCode + 1;
+
+        // read out tile start location
+        Int iLastSize = 0;
+        for (UInt uiIdx=0; uiIdx<rpcSlice->getTileLocationCount(); uiIdx++)
+        {
+          Int iAbsDiff, iCurSize, iCurDiff;
+          if (uiIdx==0)
+          {
+            xReadCode(iBitsUsedByDiff-1, uiCode); iAbsDiff  = uiCode;
+            rpcSlice->setTileLocation( uiIdx, iAbsDiff );
+            iCurDiff  = iAbsDiff;
+            iLastSize = iAbsDiff;
+          }
+          else
+          {
+            xReadCode(1, uiCode); // read sign
+            Int iSign = (uiCode) ? -1 : +1;
+
+            xReadCode(iBitsUsedByDiff-1, uiCode); iAbsDiff  = uiCode;
+            iCurDiff  = (iSign) * iAbsDiff;
+            iCurSize  = iLastSize + iCurDiff;
+            iLastSize = iCurSize;
+            rpcSlice->setTileLocation( uiIdx, rpcSlice->getTileLocation( uiIdx-1 ) + iCurSize ); // calculate byte location
+          }
+        }
+      }
+
+      // read out trailing bits
+      m_pcBitstream->readOutTrailingBits();
+    }
+  }
+#endif
+
+}
+#endif
+#endif
+
 
 Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
 {

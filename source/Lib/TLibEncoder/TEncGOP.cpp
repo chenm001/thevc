@@ -865,6 +865,33 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodeSliceHeader(pcSlice);
+#if G220_PURE_VLC_SAO_ALF
+        if(pcSlice->isNextSlice())
+        {
+          if (pcSlice->getSPS()->getUseALF())
+          {
+            if(pcSlice->getAPS()->getAlfEnabled())
+            {
+              AlfCUCtrlInfo& cAlfCUCtrlParam = vAlfCUCtrlParam[pcSlice->getSliceIdx()];
+              if(cAlfCUCtrlParam.cu_control_flag)
+              {
+                m_pcEntropyCoder->setAlfCtrl( true );
+                m_pcEntropyCoder->setMaxAlfCtrlDepth(cAlfCUCtrlParam.alf_max_depth);
+                m_pcCavlcCoder->setAlfCtrl(true);
+                m_pcCavlcCoder->setMaxAlfCtrlDepth(cAlfCUCtrlParam.alf_max_depth); 
+              }
+              else
+              {
+                m_pcEntropyCoder->setAlfCtrl(false);
+              }
+              m_pcEntropyCoder->encodeAlfCtrlParam(cAlfCUCtrlParam, m_pcAdaptiveLoopFilter->getNumCUsInPic());
+            }
+          }
+        }
+#if TILES_DECODER
+        m_pcEntropyCoder->encodeTileMarkerFlag(pcSlice);
+#endif
+#endif
 
 
         // is it needed?
@@ -970,6 +997,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
           }
 #endif
+#if !G220_PURE_VLC_SAO_ALF
           if (pcSlice->getSPS()->getUseALF())
           {
 #if F747_APS
@@ -1057,6 +1085,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             }
 #endif
           }
+#endif
         }
 #if FINE_GRANULARITY_SLICES
         pcSlice->setFinalized(true);
@@ -1328,6 +1357,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             allocAPS(&cAPS, pcSlice->getSPS());
 #endif
             // set entropy coder for RD
+#if G220_PURE_VLC_SAO_ALF
+            m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
+#else
 #if !DISABLE_CAVLC
             if ( pcSlice->getSymbolMode() )
 #endif
@@ -1340,13 +1372,18 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
               m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
             }
 #endif
+#endif
 
 #if SAO
             if ( pcSlice->getSPS()->getUseSAO() )
             {
               m_pcEntropyCoder->resetEntropy();
               m_pcEntropyCoder->setBitstream( m_pcBitCounter );
+#if G220_PURE_VLC_SAO_ALF
+              m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), NULL);
+#else
               m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcCfg->getUseSBACRD() ?  m_pcEncTop->getRDGoOnSbacCoder() : NULL);
+#endif
 #if F747_APS
               SAOParam& cSaoParam = *(cAPS.getSaoParam());
 #endif
@@ -1664,7 +1701,9 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
   */
 Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* pcSlice)
 {
+#if !G220_PURE_VLC_SAO_ALF
   UInt uiAPSbsWrittenBits = 0;
+#endif
   m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice);
   m_pcEntropyCoder->resetEntropy      ();
   m_pcEntropyCoder->setBitstream(&APSbs);
@@ -1673,6 +1712,7 @@ Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* p
 
   if(pcAPS->getSaoEnabled())
   {
+#if !G220_PURE_VLC_SAO_ALF
     Bool bEndAtSAO   = (!pcAPS->getAlfEnabled());
     TComOutputBitstream cSAObs;
     UInt uiSAObsWrittenBits;
@@ -1689,8 +1729,9 @@ Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* p
 
     m_pcEntropyCoder->resetEntropy    ();
     m_pcEntropyCoder->setBitstream(&cSAObs);
+#endif
     m_pcEntropyCoder->encodeSaoParam(pcAPS->getSaoParam());
-
+#if !G220_PURE_VLC_SAO_ALF
     if (pcAPS->getCABACForAPS() )
     {
       m_pcEntropyCoder->encodeFinish(bEndAtSAO);
@@ -1721,10 +1762,12 @@ Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* p
     {
       return;
     }
+#endif
   }
 
   if(pcAPS->getAlfEnabled())
   {
+#if !G220_PURE_VLC_SAO_ALF
     Bool bEndAtALF = true;
     TComOutputBitstream cALFbs;
     UInt uiALFbsWrittenBits;
@@ -1741,8 +1784,9 @@ Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* p
 
     m_pcEntropyCoder->resetEntropy    ();
     m_pcEntropyCoder->setBitstream(&cALFbs);
+#endif
     m_pcEntropyCoder->encodeAlfParam(pcAPS->getAlfParam());
-
+#if !G220_PURE_VLC_SAO_ALF
     if (pcAPS->getCABACForAPS() )
     {
       m_pcEntropyCoder->encodeFinish(bEndAtALF);
@@ -1774,6 +1818,7 @@ Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* p
     {
       return;
     }
+#endif
   }
 
   //neither SAO and ALF is enabled
