@@ -3752,9 +3752,13 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   return (( eTType == TEXT_LUMA && uiPosX + uiPosY >= thred ) ? uiOffset + 4 : uiOffset + 1) + cnt;
 #else
   if(eTType==TEXT_LUMA)
+  {
     return uiOffset + 4 + cnt;
+  }
   else
+  {
     return uiOffset + 1 + cnt;
+  }
 #endif
 #else
 #if NSQT_DIAG_SCAN
