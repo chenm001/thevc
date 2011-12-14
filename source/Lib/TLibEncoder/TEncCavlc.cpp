@@ -477,13 +477,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #endif
 }
 
-#if TILES_DECODER
-Void TEncCavlc::writeTileMarker( UInt uiTileIdx, UInt uiBitsUsed )
-{
-  xWriteCode( uiTileIdx, uiBitsUsed );
-}
-#endif
-
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 {
 #if ENC_DEC_TRACE  
@@ -638,11 +631,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   if (pcSlice->isNextSlice())
   {
 #if !FINE_GRANULARITY_SLICES
-#if TILES
-    WRITE_UVLC( pcSlice->getPic()->getPicSym()->getCUOrderMap(pcSlice->getSliceCurStartCUAddr()), "slice_address" );        // Start CU addr for slice
-#else
     WRITE_UVLC( pcSlice->getSliceCurStartCUAddr(), "slice_address" );        // Start CU addr for slice
-#endif
 #else
     // Calculate slice address
     // CHECK_ME: pcSlice->getSliceCurStartCUAddr() always zero!
@@ -653,11 +642,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   else
   {
 #if !FINE_GRANULARITY_SLICES
-#if TILES
-    WRITE_UVLC( pcSlice->getPic()->getPicSym()->getCUOrderMap(pcSlice->getEntropySliceCurStartCUAddr()), "slice_address" ); // Start CU addr for entropy slice
-#else
     WRITE_UVLC( pcSlice->getEntropySliceCurStartCUAddr(), "slice_address" ); // Start CU addr for entropy slice
-#endif
 #else
     // Calculate slice address
     iLCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
@@ -667,11 +652,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   }
 #if FINE_GRANULARITY_SLICES
   //write slice address
-#if TILES
-  int iAddress = (pcSlice->getPic()->getPicSym()->getCUOrderMap(iLCUAddress) << iReqBitsInner) + iInnerAddress;
-#else
   int iAddress    = (iLCUAddress << iReqBitsInner) + iInnerAddress;
-#endif
   WRITE_FLAG( iAddress==0, "first_slice_in_pic_flag" );
   if(iAddress>0) 
   {

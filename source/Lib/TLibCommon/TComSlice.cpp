@@ -82,11 +82,6 @@ TComSlice::TComSlice()
 , m_uiEntropySliceCounter         ( 0 )
 , m_bFinalized                    ( false )
 #endif
-#if TILES_DECODER
-, m_uiTileByteLocation            ( NULL )
-, m_uiTileCount                   ( 0 )
-, m_uiTileOffstForMultES          ( 0 )
-#endif
 #if OL_USE_WPP
 , m_puiSubstreamSizes             ( NULL )
 #endif
@@ -118,13 +113,6 @@ TComSlice::TComSlice()
 
 TComSlice::~TComSlice()
 {
-#if TILES_DECODER
-  if (m_uiTileByteLocation) 
-  {
-    delete [] m_uiTileByteLocation;
-    m_uiTileByteLocation = NULL;
-  }
-#endif
 #if OL_USE_WPP
   delete[] m_puiSubstreamSizes;
   m_puiSubstreamSizes = NULL;
@@ -151,17 +139,6 @@ Void TComSlice::initSlice()
 
 #if FINE_GRANULARITY_SLICES
   m_bFinalized=false;
-#endif
-
-#if TILES_DECODER
-  Int iWidth             = m_pcSPS->getWidth();
-  Int iHeight            = m_pcSPS->getHeight();
-  UInt uiWidthInCU       = ( iWidth %g_uiMaxCUWidth  ) ? iWidth /g_uiMaxCUWidth  + 1 : iWidth /g_uiMaxCUWidth;
-  UInt uiHeightInCU      = ( iHeight%g_uiMaxCUHeight ) ? iHeight/g_uiMaxCUHeight + 1 : iHeight/g_uiMaxCUHeight;
-  UInt uiNumCUsInFrame   = uiWidthInCU * uiHeightInCU;
-
-  m_uiTileCount          = 0;
-  if (m_uiTileByteLocation==NULL) m_uiTileByteLocation   = new UInt[uiNumCUsInFrame];
 #endif
 }
 

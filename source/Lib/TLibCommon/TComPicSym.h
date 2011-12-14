@@ -51,33 +51,6 @@
 // Class definition
 // ====================================================================================================================
 
-#if TILES
-class TComTile
-{
-private:
-  UInt      m_uiTileWidth;
-  UInt      m_uiTileHeight;
-  UInt      m_uiRightEdgePosInCU;
-  UInt      m_uiBottomEdgePosInCU;
-  UInt      m_uiFirstCUAddr;
-
-public:  
-  TComTile();
-  virtual ~TComTile();
-
-  Void      setTileWidth         ( UInt i )            { m_uiTileWidth = i; }
-  UInt      getTileWidth         ()                    { return m_uiTileWidth; }
-  Void      setTileHeight        ( UInt i )            { m_uiTileHeight = i; }
-  UInt      getTileHeight        ()                    { return m_uiTileHeight; }
-  Void      setRightEdgePosInCU  ( UInt i )            { m_uiRightEdgePosInCU = i; }
-  UInt      getRightEdgePosInCU  ()                    { return m_uiRightEdgePosInCU; }
-  Void      setBottomEdgePosInCU ( UInt i )            { m_uiBottomEdgePosInCU = i; }
-  UInt      getBottomEdgePosInCU ()                    { return m_uiBottomEdgePosInCU; }
-  Void      setFirstCUAddr       ( UInt i )            { m_uiFirstCUAddr = i; }
-  UInt      getFirstCUAddr       ()                    { return m_uiFirstCUAddr; }
-};
-#endif
-
 /// picture symbol class
 class TComPicSym
 {
@@ -100,15 +73,6 @@ private:
   UInt          m_uiNumAllocatedSlice;
   TComDataCU**  m_apcTComDataCU;        ///< array of CU data
   
-#if TILES
-  TComTile**    m_apcTComTile;
-  UInt*         m_puiCUOrderMap;       //the map of LCU raster scan address relative to LCU encoding order 
-  UInt*         m_puiInverseCUOrderMap;
-#if TILES_DECODER
-  UInt          m_uiBitsUsedByTileIdx;
-#endif
-#endif
-
 public:
   Void        create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth );
   Void        destroy ();
@@ -129,22 +93,6 @@ public:
   UInt        getNumPartition()         { return m_uiNumPartitions;             }
   UInt        getNumPartInWidth()       { return m_uiNumPartInWidth;            }
   UInt        getNumPartInHeight()      { return m_uiNumPartInHeight;           }
-
-#if TILES
-  TComTile*    getTComTile  ( UInt tileIdx )                         { return *(m_apcTComTile + tileIdx); }
-  Void         setCUOrderMap( Int encCUOrder, Int cuAddr )           { *(m_puiCUOrderMap + encCUOrder) = cuAddr; }
-  UInt         getCUOrderMap( Int encCUOrder )                       { return *(m_puiCUOrderMap + (encCUOrder>=m_uiNumCUsInFrame ? m_uiNumCUsInFrame : encCUOrder)); }
-  Void         setInverseCUOrderMap( Int cuAddr, Int encCUOrder )    { *(m_puiInverseCUOrderMap + cuAddr) = encCUOrder; }
-  UInt         getInverseCUOrderMap( Int cuAddr )                    { return *(m_puiInverseCUOrderMap + (cuAddr>=m_uiNumCUsInFrame ? m_uiNumCUsInFrame : cuAddr)); }
-  UInt         getPicSCUEncOrder( UInt SCUAddr );
-  UInt         getPicSCUAddr( UInt SCUEncOrder );
-  Void         xCreateTComTileArray();
-  Void         xInitTiles();
-  UInt         xCalculateNxtCUAddr( UInt uiCurrCUAddr );
-#if TILES_DECODER
-  UInt         getBitsUsedByTileIdx()                                { return m_uiBitsUsedByTileIdx; }
-#endif
-#endif  
 };// END CLASS DEFINITION TComPicSym
 
 //! \}

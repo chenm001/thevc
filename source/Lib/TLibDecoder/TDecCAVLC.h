@@ -188,12 +188,6 @@ public:
   Void parseBlockCbf        ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum );
   Void parseCoeffNxN        ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
-#if TILES
-#if TILES_DECODER
-  Void readTileMarker     ( UInt& uiTileIdx, UInt uiBitsUsed );
-#endif
-  Void updateContextTables  ( SliceType eSliceType, Int iQp ) { return; }
-#endif    
 #if OL_FLUSH
   Void decodeFlush() {};
 #endif

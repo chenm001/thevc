@@ -164,10 +164,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   Double dLambda;
   
   rpcSlice = pcPic->getSlice(0);
-#if TILES_DECODER
-  rpcSlice->setSPS( pSPS );
-  rpcSlice->setPPS( pPPS );
-#endif
   rpcSlice->setSliceBits(0);
   rpcSlice->setPic( pcPic );
   rpcSlice->initSlice();
@@ -468,10 +464,8 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   
   rpcSlice->setDepth            ( iDepth );
   
-#if !TILES_DECODER
   rpcSlice->setSPS( pSPS );
   rpcSlice->setPPS( pPPS );
-#endif
 
   // reference picture usage indicator for next frames
   rpcSlice->setDRBFlag          ( true );
@@ -667,22 +661,16 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   TEncSbac**** ppppcRDSbacCoders    = pcEncTop->getRDSbacCoders();
   TComBitCounter* pcBitCounters     = pcEncTop->getBitCounters();
   Int  iNumSubstreams = 1;
-  UInt uiTilesAcross  = 0;
 
   if( m_pcCfg->getUseSBACRD() )
   {
     iNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
-    uiTilesAcross = 1;
     delete[] m_pcBufferSbacCoders;
     delete[] m_pcBufferBinCoderCABACs;
-    m_pcBufferSbacCoders     = new TEncSbac    [uiTilesAcross];
-    m_pcBufferBinCoderCABACs = new TEncBinCABAC[uiTilesAcross];
-    for (int ui = 0; ui < uiTilesAcross; ui++)
-    {
-      m_pcBufferSbacCoders[ui].init( &m_pcBufferBinCoderCABACs[ui] );
-    }
-    for (UInt ui = 0; ui < uiTilesAcross; ui++)
-      m_pcBufferSbacCoders[ui].load(m_pppcRDSbacCoder[0][CI_CURR_BEST]);  //init. state
+    m_pcBufferSbacCoders     = new TEncSbac    [1];
+    m_pcBufferBinCoderCABACs = new TEncBinCABAC[1];
+      m_pcBufferSbacCoders[0].init( &m_pcBufferBinCoderCABACs[0] );
+      m_pcBufferSbacCoders[0].load(m_pppcRDSbacCoder[0][CI_CURR_BEST]);  //init. state
 
     for ( UInt ui = 0 ; ui < iNumSubstreams ; ui++ ) //init all sbac coders for RD optimization
       ppppcRDSbacCoders[ui][0][CI_CURR_BEST]->load(m_pppcRDSbacCoder[0][CI_CURR_BEST]);
@@ -690,33 +678,13 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   UInt uiWidthInLCUs  = rpcPic->getPicSym()->getFrameWidthInCU();
   //UInt uiHeightInLCUs = rpcPic->getPicSym()->getFrameHeightInCU();
   UInt uiCol=0, uiLin, uiSubStrm=0;
-#if TILES
-  UInt uiTileStartLCU = 0;
-  UInt uiTileLCUX     = 0;
-#endif
 #endif
 
   // for every CU in slice
 #if FINE_GRANULARITY_SLICES
-#if TILES
-  UInt uiEncCUOrder;
-  uiCUAddr = rpcPic->getPicSym()->getCUOrderMap( uiStartCUAddr /rpcPic->getNumPartInCU()); 
-  for( uiEncCUOrder = uiStartCUAddr/rpcPic->getNumPartInCU();
-       uiEncCUOrder < (uiBoundingCUAddr+(rpcPic->getNumPartInCU()-1))/rpcPic->getNumPartInCU();
-       uiCUAddr = rpcPic->getPicSym()->getCUOrderMap(++uiEncCUOrder) )
-#else
   for(  uiCUAddr = uiStartCUAddr/rpcPic->getNumPartInCU(); uiCUAddr < (uiBoundingCUAddr+(rpcPic->getNumPartInCU()-1))/rpcPic->getNumPartInCU(); uiCUAddr++  )
-#endif
-#else
-#if TILES
-  UInt uiEncCUOrder;
-  uiCUAddr = rpcPic->getPicSym()->getCUOrderMap( uiStartCUAddr ); 
-  for( uiEncCUOrder = uiStartCUAddr;
-       uiEncCUOrder < uiBoundingCUAddr;
-       uiCUAddr = rpcPic->getPicSym()->getCUOrderMap(++uiEncCUOrder) )
 #else
   for(  uiCUAddr = uiStartCUAddr; uiCUAddr < uiBoundingCUAddr; uiCUAddr++  )
-#endif
 #endif
   {
     // initialize CU encoder
@@ -727,53 +695,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     // inherit from TR if necessary, select substream to use.
     if( m_pcCfg->getUseSBACRD() )
     {
-#if TILES
-      uiTileStartLCU = rpcPic->getPicSym()->getTComTile(0)->getFirstCUAddr();
-      uiTileLCUX = uiTileStartLCU % uiWidthInLCUs;
-      //UInt uiSliceStartLCU = pcSlice->getSliceCurStartCUAddr();
-      uiCol     = uiCUAddr % uiWidthInLCUs;
-      uiLin     = uiCUAddr / uiWidthInLCUs;
-      uiSubStrm = uiLin % iNumSubstreams;
-
-      if ( pcSlice->getPPS()->getEntropyCodingSynchro() && (uiCol == uiTileLCUX) )
-      {
-        // We'll sync if the TR is available.
-        TComDataCU *pcCUUp = pcCU->getCUAbove();
-        UInt uiWidthInCU = rpcPic->getFrameWidthInCU();
-        UInt uiMaxParts = 1<<(pcSlice->getSPS()->getMaxCUDepth()<<1);
-        TComDataCU *pcCUTR = NULL;
-        if ( pcCUUp && ((uiCUAddr%uiWidthInCU+pcSlice->getPPS()->getEntropyCodingSynchro()) < uiWidthInCU)  )
-          pcCUTR = rpcPic->getCU( uiCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
-#if FINE_GRANULARITY_SLICES
-        if ( (true/*bEnforceSliceRestriction*/ &&
-             ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || 
-             (pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getSliceCurStartCUAddr())
-             ))||
-             (true/*bEnforceEntropySliceRestriction*/ &&
-             ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || 
-             (pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getEntropySliceCurStartCUAddr())
-             ))
-           )
-#else
-        if( (true/*bEnforceSliceRestriction*/ &&
-            ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || (rpcPic->getPicSym()->getInverseCUOrderMap( pcCUTR->getAddr()) < rpcPic->getPicSym()->getTempInverseCUOrderMap(uiSliceStartLCU)) ||
-            (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && (rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr)) ))) ||
-            (true/*bEnforceEntropySliceRestriction*/ &&
-            ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || (rpcPic->getPicSym()->getInverseCUOrderMap( pcCUTR->getAddr()) < rpcPic->getPicSym()->getTempInverseCUOrderMap(pcSlice->getEntropySliceCurStartCUAddr()))
-    ||
-            (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && (rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr)) )))
-          )
-#endif
-        {
-          // TR not available.
-        }
-        else
-        {
-          // TR is available, we use it.
-          ppppcRDSbacCoders[uiSubStrm][0][CI_CURR_BEST]->loadContexts( &m_pcBufferSbacCoders[0] );
-        }
-      }
-#else
       uiCol     = uiCUAddr % uiWidthInLCUs;
       uiLin     = uiCUAddr / uiWidthInLCUs;
       uiSubStrm = uiLin    % iNumSubstreams;    //index of {substream/entropy coder}
@@ -807,7 +728,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
           ppppcRDSbacCoders[uiSubStrm][0][CI_CURR_BEST]->loadContexts( &m_pcBufferSbacCoders[0] );
         }
       }
-#endif
       m_pppcRDSbacCoder[0][CI_CURR_BEST]->load( ppppcRDSbacCoders[uiSubStrm][0][CI_CURR_BEST] ); //this load is used to simplify the code
   }
 #endif // OL_USE_WPP
@@ -850,15 +770,10 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
          ppppcRDSbacCoders[uiSubStrm][0][CI_CURR_BEST]->load( m_pppcRDSbacCoder[0][CI_CURR_BEST] );
        
          //Store probabilties of second LCU in line into buffer
-#if TILES
-        if (pcSlice->getPPS()->getEntropyCodingSynchro() && uiCol == uiTileLCUX+pcSlice->getPPS()->getEntropyCodingSynchro())
-          m_pcBufferSbacCoders[0].loadContexts(ppppcRDSbacCoders[uiSubStrm][0][CI_CURR_BEST]);
-#else
         if (pcSlice->getPPS()->getEntropyCodingSynchro() && uiCol == pcSlice->getPPS()->getEntropyCodingSynchro())
         {
           m_pcBufferSbacCoders[0].loadContexts(ppppcRDSbacCoders[uiSubStrm][0][CI_CURR_BEST]);
         }
-#endif
       }
 #endif
       
@@ -878,13 +793,8 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     m_uiPicDist      += pcCU->getTotalDistortion();
   }
 #if !FINE_GRANULARITY_SLICES
-#if TILES
-  pcSlice->setSliceCurEndCUAddr( uiEncCUOrder );
-  pcSlice->setEntropySliceCurEndCUAddr( uiEncCUOrder );
-#else
   pcSlice->setSliceCurEndCUAddr( uiCUAddr );
   pcSlice->setEntropySliceCurEndCUAddr( uiCUAddr );
-#endif
   pcSlice->setSliceBits( (UInt)(pcSlice->getSliceBits() + uiBitsCoded) );
 #endif
 }
@@ -894,11 +804,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
  \retval rpcBitstream  bitstream class
  */
 #if OL_USE_WPP
-#if TILES_DECODER
-Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstream, TComOutputBitstream* pcSubstreams )
-#else
 Void TEncSlice::encodeSlice   ( TComPic*& rpcPic,                                   TComOutputBitstream* pcSubstreams )
-#endif
 #else
 Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstream )
 #endif
@@ -955,115 +861,27 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
   TEncTop* pcEncTop = (TEncTop*) m_pcCfg;
   TEncSbac* pcSbacCoders = pcEncTop->getSbacCoders(); //coder for each substream
   Int iNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
-#if TILES_DECODER
-  UInt uiBitsOriginallyInSubstreams = 0;
-#endif
 #if !DISABLE_CAVLC
   if( pcSlice->getSymbolMode() )
 #endif
   {
-    UInt uiTilesAcross = 1;
-    for (UInt ui = 0; ui < uiTilesAcross; ui++)
-      m_pcBufferSbacCoders[ui].load(m_pcSbacCoder); //init. state
-
-#if TILES_DECODER
-    for (Int iSubstrmIdx=0; iSubstrmIdx < iNumSubstreams; iSubstrmIdx++)
-    {
-      uiBitsOriginallyInSubstreams += pcSubstreams[iSubstrmIdx].getNumberOfWrittenBits();
-    }
-#endif
+      m_pcBufferSbacCoders[0].load(m_pcSbacCoder); //init. state
   }
 
   UInt uiWidthInLCUs  = rpcPic->getPicSym()->getFrameWidthInCU();
   UInt uiCol=0, uiLin, uiSubStrm=0;
-#if TILES
-  UInt uiTileStartLCU = 0;
-  UInt uiTileLCUX     = 0;
-#endif
 #endif
 
 
 #if FINE_GRANULARITY_SLICES
-#if TILES
-  UInt uiEncCUOrder;
-  uiCUAddr = rpcPic->getPicSym()->getCUOrderMap( uiStartCUAddr /rpcPic->getNumPartInCU());  /*for tiles, uiStartCUAddr is NOT the real raster scan address, it is actually
-                                                                                              an encoding order index, so we need to convert the index (uiStartCUAddr)
-                                                                                              into the real raster scan address (uiCUAddr) via the CUOrderMap*/
-  for( uiEncCUOrder = uiStartCUAddr /rpcPic->getNumPartInCU();
-       uiEncCUOrder < (uiBoundingCUAddr+rpcPic->getNumPartInCU()-1)/rpcPic->getNumPartInCU();
-       uiCUAddr = rpcPic->getPicSym()->getCUOrderMap(++uiEncCUOrder) )
-#else
   for(  uiCUAddr = uiStartCUAddr/rpcPic->getNumPartInCU(); uiCUAddr<(uiBoundingCUAddr+rpcPic->getNumPartInCU()-1)/rpcPic->getNumPartInCU(); uiCUAddr++  )
-#endif
-#else
-#if TILES
-  UInt uiEncCUOrder;
-  uiCUAddr = rpcPic->getPicSym()->getCUOrderMap( uiStartCUAddr );  /*for tiles, uiStartCUAddr is NOT the real raster scan address, it is actually
-                                                                   an encoding order index, so we need to convert the index (uiStartCUAddr)
-                                                                   into the real raster scan address (uiCUAddr) via the CUOrderMap*/
-  for( uiEncCUOrder = uiStartCUAddr;
-       uiEncCUOrder < uiBoundingCUAddr;
-       uiCUAddr = rpcPic->getPicSym()->getCUOrderMap(++uiEncCUOrder) )
 #else
   for(  uiCUAddr = uiStartCUAddr; uiCUAddr<uiBoundingCUAddr; uiCUAddr++  )
-#endif
 #endif
   {
 #if OL_USE_WPP
     if( m_pcCfg->getUseSBACRD() )
     {
-#if TILES
-      uiTileStartLCU = rpcPic->getPicSym()->getTComTile(0)->getFirstCUAddr();
-      uiTileLCUX = uiTileStartLCU % uiWidthInLCUs;
-      //UInt uiSliceStartLCU = pcSlice->getSliceCurStartCUAddr();
-      uiCol     = uiCUAddr % uiWidthInLCUs;
-      uiLin     = uiCUAddr / uiWidthInLCUs;
-      // dependent tiles => substreams are "per frame".
-      uiSubStrm = uiLin % iNumSubstreams;
-
-      m_pcEntropyCoder->setBitstream( &pcSubstreams[uiSubStrm] );
-
-      // Synchronize cabac probabilities with upper-right LCU if it's available and we're at the start of a line.
-      if (pcSlice->getPPS()->getEntropyCodingSynchro() && (uiCol == uiTileLCUX))
-      {
-        // We'll sync if the TR is available.
-        TComDataCU *pcCUUp = rpcPic->getCU( uiCUAddr )->getCUAbove();
-        UInt uiWidthInCU = rpcPic->getFrameWidthInCU();
-        UInt uiMaxParts = 1<<(pcSlice->getSPS()->getMaxCUDepth()<<1);
-        TComDataCU *pcCUTR = NULL;
-        if ( pcCUUp && ((uiCUAddr%uiWidthInCU+pcSlice->getPPS()->getEntropyCodingSynchro()) < uiWidthInCU)  )
-          pcCUTR = rpcPic->getCU( uiCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
-
-#if FINE_GRANULARITY_SLICES
-        if ( (true/*bEnforceSliceRestriction*/ &&
-             ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || 
-             (pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getSliceCurStartCUAddr())
-             ))||
-             (true/*bEnforceEntropySliceRestriction*/ &&
-             ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || 
-             (pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getEntropySliceCurStartCUAddr())
-             ))
-           )
-#else
-        if( (true/*bEnforceSliceRestriction*/ &&
-            ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || (rpcPic->getPicSym()->getInverseCUOrderMap( pcCUTR->getAddr()) < rpcPic->getPicSym()->getTempInverseCUOrderMap(uiSliceStartLCU)) ||
-            (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && (rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr)) ))) ||
-            (true/*bEnforceEntropySliceRestriction*/ &&
-            ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || (rpcPic->getPicSym()->getInverseCUOrderMap( pcCUTR->getAddr()) < rpcPic->getPicSym()->getTempInverseCUOrderMap(pcSlice->getEntropySliceCurStartCUAddr()))
-    ||
-            (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && (rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr)) )))
-          )
-#endif
-        {
-          // TR not available.
-        }
-        else
-        {
-          // TR is available, we use it.
-          pcSbacCoders[uiSubStrm].loadContexts( &m_pcBufferSbacCoders[0] );
-        }
-      }
-#else
        uiCol     = uiCUAddr % uiWidthInLCUs;
        uiLin     = uiCUAddr / uiWidthInLCUs;
        uiSubStrm = uiLin    % iNumSubstreams;    //index of {substream/entropy coder}
@@ -1101,7 +919,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
           pcSbacCoders[uiSubStrm].loadContexts( &m_pcBufferSbacCoders[0] );
         }
       }
-#endif
       m_pcSbacCoder->load(&pcSbacCoders[uiSubStrm]);  //this load is used to simplify the code (avoid to change all the call to m_pcSbacCoder)
     }
 #endif
@@ -1121,13 +938,8 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
      
 
      //Store probabilties of second LCU in line into buffer
-#if TILES
-    if (pcSlice->getPPS()->getEntropyCodingSynchro() && (uiCol == uiTileLCUX+pcSlice->getPPS()->getEntropyCodingSynchro()))
-      m_pcBufferSbacCoders[0].loadContexts( &pcSbacCoders[uiSubStrm] );
-#else
     if (pcSlice->getPPS()->getEntropyCodingSynchro() && uiCol == pcSlice->getPPS()->getEntropyCodingSynchro())
       m_pcBufferSbacCoders[0].loadContexts( &pcSbacCoders[uiSubStrm] );
-#endif
   }
 #endif
   }
@@ -1200,13 +1012,8 @@ Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& u
     pcSlice->setEntropySliceCurEndCUAddr(uiBoundingCUAddrSlice);
   }
   //calculate real entropy slice start address
-#if TILES
-  UInt uiInternalAddress = rpcPic->getPicSym()->getPicSCUAddr(pcSlice->getEntropySliceCurStartCUAddr()) % rpcPic->getNumPartInCU();
-  UInt uiExternalAddress = rpcPic->getPicSym()->getPicSCUAddr(pcSlice->getEntropySliceCurStartCUAddr()) / rpcPic->getNumPartInCU();
-#else
   UInt uiInternalAddress = (pcSlice->getEntropySliceCurStartCUAddr()) % rpcPic->getNumPartInCU();
   UInt uiExternalAddress = (pcSlice->getEntropySliceCurStartCUAddr()) / rpcPic->getNumPartInCU();
-#endif
   UInt uiPosX = ( uiExternalAddress % rpcPic->getFrameWidthInCU() ) * g_uiMaxCUWidth+ g_auiRasterToPelX[ g_auiZscanToRaster[uiInternalAddress] ];
   UInt uiPosY = ( uiExternalAddress / rpcPic->getFrameWidthInCU() ) * g_uiMaxCUHeight+ g_auiRasterToPelY[ g_auiZscanToRaster[uiInternalAddress] ];
   UInt uiWidth = pcSlice->getSPS()->getWidth();
@@ -1216,32 +1023,19 @@ Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& u
     if(uiInternalAddress>=rpcPic->getNumPartInCU())
     {
       uiInternalAddress=0;
-#if TILES
-      uiExternalAddress = rpcPic->getPicSym()->getCUOrderMap(rpcPic->getPicSym()->getInverseCUOrderMap(uiExternalAddress)+1);
-#else
       uiExternalAddress++;
-#endif
     }
     uiPosX = ( uiExternalAddress % rpcPic->getFrameWidthInCU() ) * g_uiMaxCUWidth+ g_auiRasterToPelX[ g_auiZscanToRaster[uiInternalAddress] ];
     uiPosY = ( uiExternalAddress / rpcPic->getFrameWidthInCU() ) * g_uiMaxCUHeight+ g_auiRasterToPelY[ g_auiZscanToRaster[uiInternalAddress] ];
   }
-#if TILES
-  UInt uiRealStartAddress = rpcPic->getPicSym()->getPicSCUEncOrder(uiExternalAddress*rpcPic->getNumPartInCU()+uiInternalAddress);
-#else
   UInt uiRealStartAddress = uiExternalAddress*rpcPic->getNumPartInCU()+uiInternalAddress;
-#endif
   
   pcSlice->setEntropySliceCurStartCUAddr(uiRealStartAddress);
   uiStartCUAddrEntropySlice=uiRealStartAddress;
   
   //calculate real slice start address
-#if TILES
-  uiInternalAddress = rpcPic->getPicSym()->getPicSCUAddr(pcSlice->getSliceCurStartCUAddr()) % rpcPic->getNumPartInCU();
-  uiExternalAddress = rpcPic->getPicSym()->getPicSCUAddr(pcSlice->getSliceCurStartCUAddr()) / rpcPic->getNumPartInCU();
-#else
   uiInternalAddress = (pcSlice->getSliceCurStartCUAddr()) % rpcPic->getNumPartInCU();
   uiExternalAddress = (pcSlice->getSliceCurStartCUAddr()) / rpcPic->getNumPartInCU();
-#endif
   uiPosX = ( uiExternalAddress % rpcPic->getFrameWidthInCU() ) * g_uiMaxCUWidth+ g_auiRasterToPelX[ g_auiZscanToRaster[uiInternalAddress] ];
   uiPosY = ( uiExternalAddress / rpcPic->getFrameWidthInCU() ) * g_uiMaxCUHeight+ g_auiRasterToPelY[ g_auiZscanToRaster[uiInternalAddress] ];
   uiWidth = pcSlice->getSPS()->getWidth();
@@ -1251,20 +1045,12 @@ Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& u
     if(uiInternalAddress>=rpcPic->getNumPartInCU())
     {
       uiInternalAddress=0;
-#if TILES
-      uiExternalAddress = rpcPic->getPicSym()->getCUOrderMap(rpcPic->getPicSym()->getInverseCUOrderMap(uiExternalAddress)+1);
-#else
       uiExternalAddress++;
-#endif
     }
     uiPosX = ( uiExternalAddress % rpcPic->getFrameWidthInCU() ) * g_uiMaxCUWidth+ g_auiRasterToPelX[ g_auiZscanToRaster[uiInternalAddress] ];
     uiPosY = ( uiExternalAddress / rpcPic->getFrameWidthInCU() ) * g_uiMaxCUHeight+ g_auiRasterToPelY[ g_auiZscanToRaster[uiInternalAddress] ];
   }
-#if TILES
-  uiRealStartAddress = rpcPic->getPicSym()->getPicSCUEncOrder(uiExternalAddress*rpcPic->getNumPartInCU()+uiInternalAddress);
-#else
   uiRealStartAddress = uiExternalAddress*rpcPic->getNumPartInCU()+uiInternalAddress;
-#endif
   
   pcSlice->setSliceCurStartCUAddr(uiRealStartAddress);
   uiStartCUAddrSlice=uiRealStartAddress;

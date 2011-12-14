@@ -478,13 +478,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   return;
 }
 
-#if TILES_DECODER
-Void TDecCavlc::readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed )
-{
-  xReadCode ( uiBitsUsed, uiTileIdx );
-}
-#endif
-
 Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 {
   UInt  uiCode;

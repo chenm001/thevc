@@ -118,11 +118,7 @@ public:
   Void    precompressSlice    ( TComPic*& rpcPic                                );      ///< precompress slice for multi-loop opt.
   Void    compressSlice       ( TComPic*& rpcPic                                );      ///< analysis stage of slice
 #if OL_USE_WPP
-#if TILES_DECODER
-  Void    encodeSlice         ( TComPic*& rpcPic, TComOutputBitstream* rpcBitstream, TComOutputBitstream* pcSubstreams  );
-#else
   Void    encodeSlice         ( TComPic*& rpcPic,                                    TComOutputBitstream* pcSubstreams  );
-#endif
 #else
   Void    encodeSlice         ( TComPic*& rpcPic, TComOutputBitstream* rpcBitstream  );      ///< entropy coding of slice
 #endif

@@ -258,13 +258,6 @@
 #define LOG2_MAX_COLUMN_WIDTH              13
 #define LOG2_MAX_ROW_HEIGHT                13
 
-#if TILES
-#define TILES_DECODER                       1 // JCTVC-F594 - signalling of tile location
-#define MAX_MARKER_PER_NALU                 1000
-#else
-#define TILES_DECODER                       0
-#endif
-
 #define SAO                           1           // JCTVC-E049: Sample adaptive offset
 #define SAO_CHROMA                    1           // JCTVC-F057: Sample adaptive offset for Chroma
 #define SAO_CROSS_LCU_BOUNDARIES      1

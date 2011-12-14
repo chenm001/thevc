@@ -146,13 +146,6 @@ public:
   Void parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int width, Int height, TextType eTType, UInt uiScanIdx );
   Void parseCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
-#if TILES
-#if TILES_DECODER
-  Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed );
-#endif
-  Void updateContextTables( SliceType eSliceType, Int iQp );
-#endif
-
 #if F747_APS
   Void parseAPSInitInfo(TComAPS& cAPS) {printf("Not supported in parseAPSInitInfo()\n");assert(0);exit(1);}
 #endif

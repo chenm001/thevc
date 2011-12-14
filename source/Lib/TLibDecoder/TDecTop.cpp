@@ -382,15 +382,9 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
     {
       // make sure we already received both parameter sets
       assert( 3 == m_uiValidPS );
-#if TILES_DECODER
-      m_apcSlicePilot->setSPS(&m_cSPS);
-      m_apcSlicePilot->initSlice();
-#endif
       if (m_bFirstSliceInPicture)
       {
-#if !TILES_DECODER
         m_apcSlicePilot->initSlice();
-#endif
         m_uiSliceIdx     = 0;
         m_uiLastSliceIdx = 0;
 #if !F747_APS
@@ -414,7 +408,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       m_apcSlicePilot->setSliceIdx(m_uiSliceIdx);
       if (!m_bFirstSliceInPicture)
       {
-#if TILES_DECODER || OL_USE_WPP
+#if OL_USE_WPP
         m_apcSlicePilot->copySliceInfo( pcPic->getPicSym()->getSlice(m_uiSliceIdx-1) );
 #else
         memcpy(m_apcSlicePilot, pcPic->getPicSym()->getSlice(m_uiSliceIdx-1), sizeof(TComSlice));
@@ -502,51 +496,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       TComSlice*  pcSlice = m_apcSlicePilot;
       Bool bNextSlice     = pcSlice->isNextSlice();
 
-#if TILES
-      UInt i, j, p;
-
-      {
-        //create the TComTileArray
-        pcPic->getPicSym()->xCreateTComTileArray();
-
-        //set the width for each tile
-        pcPic->getPicSym()->getTComTile(0)->setTileWidth( pcPic->getPicSym()->getFrameWidthInCU() );
-  
-        //set the height for each tile
-        pcPic->getPicSym()->getTComTile(0)->setTileHeight( pcPic->getPicSym()->getFrameHeightInCU() );
-      }
-
-      pcPic->getPicSym()->xInitTiles();
-
-      //generate the Coding Order Map and Inverse Coding Order Map
-      UInt uiEncCUAddr;
-      for(i=0, uiEncCUAddr=0; i<pcPic->getPicSym()->getNumberOfCUsInFrame(); i++, uiEncCUAddr = pcPic->getPicSym()->xCalculateNxtCUAddr(uiEncCUAddr))
-      {
-        pcPic->getPicSym()->setCUOrderMap(i, uiEncCUAddr);
-        pcPic->getPicSym()->setInverseCUOrderMap(uiEncCUAddr, i);
-      }
-      pcPic->getPicSym()->setCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());
-      pcPic->getPicSym()->setInverseCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());
-
-#if FINE_GRANULARITY_SLICES
-      //convert the start and end CU addresses of the slice and entropy slice into encoding order
-      pcSlice->setEntropySliceCurStartCUAddr( pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getEntropySliceCurStartCUAddr()) );
-      pcSlice->setEntropySliceCurEndCUAddr( pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getEntropySliceCurEndCUAddr()) );
-      if(pcSlice->isNextSlice())
-      {
-        pcSlice->setSliceCurStartCUAddr(pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getSliceCurStartCUAddr()));
-        pcSlice->setSliceCurEndCUAddr(pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getSliceCurEndCUAddr()));
-      }
-#else
-      //convert the start and end CU addresses of the slice and entropy slice into encoding order
-      pcSlice->setEntropySliceCurStartCUAddr( pcPic->getPicSym()->getInverseCUOrderMap(pcSlice->getEntropySliceCurStartCUAddr()) );
-      if(pcSlice->isNextSlice())
-      {
-        pcSlice->setSliceCurStartCUAddr(pcPic->getPicSym()->getInverseCUOrderMap(pcSlice->getSliceCurStartCUAddr()));
-      }
-#endif
-#endif
-
       if (m_bFirstSliceInPicture) 
       {
         if(pcPic->getNumAllocatedSlice() != 1)
@@ -629,9 +578,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
           if ( pcSlice->getNumRefIdx(RefPicList( 0 ) ) == pcSlice->getNumRefIdx(RefPicList( 1 ) ) )
           {
             pcSlice->setNoBackPredFlag( true );
-#if !TILES
             Int i;
-#endif
             for ( i=0; i < pcSlice->getNumRefIdx(RefPicList( 1 ) ); i++ )
             {
               if ( pcSlice->getRefPOC(RefPicList(1), i) != pcSlice->getRefPOC(RefPicList(0), i) ) 

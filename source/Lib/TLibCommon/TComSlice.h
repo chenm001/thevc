@@ -572,12 +572,6 @@ private:
   Bool        m_bFinalized;
 #endif
 
-#if TILES_DECODER
-  UInt        *m_uiTileByteLocation;
-  UInt        m_uiTileCount;
-  UInt        m_uiTileOffstForMultES;
-#endif
-
 #if OL_USE_WPP
   UInt*       m_puiSubstreamSizes;
 #endif
@@ -750,14 +744,6 @@ public:
   UInt getEntropySliceCounter           ()                  { return m_uiEntropySliceCounter;             }
   Void setFinalized                     ( Bool uiVal )      { m_bFinalized = uiVal;                       }
   Bool getFinalized                     ()                  { return m_bFinalized;                        }
-#endif
-#if TILES_DECODER
-  Void setTileLocationCount             ( UInt uiCount )      { m_uiTileCount = uiCount;                  }
-  UInt getTileLocationCount             ()                    { return m_uiTileCount;                     }
-  Void setTileLocation                  ( Int i, UInt uiLOC ) { m_uiTileByteLocation[i] = uiLOC;          }
-  UInt getTileLocation                  ( Int i )             { return m_uiTileByteLocation[i];           }
-  Void setTileOffstForMultES            (UInt uiOffset )      { m_uiTileOffstForMultES = uiOffset;        }
-  UInt getTileOffstForMultES            ()                    { return m_uiTileOffstForMultES;            }
 #endif
 #if OL_USE_WPP
   Void allocSubstreamSizes              ( UInt uiNumSubstreams );

@@ -184,15 +184,9 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       ppcSubstreams    = new TComInputBitstream*[uiNumSubstreams];
       m_pcSbacDecoders = new TDecSbac[uiNumSubstreams];
       m_pcBinCABACs    = new TDecBinCABAC[uiNumSubstreams];
-#if TILES_DECODER
-      UInt uiBitsRead = pcBitstream->getByteLocation()<<3;
-#endif
       for ( UInt ui = 0 ; ui < uiNumSubstreams ; ui++ )
       {
         m_pcSbacDecoders[ui].init(&m_pcBinCABACs[ui]);
-#if TILES_DECODER
-        UInt uiSubstreamSizeBits = (ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
-#endif
         ppcSubstreams[ui] = pcBitstream->extractSubstream(ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
       }
 

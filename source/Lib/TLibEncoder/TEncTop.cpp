@@ -287,10 +287,6 @@ Void TEncTop::init()
   xInitRPS();
 #endif
 
-#if TILES
-  xInitPPSforTiles();
-#endif
-
   // initialize processing unit classes
   m_cGOPEncoder.  init( this );
   m_cSliceEncoder.init( this );
@@ -629,7 +625,6 @@ Void TEncTop::xInitPPS()
 #endif
 }
 
-
 #if G1002_RPS
 Void TEncTop::xInitRPS()
 {
@@ -741,15 +736,4 @@ Void TEncTop::selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, UInt
 }
 #endif
 
-#if TILES
-Void  TEncTop::xInitPPSforTiles()
-{
-#if OL_USE_WPP
-    // # substreams is "per tile" when tiles are independent.
-    if (m_iWaveFrontSynchro)
-      m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams);
-#endif
-}
-
-#endif
 //! \}
