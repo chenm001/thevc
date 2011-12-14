@@ -179,7 +179,12 @@ public:
                                      const UInt                      uiPosX,
                                      const UInt                      uiPosY,
                                      const UInt                      uiLog2BlkSize,
+#if SIGMAP_CTX_RED
+                                     const UInt                       uiStride,
+                                     const UInt                       eTType );
+#else
                                      const UInt                      uiStride );
+#endif
 #if MULTI_LEVEL_SIGNIFICANCE
   static UInt getSigCoeffGroupCtxInc  ( const UInt*                   uiSigCoeffGroupFlag,
                                      const UInt                       uiCGPosX,

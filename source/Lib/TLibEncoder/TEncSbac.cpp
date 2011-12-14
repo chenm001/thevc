@@ -79,11 +79,23 @@ TEncSbac::TEncSbac()
 #if MULTI_LEVEL_SIGNIFICANCE
 , m_cCUSigCoeffGroupSCModel   ( 1,             2,               NUM_SIG_CG_FLAG_CTX           , m_contextModels + m_numContextModels, m_numContextModels)
 #endif
+#if SIGMAP_CTX_RED
+, m_cCUSigSCModelLuma         ( 1,             1,               NUM_SIG_FLAG_CTX_LUMA         , m_contextModels + m_numContextModels, m_numContextModels)
+, m_cCUSigSCModelChroma       ( 1,             1,               NUM_SIG_FLAG_CTX_CHROMA       , m_contextModels + m_numContextModels, m_numContextModels)
+#else
 , m_cCUSigSCModel             ( 1,             2,               NUM_SIG_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
+#endif
 , m_cCuCtxLastX               ( 1,             2,               NUM_CTX_LAST_FLAG_XY          , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCuCtxLastY               ( 1,             2,               NUM_CTX_LAST_FLAG_XY          , m_contextModels + m_numContextModels, m_numContextModels)
+#if COEFF_CTXSET_RED
+, m_cCUOneSCModelLuma         ( 1,             1,               NUM_ONE_FLAG_CTX_LUMA         , m_contextModels + m_numContextModels, m_numContextModels)
+, m_cCUOneSCModelChroma       ( 1,             1,               NUM_ONE_FLAG_CTX_CHROMA       , m_contextModels + m_numContextModels, m_numContextModels)
+, m_cCUAbsSCModelLuma         ( 1,             1,               NUM_ABS_FLAG_CTX_LUMA         , m_contextModels + m_numContextModels, m_numContextModels)
+, m_cCUAbsSCModelChroma       ( 1,             1,               NUM_ABS_FLAG_CTX_CHROMA       , m_contextModels + m_numContextModels, m_numContextModels)
+#else
 , m_cCUOneSCModel             ( 1,             2,               NUM_ONE_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUAbsSCModel             ( 1,             2,               NUM_ABS_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
+#endif
 , m_cMVPIdxSCModel            ( 1,             1,               NUM_MVP_IDX_CTX               , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cALFFlagSCModel           ( 1,             1,               NUM_ALF_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cALFUvlcSCModel           ( 1,             1,               NUM_ALF_UVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
@@ -140,11 +152,23 @@ Void TEncSbac::resetEntropy           ()
 #if MULTI_LEVEL_SIGNIFICANCE
   m_cCUSigCoeffGroupSCModel.initBuffer   ( eSliceType, iQp, (Short*)INIT_SIG_CG_FLAG );
 #endif
+#if SIGMAP_CTX_RED
+  m_cCUSigSCModelLuma.initBuffer         ( eSliceType, iQp, (Short*)INIT_SIG_FLAG_LUMA );
+  m_cCUSigSCModelChroma.initBuffer       ( eSliceType, iQp, (Short*)INIT_SIG_FLAG_CHROMA );
+#else
   m_cCUSigSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_SIG_FLAG );
+#endif
   m_cCuCtxLastX.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST );
   m_cCuCtxLastY.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST );
+#if COEFF_CTXSET_RED
+  m_cCUOneSCModelLuma.initBuffer         ( eSliceType, iQp, (Short*)INIT_ONE_FLAG_LUMA );
+  m_cCUOneSCModelChroma.initBuffer       ( eSliceType, iQp, (Short*)INIT_ONE_FLAG_CHROMA );
+  m_cCUAbsSCModelLuma.initBuffer         ( eSliceType, iQp, (Short*)INIT_ABS_FLAG_LUMA );
+  m_cCUAbsSCModelChroma.initBuffer       ( eSliceType, iQp, (Short*)INIT_ABS_FLAG_CHROMA );
+#else
   m_cCUOneSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ONE_FLAG );
   m_cCUAbsSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ABS_FLAG );
+#endif
   m_cMVPIdxSCModel.initBuffer            ( eSliceType, iQp, (Short*)INIT_MVP_IDX );
   m_cALFFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_FLAG );
   m_cALFUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
@@ -191,11 +215,23 @@ Void TEncSbac::updateContextTables( SliceType eSliceType, Int iQp, Bool bExecute
   m_cCUDeltaQpSCModel.initBuffer         ( eSliceType, iQp, (Short*)INIT_DQP );
   m_cCUQtCbfSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_QT_CBF );
   m_cCUQtRootCbfSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
+#if SIGMAP_CTX_RED
+  m_cCUSigSCModelLuma.initBuffer         ( eSliceType, iQp, (Short*)INIT_SIG_FLAG_LUMA );
+  m_cCUSigSCModelChroma.initBuffer       ( eSliceType, iQp, (Short*)INIT_SIG_FLAG_CHROMA );
+#else
   m_cCUSigSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_SIG_FLAG );
+#endif
   m_cCuCtxLastX.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST );
   m_cCuCtxLastY.initBuffer               ( eSliceType, iQp, (Short*)INIT_LAST );
+#if COEFF_CTXSET_RED
+  m_cCUOneSCModelLuma.initBuffer         ( eSliceType, iQp, (Short*)INIT_ONE_FLAG_LUMA );
+  m_cCUOneSCModelChroma.initBuffer       ( eSliceType, iQp, (Short*)INIT_ONE_FLAG_CHROMA );
+  m_cCUAbsSCModelLuma.initBuffer         ( eSliceType, iQp, (Short*)INIT_ABS_FLAG_LUMA );
+  m_cCUAbsSCModelChroma.initBuffer       ( eSliceType, iQp, (Short*)INIT_ABS_FLAG_CHROMA );
+#else
   m_cCUOneSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ONE_FLAG );
   m_cCUAbsSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_ABS_FLAG );
+#endif
   m_cMVPIdxSCModel.initBuffer            ( eSliceType, iQp, (Short*)INIT_MVP_IDX );
   m_cALFFlagSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_FLAG );
   m_cALFUvlcSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_ALF_UVLC );
@@ -1403,7 +1439,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 #if MULTI_LEVEL_SIGNIFICANCE
   ContextModel * const baseCoeffGroupCtx = m_cCUSigCoeffGroupSCModel.get( 0, eTType );
 #endif
+#if SIGMAP_CTX_RED
+  ContextModel * const baseCtx = (eTType==TEXT_LUMA) ? m_cCUSigSCModelLuma.get( 0, 0 ) : m_cCUSigSCModelChroma.get( 0, 0 );
+#else
   ContextModel * const baseCtx = m_cCUSigSCModel.get( 0, eTType );
+#endif
   
 #if !UNIFIED_SCAN_PASSES
 #if MULTI_LEVEL_SIGNIFICANCE
@@ -1457,7 +1497,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           if (iScanPosOffset > 0 || bInferredCGFlag || uiNumNonZeroesInCG )
           {
             uiSig     = (pcCoef[ uiBlkPos ] != 0);
+#if SIGMAP_CTX_RED
+            uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth, eTType );
+#else
             uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
+#endif
             m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
             
             uiNumNonZeroesInCG += uiSig;
@@ -1476,7 +1520,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     UInt  uiPosY    = uiBlkPos >> uiLog2BlockSize;
     UInt  uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
     UInt  uiSig     = pcCoef[ uiBlkPos ] != 0 ? 1 : 0;
+#if SIGMAP_CTX_RED
+    UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth, eTType );
+#else
     UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
+#endif
     m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
   }
 
@@ -1550,7 +1598,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 
           if( iScanPosSig > iSubPos || bInferredCGFlag || numNonZero )
           {
+#if SIGMAP_CTX_RED
+            uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth, eTType );
+#else
             uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
+#endif
             m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
           }
           if( uiSig )
@@ -1583,7 +1635,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
         coeffSigns = 2 * coeffSigns + ( pcCoef[ uiBlkPos ] < 0 );
         numNonZero++;
       }      
+#if SIGMAP_CTX_RED
+      UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth, eTType );
+#else
       UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth );
+#endif
       m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
     }
 
@@ -1608,22 +1664,41 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     {
       UInt c1 = 1;
       UInt c2 = 0;
+#if COEFF_CTXSET_RED
+      UInt uiCtxSet = (iSubSet > 0 && eTType==TEXT_LUMA) ? 3 : 0;
+#else
       UInt uiCtxSet = iSubSet > 0 ? 3 : 0;
+#endif
       
       if( uiNumOne > 0 )
       {
         uiCtxSet++;
+#if COEFF_CTXSET_RED
+        if(eTType==TEXT_LUMA)
+        {
+#endif
         if( uiNumOne > 3 )
         {
           uiCtxSet++;
         }
+#if COEFF_CTXSET_RED
+        }
+#endif
       }
       
       uiNumOne       >>= 1;
+#if COEFF_CTXSET_RED
+#if COEFF_CTX_RED
+      ContextModel *baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUOneSCModelLuma.get( 0, 0 ) + 4 * uiCtxSet : m_cCUOneSCModelChroma.get( 0, 0 ) + 4 * uiCtxSet;
+#else
+      ContextModel *baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUOneSCModelLuma.get( 0, 0 ) + 5 * uiCtxSet : m_cCUOneSCModelChroma.get( 0, 0 ) + 5 * uiCtxSet;
+#endif 
+#else
 #if COEFF_CTX_RED
       ContextModel *baseCtxMod = m_cCUOneSCModel.get( 0, eTType ) + 4 * uiCtxSet;
 #else
       ContextModel *baseCtxMod = m_cCUOneSCModel.get( 0, eTType ) + 5 * uiCtxSet;
+#endif
 #endif
       
       for ( Int idx = 0; idx < numNonZero; idx++ )
@@ -1646,10 +1721,18 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       
       if (c1 == 0)
       {
+#if COEFF_CTXSET_RED
+#if COEFF_CTX_RED
+          baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUAbsSCModelLuma.get( 0, 0 ) + 3 * uiCtxSet : m_cCUAbsSCModelChroma.get( 0, 0 ) + 3 * uiCtxSet;
+#else
+          baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUAbsSCModelLuma.get( 0, 0 ) + 5 * uiCtxSet : m_cCUAbsSCModelChroma.get( 0, 0 ) + 5 * uiCtxSet;
+#endif 
+#else
 #if COEFF_CTX_RED
         baseCtxMod = m_cCUAbsSCModel.get( 0, eTType ) + 3 * uiCtxSet;
 #else
         baseCtxMod = m_cCUAbsSCModel.get( 0, eTType ) + 5 * uiCtxSet;
+#endif
 #endif
         for ( Int idx = 0; idx < numNonZero; idx++ )
         {
@@ -1915,22 +1998,66 @@ Void TEncSbac::estSignificantCoeffGroupMapBit( estBitsSbacStruct* pcEstBitsSbac,
  */
 Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType )
 {
+#if SIGMAP_CTX_RED
+  Int firstCtx, numCtx = (eTType == TEXT_LUMA) ? 9 : 6;
+#else
   Int firstCtx, numCtx = 15;
+#endif
   switch (uiCTXIdx)
   {
     case 2: // 32x32
     case 3: // 16x16
+#if SIGMAP_CTX_RED
+    if (eTType == TEXT_LUMA)
+    {
+      firstCtx = 20;
+      numCtx = 7;
+    }
+    else
+    {
+      firstCtx = 17;
+      numCtx = 4;
+    }
+#else
       firstCtx = 31;
       numCtx = 13;
+#endif
       break;
     case 4: // 8x8
+#if SIGMAP_CTX_RED
+    firstCtx = (eTType == TEXT_LUMA) ? 9 : 6;
+    numCtx = 11;
+#else
       firstCtx = 15;
       numCtx = 16;
+#endif
       break;
     default: // 4x4 (case 5)
       firstCtx = 0;
       break;
   }
+#if SIGMAP_CTX_RED
+  if (eTType == TEXT_LUMA )
+  {
+    for ( Int ctxIdx = firstCtx; ctxIdx < firstCtx + numCtx; ctxIdx++ )
+    {
+      for( UInt uiBin = 0; uiBin < 2; uiBin++ )
+      {
+         pcEstBitsSbac->significantBits[ ctxIdx ][ uiBin ] = m_cCUSigSCModelLuma.get(  0, 0, ctxIdx ).getEntropyBits( uiBin );
+      }
+    }
+  }
+  else
+  {
+    for ( Int ctxIdx = firstCtx; ctxIdx < firstCtx + numCtx; ctxIdx++ )
+    {
+      for( UInt uiBin = 0; uiBin < 2; uiBin++ )
+      {
+        pcEstBitsSbac->significantBits[ ctxIdx ][ uiBin ] = m_cCUSigSCModelChroma.get(  0, 0, ctxIdx ).getEntropyBits( uiBin );
+      }
+    }
+  }
+#else
   for ( Int ctxIdx = firstCtx; ctxIdx < firstCtx + numCtx; ctxIdx++ )
   {
     for( UInt uiBin = 0; uiBin < 2; uiBin++ )
@@ -1938,7 +2065,7 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCT
       pcEstBitsSbac->significantBits[ ctxIdx ][ uiBin ] = m_cCUSigSCModel.get(  0, eTType, ctxIdx ).getEntropyBits( uiBin );
     }
   }
-
+#endif
   Int iBitsX = 0, iBitsY = 0;
   const UInt uiWidth       = ( 1 << ( 7 - uiCTXIdx ) );
 #if MODIFIED_LAST_XY_CODING
@@ -1979,6 +2106,42 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCT
  */
 Void TEncSbac::estSignificantCoefficientsBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType )
 {
+#if COEFF_CTXSET_RED
+  if (eTType==TEXT_LUMA)
+  {
+    ContextModel *ctxOne = m_cCUOneSCModelLuma.get(0, 0);
+    ContextModel *ctxAbs = m_cCUAbsSCModelLuma.get(0, 0);
+
+    for (Int ctxIdx = 0; ctxIdx < NUM_ONE_FLAG_CTX_LUMA; ctxIdx++)
+    {
+      pcEstBitsSbac->m_greaterOneBits[ ctxIdx ][ 0 ] = ctxOne[ ctxIdx ].getEntropyBits( 0 );
+      pcEstBitsSbac->m_greaterOneBits[ ctxIdx ][ 1 ] = ctxOne[ ctxIdx ].getEntropyBits( 1 );    
+    }
+
+    for (Int ctxIdx = 0; ctxIdx < NUM_ABS_FLAG_CTX_LUMA; ctxIdx++)
+    {
+      pcEstBitsSbac->m_levelAbsBits[ ctxIdx ][ 0 ] = ctxAbs[ ctxIdx ].getEntropyBits( 0 );
+      pcEstBitsSbac->m_levelAbsBits[ ctxIdx ][ 1 ] = ctxAbs[ ctxIdx ].getEntropyBits( 1 );    
+    }
+  }
+  else
+  {
+    ContextModel *ctxOne = m_cCUOneSCModelChroma.get(0, 0);
+    ContextModel *ctxAbs = m_cCUAbsSCModelChroma.get(0, 0);
+
+    for (Int ctxIdx = 0; ctxIdx < NUM_ONE_FLAG_CTX_CHROMA; ctxIdx++)
+    {
+      pcEstBitsSbac->m_greaterOneBits[ ctxIdx ][ 0 ] = ctxOne[ ctxIdx ].getEntropyBits( 0 );
+      pcEstBitsSbac->m_greaterOneBits[ ctxIdx ][ 1 ] = ctxOne[ ctxIdx ].getEntropyBits( 1 );    
+    }
+
+    for (Int ctxIdx = 0; ctxIdx < NUM_ABS_FLAG_CTX_CHROMA; ctxIdx++)
+    {
+      pcEstBitsSbac->m_levelAbsBits[ ctxIdx ][ 0 ] = ctxAbs[ ctxIdx ].getEntropyBits( 0 );
+      pcEstBitsSbac->m_levelAbsBits[ ctxIdx ][ 1 ] = ctxAbs[ ctxIdx ].getEntropyBits( 1 );    
+    }
+  }
+#else
   ContextModel *ctxOne = m_cCUOneSCModel.get(0, eTType);
   ContextModel *ctxAbs = m_cCUAbsSCModel.get(0, eTType);
   
@@ -1993,6 +2156,7 @@ Void TEncSbac::estSignificantCoefficientsBit( estBitsSbacStruct* pcEstBitsSbac, 
     pcEstBitsSbac->m_levelAbsBits[ ctxIdx ][ 0 ] = ctxAbs[ ctxIdx ].getEntropyBits( 0 );
     pcEstBitsSbac->m_levelAbsBits[ ctxIdx ][ 1 ] = ctxAbs[ ctxIdx ].getEntropyBits( 1 );    
   }
+#endif
 }
 
 #if OL_USE_WPP
@@ -2023,11 +2187,23 @@ Void TEncSbac::xCopyContextsFrom( TEncSbac* pSrc )
 
   m_cCUQtCbfSCModel           .copyFrom( &pSrc->m_cCUQtCbfSCModel           );
   m_cCUQtRootCbfSCModel       .copyFrom( &pSrc->m_cCUQtRootCbfSCModel       );
+#if SIGMAP_CTX_RED
+  m_cCUSigSCModelLuma         .copyFrom( &pSrc->m_cCUSigSCModelLuma         );
+  m_cCUSigSCModelChroma       .copyFrom( &pSrc->m_cCUSigSCModelChroma       );
+#else
   m_cCUSigSCModel             .copyFrom( &pSrc->m_cCUSigSCModel             );
+#endif
   m_cCuCtxLastX               .copyFrom( &pSrc->m_cCuCtxLastX               );
   m_cCuCtxLastY               .copyFrom( &pSrc->m_cCuCtxLastY               );
+#if COEFF_CTXSET_RED
+  m_cCUOneSCModelLuma         .copyFrom( &pSrc->m_cCUOneSCModelLuma         );
+  m_cCUOneSCModelChroma       .copyFrom( &pSrc->m_cCUOneSCModelChroma       );
+  m_cCUAbsSCModelLuma         .copyFrom( &pSrc->m_cCUAbsSCModelLuma         );
+  m_cCUAbsSCModelChroma       .copyFrom( &pSrc->m_cCUAbsSCModelChroma       );
+#else
   m_cCUOneSCModel             .copyFrom( &pSrc->m_cCUOneSCModel             );
   m_cCUAbsSCModel             .copyFrom( &pSrc->m_cCUAbsSCModel             );
+#endif
   m_cMVPIdxSCModel            .copyFrom( &pSrc->m_cMVPIdxSCModel            );
   m_cALFFlagSCModel           .copyFrom( &pSrc->m_cALFFlagSCModel           );
   m_cALFUvlcSCModel           .copyFrom( &pSrc->m_cALFUvlcSCModel           );

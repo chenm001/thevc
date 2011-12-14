@@ -3029,6 +3029,11 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     {
       iLastScanPos            = iScanPos;
       uiCtxSet                = iScanPos < SCAN_SET_SIZE ? 0 : 3;
+#if COEFF_CTXSET_RED
+      uiCtxSet                = (iScanPos < SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
+#else
+      uiCtxSet                = iScanPos < SCAN_SET_SIZE ? 0 : 3;
+#endif
     }    
 
     if ( iLastScanPos >= 0 )
@@ -3050,7 +3055,11 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       {
         UInt   uiPosY        = uiBlkPos >> uiLog2BlkSize;
         UInt   uiPosX        = uiBlkPos - ( uiPosY << uiLog2BlkSize );
+#if SIGMAP_CTX_RED
+        UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth, eTType );
+#else
         UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth );
+#endif
         uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ], lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, iQBits, dTemp, 0 );
       }
 
@@ -3087,14 +3096,25 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         c1                = 1;
         c2                = 0;
         uiGoRiceParam     = 0;
+#if COEFF_CTXSET_RED
+        uiCtxSet          = (iScanPos == SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
+#else
         uiCtxSet          = iScanPos == SCAN_SET_SIZE ? 0 : 3;
+#endif
         if( uiNumOne > 0 )
         {
           uiCtxSet++;
+#if COEFF_CTXSET_RED
+          if(eTType==TEXT_LUMA)
+          {
+#endif
           if( uiNumOne > 3 )
           {
             uiCtxSet++;
           }
+#if COEFF_CTXSET_RED
+          }
+#endif
         }
         uiNumOne    >>= 1;
       }
@@ -3139,7 +3159,11 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         if ( uiMaxAbsLevel > 0 && iLastScanPos < 0 )
         {
           iLastScanPos            = iScanPos;
+#if COEFF_CTXSET_RED
+          uiCtxSet                = (iScanPos < SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
+#else
           uiCtxSet                = iScanPos < SCAN_SET_SIZE ? 0 : 3;
+#endif
           iCGLastScanPos          = iCGScanPos;
         }
 
@@ -3164,7 +3188,11 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
           {
             UInt   uiPosY        = uiBlkPos >> uiLog2BlkSize;
             UInt   uiPosX        = uiBlkPos - ( uiPosY << uiLog2BlkSize );
+#if SIGMAP_CTX_RED
+            UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth, eTType );
+#else
             UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth );
+#endif
 
             uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ],
                                                    lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, 
@@ -3204,14 +3232,25 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
             c1                = 1;
             c2                = 0;
             uiGoRiceParam     = 0;
+#if COEFF_CTXSET_RED
+            uiCtxSet          = (iScanPos == SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
+#else
             uiCtxSet          = iScanPos == SCAN_SET_SIZE ? 0 : 3;
+#endif
             if( uiNumOne > 0 )
             {
               uiCtxSet++;
-              if( uiNumOne > 3 )
+#if COEFF_CTXSET_RED
+              if(eTType==TEXT_LUMA)
               {
-                uiCtxSet++;
+#endif
+                if( uiNumOne > 3 )
+                {
+                  uiCtxSet++;
+                }
+#if COEFF_CTXSET_RED
               }
+#endif
             }
             uiNumOne    >>= 1;
           }
@@ -3460,26 +3499,85 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
                                     const UInt                      uiPosX,
                                     const UInt                      uiPosY,
                                     const UInt                      uiLog2BlkSize,
+#if SIGMAP_CTX_RED
+                                    const UInt                      uiStride,
+                                    const UInt                      eTType )
+#else
                                     const UInt                      uiStride )
+#endif
 {
   if ( uiLog2BlkSize == 2)
   {
+#if SIGMAP_CTX_RED
+    const UChar CTX_IND_MAP_4x4[30] =
+    {
+      //LUMA map
+      0, 1, 4, 5,
+      2, 3, 4, 5,
+      6, 6, 8, 8,
+      7, 7, 8,
+      //CHROMA map
+      0, 1, 2, 4,
+      1, 1, 2, 4,
+      3, 3, 5, 5,
+      4, 4, 5
+    };
+
+    if (eTType == TEXT_LUMA)
+    {
+      return CTX_IND_MAP_4x4[(uiPosY << 2) + uiPosX];
+    }
+    else
+    {
+      return CTX_IND_MAP_4x4[15 + (uiPosY << 2) + uiPosX];
+    }
+#else
     return 4 * uiPosY + uiPosX;
+#endif
   }
   
   if ( uiLog2BlkSize == 3 )
   {
+#if SIGMAP_CTX_RED
+    const UInt map8x8[] = { 0,  1,  2,  3,
+                            4,  5,  6,  3,
+                            8,  6,  6,  7,
+                            9,  9,  7,  7  };
+    UInt uiOffset = (eTType == TEXT_LUMA) ? 9 : 6;
+
+    if ( uiPosX + uiPosY == 0 )
+    {
+      return uiOffset + 10;
+    }
+    return uiOffset + map8x8[4 * (uiPosY >> 1) + (uiPosX >> 1)];
+#else
     return 15 + 4 * (uiPosY >> 1) + (uiPosX >> 1);
+#endif
   }
+
+#if SIGMAP_CTX_RED
+  UInt uiOffset = (eTType == TEXT_LUMA) ? 20 : 17;
+  if( uiPosX + uiPosY == 0 )
+  {
+    return uiOffset;
+  }
+#else
   if( uiPosX + uiPosY < 2 )
   {
     return 31 + 2 * uiPosY + uiPosX;
   }
+#endif
   
   const TCoeff *pData = pcCoeff + uiPosX + (uiPosY << uiLog2BlkSize);
   Int iStride = uiStride;
-
+#if SIGMAP_CTX_RED
+  if(eTType==TEXT_LUMA)
+  {
+    UInt thred = 1 << (uiLog2BlkSize-2);
+    if( uiPosX + uiPosY < thred )
+#else
   if( uiPosX + uiPosY < 5 )
+#endif
   {
 #if SUBBLOCK_SCAN
     UInt cnt = (pData[1] != 0) + (pData[2] != 0) + (pData[2*iStride] != 0) + (pData[iStride+1] != 0);
@@ -3490,8 +3588,16 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
 #else
     UInt cnt = (pData[1] != 0) + (pData[2] != 0) + (pData[iStride] != 0) + (pData[2*iStride] != 0) + (pData[iStride+1] != 0);
 #endif  
+#if SIGMAP_CTX_RED
+    cnt=(cnt+1)>>1;
+    return uiOffset + 1 + min<UInt>( 2, cnt );
+#else
     return 31 + 3 + min<UInt>( 4, cnt );
+#endif
   }
+#if SIGMAP_CTX_RED
+  }
+#endif
   
   UInt uiWidthM1   = uiStride - 1;
   UInt cnt = 0;
@@ -3523,7 +3629,15 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
     }
   }
 
+#if SIGMAP_CTX_RED
+  cnt=(cnt+1)>>1;
+  if(eTType==TEXT_LUMA)
+    return uiOffset + 4 + cnt;
+  else
+    return uiOffset + 1 + cnt;
+#else
   return 31 + 8 + cnt;
+#endif
 }
 
 /** Get the best level in RD sense

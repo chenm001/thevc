@@ -80,6 +80,8 @@
 #define TU_LEVEL_COEFF_INTERLEAVE           1      ///< G112 / G381: TU level luma/chroma coefficient interleaving
 
 #define LEVEL_LIMIT                         1      ///< G719 : Restriction for limits to 16 bits (signed) diapason
+#define COEFF_CTXSET_RED                    1      ///< G783 : reduce level context set of chroma
+#define SIGMAP_CTX_RED                      1      ///< G1015 : context number reduction for significance map coding
 ////////////////////////////
 // JCT-VC G end
 ////////////////////////////
