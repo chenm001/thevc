@@ -644,16 +644,23 @@ Void TAppEncCfg::xCheckParameter()
             iNewRefs++;
           }
         }
-        Int iNumPrefRefs = m_pcGOPList[iCurGOP].m_iNumRefPics;
+        Int iNumPrefRefs = m_pcGOPList[iCurGOP].m_iRefBufSize;
         
         for(Int iOffset = -1; iOffset>-iCheckGOP; iOffset--)
         {
           //step backwards in coding order and include pictures we might find useful. 
           Int iOffGOP = (iCheckGOP-1+iOffset)%m_iGOPSize;
           Int iOffPOC = ((iCheckGOP-1+iOffset)/m_iGOPSize)*m_iGOPSize + m_pcGOPList[iOffGOP].m_iPOC;
-          if(iOffPOC>=0) 
+          if(iOffPOC>=0&&m_pcGOPList[iOffGOP].m_bRefPic&&m_pcGOPList[iOffGOP].m_iTemporalId<=m_pcGOPList[iCurGOP].m_iTemporalId) 
           {
-            Bool bNewRef=true;
+            Bool bNewRef=false;
+            for(Int i=0; i<iNumRefs; i++)
+            {
+              if(aRefList[i]==iOffPOC)
+              {
+                bNewRef=true;
+              }
+            }
             for(Int i=0; i<iNewRefs; i++) 
             {
               if(m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiReferencePics[i]==iOffPOC-iCurPOC)
@@ -732,6 +739,7 @@ Void TAppEncCfg::xCheckParameter()
           m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iDeltaRIdxMinus1 = 0; 
         }
 #endif        
+        iCurGOP=m_iGOPSize+m_iExtraRPSs;
         m_iExtraRPSs++;
       }
       iNumRefs=0;
