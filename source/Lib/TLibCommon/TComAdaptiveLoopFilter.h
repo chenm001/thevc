@@ -48,12 +48,25 @@
 // Constants
 // ====================================================================================================================
 
+#if G212_CROSS9x9_VB
+
+#if ALF_DC_OFFSET_REMOVAL
+#define ALF_MAX_NUM_COEF      9                                       //!< maximum number of filter coefficients
+#define MAX_SQR_FILT_LENGTH   41                                      //!< ((max_horizontal_tap * max_vertical_tap) / 2 + 1) = ((11 * 5) / 2 + 1)
+#else
+#define ALF_MAX_NUM_COEF      10                                      //!< maximum number of filter coefficients
+#define MAX_SQR_FILT_LENGTH   42                                      //!< ((max_horizontal_tap * max_vertical_tap) / 2 + 2) = ((11 * 5) / 2 + 2)
+#endif
+
+
+#else
 #if ALF_DC_OFFSET_REMOVAL
 #define ALF_MAX_NUM_COEF      9                                       //!< maximum number of filter coefficients
 #define MAX_SQR_FILT_LENGTH   28                                      //!< ((max_horizontal_tap * max_vertical_tap) / 2 + 1) = ((11 * 5) / 2 + 1)
 #else
 #define ALF_MAX_NUM_COEF      10                                      //!< maximum number of filter coefficients
 #define MAX_SQR_FILT_LENGTH   29                                      //!< ((max_horizontal_tap * max_vertical_tap) / 2 + 2) = ((11 * 5) / 2 + 2)
+#endif
 #endif
 
 #define ALF_NUM_BIT_SHIFT     8                                       ///< bit shift parameter for quantization of ALF param.
@@ -109,12 +122,20 @@ enum ALFClassficationMethod
 enum ALFFilterShape
 {
   ALF_STAR5x5 = 0,
+#if G212_CROSS9x9_VB
+  ALF_CROSS9x9,
+#else
   ALF_CROSS11x5,
+#endif
   NUM_ALF_FILTER_SHAPE
 };
 
 extern Int depthIntShape0Sym[10];
+#if G212_CROSS9x9_VB
+extern Int depthIntShape1Sym[10];
+#else
 extern Int depthIntShape1Sym[9];
+#endif
 extern Int *pDepthIntTabShapes[NUM_ALF_FILTER_SHAPE];
 
 // ====================================================================================================================
@@ -273,7 +294,11 @@ protected: //protected member variables
 
   // filter shape information
   static Int weightsShape0Sym[10];
+#if G212_CROSS9x9_VB
+  static Int weightsShape1Sym[10];
+#else
   static Int weightsShape1Sym[9];
+#endif
   static Int *weightsTabShapes[NUM_ALF_FILTER_SHAPE];
   static Int m_sqrFiltLengthTab[NUM_ALF_FILTER_SHAPE];
 
@@ -297,6 +322,16 @@ protected: //protected member variables
   UInt  m_uiNumSlicesInPic;      //!< number of slices in picture
   Int   m_iSGDepth;              //!< slice granularity depth
   UInt  m_uiNumCUsInFrame;
+
+#if G212_CROSS9x9_VB
+  Int m_lcuHeight;
+  Int m_lineIdxPadBot;
+  Int m_lineIdxPadTop;
+
+  Int m_lcuHeightChroma;
+  Int m_lineIdxPadBotChroma;
+  Int m_lineIdxPadTopChroma;
+#endif
 
   //slice
   CAlfSlice*  m_pSlice;                //!< ALF slice units

@@ -51,10 +51,20 @@ Void TDecEntropy::setEntropyDecoder         ( TDecEntropyIf* p )
 Void TDecEntropy::decodeAux(ALFParam* pAlfParam)
 {
   UInt uiSymbol;
+#if G212_CROSS9x9_VB
+
+#if ALF_DC_OFFSET_REMOVAL
+  Int sqrFiltLengthTab[2] = { 9, 9}; 
+#else
+  Int sqrFiltLengthTab[2] = {10, 10}; 
+#endif
+
+#else
 #if ALF_DC_OFFSET_REMOVAL
   Int sqrFiltLengthTab[2] = { 9, 8}; 
 #else
   Int sqrFiltLengthTab[2] = {10, 9}; 
+#endif
 #endif
 
   pAlfParam->filters_per_group = 0;
@@ -227,10 +237,19 @@ Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
   if(pAlfParam->chroma_idc)
   {
     m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
+#if G212_CROSS9x9_VB
+#if ALF_DC_OFFSET_REMOVAL
+    Int sqrFiltLengthTab[2] = { 9, 9};
+#else
+    Int sqrFiltLengthTab[2] = {10, 10};
+#endif
+
+#else
 #if ALF_DC_OFFSET_REMOVAL
     Int sqrFiltLengthTab[2] = { 9, 8};
 #else
     Int sqrFiltLengthTab[2] = {10, 9};
+#endif
 #endif
     pAlfParam->filter_shape_chroma = uiSymbol;
     pAlfParam->num_coeff_chroma = sqrFiltLengthTab[pAlfParam->filter_shape_chroma];
