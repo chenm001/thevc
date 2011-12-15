@@ -731,15 +731,23 @@ Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
   UInt uiNumCand = MRG_MAX_NUM_CANDS;
   UInt auiCtx[4] = { 0, 1, 2, 3 };
   UInt uiUnaryIdx = pcCU->getMergeIndex( uiAbsPartIdx );
-  for( UInt ui = 0; ui < uiNumCand - 1; ++ui )
+#if G091_SIGNAL_MAX_NUM_MERGE_CANDS
+  uiNumCand = pcCU->getSlice()->getMaxNumMergeCand();
+  if ( uiNumCand > 1 )
   {
-    const UInt uiSymbol = ui == uiUnaryIdx ? 0 : 1;
-    m_pcBinIf->encodeBin( uiSymbol, m_cCUMergeIdxExtSCModel.get( 0, 0, auiCtx[ui] ) );
-    if( uiSymbol == 0 )
+#endif
+    for( UInt ui = 0; ui < uiNumCand - 1; ++ui )
     {
-      break;
+      const UInt uiSymbol = ui == uiUnaryIdx ? 0 : 1;
+      m_pcBinIf->encodeBin( uiSymbol, m_cCUMergeIdxExtSCModel.get( 0, 0, auiCtx[ui] ) );
+      if( uiSymbol == 0 )
+      {
+        break;
+      }
     }
+#if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   }
+#endif
   DTRACE_CABAC_VL( g_nSymbolCounter++ );
   DTRACE_CABAC_T( "\tparseMergeIndex()" );
   DTRACE_CABAC_T( "\tuiMRGIdx= " );

@@ -648,7 +648,11 @@ UInt TEncSearch::xPatternRefinement( TComPattern* pcPatternKey,
   
   Pel*  piRefPos;
   Int iRefStride = m_filteredBlock[0][0].getStride();
+#if NS_HAD
+  m_pcRdCost->setDistParam( pcPatternKey, m_filteredBlock[0][0].getLumaAddr(), iRefStride, 1, m_cDistParam, m_pcEncCfg->getUseHADME(), m_pcEncCfg->getUseNSQT() );
+#else
   m_pcRdCost->setDistParam( pcPatternKey, m_filteredBlock[0][0].getLumaAddr(), iRefStride, 1, m_cDistParam, m_pcEncCfg->getUseHADME() );
+#endif
   
   TComMv* pcMvRefine = (iFrac == 2 ? s_acMvRefineH : s_acMvRefineQ);
   
@@ -2220,7 +2224,11 @@ Void TEncSearch::xGetInterPredictionError( TComDataCU* pcCU, TComYuv* pcYuvOrg, 
   m_pcRdCost->setDistParam( cDistParam, 
                             pcYuvOrg->getLumaAddr( uiAbsPartIdx ), pcYuvOrg->getStride(), 
                             m_tmpYuvPred .getLumaAddr( uiAbsPartIdx ), m_tmpYuvPred .getStride(), 
+#if NS_HAD
+                            iWidth, iHeight, m_pcEncCfg->getUseHADME(), m_pcEncCfg->getUseNSQT() );
+#else
                             iWidth, iHeight, m_pcEncCfg->getUseHADME() );
+#endif
   ruiErr = cDistParam.DistFunc( &cDistParam );
 }
 
@@ -2237,7 +2245,11 @@ Void TEncSearch::xGetInterPredictionError( TComDataCU* pcCU, TComYuv* pcYuvOrg, 
  * \param bValid 
  * \returns Void
  */
+#if G776_MRG_ENC_FIX
+Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUIdx, UInt& uiInterDir, TComMvField* pacMvField, UInt& uiMergeIndex, UInt& ruiCost )
+#else
 Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUIdx, UInt& uiInterDir, TComMvField* pacMvField, UInt& uiMergeIndex, UInt& ruiCost, UInt& ruiBits )
+#endif
 {
   TComMvField  cMvFieldNeighbours[MRG_MAX_NUM_CANDS << 1]; // double length for mv of both lists
   UChar uhInterDirNeighbours[MRG_MAX_NUM_CANDS];
@@ -2256,11 +2268,10 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
   UInt uiDepth = pcCU->getDepth( uiAbsPartIdx );
   pcCU->getInterMergeCandidates( uiAbsPartIdx, iPUIdx, uiDepth, cMvFieldNeighbours,uhInterDirNeighbours, numValidMergeCand );
 
-  UInt uiNumCand = MRG_MAX_NUM_CANDS;
-  
   ruiCost = MAX_UINT;
+#if !G776_MRG_ENC_FIX
   ruiBits = MAX_UINT;
-
+#endif
   for( UInt uiMergeCand = 0; uiMergeCand < numValidMergeCand; ++uiMergeCand )
   {
     {
@@ -2278,6 +2289,24 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
 #endif
 
       xGetInterPredictionError( pcCU, pcYuvOrg, iPUIdx, uiCostCand, m_pcEncCfg->getUseHADME() );
+#if G091_SIGNAL_MAX_NUM_MERGE_CANDS
+      uiBitsCand = uiMergeCand + 1;
+      if (uiMergeCand == MRG_MAX_NUM_CANDS_SIGNALED -1)
+      {
+         uiBitsCand--;
+      }
+  #if G776_MRG_ENC_FIX
+      uiCostCand = uiCostCand + m_pcRdCost->getCost( uiBitsCand );
+  #endif
+#else     
+  #if G776_MRG_ENC_FIX
+      uiBitsCand = uiMergeCand+1;
+      if (uiBitsCand == MRG_MAX_NUM_CANDS)
+        uiBitsCand--;
+
+      uiCostCand = uiCostCand + m_pcRdCost->getCost( uiBitsCand );
+  #else
+      UInt uiNumCand = MRG_MAX_NUM_CANDS;
       
       if( uiNumCand == 1 )
       {
@@ -2298,11 +2327,14 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
           uiBitsCand = 4;
         }
       }
-
+  #endif
+#endif
       if ( uiCostCand < ruiCost )
       {
         ruiCost = uiCostCand;
+#if !G776_MRG_ENC_FIX
         ruiBits = uiBitsCand;
+#endif
         pacMvField[0] = cMvFieldNeighbours[0 + 2*uiMergeCand];
         pacMvField[1] = cMvFieldNeighbours[1 + 2*uiMergeCand];
         uiInterDir = uhInterDirNeighbours[uiMergeCand];
@@ -2939,11 +2971,16 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       pcCU->getMvField( pcCU, uiPartAddr, REF_PIC_LIST_1, cMEMvField[1] );
 
       // find Merge result
+#if G776_MRG_ENC_FIX
+      UInt uiMRGCost = MAX_UINT;
+      xMergeEstimation( pcCU, pcOrgYuv, iPartIdx, uiMRGInterDir, cMRGMvField, uiMRGIndex, uiMRGCost );
+#else
       UInt uiMRGError = MAX_UINT;
       UInt uiMRGBits = MAX_UINT;
       xMergeEstimation( pcCU, pcOrgYuv, iPartIdx, uiMRGInterDir, cMRGMvField, uiMRGIndex, uiMRGError, uiMRGBits );
-      UInt uiMRGCost = uiMRGError + m_pcRdCost->getCost( uiMRGBits );
 
+      UInt uiMRGCost = uiMRGError + m_pcRdCost->getCost( uiMRGBits );
+#endif
       if ( uiMRGCost < uiMECost )
       {
         // set Merge result
@@ -3264,6 +3301,10 @@ UInt TEncSearch::xGetTemplateCost( TComDataCU* pcCU,
   
   TComPicYuv* pcPicYuvRef = pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec();
   
+#if REMOVE_MV_PRED_CLIP
+  pcCU->clipMv( cMvCand );
+#endif
+
   // prediction pattern
 #if (WEIGHT_PRED)
   if ( pcCU->getSlice()->getPPS()->getUseWP() && pcCU->getSlice()->getSliceType()==P_SLICE )
@@ -3292,7 +3333,11 @@ UInt TEncSearch::xGetTemplateCost( TComDataCU* pcCU,
   m_pcRdCost->setDistParam( cDistParam, 
                             pcOrgYuv->getLumaAddr(uiPartAddr), pcOrgYuv->getStride(), 
                             pcTemplateCand->getLumaAddr(uiPartAddr), pcTemplateCand->getStride(), 
+#if NS_HAD
+                            iSizeX, iSizeY, m_pcEncCfg->getUseHADME(), m_pcEncCfg->getUseNSQT() );
+#else
                             iSizeX, iSizeY, m_pcEncCfg->getUseHADME() );
+#endif
   ruiDist = cDistParam.DistFunc( &cDistParam );
   uiCost = ruiDist + m_pcRdCost->getCost( m_auiMVPIdxCost[iMVPIdx][iMVPNum] );
 #else
@@ -3400,6 +3445,7 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
 Void TEncSearch::xSetSearchRange ( TComDataCU* pcCU, TComMv& cMvPred, Int iSrchRng, TComMv& rcMvSrchRngLT, TComMv& rcMvSrchRngRB )
 {
   Int  iMvShift = 2;
+#if !REMOVE_MV_PRED_CLIP
   pcCU->clipMv( cMvPred );
   
   rcMvSrchRngLT.setHor( cMvPred.getHor() - (iSrchRng << iMvShift) );
@@ -3407,7 +3453,16 @@ Void TEncSearch::xSetSearchRange ( TComDataCU* pcCU, TComMv& cMvPred, Int iSrchR
   
   rcMvSrchRngRB.setHor( cMvPred.getHor() + (iSrchRng << iMvShift) );
   rcMvSrchRngRB.setVer( cMvPred.getVer() + (iSrchRng << iMvShift) );
+#else
+  TComMv cTmpMvPred = cMvPred;
+  pcCU->clipMv( cTmpMvPred );
+
+  rcMvSrchRngLT.setHor( cTmpMvPred.getHor() - (iSrchRng << iMvShift) );
+  rcMvSrchRngLT.setVer( cTmpMvPred.getVer() - (iSrchRng << iMvShift) );
   
+  rcMvSrchRngRB.setHor( cTmpMvPred.getHor() + (iSrchRng << iMvShift) );
+  rcMvSrchRngRB.setVer( cTmpMvPred.getVer() + (iSrchRng << iMvShift) );
+#endif
   pcCU->clipMv        ( rcMvSrchRngLT );
   pcCU->clipMv        ( rcMvSrchRngRB );
   

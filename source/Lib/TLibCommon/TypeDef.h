@@ -45,6 +45,20 @@
 #define DBF_DQP                   1    ///< average QP for deblocking filter parameter lookup
 #define BS_DISABLE_INSIDE_8x8     1
 
+#define REMOVE_AVOID_MERGE        1 //G681/G542/G593: removing avoid merge
+#define REMOVE_MV_PRED_CLIP       1 //G134: removing MV clipping
+#define INFINITE_PADDING          1 //MV clipping assuming infinite frame extension
+#define SCALING_FACTOR_CLIP_4096  1 //G223: enlarging the effective MV scaling ratio to [-16,16) by setting the limitation of MV scaling factor to +-4096
+#define REMOVE_DEPENDENCY_AMVP    1 //G542 sp2: remove dependency for derivation process of AMVP candidate
+#define REMOVE_LIMIT_ZEROMERGE    1 //G542 sp3: remove the limit of zero merging candidate
+#define REMOVE_MRG_2ND_PRUNING    1 //G397: remove the 2nd pruning process for merge candidates
+#define G082_MOD_H_TMVP_POS       1 //<G082, modified H TMVP position (configuration 2) for memory bandwidth reduction
+#define G091_SIGNAL_MAX_NUM_MERGE_CANDS    1   //<G091: maxNumMergeCand signaling in slice header
+#if G091_SIGNAL_MAX_NUM_MERGE_CANDS
+#define MRG_MAX_NUM_CANDS_SIGNALED         5   //<G091: value of maxNumMergeCand signaled in slice header 
+#endif
+#define G776_MRG_ENC_FIX          1 //<G776: Merge encoder estimation improvement
+
 #define CABAC_RICE_FIX            1 ///< G495: fixing an entry in g_auiGoRicePrefixLen table
 #define BYPASS_FOR_LAST_COEFF_MOD 1 ///< grouping of bypass bins for last_significant_coeff_x/y, MSB first
 #define DISABLE_CAVLC             1 ///< disable second entropy coder
@@ -64,6 +78,8 @@
 #define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ
 #define ALF_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for ALF
 #define SAO_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for SAO
+
+#define MRG_TMVP_REFIDX_G163 1 ///< G163 : use refIdx of left PU. if not available, use 0.
 
 ////////////////////////////
 // JCT-VC G start
@@ -100,6 +116,9 @@
 #define NSQT_DIAG_SCAN                      1      ///< G1038: use diagonal and subblock scans for NSQT
 #if NSQT_DIAG_SCAN && !(SUBBLOCK_SCAN && NSQT_MOD)
 #error
+#endif
+#if NSQT
+#define NS_HAD                               1
 #endif
 
 #define F747_APS                             1       // F747 : Adaptation Parameter Set (APS)

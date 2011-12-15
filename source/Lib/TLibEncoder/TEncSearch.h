@@ -327,8 +327,10 @@ protected:
                                     UInt&           uiInterDir,
                                     TComMvField*    pacMvField,
                                     UInt&           uiMergeIndex,
-                                    UInt&           ruiCost,
-                                    UInt&           ruiBits
+                                    UInt&           ruiCost
+#if !G776_MRG_ENC_FIX
+                                    ,UInt&           ruiBits
+#endif
                                    );
   // -------------------------------------------------------------------------------------------------------------------
   // motion estimation
