@@ -40,6 +40,9 @@
 #if QP_ADAPTATION
 #include "TEncPic.h"
 #endif
+#if FAST_BIT_EST
+#include "TLibCommon/ContextModel.h"
+#endif
 
 //! \ingroup TLibEncoder
 //! \{
@@ -63,6 +66,10 @@ TEncTop::TEncTop()
 #endif
 
   m_iMaxRefPicNum     = 0;
+
+#if FAST_BIT_EST
+  ContextModel::buildNextStateTable();
+#endif
 
 #if OL_USE_WPP
   m_pcSbacCoders           = NULL;
@@ -123,17 +130,29 @@ Void TEncTop::create ()
   if( m_bUseSBACRD )
   {
     m_pppcRDSbacCoder = new TEncSbac** [g_uiMaxCUDepth+1];
+#if FAST_BIT_EST
+    m_pppcBinCoderCABAC = new TEncBinCABACCounter** [g_uiMaxCUDepth+1];
+#else
     m_pppcBinCoderCABAC = new TEncBinCABAC** [g_uiMaxCUDepth+1];
+#endif
     
     for ( Int iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
     {
       m_pppcRDSbacCoder[iDepth] = new TEncSbac* [CI_NUM];
+#if FAST_BIT_EST
+      m_pppcBinCoderCABAC[iDepth] = new TEncBinCABACCounter* [CI_NUM];
+#else
       m_pppcBinCoderCABAC[iDepth] = new TEncBinCABAC* [CI_NUM];
+#endif
       
       for (Int iCIIdx = 0; iCIIdx < CI_NUM; iCIIdx ++ )
       {
         m_pppcRDSbacCoder[iDepth][iCIIdx] = new TEncSbac;
+#if FAST_BIT_EST
+        m_pppcBinCoderCABAC [iDepth][iCIIdx] = new TEncBinCABACCounter;
+#else
         m_pppcBinCoderCABAC [iDepth][iCIIdx] = new TEncBinCABAC;
+#endif
         m_pppcRDSbacCoder   [iDepth][iCIIdx]->init( m_pppcBinCoderCABAC [iDepth][iCIIdx] );
       }
     }

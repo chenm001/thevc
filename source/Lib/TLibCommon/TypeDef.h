@@ -103,6 +103,8 @@
 #define G220_PURE_VLC_SAO_ALF       1   ///< G220: Pure VLC for SAO and ALF parameters
 #define G1023_FIX_NPASS_ALF         1   ///< G1023: Improved ALF N-pass encoding
 
+#define FAST_BIT_EST                1   ///< G763: Table-based bit estimation for CABAC
+
 ////////////////////////////
 // JCT-VC G start
 ////////////////////////////
