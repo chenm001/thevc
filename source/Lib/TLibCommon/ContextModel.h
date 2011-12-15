@@ -65,7 +65,11 @@ public:
   Void  setStateAndMps( UChar ucState, UChar ucMPS) { m_ucState = (ucState << 1) + ucMPS; } ///< set state and MPS
 #endif
   
+#if G633_8BIT_INIT
+  Void init ( Int qp, Int initValue );   ///< initialize state with initial probability
+#else
   Void init ( Int   iQp, Short asCtxInit[] );                                              ///< initialize state with initial prob.
+#endif
   
   Void updateLPS ()
   {
@@ -95,6 +99,11 @@ private:
   static const Int m_entropyBits[ 128 ];
 #if FAST_BIT_EST
   static UChar m_nextState[128][2];
+#endif
+#if G633_8BIT_INIT
+  static const Int m_slopes[16];
+  static const Int m_segOffset[8];
+  static const Int m_accumulatedSegOffset[8];
 #endif
 };
 

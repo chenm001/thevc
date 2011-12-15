@@ -134,9 +134,1230 @@
 #define NUM_SAO_SVLC_CTX              3       ///< number of context models for SAO SVLC
 #endif
 
+#if G633_8BIT_INIT
+#define CNU                          119      ///< dummy initialization value for unused context models 'Context model Not Used'
+#endif
+
 // ====================================================================================================================
 // Tables
 // ====================================================================================================================
+
+
+#if G633_8BIT_INIT
+// initial probability for split flag
+static const UChar
+INIT_SPLIT_FLAG[3][NUM_SPLIT_FLAG_CTX] =
+{
+  {
+    118, 105,  91,
+    
+  },
+  {
+     99,  87,  74,
+    
+  },
+  {
+     68,  87, 105,
+    
+  },
+};
+
+// initial probability for skip flag
+static const UChar
+INIT_SKIP_FLAG[3][NUM_SKIP_FLAG_CTX] =
+{
+  {
+    CNU, CNU, CNU,
+    
+  },
+  {
+    165, 184, 139,
+    
+  },
+  {
+    165, 184, 139,
+    
+  },
+};
+
+// initial probability for skip flag
+static const UChar
+INIT_ALF_CTRL_FLAG[3][NUM_ALF_CTRL_FLAG_CTX] =
+{
+  {
+    153,
+    
+  },
+  {
+     87,
+    
+  },
+  {
+    135,
+    
+  },
+};
+
+// initial probability for merge flag
+static const UChar
+INIT_MERGE_FLAG_EXT[3][NUM_MERGE_FLAG_EXT_CTX] =
+{
+  {
+    CNU,
+    
+  },
+  {
+    119,
+    
+  },
+  {
+    119,
+    
+  },
+};
+
+static const UChar
+INIT_MERGE_IDX_EXT[3][NUM_MERGE_IDX_EXT_CTX] =
+{
+  {
+    CNU, CNU, CNU, CNU,
+    
+  },
+  {
+    115, 101, 101,  99,
+    
+  },
+  {
+     69, 118, 119,  87,
+    
+  },
+};
+
+// initial probability for PU size
+static const UChar
+INIT_PART_SIZE[3][NUM_PART_SIZE_CTX] =
+{
+#if PREDTYPE_CLEANUP
+  {
+    152, CNU, CNU, CNU,
+    
+  },
+  {
+    134,  87,  95, CNU,
+    
+  },
+  {
+    118, 102, 107,  86,
+    
+  },
+#else
+  {
+    152, CNU, CNU, CNU, CNU,
+    
+  },
+  {
+    134,  87,  95, CNU, CNU,
+    
+  },
+  {
+    118, 102, 107,  86, CNU,
+    
+  },
+#endif
+};
+
+#if AMP
+// initial probability for AMP split position (X)
+static const UChar
+INIT_CU_X_POS[3][NUM_CU_X_POS_CTX] =
+{
+  {
+    CNU, CNU,
+    
+  },
+  {
+    119, 119,
+    
+  },
+  {
+    119, 119,
+    
+  },
+};
+
+// initial probability for AMP split position (Y)
+static const UChar
+INIT_CU_Y_POS[3][NUM_CU_Y_POS_CTX] =
+{
+  {
+    CNU, CNU,
+    
+  },
+  {
+    119, 119,
+    
+  },
+  {
+    119, 119,
+    
+  },
+};
+#endif
+
+// initial probability for prediction mode
+static const UChar
+INIT_PRED_MODE[3][NUM_PRED_MODE_CTX] =
+{
+#if PREDTYPE_CLEANUP 
+  {
+    CNU,
+    
+  },
+  {
+    113,
+    
+  },
+  {
+    CNU,
+    
+  },
+#else
+  {
+    CNU, CNU,
+    
+  },
+  {
+    CNU, 113,
+    
+  },
+  {
+    CNU, CNU,
+    
+  },
+#endif
+};
+
+// initial probability for intra direction of luma
+static const UChar
+INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX] =
+{
+#if BYPASS_FOR_INTRA_MODE
+  {
+    136,
+    
+  },
+  {
+    119,
+    
+  },
+  {
+    119,
+    
+  },
+#else
+  {
+    136, 134, 119,
+    
+  },
+  {
+    119, 119,  87,
+    
+  },
+  {
+    119, 119,  87,
+    
+  },
+#endif
+};
+
+// initial probability for intra direction of chroma
+static const UChar
+INIT_CHROMA_PRED_MODE[3][NUM_CHROMA_PRED_CTX] =
+{
+  {
+     68, 118,
+    
+  },
+  {
+     70, 102,
+    
+  },
+  {
+     70, 102,
+    
+  },
+};
+
+// initial probability for temporal direction
+static const UChar
+INIT_INTER_DIR[3][NUM_INTER_DIR_CTX] =
+{
+  {
+    CNU, CNU, CNU, CNU,
+    
+  },
+  {
+    CNU, CNU, CNU, CNU,
+    
+  },
+  {
+     87,  39,  38,  36,
+    
+  },
+};
+
+// initial probability for motion vector difference
+static const UChar
+INIT_MVD[3][NUM_MV_RES_CTX] =
+{
+  {
+    CNU, CNU,
+    
+  },
+  {
+    120, 166,
+    
+  },
+  {
+    135, 166,
+    
+  },
+};
+
+// initial probability for reference frame index
+static const UChar
+INIT_REF_PIC[3][NUM_REF_NO_CTX] =
+{
+  {
+    CNU, CNU, CNU, CNU,
+    
+  },
+  {
+    102, 118,  87, CNU,
+    
+  },
+  {
+    118, 102, 119, CNU,
+    
+  },
+};
+
+// initial probability for dQP
+static const UChar
+INIT_DQP[3][NUM_DELTA_QP_CTX] =
+{
+  {
+    CNU, CNU, CNU, CNU,
+    
+  },
+  {
+    CNU, CNU, CNU, CNU,
+    
+  },
+  {
+    CNU, CNU, CNU, CNU,
+    
+  },
+};
+
+static const UChar
+#if CHROMA_CBF_CTX_REDUCTION
+INIT_QT_CBF[3][2*NUM_QT_CBF_CTX] =
+#else
+INIT_QT_CBF[3][3*NUM_QT_CBF_CTX] =
+#endif
+{
+  {
+     57,  60, CNU, CNU, CNU,
+#if CHROMA_CBF_CTX_REDUCTION==0
+     54,  70, 117, CNU, CNU,
+#endif
+     54,  70, 117, CNU, CNU,
+    
+  },
+  {
+     86,  58, CNU, CNU, CNU,
+#if CHROMA_CBF_CTX_REDUCTION==0
+     82,  99, 117, CNU, CNU,
+#endif
+     82,  99, 117, CNU, CNU,
+    
+  },
+  {
+     86,  58, CNU, CNU, CNU,
+#if CHROMA_CBF_CTX_REDUCTION==0
+     82,  52, 117, CNU, CNU,
+#endif
+     82,  99, 117, CNU, CNU,
+    
+  },
+};
+
+static const UChar
+INIT_QT_ROOT_CBF[3][NUM_QT_ROOT_CBF_CTX] =
+{
+  {
+    CNU,
+    
+  },
+  {
+     39,
+    
+  },
+  {
+     53,
+    
+  },
+};
+
+#if MODIFIED_LAST_XY_CODING
+static const UChar
+INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =
+{
+  {
+    CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU,
+    CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU,
+    
+  },
+  {
+    CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU,
+    CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU,
+    
+  },
+  {
+    CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU,
+    CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU,
+    
+  },
+};
+#else
+static const UChar
+INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =
+{
+  {
+    166, 182, 152, 166, 134, 150, 181, 164, 164, 164, 179, 164, 179, 178, 178, 162, 162, 178, 178,
+    184, 184, 170, 170, 167, 136, 169, 150, 150, 134, 134, 165, CNU, CNU, CNU, CNU, CNU, CNU, CNU,
+    
+  },
+  {
+    181, 151, 167, 166, 181, 182, 119, 165, 181, 181, 165, 134, 120, 119, 165, 165, 180, 163, 163,
+    169, 184, 185, 169, 167, 184, 107, 120, 183, 182, 182, 117, CNU, CNU, CNU, CNU, CNU, CNU, CNU,
+    
+  },
+  {
+    165, 182, 167, 166, 166, 182, 119, 165, 181, 181, 165, 165, 104, 119, 165, 165, 180, 163, 178,
+    184, 184, 185, 153, 183, 168, 106, 120, 167, 182, 182, 117, CNU, CNU, CNU, CNU, CNU, CNU, CNU,
+    
+  },
+};
+#endif
+
+#if MULTI_LEVEL_SIGNIFICANCE
+static const UChar
+INIT_SIG_CG_FLAG[3][2 * NUM_SIG_CG_FLAG_CTX] = 
+{
+  //I-pic
+  {
+    //Luma significant_coeff_group_flag
+    CNU, CNU,
+    //Chroma significant_coeff_group_flag
+    CNU, CNU,
+  },
+  //P-pic
+  {
+    //Luma significant_coeff_group_flag
+    CNU, CNU,
+    //Chroma significant_coeff_group_flag
+    CNU, CNU,
+  },
+  //B-pic
+  {
+    //Luma significant_coeff_group_flag
+    CNU, CNU,
+    //Chroma significant_coeff_group_flag
+    CNU, CNU,
+  }
+};
+#endif
+
+#if SIGMAP_CTX_RED
+static const UChar
+INIT_SIG_FLAG_LUMA[3][NUM_SIG_FLAG_CTX_LUMA] =
+{
+  {
+    // Luma 4x4
+    106,  89,  73,  88,
+     88,  55,  56,  38,
+     88,
+    // Luma 8x8
+     73, 119, 118,  68,
+    119, 119, 118,  84,
+     86,  52,  73,
+    // Luma 16x16 & 32X32
+    107,  68, 104, 122,
+     98, 119,  89,
+  },
+  {
+    // Luma 4x4
+    169, 120, 103, 103,
+    103, 102, 102,  53,
+    103,
+    // Luma 8x8
+    167,  87, 102,  53,
+    117, 102,  70,  86,
+     84,  67, 167,
+    // Luma 16x16 & 32X32
+    169, 162, 135, 121,
+    146,  87, 120,
+  },
+  {
+    // Luma 4x4
+    169, 136, 103, 103,
+    103, 102, 102, 53,
+    104,
+    // Luma 8x8
+    120,  87, 102,  68,
+     86, 118, 102,  70,
+     84,  67, 120,
+    // Luma 16x16 & 32X32
+    169, 131, 135, 137,
+     84, 102, 120,
+  }
+};
+
+static const UChar
+INIT_SIG_FLAG_CHROMA[3][NUM_SIG_FLAG_CTX_CHROMA] =
+{
+  {
+    // Chroma 4x4
+    154, 119,  119,  86,
+     53,  87,
+    // Chroma 8x8
+    120, 118, 131, 130,
+     70, 133,  70,  68,
+     52,  49, 120,
+    // Chroma 16x16 & 32X32
+    122, 113, 119, 136,
+  },
+  {
+    // Chroma 4x4
+    154, 118,  87,  69,
+     53, 135,
+    // Chroma 8x8
+    167, 118, 116,  83,
+     68, 132, 133,  84,
+     83, 146, 167,
+    // Chroma 16x16 & 32X32
+    185, 146, 118, 135,
+  },
+  {
+    // Chroma 4x4
+    170, 118,  87,  87,
+     53, 135,
+    // Chroma 8x8
+    120, 118, 116, 131,
+     84,  85, 117, 117,
+     83, 114, 120,
+    // Chroma 16x16 & 32X32
+    170, 146, 134, 167,
+  }
+};
+#else
+#if MULTI_LEVEL_SIGNIFICANCE
+static const UChar
+INIT_SIG_FLAG[3][2 * NUM_SIG_FLAG_CTX] =
+{  
+  // I-pic
+  {
+    // Luma 4x4
+    106,  89,  88,  55,
+     73,  88,  72,  55,
+     56,  56,  88,  71,
+     38,  54,  71,
+    // Luma 8x8
+     73, 119, 118,  68,
+    119, 119, 118,  68,
+     86, 102, 118,  84,
+     52,  83,  69,  69,
+    // Luma 16x16 & 32x32, 1st 3 coeffs
+    107,  58,  73,
+    // Luma 16x16
+    CNU, CNU, CNU, CNU, CNU,
+    // Luma 32x32
+    CNU, CNU, CNU, CNU, CNU,
+    // Chroma 4x4
+    154, 105, 119,  52,
+     88, 119, 119,  53,
+     86,  71,  87,  70,
+     51,  36, 118,
+    // Chroma 8x8
+    120, 118, 131, 130,
+     70, 133, 148, 146,
+     52,  84,  70,  68,
+     49, 130,  83, 151,
+    // Chroma 16x16 & 32x32, 1st 3 coeffs
+    122, 103, 119,
+    // Chroma 16x16
+    CNU, CNU, CNU, CNU, CNU,
+    // Chroma 32x32
+    CNU, CNU, CNU, CNU, CNU,
+  },
+  // P-pic
+  {
+    // Luma 4x4
+    169, 120, 103, 102,
+    103, 103, 103,  87,
+    102,  87, 103, 104,
+     53,  70,  87,
+    // Luma 8x8
+    167,  87, 102,  53,
+    117, 102, 102,  85,
+     84, 100,  70,  86,
+     67,  99, 117, 102,
+    // Luma 16x16 & 32x32, 1st 3 coeffs
+    169, 104, 119,
+    // Luma 16x16
+    CNU, CNU, CNU, CNU, CNU,
+    // Luma 32x32
+    CNU, CNU, CNU, CNU, CNU,
+    // Chroma 4x4
+    154, 104,  87,  52,
+     87, 118, 102,  53,
+     69,  85, 135, 183,
+     67,  68, 134,
+    // Chroma 8x8
+    167, 118, 116,  83,
+     68, 132, 116,  99,
+     83, 131, 133,  84,
+    146, 163, 117, 165,
+    // Chroma 16x16 & 32x32, 1st 3 coeffs
+    185, 120, 103,
+    // Chroma 16x16
+    CNU, CNU, CNU, CNU, CNU,
+    // Chroma 32x32
+    CNU, CNU, CNU, CNU, CNU,
+  },
+  // B-pic
+  {
+    // Luma 4x4
+    169, 136, 103, 102,
+    103, 103, 103,  87,
+    102,  87, 104, 104,
+     53,  70,  87,
+    // Luma 8x8
+    120,  87, 102,  68,
+     86, 118, 118,  85,
+     84,  85, 102,  70,
+     67,  68,  70, 102,
+    // Luma 16x16 & 32x32, 1st 3 coeffs
+    169, 120, 119,
+    // Luma 16x16
+    CNU, CNU, CNU, CNU, CNU,
+    // Luma 32x32
+    CNU, CNU, CNU, CNU, CNU,
+    // Chroma 4x4
+    170, 120,  87,  53,
+     87, 118, 118,  53,
+     53,  70, 135, 183,
+     67,  52, 102,
+    // Chroma 8x8
+    120, 118, 116, 131,
+     84,  85,  84,  68,
+     83, 115, 117, 117,
+    114, 115, 149, 117,
+    // Chroma 16x16 & 32x32, 1st 3 
+    170, 120, 103,
+    // Chroma 16x16
+    CNU, CNU, CNU, CNU, CNU,
+    // Chroma 32x32
+    CNU, CNU, CNU, CNU, CNU,
+  }
+};
+#else
+static const UChar
+INIT_SIG_FLAG[3][2 * NUM_SIG_FLAG_CTX] =
+{
+  {
+    // Luma 4x4
+    106,  89,  88,  55,
+     73,  88,  72,  55,
+     56,  56,  88,  71,
+     38,  54,  71,
+    // Luma 8x8
+     73, 119, 118,  68,
+    119, 119, 118,  68,
+     86, 102, 118,  84,
+     52,  83,  69,  69,
+    // Luma 16x16
+    107,  58,  73,  68,
+    119, 104,  89, 122,
+     98, 134, 119, 104,
+     89,
+    // Chroma 4x4
+    154, 105, 119,  52,
+     88, 119, 119,  53,
+     86,  71,  87,  70,
+     51,  36, 118,
+    // Chroma 8x8
+    120, 118, 131, 130,
+     70, 133, 148, 146,
+     52,  84,  70,  68,
+     49, 130,  83, 151,
+    // Chroma 16x16
+    122, 103, 119,  83,
+    119, 103, 136, 153,
+    113, 134, 119, 103,
+    136,
+    
+  },
+  {
+    // Luma 4x4
+    169, 120, 103, 102,
+    103, 103, 103,  87,
+    102,  87, 103, 104,
+     53,  70,  87,
+    // Luma 8x8
+    167,  87, 102,  53,
+    117, 102, 102,  85,
+     84, 100,  70,  86,
+     67,  99, 117, 102,
+    // Luma 16x16
+    169, 104, 119, 162,
+    119, 135, 120, 121,
+    146, 118,  87, 135,
+    120,
+    // Chroma 4x4
+    154, 104,  87,  52,
+     87, 118, 102,  53,
+     69,  85, 135, 183,
+     67,  68, 134,
+    // Chroma 8x8
+    167, 118, 116,  83,
+     68, 132, 116,  99,
+     83, 131, 133,  84,
+    146, 163, 117, 165,
+    // Chroma 16x16
+    185, 120, 103, 132,
+    119, 135, 104, 152,
+    146, 102, 118, 119,
+    135,
+    
+  },
+  {
+    // Luma 4x4
+    169, 136, 103, 102,
+    103, 103, 103,  87,
+    102,  87, 104, 104,
+     53,  70,  87,
+    // Luma 8x8
+    120,  87, 102,  68,
+     86, 118, 118,  85,
+     84,  85, 102,  70,
+     67,  68,  70, 102,
+    // Luma 16x16
+    169, 120, 119, 131,
+    119, 135, 120, 137,
+    146, 118, 119, 135,
+    120,
+    // Chroma 4x4
+    170, 120,  87,  53,
+     87, 118, 118,  53,
+     53,  70, 135, 183,
+     67,  52, 102,
+    // Chroma 8x8
+    120, 118, 116, 131,
+     84,  85,  84,  68,
+     83, 115, 117, 117,
+    114, 115, 149, 117,
+    // Chroma 16x16
+    170, 120, 103, 132,
+    135, 135, 120, 121,
+    146, 118, 134, 119,
+    167,
+    
+  },
+};
+#endif
+#endif
+
+#if COEFF_CTXSET_RED
+#if COEFF_CTX_RED
+static const UChar
+INIT_ONE_FLAG_LUMA[3][NUM_ONE_FLAG_CTX_LUMA] =
+{
+  {
+    104,  99,  84,  69,
+    103, 117,  86, 102,
+    105, 119, 103, 103,
+     85,  66,  98, 114,
+    102, 101, 101, 148,
+    119, 134, 134, 134,
+  },
+  {
+    119, 180, 179, 179,
+    119, 117, 164, 164,
+    152, 119, 135, 119,
+    116, 146,  98,  98,
+    102, 147, 116, 147,
+    135, 118, 118, 134,
+  },
+  {
+    119, 196, 179, 179,
+    119, 117, 117, 133,
+    121, 119, 103, 103,
+    132, 146, 114,  98,
+    118, 132, 116, 116,
+    119, 134, 118, 134,
+  }
+};
+
+static const UChar
+INIT_ONE_FLAG_CHROMA[3][NUM_ONE_FLAG_CTX_CHROMA] =
+{
+  {
+    104,  99, 115, 164,
+    120,  85, 117, 117,
+  },
+  {
+    135, 178, 178, 179,
+    103, 179, 179, 115,
+  },
+  {
+    151, 178, 178, 179,
+    135, 148, 148, 164,
+  }
+};
+
+static const UChar
+INIT_ABS_FLAG_LUMA[3][NUM_ABS_FLAG_CTX_LUMA] =
+{
+  {
+    101, 119,  88,
+    102, 134, 119,
+    119,  88,  88,
+     67, 116, 101,
+    117, 102, 102,
+    134, 119, 119,
+  },
+  {
+     52,  54,  87,
+     85,  86, 134,
+    119, 119, 119,
+     82, 115,  85,
+     84,  85, 117,
+    118, 134,  87,
+  },
+  {
+     52,  70, 119,
+    117, 102, 119,
+    119, 119, 135,
+     98,  68,  85,
+    116,  85,  86,
+    118,  87, 119,
+  }
+};
+
+static const UChar
+INIT_ABS_FLAG_CHROMA[3][NUM_ABS_FLAG_CTX_CHROMA] =
+{
+  {
+    101, 134, 104,
+    165, 150, 103,
+  },
+  {
+     83, 102, 151,
+     85, 118, 103,
+  },
+  {
+     99, 118, 151,
+    133, 102, 103,
+  }
+};
+#else
+static const UChar
+INIT_ONE_FLAG_LUMA[3][NUM_ONE_FLAG_CTX_LUMA] =
+{
+  {
+    104,  99,  84,  69, 102,
+    103, 117,  86, 102, 118,
+    105, 119, 103, 103, 119,
+     85,  66,  98, 114, 115,
+    102, 101, 101, 148, 132,
+    119, 134, 134, 134, 134,
+  },
+  {
+    119, 180, 179, 179, 164,
+    119, 117, 164, 164, 133,
+    152, 119, 135, 119, 103,
+    116, 146,  98,  98, 114,
+    102, 147, 116, 147, 116,
+    135, 118, 118, 134, 118,
+  },
+  {
+    119, 196, 179, 179, 164,
+    119, 117, 117, 133, 149,
+    121, 119, 103, 103, 119,
+    132, 146, 114,  98,  83,
+    118, 132, 116, 116, 132,
+    119, 134, 118, 134, 134,
+  }
+};
+
+static const UChar
+INIT_ONE_FLAG_CHROMA[3][NUM_ONE_FLAG_CTX_CHROMA] =
+{
+  {
+    104,  99, 115, 164, 118,
+    120,  85, 117, 117, 134,
+  },
+  {
+    135, 178, 178, 179, 164,
+    103, 179, 179, 115, 132,
+  },
+  {
+    151, 178, 178, 179, 164,
+    135, 148, 148, 164, 133,
+  }
+};
+
+static const UChar
+INIT_ABS_FLAG_LUMA[3][NUM_ABS_FLAG_CTX_LUMA] =
+{
+  {
+    101, 119,  88, 120,  74,
+    102, 134, 119,  88,  74,
+    119,  88,  88, 104,  90,
+     67, 116, 101, 102,  71,
+    117, 102, 102, 118, 119,
+    134, 119, 119, 119,  88,
+  },
+  {
+     52,  54,  87, 135, 105,
+     85,  86, 134, 119, 168,
+    119, 119, 119, 135, 121,
+     82, 115,  85, 102,  87,
+     84,  85, 117, 118, 119,
+    118, 134,  87, 119, 103,
+  },
+  {
+     52,  70, 119, 135, 105,
+    117, 102, 119, 119, 121,
+    119, 119, 135, 104, 137,
+     98,  68,  85, 102, 118,
+    116,  85,  86, 118, 119,
+    118,  87, 119, 119, 135,
+  }
+};
+
+static const UChar
+INIT_ABS_FLAG_CHROMA[3][NUM_ABS_FLAG_CTX_CHROMA] =
+{
+  {
+    101, 134, 104,  73, 122,
+    165, 150, 103, 120, 169,
+  },
+  {
+     83, 102, 151, 136, 169,
+     85, 118, 103,  72, 106,
+  },
+  {
+     99, 118, 151, 136, 169,
+    133, 102, 103, 120, 137,
+  }
+};
+#endif
+#else
+#if COEFF_CTX_RED
+static const UChar
+INIT_ONE_FLAG[3][2*NUM_ONE_FLAG_CTX] =
+{
+  {
+    104,  99,  84,  69,
+    103, 117,  86, 102,
+    105, 119, 103, 103,
+     85,  66,  98, 114,
+    102, 101, 101, 148,
+    119, 134, 134, 134,
+    104,  99, 115, 164,
+    120,  85, 117, 117,
+    153,  71, 119,  71,
+    132,  48, 113, 113,
+    134, 147, 148, 116,
+    119, 166, 101, 134,
+    
+  },
+  {
+    119, 180, 179, 179,
+    119, 117, 164, 164,
+    152, 119, 135, 119,
+    116, 146,  98,  98,
+    102, 147, 116, 147,
+    135, 118, 118, 134,
+    135, 178, 178, 179,
+    103, 179, 179, 115,
+     40,  71, 151,  22,
+    164, 176,  81,  97,
+     69,  83, 180,  99,
+     71,  18,   2,   5,
+    
+  },
+  {
+    119, 196, 179, 179,
+    119, 117, 117, 133,
+    121, 119, 103, 103,
+    132, 146, 114,  98,
+    118, 132, 116, 116,
+    119, 134, 118, 134,
+    151, 178, 178, 179,
+    135, 148, 148, 164,
+    137,  86, 135,  72,
+    116,  97,  97,  97,
+     85, 147, 180, 100,
+     54,  20,  20,   4,
+    
+  },
+};
+
+static const UChar
+INIT_ABS_FLAG[3][2*NUM_ABS_FLAG_CTX] =
+{
+  {
+    101, 119,  88,
+    102, 134, 119,
+    119,  88,  88,
+     67, 116, 101,
+    117, 102, 102,
+    134, 119, 119,
+    101, 134, 104,
+    165, 150, 103,
+    166, 151, 152,
+    114, 163, 148,
+    148, 165, 165,
+    134, 119, 119,
+    
+  },
+  {
+     52,  54,  87,
+     85,  86, 134,
+    119, 119, 119,
+     82, 115,  85,
+     84,  85, 117,
+    118, 134,  87,
+     83, 102, 151,
+     85, 118, 103,
+     87, 118, 104,
+     98, 100,  36,
+     84,  37, 149,
+      1,  67,  70,
+    
+  },
+  {
+     52,  70, 119,
+    117, 102, 119,
+    119, 119, 135,
+     98,  68,  85,
+    116,  85,  86,
+    118,  87, 119,
+     99, 118, 151,
+    133, 102, 103,
+    103,  55,  87,
+     98,  83, 117,
+     84, 133,  69,
+    181,  85,  37,
+    
+  },
+};
+#else
+static const UChar
+INIT_ONE_FLAG[3][2*NUM_ONE_FLAG_CTX] =
+{
+  {
+    104,  99,  84,  69, 102, 103, 117,  86, 102, 118, 105, 119, 103, 103, 119,  85,  66,  98, 114, 115, 102, 101, 101, 148, 132, 119, 134, 134, 134, 134,
+    104,  99, 115, 164, 118, 120,  85, 117, 117, 134, 153,  71, 119,  71, 119, 132,  48, 113, 113, 114, 134, 147, 148, 116, 164, 119, 166, 101, 134, 166,
+    
+  },
+  {
+    119, 180, 179, 179, 164, 119, 117, 164, 164, 133, 152, 119, 135, 119, 103, 116, 146,  98,  98, 114, 102, 147, 116, 147, 116, 135, 118, 118, 134, 118,
+    135, 178, 178, 179, 164, 103, 179, 179, 115, 132,  40,  71, 151,  22,   4, 164, 176,  81,  97, 161,  69,  83, 180,  99,  83,  71,  18,   2,   5,   4,
+    
+  },
+  {
+    119, 196, 179, 179, 164, 119, 117, 117, 133, 149, 121, 119, 103, 103, 119, 132, 146, 114,  98,  83, 118, 132, 116, 116, 132, 119, 134, 118, 134, 134,
+    151, 178, 178, 179, 164, 135, 148, 148, 164, 133, 137,  86, 135,  72,  69, 116,  97,  97,  97, 114,  85, 147, 180, 100, 100,  54,  20,  20,   4,   4,
+    
+  },
+};
+
+static const UChar
+INIT_ABS_FLAG[3][2*NUM_ABS_FLAG_CTX] =
+{
+  {
+    101, 119,  88, 120,  74, 102, 134, 119,  88,  74, 119,  88,  88, 104,  90,  67, 116, 101, 102,  71, 117, 102, 102, 118, 119, 134, 119, 119, 119,  88,
+    101, 134, 104,  73, 122, 165, 150, 103, 120, 169, 166, 151, 152, 168, 138, 114, 163, 148, 149, 150, 148, 165, 165, 166, 183, 134, 119, 119, 183, 167,
+    
+  },
+  {
+     52,  54,  87, 135, 105,  85,  86, 134, 119, 168, 119, 119, 119, 135, 121,  82, 115,  85, 102,  87,  84,  85, 117, 118, 119, 118, 134,  87, 119, 103,
+     83, 102, 151, 136, 169,  85, 118, 103,  72, 106,  87, 118, 104,  23, 106,  98, 100,  36, 185, 199,  84,  37, 149, 182,   5,   1,  67,  70, 121,  73,
+    
+  },
+  {
+     52,  70, 119, 135, 105, 117, 102, 119, 119, 121, 119, 119, 135, 104, 137,  98,  68,  85, 102, 118, 116,  85,  86, 118, 119, 118,  87, 119, 119, 135,
+     99, 118, 151, 136, 169, 133, 102, 103, 120, 137, 103,  55,  87, 104,  73,  98,  83, 117, 199, 232,  84, 133,  69, 150,  70, 181,  85,  37, 103, 199,
+    
+  },
+};
+#endif
+#endif
+
+// initial probability for motion vector predictor index
+static const UChar
+INIT_MVP_IDX[3][NUM_MVP_IDX_CTX] =
+{
+  {
+    CNU, CNU,
+    
+  },
+  {
+    134, CNU,
+    
+  },
+  {
+    118, CNU,
+    
+  },
+};
+
+// initial probability for ALF flag
+static const UChar
+INIT_ALF_FLAG[3][NUM_ALF_FLAG_CTX] =
+{
+  {
+    118,
+    
+  },
+  {
+    102,
+    
+  },
+  {
+    102,
+    
+  },
+};
+
+// initial probability for ALF side information (unsigned)
+static const UChar
+INIT_ALF_UVLC[3][NUM_ALF_UVLC_CTX] =
+{
+  {
+    120, 119,
+    
+  },
+  {
+    119, 119,
+    
+  },
+  {
+    119, 119,
+    
+  },
+};
+
+// initial probability for ALF side information (signed)
+static const UChar
+INIT_ALF_SVLC[3][NUM_ALF_SVLC_CTX] =
+{
+  {
+    139, 119, 124,
+    
+  },
+  {
+     90, 119, 140,
+    
+  },
+  {
+     90, 119, 124,
+    
+  },
+};
+
+#if SAO
+// initial probability for SAO flag
+static const UChar
+INIT_SAO_FLAG[3][NUM_SAO_FLAG_CTX] =
+{
+  {
+    119,
+    
+  },
+  {
+    102,
+    
+  },
+  {
+    102,
+    
+  },
+};
+
+// initial probability for SAO side information (unsigned)
+static const UChar
+INIT_SAO_UVLC[3][NUM_SAO_UVLC_CTX] =
+{
+  {
+     61, 104,
+    
+  },
+  {
+    168, 120,
+    
+  },
+  {
+    184, 120,
+    
+  },
+};
+
+// initial probability for SAO side information (signed)
+static const UChar
+INIT_SAO_SVLC[3][NUM_SAO_SVLC_CTX] =
+{
+  {
+    171, 119, 199,
+    
+  },
+  {
+    169, 119, 151,
+    
+  },
+  {
+    169, 119, 151,
+    
+  },
+};
+#endif
+
+static const UChar
+INIT_TRANS_SUBDIV_FLAG[3][NUM_TRANS_SUBDIV_FLAG_CTX] =
+{
+  {
+    CNU, 146, 100,  84, CNU, CNU, CNU, CNU, CNU, CNU,
+    
+  },
+  {
+    CNU, 102,  55,  70, CNU, CNU, CNU, CNU, CNU, CNU,
+    
+  },
+  {
+    CNU, 102,  55,  70, CNU, CNU, CNU, CNU, CNU, CNU,
+    
+  },
+};
+
+//! \}
+
+#else
 
 // initial probability for split flag
 static const Short
@@ -1387,6 +2608,7 @@ INIT_TRANS_SUBDIV_FLAG[3][NUM_TRANS_SUBDIV_FLAG_CTX][2] =
 };
 
 //! \}
+#endif
 
 #endif
 
