@@ -82,6 +82,64 @@ Void initROM()
     c <<= 1;
   }  
 
+#if NSQT_DIAG_SCAN
+  g_sigScanNSQT[0] = new UInt[ 64 ];  // 4x16
+  g_sigScanNSQT[1] = new UInt[ 256 ]; // 8x32
+  g_sigScanNSQT[2] = new UInt[ 64 ];  // 16x4
+  g_sigScanNSQT[3] = new UInt[ 256 ]; // 32x8
+  
+  static int diagScanX[ 16 ] =
+  {
+    0, 0, 1, 0, 1, 2, 0, 1, 2, 3, 1, 2, 3, 2, 3, 3
+  };
+  static int diagScanY[ 16 ] =
+  {
+    0, 1, 0, 2, 1, 0, 3, 2, 1, 0, 3, 2, 1, 3, 2, 3
+  };
+  
+  Int j;
+  // 4x16 scan
+  for (i = 0; i < 4; i++)
+  {
+    for (j = 0; j < 16; j++)
+    {
+      g_sigScanNSQT[ 0 ][ 16 * i + j ] = 16 * i + 4 * diagScanY[ j ] + diagScanX[ j ];
+    }
+  }
+  
+  // 8x32 scan
+  for (i = 0; i < 16; i++)
+  {
+    Int x = g_sigCGScanNSQT[ 1 ][ i ] & 1;
+    Int y = g_sigCGScanNSQT[ 1 ][ i ] >> 1;
+    
+    for (j = 0; j < 16; j++)
+    {
+      g_sigScanNSQT[ 1 ][ 16 * i + j ] = 32 * y + 4 * x + 8 * diagScanY[ j ] + diagScanX[ j ];
+    }
+  }
+  
+  // 16x4 scan
+  for (i = 0; i < 4; i++)
+  {
+    for (j = 0; j < 16; j++)
+    {
+      g_sigScanNSQT[ 2 ][ 16 * i + j ] = 4 * i + 16 * diagScanY[ j ] + diagScanX[ j ];
+    }
+  }
+  
+  // 32x8 scan
+  for (i = 0; i < 16; i++)
+  {
+    Int x = g_sigCGScanNSQT[ 3 ][ i ] & 7;
+    Int y = g_sigCGScanNSQT[ 3 ][ i ] >> 3;
+    
+    for (j = 0; j < 16; j++)
+    {
+      g_sigScanNSQT[ 3 ][ 16 * i + j ] = 128 * y + 4 * x + 32 * diagScanY[ j ] + diagScanX[ j ];
+    }
+  }
+#else
 #if NSQT
 #if NSQT_TX_ORDER
   UInt uiWidth[ 4 ]  = { 16, 32, 4,  8  };
@@ -98,6 +156,7 @@ Void initROM()
     g_auiNonSquareSigLastScan[ i ] = new UInt[ uiW * uiH ];
     initNonSquareSigLastScan( g_auiNonSquareSigLastScan[ i ], uiW, uiH);
   }
+#endif
 #endif
 }
 
@@ -117,6 +176,12 @@ Void destroyROM()
     delete[] g_auiSigLastScan[3][i];
 #endif
   }
+#if NSQT_DIAG_SCAN
+  for (i = 0; i < 4; i++)
+  {
+    delete[] g_sigScanNSQT[ i ];    
+  }
+#endif
 }
 
 // ====================================================================================================================
@@ -704,6 +769,16 @@ UInt* g_auiSigLastScan[4][ MAX_CU_DEPTH ];
 #else
 UInt* g_auiSigLastScan[3][ MAX_CU_DEPTH ];
 #endif
+#if NSQT_DIAG_SCAN
+UInt *g_sigScanNSQT[ 4 ]; // scan for non-square partitions
+UInt g_sigCGScanNSQT[ 4 ][ 16 ] =
+{
+  { 0, 1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+  { 0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 15 },
+  { 0, 1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+  { 0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15 }
+};
+#endif
 
 #if NSQT
 #if NSQT_TX_ORDER
@@ -713,6 +788,17 @@ UInt* g_auiNonSquareSigLastScan[ 2 ];
 #endif
 #endif
 
+#if MODIFIED_LAST_XY_CODING
+const UInt g_uiMinInGroup[ 10 ] = {0,1,2,3,4,6,8,12,16,24};
+const UInt g_uiGroupIdx[ 32 ]   = {0,1,2,3,4,4,5,5,6,6,6,6,7,7,7,7,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9};
+const UInt g_uiLastCtx[ 28 ]    = 
+{
+  0,   1,  2,  2,                         // 4x4    4
+  3,   4,  5,  5, 6,  6,                  // 8x8    6  
+  7,   8,  9,  9, 10, 10, 11, 11,         // 16x16  8
+  12, 13, 14, 14, 15, 15, 16, 16, 17, 17  // 32x32  10
+};
+#else
 const UInt g_uiLastCtx[ 32 ] =
 {
   0, 1, 2, 2, // 4x4
@@ -720,6 +806,7 @@ const UInt g_uiLastCtx[ 32 ] =
   6, 7, 8, 9, 10, 10, 11, 11, // 16x16
   12, 13, 14, 15, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18 // 32x32
 };
+#endif
 
 // scanning order to 8x8 context model mapping table
 UInt  g_auiAntiScan8  [64];
@@ -834,6 +921,10 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int i
   const UInt  uiNumScanPos  = UInt( iWidth * iWidth );
   UInt        uiNextScanPos = 0;
 
+#if SUBBLOCK_SCAN
+  if( iWidth < 16 )
+  {
+#endif
   for( UInt uiScanLine = 0; uiNextScanPos < uiNumScanPos; uiScanLine++ )
   {
     int    iPrimDim  = int( uiScanLine );
@@ -851,6 +942,42 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int i
       iPrimDim--;
     }
   }
+#if SUBBLOCK_SCAN
+  }
+  else
+  {
+    UInt uiNumBlkSide = iWidth >> 2;
+    UInt uiNumBlks    = uiNumBlkSide * uiNumBlkSide;
+    UInt log2Blk      = g_aucConvertToBit[ uiNumBlkSide ] + 1;
+
+    for( UInt uiBlk = 0; uiBlk < uiNumBlks; uiBlk++ )
+    {
+      uiNextScanPos   = 0;
+      UInt initBlkPos = g_auiSigLastScan[ SCAN_DIAG ][ log2Blk ][ uiBlk ];
+      UInt offsetY    = initBlkPos / uiNumBlkSide;
+      UInt offsetX    = initBlkPos - offsetY * uiNumBlkSide;
+      UInt offsetD    = 4 * ( offsetX + offsetY * iWidth );
+      UInt offsetScan = 16 * uiBlk;
+      for( UInt uiScanLine = 0; uiNextScanPos < 16; uiScanLine++ )
+      {
+        int    iPrimDim  = int( uiScanLine );
+        int    iScndDim  = 0;
+        while( iPrimDim >= 4 )
+        {
+          iScndDim++;
+          iPrimDim--;
+        }
+        while( iPrimDim >= 0 && iScndDim < 4 )
+        {
+          pBuffD[ uiNextScanPos + offsetScan ] = iPrimDim * iWidth + iScndDim + offsetD;
+          uiNextScanPos++;
+          iScndDim++;
+          iPrimDim--;
+        }
+      }
+    }
+  }
+#endif
 #endif
   
   memcpy(pBuffZ, g_auiFrameScanXY[iDepth], sizeof(UInt)*iWidth*iHeight);

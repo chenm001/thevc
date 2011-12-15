@@ -1006,7 +1006,11 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
   //--- init rate estimation arrays for RDOQ ---
   if( m_pcEncCfg->getUseRDOQ() )
   {
+#if NSQT_DIAG_SCAN
+    m_pcEntropyCoder->estimateBit( m_pcTrQuant->m_pcEstBitsSbac, uiWidth, uiWidth, TEXT_LUMA );
+#else
     m_pcEntropyCoder->estimateBit( m_pcTrQuant->m_pcEstBitsSbac, uiWidth, TEXT_LUMA );
+#endif
   }
   //--- transform and quantization ---
   UInt uiAbsSum = 0;
@@ -1161,7 +1165,11 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
     //--- init rate estimation arrays for RDOQ ---
     if( m_pcEncCfg->getUseRDOQ() )
     {
+#if NSQT_DIAG_SCAN
+      m_pcEntropyCoder->estimateBit( m_pcTrQuant->m_pcEstBitsSbac, uiWidth, uiWidth, eText );
+#else
       m_pcEntropyCoder->estimateBit( m_pcTrQuant->m_pcEstBitsSbac, uiWidth, eText );
+#endif
     }
     //--- transform and quantization ---
     UInt uiAbsSum = 0;
@@ -4122,7 +4130,18 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
     pcCU->setTrIdxSubParts( uiDepth - pcCU->getDepth( 0 ), uiAbsPartIdx, uiDepth );
     if (m_pcEncCfg->getUseRDOQ())
     {
+#if NSQT_DIAG_SCAN
+      if (bNonSquareFlag)
+      {
+        m_pcEntropyCoder->estimateBit(m_pcTrQuant->m_pcEstBitsSbac, uiTrWidth, uiTrHeight, TEXT_LUMA );        
+      }
+      else
+      {
+        m_pcEntropyCoder->estimateBit(m_pcTrQuant->m_pcEstBitsSbac, 1<< uiLog2TrSize, 1<< uiLog2TrSize, TEXT_LUMA );        
+      }
+#else
       m_pcEntropyCoder->estimateBit(m_pcTrQuant->m_pcEstBitsSbac, 1<< uiLog2TrSize, TEXT_LUMA );
+#endif
     }
     m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_LUMA );
 #if RDOQ_CHROMA_LAMBDA 
@@ -4141,7 +4160,18 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
     {
       if (m_pcEncCfg->getUseRDOQ())
       {
+#if NSQT_DIAG_SCAN
+        if (bNonSquareFlagChroma)
+        {
+          m_pcEntropyCoder->estimateBit(m_pcTrQuant->m_pcEstBitsSbac, uiTrWidthC, uiTrHeightC, TEXT_CHROMA );          
+        }
+        else
+        {
+          m_pcEntropyCoder->estimateBit(m_pcTrQuant->m_pcEstBitsSbac, 1<<uiLog2TrSizeC, 1<<uiLog2TrSizeC, TEXT_CHROMA );          
+        }
+#else
         m_pcEntropyCoder->estimateBit(m_pcTrQuant->m_pcEstBitsSbac, 1<<uiLog2TrSizeC, TEXT_CHROMA );
+#endif
       }
       m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_CHROMA );
 #if RDOQ_CHROMA_LAMBDA 
@@ -4810,17 +4840,37 @@ Void TEncSearch::xEncodeResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, const U
     {
       if( eType == TEXT_LUMA     && pcCU->getCbf( uiAbsPartIdx, TEXT_LUMA,     uiTrMode ) )
       {
+#if NSQT_MOD
+        Int trWidth = 1 << uiLog2TrSize;
+        Int trHeight = 1 << uiLog2TrSize;
+        pcCU->getNSQTSize( uiTrMode, uiAbsPartIdx, trWidth, trHeight );
+        m_pcEntropyCoder->encodeCoeffNxN( pcCU, pcCoeffCurrY, uiAbsPartIdx, trWidth, trHeight,    uiDepth, TEXT_LUMA );
+#else
         m_pcEntropyCoder->encodeCoeffNxN( pcCU, pcCoeffCurrY, uiAbsPartIdx, 1<< uiLog2TrSize,    1<< uiLog2TrSize,    uiDepth, TEXT_LUMA );
+#endif
       }
       if( bCodeChroma )
       {
+#if NSQT_MOD
+        Int trWidth = 1 << uiLog2TrSizeC;
+        Int trHeight = 1 << uiLog2TrSizeC;
+        pcCU->getNSQTSize( uiTrMode, uiAbsPartIdx, trWidth, trHeight );
+#endif
         if( eType == TEXT_CHROMA_U && pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrMode ) )
         {
+#if NSQT_MOD
+          m_pcEntropyCoder->encodeCoeffNxN( pcCU, pcCoeffCurrU, uiAbsPartIdx, trWidth, trHeight, uiDepth, TEXT_CHROMA_U );
+#else
           m_pcEntropyCoder->encodeCoeffNxN( pcCU, pcCoeffCurrU, uiAbsPartIdx, 1<<uiLog2TrSizeC, 1<<uiLog2TrSizeC, uiDepth, TEXT_CHROMA_U );
+#endif
         }
         if( eType == TEXT_CHROMA_V && pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiTrMode ) )
         {
+#if NSQT_MOD
+          m_pcEntropyCoder->encodeCoeffNxN( pcCU, pcCoeffCurrV, uiAbsPartIdx, trWidth, trHeight, uiDepth, TEXT_CHROMA_V );
+#else
           m_pcEntropyCoder->encodeCoeffNxN( pcCU, pcCoeffCurrV, uiAbsPartIdx, 1<<uiLog2TrSizeC, 1<<uiLog2TrSizeC, uiDepth, TEXT_CHROMA_V );
+#endif
         }
       }
     }

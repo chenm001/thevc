@@ -237,7 +237,11 @@ public:
   
   Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
+#if NSQT_DIAG_SCAN
+  Void estBit               (estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType);
+#else
   Void estBit            ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType);
+#endif
   
   Bool getAdaptFlag      ()          { return m_bAdaptFlag; }
   Void setAdaptFlag      ( Bool b )  { m_bAdaptFlag = b;     }

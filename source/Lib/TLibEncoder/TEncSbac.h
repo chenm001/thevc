@@ -191,16 +191,27 @@ public:
   
   Void codeCbfTrdiv      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) {}
   UInt xGetFlagPattern   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) { return 0; }
-  Void codeLastSignificantXY ( UInt uiPosX, UInt uiPosY, Int width, Int height, TextType eTType, UInt uiCTXIdx, UInt uiScanIdx );
+  Void codeLastSignificantXY ( UInt uiPosX, UInt uiPosY, Int width, Int height, TextType eTType, UInt uiScanIdx );
   Void codeCoeffNxN            ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
   // -------------------------------------------------------------------------------------------------------------------
   // for RD-optimizatioon
   // -------------------------------------------------------------------------------------------------------------------
   
+#if NSQT_DIAG_SCAN
+  Void estBit               (estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType);
+#else
   Void estBit                        ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
+#endif
   Void estCBFBit                     ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
+#if MULTI_LEVEL_SIGNIFICANCE
+  Void estSignificantCoeffGroupMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
+#endif
+#if NSQT_DIAG_SCAN
+  Void estSignificantMapBit          ( estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType );
+#else
   Void estSignificantMapBit          ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
+#endif
   Void estSignificantCoefficientsBit ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
   
 
@@ -236,11 +247,26 @@ private:
   ContextModel3DBuffer m_cCUTransSubdivFlagSCModel;
   ContextModel3DBuffer m_cCUQtRootCbfSCModel;
   
+#if MULTI_LEVEL_SIGNIFICANCE
+  ContextModel3DBuffer m_cCUSigCoeffGroupSCModel;
+#endif
+#if SIGMAP_CTX_RED
+  ContextModel3DBuffer m_cCUSigSCModelLuma;
+  ContextModel3DBuffer m_cCUSigSCModelChroma;
+#else
   ContextModel3DBuffer m_cCUSigSCModel;
+#endif
   ContextModel3DBuffer m_cCuCtxLastX;
   ContextModel3DBuffer m_cCuCtxLastY;
+#if COEFF_CTXSET_RED
+  ContextModel3DBuffer m_cCUOneSCModelLuma;
+  ContextModel3DBuffer m_cCUOneSCModelChroma;
+  ContextModel3DBuffer m_cCUAbsSCModelLuma;
+  ContextModel3DBuffer m_cCUAbsSCModelChroma;
+#else
   ContextModel3DBuffer m_cCUOneSCModel;
   ContextModel3DBuffer m_cCUAbsSCModel;
+#endif
   
   ContextModel3DBuffer m_cMVPIdxSCModel;
   

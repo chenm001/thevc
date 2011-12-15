@@ -42,6 +42,17 @@
 #include "TComPic.h"
 #include "ContextTables.h"
 
+#if MULTI_LEVEL_SIGNIFICANCE
+typedef struct
+{
+  Int    iNNZbeforePos0;
+  Double d64CodedLevelandDist; // distortion and level cost only
+  Double d64UncodedDist;    // all zero coded block distortion
+  Double d64SigCost;
+  Double d64SigCost_0;
+} coeffGroupRDStats;
+#endif
+
 //! \ingroup TLibCommon
 //! \{
 
@@ -2317,6 +2328,7 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, 
     }    
 #endif
 
+#if !DISABLE_CAVLC
     const UInt*  pucScan;
     UInt uiConvBit = g_aucConvertToBit[ iWidth ];
     pucScan        = g_auiFrameScanXY [ uiConvBit + 1 ];
@@ -2326,7 +2338,8 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, 
       pucScan = g_auiNonSquareSigLastScan[ uiNonSqureScanTableIdx ];
     }
 #endif
-
+#endif
+    
     UInt uiLog2TrSize = g_aucConvertToBit[ iWidth ] + 2;
     UInt uiQ = g_quantScales[m_cQP.rem()];
 
@@ -2344,7 +2357,11 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, 
     {
       Int iLevel;
       Int  iSign;
+#if !DISABLE_CAVLC
       UInt uiBlockPos = pucScan[n]; 
+#else
+      UInt uiBlockPos = n;
+#endif
       iLevel  = piCoef[uiBlockPos];
       iSign   = (iLevel < 0 ? -1: 1);      
 
@@ -2368,6 +2385,9 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, 
       uiAcSum += iLevel;
       iLevel *= iSign;        
       piQCoef[uiBlockPos] = iLevel;
+#if LEVEL_LIMIT
+      piQCoef[uiBlockPos] = Clip3(-32768,32767,piQCoef[uiBlockPos]);
+#endif
     } // for n
   } //if RDOQ
   //return;
@@ -2516,8 +2536,13 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
         uiTrWidth = uiTrHeight = 4;
       }
 
+#if NSQT_DIAG_SCAN
+      uiWidth = uiTrWidth;
+      uiHeight = uiTrHeight;
+#else
       if( uiTrWidth != uiTrHeight )
       {
+#if !NSQT_MOD
         TCoeff  orgCoeff[ 256 ];
 #if NSQT_TX_ORDER
         UInt uiNonSqureScanTableIdx = ( uiTrWidth * uiTrHeight ) == 64 ? 2 * ( uiTrHeight > uiTrWidth ) : 2 * ( uiTrHeight > uiTrWidth ) + 1;
@@ -2530,9 +2555,11 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
           UInt uiBlkPos = g_auiNonSquareSigLastScan[ uiNonSqureScanTableIdx ][ uiScanPos ];
           rpcCoeff[ uiBlkPos ] = orgCoeff[ g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiScanPos ] ];
         }
+#endif
         uiWidth  = uiTrWidth;
         uiHeight = uiTrHeight;
       }
+#endif
     }
 #endif
     invtransformNxN( eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight );
@@ -2911,7 +2938,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   Int    iQBits      = m_cQP.m_iBits;
   Double dTemp       = 0;
   
-#if NSQT
+#if NSQT && !NSQT_DIAG_SCAN
   Bool bNonSqureFlag = ( uiWidth != uiHeight );
   UInt uiNonSqureScanTableIdx = 0;
   if( bNonSqureFlag )
@@ -2929,7 +2956,13 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 #endif
   UInt uiLog2TrSize = g_aucConvertToBit[ uiWidth ] + 2;
   Int uiQ = g_quantScales[m_cQP.rem()];
-
+#if NSQT_DIAG_SCAN
+  if (uiWidth != uiHeight)
+  {
+    uiLog2TrSize += (uiWidth > uiHeight) ? -1 : 1;
+  }
+#endif
+  
 #if FULL_NBIT
   UInt uiBitDepth = g_uiBitDepth;
 #else
@@ -2946,14 +2979,22 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   UInt       uiGoRiceParam       = 0;
   Double     d64BlockUncodedCost = 0;
   const UInt uiLog2BlkSize       = g_aucConvertToBit[ uiWidth ] + 2;
-  const UInt uiMaxNumCoeff       = 1 << ( uiLog2BlkSize << 1 );
+  const UInt uiMaxNumCoeff       = uiWidth * uiHeight;
 #if DIAG_SCAN
   UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
   uiScanIdx = ( uiScanIdx == SCAN_ZIGZAG ) ? SCAN_DIAG : uiScanIdx; // Map value zigzag to diagonal scan
 #else
   const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
 #endif
-#if NSQT
+#if NSQT_DIAG_SCAN
+  Int blockType = uiLog2BlkSize;
+  if (uiWidth != uiHeight)
+  {
+    uiScanIdx = SCAN_DIAG;
+    blockType = 4;
+  }
+#endif
+#if NSQT && !NSQT_DIAG_SCAN
   static Int  orgSrcCoeff[ 256 ];
   if( bNonSqureFlag )
   {
@@ -2972,6 +3013,27 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   ::memset( pdCostCoeff, 0, sizeof(Double) *  uiMaxNumCoeff );
   ::memset( pdCostSig,   0, sizeof(Double) *  uiMaxNumCoeff );
 
+#if MULTI_LEVEL_SIGNIFICANCE
+#if NSQT_DIAG_SCAN
+  const UInt * scanCG;
+  if (uiWidth == uiHeight)
+  {
+    scanCG = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlkSize > 3 ? uiLog2BlkSize-2-1 : 0  ];
+  }
+  else
+  {
+    scanCG = g_sigCGScanNSQT[ uiLog2BlkSize - 2 ];
+  }
+#else
+  const UInt * const scanCG = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlkSize > 3 ? uiLog2BlkSize-2-1 : 0  ];
+#endif
+  const UInt uiCGSize = (1 << MLS_CG_SIZE);         // 16
+  Double pdCostCoeffGroupSig[ MLS_GRP_NUM ];
+  UInt uiSigCoeffGroupFlag[ MLS_GRP_NUM ];
+  UInt uiNumBlkSide = uiWidth / MLS_CG_SIZE;
+  Int iCGLastScanPos = -1;
+#endif
+
   UInt    uiCtxSet            = 0;
   Int     c1                  = 1;
   Int     c2                  = 0;
@@ -2979,8 +3041,28 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   Double  d64BaseCost         = 0;
   Int     iLastScanPos        = -1;
   dTemp                       = dErrScale;
+#if NSQT_DIAG_SCAN
+  const UInt * scan;
+  if (uiWidth == uiHeight)
+  {
+    scan = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlkSize - 1 ];    
+  }
+  else
+  {
+    scan = g_sigScanNSQT[ uiLog2BlkSize - 2 ];
+  }
+#else
   const UInt * const scan = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlkSize - 1 ];
-
+#endif
+  
+#if MULTI_LEVEL_SIGNIFICANCE
+#if NSQT_DIAG_SCAN
+  if (blockType < 4)
+#else
+  if (uiLog2BlkSize < 4)
+#endif
+  {
+#endif
   for( Int iScanPos = (Int) uiMaxNumCoeff-1; iScanPos >= 0; iScanPos-- )
   {
     //===== quantization =====
@@ -2988,7 +3070,9 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     Int lLevelDouble          = plSrcCoeff[ uiBlkPos ];
     lLevelDouble              = abs(lLevelDouble * uiQ);     
     UInt uiMaxAbsLevel        = (lLevelDouble + (1 << (iQBits - 1))) >> iQBits;
-    
+#if LEVEL_LIMIT
+    uiMaxAbsLevel=plSrcCoeff[ uiBlkPos ]>=0 ? min<UInt>(uiMaxAbsLevel,32767): min<UInt>(uiMaxAbsLevel,32768);
+#endif
     Double dErr               = Double( lLevelDouble );
     pdCostCoeff0[ iScanPos ]  = dErr * dErr * dTemp;
     d64BlockUncodedCost      += pdCostCoeff0[ iScanPos ];
@@ -2998,14 +3082,24 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     {
       iLastScanPos            = iScanPos;
       uiCtxSet                = iScanPos < SCAN_SET_SIZE ? 0 : 3;
+#if COEFF_CTXSET_RED
+      uiCtxSet                = (iScanPos < SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
+#else
+      uiCtxSet                = iScanPos < SCAN_SET_SIZE ? 0 : 3;
+#endif
     }    
 
     if ( iLastScanPos >= 0 )
     {
       //===== coefficient level estimation =====
       UInt  uiLevel;
+#if COEFF_CTX_RED
+      UInt  uiOneCtx         = 4 * uiCtxSet + c1;
+      UInt  uiAbsCtx         = 3 * uiCtxSet + c2;
+#else
       UInt  uiOneCtx         = 5 * uiCtxSet + c1;
       UInt  uiAbsCtx         = 5 * uiCtxSet + c2;
+#endif
       if( iScanPos == iLastScanPos )
       {
         uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ], lLevelDouble, uiMaxAbsLevel, 0, uiOneCtx, uiAbsCtx, uiGoRiceParam, iQBits, dTemp, 1 );
@@ -3014,7 +3108,19 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       {
         UInt   uiPosY        = uiBlkPos >> uiLog2BlkSize;
         UInt   uiPosX        = uiBlkPos - ( uiPosY << uiLog2BlkSize );
+#if NSQT_DIAG_SCAN
+#if SIGMAP_CTX_RED
+        UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
+#else
+        UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, blockType, uiWidth, uiHeight );
+#endif
+#else
+#if SIGMAP_CTX_RED
+        UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth, eTType );
+#else
         UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth );
+#endif
+#endif
         uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ], lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, iQBits, dTemp, 0 );
       }
 
@@ -3025,14 +3131,22 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       if( uiLevel > 1 )
       {
         c1 = 0; 
+#if COEFF_CTX_RED
+        c2 += (c2 < 2);
+#else
         c2 += (c2 < 4);
+#endif
         uiNumOne++;
         if( uiLevel > 2 )
         {
           uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - 3, 15 ) ];
         }
       }
+#if COEFF_CTX_RED
+      else if( (c1 < 3) && (c1 > 0) && uiLevel)
+#else
       else if( (c1 & 3) && uiLevel )
+#endif
       {
         c1++;
       }
@@ -3043,14 +3157,25 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         c1                = 1;
         c2                = 0;
         uiGoRiceParam     = 0;
+#if COEFF_CTXSET_RED
+        uiCtxSet          = (iScanPos == SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
+#else
         uiCtxSet          = iScanPos == SCAN_SET_SIZE ? 0 : 3;
+#endif
         if( uiNumOne > 0 )
         {
           uiCtxSet++;
+#if COEFF_CTXSET_RED
+          if(eTType==TEXT_LUMA)
+          {
+#endif
           if( uiNumOne > 3 )
           {
             uiCtxSet++;
           }
+#if COEFF_CTXSET_RED
+          }
+#endif
         }
         uiNumOne    >>= 1;
       }
@@ -3060,6 +3185,251 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       d64BaseCost    += pdCostCoeff0[ iScanPos ];
     }
   }
+#if MULTI_LEVEL_SIGNIFICANCE
+  }
+  else //(uiLog2BlkSize > 3), for 16x16 and 32x32 TU
+  {      
+    ::memset( pdCostCoeffGroupSig,   0, sizeof(Double) * MLS_GRP_NUM );
+    ::memset( uiSigCoeffGroupFlag,   0, sizeof(UInt) * MLS_GRP_NUM );
+
+#if NSQT_DIAG_SCAN
+    UInt uiCGNum = uiWidth * uiHeight >> MLS_CG_SIZE;
+#else
+    UInt uiCGNum = uiNumBlkSide * uiNumBlkSide;
+#endif
+    Int iScanPos;
+    coeffGroupRDStats rdStats;     
+
+    for (Int iCGScanPos = uiCGNum-1; iCGScanPos >= 0; iCGScanPos--)
+    {
+      UInt uiCGBlkPos = scanCG[ iCGScanPos ];
+      UInt uiCGPosY   = uiCGBlkPos / uiNumBlkSide;
+      UInt uiCGPosX   = uiCGBlkPos - (uiCGPosY * uiNumBlkSide);
+      ::memset( &rdStats, 0, sizeof (coeffGroupRDStats));
+        
+      for (Int iScanPosinCG = uiCGSize-1; iScanPosinCG >= 0; iScanPosinCG--)
+      {
+        iScanPos = iCGScanPos*uiCGSize + iScanPosinCG;
+        //===== quantization =====
+        UInt    uiBlkPos          = scan[iScanPos];
+        Int lLevelDouble          = plSrcCoeff[ uiBlkPos ];
+        lLevelDouble              = abs(lLevelDouble * uiQ);     
+        UInt uiMaxAbsLevel        = (lLevelDouble + (1 << (iQBits - 1))) >> iQBits;
+
+        Double dErr               = Double( lLevelDouble );
+        pdCostCoeff0[ iScanPos ]  = dErr * dErr * dTemp;
+        d64BlockUncodedCost      += pdCostCoeff0[ iScanPos ];
+        piDstCoeff[ uiBlkPos ]    = uiMaxAbsLevel;
+
+        if ( uiMaxAbsLevel > 0 && iLastScanPos < 0 )
+        {
+          iLastScanPos            = iScanPos;
+#if COEFF_CTXSET_RED
+          uiCtxSet                = (iScanPos < SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
+#else
+          uiCtxSet                = iScanPos < SCAN_SET_SIZE ? 0 : 3;
+#endif
+          iCGLastScanPos          = iCGScanPos;
+        }
+
+        if ( iLastScanPos >= 0 )
+        {
+          //===== coefficient level estimation =====
+          UInt  uiLevel;
+#if COEFF_CTX_RED
+          UInt  uiOneCtx         = 4 * uiCtxSet + c1;
+          UInt  uiAbsCtx         = 3 * uiCtxSet + c2;
+#else
+          UInt  uiOneCtx         = 5 * uiCtxSet + c1;
+          UInt  uiAbsCtx         = 5 * uiCtxSet + c2;
+#endif
+          if( iScanPos == iLastScanPos )
+          {
+            uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ], 
+                                                   lLevelDouble, uiMaxAbsLevel, 0, uiOneCtx, uiAbsCtx, uiGoRiceParam, 
+                                                   iQBits, dTemp, 1 );
+          }
+          else
+          {
+            UInt   uiPosY        = uiBlkPos >> uiLog2BlkSize;
+            UInt   uiPosX        = uiBlkPos - ( uiPosY << uiLog2BlkSize );
+#if NSQT_DIAG_SCAN
+#if SIGMAP_CTX_RED
+            UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
+#else
+            UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, blockType, uiWidth, uiHeight );
+#endif
+#else
+#if SIGMAP_CTX_RED
+            UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth, eTType );
+#else
+            UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth );
+#endif
+#endif
+            uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ],
+                                                   lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, 
+                                                   iQBits, dTemp, 0 );
+          }
+
+          piDstCoeff[ uiBlkPos ] = uiLevel;
+          d64BaseCost           += pdCostCoeff [ iScanPos ];
+
+          //===== update bin model =====
+          if( uiLevel > 1 )
+          {
+            c1 = 0; 
+#if COEFF_CTX_RED
+            c2 += (c2 < 2);
+#else
+            c2 += (c2 < 4);
+#endif
+            uiNumOne++;
+            if( uiLevel > 2 )
+            {
+              uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - 3, 15 ) ];
+            }
+          }
+#if COEFF_CTX_RED
+          else if( (c1 < 3) && (c1 > 0) && uiLevel)
+#else
+          else if( (c1 & 3) && uiLevel )
+#endif
+          {
+            c1++;
+          }
+
+          //===== context set update =====
+          if( ( iScanPos % SCAN_SET_SIZE == 0 ) && ( iScanPos > 0 ) )
+          {
+            c1                = 1;
+            c2                = 0;
+            uiGoRiceParam     = 0;
+#if COEFF_CTXSET_RED
+            uiCtxSet          = (iScanPos == SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
+#else
+            uiCtxSet          = iScanPos == SCAN_SET_SIZE ? 0 : 3;
+#endif
+            if( uiNumOne > 0 )
+            {
+              uiCtxSet++;
+#if COEFF_CTXSET_RED
+              if(eTType==TEXT_LUMA)
+              {
+#endif
+                if( uiNumOne > 3 )
+                {
+                  uiCtxSet++;
+                }
+#if COEFF_CTXSET_RED
+              }
+#endif
+            }
+            uiNumOne    >>= 1;
+          }
+        }
+        else
+        {
+          d64BaseCost    += pdCostCoeff0[ iScanPos ];
+        }
+        rdStats.d64SigCost += pdCostSig[ iScanPos ];
+        if (iScanPosinCG == 0 )
+        {
+          rdStats.d64SigCost_0 = pdCostSig[ iScanPos ];
+        }
+        if (piDstCoeff[ uiBlkPos ] )
+        {
+          uiSigCoeffGroupFlag[ uiCGBlkPos ] = 1;
+          rdStats.d64CodedLevelandDist += pdCostCoeff[ iScanPos ] - pdCostSig[ iScanPos ];
+          rdStats.d64UncodedDist += pdCostCoeff0[ iScanPos ];
+          if ( iScanPosinCG != 0 )
+          {
+            rdStats.iNNZbeforePos0++;
+          }
+        }
+      } //end for (iScanPosinCG)
+
+      if (iCGLastScanPos >= 0) 
+      {
+#if NSQT_DIAG_SCAN
+        if ( !bothCGNeighboursOne( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY, uiWidth, uiHeight ) && (iCGScanPos != 0) )
+#else
+        if ( !bothCGNeighboursOne( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY, uiLog2BlkSize ) && (iCGScanPos != 0) )
+#endif
+        {
+          if (uiSigCoeffGroupFlag[ uiCGBlkPos ] == 0)
+          {
+#if NSQT_DIAG_SCAN
+            UInt  uiCtxSig = getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY, uiWidth, uiHeight);
+#else
+            UInt  uiCtxSig = getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY, uiLog2BlkSize);
+#endif
+            d64BaseCost += xGetRateSigCoeffGroup(0, uiCtxSig) - rdStats.d64SigCost;;  
+            pdCostCoeffGroupSig[ iCGScanPos ] = xGetRateSigCoeffGroup(0, uiCtxSig);  
+          } 
+          else
+          {
+            if (iCGScanPos < iCGLastScanPos) //skip the last coefficient group, which will be handled together with last position below.
+            {
+              if ( rdStats.iNNZbeforePos0 == 0 ) 
+              {
+                d64BaseCost -= rdStats.d64SigCost_0;
+                rdStats.d64SigCost -= rdStats.d64SigCost_0;
+              }
+              // rd-cost if SigCoeffGroupFlag = 0, initialization
+              Double d64CostZeroCG = d64BaseCost;
+
+              // add SigCoeffGroupFlag cost to total cost
+#if NSQT_DIAG_SCAN
+              UInt  uiCtxSig = getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY, uiWidth, uiHeight);
+#else
+              UInt  uiCtxSig = getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY, uiLog2BlkSize);
+#endif
+              if (iCGScanPos < iCGLastScanPos)
+              {
+                d64BaseCost  += xGetRateSigCoeffGroup(1, uiCtxSig); 
+                d64CostZeroCG += xGetRateSigCoeffGroup(0, uiCtxSig);  
+                pdCostCoeffGroupSig[ iCGScanPos ] = xGetRateSigCoeffGroup(1, uiCtxSig); 
+              }
+
+              // try to convert the current coeff group from non-zero to all-zero
+              d64CostZeroCG += rdStats.d64UncodedDist;  // distortion for resetting non-zero levels to zero levels
+              d64CostZeroCG -= rdStats.d64CodedLevelandDist;   // distortion and level cost for keeping all non-zero levels
+              d64CostZeroCG -= rdStats.d64SigCost;     // sig cost for all coeffs, including zero levels and non-zerl levels
+
+              // if we can save cost, change this block to all-zero block
+              if ( d64CostZeroCG < d64BaseCost )      
+              {
+                uiSigCoeffGroupFlag[ uiCGBlkPos ] = 0;
+                d64BaseCost = d64CostZeroCG;
+                if (iCGScanPos < iCGLastScanPos)
+                {
+                  pdCostCoeffGroupSig[ iCGScanPos ] = xGetRateSigCoeffGroup(0, uiCtxSig); 
+                }
+                // reset coeffs to 0 in this block                
+                for (Int iScanPosinCG = uiCGSize-1; iScanPosinCG >= 0; iScanPosinCG--)
+                {
+                  iScanPos      = iCGScanPos*uiCGSize + iScanPosinCG;
+                  UInt uiBlkPos = scan[ iScanPos ];
+
+                  if (piDstCoeff[ uiBlkPos ])
+                  {
+                    piDstCoeff [ uiBlkPos ] = 0;
+                    pdCostCoeff[ iScanPos ] = pdCostCoeff0[ iScanPos ];
+                    pdCostSig  [ iScanPos ] = 0;
+                  }
+                }
+              } // end if ( d64CostAllZeros < d64BaseCost )      
+            }
+          } // end if if (uiSigCoeffGroupFlag[ uiCGBlkPos ] == 0)
+        }
+        else // if ( !bothCGNeighboursOne( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY ) && (uiCGScanPos != 0) && (uiSigCoeffGroupFlag[ uiCGBlkPos ] != 0) )
+        {
+          uiSigCoeffGroupFlag[ uiCGBlkPos ] = 1;
+        } // end if ( !bothCGNeighboursOne( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY ) && (uiCGScanPos != 0) && (uiSigCoeffGroupFlag[ uiCGBlkPos ] != 0) )
+      }
+    } //end for (iCGScanPos)
+  }
+#endif  // #if MULTI_LEVEL_SIGNIFICANCE 
 
   //===== estimate last position =====
   if ( iLastScanPos < 0 )
@@ -3079,11 +3449,23 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   else
   {
     ui16CtxCbf   = pcCU->getCtxQtCbf( uiAbsPartIdx, eTType, pcCU->getTransformIdx( uiAbsPartIdx ) );
+#if CHROMA_CBF_CTX_REDUCTION
+    ui16CtxCbf   = ( eTType ? TEXT_CHROMA : eTType ) * NUM_QT_CBF_CTX + ui16CtxCbf;
+#else
     ui16CtxCbf   = ( eTType ? eTType - 1 : eTType ) * NUM_QT_CBF_CTX + ui16CtxCbf;
+#endif
     d64BestCost  = d64BlockUncodedCost + xGetICost( m_pcEstBitsSbac->blockCbpBits[ ui16CtxCbf ][ 0 ] );
     d64BaseCost += xGetICost( m_pcEstBitsSbac->blockCbpBits[ ui16CtxCbf ][ 1 ] );
   }
 
+#if MULTI_LEVEL_SIGNIFICANCE
+#if NSQT_DIAG_SCAN
+  if (blockType < 4)
+#else
+  if (uiLog2BlkSize < 4)
+#endif
+  {
+#endif
   for( Int iScanPos = iLastScanPos; iScanPos >= 0; iScanPos-- )
   {
     UInt   uiBlkPos     = scan[iScanPos];
@@ -3110,6 +3492,58 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       d64BaseCost      -= pdCostSig[ iScanPos ];
     }
   }
+#if MULTI_LEVEL_SIGNIFICANCE
+  }
+  else //if (uiLog2BlkSize < 4)
+  {
+    Bool bFoundLast = false;
+    for (Int iCGScanPos = iCGLastScanPos; iCGScanPos >= 0; iCGScanPos--)
+    {
+      UInt uiCGBlkPos = scanCG[ iCGScanPos ];
+
+      d64BaseCost -= pdCostCoeffGroupSig [ iCGScanPos ]; 
+      if (uiSigCoeffGroupFlag[ uiCGBlkPos ])
+      {     
+        for (Int iScanPosinCG = uiCGSize-1; iScanPosinCG >= 0; iScanPosinCG--)
+        {
+          Int iScanPos = iCGScanPos*uiCGSize + iScanPosinCG;
+          if (iScanPos > iLastScanPos) continue;
+          UInt   uiBlkPos     = scan[iScanPos];
+
+          if( piDstCoeff[ uiBlkPos ] )
+          {
+            UInt   uiPosY       = uiBlkPos >> uiLog2BlkSize;
+            UInt   uiPosX       = uiBlkPos - ( uiPosY << uiLog2BlkSize );
+
+            Double d64CostLast= uiScanIdx == SCAN_VER ? xGetRateLast( uiPosY, uiPosX, uiWidth ) : xGetRateLast( uiPosX, uiPosY, uiWidth );
+            Double totalCost = d64BaseCost + d64CostLast - pdCostSig[ iScanPos ];
+
+            if( totalCost < d64BestCost )
+            {
+              iBestLastIdxP1  = iScanPos + 1;
+              d64BestCost     = totalCost;
+            }
+            if( piDstCoeff[ uiBlkPos ] > 1 )
+            {
+              bFoundLast = true;
+              break;
+            }
+            d64BaseCost      -= pdCostCoeff[ iScanPos ];
+            d64BaseCost      += pdCostCoeff0[ iScanPos ];
+          }
+          else
+          {
+            d64BaseCost      -= pdCostSig[ iScanPos ];
+          }
+        } //end for 
+        if (bFoundLast)
+        {
+          break;
+        }
+      } // end if (uiSigCoeffGroupFlag[ uiCGBlkPos ])
+    } // end for 
+  } //if (uiLog2BlkSize < 4)
+#endif
 
   for ( Int scanPos = 0; scanPos < iBestLastIdxP1; scanPos++ )
   {
@@ -3125,7 +3559,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     piDstCoeff[ scan[ scanPos ] ] = 0;
   }
 
-#if NSQT
+#if NSQT && !NSQT_DIAG_SCAN
   static TCoeff dstCoeff[ 256 ];
   if( bNonSqureFlag )
   {
@@ -3153,37 +3587,133 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
                                     const UInt                      uiPosX,
                                     const UInt                      uiPosY,
                                     const UInt                      uiLog2BlkSize,
+#if NSQT_DIAG_SCAN
+#if SIGMAP_CTX_RED
+                                   Int uiStride, Int height, Int eTType )
+#else
+                                   Int uiStride, Int height )
+#endif
+#else
+#if SIGMAP_CTX_RED
+                                    const UInt                      uiStride,
+                                    const UInt                      eTType )
+#else
                                     const UInt                      uiStride )
+#endif
+#endif
 {
   if ( uiLog2BlkSize == 2)
   {
+#if SIGMAP_CTX_RED
+    const UChar CTX_IND_MAP_4x4[30] =
+    {
+      //LUMA map
+      0, 1, 4, 5,
+      2, 3, 4, 5,
+      6, 6, 8, 8,
+      7, 7, 8,
+      //CHROMA map
+      0, 1, 2, 4,
+      1, 1, 2, 4,
+      3, 3, 5, 5,
+      4, 4, 5
+    };
+
+    if (eTType == TEXT_LUMA)
+    {
+      return CTX_IND_MAP_4x4[(uiPosY << 2) + uiPosX];
+    }
+    else
+    {
+      return CTX_IND_MAP_4x4[15 + (uiPosY << 2) + uiPosX];
+    }
+#else
     return 4 * uiPosY + uiPosX;
+#endif
   }
   
   if ( uiLog2BlkSize == 3 )
   {
+#if SIGMAP_CTX_RED
+    const UInt map8x8[] = { 0,  1,  2,  3,
+                            4,  5,  6,  3,
+                            8,  6,  6,  7,
+                            9,  9,  7,  7  };
+    UInt uiOffset = (eTType == TEXT_LUMA) ? 9 : 6;
+
+    if ( uiPosX + uiPosY == 0 )
+    {
+      return uiOffset + 10;
+    }
+    return uiOffset + map8x8[4 * (uiPosY >> 1) + (uiPosX >> 1)];
+#else
     return 15 + 4 * (uiPosY >> 1) + (uiPosX >> 1);
+#endif
   }
+
+#if SIGMAP_CTX_RED
+  UInt uiOffset = (eTType == TEXT_LUMA) ? 20 : 17;
+  if( uiPosX + uiPosY == 0 )
+  {
+    return uiOffset;
+  }
+#else
   if( uiPosX + uiPosY < 2 )
   {
     return 31 + 2 * uiPosY + uiPosX;
   }
+#endif
   
+#if NSQT_DIAG_SCAN
+  const TCoeff *pData = pcCoeff + uiPosX + uiPosY * uiStride;
+#else
   const TCoeff *pData = pcCoeff + uiPosX + (uiPosY << uiLog2BlkSize);
+#endif
+  
   Int iStride = uiStride;
-
+#if SIGMAP_CTX_RED
+#if NSQT_DIAG_SCAN
+  Int thred = std::max(height, iStride) >> 2;
+#else
+  UInt thred = 1 << (uiLog2BlkSize-2);
+#endif
+#endif
+  
+#if !NSQT_DIAG_SCAN
+#if SIGMAP_CTX_RED
+  if(eTType==TEXT_LUMA && uiPosX + uiPosY < thred)
+#else
   if( uiPosX + uiPosY < 5 )
+#endif
   {
+#if SUBBLOCK_SCAN
+    UInt cnt = (pData[1] != 0) + (pData[2] != 0) + (pData[2*iStride] != 0) + (pData[iStride+1] != 0);
+    if( ( ( uiPosX & 3 ) || ( uiPosY & 3 ) ) && ( ( (uiPosX+1) & 3 ) || ( (uiPosY+2) & 3 ) ) )
+    {
+      cnt += pData[iStride] != 0;
+    }
+#else
     UInt cnt = (pData[1] != 0) + (pData[2] != 0) + (pData[iStride] != 0) + (pData[2*iStride] != 0) + (pData[iStride+1] != 0);
+#endif  
+#if SIGMAP_CTX_RED
+    cnt=(cnt+1)>>1;
+    return uiOffset + 1 + min<UInt>( 2, cnt );
+#else
     return 31 + 3 + min<UInt>( 4, cnt );
+#endif
   }
+#endif
   
   UInt uiWidthM1   = uiStride - 1;
   UInt cnt = 0;
   if( uiPosX < uiWidthM1 )
   {
     cnt += pData[1] != 0;
+#if NSQT_DIAG_SCAN
+    if( uiPosY < height - 1 )
+#else
     if( uiPosY < uiWidthM1 )
+#endif
     {
       cnt += pData[iStride+1] != 0;
     }
@@ -3192,16 +3722,51 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
       cnt += pData[2] != 0;
     }
   }
+#if NSQT_DIAG_SCAN
+  if ( uiPosY < height - 1 )
+#else
   if ( uiPosY < uiWidthM1 )
+#endif
+  {
+#if SUBBLOCK_SCAN
+  if( ( ( uiPosX & 3 ) || ( uiPosY & 3 ) ) && ( ( (uiPosX+1) & 3 ) || ( (uiPosY+2) & 3 ) ) )
   {
     cnt += pData[iStride] != 0;
+  }
+#else
+    cnt += pData[iStride] != 0;
+#endif
+#if NSQT_DIAG_SCAN
+    if ( uiPosY < height - 2 && cnt < 4 )
+#else
     if ( uiPosY < uiWidthM1 - 1 && cnt < 4 )
+#endif
     {
       cnt += pData[2*iStride] != 0;
     }
   }
 
+#if SIGMAP_CTX_RED
+  cnt=(cnt+1)>>1;
+#if NSQT_DIAG_SCAN
+  return (( eTType == TEXT_LUMA && uiPosX + uiPosY >= thred ) ? uiOffset + 4 : uiOffset + 1) + cnt;
+#else
+  if(eTType==TEXT_LUMA)
+  {
+    return uiOffset + 4 + cnt;
+  }
+  else
+  {
+    return uiOffset + 1 + cnt;
+  }
+#endif
+#else
+#if NSQT_DIAG_SCAN
+  return (( uiPosX + uiPosY < 5 ) ? 31 + 3 : 31 + 8) + cnt;
+#else
   return 31 + 8 + cnt;
+#endif
+#endif
 }
 
 /** Get the best level in RD sense
@@ -3320,11 +3885,41 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
   return xGetICost( iRate );
 }
 
+#if MULTI_LEVEL_SIGNIFICANCE
+__inline Double TComTrQuant::xGetRateSigCoeffGroup  ( UShort                    uiSignificanceCoeffGroup,
+                                                UShort                          ui16CtxNumSig ) const
+{
+  return xGetICost( m_pcEstBitsSbac->significantCoeffGroupBits[ ui16CtxNumSig ][ uiSignificanceCoeffGroup ] );
+}
+#endif
+
 /** Calculates the cost of signaling the last significant coefficient in the block
  * \param uiPosX X coordinate of the last significant coefficient
  * \param uiPosY Y coordinate of the last significant coefficient
  * \returns cost of last significant coefficient
  */
+#if MODIFIED_LAST_XY_CODING
+/*
+ * \param uiWidth width of the transform unit (TU)
+*/
+__inline Double TComTrQuant::xGetRateLast   ( const UInt                      uiPosX,
+                                              const UInt                      uiPosY,
+                                              const UInt                      uiBlkWdth     ) const
+{
+  UInt uiCtxX   = g_uiGroupIdx[uiPosX];
+  UInt uiCtxY   = g_uiGroupIdx[uiPosY];
+  Double uiCost = m_pcEstBitsSbac->lastXBits[ uiCtxX ] + m_pcEstBitsSbac->lastYBits[ uiCtxY ];
+  if( uiCtxX > 3 )
+  {
+    uiCost += xGetIEPRate() * ((uiCtxX-2)>>1);
+  }
+  if( uiCtxY > 3 )
+  {
+    uiCost += xGetIEPRate() * ((uiCtxY-2)>>1);
+  }
+  return xGetICost( uiCost );
+}
+#else
 /*
  * \param uiWidth width of the transform unit (TU)
 */
@@ -3359,6 +3954,7 @@ __inline Double TComTrQuant::xGetRateLast   ( const UInt                      ui
 
   return xGetICost( uiCost );
 }
+#endif
 
  /** Calculates the cost for specific absolute transform level
  * \param uiAbsLevel scaled quantized level
@@ -3389,4 +3985,122 @@ __inline Double TComTrQuant::xGetIEPRate      (                                 
 {
   return 32768;
 }
+
+#if MULTI_LEVEL_SIGNIFICANCE
+/** Context derivation process of coeff_abs_significant_flag
+ * \param uiSigCoeffGroupFlag significance map of L1
+ * \param uiBlkX column of current scan position
+ * \param uiBlkY row of current scan position
+ * \param uiLog2BlkSize log2 value of block size
+ * \returns ctxInc for current scan position
+ */
+#if NSQT_DIAG_SCAN
+UInt TComTrQuant::getSigCoeffGroupCtxInc  ( const UInt*               uiSigCoeffGroupFlag,
+                                           const UInt                      uiCGPosX,
+                                           const UInt                      uiCGPosY,
+                                           Int width, Int height)
+#else
+UInt TComTrQuant::getSigCoeffGroupCtxInc  ( const UInt*               uiSigCoeffGroupFlag,
+                                      const UInt                      uiCGPosX,
+                                      const UInt                      uiCGPosY,
+                                      const UInt                      uiLog2BlockSize)
+#endif
+{
+  UInt uiRight = 0;
+  UInt uiLower = 0;
+
+#if NSQT_DIAG_SCAN
+  width >>= 2;
+  height >>= 2;
+  if( uiCGPosX < width - 1 )
+  {
+    uiRight = (uiSigCoeffGroupFlag[ uiCGPosY * width + uiCGPosX + 1 ] != 0);
+  }
+  if (uiCGPosY < height - 1 )
+  {
+    uiLower = (uiSigCoeffGroupFlag[ (uiCGPosY  + 1 ) * width + uiCGPosX ] != 0);
+  }
+#else
+  if( uiLog2BlockSize == 4 )
+  {
+    if( uiCGPosX < 3 )
+    {
+      uiRight = (uiSigCoeffGroupFlag[ (uiCGPosY << 2) + uiCGPosX + 1 ] != 0);
+    }
+    if (uiCGPosY < 3 )
+    {
+      uiLower = (uiSigCoeffGroupFlag[ ((uiCGPosY  + 1 ) << 2) + uiCGPosX ] != 0);
+    }
+  }
+  else
+  {
+    if( uiCGPosX < 7 )
+    {
+      uiRight = (uiSigCoeffGroupFlag[ (uiCGPosY << 3) + uiCGPosX + 1 ] != 0);
+    }
+    if (uiCGPosY < 7 )
+    {
+      uiLower = (uiSigCoeffGroupFlag[ ((uiCGPosY  + 1 ) << 3) + uiCGPosX ] != 0);
+     }
+  }
+#endif
+  return uiRight + uiLower;
+
+}
+
+// return 1 if both right neighbour and lower neighour are 1's
+#if NSQT_DIAG_SCAN
+Bool TComTrQuant::bothCGNeighboursOne ( const UInt*                   uiSigCoeffGroupFlag,
+                                       const UInt                      uiCGPosX,
+                                       const UInt                      uiCGPosY, 
+                                       Int width, Int height)
+#else
+Bool TComTrQuant::bothCGNeighboursOne ( const UInt*                   uiSigCoeffGroupFlag,
+                                      const UInt                      uiCGPosX,
+                                      const UInt                      uiCGPosY, 
+                                      const UInt                      uiLog2BlockSize)
+#endif
+{
+  UInt uiRight = 0;
+  UInt uiLower = 0;
+
+#if NSQT_DIAG_SCAN
+  width >>= 2;
+  height >>= 2;
+  if( uiCGPosX < width - 1 )
+  {
+    uiRight = (uiSigCoeffGroupFlag[ uiCGPosY * width + uiCGPosX + 1 ] != 0);
+  }
+  if (uiCGPosY < height - 1 )
+  {
+    uiLower = (uiSigCoeffGroupFlag[ (uiCGPosY  + 1 ) * width + uiCGPosX ] != 0);
+  }
+#else
+  if( uiLog2BlockSize == 4 )
+  {
+    if( uiCGPosX < 3 )
+    {
+      uiRight = (uiSigCoeffGroupFlag[ (uiCGPosY << 2) + uiCGPosX + 1 ] != 0);
+    }
+    if (uiCGPosY < 3 )
+    {
+      uiLower = (uiSigCoeffGroupFlag[ ((uiCGPosY  + 1 ) << 2) + uiCGPosX ] != 0);
+    }
+  }
+  else
+  {
+    if( uiCGPosX < 7 )
+    {
+      uiRight = (uiSigCoeffGroupFlag[ (uiCGPosY << 3) + uiCGPosX + 1 ] != 0);
+    }
+    if (uiCGPosY < 7 )
+    {
+      uiLower = (uiSigCoeffGroupFlag[ ((uiCGPosY  + 1 ) << 3) + uiCGPosX ] != 0);
+    }
+  }
+#endif
+  
+  return (uiRight & uiLower);
+}
+#endif
 //! \}

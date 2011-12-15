@@ -41,6 +41,7 @@
 //! \ingroup TLibCommon
 //! \{
 
+#define COEFF_CTX_RED             1 ///< G121: reduce max value of c1 and c2
 #define CABAC_RICE_FIX            1 ///< G495: fixing an entry in g_auiGoRicePrefixLen table
 #define BYPASS_FOR_LAST_COEFF_MOD 1 ///< grouping of bypass bins for last_significant_coeff_x/y, MSB first
 #define DISABLE_CAVLC             1 ///< disable second entropy coder
@@ -53,6 +54,7 @@
 #define PLANAR_IS_DEFAULT         1 ///< default to planar if neighbor not available G119
 #define REMAP_TO_PLANAR           1 ///< default to planar if neighbor out of range G119
 #define INTRA_MODES_64X64         1 ///< enable 35 intra modes for 64x64 PUs
+#define CBF_CODING_SKIP_COND_FIX  1 ///< G444: fixing the condition of skipping cbf_luma coding
 
 #define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO
 #define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ
@@ -60,11 +62,41 @@
 #define SAO_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for SAO
 
 ////////////////////////////
+// JCT-VC G start
+////////////////////////////
+
+#define UNIFIED_SCAN_PASSES                 1      ///< G320 : Unified scan passes for transform coefficient coding
+#define SUBBLOCK_SCAN                       1      ///< G323 : 4x4 sub-block based scan for large blocks
+#if SUBBLOCK_SCAN
+#define MULTI_LEVEL_SIGNIFICANCE            1      ///< G644 : Multi-level significance map for large TUs
+#endif
+#if MULTI_LEVEL_SIGNIFICANCE
+#define MLS_GRP_NUM                         64     ///< G644 : Max number of coefficient groups, max(16, 64)
+#define MLS_CG_SIZE                         4      ///< G644 : Coefficient group size of 4x4
+#endif
+#define MODIFIED_LAST_XY_CODING             1      ///< G704 : Last coefficient position coding
+#define CHROMA_CBF_CTX_REDUCTION            1      ///< G718 : Sharing contexts for cbf_cb and cbf_cr
+#define PREDTYPE_CLEANUP                    1      ///< G1042: Harmonization of the prediction and partitioning mode binarization of P and B slices
+#define TU_LEVEL_COEFF_INTERLEAVE           1      ///< G112 / G381: TU level luma/chroma coefficient interleaving
+
+#define LEVEL_LIMIT                         1      ///< G719 : Restriction for limits to 16 bits (signed) diapason
+#define COEFF_CTXSET_RED                    1      ///< G783 : reduce level context set of chroma
+#define SIGMAP_CTX_RED                      1      ///< G1015 : context number reduction for significance map coding
+////////////////////////////
+// JCT-VC G end
+////////////////////////////
+
+////////////////////////////
 // JCT-VC F start
 ////////////////////////////
 #define DISABLE_4x4_INTER                    1       // Coding one flag into SPS to enable/disable INTER4x4 
 #define MRG_AMVP_ADD_CAND_F470               1       // 1:add new candidates following original ones
 #define NSQT                                 1       // F410 & F412 : Non-Square Quadtree Transform
+#define NSQT_MOD (NSQT && 1) // Modify NSQT such as to always pass proper width/height to coeff coding functions
+#define NSQT_DIAG_SCAN                      1      ///< G1038: use diagonal and subblock scans for NSQT
+#if NSQT_DIAG_SCAN && !(SUBBLOCK_SCAN && NSQT_MOD)
+#error
+#endif
 
 #define F747_APS                             1       // F747 : Adaptation Parameter Set (APS)
 #if F747_APS

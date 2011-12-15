@@ -2086,7 +2086,11 @@ Void TEncCavlc::codeSaoSvlc( Int iCode )
 
 #endif
 
+#if NSQT_DIAG_SCAN
+Void TEncCavlc::estBit( estBitsSbacStruct* pcEstBitsCabac, Int width, Int height, TextType eTType )
+#else
 Void TEncCavlc::estBit( estBitsSbacStruct* pcEstBitsCabac, UInt uiCTXIdx, TextType eTType )
+#endif
 {
   // printf("error : no VLC mode support in this version\n");
   return;

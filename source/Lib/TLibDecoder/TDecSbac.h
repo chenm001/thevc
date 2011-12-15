@@ -164,7 +164,7 @@ public:
 
   Void parseCbfTrdiv      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiTrDepth, UInt uiDepth, UInt& uiSubdiv ) {}
 
-  Void parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int width, Int height, TextType eTType, UInt uiCTXIdx, UInt uiScanIdx );
+  Void parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int width, Int height, TextType eTType, UInt uiScanIdx );
   Void parseCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
 #if TILES
@@ -201,11 +201,26 @@ private:
   ContextModel3DBuffer m_cCUTransSubdivFlagSCModel;
   ContextModel3DBuffer m_cCUQtRootCbfSCModel;
   
+#if MULTI_LEVEL_SIGNIFICANCE
+  ContextModel3DBuffer m_cCUSigCoeffGroupSCModel;
+#endif
+#if SIGMAP_CTX_RED
+  ContextModel3DBuffer m_cCUSigSCModelLuma;
+  ContextModel3DBuffer m_cCUSigSCModelChroma;
+#else
   ContextModel3DBuffer m_cCUSigSCModel;
+#endif
   ContextModel3DBuffer m_cCuCtxLastX;
   ContextModel3DBuffer m_cCuCtxLastY;
+#if COEFF_CTXSET_RED
+  ContextModel3DBuffer m_cCUOneSCModelLuma;
+  ContextModel3DBuffer m_cCUOneSCModelChroma;
+  ContextModel3DBuffer m_cCUAbsSCModelLuma;
+  ContextModel3DBuffer m_cCUAbsSCModelChroma;
+#else
   ContextModel3DBuffer m_cCUOneSCModel;
   ContextModel3DBuffer m_cCUAbsSCModel;
+#endif
   
   ContextModel3DBuffer m_cMVPIdxSCModel;
   

@@ -58,6 +58,9 @@
 
 typedef struct
 {
+#if MULTI_LEVEL_SIGNIFICANCE
+  Int significantCoeffGroupBits[NUM_SIG_CG_FLAG_CTX][2];
+#endif
   Int significantBits[NUM_SIG_FLAG_CTX][2];
   Int lastXBits[32];
   Int lastYBits[32];
@@ -176,7 +179,43 @@ public:
                                      const UInt                      uiPosX,
                                      const UInt                      uiPosY,
                                      const UInt                      uiLog2BlkSize,
+#if NSQT_DIAG_SCAN
+#if SIGMAP_CTX_RED
+                                    Int uiStride, Int height, Int eTType );
+#else
+                                    Int uiStride, Int height );
+#endif
+#else
+#if SIGMAP_CTX_RED
+                                     const UInt                       uiStride,
+                                     const UInt                       eTType );
+#else
                                      const UInt                      uiStride );
+#endif
+#endif
+#if MULTI_LEVEL_SIGNIFICANCE
+#if NSQT_DIAG_SCAN
+  static UInt getSigCoeffGroupCtxInc  ( const UInt*                   uiSigCoeffGroupFlag,
+                                       const UInt                       uiCGPosX,
+                                       const UInt                       uiCGPosY,
+                                       Int width, Int height);
+  
+  static Bool bothCGNeighboursOne  ( const UInt*                      uiSigCoeffGroupFlag,
+                                    const UInt                       uiCGPosX,
+                                    const UInt                       uiCGPosY,
+                                    Int width, Int height);
+#else
+  static UInt getSigCoeffGroupCtxInc  ( const UInt*                   uiSigCoeffGroupFlag,
+                                     const UInt                       uiCGPosX,
+                                     const UInt                       uiCGPosY,
+                                     const UInt                       uiLog2BlockSize);
+
+  static Bool bothCGNeighboursOne  ( const UInt*                      uiSigCoeffGroupFlag,
+                                     const UInt                       uiCGPosX,
+                                     const UInt                       uiCGPosY,
+                                     const UInt                       uiLog2BlockSize);
+#endif
+#endif
 protected:
   Int*    m_plTempCoeff;
   
@@ -256,6 +295,10 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
   __inline Double xGetRateLast     ( const UInt                      uiPosX,
                                      const UInt                      uiPosY,
                                      const UInt                      uiBlkWdth     ) const;
+#if MULTI_LEVEL_SIGNIFICANCE
+  __inline Double xGetRateSigCoeffGroup (  UShort                    uiSignificanceCoeffGroup,
+                                     UShort                          ui16CtxNumSig ) const;
+#endif
   __inline Double xGetRateSigCoef (  UShort                          uiSignificance,
                                      UShort                          ui16CtxNumSig ) const;
   __inline Double xGetICost        ( Double                          dRate         ) const; 
