@@ -490,6 +490,44 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
     piAdiLineTemp = piAdiLine;
     while (iCurr < iTotalUnits)
     {
+#if PADDING_INTRA  
+      if (!bNeighborFlags[iCurr])
+      {
+        if(iCurr == 0)
+        {
+          while (iNext < iTotalUnits && !bNeighborFlags[iNext])
+          {
+            iNext++;
+          }
+          piRef = piAdiLine[iNext*iUnitSize];
+          // Pad unavailable samples with new value
+          while (iCurr < iNext)
+          {
+            for (i=0; i<iUnitSize; i++)
+            {
+              piAdiLineTemp[i] = piRef;
+            }
+            piAdiLineTemp += iUnitSize;
+            iCurr++;
+          }
+        }
+        else
+        {
+          piRef = piAdiLine[iCurr*iUnitSize-1];
+          for (i=0; i<iUnitSize; i++)
+          {
+            piAdiLineTemp[i] = piRef;
+          }
+          piAdiLineTemp += iUnitSize;
+          iCurr++;
+        }
+      }
+      else
+      {
+        piAdiLineTemp += iUnitSize;
+        iCurr++;
+      }
+#else
       if (bNeighborFlags[iCurr])
       {
         // Move on to next block if current unit is available
@@ -537,6 +575,7 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
         }
         iNext++;
       }
+#endif
     }
 
     // Copy processed samples
