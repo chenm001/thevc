@@ -40,7 +40,7 @@
 
 //! \ingroup TLibCommon
 //! \{
-
+#define PADDING_INTRA             1 ///< G812: padding from bottom left, copy previous pixel instead of averaging
 #define COEFF_CTX_RED             1 ///< G121: reduce max value of c1 and c2
 #define DBF_DQP                   1    ///< average QP for deblocking filter parameter lookup
 #define BS_DISABLE_INSIDE_8x8     1
@@ -73,6 +73,9 @@
 #define INTRA_MODES_64X64         1 ///< enable 35 intra modes for 64x64 PUs
 #define CBF_CODING_SKIP_COND_FIX  1 ///< G444: fixing the condition of skipping cbf_luma coding
 #define DISABLE_PARALLEL_DECISIONS 1 ///< disable parallel decisions part of deblocking filter G088
+#define VER_HOR_FILTER            1 ///< F172: intra ver/hor prediction filter
+
+#define REMOVE_INTRA_LINE_BUFFER  1 ///< G145: intra line buffer removal
 
 #define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO
 #define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ
