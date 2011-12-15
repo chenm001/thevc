@@ -89,7 +89,6 @@ Void TEncTop::create ()
   initROM();
   
   // create processing unit classes
-  m_cGOPEncoder.        create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight );
   m_cSliceEncoder.      create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   m_cCuEncoder.         create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
 #if SAO
@@ -194,7 +193,6 @@ Void TEncTop::destroy ()
 #endif
 
   // destroy processing unit classes
-  m_cGOPEncoder.        destroy();
   m_cSliceEncoder.      destroy();
   m_cCuEncoder.         destroy();
 #if SAO

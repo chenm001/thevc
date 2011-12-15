@@ -70,13 +70,8 @@ TComSlice::TComSlice()
 #endif
 , m_bNoBackPredFlag               ( false )
 , m_bRefIdxCombineCoding          ( false )
-, m_uiSliceCurStartCUAddr         ( 0 )
 , m_uiSliceCurEndCUAddr           ( 0 )
 , m_uiSliceIdx                    ( 0 )
-, m_uiEntropySliceCurStartCUAddr  ( 0 )
-, m_uiEntropySliceCurEndCUAddr    ( 0 )
-, m_bNextSlice                    ( false )
-, m_bNextEntropySlice             ( false )
 , m_uiSliceBits                   ( 0 )
 #if OL_USE_WPP
 , m_puiSubstreamSizes             ( NULL )
@@ -824,13 +819,8 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_bNoBackPredFlag      = pSrc->m_bNoBackPredFlag;
   m_bRefIdxCombineCoding = pSrc->m_bRefIdxCombineCoding;
 
-  m_uiSliceCurStartCUAddr         = pSrc->m_uiSliceCurStartCUAddr;
   m_uiSliceCurEndCUAddr           = pSrc->m_uiSliceCurEndCUAddr;
   m_uiSliceIdx                    = pSrc->m_uiSliceIdx;
-  m_uiEntropySliceCurStartCUAddr  = pSrc->m_uiEntropySliceCurStartCUAddr;
-  m_uiEntropySliceCurEndCUAddr    = pSrc->m_uiEntropySliceCurEndCUAddr;
-  m_bNextSlice                    = pSrc->m_bNextSlice;
-  m_bNextEntropySlice             = pSrc->m_bNextEntropySlice;
 }
 
 #if  G1002_RPS

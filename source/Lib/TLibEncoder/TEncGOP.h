@@ -110,8 +110,6 @@ private:
   // clean decoding refresh
   Bool                    m_bRefreshPending;
   UInt                    m_uiPOCCDR;
-  UInt*                   m_uiStoredStartCUAddrForEncodingSlice;
-  UInt*                   m_uiStoredStartCUAddrForEncodingEntropySlice;
 
 #if RVM_VCEGAM10
   std::vector<Int> m_vRVM_RP;
@@ -120,9 +118,6 @@ private:
 public:
   TEncGOP();
   virtual ~TEncGOP();
-  
-  Void  create      ( Int iWidth, Int iHeight, UInt iMaxCUWidth, UInt iMaxCUHeight );
-  Void  destroy     ();
   
   Void  init        ( TEncTop* pcTEncTop );
   Void  compressGOP ( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRec, std::list<AccessUnit>& accessUnitsInGOP );

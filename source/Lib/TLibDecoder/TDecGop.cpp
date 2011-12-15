@@ -134,7 +134,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
   //-- For time output for each slice
   long iBeforeTime = clock();
   
-  UInt uiStartCUAddr   = pcSlice->getEntropySliceCurStartCUAddr();
+  UInt uiStartCUAddr   = 0;
   static Bool  bFirst = true;
   static UInt  uiILSliceCount;
   static UInt* puiILSliceStartLCU;
@@ -148,7 +148,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       bFirst = false;
     }
 
-    UInt uiSliceStartCuAddr = pcSlice->getSliceCurStartCUAddr();
+    UInt uiSliceStartCuAddr = 0;
     if(uiSliceStartCuAddr == uiStartCUAddr)
     {
       puiILSliceStartLCU[uiILSliceCount] = uiSliceStartCuAddr;

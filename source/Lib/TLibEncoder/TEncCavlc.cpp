@@ -483,7 +483,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   xTraceSliceHeader (pcSlice);
 #endif
   
-  Bool bEntropySlice = (!pcSlice->isNextSlice());
+  Bool bEntropySlice = false;
   WRITE_FLAG( bEntropySlice ? 1 : 0, "lightweight_slice_flag" );
   
   if (!bEntropySlice)
@@ -609,25 +609,8 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   // if( first_slice_in_pic_flag == 0 )
   //    slice_address
   // the slice start address seems to be aligned with the WD if FINE_GRANULARITY_SLICES is enabled
-#if FINE_GRANULARITY_SLICES
-  Int iLCUAddress;
-  Int iInnerAddress;
-#endif
-  if (pcSlice->isNextSlice())
-  {
-    // Calculate slice address
-    // CHECK_ME: pcSlice->getSliceCurStartCUAddr() always zero!
-    iLCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
-    iInnerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>(pcSlice->getSPS()->getMaxCUDepth()<<1);
-  }
-  else
-  {
-//    // Calculate slice address
-    iLCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
-    iInnerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>(pcSlice->getSPS()->getMaxCUDepth()<<1);
-  }
+
   //write slice address
-  assert( iLCUAddress + iInnerAddress == 0 );
   WRITE_FLAG( 1, "first_slice_in_pic_flag" );
   
   // if( !lightweight_slice_flag ) {

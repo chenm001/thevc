@@ -559,13 +559,8 @@ private:
   Bool        m_bNoBackPredFlag;
   Bool        m_bRefIdxCombineCoding;
 
-  UInt        m_uiSliceCurStartCUAddr;
   UInt        m_uiSliceCurEndCUAddr;
   UInt        m_uiSliceIdx;
-  UInt        m_uiEntropySliceCurStartCUAddr;
-  UInt        m_uiEntropySliceCurEndCUAddr;
-  Bool        m_bNextSlice;
-  Bool        m_bNextEntropySlice;
   UInt        m_uiSliceBits;
 
 #if OL_USE_WPP
@@ -718,21 +713,11 @@ public:
   UInt getMaxNumMergeCand               ()                  {return m_uiMaxNumMergeCand;                  }
 #endif
 
-  Void setSliceCurStartCUAddr           ( UInt uiAddr )     { m_uiSliceCurStartCUAddr = uiAddr;           }
-  UInt getSliceCurStartCUAddr           ()                  { return m_uiSliceCurStartCUAddr;             }
   Void setSliceCurEndCUAddr             ( UInt uiAddr )     { m_uiSliceCurEndCUAddr = uiAddr;             }
   UInt getSliceCurEndCUAddr             ()                  { return m_uiSliceCurEndCUAddr;               }
   Void setSliceIdx                      ( UInt i)           { m_uiSliceIdx = i;                           }
   UInt getSliceIdx                      ()                  { return  m_uiSliceIdx;                       }
   Void copySliceInfo                    (TComSlice *pcSliceSrc);
-  Void setEntropySliceCurStartCUAddr    ( UInt uiAddr )     { m_uiEntropySliceCurStartCUAddr = uiAddr;    }
-  UInt getEntropySliceCurStartCUAddr    ()                  { return m_uiEntropySliceCurStartCUAddr;      }
-  Void setEntropySliceCurEndCUAddr      ( UInt uiAddr )     { m_uiEntropySliceCurEndCUAddr = uiAddr;      }
-  UInt getEntropySliceCurEndCUAddr      ()                  { return m_uiEntropySliceCurEndCUAddr;        }
-  Void setNextSlice                     ( Bool b )          { m_bNextSlice = b;                           }
-  Bool isNextSlice                      ()                  { return m_bNextSlice;                        }
-  Void setNextEntropySlice              ( Bool b )          { m_bNextEntropySlice = b;                    }
-  Bool isNextEntropySlice               ()                  { return m_bNextEntropySlice;                 }
   Void setSliceBits                     ( UInt uiVal )      { m_uiSliceBits = uiVal;                      }
   UInt getSliceBits                     ()                  { return m_uiSliceBits;                       }  
 #if OL_USE_WPP

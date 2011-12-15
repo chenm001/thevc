@@ -446,7 +446,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       }
 #endif
 
-      if (m_apcSlicePilot->isNextSlice() && m_apcSlicePilot->getPOC()!=m_uiPrevPOC && !m_bFirstSliceInSequence)
+      if (m_apcSlicePilot->getPOC()!=m_uiPrevPOC && !m_bFirstSliceInSequence)
       {
         m_uiPrevPOC = m_apcSlicePilot->getPOC();
         return true;
@@ -458,10 +458,8 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       }
 #endif
 
-      if (m_apcSlicePilot->isNextSlice()) 
         m_uiPrevPOC = m_apcSlicePilot->getPOC();
       m_bFirstSliceInSequence = false;
-      if (m_apcSlicePilot->isNextSlice())
       {
         // Skip pictures due to random access
         if (isRandomAccessSkipPicture(iSkipFrame, iPOCLastDisplay))
@@ -494,7 +492,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 
       //  Set picture slice pointer
       TComSlice*  pcSlice = m_apcSlicePilot;
-      Bool bNextSlice     = pcSlice->isNextSlice();
 
       if (m_bFirstSliceInPicture) 
       {
@@ -511,7 +508,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       m_apcSlicePilot = pcPic->getPicSym()->getSlice(m_uiSliceIdx); 
       pcPic->getPicSym()->setSlice(pcSlice, m_uiSliceIdx);
 
-      if (bNextSlice)
       {
         // Do decoding refresh marking if any
         pcSlice->decodingRefreshMarking(m_uiPOCCDR, m_bRefreshPending, m_cListPic);

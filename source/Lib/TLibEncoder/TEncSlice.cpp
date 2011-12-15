@@ -621,12 +621,12 @@ Void TEncSlice::precompressSlice( TComPic*& rpcPic )
 Void TEncSlice::compressSlice( TComPic*& rpcPic )
 {
   UInt  uiCUAddr;
-  UInt   uiStartCUAddr;
+  UInt   uiStartCUAddr = 0;
   UInt   uiBoundingCUAddr;
   UInt64 uiBitsCoded            = 0;
   TEncBinCABAC* pppcRDSbacCoder = NULL;
   TComSlice* pcSlice            = rpcPic->getSlice(getSliceIdx());
-  xDetermineStartAndBoundingCUAddr ( uiStartCUAddr, uiBoundingCUAddr, rpcPic, false );
+  xDetermineStartAndBoundingCUAddr ( uiBoundingCUAddr, rpcPic, false );
   
   // initialize cost values
   m_uiPicTotalBits  = 0;
@@ -700,10 +700,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         TComDataCU *pcCUTR = NULL;
         if ( pcCUUp && ((uiCUAddr%uiWidthInCU+pcSlice->getPPS()->getEntropyCodingSynchro()) < uiWidthInCU)  )
           pcCUTR = rpcPic->getCU( uiCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
-        if ((pcCUTR == NULL)
-            || (pcCUTR->getSlice() == NULL)
-            || (pcCUTR->getAddr() < pcSlice->getSliceCurStartCUAddr())
-            || (pcCUTR->getAddr() < pcSlice->getEntropySliceCurStartCUAddr()))
+        if ((pcCUTR == NULL) || (pcCUTR->getSlice() == NULL))
         {
           // TR is not available.
         }
@@ -771,7 +768,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     m_uiPicDist      += pcCU->getTotalDistortion();
   }
   pcSlice->setSliceCurEndCUAddr( uiCUAddr );
-  pcSlice->setEntropySliceCurEndCUAddr( uiCUAddr );
   pcSlice->setSliceBits( (UInt)(pcSlice->getSliceBits() + uiBitsCoded) );
 }
 
@@ -786,9 +782,9 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
 #endif
 {
   UInt       uiCUAddr;
-  UInt       uiStartCUAddr;
+  UInt       uiStartCUAddr = 0;
   UInt       uiBoundingCUAddr;
-  xDetermineStartAndBoundingCUAddr  ( uiStartCUAddr, uiBoundingCUAddr, rpcPic, true );
+  xDetermineStartAndBoundingCUAddr  ( uiBoundingCUAddr, rpcPic, true );
   TComSlice* pcSlice = rpcPic->getSlice(getSliceIdx());
 
   // choose entropy coder
@@ -865,10 +861,7 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         if ( pcCUUp && ((uiCUAddr%uiWidthInCU+pcSlice->getPPS()->getEntropyCodingSynchro()) < uiWidthInCU)  )
           pcCUTR = rpcPic->getCU( uiCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
 
-        if ((pcCUTR == NULL)
-            || (pcCUTR->getSlice() == NULL)
-            || (pcCUTR->getAddr() < pcSlice->getSliceCurStartCUAddr())
-            || (pcCUTR->getAddr() < pcSlice->getEntropySliceCurStartCUAddr()))
+        if ((pcCUTR == NULL) || (pcCUTR->getSlice() == NULL))
         {
           // TR is not available.
         }
@@ -908,57 +901,15 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
  * \param bEncodeSlice Identifies if the calling function is compressSlice() [false] or encodeSlice() [true]
  * \returns Updates uiStartCUAddr, uiBoundingCUAddr with appropriate LCU address
  */
-Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& uiBoundingCUAddr, TComPic*& rpcPic, Bool bEncodeSlice )
+Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiBoundingCUAddr, TComPic*& rpcPic, Bool bEncodeSlice )
 {
   TComSlice* pcSlice = rpcPic->getSlice(getSliceIdx());
-  UInt uiStartCUAddrSlice, uiBoundingCUAddrSlice;
-  uiStartCUAddrSlice        = pcSlice->getSliceCurStartCUAddr();
+  UInt uiBoundingCUAddrSlice;
   UInt uiNumberOfCUsInFrame = rpcPic->getNumCUsInFrame();
   uiBoundingCUAddrSlice     = uiNumberOfCUsInFrame;
-  if (bEncodeSlice) 
-  {
-    UInt uiCUAddrIncrement;
-    uiCUAddrIncrement        = rpcPic->getNumCUsInFrame();
-    uiBoundingCUAddrSlice    = uiNumberOfCUsInFrame;
     pcSlice->setSliceCurEndCUAddr( uiBoundingCUAddrSlice );
-  }
-  else
-  {
-    UInt uiCUAddrIncrement     ;
-    uiCUAddrIncrement        = rpcPic->getNumCUsInFrame();
-    uiBoundingCUAddrSlice    = uiNumberOfCUsInFrame;
-    pcSlice->setSliceCurEndCUAddr( uiBoundingCUAddrSlice );
-  }
 
-  // Entropy slice
-  UInt uiStartCUAddrEntropySlice, uiBoundingCUAddrEntropySlice;
-  uiStartCUAddrEntropySlice    = pcSlice->getEntropySliceCurStartCUAddr();
-  uiBoundingCUAddrEntropySlice = uiNumberOfCUsInFrame;
-  if (bEncodeSlice) 
-  {
-    UInt uiCUAddrIncrement;
-    uiCUAddrIncrement               = rpcPic->getNumCUsInFrame();
-    uiBoundingCUAddrEntropySlice    = uiNumberOfCUsInFrame;
-    pcSlice->setEntropySliceCurEndCUAddr( uiBoundingCUAddrEntropySlice );
-  }
-  else
-  {
-    UInt uiCUAddrIncrement;
-    uiCUAddrIncrement               = rpcPic->getNumCUsInFrame();
-    uiBoundingCUAddrEntropySlice    = uiNumberOfCUsInFrame;
-    pcSlice->setEntropySliceCurEndCUAddr( uiBoundingCUAddrEntropySlice );
-  }
   // Make a joint decision based on reconstruction and entropy slice bounds
-  uiStartCUAddr    = max(uiStartCUAddrSlice   , uiStartCUAddrEntropySlice   );
-  uiBoundingCUAddr = min(uiBoundingCUAddrSlice, uiBoundingCUAddrEntropySlice);
-
-
-  if (!bEncodeSlice)
-  {
-    // For fixed number of LCU within an entropy and reconstruction slice we already know whether we will encounter end of entropy and/or reconstruction slice
-    // first. Set the flags accordingly.
-    pcSlice->setNextSlice       ( false );
-    pcSlice->setNextEntropySlice( false );
-  }
+  uiBoundingCUAddr = uiBoundingCUAddrSlice;
 }
 //! \}

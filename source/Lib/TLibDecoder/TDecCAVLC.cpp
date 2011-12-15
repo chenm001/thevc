@@ -489,11 +489,10 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   
   // lightweight_slice_flag
   READ_FLAG( uiCode, "lightweight_slice_flag" );
-  Bool bEntropySlice = uiCode ? true : false;
+  assert( uiCode == 0 );
 
   
   // if( !lightweight_slice_flag ) {
-  if (!bEntropySlice)
   {
     //   slice_type
     READ_UVLC (    uiCode, "slice_type" );            rpcSlice->setSliceType((SliceType)uiCode);
@@ -685,23 +684,8 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   int iMaxParts = (1<<(rpcSlice->getSPS()->getMaxCUDepth()<<1));
   READ_FLAG( uiCode, "first_slice_in_pic_flag" );
   assert( uiCode == 1 );
-  //set uiCode to equal slice start address (or entropy slice start address)
-  uiCode=0;
-  
-  rpcSlice->setEntropySliceCurStartCUAddr( uiCode );
-  rpcSlice->setEntropySliceCurEndCUAddr(iNumCUs*iMaxParts);
 #endif
-  if (bEntropySlice)
   {
-    rpcSlice->setNextSlice        ( false );
-    rpcSlice->setNextEntropySlice ( true  );
-  }
-  else
-  {
-    rpcSlice->setNextSlice        ( true  );
-    rpcSlice->setNextEntropySlice ( false );
-    
-    rpcSlice->setSliceCurStartCUAddr(uiCode);
     rpcSlice->setSliceCurEndCUAddr(iNumCUs*iMaxParts);
     // if( !lightweight_slice_flag ) {
     //   slice_qp_delta
@@ -730,7 +714,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 
   // !!!! Syntax elements not in the WD  !!!!!
   
-  if (!bEntropySlice)
   {
 #if !DISABLE_CAVLC
     xReadFlag ( uiCode ); rpcSlice->setSymbolMode( uiCode );
@@ -792,7 +775,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 #if (TILES_DECODER || OL_USE_WPP)
 Void TDecCavlc::parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice)
 {
-  Bool bEntropySlice = (!rpcSlice->isNextSlice());
   UInt uiCode;
 
 #if OL_USE_WPP

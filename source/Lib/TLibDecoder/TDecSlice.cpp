@@ -90,7 +90,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
 {
   TComDataCU* pcCU;
   UInt        uiIsLast = 0;
-  Int   iStartCUAddr = max(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr(), rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getEntropySliceCurStartCUAddr());
+  Int   iStartCUAddr = 0;
 
   // decoder don't need prediction & residual frame buffer
   rpcPic->setPicYuvPred( 0 );
@@ -152,10 +152,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
         TComDataCU *pcCUTR = NULL;
         if ( pcCUUp && ((iCUAddr%uiWidthInCU+pcSlice->getPPS()->getEntropyCodingSynchro()) < uiWidthInCU)  )
           pcCUTR = rpcPic->getCU( iCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
-        if ((pcCUTR == NULL)
-            || (pcCUTR->getSlice() == NULL)
-            || (pcCUTR->getAddr() < pcSlice->getSliceCurStartCUAddr())
-            || (pcCUTR->getAddr() < pcSlice->getEntropySliceCurStartCUAddr()))
+        if ((pcCUTR == NULL) || (pcCUTR->getSlice() == NULL))
         {
           // TR is not available.
         }
