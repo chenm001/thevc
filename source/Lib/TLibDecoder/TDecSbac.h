@@ -69,16 +69,6 @@ public:
   Void  init                      ( TDecBinIf* p )    { m_pcTDecBinIf = p; }
   Void  uninit                    (              )    { m_pcTDecBinIf = 0; }
   
-#if OL_USE_WPP
-  Void load                          ( TDecSbac* pScr );
-  Void loadContexts                  ( TDecSbac* pScr );
-  Void xCopyFrom           ( TDecSbac* pSrc );
-  Void xCopyContextsFrom       ( TDecSbac* pSrc );
-#endif
-#if OL_FLUSH
-  Void decodeFlush();
-#endif
-
 #if F747_APS
   Void  resetEntropywithQPandInitIDC ( Int  iQp, Int iID);
   Void  resetEntropy                 ( Int  iQp, Int iID      ) { resetEntropywithQPandInitIDC(iQp, iID);                                      }
@@ -92,11 +82,6 @@ public:
   Void  parsePPS                  ( TComPPS* pcPPS         ) {}
   void parseSEI(SEImessages&) {}
   Void  parseSliceHeader          ( TComSlice*& rpcSlice   ) {}
-#if G220_PURE_VLC_SAO_ALF
-#if (TILES_DECODER || OL_USE_WPP)
-  Void parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice) {printf("Not supported\n");assert(0); exit(1);}
-#endif
-#endif
 
   Void  parseTerminatingBit       ( UInt& ruiBit );
   Void  parseMVPIdx               ( Int& riMVPIdx          );

@@ -287,16 +287,9 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   // entropy_coding_mode_flag
 #if OL_USE_WPP
   // We code the entropy_coding_mode_flag, it's needed for tests.
-  READ_FLAG( uiCode, "entropy_coding_mode_flag" );                 pcPPS->setEntropyCodingMode( uiCode ? true : false );
-  if (pcPPS->getEntropyCodingMode())
-  {
-    READ_UVLC( uiCode, "entropy_coding_synchro" );                 pcPPS->setEntropyCodingSynchro( uiCode );
-    READ_FLAG( uiCode, "cabac_istate_reset" );                     pcPPS->setCabacIstateReset( uiCode ? true : false );
-    if ( pcPPS->getEntropyCodingSynchro() )
-    {
-      READ_UVLC( uiCode, "num_substreams_minus1" );                pcPPS->setNumSubstreams(uiCode+1);
-    }
-  }
+  READ_FLAG( uiCode, "entropy_coding_mode_flag" );                 assert( uiCode == 1 );
+    READ_UVLC( uiCode, "entropy_coding_synchro" );                 assert( uiCode == 0 );
+    READ_FLAG( uiCode, "cabac_istate_reset" );                     assert( uiCode == 0 );
 #endif
   READ_UVLC( uiCode, "num_temporal_layer_switching_point_flags" ); assert(uiCode == 0);
   
@@ -731,90 +724,8 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   assert(rpcSlice->getMaxNumMergeCand()==MRG_MAX_NUM_CANDS_SIGNALED);
 #endif
 
-#if !G220_PURE_VLC_SAO_ALF
-#if OL_USE_WPP
-  if (rpcSlice->getPPS()->getEntropyCodingSynchro())
-  {
-    UInt uiNumSubstreams = rpcSlice->getPPS()->getNumSubstreams();
-    rpcSlice->allocSubstreamSizes(uiNumSubstreams);
-    UInt *puiSubstreamSizes = rpcSlice->getSubstreamSizes();
-
-    for (UInt ui = 0; ui+1 < uiNumSubstreams; ui++)
-    {
-      xReadCode(2, uiCode);
-      
-      switch ( uiCode )
-      {
-      case 0:
-        xReadCode(8,  uiCode);
-        break;
-      case 1:
-        xReadCode(16, uiCode);
-        break;
-      case 2:
-        xReadCode(24, uiCode);
-        break;
-      case 3:
-        xReadCode(32, uiCode);
-        break;
-      default:
-        printf("Error in parseSliceHeader\n");
-        exit(-1);
-        break;
-      }
-      puiSubstreamSizes[ui] = uiCode;
-    }
-  }
-#endif
-
-#endif
   return;
 }
-
-#if G220_PURE_VLC_SAO_ALF
-#if (TILES_DECODER || OL_USE_WPP)
-Void TDecCavlc::parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice)
-{
-  UInt uiCode;
-
-#if OL_USE_WPP
-  if (rpcSlice->getPPS()->getEntropyCodingSynchro())
-  {
-    UInt uiNumSubstreams = rpcSlice->getPPS()->getNumSubstreams();
-    rpcSlice->allocSubstreamSizes(uiNumSubstreams);
-    UInt *puiSubstreamSizes = rpcSlice->getSubstreamSizes();
-
-    for (UInt ui = 0; ui+1 < uiNumSubstreams; ui++)
-    {
-      xReadCode(2, uiCode);
-
-      switch ( uiCode )
-      {
-      case 0:
-        xReadCode(8,  uiCode);
-        break;
-      case 1:
-        xReadCode(16, uiCode);
-        break;
-      case 2:
-        xReadCode(24, uiCode);
-        break;
-      case 3:
-        xReadCode(32, uiCode);
-        break;
-      default:
-        printf("Error in parseSliceHeader\n");
-        exit(-1);
-        break;
-      }
-      puiSubstreamSizes[ui] = uiCode;
-    }
-  }
-#endif
-}
-#endif
-#endif
-
 
 Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
 {

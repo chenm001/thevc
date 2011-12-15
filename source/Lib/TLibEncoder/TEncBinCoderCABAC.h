@@ -57,9 +57,6 @@ public:
   Void  start             ();
   Void  finish            ();
   Void  copyState         ( TEncBinIf* pcTEncBinIf );
-#if OL_FLUSH
-  Void  flush            ();
-#endif
 
   Void  resetBac          ();
   

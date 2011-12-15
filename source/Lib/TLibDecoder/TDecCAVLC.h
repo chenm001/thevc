@@ -157,11 +157,6 @@ public:
   Void  parsePPS            ( TComPPS* pcPPS);
   void parseSEI(SEImessages&);
   Void  parseSliceHeader    ( TComSlice*& rpcSlice );
-#if G220_PURE_VLC_SAO_ALF
-#if (TILES_DECODER || OL_USE_WPP)
-  Void parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice);
-#endif
-#endif
   Void  parseTerminatingBit ( UInt& ruiBit );
   
   Void  parseMVPIdx         ( Int& riMVPIdx );
@@ -188,10 +183,6 @@ public:
   Void parseBlockCbf        ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum );
   Void parseCoeffNxN        ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
-#if OL_FLUSH
-  Void decodeFlush() {};
-#endif
-
 #if F747_APS
   /// parse APF flags before SAO and ALF parameters
   Void parseAPSInitInfo(TComAPS& cAPS);

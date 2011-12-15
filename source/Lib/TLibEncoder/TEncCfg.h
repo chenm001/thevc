@@ -186,12 +186,6 @@ protected:
   
   Bool      m_bUseConstrainedIntraPred;
 
-#if OL_USE_WPP
-  Int       m_iWaveFrontSynchro;
-  Int       m_iWaveFrontFlush;
-  Int       m_iWaveFrontSubstreams;
-#endif
-
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
 #if !G1002_RPS
@@ -392,14 +386,6 @@ public:
 #if SAO
   Void      setUseSAO                  (Bool bVal)     {m_bUseSAO = bVal;}
   Bool      getUseSAO                  ()              {return m_bUseSAO;}
-#endif
-#if OL_USE_WPP
-  Void  setWaveFrontSynchro(Int iWaveFrontSynchro)       { m_iWaveFrontSynchro = iWaveFrontSynchro; }
-  Int   getWaveFrontsynchro()                            { return m_iWaveFrontSynchro; }
-  Void  setWaveFrontFlush(Int iWaveFrontFlush)           { m_iWaveFrontFlush = iWaveFrontFlush; }
-  Int   getWaveFrontFlush()                              { return m_iWaveFrontFlush; }
-  Void  setWaveFrontSubstreams(Int iWaveFrontSubstreams) { m_iWaveFrontSubstreams = iWaveFrontSubstreams; }
-  Int   getWaveFrontSubstreams()                         { return m_iWaveFrontSubstreams; }
 #endif
   void setPictureDigestEnabled(bool b) { m_pictureDigestEnabled = b; }
   bool getPictureDigestEnabled() { return m_pictureDigestEnabled; }

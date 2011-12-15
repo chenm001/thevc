@@ -63,17 +63,6 @@ TEncTop::TEncTop()
 #endif
 
   m_iMaxRefPicNum     = 0;
-
-#if OL_USE_WPP
-  m_pcSbacCoders           = NULL;
-  m_pcBinCoderCABACs       = NULL;
-  m_ppppcRDSbacCoders      = NULL;
-  m_ppppcBinCodersCABAC    = NULL;
-  m_pcRDGoOnSbacCoders     = NULL;
-  m_pcRDGoOnBinCodersCABAC = NULL;
-  m_pcBitCounters          = NULL;
-  m_pcRdCosts              = NULL;
-#endif
 }
 
 TEncTop::~TEncTop()
@@ -132,56 +121,6 @@ Void TEncTop::create ()
   }
 }
 
-#if OL_USE_WPP
-/**
- - Allocate coders required for wavefront for the nominated number of substreams.
- .
- \param iNumSubstreams Determines how much information to allocate.
- */
-Void TEncTop::createWPPCoders(Int iNumSubstreams)
-{
-  if (m_pcSbacCoders != NULL)
-    return; // already generated.
-
-  m_iNumSubstreams         = iNumSubstreams;
-  m_pcSbacCoders           = new TEncSbac       [iNumSubstreams];
-  m_pcBinCoderCABACs       = new TEncBinCABAC   [iNumSubstreams];
-  m_pcRDGoOnSbacCoders     = new TEncSbac       [iNumSubstreams];
-  m_pcRDGoOnBinCodersCABAC = new TEncBinCABAC   [iNumSubstreams];
-  m_pcBitCounters          = new TComBitCounter [iNumSubstreams];
-  m_pcRdCosts              = new TComRdCost     [iNumSubstreams];
-
-  for ( UInt ui = 0 ; ui < iNumSubstreams; ui++ )
-  {
-    m_pcRDGoOnSbacCoders[ui].init( &m_pcRDGoOnBinCodersCABAC[ui] );
-    m_pcSbacCoders[ui].init( &m_pcBinCoderCABACs[ui] );
-  }
-  if( m_bUseSBACRD )
-  {
-    m_ppppcRDSbacCoders      = new TEncSbac***    [iNumSubstreams];
-    m_ppppcBinCodersCABAC    = new TEncBinCABAC***[iNumSubstreams];
-    for ( UInt ui = 0 ; ui < iNumSubstreams ; ui++ )
-    {
-      m_ppppcRDSbacCoders[ui]  = new TEncSbac** [g_uiMaxCUDepth+1];
-      m_ppppcBinCodersCABAC[ui]= new TEncBinCABAC** [g_uiMaxCUDepth+1];
-      
-      for ( Int iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
-      {
-        m_ppppcRDSbacCoders[ui][iDepth]  = new TEncSbac*     [CI_NUM];
-        m_ppppcBinCodersCABAC[ui][iDepth]= new TEncBinCABAC* [CI_NUM];
-
-        for (Int iCIIdx = 0; iCIIdx < CI_NUM; iCIIdx ++ )
-        {
-          m_ppppcRDSbacCoders  [ui][iDepth][iCIIdx] = new TEncSbac;
-          m_ppppcBinCodersCABAC[ui][iDepth][iCIIdx] = new TEncBinCABAC;
-          m_ppppcRDSbacCoders  [ui][iDepth][iCIIdx]->init( m_ppppcBinCodersCABAC[ui][iDepth][iCIIdx] );
-        }
-      }
-    }
-  }
-}
-#endif
-
 Void TEncTop::destroy ()
 {
 #if F747_APS
@@ -228,39 +167,7 @@ Void TEncTop::destroy ()
     
     delete [] m_pppcRDSbacCoder;
     delete [] m_pppcBinCoderCABAC;
-
-#if OL_USE_WPP
-    for ( UInt ui = 0; ui < m_iNumSubstreams; ui++ )
-    {
-      for ( iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
-      {
-        for (Int iCIIdx = 0; iCIIdx < CI_NUM; iCIIdx ++ )
-        {
-          delete m_ppppcRDSbacCoders  [ui][iDepth][iCIIdx];
-          delete m_ppppcBinCodersCABAC[ui][iDepth][iCIIdx];
-        }
-      }
-
-      for ( iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
-      {
-        delete [] m_ppppcRDSbacCoders  [ui][iDepth];
-        delete [] m_ppppcBinCodersCABAC[ui][iDepth];
-      }
-      delete[] m_ppppcRDSbacCoders  [ui];
-      delete[] m_ppppcBinCodersCABAC[ui];
-    }
-    delete[] m_ppppcRDSbacCoders;
-    delete[] m_ppppcBinCodersCABAC;
-#endif
   }
-#if OL_USE_WPP
-  delete[] m_pcSbacCoders;
-  delete[] m_pcBinCoderCABACs;
-  delete[] m_pcRDGoOnSbacCoders;  
-  delete[] m_pcRDGoOnBinCodersCABAC;
-  delete[] m_pcBitCounters;
-  delete[] m_pcRdCosts;
-#endif
   
   // destroy ROM
   destroyROM();
@@ -611,16 +518,6 @@ Void TEncTop::xInitPPS()
     m_cPPS.setMaxCuDQPDepth( 0 );
     m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
   }
-#if OL_USE_WPP
-#if DISABLE_CAVLC
-  m_cPPS.setEntropyCodingMode( 1 ); // In the PPS now, but also remains in slice header!
-#else
-  m_cPPS.setEntropyCodingMode(getSymbolMode()); // In the PPS now, but also remains in slice header!
-#endif
-  m_cPPS.setEntropyCodingSynchro(m_iWaveFrontSynchro);
-  m_cPPS.setCabacIstateReset(m_iWaveFrontFlush != 0);
-  m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams);
-#endif
 }
 
 #if G1002_RPS

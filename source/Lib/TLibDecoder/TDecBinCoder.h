@@ -43,10 +43,6 @@
 
 //! \ingroup TLibDecoder
 //! \{
-#if OL_USE_WPP
-class TDecBinCABAC;
-#endif
-
 class TDecBinIf
 {
 public:
@@ -55,9 +51,6 @@ public:
 
   virtual Void  start             ()                                          = 0;
   virtual Void  finish            ()                                          = 0;
-#if OL_FLUSH
-  virtual Void  flush            ()                                           = 0;
-#endif
 
   virtual Void  decodeBin         ( UInt& ruiBin, ContextModel& rcCtxModel )  = 0;
   virtual Void  decodeBinEP       ( UInt& ruiBin                           )  = 0;
@@ -67,14 +60,6 @@ public:
   virtual Void  resetBac          ()                                          = 0;
 
   virtual ~TDecBinIf() {}
-
-#if OL_USE_WPP
-  virtual Void  copyState         ( TDecBinIf* pcTDecBinIf )                  = 0;
-  virtual TDecBinCABAC*   getTDecBinCABAC   ()  { return 0; }
-#if !OL_FLUSH_ALIGN
-  virtual Int   getBitsReadAhead() { return 0; }
-#endif
-#endif
 };
 
 //! \}

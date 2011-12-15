@@ -389,13 +389,6 @@ private:
   Bool        m_bSharedPPSInfoEnabled;  //!< Shared info. in PPS is enabled/disabled
 #endif
 
-#if OL_USE_WPP
-  Int      m_iEntropyCodingMode; // !!! in PPS now, but also remains in slice header!
-  Int      m_iEntropyCodingSynchro;
-  Bool     m_bCabacIstateReset;
-  Int      m_iNumSubstreams;
-#endif
-
 public:
   TComPPS();
   virtual ~TComPPS();
@@ -430,17 +423,6 @@ public:
   Void      setSharedPPSInfoEnabled(Bool b) {m_bSharedPPSInfoEnabled = b;   }
   /// get shared PPS info enabled/disabled flag
   Bool      getSharedPPSInfoEnabled()       {return m_bSharedPPSInfoEnabled;}
-#endif
-
-#if OL_USE_WPP
-  Void     setEntropyCodingMode(Int iEntropyCodingMode)       { m_iEntropyCodingMode = iEntropyCodingMode; }
-  Int      getEntropyCodingMode()                             { return m_iEntropyCodingMode; }
-  Void     setEntropyCodingSynchro(Int iEntropyCodingSynchro) { m_iEntropyCodingSynchro = iEntropyCodingSynchro; }
-  Int      getEntropyCodingSynchro()                          { return m_iEntropyCodingSynchro; }
-  Void     setCabacIstateReset(Bool bCabacIstateReset)        { m_bCabacIstateReset = bCabacIstateReset; }
-  Bool     getCabacIstateReset()                              { return m_bCabacIstateReset; }
-  Void     setNumSubstreams(Int iNumSubstreams)               { m_iNumSubstreams = iNumSubstreams; }
-  Int      getNumSubstreams()                                 { return m_iNumSubstreams; }
 #endif
 };
 
@@ -563,13 +545,8 @@ private:
   UInt        m_uiSliceIdx;
   UInt        m_uiSliceBits;
 
-#if OL_USE_WPP
-  UInt*       m_puiSubstreamSizes;
-#endif
-
 public:
   TComSlice();
-  virtual ~TComSlice();
   
   Void      initSlice       ();
   
@@ -720,10 +697,6 @@ public:
   Void copySliceInfo                    (TComSlice *pcSliceSrc);
   Void setSliceBits                     ( UInt uiVal )      { m_uiSliceBits = uiVal;                      }
   UInt getSliceBits                     ()                  { return m_uiSliceBits;                       }  
-#if OL_USE_WPP
-  Void allocSubstreamSizes              ( UInt uiNumSubstreams );
-  UInt* getSubstreamSizes               ()                  { return m_puiSubstreamSizes; }
-#endif
 protected:
 #if G1002_RPS
   TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,

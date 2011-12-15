@@ -113,7 +113,6 @@ Void TDecTop::destroy()
   delete m_apcSlicePilot;
   m_apcSlicePilot = NULL;
   
-  m_cSliceDecoder.destroy();
 #if G1002_RPS
   m_cRPSList.destroy();
 #endif
@@ -408,22 +407,12 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       m_apcSlicePilot->setSliceIdx(m_uiSliceIdx);
       if (!m_bFirstSliceInPicture)
       {
-#if OL_USE_WPP
-        m_apcSlicePilot->copySliceInfo( pcPic->getPicSym()->getSlice(m_uiSliceIdx-1) );
-#else
         memcpy(m_apcSlicePilot, pcPic->getPicSym()->getSlice(m_uiSliceIdx-1), sizeof(TComSlice));
-#endif
       }
 
       m_apcSlicePilot->setNalUnitType(nalu.m_UnitType);
       m_apcSlicePilot->setReferenced(nalu.m_RefIDC != NAL_REF_IDC_PRIORITY_LOWEST);
       m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot);
-#if G220_PURE_VLC_SAO_ALF
-#if (TILES_DECODER || OL_USE_WPP)
-      m_cEntropyDecoder.decodeWPPTileInfoToSliceHeader(m_apcSlicePilot);
-#endif
-
-#endif
 
 #if !DISABLE_CAVLC
       if ( m_apcSlicePilot->getSymbolMode() )
@@ -486,8 +475,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         m_cCuDecoder.create ( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
         m_cCuDecoder.init   ( &m_cEntropyDecoder, &m_cTrQuant, &m_cPrediction );
         m_cTrQuant.init     ( g_uiMaxCUWidth, g_uiMaxCUHeight, m_apcSlicePilot->getSPS()->getMaxTrSize());
-        
-        m_cSliceDecoder.create( m_apcSlicePilot, m_apcSlicePilot->getSPS()->getWidth(), m_apcSlicePilot->getSPS()->getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
       }
 
       //  Set picture slice pointer

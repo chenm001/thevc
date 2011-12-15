@@ -73,9 +73,6 @@ TComSlice::TComSlice()
 , m_uiSliceCurEndCUAddr           ( 0 )
 , m_uiSliceIdx                    ( 0 )
 , m_uiSliceBits                   ( 0 )
-#if OL_USE_WPP
-, m_puiSubstreamSizes             ( NULL )
-#endif
 {
   m_aiNumRefIdx[0] = m_aiNumRefIdx[1] = m_aiNumRefIdx[2] = 0;
   
@@ -102,15 +99,6 @@ TComSlice::TComSlice()
 #endif
 }
 
-TComSlice::~TComSlice()
-{
-#if OL_USE_WPP
-  delete[] m_puiSubstreamSizes;
-  m_puiSubstreamSizes = NULL;
-#endif
-}
-
-
 Void TComSlice::initSlice()
 {
   m_aiNumRefIdx[0]      = 0;
@@ -128,19 +116,6 @@ Void TComSlice::initSlice()
 
   m_aiNumRefIdx[REF_PIC_LIST_C]      = 0;
 }
-
-#if OL_USE_WPP
-/**
- - allocate table to contain substream sizes to be written to the slice header.
- .
- \param uiNumSubstreams Number of substreams -- the allocation will be this value - 1.
- */
-Void  TComSlice::allocSubstreamSizes(UInt uiNumSubstreams)
-{
-  delete[] m_puiSubstreamSizes;
-  m_puiSubstreamSizes = new UInt[uiNumSubstreams > 0 ? uiNumSubstreams-1 : 0];
-}
-#endif
 
 Void  TComSlice::sortPicList        (TComList<TComPic*>& rcListPic)
 {
@@ -1251,11 +1226,6 @@ TComPPS::TComPPS()
 #endif
 #if !F747_APS
 , m_bSharedPPSInfoEnabled       (false)
-#endif
-#if OL_USE_WPP
-,  m_iEntropyCodingSynchro      (0)
-,  m_bCabacIstateReset          (false)
-,  m_iNumSubstreams             (1)
 #endif
 {
 }

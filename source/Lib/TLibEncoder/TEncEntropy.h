@@ -71,15 +71,8 @@ public:
   virtual void codeSEI(const SEI&) = 0;
   virtual Void  codeSliceHeader         ( TComSlice* pcSlice )                                  = 0;
 
-#if OL_USE_WPP
-  virtual Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice )                             = 0;
-#endif
   virtual Void  codeTerminatingBit      ( UInt uilsLast )                                       = 0;
   virtual Void  codeSliceFinish         ()                                                      = 0;
-#if OL_FLUSH
-  virtual Void  codeFlush               ()                                                      = 0;
-  virtual Void  encodeStart             ()                                                      = 0;
-#endif
   
   virtual Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList ) = 0;
   
@@ -147,15 +140,8 @@ public:
   Void    resetEntropy              ()                        { m_pcEntropyCoderIf->resetEntropy();  }
   
   Void    encodeSliceHeader         ( TComSlice* pcSlice );
-#if OL_USE_WPP
-  Void    encodeSliceHeaderSubstreamTable( TComSlice* pcSlice );
-#endif
   Void    encodeTerminatingBit      ( UInt uiIsLast );
   Void    encodeSliceFinish         ();
-#if OL_FLUSH
-  Void    encodeFlush               ();
-  Void    encodeStart               ();
-#endif
 
   
   TEncEntropyIf*      m_pcEntropyCoderIf;

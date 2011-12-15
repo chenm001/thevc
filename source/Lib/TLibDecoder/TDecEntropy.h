@@ -66,19 +66,10 @@ public:
   virtual Void  resetEntropy          (TComSlice* pcSlice)                = 0;
   virtual Void  setBitstream          ( TComInputBitstream* p )  = 0;
 
-#if OL_FLUSH
-  virtual Void  decodeFlush()                                                                      = 0;
-#endif
-
   virtual Void  parseSPS                  ( TComSPS* pcSPS )                                      = 0;
   virtual Void  parsePPS                  ( TComPPS* pcPPS )                                      = 0;
   virtual void parseSEI(SEImessages&) = 0;
   virtual Void  parseSliceHeader          ( TComSlice*& rpcSlice )                                = 0;
-#if G220_PURE_VLC_SAO_ALF
-#if (TILES_DECODER || OL_USE_WPP)
-  virtual Void  parseWPPTileInfoToSliceHeader  ( TComSlice*& rpcSlice )                           = 0;
-#endif
-#endif
   virtual Void  parseTerminatingBit       ( UInt& ruilsLast )                                     = 0;
   
   virtual Void parseMVPIdx        ( Int& riMVPIdx ) = 0;
@@ -154,11 +145,6 @@ public:
   Void    decodePPS                   ( TComPPS* pcPPS     )    { m_pcEntropyDecoderIf->parsePPS(pcPPS);                    }
   void decodeSEI(SEImessages& seis) { m_pcEntropyDecoderIf->parseSEI(seis); }
   Void    decodeSliceHeader           ( TComSlice*& rpcSlice )  { m_pcEntropyDecoderIf->parseSliceHeader(rpcSlice);         }
-#if G220_PURE_VLC_SAO_ALF
-#if (TILES_DECODER || OL_USE_WPP)
-  Void    decodeWPPTileInfoToSliceHeader  ( TComSlice*& rpcSlice )  { m_pcEntropyDecoderIf->parseWPPTileInfoToSliceHeader(rpcSlice); }
-#endif
-#endif
   Void    decodeTerminatingBit        ( UInt& ruiIsLast )       { m_pcEntropyDecoderIf->parseTerminatingBit(ruiIsLast);     }
   
   TDecEntropyIf* getEntropyDecoder() { return m_pcEntropyDecoderIf; }
@@ -194,9 +180,6 @@ public:
   Void decodeSaoOnePart       (SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
   Void decodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
   Void decodeSaoParam         (SAOParam* pSaoParam);
-#endif
-#if OL_FLUSH
-  Void decodeFlush() { m_pcEntropyDecoderIf->decodeFlush(); }
 #endif
 
 #if F747_APS

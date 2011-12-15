@@ -81,9 +81,6 @@ public:
   Void  load                   ( TEncSbac* pScr  );
   Void  loadIntraDirModeLuma   ( TEncSbac* pScr  );
   Void  store                  ( TEncSbac* pDest );
-#if OL_USE_WPP
-  Void  loadContexts           ( TEncSbac* pScr  );
-#endif
   Void  resetBits              ()                { m_pcBinIf->resetBits(); m_pcBitIf->resetBits(); }
   UInt  getNumberOfWrittenBits ()                { return m_pcBinIf->getNumWrittenBits(); }
   //--SBAC RD
@@ -92,15 +89,8 @@ public:
   Void  codePPS                 ( TComPPS* pcPPS     );
   void codeSEI(const SEI&);
   Void  codeSliceHeader         ( TComSlice* pcSlice );
-#if OL_USE_WPP
-  Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );
-#endif
   Void  codeTerminatingBit      ( UInt uilsLast      );
   Void  codeSliceFinish         ();
-#if OL_FLUSH
-  Void  codeFlush               ();
-  Void  encodeStart             ();
-#endif
   
 #if SAO
   Void  codeSaoFlag       ( UInt uiCode );
@@ -116,9 +106,6 @@ private:
   Void  xWriteTerminatingBit ( UInt uiBit );
   
   Void  xCopyFrom            ( TEncSbac* pSrc );
-#if OL_USE_WPP
-  Void  xCopyContextsFrom    ( TEncSbac* pSrc );  
-#endif
   
 #if F747_APS
   Void codeAPSInitInfo(TComAPS* pcAPS) {printf("Not supported in codeAPSInitInfo()\n"); assert(0); exit(1);}
