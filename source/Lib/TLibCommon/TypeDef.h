@@ -42,6 +42,9 @@
 //! \{
 
 #define COEFF_CTX_RED             1 ///< G121: reduce max value of c1 and c2
+#define DBF_DQP                   1    ///< average QP for deblocking filter parameter lookup
+#define BS_DISABLE_INSIDE_8x8     1
+
 #define CABAC_RICE_FIX            1 ///< G495: fixing an entry in g_auiGoRicePrefixLen table
 #define BYPASS_FOR_LAST_COEFF_MOD 1 ///< grouping of bypass bins for last_significant_coeff_x/y, MSB first
 #define DISABLE_CAVLC             1 ///< disable second entropy coder
@@ -55,6 +58,7 @@
 #define REMAP_TO_PLANAR           1 ///< default to planar if neighbor out of range G119
 #define INTRA_MODES_64X64         1 ///< enable 35 intra modes for 64x64 PUs
 #define CBF_CODING_SKIP_COND_FIX  1 ///< G444: fixing the condition of skipping cbf_luma coding
+#define DISABLE_PARALLEL_DECISIONS 1 ///< disable parallel decisions part of deblocking filter G088
 
 #define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO
 #define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ
@@ -235,6 +239,11 @@
 #define NO_VAR_BIN          16
 
 #define PARALLEL_MERGED_DEBLK        1 // JCTC-E224, JCTVC-E181: Parallel decisions + Parallel filtering
+#define DEBLK_CLEANUP_G175_G620_G638    1 // Clean-up of deblocking filter description
+#define DEBLK_CLEANUP_CHROMA_BS         1 // Clean-up of chroma Bs (not used in HEVC deblocking)
+
+#define DEBLK_G590                      1 // Self-contained deblocking of 8x8 blocks
+
 
 #define MATRIX_MULT                             0   // Brute force matrix multiplication instead of partial butterfly
 

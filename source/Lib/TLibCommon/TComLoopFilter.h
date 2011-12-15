@@ -56,11 +56,15 @@ class TComLoopFilter
 private:
   UInt      m_uiDisableDeblockingFilterIdc; ///< deblocking filter idc
   UInt      m_uiNumPartitions;
+#if !DEBLK_CLEANUP_CHROMA_BS
   UChar*    m_aapucBS[2][3];              ///< Bs for [Ver/Hor][Y/U/V][Blk_Idx]
+#else
+  UChar*    m_aapucBS[2];              ///< Bs for [Ver/Hor][Y/U/V][Blk_Idx]
+#endif
   Bool*     m_aapbEdgeFilter[2][3];
   LFCUParam m_stLFCUParam;                  ///< status structure
   
-#if PARALLEL_MERGED_DEBLK
+#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
   TComPicYuv m_preDeblockPic;
 #endif
   
@@ -117,7 +121,18 @@ protected:
   Void xEdgeFilterLuma            ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
   Void xEdgeFilterChroma          ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
   
-#if PARALLEL_MERGED_DEBLK
+  
+#if DEBLK_G590
+  
+#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
+  __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Bool sw, Bool bPartPNoFilter, Bool bPartQNoFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
+#else
+  __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Bool sw, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
+#endif  
+  
+#else// !DEBLK_G590
+    
+#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
   __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Pel* piSrcJudge, Bool bPartPNoFilter, Bool bPartQNoFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
 #else
@@ -130,11 +145,17 @@ protected:
   __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ );
 #endif
 #endif
+#endif // DEBLK_G590
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
   __inline Void xPelFilterChroma( Pel* piSrc, Int iOffset, Int tc, Bool bPartPNoFilter, Bool bPartQNoFilter);
 #else
   __inline Void xPelFilterChroma( Pel* piSrc, Int iOffset, Int tc );
 #endif
+  
+
+#if DEBLK_G590
+  __inline Bool xUseStrongFiltering( Int offset, Int d, Int beta, Int tc, Pel* piSrc);
+#endif      
   __inline Int xCalcDP( Pel* piSrc, Int iOffset);
   __inline Int xCalcDQ( Pel* piSrc, Int iOffset);
   
@@ -142,7 +163,7 @@ public:
   TComLoopFilter();
   virtual ~TComLoopFilter();
   
-#if PARALLEL_MERGED_DEBLK
+#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
   Void  create                    ( Int width, Int height, Int maxCUWidth, Int maxCUHeight, Int uiMaxCUDepth );
 #else
   Void  create                    ( UInt uiMaxCUDepth );
