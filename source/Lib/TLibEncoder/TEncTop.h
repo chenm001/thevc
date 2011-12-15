@@ -106,6 +106,9 @@ private:
 #if F747_APS
   std::vector<TComAPS>    m_vAPS;  //!< APS container
 #endif
+#if G1002_RPS
+  TComRPS                 m_cRPSList;                         ///< RPS
+#endif
   
   // RD cost computation
   TComBitCounter          m_cBitCounter;                  ///< bit counter for RD optimization
@@ -136,6 +139,9 @@ protected:
   
 #if TILES
   Void  xInitPPSforTiles  ();
+#endif
+#if G1002_RPS
+  Void  xInitRPS          ();                             ///< initialize PPS from encoder options
 #endif
 
 public:
@@ -191,6 +197,11 @@ public:
   TComPPS*                getPPS                () { return  &m_cPPS;                 }
 #if F747_APS
   std::vector<TComAPS>&   getAPS                () { return m_vAPS; }
+#endif
+#if G1002_RPS
+  TComRPS*                getRPSList                () { return  &m_cRPSList;                 }
+  
+  Void selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, UInt iGOPid,TComList<TComPic*>& rcListPic );
 #endif
 
   // -------------------------------------------------------------------------------------------------------------------
