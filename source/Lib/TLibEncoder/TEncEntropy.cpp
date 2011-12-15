@@ -141,27 +141,24 @@ Void TEncEntropy::codeAux(ALFParam* pAlfParam)
   //  m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->realfiltNo); 
 
   m_pcEntropyCoderIf->codeAlfFlag(pAlfParam->alf_pcr_region_flag);
+  m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->filter_shape); 
+  Int noFilters = min(pAlfParam->filters_per_group-1, 2);
+  m_pcEntropyCoderIf->codeAlfUvlc(noFilters);
 
-  m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->realfiltNo); 
-  
-  if (pAlfParam->filtNo>=0)
+  if(noFilters == 1)
   {
-    if(pAlfParam->realfiltNo >= 0)
+    m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->startSecondFilter);
+  }
+  else if (noFilters == 2)
+  {
+#if G216_ALF_MERGE_FLAG_FIX
+    Int numMergeFlags = pAlfParam->alf_pcr_region_flag ? 16 : 15;
+    for (Int i=1; i<numMergeFlags; i++) 
+#else
+    for (int i=1; i<NO_VAR_BINS; i++)
+#endif
     {
-      // filters_per_fr
-      m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->noFilters);
-
-      if(pAlfParam->noFilters == 1)
-      {
-        m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->startSecondFilter);
-      }
-      else if (pAlfParam->noFilters == 2)
-      {
-        for (int i=1; i<NO_VAR_BINS; i++)
-        {
-          m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->filterPattern[i]);
-        }
-      }
+      m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->filterPattern[i]);
     }
   }
 }
@@ -182,16 +179,20 @@ Int TEncEntropy::lengthGolomb(int coeffVal, int k)
 
 Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
 {
-  int filters_per_group = ALFp->filters_per_group_diff;
+  Int filters_per_group = ALFp->filters_per_group;
   int sqrFiltLength = ALFp->num_coeff;
-  int filtNo = ALFp->realfiltNo;
   int i, k, kMin, kStart, minBits, ind, scanPos, maxScanVal, coeffVal, len = 0,
-  *pDepthInt=NULL, kMinTab[MAX_SQR_FILT_LENGTH], bitsCoeffScan[MAX_SCAN_VAL][MAX_EXP_GOLOMB],
-  minKStart, minBitsKStart, bitsKStart;
+    *pDepthInt=NULL, kMinTab[MAX_SCAN_VAL], bitsCoeffScan[MAX_SCAN_VAL][MAX_EXP_GOLOMB],
+    minKStart, minBitsKStart, bitsKStart;
   
-  pDepthInt = pDepthIntTabShapes[filtNo];
-  
+  pDepthInt = pDepthIntTabShapes[ALFp->filter_shape];
   maxScanVal = 0;
+#if G610_ALF_K_BIT_FIX
+  int minScanVal = ( ALFp->filter_shape==ALF_STAR5x5 ) ? 0 : MIN_SCAN_POS_CROSS;
+#else
+  int minScanVal = 0;  
+#endif
+
   for(i = 0; i < sqrFiltLength; i++)
   {
     maxScanVal = max(maxScanVal, pDepthInt[i]);
@@ -218,7 +219,7 @@ Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
   { 
     bitsKStart = 0; 
     kStart = k;
-    for(scanPos = 0; scanPos < maxScanVal; scanPos++)
+    for(scanPos = minScanVal; scanPos < maxScanVal; scanPos++)
     {
       kMin = kStart; 
       minBits = bitsCoeffScan[scanPos][kMin];
@@ -239,7 +240,7 @@ Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
   }
   
   kStart = minKStart; 
-  for(scanPos = 0; scanPos < maxScanVal; scanPos++)
+  for(scanPos = minScanVal; scanPos < maxScanVal; scanPos++)
   {
     kMin = kStart; 
     minBits = bitsCoeffScan[scanPos][kMin];
@@ -257,29 +258,41 @@ Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
   // Coding parameters
   ALFp->minKStart = minKStart;
   ALFp->maxScanVal = maxScanVal;
-  for(scanPos = 0; scanPos < maxScanVal; scanPos++)
+  for(scanPos = minScanVal; scanPos < maxScanVal; scanPos++)
   {
     ALFp->kMinTab[scanPos] = kMinTab[scanPos];
   }
+
+#if G610_ALF_K_BIT_FIX
+  len += writeFilterCodingParams(minKStart, minScanVal, maxScanVal, kMinTab);
+#else
   len += writeFilterCodingParams(minKStart, maxScanVal, kMinTab);
-  
+#endif
+
   // Filter coefficients
   len += writeFilterCoeffs(sqrFiltLength, filters_per_group, pDepthInt, ALFp->coeffmulti, kMinTab);
   
   return len;
 }
 
+#if G610_ALF_K_BIT_FIX
+Int TEncEntropy::writeFilterCodingParams(int minKStart, int minScanVal, int maxScanVal, int kMinTab[])
+#else
 Int TEncEntropy::writeFilterCodingParams(int minKStart, int maxScanVal, int kMinTab[])
+#endif
 {
   int scanPos;
   int golombIndexBit;
   int kMin;
-  
+#if !G610_ALF_K_BIT_FIX
+  int minScanVal = 0;
+#endif
+
   // Golomb parameters
   m_pcEntropyCoderIf->codeAlfUvlc(minKStart - 1);
   
   kMin = minKStart; 
-  for(scanPos = 0; scanPos < maxScanVal; scanPos++)
+  for(scanPos = minScanVal; scanPos < maxScanVal; scanPos++)
   {
     golombIndexBit = (kMinTab[scanPos] != kMin)? 1: 0;
     
@@ -342,6 +355,12 @@ Void TEncEntropy::codeFilt(ALFParam* pAlfParam)
   {
     m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->predMethod);
   }
+#if G665_ALF_COEFF_PRED
+  for(Int ind = 0; ind < pAlfParam->filters_per_group; ++ind)
+  {
+    m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->nbSPred[ind]);
+  }
+#endif
   codeFilterCoeff (pAlfParam);
 }
 
@@ -396,8 +415,7 @@ Void TEncEntropy::encodeAlfParam(ALFParam* pAlfParam)
   m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->chroma_idc);
   if(pAlfParam->chroma_idc)
   {
-    m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->realfiltNo_chroma);
-    
+    m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->filter_shape_chroma);
     // filter coefficients for chroma
     for(pos=0; pos<pAlfParam->num_coeff_chroma; pos++)
     {

@@ -95,6 +95,12 @@ public:
   Void  parsePPS                  ( TComPPS* pcPPS         ) {}
   void parseSEI(SEImessages&) {}
   Void  parseSliceHeader          ( TComSlice*& rpcSlice   ) {}
+#if G220_PURE_VLC_SAO_ALF
+#if (TILES_DECODER || OL_USE_WPP)
+  Void parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice) {printf("Not supported\n");assert(0); exit(1);}
+#endif
+#endif
+
   Void  parseTerminatingBit       ( UInt& ruiBit );
   Void  parseMVPIdx               ( Int& riMVPIdx          );
   

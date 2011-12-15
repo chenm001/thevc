@@ -84,6 +84,25 @@
 
 #define MRG_TMVP_REFIDX_G163 1 ///< G163 : use refIdx of left PU. if not available, use 0.
 
+#define G609_NEW_BA_SUB             1   ///< G609: Directional feature calculation on subset of pixels
+#define G216_ALF_MERGE_FLAG_FIX     1   ///< G216: bug fixed: removing 15th merge flag for BA mode
+#define G212_CROSS9x9_VB            1   ///< G212: Cross9x9 filter shape and virtual boundary processing for ALF
+#define G610_ALF_K_BIT_FIX          1   ///< G610: bug fixed: removing extra alf_golomb_index_bit for cross-shaped filter
+#if G610_ALF_K_BIT_FIX
+#if G212_CROSS9x9_VB
+#define MIN_SCAN_POS_CROSS          4
+#else
+#define MIN_SCAN_POS_CROSS          5
+#endif
+#endif
+#define G214_ALF_CONSTRAINED_COEFF  1   ///< G214: Constrained ALF coefficient value
+#define G215_ALF_NUM_FILTER         1   ///< G215: the number of filters in one picture, encoder only
+#define ALF_DC_OFFSET_REMOVAL       1   ///< G445: Remove DC offset for ALF
+
+#define SAO_RDO_OFFSET              1   ///< G915: Considering rate-distortion-cost in optimal offset calculation for SAO
+#define G220_PURE_VLC_SAO_ALF       1   ///< G220: Pure VLC for SAO and ALF parameters
+#define G1023_FIX_NPASS_ALF         1   ///< G1023: Improved ALF N-pass encoding
+
 ////////////////////////////
 // JCT-VC G start
 ////////////////////////////
@@ -256,10 +275,6 @@
 #define SAO_CHROMA                    1           // JCTVC-F057: Sample adaptive offset for Chroma
 #define SAO_CROSS_LCU_BOUNDARIES      1
 
-#define VAR_SIZE_H           4
-#define VAR_SIZE_W           4
-#define NO_VAR_BIN          16
-
 #define PARALLEL_MERGED_DEBLK        1 // JCTC-E224, JCTVC-E181: Parallel decisions + Parallel filtering
 #define DEBLK_CLEANUP_G175_G620_G638    1 // Clean-up of deblocking filter description
 #define DEBLK_CLEANUP_CHROMA_BS         1 // Clean-up of chroma Bs (not used in HEVC deblocking)
@@ -289,6 +304,8 @@
 #define EARLY_CU_DETERMINATION            1 //JCTVC-F092
 
 #define CBF_FAST_MODE                      1 //JCTVC-F045
+
+#define G665_ALF_COEFF_PRED                1 // JCTVC-G665
 
 // ====================================================================================================================
 // Basic type redefinition
@@ -407,24 +424,17 @@ struct _AlfParam
 #endif
   Int chroma_idc;                         ///< indicates use of ALF for chroma
   Int num_coeff;                          ///< number of filter coefficients
-  Int *coeff;                             ///< filter coefficient array
-  Int realfiltNo_chroma;                  ///< index of filter shape (chroma)
+  Int filter_shape;
+  Int filter_shape_chroma;
   Int num_coeff_chroma;                   ///< number of filter coefficients (chroma)
   Int *coeff_chroma;                      ///< filter coefficient array (chroma)
-  //CodeAux related
-  Int realfiltNo;
-  Int filtNo;
-  Int filterPattern[NO_VAR_BIN];
+  Int *filterPattern;
   Int startSecondFilter;
-  Int noFilters;
-  Int varIndTab[NO_VAR_BIN];
-  
-  //Coeff send related
-  Int filters_per_group_diff; //this can be updated using codedVarBins
   Int filters_per_group;
-  Int codedVarBins[NO_VAR_BIN]; 
-  Int forceCoeff0;
   Int predMethod;
+#if G665_ALF_COEFF_PRED
+  Int *nbSPred;
+#endif
   Int **coeffmulti;
   Int minKStart;
   Int maxScanVal;

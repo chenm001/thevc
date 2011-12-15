@@ -76,6 +76,12 @@ public:
   virtual Void  codePPS                 ( TComPPS* pcPPS )                                      = 0;
   virtual void codeSEI(const SEI&) = 0;
   virtual Void  codeSliceHeader         ( TComSlice* pcSlice )                                  = 0;
+#if G220_PURE_VLC_SAO_ALF
+#if TILES_DECODER
+  virtual Void codeTileMarkerFlag      ( TComSlice* pcSlice )                                  = 0;
+#endif
+#endif
+
 #if OL_USE_WPP
   virtual Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice )                             = 0;
 #endif
@@ -179,6 +185,11 @@ public:
   Void    resetEntropy              ()                        { m_pcEntropyCoderIf->resetEntropy();  }
   
   Void    encodeSliceHeader         ( TComSlice* pcSlice );
+#if G220_PURE_VLC_SAO_ALF
+#if TILES_DECODER
+  Void    encodeTileMarkerFlag       (TComSlice* pcSlice) {m_pcEntropyCoderIf->codeTileMarkerFlag(pcSlice);}
+#endif
+#endif
 #if OL_USE_WPP
   Void    encodeSliceHeaderSubstreamTable( TComSlice* pcSlice );
 #endif
@@ -283,7 +294,12 @@ public:
   Void codeAux (ALFParam* pAlfParam);
   Void codeFilt (ALFParam* pAlfParam);
   Int codeFilterCoeff(ALFParam* ALFp);
+#if G610_ALF_K_BIT_FIX
+  Int writeFilterCodingParams(int minKStart, int minScanVal, int maxScanVal, int kMinTab[]);
+#else
   Int writeFilterCodingParams(int minKStart, int maxScanVal, int kMinTab[]);
+#endif
+
   Int writeFilterCoeffs(int sqrFiltLength, int filters_per_group, int pDepthInt[], 
                         int **FilterCoeff, int kMinTab[]);
   Int golombEncode(int coeff, int k);

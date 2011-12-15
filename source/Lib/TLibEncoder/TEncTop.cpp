@@ -329,6 +329,9 @@ Void TEncTop::init()
   if(m_bUseALF)
   {
     m_cAdaptiveLoopFilter.setALFEncodePassReduction( m_iALFEncodePassReduction );
+#if G215_ALF_NUM_FILTER
+    m_cAdaptiveLoopFilter.setALFMaxNumberFilters( m_iALFMaxNumberFilters );
+#endif
   }
 
   m_iMaxRefPicNum = 0;

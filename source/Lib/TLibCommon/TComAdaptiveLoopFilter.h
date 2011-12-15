@@ -48,50 +48,42 @@
 // Constants
 // ====================================================================================================================
 
-#define ALF_MAX_NUM_TAP       9                                       ///< maximum number of filter taps (9x9)
-#define ALF_MIN_NUM_TAP       5                                       ///< minimum number of filter taps (5x5)
-#define ALF_MAX_NUM_TAP_C     5                                       ///< number of filter taps for chroma (5x5)
-#define ALF_MAX_NUM_COEF      42                                      ///< maximum number of filter coefficients
-#define ALF_MIN_NUM_COEF      14                                      ///< minimum number of filter coefficients
-#define ALF_MAX_NUM_COEF_C    14                                      ///< number of filter taps for chroma
+#if G212_CROSS9x9_VB
+
+#if ALF_DC_OFFSET_REMOVAL
+#define ALF_MAX_NUM_COEF      9                                       //!< maximum number of filter coefficients
+#define MAX_SQR_FILT_LENGTH   41                                      //!< ((max_horizontal_tap * max_vertical_tap) / 2 + 1) = ((11 * 5) / 2 + 1)
+#else
+#define ALF_MAX_NUM_COEF      10                                      //!< maximum number of filter coefficients
+#define MAX_SQR_FILT_LENGTH   42                                      //!< ((max_horizontal_tap * max_vertical_tap) / 2 + 2) = ((11 * 5) / 2 + 2)
+#endif
+
+
+#else
+#if ALF_DC_OFFSET_REMOVAL
+#define ALF_MAX_NUM_COEF      9                                       //!< maximum number of filter coefficients
+#define MAX_SQR_FILT_LENGTH   28                                      //!< ((max_horizontal_tap * max_vertical_tap) / 2 + 1) = ((11 * 5) / 2 + 1)
+#else
+#define ALF_MAX_NUM_COEF      10                                      //!< maximum number of filter coefficients
+#define MAX_SQR_FILT_LENGTH   29                                      //!< ((max_horizontal_tap * max_vertical_tap) / 2 + 2) = ((11 * 5) / 2 + 2)
+#endif
+#endif
+
 #define ALF_NUM_BIT_SHIFT     8                                       ///< bit shift parameter for quantization of ALF param.
-#define ALF_ROUND_OFFSET      ( 1 << ( ALF_NUM_BIT_SHIFT - 1 ) )      ///< rounding offset for ALF quantization
 
-
-#define NUM_BITS               9
-#define NO_TEST_FILT           3       // Filter supports (5/7/9)
+#define VAR_SIZE_H            4
+#define VAR_SIZE_W            4
 #define NO_VAR_BINS           16 
 #define NO_FILTERS            16
-
+#if !G609_NEW_BA_SUB
 #define VAR_SIZE               1
+#endif
+#define MAX_SCAN_VAL          13
+#define MAX_EXP_GOLOMB        16
 
-// max tap = max_horizontal_tap = 11
-#define FILTER_LENGTH         11
-
-// ((max_horizontal_tap * max_vertical_tap) / 2 + 2) = ((11 * 5) / 2 + 2)
-#define MAX_SQR_FILT_LENGTH   29
-
-#define SQR_FILT_LENGTH_9SYM  ((9*9) / 4 + 2 - 1) 
-#define SQR_FILT_LENGTH_7SYM  ((7*7) / 4 + 2) 
-#define SQR_FILT_LENGTH_5SYM  ((5*5) / 4 + 2) 
-// max_tap + 2 = 11 + 2 
-#define MAX_SCAN_VAL    13
-#define MAX_EXP_GOLOMB  16
-
-#define imgpel  unsigned short
-
-extern Int depthIntShape0Sym[10];
-extern Int depthIntShape1Sym[9];
-extern Int *pDepthIntTabShapes[NO_TEST_FILT];
-extern Int depthInt9x9Sym[21];
-extern Int depthInt7x7Sym[14];
-extern Int depthInt5x5Sym[8];
-extern Int *pDepthIntTab[NO_TEST_FILT];
-void destroyMatrix_int(int **m2D);
-void initMatrix_int(int ***m2D, int d1, int d2);
-
-
-/// border direction ID of slice granularity unit 
+///
+/// border direction ID of ALF processing block
+///
 enum SGUBorderID
 {
   SGU_L = 0,
@@ -105,18 +97,47 @@ enum SGUBorderID
   NUM_SGU_BORDER
 };
 
+///
+/// Chroma component ID
+///
 enum AlfChromaID
 {
   ALF_Cb = 0,
   ALF_Cr = 1
 };
 
+///
+/// Adaptation mode ID
+///
 enum ALFClassficationMethod
 {
   ALF_BA =0,
   ALF_RA,
   NUM_ALF_CLASS_METHOD
 };
+
+///
+/// Filter shape
+///
+enum ALFFilterShape
+{
+  ALF_STAR5x5 = 0,
+#if G212_CROSS9x9_VB
+  ALF_CROSS9x9,
+#else
+  ALF_CROSS11x5,
+#endif
+  NUM_ALF_FILTER_SHAPE
+};
+
+extern Int depthIntShape0Sym[10];
+#if G212_CROSS9x9_VB
+extern Int depthIntShape1Sym[10];
+#else
+extern Int depthIntShape1Sym[9];
+#endif
+extern Int *pDepthIntTabShapes[NUM_ALF_FILTER_SHAPE];
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -136,8 +157,9 @@ struct AlfCUCtrlInfo
 };
 #endif
 
-
-/// slice granularity unit information
+///
+/// ALF processing block information
+///
 struct AlfSGUInfo
 {
   Int   sliceID;  //!< slice ID
@@ -152,66 +174,34 @@ struct AlfSGUInfo
   Bool  isBorderAvailable[NUM_SGU_BORDER];  //!< the border availabilities
 };
 
+///
 /// LCU-based ALF class for slice processing
+///
 class CAlfLCU
 {
 public:
   CAlfLCU(){ m_pSGU = NULL; m_puiCUCtrlFlag = NULL;}
   ~CAlfLCU(){destroy();}
 public:
-  /// Create ALF LCU unit perform slice processing
-  Void create(Int iSliceID, TComPic* pcPic, UInt uiCUAddr, UInt uiStartSU, UInt uiEndSU, Int iSGDepth);
 
-  /// Destroy ALF LCU unit
-  Void destroy();
-
-  /// Extend slice boundary border for one luma LCU
-  Void extendLumaBorder(Pel* pImg, Int iStride, Int filtNo);
-
-  /// Extend slice boundary border for one chroma LCU
-  Void extendChromaBorder(Pel* pImg, Int iStride, UInt filtNo);
-
-  /// Copy one luma LCU
-  Void copyLuma(Pel* pImgDst, Pel* pImgSrc, Int iStride);
-
-  /// Copy one chroma LCU
-  Void copyChroma(Pel* pImgDst, Pel* pImgSrc, Int iStride);
-
-  /// Set the neighboring availabilities for one slice granularity unit
-  Void setSGUBorderAvailability(UInt uiNumLCUInPicWidth, UInt uiNumLCUInPicHeight, UInt uiNumSUInLCUWidth, UInt uiNumSUInLCUHeight,Int* piSliceIDMap);
-
-  /// Copy ALF CU control flags
-  Void getCtrlFlagsFromCU(Int iAlfDepth);
-
-  /// Copy ALF CU control flags from ALF parameters
-  Void getCtrlFlagsFromAlfParam(Int iAlfDepth, UInt* puiFlags);
-
-  /// Get number of slice granularity units
-  UInt getNumSGU      ()         {return m_uiNumSGU;}
-
-  /// Get number of ALF CU control flags
-  Int  getNumCtrlFlags()         {return m_iNumCUCtrlFlags;}
-
-  /// Get ALF CU control flag value
-  UInt getCUCtrlFlag  (UInt i)   {return m_puiCUCtrlFlag[i];}
-
-  /// get starting SU z-scan address
-  UInt getStartSU     ()         {return m_uiStartSU;}
-
-  /// get ending SU z-scan address
-  UInt getEndSU       ()         {return m_uiEndSU;  }
-
-  /// get TComPic pointer
-  TComPic*    getPic  ()         {return m_pcPic;}
-
-  /// get TComDataCU pointer
-  TComDataCU* getCU   ()         {return m_pcCU;}
-
-  /// Extend slice boundary border
-  Void extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UInt uiWidth, UInt uiHeight, UInt uiExtSizeX, UInt uiExtSizeY, Bool bPaddingForCalculatingBAIndex = false);
-
-  /// get corresponding TComDataCU pointer
-  UInt getCUAddr() {return m_uiCUAddr;}
+  Void create(Int iSliceID, TComPic* pcPic, UInt uiCUAddr, UInt uiStartSU, UInt uiEndSU, Int iSGDepth); /// Create ALF LCU unit perform slice processing
+  Void destroy(); /// Destroy ALF LCU unit
+  Void extendLumaBorder(Pel* pImg, Int iStride); /// Extend slice boundary border for one luma LCU
+  Void extendChromaBorder(Pel* pImg, Int iStride); /// Extend slice boundary border for one chroma LCU
+  Void copyLuma(Pel* pImgDst, Pel* pImgSrc, Int iStride); /// Copy one luma LCU
+  Void copyChroma(Pel* pImgDst, Pel* pImgSrc, Int iStride); /// Copy one chroma LCU
+  Void setSGUBorderAvailability(UInt uiNumLCUInPicWidth, UInt uiNumLCUInPicHeight, UInt uiNumSUInLCUWidth, UInt uiNumSUInLCUHeight,Int* piSliceIDMap); /// Set the neighboring availabilities for one slice granularity unit
+  Void getCtrlFlagsFromCU(Int iAlfDepth); /// Copy ALF CU control flags
+  Void getCtrlFlagsFromAlfParam(Int iAlfDepth, UInt* puiFlags); /// Copy ALF CU control flags from ALF parameters
+  UInt getNumSGU      ()         {return m_uiNumSGU;} /// Get number of slice granularity units
+  Int  getNumCtrlFlags()         {return m_iNumCUCtrlFlags;} /// Get number of ALF CU control flags
+  UInt getCUCtrlFlag  (UInt i)   {return m_puiCUCtrlFlag[i];} /// Get ALF CU control flag value
+  UInt getStartSU     ()         {return m_uiStartSU;} /// get starting SU z-scan address
+  UInt getEndSU       ()         {return m_uiEndSU;  } /// get ending SU z-scan address
+  TComPic*    getPic  ()         {return m_pcPic;} /// get TComPic pointer
+  TComDataCU* getCU   ()         {return m_pcCU;} /// get TComDataCU pointer
+  Void extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UInt uiWidth, UInt uiHeight, UInt uiExtSize); /// Extend slice boundary border
+  UInt getCUAddr() {return m_uiCUAddr;} /// get corresponding TComDataCU pointer
 private:
   TComPic*    m_pcPic;           //!< TComPic pointer
   TComDataCU* m_pcCU;            //!< TComDataCU pointer
@@ -233,7 +223,9 @@ public:
 
 };
 
+///
 /// Slice-based ALF class for slice processing
+///
 class CAlfSlice
 {
 public:
@@ -245,61 +237,26 @@ public:
   {
     destroy(); 
   }
-
 public:
-  /// Initialize one ALF slice unit
-  Void init(TComPic* pcPic, Int iSGDepth, Int* piSliceSUMap);
-
-  /// Create one ALF slice unit
-  Void create(Int iSliceID, UInt uiStartLCU, UInt uiEndLCU);
-
-  /// Destroy one ALF slice unit
-  Void destroy();
-
-  /// Extend slice boundary for one luma slice
-  Void extendSliceBorderLuma(Pel* pPelSrc, Int iStride, Int filtNo);
-
-  /// Extend slice boundary for one chroma slice
-  Void extendSliceBorderChroma(Pel* pPelSrc, Int iStride, UInt filtNo);
-
-  /// Copy one luma slice
-  Void copySliceLuma(Pel* pPicDst, Pel* pPicSrc, Int iStride);
-
-  /// Copy one chroma slice
-  Void copySliceChroma(Pel* pPicDst, Pel* pPicSrc, Int iStride );
-
-  /// Copy ALF CU Control Flags for one slice
-  Void getCtrlFlagsForOneSlice();
-
-  /// Get number of LCUs of this slice
-  UInt getNumLCUs      ()          {return m_uiNumLCUs;}
-
+  Void init(TComPic* pcPic, Int iSGDepth, Int* piSliceSUMap); //!< Initialize one ALF slice unit
+  Void create(Int iSliceID, UInt uiStartLCU, UInt uiEndLCU); //!< Create one ALF slice unit
+  Void destroy(); //!< Destroy one ALF slice unit
+  Void extendSliceBorderLuma(Pel* pPelSrc, Int iStride); //!< Extend slice boundary for one luma slice
+  Void extendSliceBorderChroma(Pel* pPelSrc, Int iStride); //!< Extend slice boundary for one chroma slice
+  Void copySliceLuma(Pel* pPicDst, Pel* pPicSrc, Int iStride); //!< Copy one luma slice
+  Void copySliceChroma(Pel* pPicDst, Pel* pPicSrc, Int iStride ); //!< Copy one chroma slice
+  Void getCtrlFlagsForOneSlice(); //!< Copy ALF CU Control Flags for one slice
+  UInt getNumLCUs      ()          {return m_uiNumLCUs;} //!< Get number of LCUs of this slice
 #if F747_APS
-  /// Get ALF CU control enabled/disable for this slice
-  Bool getCUCtrlEnabled()          {return m_bCUCtrlEnabled;   }
+  Bool getCUCtrlEnabled()          {return m_bCUCtrlEnabled;   } /// Get ALF CU control enabled/disable for this slice
 #endif
-
-  /// Set ALF CU control enabled/disable for this slice
-  Void setCUCtrlEnabled(Bool b)    {m_bCUCtrlEnabled = b;   }
-
-  /// Set ALF CU control depth of this slice
-  void setCUCtrlDepth  (Int iDepth){m_iCUCtrlDepth = iDepth;}
-
-  /// Get ALF CU control depth of this slice
-  Int  getCUCtrlDepth  ()          {return m_iCUCtrlDepth;  }
-
-  /// Set number of ALF CU control flags of this slice
-  Void setNumCtrlFlags (Int iNum)  {m_iNumCUCtrlFlags = iNum;}
-
-  /// Get number of ALF CU control flags of this slice
-  Int  getNumCtrlFlags ()          {return m_iNumCUCtrlFlags;}
-
-  /// Get slice ID
-  Int  getSliceID      ()          {return m_iSliceID;}
-
-  /// get TComPic pointer
-  TComPic* getPic      ()          {return m_pcPic;}
-
+  Void setCUCtrlEnabled(Bool b)    {m_bCUCtrlEnabled = b;   } /// Set ALF CU control enabled/disable for this slice
+  void setCUCtrlDepth  (Int iDepth){m_iCUCtrlDepth = iDepth;} /// Set ALF CU control depth of this slice
+  Int  getCUCtrlDepth  ()          {return m_iCUCtrlDepth;  } /// Get ALF CU control depth of this slice
+  Void setNumCtrlFlags (Int iNum)  {m_iNumCUCtrlFlags = iNum;} /// Set number of ALF CU control flags of this slice
+  Int  getNumCtrlFlags ()          {return m_iNumCUCtrlFlags;} /// Get number of ALF CU control flags of this slice
+  Int  getSliceID      ()          {return m_iSliceID;} /// Get slice ID
+  TComPic* getPic      ()          {return m_pcPic;} /// get TComPic pointer
   Bool isValidSlice()               {return m_bValidSlice;}
 
 private: 
@@ -327,222 +284,157 @@ public:
 
 };
 
-
+///
 /// adaptive loop filter class
+///
 class TComAdaptiveLoopFilter
 {
-protected:
-  // quantized filter coefficients
-  static const  Int m_aiSymmetricMag9x9[41];             ///< quantization scaling factor for 9x9 filter
-  static const  Int m_aiSymmetricMag7x7[25];             ///< quantization scaling factor for 7x7 filter
-  static const  Int m_aiSymmetricMag5x5[13];             ///< quantization scaling factor for 5x5 filter
-  static const  Int m_aiSymmetricMag9x7[32];             ///< quantization scaling factor for 9x7 filter
-  
-  // temporary picture buffer
-  TComPicYuv*   m_pcTempPicYuv;                          ///< temporary picture buffer for ALF processing
-  
-  // ------------------------------------------------------------------------------------------------------------------
-  // For luma component
-  // ------------------------------------------------------------------------------------------------------------------
-  static Int patternShape0Sym[17];
+
+protected: //protected member variables
+
+  // filter shape information
   static Int weightsShape0Sym[10];
-  static Int patternShape0Sym_Quart[29];
-  static Int patternShape1Sym[15];
+#if G212_CROSS9x9_VB
+  static Int weightsShape1Sym[10];
+#else
   static Int weightsShape1Sym[9];
-  static Int patternShape1Sym_Quart[29];
-  static Int *patternTabFiltShapes[NO_TEST_FILT];
-  static Int *patternTabShapes[NO_TEST_FILT]; 
-  static Int *patternMapTabShapes[NO_TEST_FILT];
-  static Int *weightsTabShapes[NO_TEST_FILT];
-  static Int m_pattern9x9Sym[39];
-  static Int m_weights9x9Sym[21];
-  static Int m_pattern9x9Sym_Quart[42];
-  static Int m_pattern7x7Sym[25];
-  static Int m_weights7x7Sym[14];
-  static Int m_pattern7x7Sym_Quart[42];
-  static Int m_pattern5x5Sym[13];
-  static Int m_weights5x5Sym[8];
-  static Int m_pattern5x5Sym_Quart[45];
-  static Int pattern11x5SymShape0[17];
-  static Int pattern11x5SymShape1[15];
-  static Int pattern11x5Sym11x5[55];
-  static Int m_pattern9x9Sym_9[39];
-  static Int m_pattern9x9Sym_7[25];
-  static Int m_pattern9x9Sym_5[13];
-  
-  static Int *m_patternTab_filt[NO_TEST_FILT];
-  static Int m_flTab[NO_TEST_FILT];
-  static Int *m_patternTab[NO_TEST_FILT]; 
-  static Int *m_patternMapTab[NO_TEST_FILT];
-  static Int *m_weightsTab[NO_TEST_FILT];
-  static Int m_sqrFiltLengthTab[NO_TEST_FILT];
-  
-  Int m_img_height,m_img_width;
-  
-  imgpel **m_imgY_pad;
-  imgpel **m_imgY_var;
-  Int    **m_imgY_temp;
-  
-  Int**    m_imgY_ver;
-  Int**    m_imgY_hor;
-  UInt     m_uiVarGenMethod;
-  imgpel** m_varImgMethods[NUM_ALF_CLASS_METHOD];
+#endif
+  static Int *weightsTabShapes[NUM_ALF_FILTER_SHAPE];
+  static Int m_sqrFiltLengthTab[NUM_ALF_FILTER_SHAPE];
 
+  // temporary buffer
+  TComPicYuv*   m_pcTempPicYuv;                          ///< temporary picture buffer for ALF processing
+
+
+  //filter coefficients buffer
   Int **m_filterCoeffSym;
-  Int **m_filterCoeffPrevSelected;
-  Int **m_filterCoeffTmp;
-  Int **m_filterCoeffSymTmp;
-  
 
-  Bool        m_bUseNonCrossALF;       //!< true for performing non-cross slice boundary ALF
+  //classification
+  Int      m_varIndTab[NO_VAR_BINS];
+  UInt     m_uiVarGenMethod;
+  Pel** m_varImgMethods[NUM_ALF_CLASS_METHOD];
+  Pel** m_varImg;
 
-  UInt        m_uiNumSlicesInPic;      //!< number of slices in picture
+  //parameters
+  Int   m_img_height;
+  Int   m_img_width;
+  Bool  m_bUseNonCrossALF;       //!< true for performing non-cross slice boundary ALF
+  UInt  m_uiNumSlicesInPic;      //!< number of slices in picture
+  Int   m_iSGDepth;              //!< slice granularity depth
+  UInt  m_uiNumCUsInFrame;
+
+#if G212_CROSS9x9_VB
+  Int m_lcuHeight;
+  Int m_lineIdxPadBot;
+  Int m_lineIdxPadTop;
+
+  Int m_lcuHeightChroma;
+  Int m_lineIdxPadBotChroma;
+  Int m_lineIdxPadTopChroma;
+#endif
+
+  //slice
   CAlfSlice*  m_pSlice;                //!< ALF slice units
-  Bool        m_bIsFirstDecodedSlice;  //!< true for the first decoding slice
-  Int         m_iSGDepth;              //!< slice granularity depth
   Int*        m_piSliceSUMap;          //!< slice ID map
 
-  //// Perform ALF for one luma slice
-  Void xFilterOneSlice            (CAlfSlice* pSlice, imgpel* pDec, imgpel* pRest, Int iStride, ALFParam* pcAlfParam);
+private: //private member variables
 
-  /// Calculate ALF grouping indices for one slice
-  Void calcVarforOneSlice         (CAlfSlice* pSlice, imgpel **imgY_var, imgpel *imgY_pad, Int pad_size, Int fl, Int img_stride);
 
-  /// Perform ALF for one chroma slice
-  Void xFrameChromaforOneSlice    (CAlfSlice* pSlice, Int ComponentID, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap);
+protected: //protected methods
 
-  Void createRegionIndexMap(imgpel **imgY_var, Int img_width, Int img_height);
-
-  /// ALF for luma component
-#if F747_APS
-  Void xALFLuma_qc( TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-#else
-  Void xALFLuma_qc( TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
+#if !G609_NEW_BA_SUB
+  Void calcVarforOneSlice         (CAlfSlice* pSlice, Pel **imgY_var, Pel *imgY_pad, Int fl, Int img_stride); //! Calculate ALF grouping indices for one slice
 #endif
-
-  Void reconstructFilterCoeffs(ALFParam* pcAlfParam,int **pfilterCoeffSym, int bit_depth);
-  Void getCurrentFilter(int **filterCoeffSym,ALFParam* pcAlfParam);
-  // memory allocation
-  Void destroyMatrix_imgpel(imgpel **m2D);
-  Void destroyMatrix_int(int **m2D);
-  Void initMatrix_int(int ***m2D, int d1, int d2);
-  Void initMatrix_imgpel(imgpel ***m2D, int d1, int d2);
-  Void destroyMatrix4D_double(double ****m4D, int d1, int d2);
-  Void destroyMatrix3D_double(double ***m3D, int d1);
-  Void destroyMatrix_double(double **m2D);
-  Void initMatrix4D_double(double *****m4D, int d1, int d2, int d3, int d4);
-  Void initMatrix3D_double(double ****m3D, int d1, int d2, int d3);
-  Void initMatrix_double(double ***m2D, int d1, int d2);
-  Void free_mem2Dpel(imgpel **array2D);
-  Void get_mem2Dpel(imgpel ***array2D, int rows, int columns);
-  Void no_mem_exit(const char *where);
-  Void xError(const char *text, int code);
-  Void calcVar(int ypos, int xpos, imgpel **imgY_var, imgpel *imgY_pad, int pad_size, int fl, int img_height, int img_width, int img_stride);
-  Void DecFilter_qc(imgpel* imgY_rec,ALFParam* pcAlfParam, int Stride);
-  Void xSubCUAdaptive_qc(TComDataCU* pcCU, ALFParam* pcAlfParam, imgpel *imgY_rec_post, imgpel *imgY_rec, UInt uiAbsPartIdx, UInt uiDepth, Int Stride);
-  Void xCUAdaptive_qc(TComPic* pcPic, ALFParam* pcAlfParam, imgpel *imgY_rec_post, imgpel *imgY_rec, Int Stride);
-  Void subfilterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec, int filtNo, int start_height, int end_height, int start_width, int end_width, int Stride);
-  Void filterFrame(imgpel *imgY_rec_post, imgpel *imgY_rec, int filtNo, int Stride);
-  UInt  m_uiNumCUsInFrame;
+  Void createRegionIndexMap(Pel **imgY_var, Int img_width, Int img_height); //!< create RA index for regions
+#if G609_NEW_BA_SUB
+  Void calcVar(Pel **imgYvar, Pel *imgYpad, Int stride, Int adaptationMode); //!< Calculate ALF grouping indices for block-based (BA) mode
+#else
+  Void calcVar(int ypos, int xpos, Pel **imgY_var, Pel *imgY_pad, int fl, int img_height, int img_width, int img_stride);
+#endif
+  Void filterLuma(Pel *pImgYRes, Pel *pImgYPad, Int stride, Int ypos, Int yposEnd, Int xpos, Int xposEnd, Int filtNo, Int** filterSet, Int* mergeTable, Pel** ppVarImg); //!< filtering operation for luma region
+  Void filterChroma(Pel *pImgRes, Pel *pImgPad, Int stride, Int ypos, Int yposEnd, Int xpos, Int xposEnd, Int filtNo, Int* coef);
+  Void xFilterOneSlice             (CAlfSlice* pSlice, Pel* pDec, Pel* pRest, Int iStride, ALFParam* pcAlfParam); //!< Perform ALF for one luma slice
+  Void xFilterOneChromaSlice(CAlfSlice* pSlice, Pel* pDec, Pel* pRest, Int iStride, Int *coeff, Int filtNo, Int iChromaFormatShift); //!< ALF for chroma component
+  Void xCUAdaptive   (TComPic* pcPic, Int filtNo, Pel *imgYFilt, Pel *imgYRec, Int Stride);
+  Void xSubCUAdaptive(TComDataCU* pcCU, Int filtNo, Pel *imgYFilt, Pel *imgYRec, UInt uiAbsPartIdx, UInt uiDepth, Int Stride);
+  Void reconstructFilterCoeffs(ALFParam* pcAlfParam,int **pfilterCoeffSym);
+#if G665_ALF_COEFF_PRED
+  Void predictALFCoeffLuma  ( ALFParam* pAlfParam );                    //!< prediction of luma ALF coefficients
+#endif
+#if G214_ALF_CONSTRAINED_COEFF
+  Void checkFilterCoeffValue( Int *filter, Int filterLength, Bool isChroma );
+#endif
+  Void decodeFilterSet(ALFParam* pcAlfParam, Int* varIndTab, Int** filterCoeff);
+  Void xALFChroma   ( ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
+  Void xFilterChromaOneCmp(Pel *pDec, Pel *pRest, Int iStride, Int iShape, Int *pCoeff);
 #if F747_APS
-  Void  setAlfCtrlFlags(AlfCUCtrlInfo* pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx);
+  Void xALFLuma( TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
+  Void setAlfCtrlFlags(AlfCUCtrlInfo* pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx);
+  Void transferCtrlFlagsFromAlfParam(std::vector<AlfCUCtrlInfo>& vAlfParamSlices); //!< Copy ALF CU control flags from ALF parameters for slices  
+  Void transferCtrlFlagsFromAlfParamOneSlice(UInt s, Bool bCUCtrlEnabled, Int iAlfDepth, std::vector<UInt>& vCtrlFlags); //!< Copy ALF CU control flags from ALF parameter for one slice
 #else
   Void  setAlfCtrlFlags (ALFParam *pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx);
+  Void transferCtrlFlagsFromAlfParam(ALFParam* pcAlfParam); //!< Copy ALF CU control flags from ALF parameters for slices  
+  Void transferCtrlFlagsFromAlfParamOneSlice(UInt s, Bool bCUCtrlEnabled, Int iAlfDepth, UInt* puiFlags); //!< Copy ALF CU control flags from ALF parameter for one slice
+  Void xALFLuma( TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
 #endif
 
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+
   Void xPCMRestoration        (TComPic* pcPic);
   Void xPCMCURestoration      (TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth);
   Void xPCMSampleRestoration  (TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, TextType ttText);
-#endif
 
-  // ------------------------------------------------------------------------------------------------------------------
-  // For chroma component
-  // ------------------------------------------------------------------------------------------------------------------
-  
-  /// ALF for chroma component
-  Void xALFChroma   ( ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-  
-  /// sub function: non-adaptive ALF process for chroma
-  Void xFrameChroma ( Int ypos, Int xpos, Int iHeight, Int iWidth, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap, Int iColor );
+public: //public methods, interface functions
 
-public:
   TComAdaptiveLoopFilter();
   virtual ~TComAdaptiveLoopFilter() {}
-  
-  // initialize & destory temporary buffer
+
   Void create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth );
   Void destroy ();
-  
-  // alloc & free & set functions
-  Void allocALFParam  ( ALFParam* pAlfParam );
-  Void freeALFParam   ( ALFParam* pAlfParam );
-  Void copyALFParam   ( ALFParam* pDesAlfParam, ALFParam* pSrcAlfParam );
-  
-  // predict filter coefficients
-  Void predictALFCoeff        ( ALFParam* pAlfParam );                  ///< prediction of luma ALF coefficients
-  Void predictALFCoeffChroma  ( ALFParam* pAlfParam );                  ///< prediction of chroma ALF coefficients
-  
-  // interface function
+  Void predictALFCoeffChroma  ( ALFParam* pAlfParam );                  //!< prediction of chroma ALF coefficients
+
 #if F747_APS
   Void ALFProcess             ( TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam ); ///< interface function for ALF process
 #else
   Void ALFProcess             ( TComPic* pcPic, ALFParam* pcAlfParam ); ///< interface function for ALF process
 #endif
 
+  Void allocALFParam  ( ALFParam* pAlfParam ); //!< allocate ALF parameters
+  Void freeALFParam   ( ALFParam* pAlfParam ); //!< free ALF parameters
+  Void copyALFParam   ( ALFParam* pDesAlfParam, ALFParam* pSrcAlfParam ); //!< copy ALF parameters
+
+#if F747_APS
+  Int  getNumCUsInPic()  {return m_uiNumCUsInFrame;} //!< get number of LCU in picture for ALF process
+#endif
+
+#if FINE_GRANULARITY_SLICES
+  Void setSliceGranularityDepth(Int iDepth) { m_iSGDepth = iDepth;} //!< Set slice granularity
+  Int  getSliceGranularityDepth()           { return m_iSGDepth;  } //!< get slice granularity
+#endif
+  Void setNumSlicesInPic(UInt uiNum) {m_uiNumSlicesInPic = uiNum;} //!< Set number of slices in picture
+  UInt getNumSlicesInPic()           {return m_uiNumSlicesInPic;} //!< Get number of slices in picture
+  Void setUseNonCrossAlf(Bool bVal)  {m_bUseNonCrossALF = bVal;} //!< Set across/non-across slice boundary ALF
+  Bool getUseNonCrossAlf()           {return m_bUseNonCrossALF;} //!< Get across/non-across slice boundary ALF
+  Void createSlice (TComPic* pcPic); //!< Create ALF slice units
+  Void destroySlice     (); //!< Destroy ALF slice units
+
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void PCMLFDisableProcess    ( TComPic* pcPic);                        ///< interface function for ALF process 
 #endif
 
-  static Int ALFTapHToTapV(Int tapH);
-  static Int ALFTapHToNumCoeff(Int tapH);
-  static Int ALFFlHToFlV(Int flH);
-
-#if F747_APS
-public:
-  /// get number of LCU in picture for ALF process
-  Int  getNumCUsInPic()  {return m_uiNumCUsInFrame;}
-#endif
-
-public:
-
-#if F747_APS
-  /// Copy ALF CU control flags from ALF parameters for slices
-  Void transferCtrlFlagsFromAlfParam(std::vector<AlfCUCtrlInfo>& vAlfParamSlices);
-  /// Copy ALF CU control flags from ALF parameter for one slice
-  Void transferCtrlFlagsFromAlfParamOneSlice(UInt s, Bool bCUCtrlEnabled, Int iAlfDepth, std::vector<UInt>& vCtrlFlags);
-#else
-  /// Copy ALF CU control flags from ALF parameters for slices
-  Void transferCtrlFlagsFromAlfParam(ALFParam* pcAlfParam);
-  
-  /// Copy ALF CU control flags from ALF parameter for one slice
-  Void transferCtrlFlagsFromAlfParamOneSlice(UInt s, Bool bCUCtrlEnabled, Int iAlfDepth, UInt* puiFlags);
-#endif
-
-#if FINE_GRANULARITY_SLICES
-  /// Set slice granularity
-  Void setSliceGranularityDepth(Int iDepth) { m_iSGDepth = iDepth;}
-
-  /// get slice granularity
-  Int  getSliceGranularityDepth()           { return m_iSGDepth;  }
-#endif
-  /// Set number of slices in picture
-  Void setNumSlicesInPic(UInt uiNum) {m_uiNumSlicesInPic = uiNum;}
-
-  /// Get number of slices in picture
-  UInt getNumSlicesInPic()           {return m_uiNumSlicesInPic;}
-
-  /// Set across/non-across slice boundary ALF
-  Void setUseNonCrossAlf(Bool bVal)  {m_bUseNonCrossALF = bVal;}
-
-  /// Get across/non-across slice boundary ALF
-  Bool getUseNonCrossAlf()           {return m_bUseNonCrossALF;}
-
-  /// Create ALF slice units
-  Void createSlice (TComPic* pcPic);
-
-  /// Destroy ALF slice units
-  Void destroySlice     ();
+protected: //memory allocation
+  Void destroyMatrix_Pel(Pel **m2D);
+  Void destroyMatrix_int(int **m2D);
+  Void initMatrix_int(int ***m2D, int d1, int d2);
+  Void initMatrix_Pel(Pel ***m2D, int d1, int d2);
+  Void destroyMatrix4D_double(double ****m4D, int d1, int d2);
+  Void destroyMatrix3D_double(double ***m3D, int d1);
+  Void destroyMatrix_double(double **m2D);
+  Void initMatrix4D_double(double *****m4D, int d1, int d2, int d3, int d4);
+  Void initMatrix3D_double(double ****m3D, int d1, int d2, int d3);
+  Void initMatrix_double(double ***m2D, int d1, int d2);
+  Void no_mem_exit(const char *where);
+  Void xError(const char *text, int code);
 
 public: 
   //operator to access Alf slice units

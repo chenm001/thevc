@@ -51,61 +51,55 @@ Void TDecEntropy::setEntropyDecoder         ( TDecEntropyIf* p )
 Void TDecEntropy::decodeAux(ALFParam* pAlfParam)
 {
   UInt uiSymbol;
+#if G212_CROSS9x9_VB
+
+#if ALF_DC_OFFSET_REMOVAL
+  Int sqrFiltLengthTab[2] = { 9, 9}; 
+#else
+  Int sqrFiltLengthTab[2] = {10, 10}; 
+#endif
+
+#else
+#if ALF_DC_OFFSET_REMOVAL
+  Int sqrFiltLengthTab[2] = { 9, 8}; 
+#else
   Int sqrFiltLengthTab[2] = {10, 9}; 
-  
+#endif
+#endif
+
   pAlfParam->filters_per_group = 0;
   
   memset (pAlfParam->filterPattern, 0 , sizeof(Int)*NO_VAR_BINS);
-  pAlfParam->filtNo = 1; //nonZeroCoeffs
-
   m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
   pAlfParam->alf_pcr_region_flag = uiSymbol;  
 
   m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
-  pAlfParam->realfiltNo = uiSymbol;
-  pAlfParam->num_coeff = sqrFiltLengthTab[pAlfParam->realfiltNo];
-  
-  if (pAlfParam->filtNo>=0)
-  {
-    if(pAlfParam->realfiltNo >= 0)
-    {
-      // filters_per_fr
-      m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
-      pAlfParam->noFilters = uiSymbol + 1;
-      pAlfParam->filters_per_group = pAlfParam->noFilters; 
 
-      if(pAlfParam->noFilters == 2)
-      {
-        m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
-        pAlfParam->startSecondFilter = uiSymbol;
-        pAlfParam->filterPattern [uiSymbol] = 1;
-      }
-      else if (pAlfParam->noFilters > 2)
-      {
-        pAlfParam->filters_per_group = 1;
-        for (int i=1; i<NO_VAR_BINS; i++) 
-        {
-          m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
-          pAlfParam->filterPattern[i] = uiSymbol;
-          pAlfParam->filters_per_group += uiSymbol;
-        }
-      }
-    }
-  }
-  else
+  pAlfParam->filter_shape = uiSymbol;
+  pAlfParam->num_coeff = sqrFiltLengthTab[pAlfParam->filter_shape];
+  // filters_per_fr
+  m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
+  pAlfParam->filters_per_group = uiSymbol + 1;
+
+  if(uiSymbol == 1) // filters_per_group == 2
   {
-    memset (pAlfParam->filterPattern, 0, NO_VAR_BINS*sizeof(Int));
+    m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
+    pAlfParam->startSecondFilter = uiSymbol;
+    pAlfParam->filterPattern [uiSymbol] = 1;
   }
-  // Reconstruct varIndTab[]
-  memset(pAlfParam->varIndTab, 0, NO_VAR_BINS * sizeof(int));
-  if(pAlfParam->filtNo>=0)
+  else if (uiSymbol > 1) // filters_per_group > 2
   {
-    for(Int i = 1; i < NO_VAR_BINS; ++i)
+    pAlfParam->filters_per_group = 1;
+#if G216_ALF_MERGE_FLAG_FIX
+    Int numMergeFlags = pAlfParam->alf_pcr_region_flag ? 16 : 15;
+    for (Int i=1; i<numMergeFlags; i++) 
+#else
+    for (int i=1; i<NO_VAR_BINS; i++) 
+#endif
     {
-      if(pAlfParam->filterPattern[i])
-        pAlfParam->varIndTab[i] = pAlfParam->varIndTab[i-1] + 1;
-      else
-        pAlfParam->varIndTab[i] = pAlfParam->varIndTab[i-1];
+      m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
+      pAlfParam->filterPattern[i] = uiSymbol;
+      pAlfParam->filters_per_group += uiSymbol;
     }
   }
 }
@@ -118,9 +112,14 @@ Void TDecEntropy::readFilterCodingParams(ALFParam* pAlfParam)
   int kMin;
   int maxScanVal;
   int *pDepthInt;
+#if G610_ALF_K_BIT_FIX
+  int minScanVal = (pAlfParam->filter_shape == ALF_STAR5x5) ? 0: MIN_SCAN_POS_CROSS;
+#else
+  int minScanVal = 0;
+#endif
   // Determine maxScanVal
   maxScanVal = 0;
-  pDepthInt = pDepthIntTabShapes[pAlfParam->realfiltNo];
+  pDepthInt = pDepthIntTabShapes[pAlfParam->filter_shape];
   for(ind = 0; ind < pAlfParam->num_coeff; ind++)
     maxScanVal = max(maxScanVal, pDepthInt[ind]);
   
@@ -129,7 +128,8 @@ Void TDecEntropy::readFilterCodingParams(ALFParam* pAlfParam)
   pAlfParam->minKStart = 1 + uiSymbol;
   
   kMin = pAlfParam->minKStart;
-  for(scanPos = 0; scanPos < maxScanVal; scanPos++)
+
+  for(scanPos = minScanVal; scanPos < maxScanVal; scanPos++)
   {
     m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
     golombIndexBit = uiSymbol;
@@ -175,9 +175,8 @@ Void TDecEntropy::readFilterCoeffs(ALFParam* pAlfParam)
 {
   int ind, scanPos, i;
   int *pDepthInt;
-  pDepthInt = pDepthIntTabShapes[pAlfParam->realfiltNo];
-  
-  for(ind = 0; ind < pAlfParam->filters_per_group_diff; ++ind)
+  pDepthInt = pDepthIntTabShapes[pAlfParam->filter_shape];
+  for(ind = 0; ind < pAlfParam->filters_per_group; ++ind)
   {
     for(i = 0; i < pAlfParam->num_coeff; i++)
     {
@@ -198,29 +197,19 @@ Void TDecEntropy::decodeFilterCoeff (ALFParam* pAlfParam)
 Void TDecEntropy::decodeFilt(ALFParam* pAlfParam)
 {
   UInt uiSymbol;
-  
-  if (pAlfParam->filtNo >= 0)
+  if (pAlfParam->filters_per_group > 1)
   {
-    pAlfParam->filters_per_group_diff = pAlfParam->filters_per_group;
-    if (pAlfParam->filters_per_group > 1)
-    {
-      pAlfParam->forceCoeff0 = 0;
-      {
-        for (int i=0; i<NO_VAR_BINS; i++)
-          pAlfParam->codedVarBins[i] = 1;
-
-      }
-      m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
-      pAlfParam->predMethod = uiSymbol;
-    }
-    else
-    {
-      pAlfParam->forceCoeff0 = 0;
-      pAlfParam->predMethod = 0;
-    }
-
-    decodeFilterCoeff (pAlfParam);
+    m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
+    pAlfParam->predMethod = uiSymbol;
   }
+#if G665_ALF_COEFF_PRED
+  for(Int ind = 0; ind < pAlfParam->filters_per_group; ++ind)
+  {
+    m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
+    pAlfParam->nbSPred[ind] = uiSymbol;
+  }
+#endif
+  decodeFilterCoeff (pAlfParam);
 }
 
 Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
@@ -248,10 +237,22 @@ Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
   if(pAlfParam->chroma_idc)
   {
     m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
+#if G212_CROSS9x9_VB
+#if ALF_DC_OFFSET_REMOVAL
+    Int sqrFiltLengthTab[2] = { 9, 9};
+#else
+    Int sqrFiltLengthTab[2] = {10, 10};
+#endif
+
+#else
+#if ALF_DC_OFFSET_REMOVAL
+    Int sqrFiltLengthTab[2] = { 9, 8};
+#else
     Int sqrFiltLengthTab[2] = {10, 9};
-    pAlfParam->realfiltNo_chroma = uiSymbol;
-    pAlfParam->num_coeff_chroma = sqrFiltLengthTab[pAlfParam->realfiltNo_chroma];
-    
+#endif
+#endif
+    pAlfParam->filter_shape_chroma = uiSymbol;
+    pAlfParam->num_coeff_chroma = sqrFiltLengthTab[pAlfParam->filter_shape_chroma];
     // filter coefficients for chroma
     for(pos=0; pos<pAlfParam->num_coeff_chroma; pos++)
     {

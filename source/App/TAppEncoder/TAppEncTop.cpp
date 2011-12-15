@@ -143,6 +143,11 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseHADME                     ( m_bUseHADME    );
   m_cTEncTop.setUseALF                       ( m_bUseALF      );
   m_cTEncTop.setALFEncodePassReduction       ( m_iALFEncodePassReduction );
+
+#if G215_ALF_NUM_FILTER
+  m_cTEncTop.setALFMaxNumberFilters          ( m_iALFMaxNumberFilters ) ;
+#endif
+
 #if !G1002_RPS
   m_cTEncTop.setUseGPB                       ( m_bUseGPB      );
 #endif
