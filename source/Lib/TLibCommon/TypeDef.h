@@ -76,6 +76,8 @@
 
 #define SAO_RDO_OFFSET              1   ///< G915: Considering rate-distortion-cost in optimal offset calculation for SAO
 #define G220_PURE_VLC_SAO_ALF       1   ///< G220: Pure VLC for SAO and ALF parameters
+#define G1023_FIX_NPASS_ALF         1   ///< G1023: Improved ALF N-pass encoding
+
 ////////////////////////////
 // JCT-VC F start
 ////////////////////////////

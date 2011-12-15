@@ -3787,9 +3787,12 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
 
   //filter frame with the previous time-delayed filters
   Int filtNo;
+#if G1023_FIX_NPASS_ALF
+  Int maxDepth = (pcPicOrg->getWidth() < 1000) ?(2):(g_uiMaxCUDepth);
+  m_pcEntropyCoder->setAlfCtrl(true);
+#endif
   m_pcTempAlfParam->alf_flag = 1;
   m_pcTempAlfParam->alf_pcr_region_flag = m_uiVarGenMethod;
-
 #if !F747_APS
   m_pcTempAlfParam->cu_control_flag = 0;
 #endif
@@ -3812,6 +3815,32 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
     {
       xfilterSlicesEncoder(pDec, pRest, LumaStride, filtNo, pppCoeffSaved[iBufIdx], ppMergeTableSaved[iBufIdx], m_varImg);
     }
+
+#if G1023_FIX_NPASS_ALF
+    for (UInt uiDepth = 0; uiDepth < maxDepth; uiDepth++)
+    {
+      m_pcEntropyCoder->setMaxAlfCtrlDepth(uiDepth);
+#if F747_APS
+      std::vector<AlfCUCtrlInfo> vAlfCUCtrlParamTemp(m_uiNumSlicesInPic);
+      xSetCUAlfCtrlFlags_qc(uiDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist, vAlfCUCtrlParamTemp);
+#else
+      m_pcTempAlfParam->cu_control_flag = 1;
+      xSetCUAlfCtrlFlags_qc(uiDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist, m_pcTempAlfParam); //set up varImg here
+#endif
+      m_pcEntropyCoder->resetEntropy();
+      m_pcEntropyCoder->resetBits();
+      xEncodeCUAlfCtrlFlags();
+      uiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
+      dCost  = (Double)(uiRate) * m_dLambdaLuma + (Double)(uiDist);
+
+      if (dCost < dMinCost)
+      {
+        dMinCost    = dCost;
+        copyALFParam(&cAlfParam, m_pcTempAlfParam);
+        ::memcpy(bestImgMask[0], m_maskImg[0], sizeof(Pel)*m_img_height* m_img_width);
+      }
+    }
+#else
     xCalcRDCost(pcPicOrg, m_pcPicYuvTmp, NULL, uiRate, uiDist, dCost);
     if (dCost < dMinCost)
     {
@@ -3819,8 +3848,14 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
       m_pcPicYuvTmp->copyToPicLuma(m_pcPicYuvBest);
       copyALFParam(&cAlfParam, m_pcTempAlfParam);
     }
+#endif
   }
   filtNo = cAlfParam.filter_shape;
+
+
+#if G1023_FIX_NPASS_ALF
+  ::memcpy(m_maskImg[0], bestImgMask[0], sizeof(Pel)*m_img_height* m_img_width);
+#else
   copyALFParam(m_pcTempAlfParam, &cAlfParam);
   //decided the best CU control depth
   m_pcPicYuvBest->copyToPicLuma(m_pcPicYuvTmp);
@@ -3886,6 +3921,9 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
       }
     }
   }
+#endif
+
+
   m_pcEntropyCoder->setAlfCtrl(false);
   m_pcEntropyCoder->setMaxAlfCtrlDepth(0);
 
