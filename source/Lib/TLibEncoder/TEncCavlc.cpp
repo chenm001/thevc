@@ -622,16 +622,17 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     }
 #if G1002_RPS
     TComRefPicListModification* refPicListModification = pcSlice->getRefPicListModification();
-
-    WRITE_FLAG(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0() ? 1 : 0,       "ref_pic_list_modification_flag" );
-    
-    for(Int i = 0; i < refPicListModification->getNumberOfRefPicListModificationsL0(); i++)
+    if(!pcSlice->isIntra())
     {
-      WRITE_UVLC( refPicListModification->getListIdcL0(i), "ref_pic_list_modification_idc");
-      WRITE_UVLC( refPicListModification->getRefPicSetIdxL0(i), "ref_pic_set_idx");
+      WRITE_FLAG(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0() ? 1 : 0,       "ref_pic_list_modification_flag" );    
+      for(Int i = 0; i < refPicListModification->getNumberOfRefPicListModificationsL0(); i++)
+      {
+        WRITE_UVLC( refPicListModification->getListIdcL0(i), "ref_pic_list_modification_idc");
+        WRITE_UVLC( refPicListModification->getRefPicSetIdxL0(i), "ref_pic_set_idx");
+      }
+      if(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0())
+        WRITE_UVLC( 3, "ref_pic_list_modification_idc");
     }
-    if(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0())
-      WRITE_UVLC( 3, "ref_pic_list_modification_idc");
     if(pcSlice->isInterB())
     {    
       WRITE_FLAG(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL1() ? 1 : 0,       "ref_pic_list_modification_flag" );
