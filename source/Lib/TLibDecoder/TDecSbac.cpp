@@ -1445,7 +1445,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   int blockType = uiLog2BlockSize;
   if (uiWidth != uiHeight)
   {
-    uiScanIdx = DIAG_SCAN;
+    uiScanIdx = SCAN_DIAG;
     blockType = 4;
   }
 #endif
