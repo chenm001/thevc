@@ -60,8 +60,8 @@ Void ContextModel::init( Int qp, Int initValue )
   Int n = initValue & 15;
   
   Int val = max( 0, min( 3839, (n<<8) + m * (qp-26) + 128 ) );
-  Int valMps = val >= 1792;
   val -= 1920;
+  Int valMps = val >= 0;
   val = ( val ^ (val>>11) ) + 128;
   Int segmentIdx = val >> 8;
   Int pStateIdx = m_accumulatedSegOffset[segmentIdx] + ( (val&255) * m_segOffset[segmentIdx] >> 8);
