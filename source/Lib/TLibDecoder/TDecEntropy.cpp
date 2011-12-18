@@ -1030,6 +1030,11 @@ Void TDecEntropy::xDecodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
       }
 #else
       UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
+#if NSQT_MOD
+      Int trWidth = uiWidth;
+      Int trHeight = uiHeight;
+      pcCU->getNSQTSize( uiTrIdx, uiAbsPartIdx, trWidth, trHeight );
+#endif
       if( eType != TEXT_LUMA && uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
       {
         UInt uiQPDiv = pcCU->getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
@@ -1039,8 +1044,17 @@ Void TDecEntropy::xDecodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
         }
         uiWidth  <<= 1;
         uiHeight <<= 1;
+#if NSQT_MOD
+        trWidth = uiWidth;
+        trHeight = uiHeight;
+        pcCU->getNSQTSize( uiTrIdx-1, uiAbsPartIdx, trWidth, trHeight );
+#endif
       }
+#if NSQT_MOD
+      m_pcEntropyDecoderIf->parseCoeffNxN( pcCU, pcCoeff, uiAbsPartIdx, trWidth, trHeight, uiDepth, eType );
+#else
       m_pcEntropyDecoderIf->parseCoeffNxN( pcCU, pcCoeff, uiAbsPartIdx, uiWidth, uiHeight, uiDepth, eType );
+#endif
 #endif
     }
     else

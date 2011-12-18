@@ -864,7 +864,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
       {
         iQP_Q = 0; 
       }
-      if(pcCUP->getIPCMFlag(uiPartQIdx)) 
+      if(pcCUP->getIPCMFlag(uiPartPIdx)) 
       {
         iQP_P = 0; 
       }
@@ -1159,7 +1159,7 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
       {
         iQP_Q = 0; 
       }
-      if(pcCUP->getIPCMFlag(uiPartQIdx)) 
+      if(pcCUP->getIPCMFlag(uiPartPIdx)) 
       {
         iQP_P = 0; 
       }

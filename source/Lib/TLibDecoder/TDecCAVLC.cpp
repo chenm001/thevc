@@ -692,27 +692,35 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     // }
 #if G1002_RPS
     TComRefPicListModification* refPicListModification = rpcSlice->getRefPicListModification();
-    READ_FLAG( uiCode, "ref_pic_list_modification_flag_l0" ); refPicListModification->setRefPicListModificationFlagL0( uiCode ? 1 : 0 );
-    
-    if(refPicListModification->getRefPicListModificationFlagL0())
+    if(!rpcSlice->isIntra())
     {
-      uiCode = 0;
-      Int i = 0;
-      Int list_modification_idc = 0;
-      while(list_modification_idc != 3)  
+      READ_FLAG( uiCode, "ref_pic_list_modification_flag_l0" ); refPicListModification->setRefPicListModificationFlagL0( uiCode ? 1 : 0 );
+      
+      if(refPicListModification->getRefPicListModificationFlagL0())
       {
-        READ_UVLC( uiCode, "list_modification_idc" ); refPicListModification->setListIdcL0(i, uiCode );
-        list_modification_idc = uiCode;
-        if(uiCode != 3)
+        uiCode = 0;
+        Int i = 0;
+        Int list_modification_idc = 0;
+        while(list_modification_idc != 3)  
         {
-          READ_UVLC( uiCode, "ref_pic_set_idx" ); refPicListModification->setRefPicSetIdxL0(i, uiCode );
+          READ_UVLC( uiCode, "list_modification_idc" ); refPicListModification->setListIdcL0(i, uiCode );
+          list_modification_idc = uiCode;
+          if(uiCode != 3)
+          {
+            READ_UVLC( uiCode, "ref_pic_set_idx" ); refPicListModification->setRefPicSetIdxL0(i, uiCode );
+          }
+          i++;
         }
-        i++;
+        refPicListModification->setNumberOfRefPicListModificationsL0(i-1);
       }
-      refPicListModification->setNumberOfRefPicListModificationsL0(i-1);
+      else
+        refPicListModification->setNumberOfRefPicListModificationsL0(0); 
     }
     else
+    {
+      refPicListModification->setRefPicListModificationFlagL0(0);
       refPicListModification->setNumberOfRefPicListModificationsL0(0);
+    }
     if(rpcSlice->isInterB())
     {
       READ_FLAG( uiCode, "ref_pic_list_modification_flag_l1" ); refPicListModification->setRefPicListModificationFlagL1( uiCode ? 1 : 0 );
