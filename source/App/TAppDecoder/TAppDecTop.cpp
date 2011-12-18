@@ -125,6 +125,12 @@ Void TAppDecTop::decode()
     {
       InputNALUnit nalu;
       read(nalu, nalUnit);
+#if G1002_RPS
+      if(m_iMaxTemporalLayer>=0&&nalu.m_TemporalID>m_iMaxTemporalLayer)
+      {
+        continue;
+      }
+#endif
       bNewPicture = m_cTDecTop.decode(nalu, m_iSkipFrame, m_iPOCLastDisplay);
       if (bNewPicture)
       {
@@ -157,6 +163,9 @@ Void TAppDecTop::decode()
     }
   }
   
+#if G1002_RPS
+  xFlushOutput( pcListPic );
+#endif
   // delete buffers
   m_cTDecTop.deletePicBuffer();
   
@@ -198,12 +207,78 @@ Void TAppDecTop::xInitDecLib()
 Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
 {
   TComList<TComPic*>::iterator iterPic   = pcListPic->begin();
+#if G1002_RPS
+  Int not_displayed = 0;
+
+  while (iterPic != pcListPic->end())
+  {
+    TComPic* pcPic = *(iterPic);
+    if(pcPic->getReconMark() && pcPic->getPOC() > m_iPOCLastDisplay)
+       not_displayed++;
+    iterPic++;
+  }
+  iterPic   = pcListPic->begin();
+#endif
   
   while (iterPic != pcListPic->end())
   {
     TComPic* pcPic = *(iterPic);
     
+#if G1002_RPS
+    if ( pcPic->getReconMark() && not_displayed >  m_cTDecTop.getSPS()->getMaxNumberOfReorderPictures() && pcPic->getPOC() > m_iPOCLastDisplay)
+    {
+      // write to file
+       not_displayed--;
+#else
     if ( pcPic->getReconMark() && pcPic->getPOC() == (m_iPOCLastDisplay + 1) )
+    {
+      // write to file
+#endif
+      if ( m_pchReconFile )
+      {
+        m_cTVideoIOYuvReconFile.write( pcPic->getPicYuvRec(), pcPic->getSlice(0)->getSPS()->getPad() );
+      }
+      
+      // update POC of display order
+      m_iPOCLastDisplay = pcPic->getPOC();
+      
+      // erase non-referenced picture in the reference picture list after display
+      if ( !pcPic->getSlice(0)->isReferenced() && pcPic->getReconMark() == true )
+      {
+#if !DYN_REF_FREE
+        pcPic->setReconMark(false);
+        
+        // mark it should be extended later
+        pcPic->getPicYuvRec()->setBorderExtension( false );
+        
+#else
+        pcPic->destroy();
+        pcListPic->erase( iterPic );
+        iterPic = pcListPic->begin(); // to the beginning, non-efficient way, have to be revised!
+        continue;
+#endif
+      }
+    }
+    
+    iterPic++;
+  }
+}
+
+#if G1002_RPS
+/** \param pcListPic list of pictures to be written to file
+    \todo            DYN_REF_FREE should be revised
+ */
+Void TAppDecTop::xFlushOutput( TComList<TComPic*>* pcListPic )
+{
+  TComList<TComPic*>::iterator iterPic   = pcListPic->begin();
+
+  iterPic   = pcListPic->begin();
+  
+  while (iterPic != pcListPic->end())
+  {
+    TComPic* pcPic = *(iterPic);
+
+    if ( pcPic->getReconMark() && pcPic->getPOC() > m_iPOCLastDisplay)
     {
       // write to file
       if ( m_pchReconFile )
@@ -235,5 +310,6 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
     iterPic++;
   }
 }
+#endif
 
 //! \}

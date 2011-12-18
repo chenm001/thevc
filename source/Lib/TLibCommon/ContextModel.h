@@ -65,7 +65,11 @@ public:
   Void  setStateAndMps( UChar ucState, UChar ucMPS) { m_ucState = (ucState << 1) + ucMPS; } ///< set state and MPS
 #endif
   
+#if G633_8BIT_INIT
+  Void init ( Int qp, Int initValue );   ///< initialize state with initial probability
+#else
   Void init ( Int   iQp, Short asCtxInit[] );                                              ///< initialize state with initial prob.
+#endif
   
   Void updateLPS ()
   {
@@ -78,12 +82,29 @@ public:
   }
   
   Int getEntropyBits(Short val) { return m_entropyBits[m_ucState ^ val]; }
+    
+#if FAST_BIT_EST
+  Void update( Int binVal )
+  {
+    m_ucState = m_nextState[m_ucState][binVal];
+  }
+  static Void buildNextStateTable();
+  static Int getEntropyBitsTrm( Int val ) { return m_entropyBits[126 ^ val]; }
+#endif
   
 private:
   UChar         m_ucState;                                                                  ///< internal state variable
   static const  UChar m_aucNextStateMPS[ 128 ];
   static const  UChar m_aucNextStateLPS[ 128 ];
   static const Int m_entropyBits[ 128 ];
+#if FAST_BIT_EST
+  static UChar m_nextState[128][2];
+#endif
+#if G633_8BIT_INIT
+  static const Int m_slopes[16];
+  static const Int m_segOffset[8];
+  static const Int m_accumulatedSegOffset[8];
+#endif
 };
 
 //! \}

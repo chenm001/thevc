@@ -155,12 +155,8 @@ template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min
 #define MAX_TR1                           4
 
 // AMVP: advanced motion vector prediction
-#if MRG_AMVP_FIXED_IDX_F470
 #define AMVP_MAX_NUM_CANDS          2           ///< max number of final candidates
 #define AMVP_MAX_NUM_CANDS_MEM      3           ///< max number of candidates
-#else
-#define AMVP_MAX_NUM_CANDS          5           ///< max number of final candidates
-#endif
 // MERGE
 #define MRG_MAX_NUM_CANDS           5
 
@@ -191,6 +187,9 @@ template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min
 // Early-skip threshold (encoder)
 #define EARLY_SKIP_THRES            1.50        ///< if RD < thres*avg[BestSkipRD]
 
+#if  G1002_RPS
+#define MAX_NUM_REF_PICS 64
+#endif
 enum NalRefIdc
 {
   NAL_REF_IDC_PRIORITY_LOWEST = 0,

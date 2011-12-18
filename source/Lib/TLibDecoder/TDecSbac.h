@@ -95,8 +95,14 @@ public:
   Void  parsePPS                  ( TComPPS* pcPPS         ) {}
   void parseSEI(SEImessages&) {}
   Void  parseSliceHeader          ( TComSlice*& rpcSlice   ) {}
+#if G220_PURE_VLC_SAO_ALF
+#if (TILES_DECODER || OL_USE_WPP)
+  Void parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice) {printf("Not supported\n");assert(0); exit(1);}
+#endif
+#endif
+
   Void  parseTerminatingBit       ( UInt& ruiBit );
-  Void  parseMVPIdx               ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
+  Void  parseMVPIdx               ( Int& riMVPIdx          );
   
   Void  parseAlfFlag              ( UInt& ruiVal           );
   Void  parseAlfUvlc              ( UInt& ruiVal           );
@@ -113,23 +119,13 @@ private:
   Void  xReadEpExGolomb     ( UInt& ruiSymbol, UInt uiCount );
   Void  xReadGoRiceExGolomb ( UInt &ruiSymbol, UInt &ruiGoRiceParam );
   
-#if !MODIFIED_MVD_CODING
-#if MVD_CTX
-  Void  xReadMvd            ( Int& riMvdComp, UInt uiAbsSumL, UInt uiAbsSumA, UInt uiCtx );
-#else
-  Void  xReadMvd            ( Int& riMvdComp, UInt uiAbsSum, UInt uiCtx );
-#endif
-
-  Void  xReadExGolombMvd    ( UInt& ruiSymbol, ContextModel* pcSCModel, UInt uiMaxBin );
-#endif
-  
 private:
   TComInputBitstream* m_pcBitstream;
   TDecBinIf*        m_pcTDecBinIf;
   
   Bool m_bAlfCtrl;
   UInt m_uiMaxAlfCtrlDepth;
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   Int           m_iSliceGranularity; //!< slice granularity
 #endif
 
@@ -138,7 +134,7 @@ public:
   Void parseAlfFlagNum    ( UInt& ruiVal, UInt minValue, UInt depth );
   Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag );
 
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   /// set slice granularity
   Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
 
@@ -170,15 +166,11 @@ public:
   Void parseCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth ) {}
   Void parseBlockCbf      ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum ) {}
   
-#if E057_INTRA_PCM
   Void parseIPCMInfo      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
-#endif
 
-#if CAVLC_RQT_CBP
   Void parseCbfTrdiv      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiTrDepth, UInt uiDepth, UInt& uiSubdiv ) {}
-#endif
 
-  __inline Void parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, const UInt uiWidth, const TextType eTType, const UInt uiCTXIdx, const UInt uiScanIdx );
+  Void parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int width, Int height, TextType eTType, UInt uiScanIdx );
   Void parseCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
 #if TILES
@@ -206,9 +198,6 @@ private:
   ContextModel3DBuffer m_cCUPredModeSCModel;
   ContextModel3DBuffer m_cCUAlfCtrlFlagSCModel;
   ContextModel3DBuffer m_cCUIntraPredSCModel;
-#if ADD_PLANAR_MODE && !FIXED_MPM
-  ContextModel3DBuffer m_cPlanarFlagSCModel;
-#endif
   ContextModel3DBuffer m_cCUChromaPredSCModel;
   ContextModel3DBuffer m_cCUDeltaQpSCModel;
   ContextModel3DBuffer m_cCUInterDirSCModel;
@@ -218,11 +207,26 @@ private:
   ContextModel3DBuffer m_cCUTransSubdivFlagSCModel;
   ContextModel3DBuffer m_cCUQtRootCbfSCModel;
   
+#if MULTI_LEVEL_SIGNIFICANCE
+  ContextModel3DBuffer m_cCUSigCoeffGroupSCModel;
+#endif
+#if SIGMAP_CTX_RED
+  ContextModel3DBuffer m_cCUSigSCModelLuma;
+  ContextModel3DBuffer m_cCUSigSCModelChroma;
+#else
   ContextModel3DBuffer m_cCUSigSCModel;
+#endif
   ContextModel3DBuffer m_cCuCtxLastX;
   ContextModel3DBuffer m_cCuCtxLastY;
+#if COEFF_CTXSET_RED
+  ContextModel3DBuffer m_cCUOneSCModelLuma;
+  ContextModel3DBuffer m_cCUOneSCModelChroma;
+  ContextModel3DBuffer m_cCUAbsSCModelLuma;
+  ContextModel3DBuffer m_cCUAbsSCModelChroma;
+#else
   ContextModel3DBuffer m_cCUOneSCModel;
   ContextModel3DBuffer m_cCUAbsSCModel;
+#endif
   
   ContextModel3DBuffer m_cMVPIdxSCModel;
   

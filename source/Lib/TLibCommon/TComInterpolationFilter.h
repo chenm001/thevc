@@ -44,8 +44,6 @@
 //! \ingroup TLibCommon
 //! \{
 
-#if GENERIC_IF
-
 #define NTAPS_LUMA        8 ///< Number of taps for luma
 #define NTAPS_CHROMA      4 ///< Number of taps for chroma
 #define IF_INTERNAL_PREC 14 ///< Number of bits for internal precision
@@ -79,8 +77,6 @@ public:
   Void filterHorChroma(Pel *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height, Int frac,               Bool isLast );
   Void filterVerChroma(Pel *src, Int srcStride, Short *dst, Int dstStride, Int width, Int height, Int frac, Bool isFirst, Bool isLast );
 };
-
-#endif // GENERIC_IF
 
 //! \}
 

@@ -40,6 +40,10 @@
 
 #include "TLibCommon/CommonDef.h"
 
+#if G1002_RPS
+#include "TLibEncoder/TEncCfg.h"
+#include <sstream>
+#endif
 //! \ingroup TAppEncoder
 //! \{
 
@@ -69,6 +73,12 @@ protected:
   Int       m_iIntraPeriod;                                   ///< period of I-slice (random access period)
   Int       m_iDecodingRefreshType;                           ///< random access type
   Int       m_iGOPSize;                                       ///< GOP size of hierarchical structure
+#if G1002_RPS
+  Int       m_iExtraRPSs;
+  GOPEntry  m_pcGOPList[MAX_GOP];
+  UInt      m_uiMaxNumberOfReorderPictures;                   ///< total number of reference pictures needed for decoding
+  UInt      m_uiMaxNumberOfReferencePictures;                 ///< total number of reorder pictures
+#else
   Int       m_iRateGOPSize;                                   ///< GOP size for QP variance
   Int       m_iNumOfReference;                                ///< total number of reference frames in P-slice
   Int       m_iNumOfReferenceB_L0;                            ///< total number of reference frames for reference list L0 in B-slice
@@ -77,10 +87,17 @@ protected:
   Bool      m_bUseLDC;                                        ///< flag for using low-delay coding mode
   Bool      m_bUseNRF;                                        ///< flag for using non-referenced frame in hierarchical structure
   Bool      m_bUseGPB;                                        ///< flag for using generalized P & B structure
+#endif
   Bool      m_bUseLComb;                                      ///< flag for using combined reference list for uni-prediction in B-slices (JCTVC-D421)
   Bool      m_bLCMod;                                         ///< flag for specifying whether the combined reference list for uni-prediction in B-slices is uploaded explicitly
 #if DISABLE_4x4_INTER
   Bool      m_bDisInter4x4;
+#endif
+#if NSQT
+  Bool      m_enableNSQT;                                     ///< flag for enabling NSQT
+#endif
+#if AMP
+  Bool      m_enableAMP;
 #endif
   // coding quality
   Double    m_fQP;                                            ///< QP value of key-picture (floating point)
@@ -90,9 +107,7 @@ protected:
   Int*      m_aidQP;                                          ///< array of slice QP values
   Int       m_iMaxDeltaQP;                                    ///< max. |delta QP|
   UInt      m_uiDeltaQpRD;                                    ///< dQP range for multi-pass slice QP optimization
-#if SUB_LCU_DQP
   Int       m_iMaxCuDQPDepth;                                 ///< Max. depth for a minimum CuDQPSize (0:default)
-#endif
 #if QP_ADAPTATION
   Bool      m_bUseAdaptiveQP;                                 ///< Flag for enabling QP adaptation based on a psycho-visual model
   Int       m_iQPAdaptationRange;                             ///< dQP range by QP adaptation
@@ -119,7 +134,7 @@ protected:
   UInt      m_uiInternalBitDepth;                             ///< Internal bit-depth (BitDepth+BitIncrement)
 
   // coding tools (PCM bit-depth)
-#if E057_INTRA_PCM && E192_SPS_PCM_BIT_DEPTH_SYNTAX
+#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
   Bool      m_bPCMInputBitDepthFlag;                          ///< 0: PCM bit-depth is internal bit-depth. 1: PCM bit-depth is input bit-depth.
   UInt      m_uiPCMBitDepthLuma;                              ///< PCM bit-depth for luma
 #endif
@@ -130,29 +145,29 @@ protected:
 
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
-#ifdef MQT_ALF_NPASS
   Int       m_iALFEncodePassReduction;                        //!< ALF encoding pass, 0 = original 16-pass, 1 = 1-pass, 2 = 2-pass
-#endif
   
+#if G215_ALF_NUM_FILTER
+  Int       m_iALFMaxNumberFilters;                           ///< ALF Max Number Filters in one picture
+#endif
+
   Bool      m_bLoopFilterDisable;                             ///< flag for using deblocking filter
   Int       m_iLoopFilterAlphaC0Offset;                       ///< alpha offset for deblocking filter
   Int       m_iLoopFilterBetaOffset;                          ///< beta offset for deblocking filter
   
+#if !DISABLE_CAVLC
   // coding tools (entropy coder)
   Int       m_iSymbolMode;                                    ///< entropy coder mode, 0 = VLC, 1 = CABAC
+#endif
   
   // coding tools (inter - merge motion partitions)
   Bool      m_bUseMRG;                                        ///< SOPH: flag for using motion partition Merge Mode
   
-#if LM_CHROMA 
   Bool      m_bUseLMChroma;                                  ///< JL: Chroma intra prediction based on luma signal
-#endif
 
   // coding tools (PCM)
-#if E057_INTRA_PCM
   UInt      m_uiPCMLog2MinSize;                               ///< log2 of minimum PCM block size
-#endif
-#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Bool      m_bPCMFilterDisableFlag;                          ///< PCM filter disable flag
 #endif
 
@@ -161,7 +176,9 @@ protected:
   Bool      m_bUseASR;                                        ///< flag for using adaptive motion search range
   Bool      m_bUseHADME;                                      ///< flag for using HAD in sub-pel ME
   Bool      m_bUseRDOQ;                                       ///< flag for using RD optimized quantization
+#if !G1002_RPS
   Bool      m_bUseBQP;                                        ///< flag for using B-slice based QP assignment in low-delay hier. structure
+#endif
   Int       m_iFastSearch;                                    ///< ME mode, 0 = full, 1 = diamond, 2 = PMVFAST
   Int       m_iSearchRange;                                   ///< ME search range
   Int       m_bipredSearchRange;                              ///< ME search range for bipred refinement
@@ -180,9 +197,7 @@ protected:
 #if FINE_GRANULARITY_SLICES
   Int       m_iSliceGranularity;///< 0: Slices always end at LCU borders. 1-3: slices may end at a depth of 1-3 below LCU level.
 #endif
-#if MTK_NONCROSS_INLOOP_FILTER
   Bool m_bLFCrossSliceBoundaryFlag;  ///< 0: Cross-slice-boundary in-loop filtering 1: non-cross-slice-boundary in-loop filtering
-#endif
 #if TILES
   Int       m_iColumnRowInfoPresent;
   Int       m_iUniformSpacingIdr;
@@ -209,8 +224,10 @@ protected:
   
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
+#if !G1002_RPS
 #if REF_SETTING_FOR_LD
   Bool      m_bUseNewRefSetting;
+#endif
 #endif
 
   // weighted prediction

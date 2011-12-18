@@ -55,7 +55,7 @@
 #define LUMA_GROUP_NUM                (1<<SAO_BO_BITS)
 #define MAX_NUM_SAO_CLASS             32
 #define SAO_RDCO                      0
-#define SAO_FGS_NIF                   SAO && FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#define SAO_FGS_NIF                   SAO && FINE_GRANULARITY_SLICES
 
 // ====================================================================================================================
 // Class definition

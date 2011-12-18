@@ -44,10 +44,8 @@
 #include "TLibCommon/ContextModel.h"
 #include "TLibCommon/TComPic.h"
 #include "TLibCommon/TComTrQuant.h"
-#if E045_SLICE_COMMON_INFO_SHARING
 #include "TLibCommon/TComAdaptiveLoopFilter.h"
 #include "TLibCommon/TComSampleAdaptiveOffset.h"
-#endif
 
 class TEncSbac;
 class TEncCavlc;
@@ -78,6 +76,12 @@ public:
   virtual Void  codePPS                 ( TComPPS* pcPPS )                                      = 0;
   virtual void codeSEI(const SEI&) = 0;
   virtual Void  codeSliceHeader         ( TComSlice* pcSlice )                                  = 0;
+#if G220_PURE_VLC_SAO_ALF
+#if TILES_DECODER
+  virtual Void codeTileMarkerFlag      ( TComSlice* pcSlice )                                  = 0;
+#endif
+#endif
+
 #if OL_USE_WPP
   virtual Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice )                             = 0;
 #endif
@@ -102,9 +106,7 @@ public:
   virtual Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
   virtual Void codePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
   
-#if E057_INTRA_PCM
   virtual Void codeIPCMInfo      ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
-#endif
 
   virtual Void codeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx ) = 0;
   virtual Void codeQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth ) = 0;
@@ -118,16 +120,14 @@ public:
   virtual Void codeDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
   virtual Void codeCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth ) = 0;
   virtual Void codeBlockCbf      ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiQPartNum, Bool bRD = false) = 0;
-#if CAVLC_RQT_CBP
   virtual Void codeCbfTrdiv      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
   virtual UInt xGetFlagPattern   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
-#endif
   virtual Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType ) = 0;
   
   virtual Void codeAlfFlag          ( UInt uiCode ) = 0;
   virtual Void codeAlfUvlc          ( UInt uiCode ) = 0;
   virtual Void codeAlfSvlc          ( Int   iCode ) = 0;
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   /// set slice granularity
   virtual Void setSliceGranularity(Int iSliceGranularity) = 0;
 
@@ -135,19 +135,19 @@ public:
   virtual Int  getSliceGranularity()                      = 0;
 #endif
 
-#if MTK_NONCROSS_INLOOP_FILTER
   /// Code number of ALF CU control flags
   virtual Void codeAlfFlagNum       ( UInt uiCode, UInt minValue, Int iDepth) = 0;
-#else
-  virtual Void codeAlfFlagNum       ( UInt uiCode, UInt minValue ) = 0;
-#endif
   virtual Void codeAlfCtrlFlag      ( UInt uiSymbol ) = 0;
 #if SAO
   virtual Void codeSaoFlag          ( UInt uiCode ) = 0;
   virtual Void codeSaoUvlc          ( UInt uiCode ) = 0;
   virtual Void codeSaoSvlc          ( Int   iCode ) = 0;
 #endif
+#if NSQT_DIAG_SCAN
+  virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType) = 0;
+#else
   virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType) = 0;
+#endif
   
 #if TILES
   virtual Void updateContextTables ( SliceType eSliceType, Int iQp, Bool bExecuteFinish )   = 0;
@@ -169,6 +169,12 @@ public:
 /// entropy encoder class
 class TEncEntropy
 {
+#if TU_LEVEL_COEFF_INTERLEAVE
+private:
+  UInt    m_uiBakAbsPartIdx;
+  UInt    m_uiBakChromaOffset;
+#endif
+
 public:
   Void    setEntropyCoder           ( TEncEntropyIf* e, TComSlice* pcSlice );
   Void    setBitstream              ( TComBitIf* p )          { m_pcEntropyCoderIf->setBitstream(p);  }
@@ -179,6 +185,11 @@ public:
   Void    resetEntropy              ()                        { m_pcEntropyCoderIf->resetEntropy();  }
   
   Void    encodeSliceHeader         ( TComSlice* pcSlice );
+#if G220_PURE_VLC_SAO_ALF
+#if TILES_DECODER
+  Void    encodeTileMarkerFlag       (TComSlice* pcSlice) {m_pcEntropyCoderIf->codeTileMarkerFlag(pcSlice);}
+#endif
+#endif
 #if OL_USE_WPP
   Void    encodeSliceHeaderSubstreamTable( TComSlice* pcSlice );
 #endif
@@ -212,14 +223,9 @@ public:
   Void encodeMvdPU        ( TComDataCU* pcSubCU, UInt uiAbsPartIdx, RefPicList eRefList );
   Void encodeMVPIdxPU     ( TComDataCU* pcSubCU, UInt uiAbsPartIdx, RefPicList eRefList );
   Void encodeMergeFlag    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPUIdx );
-#if HHI_MRG_SKIP
   Void encodeMergeIndex   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPUIdx, Bool bRD = false );
-#else
-  Void encodeMergeIndex   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPUIdx );
-#endif
   Void encodeAlfCtrlFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
 
-#if MTK_NONCROSS_INLOOP_FILTER
 #if FINE_GRANULARITY_SLICES
   /// set slice granularity
   Void setSliceGranularity (Int iSliceGranularity) {m_pcEntropyCoderIf->setSliceGranularity(iSliceGranularity);}
@@ -227,24 +233,17 @@ public:
 
   /// encode ALF CU control flag
   Void encodeAlfCtrlFlag(UInt uiFlag);
-#endif
 
 #if F747_APS
   Void encodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
 #else
-#if E045_SLICE_COMMON_INFO_SHARING
   /// encode ALF CU control flags
   Void encodeAlfCtrlParam      ( ALFParam *pAlfParam, UInt uiNumSlices= 1, CAlfSlice* pcAlfSlice= NULL);
-#else
-  Void encodeAlfCtrlParam      ( ALFParam *pAlfParam );
-#endif
 #endif
 
   Void encodePredMode          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   Void encodePartSize          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD = false );
-#if E057_INTRA_PCM
   Void encodeIPCMInfo          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
-#endif
   Void encodePredInfo          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   Void encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   
@@ -270,14 +269,24 @@ public:
 
 private:
   Void xEncodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 );
+#if TU_LEVEL_COEFF_INTERLEAVE
+  Void xEncodeCoeff            ( TComDataCU* pcCU, UInt uiLumaOffset, UInt uiChromaOffset, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, UInt uiTrIdx, UInt uiCurrTrIdx, Bool& bCodeDQP );
+#else
   Void xEncodeCoeff            ( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, UInt uiTrIdx, UInt uiCurrTrIdx, TextType eType, Bool& bCodeDQP );
+#endif
 public:
   Void encodeCoeff             ( TComDataCU* pcCU,                 UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, Bool& bCodeDQP );
+#if !TU_LEVEL_COEFF_INTERLEAVE
   Void encodeCoeff             ( TComDataCU* pcCU, TCoeff* pCoeff, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, UInt uiMaxTrMode, UInt uiTrMode, TextType eType, Bool& bCodeDQP );
+#endif
   
   Void encodeCoeffNxN         ( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPartIdx, UInt uiTrWidth, UInt uiTrHeight, UInt uiDepth, TextType eType );
   
+#if NSQT_DIAG_SCAN
+  Void estimateBit             ( estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType);
+#else
   Void estimateBit             ( estBitsSbacStruct* pcEstBitsSbac, UInt uiWidth, TextType eTType);
+#endif
   
   // ALF-related
   Void codeAuxCountBit(ALFParam* pAlfParam, Int64* ruiRate);
@@ -285,7 +294,12 @@ public:
   Void codeAux (ALFParam* pAlfParam);
   Void codeFilt (ALFParam* pAlfParam);
   Int codeFilterCoeff(ALFParam* ALFp);
+#if G610_ALF_K_BIT_FIX
+  Int writeFilterCodingParams(int minKStart, int minScanVal, int maxScanVal, int kMinTab[]);
+#else
   Int writeFilterCodingParams(int minKStart, int maxScanVal, int kMinTab[]);
+#endif
+
   Int writeFilterCoeffs(int sqrFiltLength, int filters_per_group, int pDepthInt[], 
                         int **FilterCoeff, int kMinTab[]);
   Int golombEncode(int coeff, int k);

@@ -1535,15 +1535,7 @@ Void TComSampleAdaptiveOffset::processSaoOnePart(SAOQTPart *psQTPart, UInt uiPar
     if (uiTypeIdx == SAO_BO_0 || uiTypeIdx == SAO_BO_1)
     {
       for (i=0;i<pOnePart->iLength;i++)
-#if SAO_ACCURATE_OFFSET
         iOffset[i+1] = pOnePart->iOffset[i] << m_uiSaoBitIncrease;
-#else
-#if FULL_NBIT
-        iOffset[i+1] = pOnePart->iOffset[i] << (g_uiBitDepth-8-m_uiSaoBitIncrease);
-#else
-        iOffset[i+1] = pOnePart->iOffset[i] << (g_uiBitIncrement-m_uiSaoBitIncrease);
-#endif
-#endif
 
       if (uiTypeIdx == SAO_BO_0 )
       {
@@ -1568,16 +1560,7 @@ Void TComSampleAdaptiveOffset::processSaoOnePart(SAOQTPart *psQTPart, UInt uiPar
     {
       for (i=0;i<pOnePart->iLength;i++)
       {
-#if SAO_ACCURATE_OFFSET
         iOffset[i+1] = pOnePart->iOffset[i] << m_uiSaoBitIncrease;
-#else
-#if FULL_NBIT
-        iOffset[i+1] = pOnePart->iOffset[i] << (g_uiBitDepth-8-m_uiSaoBitIncrease);
-#else
-        iOffset[i+1] = pOnePart->iOffset[i] << (g_uiBitIncrement-m_uiSaoBitIncrease);
-#endif
-#endif
-
       }
       for (uiEdgeType=0;uiEdgeType<6;uiEdgeType++)
       {
@@ -1700,15 +1683,7 @@ Void TComSampleAdaptiveOffset::xSaoAllPart(SAOQTPart *psQTPart, Int iYCbCr)
           if (iTypeIdx == SAO_BO_0 || iTypeIdx == SAO_BO_1)
           {
             for (i=0;i<pOnePart->iLength;i++)
-#if SAO_ACCURATE_OFFSET
               iOffset[i+1] = pOnePart->iOffset[i] << m_uiSaoBitIncrease;
-#else
-#if FULL_NBIT
-              iOffset[i+1] = pOnePart->iOffset[i] << (g_uiBitDepth-8-m_uiSaoBitIncrease);
-#else
-              iOffset[i+1] = pOnePart->iOffset[i] << (g_uiBitIncrement-m_uiSaoBitIncrease);
-#endif
-#endif
 
             if (iTypeIdx == SAO_BO_0 )
             {
@@ -1733,15 +1708,7 @@ Void TComSampleAdaptiveOffset::xSaoAllPart(SAOQTPart *psQTPart, Int iYCbCr)
           {
             for (i=0;i<pOnePart->iLength;i++)
             {
-#if SAO_ACCURATE_OFFSET
               iOffset[i+1] = pOnePart->iOffset[i] << m_uiSaoBitIncrease;
-#else
-#if FULL_NBIT
-              iOffset[i+1] = pOnePart->iOffset[i] << (g_uiBitDepth-8-m_uiSaoBitIncrease);
-#else
-              iOffset[i+1] = pOnePart->iOffset[i] << (g_uiBitIncrement-m_uiSaoBitIncrease);
-#endif
-#endif
             }
             for (uiEdgeType=0;uiEdgeType<6;uiEdgeType++)
             {
@@ -1879,25 +1846,10 @@ Void TComSampleAdaptiveOffset::SAOProcess(TComPic* pcPic, SAOParam* pcSaoParam)
 {
   if (pcSaoParam->bSaoFlag[0])
   {
-#if SAO_ACCURATE_OFFSET
 #if FULL_NBIT
     m_uiSaoBitIncrease = g_uiBitDepth + (g_uiBitDepth-8) - min((Int)(g_uiBitDepth + (g_uiBitDepth-8)), 10);
 #else
     m_uiSaoBitIncrease = g_uiBitDepth + g_uiBitIncrement - min((Int)(g_uiBitDepth + g_uiBitIncrement), 10);
-#endif
-#else
-#if FULL_NBIT
-    if (g_uiBitDepth-8>1)
-#else
-    if (g_uiBitIncrement>1)
-#endif
-    {
-      m_uiSaoBitIncrease = 1;
-    }
-    else
-    {
-      m_uiSaoBitIncrease = 0;
-    }
 #endif
     m_pcPic = pcPic;
 

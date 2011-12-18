@@ -129,9 +129,7 @@ protected:
 #if QP_ADAPTATION
   Int   xComputeQP          ( TComDataCU* pcCU, UInt uiDepth );
 #endif
-#if SUB_LCU_DQP
   Void  xCheckBestMode      ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth        );
-#endif
 
   Void  xCheckRDCostAMVPSkip( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU                      );
   
@@ -145,19 +143,11 @@ protected:
 #endif
   Void  xCheckRDCostIntra   ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize ePartSize  );
   Void  xCheckBestMode      ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU                      );
-#if SUB_LCU_DQP
   Void  xCheckDQP           ( TComDataCU*  pcCU );
-#endif
   
-#if E057_INTRA_PCM
   Void  xCheckIntraPCM      ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU                      );
-#endif // endif
   Void  xCopyAMVPInfo       ( AMVPInfo* pSrc, AMVPInfo* pDst );
-#if SUB_LCU_DQP
   Void  xCopyYuv2Pic        (TComPic* rpcPic, UInt uiCUAddr, UInt uiAbsPartIdx, UInt uiDepth, UInt uiSrcDepth, TComDataCU* pcCU, UInt uiLPelX, UInt uiTPelY );
-#else
-  Void  xCopyYuv2Pic        ( TComPic* rpcPic, UInt uiCUAddr, UInt uiAbsZorderIdx, UInt uiDepth );
-#endif
   Void  xCopyYuv2Tmp        ( UInt uhPartUnitIdx, UInt uiDepth );
 
   Bool getdQPFlag           ()                        { return m_bEncodeDQP;        }

@@ -144,11 +144,7 @@ public:
   
   const TComMv scaleMv( Int iScale ) const
   {
-#if MV_SCALE_ROUNDING_F142
     return TComMv( (iScale * getHor() + 127 + (iScale * getHor() < 0)) >> 8, (iScale * getVer() + 127 + (iScale * getVer() < 0)) >> 8);
-#else
-    return TComMv( (iScale * getHor() + 128) >> 8, (iScale * getVer() + 128) >> 8);
-#endif
   }
 };// END CLASS DEFINITION TComMV
 

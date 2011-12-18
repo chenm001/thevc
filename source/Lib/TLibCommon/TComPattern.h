@@ -105,19 +105,8 @@ private:
   TComPatternParam  m_cPatternY;
   TComPatternParam  m_cPatternCb;
   TComPatternParam  m_cPatternCr;
-#if MN_DC_PRED_FILTER && !UNIFICATION_OF_AVAILABILITY
-  Bool m_bAboveFlagForDCFilt;
-  Bool m_bLeftFlagForDCFilt;
-  Bool m_bDCPredFilterFlag;
-#endif
   
-#if QC_MDIS
-#if ADD_PLANAR_MODE || LM_CHROMA
   static const UChar m_aucIntraFilter[5][NUM_INTRA_MODE];
-#else
-  static const UChar m_aucIntraFilter[5][34];
-#endif
-#endif
   
 public:
   
@@ -126,18 +115,13 @@ public:
   Int   getROIYWidth()            { return m_cPatternY.m_iROIWidth;       }
   Int   getROIYHeight()           { return m_cPatternY.m_iROIHeight;      }
   Int   getPatternLStride()       { return m_cPatternY.m_iPatternStride;  }
-#if MN_DC_PRED_FILTER && !UNIFICATION_OF_AVAILABILITY
-  Bool  getDCPredFilterFlag()     { return m_bDCPredFilterFlag; }
-#endif
 
   // access functions of ADI buffers
   Int*  getAdiOrgBuf              ( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
   Int*  getAdiCbBuf               ( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
   Int*  getAdiCrBuf               ( Int iCuWidth, Int iCuHeight, Int* piAdiBuf );
   
-#if QC_MDIS
   Int*  getPredictorPtr           ( UInt uiDirMode, UInt uiWidthBits, Int* piAdiBuf );
-#endif //QC_MDIS
   // -------------------------------------------------------------------------------------------------------------------
   // initialization functions
   // -------------------------------------------------------------------------------------------------------------------
@@ -168,13 +152,7 @@ public:
                                Int         iOrgBufHeight,
                                Bool&       bAbove,
                                Bool&       bLeft
-#if LM_CHROMA
-#if LM_CHROMA_SIMPLIFICATION
                               ,Bool        bLMmode = false // using for LM chroma or not
-#else
-                              ,UInt uiExt = 1 // number of extension lines, default is one, for LM chroma two lines are necessary for downsampling
-#endif
-#endif
                                );
   
   /// set chroma parameters from CU data for accessing ADI data
@@ -189,52 +167,17 @@ public:
 
 private:
 
-#if REFERENCE_SAMPLE_PADDING
   /// padding of unavailable reference samples for intra prediction
-#if LM_CHROMA_SIMPLIFICATION
   Void  fillReferenceSamples        ( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride, Bool bLMmode = false);
-#else
-  Void  fillReferenceSamples        ( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride);
-#if LM_CHROMA
-  Void  fill2ReferenceSamples_LM    ( TComDataCU* pcCU, Pel* piRoiOrigin, Int* piAdiTemp, Bool* bNeighborFlags, Int iNumIntraNeighbor, Int iUnitSize, Int iNumUnitsInCu, Int iTotalUnits, UInt uiCuWidth, UInt uiCuHeight, UInt uiWidth, UInt uiHeight, Int iPicStride);
-#endif
-#endif
   
-#endif
-
-
-#if UNIFY_INTRA_AVAIL
 
   /// constrained intra prediction
   Bool  isAboveLeftAvailable  ( TComDataCU* pcCU, UInt uiPartIdxLT );
-#if REFERENCE_SAMPLE_PADDING
   Int   isAboveAvailable      ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool* bValidFlags );
   Int   isLeftAvailable       ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB, Bool* bValidFlags );
   Int   isAboveRightAvailable ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool* bValidFlags );
   Int   isBelowLeftAvailable  ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB, Bool* bValidFlags );
-#else
-  Bool  isAboveAvailable      ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT );
-  Bool  isLeftAvailable       ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB );
-  Bool  isAboveRightAvailable ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT );
-  Bool  isBelowLeftAvailable  ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB );
-#endif
 
-#else //UNIFY_INTRA_AVAIL
-  /// constrained intra prediction
-  Bool  isAboveLeftAvailableForCIP  ( TComDataCU* pcCU, UInt uiPartIdxLT );
-#if REFERENCE_SAMPLE_PADDING
-  Int   isAboveAvailableForCIP      ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool* bValidFlags );
-  Int   isLeftAvailableForCIP       ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB, Bool* bValidFlags );
-  Int   isAboveRightAvailableForCIP ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT, Bool* bValidFlags );
-  Int   isBelowLeftAvailableForCIP  ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB, Bool* bValidFlags );
-#else
-  Bool  isAboveAvailableForCIP      ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT );
-  Bool  isLeftAvailableForCIP       ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB );
-  Bool  isAboveRightAvailableForCIP ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxRT );
-  Bool  isBelowLeftAvailableForCIP  ( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPartIdxLB );
-#endif
-
-#endif
 };
 
 //! \}

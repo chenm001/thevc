@@ -43,9 +43,7 @@
 
 #include "CommonDef.h"
 #include "TComYuv.h"
-#if GENERIC_IF
 #include "TComInterpolationFilter.h"
-#endif
 
 //! \ingroup TLibCommon
 //! \{
@@ -524,7 +522,6 @@ Void TComYuv::addAvg( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx,
   UInt  iSrc0Stride = pcYuvSrc0->getStride();
   UInt  iSrc1Stride = pcYuvSrc1->getStride();
   UInt  iDstStride  = getStride();
-#if GENERIC_IF
   Int shiftNum = IF_INTERNAL_PREC + 1 - ( g_uiBitDepth + g_uiBitIncrement );
   Int offset = ( 1 << ( shiftNum - 1 ) ) + 2 * IF_INTERNAL_OFFS;
   
@@ -541,25 +538,6 @@ Void TComYuv::addAvg( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx,
     pSrcY1 += iSrc1Stride;
     pDstY  += iDstStride;
   }
-#else
-  Int shiftNum = 15 - (g_uiBitDepth + g_uiBitIncrement);
-  Int offset = (1<<(shiftNum - 1));
-  
-  for ( y = iHeight-1; y >= 0; y-- )
-  {
-    for ( x = iWidth-1; x >= 0; )
-    {
-      // note: luma min width is 4
-      pDstY[x] = Clip((pSrcY0[x] + pSrcY1[x] + offset) >> shiftNum ); x--;
-      pDstY[x] = Clip((pSrcY0[x] + pSrcY1[x] + offset) >> shiftNum); x--;
-      pDstY[x] = Clip((pSrcY0[x] + pSrcY1[x] + offset) >> shiftNum); x--;
-      pDstY[x] = Clip((pSrcY0[x] + pSrcY1[x] + offset) >> shiftNum); x--;
-    }
-    pSrcY0 += iSrc0Stride;
-    pSrcY1 += iSrc1Stride;
-    pDstY  += iDstStride;
-  }
-#endif
   
   iSrc0Stride = pcYuvSrc0->getCStride();
   iSrc1Stride = pcYuvSrc1->getCStride();

@@ -60,10 +60,8 @@ struct InputNALUnit;
 #define APS_RESERVED_BUFFER_SIZE 2 //!< must be equal to or larger than 2 to handle bitstream parsing
 
 #else
-#if E045_SLICE_COMMON_INFO_SHARING
 #define MAX_NUM_PPS 1
 #define MAX_NUM_PPS_BUFFER (MAX_NUM_PPS +1)
-#endif
 #endif
 
 // ====================================================================================================================
@@ -90,14 +88,13 @@ private:
   TComPPS                 m_cPPS;               //!< PPS
   std::vector<std::vector<TComAPS> >   m_vAPS;  //!< APS container
 #else
-#if E045_SLICE_COMMON_INFO_SHARING
   TComPPS*                m_pcPPS;       //!< PPS
   TComPPS*                m_pcPPSBuffer; //!< PPS buffer
   Bool*                   m_pbHasNewPPS; //!< Availability for each PPS in PPS buffer
   Int                     m_iPPSCounter; //!< PPS counter
-#else
-  TComPPS                 m_cPPS;
 #endif
+#if G1002_RPS
+  TComRPS                 m_cRPSList;
 #endif
   TComSlice*              m_apcSlicePilot;
   
@@ -148,6 +145,9 @@ public:
 protected:
   Void  xGetNewPicBuffer  (TComSlice* pcSlice, TComPic*& rpcPic);
   Void  xUpdateGopSize    (TComSlice* pcSlice);
+#if G1002_RPS
+  Void  xCreateLostPicture (Int iLostPOC);
+#endif
 
 #if F747_APS
   Void      decodeAPS(TComInputBitstream* bs, TComAPS& cAPS); //!< decode process for APS
@@ -156,7 +156,6 @@ protected:
   Void      allocAPS (TComAPS* pAPS); //!< memory allocation for APS
   Void      freeAPS  (TComAPS* pAPS); //!< memory deallocation for APS
 #else
-#if E045_SLICE_COMMON_INFO_SHARING
   /// create PPS buffer
   Void     createPPSBuffer      ();
   /// destroy PPS buffer
@@ -171,7 +170,6 @@ protected:
   TComPPS* getPPS               ()   {return m_pcPPS;}
   /// signal if the PPS is available
   Bool     hasNewPPS            ()   {return m_pbHasNewPPS[m_iPPSCounter];}
-#endif
 #endif
 
 };// END CLASS DEFINITION TDecTop

@@ -74,9 +74,17 @@ class TEncGOP
 {
 private:
   //  Data
+#if G1002_RPS
+  Bool                    m_bLongtermTestPictureHasBeenCoded;
+  Bool                    m_bLongtermTestPictureHasBeenCoded2;
+#endif
+#if !G1002_RPS
   Int                     m_iHrchDepth;
+#endif
   Int                     m_iGopSize;
+#if !G1002_RPS
   Int                     m_iRateGopSize;
+#endif
   Int                     m_iNumPicCoded;
   Bool                    m_bFirst;
   
@@ -109,12 +117,6 @@ private:
   UInt*                   m_uiStoredStartCUAddrForEncodingSlice;
   UInt*                   m_uiStoredStartCUAddrForEncodingEntropySlice;
 
-// #if MTK_NONCROSS_INLOOP_FILTER
-//   UInt                    m_uiILSliceCount;
-//   UInt*                   m_puiILSliceStartLCU;
-//   UInt*                   m_puiILSliceEndLCU;
-// #endif
-
 #if RVM_VCEGAM10
   std::vector<Int> m_vRVM_RP;
 #endif
@@ -134,9 +136,11 @@ public:
 
   
   Int   getGOPSize()          { return  m_iGopSize;  }
+#if !G1002_RPS
   Int   getRateGOPSize()      { return  m_iRateGopSize;  }
   Int   isHierarchicalB()     { return  m_pcCfg->getHierarchicalCoding();  }
   Int   getHrchDepth()        { return  m_iHrchDepth; }
+#endif
   
   TComList<TComPic*>*   getListPic()      { return m_pcListPic; }
   
@@ -172,7 +176,6 @@ protected:
 // ====================================================================================================================
 // Enumeration
 // ====================================================================================================================
-#if E045_SLICE_COMMON_INFO_SHARING
 enum PROCESSING_STATE
 {
   EXECUTE_INLOOPFILTER,
@@ -183,7 +186,6 @@ enum PROCESSING_STATE
 #endif
   ENCODE_SLICE
 };
-#endif
 
 //! \}
 

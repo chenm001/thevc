@@ -132,7 +132,7 @@ void write(ostream& out, const OutputNALUnit& nalu)
     } while (true);
 
 #if TILES_DECODER
-    UInt uiDistance = found - rbsp.begin();
+    UInt uiDistance = (UInt)(found - rbsp.begin());
     for ( UInt uiMrkrIdx = 0; uiMrkrIdx < uiTileMarkerCount ; uiMrkrIdx++ )
     {    
       UInt uiByteLocation   = nalu.m_Bitstream.getTileMarkerLocation( uiMrkrIdx );

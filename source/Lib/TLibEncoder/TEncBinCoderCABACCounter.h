@@ -31,54 +31,42 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** \file     TDecBinCoder.h
-    \brief    binary entropy decoder interface
+/** \file     TEncBinCoderCABAC.h
+    \brief    binary entropy encoder of CABAC
 */
 
-#ifndef __TDEC_BIN_CODER__
-#define __TDEC_BIN_CODER__
+#ifndef __TENC_BIN_CODER_CABAC_COUNTER__
+#define __TENC_BIN_CODER_CABAC_COUNTER__
 
-#include "TLibCommon/ContextModel.h"
-#include "TLibCommon/TComBitStream.h"
 
-//! \ingroup TLibDecoder
+#include "TEncBinCoderCABAC.h"
+
+#if FAST_BIT_EST
+
+//! \ingroup TLibEncoder
 //! \{
-#if OL_USE_WPP
-class TDecBinCABAC;
-#endif
 
-class TDecBinIf
+
+class TEncBinCABACCounter : public TEncBinCABAC
 {
 public:
-  virtual Void  init              ( TComInputBitstream* pcTComBitstream )     = 0;
-  virtual Void  uninit            ()                                          = 0;
-
-  virtual Void  start             ()                                          = 0;
-  virtual Void  finish            ()                                          = 0;
-#if OL_FLUSH
-  virtual Void  flush            ()                                           = 0;
-#endif
-
-  virtual Void  decodeBin         ( UInt& ruiBin, ContextModel& rcCtxModel )  = 0;
-  virtual Void  decodeBinEP       ( UInt& ruiBin                           )  = 0;
-  virtual Void  decodeBinsEP      ( UInt& ruiBins, Int numBins             )  = 0;
-  virtual Void  decodeBinTrm      ( UInt& ruiBin                           )  = 0;
+  TEncBinCABACCounter ();
+  virtual ~TEncBinCABACCounter();
   
-  virtual Void  resetBac          ()                                          = 0;
-  virtual Void  decodePCMAlignBits()                                          = 0;
-  virtual Void  xReadPCMCode      (UInt uiLength, UInt& ruiCode)              = 0;
+  Void  finish            ();
+  UInt  getNumWrittenBits ();
 
-  virtual ~TDecBinIf() {}
-
-#if OL_USE_WPP
-  virtual Void  copyState         ( TDecBinIf* pcTDecBinIf )                  = 0;
-  virtual TDecBinCABAC*   getTDecBinCABAC   ()  { return 0; }
-#if !OL_FLUSH_ALIGN
-  virtual Int   getBitsReadAhead() { return 0; }
-#endif
-#endif
+  Void  encodeBin         ( UInt  binValue,  ContextModel& rcCtxModel );
+  Void  encodeBinEP       ( UInt  binValue                            );
+  Void  encodeBinsEP      ( UInt  binValues, Int numBins              );
+  Void  encodeBinTrm      ( UInt  binValue                            );
+  
+private:
 };
 
 //! \}
 
 #endif
+
+#endif
+

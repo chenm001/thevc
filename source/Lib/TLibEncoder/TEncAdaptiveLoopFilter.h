@@ -56,390 +56,234 @@
 class TEncAdaptiveLoopFilter : public TComAdaptiveLoopFilter
 {
 private:
-  static const Int m_aiSymmetricArray9x9[81];     ///< scan index for 9x9 filter
-  static const Int m_aiSymmetricArray7x7[49];     ///< scan index for 7x7 filter
-  static const Int m_aiSymmetricArray5x5[25];     ///< scan index for 5x5 filter
-#if TI_ALF_MAX_VSIZE_7
-  static const Int m_aiSymmetricArray9x7[63];     ///< scan index for 9x7 filter
-#endif
-  
+  ///
+  /// variables for correlation calculation
+  ///
   Double** m_ppdAlfCorr;
   Double* m_pdDoubleAlfCoeff;
-#if ALF_CHROMA_NEW_SHAPES
   Double** m_ppdAlfCorrCb;
   Double** m_ppdAlfCorrCr;
-#endif
-  
-  SliceType m_eSliceType;
-  Int m_iPicNalReferenceIdc;
-  
-  Double m_dLambdaLuma;
-  Double m_dLambdaChroma;
-  
-  TEncEntropy* m_pcEntropyCoder;
-  
-  TComPic* m_pcPic;
-  ALFParam* m_pcBestAlfParam;
-  ALFParam* m_pcTempAlfParam;
-  
-  TComPicYuv* m_pcPicYuvBest;
-  TComPicYuv* m_pcPicYuvTmp;
-  
-#if STAR_CROSS_SHAPES_LUMA
-  ALFParam* pcAlfParamShape0;
-  ALFParam* pcAlfParamShape1;
-  TComPicYuv* pcPicYuvRecShape0;
-  TComPicYuv* pcPicYuvRecShape1;
-#endif
-
-  UInt m_uiNumSCUInCU;
-  
-  Int m_varIndTab[NO_VAR_BINS];
   double ***m_yGlobalSym;
   double ****m_EGlobalSym;
   double *m_pixAcc;
-  Int **m_filterCoeffSymQuant;
-  imgpel **m_varImg;
-  imgpel **m_maskImg;
-  Int m_im_width;
-  Int m_im_height;
-  ALFParam *m_tempALFp;
-  TEncEntropy* m_pcDummyEntropyCoder;
-  
   double **m_y_merged;
   double ***m_E_merged;
   double *m_pixAcc_merged;
   double *m_y_temp;
   double **m_E_temp;
-  
-  Int *m_filterCoeffQuantMod;
+
+  ///
+  /// ALF parameters
+  ///
+  ALFParam* m_pcBestAlfParam;
+  ALFParam* m_pcTempAlfParam;
+  ALFParam* pcAlfParamShape0;
+  ALFParam* pcAlfParamShape1;
+  ALFParam *m_tempALFp;
+
+  ///
+  /// temporary picture buffers or pointers
+  ///
+  TComPicYuv* m_pcPicYuvBest;
+  TComPicYuv* m_pcPicYuvTmp;
+  TComPicYuv* pcPicYuvRecShape0;
+  TComPicYuv* pcPicYuvRecShape1;
+  TComPicYuv* m_pcSliceYuvTmp;    //!< temporary picture buffer when non-across slice boundary ALF is enabled
+
+  ///
+  /// temporary filter buffers or pointers
+  ///
+  Int    *m_filterCoeffQuantMod;
   double *m_filterCoeff;
-  Int *m_filterCoeffQuant;
-  Int **m_diffFilterCoeffQuant;
-  Int **m_FilterCoeffQuantTemp;
-  
-#if MQT_ALF_NPASS
+  Int    *m_filterCoeffQuant;
+  Int    **m_filterCoeffSymQuant;
+  Int    **m_diffFilterCoeffQuant;
+  Int    **m_FilterCoeffQuantTemp;
+  Int**  m_mergeTableSavedMethods[NUM_ALF_CLASS_METHOD];
+  Int*** m_aiFilterCoeffSavedMethods[NUM_ALF_CLASS_METHOD];  //!< time-delayed filter set buffer
+  Int*   m_iPreviousFilterShapeMethods[NUM_ALF_CLASS_METHOD];
+
+  ///
+  /// coding control parameters
+  ///
+  Double m_dLambdaLuma;
+  Double m_dLambdaChroma;
   Int  m_iUsePreviousFilter;     //!< for N-pass encoding- 1: time-delayed filtering is allowed. 0: not allowed.
   Int  m_iDesignCurrentFilter;   //!< for N-pass encoding- 1: design filters for current slice. 0: design filters for future slice reference
-  Int  m_iFilterIdx;             //!< for N-pass encoding- the index of filter set buffer
-#if MQT_BA_RA
-  Int***   m_aiFilterCoeffSavedMethods[NUM_ALF_CLASS_METHOD];  //!< time-delayed filter set buffer
-  Int***   m_aiFilterCoeffSaved;                               //!< the current accessing time-delayed filter buffer pointer
-#if STAR_CROSS_SHAPES_LUMA
-  Int*    m_iPreviousFilterShapeMethods[NUM_ALF_CLASS_METHOD];
-  Int*    m_iPreviousFilterShape;
-#endif
-#else
-  Int  m_aiFilterCoeffSaved[9][NO_VAR_BINS][MAX_SQR_FILT_LENGTH];
-#if STAR_CROSS_SHAPES_LUMA
-  Int  m_iPreviousFilterShape[2];
-#endif
-#endif
   Int  m_iGOPSize;                //!< GOP size
   Int  m_iCurrentPOC;             //!< POC
   Int  m_iALFEncodePassReduction; //!< 0: 16-pass encoding, 1: 1-pass encoding, 2: 2-pass encoding
+
+#if G215_ALF_NUM_FILTER
+  Int  m_iALFMaxNumberFilters;    //!< ALF Max Number Filters per unit
+#endif
+
   Int  m_iALFNumOfRedesign;       //!< number of redesigning filter for each CU control depth
-  Int  m_iMatrixBaseFiltNo;       //!< the coorelation buffer that can be reused.
-
-#if TI_ALF_MAX_VSIZE_7
-  static Int  m_aiTapPos9x9_In9x9Sym[21]; //!< for N-pass encoding- filter tap relative position in 9x9 footprint
-#else
-  static Int  m_aiTapPos9x9_In9x9Sym[22];
-#endif
-  static Int  m_aiTapPos7x7_In9x9Sym[14]; //!< for N-pass encoding- filter tap relative position in 9x9 footprint
-  static Int  m_aiTapPos5x5_In9x9Sym[8];  //!< for N-pass encoding- filter tap relative position in 9x9 footprint
-  static Int* m_iTapPosTabIn9x9Sym[NO_TEST_FILT];
-#endif
-
-#if STAR_CROSS_SHAPES_LUMA
-  static Int  m_aiFilterPosShape0In11x5Sym[10]; //!< for N-pass encoding- filter shape relative position in 19x5 footprint
-  static Int  m_aiFilterPosShape1In11x5Sym[9]; //!< for N-pass encoding- filter shape relative position in 19x5 footprint
-  static Int* m_iFilterTabIn11x5Sym[NO_TEST_FILT];
-#endif
-
-#if MTK_NONCROSS_INLOOP_FILTER
-  TComPicYuv* m_pcSliceYuvTmp;    //!< temporary picture buffer when non-across slice boundary ALF is enabled
-#endif
-
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
   Bool  m_bSharedPPSAlfParamEnabled; //!< true for shared ALF parameters in PPS enabled
 #endif
-#endif
 
+  ///
+  /// variables for on/off control
+  ///
+  Pel **m_maskImg;
 #if F747_APS
   Bool m_bAlfCUCtrlEnabled;                         //!< if input ALF CU control param is NULL, this variable is set to be false (Disable CU control)
   std::vector<AlfCUCtrlInfo> m_vBestAlfCUCtrlParam; //!< ALF CU control parameters container to store the ALF CU control parameters after RDO
 #endif
 
+  ///
+  /// miscs. 
+  ///
+  TEncEntropy* m_pcEntropyCoder;
+  TComPic* m_pcPic;
+#if !G212_CROSS9x9_VB
+  static Int  m_aiFilterPosShape0In11x5Sym[10]; //!< for N-pass encoding- filter shape relative position in 19x5 footprint
+  static Int  m_aiFilterPosShape1In11x5Sym[9]; //!< for N-pass encoding- filter shape relative position in 19x5 footprint
+  static Int* m_iFilterTabIn11x5Sym[NUM_ALF_FILTER_SHAPE];
+#endif
 private:
   // init / uninit internal variables
   Void xInitParam      ();
   Void xUninitParam    ();
-  
-  // create/destroy/copy/set functions of ALF control flags
+
+  // ALF on/off control related functions
   Void xCreateTmpAlfCtrlFlags   ();
   Void xDestroyTmpAlfCtrlFlags  ();
   Void xCopyTmpAlfCtrlFlagsTo   ();
   Void xCopyTmpAlfCtrlFlagsFrom ();
-  
-  // encoder ALF control flags
+  Void getCtrlFlagsForSlices(Bool bCUCtrlEnabled, Int iCUCtrlDepth); //!< Copy CU control flags from TComCU
   Void xEncodeCUAlfCtrlFlags  ();
   Void xEncodeCUAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
-  
-  // functions related to correlation computation
-#if MTK_NONCROSS_INLOOP_FILTER
-  Void xCalcCorrelationFunc   ( Int ypos, Int xpos, Pel* pOrg, Pel* pCmp, Int iTap, Int iWidth, Int iHeight, Int iOrgStride, Int iCmpStride, Bool bSymmCopyBlockMatrix);
+  Void xCUAdaptiveControl_qc           ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, UInt64& ruiMinDist, Double& rdMinCost );
+#if F747_APS
+  Void transferCtrlFlagsToAlfParam(std::vector<AlfCUCtrlInfo>& vAlfCUCtrlInfo); //!< Copy CU control flags to ALF parameters
+  Void xSetCUAlfCtrlFlags_qc            (UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam);
+  Void xSetCUAlfCtrlFlag_qc             (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, std::vector<UInt>& vCUCtrlFlag);
 #else
-  Void xCalcCorrelationFunc   ( Pel* pOrg, Pel* pCmp, Int iTap, Int iWidth, Int iHeight, Int iOrgStride, Int iCmpStride);
+  Void transferCtrlFlagsToAlfParam(UInt& ruiNumFlags, UInt* puiFlags); //!< Copy CU control flags to ALF parameters
+  Void xSetCUAlfCtrlFlags_qc            (UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, 
+    UInt64& ruiDist, ALFParam *pAlfParam);
+  Void xSetCUAlfCtrlFlag_qc             (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg,
+    TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, ALFParam *pAlfParam);
 #endif
 
+  // functions related to correlation computation
+  Void xstoreInBlockMatrix(Int ypos, Int xpos, Int iheight, Int iwidth, Bool bResetBlockMatrix, Bool bSymmCopyBlockMatrix, Pel* pImgOrg, Pel* pImgPad, Int filtNo, Int stride); //!< Calculate correlations for luma
+  Void xstoreInBlockMatrixforOneSlice(CAlfSlice* pSlice, Pel* ImgOrg, Pel* ImgDec, Int tap, Int iStride, Bool bFirstSlice, Bool bLastSlice); //!< Calculate block autocorrelations and crosscorrelations for one ALF slice
+  Void xstoreInBlockMatrixforSlices  (Pel* ImgOrg, Pel* ImgDec, Int tap, Int iStride); //!< Calculate block autocorrelations and crosscorrelations for ALF slices
+  Void xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgOrg, Pel* pImgPad, Int filtNo, Int iWidth, Int iHeight, Int iOrgStride, Int iCmpStride, Bool bSymmCopyBlockMatrix); //!< Calculate correlations for chroma
+  Void xCalcCorrelationFuncforChromaOneSlice(CAlfSlice* pSlice, Pel* pOrg, Pel* pCmp, Int iTap, Int iStride, Bool bLastSlice); //!< Calculate autocorrelations and crosscorrelations for one chroma slice
+  Void xCalcCorrelationFuncforChromaSlices  (Int ComponentID, Pel* pOrg, Pel* pCmp, Int iTap, Int iOrgStride, Int iCmpStride); //!< Calculate autocorrelations and crosscorrelations for chroma slices
+#if !G212_CROSS9x9_VB
+  Void xretriveBlockMatrix (Int iNumTaps, Int* piTapPosInMaxFilter, Double*** pppdEBase, Double*** pppdETarget, Double** ppdyBase, Double** ppdyTarget ); //!< Retrieve correlations from other correlation matrix
+#endif
   // functions related to filtering
   Void xFilterCoefQuickSort   ( Double *coef_data, Int *coef_num, Int upper, Int lower );
   Void xQuantFilterCoef       ( Double* h, Int* qh, Int tap, int bit_depth );
   Void xClearFilterCoefInt    ( Int* qh, Int N );
   Void xCopyDecToRestCUs      ( TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
   Void xCopyDecToRestCU       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-  Void xFilteringFrameChroma  ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-  
+  Void xFilteringFrameChroma  (ALFParam* pcAlfParam, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest);
+  Int  setFilterIdx(Int index); //!< set filter buffer index
+  Void setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec); //!< set initial m_maskImg
+  Void saveFilterCoeffToBuffer(Int **filterSet, Int numFilter, Int* mergeTable, Int mode, Int filtNo); //!< save filter coefficients to buffer
+  Void setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec); //!< set initial m_maskImg with previous (time-delayed) filters
+  Void decideFilterShapeLuma(Pel* ImgOrg, Pel* ImgDec, Int Stride, ALFParam* pcAlfSaved, UInt64& ruiRate, UInt64& ruiDist,Double& rdCost); //!< Estimate RD cost of all filter size & store the best one
+  Void xFilterChromaSlices(Int ComponentID, TComPicYuv* pcPicDecYuv, TComPicYuv* pcPicRestYuv, Int *coeff, Int filtNo, Int iChromaFormatShift);  //!< interface function to filter chroma components for multi-slice picture
+  Void   xFilterTapDecisionChroma      (UInt64 uiLumaRate, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, UInt64& ruiBits);
+  Int64  xFastFiltDistEstimationChroma (Double** ppdCorr, Int* piCoeff, Int iSqrFiltLength);
+  Void  xfilterSlicesEncoder(Pel* ImgDec, Pel* ImgRest, Int iStride, Int filtNo, Int** filterCoeff, Int* mergeTable, Pel** varImg); //!< Calculate ALF grouping indices for ALF slices
+  Void  xfilterOneSliceEncoder(CAlfSlice* pSlice, Pel* ImgDec, Pel* ImgRest, Int iStride, Int filtNo, Int** filterCoeff, Int* mergeTable, Pel** varImg); //!< calculate ALF grouping indices for one ALF slice
+  Void  setALFEncodingParam(TComPic *pcPic); //!< set ALF encoding parameters
+#if !G609_NEW_BA_SUB
+  Void  calcVarforSlices(Pel **varmap, Pel *imgY_pad, Int fl, Int img_stride); //!< Calculate ALF grouping indices for ALF slices
+#endif
+  Void xReDesignFilterCoeff_qc          (TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec,  TComPicYuv* pcPicRest, Bool bReadCorr);
+  Void xFirstFilteringFrameLuma (Pel* imgOrg, Pel* imgDec, Pel* imgRest, ALFParam* ALFp, Int filtNo, Int stride);
+  Void xFilteringFrameLuma(Pel* imgOrg, Pel* imgPad, Pel* imgFilt, ALFParam* ALFp, Int filtNo, Int stride);
+  Void xEncALFLuma  ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, UInt64& ruiMinDist, Double& rdMinCost ); //!< estimate adaptation mode and filter shape
+
   // distortion / misc functions
   UInt64 xCalcSSD             ( Pel* pOrg, Pel* pCmp, Int iWidth, Int iHeight, Int iStride );
 #if F747_APS
-  Void   xCalcRDCost          ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost, std::vector<AlfCUCtrlInfo>* pvAlfCUCtrlParam = NULL);
+  Void  xCalcRDCost          ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost, std::vector<AlfCUCtrlInfo>* pvAlfCUCtrlParam = NULL);
+  Void  xCalcRDCost          ( ALFParam* pAlfParam, UInt64& ruiRate, UInt64 uiDist, Double& rdCost, std::vector<AlfCUCtrlInfo>* pvAlfCUCtrlParam = NULL);
 #else
-  Void   xCalcRDCost          ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost );
+  Void  xCalcRDCost          ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost );
+  Void  xCalcRDCost          ( ALFParam* pAlfParam, UInt64& ruiRate, UInt64 uiDist, Double& rdCost );
 #endif
-  Void   xCalcRDCostChroma    ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost );
-#if F747_APS
-  Void   xCalcRDCost          ( ALFParam* pAlfParam, UInt64& ruiRate, UInt64 uiDist, Double& rdCost, std::vector<AlfCUCtrlInfo>* pvAlfCUCtrlParam = NULL);
-#else
-  Void   xCalcRDCost          ( ALFParam* pAlfParam, UInt64& ruiRate, UInt64 uiDist, Double& rdCost );
-#endif
-  Int    xGauss               ( Double **a, Int N );
-  
-#if MQT_ALF_NPASS
-  /// Retrieve correlations from other correlation matrix
-  Void  xretriveBlockMatrix    (Int iNumTaps, Int* piTapPosInMaxFilter, Double*** pppdEBase, Double*** pppdETarget, Double** ppdyBase, Double** ppdyTarget );
-
-  /// Calculate/Restore filter coefficients from previous filters
-  Void  xcalcPredFilterCoeffPrev(Int filtNo);
-
-  /// set ALF encoding parameters
-  Void  setALFEncodingParam(TComPic *pcPic);
-
-  /// set filter buffer index
-  Void  setFilterIdx(Int index);
-
-  /// set initial m_maskImg
-  Void  setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec);
-
-#if MQT_BA_RA
-  /// save filter coefficients to buffer
-#if STAR_CROSS_SHAPES_LUMA
-  Void  saveFilterCoeffToBuffer(Int **filterCoeffPrevSelected,Int filtNo);
-#else
-  Void  saveFilterCoeffToBuffer(Int **filterCoeffPrevSelected);
-#endif
-  /// set initial m_maskImg with previous (time-delayed) filters
-  Void  setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec);
-
-  /// Estimate RD cost of all filter size & store the best one
-  Void  xFirstEstimateFilteringFrameLumaAllTap(imgpel* ImgOrg, imgpel* ImgDec, Int Stride, ALFParam* pcAlfSaved, UInt64& ruiRate, UInt64& ruiDist,Double& rdCost);
-
-
-#else
-  Void  xFirstFilteringFrameLumaAllTap(imgpel* ImgOrg, imgpel* ImgDec, imgpel* ImgRest, Int Stride);
-#endif
-
-  /// Estimate filtering distortion by correlation values and filter coefficients
-  Int64 xFastFiltDistEstimation(Double** ppdE, Double* pdy, Int* piCoeff, Int iFiltLength);
-
-  /// Estimate total filtering cost of all groups
-  Int64 xEstimateFiltDist      (Int filters_per_fr, Int* VarIndTab, Double*** pppdE, Double** ppdy, Int** ppiCoeffSet, Int iFiltLength);
-#endif
-
-
-#if MTK_NONCROSS_INLOOP_FILTER
-  /// Calculate block autocorrelations and crosscorrelations for ALF slices
-  Void xstoreInBlockMatrixforSlices  (imgpel* ImgOrg, imgpel* ImgDec, Int tap, Int iStride);
-
-  /// Calculate block autocorrelations and crosscorrelations for one ALF slice
-  Void xstoreInBlockMatrixforOneSlice(CAlfSlice* pSlice, imgpel* ImgOrg, imgpel* ImgDec, Int tap, Int iStride, Bool bFirstSlice, Bool bLastSlice);
-
-  /// Calculate ALF grouping indices for ALF slices
-  Void xfilterSlices_en              (imgpel* ImgDec, imgpel* ImgRest,int filtNo, int Stride);
-
-  /// calculate ALF grouping indices for one ALF slice
-  Void xfilterOneSlice_en            (CAlfSlice* pSlice, imgpel* ImgDec, imgpel* ImgRest,int filtNo, int iStride);
-
-  /// Calculate ALF grouping indices for ALF slices
-  Void calcVarforSlices              (imgpel **varmap, imgpel *imgY_pad, Int pad_size, Int fl, Int img_stride);
-
-  /// Copy CU control flags from TComCU
-  Void getCtrlFlagsForSlices(Bool bCUCtrlEnabled, Int iCUCtrlDepth);
-
-  /// Copy CU control flags to ALF parameters
-#if F747_APS
-  Void transferCtrlFlagsToAlfParam(std::vector<AlfCUCtrlInfo>& vAlfCUCtrlInfo);
-#else
-  Void transferCtrlFlagsToAlfParam(UInt& ruiNumFlags, UInt* puiFlags);
-#endif
-
-  /// Calculate autocorrelations and crosscorrelations for chroma slices
-  Void xCalcCorrelationFuncforChromaSlices  (Int ComponentID, Pel* pOrg, Pel* pCmp, Int iTap, Int iOrgStride, Int iCmpStride);
-
-  /// Calculate autocorrelations and crosscorrelations for one chroma slice
-  Void xCalcCorrelationFuncforChromaOneSlice(CAlfSlice* pSlice, Pel* pOrg, Pel* pCmp, Int iTap, Int iStride, Bool bLastSlice);
-
-  /// Calculate block autocorrelations and crosscorrelations for one chroma slice
-  Void xFrameChromaforSlices                (Int ComponentID, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, Int *qh, Int iTap);
-#endif
-
-
-protected:
-#if ALF_CHROMA_NEW_SHAPES
-  Void   xFilterTapDecisionChroma      (UInt64 uiLumaRate, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, UInt64& ruiBits);
+  Void  xCalcRDCostChroma    ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost );
+  Int64 xFastFiltDistEstimation(Double** ppdE, Double* pdy, Int* piCoeff, Int iFiltLength); //!< Estimate filtering distortion by correlation values and filter coefficients
+  Int64 xEstimateFiltDist      (Int filters_per_fr, Int* VarIndTab, Double*** pppdE, Double** ppdy, Int** ppiCoeffSet, Int iFiltLength); //!< Estimate total filtering cost of all groups  
   UInt64 xCalcRateChroma               (ALFParam* pAlfParam);
   Void   xCalcALFCoeffChroma           (Int iChromaIdc, Int iShape, Int* piCoeff);
-  Int64  xFastFiltDistEstimationChroma (Double** ppdCorr, Int* piCoeff, Int iSqrFiltLength);
-#else
-  /// do ALF for chroma
-  Void xEncALFChroma          ( UInt64 uiLumaRate, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, UInt64& ruiBits );
-#endif
-public:
-  TEncAdaptiveLoopFilter          ();
-  virtual ~TEncAdaptiveLoopFilter () {}
-  
-  /// allocate temporal memory
-  Void startALFEnc(TComPic* pcPic, TEncEntropy* pcEntropyCoder);
-  
-  /// destroy temporal memory
-  Void endALFEnc();
-  
-  /// estimate ALF parameters
-#if ALF_CHROMA_LAMBDA  
 
-#if F747_APS
-  Void ALFProcess(ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>* pvAlfCtrlParam, Double dLambdaLuma, Double dLambdaChroma, UInt64& ruiDist, UInt64& ruiBits);
-#else
-  Void ALFProcess(ALFParam* pcAlfParam, Double dLambdaLuma, Double dLambdaChroma, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth );
-#endif
 
-#else
-
-#if F747_APS
-  Void ALFProcess(ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>* pvAlfCtrlParam, Double dLambda, UInt64& ruiDist, UInt64& ruiBits);
-#else
-  Void ALFProcess(ALFParam* pcAlfParam, Double dLambda, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth );
-#endif
-
-#endif
-
-#if E057_INTRA_PCM && E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  Void PCMLFDisableProcess (TComPic* pcPic);
-#endif
-
-  /// test ALF for luma
-  Void xEncALFLuma_qc                  ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, 
-                                         UInt64& ruiMinDist, Double& rdMinCost );
-  Void xCUAdaptiveControl_qc           ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, 
-                                         UInt64& ruiMinDist, Double& rdMinCost );
-#if F747_APS
-  Void xSetCUAlfCtrlFlags_qc            (UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam);
-  Void xSetCUAlfCtrlFlag_qc             (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg,
-                                         TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, std::vector<UInt>& vCUCtrlFlag);
-#else
-  Void xSetCUAlfCtrlFlags_qc            (UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, 
-                                         UInt64& ruiDist, ALFParam *pAlfParam);
-  Void xSetCUAlfCtrlFlag_qc             (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg,
-                                         TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, ALFParam *pAlfParam);
-#endif
-  Void xReDesignFilterCoeff_qc          (TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec,  TComPicYuv* pcPicRest, Bool bReadCorr);
-  Void xFilterTapDecision_qc            (TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, 
-                                         UInt64& ruiMinDist, Double& rdMinCost);
-  Void xFirstFilteringFrameLuma         (imgpel* ImgOrg, imgpel* ImgDec, imgpel* ImgRest, ALFParam* ALFp, Int tap,  Int Stride);
-#if MTK_NONCROSS_INLOOP_FILTER
-  Void xstoreInBlockMatrix(Int ypos, Int xpos, Int iheight, Int iwidth, Bool bResetBlockMatrix, Bool bSymmCopyBlockMatrix, imgpel* ImgOrg, imgpel* ImgDec, Int tap, Int Stride);
-#else
-  Void xstoreInBlockMatrix(imgpel* ImgOrg, imgpel* ImgDec, Int tap, Int Stride);
-#endif
-  Void xFilteringFrameLuma_qc(imgpel* ImgOrg, imgpel* imgY_pad, imgpel* ImgFilt, ALFParam* ALFp, Int tap, Int Stride);
-#if MTK_NONCROSS_INLOOP_FILTER
-  Void xfilterFrame_en(int ypos, int xpos, int iheight, int iwidth, imgpel* ImgDec, imgpel* ImgRest,int filtNo, int Stride);
-#else
-  Void xfilterFrame_en(imgpel* ImgDec, imgpel* ImgRest,int filtNo, int Stride);
-#endif
-  Void xcalcPredFilterCoeff(Int filtNo);
-#if MQT_ALF_NPASS  
   /// code filter coefficients
-  UInt xcodeFiltCoeff(Int **filterCoeffSymQuant, Int filtNo, Int varIndTab[], Int filters_per_fr_best, Int frNo, ALFParam* ALFp);
-#else
-  Void xcodeFiltCoeff(Int **filterCoeffSymQuant, Int filtNo, Int varIndTab[], Int filters_per_fr_best, Int frNo, ALFParam* ALFp);
-#endif
-  Void xfindBestFilterVarPred(double **ySym, double ***ESym, double *pixAcc, Int **filterCoeffSym, Int **filterCoeffSymQuant,
-                              Int filtNo, Int *filters_per_fr_best, Int varIndTab[], imgpel **imgY_rec, imgpel **varImg, 
-                              imgpel **maskImg, imgpel **imgY_pad, double lambda_val);
-  double xfindBestCoeffCodMethod(int codedVarBins[NO_VAR_BINS], int *forceCoeff0, 
-                                 int **filterCoeffSymQuant, int fl, int sqrFiltLength, 
-                                 int filters_per_fr, double errorForce0CoeffTab[NO_VAR_BINS][2], 
-                                 double *errorQuant, double lambda);
-  Void xcollectStatCodeFilterCoeffForce0(int **pDiffQFilterCoeffIntPP, int fl, int sqrFiltLength, int filters_per_group, 
-                                         int bitsVarBin[]);
-  Void xdecideCoeffForce0(int codedVarBins[NO_VAR_BINS], double errorForce0Coeff[], double errorForce0CoeffTab[NO_VAR_BINS][2], 
-                          int bitsVarBin[NO_VAR_BINS], double lambda, int filters_per_fr);
-  Int xsendAllFiltersPPPredForce0(int **FilterCoeffQuant, int fl, int sqrFiltLength, int filters_per_group, 
-                                  int codedVarBins[NO_VAR_BINS], int createBistream, ALFParam* ALFp);
-  Int xsendAllFiltersPPPred(int **FilterCoeffQuant, int fl, int sqrFiltLength, 
-                            int filters_per_group, int createBistream, ALFParam* ALFp);
-  Int xcodeAuxInfo(int filtNo, int noFilters, int varIndTab[NO_VAR_BINS], int frNo, int createBitstream,int realfiltNo, ALFParam* ALFp);
-  Int xcodeFilterCoeff(int **pDiffQFilterCoeffIntPP, int fl, int sqrFiltLength, int filters_per_group, int createBitstream);
+  UInt xcodeFiltCoeff(Int **filterCoeffSymQuant, Int filter_shape, Int varIndTab[], Int filters_per_fr_best, ALFParam* ALFp);
+  Void xfindBestFilterVarPred(double **ySym, double ***ESym, double *pixAcc, Int **filterCoeffSym, Int **filterCoeffSymQuant,Int filter_shape, Int *filters_per_fr_best, Int varIndTab[], Pel **imgY_rec, Pel **varImg, Pel **maskImg, Pel **imgY_pad, double lambda_val);
+  double xfindBestCoeffCodMethod(int **filterCoeffSymQuant, int filter_shape, int sqrFiltLength, int filters_per_fr, double errorForce0CoeffTab[NO_VAR_BINS][2], double lambda);
+  Int xsendAllFiltersPPPred(int **FilterCoeffQuant, int filter_shape, int sqrFiltLength, int filters_per_group, int createBistream, ALFParam* ALFp);
+  Int xcodeAuxInfo(int filters_per_fr, int varIndTab[NO_VAR_BINS], int filter_shape, ALFParam* ALFp);
+  Int xcodeFilterCoeff(int **pDiffQFilterCoeffIntPP, int filter_shape, int sqrFiltLength, int filters_per_group, int createBitstream);
   Int lengthGolomb(int coeffVal, int k);
-  Int lengthPredFlags(int force0, int predMethod, int codedVarBins[NO_VAR_BINS], 
-                      int filters_per_group, int createBitstream);
-  Int lengthFilterCoeffs(int sqrFiltLength, int filters_per_group, int pDepthInt[], 
-                         int **FilterCoeff, int kMinTab[], int createBitstream);
+  Int lengthPredFlags(int force0, int predMethod, int codedVarBins[NO_VAR_BINS], int filters_per_group, int createBitstream);
+  Int lengthFilterCoeffs(int sqrFiltLength, int filters_per_group, int pDepthInt[], int **FilterCoeff, int kMinTab[], int createBitstream);
+#if G665_ALF_COEFF_PRED
+  Void predictALFCoeffLumaEnc(ALFParam* pcAlfParam, Int **pfilterCoeffSym, Int filter_shape); //!< prediction of luma ALF coefficients
+#endif
   //cholesky related
-  Double findFilterCoeff(double ***EGlobalSeq, double **yGlobalSeq, double *pixAccGlobalSeq, int **filterCoeffSeq,
-                         int **filterCoeffQuantSeq, int intervalBest[NO_VAR_BINS][2], int varIndTab[NO_VAR_BINS], int sqrFiltLength, 
-                         int filters_per_fr, int *weights, int bit_depth, double errorTabForce0Coeff[NO_VAR_BINS][2]);
-  Double QuantizeIntegerFilterPP(double *filterCoeff, int *filterCoeffQuant, double **E, double *y, 
-                                 int sqrFiltLength, int *weights, int bit_depth);
+  Int   xGauss( Double **a, Int N );
+  Double findFilterCoeff(double ***EGlobalSeq, double **yGlobalSeq, double *pixAccGlobalSeq, int **filterCoeffSeq,int **filterCoeffQuantSeq, int intervalBest[NO_VAR_BINS][2], int varIndTab[NO_VAR_BINS], int sqrFiltLength, int filters_per_fr, int *weights, double errorTabForce0Coeff[NO_VAR_BINS][2]);
+  Double QuantizeIntegerFilterPP(Double *filterCoeff, Int *filterCoeffQuant, Double **E, Double *y, Int sqrFiltLength, Int *weights);
   Void roundFiltCoeff(int *FilterCoeffQuan, double *FilterCoeff, int sqrFiltLength, int factor);
-  double findFilterGroupingError(double ***EGlobalSeq, double **yGlobalSeq, double *pixAccGlobalSeq, 
-                                 int intervalBest[NO_VAR_BINS][2], int sqrFiltLength, int filters_per_fr);
-  double mergeFiltersGreedy(double **yGlobalSeq, double ***EGlobalSeq, double *pixAccGlobalSeq, 
-                            int intervalBest[NO_VAR_BINS][2], int sqrFiltLength, int noIntervals);
+  double mergeFiltersGreedy(double **yGlobalSeq, double ***EGlobalSeq, double *pixAccGlobalSeq, int intervalBest[NO_VAR_BINS][2], int sqrFiltLength, int noIntervals);
   double calculateErrorAbs(double **A, double *b, double y, int size);
   double calculateErrorCoeffProvided(double **A, double *b, double *c, int size);
   Void add_b(double *bmerged, double **b, int start, int stop, int size);
   Void add_A(double **Amerged, double ***A, int start, int stop, int size);
-  Int gnsSolveByChol(double **LHS, double *rhs, double *x, int noEq);
-  Void  gnsBacksubstitution(double R[MAX_SQR_FILT_LENGTH][MAX_SQR_FILT_LENGTH], double z[MAX_SQR_FILT_LENGTH], 
-                            int R_size, double A[MAX_SQR_FILT_LENGTH]);
-  Void gnsTransposeBacksubstitution(double U[MAX_SQR_FILT_LENGTH][MAX_SQR_FILT_LENGTH], double rhs[], double x[],
-                                    int order);
-  Int gnsCholeskyDec(double **inpMatr, double outMatr[MAX_SQR_FILT_LENGTH][MAX_SQR_FILT_LENGTH], int noEq);
-#if MQT_ALF_NPASS
-  /// set GOP size
-  Void  setGOPSize(Int val) { m_iGOPSize = val; }
+  Int  gnsSolveByChol(double **LHS, double *rhs, double *x, int noEq);
+  Void gnsBacksubstitution(double R[ALF_MAX_NUM_COEF][ALF_MAX_NUM_COEF], double z[ALF_MAX_NUM_COEF], int R_size, double A[ALF_MAX_NUM_COEF]);
+  Void gnsTransposeBacksubstitution(double U[ALF_MAX_NUM_COEF][ALF_MAX_NUM_COEF], double rhs[], double x[],int order);
+  Int  gnsCholeskyDec(double **inpMatr, double outMatr[ALF_MAX_NUM_COEF][ALF_MAX_NUM_COEF], int noEq);
 
-  /// set N-pass encoding. 0: 16-pass encoding, 1: 1-pass encoding, 2: 2-pass encoding
-  Void  setALFEncodePassReduction (Int iVal) {m_iALFEncodePassReduction = iVal;}
+public:
+  TEncAdaptiveLoopFilter          ();
+  virtual ~TEncAdaptiveLoopFilter () {}
 
-#if MQT_BA_RA
-  /// create ALF global buffers
-  Void createAlfGlobalBuffers(Int iALFEncodePassReduction);
+  Void startALFEnc(TComPic* pcPic, TEncEntropy* pcEntropyCoder); //!< allocate temporal memory
+  Void endALFEnc(); //!< destroy temporal memory
 
-  /// destroy ALF global buffers
-  Void destroyAlfGlobalBuffers();
+#if ALF_CHROMA_LAMBDA  
+#if F747_APS
+  Void ALFProcess(ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>* pvAlfCtrlParam, Double dLambdaLuma, Double dLambdaChroma, UInt64& ruiDist, UInt64& ruiBits); //!< estimate ALF parameters
+#else
+  Void ALFProcess(ALFParam* pcAlfParam, Double dLambdaLuma, Double dLambdaChroma, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth ); //!< estimate ALF parameters
+#endif
+#else
+#if F747_APS
+  Void ALFProcess(ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>* pvAlfCtrlParam, Double dLambda, UInt64& ruiDist, UInt64& ruiBits); //!< estimate ALF parameters
+#else
+  Void ALFProcess(ALFParam* pcAlfParam, Double dLambda, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth ); //!< estimate ALF parameters
 #endif
 #endif
 
+  Void setGOPSize(Int val) { m_iGOPSize = val; } //!< set GOP size
+  Void setALFEncodePassReduction (Int iVal) {m_iALFEncodePassReduction = iVal;} //!< set N-pass encoding. 0: 16(14)-pass encoding, 1: 1-pass encoding, 2: 2-pass encoding
+
+#if G215_ALF_NUM_FILTER
+  Void setALFMaxNumberFilters    (Int iVal) {m_iALFMaxNumberFilters = iVal;} //!< set ALF Max Number of Filters
+#endif
+
+  Void createAlfGlobalBuffers(Int iALFEncodePassReduction); //!< create ALF global buffers
+  Void destroyAlfGlobalBuffers(); //!< destroy ALF global buffers
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
   /// set shared ALF parameters in PPS enabled/disabled
   Void setSharedPPSAlfParamEnabled(Bool b) {m_bSharedPPSAlfParamEnabled = b;}
 #endif
+#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
+  Void PCMLFDisableProcess (TComPic* pcPic);
 #endif
 
 };

@@ -96,6 +96,9 @@ private:
   Double                m_dDecTime;
 
   bool m_pictureDigestEnabled; ///< if true, handle picture_digest SEI messages
+#if G220_PURE_VLC_SAO_ALF
+  AlfCUCtrlInfo       m_cAlfCUCtrlOneSlice;
+#endif
 
 public:
   TDecGop();
@@ -114,21 +117,26 @@ public:
                  );
   Void  create  ();
   Void  destroy ();
+#if G1002_RPS
+  Void  decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf );
+#else
 #if REF_SETTING_FOR_LD
   Void  decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf, TComList<TComPic*>& rcListPic );
 #else
   Void  decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf );
 #endif
+#endif
   Void  setGopSize( Int i) { m_iGopSize = i; }
 
   void setPictureDigestEnabled(bool enabled) { m_pictureDigestEnabled = enabled; }
+#if G220_PURE_VLC_SAO_ALF
+  Void decodeAlfOnOffCtrlParam() { m_pcEntropyDecoder->decodeAlfCtrlParam( m_cAlfCUCtrlOneSlice, m_pcAdaptiveLoopFilter->getNumCUsInPic());}
+#endif
 
 #if !F747_APS
-#if E045_SLICE_COMMON_INFO_SHARING
 private:
   /// copy shared ALF parameters from PPS
   Void copySharedAlfParamFromPPS(ALFParam* pAlfDst, ALFParam* pAlfSrc);
-#endif
 #endif
 
 };

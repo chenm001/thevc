@@ -106,14 +106,22 @@ private:
 #if F747_APS
   std::vector<TComAPS>    m_vAPS;  //!< APS container
 #endif
+#if G1002_RPS
+  TComRPS                 m_cRPSList;                         ///< RPS
+#endif
   
   // RD cost computation
   TComBitCounter          m_cBitCounter;                  ///< bit counter for RD optimization
   TComRdCost              m_cRdCost;                      ///< RD cost computation class
   TEncSbac***             m_pppcRDSbacCoder;              ///< temporal storage for RD computation
   TEncSbac                m_cRDGoOnSbacCoder;             ///< going on SBAC model for RD stage
+#if FAST_BIT_EST
+  TEncBinCABACCounter***  m_pppcBinCoderCABAC;            ///< temporal CABAC state storage for RD computation
+  TEncBinCABACCounter     m_cRDGoOnBinCoderCABAC;         ///< going on bin coder CABAC for RD stage
+#else
   TEncBinCABAC***         m_pppcBinCoderCABAC;            ///< temporal CABAC state storage for RD computation
   TEncBinCABAC            m_cRDGoOnBinCoderCABAC;         ///< going on bin coder CABAC for RD stage
+#endif
 #if OL_USE_WPP
   Int                     m_iNumSubstreams;                ///< # of top-level elements allocated.
   TComBitCounter*         m_pcBitCounters;                 ///< bit counters for RD optimization per substream
@@ -136,6 +144,9 @@ protected:
   
 #if TILES
   Void  xInitPPSforTiles  ();
+#endif
+#if G1002_RPS
+  Void  xInitRPS          ();                             ///< initialize PPS from encoder options
 #endif
 
 public:
@@ -191,6 +202,11 @@ public:
   TComPPS*                getPPS                () { return  &m_cPPS;                 }
 #if F747_APS
   std::vector<TComAPS>&   getAPS                () { return m_vAPS; }
+#endif
+#if G1002_RPS
+  TComRPS*                getRPSList                () { return  &m_cRPSList;                 }
+  
+  Void selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, UInt iGOPid,TComList<TComPic*>& rcListPic );
 #endif
 
   // -------------------------------------------------------------------------------------------------------------------

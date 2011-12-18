@@ -40,43 +40,111 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define PADDING_INTRA             1 ///< G812: padding from bottom left, copy previous pixel instead of averaging
+#define COEFF_CTX_RED             1 ///< G121: reduce max value of c1 and c2
+#define DBF_DQP                   1    ///< average QP for deblocking filter parameter lookup
+#define BS_DISABLE_INSIDE_8x8     1
 
-////////////////////////////
-// BoG Context Reduction
-////////////////////////////
+#define REMOVE_AVOID_MERGE        1 //G681/G542/G593: removing avoid merge
+#define REMOVE_MV_PRED_CLIP       1 //G134: removing MV clipping
+#define INFINITE_PADDING          1 //MV clipping assuming infinite frame extension
+#define SCALING_FACTOR_CLIP_4096  1 //G223: enlarging the effective MV scaling ratio to [-16,16) by setting the limitation of MV scaling factor to +-4096
+#define REMOVE_DEPENDENCY_AMVP    1 //G542 sp2: remove dependency for derivation process of AMVP candidate
+#define REMOVE_LIMIT_ZEROMERGE    1 //G542 sp3: remove the limit of zero merging candidate
+#define REMOVE_MRG_2ND_PRUNING    1 //G397: remove the 2nd pruning process for merge candidates
+#define G082_MOD_H_TMVP_POS       1 //<G082, modified H TMVP position (configuration 2) for memory bandwidth reduction
+#define G091_SIGNAL_MAX_NUM_MERGE_CANDS    1   //<G091: maxNumMergeCand signaling in slice header
+#if G091_SIGNAL_MAX_NUM_MERGE_CANDS
+#define MRG_MAX_NUM_CANDS_SIGNALED         5   //<G091: value of maxNumMergeCand signaled in slice header 
+#endif
+#define G776_MRG_ENC_FIX          1 //<G776: Merge encoder estimation improvement
 
-#define MODIFIED_MVD_CODING               1           ///< F455 / F423:        modified binarization, coding and bin reordering of MVD
-#define MODIFIED_LAST_CODING              1           ///< F375:               modified binarization and coding of last significant position
-#define DNB_MERGE_FLAG                    1           ///< F429:               disable of neighbour evaluation for merge_flag
-#define DNB_INTRA_CHR_PRED_MODE           1           ///< F497:               disable of neighbour evaluation for intra_chroma_pred_mode
-#define DNB_REF_FRAME_IDX                 1           ///< F429 / F497 / F606: disable of neighbour evaluation for ref_frame_idx
-#define DNB_ALF_CTRL_FLAG                 1           ///< F429:               disable of neighbour evaluation for alf_ctrl_flag
-#define DNB_INTER_PRED_MODE               1           ///< F606:               disable of neighbour evaluation for inter_pred_flag (use depth for that)
-#define DNB_CHROMA_CBF_FLAGS              1           ///< F606:               disable of neighbour evaluation for chroma cbf (use depth for that)
-#define DNB_LUMA_CBF_FLAGS                1           ///< F429:               disable of neighbour evaluation for luma cbf
-#define DNB_QT_ROOT_CBF                   1           ///< F429 / F606:        disable of neighbour evaluation for no_residual_data_flag
+#define CABAC_RICE_FIX            1 ///< G495: fixing an entry in g_auiGoRicePrefixLen table
+#define BYPASS_FOR_LAST_COEFF_MOD 1 ///< grouping of bypass bins for last_significant_coeff_x/y, MSB first
+#define DISABLE_CAVLC             1 ///< disable second entropy coder
+#define MOD_IF_G778A              1 ///< modified interpolation filter according to set A in G778
+#define IT_CLIPPING               1 ///< clipping in inverse transform G782
+#define NSQT_TX_ORDER             1 ///< modify transform order in NSQT G517
+#define CABAC_RICE_UPDATE_MOD     1 ///< modified Rice parameter update function G700
+#define BYPASS_FOR_INTRA_MODE     1 ///< use bypass bins for intra luma mode coding G707
+#define WEIGHT_PRED_IMP           1 ///< high-precision offset for weighted bipred G065
+#define PLANAR_IS_DEFAULT         1 ///< default to planar if neighbor not available G119
+#define REMAP_TO_PLANAR           1 ///< default to planar if neighbor out of range G119
+#define INTRA_MODES_64X64         1 ///< enable 35 intra modes for 64x64 PUs
+#define CBF_CODING_SKIP_COND_FIX  1 ///< G444: fixing the condition of skipping cbf_luma coding
+#define DISABLE_PARALLEL_DECISIONS 1 ///< disable parallel decisions part of deblocking filter G088
+#define VER_HOR_FILTER            1 ///< F172: intra ver/hor prediction filter
+
+#define REMOVE_INTRA_LINE_BUFFER  1 ///< G145: intra line buffer removal
 
 #define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO
 #define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ
 #define ALF_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for ALF
 #define SAO_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for SAO
 
+#define MRG_TMVP_REFIDX_G163 1 ///< G163 : use refIdx of left PU. if not available, use 0.
+
+#define G609_NEW_BA_SUB             1   ///< G609: Directional feature calculation on subset of pixels
+#define G216_ALF_MERGE_FLAG_FIX     1   ///< G216: bug fixed: removing 15th merge flag for BA mode
+#define G212_CROSS9x9_VB            1   ///< G212: Cross9x9 filter shape and virtual boundary processing for ALF
+#define G610_ALF_K_BIT_FIX          1   ///< G610: bug fixed: removing extra alf_golomb_index_bit for cross-shaped filter
+#if G610_ALF_K_BIT_FIX
+#if G212_CROSS9x9_VB
+#define MIN_SCAN_POS_CROSS          4
+#else
+#define MIN_SCAN_POS_CROSS          5
+#endif
+#endif
+#define G214_ALF_CONSTRAINED_COEFF  1   ///< G214: Constrained ALF coefficient value
+#define G215_ALF_NUM_FILTER         1   ///< G215: the number of filters in one picture, encoder only
+#define ALF_DC_OFFSET_REMOVAL       1   ///< G445: Remove DC offset for ALF
+
+#define SAO_RDO_OFFSET              1   ///< G915: Considering rate-distortion-cost in optimal offset calculation for SAO
+#define G220_PURE_VLC_SAO_ALF       1   ///< G220: Pure VLC for SAO and ALF parameters
+#define G1023_FIX_NPASS_ALF         1   ///< G1023: Improved ALF N-pass encoding
+
+#define FAST_BIT_EST                1   ///< G763: Table-based bit estimation for CABAC
+#define G633_8BIT_INIT              1   ///< G633: Context model initialization method using 8 bit initialization values
+
+////////////////////////////
+// JCT-VC G start
+////////////////////////////
+
+#define UNIFIED_SCAN_PASSES                 1      ///< G320 : Unified scan passes for transform coefficient coding
+#define SUBBLOCK_SCAN                       1      ///< G323 : 4x4 sub-block based scan for large blocks
+#if SUBBLOCK_SCAN
+#define MULTI_LEVEL_SIGNIFICANCE            1      ///< G644 : Multi-level significance map for large TUs
+#endif
+#if MULTI_LEVEL_SIGNIFICANCE
+#define MLS_GRP_NUM                         64     ///< G644 : Max number of coefficient groups, max(16, 64)
+#define MLS_CG_SIZE                         4      ///< G644 : Coefficient group size of 4x4
+#endif
+#define MODIFIED_LAST_XY_CODING             1      ///< G704 : Last coefficient position coding
+#define CHROMA_CBF_CTX_REDUCTION            1      ///< G718 : Sharing contexts for cbf_cb and cbf_cr
+#define PREDTYPE_CLEANUP                    1      ///< G1042: Harmonization of the prediction and partitioning mode binarization of P and B slices
+#define TU_LEVEL_COEFF_INTERLEAVE           1      ///< G112 / G381: TU level luma/chroma coefficient interleaving
+
+#define LEVEL_LIMIT                         1      ///< G719 : Restriction for limits to 16 bits (signed) diapason
+#define COEFF_CTXSET_RED                    1      ///< G783 : reduce level context set of chroma
+#define SIGMAP_CTX_RED                      1      ///< G1015 : context number reduction for significance map coding
+////////////////////////////
+// JCT-VC G end
+////////////////////////////
+
 ////////////////////////////
 // JCT-VC F start
 ////////////////////////////
-#define MRG_UNIFIED_POS_F419                 1       // 1: enable F419, 0: disable it
-#define AMVP_NO_INTERM_DUPL_CHECK_F050       1       // F050 : Disable the redundancy checking during the derivation of top MVP for AMVP 
-#define MV_LIMIT_SCALE_F088                  1       // F088 : limit number of spatial MVP scaling to one
 #define DISABLE_4x4_INTER                    1       // Coding one flag into SPS to enable/disable INTER4x4 
-#define REDUCE_UPPER_MOTION_DATA             0       // F060 : motion data line buffer compression
-#define MRG_AMVP_FIXED_IDX_F470              1       // 1:Merge/AMVP indices are coded in truncated unary codes of fixed maximum length
-#define AVOID_NEIGHBOR_REF_F470              1       // 1:Disable adaptive switching methods for inter_pred_flag and ref_idx_lx
-#if MRG_AMVP_FIXED_IDX_F470
 #define MRG_AMVP_ADD_CAND_F470               1       // 1:add new candidates following original ones
-#else
-#define MRG_AMVP_ADD_CAND_F470               0
-#endif
 #define NSQT                                 1       // F410 & F412 : Non-Square Quadtree Transform
+#define NSQT_MOD (NSQT && 1) // Modify NSQT such as to always pass proper width/height to coeff coding functions
+#define NSQT_DIAG_SCAN                      1      ///< G1038: use diagonal and subblock scans for NSQT
+#if NSQT_DIAG_SCAN && !(SUBBLOCK_SCAN && NSQT_MOD)
+#error
+#endif
+#if NSQT
+#define NS_HAD                               1
+#endif
 
 #define F747_APS                             1       // F747 : Adaptation Parameter Set (APS)
 #if F747_APS
@@ -106,13 +174,6 @@
 #define HHI_RQT_INTRA_SPEEDUP             1           ///< tests one best mode with full rqt
 #define HHI_RQT_INTRA_SPEEDUP_MOD         0           ///< tests two best modes with full rqt
 
-#define PART_MRG                          0            // If the number of partitions is two and size > 8, only merging mode is enabled for the first partition & do not code merge_flag for the first partition
-#define HHI_MRG_SKIP                      1            // (JCTVC-E481 - merge skip) replaces the AMVP based skip by merge based skip (E481 - MERGE skip)
-
-#if HHI_MRG_SKIP
-#define LG_MRG_2Nx2N_CBF                  1
-#endif
-
 #if HHI_RQT_INTRA_SPEEDUP_MOD && !HHI_RQT_INTRA_SPEEDUP
 #error
 #endif
@@ -121,89 +182,40 @@
 
 // COLOCATED PREDICTOR
 // FOR MERGE
-#define MRG_NEIGH_COL                     1           ///< use of colocated MB in MERGE
-#define FT_TCTR_MRG                       1           ///< central colocated in MERGE
 #define MRG_TMVP_REFIDX                   1           ///< (JCTVC-E481 - D274 (2) ) refidx derivation for merge TMVP  
-// FOR AMVP
-#define AMVP_NEIGH_COL                    1           ///< use of colocated MB in AMVP
-#define FT_TCTR_AMVP                      1           ///< central colocated in AMVP
-// FOR BOTH
-#define AMVPTEMPORALMOD                   1           ///< (JCTVC-E481 - D125 2.4' / D274 3')
+// FOR AMVP AND MERGE
 #define AMVP_BUFFERCOMPRESS               1           ///< motion vector buffer compression
 #define AMVP_DECIMATION_FACTOR            4
-#define MV_COMPRESS_MODE_REFIDX           1           ///< (JCTVC-E147) compress all inter prediction parameters according to 1)
 
-#define REMOVE_INTERMEDIATE_CLIPPING      1          // No intermediate clipping in bi-prediction JCTVC-E242
-#define GENERIC_IF 1 ///< JCTVC-F537: generic interpolation functions
-
-#define UNIFIED_SCAN                      1           // JCTVC-F288+F132(F746) Unified Scans for significance map and coefficient level
-#if UNIFIED_SCAN
 #define SCAN_SET_SIZE                     16
 #define LOG2_SCAN_SET_SIZE                4
-#endif
 #define DIAG_SCAN                         1           ///< JCTVC-F129: use up-right diagonal scan rather than zig-zag for CABAC           
-#define CABAC_COEFF_DATA_REORDER          1           ///< JCTVC-F130: reordering of CABAC coefficient data
-#define QC_MDIS                           1           // JCTVC-D282: enable mode dependent intra smoothing
-#define QC_MDCS                           1           // JCTVC-D393: mode dependent coefficients coding 
-#define RUNLEVEL_TABLE_CUT                1           // JCTVC-E384: Run-Level table size reduction
-#if RUNLEVEL_TABLE_CUT
-#define CAVLC_COEF_LRG_BLK                1           // JCTVC-E383: enable large block coeff. coding
-#endif
-#define CAVLC_RDOQ_MOD                    1           // JCTVC-F296: reduce positions for LAST checking and modify bits estimation
-#define CAVLC_COEF_LRG_BLK_CHROMA         1           // JCTVC-F608: enable big block coding for chroma
-#define MOD_INTRA_TABLE                   1           // JCTVC-F612: modified intra table for coefficients coding
-#define TBL_RUN_ADAPT                     1           // JCTVC-F467: cavlc table adaptation from last run-mode
-#define REMOVE_DIRECT_INTRA_DC_CODING     1           // JCTVC-F465: Removal of direct coding of Intra DC coefficient in CAVLC
-#define ENABLE_FORCECOEFF0  0
 
 #define FAST_UDI_MAX_RDMODE_NUM               35          ///< maximum number of RD comparison in fast-UDI estimation loop 
 
 #define ZERO_MVD_EST                          0           ///< Zero Mvd Estimation in normal mode
 
-#define LM_CHROMA                             1           // JCTVC-E266: Chroma intra prediction based on luma signal
-#if LM_CHROMA
-#define LM_CHROMA_SIMPLIFICATION              1           // JCTVC-F760: LM simplification: One line luma reference pixel buffer, alpha 7 bits.
-#endif
-
-#define UNIFY_INTER_TABLE                     1           // JCTVC-E381 CAVLC: Inter pred coding
-
-#define MV_SCALE_ROUNDING_F142            1           ///< Modified rounding when scaling motion vectors (JCTVC-F142)
-
-#define ADD_PLANAR_MODE                   1           ///< enable/disable Planar mode for intra prediction (JCTVC-E321)
-
-#if ADD_PLANAR_MODE || LM_CHROMA
 #define NUM_INTRA_MODE 36
 #define PLANAR_IDX     34
 #define LM_CHROMA_IDX  35
 #define PLANAR_F483 1 ///< Modify samples used for planar prediction as per JCTVC-F483
-#endif
-#define CHROMA_CODEWORD_SWITCH 0 ///< Enable chroma codeword switch (disabled as per JCTVC-F465)
 
 #define IBDI_DISTORTION                0           ///< enable/disable SSE modification when IBDI is used (JCTVC-D152)
 #define FIXED_ROUNDING_FRAME_MEMORY    0           ///< enable/disable fixed rounding to 8-bitdepth of frame memory when IBDI is used  
 
 #define MS_LCEC_UNI_EXCEPTION_THRES     1           // for GPB case, uni-prediction, > MS_LCEC_UNI_EXCEPTION_THRES is exception
-#define CAVLC_UNIFY_INTER_TABLE_FIX     1           // JCTVC-F199, max value fix of unified inter table
-#define CAVLC_COUNTER_ADAPT             1          // counter based CAVLC adaptation, JCTVC-E143
-#if CAVLC_COUNTER_ADAPT
-#define CAVLC_RQT_CBP                   1           //CAVLC coding of cbf and split flag, JCTVC-E404
-#endif
 
+#define  G1002_RPS                           1
+#if  !G1002_RPS
 #define REF_SETTING_FOR_LD              1           // reference frame setting for low delay setting (JCTVC-F701)
+#else
+#define INTER_RPS_PREDICTION            1           // remove this once tested.
+#define WRITE_BACK                      1           ///< Enable/disable the encoder to replace the deltaPOC and Used by current from the config file with the values derived by the refIdc parameter.
+#define PRINT_RPS_BITS_WRITTEN          0           ///< Enable/disable the printing of bits used to send the RPS.
+#endif
                                                     // using one nearest frame as reference frame, and the other frames are high quality (POC%4==0) frames (1+X)
                                                     // this should be done with encoder only decision
                                                     // but because of the absence of reference frame management, the related code was hard coded currently
-
-#define CAVLC_RUNLEVEL_TABLE_REM        1           // CAVLC coding of run-level without table (JCTVC-F543)
-
-#if !MRG_AMVP_ADD_CAND_F470
-#define AVOID_ZERO_MERGE_CANDIDATE      1           // (JCTVC-E146/E118) insert zero MV if no merge candidates are available
-#endif
-#define CHANGE_MERGE_CONTEXT            1           // (JCTVC-E146/E118) change merge flag context derivation
-#define CHANGE_GET_MERGE_CANDIDATE      1           // (JCTVC-E146/E118) merge flag parsing independent of number of merge candidates
-#if CHANGE_GET_MERGE_CANDIDATE && !CHANGE_MERGE_CONTEXT
-#error CHANGE_GET_MERGE_CANDIDATE can only be defined with CHANGE_MERGE_CONTEXT
-#endif
 
 #define OL_USE_WPP    1     // Set to 1 to enable Wavefront Parallel Processing, 0 otherwise
 #if OL_USE_WPP
@@ -214,39 +226,24 @@
                             // This is here just to perform timing tests -- OL_FLUSH_ALIGN should be 0 for WPP.
 #endif
 
-#define MTK_NONCROSS_INLOOP_FILTER        1           ///< Allow non-cross-slice-boundary in-loop filtering, including DB & ALF (JCTVC-D128)
-
 #define RVM_VCEGAM10 1 // RVM model proposed in VCEG-AM10
 #if RVM_VCEGAM10
 #define RVM_VCEGAM10_M 4
 #endif
 
-#define MTK_DCM_MPM 1 // MostProbableModeSignaling
-
-#define FIXED_MPM                        1           ///< Fixed number of MPMs for intra mode parsing. Solution A of JCTVC-F765
-#if FIXED_MPM
 #undef PLANAR_IDX
 #define PLANAR_IDX             0
 #define DC_IDX                 3                     // index for intra DC mode
 #define NUM_CHROMA_MODE        6                     // total number of chroma modes
 #define DM_CHROMA_IDX          36                    // chroma mode index for derived from luma intra mode
-#if !ADD_PLANAR_MODE || !MTK_DCM_MPM
-#error "ADD_PLANAR_MODE and MTK_DCM_MPM should be enabled"
-#endif
-#endif
 
 
 #define FAST_UDI_USE_MPM 1
-#define SUB_LCU_DQP  1                               ///< syntax change of sub-LCU-level dQP (JCTVC-E051/220/391/436/217/D038/D258)
 
-#if SUB_LCU_DQP
 #define QP_ADAPTATION                     0           ///< Enable TM5Step3-like QP adaptation in encoder (JCTVC-D308/E215)
 #if QP_ADAPTATION
 #define RDO_WITHOUT_DQP_BITS              0           ///< Disable counting dQP bits in RDO-based mode decision
 #endif
-#endif
-
-#define TI_ALF_MAX_VSIZE_7 1
 
 #define FULL_NBIT 0 ///< When enabled, does not use g_uiBitIncrement anymore to support > 8 bit data
 
@@ -280,63 +277,20 @@
 #define SAO                           1           // JCTVC-E049: Sample adaptive offset
 #define SAO_CHROMA                    1           // JCTVC-F057: Sample adaptive offset for Chroma
 #define SAO_CROSS_LCU_BOUNDARIES      1
-#define SAO_ACCURATE_OFFSET           1           // JCTVC-F396
-#define SAO_CLIP_OFFSET               1           // JCTVC-F396
 
-#define MQT_ALF_NPASS                       1
-
-#define MQT_BA_RA                        1  // JCTVC-E323+E046
-#if MQT_BA_RA
-#define VAR_SIZE_H           4
-#define VAR_SIZE_W           4
-#define NO_VAR_BIN          16
-#define BA_SUB               1  // JCTVC-F301: ALF BA on subset of pixels
-#endif
-
-#define STAR_CROSS_SHAPES_LUMA 1 // JCTVC-F303: ALF using vertical-size 5 filters with up to 9 coefficients
-#if STAR_CROSS_SHAPES_LUMA
-  #define ALF_CHROMA_NEW_SHAPES        1 // JCTVC-F303, JCTVC-F042, JCTVC-F157: ALF using the same shapes as for luma
-#endif
-
-#if QC_MDIS
-#define MN_MDIS_SIMPLIFICATION       1       ///< JCTVC-E069: simplification of MDIS
-#if MN_MDIS_SIMPLIFICATION
-#define MDIS2                        1       ///< JCTVC-F126: MDIS modifications
-#endif
-#endif
-#define MN_DC_PRED_FILTER            1       ///< JCTVC-E069: DC prediction samples filtering
-#define UNIFICATION_OF_AVAILABILITY  1       ///< JCTVC-F178: unification of sample availability for DC
-#if MN_DC_PRED_FILTER
-#define MN_DC_PRED_FILTER_UNIFIED    1       ///< JCTVC-F252 using unified filter for all block size
-#endif
-
-#define MVD_CTX            1           // JCTVC-E324: Modified context selection for MVD
-#define PARALLEL_DEBLK_DECISION      1 // JCTC-E224: Parallel decisions
 #define PARALLEL_MERGED_DEBLK        1 // JCTC-E224, JCTVC-E181: Parallel decisions + Parallel filtering
-#define REFERENCE_SAMPLE_PADDING                1   // JCTVC-E488 padding of unavailable reference samples for intra prediction
+#define DEBLK_CLEANUP_G175_G620_G638    1 // Clean-up of deblocking filter description
+#define DEBLK_CLEANUP_CHROMA_BS         1 // Clean-up of chroma Bs (not used in HEVC deblocking)
+
+#define DEBLK_G590                      1 // Self-contained deblocking of 8x8 blocks
+
 
 #define MATRIX_MULT                             0   // Brute force matrix multiplication instead of partial butterfly
 
-// Discrete Sine Transform (DST) Type - 7
-// Currently DST operates with E-243 only
-#define INTRA_DST_TYPE_7                      1           // JCTVC-E125 4x4 DST
-#if INTRA_DST_TYPE_7
 #define REG_DCT 65535
-#endif
 
-#define E057_INTRA_PCM                      1 // JCTVC-E057 PCM operation mode 2: Signal I_PCM flag when CU is 2Nx2N intra and its size is larger than or equal to 1<<(LOG2_MIN_I_PCM_CODING_BLOCK_SIZE_MINUS3+3).
-#if E057_INTRA_PCM
 #define E192_SPS_PCM_BIT_DEPTH_SYNTAX       1 // JCTVC-E192: PCM bit depth
 #define E192_SPS_PCM_FILTER_DISABLE_SYNTAX  1 // JCTVC-E192: PCM filter disable flag
-#endif
-
-#define F118_LUMA_DEBLOCK  1                  // JCTVC-F118: Luma part of the deblocking filter 
-
-#define E045_SLICE_COMMON_INFO_SHARING 1 //JCTVC-E045: Slice common information sharing
-
-#define TMVP_ONE_LIST_CHECK    1 //JCTVC-F587: Reduction of reference picture list checking for temporal motion vector prediction
-
-#define UNIFY_INTRA_AVAIL      1    ////<JCTVC-F477, "Unification of the Availability Checking method for Intra prediction>
 
 #define AMP                                   1           ///< JCTVC-F379: asymmetric motion partition
 #if AMP
@@ -353,6 +307,8 @@
 #define EARLY_CU_DETERMINATION            1 //JCTVC-F092
 
 #define CBF_FAST_MODE                      1 //JCTVC-F045
+
+#define G665_ALF_COEFF_PRED                1 // JCTVC-G665
 
 // ====================================================================================================================
 // Basic type redefinition
@@ -470,49 +426,18 @@ struct _AlfParam
   Int cu_control_flag;                    ///< coding unit based control flag
 #endif
   Int chroma_idc;                         ///< indicates use of ALF for chroma
-#if !STAR_CROSS_SHAPES_LUMA
-#if TI_ALF_MAX_VSIZE_7
-  Int tap;                                ///< number of filter taps - horizontal
-  Int tapV;                               ///< number of filter taps - vertical
-#else
-  Int tap;                                ///< number of filter taps
-#endif
-#endif
   Int num_coeff;                          ///< number of filter coefficients
-  Int *coeff;                             ///< filter coefficient array
-#if ALF_CHROMA_NEW_SHAPES
-  Int realfiltNo_chroma;                  ///< index of filter shape (chroma)
-#else
-  Int tap_chroma;                         ///< number of filter taps (chroma)
-#endif
+  Int filter_shape;
+  Int filter_shape_chroma;
   Int num_coeff_chroma;                   ///< number of filter coefficients (chroma)
   Int *coeff_chroma;                      ///< filter coefficient array (chroma)
-  //CodeAux related
-  Int realfiltNo;
-  Int filtNo;
-#if MQT_BA_RA 
-  Int filterPattern[NO_VAR_BIN];
-#else
-  Int filterPattern[16];
-#endif
+  Int *filterPattern;
   Int startSecondFilter;
-  Int noFilters;
-#if MQT_BA_RA 
-  Int varIndTab[NO_VAR_BIN];
-#else
-  Int varIndTab[16];
-#endif
-  
-  //Coeff send related
-  Int filters_per_group_diff; //this can be updated using codedVarBins
   Int filters_per_group;
-#if MQT_BA_RA  
-  Int codedVarBins[NO_VAR_BIN]; 
-#else
-  Int codedVarBins[16]; 
-#endif 
-  Int forceCoeff0;
   Int predMethod;
+#if G665_ALF_COEFF_PRED
+  Int *nbSPred;
+#endif
   Int **coeffmulti;
   Int minKStart;
   Int maxScanVal;
@@ -524,9 +449,7 @@ struct _AlfParam
   UInt *alf_cu_flag;
 #endif
 
-#if MQT_BA_RA
   Int alf_pcr_region_flag; 
-#endif
 };
 
 /// parameters for deblocking filter
@@ -688,7 +611,6 @@ enum AMVP_MODE
   AM_EXPL,              ///< explicit signalling of motion vector index
 };
 
-#if QC_MDCS
 /// coefficient scanning type used in ACS
 enum COEFF_SCAN_TYPE
 {
@@ -701,7 +623,6 @@ enum COEFF_SCAN_TYPE
   SCAN_VER              ///< vertical first scan
 #endif
 };
-#endif //QC_MDCS
 
 //! \}
 

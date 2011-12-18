@@ -42,9 +42,6 @@
 #include "TLibCommon/TComYuv.h"
 #include "TLibCommon/TComMotionInfo.h"
 #include "TLibCommon/TComPattern.h"
-#if !GENERIC_IF
-#include "TLibCommon/TComPredFilter.h"
-#endif
 #include "TLibCommon/TComPrediction.h"
 #include "TLibCommon/TComTrQuant.h"
 #include "TLibCommon/TComPic.h"
@@ -128,16 +125,8 @@ protected:
   
   /// sub-function for motion vector refinement used in fractional-pel accuracy
   UInt  xPatternRefinement( TComPattern* pcPatternKey,
-#if GENERIC_IF
                            TComMv baseRefMv,
-#else
-                           Pel* piRef, Int iRefStride, Int iIntStep,
-#endif
                            Int iFrac, TComMv& rcMvFrac );
-  
-#if (!REFERENCE_SAMPLE_PADDING)
-  Bool predIntraLumaDirAvailable( UInt uiMode, UInt uiWidthBit, Bool bAboveAvail, Bool bLeftAvail);
-#endif
   
   typedef struct
   {
@@ -209,10 +198,8 @@ public:
   /// set ME search range
   Void setAdaptiveSearchRange   ( Int iDir, Int iRefIdx, Int iSearchRange) { m_aaiAdaptSR[iDir][iRefIdx] = iSearchRange; }
   
-#if E057_INTRA_PCM
   Void xEncPCM    (TComDataCU* pcCU, UInt uiAbsPartIdx, Pel* piOrg, Pel* piPCM, Pel* piPred, Pel* piResi, Pel* piReco, UInt uiStride, UInt uiWidth, UInt uiHeight, TextType eText);
   Void IPCMSearch (TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rpcPredYuv, TComYuv*& rpcResiYuv, TComYuv*& rpcRecoYuv );
-#endif
 protected:
   
   // -------------------------------------------------------------------------------------------------------------------
@@ -340,11 +327,9 @@ protected:
                                     UInt&           uiInterDir,
                                     TComMvField*    pacMvField,
                                     UInt&           uiMergeIndex,
-                                    UInt&           ruiCost,
-                                    UInt&           ruiBits
-#if !MRG_AMVP_FIXED_IDX_F470
-                                  , UChar*          puhNeighCands,
-                                    Bool&           bValid
+                                    UInt&           ruiCost
+#if !G776_MRG_ENC_FIX
+                                    ,UInt&           ruiBits
 #endif
                                    );
   // -------------------------------------------------------------------------------------------------------------------
@@ -402,26 +387,11 @@ protected:
                                     TComMv&       rcMvHalf,
                                     TComMv&       rcMvQter,
                                     UInt&         ruiCost 
-#if GENERIC_IF
                                    ,Bool biPred
-#endif
                                    );
   
-#if GENERIC_IF
   Void xExtDIFUpSamplingH( TComPattern* pcPattern, Bool biPred  );
   Void xExtDIFUpSamplingQ( TComPattern* pcPatternKey, TComMv halfPelRef, Bool biPred );
-#else
-  Void xExtDIFUpSamplingH         ( TComPattern*  pcPattern, TComYuv* pcYuvExt  );
-  
-  Void xExtDIFUpSamplingQ         ( TComPattern* pcPatternKey,
-                                    Pel*          piDst,
-                                    Int           iDstStride,
-                                    Pel*          piSrcPel,
-                                    Int           iSrcPelStride,
-                                    Int*          piSrc,
-                                    Int           iSrcStride,
-                                    UInt          uiFilter  );
-#endif  
   
   // -------------------------------------------------------------------------------------------------------------------
   // T & Q & Q-1 & T-1

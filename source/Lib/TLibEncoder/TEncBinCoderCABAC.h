@@ -44,7 +44,6 @@
 //! \ingroup TLibEncoder
 //! \{
 
-
 class TEncBinCABAC : public TEncBinIf
 {
 public:
@@ -61,11 +60,9 @@ public:
   Void  flush            ();
 #endif
 
-#if E057_INTRA_PCM
   Void  resetBac          ();
   Void  encodePCMAlignBits();
   Void  xWritePCMCode     (UInt uiCode, UInt uiLength);
-#endif
   
 #if F747_APS
   Void encodeFlush(Bool bEnd);  //!< flush bits when CABAC termination
@@ -86,7 +83,11 @@ public:
   Void  setBinCountingEnableFlag  ( Bool bFlag )  { m_binCountIncrement = bFlag ? 1 : 0; }
   Bool  getBinCountingEnableFlag  ()              { return m_binCountIncrement != 0;     }
   
+#if FAST_BIT_EST
+protected:
+#else
 private:
+#endif
   Void testAndWriteOut();
   Void writeOut();
   
@@ -98,6 +99,9 @@ private:
   Int                 m_bitsLeft;
   UInt                m_uiBinsCoded;
   Int                 m_binCountIncrement;
+#if FAST_BIT_EST
+  UInt64 m_fracBits;
+#endif
 };
 
 //! \}

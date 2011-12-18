@@ -48,8 +48,6 @@
 //! \ingroup TLibCommon
 //! \{
 
-#if GENERIC_IF
-
 // ====================================================================================================================
 // Tables
 // ====================================================================================================================
@@ -57,14 +55,29 @@
 const Short TComInterpolationFilter::m_lumaFilter[4][NTAPS_LUMA] =
 {
   {  0, 0,   0, 64,  0,   0, 0,  0 },
+#if MOD_IF_G778A
+  { -1, 4, -10, 58, 17,  -5, 1,  0 },
+  { -1, 4, -11, 40, 40, -11, 4, -1 },
+  {  0, 1,  -5, 17, 58, -10, 4, -1 }
+#else
   { -1, 4, -10, 57, 19,  -7, 3, -1 },
   { -1, 4, -11, 40, 40, -11, 4, -1 },
   { -1, 3,  -7, 19, 57, -10, 4, -1 }
+#endif
 };
 
 const Short TComInterpolationFilter::m_chromaFilter[8][NTAPS_CHROMA] =
 {
   {  0, 64,  0,  0 },
+#if MOD_IF_G778A
+  { -2, 58, 10, -2 },
+  { -4, 54, 16, -2 },
+  { -6, 46, 28, -4 },
+  { -4, 36, 36, -4 },
+  { -4, 28, 46, -6 },
+  { -2, 16, 54, -4 },
+  { -2, 10, 58, -2 }
+#else
   { -3, 60,  8, -1 },
   { -4, 54, 16, -2 },
   { -5, 46, 27, -4 },
@@ -72,6 +85,7 @@ const Short TComInterpolationFilter::m_chromaFilter[8][NTAPS_CHROMA] =
   { -4, 27, 46, -5 },
   { -2, 16, 54, -4 },
   { -1,  8, 60, -3 }
+#endif
 };
 
 // ====================================================================================================================
@@ -414,7 +428,5 @@ Void TComInterpolationFilter::filterVerChroma(Pel *src, Int srcStride, Short *ds
     filterVer<NTAPS_CHROMA>(src, srcStride, dst, dstStride, width, height, isFirst, isLast, m_chromaFilter[frac]);    
   }
 }
-
-#endif
 
 //! \}

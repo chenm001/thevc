@@ -297,7 +297,6 @@ TDecBinCABAC::decodeBinTrm( UInt& ruiBin )
   }
 }
 
-#if E057_INTRA_PCM
 /** Reset BAC register values.
  * \returns Void
  */
@@ -328,5 +327,4 @@ Void  TDecBinCABAC::xReadPCMCode(UInt uiLength, UInt& ruiCode)
   assert ( uiLength > 0 );
   m_pcTComBitstream->read (uiLength, ruiCode);
 }
-#endif
 //! \}

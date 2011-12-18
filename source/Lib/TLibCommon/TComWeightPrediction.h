@@ -44,9 +44,7 @@
 #include "TComMotionInfo.h"
 #include "TComPattern.h"
 #include "TComTrQuant.h"
-#if GENERIC_IF
 #include "TComInterpolationFilter.h"
-#endif
 
 #if WEIGHT_PRED
 
@@ -85,19 +83,15 @@ inline  Pel TComWeightPrediction::xClip( Int x )
 
 inline  Pel TComWeightPrediction::weightBidir( Int w0, Pel P0, Int w1, Pel P1, Int round, Int shift, Int offset)
 {
-#if GENERIC_IF
-  return xClip( ( (w0*(P0 + IF_INTERNAL_OFFS) + w1*(P1 + IF_INTERNAL_OFFS) + round) >> shift ) + offset );
+#if WEIGHT_PRED_IMP
+  return xClip( ( (w0*(P0 + IF_INTERNAL_OFFS) + w1*(P1 + IF_INTERNAL_OFFS) + round + (offset << (shift-1))) >> shift ) );
 #else
-  return xClip( ( (w0*P0 + w1*P1 + round) >> shift ) + offset );
+  return xClip( ( (w0*(P0 + IF_INTERNAL_OFFS) + w1*(P1 + IF_INTERNAL_OFFS) + round) >> shift ) + offset );
 #endif
 }
 inline  Pel TComWeightPrediction::weightUnidir( Int w0, Pel P0, Int round, Int shift, Int offset) 
 {
-#if GENERIC_IF
   return xClip( ( (w0*(P0 + IF_INTERNAL_OFFS) + round) >> shift ) + offset );
-#else
-  return xClip( ( (w0*P0 + round) >> shift ) + offset );
-#endif
 }
 
 #endif  // WEIGHT_PRED

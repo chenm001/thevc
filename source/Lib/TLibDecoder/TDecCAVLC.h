@@ -75,31 +75,23 @@ protected:
   Void  xReadFlagTr           (              UInt& rValue, const Char *pSymbolName);
 #endif
   
-#if E057_INTRA_PCM
   Void  xReadPCMAlignZero     ();
-#endif
 
   UInt  xGetBit             ();
   Int   xReadVlc            ( Int n );
-#if CAVLC_COEF_LRG_BLK
   Void  xParseCoeff         ( TCoeff* scoeff, Int blockType, Int blSize
-#if CAVLC_RUNLEVEL_TABLE_REM
                             , Int isIntra
-#endif
                             );
-#else
-  Void  xParseCoeff4x4      ( TCoeff* scoeff, Int iTableNumber );
-  Void  xParseCoeff8x8      ( TCoeff* scoeff, Int iTableNumber );
-#endif
   Void  xRunLevelIndInv     (LastCoeffStruct *combo, Int maxrun, UInt lrg1Pos, UInt cn);
-#if RUNLEVEL_TABLE_CUT
-#if CAVLC_RUNLEVEL_TABLE_REM
   Void  xRunLevelIndInterInv(LastCoeffStruct *combo, Int maxrun, UInt cn, UInt scale);
-#else
-  Void  xRunLevelIndInterInv(LastCoeffStruct *combo, Int maxrun, UInt cn);
-#endif
-#endif
   
+#if G1002_RPS
+#if INTER_RPS_PREDICTION
+  void  parseShortTermRefPicSet            (TComPPS* pcPPS, TComReferencePictureSet* pcRPS, Int idx);
+#else
+  Void  parseShortTermRefPicSet            (TComPPS* pcPPS, TComReferencePictureSet* pcRPS);
+#endif
+#endif
 private:
   TComInputBitstream*   m_pcBitstream;
   UInt                  m_uiCoeffCost;
@@ -107,42 +99,24 @@ private:
   UInt                  m_uiRun;
   Bool m_bAlfCtrl;
   UInt m_uiMaxAlfCtrlDepth;
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   Int           m_iSliceGranularity; //!< slice granularity
 #endif
   UInt                      m_uiLPTableD4[3][32];
-#if !CAVLC_COEF_LRG_BLK
-  UInt                      m_uiLPTableD8[10][128];
-#endif
   UInt                      m_uiLastPosVlcIndex[10];
   
-#if FIXED_MPM
   UInt                      m_uiIntraModeTableD17[17];
   UInt                      m_uiIntraModeTableD34[34];
-#elif MTK_DCM_MPM
-  UInt                      m_uiIntraModeTableD17[2][16];
-  UInt                      m_uiIntraModeTableD34[2][33];
-#else
-  UInt                      m_uiIntraModeTableD17[16];
-  UInt                      m_uiIntraModeTableD34[33];
-#endif
 #if AMP
   UInt                      m_uiSplitTableD[4][11];
 #else
   UInt                      m_uiSplitTableD[4][7];
 #endif
-#if CAVLC_RQT_CBP
   UInt                      m_uiCBP_YUV_TableD[4][8];
   UInt                      m_uiCBP_YS_TableD[2][4];
   UInt                      m_uiCBP_YCS_TableD[2][8];
   UInt                      m_uiCBP_4Y_TableD[2][15];
   UInt                      m_uiCBP_4Y_VlcIdx;
-#else
-  UInt                      m_uiBlkCBPTableD[2][15];
-  UInt                      m_uiCBPTableD[2][8];
-  UInt                      m_uiCbpVlcIdx[2];
-  UInt                      m_uiBlkCbpVlcIdx;
-#endif
 
 
   
@@ -154,8 +128,6 @@ private:
   UInt                  m_uiMI2TableD[15]; 
   UInt                  m_uiMITableVlcIdx;
 
-#if CAVLC_COUNTER_ADAPT
-#if CAVLC_RQT_CBP
   UChar         m_ucCBP_YUV_TableCounter[4][4];
   UChar         m_ucCBP_4Y_TableCounter[2][2];
   UChar         m_ucCBP_YS_TableCounter[2][3];
@@ -164,18 +136,11 @@ private:
   UChar         m_ucCBP_4Y_TableCounterSum[2];
   UChar         m_ucCBP_YS_TableCounterSum[2];
   UChar         m_ucCBP_YCS_TableCounterSum[2];
-#else
-  UChar         m_ucCBFTableCounter    [2][4];
-  UChar         m_ucBlkCBPTableCounter [2][2];
-  UChar         m_ucCBFTableCounterSum[2];
-  UChar         m_ucBlkCBPTableCounterSum[2];
-#endif
 
   UChar         m_ucMI1TableCounter[4];
   UChar         m_ucSplitTableCounter[4][4];
   UChar         m_ucSplitTableCounterSum[4];
   UChar         m_ucMI1TableCounterSum;
-#endif
 
   
 public:
@@ -188,7 +153,7 @@ public:
   Void  setBitstream        ( TComInputBitstream* p )   { m_pcBitstream = p; }
   Void  setAlfCtrl          ( Bool bAlfCtrl )            { m_bAlfCtrl = bAlfCtrl; }
   Void  setMaxAlfCtrlDepth  ( UInt uiMaxAlfCtrlDepth )  { m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth; }
-#if FINE_GRANULARITY_SLICES && MTK_NONCROSS_INLOOP_FILTER
+#if FINE_GRANULARITY_SLICES
   /// set slice granularity
   Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
 
@@ -211,9 +176,14 @@ public:
   Void  parsePPS            ( TComPPS* pcPPS);
   void parseSEI(SEImessages&);
   Void  parseSliceHeader    ( TComSlice*& rpcSlice );
+#if G220_PURE_VLC_SAO_ALF
+#if (TILES_DECODER || OL_USE_WPP)
+  Void parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice);
+#endif
+#endif
   Void  parseTerminatingBit ( UInt& ruiBit );
   
-  Void  parseMVPIdx         ( TComDataCU* pcCU, Int& riMVPIdx, Int iMVPNum, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList );
+  Void  parseMVPIdx         ( Int& riMVPIdx );
   
   Void  parseSkipFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseMergeFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx );
@@ -231,17 +201,13 @@ public:
   Void parseMvd             ( TComDataCU* pcCU, UInt uiAbsPartAddr,UInt uiPartIdx,    UInt uiDepth, RefPicList eRefList );
   
   Void parseDeltaQP         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-#if CAVLC_RQT_CBP
   Void parseCbfTrdiv        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiTrDepth, UInt uiDepth, UInt& uiSubdiv );
   UInt xGetFlagPattern      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth,  UInt& uiSubdiv );
-#endif
   Void parseCbf             ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
   Void parseBlockCbf        ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum );
   Void parseCoeffNxN        ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
-#if E057_INTRA_PCM
   Void parseIPCMInfo        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
-#endif
 
   Void parseAlfCtrlDepth    ( UInt& ruiAlfCtrlDepth );
   Void parseAlfCtrlFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
