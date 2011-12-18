@@ -115,8 +115,13 @@ private:
   TComRdCost              m_cRdCost;                      ///< RD cost computation class
   TEncSbac***             m_pppcRDSbacCoder;              ///< temporal storage for RD computation
   TEncSbac                m_cRDGoOnSbacCoder;             ///< going on SBAC model for RD stage
+#if FAST_BIT_EST
+  TEncBinCABACCounter***  m_pppcBinCoderCABAC;            ///< temporal CABAC state storage for RD computation
+  TEncBinCABACCounter     m_cRDGoOnBinCoderCABAC;         ///< going on bin coder CABAC for RD stage
+#else
   TEncBinCABAC***         m_pppcBinCoderCABAC;            ///< temporal CABAC state storage for RD computation
   TEncBinCABAC            m_cRDGoOnBinCoderCABAC;         ///< going on bin coder CABAC for RD stage
+#endif
 #if OL_USE_WPP
   Int                     m_iNumSubstreams;                ///< # of top-level elements allocated.
   TComBitCounter*         m_pcBitCounters;                 ///< bit counters for RD optimization per substream

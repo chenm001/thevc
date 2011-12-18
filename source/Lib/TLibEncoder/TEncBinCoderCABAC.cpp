@@ -46,6 +46,9 @@
 TEncBinCABAC::TEncBinCABAC()
 : m_pcTComBitIf( 0 )
 , m_binCountIncrement( 0 )
+#if FAST_BIT_EST
+, m_fracBits( 0 )
+#endif
 {
 }
 
@@ -151,6 +154,9 @@ Void TEncBinCABAC::copyState( TEncBinIf* pcTEncBinIf )
   m_bitsLeft        = pcTEncBinCABAC->m_bitsLeft;
   m_bufferedByte    = pcTEncBinCABAC->m_bufferedByte;
   m_numBufferedBytes = pcTEncBinCABAC->m_numBufferedBytes;
+#if FAST_BIT_EST
+  m_fracBits = pcTEncBinCABAC->m_fracBits;
+#endif
 }
 
 Void TEncBinCABAC::resetBits()
@@ -164,6 +170,9 @@ Void TEncBinCABAC::resetBits()
   {
     m_uiBinsCoded = 0;
   }
+#endif
+#if FAST_BIT_EST
+  m_fracBits &= 32767;
 #endif
 }
 

@@ -31,61 +31,86 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** \file     ContextModel3DBuffer.cpp
-    \brief    context model 3D buffer class
+/** \file     TEncBinCoderCABAC.cpp
+    \brief    binary entropy encoder of CABAC
 */
 
-#include "ContextModel3DBuffer.h"
+#include "TEncBinCoderCABACCounter.h"
+#include "TLibCommon/TComRom.h"
 
-//! \ingroup TLibCommon
+#if FAST_BIT_EST
+
+//! \ingroup TLibEncoder
 //! \{
 
-// ====================================================================================================================
-// Constructor / destructor / initialization / destroy
-// ====================================================================================================================
 
-ContextModel3DBuffer::ContextModel3DBuffer( UInt uiSizeZ, UInt uiSizeY, UInt uiSizeX, ContextModel *basePtr, Int &count )
-: m_sizeX  ( uiSizeX )
-, m_sizeXY ( uiSizeX * uiSizeY )
-, m_sizeXYZ( uiSizeX * uiSizeY * uiSizeZ )
+TEncBinCABACCounter::TEncBinCABACCounter()
 {
-  // allocate 3D buffer
-  m_contextModel = basePtr;
-  count += m_sizeXYZ;
 }
 
-// ====================================================================================================================
-// Public member functions
-// ====================================================================================================================
+TEncBinCABACCounter::~TEncBinCABACCounter()
+{
+}
+
+Void TEncBinCABACCounter::finish()
+{
+  m_pcTComBitIf->write(0, m_fracBits >> 15);
+  m_fracBits &= 32767;
+}
+
+UInt TEncBinCABACCounter::getNumWrittenBits()
+{
+  return m_pcTComBitIf->getNumberOfWrittenBits() + ( m_fracBits >> 15 );
+}
 
 /**
- * Initialize 3D buffer with respect to slicetype, QP and given initial probability table
+ * \brief Encode bin
  *
- * \param  eSliceType      slice type
- * \param  iQp             input QP value
- * \param  psCtxModel      given probability table
+ * \param binValue   bin value
+ * \param rcCtxModel context model
  */
-#if G633_8BIT_INIT
-Void ContextModel3DBuffer::initBuffer( SliceType eSliceType, Int iQp, UChar* ctxModel )
-#else
-Void ContextModel3DBuffer::initBuffer( SliceType eSliceType, Int iQp, Short* psCtxModel )
-#endif
+Void TEncBinCABACCounter::encodeBin( UInt binValue, ContextModel &rcCtxModel )
 {
-#if G633_8BIT_INIT
-  ctxModel += eSliceType * m_sizeXYZ;
-#else
-  psCtxModel += 2 * eSliceType * m_sizeXYZ;
-#endif
+  m_uiBinsCoded += m_binCountIncrement;
   
-  for ( Int n = 0; n < m_sizeXYZ; n++ )
-  {
-#if G633_8BIT_INIT
-    m_contextModel[ n ].init( iQp, ctxModel[ n ] );
-#else
-    m_contextModel[ n ].init( iQp, psCtxModel + 2 * n );
-#endif
-  }
+  m_fracBits += rcCtxModel.getEntropyBits( binValue );
+  rcCtxModel.update( binValue );
 }
 
+/**
+ * \brief Encode equiprobable bin
+ *
+ * \param binValue bin value
+ */
+Void TEncBinCABACCounter::encodeBinEP( UInt binValue )
+{
+  m_uiBinsCoded += m_binCountIncrement;
+  m_fracBits += 32768;
+}
+
+/**
+ * \brief Encode equiprobable bins
+ *
+ * \param binValues bin values
+ * \param numBins number of bins
+ */
+Void TEncBinCABACCounter::encodeBinsEP( UInt binValues, Int numBins )
+{
+  m_uiBinsCoded += numBins & -m_binCountIncrement;
+  m_fracBits += 32768 * numBins;
+}
+
+/**
+ * \brief Encode terminating bin
+ *
+ * \param binValue bin value
+ */
+Void TEncBinCABACCounter::encodeBinTrm( UInt binValue )
+{
+  m_uiBinsCoded += m_binCountIncrement;
+  m_fracBits += ContextModel::getEntropyBitsTrm( binValue );
+}
 
 //! \}
+#endif
+
