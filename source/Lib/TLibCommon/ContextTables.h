@@ -149,15 +149,15 @@ static const UChar
 INIT_SPLIT_FLAG[3][NUM_SPLIT_FLAG_CTX] =
 {
   {
-    118, 105,  91,
+     87,  74, 107,
     
   },
   {
-     99,  87,  74,
+     84, 103, 105,
     
   },
   {
-     68,  87, 105,
+     84, 103, 105,
     
   },
 };
@@ -171,11 +171,11 @@ INIT_SKIP_FLAG[3][NUM_SKIP_FLAG_CTX] =
     
   },
   {
-    165, 184, 139,
+    165, 168, 154,
     
   },
   {
-    165, 184, 139,
+    165, 168, 154,
     
   },
 };
@@ -207,7 +207,7 @@ INIT_MERGE_FLAG_EXT[3][NUM_MERGE_FLAG_EXT_CTX] =
     
   },
   {
-    119,
+    72,
     
   },
   {
@@ -224,11 +224,11 @@ INIT_MERGE_IDX_EXT[3][NUM_MERGE_IDX_EXT_CTX] =
     
   },
   {
-    115, 101, 101,  99,
+    100,  86, 102, 133,
     
   },
   {
-     69, 118, 119,  87,
+    116,  87, 119, 103,
     
   },
 };
@@ -239,15 +239,15 @@ INIT_PART_SIZE[3][NUM_PART_SIZE_CTX] =
 {
 #if PREDTYPE_CLEANUP
   {
-    152, CNU, CNU, CNU,
+    167, CNU, CNU, CNU,
     
   },
   {
-    134,  87,  95, CNU,
+    119,  87, CNU, CNU,
     
   },
   {
-    118, 102, 107,  86,
+    119,  87, CNU, CNU,
     
   },
 #else
@@ -276,11 +276,11 @@ INIT_CU_X_POS[3][NUM_CU_X_POS_CTX] =
     
   },
   {
-    119, 119,
+    119, 103,
     
   },
   {
-    119, 119,
+    119, 103,
     
   },
 };
@@ -298,7 +298,7 @@ INIT_CU_Y_POS[3][NUM_CU_Y_POS_CTX] =
     
   },
   {
-    119, 119,
+    119, 103,
     
   },
 };
@@ -314,11 +314,11 @@ INIT_PRED_MODE[3][NUM_PRED_MODE_CTX] =
     
   },
   {
-    113,
+    114,
     
   },
   {
-    CNU,
+    98,
     
   },
 #else
@@ -343,7 +343,7 @@ INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX] =
 {
 #if BYPASS_FOR_INTRA_MODE
   {
-    136,
+    167,
     
   },
   {
@@ -351,7 +351,7 @@ INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX] =
     
   },
   {
-    119,
+    150,
     
   },
 #else
@@ -375,15 +375,15 @@ static const UChar
 INIT_CHROMA_PRED_MODE[3][NUM_CHROMA_PRED_CTX] =
 {
   {
-     68, 118,
+    53, 103,
     
   },
   {
-     70, 102,
+    85,  87,
     
   },
   {
-     70, 102,
+    101,  87,
     
   },
 };
@@ -401,7 +401,7 @@ INIT_INTER_DIR[3][NUM_INTER_DIR_CTX] =
     
   },
   {
-     87,  39,  38,  36,
+    41,  39,  38,  36,
     
   },
 };
@@ -433,11 +433,11 @@ INIT_REF_PIC[3][NUM_REF_NO_CTX] =
     
   },
   {
-    102, 118,  87, CNU,
+    102, 118, 103, CNU,
     
   },
   {
-    118, 102, 119, CNU,
+    118, 118, 134, CNU,
     
   },
 };
@@ -468,27 +468,27 @@ INIT_QT_CBF[3][3*NUM_QT_CBF_CTX] =
 #endif
 {
   {
-     57,  60, CNU, CNU, CNU,
+     73,  74, CNU, CNU, CNU,
 #if CHROMA_CBF_CTX_REDUCTION==0
      54,  70, 117, CNU, CNU,
 #endif
-     54,  70, 117, CNU, CNU,
+     55,  86, 133, CNU, CNU,
     
   },
   {
-     86,  58, CNU, CNU, CNU,
+    102,  89, CNU, CNU, CNU,
 #if CHROMA_CBF_CTX_REDUCTION==0
      82,  99, 117, CNU, CNU,
 #endif
-     82,  99, 117, CNU, CNU,
+    114,  84, 117, CNU, CNU,
     
   },
   {
-     86,  58, CNU, CNU, CNU,
+    102,  89, CNU, CNU, CNU,
 #if CHROMA_CBF_CTX_REDUCTION==0
      82,  52, 117, CNU, CNU,
 #endif
-     82,  99, 117, CNU, CNU,
+    114,  68, 117, CNU, CNU,
     
   },
 };
@@ -501,11 +501,11 @@ INIT_QT_ROOT_CBF[3][NUM_QT_ROOT_CBF_CTX] =
     
   },
   {
-     39,
+    39,
     
   },
   {
-     53,
+    39,
     
   },
 };
@@ -515,18 +515,18 @@ static const UChar
 INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =
 {
   {
-    CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU,
-    CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU,
+    72,  72,  71,  72, 104,  89,  71,  88,  89,  59,  73,  86,  89, 106,  60,  59,  43,  55,
+    54,  70,  53,  53,  87,  71,  69,  54,  88,  73,  72,  53, CNU, CNU, CNU, CNU, CNU, CNU,
     
   },
   {
-    CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU,
-    CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU,
+    57,  72,  71,  72,  57,  72, 102,  88,  73,  73,  72, 102, 103,  73,  89,  73,  57,  87,
+    54,  70,  54, 101,  71,  55,  70, 116, 103,  72,  72, 119, CNU, CNU, CNU, CNU, CNU, CNU,
     
   },
   {
-    CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU,
-    CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU, CNU,
+    88,  72,  71,  72,  57,  72, 102,  88,  73,  73,  72, 118, 103,  73,  89,  73,  57,  87,
+    54,  70,  69,  85,  71,  55,  70,  85, 103,  72,  72, 119, CNU, CNU, CNU, CNU, CNU, CNU,
     
   },
 };
@@ -556,27 +556,21 @@ INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =
 static const UChar
 INIT_SIG_CG_FLAG[3][2 * NUM_SIG_CG_FLAG_CTX] = 
 {
-  //I-pic
   {
-    //Luma significant_coeff_group_flag
-    CNU, CNU,
-    //Chroma significant_coeff_group_flag
-    CNU, CNU,
+    83, 122,
+    98, 121,
+    
   },
-  //P-pic
   {
-    //Luma significant_coeff_group_flag
-    CNU, CNU,
-    //Chroma significant_coeff_group_flag
-    CNU, CNU,
+    99, 120,
+    67, 119,
+    
   },
-  //B-pic
   {
-    //Luma significant_coeff_group_flag
-    CNU, CNU,
-    //Chroma significant_coeff_group_flag
-    CNU, CNU,
-  }
+    99, 120,
+    67, 119,
+    
+  },
 };
 #endif
 
@@ -585,82 +579,34 @@ static const UChar
 INIT_SIG_FLAG_LUMA[3][NUM_SIG_FLAG_CTX_LUMA] =
 {
   {
-    // Luma 4x4
-    106,  89,  73,  88,
-     88,  55,  56,  38,
-     88,
-    // Luma 8x8
-     73, 119, 118,  68,
-    119, 119, 118,  84,
-     86,  52,  73,
-    // Luma 16x16 & 32X32
-    107,  68, 104, 122,
-     98, 119,  89,
+    74,  73,  88,  72,  72,  55,  71,  54,  71,  88, 103,  71,  53,  87, 134,  86,  84,  70,  68,  89,  90,  84,  88,  74, 130, 118,  88,
+    
   },
   {
-    // Luma 4x4
-    169, 120, 103, 103,
-    103, 102, 102,  53,
-    103,
-    // Luma 8x8
-    167,  87, 102,  53,
-    117, 102,  70,  86,
-     84,  67, 167,
-    // Luma 16x16 & 32X32
-    169, 162, 135, 121,
-    146,  87, 120,
+    152, 119, 103, 118,  87,  70,  70,  53, 118, 134, 118, 101,  68,  85, 101, 116, 100,  68,  67, 136, 168, 147, 150, 120, 115, 118, 119,
+    
   },
   {
-    // Luma 4x4
-    169, 136, 103, 103,
-    103, 102, 102, 53,
-    104,
-    // Luma 8x8
-    120,  87, 102,  68,
-     86, 118, 102,  70,
-     84,  67, 120,
-    // Luma 16x16 & 32X32
-    169, 131, 135, 137,
-     84, 102, 120,
-  }
+    152, 119, 103, 118,  87,  70,  70,  53,  71, 103, 118, 101,  68,  85, 101, 116, 116,  68,  67, 152, 168, 147, 150, 120, 115, 118, 119,
+    
+  },
 };
 
 static const UChar
 INIT_SIG_FLAG_CHROMA[3][NUM_SIG_FLAG_CTX_CHROMA] =
 {
   {
-    // Chroma 4x4
-    154, 119,  119,  86,
-     53,  87,
-    // Chroma 8x8
-    120, 118, 131, 130,
-     70, 133,  70,  68,
-     52,  49, 120,
-    // Chroma 16x16 & 32X32
-    122, 113, 119, 136,
+    120,  87, 149,  70,  52, 118, 133, 116, 114, 129, 132, 162, 115,  51, 115,  66, 120,  74, 115,  87,  89,
+    
   },
   {
-    // Chroma 4x4
-    154, 118,  87,  69,
-     53, 135,
-    // Chroma 8x8
-    167, 118, 116,  83,
-     68, 132, 133,  84,
-     83, 146, 167,
-    // Chroma 16x16 & 32X32
-    185, 146, 118, 135,
+    136, 102,  70,  53,  67, 117, 102, 117, 115, 114,  84, 115,  99, 100,  83, 114, 152, 168, 131, 150, 120,
+    
   },
   {
-    // Chroma 4x4
-    170, 118,  87,  87,
-     53, 135,
-    // Chroma 8x8
-    120, 118, 116, 131,
-     84,  85, 117, 117,
-     83, 114, 120,
-    // Chroma 16x16 & 32X32
-    170, 146, 134, 167,
-  }
+    136, 102,  86,  84,  67, 117, 102, 117, 115,  99, 100, 115,  99, 100,  83, 114, 152, 152, 131, 150, 120,
+    
+  },
 };
 #else
 #if MULTI_LEVEL_SIGNIFICANCE
@@ -886,92 +832,68 @@ static const UChar
 INIT_ONE_FLAG_LUMA[3][NUM_ONE_FLAG_CTX_LUMA] =
 {
   {
-    104,  99,  84,  69,
-    103, 117,  86, 102,
-    105, 119, 103, 103,
-     85,  66,  98, 114,
-    102, 101, 101, 148,
-    119, 134, 134, 134,
+    104,  68, 116,  86, 104, 132,  86,  87, 105, 134,  87, 103, 102,  66, 114,  68,  87,  84, 100, 101,  72,  69, 101,  86,
+    
   },
   {
-    119, 180, 179, 179,
-    119, 117, 164, 164,
-    152, 119, 135, 119,
-    116, 146,  98,  98,
-    102, 147, 116, 147,
-    135, 118, 118, 134,
+    119, 179, 179, 164, 119,  85, 117, 149, 136, 103, 103, 103, 133,  98, 114, 115, 118,  99, 115, 116,  87, 100,  85, 117,
+    
   },
   {
-    119, 196, 179, 179,
-    119, 117, 117, 133,
-    121, 119, 103, 103,
-    132, 146, 114,  98,
-    118, 132, 116, 116,
-    119, 134, 118, 134,
-  }
+    119, 179, 148, 164, 119,  85, 117, 149, 136,  87, 103, 103, 133,  98, 114, 115, 118,  99, 115, 100,  87,  84,  85,  85,
+    
+  },
 };
 
 static const UChar
 INIT_ONE_FLAG_CHROMA[3][NUM_ONE_FLAG_CTX_CHROMA] =
 {
   {
-    104,  99, 115, 164,
-    120,  85, 117, 117,
+    104, 130, 147, 149, 104, 196, 100, 165,
+    
   },
   {
-    135, 178, 178, 179,
-    103, 179, 179, 115,
+    135, 146, 147, 164, 119, 148, 116, 133,
+    
   },
   {
-    151, 178, 178, 179,
-    135, 148, 148, 164,
-  }
+    135, 177, 147, 164, 119, 132, 148, 149,
+    
+  },
 };
 
 static const UChar
 INIT_ABS_FLAG_LUMA[3][NUM_ABS_FLAG_CTX_LUMA] =
 {
   {
-    101, 119,  88,
-    102, 134, 119,
-    119,  88,  88,
-     67, 116, 101,
-    117, 102, 102,
-    134, 119, 119,
+    86, 103,  73, 102, 103,  73, 103,  88,  89, 115, 117, 103, 117, 118, 103, 102, 103,  72,
+    
   },
   {
-     52,  54,  87,
-     85,  86, 134,
-    119, 119, 119,
-     82, 115,  85,
-     84,  85, 117,
-    118, 134,  87,
+    84, 102,  88, 117, 118, 104, 103, 119, 136,  83, 116, 118, 100, 117,  87,  85,  86, 103,
+    
   },
   {
-     52,  70, 119,
-    117, 102, 119,
-    119, 119, 135,
-     98,  68,  85,
-    116,  85,  86,
-    118,  87, 119,
-  }
+    84, 102,  88, 117, 118, 104,  87, 119, 136,  83, 116, 118,  84, 117,  87,  69,  86,  87,
+    
+  },
 };
 
 static const UChar
 INIT_ABS_FLAG_CHROMA[3][NUM_ABS_FLAG_CTX_CHROMA] =
 {
   {
-    101, 134, 104,
-    165, 150, 103,
+    101, 103, 104, 101, 167, 121,
+    
   },
   {
-     83, 102, 151,
-     85, 118, 103,
+    84, 118, 120, 117, 150, 120,
+    
   },
   {
-     99, 118, 151,
-    133, 102, 103,
-  }
+    84, 118, 120, 117, 150, 120,
+    
+  },
 };
 #else
 static const UChar
@@ -1223,7 +1145,7 @@ INIT_MVP_IDX[3][NUM_MVP_IDX_CTX] =
     
   },
   {
-    118, CNU,
+    134, CNU,
     
   },
 };
@@ -1342,15 +1264,15 @@ static const UChar
 INIT_TRANS_SUBDIV_FLAG[3][NUM_TRANS_SUBDIV_FLAG_CTX] =
 {
   {
-    CNU, 146, 100,  84, CNU, CNU, CNU, CNU, CNU, CNU,
+    CNU, 162, 148, 100, CNU, CNU, CNU, CNU, CNU, CNU,
     
   },
   {
-    CNU, 102,  55,  70, CNU, CNU, CNU, CNU, CNU, CNU,
+    CNU,  71,  86,  55, CNU, CNU, CNU, CNU, CNU, CNU,
     
   },
   {
-    CNU, 102,  55,  70, CNU, CNU, CNU, CNU, CNU, CNU,
+    CNU, 102,  86,  86, CNU, CNU, CNU, CNU, CNU, CNU,
     
   },
 };
