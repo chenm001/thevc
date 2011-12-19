@@ -80,7 +80,11 @@ public:
   }
   
   // initialization & copy functions
+#if G633_8BIT_INIT
+  Void initBuffer( SliceType eSliceType, Int iQp, UChar* ctxModel );          ///< initialize 3D buffer by slice type & QP
+#else
   Void initBuffer( SliceType eSliceType, Int iQp, Short* psCtxModel );          ///< initialize 3D buffer by slice type & QP
+#endif
   
   /** copy from another buffer
    * \param src buffer to copy from

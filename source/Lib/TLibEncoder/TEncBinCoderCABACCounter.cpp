@@ -31,75 +31,86 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/** \file     TEncBinCoderCABAC.h
+/** \file     TEncBinCoderCABAC.cpp
     \brief    binary entropy encoder of CABAC
 */
 
-#ifndef __TENC_BIN_CODER_CABAC__
-#define __TENC_BIN_CODER_CABAC__
+#include "TEncBinCoderCABACCounter.h"
+#include "TLibCommon/TComRom.h"
 
-#include "TLibCommon/TComCABACTables.h"
-#include "TEncBinCoder.h"
+#if FAST_BIT_EST
 
 //! \ingroup TLibEncoder
 //! \{
 
-class TEncBinCABAC : public TEncBinIf
+
+TEncBinCABACCounter::TEncBinCABACCounter()
 {
-public:
-  TEncBinCABAC ();
-  virtual ~TEncBinCABAC();
-  
-  Void  init              ( TComBitIf* pcTComBitIf );
-  Void  uninit            ();
-  
-  Void  start             ();
-  Void  finish            ();
-  Void  copyState         ( TEncBinIf* pcTEncBinIf );
+}
 
-  Void  resetBac          ();
-  
-#if F747_APS
-  Void encodeFlush(Bool bEnd);  //!< flush bits when CABAC termination
-#endif
+TEncBinCABACCounter::~TEncBinCABACCounter()
+{
+}
 
-  Void  resetBits         ();
-  UInt  getNumWrittenBits ();
+Void TEncBinCABACCounter::finish()
+{
+  m_pcTComBitIf->write(0, m_fracBits >> 15);
+  m_fracBits &= 32767;
+}
+
+UInt TEncBinCABACCounter::getNumWrittenBits()
+{
+  return m_pcTComBitIf->getNumberOfWrittenBits() + ( m_fracBits >> 15 );
+}
+
+/**
+ * \brief Encode bin
+ *
+ * \param binValue   bin value
+ * \param rcCtxModel context model
+ */
+Void TEncBinCABACCounter::encodeBin( UInt binValue, ContextModel &rcCtxModel )
+{
+  m_uiBinsCoded += m_binCountIncrement;
   
-  Void  encodeBin         ( UInt  binValue,  ContextModel& rcCtxModel );
-  Void  encodeBinEP       ( UInt  binValue                            );
-  Void  encodeBinsEP      ( UInt  binValues, Int numBins              );
-  Void  encodeBinTrm      ( UInt  binValue                            );
-  
-  TEncBinCABAC* getTEncBinCABAC()  { return this; }
-  
-  Void  setBinsCoded              ( UInt uiVal )  { m_uiBinsCoded = uiVal;               }
-  UInt  getBinsCoded              ()              { return m_uiBinsCoded;                }
-  Void  setBinCountingEnableFlag  ( Bool bFlag )  { m_binCountIncrement = bFlag ? 1 : 0; }
-  Bool  getBinCountingEnableFlag  ()              { return m_binCountIncrement != 0;     }
-  
-#if FAST_BIT_EST
-protected:
-#else
-private:
-#endif
-  Void testAndWriteOut();
-  Void writeOut();
-  
-  TComBitIf*          m_pcTComBitIf;
-  UInt                m_uiLow;
-  UInt                m_uiRange;
-  UInt                m_bufferedByte;
-  Int                 m_numBufferedBytes;
-  Int                 m_bitsLeft;
-  UInt                m_uiBinsCoded;
-  Int                 m_binCountIncrement;
-#if FAST_BIT_EST
-  UInt64 m_fracBits;
-#endif
-};
+  m_fracBits += rcCtxModel.getEntropyBits( binValue );
+  rcCtxModel.update( binValue );
+}
+
+/**
+ * \brief Encode equiprobable bin
+ *
+ * \param binValue bin value
+ */
+Void TEncBinCABACCounter::encodeBinEP( UInt binValue )
+{
+  m_uiBinsCoded += m_binCountIncrement;
+  m_fracBits += 32768;
+}
+
+/**
+ * \brief Encode equiprobable bins
+ *
+ * \param binValues bin values
+ * \param numBins number of bins
+ */
+Void TEncBinCABACCounter::encodeBinsEP( UInt binValues, Int numBins )
+{
+  m_uiBinsCoded += numBins & -m_binCountIncrement;
+  m_fracBits += 32768 * numBins;
+}
+
+/**
+ * \brief Encode terminating bin
+ *
+ * \param binValue bin value
+ */
+Void TEncBinCABACCounter::encodeBinTrm( UInt binValue )
+{
+  m_uiBinsCoded += m_binCountIncrement;
+  m_fracBits += ContextModel::getEntropyBitsTrm( binValue );
+}
 
 //! \}
-
 #endif
 
