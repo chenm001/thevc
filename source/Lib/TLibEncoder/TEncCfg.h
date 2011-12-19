@@ -64,10 +64,25 @@ struct GOPEntry {
   Int m_iNumRefIdc;
   Int m_aiRefIdc[MAX_NUM_REF_PICS+1];
 #endif
-  GOPEntry() : m_iPOC(-1)
-  {
-  }
+  GOPEntry()
+  : m_iPOC(-1)
+  , m_iQPOffset()
+  , m_iQPFactor()
+  , m_iTemporalId()
+  , m_bRefPic()
+  , m_iRefBufSize()
+  , m_iSliceType()
+  , m_iNumRefPics()
+  , m_aiReferencePics()
+  , m_aiUsedByCurrPic()
+  , m_bInterRPSPrediction()
+  , m_iDeltaRIdxMinus1()
+  , m_iDeltaRPS()
+  , m_iNumRefIdc()
+  , m_aiRefIdc()
+  { }
 };
+
 std::istringstream &operator>>(std::istringstream &in, GOPEntry &entry);     //input
 #endif
 //! \ingroup TLibEncoder

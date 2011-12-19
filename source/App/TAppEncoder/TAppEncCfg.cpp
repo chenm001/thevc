@@ -333,7 +333,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   for(Int i=1; i<MAX_GOP+1; i++) {
     std::ostringstream cOSS;
     cOSS<<"Frame"<<i;
-    opts.addOptions()(cOSS.str(),m_pcGOPList[i-1],m_pcGOPList[i-1]);
+    opts.addOptions()(cOSS.str(), m_pcGOPList[i-1], GOPEntry());
   }
 #endif
   po::setDefaults(opts);
