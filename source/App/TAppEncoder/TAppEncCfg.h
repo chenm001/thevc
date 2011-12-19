@@ -125,10 +125,6 @@ protected:
 #endif
 
   // coding tools (loop filter)
-#if G215_ALF_NUM_FILTER
-  Int       m_iALFMaxNumberFilters;                           ///< ALF Max Number Filters in one picture
-#endif
-
   Bool      m_bLoopFilterDisable;                             ///< flag for using deblocking filter
   Int       m_iLoopFilterAlphaC0Offset;                       ///< alpha offset for deblocking filter
   Int       m_iLoopFilterBetaOffset;                          ///< beta offset for deblocking filter

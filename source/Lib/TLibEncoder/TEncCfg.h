@@ -156,9 +156,6 @@ protected:
   
   //====== Tool list ========
   Bool      m_bUseSBACRD;
-#if G215_ALF_NUM_FILTER
-  Int       m_iALFMaxNumberFilters;
-#endif
 
   Bool      m_bUseASR;
   Bool      m_bUseHADME;
@@ -349,11 +346,6 @@ public:
   Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
   Bool      getUseASR                       ()      { return m_bUseASR;     }
   Bool      getUseHADME                     ()      { return m_bUseHADME;   }
-
-#if G215_ALF_NUM_FILTER
-  Void      setALFMaxNumberFilters          (Int i)  { m_iALFMaxNumberFilters = i; } 
-  Int       getALFMaxNumberFilters          ()       { return m_iALFMaxNumberFilters; } 
-#endif
 
 #if !G1002_RPS
   Bool      getUseGPB                       ()      { return m_bUseGPB;     }
