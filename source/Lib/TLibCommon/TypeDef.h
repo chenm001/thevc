@@ -83,23 +83,8 @@
 
 #define MRG_TMVP_REFIDX_G163 1 ///< G163 : use refIdx of left PU. if not available, use 0.
 
-#define G609_NEW_BA_SUB             1   ///< G609: Directional feature calculation on subset of pixels
-#define G216_ALF_MERGE_FLAG_FIX     1   ///< G216: bug fixed: removing 15th merge flag for BA mode
-#define G212_CROSS9x9_VB            1   ///< G212: Cross9x9 filter shape and virtual boundary processing for ALF
-#define G610_ALF_K_BIT_FIX          1   ///< G610: bug fixed: removing extra alf_golomb_index_bit for cross-shaped filter
-#if G610_ALF_K_BIT_FIX
-#if G212_CROSS9x9_VB
-#define MIN_SCAN_POS_CROSS          4
-#else
-#define MIN_SCAN_POS_CROSS          5
-#endif
-#endif
-#define G214_ALF_CONSTRAINED_COEFF  1   ///< G214: Constrained ALF coefficient value
-#define ALF_DC_OFFSET_REMOVAL       1   ///< G445: Remove DC offset for ALF
-
 #define SAO_RDO_OFFSET              1   ///< G915: Considering rate-distortion-cost in optimal offset calculation for SAO
 #define G220_PURE_VLC_SAO_ALF       1   ///< G220: Pure VLC for SAO and ALF parameters
-#define G1023_FIX_NPASS_ALF         1   ///< G1023: Improved ALF N-pass encoding
 
 #define FAST_BIT_EST                1   ///< G763: Table-based bit estimation for CABAC
 #define G633_8BIT_INIT              1   ///< G633: Context model initialization method using 8 bit initialization values
