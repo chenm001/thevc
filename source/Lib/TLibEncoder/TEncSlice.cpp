@@ -165,42 +165,10 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setPOC( iPOCLast - iNumPicRcvd + iTimeOffset );
   
   // depth re-computation based on rate GOP size
-  if ( m_pcCfg->getGOPSize() != m_pcCfg->getRateGOPSize() )
+  if ( 0 )
 #endif
   {
-    Int i, j;
-#if G1002_RPS
-    Int iPOC = rpcSlice->getPOC()%m_pcCfg->getGOPSize();
-#else
-    Int iPOC = rpcSlice->getPOC()%m_pcCfg->getRateGOPSize();
-#endif
-    if ( iPOC == 0 ) iDepth = 0;
-    else
-    {
-#if G1002_RPS
-      Int iStep = m_pcCfg->getGOPSize();
-#else
-      Int iStep = m_pcCfg->getRateGOPSize();
-#endif
-      iDepth    = 0;
-      for( i=iStep>>1; i>=1; i>>=1 )
-      {
-#if G1002_RPS
-        for ( j=i; j<m_pcCfg->getGOPSize(); j+=iStep )
-#else
-        for ( j=i; j<m_pcCfg->getRateGOPSize(); j+=iStep )
-#endif
-        {
-          if ( j == iPOC )
-          {
-            i=0;
-            break;
-          }
-        }
-        iStep>>=1;
-        iDepth++;
-      }
-    }
+    iDepth = 0;
   }
   
   // slice type
@@ -217,10 +185,10 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   else
 #endif
   {
-    eSliceType = ( uiPOCCurr % m_pcCfg->getGOPSize() != 0 || iDepth > 0) ? B_SLICE : P_SLICE;
+    eSliceType = ( iDepth > 0) ? B_SLICE : P_SLICE;
   }
 #endif
-  eSliceType = (iPOCLast == 0 || uiPOCCurr % m_pcCfg->getIntraPeriod() == 0 || m_pcGOPEncoder->getGOPSize() == 0) ? I_SLICE : eSliceType;
+  eSliceType = (iPOCLast == 0 || uiPOCCurr % m_pcCfg->getIntraPeriod() == 0) ? I_SLICE : eSliceType;
   
   rpcSlice->setSliceType    ( eSliceType );
   
@@ -235,14 +203,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 #else
   if ( m_pcCfg->getUseNRF() )
   {
-    if ( ( m_pcCfg->getRateGOPSize() != 1) && (m_pcCfg->getRateGOPSize() >> (iDepth+1)) == 0 )
-    {
-      rpcSlice->setReferenced(false);
-    }
-    else
-    {
       rpcSlice->setReferenced(true);
-    }
   }
   else
   {
@@ -262,7 +223,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   }
 #else
   {
-    if ( ( iPOCLast != 0 ) && ( ( uiPOCCurr % m_pcCfg->getIntraPeriod() ) != 0 ) && ( m_pcGOPEncoder->getGOPSize() != 0 ) ) // P or B-slice
+    if ( ( iPOCLast != 0 ) && ( ( uiPOCCurr % m_pcCfg->getIntraPeriod() ) != 0 ) ) // P or B-slice
     {
       if ( !m_pcCfg->getUseBQP() )
       {
@@ -312,11 +273,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     dQP = dOrigQP + ((iDQpIdx+1)>>1)*(iDQpIdx%2 ? -1 : 1);
     
     // compute lambda value
-#if G1002_RPS
-    Int    NumberBFrames = ( m_pcCfg->getGOPSize() - 1 );
-#else
-    Int    NumberBFrames = ( m_pcCfg->getRateGOPSize() - 1 );
-#endif
+    Int    NumberBFrames = 0;
     Int    SHIFT_QP = 12;
     Double dLambda_scale = 1.0 - Clip3( 0.0, 0.5, 0.05*(Double)NumberBFrames );
 #if FULL_NBIT
@@ -431,7 +388,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 #if !G1002_RPS
   eSliceType = P_SLICE;
 #endif
-  eSliceType = (iPOCLast == 0 || uiPOCCurr % m_pcCfg->getIntraPeriod() == 0 || m_pcGOPEncoder->getGOPSize() == 0) ? I_SLICE : eSliceType;
+  eSliceType = (iPOCLast == 0 || uiPOCCurr % m_pcCfg->getIntraPeriod() == 0) ? I_SLICE : eSliceType;
   
   rpcSlice->setSliceType        ( eSliceType );
 #endif
@@ -478,13 +435,6 @@ Void TEncSlice::setSearchRange( TComSlice* pcSlice )
 {
   Int iCurrPOC = pcSlice->getPOC();
   Int iRefPOC;
-#if G1002_RPS
-  Int iGOPSize = m_pcCfg->getGOPSize();
-  Int iOffset = (iGOPSize >> 1);
-#else
-  Int iRateGOPSize = m_pcCfg->getRateGOPSize();
-  Int iOffset = (iRateGOPSize >> 1);
-#endif
   Int iMaxSR = m_pcCfg->getSearchRange();
   Int iNumPredDir = pcSlice->isInterP() ? 1 : 2;
   
@@ -494,11 +444,7 @@ Void TEncSlice::setSearchRange( TComSlice* pcSlice )
     for (Int iRefIdx = 0; iRefIdx < pcSlice->getNumRefIdx(e); iRefIdx++)
     {
       iRefPOC = pcSlice->getRefPic(e, iRefIdx)->getPOC();
-#if G1002_RPS
-      Int iNewSR = Clip3(8, iMaxSR, (iMaxSR*ADAPT_SR_SCALE*abs(iCurrPOC - iRefPOC)+iOffset)/iGOPSize);
-#else
-      Int iNewSR = Clip3(8, iMaxSR, (iMaxSR*ADAPT_SR_SCALE*abs(iCurrPOC - iRefPOC)+iOffset)/iRateGOPSize);
-#endif
+      Int iNewSR = Clip3(8, iMaxSR, (iMaxSR*ADAPT_SR_SCALE*abs(iCurrPOC - iRefPOC)));
       m_pcPredSearch->setAdaptiveSearchRange(iDir, iRefIdx, iNewSR);
     }
   }
@@ -526,14 +472,7 @@ Void TEncSlice::precompressSlice( TComPic*& rpcPic )
 #endif
   
   // set frame lambda
-  if (m_pcCfg->getGOPSize() > 1)
-  {
-    dFrameLambda = 0.68 * pow (2, (m_piRdPicQp[0]  - SHIFT_QP) / 3.0) * (pcSlice->isInterB()? 2 : 1);
-  }
-  else
-  {
     dFrameLambda = 0.68 * pow (2, (m_piRdPicQp[0] - SHIFT_QP) / 3.0);
-  }
   m_pcRdCost      ->setFrameLambda(dFrameLambda);
   
   // for each QP candidate

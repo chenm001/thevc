@@ -58,7 +58,6 @@ static void calcAndPrintMD5Status(TComPicYuv& pic, const SEImessages* seis);
 
 TDecGop::TDecGop()
 {
-  m_iGopSize = 0;
   m_dDecTime = 0;
 }
 

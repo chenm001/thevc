@@ -91,14 +91,12 @@ protected:
   //====== Coding Structure ========
   UInt      m_uiIntraPeriod;
   UInt      m_uiDecodingRefreshType;            ///< the type of decoding refresh employed for the random access.
-  Int       m_iGOPSize;
 #if G1002_RPS
   GOPEntry  m_pcGOPList[MAX_GOP];
   Int       m_iExtraRPSs;
   UInt      m_uiMaxNumberOfReferencePictures;
   UInt      m_uiMaxNumberOfReorderPictures;
 #else
-  Int       m_iRateGOPSize;
   Int       m_iNumOfReference;
   Int       m_iNumOfReferenceB_L0;
   Int       m_iNumOfReferenceB_L1;
@@ -205,7 +203,6 @@ public:
   //====== Coding Structure ========
   Void      setIntraPeriod                  ( Int   i )      { m_uiIntraPeriod = (UInt)i; }
   Void      setDecodingRefreshType          ( Int   i )      { m_uiDecodingRefreshType = (UInt)i; }
-  Void      setGOPSize                      ( Int   i )      { m_iGOPSize = i; }
 #if G1002_RPS
   Void      setGopList                      ( GOPEntry*  piGOPList )      {  for ( Int i = 0; i < MAX_GOP; i++ ) m_pcGOPList[i] = piGOPList[i]; }
   Void      setExtraRPSs                    ( Int   i )      { m_iExtraRPSs = i; }
@@ -213,7 +210,6 @@ public:
   Void      setMaxNumberOfReferencePictures ( UInt u )       { m_uiMaxNumberOfReferencePictures = u;    }
   Void      setMaxNumberOfReorderPictures   ( UInt u )       { m_uiMaxNumberOfReorderPictures = u;    }
 #else
-  Void      setRateGOPSize                  ( Int   i )      { m_iRateGOPSize = i; }
   Void      setNumOfReference               ( Int   i )      { m_iNumOfReference = i; }
   Void      setNumOfReferenceB_L0           ( Int   i )      { m_iNumOfReferenceB_L0 = i; }
   Void      setNumOfReferenceB_L1           ( Int   i )      { m_iNumOfReferenceB_L1 = i; }
@@ -276,9 +272,7 @@ public:
   //==== Coding Structure ========
   UInt      getIntraPeriod                  ()      { return  m_uiIntraPeriod; }
   UInt      getDecodingRefreshType          ()      { return  m_uiDecodingRefreshType; }
-  Int       getGOPSize                      ()      { return  m_iGOPSize; }
 #if !G1002_RPS
-  Int       getRateGOPSize                  ()      { return  m_iRateGOPSize; }
   Int       getNumOfReference               ()      { return  m_iNumOfReference; }
   Int       getNumOfReferenceB_L0           ()      { return  m_iNumOfReferenceB_L0; }
   Int       getNumOfReferenceB_L1           ()      { return  m_iNumOfReferenceB_L1; }

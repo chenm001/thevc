@@ -72,8 +72,6 @@ struct InputNALUnit;
 class TDecTop
 {
 private:
-  Int                     m_iGopSize;
-  Bool                    m_bGopSizeSet;
   int                     m_iMaxRefPicNum;
   
   Bool                    m_bRefreshPending;    ///< refresh pending flag
@@ -143,7 +141,6 @@ public:
 
 protected:
   Void  xGetNewPicBuffer  (TComSlice* pcSlice, TComPic*& rpcPic);
-  Void  xUpdateGopSize    (TComSlice* pcSlice);
 #if G1002_RPS
   Void  xCreateLostPicture (Int iLostPOC);
 #endif

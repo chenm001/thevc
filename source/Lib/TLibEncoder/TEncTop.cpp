@@ -282,7 +282,7 @@ Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>&
   }
 #endif
   
-  if ( m_iPOCLast != 0 && ( m_iNumPicRcvd != m_iGOPSize && m_iGOPSize ) && !bEos )
+  if ( m_iPOCLast != 0 && ( m_iNumPicRcvd != 1 ) && !bEos )
   {
     iNumEncoded = 0;
     return;
@@ -317,7 +317,7 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
   TComSlice::sortPicList(m_cListPic);
   
 #if G1002_RPS
-  if (m_cListPic.size() >= (UInt)(m_iGOPSize + getMaxNumberOfReferencePictures() + 2) )
+  if (m_cListPic.size() >= (UInt)(1 + getMaxNumberOfReferencePictures() + 2) )
   {
     TComList<TComPic*>::iterator iterPic  = m_cListPic.begin();
     Int iSize = Int( m_cListPic.size() );
@@ -332,7 +332,7 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
   {
 #else
   // bug-fix - erase frame memory (previous GOP) which is not used for reference any more
-  if (m_cListPic.size() >= (UInt)(m_iGOPSize + 2 * getNumOfReference() + 1) )  // 2)   //  K. Lee bug fix - for multiple reference > 2
+  if (m_cListPic.size() >= (UInt)(1 + 2 * getNumOfReference() + 1) )  // 2)   //  K. Lee bug fix - for multiple reference > 2
   {
 #if REF_SETTING_FOR_LD
     if ( m_bUseNewRefSetting )
@@ -380,7 +380,7 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
       
       TComList<TComPic*>::iterator iterPic  = m_cListPic.begin();
       rpcPic = *(++iterPic);
-      if ( abs(rpcPic->getPOC() - m_iPOCLast) <= m_iGOPSize )
+      if ( abs(rpcPic->getPOC() - m_iPOCLast) <= 1 )
       {
 #endif
 #if QP_ADAPTATION
@@ -554,8 +554,8 @@ Void TEncTop::xInitRPS()
   // configured directly from the config file.
   // Here we check what BD is appropriate
   
-  m_cRPSList.create(getGOPSize()+m_iExtraRPSs);
-  for( Int i = 0; i < getGOPSize()+m_iExtraRPSs; i++) 
+  m_cRPSList.create(1+m_iExtraRPSs);
+  for( Int i = 0; i < 1+m_iExtraRPSs; i++) 
   {
     GOPEntry pGE = getGOPEntry(i);
     pcRPS = m_cRPSList.getReferencePictureSet(i);
@@ -626,7 +626,7 @@ Void TEncTop::selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, UInt
 
   pcSlice->setRPSidx(iGOPid);
 
-  for(Int extraNum=m_iGOPSize; extraNum<m_iExtraRPSs+m_iGOPSize; extraNum++)
+  for(Int extraNum=1; extraNum<m_iExtraRPSs+1; extraNum++)
   {    
     if(m_uiIntraPeriod > 0)
     {

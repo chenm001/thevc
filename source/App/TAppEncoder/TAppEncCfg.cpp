@@ -175,12 +175,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   /* Coding structure paramters */
   ("IntraPeriod,-ip",m_iIntraPeriod, -1, "intra period in frames, (-1: only first frame)")
   ("DecodingRefreshType,-dr",m_iDecodingRefreshType, 0, "intra refresh, (0:none 1:CDR 2:IDR)")
-  ("GOPSize,g",      m_iGOPSize,      1, "GOP size of temporal structure")
 #if G1002_RPS
   ("MaxNumberOfReorderPictures",   m_uiMaxNumberOfReorderPictures,   4u, "Max number of reorder pictures")
   ("MaxNumberOfReferencePictures", m_uiMaxNumberOfReferencePictures, 6u, "Max number of reference pictures")
 #else
-  ("RateGOPSize,-rg",m_iRateGOPSize, -1, "GOP size of hierarchical QP assignment (-1: implies inherit GOPSize value)")
   ("NumOfReference,r",       m_iNumOfReference,     1, "Number of reference (P)")
   ("NumOfReferenceB_L0,-rb0",m_iNumOfReferenceB_L0, 1, "Number of reference (B_L0)")
   ("NumOfReferenceB_L1,-rb1",m_iNumOfReferenceB_L1, 1, "Number of reference (B_L1)")
@@ -293,14 +291,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   m_pchReconFile = cfg_ReconFile.empty() ? NULL : strdup(cfg_ReconFile.c_str());
   m_pchdQPFile = cfg_dQPFile.empty() ? NULL : strdup(cfg_dQPFile.c_str());
   
-#if !G1002_RPS
-  if (m_iRateGOPSize == -1)
-  {
-    /* if rateGOPSize has not been specified, the default value is GOPSize */
-    m_iRateGOPSize = m_iGOPSize;
-  }
-#endif
-  
   // compute source padding size
   if ( m_bUsePAD )
   {
@@ -319,11 +309,11 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   
   // allocate slice-based dQP values
 #if G1002_RPS
-  m_aidQP = new Int[ m_iFrameToBeEncoded + m_iGOPSize + 1 ];
-  ::memset( m_aidQP, 0, sizeof(Int)*( m_iFrameToBeEncoded + m_iGOPSize + 1 ) );
+  m_aidQP = new Int[ m_iFrameToBeEncoded + 1 + 1 ];
+  ::memset( m_aidQP, 0, sizeof(Int)*( m_iFrameToBeEncoded + 1 + 1 ) );
 #else
-  m_aidQP = new Int[ m_iFrameToBeEncoded + m_iRateGOPSize + 1 ];
-  ::memset( m_aidQP, 0, sizeof(Int)*( m_iFrameToBeEncoded + m_iRateGOPSize + 1 ) );
+  m_aidQP = new Int[ m_iFrameToBeEncoded + 1 + 1 ];
+  ::memset( m_aidQP, 0, sizeof(Int)*( m_iFrameToBeEncoded + 1 + 1 ) );
 #endif
   
   // handling of floating-point QP values
@@ -334,11 +324,11 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     Int iSwitchPOC = (Int)( m_iFrameToBeEncoded - (m_fQP - m_iQP)*m_iFrameToBeEncoded + 0.5 );
     
 #if G1002_RPS
-    iSwitchPOC = (Int)( (Double)iSwitchPOC / m_iGOPSize + 0.5 )*m_iGOPSize;
-    for ( Int i=iSwitchPOC; i<m_iFrameToBeEncoded + m_iGOPSize + 1; i++ )
+    iSwitchPOC = (Int)( (Double)iSwitchPOC + 0.5 );
+    for ( Int i=iSwitchPOC; i<m_iFrameToBeEncoded + 1 + 1; i++ )
 #else
-    iSwitchPOC = (Int)( (Double)iSwitchPOC / m_iRateGOPSize + 0.5 )*m_iRateGOPSize;
-    for ( Int i=iSwitchPOC; i<m_iFrameToBeEncoded + m_iRateGOPSize + 1; i++ )
+    iSwitchPOC = (Int)( (Double)iSwitchPOC + 0.5 );
+    for ( Int i=iSwitchPOC; i<m_iFrameToBeEncoded + 1 + 1; i++ )
 #endif
     {
       m_aidQP[i] = 1;
@@ -365,21 +355,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD
-  if ( m_iGOPSize > 1 )
-  {
-    if ( m_bUseNewRefSetting )
-    {
-      printf( "\nwarning: new reference frame setting can be 1 only when GOP size is 1 (LD case), set to 0" );
-      m_bUseNewRefSetting = false;
-    }
-  }
-  if ( m_iRateGOPSize != 4 )
-  {
     if ( m_bUseNewRefSetting )
     {
       printf( "\nwarning: new reference frame setting was originally designed for default LD setting (rateGOPSize=4), no action" );
     }
-  }
 #endif
 #endif
   
@@ -408,9 +387,7 @@ Void TAppEncCfg::xCheckParameter()
   // check range of parameters
   xConfirmPara( m_iFrameRate <= 0,                                                          "Frame rate must be more than 1" );
   xConfirmPara( m_iFrameToBeEncoded <= 0,                                                   "Total Number Of Frames encoded must be more than 1" );
-  xConfirmPara( m_iGOPSize < 1 ,                                                            "GOP Size must be more than 1" );
-  xConfirmPara( m_iGOPSize > 1 &&  m_iGOPSize % 2,                                          "GOP Size must be a multiple of 2, if GOP Size is greater than 1" );
-  xConfirmPara( (m_iIntraPeriod > 0 && m_iIntraPeriod < m_iGOPSize) || m_iIntraPeriod == 0, "Intra period must be more than GOP size, or -1 , not 0" );
+  xConfirmPara( m_iIntraPeriod == 0,                                                        "Intra period must be more than GOP size, or -1 , not 0" );
   xConfirmPara( m_iDecodingRefreshType < 0 || m_iDecodingRefreshType > 2,                   "Decoding Refresh Type must be equal to 0, 1 or 2" );
   xConfirmPara( m_iQP < 0 || m_iQP > 51,                                                    "QP exceeds supported range (0 to 51)" );
 
@@ -425,9 +402,9 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iQPAdaptationRange <= 0,                                                  "QP Adaptation Range must be more than 0" );
 #endif
 #if G1002_RPS
-  xConfirmPara( m_iFrameToBeEncoded != 1 && m_iFrameToBeEncoded < 2*m_iGOPSize,              "Total Number of Frames to be encoded must be at least 2 * GOP size for the current Reference Picture Set settings");
+  xConfirmPara( m_iFrameToBeEncoded != 1 && m_iFrameToBeEncoded < 2,                        "Total Number of Frames to be encoded must be at least 2 * GOP size for the current Reference Picture Set settings");
 #else
-  xConfirmPara( m_iFrameToBeEncoded != 1 && m_iFrameToBeEncoded <= m_iGOPSize,              "Total Number of Frames to be encoded must be larger than GOP size");
+  xConfirmPara( m_iFrameToBeEncoded != 1 && m_iFrameToBeEncoded <= 1,                       "Total Number of Frames to be encoded must be larger than GOP size");
 #endif
   xConfirmPara( (m_uiMaxCUWidth  >> m_uiMaxCUDepth) < 4,                                    "Minimum partition width size should be larger than or equal to 8");
   xConfirmPara( (m_uiMaxCUHeight >> m_uiMaxCUDepth) < 4,                                    "Minimum partition height size should be larger than or equal to 8");
@@ -497,8 +474,8 @@ Void TAppEncCfg::xCheckParameter()
   m_iExtraRPSs=0;
   while(!bVerified_GOP&&!bError_GOP) 
   {
-    Int iCurGOP = (iCheckGOP-1)%m_iGOPSize;
-    Int iCurPOC = ((iCheckGOP-1)/m_iGOPSize)*m_iGOPSize + m_pcGOPList[iCurGOP].m_iPOC;
+    Int iCurGOP = 0;
+    Int iCurPOC = (iCheckGOP-1) + m_pcGOPList[iCurGOP].m_iPOC;
     
     if(m_pcGOPList[iCurGOP].m_iPOC<0) {
       printf("\nError: found fewer Reference Picture Sets than GOPSize\n");
@@ -516,11 +493,7 @@ Void TAppEncCfg::xCheckParameter()
           for(Int j=0; j<iNumRefs; j++) {
             if(aRefList[j]==iAbsPOC) {
               bFound=true;
-              for(Int k=0; k<m_iGOPSize; k++)
-              {
-                if(iAbsPOC%m_iGOPSize == m_pcGOPList[k].m_iPOC%m_iGOPSize)
-                  m_pcGOPList[iCurGOP].m_aiUsedByCurrPic[i]=m_pcGOPList[k].m_iTemporalId<=m_pcGOPList[iCurGOP].m_iTemporalId;
-                }
+              m_pcGOPList[iCurGOP].m_aiUsedByCurrPic[i]=m_pcGOPList[0].m_iTemporalId<=m_pcGOPList[iCurGOP].m_iTemporalId;
             }
           }
           if(!bFound)
@@ -537,21 +510,21 @@ Void TAppEncCfg::xCheckParameter()
         {
           iNumOK++;
           bIsOK[iCurGOP]=true;
-          if(iNumOK==m_iGOPSize)
+          if(iNumOK==1)
             bVerified_GOP=true;
         }
       }
       else {
         
-        m_pcGOPList[m_iGOPSize+m_iExtraRPSs]=m_pcGOPList[iCurGOP];
+        m_pcGOPList[1+m_iExtraRPSs]=m_pcGOPList[iCurGOP];
         Int iNewRefs=0;
         for(Int i = 0; i< m_pcGOPList[iCurGOP].m_iNumRefPics; i++) 
         {
           Int iAbsPOC = iCurPOC+m_pcGOPList[iCurGOP].m_aiReferencePics[i];
           if(iAbsPOC>=0)
           {
-            m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiReferencePics[iNewRefs]=m_pcGOPList[iCurGOP].m_aiReferencePics[i];
-            m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiUsedByCurrPic[iNewRefs]=m_pcGOPList[iCurGOP].m_aiUsedByCurrPic[i];
+            m_pcGOPList[1+m_iExtraRPSs].m_aiReferencePics[iNewRefs]=m_pcGOPList[iCurGOP].m_aiReferencePics[i];
+            m_pcGOPList[1+m_iExtraRPSs].m_aiUsedByCurrPic[iNewRefs]=m_pcGOPList[iCurGOP].m_aiUsedByCurrPic[i];
             iNewRefs++;
           }
         }
@@ -560,8 +533,8 @@ Void TAppEncCfg::xCheckParameter()
         for(Int iOffset = -1; iOffset>-iCheckGOP; iOffset--)
         {
           //step backwards in coding order and include pictures we might find useful. 
-          Int iOffGOP = (iCheckGOP-1+iOffset)%m_iGOPSize;
-          Int iOffPOC = ((iCheckGOP-1+iOffset)/m_iGOPSize)*m_iGOPSize + m_pcGOPList[iOffGOP].m_iPOC;
+          Int iOffGOP = (iCheckGOP-1+iOffset)%1;
+          Int iOffPOC = (iCheckGOP-1+iOffset) + m_pcGOPList[iOffGOP].m_iPOC;
           if(iOffPOC>=0&&m_pcGOPList[iOffGOP].m_bRefPic&&m_pcGOPList[iOffGOP].m_iTemporalId<=m_pcGOPList[iCurGOP].m_iTemporalId) 
           {
             Bool bNewRef=false;
@@ -574,7 +547,7 @@ Void TAppEncCfg::xCheckParameter()
             }
             for(Int i=0; i<iNewRefs; i++) 
             {
-              if(m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiReferencePics[i]==iOffPOC-iCurPOC)
+              if(m_pcGOPList[1+m_iExtraRPSs].m_aiReferencePics[i]==iOffPOC-iCurPOC)
               {
                 bNewRef=false;
               }
@@ -584,7 +557,7 @@ Void TAppEncCfg::xCheckParameter()
               Int iInsertPoint=iNewRefs;
               for(Int j=0; j<iNewRefs; j++)
               {
-                if(m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiReferencePics[j]<iOffPOC-iCurPOC||m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiReferencePics[j]>0)
+                if(m_pcGOPList[1+m_iExtraRPSs].m_aiReferencePics[j]<iOffPOC-iCurPOC||m_pcGOPList[1+m_iExtraRPSs].m_aiReferencePics[j]>0)
                 {
                   iInsertPoint = j;
                   break;
@@ -594,31 +567,31 @@ Void TAppEncCfg::xCheckParameter()
               Int prevUsed = m_pcGOPList[iOffGOP].m_iTemporalId<=m_pcGOPList[iCurGOP].m_iTemporalId;
               for(Int j=iInsertPoint; j<iNewRefs+1; j++)
               {
-                Int newPrev = m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiReferencePics[j];
-                Int newUsed = m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiUsedByCurrPic[j];
-                m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiReferencePics[j]=prev;
-                m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiUsedByCurrPic[j]=prevUsed;
+                Int newPrev = m_pcGOPList[1+m_iExtraRPSs].m_aiReferencePics[j];
+                Int newUsed = m_pcGOPList[1+m_iExtraRPSs].m_aiUsedByCurrPic[j];
+                m_pcGOPList[1+m_iExtraRPSs].m_aiReferencePics[j]=prev;
+                m_pcGOPList[1+m_iExtraRPSs].m_aiUsedByCurrPic[j]=prevUsed;
                 prevUsed=newUsed;
                 prev=newPrev;
               }
-              //m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiReferencePics[iNewRefs]=iOffPOC-iCurPOC;
+              //m_pcGOPList[1+m_iExtraRPSs].m_aiReferencePics[iNewRefs]=iOffPOC-iCurPOC;
               iNewRefs++;
             }
           }
           if(iNewRefs>=iNumPrefRefs)
             break;
         }
-        m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iNumRefPics=iNewRefs;
-        m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iPOC = iCurPOC;
+        m_pcGOPList[1+m_iExtraRPSs].m_iNumRefPics=iNewRefs;
+        m_pcGOPList[1+m_iExtraRPSs].m_iPOC = iCurPOC;
 #if INTER_RPS_PREDICTION
         if (m_iExtraRPSs == 0)
         {
-          m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_bInterRPSPrediction = 0;
-          m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iNumRefIdc = 0;
+          m_pcGOPList[1+m_iExtraRPSs].m_bInterRPSPrediction = 0;
+          m_pcGOPList[1+m_iExtraRPSs].m_iNumRefIdc = 0;
         }
         else
         {
-          Int rIdx =  m_iGOPSize + m_iExtraRPSs - 1;
+          Int rIdx =  1 + m_iExtraRPSs - 1;
           Int iRefPOC = m_pcGOPList[rIdx].m_iPOC;
           Int iRefPics = m_pcGOPList[rIdx].m_iNumRefPics;
           Int iNewIdc=0;
@@ -627,11 +600,11 @@ Void TAppEncCfg::xCheckParameter()
             Int deltaPOC = ((i != iRefPics)? m_pcGOPList[rIdx].m_aiReferencePics[i] : 0);  // check if the reference abs POC is >= 0
             Int iAbsPOCref = iRefPOC+deltaPOC;
             Int iRefIdc = 0;
-            for (Int j = 0; j < m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iNumRefPics; j++)
+            for (Int j = 0; j < m_pcGOPList[1+m_iExtraRPSs].m_iNumRefPics; j++)
             {
-              if ( (iAbsPOCref - iCurPOC) == m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiReferencePics[j])
+              if ( (iAbsPOCref - iCurPOC) == m_pcGOPList[1+m_iExtraRPSs].m_aiReferencePics[j])
               {
-                if (m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiUsedByCurrPic[j])
+                if (m_pcGOPList[1+m_iExtraRPSs].m_aiUsedByCurrPic[j])
                 {
                   iRefIdc = 1;
                 }
@@ -641,16 +614,16 @@ Void TAppEncCfg::xCheckParameter()
                 }
               }
             }
-            m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiRefIdc[iNewIdc]=iRefIdc;
+            m_pcGOPList[1+m_iExtraRPSs].m_aiRefIdc[iNewIdc]=iRefIdc;
             iNewIdc++;
           }
-          m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_bInterRPSPrediction = 1;  
-          m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iNumRefIdc = iNewIdc;
-          m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iDeltaRPS = iRefPOC - m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iPOC; 
-          m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iDeltaRIdxMinus1 = 0; 
+          m_pcGOPList[1+m_iExtraRPSs].m_bInterRPSPrediction = 1;  
+          m_pcGOPList[1+m_iExtraRPSs].m_iNumRefIdc = iNewIdc;
+          m_pcGOPList[1+m_iExtraRPSs].m_iDeltaRPS = iRefPOC - m_pcGOPList[1+m_iExtraRPSs].m_iPOC; 
+          m_pcGOPList[1+m_iExtraRPSs].m_iDeltaRIdxMinus1 = 0; 
         }
 #endif        
-        iCurGOP=m_iGOPSize+m_iExtraRPSs;
+        iCurGOP=1+m_iExtraRPSs;
         m_iExtraRPSs++;
       }
       iNumRefs=0;
@@ -683,13 +656,13 @@ Void TAppEncCfg::xCheckParameter()
     iCheckGOP++;
   }
   xConfirmPara(bError_GOP,"Invalid GOP structure given");
-  for(Int i=0; i<m_iGOPSize; i++) 
+  for(Int i=0; i<1; i++) 
   {
     xConfirmPara(m_pcGOPList[i].m_iSliceType!='B'&&m_pcGOPList[i].m_iSliceType!='P', "Slice type must be equal to B or P");
   }
 #else
 #if REF_SETTING_FOR_LD
-  xConfirmPara( m_bUseNewRefSetting && m_iGOPSize>1, "New reference frame setting was only designed for LD setting" );
+  xConfirmPara( m_bUseNewRefSetting && 1>1, "New reference frame setting was only designed for LD setting" );
 #endif
 #endif
 
@@ -751,10 +724,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("Max dQP signaling depth      : %d\n", m_iMaxCuDQPDepth);
 #if QP_ADAPTATION
   printf("QP adaptation                : %d (range=%d)\n", m_bUseAdaptiveQP, (m_bUseAdaptiveQP ? m_iQPAdaptationRange : 0) );
-#endif
-  printf("GOP size                     : %d\n", m_iGOPSize );
-#if !G1002_RPS
-  printf("Rate GOP size                : %d\n", m_iRateGOPSize );
 #endif
 #if DISABLE_4x4_INTER
   printf("DisableInter4x4              : %d\n", m_bDisInter4x4);  

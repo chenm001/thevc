@@ -72,14 +72,12 @@ protected:
   // coding structure
   Int       m_iIntraPeriod;                                   ///< period of I-slice (random access period)
   Int       m_iDecodingRefreshType;                           ///< random access type
-  Int       m_iGOPSize;                                       ///< GOP size of hierarchical structure
 #if G1002_RPS
   Int       m_iExtraRPSs;
   GOPEntry  m_pcGOPList[MAX_GOP];
   UInt      m_uiMaxNumberOfReorderPictures;                   ///< total number of reference pictures needed for decoding
   UInt      m_uiMaxNumberOfReferencePictures;                 ///< total number of reorder pictures
 #else
-  Int       m_iRateGOPSize;                                   ///< GOP size for QP variance
   Int       m_iNumOfReference;                                ///< total number of reference frames in P-slice
   Int       m_iNumOfReferenceB_L0;                            ///< total number of reference frames for reference list L0 in B-slice
   Int       m_iNumOfReferenceB_L1;                            ///< total number of reference frames for reference list L1 in B-slice

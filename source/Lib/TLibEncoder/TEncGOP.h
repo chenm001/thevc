@@ -80,10 +80,6 @@ private:
 #if !G1002_RPS
   Int                     m_iHrchDepth;
 #endif
-  Int                     m_iGopSize;
-#if !G1002_RPS
-  Int                     m_iRateGopSize;
-#endif
   Int                     m_iNumPicCoded;
   Bool                    m_bFirst;
   
@@ -122,9 +118,7 @@ public:
   Void  init        ( TEncTop* pcTEncTop );
   Void  compressGOP ( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRec, std::list<AccessUnit>& accessUnitsInGOP );
   
-  Int   getGOPSize()          { return  m_iGopSize;  }
 #if !G1002_RPS
-  Int   getRateGOPSize()      { return  m_iRateGopSize;  }
   Int   getHrchDepth()        { return  m_iHrchDepth; }
 #endif
   
