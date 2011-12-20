@@ -1876,9 +1876,12 @@ UInt TComRdCost::xCalcHADs8x8( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStri
     m2[7][i] = m1[6][i] - m1[7][i];
   }
   
-  for ( i = 0; i < 64; i++ )
+  for (i = 0; i < 8; i++)
   {
-    sad += abs(m2[0][i]);
+    for (j = 0; j < 8; j++)
+    {
+      sad += abs(m2[i][j]);
+    }
   }
   
   sad=((sad+2)>>2);
@@ -2004,9 +2007,12 @@ UInt TComRdCost::xCalcHADs16x4( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStr
     m1[3][i] = m2[2][i] - m2[3][i];
   }
 
-  for ( i = 0; i < 64; i++ )
+  for (i = 0; i < 4; i++)
   {
-    sad += abs(m1[0][i]);
+    for (j = 0; j < 16; j++)
+    {
+      sad += abs(m1[i][j]);
+    }
   }
 
   sad=((sad+2)>>2);
@@ -2117,9 +2123,12 @@ UInt TComRdCost::xCalcHADs4x16( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStr
     m2[15][i] = m1[14][i] - m1[15][i];
   }
 
-  for ( i = 0; i < 64; i++ )
+  for (i = 0; i < 16; i++)
   {
-    sad += abs(m2[0][i]);
+    for (j = 0; j < 4; j++)
+    {
+      sad += abs(m2[i][j]);
+    }
   }
 
   sad=((sad+2)>>2);
