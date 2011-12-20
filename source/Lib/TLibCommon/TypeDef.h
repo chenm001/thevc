@@ -215,8 +215,6 @@
 
 #define FAST_UDI_USE_MPM 1
 
-#define FULL_NBIT 0 ///< When enabled, does not use g_uiBitIncrement anymore to support > 8 bit data
-
 /////////////////////////////////
 // AHG SLICES defines section start
 /////////////////////////////////
@@ -227,10 +225,6 @@
 /////////////////////////////////
 
 #define TILES                              1
-#define LOG2_MAX_NUM_COLUMNS_MINUS1        7
-#define LOG2_MAX_NUM_ROWS_MINUS1           7
-#define LOG2_MAX_COLUMN_WIDTH              13
-#define LOG2_MAX_ROW_HEIGHT                13
 
 #define SAO                           1           // JCTVC-E049: Sample adaptive offset
 #define SAO_CHROMA                    1           // JCTVC-F057: Sample adaptive offset for Chroma
@@ -260,13 +254,9 @@
 #endif
 
 
-#define F745_DQP_BINARIZATION          1 //JCTVC-F745: DQP binarization
-
 #define EARLY_CU_DETERMINATION            1 //JCTVC-F092
 
 #define CBF_FAST_MODE                      1 //JCTVC-F045
-
-#define G665_ALF_COEFF_PRED                1 // JCTVC-G665
 
 // ====================================================================================================================
 // Basic type redefinition

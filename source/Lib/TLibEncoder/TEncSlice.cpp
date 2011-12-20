@@ -268,15 +268,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     Int    NumberBFrames = 0;
     Int    SHIFT_QP = 12;
     Double dLambda_scale = 1.0 - Clip3( 0.0, 0.5, 0.05*(Double)NumberBFrames );
-#if FULL_NBIT
-    Int    bitdepth_luma_qp_scale = 6 * (g_uiBitDepth - 8);
-#else
-    Int    bitdepth_luma_qp_scale = 0;
-#endif
-    Double qp_temp = (double) dQP + bitdepth_luma_qp_scale - SHIFT_QP;
-#if FULL_NBIT
-    Double qp_temp_orig = (double) dQP - SHIFT_QP;
-#endif
+    Double qp_temp = (double) dQP - SHIFT_QP;
     // Case #1: I or P-slices (key-frame)
 #if G1002_RPS
     Double dQPFactor = m_pcCfg->getGOPEntry(iGOPid).m_iQPFactor;
@@ -288,11 +280,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 
     if ( iDepth>0 )
     {
-#if FULL_NBIT
-        dLambda *= Clip3( 2.00, 4.00, (qp_temp_orig / 6.0) ); // (j == B_SLICE && p_cur_frm->layer != 0 )
-#else
         dLambda *= Clip3( 2.00, 4.00, (qp_temp / 6.0) ); // (j == B_SLICE && p_cur_frm->layer != 0 )
-#endif
     }
     
 #else
@@ -313,11 +301,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
       dLambda = 0.68 * pow( 2.0, qp_temp/3.0 );
       if ( pcPic->getSlice(0)->isInterB () )
       {
-#if FULL_NBIT
-        dLambda *= Clip3( 2.00, 4.00, (qp_temp_orig / 6.0) ); // (j == B_SLICE && p_cur_frm->layer != 0 )
-#else
         dLambda *= Clip3( 2.00, 4.00, (qp_temp / 6.0) ); // (j == B_SLICE && p_cur_frm->layer != 0 )
-#endif
         if ( rpcSlice->isReferenced() ) // HB structure and referenced
         {
           dLambda *= 0.80;
