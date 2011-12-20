@@ -54,13 +54,13 @@ TEncBinCABACCounter::~TEncBinCABACCounter()
 
 Void TEncBinCABACCounter::finish()
 {
-  m_pcTComBitIf->write(0, m_fracBits >> 15);
+  m_pcTComBitIf->write(0, UInt(m_fracBits >> 15) );
   m_fracBits &= 32767;
 }
 
 UInt TEncBinCABACCounter::getNumWrittenBits()
 {
-  return m_pcTComBitIf->getNumberOfWrittenBits() + ( m_fracBits >> 15 );
+  return m_pcTComBitIf->getNumberOfWrittenBits() + UInt( m_fracBits >> 15 );
 }
 
 /**
