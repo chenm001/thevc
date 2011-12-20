@@ -43,10 +43,10 @@
 
 #if ENC_DEC_TRACE
 
-#define READ_CODE(length, code, name)     xReadCodeTr ( legth, code, name )
-#define READ_UVLC(        code, name)     xReadUvlcTr (        code, name )
-#define READ_SVLC(        code, name)     xReadSvlcTr (        code, name )
-#define READ_FLAG(        code, name)     xReadFlagTr (        code, name )
+#define READ_CODE(length, code, name)     xReadCodeTr ( length, code, name )
+#define READ_UVLC(        code, name)     xReadUvlcTr (         code, name )
+#define READ_SVLC(        code, name)     xReadSvlcTr (         code, name )
+#define READ_FLAG(        code, name)     xReadFlagTr (         code, name )
 
 Void  xTraceSPSHeader (TComSPS *pSPS)
 {
