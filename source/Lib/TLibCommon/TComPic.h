@@ -77,11 +77,7 @@ public:
   virtual ~TComPic();
   
   Void          create( Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth, Bool bIsVirtual = false );
-#if QP_ADAPTATION
-  virtual Void  destroy();
-#else
   Void          destroy();
-#endif
   
 #if G1002_RPS
   Bool          getUsedByCurr()             { return m_bUsedByCurr; }

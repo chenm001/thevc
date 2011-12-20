@@ -111,7 +111,6 @@ public:
 #endif
 
   // compress and encode slice
-  Void    precompressSlice    ( TComPic*& rpcPic                                );      ///< precompress slice for multi-loop opt.
   Void    compressSlice       ( TComPic*& rpcPic                                );      ///< analysis stage of slice
   Void    encodeSlice         ( TComPic*& rpcPic, TComOutputBitstream* rpcBitstream  );      ///< entropy coding of slice
   

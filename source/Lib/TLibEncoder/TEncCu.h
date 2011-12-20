@@ -78,9 +78,6 @@ private:
   TComYuv**               m_ppcRecoYuvTemp; ///< Temporary Reconstruction Yuv for each depth
   TComYuv**               m_ppcOrigYuv;     ///< Original Yuv for each depth
   
-  //  Data : encoder control
-  Bool                    m_bEncodeDQP;
-  
   //  Access channel
   TEncCfg*                m_pcEncCfg;
   TComPrediction*         m_pcPrediction;
@@ -123,9 +120,6 @@ protected:
 #endif
   Void  xEncodeCU           ( TComDataCU*  pcCU, UInt uiAbsPartIdx,           UInt uiDepth        );
   
-#if QP_ADAPTATION
-  Int   xComputeQP          ( TComDataCU* pcCU, UInt uiDepth );
-#endif
   Void  xCheckBestMode      ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth        );
 
   Void  xCheckRDCostAMVPSkip( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU                      );
@@ -140,14 +134,10 @@ protected:
 #endif
   Void  xCheckRDCostIntra   ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize ePartSize  );
   Void  xCheckBestMode      ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU                      );
-  Void  xCheckDQP           ( TComDataCU*  pcCU );
   
   Void  xCopyAMVPInfo       ( AMVPInfo* pSrc, AMVPInfo* pDst );
   Void  xCopyYuv2Pic        (TComPic* rpcPic, UInt uiCUAddr, UInt uiAbsPartIdx, UInt uiDepth, UInt uiSrcDepth, TComDataCU* pcCU, UInt uiLPelX, UInt uiTPelY );
   Void  xCopyYuv2Tmp        ( UInt uhPartUnitIdx, UInt uiDepth );
-
-  Bool getdQPFlag           ()                        { return m_bEncodeDQP;        }
-  Void setdQPFlag           ( Bool b )                { m_bEncodeDQP = b;           }
 
 #if AMP_ENC_SPEEDUP 
 #if AMP_MRG

@@ -112,24 +112,14 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setSearchRange                  ( m_iSearchRange );
   m_cTEncTop.setBipredSearchRange            ( m_bipredSearchRange );
 
-  //====== Quality control ========
-  m_cTEncTop.setMaxDeltaQP                   ( m_iMaxDeltaQP  );
-  m_cTEncTop.setMaxCuDQPDepth                ( m_iMaxCuDQPDepth  );
-#if QP_ADAPTATION
-  m_cTEncTop.setUseAdaptiveQP                ( m_bUseAdaptiveQP  );
-  m_cTEncTop.setQPAdaptationRange            ( m_iQPAdaptationRange );
-#endif
-  
   //====== Tool list ========
   m_cTEncTop.setUseSBACRD                    ( m_bUseSBACRD   );
-  m_cTEncTop.setDeltaQpRD                    ( m_uiDeltaQpRD  );
   m_cTEncTop.setUseASR                       ( m_bUseASR      );
   m_cTEncTop.setUseHADME                     ( m_bUseHADME    );
 
 #if !G1002_RPS
   m_cTEncTop.setUseGPB                       ( m_bUseGPB      );
 #endif
-  m_cTEncTop.setdQPs                         ( m_aidQP        );
   m_cTEncTop.setUseRDOQ                      ( m_bUseRDOQ     );
   m_cTEncTop.setUsePAD                       ( m_bUsePAD      );
   m_cTEncTop.setQuadtreeTULog2MaxSize        ( m_uiQuadtreeTULog2MaxSize );

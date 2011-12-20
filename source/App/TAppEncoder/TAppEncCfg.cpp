@@ -72,15 +72,10 @@ void doOldStyleCmdlineOff(po::Options& opts, const std::string& arg);
 
 TAppEncCfg::TAppEncCfg()
 {
-  m_aidQP = NULL;
 }
 
 TAppEncCfg::~TAppEncCfg()
 {
-  if ( m_aidQP )
-  {
-    delete[] m_aidQP;
-  }
 }
 
 Void TAppEncCfg::create()
@@ -138,7 +133,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   string cfg_InputFile;
   string cfg_BitstreamFile;
   string cfg_ReconFile;
-  string cfg_dQPFile;
   po::Options opts;
   opts.addOptions()
   ("help", do_help, false, "this help text")
@@ -207,14 +201,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   
   /* Quantization parameters */
   ("QP,q",          m_fQP,             30.0, "Qp value, if value is float, QP is switched once during encoding")
-  ("DeltaQpRD,-dqr",m_uiDeltaQpRD,       0u, "max dQp offset for slice")
-  ("MaxDeltaQP,d",  m_iMaxDeltaQP,        0, "max dQp offset for block")
-  ("MaxCuDQPDepth,-dqd",  m_iMaxCuDQPDepth,        0, "max depth for a minimum CuDQP")
-#if QP_ADAPTATION
-  ("AdaptiveQP,-aq", m_bUseAdaptiveQP, false, "QP adaptation based on a psycho-visual model")
-  ("MaxQPAdaptationRange,-aqr", m_iQPAdaptationRange, 6, "QP adaptation range")
-#endif
-  ("dQPFile,m",     cfg_dQPFile, string(""), "dQP file name")
   ("RDOQ",          m_bUseRDOQ, true)
   
   ("SBACRD", m_bUseSBACRD, true, "SBAC based RD estimation")
@@ -286,7 +272,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   m_pchInputFile = cfg_InputFile.empty() ? NULL : strdup(cfg_InputFile.c_str());
   m_pchBitstreamFile = cfg_BitstreamFile.empty() ? NULL : strdup(cfg_BitstreamFile.c_str());
   m_pchReconFile = cfg_ReconFile.empty() ? NULL : strdup(cfg_ReconFile.c_str());
-  m_pchdQPFile = cfg_dQPFile.empty() ? NULL : strdup(cfg_dQPFile.c_str());
   
   // compute source padding size
   if ( m_bUsePAD )
@@ -304,52 +289,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   m_iSourceWidth  += m_aiPad[0];
   m_iSourceHeight += m_aiPad[1];
   
-  // allocate slice-based dQP values
-#if G1002_RPS
-  m_aidQP = new Int[ m_iFrameToBeEncoded + 1 + 1 ];
-  ::memset( m_aidQP, 0, sizeof(Int)*( m_iFrameToBeEncoded + 1 + 1 ) );
-#else
-  m_aidQP = new Int[ m_iFrameToBeEncoded + 1 + 1 ];
-  ::memset( m_aidQP, 0, sizeof(Int)*( m_iFrameToBeEncoded + 1 + 1 ) );
-#endif
-  
   // handling of floating-point QP values
   // if QP is not integer, sequence is split into two sections having QP and QP+1
   m_iQP = (Int)( m_fQP );
-  if ( m_iQP < m_fQP )
-  {
-    Int iSwitchPOC = (Int)( m_iFrameToBeEncoded - (m_fQP - m_iQP)*m_iFrameToBeEncoded + 0.5 );
-    
-#if G1002_RPS
-    iSwitchPOC = (Int)( (Double)iSwitchPOC + 0.5 );
-    for ( Int i=iSwitchPOC; i<m_iFrameToBeEncoded + 1 + 1; i++ )
-#else
-    iSwitchPOC = (Int)( (Double)iSwitchPOC + 0.5 );
-    for ( Int i=iSwitchPOC; i<m_iFrameToBeEncoded + 1 + 1; i++ )
-#endif
-    {
-      m_aidQP[i] = 1;
-    }
-  }
   
-  // reading external dQP description from file
-  if ( m_pchdQPFile )
-  {
-    FILE* fpt=fopen( m_pchdQPFile, "r" );
-    if ( fpt )
-    {
-      Int iValue;
-      Int iPOC = 0;
-      while ( iPOC < m_iFrameToBeEncoded )
-      {
-        if ( fscanf(fpt, "%d", &iValue ) == EOF ) break;
-        m_aidQP[ iPOC ] = iValue;
-        iPOC++;
-      }
-      fclose(fpt);
-    }
-  }
-
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD
     if ( m_bUseNewRefSetting )
@@ -393,11 +336,6 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iFastSearch < 0 || m_iFastSearch > 2,                                     "Fast Search Mode is not supported value (0:Full search  1:Diamond  2:PMVFAST)" );
   xConfirmPara( m_iSearchRange < 0 ,                                                        "Search Range must be more than 0" );
   xConfirmPara( m_bipredSearchRange < 0 ,                                                   "Search Range must be more than 0" );
-  xConfirmPara( m_iMaxDeltaQP > 7,                                                          "Absolute Delta QP exceeds supported range (0 to 7)" );
-  xConfirmPara( m_iMaxCuDQPDepth > m_uiMaxCUDepth - 1,                                          "Absolute depth for a minimum CuDQP exceeds maximum coding unit depth" );
-#if QP_ADAPTATION
-  xConfirmPara( m_iQPAdaptationRange <= 0,                                                  "QP Adaptation Range must be more than 0" );
-#endif
 #if G1002_RPS
   xConfirmPara( m_iFrameToBeEncoded != 1 && m_iFrameToBeEncoded < 2,                        "Total Number of Frames to be encoded must be at least 2 * GOP size for the current Reference Picture Set settings");
 #else
@@ -705,10 +643,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("Intra period                 : %d\n", m_iIntraPeriod );
   printf("Decoding refresh type        : %d\n", m_iDecodingRefreshType );
   printf("QP                           : %5.2f\n", m_fQP );
-  printf("Max dQP signaling depth      : %d\n", m_iMaxCuDQPDepth);
-#if QP_ADAPTATION
-  printf("QP adaptation                : %d (range=%d)\n", m_bUseAdaptiveQP, (m_bUseAdaptiveQP ? m_iQPAdaptationRange : 0) );
-#endif
 #if DISABLE_4x4_INTER
   printf("DisableInter4x4              : %d\n", m_bDisInter4x4);  
 #endif
@@ -718,7 +652,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("HAD:%d ", m_bUseHADME           );
   printf("SRD:%d ", m_bUseSBACRD          );
   printf("RDQ:%d ", m_bUseRDOQ            );
-  printf("SQP:%d ", m_uiDeltaQpRD         );
   printf("ASR:%d ", m_bUseASR             );
   printf("PAD:%d ", m_bUsePAD             );
 #if !G1002_RPS

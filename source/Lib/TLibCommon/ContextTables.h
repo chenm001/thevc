@@ -83,7 +83,6 @@
 #define NUM_TRANS_SUBDIV_FLAG_CTX     10      ///< number of context models for transform subdivision flags
 #define NUM_QT_CBF_CTX                5       ///< number of context models for QT CBF
 #define NUM_QT_ROOT_CBF_CTX           1       ///< number of context models for QT ROOT CBF
-#define NUM_DELTA_QP_CTX              4       ///< number of context models for dQP
 
 #if MULTI_LEVEL_SIGNIFICANCE
 #define NUM_SIG_CG_FLAG_CTX           2       ///< number of context models for MULTI_LEVEL_SIGNIFICANCE
@@ -415,24 +414,6 @@ INIT_REF_PIC[3][NUM_REF_NO_CTX] =
   },
   {
     118, 118, 134, CNU,
-    
-  },
-};
-
-// initial probability for dQP
-static const UChar
-INIT_DQP[3][NUM_DELTA_QP_CTX] =
-{
-  {
-    CNU, CNU, CNU, CNU,
-    
-  },
-  {
-    CNU, CNU, CNU, CNU,
-    
-  },
-  {
-    CNU, CNU, CNU, CNU,
     
   },
 };
@@ -1436,21 +1417,6 @@ INIT_REF_PIC[3][NUM_REF_NO_CTX][2] =
   },
   {
     {   -9,   55 }, {  -12,   86 }, {  -18,   55 }, {    0,   64 }
-  }
-};
-
-// initial probability for dQP
-static const Short
-INIT_DQP[3][NUM_DELTA_QP_CTX][2] =
-{
-  {
-    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }
-  },
-  {
-    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }
-  },
-  {
-    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }
   }
 };
 

@@ -121,8 +121,6 @@ public:
   Void parseQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
   Void parseQtRootCbf     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf );
   
-  Void parseDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  
   Void parseCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth ) {}
   Void parseBlockCbf      ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum ) {}
   
@@ -149,7 +147,6 @@ private:
   ContextModel3DBuffer m_cCUPredModeSCModel;
   ContextModel3DBuffer m_cCUIntraPredSCModel;
   ContextModel3DBuffer m_cCUChromaPredSCModel;
-  ContextModel3DBuffer m_cCUDeltaQpSCModel;
   ContextModel3DBuffer m_cCUInterDirSCModel;
   ContextModel3DBuffer m_cCURefPicSCModel;
   ContextModel3DBuffer m_cCUMvdSCModel;

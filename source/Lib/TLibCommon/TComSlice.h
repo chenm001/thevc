@@ -97,7 +97,6 @@ private:
 #if AMP
   Bool        m_useAMP;
 #endif
-  Bool        m_bUseDQP;
   Bool        m_bUsePAD;
   Bool        m_bUseMRG; // SOPH:
 
@@ -194,12 +193,8 @@ public:
   UInt getMaxTrSize   ()         { return  m_uiMaxTrSize;   }
   
   // Tool list
-  Bool getUseDQP      ()         { return m_bUseDQP;        }
-  
   Bool getUsePAD      ()         { return m_bUsePAD;        }
   Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
-  
-  Void setUseDQP      ( Bool b ) { m_bUseDQP   = b;         }
   
   Void setUsePAD      ( Bool b ) { m_bUsePAD   = b;         }
   Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:
@@ -377,8 +372,6 @@ private:
 #if G1002_RPS
   TComRPS*    m_pcRPSList;
 #endif
-  UInt        m_uiMaxCuDQPDepth;
-  UInt        m_uiMinCuDQPSize;
 #if G1002_RPS
   Bool        m_bLongTermRefsPresent;
   UInt        m_uiBitsForLongTermRefs;
@@ -413,10 +406,6 @@ public:
   Void      setRPSList              ( TComRPS* pcRPSList ) { m_pcRPSList = pcRPSList; }
   TComRPS*  getRPSList              ()         { return m_pcRPSList;          }
 #endif
-  Void      setMaxCuDQPDepth    ( UInt u ) { m_uiMaxCuDQPDepth = u;   }
-  UInt      getMaxCuDQPDepth    ()         { return m_uiMaxCuDQPDepth;}
-  Void      setMinCuDQPSize     ( UInt u ) { m_uiMinCuDQPSize = u;    }
-  UInt      getMinCuDQPSize     ()         { return m_uiMinCuDQPSize; }
 
 #if !F747_APS
   ///  set shared PPS info enabled/disabled

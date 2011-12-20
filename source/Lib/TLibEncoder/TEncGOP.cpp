@@ -371,7 +371,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
       {
         assert(pcPic->getNumAllocatedSlice() == 1);
-        m_pcSliceEncoder->precompressSlice( pcPic );
         m_pcSliceEncoder->compressSlice   ( pcPic );
       }
       

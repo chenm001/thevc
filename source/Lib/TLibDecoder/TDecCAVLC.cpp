@@ -306,18 +306,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 #endif
   // alf_param() ?
 
-  if( pcPPS->getSPS()->getUseDQP() )
-  {
-    READ_UVLC( uiCode, "max_cu_qp_delta_depth");
-    pcPPS->setMaxCuDQPDepth(uiCode);
-    pcPPS->setMinCuDQPSize( pcPPS->getSPS()->getMaxCUWidth() >> ( pcPPS->getMaxCuDQPDepth()) );
-  }
-  else
-  {
-    pcPPS->setMaxCuDQPDepth( 0 );
-    pcPPS->setMinCuDQPSize( pcPPS->getSPS()->getMaxCUWidth() >> ( pcPPS->getMaxCuDQPDepth()) );
-  }
-
 #if WEIGHT_PRED
   READ_FLAG( uiCode, "weighted_pred_flag" );          // Use of Weighting Prediction (P_SLICE)
   assert( uiCode==0 );
@@ -415,7 +403,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   READ_FLAG( uiCode, "pcm_loop_filter_disable_flag" );           assert(uiCode == 0);
 #endif
-  READ_FLAG( uiCode, "cu_qp_delta_enabled_flag" );               pcSPS->setUseDQP ( uiCode ? true : false );
+  READ_FLAG( uiCode, "cu_qp_delta_enabled_flag" );               assert( uiCode == 0 );
   READ_FLAG( uiCode, "temporal_id_nesting_flag" );               assert( uiCode == 0 );
 
   // !!!KS: Syntax not in WD !!!
@@ -1417,19 +1405,6 @@ Void TDecCavlc::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, U
 #endif  
   
   return;
-}
-
-Void TDecCavlc::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiQp;
-  Int  iDQp;
-  
-  xReadSvlc( iDQp );
-  uiQp = pcCU->getRefQP( uiAbsPartIdx ) + iDQp;
-
-  UInt uiAbsQpCUPartIdx = (uiAbsPartIdx>>(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)) ;
-  UInt uiQpCUDepth =   min(uiDepth,pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()) ;
-  pcCU->setQPSubParts( uiQp, uiAbsQpCUPartIdx, uiQpCUDepth );
 }
 
 /** Function for parsing cbf and split 

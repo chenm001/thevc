@@ -144,7 +144,6 @@ public:
   Void codeRefFrmIdx           ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
   Void codeMvd                 ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
   
-  Void codeDeltaQP             ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeCbf                 ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth ) {}
   Void codeBlockCbf            ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiQPartNum, Bool bRD = false ) {}
   
@@ -188,7 +187,6 @@ private:
   ContextModel3DBuffer m_cCUPredModeSCModel;
   ContextModel3DBuffer m_cCUIntraPredSCModel;
   ContextModel3DBuffer m_cCUChromaPredSCModel;
-  ContextModel3DBuffer m_cCUDeltaQpSCModel;
   ContextModel3DBuffer m_cCUInterDirSCModel;
   ContextModel3DBuffer m_cCURefPicSCModel;
   ContextModel3DBuffer m_cCUMvdSCModel;

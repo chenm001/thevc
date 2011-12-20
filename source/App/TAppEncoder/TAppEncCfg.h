@@ -96,15 +96,6 @@ protected:
   // coding quality
   Double    m_fQP;                                            ///< QP value of key-picture (floating point)
   Int       m_iQP;                                            ///< QP value of key-picture (integer)
-  char*     m_pchdQPFile;                                     ///< QP offset for each slice (initialized from external file)
-  Int*      m_aidQP;                                          ///< array of slice QP values
-  Int       m_iMaxDeltaQP;                                    ///< max. |delta QP|
-  UInt      m_uiDeltaQpRD;                                    ///< dQP range for multi-pass slice QP optimization
-  Int       m_iMaxCuDQPDepth;                                 ///< Max. depth for a minimum CuDQPSize (0:default)
-#if QP_ADAPTATION
-  Bool      m_bUseAdaptiveQP;                                 ///< Flag for enabling QP adaptation based on a psycho-visual model
-  Int       m_iQPAdaptationRange;                             ///< dQP range by QP adaptation
-#endif
   
   // coding unit (CU) definition
   UInt      m_uiMaxCUWidth;                                   ///< max. CU width in pixel

@@ -139,14 +139,6 @@ protected:
   Int       m_iSearchRange;                     //  0:Full frame
   Int       m_bipredSearchRange;
 
-  //====== Quality control ========
-  Int       m_iMaxDeltaQP;                      //  Max. absolute delta QP (1:default)
-  Int       m_iMaxCuDQPDepth;                   //  Max. depth for a minimum CuDQP (0:default)
-#if QP_ADAPTATION
-  Bool      m_bUseAdaptiveQP;
-  Int       m_iQPAdaptationRange;
-#endif
-  
   //====== Tool list ========
   Bool      m_bUseSBACRD;
 
@@ -171,9 +163,6 @@ protected:
   Bool      m_bUseMRG; // SOPH:
   Bool      m_bUseLMChroma; 
 
-  Int*      m_aidQP;
-  UInt      m_uiDeltaQpRD;
-  
   Bool      m_bUseConstrainedIntraPred;
 
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
@@ -244,14 +233,6 @@ public:
   Void      setSearchRange                  ( Int   i )      { m_iSearchRange = i; }
   Void      setBipredSearchRange            ( Int   i )      { m_bipredSearchRange = i; }
 
-  //====== Quality control ========
-  Void      setMaxDeltaQP                   ( Int   i )      { m_iMaxDeltaQP = i; }
-  Void      setMaxCuDQPDepth                ( Int   i )      { m_iMaxCuDQPDepth = i; }
-#if QP_ADAPTATION
-  Void      setUseAdaptiveQP                ( Bool  b )      { m_bUseAdaptiveQP = b; }
-  Void      setQPAdaptationRange            ( Int   i )      { m_iQPAdaptationRange = i; }
-#endif
-  
   //====== Sequence ========
   Int       getFrameRate                    ()      { return  m_iFrameRate; }
   unsigned int getFrameSkip                 ()      { return  m_FrameSkip; }
@@ -290,14 +271,6 @@ public:
   Int       getFastSearch                   ()      { return  m_iFastSearch; }
   Int       getSearchRange                  ()      { return  m_iSearchRange; }
 
-  //==== Quality control ========
-  Int       getMaxDeltaQP                   ()      { return  m_iMaxDeltaQP; }
-  Int       getMaxCuDQPDepth                ()      { return  m_iMaxCuDQPDepth; }
-#if QP_ADAPTATION
-  Bool      getUseAdaptiveQP                ()      { return  m_bUseAdaptiveQP; }
-  Int       getQPAdaptationRange            ()      { return  m_iQPAdaptationRange; }
-#endif
-  
   //==== Tool list ========
   Void      setUseSBACRD                    ( Bool  b )     { m_bUseSBACRD  = b; }
   Void      setUseASR                       ( Bool  b )     { m_bUseASR     = b; }
@@ -320,8 +293,6 @@ public:
 #endif
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
-  Void      setdQPs                         ( Int*  p )     { m_aidQP       = p; }
-  Void      setDeltaQpRD                    ( UInt  u )     {m_uiDeltaQpRD  = u; }
   Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
   Bool      getUseASR                       ()      { return m_bUseASR;     }
   Bool      getUseHADME                     ()      { return m_bUseHADME;   }
@@ -350,9 +321,6 @@ public:
 
   Bool getUseLMChroma                       ()      { return m_bUseLMChroma;        }
   Void setUseLMChroma                       ( Bool b ) { m_bUseLMChroma  = b;       }
-
-  Int*      getdQPs                         ()      { return m_aidQP;       }
-  UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }
 
 #if SAO
   Void      setUseSAO                  (Bool bVal)     {m_bUseSAO = bVal;}

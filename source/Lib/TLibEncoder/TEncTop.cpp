@@ -37,9 +37,6 @@
 
 #include "TLibCommon/CommonDef.h"
 #include "TEncTop.h"
-#if QP_ADAPTATION
-#include "TEncPic.h"
-#endif
 #if FAST_BIT_EST
 #include "TLibCommon/ContextModel.h"
 #endif
@@ -226,7 +223,7 @@ Void TEncTop::init()
                   aTableLastPosVlcIndex, m_bUseRDOQ, true );
   
   // initialize encoder search class
-  m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_bipredSearchRange, m_iFastSearch, 0, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
+  m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_bipredSearchRange, m_iFastSearch, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
 
   m_iMaxRefPicNum = 0;
 }
@@ -268,14 +265,6 @@ Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>&
   // get original YUV
   xGetNewPicBuffer( pcPicCurr );
   pcPicYuvOrg->copyToPic( pcPicCurr->getPicYuvOrg() );
-  
-#if QP_ADAPTATION
-  // compute image characteristics
-  if ( getUseAdaptiveQP() )
-  {
-    m_cPreanalyzer.xPreanalyze( dynamic_cast<TEncPic*>( pcPicCurr ) );
-  }
-#endif
   
   if ( m_iPOCLast != 0 && ( m_iNumPicRcvd != 1 ) && !bEos )
   {
@@ -378,22 +367,8 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
       if ( abs(rpcPic->getPOC() - m_iPOCLast) <= 1 )
       {
 #endif
-#if QP_ADAPTATION
-        if ( getUseAdaptiveQP() )
-        {
-          TEncPic* pcEPic = new TEncPic;
-          pcEPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, m_cPPS.getMaxCuDQPDepth()+1 );
-          rpcPic = pcEPic;
-        }
-        else
-        {
-          rpcPic = new TComPic;
-          rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-        }
-#else
         rpcPic = new TComPic;
         rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-#endif
 #if G1002_RPS
     m_cListPic.pushBack( rpcPic );
   }
@@ -408,22 +383,8 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
   }
   else
   {
-#if QP_ADAPTATION
-    if ( getUseAdaptiveQP() )
-    {
-      TEncPic* pcEPic = new TEncPic;
-      pcEPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, m_cPPS.getMaxCuDQPDepth()+1 );
-      rpcPic = pcEPic;
-    }
-    else
-    {
-      rpcPic = new TComPic;
-      rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-    }
-#else
     rpcPic = new TComPic;
     rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-#endif
   }
   
   m_cListPic.pushBack( rpcPic );
@@ -459,11 +420,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setQuadtreeTUMaxDepthInter( m_uiQuadtreeTUMaxDepthInter    );
   m_cSPS.setQuadtreeTUMaxDepthIntra( m_uiQuadtreeTUMaxDepthIntra    );
   
-#if QP_ADAPTATION
-  m_cSPS.setUseDQP        ( m_iMaxDeltaQP != 0 || m_bUseAdaptiveQP );
-#else
-  m_cSPS.setUseDQP        ( m_iMaxDeltaQP != 0  );
-#endif
   m_cSPS.setUsePAD        ( m_bUsePAD           );
   
   m_cSPS.setUseMRG        ( m_bUseMRG           ); // SOPH:
@@ -522,16 +478,6 @@ Void TEncTop::xInitSPS()
 Void TEncTop::xInitPPS()
 {
   m_cPPS.setConstrainedIntraPred( m_bUseConstrainedIntraPred );
-  if( m_cPPS.getSPS()->getUseDQP() )
-  {
-    m_cPPS.setMaxCuDQPDepth( m_iMaxCuDQPDepth );
-    m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
-  }
-  else
-  {
-    m_cPPS.setMaxCuDQPDepth( 0 );
-    m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
-  }
 }
 
 #if G1002_RPS

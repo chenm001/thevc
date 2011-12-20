@@ -1178,7 +1178,6 @@ TComSPS::TComSPS()
 #if DISABLE_4x4_INTER
 , m_bDisInter4x4              (  1)
 #endif    
-, m_bUseDQP                   (false)
 , m_bUsePAD                   (false)
 , m_bUseMRG                   (false)
 , m_bUseLMChroma              (false)
@@ -1211,8 +1210,6 @@ TComPPS::TComPPS()
 , m_SPSId                       (0)
 , m_bConstrainedIntraPred       (false)
 , m_pcSPS                       (NULL)
-, m_uiMaxCuDQPDepth             (0)
-, m_uiMinCuDQPSize              (0)
 #if G1002_RPS
 , m_bLongTermRefsPresent        (false)
 , m_uiBitsForLongTermRefs       (0)

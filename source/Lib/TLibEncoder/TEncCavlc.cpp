@@ -335,12 +335,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   //     if( adaptive_loop_filter_enabled_flag )
   //       alf_param( )
 #endif
-  //   if( cu_qp_delta_enabled_flag )
-  //     max_cu_qp_delta_depth
-  if( pcPPS->getSPS()->getUseDQP() )
-  {
-    WRITE_UVLC( pcPPS->getMaxCuDQPDepth(),                   "max_cu_qp_delta_depth" );
-  }
 
 #if WEIGHT_PRED
   WRITE_FLAG( 0,  "weighted_pred_flat" );   // Use of Weighting Prediction (P_SLICE)
@@ -423,7 +417,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   WRITE_FLAG( 0,                                                                     "pcm_loop_filter_disable_flag");
 #endif
-  WRITE_FLAG( (pcSPS->getUseDQP ()) ? 1 : 0,                                         "cu_qp_delta_enabled_flag" );
+  WRITE_FLAG( 0,                                                                     "cu_qp_delta_enabled_flag" );
   assert( pcSPS->getMaxTLayers() > 0 );         
 
   WRITE_FLAG( 0,                                                                     "temporal_id_nesting_flag" );
@@ -1253,15 +1247,6 @@ Void TEncCavlc::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefLis
     
   xWriteSvlc( iHor );
   xWriteSvlc( iVer );
-  
-  return;
-}
-
-Void TEncCavlc::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  Int iDQp  = pcCU->getQP( uiAbsPartIdx ) - pcCU->getRefQP( uiAbsPartIdx );
-
-  xWriteSvlc( iDQp );
   
   return;
 }

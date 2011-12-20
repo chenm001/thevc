@@ -1062,8 +1062,8 @@ TComDataCU* TComDataCU::getQpMinCuLeft( UInt& uiLPartUnitIdx, UInt uiCurrAbsIdxI
 {
   UInt uiNumPartInCUWidth = m_pcPic->getNumPartInWidth();
 
-  UInt uiAbsRorderQpMinCUIdx   = g_auiZscanToRaster[(uiCurrAbsIdxInLCU>>(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1))];
-  UInt uiNumPartInQpMinCUWidth = getSlice()->getPPS()->getMinCuDQPSize()>>2;
+  UInt uiAbsRorderQpMinCUIdx   = g_auiZscanToRaster[(uiCurrAbsIdxInLCU>>8)<<8];
+  UInt uiNumPartInQpMinCUWidth = getSlice()->getSPS()->getMaxCUWidth()>>2;
 
   if ( !RasterAddress::isZeroCol( uiAbsRorderQpMinCUIdx, uiNumPartInCUWidth ) )
   {
@@ -1113,7 +1113,7 @@ Int TComDataCU::getLastValidPartIdx( Int iAbsPartIdx )
 
 UChar TComDataCU::getLastCodedQP( UInt uiAbsPartIdx )
 {
-  UInt uiQUPartIdxMask = ~((1<<(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))-1);
+  UInt uiQUPartIdxMask = ~((1<<8)-1);
   Int iLastValidPartIdx = getLastValidPartIdx( uiAbsPartIdx&uiQUPartIdxMask );
   if ( iLastValidPartIdx >= 0 )
   {
