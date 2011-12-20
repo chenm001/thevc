@@ -94,6 +94,7 @@ Void TAppEncCfg::destroy()
 #if G1002_RPS
 std::istringstream &operator>>(std::istringstream &in, GOPEntry &entry)     //input
 {
+  memset(&entry, 0, sizeof(entry));
   in>>entry.m_iSliceType;
   in>>entry.m_iPOC;
   in>>entry.m_iQPOffset;
