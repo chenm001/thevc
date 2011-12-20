@@ -73,14 +73,15 @@ struct GOPEntry {
   , m_iRefBufSize()
   , m_iSliceType()
   , m_iNumRefPics()
-  , m_aiReferencePics()
-  , m_aiUsedByCurrPic()
   , m_bInterRPSPrediction()
   , m_iDeltaRIdxMinus1()
   , m_iDeltaRPS()
   , m_iNumRefIdc()
-  , m_aiRefIdc()
-  { }
+  {
+    ::memset( m_aiReferencePics, 0, sizeof(m_aiReferencePics) );
+    ::memset( m_aiUsedByCurrPic, 0, sizeof(m_aiUsedByCurrPic) );
+    ::memset( m_aiRefIdc,        0, sizeof(m_aiRefIdc) );
+  }
 };
 
 std::istringstream &operator>>(std::istringstream &in, GOPEntry &entry);     //input
