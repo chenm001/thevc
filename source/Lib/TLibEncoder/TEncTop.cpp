@@ -222,11 +222,6 @@ Void TEncTop::init()
   aTableLastPosVlcIndex=m_pcCavlcCoder->GetLastPosVlcIndexTable();
   
   m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize,
-#if DISABLE_CAVLC
-                  0,
-#else
-                  m_iSymbolMode,
-#endif
                   aTable4, aTable8, 
                   aTableLastPosVlcIndex, m_bUseRDOQ, true );
   

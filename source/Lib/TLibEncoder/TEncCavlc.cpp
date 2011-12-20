@@ -315,8 +315,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   // entropy_coding_mode_flag
 #if OL_USE_WPP
   // We code the entropy_coding_mode_flag, it's needed for tests.
-  WRITE_FLAG( DISABLE_CAVLC,                                 "entropy_coding_mode_flag" );
-  if (DISABLE_CAVLC)
+  WRITE_FLAG( 1,                                             "entropy_coding_mode_flag" );
   {
     WRITE_UVLC( 0,                                           "entropy_coding_synchro" );
     WRITE_FLAG( 0,                                           "cabac_istate_reset" );
@@ -644,10 +643,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   
   if (!bEntropySlice)
   {
-#if !DISABLE_CAVLC
-    xWriteFlag  (pcSlice->getSymbolMode() > 0 ? 1 : 0); // entropy_coding_mode_flag -> PPS
-#endif
-    
     // ????
     xWriteFlag  (pcSlice->getDRBFlag() ? 1 : 0 );
     if ( !pcSlice->getDRBFlag() )

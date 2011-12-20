@@ -145,20 +145,10 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       uiILSliceCount++;
     }
 
-#if !DISABLE_CAVLC
-    UInt iSymbolMode = pcSlice->getSymbolMode();
-    if (iSymbolMode)
-#endif
     {
       m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinCABAC );
       m_pcEntropyDecoder->setEntropyDecoder (m_pcSbacDecoder);
     }
-#if !DISABLE_CAVLC
-    else
-    {
-      m_pcEntropyDecoder->setEntropyDecoder (m_pcCavlcDecoder);
-    }
-#endif
     
     m_pcEntropyDecoder->setBitstream      (pcBitstream);
     m_pcEntropyDecoder->resetEntropy      (pcSlice);

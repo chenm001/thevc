@@ -488,9 +488,6 @@ private:
   NalUnitType m_eNalUnitType;         ///< Nal unit type for the slice
   SliceType   m_eSliceType;
   Int         m_iSliceQp;
-#if !DISABLE_CAVLC
-  Int         m_iSymbolMode;
-#endif
   Bool        m_bLoopFilterDisable;
   
   Bool        m_bDRBFlag;             //  flag for future usage as reference buffer
@@ -586,9 +583,6 @@ public:
   Int       getSliceQpDelta ()                          { return  m_iSliceQpDelta;      }
   Bool      getDRBFlag      ()                          { return  m_bDRBFlag;           }
   ERBIndex  getERBIndex     ()                          { return  m_eERBIndex;          }
-#if !DISABLE_CAVLC
-  Int       getSymbolMode   ()                          { return  m_iSymbolMode;        }
-#endif
   Bool      getLoopFilterDisable()                      { return  m_bLoopFilterDisable; }
   Int       getNumRefIdx        ( RefPicList e )                { return  m_aiNumRefIdx[e];             }
   TComPic*  getPic              ()                              { return  m_pcPic;                      }
@@ -623,9 +617,6 @@ public:
   Void      setSliceQpDelta     ( Int i )                       { m_iSliceQpDelta     = i;      }
   Void      setDRBFlag          ( Bool b )                      { m_bDRBFlag = b;               }
   Void      setERBIndex         ( ERBIndex e )                  { m_eERBIndex = e;              }
-#if !DISABLE_CAVLC
-  Void      setSymbolMode       ( Int b  )                      { m_iSymbolMode       = b;      }
-#endif
   Void      setLoopFilterDisable( Bool b )                      { m_bLoopFilterDisable= b;      }
   
   Void      setRefPic           ( TComPic* p, RefPicList e, Int iRefIdx ) { m_apcRefPicList[e][iRefIdx] = p; }

@@ -403,9 +403,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setNumRefIdx        ( REF_PIC_LIST_1, eSliceType == B_SLICE ? (m_pcCfg->getNumOfReferenceB_L1()) : 0 );
 #endif
   
-#if !DISABLE_CAVLC
-  rpcSlice->setSymbolMode       ( m_pcCfg->getSymbolMode());
-#endif
   rpcSlice->setLoopFilterDisable( m_pcCfg->getLoopFilterDisable() );
   
   rpcSlice->setDepth            ( iDepth );
@@ -636,22 +633,8 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
   TComSlice* pcSlice = rpcPic->getSlice(getSliceIdx());
 
   // choose entropy coder
-#if !DISABLE_CAVLC
-  Int iSymbolMode = pcSlice->getSymbolMode();
-  if (iSymbolMode)
-#endif
-  {
     m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
     m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
-  }
-#if !DISABLE_CAVLC
-  else
-  {
-    m_pcCavlcCoder  ->setAdaptFlag( true );
-    m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
-    m_pcEntropyCoder->resetEntropy();
-  }
-#endif
   
   // set bitstream
   m_pcEntropyCoder->setBitstream( pcBitstream );

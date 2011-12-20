@@ -73,32 +73,6 @@ typedef struct
   Int scanNonZigzag[2];         ///< flag for non zigzag scan
 } estBitsSbacStruct;
 
-#if !DISABLE_CAVLC
-typedef struct
-{
-  Int level[4];
-  Int pre_level;
-  Int coeff_ctr;
-  Int levelDouble;
-  Double errLevel[4];
-  Int noLevels;
-  Int levelQ;
-  Bool lowerInt;
-  UInt quantInd;
-  Int iNextRun;
-} levelDataStruct;
-
-typedef struct
-{
-  Int run;
-  Int maxrun;
-  Int nextLev;
-  Int nexLevelVal;
-} quantLevelStruct;
-
-class TEncCavlc;
-#endif
-
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -151,7 +125,7 @@ public:
   ~TComTrQuant();
   
   // initialize class
-  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, UInt *aTableLastPosVlcIndex=NULL, Bool bUseRDOQ = false,  Bool bEnc = false );
+  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, UInt *aTable4 = NULL, UInt *aTable8 = NULL, UInt *aTableLastPosVlcIndex=NULL, Bool bUseRDOQ = false,  Bool bEnc = false );
   
   // transform & inverse transform functions
   Void transformNxN         ( TComDataCU* pcCU, Pel*   pcResidual, UInt uiStride, TCoeff* rpcCoeff, UInt uiWidth, UInt uiHeight,
@@ -227,13 +201,6 @@ protected:
   Bool     m_bEnc;
   Bool     m_bUseRDOQ;
   
-#if !DISABLE_CAVLC 
-  UInt     *m_uiLPTableE8;
-  UInt     *m_uiLPTableE4;
-  Int      m_iSymbolMode;
-  UInt     *m_uiLastPosVlcIndex;
-#endif
-  
 private:
   // forward Transform
 #if NSQT
@@ -246,25 +213,6 @@ private:
   Void xQuant( TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
 
   // RDOQ functions
-#if !DISABLE_CAVLC
-  Int            xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelData, Int nTab, UInt uiNoCoeff, Int iStartLast
-                                        , Int isIntra
-                                        );
-  UInt           xCountVlcBits(UInt uiTableNumber, UInt uiCodeNumber);
-  Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int* vlc_adaptive, Int N, 
-                              UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1, Int iNextRun
-                              , Int isIntra
-                              );
-  Void           xRateDistOptQuant_LCEC ( TComDataCU*                     pcCU,
-                                          Int*                            plSrcCoeff,
-                                          TCoeff*                         piDstCoeff,
-                                          UInt                            uiWidth,
-                                          UInt                            uiHeight,
-                                          UInt&                           uiAbsSum,
-                                          TextType                        eTType,
-                                          UInt                            uiAbsPartIdx );
-#endif
-  
   Void           xRateDistOptQuant ( TComDataCU*                     pcCU,
                                      Int*                            plSrcCoeff,
                                      TCoeff*                         piDstCoeff,

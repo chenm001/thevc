@@ -48,9 +48,6 @@ TComSlice::TComSlice()
 , m_eNalUnitType                  ( NAL_UNIT_CODED_SLICE_IDR )
 , m_eSliceType                    ( I_SLICE )
 , m_iSliceQp                      ( 0 )
-#if !DISABLE_CAVLC
-, m_iSymbolMode                   ( 1 )
-#endif
 , m_bLoopFilterDisable            ( false )
 , m_bDRBFlag                      ( true )
 , m_eERBIndex                     ( ERB_NONE )
@@ -719,9 +716,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_eNalUnitType         = pSrc->m_eNalUnitType;
   m_eSliceType           = pSrc->m_eSliceType;
   m_iSliceQp             = pSrc->m_iSliceQp;
-#if !DISABLE_CAVLC
-  m_iSymbolMode          = pSrc->m_iSymbolMode;
-#endif
   m_bLoopFilterDisable   = pSrc->m_bLoopFilterDisable;
   m_bDRBFlag             = pSrc->m_bDRBFlag;
   m_eERBIndex            = pSrc->m_eERBIndex;

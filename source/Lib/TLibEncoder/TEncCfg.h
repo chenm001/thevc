@@ -125,11 +125,6 @@ protected:
   Bool      m_useNSQT;
 #endif
   
-#if !DISABLE_CAVLC
-  //====== Entropy Coding ========
-  Int       m_iSymbolMode;                      //  (CAVLC, CABAC)
-#endif
-  
   //====== Loop/Deblock Filter ========
   Bool      m_bLoopFilterDisable;
   Int       m_iLoopFilterAlphaC0Offset;
@@ -239,11 +234,6 @@ public:
   Void setUseAMP( Bool b ) { m_useAMP = b; }
 #endif
   
-#if !DISABLE_CAVLC
-  //====== Entropy Coding ========
-  Void      setSymbolMode                   ( Int   i )      { m_iSymbolMode = i; }
-#endif
-  
   //====== Loop/Deblock Filter ========
   Void      setLoopFilterDisable            ( Bool  b )      { m_bLoopFilterDisable       = b; }
   Void      setLoopFilterAlphaC0Offset      ( Int   i )      { m_iLoopFilterAlphaC0Offset = i; }
@@ -290,11 +280,6 @@ public:
   UInt      getQuadtreeTULog2MinSize        ()      const { return m_uiQuadtreeTULog2MinSize; }
   UInt      getQuadtreeTUMaxDepthInter      ()      const { return m_uiQuadtreeTUMaxDepthInter; }
   UInt      getQuadtreeTUMaxDepthIntra      ()      const { return m_uiQuadtreeTUMaxDepthIntra; }
-  
-#if !DISABLE_CAVLC
-  //==== Entropy Coding ========
-  Int       getSymbolMode                   ()      { return  m_iSymbolMode; }
-#endif
   
   //==== Loop/Deblock Filter ========
   Bool      getLoopFilterDisable            ()      { return  m_bLoopFilterDisable;       }

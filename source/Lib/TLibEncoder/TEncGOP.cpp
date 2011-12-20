@@ -447,9 +447,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcEntropyCoder->encodeSliceHeader(pcSlice);
 
         // is it needed?
-#if !DISABLE_CAVLC
-        if ( pcSlice->getSymbolMode() )
-#endif
         {
           nalu.m_Bitstream.writeAlignOne(); // Byte-alignment before CABAC data
           m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
@@ -460,18 +457,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         {
           // set entropy coder for writing
           m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
-#if !DISABLE_CAVLC
-          if ( pcSlice->getSymbolMode() )
-#endif
-          {
             m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
-          }
-#if !DISABLE_CAVLC
-          else
-          {
-            m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
-          }
-#endif
           m_pcEntropyCoder->resetEntropy    ();
           m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
 
@@ -488,13 +474,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcSliceEncoder->encodeSlice(pcPic, &nalu.m_Bitstream);
 
 #if OL_USE_WPP
-#if !DISABLE_CAVLC
-        if ( pcSlice->getSymbolMode() )
-#endif
-        {
             // CHECK_ME: for bitstream check only!
             nalu.m_Bitstream.write( 1, 1 ); // stop bit.
-        }
 #endif // OL_USE_WPP
 
 #if TILES
@@ -503,18 +484,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
 
 #if OL_USE_WPP
-#if !DISABLE_CAVLC
-        if (pcSlice->getSymbolMode())
-#endif
-        {
           nalu.m_Bitstream.writeAlignZero();
-        }
-#if !DISABLE_CAVLC
-        else
-        {
-          writeRBSPTrailingBits(nalu.m_Bitstream);
-        }
-#endif
 #endif
         accessUnit.push_back(new NALUnitEBSP(nalu));
           }
@@ -532,18 +502,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if G220_PURE_VLC_SAO_ALF
             m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
 #else
-#if !DISABLE_CAVLC
-            if ( pcSlice->getSymbolMode() )
-#endif
-            {
               m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcSlice );
-            }
-#if !DISABLE_CAVLC
-            else
-            {
-              m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
-            }
-#endif
 #endif
 
 #if SAO
@@ -738,11 +697,7 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
 
   if(cAPS.getSaoEnabled())
   {
-#if DISABLE_CAVLC
     cAPS.setCABACForAPS( true );
-#else
-    cAPS.setCABACForAPS(pcSlice->getSymbolMode() ==1);
-#endif
     if(cAPS.getCABACForAPS())
     {
       cAPS.setCABACinitIDC(pcSlice->getSliceType());

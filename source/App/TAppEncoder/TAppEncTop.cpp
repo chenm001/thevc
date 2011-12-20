@@ -102,11 +102,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseAMP( m_enableAMP );
 #endif
   
-#if !DISABLE_CAVLC
-  //====== Entropy Coding ========
-  m_cTEncTop.setSymbolMode                   ( m_iSymbolMode );
-#endif
-  
   //====== Loop/Deblock Filter ========
   m_cTEncTop.setLoopFilterDisable            ( m_bLoopFilterDisable       );
   m_cTEncTop.setLoopFilterAlphaC0Offset      ( m_iLoopFilterAlphaC0Offset );

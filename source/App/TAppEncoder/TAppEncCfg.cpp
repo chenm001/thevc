@@ -217,10 +217,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("dQPFile,m",     cfg_dQPFile, string(""), "dQP file name")
   ("RDOQ",          m_bUseRDOQ, true)
   
-  /* Entropy coding parameters */
-#if !DISABLE_CAVLC
-  ("SymbolMode,-sym", m_iSymbolMode, 1, "symbol mode (0=VLC, 1=SBAC)")
-#endif
   ("SBACRD", m_bUseSBACRD, true, "SBAC based RD estimation")
   
   /* Deblocking filter parameters */
@@ -428,10 +424,6 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra < 1,                                                         "QuadtreeTUMaxDepthIntra must be greater than or equal to 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
 
-#if !DISABLE_CAVLC
-  xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 1,                                     "SymbolMode must be equal to 0 or 1" );
-#endif
-  
   // max CU width and height should be power of 2
   UInt ui = m_uiMaxCUWidth;
   while(ui)
@@ -448,15 +440,6 @@ Void TAppEncCfg::xCheckParameter()
       xConfirmPara( ui != 1 , "Height should be 2^n");
   }
   
-#if !DISABLE_CAVLC
-  // SBACRD is supported only for SBAC
-  if ( m_iSymbolMode == 0 )
-  {
-    m_bUseSBACRD = false;
-  }
-#endif
-  
-
 #if G1002_RPS
   Bool bVerified_GOP=false;
   Bool bError_GOP=false;
@@ -728,24 +711,6 @@ Void TAppEncCfg::xPrintParameter()
 #endif
 #if DISABLE_4x4_INTER
   printf("DisableInter4x4              : %d\n", m_bDisInter4x4);  
-#endif
-#if !DISABLE_CAVLC
-  if ( m_iSymbolMode == 0 )
-  {
-    printf("Entropy coder                : VLC\n");
-  }
-  else if( m_iSymbolMode == 1 )
-  {
-    printf("Entropy coder                : CABAC\n");
-  }
-  else if( m_iSymbolMode == 2 )
-  {
-    printf("Entropy coder                : PIPE\n");
-  }
-  else
-  {
-    assert(0);
-  }
 #endif
   printf("\n");
   
