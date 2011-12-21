@@ -2744,9 +2744,17 @@ Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESy
     lagrangian=xfindBestCoeffCodMethod(filterCoeffSymQuant, filter_shape, sqrFiltLength, filters_per_fr, errorForce0CoeffTab, lambda_val);
 
 #if G215_ALF_NUM_FILTER
+#if G216_ALF_MERGE_FLAG_FIX
+    if (lagrangian<lagrangianMin || firstFilt==1 || filters_per_fr == m_iALFMaxNumberFilters || (m_uiVarGenMethod == ALF_BA && filters_per_fr == NO_FILTERS -1) )
+#else
     if (lagrangian<lagrangianMin || firstFilt==1 || filters_per_fr == m_iALFMaxNumberFilters)
+#endif
+#else
+#if G216_ALF_MERGE_FLAG_FIX
+    if (lagrangian<lagrangianMin || firstFilt==1 || (m_uiVarGenMethod == ALF_BA && filters_per_fr == NO_FILTERS -1))
 #else
     if (lagrangian<lagrangianMin || firstFilt==1)
+#endif
 #endif
     {
       firstFilt=0;
@@ -4852,7 +4860,11 @@ Void TEncAdaptiveLoopFilter::xFilterTapDecisionChroma( UInt64 uiLumaRate, TComPi
 
     // calc original dist
     memset(qh, 0, sizeof(Int)*num_coeff);
+#if ALF_DC_OFFSET_REMOVAL
+    qh[num_coeff-1] = 1<<((Int)ALF_NUM_BIT_SHIFT);
+#else
     qh[num_coeff-2] = 1<<((Int)ALF_NUM_BIT_SHIFT);
+#endif
     iOrgDistCb = xFastFiltDistEstimationChroma(m_ppdAlfCorrCb, qh, num_coeff);
     iOrgDistCr = xFastFiltDistEstimationChroma(m_ppdAlfCorrCr, qh, num_coeff);
 
