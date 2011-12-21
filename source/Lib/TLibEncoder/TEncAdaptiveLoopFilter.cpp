@@ -4860,7 +4860,11 @@ Void TEncAdaptiveLoopFilter::xFilterTapDecisionChroma( UInt64 uiLumaRate, TComPi
 
     // calc original dist
     memset(qh, 0, sizeof(Int)*num_coeff);
+#if ALF_DC_OFFSET_REMOVAL
+    qh[num_coeff-1] = 1<<((Int)ALF_NUM_BIT_SHIFT);
+#else
     qh[num_coeff-2] = 1<<((Int)ALF_NUM_BIT_SHIFT);
+#endif
     iOrgDistCb = xFastFiltDistEstimationChroma(m_ppdAlfCorrCb, qh, num_coeff);
     iOrgDistCr = xFastFiltDistEstimationChroma(m_ppdAlfCorrCr, qh, num_coeff);
 
