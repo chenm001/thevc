@@ -197,7 +197,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("SearchRange,-sr",m_iSearchRange, 96, "motion search range")
   ("BipredSearchRange", m_bipredSearchRange, 4, "motion search range for bipred refinement")
   ("HadamardME", m_bUseHADME, true, "hadamard ME for fractional-pel")
-  ("ASR", m_bUseASR, false, "adaptive motion search range")
   
   /* Quantization parameters */
   ("QP,q",          m_fQP,             30.0, "Qp value, if value is float, QP is switched once during encoding")
@@ -652,7 +651,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("HAD:%d ", m_bUseHADME           );
   printf("SRD:%d ", m_bUseSBACRD          );
   printf("RDQ:%d ", m_bUseRDOQ            );
-  printf("ASR:%d ", m_bUseASR             );
   printf("PAD:%d ", m_bUsePAD             );
 #if !G1002_RPS
   printf("NRF:%d ", m_bUseNRF             );

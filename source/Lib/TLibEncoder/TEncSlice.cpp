@@ -397,25 +397,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 // Public member functions
 // ====================================================================================================================
 
-Void TEncSlice::setSearchRange( TComSlice* pcSlice )
-{
-  Int iCurrPOC = pcSlice->getPOC();
-  Int iRefPOC;
-  Int iMaxSR = m_pcCfg->getSearchRange();
-  Int iNumPredDir = pcSlice->isInterP() ? 1 : 2;
-  
-  for (Int iDir = 0; iDir <= iNumPredDir; iDir++)
-  {
-    RefPicList e = (RefPicList)iDir;
-    for (Int iRefIdx = 0; iRefIdx < pcSlice->getNumRefIdx(e); iRefIdx++)
-    {
-      iRefPOC = pcSlice->getRefPic(e, iRefIdx)->getPOC();
-      Int iNewSR = Clip3(8, iMaxSR, (iMaxSR*ADAPT_SR_SCALE*abs(iCurrPOC - iRefPOC)));
-      m_pcPredSearch->setAdaptiveSearchRange(iDir, iRefIdx, iNewSR);
-    }
-  }
-}
-
 /** \param rpcPic   picture class
  */
 Void TEncSlice::compressSlice( TComPic*& rpcPic )

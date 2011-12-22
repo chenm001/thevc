@@ -115,7 +115,6 @@ public:
   Void    encodeSlice         ( TComPic*& rpcPic, TComOutputBitstream* rpcBitstream  );      ///< entropy coding of slice
   
   // misc. functions
-  Void    setSearchRange      ( TComSlice* pcSlice  );                                  ///< set ME range adaptively
   UInt64  getTotalBits        ()  { return m_uiPicTotalBits; }
   
   TEncCu*        getCUEncoder() { return m_pcCuEncoder; }                        ///< CU encoder

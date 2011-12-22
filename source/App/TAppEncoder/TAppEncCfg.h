@@ -125,7 +125,6 @@ protected:
 
   // coding tools (encoder-only parameters)
   Bool      m_bUseSBACRD;                                     ///< flag for using RD optimization based on SBAC
-  Bool      m_bUseASR;                                        ///< flag for using adaptive motion search range
   Bool      m_bUseHADME;                                      ///< flag for using HAD in sub-pel ME
   Bool      m_bUseRDOQ;                                       ///< flag for using RD optimized quantization
 #if !G1002_RPS

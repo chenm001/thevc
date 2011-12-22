@@ -158,7 +158,6 @@ protected:
   //====== Tool list ========
   Bool      m_bUseSBACRD;
 
-  Bool      m_bUseASR;
   Bool      m_bUseHADME;
 #if !G1002_RPS
   Bool      m_bUseGPB;
@@ -289,7 +288,6 @@ public:
 
   //==== Tool list ========
   Void      setUseSBACRD                    ( Bool  b )     { m_bUseSBACRD  = b; }
-  Void      setUseASR                       ( Bool  b )     { m_bUseASR     = b; }
   Void      setUseHADME                     ( Bool  b )     { m_bUseHADME   = b; }
 #if !G1002_RPS
   Void      setUseGPB                       ( Bool  b )     { m_bUseGPB     = b; }
@@ -310,7 +308,6 @@ public:
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
   Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
-  Bool      getUseASR                       ()      { return m_bUseASR;     }
   Bool      getUseHADME                     ()      { return m_bUseHADME;   }
 
 #if !G1002_RPS

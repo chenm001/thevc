@@ -176,9 +176,6 @@ template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min
 // Fast ME using smoother MV assumption
 #define FASTME_SMOOTHER_MV          1           ///< reduce ME time using faster option
 
-// Adaptive search range depending on POC difference
-#define ADAPT_SR_SCALE              1           ///< division factor for adaptive search range
-
 #define CLIP_TO_709_RANGE           0
 
 // IBDI range restriction for skipping clip
