@@ -449,6 +449,10 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     // other case: encodeCU is not called
     else
     {
+      m_pcSbacCoder->init( m_pcBinCABAC );
+      m_pcEntropyCoder->setEntropyCoder   ( m_pcSbacCoder, pcSlice );
+      m_pcEntropyCoder->resetEntropy      ();
+      m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
       m_pcCuEncoder->compressCU( pcCU );
       m_pcCuEncoder->encodeCU( pcCU );
     }
