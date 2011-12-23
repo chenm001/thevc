@@ -49,7 +49,6 @@
 #include "TLibCommon/AccessUnit.h"
 #include "TEncSlice.h"
 #include "TEncEntropy.h"
-#include "TEncCavlc.h"
 #include "TEncSbac.h"
 
 #include "TEncAnalyze.h"
@@ -89,7 +88,6 @@ private:
   TComList<TComPic*>*     m_pcListPic;
   
   TEncEntropy*            m_pcEntropyCoder;
-  TEncCavlc*              m_pcCavlcCoder;
   TEncSbac*               m_pcSbacCoder;
   TEncBinCABAC*           m_pcBinCABAC;
   TComLoopFilter*         m_pcLoopFilter;

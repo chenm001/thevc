@@ -123,6 +123,22 @@ protected:
   //SBAC RD
   UInt          m_uiCoeffCost;
   
+#if G1002_RPS
+  Void codeShortTermRefPicSet              ( TComPPS* pcPPS, TComReferencePictureSet* pcRPS );
+#endif
+  UInt  xConvertToUInt        ( Int iValue ) {  return ( iValue <= 0) ? -iValue<<1 : (iValue<<1)-1; }
+
+  Void  xWriteCode            ( UInt uiCode, UInt uiLength );
+  Void  xWriteUvlc            ( UInt uiCode );
+  Void  xWriteSvlc            ( Int  iCode   );
+  Void  xWriteFlag            ( UInt uiCode );
+#if ENC_DEC_TRACE
+  Void  xWriteCodeTr          ( UInt value, UInt  length, const Char *pSymbolName);
+  Void  xWriteUvlcTr          ( UInt value,               const Char *pSymbolName);
+  Void  xWriteSvlcTr          ( Int  value,               const Char *pSymbolName);
+  Void  xWriteFlagTr          ( UInt value,               const Char *pSymbolName);
+#endif
+
 public:
 
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );

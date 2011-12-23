@@ -302,10 +302,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibEncoder\TEncCavlc.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncCu.cpp"
 				>
 			</File>
@@ -372,10 +368,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncBinCoderCABACCounter.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibEncoder\TEncCavlc.h"
 				>
 			</File>
 			<File

@@ -162,75 +162,6 @@ extern const UInt   g_auiGoRicePrefixLen[4];              //!< prefix length for
 extern const UInt   g_aauiGoRiceUpdate[4][16];            //!< parameter update rules for Rice codes
 
 // ====================================================================================================================
-// CAVLC table
-// ====================================================================================================================
-
-extern const Int    atable[5];
-extern const UChar  g_aucCodeTable3[7][15];
-extern const UChar  g_aucLenTable3 [7][15];
-extern const UChar  g_aucCodeTableTZ4[3][4];
-extern const UChar  g_aucLenTableTZ4 [3][4];
-extern const UChar  g_aucCodeTableTZ16[15][16];
-extern const UChar  g_aucLenTableTZ16 [15][16];
-extern const UChar  g_aucCodeTableTO4[4][5];
-extern const UChar  g_aucLenTableTO4 [4][5];
-extern const UChar  g_aucACTab[6];
-extern const UChar  g_aucFrameBits[32];
-
-extern const UInt    g_auiLPTableE4[3][32];
-extern const UInt    g_auiLPTableD4[3][32];
-extern const UInt    g_auiLastPosVlcIndex[10];
-extern const UInt    g_auiLastPosVlcNum[10][17];
-extern const UInt    g_auiLumaRun8x8[28][29];
-
-extern const UInt    g_auiIntraModeTableD17[17];
-extern const UInt    g_auiIntraModeTableE17[17];
-extern const UInt    g_auiIntraModeTableD34[34];
-extern const UInt    g_auiIntraModeTableE34[34];
-
-extern const UInt    g_auiVlcTable8x8Inter[29];
-extern const UInt    g_auiVlcTable8x8Intra[29];
-
-extern const UInt    g_acstructLumaRun8x8[28][29];
-
-extern const UInt   g_auiVlcTable16x16Intra[29];
-extern const UInt   g_auiVlcTable16x16Inter[29];
-
-extern const UInt huff17_2[18];
-extern const UInt lengthHuff17_2[18];
-extern const UInt huff34_2[35];
-extern const UInt lengthHuff34_2[35];
-
-extern const UInt   *g_pLumaRunTr14x4[5]; 
-extern const UInt   *g_pLumaRunTr116x16[2];
-extern const UInt   *g_pLumaRunTr18x8[2]; 
-
-extern const UInt    g_auiCBP_YUV_TableE[4][8];
-extern const UInt    g_auiCBP_YUV_TableD[4][8];
-extern const UInt    g_auiCBP_YS_TableE[2][4];
-extern const UInt    g_auiCBP_YS_TableD[2][4];
-extern const UInt    g_auiCBP_YCS_TableE[2][8];
-extern const UInt    g_auiCBP_YCS_TableD[2][8];
-extern const UInt    g_auiCBP_YCS_Table[2][8];
-extern const UInt    g_auiCBP_YCS_TableLen[2][8];
-extern const UInt    g_auiCBP_YC_TableE[2][4];
-extern const UInt    g_auiCBP_YC_TableD[2][4];
-extern const UInt    g_auiCBP_4Y_TableE[2][15];
-extern const UInt    g_auiCBP_4Y_TableD[2][15];
-extern const UInt    g_auiCBP_4Y_VlcNum[15];
-extern const UInt    g_auiCbpVlcNum[2][8];
-
-extern const UInt g_auiComMI1TableE[9];
-extern const UInt g_auiComMI1TableD[9];
-
-#if AMP
-extern const UInt g_auiInterModeTableE[4][11];
-extern const UInt g_auiInterModeTableD[4][11];
-#else
-extern const UInt g_auiInterModeTableE[4][7];
-extern const UInt g_auiInterModeTableD[4][7];
-#endif
-// ====================================================================================================================
 // ADI table
 // ====================================================================================================================
 
@@ -270,69 +201,6 @@ extern const UChar g_aucDCTDSTMode_Hor[NUM_INTRA_MODE];
 // ====================================================================================================================
 // Misc.
 // ====================================================================================================================
-__inline UInt xRunLevelInd(Int lev, Int run, Int maxrun, UInt lrg1Pos)
-{
-  UInt cn;
-
-  if ( lrg1Pos > 0 )
-  {
-    if ( lev == 0 )
-    {
-      if ( run < lrg1Pos )
-        cn = run;
-      else
-        cn = (run << 1) - lrg1Pos + 1;
-    }
-    else
-    {
-      if ( run > (maxrun - (Int)lrg1Pos + 1) )
-        cn = maxrun + run + 2 ;  
-      else
-        cn = lrg1Pos + (run << 1);
-    }
-  }
-  else
-  {
-    cn = (run << 1);
-    if ( lev == 0 && run <= maxrun )
-    { 
-      cn++;
-    }
-  }
-  return(cn);
-}
-
-/** Function for deriving codeword index in CAVLC run-level coding 
- * \param lev a value indicating coefficient level greater than one or not
- * \param run length of run
- * \param maxrun maximum length of run for a given coefficient location
- * \returns the codeword index
- * This function derives codeword index in CAVLC run-level coding .
- */
-__inline UInt xRunLevelIndInter(Int lev, Int run, Int maxrun, Int scale)
-{
-  UInt cn;
-
-  {
-    if (lev == 0)
-    {
-      cn = run;
-      {
-        int thr = (maxrun + 1) >> scale;
-        if (run >= thr)
-          cn = (run > maxrun) ? thr : (run+1);
-      }
-    }
-    else
-    {
-      cn = maxrun + run + 2;
-    }
-  }
-
-  return(cn);
-}
-
-
 __inline UInt xLeadingZeros(UInt uiCode)
 {
   UInt uiCount = 0;
@@ -351,61 +219,6 @@ __inline UInt xLeadingZeros(UInt uiCode)
 }
 
 extern       Char   g_aucConvertToBit  [ MAX_CU_SIZE+1 ];   // from width to log2(width)-2
-
-/** Function for deriving codeword index in coding last significant position and level information.
- * \param lev a value indicating coefficient level greater than one or not
- * \param last_pos last significant coefficient position
- * \param N block size
- * \returns the codeword index
- * This function derives codeword index in coding last significant position and level information in CAVLC. 
- */
-__inline UInt xLastLevelInd(Int lev, Int last_pos, Int N)
-{
-  UInt cx;
-  UInt uiConvBit = g_aucConvertToBit[N]+2;
-
-  if (lev==0)
-  {
-    cx = ((last_pos + (last_pos>>uiConvBit))>>uiConvBit)+last_pos;
-  }
-  else
-  {
-    if (last_pos<N)
-    {
-      cx = (last_pos+1)<<uiConvBit;
-    }
-    else
-    {
-      cx = (0x01<<(uiConvBit<<1)) + last_pos;
-    }
-  }
-  return(cx);
-}
-
-__inline void xLastLevelIndInv(Int& lev, Int& last_pos, Int N, UInt cx)
-{
-  UInt uiConvBit = g_aucConvertToBit[N]+2;
-  Int N2 = 0x01<<(uiConvBit<<1);
-
-  if(cx <= N2+N)
-  {
-    if(cx && (cx&(N-1))==0)
-    {
-      lev = 1;
-      last_pos = (cx>>uiConvBit)-1;
-    }
-    else
-    {
-      lev = 0;
-      last_pos = cx - (cx>>uiConvBit);
-    }
-  }
-  else
-  {
-    lev = 1;
-    last_pos = cx - N2;
-  }
-}
 
 #define ENC_DEC_TRACE 0
 

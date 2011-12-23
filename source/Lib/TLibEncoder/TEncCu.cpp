@@ -201,7 +201,6 @@ Void TEncCu::init( TEncTop* pcEncTop )
   m_pcRdCost           = pcEncTop->getRdCost();
   
   m_pcEntropyCoder     = pcEncTop->getEntropyCoder();
-  m_pcCavlcCoder       = pcEncTop->getCavlcCoder();
   m_pcSbacCoder       = pcEncTop->getSbacCoder();
   m_pcBinCABAC         = pcEncTop->getBinCABAC();
   

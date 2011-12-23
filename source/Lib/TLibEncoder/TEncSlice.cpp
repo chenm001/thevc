@@ -111,7 +111,6 @@ Void TEncSlice::init( TEncTop* pcEncTop )
   m_pcPredSearch      = pcEncTop->getPredSearch();
   
   m_pcEntropyCoder    = pcEncTop->getEntropyCoder();
-  m_pcCavlcCoder      = pcEncTop->getCavlcCoder();
   m_pcSbacCoder       = pcEncTop->getSbacCoder();
   m_pcBinCABAC        = pcEncTop->getBinCABAC();
   m_pcTrQuant         = pcEncTop->getTrQuant();
@@ -425,13 +424,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     pppcRDSbacCoder->setBinCountingEnableFlag( false );
     pppcRDSbacCoder->setBinsCoded( 0 );
   }
-  else
-  {
-    m_pcCavlcCoder  ->setAdaptFlag    ( false );
-    m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
-    m_pcEntropyCoder->resetEntropy      ();
-    m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-  }
   
   // for every CU in slice
   for(  uiCUAddr = uiStartCUAddr; uiCUAddr < uiBoundingCUAddr; uiCUAddr++  )
@@ -462,10 +454,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     else
     {
       m_pcCuEncoder->compressCU( pcCU );
-      m_pcCavlcCoder ->setAdaptFlag(true);
       m_pcCuEncoder->encodeCU( pcCU );
-      
-      m_pcCavlcCoder ->setAdaptFlag(false);
     }
     
     m_uiPicTotalBits += pcCU->getTotalBits();

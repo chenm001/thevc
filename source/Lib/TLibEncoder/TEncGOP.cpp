@@ -71,7 +71,6 @@ TEncGOP::TEncGOP()
   m_pcListPic           = NULL;
   
   m_pcEntropyCoder      = NULL;
-  m_pcCavlcCoder        = NULL;
   m_pcSbacCoder         = NULL;
   m_pcBinCABAC          = NULL;
   
@@ -95,7 +94,6 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
   m_pcListPic            = pcTEncTop->getListPic();
   
   m_pcEntropyCoder       = pcTEncTop->getEntropyCoder();
-  m_pcCavlcCoder         = pcTEncTop->getCavlcCoder();
   m_pcSbacCoder          = pcTEncTop->getSbacCoder();
   m_pcBinCABAC           = pcTEncTop->getBinCABAC();
   m_pcLoopFilter         = pcTEncTop->getLoopFilter();
@@ -379,7 +377,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
       /////////////////////////////////////////////////////////////////////////////////////////////////// File writing
       // Set entropy coder
-      m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
+      m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
+      m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
 
       /* write various header sets. */
       if ( m_bSeqFirst )
@@ -420,21 +419,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcSlice->setRPSidx(pcPic->getSlice(0)->getRPSidx());
 #endif
 
-      m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
-          m_pcEntropyCoder->resetEntropy      ();
         /* start slice NALunit */
         OutputNALUnit nalu(pcSlice->getNalUnitType(), pcSlice->isReferenced() ? NAL_REF_IDC_PRIORITY_HIGHEST: NAL_REF_IDC_PRIORITY_LOWEST, true);
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodeSliceHeader(pcSlice);
 
         // is it needed?
-        {
           nalu.m_Bitstream.writeAlignOne(); // Byte-alignment before CABAC data
-          m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
-          m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
-          m_pcEntropyCoder->resetEntropy    ();
-        }
-
         {
           // set entropy coder for writing
           m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
@@ -493,7 +484,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         OutputNALUnit nalu(NAL_UNIT_SEI, NAL_REF_IDC_PRIORITY_LOWEST);
 
         /* write the SEI messages */
-        m_pcEntropyCoder->setEntropyCoder(m_pcCavlcCoder, pcSlice);
+        m_pcEntropyCoder->setEntropyCoder(m_pcSbacCoder, pcSlice);
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodeSEI(sei_recon_picture_digest);
         writeRBSPTrailingBits(nalu.m_Bitstream);
@@ -576,7 +567,7 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
   */
 Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* pcSlice)
 {
-  m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice);
+  m_pcEntropyCoder->setEntropyCoder   ( m_pcSbacCoder, pcSlice);
   m_pcEntropyCoder->resetEntropy      ();
   m_pcEntropyCoder->setBitstream(&APSbs);
 

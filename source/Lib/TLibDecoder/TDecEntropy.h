@@ -45,7 +45,6 @@
 #include "TLibCommon/TComPrediction.h"
 
 class TDecSbac;
-class TDecCavlc;
 class SEImessages;
 
 //! \ingroup TLibDecoder

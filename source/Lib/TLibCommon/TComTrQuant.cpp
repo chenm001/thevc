@@ -1414,8 +1414,7 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
   } 
 }
 
-Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, UInt *aTableLP4, UInt *aTableLP8, UInt *aTableLastPosVlcIndex,
-                       Bool bUseRDOQ,  Bool bEnc )
+Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Bool bUseRDOQ,  Bool bEnc )
 {
   m_uiMaxTrSize  = uiMaxTrSize;
   m_bEnc         = bEnc;

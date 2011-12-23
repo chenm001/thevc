@@ -76,7 +76,6 @@ private:
   
   // coding tools
   TEncEntropy*            m_pcEntropyCoder;                     ///< entropy encoder
-  TEncCavlc*              m_pcCavlcCoder;                       ///< CAVLC encoder
   TEncSbac*               m_pcSbacCoder;                        ///< SBAC encoder
   TEncBinCABAC*           m_pcBinCABAC;                         ///< Bin encoder CABAC
   TComTrQuant*            m_pcTrQuant;                          ///< transform & quantization

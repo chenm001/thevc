@@ -38,7 +38,6 @@
 extern bool g_md5_mismatch; ///< top level flag to signal when there is a decode problem
 
 #include "TDecGop.h"
-#include "TDecCAVLC.h"
 #include "TDecSbac.h"
 #include "TDecBinCoder.h"
 #include "TDecBinCoderCABAC.h"
@@ -80,7 +79,6 @@ Void TDecGop::destroy()
 Void TDecGop::init( TDecEntropy*            pcEntropyDecoder, 
                    TDecSbac*               pcSbacDecoder, 
                    TDecBinCABAC*           pcBinCABAC,
-                   TDecCavlc*              pcCavlcDecoder, 
                    TDecSlice*              pcSliceDecoder, 
                    TComLoopFilter*         pcLoopFilter
                    )
@@ -88,7 +86,6 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
   m_pcEntropyDecoder      = pcEntropyDecoder;
   m_pcSbacDecoder         = pcSbacDecoder;
   m_pcBinCABAC            = pcBinCABAC;
-  m_pcCavlcDecoder        = pcCavlcDecoder;
   m_pcSliceDecoder        = pcSliceDecoder;
   m_pcLoopFilter          = pcLoopFilter;
 }

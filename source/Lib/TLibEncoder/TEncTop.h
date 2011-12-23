@@ -50,7 +50,6 @@
 #include "TEncGOP.h"
 #include "TEncSlice.h"
 #include "TEncEntropy.h"
-#include "TEncCavlc.h"
 #include "TEncSbac.h"
 #include "TEncSearch.h"
 
@@ -74,12 +73,10 @@ private:
   // encoder search
   TEncSearch              m_cSearch;                      ///< encoder search class
   TEncEntropy*            m_pcEntropyCoder;                     ///< entropy encoder 
-  TEncCavlc*              m_pcCavlcCoder;                       ///< CAVLC encoder  
   // coding tool
   TComTrQuant             m_cTrQuant;                     ///< transform & quantization class
   TComLoopFilter          m_cLoopFilter;                  ///< deblocking filter class
   TEncEntropy             m_cEntropyCoder;                ///< entropy encoder
-  TEncCavlc               m_cCavlcCoder;                  ///< CAVLC encoder
   TEncSbac                m_cSbacCoder;                   ///< SBAC encoder
   TEncBinCABAC            m_cBinCoderCABAC;               ///< bin coder CABAC
   
@@ -141,7 +138,6 @@ public:
   TEncSlice*              getSliceEncoder       () { return  &m_cSliceEncoder;        }
   TEncCu*                 getCuEncoder          () { return  &m_cCuEncoder;           }
   TEncEntropy*            getEntropyCoder       () { return  &m_cEntropyCoder;        }
-  TEncCavlc*              getCavlcCoder         () { return  &m_cCavlcCoder;          }
   TEncSbac*               getSbacCoder          () { return  &m_cSbacCoder;           }
   TEncBinCABAC*           getBinCABAC           () { return  &m_cBinCoderCABAC;       }
   

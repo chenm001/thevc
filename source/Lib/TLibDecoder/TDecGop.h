@@ -71,7 +71,6 @@ private:
   TDecEntropy*          m_pcEntropyDecoder;
   TDecSbac*             m_pcSbacDecoder;
   TDecBinCABAC*         m_pcBinCABAC;
-  TDecCavlc*            m_pcCavlcDecoder;
   TDecSlice*            m_pcSliceDecoder;
   TComLoopFilter*       m_pcLoopFilter;
   
@@ -86,7 +85,6 @@ public:
   Void  init    ( TDecEntropy*            pcEntropyDecoder, 
                  TDecSbac*               pcSbacDecoder, 
                  TDecBinCABAC*           pcBinCABAC,
-                 TDecCavlc*              pcCavlcDecoder, 
                  TDecSlice*              pcSliceDecoder, 
                  TComLoopFilter*         pcLoopFilter
                  );

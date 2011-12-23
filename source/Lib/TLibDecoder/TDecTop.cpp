@@ -105,7 +105,7 @@ Void TDecTop::init()
 {
   // initialize ROM
   initROM();
-  m_cGopDecoder.init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter );
+  m_cGopDecoder.init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, &m_cSliceDecoder, &m_cLoopFilter );
   m_cSliceDecoder.init( &m_cEntropyDecoder, &m_cCuDecoder );
   m_cEntropyDecoder.init(&m_cPrediction);
 }
@@ -265,7 +265,8 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
   static TComPPS*    pcNewPPS = NULL;
 #endif
   // Initialize entropy decoder
-  m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
+  m_cSbacDecoder.init(&m_cBinCABAC);
+  m_cEntropyDecoder.setEntropyDecoder (&m_cSbacDecoder);
   m_cEntropyDecoder.setBitstream      (nalu.m_Bitstream);
 
   switch (nalu.m_UnitType)

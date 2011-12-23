@@ -78,10 +78,10 @@ public:
 #endif
   Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
   
-  Void  parseSPS                  ( TComSPS* pcSPS         ) {}
-  Void  parsePPS                  ( TComPPS* pcPPS         ) {}
-  void parseSEI(SEImessages&) {}
-  Void  parseSliceHeader          ( TComSlice*& rpcSlice   ) {}
+  Void  parseSPS                  ( TComSPS* pcSPS         );
+  Void  parsePPS                  ( TComPPS* pcPPS         );
+  void parseSEI(SEImessages&);
+  Void  parseSliceHeader          ( TComSlice*& rpcSlice   );
 
   Void  parseTerminatingBit       ( UInt& ruiBit );
   Void  parseMVPIdx               ( Int& riMVPIdx          );
@@ -96,7 +96,22 @@ private:
   TComInputBitstream* m_pcBitstream;
   TDecBinIf*        m_pcTDecBinIf;
   
+protected:
+  Void  xReadCode             (UInt   uiLength, UInt& ruiCode);
+  Void  xReadUvlc             (UInt&  ruiVal);
+  Void  xReadSvlc             (Int&   riVal);
+  Void  xReadFlag             (UInt&  ruiCode);
+
 public:
+
+#if G1002_RPS
+#if INTER_RPS_PREDICTION
+  void  parseShortTermRefPicSet            (TComPPS* pcPPS, TComReferencePictureSet* pcRPS, Int idx);
+#else
+  Void  parseShortTermRefPicSet            (TComPPS* pcPPS, TComReferencePictureSet* pcRPS);
+#endif
+#endif
+
   Void parseSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx );
@@ -125,7 +140,7 @@ public:
   Void parseCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
 #if F747_APS
-  Void parseAPSInitInfo(TComAPS& cAPS) {printf("Not supported in parseAPSInitInfo()\n");assert(0);exit(1);}
+  Void parseAPSInitInfo(TComAPS& cAPS);
 #endif
 
 private:

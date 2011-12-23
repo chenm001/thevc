@@ -48,7 +48,6 @@
 #include "TDecGop.h"
 #include "TDecEntropy.h"
 #include "TDecSbac.h"
-#include "TDecCAVLC.h"
 
 struct InputNALUnit;
 
@@ -105,7 +104,6 @@ private:
   TDecSlice               m_cSliceDecoder;
   TDecCu                  m_cCuDecoder;
   TDecEntropy             m_cEntropyDecoder;
-  TDecCavlc               m_cCavlcDecoder;
   TDecSbac                m_cSbacDecoder;
   TDecBinCABAC            m_cBinCABAC;
   TComLoopFilter          m_cLoopFilter;

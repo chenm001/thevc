@@ -54,7 +54,6 @@
 
 class TEncTop;
 class TEncSbac;
-class TEncCavlc;
 class TEncSlice;
 
 // ====================================================================================================================
@@ -87,7 +86,6 @@ private:
   TComRdCost*             m_pcRdCost;
   
   TEncEntropy*            m_pcEntropyCoder;
-  TEncCavlc*              m_pcCavlcCoder;
   TEncSbac*               m_pcSbacCoder;
   TEncBinCABAC*           m_pcBinCABAC;
   

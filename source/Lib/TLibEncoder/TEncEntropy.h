@@ -46,7 +46,6 @@
 #include "TLibCommon/TComTrQuant.h"
 
 class TEncSbac;
-class TEncCavlc;
 class SEI;
 
 // ====================================================================================================================

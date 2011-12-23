@@ -164,8 +164,6 @@ Void TEncTop::destroy ()
 
 Void TEncTop::init()
 {
-  UInt *aTable4=NULL, *aTable8=NULL;
-  UInt* aTableLastPosVlcIndex=NULL; 
   // initialize SPS
   xInitSPS();
   
@@ -185,13 +183,9 @@ Void TEncTop::init()
   m_cCuEncoder.   init( this );
   
   // initialize transform & quantization class
-  m_pcCavlcCoder = getCavlcCoder();
-  aTable4 = m_pcCavlcCoder->GetLP4Table();
-  aTableLastPosVlcIndex=m_pcCavlcCoder->GetLastPosVlcIndexTable();
   
   m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize,
-                  aTable4, aTable8, 
-                  aTableLastPosVlcIndex, m_bUseRDOQ, true );
+                  m_bUseRDOQ, true );
   
   // initialize encoder search class
   m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_bipredSearchRange, m_iFastSearch, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
