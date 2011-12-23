@@ -51,7 +51,6 @@
 
 #include "TDecEntropy.h"
 #include "TDecSlice.h"
-#include "TDecBinCoder.h"
 #include "TDecBinCoderCABAC.h"
 
 //! \ingroup TLibDecoder

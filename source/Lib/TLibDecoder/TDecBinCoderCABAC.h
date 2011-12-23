@@ -39,29 +39,30 @@
 #define __TDEC_BIN_CODER_CABAC__
 
 #include "TLibCommon/TComCABACTables.h"
-#include "TDecBinCoder.h"
+#include "TLibCommon/ContextModel.h"
+#include "TLibCommon/TComBitStream.h"
 
 //! \ingroup TLibDecoder
 //! \{
 
-class TDecBinCABAC : public TDecBinIf
+class TDecBinCABAC
 {
 public:
   TDecBinCABAC ();
   virtual ~TDecBinCABAC();
   
-  Void  init              ( TComInputBitstream* pcTComBitstream );
-  Void  uninit            ();
+  virtual Void  init              ( TComInputBitstream* pcTComBitstream );
+  virtual Void  uninit            ();
   
-  Void  start             ();
-  Void  finish            ();
+  virtual Void  start             ();
+  virtual Void  finish            ();
   
-  Void  decodeBin         ( UInt& ruiBin, ContextModel& rcCtxModel );
-  Void  decodeBinEP       ( UInt& ruiBin                           );
-  Void  decodeBinsEP      ( UInt& ruiBin, Int numBins              );
-  Void  decodeBinTrm      ( UInt& ruiBin                           );
+  virtual Void  decodeBin         ( UInt& ruiBin, ContextModel& rcCtxModel );
+  virtual Void  decodeBinEP       ( UInt& ruiBin                           );
+  virtual Void  decodeBinsEP      ( UInt& ruiBin, Int numBins              );
+  virtual Void  decodeBinTrm      ( UInt& ruiBin                           );
   
-  Void  resetBac          ();
+  virtual Void  resetBac          ();
   
 private:
   TComInputBitstream* m_pcTComBitstream;

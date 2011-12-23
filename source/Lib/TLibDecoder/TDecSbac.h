@@ -45,10 +45,10 @@
 
 
 #include "TDecEntropy.h"
-#include "TDecBinCoder.h"
 #include "TLibCommon/ContextTables.h"
 #include "TLibCommon/ContextModel.h"
 #include "TLibCommon/ContextModel3DBuffer.h"
+#include "TDecBinCoderCABAC.h"
 
 //! \ingroup TLibDecoder
 //! \{
@@ -66,8 +66,8 @@ public:
   TDecSbac();
   virtual ~TDecSbac();
   
-  Void  init                      ( TDecBinIf* p )    { m_pcTDecBinIf = p; }
-  Void  uninit                    (              )    { m_pcTDecBinIf = 0; }
+  Void  init                      ( TDecBinCABAC* p )    { m_pcTDecBinCabac = p; }
+  Void  uninit                    (                 )    { m_pcTDecBinCabac = 0; }
   
 #if F747_APS
   Void  resetEntropywithQPandInitIDC ( Int  iQp, Int iID);
@@ -76,7 +76,7 @@ public:
 #else
   Void  resetEntropy              ( TComSlice* pcSlice     );
 #endif
-  Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
+  Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinCabac->init( p ); }
   
   Void  parseSPS                  ( TComSPS* pcSPS         );
   Void  parsePPS                  ( TComPPS* pcPPS         );
@@ -94,7 +94,7 @@ private:
   
 private:
   TComInputBitstream* m_pcBitstream;
-  TDecBinIf*        m_pcTDecBinIf;
+  TDecBinCABAC*       m_pcTDecBinCabac;
   
 protected:
   Void  xReadCode             (UInt   uiLength, UInt& ruiCode);

@@ -39,7 +39,6 @@ extern bool g_md5_mismatch; ///< top level flag to signal when there is a decode
 
 #include "TDecGop.h"
 #include "TDecSbac.h"
-#include "TDecBinCoder.h"
 #include "TDecBinCoderCABAC.h"
 #include "libmd5/MD5.h"
 #include "TLibCommon/SEI.h"
@@ -136,7 +135,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     }
 
     {
-      m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinCABAC );
+      m_pcSbacDecoder->init( m_pcBinCABAC );
       m_pcEntropyDecoder->setEntropyDecoder (m_pcSbacDecoder);
     }
     
