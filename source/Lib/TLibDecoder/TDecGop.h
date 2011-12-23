@@ -48,7 +48,6 @@
 #include "TLibCommon/TComPicYuv.h"
 #include "TLibCommon/TComPic.h"
 #include "TLibCommon/TComLoopFilter.h"
-#include "TLibCommon/TComSampleAdaptiveOffset.h"
 
 #include "TDecEntropy.h"
 #include "TDecSlice.h"
@@ -76,12 +75,6 @@ private:
   TDecSlice*            m_pcSliceDecoder;
   TComLoopFilter*       m_pcLoopFilter;
   
-#if SAO
-  TComSampleAdaptiveOffset*     m_pcSAO;
-#if !F747_APS
-  SAOParam              m_cSaoParam;
-#endif
-#endif
   Double                m_dDecTime;
 
   bool m_pictureDigestEnabled; ///< if true, handle picture_digest SEI messages
@@ -96,9 +89,6 @@ public:
                  TDecCavlc*              pcCavlcDecoder, 
                  TDecSlice*              pcSliceDecoder, 
                  TComLoopFilter*         pcLoopFilter
-#if SAO
-                 ,TComSampleAdaptiveOffset* pcSAO
-#endif
                  );
   Void  create  ();
   Void  destroy ();

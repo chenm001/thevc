@@ -47,7 +47,6 @@
 #include "TLibCommon/TComBitCounter.h"
 #include "TLibCommon/TComLoopFilter.h"
 #include "TLibCommon/AccessUnit.h"
-#include "TEncSampleAdaptiveOffset.h"
 #include "TEncSlice.h"
 #include "TEncEntropy.h"
 #include "TEncCavlc.h"
@@ -95,9 +94,6 @@ private:
   TEncBinCABAC*           m_pcBinCABAC;
   TComLoopFilter*         m_pcLoopFilter;
   
-#if SAO
-  TEncSampleAdaptiveOffset*  m_pcSAO;
-#endif
   TComBitCounter*         m_pcBitCounter;
   
   // indicate sequence first
@@ -130,8 +126,6 @@ public:
   TEncSlice*  getSliceEncoder()   { return m_pcSliceEncoder; }
 
 #if F747_APS
-  Void freeAPS     (TComAPS* pAPS, TComSPS* pSPS);
-  Void allocAPS    (TComAPS* pAPS, TComSPS* pSPS);
 protected:
   Void encodeAPS   (TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* pcSlice);            //!< encode APS syntax elements
   Void assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS, TComSlice* pcSlice);  //!< Assign APS object into APS container
@@ -156,16 +150,6 @@ protected:
 // ====================================================================================================================
 // Enumeration
 // ====================================================================================================================
-enum PROCESSING_STATE
-{
-  EXECUTE_INLOOPFILTER,
-#if F747_APS
-  ENCODE_APS,
-#else
-  ENCODE_PPS,
-#endif
-  ENCODE_SLICE
-};
 
 //! \}
 

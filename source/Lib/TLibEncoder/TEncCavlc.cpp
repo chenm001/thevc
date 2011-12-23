@@ -207,23 +207,9 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
   //APS ID
   xWriteUvlc(pcAPS->getAPSID());
   //SAO flag
-  xWriteFlag(pcAPS->getSaoEnabled()?1:0);
+  xWriteFlag(0);
   //ALF flag
   xWriteFlag(0);
-#if !G220_PURE_VLC_SAO_ALF
-  if(pcAPS->getSaoEnabled())
-  {
-    //CABAC usage flag
-    xWriteFlag(pcAPS->getCABACForAPS()?1:0);
-    if(pcAPS->getCABACForAPS())
-    {
-      //CABAC init IDC
-      xWriteUvlc(pcAPS->getCABACinitIDC());
-      //CABAC init QP
-      xWriteSvlc(pcAPS->getCABACinitQP()-26);
-    }
-  }
-#endif
 }
 #endif
 #if G1002_RPS
@@ -411,7 +397,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_FLAG  ( (pcSPS->getUseLMChroma ()) ? 1 : 0,                                  "chroma_pred_from_luma_enabled_flag" ); 
   WRITE_FLAG( 1,                                                                     "loop_filter_across_slice_flag");
 #if SAO
-  WRITE_FLAG( pcSPS->getUseSAO() ? 1 : 0,                                            "sample_adaptive_offset_enabled_flag");
+  WRITE_FLAG( 0,                                                                     "sample_adaptive_offset_enabled_flag");
 #endif
   WRITE_FLAG( 0,                                                                     "adaptive_loop_filter_enabled_flag");
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
@@ -511,12 +497,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
           WRITE_FLAG( pcRPS->getUsed(i), "used_by_curr_pic_lt_flag"); 
         }
       }
-    }
-#endif
-#if F747_APS
-    if(pcSlice->getSPS()->getUseSAO())
-    {
-      WRITE_UVLC( pcSlice->getAPS()->getAPSID(), "aps_id");
     }
 #endif
 
@@ -1713,24 +1693,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
   }
 #endif
 }
-
-#if SAO
-Void TEncCavlc::codeSaoFlag( UInt uiCode )
-{
-  xWriteFlag( uiCode );
-}
-
-Void TEncCavlc::codeSaoUvlc( UInt uiCode )
-{
-    xWriteUvlc( uiCode );
-}
-
-Void TEncCavlc::codeSaoSvlc( Int iCode )
-{
-    xWriteSvlc( iCode );
-}
-
-#endif
 
 #if NSQT_DIAG_SCAN
 Void TEncCavlc::estBit( estBitsSbacStruct* pcEstBitsCabac, Int width, Int height, TextType eTType )

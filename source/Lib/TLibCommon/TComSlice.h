@@ -119,10 +119,6 @@ private:
   
   Int m_iAMPAcc[MAX_CU_DEPTH];
 
-#if SAO
-  Bool        m_bUseSAO; 
-#endif
-
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD
   Bool        m_bUseNewRefSetting;
@@ -216,11 +212,6 @@ public:
   Int       getAMPAcc   ( UInt uiDepth ) { return m_iAMPAcc[uiDepth]; }
   Void      setAMPAcc   ( UInt uiDepth, Int iAccu ) { assert( uiDepth < g_uiMaxCUDepth);  m_iAMPAcc[uiDepth] = iAccu; }
 #endif  
-
-#if SAO
-  Void setUseSAO                  (Bool bVal)  {m_bUseSAO = bVal;}
-  Bool getUseSAO                  ()           {return m_bUseSAO;}
-#endif
 
   UInt      getMaxTLayers()                           { return m_uiMaxTLayers; }
   Void      setMaxTLayers( UInt uiMaxTLayers )        { assert( uiMaxTLayers <= MAX_TLAYER ); m_uiMaxTLayers = uiMaxTLayers; }
@@ -425,13 +416,6 @@ public:
 
   Void      setAPSID      (Int iID)   {m_apsID = iID;            }  //!< set APS ID 
   Int       getAPSID      ()          {return m_apsID;           }  //!< get APS ID
-  Void      setSaoEnabled (Bool bVal) {m_bSaoEnabled = bVal;     }  //!< set SAO enabled/disabled in APS
-  Bool      getSaoEnabled ()          {return m_bSaoEnabled;     }  //!< get SAO enabled/disabled in APS
-
-  SAOParam* getSaoParam   ()          {return m_pSaoParam;       }  //!< get SAO parameters in APS
-
-  Void      createSaoParam();   //!< create SAO parameter object
-  Void      destroySaoParam();  //!< destroy SAO parameter object
 
   Void      setCABACForAPS(Bool bVal) {m_bCABACForAPS = bVal;    }  //!< set CABAC enabled/disabled in APS
   Bool      getCABACForAPS()          {return m_bCABACForAPS;    }  //!< get CABAC enabled/disabled in APS
@@ -442,8 +426,6 @@ public:
 
 private:
   Int         m_apsID;        //!< APS ID
-  Bool        m_bSaoEnabled;  //!< SAO enabled/disabled in APS (true for enabled)
-  SAOParam*   m_pSaoParam;    //!< SAO parameter object pointer 
   Bool        m_bCABACForAPS; //!< CABAC coding enabled/disabled for APS (true for enabling CABAC)
   Int         m_CABACinitIDC; //!< CABAC initial IDC number for APS coding
   Int         m_CABACinitQP;  //!< CABAC initial QP value for APS coding

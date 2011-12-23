@@ -214,10 +214,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 
   ("LMChroma", m_bUseLMChroma, true, "intra chroma prediction based on recontructed luma")
 
-#if SAO
-  ("SAO", m_bUseSAO, true, "SAO")   
-#endif
-
     ("ConstrainedIntraPred", m_bUseConstrainedIntraPred, false, "Constrained Intra Prediction")
   /* Misc. */
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
@@ -668,9 +664,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
   printf("LMC:%d ", m_bUseLMChroma        ); 
   printf("CIP:%d ", m_bUseConstrainedIntraPred);
-#if SAO
-  printf("SAO:%d ", (m_bUseSAO)?(1):(0));
-#endif
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD
   printf("NewRefSetting:%d ", m_bUseNewRefSetting?1:0);

@@ -221,11 +221,6 @@ private:
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;
 #endif
-#if SAO
-  ContextModel3DBuffer m_cSaoFlagSCModel;
-  ContextModel3DBuffer m_cSaoUvlcSCModel;
-  ContextModel3DBuffer m_cSaoSvlcSCModel;
-#endif
 
 };
 

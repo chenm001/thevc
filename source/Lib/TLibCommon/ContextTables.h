@@ -122,12 +122,6 @@
 
 #define NUM_MVP_IDX_CTX               2       ///< number of context models for MVP index
 
-#if SAO
-#define NUM_SAO_FLAG_CTX              1       ///< number of context models for SAO flag
-#define NUM_SAO_UVLC_CTX              2       ///< number of context models for SAO UVLC
-#define NUM_SAO_SVLC_CTX              3       ///< number of context models for SAO SVLC
-#endif
-
 #if G633_8BIT_INIT
 #define CNU                          119      ///< dummy initialization value for unused context models 'Context model Not Used'
 #endif
@@ -1107,62 +1101,6 @@ INIT_MVP_IDX[3][NUM_MVP_IDX_CTX] =
     
   },
 };
-
-#if SAO
-// initial probability for SAO flag
-static const UChar
-INIT_SAO_FLAG[3][NUM_SAO_FLAG_CTX] =
-{
-  {
-    119,
-    
-  },
-  {
-    102,
-    
-  },
-  {
-    102,
-    
-  },
-};
-
-// initial probability for SAO side information (unsigned)
-static const UChar
-INIT_SAO_UVLC[3][NUM_SAO_UVLC_CTX] =
-{
-  {
-     61, 104,
-    
-  },
-  {
-    168, 120,
-    
-  },
-  {
-    184, 120,
-    
-  },
-};
-
-// initial probability for SAO side information (signed)
-static const UChar
-INIT_SAO_SVLC[3][NUM_SAO_SVLC_CTX] =
-{
-  {
-    171, 119, 199,
-    
-  },
-  {
-    169, 119, 151,
-    
-  },
-  {
-    169, 119, 151,
-    
-  },
-};
-#endif
 
 static const UChar
 INIT_TRANS_SUBDIV_FLAG[3][NUM_TRANS_SUBDIV_FLAG_CTX] =
@@ -2291,53 +2229,6 @@ INIT_MVP_IDX[3][NUM_MVP_IDX_CTX][2] =
     {    0,   64 }, {    0,   64 }
   }
 };
-
-#if SAO
-// initial probability for SAO flag
-static const Short
-INIT_SAO_FLAG[3][NUM_SAO_FLAG_CTX][2] =
-{
-  {
-    {   50,  -48 }
-  },
-  {
-    {   27,  -20 }
-  },
-  {
-    {  -12,   68 }
-  }
-};
-
-// initial probability for SAO side information (unsigned)
-static const Short
-INIT_SAO_UVLC[3][NUM_SAO_UVLC_CTX][2] =
-{
-  {
-    {    1,   66 }, {   -3,   77 }
-  },
-  {
-    {   -5,   75 }, {  -14,   94 }
-  },
-  {
-    {   -5,   72 }, {  -30,  122 }
-  }
-};
-
-// initial probability for SAO side information (signed)
-static const Short
-INIT_SAO_SVLC[3][NUM_SAO_SVLC_CTX][2] =
-{
-  {
-    {   11,   57 }, {   -1,   62 }, {    0,   64 }
-  },
-  {
-    {    6,   66 }, {   -1,   64 }, {    0,   64 }
-  },
-  {
-    {    1,   73 }, {    2,   61 }, {    0,   64 }
-  }
-};
-#endif
 
 static const Short
 INIT_TRANS_SUBDIV_FLAG[3][NUM_TRANS_SUBDIV_FLAG_CTX][2] =

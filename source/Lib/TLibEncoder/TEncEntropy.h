@@ -44,7 +44,6 @@
 #include "TLibCommon/ContextModel.h"
 #include "TLibCommon/TComPic.h"
 #include "TLibCommon/TComTrQuant.h"
-#include "TLibCommon/TComSampleAdaptiveOffset.h"
 
 class TEncSbac;
 class TEncCavlc;
@@ -100,11 +99,6 @@ public:
   virtual UInt xGetFlagPattern   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
   virtual Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType ) = 0;
   
-#if SAO
-  virtual Void codeSaoFlag          ( UInt uiCode ) = 0;
-  virtual Void codeSaoUvlc          ( UInt uiCode ) = 0;
-  virtual Void codeSaoSvlc          ( Int   iCode ) = 0;
-#endif
 #if NSQT_DIAG_SCAN
   virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType) = 0;
 #else
@@ -200,11 +194,6 @@ public:
 #endif
   
   Int lengthGolomb(int coeffVal, int k);
-#if SAO
-  Void    encodeSaoOnePart       (SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
-  Void    encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
-  Void    encodeSaoParam         (SAOParam* pSaoParam);
-#endif
 
   static Int countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize );
 

@@ -88,21 +88,6 @@ Void TDecTop::destroy()
 {
 
 #if F747_APS
-  if(m_vAPS.size() != 0)
-  {
-    for(Int i=0; i< m_vAPS.size(); i++)
-    {
-      std::vector<TComAPS>& vAPS = m_vAPS[i];
-
-      if(vAPS.size() != 0)
-      {
-        for(Int j=0; j< vAPS.size(); j++)
-        {
-          freeAPS( &vAPS[j]);
-        }
-      }
-    }
-  }
 #else
   destroyPPSBuffer();
 #endif
@@ -120,11 +105,7 @@ Void TDecTop::init()
 {
   // initialize ROM
   initROM();
-#if SAO
-  m_cGopDecoder.init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter, &m_cSAO);
-#else
   m_cGopDecoder.init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter );
-#endif
   m_cSliceDecoder.init( &m_cEntropyDecoder, &m_cCuDecoder );
   m_cEntropyDecoder.init(&m_cPrediction);
 }
@@ -142,10 +123,6 @@ Void TDecTop::deletePicBuffer ( )
     delete pcPic;
     pcPic = NULL;
   }
-  
-#if SAO
-  m_cSAO.destroy();
-#endif
   
   m_cLoopFilter.        destroy();
   
@@ -309,9 +286,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       }
 #endif
 
-#if SAO
-      m_cSAO.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-#endif
 #if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
       m_cLoopFilter.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 #else
@@ -348,7 +322,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
     case NAL_UNIT_APS:
       {
         TComAPS  cAPS;
-        allocAPS(&cAPS);
         decodeAPS(nalu.m_Bitstream, cAPS);
         pushAPS(cAPS);
       }
@@ -422,12 +395,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         m_uiPrevPOC = m_apcSlicePilot->getPOC();
         return true;
       }
-#if F747_APS
-      if(m_cSPS.getUseSAO())
-      {
-        m_apcSlicePilot->setAPS( popAPS(m_apcSlicePilot->getAPSId())  );
-      }
-#endif
 
         m_uiPrevPOC = m_apcSlicePilot->getPOC();
       m_bFirstSliceInSequence = false;
@@ -633,51 +600,7 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
  */
 Void TDecTop::decodeAPS(TComInputBitstream* bs, TComAPS& cAPS)
 {
-#if !G220_PURE_VLC_SAO_ALF
-  Int iBitLeft;
-#endif
   m_cEntropyDecoder.decodeAPSInitInfo(cAPS);
-
-  if(cAPS.getSaoEnabled())
-  {
-    cAPS.getSaoParam()->bSaoFlag[0] = true;
-#if !G220_PURE_VLC_SAO_ALF
-    //read SAO bitstream length in byte
-    UInt uiBsLength = bs->read(APS_BITS_FOR_SAO_BYTE_LENGTH);
-    assert(uiBsLength > 0);
-
-    //read byte-alignment bits
-    Int numBitsForByteAlignment = bs->getNumBitsUntilByteAligned();
-    if ( numBitsForByteAlignment > 0 )
-    {
-      UInt bitsForByteAlignment;
-      bs->read( numBitsForByteAlignment, bitsForByteAlignment );
-      assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
-    }
-
-    iBitLeft = bs->getNumBitsLeft();
-
-    if (cAPS.getCABACForAPS())
-    {
-      m_cSbacDecoder.init((TDecBinIf*)(&m_cBinCABAC));
-      m_cEntropyDecoder.setEntropyDecoder(&m_cSbacDecoder);
-      m_cEntropyDecoder.setBitstream(bs);
-      m_cEntropyDecoder.resetEntropy(cAPS.getCABACinitQP(), cAPS.getCABACinitIDC());
-    }
-    else
-    {
-      m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
-      m_cEntropyDecoder.setBitstream(bs);
-    }
-#endif
-    m_cEntropyDecoder.decodeSaoParam( cAPS.getSaoParam());
-#if !G220_PURE_VLC_SAO_ALF
-    iBitLeft = bs->getNumBitsLeft() - (iBitLeft - (uiBsLength << 3));
-    assert(iBitLeft >= 0);
-    if(iBitLeft) bs->read(iBitLeft); //garbage bits. 
-    //else  trailing bits
-#endif
-  }
 }
 
 /** Pop APS object pointer from APS container
@@ -691,10 +614,6 @@ TComAPS* TDecTop::popAPS (UInt apsID)
 
   if(vAPS.size() > 1)
   {
-    for(Int i=0; i< vAPS.size()-1; i++)
-    {
-      freeAPS(&vAPS[0]);
-    }
     vAPS.erase(vAPS.begin(), vAPS.end()-1);
   }
 
@@ -725,24 +644,6 @@ Void TDecTop::pushAPS  (TComAPS& cAPS)
     vAPS[APS_RESERVED_BUFFER_SIZE-1] = cAPS;
   }
 
-}
-
-
-Void TDecTop::allocAPS (TComAPS* pAPS)
-{
-  if(m_cSPS.getUseSAO())
-  {
-    pAPS->createSaoParam();
-    m_cSAO.allocSaoParam(pAPS->getSaoParam());
-  }
-}
-Void TDecTop::freeAPS (TComAPS* pAPS)
-{
-  if(m_cSPS.getUseSAO())
-  {
-    m_cSAO.freeSaoParam(pAPS->getSaoParam());
-    pAPS->destroySaoParam();
-  }
 }
 
 #else

@@ -86,11 +86,6 @@ public:
   Void  parseTerminatingBit       ( UInt& ruiBit );
   Void  parseMVPIdx               ( Int& riMVPIdx          );
   
-#if SAO
-  Void  parseSaoFlag              ( UInt& ruiVal           );
-  Void  parseSaoUvlc              ( UInt& ruiVal           );
-  Void  parseSaoSvlc              ( Int&  riVal            );
-#endif
 private:
   Void  xReadUnarySymbol    ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset );
   Void  xReadUnaryMaxSymbol ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );
@@ -179,11 +174,6 @@ private:
 #if AMP
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;
-#endif
-#if SAO
-  ContextModel3DBuffer m_cSaoFlagSCModel;
-  ContextModel3DBuffer m_cSaoUvlcSCModel;
-  ContextModel3DBuffer m_cSaoSvlcSCModel;
 #endif
 
 };

@@ -109,9 +109,6 @@ private:
   TDecSbac                m_cSbacDecoder;
   TDecBinCABAC            m_cBinCABAC;
   TComLoopFilter          m_cLoopFilter;
-#if SAO
-  TComSampleAdaptiveOffset m_cSAO;
-#endif
 
   Bool isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay);
   TComPic*                m_pcPic;
@@ -149,8 +146,6 @@ protected:
   Void      decodeAPS(TComInputBitstream* bs, TComAPS& cAPS); //!< decode process for APS
   TComAPS*  popAPS   (UInt apsID);  //!< pop APS parameter object pointer with APS ID equal to apsID
   Void      pushAPS  (TComAPS& cAPS); //!< push APS object into APS container
-  Void      allocAPS (TComAPS* pAPS); //!< memory allocation for APS
-  Void      freeAPS  (TComAPS* pAPS); //!< memory deallocation for APS
 #else
   /// create PPS buffer
   Void     createPPSBuffer      ();

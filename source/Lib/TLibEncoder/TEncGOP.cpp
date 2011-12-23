@@ -100,11 +100,6 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
   m_pcBinCABAC           = pcTEncTop->getBinCABAC();
   m_pcLoopFilter         = pcTEncTop->getLoopFilter();
   m_pcBitCounter         = pcTEncTop->getBitCounter();
-  
-#if SAO
-  m_pcSAO                = pcTEncTop->getSAO();
-#endif
-
 }
 
 // ====================================================================================================================
@@ -409,21 +404,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
       pcSlice = pcPic->getSlice(0);
 
-#if SAO
-      Int processingState = (pcSlice->getSPS()->getUseSAO())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
-#else
-      Int processingState = (ENCODE_SLICE);
-#endif
-
 #if F747_APS
       static Int iCurrAPSIdx = 0;
       Int iCodedAPSIdx = 0;
       TComSlice* pcSliceForAPS = NULL;
 #endif
 
-        switch(processingState)
-        {
-        case ENCODE_SLICE:
           {
           pcSlice = pcPic->getSlice(0);
           pcPic->setCurrSliceIdx(0);
@@ -483,93 +469,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
         accessUnit.push_back(new NALUnitEBSP(nalu));
           }
-          break;
-        case EXECUTE_INLOOPFILTER:
-          {
-#if !F747_APS
-            pcSlice->getPPS()->setSharedPPSInfoEnabled(  (m_pcCfg->getSliceMode() == 0)?(false):( pcSlice->getSPS()->getUseALF() )  );
-#endif
-#if F747_APS
-            TComAPS cAPS;
-            allocAPS(&cAPS, pcSlice->getSPS());
-#endif
-            // set entropy coder for RD
-#if G220_PURE_VLC_SAO_ALF
-            m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
-#else
-              m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcSlice );
-#endif
-
-#if SAO
-            if ( pcSlice->getSPS()->getUseSAO() )
-            {
-              m_pcEntropyCoder->resetEntropy();
-              m_pcEntropyCoder->setBitstream( m_pcBitCounter );
-#if G220_PURE_VLC_SAO_ALF
-              m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), NULL);
-#else
-              m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcCfg->getUseSBACRD() ?  m_pcEncTop->getRDGoOnSbacCoder() : NULL);
-#endif
-#if F747_APS
-              SAOParam& cSaoParam = *(cAPS.getSaoParam());
-#endif
-
-#if SAO_CHROMA_LAMBDA 
-              m_pcSAO->SAOProcess(&cSaoParam, pcPic->getSlice(0)->getLambdaLuma(), pcPic->getSlice(0)->getLambdaChroma());
-#else
-              m_pcSAO->SAOProcess(&cSaoParam, pcPic->getSlice(0)->getLambda());
-#endif
-              m_pcSAO->endSaoEnc();
-            }
-
-#endif
-#if F747_APS
-            iCodedAPSIdx = iCurrAPSIdx;  
-            pcSliceForAPS = pcSlice;
-
-            assignNewAPS(cAPS, iCodedAPSIdx, vAPS, pcSliceForAPS);
-            iCurrAPSIdx = (iCurrAPSIdx +1)%MAX_NUM_SUPPORTED_APS;
-
-            //set APS link to the slices
-            for(Int s=0; s< uiNumSlices; s++)
-            {
-              pcPic->getSlice(s)->setAPS(&(vAPS[iCodedAPSIdx]));
-              pcPic->getSlice(s)->setAPSId(iCodedAPSIdx);
-            }
-#endif
-          }
-          break;
-#if F747_APS
-        case ENCODE_APS:
-          {
-            OutputNALUnit nalu(NAL_UNIT_APS, NAL_REF_IDC_PRIORITY_HIGHEST);
-            encodeAPS(&(vAPS[iCodedAPSIdx]), nalu.m_Bitstream, pcSliceForAPS);
-            accessUnit.push_back(new NALUnitEBSP(nalu));
-          }
-          break;
-#else
-        case ENCODE_PPS:
-          {
-            TComPPS* pcPPS = pcSlice->getPPS();
-            m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
-            m_pcEntropyCoder->resetEntropy      ();
-
-            OutputNALUnit nalu(NAL_UNIT_PPS, NAL_REF_IDC_PRIORITY_HIGHEST);
-            m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
-            m_pcEntropyCoder->encodePPS(pcPPS);
-
-            writeRBSPTrailingBits(nalu.m_Bitstream);
-            accessUnit.push_back(new NALUnitEBSP(nalu));
-          }
-          break;
-#endif
-        default:
-          {
-            printf("Not a supported encoding state\n");
-            assert(0);
-            exit(-1);
-          }
-        }
 
 #if !F747_APS
       if(pcSlice->getSPS()->getUseSAO())      {        m_pcSAO->freeSaoParam(&cSaoParam);      }      
@@ -647,36 +546,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 }
 
 #if F747_APS
-/** Memory allocation for APS
-  * \param [out] pAPS APS pointer
-  * \param [in] pSPS SPS pointer
-  */
-Void TEncGOP::allocAPS (TComAPS* pAPS, TComSPS* pSPS)
-{
-  if(pSPS->getUseSAO())
-  {
-    pAPS->createSaoParam();
-    m_pcSAO->allocSaoParam(pAPS->getSaoParam());
-  }
-}
-
-/** Memory deallocation for APS
-  * \param [out] pAPS APS pointer
-  * \param [in] pSPS SPS pointer
-  */
-Void TEncGOP::freeAPS (TComAPS* pAPS, TComSPS* pSPS)
-{
-  if(pSPS->getUseSAO())
-  {
-    if(pAPS->getSaoParam() != NULL)
-    {
-      m_pcSAO->freeSaoParam(pAPS->getSaoParam());
-      pAPS->destroySaoParam();
-
-    }
-  }
-}
-
 /** Assign APS object into APS container according to APS ID
   * \param [in] cAPS APS object
   * \param [in] apsID APS ID
@@ -688,17 +557,6 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
 
   cAPS.setAPSID(apsID);
 
-  cAPS.setSaoEnabled(pcSlice->getSPS()->getUseSAO() ? (cAPS.getSaoParam()->bSaoFlag[0] ):(false));
-
-  if(cAPS.getSaoEnabled())
-  {
-    cAPS.setCABACForAPS( true );
-    if(cAPS.getCABACForAPS())
-    {
-      cAPS.setCABACinitIDC(pcSlice->getSliceType());
-      cAPS.setCABACinitQP(pcSlice->getSliceQp());
-    }
-  }
   //assign new APS into APS container
   Int apsBufSize= (Int)vAPS.size();
 
@@ -707,7 +565,6 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
     vAPS.resize(apsID +1);
   }
 
-  freeAPS(&(vAPS[apsID]), pcSlice->getSPS());
   vAPS[apsID] = cAPS;
 }
 
@@ -719,56 +576,11 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
   */
 Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* pcSlice)
 {
-#if !G220_PURE_VLC_SAO_ALF
-  UInt uiAPSbsWrittenBits = 0;
-#endif
   m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice);
   m_pcEntropyCoder->resetEntropy      ();
   m_pcEntropyCoder->setBitstream(&APSbs);
 
   m_pcEntropyCoder->encodeAPSInitInfo(pcAPS);
-
-  if(pcAPS->getSaoEnabled())
-  {
-#if !G220_PURE_VLC_SAO_ALF
-    TComOutputBitstream cSAObs;
-    UInt uiSAObsWrittenBits;
-
-    m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
-    if (pcAPS->getCABACForAPS() )
-    {
-      m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice);
-    }
-    else
-    {
-      m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice);
-    }
-
-    m_pcEntropyCoder->resetEntropy    ();
-    m_pcEntropyCoder->setBitstream(&cSAObs);
-#endif
-    m_pcEntropyCoder->encodeSaoParam(pcAPS->getSaoParam());
-#if !G220_PURE_VLC_SAO_ALF
-    if (pcAPS->getCABACForAPS() )
-    {
-      m_pcEntropyCoder->encodeFinish(true);
-    }
-
-    writeRBSPTrailingBits(cSAObs);
-    uiSAObsWrittenBits = cSAObs.getNumberOfWrittenBits();
-
-    assert(uiSAObsWrittenBits % 8 == 0     ); 
-    assert(uiSAObsWrittenBits / 8 <= (1<<APS_BITS_FOR_SAO_BYTE_LENGTH) ); 
-
-    //---- attach SAO bitstream to APS main bitstream ----- //
-    APSbs.write(uiSAObsWrittenBits/8, APS_BITS_FOR_SAO_BYTE_LENGTH);
-    APSbs.writeAlignOne();
-
-    uiAPSbsWrittenBits = APSbs.getNumberOfWrittenBits();
-    assert(uiAPSbsWrittenBits % 8 ==0);
-    APSbs.insertAt(cSAObs, uiAPSbsWrittenBits/8);
-#endif
-  }
 }
 
 #endif

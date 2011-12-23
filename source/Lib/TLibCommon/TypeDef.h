@@ -83,7 +83,6 @@
 #define MRG_TMVP_REFIDX_G163 1 ///< G163 : use refIdx of left PU. if not available, use 0.
 
 #define SAO_RDO_OFFSET              1   ///< G915: Considering rate-distortion-cost in optimal offset calculation for SAO
-#define G220_PURE_VLC_SAO_ALF       1   ///< G220: Pure VLC for SAO and ALF parameters
 
 #define FAST_BIT_EST                1   ///< G763: Table-based bit estimation for CABAC
 #define G633_8BIT_INIT              1   ///< G633: Context model initialization method using 8 bit initialization values
@@ -303,69 +302,6 @@ typedef       Int             TCoeff;     ///< transform coefficient
 
 /// parameters for adaptive loop filter
 class TComPicSym;
-
-#if SAO
-
-#define NUM_DOWN_PART 4
-#define NUM_MAX_OFFSET  32
-
-enum SAOTypeLen
-{
-  SAO_EO_LEN    = 4, 
-  SAO_EO_LEN_2D = 6, 
-  SAO_BO_LEN    = 16
-};
-
-enum SAOType
-{
-  SAO_EO_0 = 0, 
-  SAO_EO_1,
-  SAO_EO_2, 
-  SAO_EO_3,
-  SAO_BO_0,
-  SAO_BO_1,
-  MAX_NUM_SAO_TYPE
-};
-
-typedef struct _SaoQTPart
-{
-  Bool        bEnableFlag;
-  Int         iBestType;
-  Int         iLength;
-  Int         iOffset[32];
-
-  Int         StartCUX;
-  Int         StartCUY;
-  Int         EndCUX;
-  Int         EndCUY;
-
-  Int         PartIdx;
-  Int         PartLevel;
-  Int         PartCol;
-  Int         PartRow;
-
-  Int         DownPartsIdx[NUM_DOWN_PART];
-  Int         UpPartIdx;
-
-  Bool        bSplit;
-
-  //---- encoder only start -----//
-  Bool        bProcessed;
-  Double      dMinCost;
-  Int64       iMinDist;
-  Int         iMinRate;
-  //---- encoder only end -----//
-} SAOQTPart;
-
-struct _SaoParam
-{
-  Bool       bSaoFlag[3];
-  SAOQTPart* psSaoPart[3];
-  Int        iMaxSplitLevel;
-  Int        iNumClass[MAX_NUM_SAO_TYPE];
-};
-
-#endif
 
 /// parameters for deblocking filter
 typedef struct _LFCUParam

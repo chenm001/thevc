@@ -141,10 +141,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );
 
-#if SAO
-  m_cTEncTop.setUseSAO ( m_bUseSAO );
-#endif
-
   m_cTEncTop.setPictureDigestEnabled(m_pictureDigestEnabled);
 
 #if !G1002_RPS

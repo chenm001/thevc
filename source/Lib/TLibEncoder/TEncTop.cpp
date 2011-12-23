@@ -84,26 +84,12 @@ Void TEncTop::create ()
   // create processing unit classes
   m_cSliceEncoder.      create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   m_cCuEncoder.         create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
-#if SAO
-  if (m_bUseSAO)
-  {
-    m_cEncSAO.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-    m_cEncSAO.createEncBuffer();
-  }
-#endif
 #if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
   m_cLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 #else
   m_cLoopFilter.        create( g_uiMaxCUDepth );
 #endif
   
-#if F747_APS
-  if(m_bUseSAO)
-  {
-    m_vAPS.reserve(MAX_NUM_SUPPORTED_APS);
-  }
-#endif
-
   // if SBAC-based RD optimization is used
   if( m_bUseSBACRD )
   {
@@ -139,24 +125,9 @@ Void TEncTop::create ()
 
 Void TEncTop::destroy ()
 {
-#if F747_APS
-  for(Int i=0; i< m_vAPS.size(); i++)
-  {
-    TComAPS& cAPS = m_vAPS[i];
-    m_cGOPEncoder.freeAPS(&cAPS, &m_cSPS);
-  }
-#endif
-
   // destroy processing unit classes
   m_cSliceEncoder.      destroy();
   m_cCuEncoder.         destroy();
-#if SAO
-  if (m_cSPS.getUseSAO())
-  {
-    m_cEncSAO.destroy();
-    m_cEncSAO.destroyEncBuffer();
-  }
-#endif
   m_cLoopFilter.        destroy();
 #if G1002_RPS
   m_cRPSList.               destroy();
@@ -458,10 +429,6 @@ Void TEncTop::xInitSPS()
   {
     m_cSPS.setAMPAcc(i, 0);
   }
-#endif
-
-#if SAO
-  m_cSPS.setUseSAO( m_bUseSAO );
 #endif
 
 #if !G1002_RPS

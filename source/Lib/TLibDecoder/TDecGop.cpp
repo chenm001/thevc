@@ -83,9 +83,6 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
                    TDecCavlc*              pcCavlcDecoder, 
                    TDecSlice*              pcSliceDecoder, 
                    TComLoopFilter*         pcLoopFilter
-#if SAO
-                   ,TComSampleAdaptiveOffset* pcSAO
-#endif                   
                    )
 {
   m_pcEntropyDecoder      = pcEntropyDecoder;
@@ -94,10 +91,6 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
   m_pcCavlcDecoder        = pcCavlcDecoder;
   m_pcSliceDecoder        = pcSliceDecoder;
   m_pcLoopFilter          = pcLoopFilter;
-#if SAO
-  m_pcSAO  = pcSAO;
-#endif
-
 }
 
 

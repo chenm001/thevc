@@ -43,7 +43,6 @@
 #include "TLibCommon/TComSlice.h"
 #include "TLibCommon/TComPic.h"
 #include "TLibCommon/TComPrediction.h"
-#include "TLibCommon/TComSampleAdaptiveOffset.h"
 
 class TDecSbac;
 class TDecCavlc;
@@ -99,12 +98,6 @@ public:
   virtual Void parseCbfTrdiv      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiTrDepth, UInt uiDepth, UInt& uiSubdiv ) = 0;
   
   virtual Void parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType ) = 0;
-  
-#if SAO
-  virtual Void parseSaoFlag       ( UInt& ruiVal           ) = 0;
-  virtual Void parseSaoUvlc       ( UInt& ruiVal           ) = 0;
-  virtual Void parseSaoSvlc       ( Int&  riVal            ) = 0;
-#endif
   
 #if F747_APS
   virtual Void parseAPSInitInfo   (TComAPS& cAPS) = 0;
@@ -173,12 +166,6 @@ private:
 public:
   Void decodeCoeff             ( TComDataCU* pcCU                 , UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight );
   
-#if SAO
-  Void decodeSaoOnePart       (SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
-  Void decodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
-  Void decodeSaoParam         (SAOParam* pSaoParam);
-#endif
-
 #if F747_APS
   Void decodeAPSInitInfo       (TComAPS& cAPS) {m_pcEntropyDecoderIf->parseAPSInitInfo(cAPS);}
 #endif
