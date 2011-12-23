@@ -178,6 +178,7 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
     // mark it should be extended
     rpcPic->getPicYuvRec()->setBorderExtension(false);
   }
+  rpcPic->setDisplayMark(true);
 }
 
 Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame, Int& iPOCLastDisplay)

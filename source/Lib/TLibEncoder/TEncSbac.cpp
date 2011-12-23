@@ -477,6 +477,7 @@ Void TEncSbac::codeSliceHeader( TComSlice* pcSlice )
     {
       WRITE_UVLC( 0, "idr_pic_id" );
       WRITE_FLAG( 0, "no_output_of_prior_pics_flag" );
+      pcSlice->setPOC(0);
     }
     else
     {

@@ -69,6 +69,7 @@ private:
   TComPicYuv*           m_pcPicYuvResi;           //  Residual
   Bool                  m_bReconstructed;
   UInt                  m_uiCurrSliceIdx;         // Index of current slice
+  Bool                  m_bDisplayed;
   
   SEImessages* m_SEIs; ///< Any SEI messages that have been received.  If !NULL we own the object.
 
@@ -117,6 +118,9 @@ public:
   Void          setReconMark (Bool b) { m_bReconstructed = b;     }
   Bool          getReconMark ()       { return m_bReconstructed;  }
   
+  Void          setDisplayMark (Bool b) { m_bDisplayed = b;     }
+  Bool          getDisplayMark ()       { return m_bDisplayed;  }
+
 #if AMVP_BUFFERCOMPRESS
   Void          compressMotion(); 
 #endif 

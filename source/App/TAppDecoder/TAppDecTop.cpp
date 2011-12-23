@@ -149,6 +149,13 @@ Void TAppDecTop::decode()
         m_cTVideoIOYuvReconFile.open( m_pchReconFile, true ); // write mode
         recon_opened = true;
       }
+      TComList<TComPic*>::iterator iterPic   = pcListPic->begin();
+      TComPic* pcPic = *(iterPic);
+      if (pcPic->getSlice(0)->getNalUnitType() == NAL_UNIT_CODED_SLICE_IDR) {
+          m_iPOCLastDisplay = 0;
+          xFlushOutput( pcListPic );
+          m_iPOCLastDisplay = -1;
+      }
       // write reconstuction to file
       xWriteOutput( pcListPic );
     }
@@ -204,7 +211,7 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
   while (iterPic != pcListPic->end())
   {
     TComPic* pcPic = *(iterPic);
-    if(pcPic->getReconMark() && pcPic->getPOC() > m_iPOCLastDisplay)
+    if(pcPic->getReconMark() && pcPic->getPOC() > m_iPOCLastDisplay && pcPic->getDisplayMark())
        not_displayed++;
     iterPic++;
   }
@@ -216,7 +223,7 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
     TComPic* pcPic = *(iterPic);
     
 #if G1002_RPS
-    if ( pcPic->getReconMark() && not_displayed >  m_cTDecTop.getSPS()->getMaxNumberOfReorderPictures() && pcPic->getPOC() > m_iPOCLastDisplay)
+    if ( pcPic->getReconMark() && not_displayed >  m_cTDecTop.getSPS()->getMaxNumberOfReorderPictures() && pcPic->getPOC() > m_iPOCLastDisplay && pcPic->getDisplayMark())
     {
       // write to file
        not_displayed--;
@@ -232,6 +239,7 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
       
       // update POC of display order
       m_iPOCLastDisplay = pcPic->getPOC();
+      pcPic->setDisplayMark(false);
       
       // erase non-referenced picture in the reference picture list after display
       if ( !pcPic->getSlice(0)->isReferenced() && pcPic->getReconMark() == true )
@@ -269,7 +277,7 @@ Void TAppDecTop::xFlushOutput( TComList<TComPic*>* pcListPic )
   {
     TComPic* pcPic = *(iterPic);
 
-    if ( pcPic->getReconMark() && pcPic->getPOC() > m_iPOCLastDisplay)
+    if ( pcPic->getReconMark() && pcPic->getPOC() > m_iPOCLastDisplay && pcPic->getDisplayMark())
     {
       // write to file
       if ( m_pchReconFile )
@@ -279,6 +287,7 @@ Void TAppDecTop::xFlushOutput( TComList<TComPic*>* pcListPic )
       
       // update POC of display order
       m_iPOCLastDisplay = pcPic->getPOC();
+      pcPic->setDisplayMark(false);
       
       // erase non-referenced picture in the reference picture list after display
       if ( !pcPic->getSlice(0)->isReferenced() && pcPic->getReconMark() == true )

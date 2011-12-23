@@ -110,7 +110,7 @@ public:
   virtual ~TEncGOP();
   
   Void  init        ( TEncTop* pcTEncTop );
-  Void  compressGOP ( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRec, std::list<AccessUnit>& accessUnitsInGOP );
+  Void  compressGOP ( Int& iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRec, std::list<AccessUnit>& accessUnitsInGOP );
   
 #if !G1002_RPS
   Int   getHrchDepth()        { return  m_iHrchDepth; }
