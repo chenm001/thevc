@@ -377,7 +377,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
       /////////////////////////////////////////////////////////////////////////////////////////////////// File writing
       // Set entropy coder
-      m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
+      m_pcSbacCoder->init( m_pcBinCABAC );
       m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
 
       /* write various header sets. */
@@ -428,7 +428,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           nalu.m_Bitstream.writeAlignOne(); // Byte-alignment before CABAC data
         {
           // set entropy coder for writing
-          m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
+          m_pcSbacCoder->init( m_pcBinCABAC );
             m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
           m_pcEntropyCoder->resetEntropy    ();
           m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);

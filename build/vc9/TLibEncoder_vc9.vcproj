@@ -359,10 +359,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibEncoder\TEncBinCoder.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncBinCoderCABAC.h"
 				>
 			</File>

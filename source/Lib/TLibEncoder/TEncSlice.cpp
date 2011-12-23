@@ -420,7 +420,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     m_pcEntropyCoder->setEntropyCoder   ( m_pcSbacCoder, pcSlice );
     m_pcEntropyCoder->resetEntropy      ();
     m_pppcRDSbacCoder[0][CI_CURR_BEST]->load(m_pcSbacCoder);
-    pppcRDSbacCoder = (TEncBinCABAC *) m_pppcRDSbacCoder[0][CI_CURR_BEST]->getEncBinIf();
+    pppcRDSbacCoder = (TEncBinCABAC *) m_pppcRDSbacCoder[0][CI_CURR_BEST]->getEncBinCabac();
     pppcRDSbacCoder->setBinCountingEnableFlag( false );
     pppcRDSbacCoder->setBinsCoded( 0 );
   }
@@ -478,7 +478,7 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
   TComSlice* pcSlice = rpcPic->getSlice(getSliceIdx());
 
   // choose entropy coder
-    m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
+    m_pcSbacCoder->init( m_pcBinCABAC );
     m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
   
   // set bitstream

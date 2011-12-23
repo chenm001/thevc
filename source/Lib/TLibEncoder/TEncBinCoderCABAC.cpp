@@ -112,9 +112,9 @@ Void TEncBinCABAC::resetBac()
   start();
 }
 
-Void TEncBinCABAC::copyState( TEncBinIf* pcTEncBinIf )
+Void TEncBinCABAC::copyState( TEncBinCABAC* pcTEncBinCabac )
 {
-  TEncBinCABAC* pcTEncBinCABAC = pcTEncBinIf->getTEncBinCABAC();
+  TEncBinCABAC* pcTEncBinCABAC = pcTEncBinCabac->getTEncBinCABAC();
   m_uiLow           = pcTEncBinCABAC->m_uiLow;
   m_uiRange         = pcTEncBinCABAC->m_uiRange;
   m_bitsLeft        = pcTEncBinCABAC->m_bitsLeft;

@@ -39,39 +39,40 @@
 #define __TENC_BIN_CODER_CABAC__
 
 #include "TLibCommon/TComCABACTables.h"
-#include "TEncBinCoder.h"
+#include "TLibCommon/ContextModel.h"
+#include "TLibCommon/TComBitStream.h"
 
 //! \ingroup TLibEncoder
 //! \{
 
-class TEncBinCABAC : public TEncBinIf
+class TEncBinCABAC
 {
 public:
   TEncBinCABAC ();
   virtual ~TEncBinCABAC();
   
-  Void  init              ( TComBitIf* pcTComBitIf );
-  Void  uninit            ();
+  virtual Void  init              ( TComBitIf* pcTComBitIf );
+  virtual Void  uninit            ();
   
-  Void  start             ();
-  Void  finish            ();
-  Void  copyState         ( TEncBinIf* pcTEncBinIf );
+  virtual Void  start             ();
+  virtual Void  finish            ();
+  virtual Void  copyState         ( TEncBinCABAC* pcTEncBinCabac );
 
-  Void  resetBac          ();
+  virtual Void  resetBac          ();
   
 #if F747_APS
-  Void encodeFlush(Bool bEnd);  //!< flush bits when CABAC termination
+  virtual Void encodeFlush(Bool bEnd);  //!< flush bits when CABAC termination
 #endif
 
-  Void  resetBits         ();
-  UInt  getNumWrittenBits ();
+  virtual Void  resetBits         ();
+  virtual UInt  getNumWrittenBits ();
   
-  Void  encodeBin         ( UInt  binValue,  ContextModel& rcCtxModel );
-  Void  encodeBinEP       ( UInt  binValue                            );
-  Void  encodeBinsEP      ( UInt  binValues, Int numBins              );
-  Void  encodeBinTrm      ( UInt  binValue                            );
+  virtual Void  encodeBin         ( UInt  binValue,  ContextModel& rcCtxModel );
+  virtual Void  encodeBinEP       ( UInt  binValue                            );
+  virtual Void  encodeBinsEP      ( UInt  binValues, Int numBins              );
+  virtual Void  encodeBinTrm      ( UInt  binValue                            );
   
-  TEncBinCABAC* getTEncBinCABAC()  { return this; }
+  virtual TEncBinCABAC* getTEncBinCABAC()  { return this; }
   
   Void  setBinsCoded              ( UInt uiVal )  { m_uiBinsCoded = uiVal;               }
   UInt  getBinsCoded              ()              { return m_uiBinsCoded;                }

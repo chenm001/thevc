@@ -47,7 +47,6 @@
 #include "TLibCommon/ContextModel.h"
 #include "TLibCommon/ContextModel3DBuffer.h"
 #include "TEncEntropy.h"
-#include "TEncBinCoder.h"
 #include "TEncBinCoderCABAC.h"
 #if FAST_BIT_EST
 #include "TEncBinCoderCABACCounter.h"
@@ -69,12 +68,12 @@ public:
   TEncSbac();
   virtual ~TEncSbac();
   
-  Void  init                   ( TEncBinIf* p )  { m_pcBinIf = p; }
-  Void  uninit                 ()                { m_pcBinIf = 0; }
+  Void  init                   ( TEncBinCABAC* p )  { m_pcBinCabac = p; }
+  Void  uninit                 ()                   { m_pcBinCabac = 0; }
   
   //  Virtual list
   Void  resetEntropy           ();
-  Void  setBitstream           ( TComBitIf* p )  { m_pcBitIf = p; m_pcBinIf->init( p ); }
+  Void  setBitstream           ( TComBitIf* p )  { m_pcBitIf = p; m_pcBinCabac->init( p ); }
   Void  setSlice               ( TComSlice* p )  { m_pcSlice = p;                       }
   
   // SBAC RD
@@ -84,8 +83,8 @@ public:
   Void  load                   ( TEncSbac* pScr  );
   Void  loadIntraDirModeLuma   ( TEncSbac* pScr  );
   Void  store                  ( TEncSbac* pDest );
-  Void  resetBits              ()                { m_pcBinIf->resetBits(); m_pcBitIf->resetBits(); }
-  UInt  getNumberOfWrittenBits ()                { return m_pcBinIf->getNumWrittenBits(); }
+  Void  resetBits              ()                { m_pcBinCabac->resetBits(); m_pcBitIf->resetBits(); }
+  UInt  getNumberOfWrittenBits ()                { return m_pcBinCabac->getNumWrittenBits(); }
   //--SBAC RD
 
   Void  codeSPS                 ( TComSPS* pcSPS     );
@@ -112,13 +111,13 @@ private:
   
 #if F747_APS
   Void codeAPSInitInfo(TComAPS* pcAPS) {printf("Not supported in codeAPSInitInfo()\n"); assert(0); exit(1);}
-  Void codeFinish     (Bool bEnd)      { m_pcBinIf->encodeFlush(bEnd); }  //<! flush bits when CABAC termination
+  Void codeFinish     (Bool bEnd)      { m_pcBinCabac->encodeFlush(bEnd); }  //<! flush bits when CABAC termination
 #endif
 
 protected:
   TComBitIf*    m_pcBitIf;
   TComSlice*    m_pcSlice;
-  TEncBinIf*    m_pcBinIf;
+  TEncBinCABAC* m_pcBinCabac;
   
   //SBAC RD
   UInt          m_uiCoeffCost;
@@ -189,7 +188,7 @@ public:
   Void estSignificantCoefficientsBit ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
   
 
-  TEncBinIf* getEncBinIf()  { return m_pcBinIf; }
+  TEncBinCABAC* getEncBinCabac()  { return (TEncBinCABAC*)m_pcBinCabac; }
 private:
   UInt                 m_uiLastQp;
   
