@@ -366,8 +366,8 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   WRITE_FLAG( pcPPS->getColumnRowInfoPresent(),           "tile_info_present_flag" );
   if( pcPPS->getColumnRowInfoPresent() == 1 )
   {
-    WRITE_FLAG( pcPPS->getUniformSpacingIdr(),                                   "uniform_spacing_idc" );
-    WRITE_FLAG( pcPPS->getTileBoundaryIndependenceIdr(),                         "tile_boundary_independence_idc" );
+    WRITE_FLAG( pcPPS->getUniformSpacingIdr(),                                   "uniform_spacing_flag" );
+    WRITE_FLAG( pcPPS->getTileBoundaryIndependenceIdr(),                         "tile_boundary_independence_flag" );
     WRITE_UVLC( pcPPS->getNumColumnsMinus1(),                                    "num_tile_columns_minus1" );
     WRITE_UVLC( pcPPS->getNumRowsMinus1(),                                       "num_tile_rows_minus1" );
     if( pcPPS->getUniformSpacingIdr() == 0 )
@@ -498,8 +498,8 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #endif
 
 #if TILES
-  WRITE_FLAG( pcSPS->getUniformSpacingIdr(),                          "uniform_spacing_idc" );
-  WRITE_FLAG( pcSPS->getTileBoundaryIndependenceIdr(),                "tile_boundary_independence_idc" );
+  WRITE_FLAG( pcSPS->getUniformSpacingIdr(),                          "uniform_spacing_flag" );
+  WRITE_FLAG( pcSPS->getTileBoundaryIndependenceIdr(),                "tile_boundary_independence_flag" );
   WRITE_UVLC( pcSPS->getNumColumnsMinus1(),                           "num_tile_columns_minus1" );
   WRITE_UVLC( pcSPS->getNumRowsMinus1(),                              "num_tile_rows_minus1" );
   if( pcSPS->getUniformSpacingIdr()==0 )

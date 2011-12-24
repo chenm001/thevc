@@ -347,9 +347,9 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   pcPPS->setColumnRowInfoPresent(uiCode);
   if( pcPPS->getColumnRowInfoPresent() == 1 )
   {
-    READ_FLAG ( uiCode, "uniform_spacing_idc" );  
+    READ_FLAG ( uiCode, "uniform_spacing_flag" );  
     pcPPS->setUniformSpacingIdr( uiCode );
-    READ_FLAG ( uiCode, "tile_boundary_independence_idc" );  
+    READ_FLAG ( uiCode, "tile_boundary_independence_flag" );  
     pcPPS->setTileBoundaryIndependenceIdr( uiCode );
 
     READ_UVLC ( uiCode, "num_tile_columns_minus1" );   
@@ -508,9 +508,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #endif
 
 #if TILES
-  READ_FLAG ( uiCode, "uniform_spacing_idc" ); 
+  READ_FLAG ( uiCode, "uniform_spacing_flag" ); 
   pcSPS->setUniformSpacingIdr( uiCode );
-  READ_FLAG ( uiCode, "tile_boundary_independence_idc" );  
+  READ_FLAG ( uiCode, "tile_boundary_independence_flag" );  
   pcSPS->setTileBoundaryIndependenceIdr( uiCode );
  
   READ_UVLC ( uiCode, "num_tile_columns_minus1" );
