@@ -421,7 +421,11 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
     Pel  piAdiLine[5 * MAX_CU_SIZE];
     Pel  *piAdiLineTemp; 
     Bool *pbNeighborFlags;
+#if PADDING_INTRA
+    Int  iNext, iCurr;
+#else
     Int  iPrev, iNext, iCurr;
+#endif
     Pel  piRef = 0;
 
     // Initialize
@@ -484,7 +488,9 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
     }
 
     // Pad reference samples when necessary
+#if !PADDING_INTRA  
     iPrev = -1;
+#endif
     iCurr = 0;
     iNext = 1;
     piAdiLineTemp = piAdiLine;

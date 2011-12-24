@@ -984,7 +984,6 @@ Void TComSlice::applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComRef
 {
   TComPic* rpcPic;
   Int i, isReference;
-  Int internalMarking;
 
   Int j = 0;
   // loop through all pictures in the reference picture buffer
@@ -995,7 +994,6 @@ Void TComSlice::applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComRef
     rpcPic = *(iterPic++);
 
     isReference = 0;
-    internalMarking = 0;
     // loop through all pictures in the Reference Picture Set
     // to see if the picture should be kept as reference picture
     for(i=0;i<pReferencePictureSet->getNumberOfPositivePictures()+pReferencePictureSet->getNumberOfNegativePictures();i++)
@@ -1005,7 +1003,6 @@ Void TComSlice::applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComRef
         isReference = 1;
         rpcPic->setUsedByCurr(pReferencePictureSet->getUsed(i));
         rpcPic->setIsLongTerm(0);
-        internalMarking = 1;
       }
     }
     for(;i<pReferencePictureSet->getNumberOfPictures();i++)

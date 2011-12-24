@@ -2313,15 +2313,19 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, 
   {
 #if NSQT 
     Bool bNonSqureFlag = ( iWidth != iHeight );
+#if !DISABLE_CAVLC
     UInt uiNonSqureScanTableIdx = 0;
+#endif
     if( bNonSqureFlag )
     {
       UInt uiWidthBit  = g_aucConvertToBit[ iWidth ] + 2;
       UInt uiHeightBit = g_aucConvertToBit[ iHeight ] + 2;
+#if !DISABLE_CAVLC
 #if NSQT_TX_ORDER
       uiNonSqureScanTableIdx = ( iWidth * iHeight ) == 64 ? 2 * ( iHeight > iWidth ) : 2 * ( iHeight > iWidth ) + 1;
 #else
       uiNonSqureScanTableIdx = ( iWidth * iHeight ) == 64 ? 0 : 1;
+#endif
 #endif
       iWidth  = 1 << ( ( uiWidthBit + uiHeightBit) >> 1 );
       iHeight = iWidth;
