@@ -46,7 +46,8 @@
 #include <assert.h>
 
 #if G1002_RPS
-struct GOPEntry {
+struct GOPEntry
+{
   Int m_iPOC;
   Int m_iQPOffset;
   Double m_iQPFactor;
@@ -73,14 +74,18 @@ struct GOPEntry {
   , m_iRefBufSize()
   , m_iSliceType()
   , m_iNumRefPics()
+#if INTER_RPS_PREDICTION
   , m_bInterRPSPrediction()
   , m_iDeltaRIdxMinus1()
   , m_iDeltaRPS()
   , m_iNumRefIdc()
+#endif
   {
     ::memset( m_aiReferencePics, 0, sizeof(m_aiReferencePics) );
     ::memset( m_aiUsedByCurrPic, 0, sizeof(m_aiUsedByCurrPic) );
+#if INTER_RPS_PREDICTION
     ::memset( m_aiRefIdc,        0, sizeof(m_aiRefIdc) );
+#endif
   }
 };
 
@@ -276,7 +281,8 @@ protected:
 
 public:
   TEncCfg()          {}
-  virtual ~TEncCfg() {
+  virtual ~TEncCfg()
+  {
 #if TILES
     if( m_iUniformSpacingIdr == 0 )
     {
