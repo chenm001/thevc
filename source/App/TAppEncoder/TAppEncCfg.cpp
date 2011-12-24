@@ -196,7 +196,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("LowDelayCoding",         m_bUseLDC,             false, "low-delay mode")
   ("GPB", m_bUseGPB, false, "generalized B instead of P in low-delay mode")
 #endif
-  ("ListCombination, -lc", m_bUseLComb, true, "combined reference list for uni-prediction in B-slices")
+  ("ListCombination,-lc", m_bUseLComb, true, "combined reference list flag for uni-prediction in B-slices")
   ("LCModification", m_bLCMod, false, "enables signalling of combined reference list derivation")
 #if !G1002_RPS
   ("NRF", m_bUseNRF,  true, "non-reference frame marking in last layer")
@@ -786,6 +786,7 @@ Void TAppEncCfg::xCheckParameter()
   {
     xConfirmPara(m_pcGOPList[i].m_iSliceType!='B'&&m_pcGOPList[i].m_iSliceType!='P', "Slice type must be equal to B or P");
   }
+  xConfirmPara( m_bUseLComb==false && m_uiMaxNumberOfReorderPictures!=0, "ListCombination can only be 0 in low delay coding (more precisely when L0 and L1 are identical)" );  // Note however this is not the full necessary condition as ref_pic_list_combination_flag can only be 0 if L0 == L1.
 #else
 #if REF_SETTING_FOR_LD
   xConfirmPara( m_bUseNewRefSetting && m_iGOPSize>1, "New reference frame setting was only designed for LD setting" );
