@@ -2660,9 +2660,9 @@ Void TEncCavlc::codeScalingList( TComScalingList* pcScalingList )
   UInt uiListId,uiSizeId;
   Int *piDst=0;
   Int *piOrg=0;
+#if SCALING_LIST_OUT_PUT_RESULT
   Int avg_error = 0;
   Int max_error = 0;
-#if SCALING_LIST_OUT_PUT_RESULT
   Int iStartBit;
   Int iStartTotalBit;
   iStartBit = m_pcBitIf->getNumberOfWrittenBits();
