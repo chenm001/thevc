@@ -236,6 +236,10 @@ protected:
   UInt      m_uiBiPredIdc;                                    ///< Use of Bi-Directional Weighting Prediction (B_SLICE): explicit(1) or implicit(2)
 #endif
 
+#if SCALING_LIST
+  Bool      m_bUseScalingList;                                ///< flag for using quantization matrix
+  char*     m_pchScalingListFile;                             ///< quantization matrix file name
+#endif
   // internal member functions
   Void  xSetGlobal      ();                                   ///< set global variables
   Void  xCheckParameter ();                                   ///< check validity of configuration values

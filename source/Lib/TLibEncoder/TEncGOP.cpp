@@ -279,6 +279,25 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if DISABLE_4x4_INTER
       m_pcEncTop->getSPS()->setDisInter4x4(m_pcEncTop->getDisInter4x4());
 #endif 
+#if SCALING_LIST
+      pcSlice->setScalingList ( m_pcEncTop->getScalingList()  );
+      if(pcSlice->getSPS()->getUseScalingList())
+      {
+        if(pcSlice->getScalingList()->xParseScalingList(m_pcCfg->getScalingListFile()))
+        {
+          pcSlice->setDefaultScalingList ();
+        }
+        pcSlice->getScalingList()->xScalingListatrixModeDecision();
+        pcSlice->getScalingList()->setUseDefaultOnlyFlag(pcSlice->CheckDefaultScalingList());
+        m_pcEncTop->getTrQuant()->setScalingList(pcSlice->getScalingList());
+        m_pcEncTop->getTrQuant()->setUseScalingList(true);
+      }
+      else
+      {
+        m_pcEncTop->getTrQuant()->setFlatScalingList();
+        m_pcEncTop->getTrQuant()->setUseScalingList(false);
+      }
+#endif
 
 #if G1002_RPS
       if(pcSlice->getSliceType()==B_SLICE&&m_pcCfg->getGOPEntry(iGOPid).m_iSliceType=='P')
@@ -834,7 +853,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       UInt uiMaxAlfCtrlDepth = 0;
 #endif
 #if SAO
+#if SCALING_LIST
+      Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseScalingList())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
+#else
       Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
+#endif
 #else
       Int processingState = (pcSlice->getSPS()->getUseALF() )?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
 #endif
@@ -1776,6 +1799,12 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
 {
 
   cAPS.setAPSID(apsID);
+#if SCALING_LIST
+  if(pcSlice->getPOC() == 0)
+  cAPS.setScalingListEnabled(pcSlice->getSPS()->getUseScalingList());
+  else
+  cAPS.setScalingListEnabled(false);
+#endif
 
   cAPS.setSaoEnabled(pcSlice->getSPS()->getUseSAO() ? (cAPS.getSaoParam()->bSaoFlag[0] ):(false));
   cAPS.setAlfEnabled(pcSlice->getSPS()->getUseALF() ? (cAPS.getAlfParam()->alf_flag ==1):(false));
@@ -1821,6 +1850,12 @@ Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* p
   m_pcEntropyCoder->setBitstream(&APSbs);
 
   m_pcEntropyCoder->encodeAPSInitInfo(pcAPS);
+#if SCALING_LIST
+  if(pcAPS->getScalingListEnabled())
+  {
+    m_pcEntropyCoder->encodeScalingList( pcSlice->getScalingList() );
+  }
+#endif
 
   if(pcAPS->getSaoEnabled())
   {

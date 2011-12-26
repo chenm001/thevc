@@ -273,6 +273,10 @@ protected:
   Bool      m_bUseWeightPred;       //< Use of Weighting Prediction (P_SLICE)
   UInt      m_uiBiPredIdc;          //< Use of Bi-Directional Weighting Prediction (B_SLICE)
 #endif
+#if SCALING_LIST
+  Bool      m_bUseScalingList;             ///< flag for using quantization matrix
+  char*     m_pchScalingListFile;          ///< quantization matrix file name
+#endif
 
 public:
   TEncCfg()          {}
@@ -655,6 +659,12 @@ public:
   Void      setWPBiPredIdc         ( UInt u )    { m_uiBiPredIdc       = u;    }
   Bool      getUseWP               ()            { return m_bUseWeightPred;    }
   UInt      getWPBiPredIdc         ()            { return m_uiBiPredIdc;       }
+#endif
+#if SCALING_LIST
+  Void      setUseScalingList      ( Bool  b )   { m_bUseScalingList     = b; }
+  Bool      getUseScalingList      ()            { return m_bUseScalingList;     }
+  Void      setScalingListFile     ( char*  pch ){ m_pchScalingListFile     = pch; }
+  char*     getScalingListFile     ()            { return m_pchScalingListFile;     }
 #endif
 
 };

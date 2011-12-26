@@ -310,6 +310,8 @@
 
 #define G665_ALF_COEFF_PRED                1 // JCTVC-G665
 
+#define SCALING_LIST                  1 //JCTVC-G880/JCTVC-G1016 quantization matrices
+#define SCALING_LIST_OUT_PUT_RESULT   0 //JCTVC-G880/JCTVC-G1016 quantization matrices
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================

@@ -267,6 +267,11 @@ public:
   Void  codeAPSInitInfo(TComAPS* pcAPS);  //!< code APS flags before encoding SAO and ALF parameters
   Void  codeFinish(Bool bEnd) { /*do nothing*/}
 #endif
+#if SCALING_LIST
+  Void  codeScalingList           ( TComScalingList* pcScalingList );
+  Void  xCodeDPCMScalingListatrix ( TComScalingList* pcScalingList, Int* piData, UInt uiSizeId);
+  Void  xWriteResidualCode        ( UInt uiSize, Int *data);
+#endif
 
 
 };

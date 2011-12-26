@@ -235,6 +235,9 @@ Void TDecCavlc::parseAPSInitInfo(TComAPS& cAPS)
   UInt uiCode;
   //aps ID
   xReadUvlc(uiCode);      cAPS.setAPSID(uiCode);
+#if SCALING_LIST
+  xReadFlag(uiCode);      cAPS.setScalingListEnabled( (uiCode==1)?true:false );
+#endif
   //SAO flag
   xReadFlag(uiCode);      cAPS.setSaoEnabled( (uiCode==1)?true:false );
   //ALF flag
@@ -466,6 +469,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   // BB: these parameters may be removed completly and replaced by the fixed values
   pcSPS->setMinTrDepth( 0 );
   pcSPS->setMaxTrDepth( 1 );
+#if SCALING_LIST
+  READ_FLAG( uiCode, "scaling_list_enable_flag" );               pcSPS->setUseScalingList ( uiCode ? true : false );
+#endif
   READ_FLAG( uiCode, "chroma_pred_from_luma_enabled_flag" );     pcSPS->setUseLMChroma ( uiCode ? true : false ); 
   READ_FLAG( uiCode, "loop_filter_across_slice_flag" );          pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
 #if SAO
@@ -648,7 +654,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     }
 #endif
 #if F747_APS
+#if SCALING_LIST
+    if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF() || rpcSlice->getSPS()->getUseScalingList())
+#else
     if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF())
+#endif
     {
       READ_UVLC (    uiCode, "aps_id" );  rpcSlice->setAPSId(uiCode);
     }
@@ -3283,6 +3293,78 @@ Void TDecCavlc::parseWeightPredTable( TComSlice* pcSlice )
   }
   else
     assert(0);
+}
+#endif
+#if SCALING_LIST
+/** decode quantization matrix
+ * \param pcScalingList quantization matrix information
+ */
+Void TDecCavlc::parseScalingList(TComScalingList* pcScalingList)
+{
+  UInt  uiCode, uiSizeId, uiListId;
+  Int *piDst=0;
+  xReadFlag ( uiCode ); pcScalingList->setUseDefaultOnlyFlag  ( uiCode    );
+  if(pcScalingList->getUseDefaultOnlyFlag() == false)
+  {
+      //for each size
+    for(uiSizeId = 0; uiSizeId < SCALING_LIST_SIZE_NUM; uiSizeId++)
+    {
+      for(uiListId = 0; uiListId <  g_auiScalingListNum[uiSizeId]; uiListId++)
+      {
+        piDst = pcScalingList->getScalingListAddress(uiSizeId, uiListId);
+        xReadFlag ( uiCode ); pcScalingList->setPredMode (uiSizeId,uiListId,uiCode);
+        if(pcScalingList->getPredMode (uiSizeId,uiListId) == SCALING_LIST_PRED_COPY) // Matrix_Copy_Mode
+        {
+          xReadUvlc ( uiCode ); pcScalingList->setPredMatrixId (uiSizeId,uiListId,(UInt)((Int)(uiListId)-(uiCode+1)));
+          pcScalingList->xPredScalingListatrix( pcScalingList, piDst, uiSizeId, uiListId,uiSizeId, pcScalingList->getPredMatrixId (uiSizeId,uiListId));
+        }
+        else if(pcScalingList->getPredMode (uiSizeId,uiListId) == SCALING_LIST_PRED_DPCM)//DPCM mode
+        {
+          xDecodeDPCMScalingListatrix(pcScalingList, piDst, uiSizeId, uiListId);
+        }
+      }
+    }
+  }
+
+  return;
+}
+/** read Code
+ * \param pcScalingList  quantization matrix information
+ * \param piBuf buffer of decoding data
+ * \param uiSizeId size index
+ * \param uiListId list index
+ */
+Void TDecCavlc::xReadScalingListCode(TComScalingList *pcScalingList, Int* piBuf, UInt uiSizeId, UInt uiListId)
+{
+  UInt i,x,y,uiSize = g_auiScalingListSize[uiSizeId];
+  UInt uiSizeX = g_auiScalingListSizeX[uiSizeId];
+  UInt* pucScan    = g_auiFrameScanXY [ uiSizeId + 1 ];
+  UInt uiDataCounter = 0;
+    for(i=0;i<uiSize;i++)
+    {
+      x = pucScan[i] % uiSizeX;
+      y = pucScan[i] / uiSizeX;
+      xReadSvlc(piBuf[uiDataCounter]);
+      uiDataCounter++;
+    }
+}
+/** decode DPCM with quantization matrix
+ * \param pcScalingList  quantization matrix information
+ * \param piData decoded data
+ * \param uiSizeId size index
+ * \param uiListId list index
+ */
+Void TDecCavlc::xDecodeDPCMScalingListatrix(TComScalingList *pcScalingList, Int* piData, UInt uiSizeId, UInt uiListId)
+{
+  Int  buf[1024];
+  Int  pcm[1024];
+  Int  iStartValue   = SCALING_LIST_START_VALUE;
+
+  xReadScalingListCode(pcScalingList, buf, uiSizeId, uiListId);
+  //Inverse DPCM
+  pcScalingList->xInvDPCM(buf, pcm, uiSizeId, iStartValue);
+  //Inverse ZigZag scan
+  pcScalingList->xInvZigZag(pcm, piData, uiSizeId);
 }
 #endif
 

@@ -1416,4 +1416,14 @@ Int TEncEntropy::countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize )
   return count;
 }
 
+#if SCALING_LIST
+/** encode quantization matrix
+ * \param pcScalingList quantization matrix information
+ */
+Void TEncEntropy::encodeScalingList( TComScalingList* pcScalingList )
+{
+  m_pcEntropyCoderIf->codeScalingList( pcScalingList );
+}
+#endif
+
 //! \}

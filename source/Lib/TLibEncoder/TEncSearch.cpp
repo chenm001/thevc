@@ -1030,7 +1030,13 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
   //--- inverse transform ---
   if( uiAbsSum )
   {
+#if SCALING_LIST
+    Int iScalingListType = 0 + g_eTTable[(Int)TEXT_LUMA];
+    assert(iScalingListType < 6);
+    m_pcTrQuant->invtransformNxN( TEXT_LUMA,pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, iScalingListType );
+#else
     m_pcTrQuant->invtransformNxN( TEXT_LUMA,pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight );
+#endif
   }
   else
   {
@@ -1187,7 +1193,13 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
     //--- inverse transform ---
     if( uiAbsSum )
     {
+#if SCALING_LIST
+    Int iScalingListType = 0 + g_eTTable[(Int)eText];
+    assert(iScalingListType < 6);
+    m_pcTrQuant->invtransformNxN( TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, iScalingListType );
+#else
     m_pcTrQuant->invtransformNxN( TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight );
+#endif
     }
     else
     {
@@ -4358,12 +4370,24 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
       Pel *pcResiCurrY = m_pcQTTempTComYuv[uiQTTempAccessLayer].getLumaAddr( uiAbsPartIdx );
 #endif
       m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_LUMA );
+#if SCALING_LIST
+  Int iScalingListType = 3 + g_eTTable[(Int)TEXT_LUMA];
+  assert(iScalingListType < 6);
+#endif
 #if NSQT
       if( bNonSquareFlag )
+#if SCALING_LIST
+        m_pcTrQuant->invtransformNxN( TEXT_LUMA,REG_DCT, pcResiCurrY, m_pcQTTempTComYuv[uiQTTempAccessLayer].getStride(),  pcCoeffCurrY, uiTrWidth, uiTrHeight, iScalingListType);//this is for inter mode only
+#else
         m_pcTrQuant->invtransformNxN( TEXT_LUMA,REG_DCT, pcResiCurrY, m_pcQTTempTComYuv[uiQTTempAccessLayer].getStride(),  pcCoeffCurrY, uiTrWidth, uiTrHeight );//this is for inter mode only
+#endif
       else
 #endif 
+#if SCALING_LIST
+    m_pcTrQuant->invtransformNxN( TEXT_LUMA,REG_DCT, pcResiCurrY, m_pcQTTempTComYuv[uiQTTempAccessLayer].getStride(),  pcCoeffCurrY, 1<< uiLog2TrSize,    1<< uiLog2TrSize, iScalingListType );//this is for inter mode only
+#else
     m_pcTrQuant->invtransformNxN( TEXT_LUMA,REG_DCT, pcResiCurrY, m_pcQTTempTComYuv[uiQTTempAccessLayer].getStride(),  pcCoeffCurrY, 1<< uiLog2TrSize,    1<< uiLog2TrSize );//this is for inter mode only
+#endif
 #if NSQT
       UInt uiNonzeroDistY;
       if( bNonSquareFlag )
@@ -4467,12 +4491,24 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
         Pel *pcResiCurrU = m_pcQTTempTComYuv[uiQTTempAccessLayer].getCbAddr( uiAbsPartIdx );
 #endif
         m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_CHROMA );
+#if SCALING_LIST
+        Int iScalingListType = 3 + g_eTTable[(Int)TEXT_CHROMA_U];
+        assert(iScalingListType < 6);
+#endif
 #if NSQT
         if( bNonSquareFlagChroma )
+#if SCALING_LIST
+          m_pcTrQuant->invtransformNxN( TEXT_CHROMA,REG_DCT, pcResiCurrU, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrU, uiTrWidthC, uiTrHeightC, iScalingListType );
+#else
           m_pcTrQuant->invtransformNxN( TEXT_CHROMA,REG_DCT, pcResiCurrU, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrU, uiTrWidthC, uiTrHeightC );
+#endif
         else
 #endif
+#if SCALING_LIST
+        m_pcTrQuant->invtransformNxN( TEXT_CHROMA,REG_DCT, pcResiCurrU, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrU, 1<<uiLog2TrSizeC, 1<<uiLog2TrSizeC, iScalingListType);
+#else
         m_pcTrQuant->invtransformNxN( TEXT_CHROMA,REG_DCT, pcResiCurrU, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrU, 1<<uiLog2TrSizeC, 1<<uiLog2TrSizeC);
+#endif
 #if NSQT
         UInt uiNonzeroDistU;
         if( bNonSquareFlagChroma )
@@ -4587,12 +4623,24 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
         {
           m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_CHROMA );
         }
+#if SCALING_LIST
+        Int iScalingListType = 3 + g_eTTable[(Int)TEXT_CHROMA_V];
+        assert(iScalingListType < 6);
+#endif
 #if NSQT
         if( bNonSquareFlagChroma )
+#if SCALING_LIST
+          m_pcTrQuant->invtransformNxN( TEXT_CHROMA,REG_DCT, pcResiCurrV, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrV, uiTrWidthC, uiTrHeightC, iScalingListType );
+#else
           m_pcTrQuant->invtransformNxN( TEXT_CHROMA,REG_DCT, pcResiCurrV, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrV, uiTrWidthC, uiTrHeightC );
+#endif
         else
 #endif
+#if SCALING_LIST
+        m_pcTrQuant->invtransformNxN( TEXT_CHROMA,REG_DCT, pcResiCurrV, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrV, 1<<uiLog2TrSizeC, 1<<uiLog2TrSizeC, iScalingListType );
+#else
         m_pcTrQuant->invtransformNxN( TEXT_CHROMA,REG_DCT, pcResiCurrV, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrV, 1<<uiLog2TrSizeC, 1<<uiLog2TrSizeC );
+#endif
 #if NSQT
         UInt uiNonzeroDistV;
         if( bNonSquareFlagChroma )

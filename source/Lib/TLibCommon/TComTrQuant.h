@@ -159,7 +159,11 @@ public:
   // transform & inverse transform functions
   Void transformNxN         ( TComDataCU* pcCU, Pel*   pcResidual, UInt uiStride, TCoeff* rpcCoeff, UInt uiWidth, UInt uiHeight,
                              UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
+#if SCALING_LIST
+  Void invtransformNxN      (TextType eText, UInt uiMode,Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight, Int iScalingListType);
+#else
   Void invtransformNxN      (TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight);
+#endif
   Void invRecurTransformNxN ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel* rpcResidual, UInt uiAddr,   UInt uiStride, UInt uiWidth, UInt uiHeight,
                              UInt uiMaxTrMode,  UInt uiTrMode, TCoeff* rpcCoeff );
   
@@ -216,6 +220,22 @@ public:
                                      const UInt                       uiLog2BlockSize);
 #endif
 #endif
+#if SCALING_LIST
+  Void initScalingList                      ();
+  Void destroyScalingList                   ();
+  Void setErrScaleCoeff    ( UInt uiList, UInt uiSize, UInt uiQP, UInt uiDir);
+  double* getErrScaleCoeff ( UInt uiList, UInt uiSize, UInt uiQP, UInt uiDir);
+  Int* getQuantCoeff       ( UInt uiList, UInt uiQP, UInt uiSize, UInt uiDir);
+  Int* getDequantCoeff     ( UInt uiList, UInt uiQP, UInt uiSize, UInt uiDir);
+  Void setUseScalingList   ( Bool bUseScalingList){ m_bUseScalingList = bUseScalingList; };
+  Bool getUseScalingList   (){ return m_bUseScalingList; };
+  Void setFlatScalingList  ();
+  Void xsetFlatScalingList ( UInt uiList, UInt uiSize, UInt uiQP);
+  Void xSetScalingListEnc  ( Int *piScalingList, UInt uiList, UInt uiSize, UInt uiQP);
+  Void xSetScalingListDec  ( Int *piScalingList, UInt uiList, UInt uiSize, UInt uiQP);
+  Void setScalingList      ( TComScalingList *pcScalingList);
+  Void setScalingListDec   ( TComScalingList *pcScalingList);
+#endif
 protected:
   Int*    m_plTempCoeff;
   
@@ -236,7 +256,21 @@ protected:
   Int      m_iSymbolMode;
   UInt     *m_uiLastPosVlcIndex;
 #endif
-  
+#if SCALING_LIST
+  Bool     m_bUseScalingList;
+  Int      *m_aiQuantCoef      [SCALING_LIST_NUM][SCALING_LIST_REM_NUM];             ///< array of quantization matrix coefficient 4x4
+  Int      *m_aiDequantCoef    [SCALING_LIST_NUM][SCALING_LIST_REM_NUM];             ///< array of dequantization matrix coefficient 4x4
+  Int      *m_aiQuantCoef64    [SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of quantization matrix coefficient 8x8
+  Int      *m_aiDequantCoef64  [SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of dequantization matrix coefficient 8x8
+  Int      *m_aiQuantCoef256   [SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of quantization matrix coefficient 16x16
+  Int      *m_aiDequantCoef256 [SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of dequantization matrix coefficient 16x16
+  Int      *m_aiQuantCoef1024  [SCALING_LIST_NUM][SCALING_LIST_REM_NUM];             ///< array of quantization matrix coefficient 32x32
+  Int      *m_aiDequantCoef1024[SCALING_LIST_NUM][SCALING_LIST_REM_NUM];             ///< array of dequantization matrix coefficient 32x32
+  double   *m_adErrScale       [SCALING_LIST_NUM][SCALING_LIST_REM_NUM];             ///< array of quantization matrix coefficient 4x4
+  double   *m_adErrScale64     [SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of quantization matrix coefficient 8x8
+  double   *m_adErrScale256    [SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of quantization matrix coefficient 16x16
+  double   *m_adErrScale1024   [SCALING_LIST_NUM][SCALING_LIST_REM_NUM];             ///< array of quantization matrix coefficient 32x32
+#endif  
 private:
   // forward Transform
 #if NSQT
@@ -306,7 +340,11 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
   
   
   // dequantization
+#if SCALING_LIST
+  Void xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeight, Int iScalingListType );
+#else
   Void xDeQuant( const TCoeff* pSrc,     Int* pDes,       Int iWidth, Int iHeight );
+#endif
   
   // inverse transform
 #if NSQT

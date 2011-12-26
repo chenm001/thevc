@@ -253,6 +253,10 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setWaveFrontFlush             ( m_iWaveFrontFlush );
   m_cTEncTop.setWaveFrontSubstreams        ( m_iWaveFrontSubstreams );
 #endif
+#if SCALING_LIST
+  m_cTEncTop.setUseScalingList             ( m_bUseScalingList          );
+  m_cTEncTop.setScalingListFile            ( m_pchScalingListFile       );
+#endif
 }
 
 Void TAppEncTop::xCreateLib()
