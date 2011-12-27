@@ -456,8 +456,6 @@ private:
   Int         m_iSliceQp;
   Bool        m_bLoopFilterDisable;
   
-  Bool        m_bDRBFlag;             //  flag for future usage as reference buffer
-  ERBIndex    m_eERBIndex;            //  flag for future usage as reference buffer
   Int         m_aiNumRefIdx   [3];    //  for multiple reference of current slice
 
   Int         m_iRefIdxOfLC[2][MAX_NUM_REF_LC];
@@ -547,8 +545,6 @@ public:
   Int       getPOC          ()                          { return  m_iPOC;           }
   Int       getSliceQp      ()                          { return  m_iSliceQp;           }
   Int       getSliceQpDelta ()                          { return  m_iSliceQpDelta;      }
-  Bool      getDRBFlag      ()                          { return  m_bDRBFlag;           }
-  ERBIndex  getERBIndex     ()                          { return  m_eERBIndex;          }
   Bool      getLoopFilterDisable()                      { return  m_bLoopFilterDisable; }
   Int       getNumRefIdx        ( RefPicList e )                { return  m_aiNumRefIdx[e];             }
   TComPic*  getPic              ()                              { return  m_pcPic;                      }
@@ -581,8 +577,6 @@ public:
   Void      setSliceType        ( SliceType e )                 { m_eSliceType        = e;      }
   Void      setSliceQp          ( Int i )                       { m_iSliceQp          = i;      }
   Void      setSliceQpDelta     ( Int i )                       { m_iSliceQpDelta     = i;      }
-  Void      setDRBFlag          ( Bool b )                      { m_bDRBFlag = b;               }
-  Void      setERBIndex         ( ERBIndex e )                  { m_eERBIndex = e;              }
   Void      setLoopFilterDisable( Bool b )                      { m_bLoopFilterDisable= b;      }
   
   Void      setRefPic           ( TComPic* p, RefPicList e, Int iRefIdx ) { m_apcRefPicList[e][iRefIdx] = p; }

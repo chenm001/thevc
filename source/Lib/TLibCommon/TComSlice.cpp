@@ -49,8 +49,6 @@ TComSlice::TComSlice()
 , m_eSliceType                    ( I_SLICE )
 , m_iSliceQp                      ( 0 )
 , m_bLoopFilterDisable            ( false )
-, m_bDRBFlag                      ( true )
-, m_eERBIndex                     ( ERB_NONE )
 , m_bCheckLDC                     ( false )
 , m_iSliceQpDelta                 ( 0 )
 , m_iDepth                        ( 0 )
@@ -100,9 +98,6 @@ Void TComSlice::initSlice()
 {
   m_aiNumRefIdx[0]      = 0;
   m_aiNumRefIdx[1]      = 0;
-  
-  m_bDRBFlag            = true;
-  m_eERBIndex           = ERB_NONE;
   
   m_uiColDir = 0;
   
@@ -717,8 +712,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_eSliceType           = pSrc->m_eSliceType;
   m_iSliceQp             = pSrc->m_iSliceQp;
   m_bLoopFilterDisable   = pSrc->m_bLoopFilterDisable;
-  m_bDRBFlag             = pSrc->m_bDRBFlag;
-  m_eERBIndex            = pSrc->m_eERBIndex;
   
   for (i = 0; i < 3; i++)
   {

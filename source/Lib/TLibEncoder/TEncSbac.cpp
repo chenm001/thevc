@@ -625,12 +625,7 @@ Void TEncSbac::codeSliceHeader( TComSlice* pcSlice )
   if (!bEntropySlice)
   {
     // ????
-    xWriteFlag  (pcSlice->getDRBFlag() ? 1 : 0 );
-    if ( !pcSlice->getDRBFlag() )
-    {
-      // looks like a long-term flag that is currently unused
-      xWriteCode  (pcSlice->getERBIndex(), 2);
-    }
+    WRITE_FLAG(1, "DRBFlag");
   }
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   assert(pcSlice->getMaxNumMergeCand()<=MRG_MAX_NUM_CANDS_SIGNALED);

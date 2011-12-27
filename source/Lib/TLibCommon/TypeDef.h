@@ -426,13 +426,6 @@ enum DFunc
 #endif
 };
 
-/// index for reference type
-enum  ERBIndex
-{
-  ERB_NONE    = 0,      ///< normal case
-  ERB_LTR     = 1       ///< long-term reference
-};
-
 /// index for SBAC based RD optimization
 enum CI_IDX
 {

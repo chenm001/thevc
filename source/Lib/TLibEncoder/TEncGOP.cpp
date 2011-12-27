@@ -275,7 +275,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       if ( (pcSlice->getSliceType() == B_SLICE) && (pcSlice->getNumRefIdx(REF_PIC_LIST_1) == 0) )
       {
         pcSlice->setSliceType ( P_SLICE );
-        pcSlice->setDRBFlag   ( true );
       }
       
 #if !G1002_RPS

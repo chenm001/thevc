@@ -378,10 +378,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setSPS( pSPS );
   rpcSlice->setPPS( pPPS );
 
-  // reference picture usage indicator for next frames
-  rpcSlice->setDRBFlag          ( true );
-  rpcSlice->setERBIndex         ( ERB_NONE );
-  
   assert( m_apcPicYuvPred );
   assert( m_apcPicYuvResi );
   

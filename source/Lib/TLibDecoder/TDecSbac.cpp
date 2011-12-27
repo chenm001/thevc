@@ -2359,13 +2359,9 @@ Void TDecSbac::parseSliceHeader (TComSlice*& rpcSlice)
 
   // !!!! Syntax elements not in the WD  !!!!!
   
-  {
-    xReadFlag (uiCode);   rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
-    if ( !rpcSlice->getDRBFlag() )
-    {
-      xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
-    }      
-  }
+  // DRBFlag
+  xReadFlag (uiCode);   assert( uiCode == 1 );
+
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   READ_UVLC( uiCode, "MaxNumMergeCand");
   rpcSlice->setMaxNumMergeCand(MRG_MAX_NUM_CANDS - uiCode);
