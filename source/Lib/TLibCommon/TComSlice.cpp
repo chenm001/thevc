@@ -1194,8 +1194,6 @@ TComSPS::TComSPS()
 #endif
 #endif
 {
-  // AMVP parameter
-  ::memset( m_aeAMVPMode, 0, sizeof( m_aeAMVPMode ) );
 }
 
 TComSPS::~TComSPS()

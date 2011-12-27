@@ -455,13 +455,6 @@ enum MVP_DIR
   MD_ABOVE_LEFT         ///< MVP of above left block
 };
 
-/// motion vector prediction mode used in AMVP
-enum AMVP_MODE
-{
-  AM_NONE = 0,          ///< no AMVP mode
-  AM_EXPL,              ///< explicit signalling of motion vector index
-};
-
 /// coefficient scanning type used in ACS
 enum COEFF_SCAN_TYPE
 {

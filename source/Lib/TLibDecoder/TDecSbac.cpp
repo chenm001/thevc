@@ -2082,7 +2082,7 @@ Void TDecSbac::parseSPS(TComSPS* pcSPS)
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
   {
     xReadFlag( uiCode );
-    pcSPS->setAMVPMode( i, (AMVP_MODE)uiCode );
+    assert( uiCode == 1 );
   }
 
 #if !G1002_RPS

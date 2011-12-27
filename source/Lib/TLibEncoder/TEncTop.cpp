@@ -404,10 +404,6 @@ Void TEncTop::xInitSPS()
     m_cSPS.setAMVPMode( i, AM_NONE );
   }
 #else
-  for ( i = 0; i < g_uiMaxCUDepth; i++ )
-  {
-    m_cSPS.setAMVPMode( i, AM_EXPL );
-  }
 #endif
   
 #if AMP

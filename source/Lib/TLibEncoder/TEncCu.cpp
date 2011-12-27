@@ -1148,7 +1148,6 @@ Void TEncCu::xCheckRDCostAMVPSkip           ( TComDataCU*& rpcBestCU, TComDataCU
   AMVPInfo cAMVPInfo1;
   cAMVPInfo1.iN = 0;
   
-  if (rpcTempCU->getAMVPMode(0) == AM_EXPL)
   {
     rpcTempCU->setPredModeSubParts( MODE_SKIP, 0, uhDepth );
     rpcTempCU->setPartSizeSubParts( SIZE_2Nx2N,  0, uhDepth );

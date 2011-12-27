@@ -371,7 +371,7 @@ Void TEncSbac::codeSPS( TComSPS* pcSPS )
   // AMVP mode for each depth
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
   {
-    WRITE_FLAG( pcSPS->getAMVPMode(i) ? 1 : 0, "AMVPMode");
+    WRITE_FLAG( 1, "AMVPMode");
   }
 
 #if !G1002_RPS

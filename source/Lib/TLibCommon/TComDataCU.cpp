@@ -2664,11 +2664,6 @@ Void TComDataCU::xCheckCornerCand( TComDataCU* pcCorner, UInt uiCornerPUIdx, UIn
   }
 }
 
-AMVP_MODE TComDataCU::getAMVPMode(UInt uiIdx)
-{
-  return m_pcSlice->getSPS()->getAMVPMode(m_puhDepth[uiIdx]);
-}
-
 /** Constructs a list of candidates for AMVP
  * \param uiPartIdx
  * \param uiPartAddr 
@@ -2758,13 +2753,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     {
       bAdded = xAddMVPCandOrder( pInfo, eRefPicList, iRefIdx, uiPartIdxLT, MD_ABOVE_LEFT);
     }
-  }
-  
-  if (getAMVPMode(uiPartAddr) == AM_NONE)  //Should be optimized later for special cases
-  {
-    assert(pInfo->iN > 0);
-    pInfo->iN = 1;
-    return;
   }
   
   // Get Temporal Motion Predictor
