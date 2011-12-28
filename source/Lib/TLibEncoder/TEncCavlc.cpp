@@ -65,6 +65,13 @@ Void  xTracePPSHeader (TComPPS *pPPS)
   fprintf( g_hTrace, "=========== Picture Parameter Set ID: %d ===========\n", pPPS->getPPSId() );
 }
 
+#if F747_APS
+Void  xTraceAPSHeader (TComAPS *pAPS)
+{
+  fprintf( g_hTrace, "=========== Adaptation Parameter Set ===========\n");
+}
+#endif
+
 Void  xTraceSliceHeader (TComSlice *pSlice)
 {
   fprintf( g_hTrace, "=========== Slice ===========\n");
@@ -210,23 +217,30 @@ void TEncCavlc::codeSEI(const SEI& sei)
 #if F747_APS
 Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
 {
+
+#if ENC_DEC_TRACE  
+  xTraceAPSHeader(pcAPS);
+#endif
   //APS ID
-  xWriteUvlc(pcAPS->getAPSID());
+  WRITE_UVLC( pcAPS->getAPSID(), "aps_id" );
+
   //SAO flag
-  xWriteFlag(pcAPS->getSaoEnabled()?1:0);
+  WRITE_FLAG( pcAPS->getSaoEnabled()?1:0, "aps_sample_adaptive_offset_flag"); 
+
   //ALF flag
-  xWriteFlag(pcAPS->getAlfEnabled()?1:0);
+  WRITE_FLAG( pcAPS->getAlfEnabled()?1:0, "aps_adaptive_loop_filter_flag"); 
+
 #if !G220_PURE_VLC_SAO_ALF
   if(pcAPS->getSaoEnabled() || pcAPS->getAlfEnabled())
   {
     //CABAC usage flag
-    xWriteFlag(pcAPS->getCABACForAPS()?1:0);
+    WRITE_FLAG(pcAPS->getCABACForAPS()?1:0, "aps_cabac_use_flag"); 
     if(pcAPS->getCABACForAPS())
     {
       //CABAC init IDC
-      xWriteUvlc(pcAPS->getCABACinitIDC());
+      WRITE_UVLC(pcAPS->getCABACinitIDC(), "aps_cabac_init_idc" );
       //CABAC init QP
-      xWriteSvlc(pcAPS->getCABACinitQP()-26);
+      WRITE_SVLC(pcAPS->getCABACinitQP()-26, "aps_cabac_init_qp_minus26" );
     }
   }
 #endif

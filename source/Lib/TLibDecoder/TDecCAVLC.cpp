@@ -58,6 +58,13 @@ Void  xTracePPSHeader (TComPPS *pPPS)
   fprintf( g_hTrace, "=========== Picture Parameter Set ID: %d ===========\n", pPPS->getPPSId() );
 }
 
+#if F747_APS
+Void  xTraceAPSHeader (TComAPS *pAPS)
+{
+  fprintf( g_hTrace, "=========== Adaptation Parameter Set ===========\n");
+}
+#endif
+
 Void  xTraceSliceHeader (TComSlice *pSlice)
 {
   fprintf( g_hTrace, "=========== Slice ===========\n");
@@ -232,25 +239,30 @@ void TDecCavlc::parseShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet
 #if F747_APS
 Void TDecCavlc::parseAPSInitInfo(TComAPS& cAPS)
 {
+#if ENC_DEC_TRACE  
+  xTraceAPSHeader(&cAPS);
+#endif
+
   UInt uiCode;
   //aps ID
-  xReadUvlc(uiCode);      cAPS.setAPSID(uiCode);
+  READ_UVLC(uiCode, "aps_id");  cAPS.setAPSID(uiCode);
   //SAO flag
-  xReadFlag(uiCode);      cAPS.setSaoEnabled( (uiCode==1)?true:false );
+  READ_FLAG(uiCode, "aps_sample_adaptive_offset_flag");  cAPS.setSaoEnabled( (uiCode==1)?true:false );
   //ALF flag
-  xReadFlag(uiCode);      cAPS.setAlfEnabled( (uiCode==1)?true:false );
+  READ_FLAG(uiCode, "aps_adaptive_loop_filter_flag");  cAPS.setAlfEnabled( (uiCode==1)?true:false );
+
 #if !G220_PURE_VLC_SAO_ALF
   if(cAPS.getSaoEnabled() || cAPS.getAlfEnabled())
   {
     //CABAC usage flag
-    xReadFlag(uiCode);    cAPS.setCABACForAPS( (uiCode==1)?true:false );
+    READ_FLAG(uiCode, "aps_cabac_use_flag");  cAPS.setCABACForAPS( (uiCode==1)?true:false );
     if(cAPS.getCABACForAPS())
     {
       Int iCode;
       //CABAC init IDC
-      xReadUvlc(uiCode);   cAPS.setCABACinitIDC( uiCode );
+      READ_UVLC(uiCode, "aps_cabac_init_idc");  cAPS.setCABACinitIDC( uiCode );
       //CABAC init QP
-      xReadSvlc(iCode);    cAPS.setCABACinitQP( iCode + 26);
+      READ_SVLC(iCode, "aps_cabac_init_qp_minus26");  cAPS.setCABACinitQP( iCode + 26);
     }
   }
 #endif
