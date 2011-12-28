@@ -125,6 +125,9 @@ TComSlice::TComSlice()
 #endif
 #if WEIGHT_PRED
   resetWpScaling(m_weightPredTable);
+#if WP_IMPROVED_SYNTAX
+  resetWpScalingLC(m_weightPredTableLC);
+#endif
   initWpAcDcParam();
 #endif
 }
@@ -1447,6 +1450,89 @@ Void  TComSlice::initWpScaling(wpScalingParam  wp[2][MAX_NUM_REF][3])
     }
   }
 }
+
+#if WP_IMPROVED_SYNTAX
+/** get WP tables for weighted pred of LC
+ * \param iRefIdxLC
+ * \param *&wpScalingParam
+ * \returns Void
+ */
+Void TComSlice::getWpScalingLC( Int iRefIdx, wpScalingParam *&wp )
+{
+  wp = m_weightPredTableLC[iRefIdx];
+}
+/** reset Default WP tables settings for LC : no weight. 
+ * \param wpScalingParam
+ * \returns Void
+ */
+Void TComSlice::resetWpScalingLC(wpScalingParam  wp[2*MAX_NUM_REF][3])
+{
+  for ( int i=0 ; i<2*MAX_NUM_REF ; i++ )
+  {
+    for ( int yuv=0 ; yuv<3 ; yuv++ ) 
+    {
+      wpScalingParam  *pwp = &(wp[i][yuv]);
+      pwp->bPresentFlag      = false;
+      pwp->uiLog2WeightDenom = 0;
+      pwp->uiLog2WeightDenom = 0;
+      pwp->iWeight           = 1;
+      pwp->iOffset           = 0;
+    }
+  }
+}
+/** set current WP tables settings for LC
+ * \returns Void
+ */
+Void TComSlice::setWpParamforLC()
+{
+  for ( Int iRefIdx=0 ; iRefIdx<getNumRefIdx(REF_PIC_LIST_C) ; iRefIdx++ )
+  {
+    RefPicList eRefPicList = (RefPicList)getListIdFromIdxOfLC(iRefIdx);
+    Int iCombRefIdx = getRefIdxFromIdxOfLC(iRefIdx);
+
+    wpScalingParam  *wp_src, *wp_dst;
+    getWpScalingLC(iRefIdx, wp_src);
+    getWpScaling(eRefPicList, iCombRefIdx, wp_dst);
+    copyWPtable(wp_src, wp_dst);
+
+    if(eRefPicList == REF_PIC_LIST_0)
+    {
+      Int iRefIdxL1 = getRefIdxOfL1FromRefIdxOfL0(iCombRefIdx);
+      if(iRefIdxL1 >= 0)
+      {
+        getWpScaling(REF_PIC_LIST_1, iRefIdxL1, wp_dst);
+        copyWPtable(wp_src, wp_dst);
+      }
+    }
+    if(eRefPicList == REF_PIC_LIST_1)
+    {
+      Int iRefIdxL0 = getRefIdxOfL0FromRefIdxOfL1(iCombRefIdx);
+      if(iRefIdxL0 >= 0)
+      {
+        getWpScaling(REF_PIC_LIST_0, iRefIdxL0, wp_dst);
+        copyWPtable(wp_src, wp_dst);
+      }
+    }
+  }
+  initWpScaling();
+}
+/** copy source WP tables to destination table for LC
+ * \param wpScalingParam *&wp_src : source
+ * \param wpScalingParam *&wp_dst : destination
+ * \returns Void
+ */
+Void TComSlice::copyWPtable(wpScalingParam *&wp_src, wpScalingParam *&wp_dst)
+{
+  for ( Int iComp = 0; iComp < 3; iComp++ )
+  {
+    wp_dst[iComp].uiLog2WeightDenom = (iComp==0) ? wp_src[0].uiLog2WeightDenom : wp_src[1].uiLog2WeightDenom;
+    wp_dst[iComp].bPresentFlag = wp_src[iComp].bPresentFlag;
+    wp_dst[iComp].iWeight = wp_src[iComp].iWeight;
+    wp_dst[iComp].iOffset = wp_src[iComp].iOffset;
+  }
+}
+#endif
+
 #endif
 
 // ------------------------------------------------------------------------------------------------

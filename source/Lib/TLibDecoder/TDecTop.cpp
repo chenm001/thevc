@@ -788,7 +788,13 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         {
           pcSlice->generateCombinedList();
         }
-        
+
+#if WP_IMPROVED_SYNTAX
+        if( pcSlice->getRefPicListCombinationFlag() && pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getSliceType()==B_SLICE )
+        {
+          pcSlice->setWpParamforLC();
+        }
+#endif
         pcSlice->setNoBackPredFlag( false );
         if ( pcSlice->getSliceType() == B_SLICE && !pcSlice->getRefPicListCombinationFlag())
         {

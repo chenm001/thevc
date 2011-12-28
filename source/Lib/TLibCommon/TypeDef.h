@@ -74,6 +74,7 @@
 #define CBF_CODING_SKIP_COND_FIX  1 ///< G444: fixing the condition of skipping cbf_luma coding
 #define DISABLE_PARALLEL_DECISIONS 1 ///< disable parallel decisions part of deblocking filter G088
 #define VER_HOR_FILTER            1 ///< F172: intra ver/hor prediction filter
+#define WP_IMPROVED_SYNTAX        1 ///< improved weighted prediction syntax to remove redundancy G441
 
 #define REMOVE_INTRA_LINE_BUFFER  1 ///< G145: intra line buffer removal
 

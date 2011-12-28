@@ -3206,18 +3206,38 @@ Void TDecCavlc::parseWeightPredTable( TComSlice* pcSlice )
   UInt            uiLog2WeightDenomLuma, uiLog2WeightDenomChroma;
   UInt            uiMode      = 0;
 
+#if WP_IMPROVED_SYNTAX
+  if ( (eSliceType==P_SLICE && pps->getUseWP()) || (eSliceType==B_SLICE && pps->getWPBiPredIdc()==1 && pcSlice->getRefPicListCombinationFlag()==0) )
+    uiMode = 1; // explicit
+  else if ( eSliceType==B_SLICE && pps->getWPBiPredIdc()==2 )
+    uiMode = 2; // implicit
+  else if (eSliceType==B_SLICE && pps->getWPBiPredIdc()==1 && pcSlice->getRefPicListCombinationFlag())
+    uiMode = 3; // combined explicit
+#else
   if ( (eSliceType==P_SLICE && pps->getUseWP()) || (eSliceType==B_SLICE && pps->getWPBiPredIdc()==1) )
     uiMode = 1;
   else if ( eSliceType==B_SLICE && pps->getWPBiPredIdc()==2 )
     uiMode = 2;
+#endif
 
   if ( uiMode == 1 )  // explicit
   {
     printf("\nTDecCavlc::parseWeightPredTable(poc=%d) explicit...\n", pcSlice->getPOC());
+#if WP_IMPROVED_SYNTAX
+    Int iDeltaDenom;
+    // decode delta_luma_log2_weight_denom :
+    xReadUvlc( uiLog2WeightDenomLuma );     // ue(v): luma_log2_weight_denom
+    if( bChroma ) {                         // color always present in HEVC ?
+      xReadSvlc( iDeltaDenom );             // ue(v): delta_chroma_log2_weight_denom
+      assert((iDeltaDenom + uiLog2WeightDenomLuma)>=0);
+      uiLog2WeightDenomChroma = (UInt)(iDeltaDenom + uiLog2WeightDenomLuma);
+    }
+#else
     xReadUvlc( uiLog2WeightDenomLuma );     // ue(v): luma_log2_weight_denom
     if( bChroma ) {                         // color always present in HEVC ?
       xReadUvlc( uiLog2WeightDenomChroma ); // ue(v): chroma_log2_weight_denom
     }
+#endif
 
     for ( Int iNumRef=0 ; iNumRef<iNbRef ; iNumRef++ ) 
     {
@@ -3235,7 +3255,13 @@ Void TDecCavlc::parseWeightPredTable( TComSlice* pcSlice )
         wp[0].bPresentFlag = ( uiCode == 1 );
         if ( wp[0].bPresentFlag ) 
         {
+#if WP_IMPROVED_SYNTAX
+          Int iDeltaWeight;
+          xReadSvlc( iDeltaWeight );  // se(v): luma_weight_l0[i]
+          wp[0].iWeight = (iDeltaWeight + (1<<wp[0].uiLog2WeightDenom));
+#else
           xReadSvlc( wp[0].iWeight ); // se(v): luma_weight_l0[i]
+#endif
           xReadSvlc( wp[0].iOffset ); // se(v): luma_offset_l0[i]
         }
         else 
@@ -3252,8 +3278,18 @@ Void TDecCavlc::parseWeightPredTable( TComSlice* pcSlice )
           {
             for ( Int j=1 ; j<3 ; j++ ) 
             {
+#if WP_IMPROVED_SYNTAX
+              Int iDeltaWeight;
+              xReadSvlc( iDeltaWeight );  // se(v): chroma_weight_l0[i][j]
+              wp[j].iWeight = (iDeltaWeight + (1<<wp[1].uiLog2WeightDenom));
+
+              Int iDeltaChroma;
+              xReadSvlc( iDeltaChroma );  // se(v): delta_chroma_offset_l0[i][j]
+              wp[j].iOffset = iDeltaChroma - ( ( (g_uiIBDI_MAX>>1)*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) + (g_uiIBDI_MAX>>1);
+#else
               xReadSvlc( wp[j].iWeight ); // se(v): chroma_weight_l0[i][j]
               xReadSvlc( wp[j].iOffset ); // se(v): chroma_offset_l0[i][j]
+#endif
             }
           }
           else 
@@ -3281,9 +3317,91 @@ Void TDecCavlc::parseWeightPredTable( TComSlice* pcSlice )
   {
     printf("\nTDecCavlc::parseWeightPredTable(poc=%d) implicit...\n", pcSlice->getPOC());
   }
+#if WP_IMPROVED_SYNTAX
+  else if ( uiMode == 3 )  // combined explicit
+  {
+    printf("\nTDecCavlc::parseWeightPredTable(poc=%d) combined explicit...\n", pcSlice->getPOC());
+    Int iDeltaDenom;
+    // decode delta_luma_log2_weight_denom :
+    xReadUvlc( uiLog2WeightDenomLuma );     // ue(v): luma_log2_weight_denom
+    if( bChroma ) {                         // color always present in HEVC ?
+      xReadSvlc( iDeltaDenom );             // ue(v): delta_chroma_log2_weight_denom
+      assert((iDeltaDenom + uiLog2WeightDenomLuma)>=0);
+      uiLog2WeightDenomChroma = (UInt)(iDeltaDenom + uiLog2WeightDenomLuma);
+    }
+
+    for ( Int iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(REF_PIC_LIST_C) ; iRefIdx++ ) 
+    {
+      pcSlice->getWpScalingLC(iRefIdx, wp);
+
+      wp[0].uiLog2WeightDenom = uiLog2WeightDenomLuma;
+      wp[1].uiLog2WeightDenom = uiLog2WeightDenomChroma;
+      wp[2].uiLog2WeightDenom = uiLog2WeightDenomChroma;
+
+      UInt  uiCode;
+      xReadFlag( uiCode );                  // u(1): luma_weight_l0_flag
+      wp[0].bPresentFlag = ( uiCode == 1 );
+      if ( wp[0].bPresentFlag ) 
+      {
+        Int iDeltaWeight;
+        xReadSvlc( iDeltaWeight );          // se(v): delta_luma_weight_l0[i]
+        wp[0].iWeight = (iDeltaWeight + (1<<wp[0].uiLog2WeightDenom));
+        xReadSvlc( wp[0].iOffset );         // se(v): luma_offset_l0[i]
+      }
+      else 
+      {
+        wp[0].iWeight = (1 << wp[0].uiLog2WeightDenom);
+        wp[0].iOffset = 0;
+      }
+      if ( bChroma ) 
+      {
+        xReadFlag( uiCode );                // u(1): chroma_weight_l0_flag
+        wp[1].bPresentFlag = ( uiCode == 1 );
+        wp[2].bPresentFlag = ( uiCode == 1 );
+        if ( wp[1].bPresentFlag ) 
+        {
+          for ( Int j=1 ; j<3 ; j++ ) 
+          {
+            Int iDeltaWeight;
+            xReadSvlc( iDeltaWeight );      // se(v): delta_chroma_weight_l0[i][j]
+            wp[j].iWeight = (iDeltaWeight + (1<<wp[1].uiLog2WeightDenom));
+
+            Int iDeltaChroma;
+            xReadSvlc( iDeltaChroma );      // se(v): delta_chroma_offset_l0[i][j]
+            wp[j].iOffset = iDeltaChroma - ( ( (g_uiIBDI_MAX>>1)*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) + (g_uiIBDI_MAX>>1);
+          }
+        }
+        else 
+        {
+          for ( Int j=1 ; j<3 ; j++ ) 
+          {
+            wp[j].iWeight = (1 << wp[j].uiLog2WeightDenom);
+            wp[j].iOffset = 0;
+          }
+        }
+      }
+    }
+
+    for ( Int iRefIdx=pcSlice->getNumRefIdx(REF_PIC_LIST_C) ; iRefIdx<2*MAX_NUM_REF ; iRefIdx++ ) 
+    {
+      pcSlice->getWpScalingLC(iRefIdx, wp);
+
+      wp[0].bPresentFlag = false;
+      wp[1].bPresentFlag = false;
+      wp[2].bPresentFlag = false;
+    }
+  }
+  else
+  {
+    printf("\n wrong weight pred table syntax \n ");
+    assert(0);
+  }
+#else
   else
     assert(0);
+#endif
 }
+
 #endif
 
 //! \}
