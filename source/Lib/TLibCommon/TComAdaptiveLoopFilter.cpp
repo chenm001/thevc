@@ -1348,27 +1348,27 @@ Void TComAdaptiveLoopFilter::calcVar(Pel **imgYvar, Pel *imgYpad, Int stride, In
   Int i, j, avgvar, vertical, horizontal,direction, yoffset;
   Pel *pimgYpad, *pimgYpadup, *pimgYpaddown;
 
-  for(i = 2; i < m_img_height + 3; i=i+4)
+  for(i = 0; i < m_img_height - 3; i=i+4)
   {
-    yoffset      = ((i-2)*stride) -2;
+    yoffset      = ((i)*stride) + stride;
     pimgYpad     = &imgYpad [yoffset];
     pimgYpadup   = &imgYpad [yoffset + stride];
     pimgYpaddown = &imgYpad [yoffset - stride];
 
-    for(j = 2; j < m_img_width +3; j=j+4)
+    for(j = 0; j < m_img_width - 3 ; j=j+4)
     {
       // Compute at sub-sample by 2
-      vertical   =  abs((pimgYpad[j+1+stride]<<1  ) - pimgYpaddown[j+1+stride]   - pimgYpadup[j+1+stride]);
-      horizontal =  abs((pimgYpad[j+1+stride]<<1  ) - pimgYpad    [j+2+stride]   - pimgYpad  [j+stride  ]);
+      vertical   =  abs((pimgYpad[j+1]<<1  ) - pimgYpaddown[j+1]   - pimgYpadup[j+1]);
+      horizontal =  abs((pimgYpad[j+1]<<1  ) - pimgYpad    [j+2]   - pimgYpad  [j  ]);
 
-      vertical   += abs((pimgYpad[j+2+stride]<<1  ) - pimgYpaddown[j+2+stride]   - pimgYpadup[j+2+stride]);
-      horizontal += abs((pimgYpad[j+2+stride]<<1  ) - pimgYpad    [j+3+stride]   - pimgYpad  [j+1+stride]);
+      vertical   += abs((pimgYpad[j+2]<<1  ) - pimgYpaddown[j+2]   - pimgYpadup[j+2]);
+      horizontal += abs((pimgYpad[j+2]<<1  ) - pimgYpad    [j+3]   - pimgYpad  [j+1]);
 
-      vertical   += abs((pimgYpad[j+1+2*stride]<<1) - pimgYpaddown[j+1+2*stride] - pimgYpadup[j+1+2*stride]);
-      horizontal += abs((pimgYpad[j+1+2*stride]<<1) - pimgYpad    [j+2+2*stride] - pimgYpad  [j+2*stride  ]);
+      vertical   += abs((pimgYpad[j+1+stride]<<1) - pimgYpaddown[j+1+stride] - pimgYpadup[j+1+stride]);
+      horizontal += abs((pimgYpad[j+1+stride]<<1) - pimgYpad    [j+2+stride] - pimgYpad  [j+stride  ]);
 
-      vertical   += abs((pimgYpad[j+2+2*stride]<<1) - pimgYpaddown[j+2+2*stride] - pimgYpadup[j+2+2*stride]);
-      horizontal += abs((pimgYpad[j+2+2*stride]<<1) - pimgYpad    [j+3+2*stride] - pimgYpad  [j+1+2*stride]);
+      vertical   += abs((pimgYpad[j+2+stride]<<1) - pimgYpaddown[j+2+stride] - pimgYpadup[j+2+stride]);
+      horizontal += abs((pimgYpad[j+2+stride]<<1) - pimgYpad    [j+3+stride] - pimgYpad  [j+1+stride]);
 
       direction = 0;
       if (vertical > 2*horizontal) 
@@ -1384,7 +1384,7 @@ Void TComAdaptiveLoopFilter::calcVar(Pel **imgYvar, Pel *imgYpad, Int stride, In
       avgvar = (Pel) Clip_post(varmax, avgvar >>(g_uiBitIncrement+1));
       avgvar = th[avgvar];
       avgvar = Clip_post(step1, (Int) avgvar ) + (step1+1)*direction;
-      imgYvar[(i - 1)>>shiftH][(j - 1)>>shiftW] = avgvar;
+      imgYvar[(i )>>shiftH][(j)>>shiftW] = avgvar;
     }
   }
 }
