@@ -1295,7 +1295,7 @@ TComDataCU* TComDataCU::getPULeft( UInt& uiLPartUnitIdx, UInt uiCurrPartUnitIdx,
 }
 
 #if REMOVE_INTRA_LINE_BUFFER
-TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction, Bool MotionDataCompresssion, Bool IntraLineBufferRemoval )
+TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction, Bool MotionDataCompresssion, Bool planarAtLCUBoundary )
 #else
 TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction, Bool MotionDataCompresssion )
 #endif
@@ -1334,7 +1334,7 @@ TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx
   }
 
 #if REMOVE_INTRA_LINE_BUFFER
-  if(IntraLineBufferRemoval)
+  if(planarAtLCUBoundary)
   {
       return NULL;
   }
