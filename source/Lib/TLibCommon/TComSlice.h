@@ -530,6 +530,10 @@ private:
   Int      m_iNumSubstreams;
 #endif
 
+#if NO_TMVP_MARKING
+  Bool     m_bEnableTMVPFlag;
+#endif
+
 public:
   TComPPS();
   virtual ~TComPPS();
@@ -635,6 +639,11 @@ public:
   Bool     getCabacIstateReset()                              { return m_bCabacIstateReset; }
   Void     setNumSubstreams(Int iNumSubstreams)               { m_iNumSubstreams = iNumSubstreams; }
   Int      getNumSubstreams()                                 { return m_iNumSubstreams; }
+#endif
+
+#if NO_TMVP_MARKING
+  Void     setEnableTMVPFlag( Bool b )  { m_bEnableTMVPFlag = b;    }
+  Bool     getEnableTMVPFlag()          { return m_bEnableTMVPFlag; }
 #endif
 };
 
@@ -972,6 +981,11 @@ public:
   Void decodingRefMarkingForLD( TComList<TComPic*>& rcListPic, Int iMaxNumRefFrames, Int iCurrentPOC );
 #endif
 #endif
+
+#if NO_TMVP_MARKING
+  Void decodingMarkingForNoTMVP( TComList<TComPic*>& rcListPic, Int iCurrentPOC );
+#endif
+
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   UInt m_uiMaxNumMergeCand;
   Void setMaxNumMergeCand               (UInt maxNumMergeCand ) { m_uiMaxNumMergeCand = maxNumMergeCand;  }

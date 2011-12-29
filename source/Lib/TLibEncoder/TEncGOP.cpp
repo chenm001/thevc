@@ -291,6 +291,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       // Do decoding refresh marking if any 
       pcSlice->decodingRefreshMarking(m_uiPOCCDR, m_bRefreshPending, rcListPic);
 
+#if NO_TMVP_MARKING
+      if ( !pcSlice->getPPS()->getEnableTMVPFlag() && pcPic->getTLayer() == 0 )
+      {
+        pcSlice->decodingMarkingForNoTMVP( rcListPic, pcSlice->getPOC() );
+      }
+#endif
+
 #if !G1002_RPS
       // TODO: We need a common sliding mechanism used by both the encoder and decoder
       // Below is a temporay solution to mark pictures that will be taken off the decoder's ref pic buffer (due to limit on the buffer size) as unused
@@ -1684,6 +1691,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcPic->getPicYuvRec()->copyToPic(pcPicYuvRecOut);
       
       pcPic->setReconMark   ( true );
+
+#if NO_TMVP_MARKING
+      pcPic->setUsedForTMVP ( true );
+#endif
 
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD

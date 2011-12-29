@@ -3154,6 +3154,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
       iCount ++;
     }
   }
+
+#if NO_TMVP_MARKING
+  if ( getSlice()->getPPS()->getEnableTMVPFlag() )
+  {
+#endif
   // col [2]
 #if MRG_TMVP_REFIDX
   Int iRefIdxSkip[2] = {-1, -1};
@@ -3339,6 +3344,10 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     }
   }
   uiIdx++;
+
+#if NO_TMVP_MARKING
+  }
+#endif
 
   for( UInt uiOuter = 0; uiOuter < MRG_MAX_NUM_CANDS; uiOuter++ )
   {
@@ -3789,6 +3798,10 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     return;
   }
   
+#if NO_TMVP_MARKING
+  if ( getSlice()->getPPS()->getEnableTMVPFlag() )
+  {
+#endif
   // Get Temporal Motion Predictor
   int iRefIdx_Col = iRefIdx;
   TComMv cColMv;
@@ -3857,6 +3870,9 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     }
   }
   //----  co-located RightBottom Temporal Predictor  ---//
+#if NO_TMVP_MARKING
+  }
+#endif
 
   // Check No MV Candidate
   xUniqueMVPCand( pInfo );
@@ -4233,6 +4249,13 @@ Bool TComDataCU::xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUni
   {
     return false;
   }
+
+#if NO_TMVP_MARKING
+  if ( !pColPic->getUsedForTMVP() )
+  {
+    return false;
+  }
+#endif
 
   eColRefPicList = getSlice()->getCheckLDC() ? eRefPicList : RefPicList(1-getSlice()->getColDir());
 

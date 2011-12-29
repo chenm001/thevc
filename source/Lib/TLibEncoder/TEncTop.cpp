@@ -776,6 +776,9 @@ Void TEncTop::xInitPPS()
   m_cPPS.setUseWP( m_bUseWeightPred );
   m_cPPS.setWPBiPredIdc( m_uiBiPredIdc );
 #endif
+#if NO_TMVP_MARKING
+  m_cPPS.setEnableTMVPFlag( m_bEnableTMVP );
+#endif
 }
 
 

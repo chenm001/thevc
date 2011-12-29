@@ -281,6 +281,10 @@ protected:
   UInt      m_uiBiPredIdc;          //< Use of Bi-Directional Weighting Prediction (B_SLICE)
 #endif
 
+#if NO_TMVP_MARKING
+  Bool      m_bEnableTMVP;
+#endif
+
 public:
   TEncCfg()          {}
   virtual ~TEncCfg() {
@@ -675,6 +679,10 @@ public:
   UInt      getWPBiPredIdc         ()            { return m_uiBiPredIdc;       }
 #endif
 
+#if NO_TMVP_MARKING
+  Void      setEnableTMVP ( Bool b ) { m_bEnableTMVP = b;    }
+  Bool      getEnableTMVP ()         { return m_bEnableTMVP; }
+#endif
 };
 
 //! \}

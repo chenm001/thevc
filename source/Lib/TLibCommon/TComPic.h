@@ -70,6 +70,10 @@ private:
   TComPicYuv*           m_pcPicYuvResi;           //  Residual
   Bool                  m_bReconstructed;
   UInt                  m_uiCurrSliceIdx;         // Index of current slice
+
+#if NO_TMVP_MARKING
+  Bool                  m_bUsedForTMVP;
+#endif
   
   SEImessages* m_SEIs; ///< Any SEI messages that have been received.  If !NULL we own the object.
 
@@ -126,6 +130,11 @@ public:
   
   Void          setReconMark (Bool b) { m_bReconstructed = b;     }
   Bool          getReconMark ()       { return m_bReconstructed;  }
+
+#if NO_TMVP_MARKING
+  Void          setUsedForTMVP( Bool b ) { m_bUsedForTMVP = b;    }
+  Bool          getUsedForTMVP()         { return m_bUsedForTMVP; }
+#endif
   
 #if AMVP_BUFFERCOMPRESS
   Void          compressMotion(); 

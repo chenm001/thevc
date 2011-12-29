@@ -1359,6 +1359,21 @@ Void TComSlice::decodingRefMarkingForLD( TComList<TComPic*>& rcListPic, Int iMax
 #endif
 
 #endif
+
+#if NO_TMVP_MARKING
+Void TComSlice::decodingMarkingForNoTMVP( TComList<TComPic*>& rcListPic, Int iCurrentPOC )
+{
+  TComList<TComPic*>::iterator it;
+  for ( it = rcListPic.begin(); it != rcListPic.end(); it++ )
+  {
+    if ( (*it)->getSlice(0)->getPOC() != iCurrentPOC )
+    {
+      (*it)->setUsedForTMVP( false );
+    }
+  }
+}
+#endif
+
 #if WEIGHT_PRED
 /** get AC and DC values for weighted pred
  * \param *wp

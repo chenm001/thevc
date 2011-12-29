@@ -324,6 +324,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #endif
 #endif
 
+#if NO_TMVP_MARKING
+  ("TMVP", m_bEnableTMVP, true, "Enable TMVP" )
+#endif
+
   ("FEN", m_bUseFastEnc, false, "fast encoder setting")
 #if EARLY_CU_DETERMINATION
   ("ECU", m_bUseEarlyCU, false, "Early CU setting") 
@@ -1034,6 +1038,10 @@ Void TAppEncCfg::xPrintParameter()
 #if OL_USE_WPP
   printf(" WaveFrontSynchro:%d WaveFrontFlush:%d WaveFrontSubstreams:%d",
           m_iWaveFrontSynchro, m_iWaveFrontFlush, m_iWaveFrontSubstreams);
+#endif
+
+#if NO_TMVP_MARKING
+  printf("TMVP:%d ", m_bEnableTMVP     );
 #endif
 
   printf("\n\n");

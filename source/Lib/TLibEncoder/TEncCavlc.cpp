@@ -341,6 +341,9 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   //   num_ref_idx_l1_default_active_minus1
   //   pic_init_qp_minus26  /* relative to 26 */
   WRITE_FLAG( pcPPS->getConstrainedIntraPred() ? 1 : 0,      "constrained_intra_pred_flag" );
+#if NO_TMVP_MARKING
+  WRITE_FLAG( pcPPS->getEnableTMVPFlag() ? 1 : 0,            "enable_temporal_mvp_flag" );
+#endif
 #if FINE_GRANULARITY_SLICES
   WRITE_CODE( pcPPS->getSliceGranularity(), 2,               "slice_granularity");
 #endif

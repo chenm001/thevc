@@ -58,6 +58,9 @@ TComPic::TComPic()
   m_bIsLongTerm       = false;
 #endif
   m_bReconstructed    = false;
+#if NO_TMVP_MARKING
+  m_bUsedForTMVP      = true;
+#endif
 }
 
 TComPic::~TComPic()

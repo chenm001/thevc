@@ -597,6 +597,10 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 
     rpcPic->setReconMark(true);
 
+#if NO_TMVP_MARKING
+    rpcPic->setUsedForTMVP( true );
+#endif
+
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD
       if ( rpcPic->getSlice(0)->getSPS()->getUseNewRefSetting() )

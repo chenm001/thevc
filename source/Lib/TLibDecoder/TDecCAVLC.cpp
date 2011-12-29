@@ -313,6 +313,9 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   // num_ref_idx_l1_default_active_minus1
   // pic_init_qp_minus26  /* relative to 26 */
   READ_FLAG( uiCode, "constrained_intra_pred_flag" );              pcPPS->setConstrainedIntraPred( uiCode ? true : false );
+#if NO_TMVP_MARKING
+  READ_FLAG( uiCode, "enable_temporal_mvp_flag" );                 pcPPS->setEnableTMVPFlag( uiCode ? true : false );
+#endif
 #if FINE_GRANULARITY_SLICES
   READ_CODE( 2, uiCode, "slice_granularity" );                     pcPPS->setSliceGranularity(uiCode);
 #endif
