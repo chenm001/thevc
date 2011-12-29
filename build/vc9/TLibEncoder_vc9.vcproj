@@ -318,10 +318,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibEncoder\TEncPreanalyzer.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncSbac.cpp"
 				>
 			</File>
@@ -384,10 +380,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncPic.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibEncoder\TEncPreanalyzer.h"
 				>
 			</File>
 			<File
