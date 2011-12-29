@@ -421,10 +421,20 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   g_uiIBDI_MAX  = ((1<<(g_uiBitDepth+g_uiBitIncrement))-1);
 #endif
   READ_UVLC( uiCode,    "bit_depth_chroma_minus8" );
+
+#if MAX_PCM_SIZE
+  xReadFlag( uiCode ); pcSPS->setUsePCM( uiCode ? true : false );
+#endif
+
+#if MAX_PCM_SIZE
+  if( pcSPS->getUsePCM() )
+#endif
+  {
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX
   READ_CODE( 4, uiCode, "pcm_bit_depth_luma_minus1" );           pcSPS->setPCMBitDepthLuma   ( 1 + uiCode );
   READ_CODE( 4, uiCode, "pcm_bit_depth_chroma_minus1" );         pcSPS->setPCMBitDepthChroma ( 1 + uiCode );
 #endif
+  }
 #if G1002_RPS
   READ_UVLC( uiCode,    "log2_max_pic_order_cnt_lsb_minus4" );   pcSPS->setBitsForPOC( 4 + uiCode );
   READ_UVLC( uiCode,    "max_num_ref_pics" );                    pcSPS->setMaxNumberOfReferencePictures(uiCode);
@@ -455,9 +465,23 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   pcSPS->setMaxCUWidth  ( 1<<(log2MinCUSize + uiMaxCUDepthCorrect) ); g_uiMaxCUWidth  = 1<<(log2MinCUSize + uiMaxCUDepthCorrect);
   pcSPS->setMaxCUHeight ( 1<<(log2MinCUSize + uiMaxCUDepthCorrect) ); g_uiMaxCUHeight = 1<<(log2MinCUSize + uiMaxCUDepthCorrect);
   READ_UVLC( uiCode, "log2_min_transform_block_size_minus2" );   pcSPS->setQuadtreeTULog2MinSize( uiCode + 2 );
+
+#if MIN_CHROMA_TU
+  pcSPS->setChromaQuadtreeTULog2MinSize( max( (Int)pcSPS->getQuadtreeTULog2MinSize()-1, 2) );
+#endif
   READ_UVLC( uiCode, "log2_diff_max_min_transform_block_size" ); pcSPS->setQuadtreeTULog2MaxSize( uiCode + pcSPS->getQuadtreeTULog2MinSize() );
   pcSPS->setMaxTrSize( 1<<(uiCode + pcSPS->getQuadtreeTULog2MinSize()) );
+
+#if MAX_PCM_SIZE
+  if( pcSPS->getUsePCM() )
+  {
+#endif
   READ_UVLC( uiCode, "log2_min_pcm_coding_block_size_minus3" );  pcSPS->setPCMLog2MinSize (uiCode+3); 
+#if MAX_PCM_SIZE
+  READ_UVLC( uiCode, "log2_diff_max_min_pcm_coding_block_size" ); pcSPS->setPCMLog2MaxSize ( uiCode+pcSPS->getPCMLog2MinSize() );
+  }
+#endif
+
   READ_UVLC( uiCode, "max_transform_hierarchy_depth_inter" );    pcSPS->setQuadtreeTUMaxDepthInter( uiCode+1 );
   READ_UVLC( uiCode, "max_transform_hierarchy_depth_intra" );    pcSPS->setQuadtreeTUMaxDepthIntra( uiCode+1 );
   g_uiAddCUDepth = 0;
@@ -472,9 +496,16 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO ( uiCode ? true : false );  
 #endif
   READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );      pcSPS->setUseALF ( uiCode ? true : false );
+
+#if MAX_PCM_SIZE
+  if( pcSPS->getUsePCM() )
+#endif
+  {
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   READ_FLAG( uiCode, "pcm_loop_filter_disable_flag" );           pcSPS->setPCMFilterDisableFlag ( uiCode ? true : false );
 #endif
+  }
+
   READ_FLAG( uiCode, "cu_qp_delta_enabled_flag" );               pcSPS->setUseDQP ( uiCode ? true : false );
   READ_FLAG( uiCode, "temporal_id_nesting_flag" );               pcSPS->setTemporalIdNestingFlag ( uiCode > 0 ? true : false );
 

@@ -3396,7 +3396,11 @@ Void TComAdaptiveLoopFilter::PCMLFDisableProcess (TComPic* pcPic)
  */
 Void TComAdaptiveLoopFilter::xPCMRestoration(TComPic* pcPic)
 {
+#if MAX_PCM_SIZE
+  Bool  bPCMFilter = (pcPic->getSlice(0)->getSPS()->getUsePCM() && pcPic->getSlice(0)->getSPS()->getPCMFilterDisableFlag())? true : false;
+#else
   Bool  bPCMFilter = (pcPic->getSlice(0)->getSPS()->getPCMFilterDisableFlag() && ((1<<pcPic->getSlice(0)->getSPS()->getPCMLog2MinSize()) <= g_uiMaxCUWidth))? true : false;
+#endif
 
   if(bPCMFilter)
   {

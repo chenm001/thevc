@@ -277,7 +277,14 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #endif
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
     ("ConstrainedIntraPred", m_bUseConstrainedIntraPred, false, "Constrained Intra Prediction")
+#if MAX_PCM_SIZE
+    ("PCMEnabledFlag", m_bUsePCM         , false)
+    ("PCMLog2MaxSize", m_uiPCMLog2MaxSize, 5u)
+    ("PCMLog2MinSize", m_uiPCMLog2MinSize, 3u)
+#else
     ("PCMLog2MinSize", m_uiPCMLog2MinSize, 7u)
+#endif
+
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX
     ("PCMInputBitDepthFlag", m_bPCMInputBitDepthFlag, true)
 #endif
@@ -528,8 +535,18 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra < 1,                                                         "QuadtreeTUMaxDepthIntra must be greater than or equal to 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
 
+#if MAX_PCM_SIZE
+  if( m_bUsePCM)
+  {
+    xConfirmPara(  m_uiPCMLog2MinSize < 3,                                        "PCMLog2MinSize must be 3 or greater.");
+    xConfirmPara(  m_uiPCMLog2MinSize > 5,                                        "PCMLog2MinSize must be 5 or smaller.");
+    xConfirmPara(  m_uiPCMLog2MaxSize > 5,                                        "PCMLog2MaxSize must be 5 or smaller.");
+    xConfirmPara(  m_uiPCMLog2MaxSize < m_uiPCMLog2MinSize,                       "PCMLog2MaxSize must be equal to or greater than m_uiPCMLog2MinSize.");
+  }
+#else
   xConfirmPara(  m_uiPCMLog2MinSize < 3,                                        "PCMLog2MinSize must be 3 or greater.");
   xConfirmPara(  m_uiPCMLog2MinSize > 7,                                        "PCMLog2MinSize must be 7 or smaller.");
+#endif
 
   xConfirmPara( m_iSliceMode < 0 || m_iSliceMode > 2, "SliceMode exceeds supported range (0 to 2)" );
   if (m_iSliceMode!=0)

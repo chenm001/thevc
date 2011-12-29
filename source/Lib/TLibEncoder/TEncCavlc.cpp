@@ -411,10 +411,20 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #else
   WRITE_UVLC( pcSPS->getBitIncrement(),             "bit_depth_chroma_minus8" );
 #endif
+
+#if MAX_PCM_SIZE
+  WRITE_FLAG( pcSPS->getUsePCM() ? 1 : 0,                   "pcm_enabled_flag");
+#endif
+
+#if MAX_PCM_SIZE
+  if( pcSPS->getUsePCM() )
+#endif
+  {
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX
   WRITE_CODE( pcSPS->getPCMBitDepthLuma() - 1, 4,   "pcm_bit_depth_luma_minus1" );
   WRITE_CODE( pcSPS->getPCMBitDepthChroma() - 1, 4, "pcm_bit_depth_chroma_minus1" );
 #endif
+  }
 #if G1002_RPS
   WRITE_UVLC( pcSPS->getBitsForPOC()-4,                 "log2_max_pic_order_cnt_lsb_minus4" );
   WRITE_UVLC( pcSPS->getMaxNumberOfReferencePictures(), "max_num_ref_pics" ); 
@@ -452,7 +462,16 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_UVLC( pcSPS->getMaxCUDepth()-g_uiAddCUDepth,                                 "log2_diff_max_min_coding_block_size" );
   WRITE_UVLC( pcSPS->getQuadtreeTULog2MinSize() - 2,                                 "log2_min_transform_block_size_minus2" );
   WRITE_UVLC( pcSPS->getQuadtreeTULog2MaxSize() - pcSPS->getQuadtreeTULog2MinSize(), "log2_diff_max_min_transform_block_size" );
+#if MAX_PCM_SIZE
+  if( pcSPS->getUsePCM() )
+  {
+#endif
   WRITE_UVLC( pcSPS->getPCMLog2MinSize() - 3,                                        "log2_min_pcm_coding_block_size_minus3" );
+
+#if MAX_PCM_SIZE
+  WRITE_UVLC( pcSPS->getPCMLog2MaxSize() - pcSPS->getPCMLog2MinSize(),               "log2_diff_max_min_pcm_coding_block_size" );
+  }
+#endif
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthInter() - 1,                               "max_transform_hierarchy_depth_inter" );
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthIntra() - 1,                               "max_transform_hierarchy_depth_intra" );
   WRITE_FLAG  ( (pcSPS->getUseLMChroma ()) ? 1 : 0,                                  "chroma_pred_from_luma_enabled_flag" ); 
@@ -461,9 +480,17 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_FLAG( pcSPS->getUseSAO() ? 1 : 0,                                            "sample_adaptive_offset_enabled_flag");
 #endif
   WRITE_FLAG( (pcSPS->getUseALF ()) ? 1 : 0,                                         "adaptive_loop_filter_enabled_flag");
+
+#if MAX_PCM_SIZE
+  if( pcSPS->getUsePCM() )
+#endif
+  {
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   WRITE_FLAG( pcSPS->getPCMFilterDisableFlag()?1 : 0,                                "pcm_loop_filter_disable_flag");
 #endif
+  }
+
+
   WRITE_FLAG( (pcSPS->getUseDQP ()) ? 1 : 0,                                         "cu_qp_delta_enabled_flag" );
   assert( pcSPS->getMaxTLayers() > 0 );         
 

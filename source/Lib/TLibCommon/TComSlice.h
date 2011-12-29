@@ -89,8 +89,15 @@ private:
   // Tool list
   UInt        m_uiQuadtreeTULog2MaxSize;
   UInt        m_uiQuadtreeTULog2MinSize;
+#if MIN_CHROMA_TU
+  UInt        m_uiChromaQuadtreeTULog2MinSize;
+#endif
   UInt        m_uiQuadtreeTUMaxDepthInter;
   UInt        m_uiQuadtreeTUMaxDepthIntra;
+#if MAX_PCM_SIZE
+  Bool        m_bUsePCM;
+  UInt        m_uiPCMLog2MaxSize;
+#endif
   UInt        m_uiPCMLog2MinSize;
 #if DISABLE_4x4_INTER
   Bool        m_bDisInter4x4;
@@ -178,6 +185,12 @@ public:
   UInt getMaxCUHeight ()         { return  m_uiMaxCUHeight; }
   Void setMaxCUDepth  ( UInt u ) { m_uiMaxCUDepth = u;      }
   UInt getMaxCUDepth  ()         { return  m_uiMaxCUDepth;  }
+#if MAX_PCM_SIZE
+  Void setUsePCM      ( Bool b ) { m_bUsePCM = b;           }
+  Bool getUsePCM      ()         { return m_bUsePCM;        }
+  Void setPCMLog2MaxSize  ( UInt u ) { m_uiPCMLog2MaxSize = u;      }
+  UInt getPCMLog2MaxSize  ()         { return  m_uiPCMLog2MaxSize;  }
+#endif
   Void setPCMLog2MinSize  ( UInt u ) { m_uiPCMLog2MinSize = u;      }
   UInt getPCMLog2MinSize  ()         { return  m_uiPCMLog2MinSize;  }
 #if G1002_RPS
@@ -200,6 +213,10 @@ public:
   UInt getQuadtreeTULog2MaxSize()         { return m_uiQuadtreeTULog2MaxSize; }
   Void setQuadtreeTULog2MinSize( UInt u ) { m_uiQuadtreeTULog2MinSize = u;    }
   UInt getQuadtreeTULog2MinSize()         { return m_uiQuadtreeTULog2MinSize; }
+#if MIN_CHROMA_TU
+  Void setChromaQuadtreeTULog2MinSize( UInt u ) { m_uiChromaQuadtreeTULog2MinSize = u;    }
+  UInt getChromaQuadtreeTULog2MinSize()         { return m_uiChromaQuadtreeTULog2MinSize; }
+#endif
   Void setQuadtreeTUMaxDepthInter( UInt u ) { m_uiQuadtreeTUMaxDepthInter = u;    }
   Void setQuadtreeTUMaxDepthIntra( UInt u ) { m_uiQuadtreeTUMaxDepthIntra = u;    }
   UInt getQuadtreeTUMaxDepthInter()         { return m_uiQuadtreeTUMaxDepthInter; }

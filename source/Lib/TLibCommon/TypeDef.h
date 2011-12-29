@@ -128,6 +128,8 @@
 #define LEVEL_LIMIT                         1      ///< G719 : Restriction for limits to 16 bits (signed) diapason
 #define COEFF_CTXSET_RED                    1      ///< G783 : reduce level context set of chroma
 #define SIGMAP_CTX_RED                      1      ///< G1015 : context number reduction for significance map coding
+#define MAX_PCM_SIZE                        1      ///< G112 : SPS control of PCM mode; Maximum PCM size no larger than 32x32
+#define MIN_CHROMA_TU                       1      ///< G112 : Log2_minimum_chroma_transform_size = max (Log2_minimum_luma_transform_size-1, 2)
 ////////////////////////////
 // JCT-VC G end
 ////////////////////////////

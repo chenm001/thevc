@@ -1557,6 +1557,10 @@ TComSPS::TComSPS()
 , m_uiQuadtreeTUMaxDepthInter (  0)
 , m_uiQuadtreeTUMaxDepthIntra (  0)
 // Tool list
+#if MAX_PCM_SIZE
+, m_bUsePCM                   (false)
+, m_uiPCMLog2MaxSize          (  7)
+#endif
 , m_uiPCMLog2MinSize          (  7)
 #if DISABLE_4x4_INTER
 , m_bDisInter4x4              (  1)

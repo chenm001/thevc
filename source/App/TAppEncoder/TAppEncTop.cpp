@@ -161,6 +161,9 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUsePAD                       ( m_bUsePAD      );
   m_cTEncTop.setQuadtreeTULog2MaxSize        ( m_uiQuadtreeTULog2MaxSize );
   m_cTEncTop.setQuadtreeTULog2MinSize        ( m_uiQuadtreeTULog2MinSize );
+#if MIN_CHROMA_TU
+  m_cTEncTop.setChromaQuadtreeTULog2MinSize  ( max((Int)m_uiQuadtreeTULog2MinSize-1, 2) );
+#endif
   m_cTEncTop.setQuadtreeTUMaxDepthInter      ( m_uiQuadtreeTUMaxDepthInter );
   m_cTEncTop.setQuadtreeTUMaxDepthIntra      ( m_uiQuadtreeTUMaxDepthIntra );
 #if !G1002_RPS
@@ -179,6 +182,11 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );
   m_cTEncTop.setPCMLog2MinSize          ( m_uiPCMLog2MinSize);
+#if MAX_PCM_SIZE
+  m_cTEncTop.setUsePCM                       ( m_bUsePCM );
+  m_cTEncTop.setPCMLog2MaxSize               ( m_uiPCMLog2MaxSize);
+#endif
+
 #if WEIGHT_PRED
   //====== Weighted Prediction ========
   m_cTEncTop.setUseWP                   ( m_bUseWeightPred      );

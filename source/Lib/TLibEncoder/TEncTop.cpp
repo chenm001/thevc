@@ -579,11 +579,18 @@ Void TEncTop::xInitSPS()
   m_cSPS.setMaxNumberOfReorderPictures(m_uiMaxNumberOfReorderPictures);
 #endif
   m_cSPS.setPCMLog2MinSize (m_uiPCMLog2MinSize);
+#if MAX_PCM_SIZE
+  m_cSPS.setUsePCM        ( m_bUsePCM           );
+  m_cSPS.setPCMLog2MaxSize( m_uiPCMLog2MaxSize  );
+#endif
 
   m_cSPS.setUseALF        ( m_bUseALF           );
   
   m_cSPS.setQuadtreeTULog2MaxSize( m_uiQuadtreeTULog2MaxSize );
   m_cSPS.setQuadtreeTULog2MinSize( m_uiQuadtreeTULog2MinSize );
+#if MIN_CHROMA_TU
+  m_cSPS.setChromaQuadtreeTULog2MinSize( m_uiChromaQuadtreeTULog2MinSize );
+#endif
   m_cSPS.setQuadtreeTUMaxDepthInter( m_uiQuadtreeTUMaxDepthInter    );
   m_cSPS.setQuadtreeTUMaxDepthIntra( m_uiQuadtreeTUMaxDepthIntra    );
   

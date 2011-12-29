@@ -788,7 +788,11 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
   Int   iOffset, iSrcStep;
 
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
+#if MAX_PCM_SIZE
+  Bool  bPCMFilter = (pcCU->getSlice()->getSPS()->getUsePCM() && pcCU->getSlice()->getSPS()->getPCMFilterDisableFlag())? true : false;
+#else
   Bool  bPCMFilter = (pcCU->getSlice()->getSPS()->getPCMFilterDisableFlag() && ((1<<pcCU->getSlice()->getSPS()->getPCMLog2MinSize()) <= g_uiMaxCUWidth))? true : false;
+#endif
   Bool  bPartPNoFilter = false;
   Bool  bPartQNoFilter = false; 
 #if DBF_DQP
@@ -1084,7 +1088,11 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
   const UInt uiLCUWidthInBaseUnits = pcCU->getPic()->getNumPartInWidth();
   
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
+#if MAX_PCM_SIZE
+  Bool  bPCMFilter = (pcCU->getSlice()->getSPS()->getUsePCM() && pcCU->getSlice()->getSPS()->getPCMFilterDisableFlag())? true : false;
+#else
   Bool  bPCMFilter = (pcCU->getSlice()->getSPS()->getPCMFilterDisableFlag() && ((1<<pcCU->getSlice()->getSPS()->getPCMLog2MinSize()) <= g_uiMaxCUWidth))? true : false;
+#endif
   Bool  bPartPNoFilter = false;
   Bool  bPartQNoFilter = false; 
   UInt  uiPartPIdx;
