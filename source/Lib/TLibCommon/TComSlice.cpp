@@ -782,6 +782,30 @@ Void TComSlice::initEqualRef()
   }
 }
 
+#if G1002_RPS && G1002_CRA_CHECK
+Void TComSlice::checkCRA(TComReferencePictureSet *pReferencePictureSet, UInt& uiPOCCDR, TComList<TComPic*>& rcListPic)
+{
+  for(Int i = 0; i < pReferencePictureSet->getNumberOfNegativePictures()+pReferencePictureSet->getNumberOfPositivePictures(); i++)
+  {
+    if(uiPOCCDR < MAX_UINT && getPOC() > uiPOCCDR)
+    {
+      assert(getPOC()+pReferencePictureSet->getDeltaPOC(i) >= uiPOCCDR);
+    }
+  }
+  for(Int i = pReferencePictureSet->getNumberOfNegativePictures()+pReferencePictureSet->getNumberOfPositivePictures(); i < pReferencePictureSet->getNumberOfPictures(); i++)
+  {
+    if(uiPOCCDR < MAX_UINT && getPOC() > uiPOCCDR)
+    {
+      assert(pReferencePictureSet->getPOC(i) >= uiPOCCDR);
+    }
+  }
+  if (getNalUnitType() == NAL_UNIT_CODED_SLICE_CDR) // CDR picture found
+  {
+    uiPOCCDR = getPOC();
+  }
+}
+#endif
+
 /** Function for marking the reference pictures when an IDR and CDR is encountered.
  * \param uiPOCCDR POC of the CDR picture
  * \param bRefreshPending flag indicating if a deferred decoding refresh is pending
