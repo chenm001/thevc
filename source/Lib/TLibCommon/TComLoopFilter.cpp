@@ -858,6 +858,11 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
       {
         pcCUP = pcCUQ->getPUAbove(uiPartPIdx, uiPartQIdx);
       }
+      if (!pcCUP)
+      {
+        return;
+      }
+
       iQP_P = pcCUP->getQP(uiPartPIdx);
 
       if(pcCU->getIPCMFlag(uiPartQIdx)) 
