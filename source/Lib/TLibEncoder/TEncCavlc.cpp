@@ -615,7 +615,9 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       if (pcSlice->getSPS()->getUseALF())
       {
          if (pcSlice->getAlfEnabledFlag())
+         {
            assert (pcSlice->getAPS()->getAlfEnabled());
+         }
          WRITE_FLAG( pcSlice->getAlfEnabledFlag(), "ALF on/off flag in slice header" );
       }
       if (pcSlice->getSPS()->getUseSAO())

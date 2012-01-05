@@ -722,8 +722,8 @@ private:
   Int         m_iAPSId; //!< APS ID in slice header
 #endif
 #if ALF_SAO_SLICE_FLAGS
-  bool       m_alf_enabled_flag;
-  bool       m_sao_enabled_flag;
+  bool       m_alfEnabledFlag;
+  bool       m_saoEnabledFlag;
 #endif
   Int         m_iPPSId;               ///< picture parameter set ID
   Int         m_iPOC;
@@ -854,10 +854,10 @@ public:
   Int       getAPSId        ()                 { return m_iAPSId; } //!< get APS ID
 #endif
 #if ALF_SAO_SLICE_FLAGS
-  Void      setAlfEnabledFlag(bool s) {m_alf_enabled_flag =s; }
-  Bool      getAlfEnabledFlag() { return m_alf_enabled_flag; }
-  Void      setSaoEnabledFlag(bool s) {m_sao_enabled_flag =s; }
-  Bool      getSaoEnabledFlag() { return m_sao_enabled_flag; }
+  Void      setAlfEnabledFlag(Bool s) {m_alfEnabledFlag =s; }
+  Bool      getAlfEnabledFlag() { return m_alfEnabledFlag; }
+  Void      setSaoEnabledFlag(Bool s) {m_saoEnabledFlag =s; }
+  Bool      getSaoEnabledFlag() { return m_saoEnabledFlag; }
 #endif
 #if G1002_RPS
   Void      setRPS          ( TComReferencePictureSet *pcRPS ) { m_pcRPS = pcRPS; }
