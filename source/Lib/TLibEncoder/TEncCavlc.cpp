@@ -611,6 +611,19 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #if F747_APS
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
     {
+#if ALF_SAO_SLICE_FLAGS
+      if (pcSlice->getSPS()->getUseALF())
+      {
+         if (pcSlice->getAlfEnabledFlag())
+           assert (pcSlice->getAPS()->getAlfEnabled());
+         WRITE_FLAG( pcSlice->getAlfEnabledFlag(), "ALF on/off flag in slice header" );
+      }
+      if (pcSlice->getSPS()->getUseSAO())
+      {
+         assert (pcSlice->getSaoEnabledFlag() == pcSlice->getAPS()->getSaoEnabled());
+         WRITE_FLAG( pcSlice->getSaoEnabledFlag(), "SAO on/off flag in slice header" );
+      }
+#endif
       WRITE_UVLC( pcSlice->getAPS()->getAPSID(), "aps_id");
     }
 #endif

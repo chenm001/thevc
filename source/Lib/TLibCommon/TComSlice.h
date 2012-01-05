@@ -721,6 +721,10 @@ private:
 #if F747_APS
   Int         m_iAPSId; //!< APS ID in slice header
 #endif
+#if ALF_SAO_SLICE_FLAGS
+  bool       m_alf_enabled_flag;
+  bool       m_sao_enabled_flag;
+#endif
   Int         m_iPPSId;               ///< picture parameter set ID
   Int         m_iPOC;
 #if G1002_RPS
@@ -849,7 +853,12 @@ public:
   Void      setAPSId        ( Int Id)          { m_iAPSId =Id;    } //!< set APS ID
   Int       getAPSId        ()                 { return m_iAPSId; } //!< get APS ID
 #endif
-  
+#if ALF_SAO_SLICE_FLAGS
+  Void      setAlfEnabledFlag(bool s) {m_alf_enabled_flag =s; }
+  Bool      getAlfEnabledFlag() { return m_alf_enabled_flag; }
+  Void      setSaoEnabledFlag(bool s) {m_sao_enabled_flag =s; }
+  Bool      getSaoEnabledFlag() { return m_sao_enabled_flag; }
+#endif
 #if G1002_RPS
   Void      setRPS          ( TComReferencePictureSet *pcRPS ) { m_pcRPS = pcRPS; }
   TComReferencePictureSet*  getRPS          () { return m_pcRPS; }

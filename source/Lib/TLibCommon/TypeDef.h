@@ -131,6 +131,7 @@
 #define SIGMAP_CTX_RED                      1      ///< G1015 : context number reduction for significance map coding
 #define MAX_PCM_SIZE                        1      ///< G112 : SPS control of PCM mode; Maximum PCM size no larger than 32x32
 #define MIN_CHROMA_TU                       1      ///< G112 : Log2_minimum_chroma_transform_size = max (Log2_minimum_luma_transform_size-1, 2)
+#define ALF_SAO_SLICE_FLAGS                 1    ///< G566 : Re-insert ALF and SAO flags in the slice header
 ////////////////////////////
 // JCT-VC G end
 ////////////////////////////
