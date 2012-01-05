@@ -281,21 +281,33 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif 
 #if SCALING_LIST
       pcSlice->setScalingList ( m_pcEncTop->getScalingList()  );
-      if(pcSlice->getSPS()->getUseScalingList())
+      if(pcSlice->getSPS()->getScalingListId() == SCALING_LIST_OFF)
+      {
+        m_pcEncTop->getTrQuant()->setFlatScalingList();
+        m_pcEncTop->getTrQuant()->setUseScalingList(false);
+      }
+      else if(pcSlice->getSPS()->getScalingListId() == SCALING_LIST_DEFAULT)
+      {
+        pcSlice->setDefaultScalingList ();
+        pcSlice->getScalingList()->setUseDefaultOnlyFlag(true);
+        m_pcEncTop->getTrQuant()->setScalingList(pcSlice->getScalingList());
+        m_pcEncTop->getTrQuant()->setUseScalingList(true);
+      }
+      else if(pcSlice->getSPS()->getScalingListId() == SCALING_LIST_FILE_READ)
       {
         if(pcSlice->getScalingList()->xParseScalingList(m_pcCfg->getScalingListFile()))
         {
           pcSlice->setDefaultScalingList ();
         }
         pcSlice->getScalingList()->xScalingListatrixModeDecision();
-        pcSlice->getScalingList()->setUseDefaultOnlyFlag(pcSlice->CheckDefaultScalingList());
+        pcSlice->getScalingList()->setUseDefaultOnlyFlag(pcSlice->checkDefaultScalingList());
         m_pcEncTop->getTrQuant()->setScalingList(pcSlice->getScalingList());
         m_pcEncTop->getTrQuant()->setUseScalingList(true);
       }
       else
       {
-        m_pcEncTop->getTrQuant()->setFlatScalingList();
-        m_pcEncTop->getTrQuant()->setUseScalingList(false);
+        printf("error : ScalingList == %d no support\n",pcSlice->getSPS()->getScalingListId());
+        assert(0);
       }
 #endif
 
@@ -854,7 +866,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
 #if SAO
 #if SCALING_LIST
-      Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseScalingList())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
+      Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getScalingListId())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
 #else
       Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
 #endif
@@ -1801,9 +1813,13 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
   cAPS.setAPSID(apsID);
 #if SCALING_LIST
   if(pcSlice->getPOC() == 0)
-  cAPS.setScalingListEnabled(pcSlice->getSPS()->getUseScalingList());
+  {
+    cAPS.setScalingListEnabled((pcSlice->getSPS()->getScalingListId() == 0) ? 0: 1);
+  }
   else
-  cAPS.setScalingListEnabled(false);
+  {
+    cAPS.setScalingListEnabled(false);
+  }
 #endif
 
   cAPS.setSaoEnabled(pcSlice->getSPS()->getUseSAO() ? (cAPS.getSaoParam()->bSaoFlag[0] ):(false));

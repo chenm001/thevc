@@ -236,7 +236,7 @@ Void TDecCavlc::parseAPSInitInfo(TComAPS& cAPS)
   //aps ID
   xReadUvlc(uiCode);      cAPS.setAPSID(uiCode);
 #if SCALING_LIST
-  xReadFlag(uiCode);      cAPS.setScalingListEnabled( (uiCode==1)?true:false );
+  READ_FLAG(uiCode,"aps_scaling_list_data_present_flag");      cAPS.setScalingListEnabled( (uiCode==1)?true:false );
 #endif
   //SAO flag
   xReadFlag(uiCode);      cAPS.setSaoEnabled( (uiCode==1)?true:false );
@@ -470,7 +470,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   pcSPS->setMinTrDepth( 0 );
   pcSPS->setMaxTrDepth( 1 );
 #if SCALING_LIST
-  READ_FLAG( uiCode, "scaling_list_enable_flag" );               pcSPS->setUseScalingList ( uiCode ? true : false );
+  READ_FLAG( uiCode, "scaling_list_enable_flag" );               pcSPS->setScalingListId ( uiCode ? true : false );
 #endif
   READ_FLAG( uiCode, "chroma_pred_from_luma_enabled_flag" );     pcSPS->setUseLMChroma ( uiCode ? true : false ); 
   READ_FLAG( uiCode, "loop_filter_across_slice_flag" );          pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
@@ -655,7 +655,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 #endif
 #if F747_APS
 #if SCALING_LIST
-    if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF() || rpcSlice->getSPS()->getUseScalingList())
+    if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF() || rpcSlice->getSPS()->getScalingListId())
 #else
     if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF())
 #endif
@@ -3303,7 +3303,8 @@ Void TDecCavlc::parseScalingList(TComScalingList* pcScalingList)
 {
   UInt  uiCode, uiSizeId, uiListId;
   Int *piDst=0;
-  xReadFlag ( uiCode ); pcScalingList->setUseDefaultOnlyFlag  ( uiCode    );
+  READ_FLAG( uiCode, "use_default_scaling_list_flag" );
+  pcScalingList->setUseDefaultOnlyFlag  ( uiCode    );
   if(pcScalingList->getUseDefaultOnlyFlag() == false)
   {
       //for each size
@@ -3312,10 +3313,12 @@ Void TDecCavlc::parseScalingList(TComScalingList* pcScalingList)
       for(uiListId = 0; uiListId <  g_auiScalingListNum[uiSizeId]; uiListId++)
       {
         piDst = pcScalingList->getScalingListAddress(uiSizeId, uiListId);
-        xReadFlag ( uiCode ); pcScalingList->setPredMode (uiSizeId,uiListId,uiCode);
+        READ_FLAG( uiCode, "pred_mode_flag");
+        pcScalingList->setPredMode (uiSizeId,uiListId,uiCode);
         if(pcScalingList->getPredMode (uiSizeId,uiListId) == SCALING_LIST_PRED_COPY) // Matrix_Copy_Mode
         {
-          xReadUvlc ( uiCode ); pcScalingList->setPredMatrixId (uiSizeId,uiListId,(UInt)((Int)(uiListId)-(uiCode+1)));
+          READ_UVLC( uiCode, "pred_matrix_id_delta");
+          pcScalingList->setPredMatrixId (uiSizeId,uiListId,(UInt)((Int)(uiListId)-(uiCode+1)));
           pcScalingList->xPredScalingListatrix( pcScalingList, piDst, uiSizeId, uiListId,uiSizeId, pcScalingList->getPredMatrixId (uiSizeId,uiListId));
         }
         else if(pcScalingList->getPredMode (uiSizeId,uiListId) == SCALING_LIST_PRED_DPCM)//DPCM mode
@@ -3340,13 +3343,13 @@ Void TDecCavlc::xReadScalingListCode(TComScalingList *pcScalingList, Int* piBuf,
   UInt uiSizeX = g_auiScalingListSizeX[uiSizeId];
   UInt* pucScan    = g_auiFrameScanXY [ uiSizeId + 1 ];
   UInt uiDataCounter = 0;
-    for(i=0;i<uiSize;i++)
-    {
-      x = pucScan[i] % uiSizeX;
-      y = pucScan[i] / uiSizeX;
-      xReadSvlc(piBuf[uiDataCounter]);
-      uiDataCounter++;
-    }
+  for(i=0;i<uiSize;i++)
+  {
+    x = pucScan[i] % uiSizeX;
+    y = pucScan[i] / uiSizeX;
+    READ_SVLC( piBuf[uiDataCounter], "delta_coef");
+    uiDataCounter++;
+  }
 }
 /** decode DPCM with quantization matrix
  * \param pcScalingList  quantization matrix information

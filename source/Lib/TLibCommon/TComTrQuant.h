@@ -227,8 +227,8 @@ public:
   double* getErrScaleCoeff ( UInt uiList, UInt uiSize, UInt uiQP, UInt uiDir);
   Int* getQuantCoeff       ( UInt uiList, UInt uiQP, UInt uiSize, UInt uiDir);
   Int* getDequantCoeff     ( UInt uiList, UInt uiQP, UInt uiSize, UInt uiDir);
-  Void setUseScalingList   ( Bool bUseScalingList){ m_bUseScalingList = bUseScalingList; };
-  Bool getUseScalingList   (){ return m_bUseScalingList; };
+  Void setUseScalingList   ( UInt uiUseScalingList){ m_useScalingList = uiUseScalingList; };
+  Bool getUseScalingList   (){ return m_useScalingList; };
   Void setFlatScalingList  ();
   Void xsetFlatScalingList ( UInt uiList, UInt uiSize, UInt uiQP);
   Void xSetScalingListEnc  ( Int *piScalingList, UInt uiList, UInt uiSize, UInt uiQP);
@@ -257,7 +257,7 @@ protected:
   UInt     *m_uiLastPosVlcIndex;
 #endif
 #if SCALING_LIST
-  Bool     m_bUseScalingList;
+  Bool     m_useScalingList;
   Int      *m_aiQuantCoef      [SCALING_LIST_NUM][SCALING_LIST_REM_NUM];             ///< array of quantization matrix coefficient 4x4
   Int      *m_aiDequantCoef    [SCALING_LIST_NUM][SCALING_LIST_REM_NUM];             ///< array of dequantization matrix coefficient 4x4
   Int      *m_aiQuantCoef64    [SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of quantization matrix coefficient 8x8

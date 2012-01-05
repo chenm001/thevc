@@ -491,7 +491,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       }
 #if F747_APS
 #if SCALING_LIST
-      if(m_cSPS.getUseSAO() || m_cSPS.getUseALF()|| m_cSPS.getUseScalingList())
+      if(m_cSPS.getUseSAO() || m_cSPS.getUseALF()|| m_cSPS.getScalingListId())
 #else
       if(m_cSPS.getUseSAO() || m_cSPS.getUseALF())
 #endif
@@ -816,7 +816,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       
       pcPic->setCurrSliceIdx(m_uiSliceIdx);
 #if SCALING_LIST
-      if(pcSlice->getSPS()->getUseScalingList())
+      if(pcSlice->getSPS()->getScalingListId())
       {
         if(pcSlice->getAPS()->getScalingListEnabled())
         {
@@ -1049,7 +1049,7 @@ Void TDecTop::pushAPS  (TComAPS& cAPS)
 Void TDecTop::allocAPS (TComAPS* pAPS)
 {
 #if SCALING_LIST
-  if(m_cSPS.getUseScalingList())
+  if(m_cSPS.getScalingListId())
   {
     pAPS->createScalingList();
   }
@@ -1068,7 +1068,7 @@ Void TDecTop::allocAPS (TComAPS* pAPS)
 Void TDecTop::freeAPS (TComAPS* pAPS)
 {
 #if SCALING_LIST
-  if(m_cSPS.getUseScalingList())
+  if(m_cSPS.getScalingListId())
   {
     pAPS->destroyScalingList();
   }

@@ -274,7 +274,7 @@ protected:
   UInt      m_uiBiPredIdc;          //< Use of Bi-Directional Weighting Prediction (B_SLICE)
 #endif
 #if SCALING_LIST
-  Bool      m_bUseScalingList;             ///< flag for using quantization matrix
+  UInt      m_useScalingList;              ///< Using quantization matrix i.e. 0=off, 1=default, 2=file.
   char*     m_pchScalingListFile;          ///< quantization matrix file name
 #endif
 
@@ -661,8 +661,8 @@ public:
   UInt      getWPBiPredIdc         ()            { return m_uiBiPredIdc;       }
 #endif
 #if SCALING_LIST
-  Void      setUseScalingList      ( Bool  b )   { m_bUseScalingList     = b; }
-  Bool      getUseScalingList      ()            { return m_bUseScalingList;     }
+  Void      setUseScalingList      ( UInt  u )   { m_useScalingList     = u; }
+  UInt      getUseScalingList      ()            { return m_useScalingList;     }
   Void      setScalingListFile     ( char*  pch ){ m_pchScalingListFile     = pch; }
   char*     getScalingListFile     ()            { return m_pchScalingListFile;     }
 #endif

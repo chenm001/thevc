@@ -1194,9 +1194,9 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
     if( uiAbsSum )
     {
 #if SCALING_LIST
-    Int iScalingListType = 0 + g_eTTable[(Int)eText];
-    assert(iScalingListType < 6);
-    m_pcTrQuant->invtransformNxN( TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, iScalingListType );
+      Int iScalingListType = 0 + g_eTTable[(Int)eText];
+      assert(iScalingListType < 6);
+      m_pcTrQuant->invtransformNxN( TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, iScalingListType );
 #else
     m_pcTrQuant->invtransformNxN( TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight );
 #endif
@@ -4371,8 +4371,8 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
 #endif
       m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_LUMA );
 #if SCALING_LIST
-  Int iScalingListType = 3 + g_eTTable[(Int)TEXT_LUMA];
-  assert(iScalingListType < 6);
+      Int iScalingListType = 3 + g_eTTable[(Int)TEXT_LUMA];
+      assert(iScalingListType < 6);
 #endif
 #if NSQT
       if( bNonSquareFlag )
@@ -4384,7 +4384,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
       else
 #endif 
 #if SCALING_LIST
-    m_pcTrQuant->invtransformNxN( TEXT_LUMA,REG_DCT, pcResiCurrY, m_pcQTTempTComYuv[uiQTTempAccessLayer].getStride(),  pcCoeffCurrY, 1<< uiLog2TrSize,    1<< uiLog2TrSize, iScalingListType );//this is for inter mode only
+        m_pcTrQuant->invtransformNxN( TEXT_LUMA,REG_DCT, pcResiCurrY, m_pcQTTempTComYuv[uiQTTempAccessLayer].getStride(),  pcCoeffCurrY, 1<< uiLog2TrSize,    1<< uiLog2TrSize, iScalingListType );//this is for inter mode only
 #else
     m_pcTrQuant->invtransformNxN( TEXT_LUMA,REG_DCT, pcResiCurrY, m_pcQTTempTComYuv[uiQTTempAccessLayer].getStride(),  pcCoeffCurrY, 1<< uiLog2TrSize,    1<< uiLog2TrSize );//this is for inter mode only
 #endif

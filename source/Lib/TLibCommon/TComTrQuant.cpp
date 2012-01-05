@@ -2321,7 +2321,7 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, 
     Bool bNonSqureFlag = ( iWidth != iHeight );
     UInt uiNonSqureScanTableIdx = 0;
 #if SCALING_LIST
-  UInt uiDir          = SCALING_LIST_SQT;
+    UInt uiDir          = SCALING_LIST_SQT;
 #endif
     if( bNonSqureFlag )
     {
@@ -2374,7 +2374,11 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, 
 
     for( Int n = 0; n < iWidth*iHeight; n++ )
     {
+#if SCALING_LIST
+      Int64 iLevel;
+#else
       Int iLevel;
+#endif
       Int  iSign;
 #if !DISABLE_CAVLC
       UInt uiBlockPos = pucScan[n]; 
@@ -3180,8 +3184,10 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     // set coeff
     uiQ  = piQCoef[uiBlkPos];
     dTemp = pdErrScale[uiBlkPos];
-#endif
+    Int64 lLevelDouble          = plSrcCoeff[ uiBlkPos ];
+#else
     Int lLevelDouble          = plSrcCoeff[ uiBlkPos ];
+#endif
     lLevelDouble              = abs(lLevelDouble * uiQ);     
     UInt uiMaxAbsLevel        = (lLevelDouble + (1 << (iQBits - 1))) >> iQBits;
 #if LEVEL_LIMIT
@@ -3330,8 +3336,10 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         // set coeff
         uiQ  = piQCoef[uiBlkPos];
         dTemp = pdErrScale[uiBlkPos];
-#endif
+        Int64 lLevelDouble          = plSrcCoeff[ uiBlkPos ];
+#else  
         Int lLevelDouble          = plSrcCoeff[ uiBlkPos ];
+#endif
         lLevelDouble              = abs(lLevelDouble * uiQ);     
         UInt uiMaxAbsLevel        = (lLevelDouble + (1 << (iQBits - 1))) >> iQBits;
 
@@ -4237,11 +4245,13 @@ Void TComTrQuant::setScalingList(TComScalingList *pcScalingList)
     for(uiList = 0; uiList < g_auiScalingListNum[uiSize]; uiList++)
     {
       piScalingList = pcScalingList->getScalingListAddress(uiSize,uiList);
-      for(uiQP=0;uiQP<SCALING_LIST_REM_NUM;uiQP++){
+      for(uiQP=0;uiQP<SCALING_LIST_REM_NUM;uiQP++)
+      {
         xSetScalingListEnc(piScalingList,uiList,uiSize,uiQP);
         xSetScalingListDec(piScalingList,uiList,uiSize,uiQP);
         setErrScaleCoeff(uiList,uiSize,uiQP,SCALING_LIST_SQT);
-        if(uiSize == SCALING_LIST_32x32 || uiSize == SCALING_LIST_16x16){
+        if(uiSize == SCALING_LIST_32x32 || uiSize == SCALING_LIST_16x16)
+        {
           setErrScaleCoeff(uiList,uiSize-1,uiQP,SCALING_LIST_HOR);
           setErrScaleCoeff(uiList,uiSize-1,uiQP,SCALING_LIST_VER);
         }
@@ -4263,7 +4273,8 @@ Void TComTrQuant::setScalingListDec(TComScalingList *pcScalingList)
     for(uiList = 0; uiList < g_auiScalingListNum[uiSize]; uiList++)
     {
       piScalingList = pcScalingList->getScalingListAddress(uiSize,uiList);
-      for(uiQP=0;uiQP<SCALING_LIST_REM_NUM;uiQP++){
+      for(uiQP=0;uiQP<SCALING_LIST_REM_NUM;uiQP++)
+      {
         xSetScalingListDec(piScalingList,uiList,uiSize,uiQP);
       }
     }
@@ -4354,7 +4365,8 @@ Void TComTrQuant::xSetScalingListEnc(Int *piScalingList, UInt uiList, UInt uiSiz
     piScalingList++;
   }
 
-  if(uiSize == SCALING_LIST_32x32 || uiSize == SCALING_LIST_16x16){
+  if(uiSize == SCALING_LIST_32x32 || uiSize == SCALING_LIST_16x16)
+  {
     piScalingList = piScalingListtop;
     piQuantcoeff   = getQuantCoeff(uiList, uiQP, g_auiScalingListSize[uiSize-1],SCALING_LIST_VER);
     for(i=0;i<uiNumDiv4;i++)
@@ -4401,7 +4413,8 @@ Void TComTrQuant::xSetScalingListDec(Int *piScalingList, UInt uiList, UInt uiSiz
     piScalingList++;
   }
 
-  if(uiSize == SCALING_LIST_32x32 || uiSize == SCALING_LIST_16x16){
+  if(uiSize == SCALING_LIST_32x32 || uiSize == SCALING_LIST_16x16)
+  {
     piScalingList = piScalingListtop;
     piDequantcoeff = getDequantCoeff(uiList, uiQP, g_auiScalingListSize[uiSize-1],SCALING_LIST_VER);
     for(i=0;i<uiNumDiv4;i++)
@@ -4499,10 +4512,12 @@ Void TComTrQuant::setFlatScalingList()
   {
     for(uiList = 0; uiList <  g_auiScalingListNum[uiSize]; uiList++)
     {
-      for(uiQP=0;uiQP<SCALING_LIST_REM_NUM;uiQP++){
+      for(uiQP=0;uiQP<SCALING_LIST_REM_NUM;uiQP++)
+      {
         xsetFlatScalingList(uiList,uiSize,uiQP);
         setErrScaleCoeff(uiList,uiSize,uiQP,SCALING_LIST_SQT);
-        if(uiSize == SCALING_LIST_32x32 || uiSize == SCALING_LIST_16x16){
+        if(uiSize == SCALING_LIST_32x32 || uiSize == SCALING_LIST_16x16)
+        {
           setErrScaleCoeff(uiList,uiSize-1,uiQP,SCALING_LIST_HOR);
           setErrScaleCoeff(uiList,uiSize-1,uiQP,SCALING_LIST_VER);
         }
@@ -4534,7 +4549,8 @@ Void TComTrQuant::xsetFlatScalingList(UInt uiList, UInt uiSize, UInt uiQP)
     *piDequantcoeff++ = iinvQuantScales;
   }
 
-  if(uiSize == SCALING_LIST_32x32 || uiSize == SCALING_LIST_16x16){
+  if(uiSize == SCALING_LIST_32x32 || uiSize == SCALING_LIST_16x16)
+  {
     piQuantcoeff   = getQuantCoeff(uiList, uiQP, g_auiScalingListSize[uiSize-1],SCALING_LIST_HOR);
     piDequantcoeff = getDequantCoeff(uiList, uiQP, g_auiScalingListSize[uiSize-1],SCALING_LIST_HOR);
 
@@ -4556,10 +4572,14 @@ Void TComTrQuant::xsetFlatScalingList(UInt uiList, UInt uiSize, UInt uiQP)
 
 /** initialization process of scaling list array
  */
-Void TComTrQuant::initScalingList(){
-  for(UInt uiListId = 0; uiListId < SCALING_LIST_NUM; uiListId++){
-    for(UInt uiQ = 0; uiQ < SCALING_LIST_REM_NUM; uiQ++){
-      for(UInt uiDir = 0; uiDir < SCALING_LIST_DIR_NUM; uiDir++){
+Void TComTrQuant::initScalingList()
+{
+  for(UInt uiListId = 0; uiListId < SCALING_LIST_NUM; uiListId++)
+  {
+    for(UInt uiQ = 0; uiQ < SCALING_LIST_REM_NUM; uiQ++)
+    {
+      for(UInt uiDir = 0; uiDir < SCALING_LIST_DIR_NUM; uiDir++)
+      {
         m_aiQuantCoef64     [uiListId][uiQ][uiDir] = new Int [64];
         m_aiDequantCoef64   [uiListId][uiQ][uiDir] = new Int [64];
         m_adErrScale64      [uiListId][uiQ][uiDir] = new double [64];
@@ -4572,9 +4592,12 @@ Void TComTrQuant::initScalingList(){
       m_adErrScale        [uiListId][uiQ] = new double [16];
     }
   }
-  for(UInt uiListId = 0; uiListId < SCALING_LIST_NUM_32x32; uiListId++){
-    for(UInt uiQ = 0; uiQ < SCALING_LIST_REM_NUM; uiQ++){
-      for(UInt uiDir = SCALING_LIST_VER; uiDir < SCALING_LIST_DIR_NUM; uiDir++){
+  for(UInt uiListId = 0; uiListId < SCALING_LIST_NUM_32x32; uiListId++)
+  {
+    for(UInt uiQ = 0; uiQ < SCALING_LIST_REM_NUM; uiQ++)
+    {
+      for(UInt uiDir = SCALING_LIST_VER; uiDir < SCALING_LIST_DIR_NUM; uiDir++)
+      {
         m_aiQuantCoef256    [uiListId][uiQ][uiDir] = new Int [256];
         m_aiDequantCoef256  [uiListId][uiQ][uiDir] = new Int [256];
         m_adErrScale256     [uiListId][uiQ][uiDir] = new double [256];
@@ -4584,8 +4607,10 @@ Void TComTrQuant::initScalingList(){
       m_adErrScale1024    [uiListId][uiQ] = new double [1024];
     }
   }
-  for(UInt uiQ = 0; uiQ < SCALING_LIST_REM_NUM; uiQ++){
-    for(UInt uiDir = SCALING_LIST_VER; uiDir < SCALING_LIST_DIR_NUM; uiDir++){
+  for(UInt uiQ = 0; uiQ < SCALING_LIST_REM_NUM; uiQ++)
+  {
+    for(UInt uiDir = SCALING_LIST_VER; uiDir < SCALING_LIST_DIR_NUM; uiDir++)
+    {
       m_aiQuantCoef256    [3][uiQ][uiDir] = m_aiQuantCoef256    [1][uiQ][uiDir];
       m_aiDequantCoef256  [3][uiQ][uiDir] = m_aiDequantCoef256  [1][uiQ][uiDir];
       m_adErrScale256     [3][uiQ][uiDir] = m_adErrScale256     [1][uiQ][uiDir];
@@ -4597,10 +4622,14 @@ Void TComTrQuant::initScalingList(){
 }
 /** destroy quantization matrix array
  */
-Void TComTrQuant::destroyScalingList(){
-  for(UInt uiListId = 0; uiListId < SCALING_LIST_NUM; uiListId++){
-    for(UInt uiQ = 0; uiQ < SCALING_LIST_REM_NUM; uiQ++){
-      for(UInt uiDir = 0; uiDir < SCALING_LIST_DIR_NUM; uiDir++){
+Void TComTrQuant::destroyScalingList()
+{
+  for(UInt uiListId = 0; uiListId < SCALING_LIST_NUM; uiListId++)
+  {
+    for(UInt uiQ = 0; uiQ < SCALING_LIST_REM_NUM; uiQ++)
+    {
+      for(UInt uiDir = 0; uiDir < SCALING_LIST_DIR_NUM; uiDir++)
+      {
         if(m_aiQuantCoef64      [uiListId][uiQ][uiDir]) delete [] m_aiQuantCoef64      [uiListId][uiQ][uiDir];
         if(m_aiDequantCoef64    [uiListId][uiQ][uiDir]) delete [] m_aiDequantCoef64    [uiListId][uiQ][uiDir];
         if(m_adErrScale64       [uiListId][uiQ][uiDir]) delete [] m_adErrScale64       [uiListId][uiQ][uiDir];
@@ -4613,9 +4642,12 @@ Void TComTrQuant::destroyScalingList(){
       if(m_adErrScale         [uiListId][uiQ]) delete [] m_adErrScale         [uiListId][uiQ];
     }
   }
-  for(UInt uiListId = 0; uiListId < SCALING_LIST_NUM_32x32; uiListId++){
-    for(UInt uiQ = 0; uiQ < SCALING_LIST_REM_NUM; uiQ++){
-      for(UInt uiDir = SCALING_LIST_VER; uiDir < SCALING_LIST_DIR_NUM; uiDir++){
+  for(UInt uiListId = 0; uiListId < SCALING_LIST_NUM_32x32; uiListId++)
+  {
+    for(UInt uiQ = 0; uiQ < SCALING_LIST_REM_NUM; uiQ++)
+    {
+      for(UInt uiDir = SCALING_LIST_VER; uiDir < SCALING_LIST_DIR_NUM; uiDir++)
+      {
         if(m_aiQuantCoef256     [uiListId][uiQ][uiDir]) delete [] m_aiQuantCoef256     [uiListId][uiQ][uiDir];
         if(m_aiDequantCoef256   [uiListId][uiQ][uiDir]) delete [] m_aiDequantCoef256   [uiListId][uiQ][uiDir];
         if(m_adErrScale256      [uiListId][uiQ][uiDir]) delete [] m_adErrScale256      [uiListId][uiQ][uiDir];

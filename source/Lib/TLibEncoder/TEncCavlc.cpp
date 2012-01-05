@@ -213,7 +213,7 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
   //APS ID
   xWriteUvlc(pcAPS->getAPSID());
 #if SCALING_LIST
-  xWriteFlag(pcAPS->getScalingListEnabled()?1:0);
+  WRITE_FLAG( pcAPS->getScalingListEnabled()?1:0, "aps_scaling_list_data_present_flag");
 #endif
   //SAO flag
   xWriteFlag(pcAPS->getSaoEnabled()?1:0);
@@ -459,7 +459,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthInter() - 1,                               "max_transform_hierarchy_depth_inter" );
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthIntra() - 1,                               "max_transform_hierarchy_depth_intra" );
 #if SCALING_LIST
-  WRITE_FLAG  ( (pcSPS->getUseScalingList  ()) ? 1 : 0,                              "scaling_list_enable_flag" ); 
+  WRITE_FLAG( (pcSPS->getScalingListId() == 0) ? 0: 1,                              "scaling_list_enabled_flag" ); 
 #endif
   WRITE_FLAG  ( (pcSPS->getUseLMChroma ()) ? 1 : 0,                                  "chroma_pred_from_luma_enabled_flag" ); 
   WRITE_FLAG( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0,                            "loop_filter_across_slice_flag");
@@ -586,7 +586,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #endif
 #if F747_APS
 #if SCALING_LIST
-    if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF()|| pcSlice->getSPS()->getUseScalingList())
+    if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF()|| pcSlice->getSPS()->getScalingListId())
 #else
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
 #endif
@@ -2660,7 +2660,7 @@ Void TEncCavlc::codeScalingList( TComScalingList* pcScalingList )
   UInt uiListId,uiSizeId;
   Int *piDst=0;
   Int *piOrg=0;
-#if SCALING_LIST_OUT_PUT_RESULT
+#if SCALING_LIST_OUTPUT_RESULT
   Int avg_error = 0;
   Int max_error = 0;
   Int iStartBit;
@@ -2669,11 +2669,11 @@ Void TEncCavlc::codeScalingList( TComScalingList* pcScalingList )
   iStartTotalBit = m_pcBitIf->getNumberOfWrittenBits();
 #endif
 
-  xWriteFlag  ( pcScalingList->getUseDefaultOnlyFlag () );
+  WRITE_FLAG( pcScalingList->getUseDefaultOnlyFlag (), "use_default_scaling_list_flag" );
 
   if(pcScalingList->getUseDefaultOnlyFlag () == false)
   {
-#if SCALING_LIST_OUT_PUT_RESULT
+#if SCALING_LIST_OUTPUT_RESULT
     printf("Header Bit %d\n",m_pcBitIf->getNumberOfWrittenBits()-iStartBit);
 #endif
     //for each size
@@ -2683,33 +2683,34 @@ Void TEncCavlc::codeScalingList( TComScalingList* pcScalingList )
       {
         piDst = pcScalingList->getScalingListAddress(uiSizeId,uiListId);
         piOrg = pcScalingList->getScalingListOrgAddress(uiSizeId,uiListId);
-#if SCALING_LIST_OUT_PUT_RESULT
-        for(int i=0;i<g_auiScalingListSize[uiSizeId];i++){
+#if SCALING_LIST_OUTPUT_RESULT
+        for(int i=0;i<g_auiScalingListSize[uiSizeId];i++)
+        {
           avg_error += abs(piDst[i] - piOrg[i]);
-          if(abs(max_error) < abs(piDst[i] - piOrg[i])){
+          if(abs(max_error) < abs(piDst[i] - piOrg[i]))
+          {
             max_error = piDst[i] - piOrg[i];
           }
         }
         iStartBit = m_pcBitIf->getNumberOfWrittenBits();
 #endif
-        xWriteFlag  ( pcScalingList->getPredMode (uiSizeId,uiListId) );
-       
+       WRITE_FLAG( pcScalingList->getPredMode (uiSizeId,uiListId), "pred_mode_flag" );
         if(pcScalingList->getPredMode (uiSizeId,uiListId) == SCALING_LIST_PRED_COPY)//Copy Mode
         {
-          xWriteUvlc  ( (Int)uiListId - (Int)pcScalingList->getPredMatrixId (uiSizeId,uiListId) - 1);
+          WRITE_UVLC( (Int)uiListId - (Int)pcScalingList->getPredMatrixId (uiSizeId,uiListId) - 1, "pred_matrix_id_delta");
           pcScalingList->xPredScalingListatrix( pcScalingList, piDst, uiSizeId, uiListId,uiSizeId, pcScalingList->getPredMatrixId (uiSizeId,uiListId));       
         }
         else if(pcScalingList->getPredMode (uiSizeId,uiListId) == SCALING_LIST_PRED_DPCM)//DPCM Mode
         {
           xCodeDPCMScalingListatrix(pcScalingList, piDst,uiSizeId);
         }
-#if SCALING_LIST_OUT_PUT_RESULT
+#if SCALING_LIST_OUTPUT_RESULT
         printf("Matrix [%d][%d] Bit %d\n",uiSizeId,uiListId,m_pcBitIf->getNumberOfWrittenBits() - iStartBit);
 #endif
       }
     }
   }
-#if SCALING_LIST_OUT_PUT_RESULT
+#if SCALING_LIST_OUTPUT_RESULT
   else
   {
     printf("Header Bit %d\n",m_pcBitIf->getNumberOfWrittenBits()-iStartTotalBit);
@@ -2742,7 +2743,7 @@ Void TEncCavlc::xWriteResidualCode(UInt uiSize, Int *data)
 {
   for(UInt i=0;i<uiSize;i++)
   {
-    xWriteSvlc(data[i]);
+    WRITE_SVLC( data[i],  "delta_coef");
   }
 }
 

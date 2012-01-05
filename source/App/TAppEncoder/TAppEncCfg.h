@@ -237,7 +237,7 @@ protected:
 #endif
 
 #if SCALING_LIST
-  Bool      m_bUseScalingList;                                ///< flag for using quantization matrix
+  Int      m_useScalingList;                                  ///< flag for using quantization matrix
   char*     m_pchScalingListFile;                             ///< quantization matrix file name
 #endif
   // internal member functions

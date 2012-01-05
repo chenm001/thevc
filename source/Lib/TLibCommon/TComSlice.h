@@ -156,7 +156,7 @@ private:
 #endif
 #endif
 #if SCALING_LIST
-  Bool        m_bUseScalingList;
+  UInt        m_useScalingList;
 #endif
 
 public:
@@ -336,8 +336,8 @@ public:
   UInt     getRowHeight           (UInt rowIdx)    { return *( m_puiRowHeight + rowIdx ); }
 #endif
 #if SCALING_LIST
-  Bool getUseScalingList       ()         { return m_bUseScalingList;        }
-  Void setUseScalingList       ( Bool b ) { m_bUseScalingList  = b;         }
+  Int  getScalingListId       ()         { return m_useScalingList;        }
+  Void setScalingListId       ( Int i ) { m_useScalingList  = i;         }
 #endif
 };
 #if G1002_RPS
@@ -1093,7 +1093,7 @@ public:
   Void  setScalingList              ( TComScalingList* pcScalingList ) { m_pcScalingList = pcScalingList; }
   TComScalingList*   getScalingList ()                                 { return m_pcScalingList; }
   Void  setDefaultScalingList       ();
-  Bool  CheckDefaultScalingList     ();
+  Bool  checkDefaultScalingList     ();
 #endif
 protected:
 #if G1002_RPS
