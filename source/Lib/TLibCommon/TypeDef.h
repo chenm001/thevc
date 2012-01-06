@@ -196,7 +196,6 @@
 #define ZERO_MVD_EST                          0           ///< Zero Mvd Estimation in normal mode
 
 #define NUM_INTRA_MODE 36
-#define PLANAR_IDX     34
 #define LM_CHROMA_IDX  35
 #define PLANAR_F483 1 ///< Modify samples used for planar prediction as per JCTVC-F483
 
@@ -231,7 +230,6 @@
 #define RVM_VCEGAM10_M 4
 #endif
 
-#undef PLANAR_IDX
 #define PLANAR_IDX             0
 #define DC_IDX                 3                     // index for intra DC mode
 #define NUM_CHROMA_MODE        6                     // total number of chroma modes
