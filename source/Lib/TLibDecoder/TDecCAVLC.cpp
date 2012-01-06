@@ -426,7 +426,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_UVLC( uiCode,    "bit_depth_chroma_minus8" );
 
 #if MAX_PCM_SIZE
-  xReadFlag( uiCode ); pcSPS->setUsePCM( uiCode ? true : false );
+  READ_FLAG( uiCode, "pcm_enabled_flag" ); pcSPS->setUsePCM( uiCode ? true : false );
 #endif
 
 #if MAX_PCM_SIZE
@@ -469,9 +469,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   pcSPS->setMaxCUHeight ( 1<<(log2MinCUSize + uiMaxCUDepthCorrect) ); g_uiMaxCUHeight = 1<<(log2MinCUSize + uiMaxCUDepthCorrect);
   READ_UVLC( uiCode, "log2_min_transform_block_size_minus2" );   pcSPS->setQuadtreeTULog2MinSize( uiCode + 2 );
 
-#if MIN_CHROMA_TU
-  pcSPS->setChromaQuadtreeTULog2MinSize( max( (Int)pcSPS->getQuadtreeTULog2MinSize()-1, 2) );
-#endif
   READ_UVLC( uiCode, "log2_diff_max_min_transform_block_size" ); pcSPS->setQuadtreeTULog2MaxSize( uiCode + pcSPS->getQuadtreeTULog2MinSize() );
   pcSPS->setMaxTrSize( 1<<(uiCode + pcSPS->getQuadtreeTULog2MinSize()) );
 

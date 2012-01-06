@@ -167,8 +167,8 @@ protected:
 
   // coding tools (PCM)
 #if MAX_PCM_SIZE
-  Bool      m_bUsePCM;                                        ///< flag for using IPCM
-  UInt      m_uiPCMLog2MaxSize;                               ///< log2 of maximum PCM block size
+  Bool      m_usePCM;                                         ///< flag for using IPCM
+  UInt      m_pcmLog2MaxSize;                                 ///< log2 of maximum PCM block size
 #endif
   UInt      m_uiPCMLog2MinSize;                               ///< log2 of minimum PCM block size
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX

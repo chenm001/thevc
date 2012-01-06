@@ -278,8 +278,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
     ("ConstrainedIntraPred", m_bUseConstrainedIntraPred, false, "Constrained Intra Prediction")
 #if MAX_PCM_SIZE
-    ("PCMEnabledFlag", m_bUsePCM         , false)
-    ("PCMLog2MaxSize", m_uiPCMLog2MaxSize, 5u)
+    ("PCMEnabledFlag", m_usePCM         , false)
+    ("PCMLog2MaxSize", m_pcmLog2MaxSize, 5u)
     ("PCMLog2MinSize", m_uiPCMLog2MinSize, 3u)
 #else
     ("PCMLog2MinSize", m_uiPCMLog2MinSize, 7u)
@@ -540,12 +540,12 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
 
 #if MAX_PCM_SIZE
-  if( m_bUsePCM)
+  if( m_usePCM)
   {
-    xConfirmPara(  m_uiPCMLog2MinSize < 3,                                        "PCMLog2MinSize must be 3 or greater.");
-    xConfirmPara(  m_uiPCMLog2MinSize > 5,                                        "PCMLog2MinSize must be 5 or smaller.");
-    xConfirmPara(  m_uiPCMLog2MaxSize > 5,                                        "PCMLog2MaxSize must be 5 or smaller.");
-    xConfirmPara(  m_uiPCMLog2MaxSize < m_uiPCMLog2MinSize,                       "PCMLog2MaxSize must be equal to or greater than m_uiPCMLog2MinSize.");
+    xConfirmPara(  m_uiPCMLog2MinSize < 3,                                      "PCMLog2MinSize must be 3 or greater.");
+    xConfirmPara(  m_uiPCMLog2MinSize > 5,                                      "PCMLog2MinSize must be 5 or smaller.");
+    xConfirmPara(  m_pcmLog2MaxSize > 5,                                        "PCMLog2MaxSize must be 5 or smaller.");
+    xConfirmPara(  m_pcmLog2MaxSize < m_uiPCMLog2MinSize,                       "PCMLog2MaxSize must be equal to or greater than m_uiPCMLog2MinSize.");
   }
 #else
   xConfirmPara(  m_uiPCMLog2MinSize < 3,                                        "PCMLog2MinSize must be 3 or greater.");

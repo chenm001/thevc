@@ -140,9 +140,6 @@ protected:
   //======= Transform =============
   UInt      m_uiQuadtreeTULog2MaxSize;
   UInt      m_uiQuadtreeTULog2MinSize;
-#if MIN_CHROMA_TU
-  UInt      m_uiChromaQuadtreeTULog2MinSize;
-#endif
   UInt      m_uiQuadtreeTUMaxDepthInter;
   UInt      m_uiQuadtreeTUMaxDepthIntra;
   
@@ -222,8 +219,8 @@ protected:
   
   Bool      m_bUseConstrainedIntraPred;
 #if MAX_PCM_SIZE
-  Bool      m_bUsePCM;
-  UInt      m_uiPCMLog2MaxSize;
+  Bool      m_usePCM;
+  UInt      m_pcmLog2MaxSize;
 #endif
   UInt      m_uiPCMLog2MinSize;
   //====== Slice ========
@@ -352,9 +349,6 @@ public:
   //======== Transform =============
   Void      setQuadtreeTULog2MaxSize        ( UInt  u )      { m_uiQuadtreeTULog2MaxSize = u; }
   Void      setQuadtreeTULog2MinSize        ( UInt  u )      { m_uiQuadtreeTULog2MinSize = u; }
-#if MIN_CHROMA_TU
-  Void      setChromaQuadtreeTULog2MinSize  ( UInt  u )      { m_uiChromaQuadtreeTULog2MinSize = u; }
-#endif
   Void      setQuadtreeTUMaxDepthInter      ( UInt  u )      { m_uiQuadtreeTUMaxDepthInter = u; }
   Void      setQuadtreeTUMaxDepthIntra      ( UInt  u )      { m_uiQuadtreeTUMaxDepthIntra = u; }
   
@@ -487,8 +481,8 @@ public:
   Void      setPCMFilterDisableFlag         ( Bool  b )     {  m_bPCMFilterDisableFlag = b; }
 #endif
 #if MAX_PCM_SIZE
-  Void      setUsePCM                       ( Bool  b )     {  m_bUsePCM = b;               }
-  Void      setPCMLog2MaxSize               ( UInt u )      { m_uiPCMLog2MaxSize = u;      }
+  Void      setUsePCM                       ( Bool  b )     {  m_usePCM = b;               }
+  Void      setPCMLog2MaxSize               ( UInt u )      { m_pcmLog2MaxSize = u;      }
 #endif
   Void      setPCMLog2MinSize               ( UInt u )     { m_uiPCMLog2MinSize = u;      }
   Void      setdQPs                         ( Int*  p )     { m_aidQP       = p; }
@@ -538,8 +532,8 @@ public:
   Bool      getPCMFilterDisableFlag         ()      { return m_bPCMFilterDisableFlag;   } 
 #endif
 #if MAX_PCM_SIZE
-  Bool      getUsePCM                       ()      { return m_bUsePCM;                 }
-  UInt      getPCMLog2MaxSize               ()      { return m_uiPCMLog2MaxSize;  }
+  Bool      getUsePCM                       ()      { return m_usePCM;                 }
+  UInt      getPCMLog2MaxSize               ()      { return m_pcmLog2MaxSize;  }
 #endif
   UInt      getPCMLog2MinSize               ()      { return  m_uiPCMLog2MinSize;  }
 
