@@ -125,7 +125,7 @@ private:
   Bool                    m_bFirstSliceInSequence;
 
 #if SCALING_LIST
-  TComScalingList         m_cScalingList;        ///< quantization matrix information
+  TComScalingList         m_scalingList;        ///< quantization matrix information
 #endif
 public:
   TDecTop();

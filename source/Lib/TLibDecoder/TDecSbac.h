@@ -184,7 +184,7 @@ public:
   Void parseAPSInitInfo(TComAPS& cAPS) {printf("Not supported in parseAPSInitInfo()\n");assert(0);exit(1);}
 #endif
 #if SCALING_LIST
-  Void  parseScalingList ( TComScalingList* pcScalingList ) {}
+  Void  parseScalingList ( TComScalingList* scalingList ) {}
 #endif
 
 private:

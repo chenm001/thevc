@@ -710,7 +710,7 @@ Void TEncTop::xInitSPS()
   }
 #endif
 #if SCALING_LIST
-  m_cSPS.setScalingListId ( m_useScalingList );
+  m_cSPS.setScalingListFlag ( (m_useScalingListId == 0) ? 0 : 1 );
 #endif
 }
 

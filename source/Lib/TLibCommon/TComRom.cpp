@@ -1088,14 +1088,14 @@ Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)
 }
 #endif
 #if SCALING_LIST
-Int g_QuantIntraDefault4x4[16] =
+Int g_quantIntraDefault4x4[16] =
 {
    6,13,20,28,
   13,20,28,32,
   20,28,32,37,
   28,32,37,42
 };
-Int g_QuantInterDefault4x4[16] =
+Int g_quantInterDefault4x4[16] =
 {
   10,14,20,24,
   14,20,24,27,
@@ -1103,7 +1103,7 @@ Int g_QuantInterDefault4x4[16] =
   24,27,30,34
 };
 
-Int g_QuantIntraDefault8x8[64] =
+Int g_quantIntraDefault8x8[64] =
 {
    6,10,13,16,18,23,25,27,
   10,11,16,18,23,25,27,29,
@@ -1115,7 +1115,7 @@ Int g_QuantIntraDefault8x8[64] =
   27,29,31,33,36,38,40,42
 };
 
-Int g_QuantInterDefault8x8[64] =
+Int g_quantInterDefault8x8[64] =
 {
    9,13,15,17,19,21,22,24,
   13,13,17,19,21,22,24,25,
@@ -1127,7 +1127,7 @@ Int g_QuantInterDefault8x8[64] =
   24,25,27,28,30,32,33,35
 };
 
-Int g_QuantIntraDefault16x16[256] =
+Int g_quantIntraDefault16x16[256] =
 {
   16,16,16,16,16,16,16,16,17,17,18,19,21,22,24,27,
   16,16,16,16,16,16,16,16,17,18,18,20,21,23,25,27,
@@ -1147,7 +1147,7 @@ Int g_QuantIntraDefault16x16[256] =
   27,27,28,29,31,34,39,44,51,60,70,82,97,113,130,149
 };
 
-Int g_QuantInterDefault16x16[256] =
+Int g_quantInterDefault16x16[256] =
 {
   16,16,16,16,16,16,16,16,17,17,18,19,20,21,22,27,
   16,16,16,16,16,16,16,17,17,18,19,20,21,22,27,27,
@@ -1167,7 +1167,7 @@ Int g_QuantInterDefault16x16[256] =
   27,27,28,29,30,32,36,40,45,52,59,68,79,91,103,117
 };
 
-Int g_QuantIntraDefault32x32[1024] =
+Int g_quantIntraDefault32x32[1024] =
 {
   16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,17,17,17,18,18,19,19,20,21,22,22,23,24,25,27,28,
   16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,17,17,17,18,18,19,19,20,21,22,23,23,24,25,27,28,
@@ -1203,7 +1203,7 @@ Int g_QuantIntraDefault32x32[1024] =
   28,28,28,28,29,30,30,31,33,34,36,38,40,43,46,49,53,57,62,67,73,79,86,93,101,110,119,128,138,148,159,170
 };
 
-Int g_QuantInterDefault32x32[1024] =
+Int g_quantInterDefault32x32[1024] =
 {
   16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,17,17,17,18,18,19,19,20,21,22,22,23,24,25,26,28,
   16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,17,17,17,18,18,19,19,20,21,22,22,23,24,25,26,28,28,
@@ -1239,8 +1239,8 @@ Int g_QuantInterDefault32x32[1024] =
   28,28,28,28,29,30,30,31,32,33,34,35,36,38,40,42,45,48,52,56,60,64,69,74,80,87,94,101,108,115,123,131
 };
 
-UInt g_auiScalingListSize   [4] = {16,64,256,1024}; 
-UInt g_auiScalingListSizeX  [4] = { 4, 8, 16,  32};
+UInt g_scalingListSize   [4] = {16,64,256,1024}; 
+UInt g_scalingListSizeX  [4] = { 4, 8, 16,  32};
 UInt g_auiScalingListNum[SCALING_LIST_SIZE_NUM]={6,6,6,2};
 Int  g_eTTable[4] = {0,3,1,2};
 

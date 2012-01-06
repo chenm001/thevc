@@ -95,7 +95,7 @@ public:
   virtual Void codeAlfCtrlDepth() = 0;
   virtual Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList ) = 0;
 #if SCALING_LIST
-  virtual Void codeScalingList   ( TComScalingList* pcScalingList )      = 0;
+  virtual Void codeScalingList   ( TComScalingList* scalingList )      = 0;
 #endif
   
 public:
@@ -270,7 +270,7 @@ public:
   Void encodeFinish               (Bool bEnd) {m_pcEntropyCoderIf->codeFinish(bEnd);}
 #endif
 #if SCALING_LIST
-  Void encodeScalingList       ( TComScalingList* pcScalingList );
+  Void encodeScalingList       ( TComScalingList* scalingList );
 #endif
 
 private:

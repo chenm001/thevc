@@ -563,16 +563,16 @@ static const char MatrixType[4][6][20] =
   },
 };
 #define SCALING_LIST_START_VALUE 8                      ///< start value for dpcm mode
-extern Int g_QuantIntraDefault4x4[16];
-extern Int g_QuantIntraDefault8x8[64];
-extern Int g_QuantIntraDefault16x16[256];
-extern Int g_QuantIntraDefault32x32[1024];
-extern Int g_QuantInterDefault4x4[16];
-extern Int g_QuantInterDefault8x8[64];
-extern Int g_QuantInterDefault16x16[256];
-extern Int g_QuantInterDefault32x32[1024];
-extern UInt g_auiScalingListSize [SCALING_LIST_SIZE_NUM];
-extern UInt g_auiScalingListSizeX[SCALING_LIST_SIZE_NUM];
+extern Int g_quantIntraDefault4x4[16];
+extern Int g_quantIntraDefault8x8[64];
+extern Int g_quantIntraDefault16x16[256];
+extern Int g_quantIntraDefault32x32[1024];
+extern Int g_quantInterDefault4x4[16];
+extern Int g_quantInterDefault8x8[64];
+extern Int g_quantInterDefault16x16[256];
+extern Int g_quantInterDefault32x32[1024];
+extern UInt g_scalingListSize [SCALING_LIST_SIZE_NUM];
+extern UInt g_scalingListSizeX[SCALING_LIST_SIZE_NUM];
 extern UInt g_auiScalingListNum  [SCALING_LIST_SIZE_NUM];
 extern Int  g_eTTable[4];
 #endif

@@ -311,7 +311,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("WaveFrontSubstreams",         m_iWaveFrontSubstreams,          1,          "# coded substreams wanted; per tile if TileBoundaryIndependenceIdc is 1, otherwise per frame")
 #endif
 #if SCALING_LIST
-    ("ScalingList",                 m_useScalingList,                0,         "Scaling List")
+    ("ScalingList",                 m_useScalingListId,                0,        "Scaling List")
     ("ScalingListFile",             cfg_ScalingListFile,             string(""), "Scaling List file name")
 #endif
   /* Misc. */
@@ -373,7 +373,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   m_pchRowHeight = cfg_RowHeight.empty() ? NULL : strdup(cfg_RowHeight.c_str());
 #endif
 #if SCALING_LIST
-  m_pchScalingListFile = cfg_ScalingListFile.empty() ? NULL : strdup(cfg_ScalingListFile.c_str());
+  m_scalingListFile = cfg_ScalingListFile.empty() ? NULL : strdup(cfg_ScalingListFile.c_str());
 #endif
 #if !G1002_RPS
   if (m_iRateGOPSize == -1)
@@ -1029,7 +1029,7 @@ Void TAppEncCfg::xPrintParameter()
           m_iWaveFrontSynchro, m_iWaveFrontFlush, m_iWaveFrontSubstreams);
 #endif
 #if SCALING_LIST
-  printf(" ScalingList:%d ", m_useScalingList );
+  printf(" ScalingList:%d ", m_useScalingListId );
 #endif
 
   printf("\n\n");

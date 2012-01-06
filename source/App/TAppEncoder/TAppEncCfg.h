@@ -237,8 +237,8 @@ protected:
 #endif
 
 #if SCALING_LIST
-  Int      m_useScalingList;                                  ///< flag for using quantization matrix
-  char*     m_pchScalingListFile;                             ///< quantization matrix file name
+  Int       m_useScalingListId;                               ///< using quantization matrix
+  char*     m_scalingListFile;                                ///< quantization matrix file name
 #endif
   // internal member functions
   Void  xSetGlobal      ();                                   ///< set global variables

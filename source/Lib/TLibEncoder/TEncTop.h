@@ -138,7 +138,7 @@ private:
 #endif
 
 #if SCALING_LIST
-  TComScalingList         m_cScalingList;                 ///< quantization matrix information
+  TComScalingList         m_scalingList;                 ///< quantization matrix information
 #endif
 protected:
   Void  xGetNewPicBuffer  ( TComPic*& rpcPic );           ///< get picture buffer which will be processed
@@ -212,7 +212,7 @@ public:
   Void selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, UInt iGOPid,TComList<TComPic*>& rcListPic );
 #endif
 #if SCALING_LIST
-  TComScalingList*        getScalingList        () { return  &m_cScalingList;         }
+  TComScalingList*        getScalingList        () { return  &m_scalingList;         }
 #endif
   // -------------------------------------------------------------------------------------------------------------------
   // encoder function

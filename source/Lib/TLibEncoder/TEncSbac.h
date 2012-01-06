@@ -130,7 +130,7 @@ public:
   Void  codeSaoSvlc       ( Int  uiCode );
 #endif
 #if SCALING_LIST
-  Void  codeScalingList      ( TComScalingList* pcScalingList     ){ assert (0);  return;};
+  Void  codeScalingList      ( TComScalingList* scalingList     ){ assert (0);  return;};
 #endif
 
 private:

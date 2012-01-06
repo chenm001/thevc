@@ -268,9 +268,9 @@ public:
   Void  codeFinish(Bool bEnd) { /*do nothing*/}
 #endif
 #if SCALING_LIST
-  Void  codeScalingList           ( TComScalingList* pcScalingList );
-  Void  xCodeDPCMScalingListatrix ( TComScalingList* pcScalingList, Int* piData, UInt uiSizeId);
-  Void  xWriteResidualCode        ( UInt uiSize, Int *data);
+  Void  codeScalingList            ( TComScalingList* scalingList );
+  Void  xCodeDPCMScalingListMatrix ( TComScalingList* scalingList, Int* data, UInt sizeId);
+  Void  xWriteResidualCode         ( UInt size, Int *data);
 #endif
 
 

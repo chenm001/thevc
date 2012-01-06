@@ -491,7 +491,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       }
 #if F747_APS
 #if SCALING_LIST
-      if(m_cSPS.getUseSAO() || m_cSPS.getUseALF()|| m_cSPS.getScalingListId())
+      if(m_cSPS.getUseSAO() || m_cSPS.getUseALF()|| m_cSPS.getScalingListFlag())
 #else
       if(m_cSPS.getUseSAO() || m_cSPS.getUseALF())
 #endif
@@ -816,11 +816,11 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       
       pcPic->setCurrSliceIdx(m_uiSliceIdx);
 #if SCALING_LIST
-      if(pcSlice->getSPS()->getScalingListId())
+      if(pcSlice->getSPS()->getScalingListFlag())
       {
         if(pcSlice->getAPS()->getScalingListEnabled())
         {
-          pcSlice->setScalingList ( &m_cScalingList  );
+          pcSlice->setScalingList ( &m_scalingList  );
           if(pcSlice->getScalingList()->getUseDefaultOnlyFlag())
           {
             pcSlice->setDefaultScalingList();
@@ -918,7 +918,7 @@ Void TDecTop::decodeAPS(TComInputBitstream* bs, TComAPS& cAPS)
 #if SCALING_LIST
   if(cAPS.getScalingListEnabled())
   {
-    m_cEntropyDecoder.decodeScalingList( &m_cScalingList );
+    m_cEntropyDecoder.decodeScalingList( &m_scalingList );
   }
 #endif
 
@@ -1049,7 +1049,7 @@ Void TDecTop::pushAPS  (TComAPS& cAPS)
 Void TDecTop::allocAPS (TComAPS* pAPS)
 {
 #if SCALING_LIST
-  if(m_cSPS.getScalingListId())
+  if(m_cSPS.getScalingListFlag())
   {
     pAPS->createScalingList();
   }
@@ -1068,7 +1068,7 @@ Void TDecTop::allocAPS (TComAPS* pAPS)
 Void TDecTop::freeAPS (TComAPS* pAPS)
 {
 #if SCALING_LIST
-  if(m_cSPS.getScalingListId())
+  if(m_cSPS.getScalingListFlag())
   {
     pAPS->destroyScalingList();
   }

@@ -2321,12 +2321,12 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, 
     Bool bNonSqureFlag = ( iWidth != iHeight );
     UInt uiNonSqureScanTableIdx = 0;
 #if SCALING_LIST
-    UInt uiDir          = SCALING_LIST_SQT;
+    UInt dir           = SCALING_LIST_SQT;
 #endif
     if( bNonSqureFlag )
     {
 #if SCALING_LIST
-      uiDir = ( iWidth < iHeight )?  SCALING_LIST_VER: SCALING_LIST_HOR;
+      dir = ( iWidth < iHeight )?  SCALING_LIST_VER: SCALING_LIST_HOR;
 #endif
       UInt uiWidthBit  = g_aucConvertToBit[ iWidth ] + 2;
       UInt uiHeightBit = g_aucConvertToBit[ iHeight ] + 2;
@@ -2356,10 +2356,10 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, 
 #if !SCALING_LIST
     UInt uiQ = g_quantScales[m_cQP.rem()];
 #else
-    Int iScalingListType = (pcCU->isIntra(uiAbsPartIdx) ? 0 : 3) + g_eTTable[(Int)eTType];
-    assert(iScalingListType < 6);
+    Int scalingListType = (pcCU->isIntra(uiAbsPartIdx) ? 0 : 3) + g_eTTable[(Int)eTType];
+    assert(scalingListType < 6);
     Int *piQuantCoeff = 0;
-    piQuantCoeff = getQuantCoeff(iScalingListType,m_cQP.m_iRem,iWidth*iHeight, uiDir);
+    piQuantCoeff = getQuantCoeff(scalingListType,m_cQP.m_iRem,iWidth*iHeight, dir);
 #endif
 
 #if FULL_NBIT
@@ -2374,11 +2374,7 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, 
 
     for( Int n = 0; n < iWidth*iHeight; n++ )
     {
-#if SCALING_LIST
-      Int64 iLevel;
-#else
       Int iLevel;
-#endif
       Int  iSign;
 #if !DISABLE_CAVLC
       UInt uiBlockPos = pucScan[n]; 
@@ -2389,7 +2385,7 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, 
       iSign   = (iLevel < 0 ? -1: 1);      
 
 #if SCALING_LIST
-      iLevel = (abs(iLevel) * piQuantCoeff[uiBlockPos] + iAdd ) >> iQBits;
+      iLevel = ((Int64)abs(iLevel) * piQuantCoeff[uiBlockPos] + iAdd ) >> iQBits;
 #else
       iLevel = (abs(iLevel) * uiQ + iAdd ) >> iQBits;
 #endif
@@ -2422,7 +2418,7 @@ Void TComTrQuant::xQuant(TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, 
 }
 
 #if SCALING_LIST
-Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeight, Int iScalingListType )
+Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeight, Int scalingListType )
 #else
 Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeight )
 #endif
@@ -2431,13 +2427,13 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
   const TCoeff* piQCoef   = pSrc;
   Int*   piCoef    = pDes;
 #if SCALING_LIST
-  UInt uiDir          = SCALING_LIST_SQT;
+  UInt dir          = SCALING_LIST_SQT;
 #endif
 #if NSQT
   if( iWidth != iHeight )
   {
 #if SCALING_LIST
-    uiDir          = ( iWidth < iHeight )? SCALING_LIST_VER: SCALING_LIST_HOR;
+    dir          = ( iWidth < iHeight )? SCALING_LIST_VER: SCALING_LIST_HOR;
 #endif
     UInt uiWidthBit  = g_aucConvertToBit[ iWidth ]  + 2;
     UInt uiHeightBit = g_aucConvertToBit[ iHeight ] + 2;
@@ -2474,7 +2470,7 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
     {
       iAdd = 0;
     }
-    Int *piDequantCoef = getDequantCoeff(iScalingListType,m_cQP.m_iRem,iWidth*iHeight,uiDir);
+    Int *piDequantCoef = getDequantCoeff(scalingListType,m_cQP.m_iRem,iWidth*iHeight,dir);
 
     if(iShift > m_cQP.m_iPer)
     {
@@ -2555,13 +2551,13 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU, Pel* pcResidual, UInt uiStride
 
 
 #if SCALING_LIST
-Void TComTrQuant::invtransformNxN( TextType eText,UInt uiMode, Pel*& rpcResidual, UInt uiStride, TCoeff* pcCoeff, UInt uiWidth, UInt uiHeight, Int iScalingListType )
+Void TComTrQuant::invtransformNxN( TextType eText,UInt uiMode, Pel*& rpcResidual, UInt uiStride, TCoeff* pcCoeff, UInt uiWidth, UInt uiHeight, Int scalingListType )
 #else
 Void TComTrQuant::invtransformNxN( TextType eText,UInt uiMode, Pel* rpcResidual, UInt uiStride, TCoeff* pcCoeff, UInt uiWidth, UInt uiHeight )
 #endif
 {
 #if SCALING_LIST
-  xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight, iScalingListType);
+  xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight, scalingListType);
 #else
   xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight);
 #endif
@@ -2652,9 +2648,9 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
     }
 #endif
 #if SCALING_LIST
-    Int iScalingListType = (pcCU->isIntra(uiAbsPartIdx) ? 0 : 3) + g_eTTable[(Int)eTxt];
-    assert(iScalingListType < 6);
-    invtransformNxN( eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, iScalingListType );
+    Int scalingListType = (pcCU->isIntra(uiAbsPartIdx) ? 0 : 3) + g_eTTable[(Int)eTxt];
+    assert(scalingListType < 6);
+    invtransformNxN( eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, scalingListType );
 #else
     invtransformNxN( eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight );
 #endif
@@ -3034,7 +3030,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   Double dTemp       = 0;
   
 #if SCALING_LIST
-  UInt uiDir         = SCALING_LIST_SQT;
+  UInt dir         = SCALING_LIST_SQT;
 #endif
 #if NSQT && !NSQT_DIAG_SCAN
   Bool bNonSqureFlag = ( uiWidth != uiHeight );
@@ -3059,7 +3055,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   {
     uiLog2TrSize += (uiWidth > uiHeight) ? -1 : 1;
 #if SCALING_LIST
-    uiDir            = ( uiWidth < uiHeight )?  SCALING_LIST_VER: SCALING_LIST_HOR;
+    dir            = ( uiWidth < uiHeight )?  SCALING_LIST_VER: SCALING_LIST_HOR;
 #endif
   }
 #endif
@@ -3083,13 +3079,13 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   const UInt uiLog2BlkSize       = g_aucConvertToBit[ uiWidth ] + 2;
   const UInt uiMaxNumCoeff       = uiWidth * uiHeight;
 #if SCALING_LIST
-  Int iScalingListType = (pcCU->isIntra(uiAbsPartIdx) ? 0 : 3) + g_eTTable[(Int)eTType];
-  assert(iScalingListType < 6);
+  Int scalingListType = (pcCU->isIntra(uiAbsPartIdx) ? 0 : 3) + g_eTTable[(Int)eTType];
+  assert(scalingListType < 6);
  
   iQBits = QUANT_SHIFT + m_cQP.m_iPer + iTransformShift;                   // Right shift of non-RDOQ quantizer;  level = (coeff*uiQ + offset)>>q_bits
   double dErrScale   = 0;
-  double *pdErrScaleOrg = getErrScaleCoeff(iScalingListType,uiMaxNumCoeff,m_cQP.m_iRem,uiDir);
-  Int *piQCoefOrg = getQuantCoeff(iScalingListType,m_cQP.m_iRem,uiMaxNumCoeff,uiDir);
+  double *pdErrScaleOrg = getErrScaleCoeff(scalingListType,uiMaxNumCoeff,m_cQP.m_iRem,dir);
+  Int *piQCoefOrg = getQuantCoeff(scalingListType,m_cQP.m_iRem,uiMaxNumCoeff,dir);
   Int *piQCoef = piQCoefOrg;
   double *pdErrScale = pdErrScaleOrg;
 #endif
@@ -3184,11 +3180,13 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     // set coeff
     uiQ  = piQCoef[uiBlkPos];
     dTemp = pdErrScale[uiBlkPos];
-    Int64 lLevelDouble          = plSrcCoeff[ uiBlkPos ];
-#else
-    Int lLevelDouble          = plSrcCoeff[ uiBlkPos ];
 #endif
+    Int lLevelDouble          = plSrcCoeff[ uiBlkPos ];
+#if SCALING_LIST
+    lLevelDouble              = (Int)min<Int64>(((Int64)abs(lLevelDouble) * uiQ), MAX_INT-(1 << (iQBits - 1)));
+#else
     lLevelDouble              = abs(lLevelDouble * uiQ);     
+#endif
     UInt uiMaxAbsLevel        = (lLevelDouble + (1 << (iQBits - 1))) >> iQBits;
 #if LEVEL_LIMIT
     uiMaxAbsLevel=plSrcCoeff[ uiBlkPos ]>=0 ? min<UInt>(uiMaxAbsLevel,32767): min<UInt>(uiMaxAbsLevel,32768);
@@ -3336,11 +3334,13 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         // set coeff
         uiQ  = piQCoef[uiBlkPos];
         dTemp = pdErrScale[uiBlkPos];
-        Int64 lLevelDouble          = plSrcCoeff[ uiBlkPos ];
-#else  
-        Int lLevelDouble          = plSrcCoeff[ uiBlkPos ];
 #endif
+        Int lLevelDouble          = plSrcCoeff[ uiBlkPos ];
+#if SCALING_LIST
+        lLevelDouble              = (Int)min<Int64>((Int64)abs((Int)lLevelDouble) * uiQ , MAX_INT - (1 << (iQBits - 1)));
+#else
         lLevelDouble              = abs(lLevelDouble * uiQ);     
+#endif
         UInt uiMaxAbsLevel        = (lLevelDouble + (1 << (iQBits - 1))) >> iQBits;
 
         Double dErr               = Double( lLevelDouble );
@@ -4232,93 +4232,93 @@ Bool TComTrQuant::bothCGNeighboursOne ( const UInt*                   uiSigCoeff
 #endif
 #if SCALING_LIST
 /** set quantized matrix coefficient for encode
- * \param pcScalingList quantaized matrix address
+ * \param scalingList quantaized matrix address
  */
-Void TComTrQuant::setScalingList(TComScalingList *pcScalingList)
+Void TComTrQuant::setScalingList(TComScalingList *scalingList)
 {
-  Int *piScalingList=0;
-  UInt uiSize,uiList;
-  UInt uiQP;
+  Int *scalingListAddress=0;
+  UInt size,list;
+  UInt qp;
 
-  for(uiSize=0;uiSize<SCALING_LIST_SIZE_NUM;uiSize++)
+  for(size=0;size<SCALING_LIST_SIZE_NUM;size++)
   {
-    for(uiList = 0; uiList < g_auiScalingListNum[uiSize]; uiList++)
+    for(list = 0; list < g_auiScalingListNum[size]; list++)
     {
-      piScalingList = pcScalingList->getScalingListAddress(uiSize,uiList);
-      for(uiQP=0;uiQP<SCALING_LIST_REM_NUM;uiQP++)
+      scalingListAddress = scalingList->getScalingListAddress(size,list);
+      for(qp=0;qp<SCALING_LIST_REM_NUM;qp++)
       {
-        xSetScalingListEnc(piScalingList,uiList,uiSize,uiQP);
-        xSetScalingListDec(piScalingList,uiList,uiSize,uiQP);
-        setErrScaleCoeff(uiList,uiSize,uiQP,SCALING_LIST_SQT);
-        if(uiSize == SCALING_LIST_32x32 || uiSize == SCALING_LIST_16x16)
+        xSetScalingListEnc(scalingListAddress,list,size,qp);
+        xSetScalingListDec(scalingListAddress,list,size,qp);
+        setErrScaleCoeff(list,size,qp,SCALING_LIST_SQT);
+        if(size == SCALING_LIST_32x32 || size == SCALING_LIST_16x16)
         {
-          setErrScaleCoeff(uiList,uiSize-1,uiQP,SCALING_LIST_HOR);
-          setErrScaleCoeff(uiList,uiSize-1,uiQP,SCALING_LIST_VER);
+          setErrScaleCoeff(list,size-1,qp,SCALING_LIST_HOR);
+          setErrScaleCoeff(list,size-1,qp,SCALING_LIST_VER);
         }
       }
     }
   }
 }
 /** set quantized matrix coefficient for decode
- * \param pcScalingList quantaized matrix address
+ * \param scalingList quantaized matrix address
  */
-Void TComTrQuant::setScalingListDec(TComScalingList *pcScalingList)
+Void TComTrQuant::setScalingListDec(TComScalingList *scalingList)
 {
-  Int *piScalingList=0;
-  UInt uiSize,uiList;
-  UInt uiQP;
+  Int *scalingListAddress=0;
+  UInt size,list;
+  UInt qp;
 
-  for(uiSize=0;uiSize<SCALING_LIST_SIZE_NUM;uiSize++)
+  for(size=0;size<SCALING_LIST_SIZE_NUM;size++)
   {
-    for(uiList = 0; uiList < g_auiScalingListNum[uiSize]; uiList++)
+    for(list = 0; list < g_auiScalingListNum[size]; list++)
     {
-      piScalingList = pcScalingList->getScalingListAddress(uiSize,uiList);
-      for(uiQP=0;uiQP<SCALING_LIST_REM_NUM;uiQP++)
+      scalingListAddress = scalingList->getScalingListAddress(size,list);
+      for(qp=0;qp<SCALING_LIST_REM_NUM;qp++)
       {
-        xSetScalingListDec(piScalingList,uiList,uiSize,uiQP);
+        xSetScalingListDec(scalingListAddress,list,size,qp);
       }
     }
   }
 }
 /** get error scale coefficients
- * \param uiList List ID
+ * \param list List ID
  * \param uiSize Size
  * \param uiQP Quantization parameter
  * \returns pdErrScale error scale coefficients
  */
-double *TComTrQuant::getErrScaleCoeff(UInt uiList,UInt uiSize, UInt uiQP, UInt uiDir)
+double *TComTrQuant::getErrScaleCoeff(UInt list, UInt size, UInt qp, UInt dir)
 {
-  double *pdErrScale = 0;
-  switch(uiSize)
+  double *errScale = 0;
+  switch(size)
   {
     case 16:
-      pdErrScale = m_adErrScale[uiList][uiQP];
+      errScale = m_errScale[list][qp];
       break;
     case 64:
-      pdErrScale = m_adErrScale64[uiList][uiQP][uiDir];
+      errScale = m_errScale64[list][qp][dir];
       break;
     case 256:
-      pdErrScale = m_adErrScale256[uiList][uiQP][uiDir];
+      errScale = m_errScale256[list][qp][dir];
       break;
     case 1024:
-      pdErrScale = m_adErrScale1024[uiList][uiQP];
+      errScale = m_errScale1024[list][qp];
       break;
     default:
       assert(0);
-      pdErrScale = NULL;
+      errScale = NULL;
       break;
   }
-  return pdErrScale;
+  return errScale;
 }
 /** set error scale coefficients
- * \param uiList List ID
+ * \param list List ID
  * \param uiSize Size
  * \param uiQP Quantization parameter
  */
-Void TComTrQuant::setErrScaleCoeff(UInt uiList,UInt uiSize, UInt uiQP, UInt uiDir)
+Void TComTrQuant::setErrScaleCoeff(UInt list,UInt size, UInt qp, UInt dir)
 {
 
-  UInt uiLog2TrSize = g_aucConvertToBit[ g_auiScalingListSizeX[uiSize] ] + 2;
+  UInt uiLog2TrSize = g_aucConvertToBit[ g_scalingListSizeX[size] ] + 2;
 #if FULL_NBIT
   UInt uiBitDepth = g_uiBitDepth;
 #else
@@ -4327,11 +4327,11 @@ Void TComTrQuant::setErrScaleCoeff(UInt uiList,UInt uiSize, UInt uiQP, UInt uiDi
 
   Int iTransformShift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize;  // Represents scaling through forward transform
 
-  UInt i,uiMaxNumCoeff = g_auiScalingListSize[uiSize];
+  UInt i,uiMaxNumCoeff = g_scalingListSize[size];
   Int *piQuantcoeff;
   double *pdErrScale;
-  piQuantcoeff   = getQuantCoeff(uiList, uiQP,uiMaxNumCoeff,uiDir);
-  pdErrScale     = getErrScaleCoeff(uiList, uiMaxNumCoeff, uiQP,uiDir);
+  piQuantcoeff   = getQuantCoeff(list, qp,uiMaxNumCoeff,dir);
+  pdErrScale     = getErrScaleCoeff(list, uiMaxNumCoeff, qp,dir);
 
   double dErrScale = (double)(1<<SCALE_BITS);                              // Compensate for scaling of bitcount in Lagrange cost function
   dErrScale = dErrScale*pow(2.0,-2.0*iTransformShift);                     // Compensate for scaling through forward transform
@@ -4342,125 +4342,125 @@ Void TComTrQuant::setErrScaleCoeff(UInt uiList,UInt uiSize, UInt uiQP, UInt uiDi
 }
 
 /** set quantized matrix coefficient for encode
- * \param pcScalingList quantaized matrix address
- * \param uiList List index
+ * \param scalingList quantaized matrix address
+ * \param list List index
  * \param uiScalingListSize SCALING_LIST size
  * \param uiQP Quantization parameter
  */
-Void TComTrQuant::xSetScalingListEnc(Int *piScalingList, UInt uiList, UInt uiSize, UInt uiQP)
+Void TComTrQuant::xSetScalingListEnc(Int *scalingList, UInt list, UInt size, UInt qp)
 {
-  UInt i,uiNum = g_auiScalingListSize[uiSize];
-  UInt uiWidth = g_auiScalingListSizeX[uiSize];
-  UInt uiWidthCounter;
-  UInt uiNumDiv4 = uiNum>>2;
-  Int *piQuantcoeff;
-  Int *piScalingListtop = piScalingList;
-  Int iQuantScales = g_quantScales[uiQP]<<4;
-  UInt uiWidthx3 = uiWidth*3;
+  UInt i,num = g_scalingListSize[size];
+  UInt width = g_scalingListSizeX[size];
+  UInt widthCounter;
+  UInt numDiv4 = num>>2;
+  Int *quantcoeff;
+  Int *scalingListtop = scalingList;
+  Int quantScales = g_quantScales[qp]<<4;
+  UInt widthx3 = width*3;
 
-  piQuantcoeff   = getQuantCoeff(uiList, uiQP, g_auiScalingListSize[uiSize],SCALING_LIST_SQT);
-  for(i=0;i<uiNum;i++)
+  quantcoeff   = getQuantCoeff(list, qp, g_scalingListSize[size],SCALING_LIST_SQT);
+  for(i=0;i<num;i++)
   {
-    *piQuantcoeff++ = iQuantScales / (*piScalingList);
-    piScalingList++;
+    *quantcoeff++ = quantScales / (*scalingList);
+    scalingList++;
   }
 
-  if(uiSize == SCALING_LIST_32x32 || uiSize == SCALING_LIST_16x16)
+  if(size == SCALING_LIST_32x32 || size == SCALING_LIST_16x16)
   {
-    piScalingList = piScalingListtop;
-    piQuantcoeff   = getQuantCoeff(uiList, uiQP, g_auiScalingListSize[uiSize-1],SCALING_LIST_VER);
-    for(i=0;i<uiNumDiv4;i++)
+    scalingList = scalingListtop;
+    quantcoeff   = getQuantCoeff(list, qp, g_scalingListSize[size-1],SCALING_LIST_VER);
+    for(i=0;i<numDiv4;i++)
     {
-      *piQuantcoeff++ = iQuantScales / (*piScalingList);
-      piScalingList += 4;
+      *quantcoeff++ = quantScales / (*scalingList);
+      scalingList += 4;
     }
-    piScalingList = piScalingListtop;
-    piQuantcoeff   = getQuantCoeff(uiList, uiQP, g_auiScalingListSize[uiSize-1],SCALING_LIST_HOR);
-    uiWidthCounter = 0;
-    for(i=0;i<uiNumDiv4;i++)
+    scalingList = scalingListtop;
+    quantcoeff   = getQuantCoeff(list, qp, g_scalingListSize[size-1],SCALING_LIST_HOR);
+    widthCounter = 0;
+    for(i=0;i<numDiv4;i++)
     {
-      *piQuantcoeff++ = iQuantScales / (*piScalingList);
-      piScalingList++;
-      if(uiWidthCounter == (uiWidth-1))
+      *quantcoeff++ = quantScales / (*scalingList);
+      scalingList++;
+      if(widthCounter == (width-1))
       {
-        piScalingList += uiWidthx3;
-        uiWidthCounter++;
+        scalingList += widthx3;
+        widthCounter++;
       }
     }
   }
 }
 /** set quantized matrix coefficient for decode
- * \param pcScalingList quantaized matrix address
- * \param uiList List index
+ * \param scalingList quantaized matrix address
+ * \param list List index
  * \param uiSize SCALING_LIST size
  * \param uiQP Quantization parameter
  */
-Void TComTrQuant::xSetScalingListDec(Int *piScalingList, UInt uiList, UInt uiSize, UInt uiQP)
+Void TComTrQuant::xSetScalingListDec(Int *scalingList, UInt list, UInt size, UInt qp)
 {
-  UInt i,uiNum = g_auiScalingListSize [uiSize];
-  UInt uiWidth = g_auiScalingListSizeX[uiSize];
-  UInt uiWidthCounter;
-  UInt uiNumDiv4 = uiNum>>2;
-  Int *piDequantcoeff;
-  Int *piScalingListtop = piScalingList;
-  Int iinvQuantScales = g_invQuantScales[uiQP];
-  UInt uiWidthx3 = uiWidth*3;
+  UInt i,num = g_scalingListSize [size];
+  UInt width = g_scalingListSizeX[size];
+  UInt widthCounter;
+  UInt numDiv4 = num>>2;
+  Int *dequantcoeff;
+  Int *scalingListtop = scalingList;
+  Int invQuantScales = g_invQuantScales[qp];
+  UInt widthx3 = width*3;
 
-  piDequantcoeff = getDequantCoeff(uiList, uiQP, g_auiScalingListSize[uiSize],SCALING_LIST_SQT);
-  for(i=0;i<uiNum;i++)
+  dequantcoeff = getDequantCoeff(list, qp, g_scalingListSize[size],SCALING_LIST_SQT);
+  for(i=0;i<num;i++)
   {
-    *piDequantcoeff++ = iinvQuantScales * (*piScalingList);
-    piScalingList++;
+    *dequantcoeff++ = invQuantScales * (*scalingList);
+    scalingList++;
   }
 
-  if(uiSize == SCALING_LIST_32x32 || uiSize == SCALING_LIST_16x16)
+  if(size == SCALING_LIST_32x32 || size == SCALING_LIST_16x16)
   {
-    piScalingList = piScalingListtop;
-    piDequantcoeff = getDequantCoeff(uiList, uiQP, g_auiScalingListSize[uiSize-1],SCALING_LIST_VER);
-    for(i=0;i<uiNumDiv4;i++)
+    scalingList = scalingListtop;
+    dequantcoeff = getDequantCoeff(list, qp, g_scalingListSize[size-1],SCALING_LIST_VER);
+    for(i=0;i<numDiv4;i++)
     {
-      *piDequantcoeff++ = iinvQuantScales * (*piScalingList);
-      piScalingList += 4;
+      *dequantcoeff++ = invQuantScales * (*scalingList);
+      scalingList += 4;
     }
-    piScalingList = piScalingListtop;
-    piDequantcoeff = getDequantCoeff(uiList, uiQP, g_auiScalingListSize[uiSize-1],SCALING_LIST_HOR);
-    uiWidthCounter = 0;
-    for(i=0;i<uiNumDiv4;i++)
+    scalingList = scalingListtop;
+    dequantcoeff = getDequantCoeff(list, qp, g_scalingListSize[size-1],SCALING_LIST_HOR);
+    widthCounter = 0;
+    for(i=0;i<numDiv4;i++)
     {
-      *piDequantcoeff++ = iinvQuantScales * (*piScalingList);
-      piScalingList++;
-      if(uiWidthCounter == (uiWidth-1))
+      *dequantcoeff++ = invQuantScales * (*scalingList);
+      scalingList++;
+      if(widthCounter == (width-1))
       {
-        uiWidthCounter = 0;
-        piScalingList += uiWidthx3;
+        widthCounter = 0;
+        scalingList += widthx3;
       }
-      uiWidthCounter++;
+      widthCounter++;
     }
   }
 }
 
 /** get Quantization coefficients
- * \param uiList List ID
+ * \param list List ID
  * \param uiQP Quantization parameter
  * \param uiSize Size
  * \returns piCoeff pointer of quantization matrix coefficients
  */
-Int* TComTrQuant::getQuantCoeff( UInt uiList, UInt uiQP, UInt uiSize, UInt uiDir)
+Int* TComTrQuant::getQuantCoeff( UInt list, UInt qp, UInt size, UInt dir)
 {
   Int *piCoeff = 0;
-  switch(uiSize)
+  switch(size)
   {
     case 16:
-      piCoeff = m_aiQuantCoef[uiList][uiQP];
+      piCoeff = m_quantCoef[list][qp];
       break;
     case 64:
-      piCoeff = m_aiQuantCoef64[uiList][uiQP][uiDir];
+      piCoeff = m_quantCoef64[list][qp][dir];
       break;
     case 256:
-      piCoeff = m_aiQuantCoef256[uiList][uiQP][uiDir];
+      piCoeff = m_quantCoef256[list][qp][dir];
       break;
     case 1024:
-      piCoeff = m_aiQuantCoef1024[uiList][uiQP];
+      piCoeff = m_quantCoef1024[list][qp];
       break;
     default:
       assert(0);
@@ -4472,27 +4472,27 @@ Int* TComTrQuant::getQuantCoeff( UInt uiList, UInt uiQP, UInt uiSize, UInt uiDir
 }
 
 /** get Dequantization coefficients
- * \param uiList List ID
+ * \param list List ID
  * \param uiQP Quantization parameter
  * \param uiSize Size
  * \returns piCoeff pointer of quantization matrix coefficients
  */
-Int* TComTrQuant::getDequantCoeff( UInt uiList, UInt uiQP, UInt uiSize, UInt uiDir)
+Int* TComTrQuant::getDequantCoeff( UInt list, UInt qp, UInt size, UInt dir)
 {
   Int *piCoeff = 0;
-  switch(uiSize)
+  switch(size)
   {
     case 16:
-      piCoeff = m_aiDequantCoef[uiList][uiQP];
+      piCoeff = m_dequantCoef[list][qp];
       break;
     case 64:
-      piCoeff = m_aiDequantCoef64[uiList][uiQP][uiDir];
+      piCoeff = m_dequantCoef64[list][qp][dir];
       break;
     case 256:
-      piCoeff = m_aiDequantCoef256[uiList][uiQP][uiDir];
+      piCoeff = m_dequantCoef256[list][qp][dir];
       break;
     case 1024:
-      piCoeff = m_aiDequantCoef1024[uiList][uiQP];
+      piCoeff = m_dequantCoef1024[list][qp];
       break;
     default:
       assert(0);
@@ -4505,21 +4505,21 @@ Int* TComTrQuant::getDequantCoeff( UInt uiList, UInt uiQP, UInt uiSize, UInt uiD
  */
 Void TComTrQuant::setFlatScalingList()
 {
-  UInt uiSize,uiList;
-  UInt uiQP;
+  UInt size,list;
+  UInt qp;
 
-  for(uiSize=0;uiSize<SCALING_LIST_SIZE_NUM;uiSize++)
+  for(size=0;size<SCALING_LIST_SIZE_NUM;size++)
   {
-    for(uiList = 0; uiList <  g_auiScalingListNum[uiSize]; uiList++)
+    for(list = 0; list <  g_auiScalingListNum[size]; list++)
     {
-      for(uiQP=0;uiQP<SCALING_LIST_REM_NUM;uiQP++)
+      for(qp=0;qp<SCALING_LIST_REM_NUM;qp++)
       {
-        xsetFlatScalingList(uiList,uiSize,uiQP);
-        setErrScaleCoeff(uiList,uiSize,uiQP,SCALING_LIST_SQT);
-        if(uiSize == SCALING_LIST_32x32 || uiSize == SCALING_LIST_16x16)
+        xsetFlatScalingList(list,size,qp);
+        setErrScaleCoeff(list,size,qp,SCALING_LIST_SQT);
+        if(size == SCALING_LIST_32x32 || size == SCALING_LIST_16x16)
         {
-          setErrScaleCoeff(uiList,uiSize-1,uiQP,SCALING_LIST_HOR);
-          setErrScaleCoeff(uiList,uiSize-1,uiQP,SCALING_LIST_VER);
+          setErrScaleCoeff(list,size-1,qp,SCALING_LIST_HOR);
+          setErrScaleCoeff(list,size-1,qp,SCALING_LIST_VER);
         }
       }
     }
@@ -4527,45 +4527,45 @@ Void TComTrQuant::setFlatScalingList()
 }
 
 /** set flat matrix value to quantized coefficient
- * \param uiList List ID
+ * \param list List ID
  * \param uiQP Quantization parameter
  * \param uiSize Size
  */
-Void TComTrQuant::xsetFlatScalingList(UInt uiList, UInt uiSize, UInt uiQP)
+Void TComTrQuant::xsetFlatScalingList(UInt list, UInt size, UInt qp)
 {
-  UInt i,uiNum = g_auiScalingListSize[uiSize];
-  UInt uiNumDiv4 = uiNum>>2;
-  Int *piQuantcoeff;
-  Int *piDequantcoeff;
-  Int iQuantScales = g_quantScales[uiQP];
-  Int iinvQuantScales = g_invQuantScales[uiQP]<<4;
+  UInt i,num = g_scalingListSize[size];
+  UInt numDiv4 = num>>2;
+  Int *quantcoeff;
+  Int *dequantcoeff;
+  Int quantScales = g_quantScales[qp];
+  Int invQuantScales = g_invQuantScales[qp]<<4;
 
-  piQuantcoeff   = getQuantCoeff(uiList, uiQP, g_auiScalingListSize[uiSize],SCALING_LIST_SQT);
-  piDequantcoeff = getDequantCoeff(uiList, uiQP, g_auiScalingListSize[uiSize],SCALING_LIST_SQT);
+  quantcoeff   = getQuantCoeff(list, qp, g_scalingListSize[size],SCALING_LIST_SQT);
+  dequantcoeff = getDequantCoeff(list, qp, g_scalingListSize[size],SCALING_LIST_SQT);
 
-  for(i=0;i<uiNum;i++)
+  for(i=0;i<num;i++)
   { 
-    *piQuantcoeff++ = iQuantScales;
-    *piDequantcoeff++ = iinvQuantScales;
+    *quantcoeff++ = quantScales;
+    *dequantcoeff++ = invQuantScales;
   }
 
-  if(uiSize == SCALING_LIST_32x32 || uiSize == SCALING_LIST_16x16)
+  if(size == SCALING_LIST_32x32 || size == SCALING_LIST_16x16)
   {
-    piQuantcoeff   = getQuantCoeff(uiList, uiQP, g_auiScalingListSize[uiSize-1],SCALING_LIST_HOR);
-    piDequantcoeff = getDequantCoeff(uiList, uiQP, g_auiScalingListSize[uiSize-1],SCALING_LIST_HOR);
+    quantcoeff   = getQuantCoeff(list, qp, g_scalingListSize[size-1],SCALING_LIST_HOR);
+    dequantcoeff = getDequantCoeff(list, qp, g_scalingListSize[size-1],SCALING_LIST_HOR);
 
-    for(i=0;i<uiNumDiv4;i++)
+    for(i=0;i<numDiv4;i++)
     {
-      *piQuantcoeff++ = iQuantScales;
-      *piDequantcoeff++ = iinvQuantScales;
+      *quantcoeff++ = quantScales;
+      *dequantcoeff++ = invQuantScales;
     }
-    piQuantcoeff   = getQuantCoeff(uiList, uiQP, g_auiScalingListSize[uiSize-1],SCALING_LIST_VER);
-    piDequantcoeff = getDequantCoeff(uiList, uiQP, g_auiScalingListSize[uiSize-1],SCALING_LIST_VER);
+    quantcoeff   = getQuantCoeff(list, qp, g_scalingListSize[size-1],SCALING_LIST_VER);
+    dequantcoeff = getDequantCoeff(list, qp, g_scalingListSize[size-1],SCALING_LIST_VER);
 
-    for(i=0;i<uiNumDiv4;i++)
+    for(i=0;i<numDiv4;i++)
     {
-      *piQuantcoeff++ = iQuantScales;
-      *piDequantcoeff++ = iinvQuantScales;
+      *quantcoeff++ = quantScales;
+      *dequantcoeff++ = invQuantScales;
     }
   }
 }
@@ -4574,87 +4574,87 @@ Void TComTrQuant::xsetFlatScalingList(UInt uiList, UInt uiSize, UInt uiQP)
  */
 Void TComTrQuant::initScalingList()
 {
-  for(UInt uiListId = 0; uiListId < SCALING_LIST_NUM; uiListId++)
+  for(UInt listId = 0; listId < SCALING_LIST_NUM; listId++)
   {
-    for(UInt uiQ = 0; uiQ < SCALING_LIST_REM_NUM; uiQ++)
+    for(UInt qp = 0; qp < SCALING_LIST_REM_NUM; qp++)
     {
-      for(UInt uiDir = 0; uiDir < SCALING_LIST_DIR_NUM; uiDir++)
+      for(UInt dir = 0; dir < SCALING_LIST_DIR_NUM; dir++)
       {
-        m_aiQuantCoef64     [uiListId][uiQ][uiDir] = new Int [64];
-        m_aiDequantCoef64   [uiListId][uiQ][uiDir] = new Int [64];
-        m_adErrScale64      [uiListId][uiQ][uiDir] = new double [64];
+        m_quantCoef64     [listId][qp][dir] = new Int [64];
+        m_dequantCoef64   [listId][qp][dir] = new Int [64];
+        m_errScale64      [listId][qp][dir] = new double [64];
       }
-      m_aiQuantCoef256    [uiListId][uiQ][SCALING_LIST_SQT] = new Int [256];
-      m_aiDequantCoef256  [uiListId][uiQ][SCALING_LIST_SQT] = new Int [256];
-      m_adErrScale256     [uiListId][uiQ][SCALING_LIST_SQT] = new double [256];
-      m_aiQuantCoef       [uiListId][uiQ] = new Int [16];
-      m_aiDequantCoef     [uiListId][uiQ] = new Int [16];
-      m_adErrScale        [uiListId][uiQ] = new double [16];
+      m_quantCoef256    [listId][qp][SCALING_LIST_SQT] = new Int [256];
+      m_dequantCoef256  [listId][qp][SCALING_LIST_SQT] = new Int [256];
+      m_errScale256     [listId][qp][SCALING_LIST_SQT] = new double [256];
+      m_quantCoef       [listId][qp] = new Int [16];
+      m_dequantCoef     [listId][qp] = new Int [16];
+      m_errScale        [listId][qp] = new double [16];
     }
   }
-  for(UInt uiListId = 0; uiListId < SCALING_LIST_NUM_32x32; uiListId++)
+  for(UInt listId = 0; listId < SCALING_LIST_NUM_32x32; listId++)
   {
-    for(UInt uiQ = 0; uiQ < SCALING_LIST_REM_NUM; uiQ++)
+    for(UInt qp = 0; qp < SCALING_LIST_REM_NUM; qp++)
     {
-      for(UInt uiDir = SCALING_LIST_VER; uiDir < SCALING_LIST_DIR_NUM; uiDir++)
+      for(UInt dir = SCALING_LIST_VER; dir < SCALING_LIST_DIR_NUM; dir++)
       {
-        m_aiQuantCoef256    [uiListId][uiQ][uiDir] = new Int [256];
-        m_aiDequantCoef256  [uiListId][uiQ][uiDir] = new Int [256];
-        m_adErrScale256     [uiListId][uiQ][uiDir] = new double [256];
+        m_quantCoef256    [listId][qp][dir] = new Int [256];
+        m_dequantCoef256  [listId][qp][dir] = new Int [256];
+        m_errScale256     [listId][qp][dir] = new double [256];
       }
-      m_aiQuantCoef1024   [uiListId][uiQ] = new Int [1024];
-      m_aiDequantCoef1024 [uiListId][uiQ] = new Int [1024];
-      m_adErrScale1024    [uiListId][uiQ] = new double [1024];
+      m_quantCoef1024   [listId][qp] = new Int [1024];
+      m_dequantCoef1024 [listId][qp] = new Int [1024];
+      m_errScale1024    [listId][qp] = new double [1024];
     }
   }
-  for(UInt uiQ = 0; uiQ < SCALING_LIST_REM_NUM; uiQ++)
+  for(UInt qp = 0; qp < SCALING_LIST_REM_NUM; qp++)
   {
-    for(UInt uiDir = SCALING_LIST_VER; uiDir < SCALING_LIST_DIR_NUM; uiDir++)
+    for(UInt dir = SCALING_LIST_VER; dir < SCALING_LIST_DIR_NUM; dir++)
     {
-      m_aiQuantCoef256    [3][uiQ][uiDir] = m_aiQuantCoef256    [1][uiQ][uiDir];
-      m_aiDequantCoef256  [3][uiQ][uiDir] = m_aiDequantCoef256  [1][uiQ][uiDir];
-      m_adErrScale256     [3][uiQ][uiDir] = m_adErrScale256     [1][uiQ][uiDir];
+      m_quantCoef256    [3][qp][dir] = m_quantCoef256    [1][qp][dir];
+      m_dequantCoef256  [3][qp][dir] = m_dequantCoef256  [1][qp][dir];
+      m_errScale256     [3][qp][dir] = m_errScale256     [1][qp][dir];
     }
-    m_aiQuantCoef1024   [3][uiQ] = m_aiQuantCoef1024   [1][uiQ];
-    m_aiDequantCoef1024 [3][uiQ] = m_aiDequantCoef1024 [1][uiQ];
-    m_adErrScale1024    [3][uiQ] = m_adErrScale1024    [1][uiQ];
+    m_quantCoef1024   [3][qp] = m_quantCoef1024   [1][qp];
+    m_dequantCoef1024 [3][qp] = m_dequantCoef1024 [1][qp];
+    m_errScale1024    [3][qp] = m_errScale1024    [1][qp];
   }
 }
 /** destroy quantization matrix array
  */
 Void TComTrQuant::destroyScalingList()
 {
-  for(UInt uiListId = 0; uiListId < SCALING_LIST_NUM; uiListId++)
+  for(UInt listId = 0; listId < SCALING_LIST_NUM; listId++)
   {
-    for(UInt uiQ = 0; uiQ < SCALING_LIST_REM_NUM; uiQ++)
+    for(UInt qp = 0; qp < SCALING_LIST_REM_NUM; qp++)
     {
-      for(UInt uiDir = 0; uiDir < SCALING_LIST_DIR_NUM; uiDir++)
+      for(UInt dir = 0; dir < SCALING_LIST_DIR_NUM; dir++)
       {
-        if(m_aiQuantCoef64      [uiListId][uiQ][uiDir]) delete [] m_aiQuantCoef64      [uiListId][uiQ][uiDir];
-        if(m_aiDequantCoef64    [uiListId][uiQ][uiDir]) delete [] m_aiDequantCoef64    [uiListId][uiQ][uiDir];
-        if(m_adErrScale64       [uiListId][uiQ][uiDir]) delete [] m_adErrScale64       [uiListId][uiQ][uiDir];
+        if(m_quantCoef64      [listId][qp][dir]) delete [] m_quantCoef64      [listId][qp][dir];
+        if(m_dequantCoef64    [listId][qp][dir]) delete [] m_dequantCoef64    [listId][qp][dir];
+        if(m_errScale64       [listId][qp][dir]) delete [] m_errScale64       [listId][qp][dir];
       }
-      if(m_aiQuantCoef256     [uiListId][uiQ][SCALING_LIST_SQT]) delete [] m_aiQuantCoef256     [uiListId][uiQ][SCALING_LIST_SQT];
-      if(m_aiDequantCoef256   [uiListId][uiQ][SCALING_LIST_SQT]) delete [] m_aiDequantCoef256   [uiListId][uiQ][SCALING_LIST_SQT];
-      if(m_adErrScale256      [uiListId][uiQ][SCALING_LIST_SQT]) delete [] m_adErrScale256      [uiListId][uiQ][SCALING_LIST_SQT];
-      if(m_aiQuantCoef        [uiListId][uiQ]) delete [] m_aiQuantCoef        [uiListId][uiQ];
-      if(m_aiDequantCoef      [uiListId][uiQ]) delete [] m_aiDequantCoef      [uiListId][uiQ];
-      if(m_adErrScale         [uiListId][uiQ]) delete [] m_adErrScale         [uiListId][uiQ];
+      if(m_quantCoef256     [listId][qp][SCALING_LIST_SQT]) delete [] m_quantCoef256     [listId][qp][SCALING_LIST_SQT];
+      if(m_dequantCoef256   [listId][qp][SCALING_LIST_SQT]) delete [] m_dequantCoef256   [listId][qp][SCALING_LIST_SQT];
+      if(m_errScale256      [listId][qp][SCALING_LIST_SQT]) delete [] m_errScale256      [listId][qp][SCALING_LIST_SQT];
+      if(m_quantCoef        [listId][qp]) delete [] m_quantCoef        [listId][qp];
+      if(m_dequantCoef      [listId][qp]) delete [] m_dequantCoef      [listId][qp];
+      if(m_errScale         [listId][qp]) delete [] m_errScale         [listId][qp];
     }
   }
-  for(UInt uiListId = 0; uiListId < SCALING_LIST_NUM_32x32; uiListId++)
+  for(UInt listId = 0; listId < SCALING_LIST_NUM_32x32; listId++)
   {
-    for(UInt uiQ = 0; uiQ < SCALING_LIST_REM_NUM; uiQ++)
+    for(UInt qp = 0; qp < SCALING_LIST_REM_NUM; qp++)
     {
-      for(UInt uiDir = SCALING_LIST_VER; uiDir < SCALING_LIST_DIR_NUM; uiDir++)
+      for(UInt dir = SCALING_LIST_VER; dir < SCALING_LIST_DIR_NUM; dir++)
       {
-        if(m_aiQuantCoef256     [uiListId][uiQ][uiDir]) delete [] m_aiQuantCoef256     [uiListId][uiQ][uiDir];
-        if(m_aiDequantCoef256   [uiListId][uiQ][uiDir]) delete [] m_aiDequantCoef256   [uiListId][uiQ][uiDir];
-        if(m_adErrScale256      [uiListId][uiQ][uiDir]) delete [] m_adErrScale256      [uiListId][uiQ][uiDir];
+        if(m_quantCoef256     [listId][qp][dir]) delete [] m_quantCoef256     [listId][qp][dir];
+        if(m_dequantCoef256   [listId][qp][dir]) delete [] m_dequantCoef256   [listId][qp][dir];
+        if(m_errScale256      [listId][qp][dir]) delete [] m_errScale256      [listId][qp][dir];
       }
-      if(m_aiQuantCoef1024    [uiListId][uiQ]) delete [] m_aiQuantCoef1024    [uiListId][uiQ];
-      if(m_aiDequantCoef1024  [uiListId][uiQ]) delete [] m_aiDequantCoef1024  [uiListId][uiQ];
-      if(m_adErrScale1024     [uiListId][uiQ]) delete [] m_adErrScale1024     [uiListId][uiQ];
+      if(m_quantCoef1024    [listId][qp]) delete [] m_quantCoef1024    [listId][qp];
+      if(m_dequantCoef1024  [listId][qp]) delete [] m_dequantCoef1024  [listId][qp];
+      if(m_errScale1024     [listId][qp]) delete [] m_errScale1024     [listId][qp];
     }
   }
 }

@@ -150,7 +150,7 @@ public:
   virtual Void parseAPSInitInfo   (TComAPS& cAPS) = 0;
 #endif
 #if SCALING_LIST
-  virtual Void parseScalingList   ( TComScalingList* pcScalingList ) = 0;
+  virtual Void parseScalingList   ( TComScalingList* scalingList ) = 0;
 #endif
 
   virtual ~TDecEntropyIf() {}
@@ -269,7 +269,7 @@ public:
   Void decodeAPSInitInfo       (TComAPS& cAPS) {m_pcEntropyDecoderIf->parseAPSInitInfo(cAPS);}
 #endif
 #if SCALING_LIST
-  Void decodeScalingList       ( TComScalingList* pcScalingList ) { m_pcEntropyDecoderIf->parseScalingList(pcScalingList); }
+  Void decodeScalingList       ( TComScalingList* scalingList ) { m_pcEntropyDecoderIf->parseScalingList(scalingList); }
 #endif
 
 };// END CLASS DEFINITION TDecEntropy
