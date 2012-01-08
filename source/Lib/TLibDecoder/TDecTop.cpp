@@ -494,7 +494,11 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         return true;
       }
 #if F747_APS
+#if SCALING_LIST
+      if(m_cSPS.getUseSAO() || m_cSPS.getUseALF()|| m_cSPS.getScalingListFlag())
+#else
       if(m_cSPS.getUseSAO() || m_cSPS.getUseALF())
+#endif
       {
         m_apcSlicePilot->setAPS( popAPS(m_apcSlicePilot->getAPSId())  );
       }
@@ -832,6 +836,26 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       }
       
       pcPic->setCurrSliceIdx(m_uiSliceIdx);
+#if SCALING_LIST
+      if(pcSlice->getSPS()->getScalingListFlag())
+      {
+        if(pcSlice->getAPS()->getScalingListEnabled())
+        {
+          pcSlice->setScalingList ( &m_scalingList  );
+          if(pcSlice->getScalingList()->getUseDefaultOnlyFlag())
+          {
+            pcSlice->setDefaultScalingList();
+          }
+          m_cTrQuant.setScalingListDec(pcSlice->getScalingList());
+        }
+        m_cTrQuant.setUseScalingList(true);
+      }
+      else
+      {
+        m_cTrQuant.setFlatScalingList();
+        m_cTrQuant.setUseScalingList(false);
+      }
+#endif
 
       //  Decode a picture
 #if G1002_RPS
@@ -912,6 +936,12 @@ Void TDecTop::decodeAPS(TComInputBitstream* bs, TComAPS& cAPS)
   Int iBitLeft;
 #endif
   m_cEntropyDecoder.decodeAPSInitInfo(cAPS);
+#if SCALING_LIST
+  if(cAPS.getScalingListEnabled())
+  {
+    m_cEntropyDecoder.decodeScalingList( &m_scalingList );
+  }
+#endif
 
   if(cAPS.getSaoEnabled())
   {
@@ -1039,6 +1069,12 @@ Void TDecTop::pushAPS  (TComAPS& cAPS)
 
 Void TDecTop::allocAPS (TComAPS* pAPS)
 {
+#if SCALING_LIST
+  if(m_cSPS.getScalingListFlag())
+  {
+    pAPS->createScalingList();
+  }
+#endif
   if(m_cSPS.getUseSAO())
   {
     pAPS->createSaoParam();
@@ -1052,6 +1088,12 @@ Void TDecTop::allocAPS (TComAPS* pAPS)
 }
 Void TDecTop::freeAPS (TComAPS* pAPS)
 {
+#if SCALING_LIST
+  if(m_cSPS.getScalingListFlag())
+  {
+    pAPS->destroyScalingList();
+  }
+#endif
   if(m_cSPS.getUseSAO())
   {
     m_cSAO.freeSaoParam(pAPS->getSaoParam());

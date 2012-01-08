@@ -231,6 +231,11 @@ public:
 #if WEIGHT_PRED
   Void parseWeightPredTable ( TComSlice* pcSlice );
 #endif
+#if SCALING_LIST
+  Void  parseScalingList               ( TComScalingList* scalingList );
+  Void  xDecodeDPCMScalingListMatrix   ( TComScalingList *scalingList, Int* data, UInt sizeId, UInt listId);
+  Void  xReadScalingListCode           ( TComScalingList *scalingList, Int* buf,  UInt sizeId, UInt listId);
+#endif
 };
 
 //! \}

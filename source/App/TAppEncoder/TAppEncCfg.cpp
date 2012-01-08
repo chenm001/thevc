@@ -142,6 +142,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   string cfg_ColumnWidth;
   string cfg_RowHeight;
 #endif
+#if SCALING_LIST
+  string cfg_ScalingListFile;
+#endif
   po::Options opts;
   opts.addOptions()
   ("help", do_help, false, "this help text")
@@ -314,6 +317,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("WaveFrontFlush",              m_iWaveFrontFlush,               0,          "Flush and terminate CABAC coding for each LCU line")
     ("WaveFrontSubstreams",         m_iWaveFrontSubstreams,          1,          "# coded substreams wanted; per tile if TileBoundaryIndependenceIdc is 1, otherwise per frame")
 #endif
+#if SCALING_LIST
+    ("ScalingList",                 m_useScalingListId,                0,        "Scaling List")
+    ("ScalingListFile",             cfg_ScalingListFile,             string(""), "Scaling List file name")
+#endif
   /* Misc. */
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
                                               "\t1: use MD5\n"
@@ -375,6 +382,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if TILES
   m_pchColumnWidth = cfg_ColumnWidth.empty() ? NULL: strdup(cfg_ColumnWidth.c_str());
   m_pchRowHeight = cfg_RowHeight.empty() ? NULL : strdup(cfg_RowHeight.c_str());
+#endif
+#if SCALING_LIST
+  m_scalingListFile = cfg_ScalingListFile.empty() ? NULL : strdup(cfg_ScalingListFile.c_str());
 #endif
 #if !G1002_RPS
   if (m_iRateGOPSize == -1)
@@ -1038,6 +1048,9 @@ Void TAppEncCfg::xPrintParameter()
 #if OL_USE_WPP
   printf(" WaveFrontSynchro:%d WaveFrontFlush:%d WaveFrontSubstreams:%d",
           m_iWaveFrontSynchro, m_iWaveFrontFlush, m_iWaveFrontSubstreams);
+#endif
+#if SCALING_LIST
+  printf(" ScalingList:%d ", m_useScalingListId );
 #endif
 
 #if NO_TMVP_MARKING

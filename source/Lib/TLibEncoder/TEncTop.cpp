@@ -713,6 +713,9 @@ Void TEncTop::xInitSPS()
     m_cSPS.setRowHeight( m_puiRowHeight );
   }
 #endif
+#if SCALING_LIST
+  m_cSPS.setScalingListFlag ( (m_useScalingListId == 0) ? 0 : 1 );
+#endif
 }
 
 Void TEncTop::xInitPPS()

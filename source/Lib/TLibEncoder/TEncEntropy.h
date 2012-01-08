@@ -94,6 +94,9 @@ public:
   
   virtual Void codeAlfCtrlDepth() = 0;
   virtual Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList ) = 0;
+#if SCALING_LIST
+  virtual Void codeScalingList   ( TComScalingList* scalingList )      = 0;
+#endif
   
 public:
   virtual Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
@@ -265,6 +268,9 @@ public:
 #if F747_APS
   Void encodeAPSInitInfo          (TComAPS* pcAPS) {m_pcEntropyCoderIf->codeAPSInitInfo(pcAPS);}
   Void encodeFinish               (Bool bEnd) {m_pcEntropyCoderIf->codeFinish(bEnd);}
+#endif
+#if SCALING_LIST
+  Void encodeScalingList       ( TComScalingList* scalingList );
 #endif
 
 private:

@@ -244,6 +244,10 @@ protected:
   Bool      m_bEnableTMVP;
 #endif
 
+#if SCALING_LIST
+  Int       m_useScalingListId;                               ///< using quantization matrix
+  char*     m_scalingListFile;                                ///< quantization matrix file name
+#endif
   // internal member functions
   Void  xSetGlobal      ();                                   ///< set global variables
   Void  xCheckParameter ();                                   ///< check validity of configuration values
