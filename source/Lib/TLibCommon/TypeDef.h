@@ -133,6 +133,7 @@
 #define MIN_CHROMA_TU                       1      ///< G112 : Log2_minimum_chroma_transform_size = max (Log2_minimum_luma_transform_size-1, 2)
 #define ALF_SAO_SLICE_FLAGS                 1      ///< G566 : Re-insert ALF and SAO flags in the slice header
 #define CHROMA_FORMAT_IDC                   1      ///< G1039 : add chroma_format_idc syntax element
+#define PIC_SIZE_VLC                        1      ///< G325: code pic_width_in_luma_samples and pic_heigh_in_luma_samples as ue(v)
 ////////////////////////////
 // JCT-VC G end
 ////////////////////////////
