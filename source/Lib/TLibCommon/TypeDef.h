@@ -131,7 +131,8 @@
 #define SIGMAP_CTX_RED                      1      ///< G1015 : context number reduction for significance map coding
 #define MAX_PCM_SIZE                        1      ///< G112 : SPS control of PCM mode; Maximum PCM size no larger than 32x32
 #define MIN_CHROMA_TU                       1      ///< G112 : Log2_minimum_chroma_transform_size = max (Log2_minimum_luma_transform_size-1, 2)
-#define ALF_SAO_SLICE_FLAGS                 1    ///< G566 : Re-insert ALF and SAO flags in the slice header
+#define ALF_SAO_SLICE_FLAGS                 1      ///< G566 : Re-insert ALF and SAO flags in the slice header
+#define CHROMA_FORMAT_IDC                   1      ///< G1039 : add chroma_format_idc syntax element
 ////////////////////////////
 // JCT-VC G end
 ////////////////////////////
@@ -486,6 +487,17 @@ enum SliceType
   P_SLICE,
   B_SLICE
 };
+
+#if CHROMA_FORMAT_IDC
+/// chroma formats (according to semantics of chroma_format_idc)
+enum ChromaFormat
+{
+  CHROMA_400  = 0,
+  CHROMA_420  = 1,
+  CHROMA_422  = 2,
+  CHROMA_444  = 3
+};
+#endif
 
 /// supported partition shape
 enum PartSize
