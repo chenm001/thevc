@@ -1581,10 +1581,10 @@ Void TComSlice::copyWPtable(wpScalingParam *&wp_src, wpScalingParam *&wp_dst)
 TComSPS::TComSPS()
 : m_SPSId                     (  0)
 , m_ProfileIdc                (  0)
+, m_LevelIdc                  (  0)
 #if CHROMA_FORMAT_IDC
 , m_chromaFormatIdc           (CHROMA_420)
 #endif
-, m_LevelIdc                  (  0)
 , m_uiMaxTLayers              (  1)
 // Structure
 , m_uiWidth                   (352)
