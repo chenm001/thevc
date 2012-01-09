@@ -492,13 +492,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         }
       }
 
-#if G1002_RPS
-      //detect lost reference picture and insert copy of earlier frame.
-      while(m_apcSlicePilot->checkThatAllRefPicsAreAvailable(m_cListPic, m_apcSlicePilot->getRPS(), true) > 0)
-      {
-        xCreateLostPicture(m_apcSlicePilot->checkThatAllRefPicsAreAvailable(m_cListPic, m_apcSlicePilot->getRPS(), false)-1);
-      }
-#else
+#if !G1002_RPS
       m_apcSlicePilot->setTLayerInfo(nalu.m_TemporalID);
 #endif
 
@@ -525,7 +519,13 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
           return false;
         }
       }
-      
+#if G1002_RPS
+      //detect lost reference picture and insert copy of earlier frame.
+      while(m_apcSlicePilot->checkThatAllRefPicsAreAvailable(m_cListPic, m_apcSlicePilot->getRPS(), true) > 0)
+      {
+        xCreateLostPicture(m_apcSlicePilot->checkThatAllRefPicsAreAvailable(m_cListPic, m_apcSlicePilot->getRPS(), false)-1);
+      }
+#endif
       if (m_bFirstSliceInPicture)
       {
         // Buffer initialize for prediction.
