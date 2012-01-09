@@ -1028,6 +1028,7 @@ Void TComSlice::applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComRef
     if(rpcPic->getPicSym()->getSlice(0)->getPOC() != this->getPOC() && isReference == 0)    
     {            
       rpcPic->getSlice( 0 )->setReferenced( false );   
+      rpcPic->setIsLongTerm(0);
     }
   }  
 }
