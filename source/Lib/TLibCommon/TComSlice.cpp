@@ -2388,10 +2388,12 @@ UInt TComScalingList::xPredDPCMScalingListMatrix(Int* dst, Int* org, UInt sizeId
 Bool TComScalingList::xParseScalingList(char* pchFile)
 {
   FILE *fp;
-  char line[1024];
+  Char line[1024];
   UInt sizeIdc,listIdc;
   UInt i,size = 0;
   Int *src=0,data;
+  Char *ret;
+  UInt  retval;
 
   if((fp = fopen(pchFile,"r")) == (FILE*)NULL)
   {
@@ -2409,8 +2411,8 @@ Bool TComScalingList::xParseScalingList(char* pchFile)
       fseek(fp,0,0);
       do 
       {
-        fgets(line, 1024, fp);
-        if (strstr(line, MatrixType[sizeIdc][listIdc])==NULL && feof(fp)) 
+        ret = fgets(line, 1024, fp);
+        if ((ret==NULL)||(strstr(line, MatrixType[sizeIdc][listIdc])==NULL && feof(fp)))
         {
           printf("Error: can't read Matrix :: set Default Matrix\n");
           return true;
@@ -2419,7 +2421,12 @@ Bool TComScalingList::xParseScalingList(char* pchFile)
       while (strstr(line, MatrixType[sizeIdc][listIdc]) == NULL);
       for (i=0; i<size; i++)
       {
-        fscanf(fp, "%d,", &data);
+        retval = fscanf(fp, "%d,", &data);
+        if (retval!=1)
+        {
+          printf("Error: can't read Matrix :: set Default Matrix\n");
+          return true;
+        }
         src[i] = data;
       }
     }
