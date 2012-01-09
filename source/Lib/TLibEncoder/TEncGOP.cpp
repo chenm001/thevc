@@ -60,6 +60,9 @@ using namespace std;
 
 TEncGOP::TEncGOP()
 {
+#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+  m_iLastIDR            = 0;
+#endif
 #if !G1002_RPS
   m_iHrchDepth          = 0;
 #endif
@@ -243,6 +246,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         iTimeOffset = 1;
       }
         
+#if G1002_IDR_POC_ZERO_BUGFIX
+      if(getNalUnitType(uiPOCCurr) == NAL_UNIT_CODED_SLICE_IDR)
+      {
+        m_iLastIDR = uiPOCCurr;
+      }        
+#endif
 #else
       // generalized B info.
       if ( (m_pcCfg->getHierarchicalCoding() == false) && (iDepth != 0) && (iTimeOffset == m_iGopSize) && (iPOCLast != 0) )
@@ -271,6 +280,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
 #if G1002_RPS
       m_pcSliceEncoder->initEncSlice ( pcPic, iPOCLast, uiPOCCurr, iNumPicRcvd, iGOPid, pcSlice, m_pcEncTop->getSPS(), m_pcEncTop->getPPS() );
+#if G1002_IDR_POC_ZERO_BUGFIX
+      pcSlice->setLastIDR(m_iLastIDR);
+#endif
 #else
       m_pcSliceEncoder->initEncSlice ( pcPic, iPOCLast, uiPOCCurr, iNumPicRcvd, iTimeOffset, iDepth, pcSlice, m_pcEncTop->getSPS(), m_pcEncTop->getPPS() );
 #endif
@@ -2329,7 +2341,11 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
   if (!pcSlice->isReferenced()) c += 32;
 
   printf("POC %4d TId: %1d ( %c-SLICE, QP %d ) %10d bits",
+#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+         pcSlice->getPOC()-pcSlice->getLastIDR(),
+#else
          pcSlice->getPOC(),
+#endif
          pcSlice->getTLayer(),
          c,
          pcSlice->getSliceQp(),
@@ -2343,7 +2359,11 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
     printf(" [L%d ", iRefList);
     for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(RefPicList(iRefList)); iRefIndex++)
     {
+#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+      printf ("%d ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex)-pcSlice->getLastIDR());
+#else
       printf ("%d ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
+#endif
     }
     printf("]");
   }
@@ -2352,7 +2372,11 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
     printf(" [LC ");
     for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(REF_PIC_LIST_C); iRefIndex++)
     {
+#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+      printf ("%d ", pcSlice->getRefPOC((RefPicList)pcSlice->getListIdFromIdxOfLC(iRefIndex), pcSlice->getRefIdxFromIdxOfLC(iRefIndex))-pcSlice->getLastIDR());
+#else
       printf ("%d ", pcSlice->getRefPOC((RefPicList)pcSlice->getListIdFromIdxOfLC(iRefIndex), pcSlice->getRefIdxFromIdxOfLC(iRefIndex)));
+#endif
     }
     printf("]");
   }

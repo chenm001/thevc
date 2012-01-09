@@ -504,6 +504,12 @@ Void TAppEncCfg::xCheckParameter()
 #endif
 #if G1002_RPS
   xConfirmPara( m_iFrameToBeEncoded != 1 && m_iFrameToBeEncoded < 2*m_iGOPSize,              "Total Number of Frames to be encoded must be at least 2 * GOP size for the current Reference Picture Set settings");
+#if G1002_IDR_POC_ZERO_BUGFIX
+  if (m_iDecodingRefreshType == 2)
+  {
+    xConfirmPara( m_iIntraPeriod > 0 && m_iIntraPeriod <= m_iGOPSize ,                      "Intra period must be larger than GOP size for periodic IDR pictures");
+  }
+#endif
 #else
   xConfirmPara( m_iFrameToBeEncoded != 1 && m_iFrameToBeEncoded <= m_iGOPSize,              "Total Number of Frames to be encoded must be larger than GOP size");
 #endif

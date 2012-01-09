@@ -58,6 +58,9 @@ TComPic::TComPic()
   m_bIsLongTerm       = false;
 #endif
   m_bReconstructed    = false;
+#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+  m_bNeededForOutput  = false;
+#endif
 }
 
 TComPic::~TComPic()
