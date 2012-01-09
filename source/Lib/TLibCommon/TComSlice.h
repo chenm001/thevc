@@ -165,6 +165,11 @@ private:
 #if SCALING_LIST
   Bool        m_scalingListEnabledFlag;
 #endif
+#if MAX_DPB_AND_LATENCY // These could be used later when encoder wants to set their values
+  UInt        m_uiMaxDecFrameBuffering; 
+  UInt        m_uiNumReorderFrames;
+  UInt        m_uiMaxLatencyIncrease;
+#endif
 
 public:
   TComSPS();
@@ -356,6 +361,14 @@ public:
 #if SCALING_LIST
   Bool getScalingListFlag       ()         { return m_scalingListEnabledFlag;     }
   Void setScalingListFlag       ( Bool b ) { m_scalingListEnabledFlag  = b;       }
+#endif
+#if MAX_DPB_AND_LATENCY
+  UInt getMaxDecFrameBuffering  ()            { return m_uiMaxDecFrameBuffering; }
+  Void setMaxDecFrameBuffering  ( UInt ui )   { m_uiMaxDecFrameBuffering = ui;   }
+  UInt getNumReorderFrames      ()            { return m_uiNumReorderFrames;     }
+  Void setNumReorderFrames      ( UInt ui )   { m_uiNumReorderFrames = ui;       }
+  UInt getMaxLatencyIncrease    ()            { return m_uiMaxLatencyIncrease;   }
+  Void setMaxLatencyIncrease    ( UInt ui )   { m_uiMaxLatencyIncrease= ui;      }
 #endif
 };
 #if G1002_RPS

@@ -556,6 +556,12 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
     }
   }
 #endif
+
+#if MAX_DPB_AND_LATENCY
+  WRITE_UVLC(pcSPS->getMaxDecFrameBuffering(),          "max_dec_frame_buffering" );
+  WRITE_UVLC(pcSPS->getNumReorderFrames(),              "max_reorder_frames"      );
+  WRITE_UVLC(pcSPS->getMaxLatencyIncrease(),            "max_latency_increase"    );
+#endif
   
   // Software-only flags
 #if NSQT

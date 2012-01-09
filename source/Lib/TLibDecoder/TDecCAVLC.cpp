@@ -583,6 +583,15 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   }
 #endif
 
+#if MAX_DPB_AND_LATENCY
+  READ_UVLC ( uiCode, "max_dec_frame_buffering");
+  pcSPS->setMaxDecFrameBuffering( uiCode );
+  READ_UVLC ( uiCode, "num_reorder_frames");
+  pcSPS->setNumReorderFrames( uiCode );
+  READ_UVLC ( uiCode, "max_latency_increase");
+  pcSPS->setMaxLatencyIncrease( uiCode );
+#endif
+
   // Software-only flags
 #if NSQT
   READ_FLAG( uiCode, "enable_nsqt" );
