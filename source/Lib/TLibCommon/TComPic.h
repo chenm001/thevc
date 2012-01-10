@@ -72,7 +72,7 @@ private:
   UInt                  m_uiCurrSliceIdx;         // Index of current slice
 
 #if NO_TMVP_MARKING
-  Bool                  m_bUsedForTMVP;
+  Bool                  m_usedForTMVP;
 #endif
   
   SEImessages* m_SEIs; ///< Any SEI messages that have been received.  If !NULL we own the object.
@@ -132,8 +132,8 @@ public:
   Bool          getReconMark ()       { return m_bReconstructed;  }
 
 #if NO_TMVP_MARKING
-  Void          setUsedForTMVP( Bool b ) { m_bUsedForTMVP = b;    }
-  Bool          getUsedForTMVP()         { return m_bUsedForTMVP; }
+  Void          setUsedForTMVP( Bool b ) { m_usedForTMVP = b;    }
+  Bool          getUsedForTMVP()         { return m_usedForTMVP; }
 #endif
   
 #if AMVP_BUFFERCOMPRESS

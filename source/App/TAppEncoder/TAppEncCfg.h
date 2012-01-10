@@ -241,7 +241,7 @@ protected:
 #endif
 
 #if NO_TMVP_MARKING
-  Bool      m_bEnableTMVP;
+  Bool      m_enableTMVP;
 #endif
 
 #if SCALING_LIST

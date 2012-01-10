@@ -1385,12 +1385,12 @@ Void TComSlice::decodingRefMarkingForLD( TComList<TComPic*>& rcListPic, Int iMax
 #endif
 
 #if NO_TMVP_MARKING
-Void TComSlice::decodingMarkingForNoTMVP( TComList<TComPic*>& rcListPic, Int iCurrentPOC )
+Void TComSlice::decodingMarkingForNoTMVP( TComList<TComPic*>& rcListPic, Int currentPOC )
 {
   TComList<TComPic*>::iterator it;
   for ( it = rcListPic.begin(); it != rcListPic.end(); it++ )
   {
-    if ( (*it)->getSlice(0)->getPOC() != iCurrentPOC )
+    if ( (*it)->getSlice(0)->getPOC() != currentPOC )
     {
       (*it)->setUsedForTMVP( false );
     }

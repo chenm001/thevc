@@ -332,7 +332,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #endif
 
 #if NO_TMVP_MARKING
-  ("TMVP", m_bEnableTMVP, true, "Enable TMVP" )
+  ("TMVP", m_enableTMVP, true, "Enable TMVP" )
 #endif
 
   ("FEN", m_bUseFastEnc, false, "fast encoder setting")
@@ -1054,7 +1054,7 @@ Void TAppEncCfg::xPrintParameter()
 #endif
 
 #if NO_TMVP_MARKING
-  printf("TMVP:%d ", m_bEnableTMVP     );
+  printf("TMVP:%d ", m_enableTMVP     );
 #endif
 
   printf("\n\n");

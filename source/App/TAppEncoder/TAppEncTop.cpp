@@ -259,7 +259,7 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setWaveFrontSubstreams        ( m_iWaveFrontSubstreams );
 #endif
 #if NO_TMVP_MARKING
-  m_cTEncTop.setEnableTMVP ( m_bEnableTMVP );
+  m_cTEncTop.setEnableTMVP ( m_enableTMVP );
 #endif
 #if SCALING_LIST
   m_cTEncTop.setUseScalingListId           ( m_useScalingListId  );

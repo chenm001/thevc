@@ -59,7 +59,7 @@ TComPic::TComPic()
 #endif
   m_bReconstructed    = false;
 #if NO_TMVP_MARKING
-  m_bUsedForTMVP      = true;
+  m_usedForTMVP      = true;
 #endif
 }
 
