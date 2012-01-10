@@ -2674,7 +2674,7 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
   if(scalingList->getUseDefaultOnlyFlag () == false)
   {
 #if SCALING_LIST_OUTPUT_RESULT
-    printf("Header Bit %d\n",m_pcBitIf->getNumberOfWrittenBits()-iStartBit);
+    printf("Header Bit %d\n",m_pcBitIf->getNumberOfWrittenBits()-startBit);
 #endif
     //for each size
     for(sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
@@ -2686,7 +2686,7 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
 #if SCALING_LIST_OUTPUT_RESULT
         for(int i=0;i<g_scalingListSize[sizeId];i++)
         {
-          avg_error += abs(piDst[i] - piOrg[i]);
+          avg_error += abs(dst[i] - org[i]);
           if(abs(max_error) < abs(dst[i] - org[i]))
           {
             max_error = dst[i] - org[i];
