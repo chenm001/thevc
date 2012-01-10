@@ -1003,7 +1003,7 @@ public:
   Void      setNalUnitType      ( NalUnitType e )               { m_eNalUnitType      = e;      }
   NalUnitType getNalUnitType    ()                              { return m_eNalUnitType;        }
 #if G1002_RPS && G1002_CRA_CHECK
-  Void      checkCRA(TComReferencePictureSet *pReferencePictureSet, UInt& uiPOCCDR, TComList<TComPic*>& rcListPic);
+  Void      checkCRA(TComReferencePictureSet *pReferencePictureSet, UInt& pocCRA, TComList<TComPic*>& rcListPic);
 #endif
   Void      decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TComList<TComPic*>& rcListPic);
   Void      setSliceType        ( SliceType e )                 { m_eSliceType        = e;      }

@@ -783,25 +783,25 @@ Void TComSlice::initEqualRef()
 }
 
 #if G1002_RPS && G1002_CRA_CHECK
-Void TComSlice::checkCRA(TComReferencePictureSet *pReferencePictureSet, UInt& uiPOCCDR, TComList<TComPic*>& rcListPic)
+Void TComSlice::checkCRA(TComReferencePictureSet *pReferencePictureSet, UInt& pocCRA, TComList<TComPic*>& rcListPic)
 {
   for(Int i = 0; i < pReferencePictureSet->getNumberOfNegativePictures()+pReferencePictureSet->getNumberOfPositivePictures(); i++)
   {
-    if(uiPOCCDR < MAX_UINT && getPOC() > uiPOCCDR)
+    if(pocCRA < MAX_UINT && getPOC() > pocCRA)
     {
-      assert(getPOC()+pReferencePictureSet->getDeltaPOC(i) >= uiPOCCDR);
+      assert(getPOC()+pReferencePictureSet->getDeltaPOC(i) >= pocCRA);
     }
   }
   for(Int i = pReferencePictureSet->getNumberOfNegativePictures()+pReferencePictureSet->getNumberOfPositivePictures(); i < pReferencePictureSet->getNumberOfPictures(); i++)
   {
-    if(uiPOCCDR < MAX_UINT && getPOC() > uiPOCCDR)
+    if(pocCRA < MAX_UINT && getPOC() > pocCRA)
     {
-      assert(pReferencePictureSet->getPOC(i) >= uiPOCCDR);
+      assert(pReferencePictureSet->getPOC(i) >= pocCRA);
     }
   }
   if (getNalUnitType() == NAL_UNIT_CODED_SLICE_CDR) // CDR picture found
   {
-    uiPOCCDR = getPOC();
+    pocCRA = getPOC();
   }
 }
 #endif
