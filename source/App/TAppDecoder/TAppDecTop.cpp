@@ -112,6 +112,9 @@ Void TAppDecTop::decode()
      * nal unit. */
     streampos location = bitstreamFile.tellg();
     AnnexBStats stats = AnnexBStats();
+#if G1002_RPS
+    bool bPreviousPictureDecoded = false;
+#endif
 
     vector<uint8_t> nalUnit;
 #if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
@@ -135,22 +138,36 @@ Void TAppDecTop::decode()
 #endif
       read(nalu, nalUnit);
 #if G1002_RPS
-      if(m_iMaxTemporalLayer>=0&&nalu.m_TemporalID>m_iMaxTemporalLayer)
+      if(m_iMaxTemporalLayer >= 0 && nalu.m_TemporalID > m_iMaxTemporalLayer)
       {
-        continue;
+        if(bPreviousPictureDecoded)
+        {
+          bNewPicture = true;
+          bPreviousPictureDecoded = false;
+        }
+        else
+        {
+          bNewPicture = false;
+        }
+      }
+      else
+      {
+#endif
+        bNewPicture = m_cTDecTop.decode(nalu, m_iSkipFrame, m_iPOCLastDisplay);
+        if (bNewPicture)
+        {
+          bitstreamFile.clear();
+          /* location points to the current nalunit payload[1] due to the
+           * need for the annexB parser to read three extra bytes.
+           * [1] except for the first NAL unit in the file
+           *     (but bNewPicture doesn't happen then) */
+          bitstreamFile.seekg(location-streamoff(3));
+          bytestream.reset();
+        }
+#if G1002_RPS
+        bPreviousPictureDecoded = true; 
       }
 #endif
-      bNewPicture = m_cTDecTop.decode(nalu, m_iSkipFrame, m_iPOCLastDisplay);
-      if (bNewPicture)
-      {
-        bitstreamFile.clear();
-        /* location points to the current nalunit payload[1] due to the
-         * need for the annexB parser to read three extra bytes.
-         * [1] except for the first NAL unit in the file
-         *     (but bNewPicture doesn't happen then) */
-        bitstreamFile.seekg(location-streamoff(3));
-        bytestream.reset();
-      }
     }
     if (bNewPicture || !bitstreamFile)
     {
