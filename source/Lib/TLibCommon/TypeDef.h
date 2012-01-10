@@ -74,6 +74,8 @@
 #define CBF_CODING_SKIP_COND_FIX  1 ///< G444: fixing the condition of skipping cbf_luma coding
 #define DISABLE_PARALLEL_DECISIONS 1 ///< disable parallel decisions part of deblocking filter G088
 #define VER_HOR_FILTER            1 ///< F172: intra ver/hor prediction filter
+#define WP_IMPROVED_SYNTAX        1 ///< improved weighted prediction syntax to remove redundancy G441
+#define NO_TMVP_MARKING           1 ///< before decoding a non-TMVP picture with tid=0, mark all pictures in DPB except the current picture unused for TMVP, G398
 
 #define REMOVE_INTRA_LINE_BUFFER  1 ///< G145: intra line buffer removal
 
@@ -127,6 +129,13 @@
 #define LEVEL_LIMIT                         1      ///< G719 : Restriction for limits to 16 bits (signed) diapason
 #define COEFF_CTXSET_RED                    1      ///< G783 : reduce level context set of chroma
 #define SIGMAP_CTX_RED                      1      ///< G1015 : context number reduction for significance map coding
+#define MAX_PCM_SIZE                        1      ///< G112 : SPS control of PCM mode; Maximum PCM size no larger than 32x32
+#define MIN_CHROMA_TU                       1      ///< G112 : Log2_minimum_chroma_transform_size = max (Log2_minimum_luma_transform_size-1, 2)
+#define ALF_SAO_SLICE_FLAGS                 1      ///< G566 : Re-insert ALF and SAO flags in the slice header
+#define CHROMA_FORMAT_IDC                   1      ///< G1039 : add chroma_format_idc syntax element
+#define PIC_SIZE_VLC                        1      ///< G325: code pic_width_in_luma_samples and pic_heigh_in_luma_samples as ue(v)
+#define MAX_DPB_AND_LATENCY                 1      ///< G546 : Move max_dec_frame_buffering and num_reorder_frames from VUI to SPS
+                                                   ///< G779 : Put max_latency_increase in SPS
 ////////////////////////////
 // JCT-VC G end
 ////////////////////////////
@@ -196,7 +205,6 @@
 #define ZERO_MVD_EST                          0           ///< Zero Mvd Estimation in normal mode
 
 #define NUM_INTRA_MODE 36
-#define PLANAR_IDX     34
 #define LM_CHROMA_IDX  35
 #define PLANAR_F483 1 ///< Modify samples used for planar prediction as per JCTVC-F483
 
@@ -209,6 +217,8 @@
 #if  !G1002_RPS
 #define REF_SETTING_FOR_LD              1           // reference frame setting for low delay setting (JCTVC-F701)
 #else
+#define G1002_CRA_CHECK                 1
+#define G1002_IDR_POC_ZERO_BUGFIX       1
 #define INTER_RPS_PREDICTION            1           // remove this once tested.
 #define WRITE_BACK                      1           ///< Enable/disable the encoder to replace the deltaPOC and Used by current from the config file with the values derived by the refIdc parameter.
 #define PRINT_RPS_BITS_WRITTEN          0           ///< Enable/disable the printing of bits used to send the RPS.
@@ -231,7 +241,6 @@
 #define RVM_VCEGAM10_M 4
 #endif
 
-#undef PLANAR_IDX
 #define PLANAR_IDX             0
 #define DC_IDX                 3                     // index for intra DC mode
 #define NUM_CHROMA_MODE        6                     // total number of chroma modes
@@ -310,6 +319,8 @@
 
 #define G665_ALF_COEFF_PRED                1 // JCTVC-G665
 
+#define SCALING_LIST                  1 //JCTVC-G880/JCTVC-G1016 quantization matrices
+#define SCALING_LIST_OUTPUT_RESULT    0 //JCTVC-G880/JCTVC-G1016 quantization matrices
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
@@ -478,6 +489,17 @@ enum SliceType
   P_SLICE,
   B_SLICE
 };
+
+#if CHROMA_FORMAT_IDC
+/// chroma formats (according to semantics of chroma_format_idc)
+enum ChromaFormat
+{
+  CHROMA_400  = 0,
+  CHROMA_420  = 1,
+  CHROMA_422  = 2,
+  CHROMA_444  = 3
+};
+#endif
 
 /// supported partition shape
 enum PartSize

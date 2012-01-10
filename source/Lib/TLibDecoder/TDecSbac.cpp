@@ -2256,55 +2256,7 @@ Void TDecSbac::parseSaoSvlc (Int&  riVal)
  */
 Void TDecSbac::xCopyContextsFrom( TDecSbac* pSrc )
 {
-  m_cCUSplitFlagSCModel       .copyFrom( &pSrc->m_cCUSplitFlagSCModel       );
-  m_cCUSkipFlagSCModel        .copyFrom( &pSrc->m_cCUSkipFlagSCModel        );
-  m_cCUMergeFlagExtSCModel    .copyFrom( &pSrc->m_cCUMergeFlagExtSCModel    );
-  m_cCUMergeIdxExtSCModel     .copyFrom( &pSrc->m_cCUMergeIdxExtSCModel     );
-  m_cCUAlfCtrlFlagSCModel     .copyFrom( &pSrc->m_cCUAlfCtrlFlagSCModel     );
-  m_cCUPartSizeSCModel        .copyFrom( &pSrc->m_cCUPartSizeSCModel        );
-#if AMP
-  m_cCUXPosiSCModel           .copyFrom( &pSrc->m_cCUXPosiSCModel           );
-  m_cCUYPosiSCModel           .copyFrom( &pSrc->m_cCUYPosiSCModel           );
-#endif
-  m_cCUPredModeSCModel        .copyFrom( &pSrc->m_cCUPredModeSCModel        );
-  m_cCUIntraPredSCModel       .copyFrom( &pSrc->m_cCUIntraPredSCModel       );
-  m_cCUChromaPredSCModel      .copyFrom( &pSrc->m_cCUChromaPredSCModel      );
-  m_cCUInterDirSCModel        .copyFrom( &pSrc->m_cCUInterDirSCModel        );
-  m_cCUMvdSCModel             .copyFrom( &pSrc->m_cCUMvdSCModel             );
-  m_cCURefPicSCModel          .copyFrom( &pSrc->m_cCURefPicSCModel          );
-  m_cCUDeltaQpSCModel         .copyFrom( &pSrc->m_cCUDeltaQpSCModel         );
-  m_cCUQtCbfSCModel           .copyFrom( &pSrc->m_cCUQtCbfSCModel           );
-  m_cCUQtRootCbfSCModel       .copyFrom( &pSrc->m_cCUQtRootCbfSCModel       );
-#if MULTI_LEVEL_SIGNIFICANCE
-  m_cCUSigCoeffGroupSCModel   .copyFrom( &pSrc->m_cCUSigCoeffGroupSCModel   );
-#endif
-#if SIGMAP_CTX_RED
-  m_cCUSigSCModelLuma         .copyFrom( &pSrc->m_cCUSigSCModelLuma         );
-  m_cCUSigSCModelChroma       .copyFrom( &pSrc->m_cCUSigSCModelChroma       );
-#else
-  m_cCUSigSCModel             .copyFrom( &pSrc->m_cCUSigSCModel             );
-#endif
-  m_cCuCtxLastX               .copyFrom( &pSrc->m_cCuCtxLastX               );
-  m_cCuCtxLastY               .copyFrom( &pSrc->m_cCuCtxLastY               );
-#if COEFF_CTXSET_RED
-  m_cCUOneSCModelLuma         .copyFrom( &pSrc->m_cCUOneSCModelLuma         );
-  m_cCUOneSCModelChroma       .copyFrom( &pSrc->m_cCUOneSCModelChroma       );
-  m_cCUAbsSCModelLuma         .copyFrom( &pSrc->m_cCUAbsSCModelLuma         );
-  m_cCUAbsSCModelChroma       .copyFrom( &pSrc->m_cCUAbsSCModelChroma       );
-#else
-  m_cCUOneSCModel             .copyFrom( &pSrc->m_cCUOneSCModel             );
-  m_cCUAbsSCModel             .copyFrom( &pSrc->m_cCUAbsSCModel             );
-#endif
-  m_cMVPIdxSCModel            .copyFrom( &pSrc->m_cMVPIdxSCModel            );
-  m_cALFFlagSCModel           .copyFrom( &pSrc->m_cALFFlagSCModel           );
-  m_cALFUvlcSCModel           .copyFrom( &pSrc->m_cALFUvlcSCModel           );
-  m_cALFSvlcSCModel           .copyFrom( &pSrc->m_cALFSvlcSCModel           );
-#if SAO
-  m_cSaoFlagSCModel            .copyFrom( &pSrc->m_cSaoFlagSCModel            );
-  m_cSaoUvlcSCModel            .copyFrom( &pSrc->m_cSaoUvlcSCModel            );
-  m_cSaoSvlcSCModel            .copyFrom( &pSrc->m_cSaoSvlcSCModel            );
-#endif
-  m_cCUTransSubdivFlagSCModel .copyFrom( &pSrc->m_cCUTransSubdivFlagSCModel );
+  memcpy(m_contextModels, pSrc->m_contextModels, m_numContextModels*sizeof(m_contextModels[0]));
 }
 
 Void TDecSbac::xCopyFrom( TDecSbac* pSrc )

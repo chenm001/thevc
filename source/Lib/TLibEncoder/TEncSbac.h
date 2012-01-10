@@ -129,6 +129,9 @@ public:
   Void  codeSaoUvlc       ( UInt uiCode );
   Void  codeSaoSvlc       ( Int  uiCode );
 #endif
+#if SCALING_LIST
+  Void  codeScalingList      ( TComScalingList* scalingList     ){ assert (0);  return;};
+#endif
 
 private:
   Void  xWriteUnarySymbol    ( UInt uiSymbol, ContextModel* pcSCModel, Int iOffset );

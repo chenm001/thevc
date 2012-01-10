@@ -294,7 +294,11 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #if !G220_PURE_VLC_SAO_ALF
         AlfCUCtrlInfo cAlfCUCtrlOneSlice;
 #endif
+#if ALF_SAO_SLICE_FLAGS
+        if(pcSlice->getAlfEnabledFlag())
+#else
         if(pcSlice->getAPS()->getAlfEnabled())
+#endif
         {
 #if G220_PURE_VLC_SAO_ALF
           vAlfCUCtrlSlices.push_back(m_cAlfCUCtrlOneSlice);
@@ -424,7 +428,11 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
         m_pcSAO->setNumSlicesInPic( uiILSliceCount );
         m_pcSAO->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
 #if F747_APS
+#if ALF_SAO_SLICE_FLAGS
+        if(pcSlice->getSaoEnabledFlag())
+#else
         if(pcSlice->getAPS()->getSaoEnabled())
+#endif
         {
 #endif
         if(uiILSliceCount == 1)
@@ -496,7 +504,11 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       m_pcAdaptiveLoopFilter->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
 #endif
 #if F747_APS
+#if ALF_SAO_SLICE_FLAGS
+      if(pcSlice->getAlfEnabledFlag())
+#else
       if(pcSlice->getAPS()->getAlfEnabled())
+#endif
       {
 #endif
       if(uiILSliceCount == 1)
@@ -595,7 +607,14 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     rpcPic->getPicYuvRec()->xFixedRoundingPic();
 #endif
 
+#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+    rpcPic->setOutputMark(true);
+#endif
     rpcPic->setReconMark(true);
+
+#if NO_TMVP_MARKING
+    rpcPic->setUsedForTMVP( true );
+#endif
 
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD

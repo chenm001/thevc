@@ -579,6 +579,10 @@ Void TEncTop::xInitSPS()
   m_cSPS.setMaxNumberOfReorderPictures(m_uiMaxNumberOfReorderPictures);
 #endif
   m_cSPS.setPCMLog2MinSize (m_uiPCMLog2MinSize);
+#if MAX_PCM_SIZE
+  m_cSPS.setUsePCM        ( m_usePCM           );
+  m_cSPS.setPCMLog2MaxSize( m_pcmLog2MaxSize  );
+#endif
 
   m_cSPS.setUseALF        ( m_bUseALF           );
   
@@ -709,6 +713,9 @@ Void TEncTop::xInitSPS()
     m_cSPS.setRowHeight( m_puiRowHeight );
   }
 #endif
+#if SCALING_LIST
+  m_cSPS.setScalingListFlag ( (m_useScalingListId == 0) ? 0 : 1 );
+#endif
 }
 
 Void TEncTop::xInitPPS()
@@ -768,6 +775,9 @@ Void TEncTop::xInitPPS()
 #if WEIGHT_PRED
   m_cPPS.setUseWP( m_bUseWeightPred );
   m_cPPS.setWPBiPredIdc( m_uiBiPredIdc );
+#endif
+#if NO_TMVP_MARKING
+  m_cPPS.setEnableTMVPFlag( m_bEnableTMVP );
 #endif
 }
 

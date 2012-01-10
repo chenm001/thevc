@@ -124,6 +124,9 @@ private:
   Bool                    m_bFirstSliceInPicture;
   Bool                    m_bFirstSliceInSequence;
 
+#if SCALING_LIST
+  TComScalingList         m_scalingList;        ///< quantization matrix information
+#endif
 public:
   TDecTop();
   virtual ~TDecTop();

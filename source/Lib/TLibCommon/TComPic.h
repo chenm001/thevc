@@ -69,7 +69,14 @@ private:
   TComPicYuv*           m_pcPicYuvPred;           //  Prediction
   TComPicYuv*           m_pcPicYuvResi;           //  Residual
   Bool                  m_bReconstructed;
+#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+  Bool                  m_bNeededForOutput;
+#endif
   UInt                  m_uiCurrSliceIdx;         // Index of current slice
+
+#if NO_TMVP_MARKING
+  Bool                  m_usedForTMVP;
+#endif
   
   SEImessages* m_SEIs; ///< Any SEI messages that have been received.  If !NULL we own the object.
 
@@ -126,7 +133,17 @@ public:
   
   Void          setReconMark (Bool b) { m_bReconstructed = b;     }
   Bool          getReconMark ()       { return m_bReconstructed;  }
-  
+
+#if NO_TMVP_MARKING
+  Void          setUsedForTMVP( Bool b ) { m_usedForTMVP = b;    }
+  Bool          getUsedForTMVP()         { return m_usedForTMVP; }
+#endif
+
+#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+  Void          setOutputMark (Bool b) { m_bNeededForOutput = b;     }
+  Bool          getOutputMark ()       { return m_bNeededForOutput;  }
+#endif
+ 
 #if AMVP_BUFFERCOMPRESS
   Void          compressMotion(); 
 #endif 

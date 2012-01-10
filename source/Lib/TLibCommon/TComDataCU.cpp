@@ -1295,7 +1295,7 @@ TComDataCU* TComDataCU::getPULeft( UInt& uiLPartUnitIdx, UInt uiCurrPartUnitIdx,
 }
 
 #if REMOVE_INTRA_LINE_BUFFER
-TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction, Bool MotionDataCompresssion, Bool IntraLineBufferRemoval )
+TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction, Bool MotionDataCompresssion, Bool planarAtLCUBoundary )
 #else
 TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction, Bool MotionDataCompresssion )
 #endif
@@ -1334,7 +1334,7 @@ TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx
   }
 
 #if REMOVE_INTRA_LINE_BUFFER
-  if(IntraLineBufferRemoval)
+  if(planarAtLCUBoundary)
   {
       return NULL;
   }
@@ -3154,191 +3154,200 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
       iCount ++;
     }
   }
-  // col [2]
+
+#if NO_TMVP_MARKING
+  if ( getSlice()->getPPS()->getEnableTMVPFlag() )
+  {
+#endif
+    // col [2]
 #if MRG_TMVP_REFIDX
-  Int iRefIdxSkip[2] = {-1, -1};
+    Int iRefIdxSkip[2] = {-1, -1};
 #if MRG_TMVP_REFIDX_G163
-  for (int i=0; i<2; i++)
-  {
-    RefPicList  eRefPicList = ( i==1 ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
-    Int iRefIdxTmp = (pcCULeft != NULL) ? pcCULeft->getCUMvField(eRefPicList)->getRefIdx(uiLeftPartIdx) : -1;
-    iRefIdxSkip[i] = (iRefIdxTmp != -1) ? iRefIdxTmp : 0;
-  }
+    for (int i=0; i<2; i++)
+    {
+      RefPicList  eRefPicList = ( i==1 ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
+      Int iRefIdxTmp = (pcCULeft != NULL) ? pcCULeft->getCUMvField(eRefPicList)->getRefIdx(uiLeftPartIdx) : -1;
+      iRefIdxSkip[i] = (iRefIdxTmp != -1) ? iRefIdxTmp : 0;
+    }
 #else
-  TComDataCU* pcTmpCU = NULL;
-  UInt uiIdxblk;
-  Int iRefIdxLeft[2] = {-1, -1};
-  Int iRefIdxAbove[2] = {-1, -1};
-  Int iRefIdxCor[2] = {-1, -1};
+    TComDataCU* pcTmpCU = NULL;
+    UInt uiIdxblk;
+    Int iRefIdxLeft[2] = {-1, -1};
+    Int iRefIdxAbove[2] = {-1, -1};
+    Int iRefIdxCor[2] = {-1, -1};
 
-  UInt uiPUIdxLT = 0;
-  UInt uiPUIdxRT  = 0;
-  UInt uiPUIdxLB = 0;
-  cCurPS = getPartitionSize( uiAbsPartIdx );
-  deriveLeftRightTopIdxGeneral( cCurPS, uiAbsPartIdx, uiPUIdx, uiPUIdxLT, uiPUIdxRT );
-  deriveLeftBottomIdxGeneral( cCurPS, uiAbsPartIdx, uiPUIdx, uiPUIdxLB );
+    UInt uiPUIdxLT = 0;
+    UInt uiPUIdxRT  = 0;
+    UInt uiPUIdxLB = 0;
+    cCurPS = getPartitionSize( uiAbsPartIdx );
+    deriveLeftRightTopIdxGeneral( cCurPS, uiAbsPartIdx, uiPUIdx, uiPUIdxLT, uiPUIdxRT );
+    deriveLeftBottomIdxGeneral( cCurPS, uiAbsPartIdx, uiPUIdx, uiPUIdxLB );
 
-  for (int i=0; i<2; i++) 
-  {
-    RefPicList  eRefPicList = ( i==1 ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
-    pcTmpCU = getPULeft(uiIdxblk, uiPUIdxLB);
-    iRefIdxLeft[i] = (pcTmpCU != NULL) ? pcTmpCU->getCUMvField(eRefPicList)->getRefIdx(uiIdxblk) : -1;
-    pcTmpCU = getPUAbove(uiIdxblk, uiPUIdxRT, true, true, true);
-    iRefIdxAbove[i] = (pcTmpCU != NULL) ? pcTmpCU->getCUMvField(eRefPicList)->getRefIdx(uiIdxblk) : -1;
-    pcTmpCU = getPUAboveRight( uiIdxblk, uiPUIdxRT, true, true, true );
-    if (pcTmpCU == NULL) 
+    for (int i=0; i<2; i++) 
     {
-      pcTmpCU = getPUBelowLeft( uiIdxblk, uiPUIdxLB );
-    }
-    if (pcTmpCU == NULL) 
-    {
-      pcTmpCU = getPUAboveLeft( uiIdxblk, uiPUIdxLT, true, true, true );
-    }
-    iRefIdxCor[i] = (pcTmpCU != NULL) ? pcTmpCU->getCUMvField(eRefPicList)->getRefIdx(uiIdxblk) : -1;
+      RefPicList  eRefPicList = ( i==1 ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
+      pcTmpCU = getPULeft(uiIdxblk, uiPUIdxLB);
+      iRefIdxLeft[i] = (pcTmpCU != NULL) ? pcTmpCU->getCUMvField(eRefPicList)->getRefIdx(uiIdxblk) : -1;
+      pcTmpCU = getPUAbove(uiIdxblk, uiPUIdxRT, true, true, true);
+      iRefIdxAbove[i] = (pcTmpCU != NULL) ? pcTmpCU->getCUMvField(eRefPicList)->getRefIdx(uiIdxblk) : -1;
+      pcTmpCU = getPUAboveRight( uiIdxblk, uiPUIdxRT, true, true, true );
+      if (pcTmpCU == NULL) 
+      {
+        pcTmpCU = getPUBelowLeft( uiIdxblk, uiPUIdxLB );
+      }
+      if (pcTmpCU == NULL) 
+      {
+        pcTmpCU = getPUAboveLeft( uiIdxblk, uiPUIdxLT, true, true, true );
+      }
+      iRefIdxCor[i] = (pcTmpCU != NULL) ? pcTmpCU->getCUMvField(eRefPicList)->getRefIdx(uiIdxblk) : -1;
 
-    if (iRefIdxLeft[i] == iRefIdxAbove[i] && iRefIdxAbove[i] == iRefIdxCor[i])
-    {
-      iRefIdxSkip[i] = (iRefIdxLeft[i] == -1) ? 0 : iRefIdxLeft[i];
+      if (iRefIdxLeft[i] == iRefIdxAbove[i] && iRefIdxAbove[i] == iRefIdxCor[i])
+      {
+        iRefIdxSkip[i] = (iRefIdxLeft[i] == -1) ? 0 : iRefIdxLeft[i];
+      }
+      else if (iRefIdxLeft[i] == iRefIdxAbove[i])
+      {
+        iRefIdxSkip[i] = (iRefIdxLeft[i] == -1) ? iRefIdxCor[i] : iRefIdxLeft[i];
+      }
+      else if (iRefIdxAbove[i] == iRefIdxCor[i])
+      {
+        iRefIdxSkip[i] = (iRefIdxAbove[i] == -1) ? iRefIdxLeft[i] : iRefIdxAbove[i];
+      }
+      else if (iRefIdxLeft[i] == iRefIdxCor[i])
+      {
+        iRefIdxSkip[i] = (iRefIdxLeft[i] == -1) ? iRefIdxAbove[i] : iRefIdxLeft[i];
+      }
+      else if (iRefIdxLeft[i] == -1)
+      {
+        iRefIdxSkip[i] = min(iRefIdxAbove[i], iRefIdxCor[i]);
+      }
+      else if (iRefIdxAbove[i] == -1)
+      {
+        iRefIdxSkip[i] = min(iRefIdxLeft[i], iRefIdxCor[i]);
+      }
+      else if (iRefIdxCor[i] == -1)
+      {
+        iRefIdxSkip[i] = min(iRefIdxLeft[i], iRefIdxAbove[i]);
+      }
+      else
+      {
+        iRefIdxSkip[i] = min( min(iRefIdxLeft[i], iRefIdxAbove[i]), iRefIdxCor[i]);
+      }
     }
-    else if (iRefIdxLeft[i] == iRefIdxAbove[i])
+#endif 
+#endif
+    //>> MTK colocated-RightBottom
+    UInt uiPartIdxRB;
+    Int uiLCUIdx = getAddr();
+    PartSize eCUMode = getPartitionSize( 0 );
+
+    deriveRightBottomIdx( eCUMode, uiPUIdx, uiPartIdxRB );  
+
+    UInt uiAbsPartIdxTmp = g_auiZscanToRaster[uiPartIdxRB];
+    UInt uiNumPartInCUWidth = m_pcPic->getNumPartInWidth();
+
+    TComMv cColMv;
+    Int iRefIdx;
+
+    if      ( ( m_pcPic->getCU(m_uiCUAddr)->getCUPelX() + g_auiRasterToPelX[uiAbsPartIdxTmp] + m_pcPic->getMinCUWidth() ) >= m_pcSlice->getSPS()->getWidth() )  // image boundary check
     {
-      iRefIdxSkip[i] = (iRefIdxLeft[i] == -1) ? iRefIdxCor[i] : iRefIdxLeft[i];
+      uiLCUIdx = -1;
     }
-    else if (iRefIdxAbove[i] == iRefIdxCor[i])
+    else if ( ( m_pcPic->getCU(m_uiCUAddr)->getCUPelY() + g_auiRasterToPelY[uiAbsPartIdxTmp] + m_pcPic->getMinCUHeight() ) >= m_pcSlice->getSPS()->getHeight() )
     {
-      iRefIdxSkip[i] = (iRefIdxAbove[i] == -1) ? iRefIdxLeft[i] : iRefIdxAbove[i];
-    }
-    else if (iRefIdxLeft[i] == iRefIdxCor[i])
-    {
-      iRefIdxSkip[i] = (iRefIdxLeft[i] == -1) ? iRefIdxAbove[i] : iRefIdxLeft[i];
-    }
-    else if (iRefIdxLeft[i] == -1)
-    {
-      iRefIdxSkip[i] = min(iRefIdxAbove[i], iRefIdxCor[i]);
-    }
-    else if (iRefIdxAbove[i] == -1)
-    {
-      iRefIdxSkip[i] = min(iRefIdxLeft[i], iRefIdxCor[i]);
-    }
-    else if (iRefIdxCor[i] == -1)
-    {
-      iRefIdxSkip[i] = min(iRefIdxLeft[i], iRefIdxAbove[i]);
+      uiLCUIdx = -1;
     }
     else
     {
-      iRefIdxSkip[i] = min( min(iRefIdxLeft[i], iRefIdxAbove[i]), iRefIdxCor[i]);
-    }
-  }
-#endif 
-#endif
-  //>> MTK colocated-RightBottom
-  UInt uiPartIdxRB;
-  Int uiLCUIdx = getAddr();
-  PartSize eCUMode = getPartitionSize( 0 );
-
-  deriveRightBottomIdx( eCUMode, uiPUIdx, uiPartIdxRB );  
-
-  UInt uiAbsPartIdxTmp = g_auiZscanToRaster[uiPartIdxRB];
-  UInt uiNumPartInCUWidth = m_pcPic->getNumPartInWidth();
-
-  TComMv cColMv;
-  Int iRefIdx;
-
-  if      ( ( m_pcPic->getCU(m_uiCUAddr)->getCUPelX() + g_auiRasterToPelX[uiAbsPartIdxTmp] + m_pcPic->getMinCUWidth() ) >= m_pcSlice->getSPS()->getWidth() )  // image boundary check
-  {
-    uiLCUIdx = -1;
-  }
-  else if ( ( m_pcPic->getCU(m_uiCUAddr)->getCUPelY() + g_auiRasterToPelY[uiAbsPartIdxTmp] + m_pcPic->getMinCUHeight() ) >= m_pcSlice->getSPS()->getHeight() )
-  {
-    uiLCUIdx = -1;
-  }
-  else
-  {
-    if ( ( uiAbsPartIdxTmp % uiNumPartInCUWidth < uiNumPartInCUWidth - 1 ) &&           // is not at the last column of LCU 
-         ( uiAbsPartIdxTmp / uiNumPartInCUWidth < m_pcPic->getNumPartInHeight() - 1 ) ) // is not at the last row    of LCU
-    {
-      uiAbsPartAddr = g_auiRasterToZscan[ uiAbsPartIdxTmp + uiNumPartInCUWidth + 1 ];
-      uiLCUIdx = getAddr();
-    }
-    else if ( uiAbsPartIdxTmp % uiNumPartInCUWidth < uiNumPartInCUWidth - 1 )           // is not at the last column of LCU But is last row of LCU
-    {
-      uiAbsPartAddr = g_auiRasterToZscan[ (uiAbsPartIdxTmp + uiNumPartInCUWidth + 1) % m_pcPic->getNumPartInCU() ];
-#if !G082_MOD_H_TMVP_POS      
-      uiLCUIdx = getAddr() + m_pcPic->getFrameWidthInCU();
-#else
-      uiLCUIdx = -1 ; 
-#endif
-    }
-    else if ( uiAbsPartIdxTmp / uiNumPartInCUWidth < m_pcPic->getNumPartInHeight() - 1 ) // is not at the last row of LCU But is last column of LCU
-    {
-      uiAbsPartAddr = g_auiRasterToZscan[ uiAbsPartIdxTmp + 1 ];
-      uiLCUIdx = getAddr() + 1;
-    }
-    else //is the right bottom corner of LCU                       
-    {
-      uiAbsPartAddr = 0;
-#if !G082_MOD_H_TMVP_POS      
-      uiLCUIdx = getAddr() + m_pcPic->getFrameWidthInCU() + 1;
-#else
-      uiLCUIdx = -1 ; 
-#endif
-    }
-  }
-#if MRG_TMVP_REFIDX
-  iRefIdx = iRefIdxSkip[0];
-#else
-  iRefIdx = 0; // scaled to 1st ref pic for List0/List1
-#endif
-  
-  Bool bExistMV = false;
-  UInt uiPartIdxCenter;
-  UInt uiCurLCUIdx = getAddr();
-  xDeriveCenterIdx( eCUMode, uiPUIdx, uiPartIdxCenter );
-  bExistMV = uiLCUIdx >= 0 && xGetColMVP( REF_PIC_LIST_0, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx );
-  if( bExistMV == false )
-  {
-    bExistMV = xGetColMVP( REF_PIC_LIST_0, uiCurLCUIdx, uiPartIdxCenter,  cColMv, iRefIdx );
-  }
-  if( bExistMV )
-  {
-    UInt uiArrayAddr = iCount;
-    abCandIsInter[uiArrayAddr] = true;
-#if MRG_TMVP_REFIDX
-    pcMvFieldNeighbours[uiArrayAddr << 1].setMvField( cColMv, iRefIdx );
-#else
-    pcMvFieldNeighbours[uiArrayAddr << 1].setMvField( cColMv, 0 );
-#endif
-
-    if ( getSlice()->isInterB() )
-    {       
-#if MRG_TMVP_REFIDX
-      iRefIdx = iRefIdxSkip[1];
-#endif
-      bExistMV = uiLCUIdx >= 0 && xGetColMVP( REF_PIC_LIST_1, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx);
-      if( bExistMV == false )
+      if ( ( uiAbsPartIdxTmp % uiNumPartInCUWidth < uiNumPartInCUWidth - 1 ) &&           // is not at the last column of LCU 
+        ( uiAbsPartIdxTmp / uiNumPartInCUWidth < m_pcPic->getNumPartInHeight() - 1 ) ) // is not at the last row    of LCU
       {
-        bExistMV = xGetColMVP( REF_PIC_LIST_1, uiCurLCUIdx, uiPartIdxCenter,  cColMv, iRefIdx );
+        uiAbsPartAddr = g_auiRasterToZscan[ uiAbsPartIdxTmp + uiNumPartInCUWidth + 1 ];
+        uiLCUIdx = getAddr();
       }
-      if( bExistMV )
+      else if ( uiAbsPartIdxTmp % uiNumPartInCUWidth < uiNumPartInCUWidth - 1 )           // is not at the last column of LCU But is last row of LCU
       {
-#if MRG_TMVP_REFIDX
-        pcMvFieldNeighbours[ ( uiArrayAddr << 1 ) + 1 ].setMvField( cColMv, iRefIdx );
+        uiAbsPartAddr = g_auiRasterToZscan[ (uiAbsPartIdxTmp + uiNumPartInCUWidth + 1) % m_pcPic->getNumPartInCU() ];
+#if !G082_MOD_H_TMVP_POS      
+        uiLCUIdx = getAddr() + m_pcPic->getFrameWidthInCU();
 #else
-        pcMvFieldNeighbours[ ( uiArrayAddr << 1 ) + 1 ].setMvField( cColMv, 0 );
+        uiLCUIdx = -1 ; 
 #endif
-        puhInterDirNeighbours[uiArrayAddr] = 3;
+      }
+      else if ( uiAbsPartIdxTmp / uiNumPartInCUWidth < m_pcPic->getNumPartInHeight() - 1 ) // is not at the last row of LCU But is last column of LCU
+      {
+        uiAbsPartAddr = g_auiRasterToZscan[ uiAbsPartIdxTmp + 1 ];
+        uiLCUIdx = getAddr() + 1;
+      }
+      else //is the right bottom corner of LCU                       
+      {
+        uiAbsPartAddr = 0;
+#if !G082_MOD_H_TMVP_POS      
+        uiLCUIdx = getAddr() + m_pcPic->getFrameWidthInCU() + 1;
+#else
+        uiLCUIdx = -1 ; 
+#endif
+      }
+    }
+#if MRG_TMVP_REFIDX
+    iRefIdx = iRefIdxSkip[0];
+#else
+    iRefIdx = 0; // scaled to 1st ref pic for List0/List1
+#endif
+
+    Bool bExistMV = false;
+    UInt uiPartIdxCenter;
+    UInt uiCurLCUIdx = getAddr();
+    xDeriveCenterIdx( eCUMode, uiPUIdx, uiPartIdxCenter );
+    bExistMV = uiLCUIdx >= 0 && xGetColMVP( REF_PIC_LIST_0, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx );
+    if( bExistMV == false )
+    {
+      bExistMV = xGetColMVP( REF_PIC_LIST_0, uiCurLCUIdx, uiPartIdxCenter,  cColMv, iRefIdx );
+    }
+    if( bExistMV )
+    {
+      UInt uiArrayAddr = iCount;
+      abCandIsInter[uiArrayAddr] = true;
+#if MRG_TMVP_REFIDX
+      pcMvFieldNeighbours[uiArrayAddr << 1].setMvField( cColMv, iRefIdx );
+#else
+      pcMvFieldNeighbours[uiArrayAddr << 1].setMvField( cColMv, 0 );
+#endif
+
+      if ( getSlice()->isInterB() )
+      {       
+#if MRG_TMVP_REFIDX
+        iRefIdx = iRefIdxSkip[1];
+#endif
+        bExistMV = uiLCUIdx >= 0 && xGetColMVP( REF_PIC_LIST_1, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx);
+        if( bExistMV == false )
+        {
+          bExistMV = xGetColMVP( REF_PIC_LIST_1, uiCurLCUIdx, uiPartIdxCenter,  cColMv, iRefIdx );
+        }
+        if( bExistMV )
+        {
+#if MRG_TMVP_REFIDX
+          pcMvFieldNeighbours[ ( uiArrayAddr << 1 ) + 1 ].setMvField( cColMv, iRefIdx );
+#else
+          pcMvFieldNeighbours[ ( uiArrayAddr << 1 ) + 1 ].setMvField( cColMv, 0 );
+#endif
+          puhInterDirNeighbours[uiArrayAddr] = 3;
+        }
+        else
+        {
+          puhInterDirNeighbours[uiArrayAddr] = 1;
+        }
       }
       else
       {
         puhInterDirNeighbours[uiArrayAddr] = 1;
       }
     }
-    else
-    {
-      puhInterDirNeighbours[uiArrayAddr] = 1;
-    }
+    uiIdx++;
+
+#if NO_TMVP_MARKING
   }
-  uiIdx++;
+#endif
 
   for( UInt uiOuter = 0; uiOuter < MRG_MAX_NUM_CANDS; uiOuter++ )
   {
@@ -3789,74 +3798,81 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     return;
   }
   
-  // Get Temporal Motion Predictor
-  int iRefIdx_Col = iRefIdx;
-  TComMv cColMv;
-  UInt uiPartIdxRB;
-  UInt uiAbsPartIdx;  
-  UInt uiAbsPartAddr;
-  int uiLCUIdx = getAddr();
-
-  deriveRightBottomIdx( eCUMode, uiPartIdx, uiPartIdxRB );
-  uiAbsPartAddr = m_uiAbsIdxInLCU + uiPartAddr;
-
-  //----  co-located RightBottom Temporal Predictor (H) ---//
-  uiAbsPartIdx = g_auiZscanToRaster[uiPartIdxRB];
-  if ( ( m_pcPic->getCU(m_uiCUAddr)->getCUPelX() + g_auiRasterToPelX[uiAbsPartIdx] + m_pcPic->getMinCUWidth() ) >= m_pcSlice->getSPS()->getWidth() )  // image boundary check
+#if NO_TMVP_MARKING
+  if ( getSlice()->getPPS()->getEnableTMVPFlag() )
   {
-    uiLCUIdx = -1;
-  }
-  else if ( ( m_pcPic->getCU(m_uiCUAddr)->getCUPelY() + g_auiRasterToPelY[uiAbsPartIdx] + m_pcPic->getMinCUHeight() ) >= m_pcSlice->getSPS()->getHeight() )
-  {
-    uiLCUIdx = -1;
-  }
-  else
-  {
-    if ( ( uiAbsPartIdx % uiNumPartInCUWidth < uiNumPartInCUWidth - 1 ) &&           // is not at the last column of LCU 
-      ( uiAbsPartIdx / uiNumPartInCUWidth < m_pcPic->getNumPartInHeight() - 1 ) ) // is not at the last row    of LCU
-    {
-      uiAbsPartAddr = g_auiRasterToZscan[ uiAbsPartIdx + uiNumPartInCUWidth + 1 ];
-      uiLCUIdx = getAddr();
-    }
-    else if ( uiAbsPartIdx % uiNumPartInCUWidth < uiNumPartInCUWidth - 1 )           // is not at the last column of LCU But is last row of LCU
-    {
-      uiAbsPartAddr = g_auiRasterToZscan[ (uiAbsPartIdx + uiNumPartInCUWidth + 1) % m_pcPic->getNumPartInCU() ];
-#if !G082_MOD_H_TMVP_POS      
-      uiLCUIdx = getAddr() + m_pcPic->getFrameWidthInCU();
-#else
-      uiLCUIdx      = -1 ; 
 #endif
-    }
-    else if ( uiAbsPartIdx / uiNumPartInCUWidth < m_pcPic->getNumPartInHeight() - 1 ) // is not at the last row of LCU But is last column of LCU
+    // Get Temporal Motion Predictor
+    int iRefIdx_Col = iRefIdx;
+    TComMv cColMv;
+    UInt uiPartIdxRB;
+    UInt uiAbsPartIdx;  
+    UInt uiAbsPartAddr;
+    int uiLCUIdx = getAddr();
+
+    deriveRightBottomIdx( eCUMode, uiPartIdx, uiPartIdxRB );
+    uiAbsPartAddr = m_uiAbsIdxInLCU + uiPartAddr;
+
+    //----  co-located RightBottom Temporal Predictor (H) ---//
+    uiAbsPartIdx = g_auiZscanToRaster[uiPartIdxRB];
+    if ( ( m_pcPic->getCU(m_uiCUAddr)->getCUPelX() + g_auiRasterToPelX[uiAbsPartIdx] + m_pcPic->getMinCUWidth() ) >= m_pcSlice->getSPS()->getWidth() )  // image boundary check
     {
-      uiAbsPartAddr = g_auiRasterToZscan[ uiAbsPartIdx + 1 ];
-      uiLCUIdx = getAddr() + 1;
+      uiLCUIdx = -1;
     }
-    else //is the right bottom corner of LCU                       
+    else if ( ( m_pcPic->getCU(m_uiCUAddr)->getCUPelY() + g_auiRasterToPelY[uiAbsPartIdx] + m_pcPic->getMinCUHeight() ) >= m_pcSlice->getSPS()->getHeight() )
     {
-      uiAbsPartAddr = 0;
+      uiLCUIdx = -1;
+    }
+    else
+    {
+      if ( ( uiAbsPartIdx % uiNumPartInCUWidth < uiNumPartInCUWidth - 1 ) &&           // is not at the last column of LCU 
+        ( uiAbsPartIdx / uiNumPartInCUWidth < m_pcPic->getNumPartInHeight() - 1 ) ) // is not at the last row    of LCU
+      {
+        uiAbsPartAddr = g_auiRasterToZscan[ uiAbsPartIdx + uiNumPartInCUWidth + 1 ];
+        uiLCUIdx = getAddr();
+      }
+      else if ( uiAbsPartIdx % uiNumPartInCUWidth < uiNumPartInCUWidth - 1 )           // is not at the last column of LCU But is last row of LCU
+      {
+        uiAbsPartAddr = g_auiRasterToZscan[ (uiAbsPartIdx + uiNumPartInCUWidth + 1) % m_pcPic->getNumPartInCU() ];
 #if !G082_MOD_H_TMVP_POS      
-      uiLCUIdx = getAddr() + m_pcPic->getFrameWidthInCU() + 1;
+        uiLCUIdx = getAddr() + m_pcPic->getFrameWidthInCU();
 #else
-      uiLCUIdx      = -1 ; 
+        uiLCUIdx      = -1 ; 
 #endif
+      }
+      else if ( uiAbsPartIdx / uiNumPartInCUWidth < m_pcPic->getNumPartInHeight() - 1 ) // is not at the last row of LCU But is last column of LCU
+      {
+        uiAbsPartAddr = g_auiRasterToZscan[ uiAbsPartIdx + 1 ];
+        uiLCUIdx = getAddr() + 1;
+      }
+      else //is the right bottom corner of LCU                       
+      {
+        uiAbsPartAddr = 0;
+#if !G082_MOD_H_TMVP_POS      
+        uiLCUIdx = getAddr() + m_pcPic->getFrameWidthInCU() + 1;
+#else
+        uiLCUIdx      = -1 ; 
+#endif
+      }
     }
-  }
-  if ( uiLCUIdx >= 0 && xGetColMVP( eRefPicList, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx_Col ) )
-  {
-    pInfo->m_acMvCand[pInfo->iN++] = cColMv;
-  }
-  else 
-  {
-    UInt uiPartIdxCenter;
-    UInt uiCurLCUIdx = getAddr();
-    xDeriveCenterIdx( eCUMode, uiPartIdx, uiPartIdxCenter );
-    if (xGetColMVP( eRefPicList, uiCurLCUIdx, uiPartIdxCenter,  cColMv, iRefIdx_Col ))
-  {
+    if ( uiLCUIdx >= 0 && xGetColMVP( eRefPicList, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx_Col ) )
+    {
       pInfo->m_acMvCand[pInfo->iN++] = cColMv;
     }
+    else 
+    {
+      UInt uiPartIdxCenter;
+      UInt uiCurLCUIdx = getAddr();
+      xDeriveCenterIdx( eCUMode, uiPartIdx, uiPartIdxCenter );
+      if (xGetColMVP( eRefPicList, uiCurLCUIdx, uiPartIdxCenter,  cColMv, iRefIdx_Col ))
+      {
+        pInfo->m_acMvCand[pInfo->iN++] = cColMv;
+      }
+    }
+    //----  co-located RightBottom Temporal Predictor  ---//
+#if NO_TMVP_MARKING
   }
-  //----  co-located RightBottom Temporal Predictor  ---//
+#endif
 
   // Check No MV Candidate
   xUniqueMVPCand( pInfo );
@@ -4233,6 +4249,13 @@ Bool TComDataCU::xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUni
   {
     return false;
   }
+
+#if NO_TMVP_MARKING
+  if ( !pColPic->getUsedForTMVP() )
+  {
+    return false;
+  }
+#endif
 
   eColRefPicList = getSlice()->getCheckLDC() ? eRefPicList : RefPicList(1-getSlice()->getColDir());
 

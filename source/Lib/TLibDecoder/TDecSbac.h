@@ -183,6 +183,9 @@ public:
 #if F747_APS
   Void parseAPSInitInfo(TComAPS& cAPS) {printf("Not supported in parseAPSInitInfo()\n");assert(0);exit(1);}
 #endif
+#if SCALING_LIST
+  Void  parseScalingList ( TComScalingList* scalingList ) {}
+#endif
 
 private:
   UInt m_uiLastDQpNonZero;

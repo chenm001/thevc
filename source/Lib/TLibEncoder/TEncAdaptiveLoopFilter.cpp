@@ -2744,17 +2744,9 @@ Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESy
     lagrangian=xfindBestCoeffCodMethod(filterCoeffSymQuant, filter_shape, sqrFiltLength, filters_per_fr, errorForce0CoeffTab, lambda_val);
 
 #if G215_ALF_NUM_FILTER
-#if G216_ALF_MERGE_FLAG_FIX
-    if (lagrangian<lagrangianMin || firstFilt==1 || filters_per_fr == m_iALFMaxNumberFilters || (m_uiVarGenMethod == ALF_BA && filters_per_fr == NO_FILTERS -1) )
-#else
     if (lagrangian<lagrangianMin || firstFilt==1 || filters_per_fr == m_iALFMaxNumberFilters)
-#endif
-#else
-#if G216_ALF_MERGE_FLAG_FIX
-    if (lagrangian<lagrangianMin || firstFilt==1 || (m_uiVarGenMethod == ALF_BA && filters_per_fr == NO_FILTERS -1))
 #else
     if (lagrangian<lagrangianMin || firstFilt==1)
-#endif
 #endif
     {
       firstFilt=0;
@@ -2765,6 +2757,18 @@ Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESy
     }
     filters_per_fr--;
   }
+
+#if G216_ALF_MERGE_FLAG_FIX
+  if ( (m_uiVarGenMethod == ALF_BA) && ((*filters_per_fr_best) > 1) )
+  {
+    Int iLastFilter = (*filters_per_fr_best)-1;
+    if (intervalBest[iLastFilter][0] == NO_VAR_BINS-1)
+    {
+      intervalBest[iLastFilter-1][1] = NO_VAR_BINS-1;
+      (*filters_per_fr_best) = iLastFilter;
+    }
+  }
+#endif  
 
   findFilterCoeff(ESym, ySym, pixAcc, filterCoeffSym, filterCoeffSymQuant, intervalBest,
     varIndTab, sqrFiltLength, (*filters_per_fr_best), weights, errorForce0CoeffTab);

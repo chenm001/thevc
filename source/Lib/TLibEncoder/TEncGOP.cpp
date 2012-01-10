@@ -60,6 +60,9 @@ using namespace std;
 
 TEncGOP::TEncGOP()
 {
+#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+  m_iLastIDR            = 0;
+#endif
 #if !G1002_RPS
   m_iHrchDepth          = 0;
 #endif
@@ -243,6 +246,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         iTimeOffset = 1;
       }
         
+#if G1002_IDR_POC_ZERO_BUGFIX
+      if(getNalUnitType(uiPOCCurr) == NAL_UNIT_CODED_SLICE_IDR)
+      {
+        m_iLastIDR = uiPOCCurr;
+      }        
+#endif
 #else
       // generalized B info.
       if ( (m_pcCfg->getHierarchicalCoding() == false) && (iDepth != 0) && (iTimeOffset == m_iGopSize) && (iPOCLast != 0) )
@@ -271,6 +280,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
 #if G1002_RPS
       m_pcSliceEncoder->initEncSlice ( pcPic, iPOCLast, uiPOCCurr, iNumPicRcvd, iGOPid, pcSlice, m_pcEncTop->getSPS(), m_pcEncTop->getPPS() );
+#if G1002_IDR_POC_ZERO_BUGFIX
+      pcSlice->setLastIDR(m_iLastIDR);
+#endif
 #else
       m_pcSliceEncoder->initEncSlice ( pcPic, iPOCLast, uiPOCCurr, iNumPicRcvd, iTimeOffset, iDepth, pcSlice, m_pcEncTop->getSPS(), m_pcEncTop->getPPS() );
 #endif
@@ -279,6 +291,37 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if DISABLE_4x4_INTER
       m_pcEncTop->getSPS()->setDisInter4x4(m_pcEncTop->getDisInter4x4());
 #endif 
+#if SCALING_LIST
+      pcSlice->setScalingList ( m_pcEncTop->getScalingList()  );
+      if(m_pcEncTop->getUseScalingListId() == SCALING_LIST_OFF)
+      {
+        m_pcEncTop->getTrQuant()->setFlatScalingList();
+        m_pcEncTop->getTrQuant()->setUseScalingList(false);
+      }
+      else if(m_pcEncTop->getUseScalingListId() == SCALING_LIST_DEFAULT)
+      {
+        pcSlice->setDefaultScalingList ();
+        pcSlice->getScalingList()->setUseDefaultOnlyFlag(true);
+        m_pcEncTop->getTrQuant()->setScalingList(pcSlice->getScalingList());
+        m_pcEncTop->getTrQuant()->setUseScalingList(true);
+      }
+      else if(m_pcEncTop->getUseScalingListId() == SCALING_LIST_FILE_READ)
+      {
+        if(pcSlice->getScalingList()->xParseScalingList(m_pcCfg->getScalingListFile()))
+        {
+          pcSlice->setDefaultScalingList ();
+        }
+        pcSlice->getScalingList()->xScalingListMatrixModeDecision();
+        pcSlice->getScalingList()->setUseDefaultOnlyFlag(pcSlice->checkDefaultScalingList());
+        m_pcEncTop->getTrQuant()->setScalingList(pcSlice->getScalingList());
+        m_pcEncTop->getTrQuant()->setUseScalingList(true);
+      }
+      else
+      {
+        printf("error : ScalingList == %d no support\n",m_pcEncTop->getUseScalingListId());
+        assert(0);
+      }
+#endif
 
 #if G1002_RPS
       if(pcSlice->getSliceType()==B_SLICE&&m_pcCfg->getGOPEntry(iGOPid).m_iSliceType=='P')
@@ -290,6 +333,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcSlice->setNalUnitType(getNalUnitType(uiPOCCurr));
       // Do decoding refresh marking if any 
       pcSlice->decodingRefreshMarking(m_uiPOCCDR, m_bRefreshPending, rcListPic);
+
+#if NO_TMVP_MARKING
+      if ( !pcSlice->getPPS()->getEnableTMVPFlag() && pcPic->getTLayer() == 0 )
+      {
+        pcSlice->decodingMarkingForNoTMVP( rcListPic, pcSlice->getPOC() );
+      }
+#endif
 
 #if !G1002_RPS
       // TODO: We need a common sliding mechanism used by both the encoder and decoder
@@ -834,7 +884,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       UInt uiMaxAlfCtrlDepth = 0;
 #endif
 #if SAO
+#if SCALING_LIST
+      Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getScalingListFlag())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
+#else
       Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
+#endif
 #else
       Int processingState = (pcSlice->getSPS()->getUseALF() )?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
 #endif
@@ -1571,6 +1625,16 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             //set APS link to the slices
             for(Int s=0; s< uiNumSlices; s++)
             {
+#if ALF_SAO_SLICE_FLAGS
+              if (pcSlice->getSPS()->getUseALF())
+              {
+                pcPic->getSlice(s)->setAlfEnabledFlag((cAPS.getAlfParam()->alf_flag==1)?true:false);
+              }
+              if (pcSlice->getSPS()->getUseSAO())
+              {
+                pcPic->getSlice(s)->setSaoEnabledFlag((cAPS.getSaoParam()->bSaoFlag[0]==1)?true:false);
+              }
+#endif
               pcPic->getSlice(s)->setAPS(&(vAPS[iCodedAPSIdx]));
               pcPic->getSlice(s)->setAPSId(iCodedAPSIdx);
             }
@@ -1685,6 +1749,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       
       pcPic->setReconMark   ( true );
 
+#if NO_TMVP_MARKING
+      pcPic->setUsedForTMVP ( true );
+#endif
+
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD
       if ( pcPic->getSlice(0)->getSPS()->getUseNewRefSetting() )
@@ -1776,6 +1844,16 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
 {
 
   cAPS.setAPSID(apsID);
+#if SCALING_LIST
+  if(pcSlice->getPOC() == 0)
+  {
+    cAPS.setScalingListEnabled(pcSlice->getSPS()->getScalingListFlag());
+  }
+  else
+  {
+    cAPS.setScalingListEnabled(false);
+  }
+#endif
 
   cAPS.setSaoEnabled(pcSlice->getSPS()->getUseSAO() ? (cAPS.getSaoParam()->bSaoFlag[0] ):(false));
   cAPS.setAlfEnabled(pcSlice->getSPS()->getUseALF() ? (cAPS.getAlfParam()->alf_flag ==1):(false));
@@ -1821,6 +1899,12 @@ Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* p
   m_pcEntropyCoder->setBitstream(&APSbs);
 
   m_pcEntropyCoder->encodeAPSInitInfo(pcAPS);
+#if SCALING_LIST
+  if(pcAPS->getScalingListEnabled())
+  {
+    m_pcEntropyCoder->encodeScalingList( pcSlice->getScalingList() );
+  }
+#endif
 
   if(pcAPS->getSaoEnabled())
   {
@@ -2329,7 +2413,11 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
   if (!pcSlice->isReferenced()) c += 32;
 
   printf("POC %4d TId: %1d ( %c-SLICE, QP %d ) %10d bits",
+#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+         pcSlice->getPOC()-pcSlice->getLastIDR(),
+#else
          pcSlice->getPOC(),
+#endif
          pcSlice->getTLayer(),
          c,
          pcSlice->getSliceQp(),
@@ -2343,7 +2431,11 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
     printf(" [L%d ", iRefList);
     for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(RefPicList(iRefList)); iRefIndex++)
     {
+#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+      printf ("%d ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex)-pcSlice->getLastIDR());
+#else
       printf ("%d ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex));
+#endif
     }
     printf("]");
   }
@@ -2352,7 +2444,11 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
     printf(" [LC ");
     for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(REF_PIC_LIST_C); iRefIndex++)
     {
+#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+      printf ("%d ", pcSlice->getRefPOC((RefPicList)pcSlice->getListIdFromIdxOfLC(iRefIndex), pcSlice->getRefIdxFromIdxOfLC(iRefIndex))-pcSlice->getLastIDR());
+#else
       printf ("%d ", pcSlice->getRefPOC((RefPicList)pcSlice->getListIdFromIdxOfLC(iRefIndex), pcSlice->getRefIdxFromIdxOfLC(iRefIndex)));
+#endif
     }
     printf("]");
   }
