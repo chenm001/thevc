@@ -922,6 +922,9 @@ private:
 #if SCALING_LIST
   TComScalingList*     m_scalingList;                 //!< pointer of quantization matrix
 #endif
+#ifdef INC_CABACINITIDC_SLICETYPE
+  Int         m_iCABACinitIDC; 
+#endif
 
 public:
   TComSlice();
@@ -1167,6 +1170,10 @@ public:
   TComScalingList*   getScalingList ()                               { return m_scalingList; }
   Void  setDefaultScalingList       ();
   Bool  checkDefaultScalingList     ();
+#endif
+#ifdef INC_CABACINITIDC_SLICETYPE
+  Void      setCABACinitIDC(Int iVal) {m_iCABACinitIDC = iVal;    }  //!< set CABAC initial IDC number 
+  Int       getCABACinitIDC()         {return m_iCABACinitIDC;    }  //!< get CABAC initial IDC number 
 #endif
 protected:
 #if G1002_RPS

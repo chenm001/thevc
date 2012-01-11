@@ -102,6 +102,9 @@ TComSlice::TComSlice()
 #if OL_USE_WPP
 , m_puiSubstreamSizes             ( NULL )
 #endif
+#ifdef INC_CABACINITIDC_SLICETYPE
+, m_iCABACinitIDC                 ( -1 )
+#endif
 {
   m_aiNumRefIdx[0] = m_aiNumRefIdx[1] = m_aiNumRefIdx[2] = 0;
   

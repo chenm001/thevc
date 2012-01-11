@@ -598,13 +598,90 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #if ENC_DEC_TRACE  
   xTraceSliceHeader (pcSlice);
 #endif
+
+#ifdef SLICEADDR_BEGIN
+  // if( nal_ref_idc != 0 )
+  //   dec_ref_pic_marking( )
+  // if( entropy_coding_mode_flag  &&  slice_type  !=  I)
+  //   cabac_init_idc
+  // first_slice_in_pic_flag
+  // if( first_slice_in_pic_flag == 0 )
+  //    slice_address
+  // the slice start address seems to be aligned with the WD if FINE_GRANULARITY_SLICES is enabled
+#if FINE_GRANULARITY_SLICES
+  //calculate number of bits required for slice address
+  Int iMaxAddrOuter = pcSlice->getPic()->getNumCUsInFrame();
+  Int iReqBitsOuter = 0;
+  while(iMaxAddrOuter>(1<<iReqBitsOuter)) 
+  {
+    iReqBitsOuter++;
+  }
+  Int iMaxAddrInner = pcSlice->getPic()->getNumPartInCU()>>(2);
+  iMaxAddrInner = (1<<(pcSlice->getPPS()->getSliceGranularity()<<1));
+  int iReqBitsInner = 0;
   
+  while(iMaxAddrInner>(1<<iReqBitsInner))
+  {
+    iReqBitsInner++;
+  }
+  Int iLCUAddress;
+  Int iInnerAddress;
+#endif
+  if (pcSlice->isNextSlice())
+  {
+#if !FINE_GRANULARITY_SLICES
+#if TILES
+    WRITE_UVLC( pcSlice->getPic()->getPicSym()->getCUOrderMap(pcSlice->getSliceCurStartCUAddr()), "slice_address" );        // Start CU addr for slice
+#else
+    WRITE_UVLC( pcSlice->getSliceCurStartCUAddr(), "slice_address" );        // Start CU addr for slice
+#endif
+#else
+    // Calculate slice address
+    iLCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
+    iInnerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+#endif
+  }
+  else
+  {
+#if !FINE_GRANULARITY_SLICES
+#if TILES
+    WRITE_UVLC( pcSlice->getPic()->getPicSym()->getCUOrderMap(pcSlice->getEntropySliceCurStartCUAddr()), "slice_address" ); // Start CU addr for entropy slice
+#else
+    WRITE_UVLC( pcSlice->getEntropySliceCurStartCUAddr(), "slice_address" ); // Start CU addr for entropy slice
+#endif
+#else
+    // Calculate slice address
+    iLCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
+    iInnerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+    
+#endif
+  }
+#if FINE_GRANULARITY_SLICES
+  //write slice address
+#if TILES
+  int iAddress = (pcSlice->getPic()->getPicSym()->getCUOrderMap(iLCUAddress) << iReqBitsInner) + iInnerAddress;
+#else
+  int iAddress    = (iLCUAddress << iReqBitsInner) + iInnerAddress;
+#endif
+  WRITE_FLAG( iAddress==0, "first_slice_in_pic_flag" );
+  if(iAddress>0) 
+  {
+    WRITE_CODE( iAddress, iReqBitsOuter+iReqBitsInner, "slice_address" );
+  }
+#endif
+#endif
+
+#ifdef INC_CABACINITIDC_SLICETYPE
+    WRITE_UVLC( pcSlice->getSliceType(),       "slice_type" );
+#endif
   Bool bEntropySlice = (!pcSlice->isNextSlice());
   WRITE_FLAG( bEntropySlice ? 1 : 0, "lightweight_slice_flag" );
   
   if (!bEntropySlice)
   {
+#ifndef INC_CABACINITIDC_SLICETYPE
     WRITE_UVLC( pcSlice->getSliceType(),       "slice_type" );
+#endif
     WRITE_UVLC( pcSlice->getPPS()->getPPSId(), "pic_parameter_set_id" );
 #if G1002_RPS
     if(pcSlice->getNalUnitType()==NAL_UNIT_CODED_SLICE_IDR) 
@@ -755,6 +832,12 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     }
   }
     
+#ifdef INC_CABACINITIDC_SLICETYPE
+  if(pcSlice->getPPS()->getEntropyCodingMode() && !pcSlice->isIntra())
+    WRITE_UVLC(pcSlice->getCABACinitIDC(),  "cabac_init_idc");
+#endif
+
+#ifndef SLICEADDR_BEGIN
   // if( nal_ref_idc != 0 )
   //   dec_ref_pic_marking( )
   // if( entropy_coding_mode_flag  &&  slice_type  !=  I)
@@ -823,6 +906,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   {
     WRITE_CODE( iAddress, iReqBitsOuter+iReqBitsInner, "slice_address" );
   }
+#endif
 #endif
   
   // if( !lightweight_slice_flag ) {

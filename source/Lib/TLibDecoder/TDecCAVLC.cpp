@@ -634,16 +634,95 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   xTraceSliceHeader(rpcSlice);
 #endif
   
+#ifdef SLICEADDR_BEGIN  
+  // if( nal_ref_idc != 0 )
+  //   dec_ref_pic_marking( )
+  // if( entropy_coding_mode_flag  &&  slice_type  !=  I)
+  //   cabac_init_idc
+  // first_slice_in_pic_flag
+  // if( first_slice_in_pic_flag == 0 )
+  //   slice_address
+#if FINE_GRANULARITY_SLICES
+  int iNumCUs = ((rpcSlice->getSPS()->getWidth()+rpcSlice->getSPS()->getMaxCUWidth()-1)/rpcSlice->getSPS()->getMaxCUWidth())*((rpcSlice->getSPS()->getHeight()+rpcSlice->getSPS()->getMaxCUHeight()-1)/rpcSlice->getSPS()->getMaxCUHeight());
+  int iMaxParts = (1<<(rpcSlice->getSPS()->getMaxCUDepth()<<1));
+  int iNumParts = (1<<(rpcSlice->getPPS()->getSliceGranularity()<<1));
+  UInt uiLCUAddress = 0;
+  int iReqBitsOuter = 0;
+  while(iNumCUs>(1<<iReqBitsOuter))
+  {
+    iReqBitsOuter++;
+  }
+  int iReqBitsInner = 0;
+  while((iNumParts)>(1<<iReqBitsInner)) 
+  {
+    iReqBitsInner++;
+  }
+  READ_FLAG( uiCode, "first_slice_in_pic_flag" );
+  UInt uiAddress;
+  UInt uiInnerAddress = 0;
+  if(!uiCode)
+  {
+    READ_CODE( iReqBitsOuter+iReqBitsInner, uiAddress, "slice_address" );
+    uiLCUAddress = uiAddress >> iReqBitsInner;
+    uiInnerAddress = uiAddress - (uiLCUAddress<<iReqBitsInner);
+  }
+  //set uiCode to equal slice start address (or entropy slice start address)
+  uiCode=(iMaxParts*uiLCUAddress)+(uiInnerAddress*(iMaxParts>>(rpcSlice->getPPS()->getSliceGranularity()<<1)));
+  
+  rpcSlice->setEntropySliceCurStartCUAddr( uiCode );
+  rpcSlice->setEntropySliceCurEndCUAddr(iNumCUs*iMaxParts);
+#endif
+#if !FINE_GRANULARITY_SLICES
+    READ_UVLC( uiCode, "slice_address" );
+    UInt tempAddress = uiCode;
+#endif
+#endif
+
+#ifdef INC_CABACINITIDC_SLICETYPE
+    //   slice_type
+    READ_UVLC (    uiCode, "slice_type" );            rpcSlice->setSliceType((SliceType)uiCode);
+#endif
   // lightweight_slice_flag
   READ_FLAG( uiCode, "lightweight_slice_flag" );
   Bool bEntropySlice = uiCode ? true : false;
 
+
+#ifdef SLICEADDR_BEGIN
+  if (bEntropySlice)
+  {
+    rpcSlice->setNextSlice        ( false );
+    rpcSlice->setNextEntropySlice ( true  );
+#if !FINE_GRANULARITY_SLICES
+    uiCode = tempAddress;
+    //READ_UVLC( uiCode, "slice_address" );
+    rpcSlice->setEntropySliceCurStartCUAddr( uiCode ); // start CU addr for entropy slice
+#endif
+  }
+  else
+  {
+    rpcSlice->setNextSlice        ( true  );
+    rpcSlice->setNextEntropySlice ( false );
+    
+#if !FINE_GRANULARITY_SLICES
+    uiCode = tempAddress;
+    //READ_UVLC( uiCode, "slice_address" );
+    rpcSlice->setSliceCurStartCUAddr( uiCode );        // start CU addr for slice
+    rpcSlice->setEntropySliceCurStartCUAddr( uiCode ); // start CU addr for entropy slice  
+#else
+  uiCode=(iMaxParts*uiLCUAddress)+(uiInnerAddress*(iMaxParts>>(rpcSlice->getPPS()->getSliceGranularity()<<1)));
+    rpcSlice->setSliceCurStartCUAddr(uiCode);
+    rpcSlice->setSliceCurEndCUAddr(iNumCUs*iMaxParts);
+#endif
+  }
+#endif
   
   // if( !lightweight_slice_flag ) {
   if (!bEntropySlice)
   {
+#ifndef INC_CABACINITIDC_SLICETYPE
     //   slice_type
     READ_UVLC (    uiCode, "slice_type" );            rpcSlice->setSliceType((SliceType)uiCode);
+#endif
     READ_UVLC (    uiCode, "pic_parameter_set_id" );  rpcSlice->setPPSId(uiCode);
 #if G1002_RPS
     if(rpcSlice->getNalUnitType()==NAL_UNIT_CODED_SLICE_IDR) 
@@ -869,6 +948,16 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     rpcSlice->setRefPicListCombinationFlag(false);      
   }
   
+#ifdef INC_CABACINITIDC_SLICETYPE
+  if(rpcSlice->getPPS()->getEntropyCodingMode() && !rpcSlice->isIntra())
+  {
+      READ_UVLC(uiCode, "cabac_init_idc");
+      rpcSlice->setCABACinitIDC(uiCode);
+  } else if (rpcSlice->getPPS()->getEntropyCodingMode() && rpcSlice->isIntra())
+      rpcSlice->setCABACinitIDC(0);
+#endif
+
+#ifndef SLICEADDR_BEGIN
   // if( nal_ref_idc != 0 )
   //   dec_ref_pic_marking( )
   // if( entropy_coding_mode_flag  &&  slice_type  !=  I)
@@ -928,6 +1017,10 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     rpcSlice->setSliceCurStartCUAddr(uiCode);
     rpcSlice->setSliceCurEndCUAddr(iNumCUs*iMaxParts);
 #endif
+  }
+#endif
+  if(!bEntropySlice)
+  {
     // if( !lightweight_slice_flag ) {
     //   slice_qp_delta
     // should be delta

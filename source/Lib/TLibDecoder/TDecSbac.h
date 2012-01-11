@@ -79,6 +79,15 @@ public:
   Void decodeFlush();
 #endif
 
+#ifdef INC_CABACINITIDC_SLICETYPE
+#if F747_APS
+  Void  resetEntropywithQPandInitIDC ( Int  iQp, Int iID);
+  Void  resetEntropy                 ( Int  iQp, Int iID      ) { resetEntropywithQPandInitIDC(iQp, iID);                                      }
+  Void  resetEntropy                 ( TComSlice* pcSlice     ) { resetEntropywithQPandInitIDC(pcSlice->getSliceQp(), pcSlice->getCABACinitIDC());}
+#else
+  Void  resetEntropy              ( TComSlice* pcSlice     );
+#endif
+#else
 #if F747_APS
   Void  resetEntropywithQPandInitIDC ( Int  iQp, Int iID);
   Void  resetEntropy                 ( Int  iQp, Int iID      ) { resetEntropywithQPandInitIDC(iQp, iID);                                      }
@@ -86,6 +95,8 @@ public:
 #else
   Void  resetEntropy              ( TComSlice* pcSlice     );
 #endif
+#endif
+
   Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
   
   Void  setAlfCtrl                ( Bool bAlfCtrl          ) { m_bAlfCtrl = bAlfCtrl;                   }
