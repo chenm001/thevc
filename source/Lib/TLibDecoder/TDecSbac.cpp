@@ -618,30 +618,6 @@ Void TDecSbac::parseAlfCtrlDepth( UInt& ruiAlfCtrlDepth )
   ruiAlfCtrlDepth = uiSymbol;
 }
 
-Void TDecSbac::parseAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  if( !m_bAlfCtrl )
-  {
-    return;
-  }
-  
-  if( uiDepth > m_uiMaxAlfCtrlDepth && !pcCU->isFirstAbsZorderIdxInDepth( uiAbsPartIdx, m_uiMaxAlfCtrlDepth ) )
-  {
-    return;
-  }
-  
-  UInt uiSymbol;
-  m_pcTDecBinIf->decodeBin( uiSymbol, *m_cCUAlfCtrlFlagSCModel.get( 0 ) );
-  
-  if( uiDepth > m_uiMaxAlfCtrlDepth )
-  {
-    pcCU->setAlfCtrlFlagSubParts( uiSymbol, uiAbsPartIdx, m_uiMaxAlfCtrlDepth );
-  }
-  else
-  {
-    pcCU->setAlfCtrlFlagSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
-  }
-}
 
 /** parse skip flag
  * \param pcCU
@@ -2091,35 +2067,6 @@ Void TDecSbac::parseAlfFlag (UInt& ruiVal)
   ruiVal = uiSymbol;
 }
 
-Void TDecSbac::parseAlfFlagNum( UInt& ruiVal, UInt minValue, UInt depth )
-{
-  UInt uiLength = 0;
-  UInt maxValue = (minValue << (depth*2));
-  UInt temp = maxValue - minValue;
-  for(UInt i=0; i<32; i++)
-  {
-    if(temp&0x1)
-    {
-      uiLength = i+1;
-    }
-    temp = (temp >> 1);
-  }
-  ruiVal = 0;
-  UInt uiBit;
-  if(uiLength)
-  {
-    while( uiLength-- )
-    {
-      m_pcTDecBinIf->decodeBinEP( uiBit );
-      ruiVal += uiBit << uiLength;
-    }
-  }
-  else
-  {
-    ruiVal = 0;
-  }
-  ruiVal += minValue;
-}
 
 Void TDecSbac::parseAlfCtrlFlag( UInt &ruiAlfCtrlFlag )
 {

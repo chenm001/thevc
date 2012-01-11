@@ -210,8 +210,6 @@ public:
   Void parseIPCMInfo        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
 
   Void parseAlfCtrlDepth    ( UInt& ruiAlfCtrlDepth );
-  Void parseAlfCtrlFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parseAlfFlagNum      ( UInt& ruiVal, UInt minValue, UInt depth );
   Void parseAlfCtrlFlag     ( UInt &ruiAlfCtrlFlag );
 #if TILES
 #if TILES_DECODER

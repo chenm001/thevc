@@ -141,8 +141,6 @@ private:
 #endif
 
 public:
-  Void parseAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parseAlfFlagNum    ( UInt& ruiVal, UInt minValue, UInt depth );
   Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag );
 
 #if FINE_GRANULARITY_SLICES
