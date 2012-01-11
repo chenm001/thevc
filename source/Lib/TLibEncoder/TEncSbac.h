@@ -120,9 +120,6 @@ public:
   Void  codeAlfSvlc       ( Int  uiCode );
   Void  codeAlfCtrlDepth  ();
 
-  /// Code number of ALF CU control flags
-  Void codeAlfFlagNum        ( UInt uiCode, UInt minValue, Int iDepth);
-
   Void codeAlfCtrlFlag       ( UInt uiSymbol );
 #if SAO
   Void  codeSaoFlag       ( UInt uiCode );

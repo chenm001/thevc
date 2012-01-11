@@ -138,8 +138,6 @@ public:
   virtual Int  getSliceGranularity()                      = 0;
 #endif
 
-  /// Code number of ALF CU control flags
-  virtual Void codeAlfFlagNum       ( UInt uiCode, UInt minValue, Int iDepth) = 0;
   virtual Void codeAlfCtrlFlag      ( UInt uiSymbol ) = 0;
 #if SAO
   virtual Void codeSaoFlag          ( UInt uiCode ) = 0;
