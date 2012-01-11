@@ -232,7 +232,9 @@ void TDecCavlc::parseShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet
 #if INTER_RPS_PREDICTION
   }
 #endif // INTER_RPS_PREDICTION   
+#if PRINT_RPS_INFO
   pcRPS->printDeltaPOC();
+#endif
 }
 #endif
 

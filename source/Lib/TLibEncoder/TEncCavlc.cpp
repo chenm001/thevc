@@ -252,7 +252,7 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
 #if G1002_RPS
 Void TEncCavlc::codeShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet* pcRPS )
 {
-#if PRINT_RPS_BITS_WRITTEN
+#if PRINT_RPS_INFO
   int lastBits = getNumberOfWrittenBits();
 #endif
 #if INTER_RPS_PREDICTION
@@ -299,7 +299,7 @@ Void TEncCavlc::codeShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet*
   }
 #endif // INTER_RPS_PREDICTION
 
-#if PRINT_RPS_BITS_WRITTEN
+#if PRINT_RPS_INFO
 #if INTER_RPS_PREDICTION  
   printf("irps=%d (%2d bits) ", pcRPS->getInterRPSPrediction(), getNumberOfWrittenBits() - lastBits);
 #else
