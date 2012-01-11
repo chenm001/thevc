@@ -610,22 +610,22 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   // the slice start address seems to be aligned with the WD if FINE_GRANULARITY_SLICES is enabled
 #if FINE_GRANULARITY_SLICES
   //calculate number of bits required for slice address
-  Int iMaxAddrOuter = pcSlice->getPic()->getNumCUsInFrame();
-  Int iReqBitsOuter = 0;
-  while(iMaxAddrOuter>(1<<iReqBitsOuter)) 
+  Int maxAddrOuter = pcSlice->getPic()->getNumCUsInFrame();
+  Int reqBitsOuter = 0;
+  while(maxAddrOuter>(1<<reqBitsOuter)) 
   {
-    iReqBitsOuter++;
+    reqBitsOuter++;
   }
-  Int iMaxAddrInner = pcSlice->getPic()->getNumPartInCU()>>(2);
-  iMaxAddrInner = (1<<(pcSlice->getPPS()->getSliceGranularity()<<1));
-  int iReqBitsInner = 0;
+  Int maxAddrInner = pcSlice->getPic()->getNumPartInCU()>>(2);
+  maxAddrInner = (1<<(pcSlice->getPPS()->getSliceGranularity()<<1));
+  Int reqBitsInner = 0;
   
-  while(iMaxAddrInner>(1<<iReqBitsInner))
+  while(maxAddrInner>(1<<reqBitsInner))
   {
-    iReqBitsInner++;
+    reqBitsInner++;
   }
-  Int iLCUAddress;
-  Int iInnerAddress;
+  Int lCUAddress;
+  Int innerAddress;
 #endif
   if (pcSlice->isNextSlice())
   {
@@ -637,8 +637,8 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #endif
 #else
     // Calculate slice address
-    iLCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
-    iInnerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+    lCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
+    innerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
 #endif
   }
   else
@@ -651,22 +651,22 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #endif
 #else
     // Calculate slice address
-    iLCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
-    iInnerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+    lCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
+    innerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
     
 #endif
   }
 #if FINE_GRANULARITY_SLICES
   //write slice address
 #if TILES
-  int iAddress = (pcSlice->getPic()->getPicSym()->getCUOrderMap(iLCUAddress) << iReqBitsInner) + iInnerAddress;
+  Int address = (pcSlice->getPic()->getPicSym()->getCUOrderMap(lCUAddress) << reqBitsInner) + innerAddress;
 #else
-  int iAddress    = (iLCUAddress << iReqBitsInner) + iInnerAddress;
+  Int address    = (lCUAddress << reqBitsInner) + innerAddress;
 #endif
-  WRITE_FLAG( iAddress==0, "first_slice_in_pic_flag" );
-  if(iAddress>0) 
+  WRITE_FLAG( address==0, "first_slice_in_pic_flag" );
+  if(address>0) 
   {
-    WRITE_CODE( iAddress, iReqBitsOuter+iReqBitsInner, "slice_address" );
+    WRITE_CODE( address, reqBitsOuter+reqBitsInner, "slice_address" );
   }
 #endif
 #endif

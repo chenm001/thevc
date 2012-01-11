@@ -643,38 +643,38 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   // if( first_slice_in_pic_flag == 0 )
   //   slice_address
 #if FINE_GRANULARITY_SLICES
-  int iNumCUs = ((rpcSlice->getSPS()->getWidth()+rpcSlice->getSPS()->getMaxCUWidth()-1)/rpcSlice->getSPS()->getMaxCUWidth())*((rpcSlice->getSPS()->getHeight()+rpcSlice->getSPS()->getMaxCUHeight()-1)/rpcSlice->getSPS()->getMaxCUHeight());
-  int iMaxParts = (1<<(rpcSlice->getSPS()->getMaxCUDepth()<<1));
-  int iNumParts = (1<<(rpcSlice->getPPS()->getSliceGranularity()<<1));
-  UInt uiLCUAddress = 0;
-  int iReqBitsOuter = 0;
-  while(iNumCUs>(1<<iReqBitsOuter))
+  Int numCUs = ((rpcSlice->getSPS()->getWidth()+rpcSlice->getSPS()->getMaxCUWidth()-1)/rpcSlice->getSPS()->getMaxCUWidth())*((rpcSlice->getSPS()->getHeight()+rpcSlice->getSPS()->getMaxCUHeight()-1)/rpcSlice->getSPS()->getMaxCUHeight());
+  Int maxParts = (1<<(rpcSlice->getSPS()->getMaxCUDepth()<<1));
+  Int numParts = (1<<(rpcSlice->getPPS()->getSliceGranularity()<<1));
+  UInt lCUAddress = 0;
+  Int reqBitsOuter = 0;
+  while(numCUs>(1<<reqBitsOuter))
   {
-    iReqBitsOuter++;
+    reqBitsOuter++;
   }
-  int iReqBitsInner = 0;
-  while((iNumParts)>(1<<iReqBitsInner)) 
+  Int reqBitsInner = 0;
+  while((numParts)>(1<<reqBitsInner)) 
   {
-    iReqBitsInner++;
+    reqBitsInner++;
   }
   READ_FLAG( uiCode, "first_slice_in_pic_flag" );
-  UInt uiAddress;
-  UInt uiInnerAddress = 0;
+  UInt address;
+  UInt innerAddress = 0;
   if(!uiCode)
   {
-    READ_CODE( iReqBitsOuter+iReqBitsInner, uiAddress, "slice_address" );
-    uiLCUAddress = uiAddress >> iReqBitsInner;
-    uiInnerAddress = uiAddress - (uiLCUAddress<<iReqBitsInner);
+    READ_CODE( reqBitsOuter+reqBitsInner, address, "slice_address" );
+    lCUAddress = address >> reqBitsInner;
+    innerAddress = address - (lCUAddress<<reqBitsInner);
   }
   //set uiCode to equal slice start address (or entropy slice start address)
-  uiCode=(iMaxParts*uiLCUAddress)+(uiInnerAddress*(iMaxParts>>(rpcSlice->getPPS()->getSliceGranularity()<<1)));
+  uiCode=(maxParts*lCUAddress)+(innerAddress*(maxParts>>(rpcSlice->getPPS()->getSliceGranularity()<<1)));
   
   rpcSlice->setEntropySliceCurStartCUAddr( uiCode );
-  rpcSlice->setEntropySliceCurEndCUAddr(iNumCUs*iMaxParts);
+  rpcSlice->setEntropySliceCurEndCUAddr(numCUs*maxParts);
 #endif
 #if !FINE_GRANULARITY_SLICES
     READ_UVLC( uiCode, "slice_address" );
-    UInt tempAddress = uiCode;
+    Int tempAddress = uiCode;
 #endif
 #endif
 
@@ -709,9 +709,9 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     rpcSlice->setSliceCurStartCUAddr( uiCode );        // start CU addr for slice
     rpcSlice->setEntropySliceCurStartCUAddr( uiCode ); // start CU addr for entropy slice  
 #else
-  uiCode=(iMaxParts*uiLCUAddress)+(uiInnerAddress*(iMaxParts>>(rpcSlice->getPPS()->getSliceGranularity()<<1)));
+  uiCode=(maxParts*lCUAddress)+(innerAddress*(maxParts>>(rpcSlice->getPPS()->getSliceGranularity()<<1)));
     rpcSlice->setSliceCurStartCUAddr(uiCode);
-    rpcSlice->setSliceCurEndCUAddr(iNumCUs*iMaxParts);
+    rpcSlice->setSliceCurEndCUAddr(numCUs*maxParts);
 #endif
   }
 #endif
@@ -954,7 +954,9 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       READ_UVLC(uiCode, "cabac_init_idc");
       rpcSlice->setCABACinitIDC(uiCode);
   } else if (rpcSlice->getPPS()->getEntropyCodingMode() && rpcSlice->isIntra())
+  {
       rpcSlice->setCABACinitIDC(0);
+  }
 #endif
 
 #ifndef SLICEADDR_BEGIN
