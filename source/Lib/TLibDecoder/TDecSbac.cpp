@@ -799,48 +799,48 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   else
   {
 #if PREDTYPE_CLEANUP
-      UInt uiMaxNumBits = 2;
+    UInt uiMaxNumBits = 2;
 #if DISABLE_4x4_INTER
-      if( !pcCU->getSlice()->getSPS()->getDisInter4x4() && (g_uiMaxCUWidth>>uiDepth) == 8 && (g_uiMaxCUHeight>>uiDepth) == 8 )
+    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth || ( !pcCU->getSlice()->getSPS()->getDisInter4x4() && (g_uiMaxCUWidth>>uiDepth) == 8 && (g_uiMaxCUHeight>>uiDepth) == 8 ) )
 #else
-      if( (g_uiMaxCUWidth>>uiDepth) == 8 && (g_uiMaxCUHeight>>uiDepth) == 8 )
+    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
 #endif
+    {
+      uiMaxNumBits ++;
+    }
+    for ( UInt ui = 0; ui < uiMaxNumBits; ui++ )
+    {
+      m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, ui) );
+      if ( uiSymbol )
       {
-        uiMaxNumBits ++;
+        break;
       }
-      for ( UInt ui = 0; ui < uiMaxNumBits; ui++ )
-      {
-        m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, ui) );
-        if ( uiSymbol )
-        {
-          break;
-        }
-        uiMode++;
-      }
-      eMode = (PartSize) uiMode;
+      uiMode++;
+    }
+    eMode = (PartSize) uiMode;
 #if AMP
-      if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
+    if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
+    {
+      if (eMode == SIZE_2NxN)
       {
-        if (eMode == SIZE_2NxN)
+        m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUYPosiSCModel.get( 0, 0, 0 ));
+        if (uiSymbol == 0)
         {
-          m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUYPosiSCModel.get( 0, 0, 0 ));
-          if (uiSymbol == 0)
-          {
-            m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUYPosiSCModel.get( 0, 0, 1 ));
-            eMode = (uiSymbol == 0? SIZE_2NxnU : SIZE_2NxnD);
-          }
+          m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUYPosiSCModel.get( 0, 0, 1 ));
+          eMode = (uiSymbol == 0? SIZE_2NxnU : SIZE_2NxnD);
         }
-        else if (eMode == SIZE_Nx2N)
+      }
+      else if (eMode == SIZE_Nx2N)
+      {
+        m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUXPosiSCModel.get( 0, 0, 0 ));
+        if (uiSymbol == 0)
         {
-          m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUXPosiSCModel.get( 0, 0, 0 ));
-          if (uiSymbol == 0)
-          {
-            m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUXPosiSCModel.get( 0, 0, 1 ));
-            eMode = (uiSymbol == 0? SIZE_nLx2N : SIZE_nRx2N);
-          }
+          m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUXPosiSCModel.get( 0, 0, 1 ));
+          eMode = (uiSymbol == 0? SIZE_nLx2N : SIZE_nRx2N);
         }
       }
     }
+  }
 #endif
 #else //PREDTYPE_CLEANUP   
     {
