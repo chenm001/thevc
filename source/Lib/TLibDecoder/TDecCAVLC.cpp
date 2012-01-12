@@ -467,8 +467,10 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_UVLC( uiCode,    "max_num_ref_pics" );                    pcSPS->setMaxNumberOfReferencePictures(uiCode);
   READ_UVLC( uiCode,    "max_num_reorder_pics" );                pcSPS->setMaxNumberOfReorderPictures(uiCode);
 #endif
+#if !G507
 #if DISABLE_4x4_INTER
   xReadFlag( uiCode ); pcSPS->setDisInter4x4( uiCode ? true : false );
+#endif
 #endif
 #if !G1002_RPS
   // log2_max_frame_num_minus4
@@ -495,6 +497,13 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 
   READ_UVLC( uiCode, "log2_diff_max_min_transform_block_size" ); pcSPS->setQuadtreeTULog2MaxSize( uiCode + pcSPS->getQuadtreeTULog2MinSize() );
   pcSPS->setMaxTrSize( 1<<(uiCode + pcSPS->getQuadtreeTULog2MinSize()) );
+
+#if G507
+#if DISABLE_4x4_INTER
+  if(log2MinCUSize == 3)
+    xReadFlag( uiCode ); pcSPS->setDisInter4x4( uiCode ? true : false );
+#endif
+#endif
 
 #if MAX_PCM_SIZE
   if( pcSPS->getUsePCM() )

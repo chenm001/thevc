@@ -652,3 +652,4 @@ enum COEFF_SCAN_TYPE
 
 #endif
 
+#define G507 1

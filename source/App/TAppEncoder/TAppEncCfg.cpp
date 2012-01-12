@@ -928,7 +928,11 @@ Void TAppEncCfg::xPrintParameter()
   printf("PCM sample bit depth         : %d\n", m_uiPCMBitDepthLuma );
 #endif
 #if DISABLE_4x4_INTER
-  printf("DisableInter4x4              : %d\n", m_bDisInter4x4);  
+
+#if G507
+  if((m_uiMaxCUWidth >> m_uiMaxCUDepth) == 4)
+#endif
+    printf("DisableInter4x4              : %d\n", m_bDisInter4x4);  
 #endif
 #if !DISABLE_CAVLC
   if ( m_iSymbolMode == 0 )

@@ -456,8 +456,10 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_UVLC( pcSPS->getMaxNumberOfReferencePictures(), "max_num_ref_pics" ); 
   WRITE_UVLC( pcSPS->getMaxNumberOfReorderPictures(),   "max_num_reorder_pics" ); 
 #endif
+#if !G507
 #if DISABLE_4x4_INTER
   xWriteFlag  ( (pcSPS->getDisInter4x4()) ? 1 : 0 );
+#endif
 #endif  
 #if !G1002_RPS
   // log2_max_frame_num_minus4
@@ -483,11 +485,19 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
     MinCUSize >>= 1;
     log2MinCUSize++;
   }
-  
+
   WRITE_UVLC( log2MinCUSize - 3,                                                     "log2_min_coding_block_size_minus3" );
   WRITE_UVLC( pcSPS->getMaxCUDepth()-g_uiAddCUDepth,                                 "log2_diff_max_min_coding_block_size" );
   WRITE_UVLC( pcSPS->getQuadtreeTULog2MinSize() - 2,                                 "log2_min_transform_block_size_minus2" );
   WRITE_UVLC( pcSPS->getQuadtreeTULog2MaxSize() - pcSPS->getQuadtreeTULog2MinSize(), "log2_diff_max_min_transform_block_size" );
+
+#if G507
+#if DISABLE_4x4_INTER
+  if(log2MinCUSize == 3)
+    xWriteFlag  ( (pcSPS->getDisInter4x4()) ? 1 : 0 );
+#endif
+#endif
+
 #if MAX_PCM_SIZE
   if( pcSPS->getUsePCM() )
   {
