@@ -185,14 +185,16 @@ public:
                                      const UInt                      uiLog2BlkSize,
 #if NSQT_DIAG_SCAN
 #if SIGMAP_CTX_RED
-                                    Int uiStride, Int height, Int eTType );
+                                     const Int                       uiStride,
+                                     const Int                       height, 
+                                     const TextType                  textureType );
 #else
                                     Int uiStride, Int height );
 #endif
 #else
 #if SIGMAP_CTX_RED
                                      const UInt                       uiStride,
-                                     const UInt                       eTType );
+                                     const TextType                  textureType );
 #else
                                      const UInt                      uiStride );
 #endif

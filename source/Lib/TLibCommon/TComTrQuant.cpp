@@ -3724,14 +3724,16 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
                                     const UInt                      uiLog2BlkSize,
 #if NSQT_DIAG_SCAN
 #if SIGMAP_CTX_RED
-                                   Int uiStride, Int height, Int eTType )
+                                    const Int                      uiStride, 
+                                    const Int                      height, 
+                                    const TextType                 textureType )
 #else
-                                   Int uiStride, Int height )
+                                    Int uiStride, Int height )
 #endif
 #else
 #if SIGMAP_CTX_RED
                                     const UInt                      uiStride,
-                                    const UInt                      eTType )
+                                    const TextType                  textureType )
 #else
                                     const UInt                      uiStride )
 #endif
@@ -3740,27 +3742,30 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   if ( uiLog2BlkSize == 2)
   {
 #if SIGMAP_CTX_RED
-    const UChar CTX_IND_MAP_4x4[30] =
+    //LUMA map
+    const UChar CtxIndMap4x4Luma[15] =
     {
-      //LUMA map
       0, 1, 4, 5,
       2, 3, 4, 5,
       6, 6, 8, 8,
-      7, 7, 8,
-      //CHROMA map
+      7, 7, 8
+    };
+    //CHROMA map
+    const UChar CtxIndMap4x4Chroma[15] =
+    {
       0, 1, 2, 4,
       1, 1, 2, 4,
       3, 3, 5, 5,
       4, 4, 5
     };
 
-    if (eTType == TEXT_LUMA)
+    if (textureType == TEXT_LUMA)
     {
-      return CTX_IND_MAP_4x4[(uiPosY << 2) + uiPosX];
+      return CtxIndMap4x4Luma[(uiPosY << 2) + uiPosX];
     }
     else
     {
-      return CTX_IND_MAP_4x4[15 + (uiPosY << 2) + uiPosX];
+      return CtxIndMap4x4Chroma[(uiPosY << 2) + uiPosX];
     }
 #else
     return 4 * uiPosY + uiPosX;
@@ -3774,7 +3779,7 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
                             4,  5,  6,  3,
                             8,  6,  6,  7,
                             9,  9,  7,  7  };
-    UInt uiOffset = (eTType == TEXT_LUMA) ? 9 : 6;
+    UInt uiOffset = (textureType == TEXT_LUMA) ? 9 : 6;
 
     if ( uiPosX + uiPosY == 0 )
     {
@@ -3787,7 +3792,7 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   }
 
 #if SIGMAP_CTX_RED
-  UInt uiOffset = (eTType == TEXT_LUMA) ? 20 : 17;
+  UInt uiOffset = (textureType == TEXT_LUMA) ? 20 : 17;
   if( uiPosX + uiPosY == 0 )
   {
     return uiOffset;
@@ -3816,7 +3821,7 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   
 #if !NSQT_DIAG_SCAN
 #if SIGMAP_CTX_RED
-  if(eTType==TEXT_LUMA && uiPosX + uiPosY < thred)
+  if(textureType==TEXT_LUMA && uiPosX + uiPosY < thred)
 #else
   if( uiPosX + uiPosY < 5 )
 #endif
@@ -3884,9 +3889,9 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
 #if SIGMAP_CTX_RED
   cnt=(cnt+1)>>1;
 #if NSQT_DIAG_SCAN
-  return (( eTType == TEXT_LUMA && uiPosX + uiPosY >= thred ) ? uiOffset + 4 : uiOffset + 1) + cnt;
+  return (( textureType == TEXT_LUMA && uiPosX + uiPosY >= thred ) ? uiOffset + 4 : uiOffset + 1) + cnt;
 #else
-  if(eTType==TEXT_LUMA)
+  if(textureType==TEXT_LUMA)
   {
     return uiOffset + 4 + cnt;
   }
