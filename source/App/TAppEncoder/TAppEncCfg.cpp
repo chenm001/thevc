@@ -318,8 +318,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("WaveFrontSubstreams",         m_iWaveFrontSubstreams,          1,          "# coded substreams wanted; per tile if TileBoundaryIndependenceIdc is 1, otherwise per frame")
 #endif
 #if SCALING_LIST
-    ("ScalingList",                 m_useScalingListId,                0,        "Scaling List")
-    ("ScalingListFile",             cfg_ScalingListFile,             string(""), "Scaling List file name")
+    ("ScalingList",                 m_useScalingListId,              0,          "0: no scaling list, 1: default scaling lists, 2: scaling lists specified in ScalingListFile")
+    ("ScalingListFile",             cfg_ScalingListFile,             string(""), "Scaling list file name")
 #endif
   /* Misc. */
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
