@@ -801,7 +801,7 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
 #if PREDTYPE_CLEANUP
     UInt uiMaxNumBits = 2;
 #if DISABLE_4x4_INTER
-    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth || ( !pcCU->getSlice()->getSPS()->getDisInter4x4() && (g_uiMaxCUWidth>>uiDepth) == 8 && (g_uiMaxCUHeight>>uiDepth) == 8 ) )
+    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth && !( pcCU->getSlice()->getSPS()->getDisInter4x4() && (g_uiMaxCUWidth>>uiDepth) == 8 && (g_uiMaxCUHeight>>uiDepth) == 8 ) )
 #else
     if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
 #endif
