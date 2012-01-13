@@ -102,7 +102,7 @@ TComSlice::TComSlice()
 #if OL_USE_WPP
 , m_puiSubstreamSizes             ( NULL )
 #endif
-#ifdef INC_CABACINITIDC_SLICETYPE
+#if INC_CABACINITIDC_SLICETYPE
 , m_cabacInitIdc                 ( -1 )
 #endif
 {

@@ -621,7 +621,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   xTraceSliceHeader (pcSlice);
 #endif
 
-#ifdef SLICEADDR_BEGIN
+#if SLICEADDR_BEGIN
   // if( nal_ref_idc != 0 )
   //   dec_ref_pic_marking( )
   // if( entropy_coding_mode_flag  &&  slice_type  !=  I)
@@ -693,15 +693,15 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #endif
 #endif
 
-#ifdef INC_CABACINITIDC_SLICETYPE
-    WRITE_UVLC( pcSlice->getSliceType(),       "slice_type" );
+#if INC_CABACINITIDC_SLICETYPE
+  WRITE_UVLC( pcSlice->getSliceType(),       "slice_type" );
 #endif
   Bool bEntropySlice = (!pcSlice->isNextSlice());
   WRITE_FLAG( bEntropySlice ? 1 : 0, "lightweight_slice_flag" );
   
   if (!bEntropySlice)
   {
-#ifndef INC_CABACINITIDC_SLICETYPE
+#if !INC_CABACINITIDC_SLICETYPE
     WRITE_UVLC( pcSlice->getSliceType(),       "slice_type" );
 #endif
     WRITE_UVLC( pcSlice->getPPS()->getPPSId(), "pic_parameter_set_id" );
@@ -854,12 +854,14 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     }
   }
     
-#ifdef INC_CABACINITIDC_SLICETYPE
+#if INC_CABACINITIDC_SLICETYPE
   if(pcSlice->getPPS()->getEntropyCodingMode() && !pcSlice->isIntra())
+  {
     WRITE_UVLC(pcSlice->getCABACinitIDC(),  "cabac_init_idc");
+  }
 #endif
 
-#ifndef SLICEADDR_BEGIN
+#if !SLICEADDR_BEGIN
   // if( nal_ref_idc != 0 )
   //   dec_ref_pic_marking( )
   // if( entropy_coding_mode_flag  &&  slice_type  !=  I)

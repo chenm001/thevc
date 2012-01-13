@@ -79,7 +79,7 @@ public:
   Void decodeFlush();
 #endif
 
-#ifdef INC_CABACINITIDC_SLICETYPE
+#if INC_CABACINITIDC_SLICETYPE
 #if F747_APS
   Void  resetEntropywithQPandInitIDC ( Int  iQp, Int iID);
   Void  resetEntropy                 ( Int  iQp, Int iID      ) { resetEntropywithQPandInitIDC(iQp, iID);                                      }

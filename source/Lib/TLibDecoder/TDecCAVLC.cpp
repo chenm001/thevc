@@ -680,7 +680,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   xTraceSliceHeader(rpcSlice);
 #endif
   
-#ifdef SLICEADDR_BEGIN  
+#if SLICEADDR_BEGIN  
   // if( nal_ref_idc != 0 )
   //   dec_ref_pic_marking( )
   // if( entropy_coding_mode_flag  &&  slice_type  !=  I)
@@ -719,21 +719,21 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   rpcSlice->setEntropySliceCurEndCUAddr(numCUs*maxParts);
 #endif
 #if !FINE_GRANULARITY_SLICES
-    READ_UVLC( uiCode, "slice_address" );
-    Int tempAddress = uiCode;
+  READ_UVLC( uiCode, "slice_address" );
+  Int tempAddress = uiCode;
 #endif
 #endif
 
-#ifdef INC_CABACINITIDC_SLICETYPE
-    //   slice_type
-    READ_UVLC (    uiCode, "slice_type" );            rpcSlice->setSliceType((SliceType)uiCode);
+#if INC_CABACINITIDC_SLICETYPE
+  //   slice_type
+  READ_UVLC (    uiCode, "slice_type" );            rpcSlice->setSliceType((SliceType)uiCode);
 #endif
   // lightweight_slice_flag
   READ_FLAG( uiCode, "lightweight_slice_flag" );
   Bool bEntropySlice = uiCode ? true : false;
 
 
-#ifdef SLICEADDR_BEGIN
+#if SLICEADDR_BEGIN
   if (bEntropySlice)
   {
     rpcSlice->setNextSlice        ( false );
@@ -765,7 +765,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   // if( !lightweight_slice_flag ) {
   if (!bEntropySlice)
   {
-#ifndef INC_CABACINITIDC_SLICETYPE
+#if !INC_CABACINITIDC_SLICETYPE
     //   slice_type
     READ_UVLC (    uiCode, "slice_type" );            rpcSlice->setSliceType((SliceType)uiCode);
 #endif
@@ -989,18 +989,18 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     rpcSlice->setRefPicListCombinationFlag(false);      
   }
   
-#ifdef INC_CABACINITIDC_SLICETYPE
+#if INC_CABACINITIDC_SLICETYPE
   if(rpcSlice->getPPS()->getEntropyCodingMode() && !rpcSlice->isIntra())
   {
-      READ_UVLC(uiCode, "cabac_init_idc");
-      rpcSlice->setCABACinitIDC(uiCode);
+    READ_UVLC(uiCode, "cabac_init_idc");
+    rpcSlice->setCABACinitIDC(uiCode);
   } else if (rpcSlice->getPPS()->getEntropyCodingMode() && rpcSlice->isIntra())
   {
-      rpcSlice->setCABACinitIDC(0);
+    rpcSlice->setCABACinitIDC(0);
   }
 #endif
 
-#ifndef SLICEADDR_BEGIN
+#if !SLICEADDR_BEGIN
   // if( nal_ref_idc != 0 )
   //   dec_ref_pic_marking( )
   // if( entropy_coding_mode_flag  &&  slice_type  !=  I)
