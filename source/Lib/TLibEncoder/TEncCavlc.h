@@ -250,7 +250,7 @@ public:
   Bool getAdaptFlag      ()          { return m_bAdaptFlag; }
   Void setAdaptFlag      ( Bool b )  { m_bAdaptFlag = b;     }
 #if WEIGHT_PRED
-  Void codeWeightPredTable           ( TComSlice* pcSlice );
+  Void xCodePredWeightTable          ( TComSlice* pcSlice );
 #endif
 #if TILES
   Void updateContextTables           ( SliceType eSliceType, Int iQp, Bool bExecuteFinish=true ) { return;   }

@@ -947,14 +947,14 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   //     alf_cu_control_param( )
   //   }
   // }
-  }
   
 #if WEIGHT_PRED
-  if ( (pcSlice->getPPS()->getUseWP() && pcSlice->getSliceType()==P_SLICE) || (pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getSliceType()==B_SLICE) )
-  {
-    codeWeightPredTable( pcSlice );
-  }
+    if ( (pcSlice->getPPS()->getUseWP() && pcSlice->getSliceType()==P_SLICE) || (pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getSliceType()==B_SLICE) )
+    {
+      xCodePredWeightTable( pcSlice );
+    }
 #endif
+  }
 
   // !!!! sytnax elements not in the WD !!!!
   
@@ -2752,7 +2752,7 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int blockType, Int blSize
  * \param TComSlice* pcSlice
  * \returns Void
  */
-Void TEncCavlc::codeWeightPredTable( TComSlice* pcSlice )
+Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
 {
   wpScalingParam  *wp;
   Bool            bChroma     = true; // color always present in HEVC ?

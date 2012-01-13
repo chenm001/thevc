@@ -227,7 +227,7 @@ public:
 #endif
 
 #if WEIGHT_PRED
-  Void parseWeightPredTable ( TComSlice* pcSlice );
+  Void xParsePredWeightTable ( TComSlice* pcSlice );
 #endif
 #if SCALING_LIST
   Void  parseScalingList               ( TComScalingList* scalingList );

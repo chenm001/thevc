@@ -1062,15 +1062,15 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     //     alf_cu_control_param( )
     //   }
     // }
-  }
-
+  
 #if WEIGHT_PRED
-  if ( (rpcSlice->getPPS()->getUseWP() && rpcSlice->getSliceType()==P_SLICE) || (rpcSlice->getPPS()->getWPBiPredIdc() && rpcSlice->getSliceType()==B_SLICE) )
-  {
-    parseWeightPredTable(rpcSlice);
-    rpcSlice->initWpScaling();
-  }
+    if ( (rpcSlice->getPPS()->getUseWP() && rpcSlice->getSliceType()==P_SLICE) || (rpcSlice->getPPS()->getWPBiPredIdc() && rpcSlice->getSliceType()==B_SLICE) )
+    {
+      xParsePredWeightTable(rpcSlice);
+      rpcSlice->initWpScaling();
+    }
 #endif
+  }
 
   // !!!! Syntax elements not in the WD  !!!!!
   
@@ -3337,7 +3337,7 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, Int blockType, Int blSize
  * \param TComSlice* pcSlice
  * \returns Void
  */
-Void TDecCavlc::parseWeightPredTable( TComSlice* pcSlice )
+Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
 {
   wpScalingParam  *wp;
   Bool            bChroma     = true; // color always present in HEVC ?
@@ -3363,20 +3363,22 @@ Void TDecCavlc::parseWeightPredTable( TComSlice* pcSlice )
 
   if ( uiMode == 1 )  // explicit
   {
-    printf("\nTDecCavlc::parseWeightPredTable(poc=%d) explicit...\n", pcSlice->getPOC());
+    printf("\nTDecCavlc::xParsePredWeightTable(poc=%d) explicit...\n", pcSlice->getPOC());
 #if WP_IMPROVED_SYNTAX
     Int iDeltaDenom;
     // decode delta_luma_log2_weight_denom :
-    xReadUvlc( uiLog2WeightDenomLuma );     // ue(v): luma_log2_weight_denom
-    if( bChroma ) {                         // color always present in HEVC ?
-      xReadSvlc( iDeltaDenom );             // ue(v): delta_chroma_log2_weight_denom
+    READ_UVLC( uiLog2WeightDenomLuma, "luma_log2_weight_denom" );     // ue(v): luma_log2_weight_denom
+    if( bChroma ) 
+    {
+      READ_SVLC( iDeltaDenom, "delta_chroma_log2_weight_denom" );     // se(v): delta_chroma_log2_weight_denom
       assert((iDeltaDenom + uiLog2WeightDenomLuma)>=0);
       uiLog2WeightDenomChroma = (UInt)(iDeltaDenom + uiLog2WeightDenomLuma);
     }
 #else
-    xReadUvlc( uiLog2WeightDenomLuma );     // ue(v): luma_log2_weight_denom
-    if( bChroma ) {                         // color always present in HEVC ?
-      xReadUvlc( uiLog2WeightDenomChroma ); // ue(v): chroma_log2_weight_denom
+    READ_UVLC( uiLog2WeightDenomLuma, "luma_log2_weight_denom" );       // ue(v): luma_log2_weight_denom
+    if( bChroma ) 
+    {
+      READ_UVLC( uiLog2WeightDenomChroma, "chroma_log2_weight_denom" ); // ue(v): chroma_log2_weight_denom
     }
 #endif
 
@@ -3392,18 +3394,18 @@ Void TDecCavlc::parseWeightPredTable( TComSlice* pcSlice )
         wp[2].uiLog2WeightDenom = uiLog2WeightDenomChroma;
 
         UInt  uiCode;
-        xReadFlag( uiCode );           // u(1): luma_weight_l0_flag
+        READ_FLAG( uiCode, "luma_weight_lX_flag" );           // u(1): luma_weight_l0_flag
         wp[0].bPresentFlag = ( uiCode == 1 );
         if ( wp[0].bPresentFlag ) 
         {
 #if WP_IMPROVED_SYNTAX
           Int iDeltaWeight;
-          xReadSvlc( iDeltaWeight );  // se(v): luma_weight_l0[i]
+          READ_SVLC( iDeltaWeight, "delta_luma_weight_lX" );  // se(v): delta_luma_weight_l0[i]
           wp[0].iWeight = (iDeltaWeight + (1<<wp[0].uiLog2WeightDenom));
 #else
-          xReadSvlc( wp[0].iWeight ); // se(v): luma_weight_l0[i]
+          READ_SVLC( wp[0].iWeight, "luma_weight_lX" );       // se(v): luma_weight_l0[i]
 #endif
-          xReadSvlc( wp[0].iOffset ); // se(v): luma_offset_l0[i]
+          READ_SVLC( wp[0].iOffset, "luma_offset_lX" );       // se(v): luma_offset_l0[i]
         }
         else 
         {
@@ -3412,7 +3414,7 @@ Void TDecCavlc::parseWeightPredTable( TComSlice* pcSlice )
         }
         if ( bChroma ) 
         {
-          xReadFlag( uiCode );           // u(1): chroma_weight_l0_flag
+          READ_FLAG( uiCode, "chroma_weight_lX_flag" );      // u(1): chroma_weight_l0_flag
           wp[1].bPresentFlag = ( uiCode == 1 );
           wp[2].bPresentFlag = ( uiCode == 1 );
           if ( wp[1].bPresentFlag ) 
@@ -3421,15 +3423,15 @@ Void TDecCavlc::parseWeightPredTable( TComSlice* pcSlice )
             {
 #if WP_IMPROVED_SYNTAX
               Int iDeltaWeight;
-              xReadSvlc( iDeltaWeight );  // se(v): chroma_weight_l0[i][j]
+              READ_SVLC( iDeltaWeight, "delta_chroma_weight_lX" );  // se(v): chroma_weight_l0[i][j]
               wp[j].iWeight = (iDeltaWeight + (1<<wp[1].uiLog2WeightDenom));
 
               Int iDeltaChroma;
-              xReadSvlc( iDeltaChroma );  // se(v): delta_chroma_offset_l0[i][j]
+              READ_SVLC( iDeltaChroma, "delta_chroma_offset_lX" );  // se(v): delta_chroma_offset_l0[i][j]
               wp[j].iOffset = iDeltaChroma - ( ( (g_uiIBDI_MAX>>1)*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) + (g_uiIBDI_MAX>>1);
 #else
-              xReadSvlc( wp[j].iWeight ); // se(v): chroma_weight_l0[i][j]
-              xReadSvlc( wp[j].iOffset ); // se(v): chroma_offset_l0[i][j]
+              READ_SVLC( wp[j].iWeight, "chroma_weight_lX" );      // se(v): chroma_weight_l0[i][j]
+              READ_SVLC( wp[j].iOffset, "chroma_offset_lX" );      // se(v): chroma_offset_l0[i][j]
 #endif
             }
           }
@@ -3456,17 +3458,18 @@ Void TDecCavlc::parseWeightPredTable( TComSlice* pcSlice )
   }
   else if ( uiMode == 2 )  // implicit
   {
-    printf("\nTDecCavlc::parseWeightPredTable(poc=%d) implicit...\n", pcSlice->getPOC());
+    printf("\nTDecCavlc::xParsePredWeightTable(poc=%d) implicit...\n", pcSlice->getPOC());
   }
 #if WP_IMPROVED_SYNTAX
   else if ( uiMode == 3 )  // combined explicit
   {
-    printf("\nTDecCavlc::parseWeightPredTable(poc=%d) combined explicit...\n", pcSlice->getPOC());
+    printf("\nTDecCavlc::xParsePredWeightTable(poc=%d) combined explicit...\n", pcSlice->getPOC());
     Int iDeltaDenom;
     // decode delta_luma_log2_weight_denom :
-    xReadUvlc( uiLog2WeightDenomLuma );     // ue(v): luma_log2_weight_denom
-    if( bChroma ) {                         // color always present in HEVC ?
-      xReadSvlc( iDeltaDenom );             // ue(v): delta_chroma_log2_weight_denom
+    READ_UVLC ( uiLog2WeightDenomLuma, "luma_log2_weight_denom" );     // ue(v): luma_log2_weight_denom
+    if( bChroma ) 
+    {
+      READ_SVLC( iDeltaDenom, "delta_chroma_log2_weight_denom" );      // ue(v): delta_chroma_log2_weight_denom
       assert((iDeltaDenom + uiLog2WeightDenomLuma)>=0);
       uiLog2WeightDenomChroma = (UInt)(iDeltaDenom + uiLog2WeightDenomLuma);
     }
@@ -3480,14 +3483,14 @@ Void TDecCavlc::parseWeightPredTable( TComSlice* pcSlice )
       wp[2].uiLog2WeightDenom = uiLog2WeightDenomChroma;
 
       UInt  uiCode;
-      xReadFlag( uiCode );                  // u(1): luma_weight_l0_flag
+      READ_FLAG( uiCode, "luma_weight_lX_flag" );                  // u(1): luma_weight_l0_flag
       wp[0].bPresentFlag = ( uiCode == 1 );
       if ( wp[0].bPresentFlag ) 
       {
         Int iDeltaWeight;
-        xReadSvlc( iDeltaWeight );          // se(v): delta_luma_weight_l0[i]
+        READ_SVLC( iDeltaWeight, "delta_luma_weight_lX" );          // se(v): delta_luma_weight_l0[i]
         wp[0].iWeight = (iDeltaWeight + (1<<wp[0].uiLog2WeightDenom));
-        xReadSvlc( wp[0].iOffset );         // se(v): luma_offset_l0[i]
+        READ_SVLC( wp[0].iOffset, "luma_offset_lX" );               // se(v): luma_offset_l0[i]
       }
       else 
       {
@@ -3496,7 +3499,7 @@ Void TDecCavlc::parseWeightPredTable( TComSlice* pcSlice )
       }
       if ( bChroma ) 
       {
-        xReadFlag( uiCode );                // u(1): chroma_weight_l0_flag
+        READ_FLAG( uiCode, "chroma_weight_lX_flag" );                // u(1): chroma_weight_l0_flag
         wp[1].bPresentFlag = ( uiCode == 1 );
         wp[2].bPresentFlag = ( uiCode == 1 );
         if ( wp[1].bPresentFlag ) 
@@ -3504,11 +3507,11 @@ Void TDecCavlc::parseWeightPredTable( TComSlice* pcSlice )
           for ( Int j=1 ; j<3 ; j++ ) 
           {
             Int iDeltaWeight;
-            xReadSvlc( iDeltaWeight );      // se(v): delta_chroma_weight_l0[i][j]
+            READ_SVLC( iDeltaWeight, "delta_chroma_weight_lX" );      // se(v): delta_chroma_weight_l0[i][j]
             wp[j].iWeight = (iDeltaWeight + (1<<wp[1].uiLog2WeightDenom));
 
             Int iDeltaChroma;
-            xReadSvlc( iDeltaChroma );      // se(v): delta_chroma_offset_l0[i][j]
+            READ_SVLC( iDeltaChroma, "delta_chroma_offset_lX" );      // se(v): delta_chroma_offset_l0[i][j]
             wp[j].iOffset = iDeltaChroma - ( ( (g_uiIBDI_MAX>>1)*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) + (g_uiIBDI_MAX>>1);
           }
         }
@@ -3539,7 +3542,9 @@ Void TDecCavlc::parseWeightPredTable( TComSlice* pcSlice )
   }
 #else
   else
+  {
     assert(0);
+  }
 #endif
 }
 
