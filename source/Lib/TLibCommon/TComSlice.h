@@ -106,7 +106,9 @@ private:
   Bool        m_useAMP;
 #endif
   Bool        m_bUseALF;
+#if !G507_QP_ISSUE_FIX
   Bool        m_bUseDQP;
+#endif
   Bool        m_bUseLDC;
   Bool        m_bUsePAD;
   Bool        m_bUseMRG; // SOPH:
@@ -248,14 +250,18 @@ public:
   
   // Tool list
   Bool getUseALF      ()         { return m_bUseALF;        }
+#if !G507_QP_ISSUE_FIX
   Bool getUseDQP      ()         { return m_bUseDQP;        }
-  
+#endif
+
   Bool getUseLDC      ()         { return m_bUseLDC;        }
   Bool getUsePAD      ()         { return m_bUsePAD;        }
   Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
   
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
+#if !G507_QP_ISSUE_FIX
   Void setUseDQP      ( Bool b ) { m_bUseDQP   = b;         }
+#endif
   
   Void setUseLDC      ( Bool b ) { m_bUseLDC   = b;         }
   Void setUsePAD      ( Bool b ) { m_bUsePAD   = b;         }
@@ -495,6 +501,10 @@ class TComPPS
 private:
   Int         m_PPSId;                    // pic_parameter_set_id
   Int         m_SPSId;                    // seq_parameter_set_id
+#if G507_QP_ISSUE_FIX
+  Int         m_picInitQPMinus26;
+  Bool        m_useDQP;
+#endif
   Bool        m_bConstrainedIntraPred;    // constrained_intra_pred_flag
  
   // access channel
@@ -566,6 +576,12 @@ public:
 #if FINE_GRANULARITY_SLICES
   Int       getSliceGranularity()        { return m_iSliceGranularity; }
   Void      setSliceGranularity( Int i ) { m_iSliceGranularity = i;    }
+#endif
+#if G507_QP_ISSUE_FIX
+  Int       getPicInitQPMinus26 ()         { return  m_picInitQPMinus26; }
+  Void      setPicInitQPMinus26 ( Int i )  { m_picInitQPMinus26 = i;     }
+  Bool      getUseDQP ()                   { return m_useDQP;        }
+  Void      setUseDQP ( Bool b )           { m_useDQP   = b;         }
 #endif
   Bool      getConstrainedIntraPred ()         { return  m_bConstrainedIntraPred; }
   Void      setConstrainedIntraPred ( Bool b ) { m_bConstrainedIntraPred = b;     }

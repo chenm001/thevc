@@ -76,6 +76,7 @@ Void  TDecCavlc::xReadCodeTr           (UInt length, UInt& rValue, const Char *p
   xReadCode (length, rValue);
   fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
   fprintf( g_hTrace, "%-40s u(%d) : %d\n", pSymbolName, length, rValue ); 
+  fflush ( g_hTrace );
 }
 
 Void  TDecCavlc::xReadUvlcTr           (UInt& rValue, const Char *pSymbolName)
@@ -83,6 +84,7 @@ Void  TDecCavlc::xReadUvlcTr           (UInt& rValue, const Char *pSymbolName)
   xReadUvlc (rValue);
   fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
   fprintf( g_hTrace, "%-40s u(v) : %d\n", pSymbolName, rValue ); 
+  fflush ( g_hTrace );
 }
 
 Void  TDecCavlc::xReadSvlcTr           (Int& rValue, const Char *pSymbolName)
@@ -90,6 +92,7 @@ Void  TDecCavlc::xReadSvlcTr           (Int& rValue, const Char *pSymbolName)
   xReadSvlc(rValue);
   fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
   fprintf( g_hTrace, "%-40s s(v) : %d\n", pSymbolName, rValue ); 
+  fflush ( g_hTrace );
 }
 
 Void  TDecCavlc::xReadFlagTr           (UInt& rValue, const Char *pSymbolName)
@@ -97,6 +100,7 @@ Void  TDecCavlc::xReadFlagTr           (UInt& rValue, const Char *pSymbolName)
   xReadFlag(rValue);
   fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
   fprintf( g_hTrace, "%-40s u(1) : %d\n", pSymbolName, rValue ); 
+  fflush ( g_hTrace );
 }
 
 #else
@@ -332,7 +336,11 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   
   // num_ref_idx_l0_default_active_minus1
   // num_ref_idx_l1_default_active_minus1
+#if G507_QP_ISSUE_FIX
+  READ_SVLC(iCode, "pic_init_qp_minus26" );                        pcPPS->setPicInitQPMinus26(iCode);
+#else
   // pic_init_qp_minus26  /* relative to 26 */
+#endif
   READ_FLAG( uiCode, "constrained_intra_pred_flag" );              pcPPS->setConstrainedIntraPred( uiCode ? true : false );
 #if NO_TMVP_MARKING
   READ_FLAG( uiCode, "enable_temporal_mvp_flag" );                 pcPPS->setEnableTMVPFlag( uiCode ? true : false );
@@ -346,6 +354,20 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 #endif
   // alf_param() ?
 
+#if G507_QP_ISSUE_FIX
+  READ_UVLC( uiCode, "max_cu_qp_delta_depth");
+  if(uiCode == 0)
+  {
+    pcPPS->setUseDQP (false);
+    pcPPS->setMaxCuDQPDepth( 0 );
+  }
+  else
+  {
+    pcPPS->setUseDQP (true);
+    pcPPS->setMaxCuDQPDepth(uiCode - 1);
+  }
+  pcPPS->setMinCuDQPSize( pcPPS->getSPS()->getMaxCUWidth() >> ( pcPPS->getMaxCuDQPDepth()) );
+#else
   if( pcPPS->getSPS()->getUseDQP() )
   {
     READ_UVLC( uiCode, "max_cu_qp_delta_depth");
@@ -357,6 +379,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
     pcPPS->setMaxCuDQPDepth( 0 );
     pcPPS->setMinCuDQPSize( pcPPS->getSPS()->getMaxCUWidth() >> ( pcPPS->getMaxCuDQPDepth()) );
   }
+#endif
 
 #if G509_CHROMA_QP_OFFSET
   READ_SVLC( iCode, "chroma_qp_offset");
@@ -554,7 +577,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #endif
   }
 
+#if !G507_QP_ISSUE_FIX
   READ_FLAG( uiCode, "cu_qp_delta_enabled_flag" );               pcSPS->setUseDQP ( uiCode ? true : false );
+#endif
   READ_FLAG( uiCode, "temporal_id_nesting_flag" );               pcSPS->setTemporalIdNestingFlag ( uiCode > 0 ? true : false );
 
   // !!!KS: Syntax not in WD !!!
@@ -1039,11 +1064,15 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 #endif
   if(!bEntropySlice)
   {
+#if G507_QP_ISSUE_FIX
+    READ_SVLC( iCode, "slice_qp_delta" ); 
+    rpcSlice->setSliceQp (26 + rpcSlice->getPPS()->getPicInitQPMinus26() + iCode);
+#else
     // if( !lightweight_slice_flag ) {
     //   slice_qp_delta
     // should be delta
     READ_SVLC( iCode, "slice_qp" );  rpcSlice->setSliceQp          (iCode);
-   
+#endif   
     //   if( sample_adaptive_offset_enabled_flag )
     //     sao_param()
     //   if( deblocking_filter_control_present_flag ) {

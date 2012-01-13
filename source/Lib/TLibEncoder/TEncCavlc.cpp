@@ -356,7 +356,11 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   }
   //   num_ref_idx_l0_default_active_minus1
   //   num_ref_idx_l1_default_active_minus1
+#if G507_QP_ISSUE_FIX
+  WRITE_SVLC( pcPPS->getPicInitQPMinus26(),                  "pic_init_qp_minus26");
+#else
   //   pic_init_qp_minus26  /* relative to 26 */
+#endif
   WRITE_FLAG( pcPPS->getConstrainedIntraPred() ? 1 : 0,      "constrained_intra_pred_flag" );
 #if NO_TMVP_MARKING
   WRITE_FLAG( pcPPS->getEnableTMVPFlag() ? 1 : 0,            "enable_temporal_mvp_flag" );
@@ -370,12 +374,14 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   //     if( adaptive_loop_filter_enabled_flag )
   //       alf_param( )
 #endif
-  //   if( cu_qp_delta_enabled_flag )
-  //     max_cu_qp_delta_depth
+#if G507_QP_ISSUE_FIX
+  WRITE_UVLC( pcPPS->getMaxCuDQPDepth() + pcPPS->getUseDQP(),                   "max_cu_qp_delta_depth" );
+#else
   if( pcPPS->getSPS()->getUseDQP() )
   {
     WRITE_UVLC( pcPPS->getMaxCuDQPDepth(),                   "max_cu_qp_delta_depth" );
   }
+#endif
 
 #if G509_CHROMA_QP_OFFSET
   WRITE_SVLC( pcPPS->getChromaQpOffset(),                   "chroma_qp_offset"     );
@@ -534,8 +540,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #endif
   }
 
-
+#if !G507_QP_ISSUE_FIX
   WRITE_FLAG( (pcSPS->getUseDQP ()) ? 1 : 0,                                         "cu_qp_delta_enabled_flag" );
+#endif
   assert( pcSPS->getMaxTLayers() > 0 );         
 
   WRITE_FLAG( pcSPS->getTemporalIdNestingFlag() ? 1 : 0,                             "temporal_id_nesting_flag" );
@@ -927,8 +934,12 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   // if( !lightweight_slice_flag ) {
   if (!bEntropySlice)
   {
-    //   slice_qp_delta
+#if G507_QP_ISSUE_FIX
+    Int iCode = pcSlice->getSliceQp() - ( pcSlice->getPPS()->getPicInitQPMinus26() + 26 );
+    WRITE_SVLC( iCode, "slice_qp_delta" ); 
+#else
     WRITE_SVLC( pcSlice->getSliceQp(), "slice_qp" ); // this should be delta
+#endif
   //   if( sample_adaptive_offset_enabled_flag )
   //     sao_param()
   //   if( deblocking_filter_control_present_flag ) {
