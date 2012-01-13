@@ -2283,7 +2283,7 @@ Void TComScalingList::xCalcBestBitCopyMode( Int *org, Int *recon, Int * bestReco
   for(estScalingList.predListIdx = listIdc -1 ; estScalingList.predListIdx >= 0; estScalingList.predListIdx--)
   {
     xPredScalingListMatrix(this, recon, sizeIdc, listIdc, sizeIdc, estScalingList.predListIdx);
-    sad = xCalcResidual(org, recon, residual, listIdc, &estScalingList);
+    sad = xCalcResidual(org, recon, residual, sizeIdc, &estScalingList);
     if(sad == 0 && *bestBit != 0)
     {
       *bestBit = 0;
