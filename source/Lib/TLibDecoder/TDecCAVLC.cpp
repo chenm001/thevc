@@ -281,6 +281,11 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   xTracePPSHeader (pcPPS);
 #endif
   UInt  uiCode;
+
+#if G509_CHROMA_QP_OFFSET
+  Int   iCode;
+#endif
+
 #if G1002_RPS
   TComRPS* pcRPSList = pcPPS->getRPSList();
 #endif
@@ -352,6 +357,14 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
     pcPPS->setMaxCuDQPDepth( 0 );
     pcPPS->setMinCuDQPSize( pcPPS->getSPS()->getMaxCUWidth() >> ( pcPPS->getMaxCuDQPDepth()) );
   }
+
+#if G509_CHROMA_QP_OFFSET
+  READ_SVLC( iCode, "chroma_qp_offset");
+  pcPPS->setChromaQpOffset(iCode);
+
+  READ_SVLC( iCode, "chroma_qp_offset_2nd");
+  pcPPS->setChromaQpOffset2nd(iCode);
+#endif
 
 #if WEIGHT_PRED
   READ_FLAG( uiCode, "weighted_pred_flag" );          // Use of Weighting Prediction (P_SLICE)
@@ -466,7 +479,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_UVLC( uiCode,    "max_num_ref_pics" );                    pcSPS->setMaxNumberOfReferencePictures(uiCode);
   READ_UVLC( uiCode,    "max_num_reorder_pics" );                pcSPS->setMaxNumberOfReorderPictures(uiCode);
 #endif
-#if !G507
+#if !G507_COND_4X4_ENABLE_FLAG
 #if DISABLE_4x4_INTER
   xReadFlag( uiCode ); pcSPS->setDisInter4x4( uiCode ? true : false );
 #endif
@@ -497,7 +510,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_UVLC( uiCode, "log2_diff_max_min_transform_block_size" ); pcSPS->setQuadtreeTULog2MaxSize( uiCode + pcSPS->getQuadtreeTULog2MinSize() );
   pcSPS->setMaxTrSize( 1<<(uiCode + pcSPS->getQuadtreeTULog2MinSize()) );
 
-#if G507
+#if G507_COND_4X4_ENABLE_FLAG
 #if DISABLE_4x4_INTER
   if(log2MinCUSize == 3)
     xReadFlag( uiCode ); pcSPS->setDisInter4x4( uiCode ? true : false );

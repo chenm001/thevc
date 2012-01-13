@@ -135,9 +135,17 @@ TComTrQuant::~TComTrQuant()
 }
 
 /// Including Chroma QP Parameter setting
+#if G509_CHROMA_QP_OFFSET
+Void TComTrQuant::setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, TextType eTxtType, Int Shift)
+#else
 Void TComTrQuant::setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, TextType eTxtType)
+#endif
 {
+#if G509_CHROMA_QP_OFFSET
+  iQP = max( min( iQP + Shift, 51 ), 0 );
+#else
   iQP = max( min( iQP, 51 ), 0 );
+#endif
   
   if(eTxtType != TEXT_LUMA) //Chroma
   {

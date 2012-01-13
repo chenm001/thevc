@@ -131,6 +131,12 @@ Void TAppEncTop::xInitLibCfg()
   //====== Quality control ========
   m_cTEncTop.setMaxDeltaQP                   ( m_iMaxDeltaQP  );
   m_cTEncTop.setMaxCuDQPDepth                ( m_iMaxCuDQPDepth  );
+
+#if G509_CHROMA_QP_OFFSET
+  m_cTEncTop.setChromaQpOffset               ( m_iChromaQpOffset     );
+  m_cTEncTop.setChromaQpOffset2nd            ( m_iChromaQpOffset2nd  );
+#endif
+
 #if QP_ADAPTATION
   m_cTEncTop.setUseAdaptiveQP                ( m_bUseAdaptiveQP  );
   m_cTEncTop.setQPAdaptationRange            ( m_iQPAdaptationRange );

@@ -504,6 +504,12 @@ private:
 #endif
   UInt        m_uiMaxCuDQPDepth;
   UInt        m_uiMinCuDQPSize;
+
+#if G509_CHROMA_QP_OFFSET
+  Int        m_iChromaQpOffset;
+  Int        m_iChromaQpOffset2nd;
+#endif
+
 #if G1002_RPS
   Bool        m_bLongTermRefsPresent;
   UInt        m_uiBitsForLongTermRefs;
@@ -588,6 +594,13 @@ public:
   UInt      getMaxCuDQPDepth    ()         { return m_uiMaxCuDQPDepth;}
   Void      setMinCuDQPSize     ( UInt u ) { m_uiMinCuDQPSize = u;    }
   UInt      getMinCuDQPSize     ()         { return m_uiMinCuDQPSize; }
+
+#if G509_CHROMA_QP_OFFSET
+  Void      setChromaQpOffset   ( Int i ) { m_iChromaQpOffset = i; }
+  Int       getChromaQpOffset   () { return m_iChromaQpOffset;}
+  Void      setChromaQpOffset2nd( Int i ) { m_iChromaQpOffset2nd = i; }
+  Int       getChromaQpOffset2nd() { return m_iChromaQpOffset2nd;}
+#endif
 
 #if !F747_APS
   ///  set shared PPS info enabled/disabled

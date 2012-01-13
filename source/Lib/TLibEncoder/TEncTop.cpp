@@ -762,6 +762,12 @@ Void TEncTop::xInitPPS()
     m_cPPS.setMaxCuDQPDepth( 0 );
     m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
   }
+
+#if G509_CHROMA_QP_OFFSET
+  m_cPPS.setChromaQpOffset   ( m_iChromaQpOffset    );
+  m_cPPS.setChromaQpOffset2nd( m_iChromaQpOffset2nd );
+#endif
+
 #if OL_USE_WPP
 #if DISABLE_CAVLC
   m_cPPS.setEntropyCodingMode( 1 ); // In the PPS now, but also remains in slice header!

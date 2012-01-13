@@ -108,6 +108,12 @@ protected:
   Int       m_iMaxDeltaQP;                                    ///< max. |delta QP|
   UInt      m_uiDeltaQpRD;                                    ///< dQP range for multi-pass slice QP optimization
   Int       m_iMaxCuDQPDepth;                                 ///< Max. depth for a minimum CuDQPSize (0:default)
+
+#if G509_CHROMA_QP_OFFSET
+  Int       m_iChromaQpOffset;                                 ///< ChromaQpOffset    (0:default) 
+  Int       m_iChromaQpOffset2nd;                              ///< ChromaQpOffset2nd (0:default)
+#endif
+
 #if QP_ADAPTATION
   Bool      m_bUseAdaptiveQP;                                 ///< Flag for enabling QP adaptation based on a psycho-visual model
   Int       m_iQPAdaptationRange;                             ///< dQP range by QP adaptation

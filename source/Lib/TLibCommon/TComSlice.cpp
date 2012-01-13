@@ -1679,6 +1679,10 @@ TComPPS::TComPPS()
 , m_pcSPS                       (NULL)
 , m_uiMaxCuDQPDepth             (0)
 , m_uiMinCuDQPSize              (0)
+#if G509_CHROMA_QP_OFFSET
+, m_iChromaQpOffset             (0)
+, m_iChromaQpOffset2nd          (0)
+#endif
 #if G1002_RPS
 , m_bLongTermRefsPresent        (false)
 , m_uiBitsForLongTermRefs       (0)

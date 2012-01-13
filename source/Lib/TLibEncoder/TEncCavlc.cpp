@@ -377,6 +377,11 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
     WRITE_UVLC( pcPPS->getMaxCuDQPDepth(),                   "max_cu_qp_delta_depth" );
   }
 
+#if G509_CHROMA_QP_OFFSET
+  WRITE_SVLC( pcPPS->getChromaQpOffset(),                   "chroma_qp_offset"     );
+  WRITE_SVLC( pcPPS->getChromaQpOffset2nd(),                "chroma_qp_offset_2nd" );
+#endif
+
 #if WEIGHT_PRED
   WRITE_FLAG( pcPPS->getUseWP() ? 1 : 0,  "weighted_pred_flag" );   // Use of Weighting Prediction (P_SLICE)
   WRITE_CODE( pcPPS->getWPBiPredIdc(), 2, "weighted_bipred_idc" );  // Use of Weighting Bi-Prediction (B_SLICE)
@@ -456,7 +461,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_UVLC( pcSPS->getMaxNumberOfReferencePictures(), "max_num_ref_pics" ); 
   WRITE_UVLC( pcSPS->getMaxNumberOfReorderPictures(),   "max_num_reorder_pics" ); 
 #endif
-#if !G507
+#if !G507_COND_4X4_ENABLE_FLAG
 #if DISABLE_4x4_INTER
   xWriteFlag  ( (pcSPS->getDisInter4x4()) ? 1 : 0 );
 #endif
@@ -491,7 +496,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_UVLC( pcSPS->getQuadtreeTULog2MinSize() - 2,                                 "log2_min_transform_block_size_minus2" );
   WRITE_UVLC( pcSPS->getQuadtreeTULog2MaxSize() - pcSPS->getQuadtreeTULog2MinSize(), "log2_diff_max_min_transform_block_size" );
 
-#if G507
+#if G507_COND_4X4_ENABLE_FLAG
 #if DISABLE_4x4_INTER
   if(log2MinCUSize == 3)
     xWriteFlag  ( (pcSPS->getDisInter4x4()) ? 1 : 0 );

@@ -226,6 +226,12 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("DeltaQpRD,-dqr",m_uiDeltaQpRD,       0u, "max dQp offset for slice")
   ("MaxDeltaQP,d",  m_iMaxDeltaQP,        0, "max dQp offset for block")
   ("MaxCuDQPDepth,-dqd",  m_iMaxCuDQPDepth,        0, "max depth for a minimum CuDQP")
+
+#if G509_CHROMA_QP_OFFSET
+    ("ChromaQpOffset,   -cqo",   m_iChromaQpOffset,           0, "ChromaQpOffset")
+    ("ChromaQpOffset2nd,-cqo2",  m_iChromaQpOffset2nd,        0, "ChromaQpOffset2nd")
+#endif
+
 #if QP_ADAPTATION
   ("AdaptiveQP,-aq", m_bUseAdaptiveQP, false, "QP adaptation based on a psycho-visual model")
   ("MaxQPAdaptationRange,-aqr", m_iQPAdaptationRange, 6, "QP adaptation range")
@@ -520,6 +526,14 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_bipredSearchRange < 0 ,                                                   "Search Range must be more than 0" );
   xConfirmPara( m_iMaxDeltaQP > 7,                                                          "Absolute Delta QP exceeds supported range (0 to 7)" );
   xConfirmPara( m_iMaxCuDQPDepth > m_uiMaxCUDepth - 1,                                          "Absolute depth for a minimum CuDQP exceeds maximum coding unit depth" );
+
+#if G509_CHROMA_QP_OFFSET
+  xConfirmPara( m_iChromaQpOffset    < -12,   "Min. Chroma Qp Offset is -12"     );
+  xConfirmPara( m_iChromaQpOffset    >  12,   "Max. Chroma Qp Offset is  12"     );
+  xConfirmPara( m_iChromaQpOffset2nd < -12,   "Min. Chroma Qp Offset 2nd is -12" );
+  xConfirmPara( m_iChromaQpOffset2nd >  12,   "Max. Chroma Qp Offset 2nd is  12" );
+#endif
+
 #if QP_ADAPTATION
   xConfirmPara( m_iQPAdaptationRange <= 0,                                                  "QP Adaptation Range must be more than 0" );
 #endif
@@ -916,6 +930,12 @@ Void TAppEncCfg::xPrintParameter()
   printf("Decoding refresh type        : %d\n", m_iDecodingRefreshType );
   printf("QP                           : %5.2f\n", m_fQP );
   printf("Max dQP signaling depth      : %d\n", m_iMaxCuDQPDepth);
+
+#if G509_CHROMA_QP_OFFSET
+  printf("Chroma Qp Offset             : %d\n", m_iChromaQpOffset   );
+  printf("Chroma Qp Offset 2nd         : %d\n", m_iChromaQpOffset2nd);
+#endif
+
 #if QP_ADAPTATION
   printf("QP adaptation                : %d (range=%d)\n", m_bUseAdaptiveQP, (m_bUseAdaptiveQP ? m_iQPAdaptationRange : 0) );
 #endif
@@ -929,7 +949,7 @@ Void TAppEncCfg::xPrintParameter()
 #endif
 #if DISABLE_4x4_INTER
 
-#if G507
+#if G507_COND_4X4_ENABLE_FLAG
   if((m_uiMaxCUWidth >> m_uiMaxCUDepth) == 4)
 #endif
     printf("DisableInter4x4              : %d\n", m_bDisInter4x4);  
