@@ -188,7 +188,7 @@ template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min
 #define EARLY_SKIP_THRES            1.50        ///< if RD < thres*avg[BestSkipRD]
 
 #if  G1002_RPS
-#define MAX_NUM_REF_PICS 64
+#define MAX_NUM_REF_PICS 16
 #endif
 enum NalRefIdc
 {

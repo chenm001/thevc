@@ -156,7 +156,6 @@ void TDecCavlc::parseShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet
 {
   UInt uiCode;
 #if INTER_RPS_PREDICTION
-  pcRPS->create(pcPPS->getSPS()->getMaxNumberOfReferencePictures(), pcPPS->getSPS()->getMaxNumberOfReferencePictures()+1);
   UInt uiInterRPSPred;
   READ_FLAG(uiInterRPSPred, "inter_RPS_flag");  pcRPS->setInterRPSPrediction(uiInterRPSPred);
   if (uiInterRPSPred) 
@@ -740,11 +739,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       READ_FLAG( uiCode, "no_output_of_prior_pics_flag" );  //ignored
       rpcSlice->setPOC(0);
       TComReferencePictureSet* pcRPS = rpcSlice->getLocalRPS();
-#if INTER_RPS_PREDICTION
-      pcRPS->create(rpcSlice->getPPS()->getSPS()->getMaxNumberOfReferencePictures(), rpcSlice->getPPS()->getSPS()->getMaxNumberOfReferencePictures()+1);
-#else
-      pcRPS->create(rpcSlice->getPPS()->getSPS()->getMaxNumberOfReferencePictures());
-#endif
       pcRPS->setNumberOfNegativePictures(0);
       pcRPS->setNumberOfPositivePictures(0);
       pcRPS->setNumberOfLongtermPictures(0);

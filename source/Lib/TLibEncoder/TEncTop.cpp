@@ -802,10 +802,9 @@ Void TEncTop::xInitRPS()
   {
     GOPEntry pGE = getGOPEntry(i);
     pcRPS = m_cRPSList.getReferencePictureSet(i);
+    pcRPS->setNumberOfPictures(pGE.m_iNumRefPics);
 #if INTER_RPS_PREDICTION
-    pcRPS->create(pGE.m_iNumRefPics, pGE.m_iNumRefIdc);
-#else
-    pcRPS->create(pGE.m_iNumRefPics);
+    pcRPS->setNumRefIdc(pGE.m_iNumRefIdc);
 #endif
     int iNumNeg = 0;
     int iNumPos = 0;

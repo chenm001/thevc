@@ -380,27 +380,20 @@ private:
   UInt      m_uiNumberOfNegativePictures;
   UInt      m_uiNumberOfPositivePictures;
   UInt      m_uiNumberOfLongtermPictures;
-  Int*      m_piDeltaPOC;
-  Int*      m_piPOC;
-  Bool*     m_pbUsed;
+  Int       m_piDeltaPOC[MAX_NUM_REF_PICS];
+  Int       m_piPOC[MAX_NUM_REF_PICS];
+  Bool      m_pbUsed[MAX_NUM_REF_PICS];
 #if INTER_RPS_PREDICTION
   Bool m_bInterRPSPrediction;
   Int m_iDeltaRIdxMinus1;   
   Int m_iDeltaRPS; 
   Int m_iNumRefIdc; 
-  Int* m_piRefIdc;
+  Int m_piRefIdc[MAX_NUM_REF_PICS+1];
 #endif  
 
 public:
   TComReferencePictureSet();
   virtual ~TComReferencePictureSet();
-  
-#if INTER_RPS_PREDICTION
-  Void  create                    (UInt uiNumberOfPictures, UInt uiNumberOfRefIdc);
-#else
-  Void  create                    (UInt uiNumberOfPictures);
-#endif  
-  Void  destroy                   ();
 
   Void setUsed(UInt uiBufferNum, Bool bUsed);
   Void setDeltaPOC(UInt uiBufferNum, Int iDeltaPOC);

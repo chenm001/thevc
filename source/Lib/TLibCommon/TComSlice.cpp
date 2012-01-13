@@ -1185,12 +1185,6 @@ Void TComSlice::createExplicitReferencePictureSetFromReference( TComList<TComPic
   Int nrOfPositivePictures = 0;
   TComReferencePictureSet* pcRPS = this->getLocalRPS();
 
-#if INTER_RPS_PREDICTION
-  pcRPS->create(this->getPPS()->getSPS()->getMaxNumberOfReferencePictures(), this->getPPS()->getSPS()->getMaxNumberOfReferencePictures()+1);
-#else
-  pcRPS->create(this->getPPS()->getSPS()->getMaxNumberOfReferencePictures());
-#endif
-
   // loop through all pictures in the Reference Picture Set
   for(i=0;i<pReferencePictureSet->getNumberOfPictures();i++)
   {
@@ -1735,47 +1729,27 @@ TComPPS::~TComPPS()
 #if G1002_RPS
 
 TComReferencePictureSet::TComReferencePictureSet()
+: m_uiNumberOfPictures (0)
+, m_uiNumberOfNegativePictures (0)
+, m_uiNumberOfPositivePictures (0)
+, m_uiNumberOfLongtermPictures (0)
+#if INTER_RPS_PREDICTION
+, m_bInterRPSPrediction (0) 
+, m_iDeltaRIdxMinus1 (0)   
+, m_iDeltaRPS (0) 
+, m_iNumRefIdc (0) 
+#endif
 {
+  ::memset( m_piDeltaPOC, 0, sizeof(m_piDeltaPOC) );
+  ::memset( m_piPOC, 0, sizeof(m_piPOC) );
+  ::memset( m_pbUsed, 0, sizeof(m_pbUsed) );
+#if INTER_RPS_PREDICTION
+  ::memset( m_piRefIdc, 0, sizeof(m_piRefIdc) );
+#endif
 }
 
 TComReferencePictureSet::~TComReferencePictureSet()
 {
-}
-
-#if INTER_RPS_PREDICTION
-Void TComReferencePictureSet::create( UInt uiNumberOfPictures, UInt uiNumberOfRefIdc)
-#else
-Void TComReferencePictureSet::create( UInt uiNumberOfPictures)
-#endif  
-{
-  m_uiNumberOfPictures = uiNumberOfPictures;
-  m_uiNumberOfNegativePictures = 0;
-  m_uiNumberOfPositivePictures = 0;
-  m_uiNumberOfLongtermPictures = 0;
-  m_piDeltaPOC    = new Int[uiNumberOfPictures];
-  m_piPOC    = new Int[uiNumberOfPictures];
-  m_pbUsed = new Bool[uiNumberOfPictures];
-#if INTER_RPS_PREDICTION
-  m_bInterRPSPrediction = 0; 
-  m_iDeltaRIdxMinus1 = 0;   
-  m_iDeltaRPS = 0; 
-  m_iNumRefIdc = uiNumberOfRefIdc; 
-  m_piRefIdc = new Int[uiNumberOfRefIdc];
-#endif  
-}
-
-Void TComReferencePictureSet::destroy()
-{
-  delete [] m_piPOC;     
-  m_piPOC = NULL;
-  delete [] m_piDeltaPOC;     
-  m_piDeltaPOC = NULL;
-  delete [] m_pbUsed;     
-  m_pbUsed = NULL;
-#if INTER_RPS_PREDICTION
-  delete [] m_piRefIdc;
-  m_piRefIdc = NULL;
-#endif  
 }
 
 Void TComReferencePictureSet::setUsed(UInt uiBufferNum, Bool bUsed)
@@ -1915,10 +1889,6 @@ Void TComRPS::create( UInt uiNumberOfReferencePictureSets)
 
 Void TComRPS::destroy()
 {
-  for(UInt i = 0; i < m_uiNumberOfReferencePictureSets; i++)
-  {
-     m_pReferencePictureSet[i].destroy();
-  }
   delete [] m_pReferencePictureSet;     
   m_uiNumberOfReferencePictureSets = 0;
   m_pReferencePictureSet = NULL;
