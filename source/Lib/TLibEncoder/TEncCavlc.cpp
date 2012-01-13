@@ -378,7 +378,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   }
 
 #if WEIGHT_PRED
-  WRITE_FLAG( pcPPS->getUseWP() ? 1 : 0,  "weighted_pred_flat" );   // Use of Weighting Prediction (P_SLICE)
+  WRITE_FLAG( pcPPS->getUseWP() ? 1 : 0,  "weighted_pred_flag" );   // Use of Weighting Prediction (P_SLICE)
   WRITE_CODE( pcPPS->getWPBiPredIdc(), 2, "weighted_bipred_idc" );  // Use of Weighting Bi-Prediction (B_SLICE)
 #endif
 
@@ -2782,47 +2782,54 @@ Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
         {
 #if WP_IMPROVED_SYNTAX
           Int iDeltaDenom;
-          xWriteUvlc( wp[0].uiLog2WeightDenom );    // ue(v): luma_log2_weight_denom
+          WRITE_UVLC( wp[0].uiLog2WeightDenom, "luma_log2_weight_denom" );     // ue(v): luma_log2_weight_denom
+
           if( bChroma )
           {
             iDeltaDenom = (wp[1].uiLog2WeightDenom - wp[0].uiLog2WeightDenom);
-            xWriteSvlc( iDeltaDenom );              // ue(v): chroma_log2_weight_denom
+            WRITE_SVLC( iDeltaDenom, "delta_chroma_log2_weight_denom" );       // se(v): delta_chroma_log2_weight_denom
           }
 #else
-          xWriteUvlc( wp[0].uiLog2WeightDenom );    // ue(v): luma_log2_weight_denom
+          WRITE_UVLC( wp[0].uiLog2WeightDenom, "luma_log2_weight_denom" );     // ue(v): luma_log2_weight_denom
+
           if( bChroma )
-            xWriteUvlc( wp[1].uiLog2WeightDenom );  // ue(v): chroma_log2_weight_denom
+          {
+            WRITE_UVLC( wp[1].uiLog2WeightDenom, "chroma_log2_weight_denom" ); // ue(v): chroma_log2_weight_denom
+          }
 #endif
           bDenomCoded = true;
         }
 
-        xWriteFlag( wp[0].bPresentFlag );           // u(1): luma_weight_l0_flag
+        WRITE_FLAG( wp[0].bPresentFlag, "luma_weight_lX_flag" );               // u(1): luma_weight_lX_flag
+
         if ( wp[0].bPresentFlag ) 
         {
 #if WP_IMPROVED_SYNTAX
           Int iDeltaWeight = (wp[0].iWeight - (1<<wp[0].uiLog2WeightDenom));
-          xWriteSvlc( iDeltaWeight );                // se(v): luma_weight_l0[i]
+          WRITE_SVLC( iDeltaWeight, "delta_luma_weight_lX" );                  // se(v): delta_luma_weight_lX
 #else
-          xWriteSvlc( wp[0].iWeight );              // se(v): luma_weight_l0[i]
+          WRITE_SVLC( wp[0].iWeight, "luma_weight_lX" );                       // se(v): luma_weight_lX
 #endif
-          xWriteSvlc( wp[0].iOffset );              // se(v): luma_offset_l0[i]
+          WRITE_SVLC( wp[0].iOffset, "luma_offset_lX" );                       // se(v): luma_offset_lX
         }
+
         if ( bChroma ) 
         {
-          xWriteFlag( wp[1].bPresentFlag );         // u(1): chroma_weight_l0_flag
+          WRITE_FLAG( wp[1].bPresentFlag, "chroma_weight_lX_flag" );           // u(1): chroma_weight_lX_flag
+
           if ( wp[1].bPresentFlag )
           {
             for ( Int j=1 ; j<3 ; j++ ) 
             {
 #if WP_IMPROVED_SYNTAX
               Int iDeltaWeight = (wp[j].iWeight - (1<<wp[1].uiLog2WeightDenom));
-              xWriteSvlc( iDeltaWeight );            // se(v): chroma_weight_l0[i][j]
+              WRITE_SVLC( iDeltaWeight, "delta_chroma_weight_lX" );            // se(v): delta_chroma_weight_lX
 
               Int iDeltaChroma = (wp[j].iOffset + ( ( (g_uiIBDI_MAX>>1)*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) - (g_uiIBDI_MAX>>1));
-              xWriteSvlc( iDeltaChroma );           // se(v): chroma_offset_l0[i][j]
+              WRITE_SVLC( iDeltaChroma, "delta_chroma_offset_lX" );            // se(v): delta_chroma_offset_lX
 #else
-              xWriteSvlc( wp[j].iWeight );          // se(v): chroma_weight_l0[i][j]
-              xWriteSvlc( wp[j].iOffset );          // se(v): chroma_offset_l0[i][j]
+              WRITE_SVLC( wp[j].iWeight, "chroma_weight_lX" );                 // se(v): chroma_weight_lX
+              WRITE_SVLC( wp[j].iOffset, "chroma_offset_lX" );                 // se(v): chroma_offset_lX
 #endif
             }
           }
@@ -2842,35 +2849,37 @@ Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
       if ( !bDenomCoded ) 
       {
         Int iDeltaDenom;
-        xWriteUvlc( wp[0].uiLog2WeightDenom );    // ue(v): luma_log2_weight_denom
+        WRITE_UVLC( wp[0].uiLog2WeightDenom, "luma_log2_weight_denom" );       // ue(v): luma_log2_weight_denom
+
         if( bChroma )
         {
           iDeltaDenom = (wp[1].uiLog2WeightDenom - wp[0].uiLog2WeightDenom);
-          xWriteSvlc( iDeltaDenom );              // ue(v): chroma_log2_weight_denom
+          WRITE_SVLC( iDeltaDenom, "delta_chroma_log2_weight_denom" );         // se(v): delta_chroma_log2_weight_denom
         }
         bDenomCoded = true;
       }
 
-      xWriteFlag( wp[0].bPresentFlag );           // u(1): luma_weight_l0_flag
+      WRITE_FLAG( wp[0].bPresentFlag, "luma_weight_lc_flag" );                 // u(1): luma_weight_lc_flag
 
       if ( wp[0].bPresentFlag ) 
       {
         Int iDeltaWeight = (wp[0].iWeight - (1<<wp[0].uiLog2WeightDenom));
-        xWriteSvlc( iDeltaWeight );                // se(v): luma_weight_l0[i]
-        xWriteSvlc( wp[0].iOffset );              // se(v): luma_offset_l0[i]
+        WRITE_SVLC( iDeltaWeight, "delta_luma_weight_lc" );                    // se(v): delta_luma_weight_lc
+        WRITE_SVLC( wp[0].iOffset, "luma_offset_lc" );                         // se(v): luma_offset_lc
       }
       if ( bChroma ) 
       {
-        xWriteFlag( wp[1].bPresentFlag );         // u(1): chroma_weight_l0_flag
+        WRITE_FLAG( wp[1].bPresentFlag, "chroma_weight_lc_flag" );             // u(1): luma_weight_lc_flag
+
         if ( wp[1].bPresentFlag )
         {
           for ( Int j=1 ; j<3 ; j++ ) 
           {
             Int iDeltaWeight = (wp[j].iWeight - (1<<wp[1].uiLog2WeightDenom));
-            xWriteSvlc( iDeltaWeight );            // se(v): chroma_weight_l0[i][j]
+            WRITE_SVLC( iDeltaWeight, "delta_chroma_weight_lc" );              // se(v): delta_chroma_weight_lc
 
             Int iDeltaChroma = (wp[j].iOffset + ( ( (g_uiIBDI_MAX>>1)*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) - (g_uiIBDI_MAX>>1));
-            xWriteSvlc( iDeltaChroma );           // se(v): chroma_offset_l0[i][j]
+            WRITE_SVLC( iDeltaChroma, "delta_chroma_offset_lc" );              // se(v): delta_chroma_offset_lc
           }
         }
       }

@@ -3483,14 +3483,14 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
       wp[2].uiLog2WeightDenom = uiLog2WeightDenomChroma;
 
       UInt  uiCode;
-      READ_FLAG( uiCode, "luma_weight_lX_flag" );                  // u(1): luma_weight_l0_flag
+      READ_FLAG( uiCode, "luma_weight_lc_flag" );                  // u(1): luma_weight_lc_flag
       wp[0].bPresentFlag = ( uiCode == 1 );
       if ( wp[0].bPresentFlag ) 
       {
         Int iDeltaWeight;
-        READ_SVLC( iDeltaWeight, "delta_luma_weight_lX" );          // se(v): delta_luma_weight_l0[i]
+        READ_SVLC( iDeltaWeight, "delta_luma_weight_lc" );          // se(v): delta_luma_weight_lc
         wp[0].iWeight = (iDeltaWeight + (1<<wp[0].uiLog2WeightDenom));
-        READ_SVLC( wp[0].iOffset, "luma_offset_lX" );               // se(v): luma_offset_l0[i]
+        READ_SVLC( wp[0].iOffset, "luma_offset_lc" );               // se(v): luma_offset_lc
       }
       else 
       {
@@ -3499,7 +3499,7 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
       }
       if ( bChroma ) 
       {
-        READ_FLAG( uiCode, "chroma_weight_lX_flag" );                // u(1): chroma_weight_l0_flag
+        READ_FLAG( uiCode, "chroma_weight_lc_flag" );                // u(1): chroma_weight_lc_flag
         wp[1].bPresentFlag = ( uiCode == 1 );
         wp[2].bPresentFlag = ( uiCode == 1 );
         if ( wp[1].bPresentFlag ) 
@@ -3507,11 +3507,11 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
           for ( Int j=1 ; j<3 ; j++ ) 
           {
             Int iDeltaWeight;
-            READ_SVLC( iDeltaWeight, "delta_chroma_weight_lX" );      // se(v): delta_chroma_weight_l0[i][j]
+            READ_SVLC( iDeltaWeight, "delta_chroma_weight_lc" );      // se(v): delta_chroma_weight_lc
             wp[j].iWeight = (iDeltaWeight + (1<<wp[1].uiLog2WeightDenom));
 
             Int iDeltaChroma;
-            READ_SVLC( iDeltaChroma, "delta_chroma_offset_lX" );      // se(v): delta_chroma_offset_l0[i][j]
+            READ_SVLC( iDeltaChroma, "delta_chroma_offset_lc" );      // se(v): delta_chroma_offset_lc
             wp[j].iOffset = iDeltaChroma - ( ( (g_uiIBDI_MAX>>1)*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) + (g_uiIBDI_MAX>>1);
           }
         }
