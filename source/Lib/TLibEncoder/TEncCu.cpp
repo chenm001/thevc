@@ -534,7 +534,9 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       if( (g_uiMaxCUWidth>>uiDepth) >= rpcTempCU->getSlice()->getPPS()->getMinCuDQPSize() )
       {
         if(iQP == iBaseQP)
+        {
           bTrySplitDQP = bTrySplit;
+        }
       }
       else
       {
@@ -903,14 +905,14 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
           }
 
 #if AMP_ENC_SPEEDUP
-            if ( rpcBestCU->isIntra(0) )
-            {
-                xCompressCU( pcSubBestPartCU, pcSubTempPartCU, uhNextDepth, SIZE_NONE );
-            }
-            else
-            {
-                xCompressCU( pcSubBestPartCU, pcSubTempPartCU, uhNextDepth, rpcBestCU->getPartitionSize(0) );
-            }
+          if ( rpcBestCU->isIntra(0) )
+          {
+            xCompressCU( pcSubBestPartCU, pcSubTempPartCU, uhNextDepth, SIZE_NONE );
+          }
+          else
+          {
+            xCompressCU( pcSubBestPartCU, pcSubTempPartCU, uhNextDepth, rpcBestCU->getPartitionSize(0) );
+          }
 #else
           xCompressCU( pcSubBestPartCU, pcSubTempPartCU, uhNextDepth );
 #endif
@@ -1042,9 +1044,9 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #else
   if( bBoundary )
 #endif
+  {
     return;
-
-
+  }
 
   // Assert if Best prediction mode is NONE
   // Selected mode's RD-cost must be not MAX_DOUBLE.
