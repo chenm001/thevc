@@ -178,7 +178,10 @@ Bool TDecCu::xDecodeSliceEnd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth)
     m_pcEntropyDecoder->decodeTerminatingBit( uiIsLast );
   }
   else
+  {
     uiIsLast=0;
+  }
+  
   if(uiIsLast) 
   {
     if(pcSlice->isNextEntropySlice()&&!pcSlice->isNextSlice()) 
@@ -473,7 +476,9 @@ Void TDecCu::xDecompressCU( TComDataCU* pcCU, TComDataCU* pcCUCur, UInt uiAbsPar
 #else
       if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
 #endif
+      {
         xDecompressCU(pcCU, m_ppcCU[uiNextDepth], uiIdx, uiNextDepth );
+      }
       
       uiIdx += uiQNumParts;
     }
@@ -683,9 +688,13 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   //===== inverse transform =====
 #if G509_CHROMA_QP_OFFSET
   if(eText == TEXT_CHROMA_U)
+  {
     m_pcTrQuant->setQPforQuant  ( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), eText, pcCU->getSlice()->getPPS()->getChromaQpOffset() );
+  }
   else
+  {
     m_pcTrQuant->setQPforQuant  ( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), eText, pcCU->getSlice()->getPPS()->getChromaQpOffset2nd() );
+  }
 #else
   m_pcTrQuant->setQPforQuant  ( pcCU->getQP(0), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), eText );
 #endif
@@ -944,9 +953,13 @@ Void TDecCu::xDecodePCMTexture( TComDataCU* pcCU, UInt uiPartIdx, Pel *piPCM, Pe
       piReco[uiX] = (piPCM[uiX] << uiPcmLeftShiftBit);
 #else
       if(g_uiBitIncrement > 0)
+      {
         piReco[uiX] = (piPCM[uiX] << g_uiBitIncrement);
+      }
       else
+      {
         piReco[uiX] = piPCM[uiX];
+      }
 #endif
       piPicReco[uiX] = piReco[uiX];
     }
