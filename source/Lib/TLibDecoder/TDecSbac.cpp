@@ -667,18 +667,26 @@ Void TDecSbac::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
         pcCU->setInterDirSubParts( 1, uiAbsPartIdx, 0, uiDepth );
         
         if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 )
+        {
           pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllRefIdx(  0, SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+        }
         if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 )
+        {
           pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllRefIdx( NOT_VALID, SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+        }
       }
       else
       {
         pcCU->setInterDirSubParts( 3, uiAbsPartIdx, 0, uiDepth );
         
         if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 )
+        {
           pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllRefIdx(  0, SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+        }
         if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 )
+        {
           pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllRefIdx( 0, SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+        }
       }
     }
   }
@@ -878,7 +886,9 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
           }
           eMode = SIZE_NxN;
           if (uiSymbol == 0)
+          {
             eMode = SIZE_2Nx2N;
+          }
         }
       }
     }
@@ -901,7 +911,9 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
           m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 4) );
         }
         if (uiSymbol == 0)
+        {
           eMode = SIZE_2Nx2N;
+        }
       }
     }
 #if AMP
@@ -2115,8 +2127,14 @@ Void TDecSbac::parseAlfSvlc (Int&  riVal)
   // read sign
   m_pcTDecBinIf->decodeBin( uiCode, m_cALFSvlcSCModel.get( 0, 0, 1 ) );
   
-  if ( uiCode == 0 ) iSign =  1;
-  else               iSign = -1;
+  if ( uiCode == 0 )
+  {
+    iSign =  1;
+  }
+  else
+  {
+    iSign = -1; 
+  }
   
   // read magnitude
   i=1;
@@ -2179,9 +2197,15 @@ Void TDecSbac::parseSaoSvlc (Int&  riVal)
   // read sign
   m_pcTDecBinIf->decodeBin( uiCode, m_cSaoSvlcSCModel.get( 0, 0, 1 ) );
 
-  if ( uiCode == 0 ) iSign =  1;
-  else               iSign = -1;
-
+  if ( uiCode == 0 )
+  {
+    iSign =  1;
+  }
+  else
+  {
+    iSign = -1;
+  }
+  
   // read magnitude
   i=1;
   while (1)
