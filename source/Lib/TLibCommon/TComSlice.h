@@ -553,8 +553,10 @@ private:
   UInt*    m_puiRowHeight;
 #endif
   
-#if OL_USE_WPP
+#if OL_USE_WPP || INC_CABACINITIDC_SLICETYPE
   Int      m_iEntropyCodingMode; // !!! in PPS now, but also remains in slice header!
+#endif
+#if OL_USE_WPP
   Int      m_iEntropyCodingSynchro;
   Bool     m_bCabacIstateReset;
   Int      m_iNumSubstreams;
@@ -673,9 +675,11 @@ public:
   }
   UInt     getRowHeight           (UInt rowIdx)    { return *( m_puiRowHeight + rowIdx ); }
 #endif
-#if OL_USE_WPP
+#if OL_USE_WPP || INC_CABACINITIDC_SLICETYPE
   Void     setEntropyCodingMode(Int iEntropyCodingMode)       { m_iEntropyCodingMode = iEntropyCodingMode; }
   Int      getEntropyCodingMode()                             { return m_iEntropyCodingMode; }
+#endif
+#if OL_USE_WPP
   Void     setEntropyCodingSynchro(Int iEntropyCodingSynchro) { m_iEntropyCodingSynchro = iEntropyCodingSynchro; }
   Int      getEntropyCodingSynchro()                          { return m_iEntropyCodingSynchro; }
   Void     setCabacIstateReset(Bool bCabacIstateReset)        { m_bCabacIstateReset = bCabacIstateReset; }
