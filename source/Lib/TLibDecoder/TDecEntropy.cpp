@@ -121,7 +121,9 @@ Void TDecEntropy::readFilterCodingParams(ALFParam* pAlfParam)
   maxScanVal = 0;
   pDepthInt = pDepthIntTabShapes[pAlfParam->filter_shape];
   for(ind = 0; ind < pAlfParam->num_coeff; ind++)
+  {
     maxScanVal = max(maxScanVal, pDepthInt[ind]);
+  }
   
   // Golomb parameters
   m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
@@ -134,9 +136,13 @@ Void TDecEntropy::readFilterCodingParams(ALFParam* pAlfParam)
     m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
     golombIndexBit = uiSymbol;
     if(golombIndexBit)
+    {
       pAlfParam->kMinTab[scanPos] = kMin + 1;
+    }
     else
+    {
       pAlfParam->kMinTab[scanPos] = kMin;
+    }
     kMin = pAlfParam->kMinTab[scanPos];
   }
 }
@@ -158,7 +164,9 @@ Int TDecEntropy::golombDecode(Int k)
   {
     m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
     if(uiSymbol)
+    {
       nr += 1 << a;
+    }
   }
   nr += q << k;
   if(nr != 0)
@@ -358,8 +366,8 @@ Void TDecEntropy::decodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
  */
 Void TDecEntropy::decodeMergeFlag( TComDataCU* pcSubCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx )
 { 
-    // at least one merge candidate exists
-    m_pcEntropyDecoderIf->parseMergeFlag( pcSubCU, uiAbsPartIdx, uiDepth, uiPUIdx );
+  // at least one merge candidate exists
+  m_pcEntropyDecoderIf->parseMergeFlag( pcSubCU, uiAbsPartIdx, uiDepth, uiPUIdx );
 }
 
 /** decode merge index
@@ -436,8 +444,10 @@ Void TDecEntropy::decodeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
 #else
   if(pcCU->getWidth(uiAbsPartIdx) < (1<<pcCU->getSlice()->getSPS()->getPCMLog2MinSize()))
 #endif
+  {
     return;
-
+  }
+  
   m_pcEntropyDecoderIf->parseIPCMInfo( pcCU, uiAbsPartIdx, uiDepth );
 }
 
@@ -1095,7 +1105,9 @@ Void TDecEntropy::xDecodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
         DTRACE_CABAC_T( "\n" );
       }
       if( uiCurrTrIdx <= uiTrIdx )
+      {
         assert(1);
+      }
       UInt uiSize;
       uiWidth  >>= 1;
       uiHeight >>= 1;
@@ -1118,10 +1130,10 @@ Void TDecEntropy::xDecodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
       
       xDecodeCoeff( pcCU, uiLumaOffset, uiChromaOffset, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, bCodeDQP );
 #else
-        xDecodeCoeff( pcCU, pcCoeff, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, eType, bCodeDQP ); pcCoeff += uiSize; uiIdx += uiQPartNum;
-        xDecodeCoeff( pcCU, pcCoeff, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, eType, bCodeDQP ); pcCoeff += uiSize; uiIdx += uiQPartNum;
-        xDecodeCoeff( pcCU, pcCoeff, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, eType, bCodeDQP ); pcCoeff += uiSize; uiIdx += uiQPartNum;
-        xDecodeCoeff( pcCU, pcCoeff, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, eType, bCodeDQP );
+      xDecodeCoeff( pcCU, pcCoeff, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, eType, bCodeDQP ); pcCoeff += uiSize; uiIdx += uiQPartNum;
+      xDecodeCoeff( pcCU, pcCoeff, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, eType, bCodeDQP ); pcCoeff += uiSize; uiIdx += uiQPartNum;
+      xDecodeCoeff( pcCU, pcCoeff, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, eType, bCodeDQP ); pcCoeff += uiSize; uiIdx += uiQPartNum;
+      xDecodeCoeff( pcCU, pcCoeff, uiIdx, uiDepth, uiWidth, uiHeight, uiTrIdx, uiCurrTrIdx, eType, bCodeDQP );
 #endif
       {
         DTRACE_CABAC_VL( g_nSymbolCounter++ );
@@ -1157,7 +1169,9 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     {
       if(pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA, 0)==0 && pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U, 0)==0
          && pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V, 0)==0)
+      {
         return;
+      }
     }
 #endif
   }
@@ -1190,7 +1204,9 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     {
       if(pcCU->getCbf(uiAbsPartIdx, TEXT_LUMA, 0)==0 && pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_U, 0)==0
          && pcCU->getCbf(uiAbsPartIdx, TEXT_CHROMA_V, 0)==0)
+      {
          return;
+      }
     }
 #endif
     pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx(uiAbsPartIdx), uiLumaTrMode, uiChromaTrMode );
@@ -1216,7 +1232,8 @@ Void TDecEntropy::decodeSaoOnePart(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr
   SAOQTPart*  pSaoPart = NULL;
   pSaoPart = &(pSaoParam->psSaoPart[iYCbCr][iPartIdx]);
 
-  static Int iTypeLength[MAX_NUM_SAO_TYPE] = {
+  static Int iTypeLength[MAX_NUM_SAO_TYPE] =
+  {
     SAO_EO_LEN,
     SAO_EO_LEN,
     SAO_EO_LEN,
