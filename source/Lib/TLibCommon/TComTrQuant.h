@@ -183,26 +183,18 @@ public:
   
   estBitsSbacStruct* m_pcEstBitsSbac;
   
-  static UInt     getSigCtxInc     ( TCoeff*                         pcCoeff,
-                                     const UInt                      uiPosX,
-                                     const UInt                      uiPosY,
-                                     const UInt                      uiLog2BlkSize,
+  static Int      getSigCtxInc     ( TCoeff*                         pcCoeff,
+                                     Int                             posX,
+                                     Int                             posY,
+                                     Int                             blockType,
+                                     Int                             width
 #if NSQT_DIAG_SCAN
+                                    ,Int                             height
+#endif
 #if SIGMAP_CTX_RED
-                                     const Int                       uiStride,
-                                     const Int                       height, 
-                                     const TextType                  textureType );
-#else
-                                    Int uiStride, Int height );
+                                    ,TextType                        textureType
 #endif
-#else
-#if SIGMAP_CTX_RED
-                                     const UInt                       uiStride,
-                                     const TextType                  textureType );
-#else
-                                     const UInt                      uiStride );
-#endif
-#endif
+                                    );
 #if MULTI_LEVEL_SIGNIFICANCE
 #if NSQT_DIAG_SCAN
   static UInt getSigCoeffGroupCtxInc  ( const UInt*                   uiSigCoeffGroupFlag,

@@ -3720,38 +3720,32 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
 /** Context derivation process of coeff_abs_significant_flag
  * \param pcCoeff pointer to prior coded transform coefficients
- * \param uiPosX column of current scan position
- * \param uiPosY row of current scan position
- * \param uiLog2BlkSize log2 value of block size
- * \param uiStride stride of the block
+ * \param posX column of current scan position
+ * \param posY row of current scan position
+ * \param blockType log2 value of block size if square block, or 4 otherwise
+ * \param width width of the block
+ * \param height height of the block
+ * \param textureType texture type (TEXT_LUMA...)
  * \returns ctxInc for current scan position
  */
-UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
-                                    const UInt                      uiPosX,
-                                    const UInt                      uiPosY,
-                                    const UInt                      uiLog2BlkSize,
+Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
+                                   Int                             posX,
+                                   Int                             posY,
+                                   Int                             blockType,
+                                   Int                             width
 #if NSQT_DIAG_SCAN
+                                  ,Int                             height
+#endif
 #if SIGMAP_CTX_RED
-                                    const Int                      uiStride, 
-                                    const Int                      height, 
-                                    const TextType                 textureType )
-#else
-                                    Int uiStride, Int height )
+                                  ,TextType                        textureType
 #endif
-#else
-#if SIGMAP_CTX_RED
-                                    const UInt                      uiStride,
-                                    const TextType                  textureType )
-#else
-                                    const UInt                      uiStride )
-#endif
-#endif
+                                  )
 {
-  if ( uiLog2BlkSize == 2)
+  if ( blockType == 2 )
   {
 #if SIGMAP_CTX_RED
     //LUMA map
-    const UChar CtxIndMap4x4Luma[15] =
+    const Int ctxIndMap4x4Luma[15] =
     {
       0, 1, 4, 5,
       2, 3, 4, 5,
@@ -3759,7 +3753,7 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
       7, 7, 8
     };
     //CHROMA map
-    const UChar CtxIndMap4x4Chroma[15] =
+    const Int ctxIndMap4x4Chroma[15] =
     {
       0, 1, 2, 4,
       1, 1, 2, 4,
@@ -3769,148 +3763,140 @@ UInt TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
 
     if (textureType == TEXT_LUMA)
     {
-      return CtxIndMap4x4Luma[(uiPosY << 2) + uiPosX];
+      return ctxIndMap4x4Luma[ 4 * posY + posX ];
     }
     else
     {
-      return CtxIndMap4x4Chroma[(uiPosY << 2) + uiPosX];
+      return ctxIndMap4x4Chroma[ 4 * posY + posX ];
     }
 #else
-    return 4 * uiPosY + uiPosX;
+    return 4 * posY + posX;
 #endif
   }
   
-  if ( uiLog2BlkSize == 3 )
+  if ( blockType == 3 )
   {
 #if SIGMAP_CTX_RED
-    const UInt map8x8[] = { 0,  1,  2,  3,
-                            4,  5,  6,  3,
-                            8,  6,  6,  7,
-                            9,  9,  7,  7  };
-    UInt uiOffset = (textureType == TEXT_LUMA) ? 9 : 6;
-
-    if ( uiPosX + uiPosY == 0 )
+    const Int map8x8[16] =
     {
-      return uiOffset + 10;
+      0,  1,  2,  3,
+      4,  5,  6,  3,
+      8,  6,  6,  7,
+      9,  9,  7,  7
+    };
+    
+    Int offset = (textureType == TEXT_LUMA) ? 9 : 6;
+
+    if ( posX + posY == 0 )
+    {
+      return offset + 10;
     }
-    return uiOffset + map8x8[4 * (uiPosY >> 1) + (uiPosX >> 1)];
+    return offset + map8x8[4 * (posY >> 1) + (posX >> 1)];
 #else
-    return 15 + 4 * (uiPosY >> 1) + (uiPosX >> 1);
+    return 15 + 4 * (posY >> 1) + (posX >> 1);
 #endif
   }
 
 #if SIGMAP_CTX_RED
-  UInt uiOffset = (textureType == TEXT_LUMA) ? 20 : 17;
-  if( uiPosX + uiPosY == 0 )
+  Int offset = (textureType == TEXT_LUMA) ? 20 : 17;
+  if( posX + posY == 0 )
   {
-    return uiOffset;
+    return offset;
   }
 #else
-  if( uiPosX + uiPosY < 2 )
+  if( posX + posY < 2 )
   {
-    return 31 + 2 * uiPosY + uiPosX;
+    return 31 + 2 * posY + posX;
   }
 #endif
   
 #if NSQT_DIAG_SCAN
-  const TCoeff *pData = pcCoeff + uiPosX + uiPosY * uiStride;
+  const TCoeff *pData = pcCoeff + posX + posY * width;
 #else
-  const TCoeff *pData = pcCoeff + uiPosX + (uiPosY << uiLog2BlkSize);
+  const TCoeff *pData = pcCoeff + posX + (posY << blockType);
 #endif
   
-  Int iStride = uiStride;
 #if SIGMAP_CTX_RED
 #if NSQT_DIAG_SCAN
-  Int thred = std::max(height, iStride) >> 2;
+  Int thred = std::max(height, width) >> 2;
 #else
-  UInt thred = 1 << (uiLog2BlkSize-2);
+  Int thred = 1 << (blockType-2);
 #endif
 #endif
   
 #if !NSQT_DIAG_SCAN
 #if SIGMAP_CTX_RED
-  if(textureType==TEXT_LUMA && uiPosX + uiPosY < thred)
+  if(textureType==TEXT_LUMA && posX + posY < thred)
 #else
-  if( uiPosX + uiPosY < 5 )
+  if( posX + posY < 5 )
 #endif
   {
 #if SUBBLOCK_SCAN
-    UInt cnt = (pData[1] != 0) + (pData[2] != 0) + (pData[2*iStride] != 0) + (pData[iStride+1] != 0);
-    if( ( ( uiPosX & 3 ) || ( uiPosY & 3 ) ) && ( ( (uiPosX+1) & 3 ) || ( (uiPosY+2) & 3 ) ) )
+    Int cnt = (pData[1] != 0) + (pData[2] != 0) + (pData[2*width] != 0) + (pData[width+1] != 0);
+    if( ( ( posX & 3 ) || ( posY & 3 ) ) && ( ( (posX+1) & 3 ) || ( (posY+2) & 3 ) ) )
     {
-      cnt += pData[iStride] != 0;
+      cnt += pData[width] != 0;
     }
 #else
-    UInt cnt = (pData[1] != 0) + (pData[2] != 0) + (pData[iStride] != 0) + (pData[2*iStride] != 0) + (pData[iStride+1] != 0);
+    Int cnt = (pData[1] != 0) + (pData[2] != 0) + (pData[width] != 0) + (pData[2*width] != 0) + (pData[width+1] != 0);
 #endif  
 #if SIGMAP_CTX_RED
     cnt=(cnt+1)>>1;
-    return uiOffset + 1 + min<UInt>( 2, cnt );
+    return offset + 1 + min( 2, cnt );
 #else
-    return 31 + 3 + min<UInt>( 4, cnt );
+    return 31 + 3 + min( 4, cnt );
 #endif
   }
+  
+  Int height = width;
 #endif
   
-  UInt uiWidthM1   = uiStride - 1;
-  UInt cnt = 0;
-  if( uiPosX < uiWidthM1 )
+  Int cnt = 0;
+  if( posX < width - 1 )
   {
     cnt += pData[1] != 0;
-#if NSQT_DIAG_SCAN
-    if( uiPosY < height - 1 )
-#else
-    if( uiPosY < uiWidthM1 )
-#endif
+    if( posY < height - 1 )
     {
-      cnt += pData[iStride+1] != 0;
+      cnt += pData[width+1] != 0;
     }
-    if( uiPosX < uiWidthM1 - 1 )
+    if( posX < width - 2 )
     {
       cnt += pData[2] != 0;
     }
   }
-#if NSQT_DIAG_SCAN
-  if ( uiPosY < height - 1 )
-#else
-  if ( uiPosY < uiWidthM1 )
-#endif
+  if ( posY < height - 1 )
   {
 #if SUBBLOCK_SCAN
-  if( ( ( uiPosX & 3 ) || ( uiPosY & 3 ) ) && ( ( (uiPosX+1) & 3 ) || ( (uiPosY+2) & 3 ) ) )
-  {
-    cnt += pData[iStride] != 0;
-  }
-#else
-    cnt += pData[iStride] != 0;
-#endif
-#if NSQT_DIAG_SCAN
-    if ( uiPosY < height - 2 && cnt < 4 )
-#else
-    if ( uiPosY < uiWidthM1 - 1 && cnt < 4 )
-#endif
+    if( ( ( posX & 3 ) || ( posY & 3 ) ) && ( ( (posX+1) & 3 ) || ( (posY+2) & 3 ) ) )
     {
-      cnt += pData[2*iStride] != 0;
+      cnt += pData[width] != 0;
+    }
+#else
+    cnt += pData[width] != 0;
+#endif
+    if ( posY < height - 2 && cnt < 4 )
+    {
+      cnt += pData[2*width] != 0;
     }
   }
 
 #if SIGMAP_CTX_RED
-  cnt=(cnt+1)>>1;
+  cnt = ( cnt + 1 ) >> 1;
 #if NSQT_DIAG_SCAN
-  return (( textureType == TEXT_LUMA && uiPosX + uiPosY >= thred ) ? uiOffset + 4 : uiOffset + 1) + cnt;
+  return (( textureType == TEXT_LUMA && posX + posY >= thred ) ? 4 : 1) + offset + cnt;
 #else
   if(textureType==TEXT_LUMA)
   {
-    return uiOffset + 4 + cnt;
+    return offset + 4 + cnt;
   }
   else
   {
-    return uiOffset + 1 + cnt;
+    return offset + 1 + cnt;
   }
 #endif
 #else
 #if NSQT_DIAG_SCAN
-  return (( uiPosX + uiPosY < 5 ) ? 31 + 3 : 31 + 8) + cnt;
+  return (( posX + posY < 5 ) ? 31 + 3 : 31 + 8) + cnt;
 #else
   return 31 + 8 + cnt;
 #endif
