@@ -1336,7 +1336,7 @@ TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx
 #if REMOVE_INTRA_LINE_BUFFER
   if(planarAtLCUBoundary)
   {
-      return NULL;
+    return NULL;
   }
 #endif
   
@@ -2155,10 +2155,10 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int* uiIntraDirPred
   UInt        uiTempPartIdx;
   Int         iLeftIntraDir, iAboveIntraDir;
   Int         uiPredNum = 0;
-
+  
   // Get intra direction of left PU
   pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-
+  
 #if PLANAR_IS_DEFAULT
   iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : PLANAR_IDX ) : PLANAR_IDX;
 #else
@@ -2171,7 +2171,7 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int* uiIntraDirPred
 #else
   pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
 #endif
-
+  
 #if PLANAR_IS_DEFAULT
   iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : PLANAR_IDX ) : PLANAR_IDX;
 #else
@@ -2179,73 +2179,73 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int* uiIntraDirPred
 #endif
   
   Int iIdx  = getIntraSizeIdx(uiAbsPartIdx);
-
-   
+  
+  
   if ( iLeftIntraDir >= g_aucIntraModeNumAng[iIdx] ) 
   {
 #if REMAP_TO_PLANAR
     iLeftIntraDir = PLANAR_IDX;
 #else
-   if ( g_aucIntraModeNumAng[iIdx] == 6 )
-   {
+    if ( g_aucIntraModeNumAng[iIdx] == 6 )
+    {
       iLeftIntraDir = g_aucAngModeMapping[0][g_aucAngIntraModeOrder[iLeftIntraDir]];
-   }
-   else if ( g_aucIntraModeNumAng[iIdx] == 4 )
-   {
+    }
+    else if ( g_aucIntraModeNumAng[iIdx] == 4 )
+    {
       iLeftIntraDir = g_aucAngModeMapping[3][g_aucAngIntraModeOrder[iLeftIntraDir]];
-   }
-   else
-   {
+    }
+    else
+    {
       iLeftIntraDir = g_aucAngModeMapping[1][g_aucAngIntraModeOrder[iLeftIntraDir]]; 
-   }
+    }
 #endif
   }
-   
-   
- if ( iAboveIntraDir >= g_aucIntraModeNumAng[iIdx] ) 
- {
+  
+  
+  if ( iAboveIntraDir >= g_aucIntraModeNumAng[iIdx] ) 
+  {
 #if REMAP_TO_PLANAR
-   iAboveIntraDir = PLANAR_IDX;
+    iAboveIntraDir = PLANAR_IDX;
 #else
-   if ( g_aucIntraModeNumAng[iIdx] == 6 )
-   {
+    if ( g_aucIntraModeNumAng[iIdx] == 6 )
+    {
       iAboveIntraDir = g_aucAngModeMapping[0][g_aucAngIntraModeOrder[iAboveIntraDir]];
-   }
-   else if ( g_aucIntraModeNumAng[iIdx] == 4 )
-   {
+    }
+    else if ( g_aucIntraModeNumAng[iIdx] == 4 )
+    {
       iAboveIntraDir = g_aucAngModeMapping[3][g_aucAngIntraModeOrder[iAboveIntraDir]];
-   }
-   else
-   {
+    }
+    else
+    {
       iAboveIntraDir = g_aucAngModeMapping[1][g_aucAngIntraModeOrder[iAboveIntraDir]]; 
-   }
+    }
 #endif
- }
-   
- if(iLeftIntraDir == iAboveIntraDir)
- {
-   uiPredNum = 2;
-
-   if( piMode )
-   {
-    *piMode = iLeftIntraDir;
-   }
-
-   iAboveIntraDir = iLeftIntraDir == PLANAR_IDX ? DC_IDX : PLANAR_IDX; // DC or Planar
-
-   assert( iLeftIntraDir != iAboveIntraDir );
-
-   uiIntraDirPred[0] = min(iLeftIntraDir, iAboveIntraDir);
-   uiIntraDirPred[1] = max(iLeftIntraDir, iAboveIntraDir);
- }
- else
- {
-   uiPredNum = 2;
-   uiIntraDirPred[0] = min(iLeftIntraDir, iAboveIntraDir);
-   uiIntraDirPred[1] = max(iLeftIntraDir, iAboveIntraDir);
- }
-
-
+  }
+  
+  if(iLeftIntraDir == iAboveIntraDir)
+  {
+    uiPredNum = 2;
+    
+    if( piMode )
+    {
+      *piMode = iLeftIntraDir;
+    }
+    
+    iAboveIntraDir = iLeftIntraDir == PLANAR_IDX ? DC_IDX : PLANAR_IDX; // DC or Planar
+    
+    assert( iLeftIntraDir != iAboveIntraDir );
+    
+    uiIntraDirPred[0] = min(iLeftIntraDir, iAboveIntraDir);
+    uiIntraDirPred[1] = max(iLeftIntraDir, iAboveIntraDir);
+  }
+  else
+  {
+    uiPredNum = 2;
+    uiIntraDirPred[0] = min(iLeftIntraDir, iAboveIntraDir);
+    uiIntraDirPred[1] = max(iLeftIntraDir, iAboveIntraDir);
+  }
+  
+  
   return uiPredNum;
 }
 
@@ -3163,7 +3163,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 #if MRG_TMVP_REFIDX
     Int iRefIdxSkip[2] = {-1, -1};
 #if MRG_TMVP_REFIDX_G163
-    for (int i=0; i<2; i++)
+    for (Int i=0; i<2; i++)
     {
       RefPicList  eRefPicList = ( i==1 ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
       Int iRefIdxTmp = (pcCULeft != NULL) ? pcCULeft->getCUMvField(eRefPicList)->getRefIdx(uiLeftPartIdx) : -1;
@@ -3355,47 +3355,45 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     {
       for( UInt uiIter = uiOuter + 1; uiIter < MRG_MAX_NUM_CANDS; uiIter++ )
       {
+        UInt uiMvFieldNeighIdxCurr = uiOuter << 1;
+        UInt uiMvFieldNeighIdxComp = uiIter << 1;
+        if( getSlice()->isInterB() )
         {
-          UInt uiMvFieldNeighIdxCurr = uiOuter << 1;
-          UInt uiMvFieldNeighIdxComp = uiIter << 1;
-          if( getSlice()->isInterB() )
+          if( puhInterDirNeighbours[ uiOuter ] == 3 )
           {
-            if( puhInterDirNeighbours[ uiOuter ] == 3 )
+            if( pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getRefIdx() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getRefIdx() && pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr + 1 ].getRefIdx() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp + 1 ].getRefIdx() &&
+              pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getMv() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getMv() && pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr + 1 ].getMv() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp + 1 ].getMv() &&
+              puhInterDirNeighbours[ uiOuter ] == puhInterDirNeighbours[ uiIter ] )
             {
-              if( pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getRefIdx() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getRefIdx() && pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr + 1 ].getRefIdx() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp + 1 ].getRefIdx() &&
-                pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getMv() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getMv() && pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr + 1 ].getMv() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp + 1 ].getMv() &&
-                puhInterDirNeighbours[ uiOuter ] == puhInterDirNeighbours[ uiIter ] )
-              {
-                abCandIsInter[ uiIter ] = false;
-              }
+              abCandIsInter[ uiIter ] = false;
             }
-            else if( puhInterDirNeighbours[ uiOuter ] == 2 )
+          }
+          else if( puhInterDirNeighbours[ uiOuter ] == 2 )
+          {
+            if( pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr + 1 ].getRefIdx() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp + 1 ].getRefIdx() &&
+              pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr + 1 ].getMv() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp + 1 ].getMv() &&
+              puhInterDirNeighbours[ uiOuter ] == puhInterDirNeighbours[ uiIter ] )
             {
-              if( pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr + 1 ].getRefIdx() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp + 1 ].getRefIdx() &&
-                pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr + 1 ].getMv() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp + 1 ].getMv() &&
-                puhInterDirNeighbours[ uiOuter ] == puhInterDirNeighbours[ uiIter ] )
-              {
-                abCandIsInter[ uiIter ] = false;
-              }
-            }
-            else
-            {
-              if( pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getRefIdx() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getRefIdx() &&
-                pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getMv() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getMv() &&
-                puhInterDirNeighbours[ uiOuter ] == puhInterDirNeighbours[ uiIter ] )
-              {
-                abCandIsInter[ uiIter ] = false;
-              }
+              abCandIsInter[ uiIter ] = false;
             }
           }
           else
           {
-            if( pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getRefIdx() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getRefIdx() && 
-                pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getMv() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getMv() )
+            if( pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getRefIdx() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getRefIdx() &&
+              pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getMv() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getMv() &&
+              puhInterDirNeighbours[ uiOuter ] == puhInterDirNeighbours[ uiIter ] )
             {
-              assert( puhInterDirNeighbours[ uiOuter ] == puhInterDirNeighbours[ uiIter ] );
               abCandIsInter[ uiIter ] = false;
             }
+          }
+        }
+        else
+        {
+          if( pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getRefIdx() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getRefIdx() && 
+              pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getMv() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getMv() )
+          {
+            assert( puhInterDirNeighbours[ uiOuter ] == puhInterDirNeighbours[ uiIter ] );
+            abCandIsInter[ uiIter ] = false;
           }
         }
       }
@@ -3549,7 +3547,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS 
   if (uiArrayAddr > MRG_MAX_NUM_CANDS_SIGNALED)
   {
-     uiArrayAddr = MRG_MAX_NUM_CANDS_SIGNALED;
+    uiArrayAddr = MRG_MAX_NUM_CANDS_SIGNALED;
   }
 #endif
   numValidMergeCand = uiArrayAddr;
@@ -3978,7 +3976,7 @@ Bool TComDataCU::isSkipped( UInt uiPartIdx )
   }
   if ( getSlice()->getSPS()->getUseMRG() )
   {
-  return ( m_pePredMode[ uiPartIdx ] == MODE_SKIP && getMergeFlag( uiPartIdx ) && !getQtRootCbf( uiPartIdx ) );
+    return ( m_pePredMode[ uiPartIdx ] == MODE_SKIP && getMergeFlag( uiPartIdx ) && !getQtRootCbf( uiPartIdx ) );
   }
   else
   {
@@ -4046,13 +4044,19 @@ Bool TComDataCU::xAddMVPCand( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefI
   }
 
   if ( pcTmpCU == NULL ) 
+  {
     return false;
-
+  }
+  
   RefPicList eRefPicList2nd = REF_PIC_LIST_0;
   if(       eRefPicList == REF_PIC_LIST_0 )
+  {
     eRefPicList2nd = REF_PIC_LIST_1;
+  }
   else if ( eRefPicList == REF_PIC_LIST_1)
+  {
     eRefPicList2nd = REF_PIC_LIST_0;
+  }
 
 
   Int iCurrRefPOC = m_pcSlice->getRefPic( eRefPicList, iRefIdx)->getPOC();
@@ -4095,7 +4099,9 @@ Void TComDataCU::xUniqueMVPCand(AMVPInfo* pInfo)
       for (j = n - 1; j >= 0; j--)
       {
         if ( pInfo->m_acMvCand[ i ] == pInfo->m_acMvCand[ j ] )
+        {
           break;
+        }
       }
       if ( j < 0 )
       {
@@ -4152,14 +4158,19 @@ Bool TComDataCU::xAddMVPCandOrder( AMVPInfo* pInfo, RefPicList eRefPicList, Int 
   }
 
   if ( pcTmpCU == NULL ) 
+  {
     return false;
-    
+  }
+  
   RefPicList eRefPicList2nd = REF_PIC_LIST_0;
   if(       eRefPicList == REF_PIC_LIST_0 )
+  {
     eRefPicList2nd = REF_PIC_LIST_1;
+  }
   else if ( eRefPicList == REF_PIC_LIST_1)
+  {
     eRefPicList2nd = REF_PIC_LIST_0;
-
+  }
 
   Int iCurrPOC = m_pcSlice->getPOC();
   Int iCurrRefPOC = m_pcSlice->getRefPic( eRefPicList, iRefIdx)->getPOC();
@@ -4394,7 +4405,9 @@ Bool TComDataCU::xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRef
   xDeriveCenterIdx( eCUMode, uiPartIdx, uiPartIdxCenter );
   
   if (pColCU->isIntra(uiPartIdxCenter))
+  {
     return false;
+  }
   
   // Prefer a vector crossing us.  Prefer shortest.
   RefPicList eColRefPicList = REF_PIC_LIST_0;
@@ -4405,16 +4418,24 @@ Bool TComDataCU::xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRef
     bool bSaveIt = false;
     int iColRefIdx = pColCU->getCUMvField(RefPicList(l))->getRefIdx(uiPartIdxCenter);
     if (iColRefIdx < 0)
+    {
       continue;
+    }
     int iColRefPOC = pColCU->getSlice()->getRefPOC(RefPicList(l), iColRefIdx);
     int iColDist = abs(iColRefPOC - iColPOC);
     bool bCrosses = iColPOC < iCurrPOC ? iColRefPOC > iCurrPOC : iColRefPOC < iCurrPOC;
     if (iFirstColDist < 0)
+    {
       bSaveIt = true;
+    }
     else if (bCrosses && !bFirstCrosses)
+    {
       bSaveIt = true;
+    }
     else if (bCrosses == bFirstCrosses && l == eRefPicList)
+    {
       bSaveIt = true;
+    }
     
     if (bSaveIt)
     {
@@ -4523,20 +4544,20 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
 #if NSQT
 Bool TComDataCU::useNonSquareTrans(UInt uiTrMode)
 {
-   const UInt uiLog2TrSize = g_aucConvertToBit[ getSlice()->getSPS()->getMaxCUWidth() >> ( m_puhDepth[ 0 ] + uiTrMode ) ] + 2;
-   if ( uiTrMode && uiLog2TrSize < getSlice()->getSPS()->getQuadtreeTULog2MaxSize() && getWidth( 0 ) > 8 &&
+  const UInt uiLog2TrSize = g_aucConvertToBit[ getSlice()->getSPS()->getMaxCUWidth() >> ( m_puhDepth[ 0 ] + uiTrMode ) ] + 2;
+  if ( uiTrMode && uiLog2TrSize < getSlice()->getSPS()->getQuadtreeTULog2MaxSize() && getWidth( 0 ) > 8 &&
 #if AMP
-     ( m_pePartSize[0] == SIZE_Nx2N || m_pePartSize[0] == SIZE_2NxN || ( m_pePartSize[0] >= SIZE_2NxnU && m_pePartSize[0] <= SIZE_nRx2N ) ) )
+      ( m_pePartSize[0] == SIZE_Nx2N || m_pePartSize[0] == SIZE_2NxN || ( m_pePartSize[0] >= SIZE_2NxnU && m_pePartSize[0] <= SIZE_nRx2N ) ) )
 #else
-     ( m_pePartSize[0] == SIZE_Nx2N || m_pePartSize[0] == SIZE_2NxN ) )
+      ( m_pePartSize[0] == SIZE_Nx2N || m_pePartSize[0] == SIZE_2NxN ) )
 #endif
-   {
-     return getSlice()->getSPS()->getUseNSQT();
-   }
-   else
-   {
-     return false;
-   }
+  {
+    return getSlice()->getSPS()->getUseNSQT();
+  }
+  else
+  {
+    return false;
+  }
 }
 
 #if NSQT_MOD
@@ -4583,8 +4604,10 @@ Void TComDataCU::getPixOffset(UInt uiTrMode,  UInt ui, UInt uiAbsPartIdx, UInt u
   UInt uiLog2TrSize = g_aucConvertToBit[ getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
 
   if( eTxt != TEXT_LUMA )
+  {
     uiLog2TrSize --;
-
+  }
+  
   if( uiTrMode == 1 )
   {
     uiPix_X = uiPartDir ? 0 : ui * ( 1 << ( uiLog2TrSize - 1 ) );
