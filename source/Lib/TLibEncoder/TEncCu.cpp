@@ -1559,7 +1559,8 @@ Void TEncCu::xCheckIntraPCM( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
 #endif
   rpcTempCU->getTotalCost() = m_pcRdCost->calcRdCost( rpcTempCU->getTotalBits(), rpcTempCU->getTotalDistortion() );
 
-  xCheckBestMode( rpcBestCU, rpcTempCU );
+  xCheckDQP( rpcTempCU );
+  xCheckBestMode( rpcBestCU, rpcTempCU, uiDepth );
 }
 
 // check whether current try is the best
