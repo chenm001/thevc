@@ -1261,7 +1261,7 @@ Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 
     UInt uiMaxAbsDQpMinus1 = 24 + (uiQpBdOffsetY/2) + (uiSign);
     UInt uiAbsDQpMinus1;
-    xReadUnaryMaxSymbol (uiAbsDQpMinus1,  &m_cCUDeltaQpSCModel.get( 0, 0, 2 ), 1, uiMaxAbsDQpMinus1);
+    xReadUnaryMaxSymbol (uiAbsDQpMinus1,  &m_cCUDeltaQpSCModel.get( 0, 0, 1 ), 1, uiMaxAbsDQpMinus1);
 
     iDQp = uiAbsDQpMinus1 + 1;
 
@@ -1270,7 +1270,7 @@ Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
       iDQp = -iDQp;
     }
 #else
-    xReadUnarySymbol( uiDQp, &m_cCUDeltaQpSCModel.get( 0, 0, 2 ), 1 );
+    xReadUnarySymbol( uiDQp, &m_cCUDeltaQpSCModel.get( 0, 0, 1 ), 1 );
     iDQp = ( uiDQp + 2 ) / 2;
     
     if ( uiDQp & 1 )
