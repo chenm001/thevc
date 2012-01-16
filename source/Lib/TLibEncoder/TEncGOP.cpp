@@ -1064,7 +1064,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
         {
 #if TILES_DECODER
+#if TILES_LOW_LATENCY_CABAC_INI
+          if (!bEntropySlice)
+#else
           if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr()  && !bEntropySlice)
+#endif
           {
             pcBitstreamRedirect->writeAlignOne();
           }
@@ -1124,7 +1128,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           m_pcEntropyCoder->resetEntropy    ();
 #if TILES_DECODER
           // File writing
+#if TILES_LOW_LATENCY_CABAC_INI
+          if (!bEntropySlice)
+#else
           if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr()  && !bEntropySlice)
+#endif
           {
             m_pcEntropyCoder->setBitstream(pcBitstreamRedirect);
           }
@@ -1264,7 +1272,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
 #if TILES_DECODER
         pcSlice->setTileOffstForMultES( uiOneBitstreamPerSliceLength );
+#if TILES_LOW_LATENCY_CABAC_INI
+        if (!bEntropySlice)
+#else
         if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr()  && !bEntropySlice)
+#endif
         {
           pcSlice->setTileLocationCount ( 0 );
 #if OL_USE_WPP
@@ -1316,7 +1328,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             // Byte alignment is necessary between tiles when tiles are independent.
             uiTotalCodedSize += pcSubstreamsOut[ui].getNumberOfWrittenBits();
 
+#if !TILES_LOW_LATENCY_CABAC_INI
             if (pcPic->getPicSym()->getTileBoundaryIndependenceIdr())
+#endif
             {
               Bool bNextSubstreamInNewTile = ((ui+1) < iNumSubstreams)
                                              && ((ui+1)%uiNumSubstreamsPerTile == 0);
@@ -1350,7 +1364,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if TILES_DECODER
           TComOutputBitstream *pcOut = pcBitstreamRedirect;
           // xWriteTileLocation will perform byte-alignment...
+#if !TILES_LOW_LATENCY_CABAC_INI
           if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+#endif
           {
             if (bEntropySlice)
             {
@@ -1395,7 +1411,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         // If current NALU is the first NALU of slice (containing slice header) and more NALUs exist (due to multiple entropy slices) then buffer it.
         // If current NALU is the last NALU of slice and a NALU was buffered, then (a) Write current NALU (b) Update an write buffered NALU at approproate location in NALU list.
         Bool bNALUAlignedWrittenToList    = false; // used to ensure current NALU is not written more than once to the NALU list.
+#if TILES_LOW_LATENCY_CABAC_INI
+        if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr() && !pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+#else
         if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+#endif
         {
           if (bNextCUInNewSlice)
           {
@@ -2536,7 +2556,9 @@ Double TEncGOP::xCalculateRVM()
  */
 Void TEncGOP::xWriteTileLocationToSliceHeader (OutputNALUnit& rNalu, TComOutputBitstream*& rpcBitstreamRedirect, TComSlice*& rpcSlice)
 {
+#if !TILES_LOW_LATENCY_CABAC_INI
   if (rpcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+#endif
   {
     Int iTransmitTileLocationInSliceHeader = (rpcSlice->getTileLocationCount()==0 || m_pcCfg->getTileLocationInSliceHeaderFlag()==0) ? 0 : 1;
     rNalu.m_Bitstream.write(iTransmitTileLocationInSliceHeader, 1);   // write flag indicating whether tile location information communicated in slice header

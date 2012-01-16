@@ -1012,7 +1012,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 Void TEncCavlc::codeTileMarkerFlag(TComSlice* pcSlice) 
 {
   Bool bEntropySlice = (!pcSlice->isNextSlice());
+#if TILES_LOW_LATENCY_CABAC_INI
+  if (!bEntropySlice)
+#else
   if (!bEntropySlice && pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+#endif
   {
     xWriteFlag  (pcSlice->getTileMarkerFlag() ? 1 : 0 );
   }
