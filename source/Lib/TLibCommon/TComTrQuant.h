@@ -157,8 +157,18 @@ public:
   Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, UInt *aTableLastPosVlcIndex=NULL, Bool bUseRDOQ = false,  Bool bEnc = false );
   
   // transform & inverse transform functions
-  Void transformNxN         ( TComDataCU* pcCU, Pel*   pcResidual, UInt uiStride, TCoeff* rpcCoeff, UInt uiWidth, UInt uiHeight,
-                             UInt& uiAbsSum, TextType eTType, UInt uiAbsPartIdx );
+  Void transformNxN( TComDataCU* pcCU, 
+                     Pel*        pcResidual, 
+                     UInt        uiStride, 
+                     TCoeff*     rpcCoeff, 
+#if ADAPTIVE_QP_SELECTION
+                     Int*&       rpcArlCoeff, 
+#endif
+                     UInt        uiWidth, 
+                     UInt        uiHeight, 
+                     UInt&       uiAbsSum, 
+                     TextType    eTType, 
+                     UInt        uiAbsPartIdx );
 #if SCALING_LIST
   Void invtransformNxN      (TextType eText, UInt uiMode,Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight, Int scalingListType);
 #else
@@ -234,7 +244,20 @@ public:
   Void setScalingList      ( TComScalingList *scalingList);
   Void setScalingListDec   ( TComScalingList *scalingList);
 #endif
+#if ADAPTIVE_QP_SELECTION
+  Void    initSliceQpDelta() ;
+  Void    storeSliceQpNext(TComSlice* pcSlice);
+  Void    clearSliceARLCnt();
+  Int     getQpDelta(Int qp) { return m_qpDelta[qp]; } 
+  Int*    getSliceNSamples(){ return m_sliceNsamples ;} 
+  Double* getSliceSumC()    { return m_sliceSumC; }
+#endif
 protected:
+#if ADAPTIVE_QP_SELECTION
+  Int     m_qpDelta[MAX_QP+1]; 
+  Int     m_sliceNsamples[LEVEL_RANGE+1];  
+  Double  m_sliceSumC[LEVEL_RANGE+1] ;  
+#endif
   Int*    m_plTempCoeff;
   
   QpParam  m_cQP;
@@ -278,7 +301,17 @@ private:
 #endif
   
   // quantization
-  Void xQuant( TComDataCU* pcCU, Int* pSrc, TCoeff* pDes, Int iWidth, Int iHeight, UInt& uiAcSum, TextType eTType, UInt uiAbsPartIdx );
+  Void xQuant( TComDataCU* pcCU, 
+               Int*        pSrc, 
+               TCoeff*     pDes, 
+#if ADAPTIVE_QP_SELECTION
+               Int*&       pArlDes,
+#endif
+               Int         iWidth, 
+               Int         iHeight, 
+               UInt&       uiAcSum, 
+               TextType    eTType, 
+               UInt        uiAbsPartIdx );
 
   // RDOQ functions
 #if !DISABLE_CAVLC
@@ -293,6 +326,9 @@ private:
   Void           xRateDistOptQuant_LCEC ( TComDataCU*                     pcCU,
                                           Int*                            plSrcCoeff,
                                           TCoeff*                         piDstCoeff,
+#if ADAPTIVE_QP_SELECTION
+                                          Int*&                           pArlDstCoeff, 
+#endif
                                           UInt                            uiWidth,
                                           UInt                            uiHeight,
                                           UInt&                           uiAbsSum,
@@ -303,6 +339,9 @@ private:
   Void           xRateDistOptQuant ( TComDataCU*                     pcCU,
                                      Int*                            plSrcCoeff,
                                      TCoeff*                         piDstCoeff,
+#if ADAPTIVE_QP_SELECTION
+                                     Int*&                           piArlDstCoeff,
+#endif
                                      UInt                            uiWidth,
                                      UInt                            uiHeight,
                                      UInt&                           uiAbsSum,

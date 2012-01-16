@@ -233,6 +233,13 @@ Void TEncCu::compressCU( TComDataCU*& rpcCU )
 
   // analysis of CU
   xCompressCU( m_ppcBestCU[0], m_ppcTempCU[0], 0 );
+
+#if ADAPTIVE_QP_SELECTION
+  if(rpcCU->getSlice()->getSliceType()!=I_SLICE) //IIII
+  {
+    xLcuCollectARLStats( rpcCU);
+  }
+#endif
 }
 /** \param  pcCU  pointer of CU data class, bForceTerminate when set to true terminates slice (default is false).
  */
@@ -1788,4 +1795,73 @@ Void TEncCu::xCopyYuv2Tmp( UInt uiPartUnitIdx, UInt uiNextDepth )
   m_ppcRecoYuvBest[uiNextDepth]->copyToPartYuv( m_ppcRecoYuvTemp[uiCurrDepth], uiPartUnitIdx );
 }
 
+#if ADAPTIVE_QP_SELECTION
+/** Collect ARL statistics from one block
+  */
+Int TEncCu::xTuCollectARLStats(TCoeff* rpcCoeff, Int* rpcArlCoeff, Int NumCoeffInCU, Double* cSum, UInt* numSamples )
+{
+  for( Int n = 0; n < NumCoeffInCU; n++ )
+  {
+    Int u = abs( rpcCoeff[ n ] );
+    Int absc = rpcArlCoeff[ n ];
+
+    if( u != 0 )
+    {
+      if( u < LEVEL_RANGE )
+      {
+        cSum[ u ] += ( Double )absc;
+        numSamples[ u ]++;
+      }
+      else 
+      {
+        cSum[ LEVEL_RANGE ] += ( Double )absc - ( Double )( u << ARL_C_PRECISION );
+        numSamples[ LEVEL_RANGE ]++;
+      }
+    }
+  }
+
+  return 0;
+}
+
+/** Collect ARL statistics from one LCU
+ * \param pcCU
+ */
+Void TEncCu::xLcuCollectARLStats(TComDataCU* rpcCU )
+{
+  Double cSum[ LEVEL_RANGE + 1 ];     //: the sum of DCT coefficients corresponding to datatype and quantization output
+  UInt numSamples[ LEVEL_RANGE + 1 ]; //: the number of coefficients corresponding to datatype and quantization output
+
+  TCoeff* pCoeffY = rpcCU->getCoeffY();
+  Int* pArlCoeffY = rpcCU->getArlCoeffY();
+
+  UInt uiMinCUWidth = g_uiMaxCUWidth >> g_uiMaxCUDepth;
+  UInt uiMinNumCoeffInCU = 1 << uiMinCUWidth;
+
+  memset( cSum, 0, sizeof( Double )*(LEVEL_RANGE+1) );
+  memset( numSamples, 0, sizeof( UInt )*(LEVEL_RANGE+1) );
+
+  // Collect stats to cSum[][] and numSamples[][]
+  for(Int i = 0; i < rpcCU->getTotalNumPart(); i ++ )
+  {
+    UInt uiTrIdx = rpcCU->getTransformIdx(i);
+
+    if(rpcCU->getPredictionMode(i) == MODE_INTER)
+    if( rpcCU->getCbf( i, TEXT_LUMA, uiTrIdx ) )
+    {
+      xTuCollectARLStats(pCoeffY, pArlCoeffY, uiMinNumCoeffInCU, cSum, numSamples);
+    }//Note that only InterY is processed. QP rounding is based on InterY data only.
+   
+    pCoeffY  += uiMinNumCoeffInCU;
+    pArlCoeffY  += uiMinNumCoeffInCU;
+  }
+
+  for(Int u=1; u<LEVEL_RANGE;u++)
+  {
+    m_pcTrQuant->getSliceSumC()[u] += cSum[ u ] ;
+    m_pcTrQuant->getSliceNSamples()[u] += numSamples[ u ] ;
+  }
+  m_pcTrQuant->getSliceSumC()[LEVEL_RANGE] += cSum[ LEVEL_RANGE ] ;
+  m_pcTrQuant->getSliceNSamples()[LEVEL_RANGE] += numSamples[ LEVEL_RANGE ] ;
+}
+#endif
 //! \}

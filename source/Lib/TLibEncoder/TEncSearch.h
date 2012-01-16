@@ -68,6 +68,14 @@ private:
   TCoeff*         m_pcQTTempCoeffY;
   TCoeff*         m_pcQTTempCoeffCb;
   TCoeff*         m_pcQTTempCoeffCr;
+#if ADAPTIVE_QP_SELECTION
+  Int**           m_ppcQTTempArlCoeffY;
+  Int**           m_ppcQTTempArlCoeffCb;
+  Int**           m_ppcQTTempArlCoeffCr;
+  Int*            m_pcQTTempArlCoeffY;
+  Int*            m_pcQTTempArlCoeffCb;
+  Int*            m_pcQTTempArlCoeffCr;
+#endif
   UChar*          m_puhQTTempTrIdx;
   UChar*          m_puhQTTempCbf[3];
   

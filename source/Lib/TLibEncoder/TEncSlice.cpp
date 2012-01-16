@@ -452,6 +452,13 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   dQP     = m_pdRdPicQp    [0];
   iQP     = m_piRdPicQp    [0];
   
+#if G678_LAMBDA_ADJUSTMENT
+  if( rpcSlice->getSliceType( ) != I_SLICE )
+  {
+    dLambda *= m_pcCfg->getLambdaModifier( iDepth );
+  }
+#endif
+
   // store lambda
   m_pcRdCost ->setLambda( dLambda );
 #if WEIGHTED_CHROMA_DISTORTION
@@ -489,6 +496,9 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 #endif
   
   rpcSlice->setSliceQp          ( iQP );
+#if ADAPTIVE_QP_SELECTION
+  rpcSlice->setSliceQpBase      ( iQP );
+#endif
   rpcSlice->setSliceQpDelta     ( 0 );
 #if G1002_RPS
   rpcSlice->setNumRefIdx(REF_PIC_LIST_0,m_pcCfg->getGOPEntry(iGOPid).m_iRefBufSize);
@@ -624,6 +634,9 @@ Void TEncSlice::precompressSlice( TComPic*& rpcPic )
   for ( UInt uiQpIdx = 0; uiQpIdx < 2 * m_pcCfg->getDeltaQpRD() + 1; uiQpIdx++ )
   {
     pcSlice       ->setSliceQp             ( m_piRdPicQp    [uiQpIdx] );
+#if ADAPTIVE_QP_SELECTION
+    pcSlice       ->setSliceQpBase         ( m_piRdPicQp    [uiQpIdx] );
+#endif
     m_pcRdCost    ->setLambda              ( m_pdRdPicLambda[uiQpIdx] );
 #if WEIGHTED_CHROMA_DISTORTION
     // for RDO
@@ -667,6 +680,9 @@ Void TEncSlice::precompressSlice( TComPic*& rpcPic )
   
   // set best values
   pcSlice       ->setSliceQp             ( m_piRdPicQp    [uiQpIdxBest] );
+#if ADAPTIVE_QP_SELECTION
+  pcSlice       ->setSliceQpBase         ( m_piRdPicQp    [uiQpIdxBest] );
+#endif
   m_pcRdCost    ->setLambda              ( m_pdRdPicLambda[uiQpIdxBest] );
 #if WEIGHTED_CHROMA_DISTORTION
   // in RdCost there is only one lambda because the luma and chroma bits are not separated, instead we weight the distortion of chroma.
@@ -767,6 +783,14 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   }
 #endif
 
+#if ADAPTIVE_QP_SELECTION
+  m_pcTrQuant->clearSliceARLCnt();
+  if(pcSlice->getSliceType()!=I_SLICE)
+  {
+    Int qpBase = pcSlice->getSliceQpBase();
+    pcSlice->setSliceQp(qpBase + m_pcTrQuant->getQpDelta(qpBase));
+  }
+#endif
   // initialize ALF parameters
   m_pcEntropyCoder->setAlfCtrl(false);
   m_pcEntropyCoder->setMaxAlfCtrlDepth(0); //unnecessary
@@ -1685,6 +1709,10 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
     }
 #endif
   }
+
+#if ADAPTIVE_QP_SELECTION
+  m_pcTrQuant->storeSliceQpNext(pcSlice);
+#endif
 }
 
 /** Determines the starting and bounding LCU address of current slice / entropy slice

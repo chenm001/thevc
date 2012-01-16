@@ -146,6 +146,15 @@ private:
   TCoeff*       m_pcTrCoeffY;         ///< transformed coefficient buffer (Y)
   TCoeff*       m_pcTrCoeffCb;        ///< transformed coefficient buffer (Cb)
   TCoeff*       m_pcTrCoeffCr;        ///< transformed coefficient buffer (Cr)
+#if ADAPTIVE_QP_SELECTION
+  Int*          m_pcArlCoeffY;        ///< ARL coefficient buffer (Y)
+  Int*          m_pcArlCoeffCb;       ///< ARL coefficient buffer (Cb)
+  Int*          m_pcArlCoeffCr;       ///< ARL coefficient buffer (Cr)
+
+  static Int*   m_pcGlbArlCoeffY;     ///< ARL coefficient buffer (Y)
+  static Int*   m_pcGlbArlCoeffCb;    ///< ARL coefficient buffer (Cb)
+  static Int*   m_pcGlbArlCoeffCr;    ///< ARL coefficient buffer (Cr)
+#endif
   
   Pel*          m_pcIPCMSampleY;      ///< PCM sample buffer (Y)
   Pel*          m_pcIPCMSampleCb;     ///< PCM sample buffer (Cb)
@@ -243,7 +252,11 @@ public:
   // create / destroy / initialize / copy
   // -------------------------------------------------------------------------------------------------------------------
   
-  Void          create                ( UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool bDecSubCu, Int unitSize );
+  Void          create                ( UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool bDecSubCu, Int unitSize
+#if ADAPTIVE_QP_SELECTION
+    , Bool bGlobalRMARLBuffer = false
+#endif  
+    );
   Void          destroy               ();
   
   Void          initCU                ( TComPic* pcPic, UInt uiCUAddr );
@@ -324,6 +337,11 @@ public:
   TCoeff*&      getCoeffY             ()                        { return m_pcTrCoeffY;        }
   TCoeff*&      getCoeffCb            ()                        { return m_pcTrCoeffCb;       }
   TCoeff*&      getCoeffCr            ()                        { return m_pcTrCoeffCr;       }
+#if ADAPTIVE_QP_SELECTION
+  Int*&         getArlCoeffY          ()                        { return m_pcArlCoeffY;       }
+  Int*&         getArlCoeffCb         ()                        { return m_pcArlCoeffCb;      }
+  Int*&         getArlCoeffCr         ()                        { return m_pcArlCoeffCr;      }
+#endif
   
   Pel*&         getPCMSampleY         ()                        { return m_pcIPCMSampleY;     }
   Pel*&         getPCMSampleCb        ()                        { return m_pcIPCMSampleCb;    }

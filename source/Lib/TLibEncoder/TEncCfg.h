@@ -108,7 +108,10 @@ protected:
   Int       m_iSourceWidth;
   Int       m_iSourceHeight;
   Int       m_iFrameToBeEncoded;
-  
+#if G678_LAMBDA_ADJUSTMENT  
+  Double    m_adLambdaModifier[ MAX_TLAYER ];
+#endif
+
   //====== Coding Structure ========
   UInt      m_uiIntraPeriod;
   UInt      m_uiDecodingRefreshType;            ///< the type of decoding refresh employed for the random access.
@@ -420,7 +423,11 @@ public:
   Int       getSourceWidth                  ()      { return  m_iSourceWidth; }
   Int       getSourceHeight                 ()      { return  m_iSourceHeight; }
   Int       getFrameToBeEncoded             ()      { return  m_iFrameToBeEncoded; }
-  
+#if G678_LAMBDA_ADJUSTMENT  
+  void setLambdaModifier                    ( UInt uiIndex, Double dValue ) { m_adLambdaModifier[ uiIndex ] = dValue; }
+  Double getLambdaModifier                  ( UInt uiIndex ) const { return m_adLambdaModifier[ uiIndex ]; }
+#endif
+
   //==== Coding Structure ========
   UInt      getIntraPeriod                  ()      { return  m_uiIntraPeriod; }
   UInt      getDecodingRefreshType          ()      { return  m_uiDecodingRefreshType; }

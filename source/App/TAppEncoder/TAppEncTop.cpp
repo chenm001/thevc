@@ -88,7 +88,12 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setNumOfReferenceB_L0           ( m_iNumOfReferenceB_L0 );
   m_cTEncTop.setNumOfReferenceB_L1           ( m_iNumOfReferenceB_L1 );
 #endif
-  
+#if G678_LAMBDA_ADJUSTMENT
+  for( UInt uiLoop = 0; uiLoop < MAX_TLAYER; ++uiLoop )
+  {
+    m_cTEncTop.setLambdaModifier( uiLoop, m_adLambdaModifier[ uiLoop ] );
+  }
+#endif
   m_cTEncTop.setQP                           ( m_iQP );
   
   m_cTEncTop.setTemporalLayerQPOffset        ( m_aiTLayerQPOffset );

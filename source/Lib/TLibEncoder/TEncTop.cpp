@@ -106,6 +106,9 @@ Void TEncTop::create ()
     m_cEncSAO.createEncBuffer();
   }
 #endif
+#if ADAPTIVE_QP_SELECTION
+  m_cTrQuant.initSliceQpDelta();
+#endif
   m_cAdaptiveLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 #if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
   m_cLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
