@@ -67,7 +67,10 @@ private:
 #if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
   TComPicYuv m_preDeblockPic;
 #endif
-  
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  Bool      m_bLFCrossTileBoundary;
+#endif
+
 protected:
   /// CU-level deblocking function
 #if PARALLEL_MERGED_DEBLK
@@ -171,7 +174,11 @@ public:
   Void  destroy                   ();
   
   /// set configuration
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  Void setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaOffset, Bool bLFCrossTileBoundary);
+#else
   Void setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaOffset );
+#endif
   
   /// picture-level deblocking filter
   Void loopFilterPic( TComPic* pcPic );

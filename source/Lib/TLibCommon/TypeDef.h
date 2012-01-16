@@ -40,6 +40,7 @@
 
 //! \ingroup TLibCommon
 //! \{
+
 #define INC_CABACINITIDC_SLICETYPE 1 ///<G315: support for making presence of cabac_init_idc syntax element not dependent on slice type, and slice_type in slice header and entropy slice header
 #define SLICEADDR_BEGIN            1 ///<G315: support for moving slice address to beginning of slice
 #define PADDING_INTRA             1 ///< G812: padding from bottom left, copy previous pixel instead of averaging
@@ -139,6 +140,9 @@
 #define PIC_SIZE_VLC                        1      ///< G325: code pic_width_in_luma_samples and pic_heigh_in_luma_samples as ue(v)
 #define MAX_DPB_AND_LATENCY                 1      ///< G546 : Move max_dec_frame_buffering and num_reorder_frames from VUI to SPS
                                                    ///< G779 : Put max_latency_increase in SPS
+
+#define NONCROSS_TILE_IN_LOOP_FILTERING     1      ///< G194 : Non-cross-tiles loop filtering
+
 ////////////////////////////
 // JCT-VC G end
 ////////////////////////////

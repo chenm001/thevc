@@ -78,6 +78,16 @@ private:
   Bool                  m_usedForTMVP;
 #endif
   
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  Int*                  m_piSliceSUMap;
+  Bool*                 m_pbValidSlice;
+  Int                   m_iSliceGranularityForNDBFilter;
+  Bool                  m_bIndependentSliceBoundaryForNDBFilter;
+  Bool                  m_bIndependentTileBoundaryForNDBFilter;
+  TComPicYuv*           m_pcNDBFilterYuvTmp;    //!< temporary picture buffer when non-cross slice/tile boundary in-loop filtering is enabled
+  std::vector<std::vector<TComDataCU*> > m_vSliceCUDataLink;
+#endif
+
   SEImessages* m_SEIs; ///< Any SEI messages that have been received.  If !NULL we own the object.
 
 public:
@@ -153,6 +163,27 @@ public:
   Void          allocateNewSlice()           {m_apcPicSym->allocateNewSlice();         }
   Void          clearSliceBuffer()           {m_apcPicSym->clearSliceBuffer();         }
   
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+
+  Void          createNonDBFilterInfo   (UInt* puiSliceStartAddress = NULL, Int iNumSlices = 1, Int iSliceGranularityDepth= 0
+                                        ,Bool bNDBFilterCrossSliceBoundary = true
+                                        ,Int iNumTiles = 1
+                                        ,Bool bNDBFilterCrossTileBoundary = true);
+#if TILES
+  Void          createNonDBFilterInfoLCU(Int iTileID, Int iSliceID, TComDataCU* pcCU, UInt uiStartSU, UInt uiEndSU, Int iSliceGranularyDepth, UInt uiPicWidth, UInt uiPicHeight);
+#else
+  Void          createNonDBFilterInfoLCU(Int iSliceID, TComDataCU* pcCU, UInt uiStartSU, UInt uiEndSU, Int iSliceGranularyDepth, UInt uiPicWidth, UInt uiPicHeight);
+#endif
+  Void          destroyNonDBFilterInfo();
+
+  Bool          getValidSlice                                  (Int iSliceID) {return m_pbValidSlice[iSliceID];}
+  Int           getSliceGranularityForNDBFilter                ()             {return m_iSliceGranularityForNDBFilter;}
+  Bool          getIndependentSliceBoundaryForNDBFilter        ()             {return m_bIndependentSliceBoundaryForNDBFilter;}
+  Bool          getIndependentTileBoundaryForNDBFilter         ()             {return m_bIndependentTileBoundaryForNDBFilter; }
+  TComPicYuv*   getYuvPicBufferForIndependentBoundaryProcessing()             {return m_pcNDBFilterYuvTmp;}
+  std::vector<TComDataCU*>& getOneSliceCUDataForNDBFilter      (Int iSliceID) { return m_vSliceCUDataLink[iSliceID];}
+#endif
+
   /** transfer ownership of seis to this picture */
   void setSEIs(SEImessages* seis) { m_SEIs = seis; }
 

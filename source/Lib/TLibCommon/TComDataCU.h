@@ -54,6 +54,54 @@
 //! \ingroup TLibCommon
 //! \{
 
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+
+// ====================================================================================================================
+// Non-deblocking in-loop filter processing block data structure
+// ====================================================================================================================
+
+/// Non-deblocking filter processing block border tag
+enum NDBFBlockBorderTag
+{
+  SGU_L = 0,
+  SGU_R,
+  SGU_T,
+  SGU_B,
+  SGU_TL,
+  SGU_TR,
+  SGU_BL,
+  SGU_BR,
+  NUM_SGU_BORDER
+};
+
+/// Non-deblocking filter processing block information
+struct NDBFBlockInfo
+{
+#if TILES
+  Int   tileID;   //!< tile ID
+#endif
+  Int   sliceID;  //!< slice ID
+  UInt  startSU;  //!< starting SU z-scan address in LCU
+  UInt  endSU;    //!< ending SU z-scan address in LCU
+  UInt  widthSU;  //!< number of SUs in width
+  UInt  heightSU; //!< number of SUs in height
+  UInt  posX;     //!< top-left X coordinate in picture
+  UInt  posY;     //!< top-left Y coordinate in picture
+  UInt  width;    //!< number of pixels in width
+  UInt  height;   //!< number of pixels in height
+  Bool  isBorderAvailable[NUM_SGU_BORDER];  //!< the border availabilities
+
+#if TILES
+  NDBFBlockInfo():tileID(0), sliceID(0), startSU(0), endSU(0) {} //!< constructor
+#else
+  NDBFBlockInfo():sliceID(0), startSU(0), endSU(0) {} //!< constructor
+#endif
+  const NDBFBlockInfo& operator= (const NDBFBlockInfo& src);  //!< "=" operator
+};
+
+#endif
+
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -104,6 +152,9 @@ private:
   Pel*          m_pcIPCMSampleCr;     ///< PCM sample buffer (Cr)
 
   Int*          m_piSliceSUMap;       ///< pointer of slice ID map
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  std::vector<NDBFBlockInfo> m_vNDFBlock;
+#endif
 
   // -------------------------------------------------------------------------------------------------------------------
   // neighbour access variables
@@ -349,6 +400,13 @@ public:
   /// set the pointer of slice ID map
   Void          setSliceSUMap         (Int *pi)                 {m_piSliceSUMap = pi;               }
 
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  std::vector<NDBFBlockInfo>* getNDBFilterBlocks()      {return &m_vNDFBlock;}
+  Void setNDBFilterBlockBorderAvailability(UInt uiNumLCUInPicWidth, UInt uiNumLCUInPicHeight, UInt uiNumSUInLCUWidth, UInt uiNumSUInLCUHeight, UInt uiPicWidth, UInt uiPicHeight
+                                          ,Bool bIndependentSliceBoundaryEnabled
+                                          ,Bool bTopTileBoundary, Bool bDownTileBoundary, Bool bLeftTileBoundary, Bool bRightTileBoundary
+                                          ,Bool bIndependentTileBoundaryEnabled );
+#endif
 
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for accessing partition information
@@ -396,13 +454,23 @@ public:
   TComDataCU*   getCUAboveLeft              () { return m_pcCUAboveLeft;  }
   TComDataCU*   getCUAboveRight             () { return m_pcCUAboveRight; }
   TComDataCU*   getCUColocated              ( RefPicList eRefPicList ) { return m_apcCUColocated[eRefPicList]; }
-  
-  TComDataCU*   getPULeft                   ( UInt&  uiLPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
-#if REMOVE_INTRA_LINE_BUFFER
-  TComDataCU*   getPUAbove                  ( UInt&  uiAPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false, Bool planarAtLCUBoundary = false );
-#else
-  TComDataCU*   getPUAbove                  ( UInt&  uiAPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false );
+
+
+  TComDataCU*   getPULeft                   ( UInt&  uiLPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+                                            , Bool bEnforceTileRestriction=true 
 #endif
+                                            );
+
+  TComDataCU*   getPUAbove                  ( UInt&  uiAPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false
+#if REMOVE_INTRA_LINE_BUFFER
+                                            , Bool planarAtLCUBoundary = false 
+#endif
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+                                            , Bool bEnforceTileRestriction=true 
+#endif                                            
+                                            );
+
   TComDataCU*   getPUAboveLeft              ( UInt&  uiALPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false );
   TComDataCU*   getPUAboveRight             ( UInt&  uiARPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false );
   TComDataCU*   getPUBelowLeft              ( UInt& uiBLPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );

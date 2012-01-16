@@ -98,7 +98,11 @@ public:
   Void getSaoStats(SAOQTPart *psQTPart, Int iYCbCr);
   Void calcSaoStatsCu(Int iAddr, Int iPartIdx, Int iYCbCr);
 #if SAO_FGS_NIF
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  Void calcSaoStatsBlock( Pel* pRecStart, Pel* pOrgStart, Int iStride, Int64** ppiStats, Int64** ppiCount, UInt uiWidth, UInt uiHeight, Bool* pbBorderAvail);
+#else
   Void calcSaoStatsCuMap(Int iAddr, Int iPartIdx, Int iYCbCr);
+#endif
   Void calcSaoStatsCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);
 #endif
   Void destroyEncBuffer();

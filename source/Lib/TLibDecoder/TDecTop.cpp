@@ -565,11 +565,24 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       UInt uiCummulativeTileHeight;
       UInt i, j, p;
 
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+      //set the TileBoundaryIndependenceIdr
+      if(pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)
+      {
+        pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getTileBoundaryIndependenceIdr() );
+      }
+      else
+      {
+        pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getSPS()->getTileBoundaryIndependenceIdr() );
+      }
+#endif
+
       if( pcSlice->getPPS()->getColumnRowInfoPresent() == 1 )
       {
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
         //set the TileBoundaryIndependenceIdr
         pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getTileBoundaryIndependenceIdr() );
-
+#endif
         //set NumColumnsMins1 and NumRowsMinus1
         pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getPPS()->getNumColumnsMinus1() );
         pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getPPS()->getNumRowsMinus1() );
@@ -630,9 +643,10 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       }
       else
       {
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
         //set the TileBoundaryIndependenceIdr
         pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getSPS()->getTileBoundaryIndependenceIdr() );
-
+#endif
         //set NumColumnsMins1 and NumRowsMinus1
         pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getSPS()->getNumColumnsMinus1() );
         pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getSPS()->getNumRowsMinus1() );

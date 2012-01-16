@@ -258,6 +258,14 @@ Void TAppEncTop::xInitLibCfg()
   m_dMaxTileMarkerOffset  = ((Double)uiTilesCount) / m_iMaxTileMarkerEntryPoints;
   m_cTEncTop.setMaxTileMarkerOffset         ( m_dMaxTileMarkerOffset );
 #endif
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  m_cTEncTop.setTileBehaviorControlPresentFlag( m_iTileBehaviorControlPresentFlag );
+  if(m_iTileBoundaryIndependenceIdr == 0 || uiTilesCount == 1)
+  {
+    m_bLFCrossTileBoundaryFlag = true; 
+  }
+  m_cTEncTop.setLFCrossTileBoundaryFlag( m_bLFCrossTileBoundaryFlag );
+#endif
 #endif
 #if OL_USE_WPP
   m_cTEncTop.setWaveFrontSynchro           ( m_iWaveFrontSynchro );

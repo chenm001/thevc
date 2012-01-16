@@ -244,6 +244,29 @@ Void TComDataCU::destroy()
 #endif
 }
 
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+
+const NDBFBlockInfo& NDBFBlockInfo::operator= (const NDBFBlockInfo& src)
+{
+#if TILES
+  this->tileID = src.tileID;
+#endif
+  this->sliceID= src.sliceID;
+  this->startSU= src.startSU;
+  this->endSU  = src.endSU;
+  this->widthSU= src.widthSU;
+  this->heightSU=src.heightSU;
+  this->posX   = src.posX;
+  this->posY   = src.posY;
+  this->width  = src.width;
+  this->height = src.height;
+  ::memcpy(this->isBorderAvailable, src.isBorderAvailable, sizeof(Bool)*((Int)NUM_SGU_BORDER));
+
+  return *this;
+}
+#endif
+
+
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
@@ -1222,7 +1245,11 @@ Void TComDataCU::copyToPic( UChar uhDepth, UInt uiPartIdx, UInt uiPartDepth )
 // Other public functions
 // --------------------------------------------------------------------------------------------------------------------
 
-TComDataCU* TComDataCU::getPULeft( UInt& uiLPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction )
+TComDataCU* TComDataCU::getPULeft( UInt& uiLPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+                                 , Bool bEnforceTileRestriction
+#endif
+                                 )
 {
   UInt uiAbsPartIdx       = g_auiZscanToRaster[uiCurrPartUnitIdx];
   UInt uiAbsZorderCUIdx   = g_auiZscanToRaster[m_uiAbsIdxInLCU];
@@ -1261,6 +1288,15 @@ TComDataCU* TComDataCU::getPULeft( UInt& uiLPartUnitIdx, UInt uiCurrPartUnitIdx,
 
 #if FINE_GRANULARITY_SLICES
 #if TILES
+
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  if ( (bEnforceSliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrPartUnitIdx)))
+      ||
+       (bEnforceEntropySliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrPartUnitIdx)))
+      ||
+       (bEnforceTileRestriction && ( m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))  )  )
+      )
+#else
   if ( (bEnforceSliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || 
        m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrPartUnitIdx)||
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
@@ -1270,6 +1306,8 @@ TComDataCU* TComDataCU::getPULeft( UInt& uiLPartUnitIdx, UInt uiCurrPartUnitIdx,
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
        ))
      )
+#endif
+
 #else
   if ((bEnforceSliceRestriction        && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiCurrPartUnitIdx)))
     ||(bEnforceEntropySliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrPartUnitIdx))))
@@ -1294,11 +1332,15 @@ TComDataCU* TComDataCU::getPULeft( UInt& uiLPartUnitIdx, UInt uiCurrPartUnitIdx,
   return m_pcCULeft;
 }
 
+
+TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction, Bool MotionDataCompresssion
 #if REMOVE_INTRA_LINE_BUFFER
-TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction, Bool MotionDataCompresssion, Bool planarAtLCUBoundary )
-#else
-TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction, Bool MotionDataCompresssion )
+                                  , Bool planarAtLCUBoundary 
 #endif
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+                                  , Bool bEnforceTileRestriction 
+#endif                                            
+                                  )
 {
   UInt uiAbsPartIdx       = g_auiZscanToRaster[uiCurrPartUnitIdx];
   UInt uiAbsZorderCUIdx   = g_auiZscanToRaster[m_uiAbsIdxInLCU];
@@ -1348,6 +1390,15 @@ TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx
 
 #if FINE_GRANULARITY_SLICES
 #if TILES
+
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  if ( (bEnforceSliceRestriction && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcCUAbove->getSCUAddr()+uiAPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrPartUnitIdx)))
+      ||
+       (bEnforceEntropySliceRestriction && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcCUAbove->getSCUAddr()+uiAPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrPartUnitIdx)))
+      ||
+       (bEnforceTileRestriction &&(m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))))
+      )
+#else
   if ( (bEnforceSliceRestriction && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || 
        m_pcCUAbove->getSCUAddr()+uiAPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrPartUnitIdx)||
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
@@ -1357,6 +1408,8 @@ TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
        ))
      )
+#endif
+
 #else
   if ((bEnforceSliceRestriction        && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcCUAbove->getSCUAddr()+uiAPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiCurrPartUnitIdx)))
     ||(bEnforceEntropySliceRestriction && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcCUAbove->getSCUAddr()+uiAPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrPartUnitIdx))))
@@ -4645,4 +4698,356 @@ UInt TComDataCU::getSCUAddr()
   return getPic()->getPicSym()->getInverseCUOrderMap(m_uiCUAddr)*(1<<(m_pcSlice->getSPS()->getMaxCUDepth()<<1))+m_uiAbsIdxInLCU; 
 }
 #endif
+
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt uiNumLCUInPicWidth, UInt uiNumLCUInPicHeight, UInt uiNumSUInLCUWidth, UInt uiNumSUInLCUHeight, UInt uiPicWidth, UInt uiPicHeight
+                                                    ,Bool bIndependentSliceBoundaryEnabled
+                                                    ,Bool bTopTileBoundary, Bool bDownTileBoundary, Bool bLeftTileBoundary, Bool bRightTileBoundary
+                                                    ,Bool bIndependentTileBoundaryEnabled)
+{
+  UInt uiNumSUInLCU = uiNumSUInLCUWidth*uiNumSUInLCUHeight;
+  Int* piSliceIDMapLCU = m_piSliceSUMap;
+
+  UInt uiLPelX, uiTPelY;
+  UInt uiWidth, uiHeight;
+  Bool bPicRBoundary, bPicBBoundary, bPicTBoundary, bPicLBoundary;
+  Bool bLCURBoundary= false, bLCUBBoundary= false, bLCUTBoundary= false, bLCULBoundary= false;
+  Bool* pbAvailBorder;
+  Bool* pbAvail;
+  UInt rTLSU, rBRSU, uiWidthSU, uiHeightSU;
+  UInt zRefSU;
+  Int* piRefID;
+  Int* piRefMapLCU;
+  UInt rTRefSU= 0, rBRefSU= 0, rLRefSU= 0, rRRefSU= 0;
+  Int* piRRefMapLCU= NULL;
+  Int* piLRefMapLCU= NULL;
+  Int* piTRefMapLCU= NULL;
+  Int* piBRefMapLCU= NULL;
+  Int iSliceID;
+  UInt uiNumSGU = (UInt)m_vNDFBlock.size();
+
+  for(Int i=0; i< uiNumSGU; i++)
+  {
+    NDBFBlockInfo& rSGU = m_vNDFBlock[i];
+
+    iSliceID= rSGU.sliceID;
+    uiLPelX = rSGU.posX;
+    uiTPelY = rSGU.posY;
+    uiWidth = rSGU.width;
+    uiHeight= rSGU.height;
+
+    rTLSU     = g_auiZscanToRaster[ rSGU.startSU ];
+    rBRSU     = g_auiZscanToRaster[ rSGU.endSU   ];
+    uiWidthSU = rSGU.widthSU;
+    uiHeightSU= rSGU.heightSU;
+
+    pbAvailBorder = rSGU.isBorderAvailable;
+
+    bPicTBoundary= (uiTPelY == 0                       )?(true):(false);
+    bPicLBoundary= (uiLPelX == 0                       )?(true):(false);
+    bPicRBoundary= (!(uiLPelX+ uiWidth < uiPicWidth )  )?(true):(false);
+    bPicBBoundary= (!(uiTPelY + uiHeight < uiPicHeight))?(true):(false);
+
+    bLCULBoundary = (rTLSU % uiNumSUInLCUWidth == 0)?(true):(false);
+    bLCURBoundary = ( (rTLSU+ uiWidthSU) % uiNumSUInLCUWidth == 0)?(true):(false);
+    bLCUTBoundary = ( (UInt)(rTLSU / uiNumSUInLCUWidth)== 0)?(true):(false);
+    bLCUBBoundary = ( (UInt)(rBRSU / uiNumSUInLCUWidth) == (uiNumSUInLCUHeight-1) )?(true):(false);
+
+    //       SGU_L
+    pbAvail = &(pbAvailBorder[SGU_L]);
+    if(bPicLBoundary)
+    {
+      *pbAvail = false;
+    }
+    else if (!bIndependentSliceBoundaryEnabled)
+    {
+      *pbAvail = true;
+    }
+    else
+    {
+      //      bLCULBoundary = (rTLSU % uiNumSUInLCUWidth == 0)?(true):(false);
+      if(bLCULBoundary)
+      {
+        rLRefSU     = rTLSU + uiNumSUInLCUWidth -1;
+        zRefSU      = g_auiRasterToZscan[rLRefSU];
+        piRefMapLCU = piLRefMapLCU= (piSliceIDMapLCU - uiNumSUInLCU);
+      }
+      else
+      {
+        zRefSU   = g_auiRasterToZscan[rTLSU - 1];
+        piRefMapLCU  = piSliceIDMapLCU;
+      }
+      piRefID = piRefMapLCU + zRefSU;
+      *pbAvail = (*piRefID == iSliceID)?(true):(false);
+    }
+
+    //       SGU_R
+    pbAvail = &(pbAvailBorder[SGU_R]);
+    if(bPicRBoundary)
+    {
+      *pbAvail = false;
+    }
+    else if (!bIndependentSliceBoundaryEnabled)
+    {
+      *pbAvail = true;
+    }
+    else
+    {
+      //       bLCURBoundary = ( (rTLSU+ uiWidthSU) % uiNumSUInLCUWidth == 0)?(true):(false);
+      if(bLCURBoundary)
+      {
+        rRRefSU      = rTLSU + uiWidthSU - uiNumSUInLCUWidth;
+        zRefSU       = g_auiRasterToZscan[rRRefSU];
+        piRefMapLCU  = piRRefMapLCU= (piSliceIDMapLCU + uiNumSUInLCU);
+      }
+      else
+      {
+        zRefSU       = g_auiRasterToZscan[rTLSU + uiWidthSU];
+        piRefMapLCU  = piSliceIDMapLCU;
+      }
+      piRefID = piRefMapLCU + zRefSU;
+      *pbAvail = (*piRefID == iSliceID)?(true):(false);
+    }
+
+    //       SGU_T
+    pbAvail = &(pbAvailBorder[SGU_T]);
+    if(bPicTBoundary)
+    {
+      *pbAvail = false;
+    }
+    else if (!bIndependentSliceBoundaryEnabled)
+    {
+      *pbAvail = true;
+    }
+    else
+    {
+      //      bLCUTBoundary = ( (UInt)(rTLSU / uiNumSUInLCUWidth)== 0)?(true):(false);
+      if(bLCUTBoundary)
+      {
+        rTRefSU      = uiNumSUInLCU - (uiNumSUInLCUWidth - rTLSU);
+        zRefSU       = g_auiRasterToZscan[rTRefSU];
+        piRefMapLCU  = piTRefMapLCU= (piSliceIDMapLCU - (uiNumLCUInPicWidth*uiNumSUInLCU));
+      }
+      else
+      {
+        zRefSU       = g_auiRasterToZscan[rTLSU - uiNumSUInLCUWidth];
+        piRefMapLCU  = piSliceIDMapLCU;
+      }
+      piRefID = piRefMapLCU + zRefSU;
+      *pbAvail = (*piRefID == iSliceID)?(true):(false);
+    }
+
+    //       SGU_B
+    pbAvail = &(pbAvailBorder[SGU_B]);
+    if(bPicBBoundary)
+    {
+      *pbAvail = false;
+    }
+    else if (!bIndependentSliceBoundaryEnabled)
+    {
+      *pbAvail = true;
+    }
+    else
+    {
+      //      bLCUBBoundary = ( (UInt)(rBRSU / uiNumSUInLCUWidth) == (uiNumSUInLCUHeight-1) )?(true):(false);
+      if(bLCUBBoundary)
+      {
+        rBRefSU      = rTLSU % uiNumSUInLCUWidth;
+        zRefSU       = g_auiRasterToZscan[rBRefSU];
+        piRefMapLCU  = piBRefMapLCU= (piSliceIDMapLCU + (uiNumLCUInPicWidth*uiNumSUInLCU));
+      }
+      else
+      {
+        zRefSU       = g_auiRasterToZscan[rTLSU + (uiHeightSU*uiNumSUInLCUWidth)];
+        piRefMapLCU  = piSliceIDMapLCU;
+      }
+      piRefID = piRefMapLCU + zRefSU;
+      *pbAvail = (*piRefID == iSliceID)?(true):(false);
+    }
+
+    //       SGU_TL
+    pbAvail = &(pbAvailBorder[SGU_TL]);
+    if(bPicTBoundary || bPicLBoundary)
+    {
+      *pbAvail = false;
+    }
+    else if (!bIndependentSliceBoundaryEnabled)
+    {
+      *pbAvail = true;
+    }
+    else
+    {
+      if(bLCUTBoundary && bLCULBoundary)
+      {
+        zRefSU       = uiNumSUInLCU -1;
+        piRefMapLCU  = piSliceIDMapLCU - ( (uiNumLCUInPicWidth+1)*uiNumSUInLCU);
+      }
+      else if(bLCUTBoundary)
+      {
+        zRefSU       = g_auiRasterToZscan[ rTRefSU- 1];
+        piRefMapLCU  = piTRefMapLCU;
+      }
+      else if(bLCULBoundary)
+      {
+        zRefSU       = g_auiRasterToZscan[ rLRefSU- uiNumSUInLCUWidth ];
+        piRefMapLCU  = piLRefMapLCU;
+      }
+      else //inside LCU
+      {
+        zRefSU       = g_auiRasterToZscan[ rTLSU - uiNumSUInLCUWidth -1];
+        piRefMapLCU  = piSliceIDMapLCU;
+      }
+      piRefID = piRefMapLCU + zRefSU;
+      *pbAvail = (*piRefID == iSliceID)?(true):(false);
+    }
+
+    //       SGU_TR
+    pbAvail = &(pbAvailBorder[SGU_TR]);
+    if(bPicTBoundary || bPicRBoundary)
+    {
+      *pbAvail = false;
+    }
+    else if (!bIndependentSliceBoundaryEnabled)
+    {
+      *pbAvail = true;
+    }
+    else
+    {
+      if(bLCUTBoundary && bLCURBoundary)
+      {
+        zRefSU      = g_auiRasterToZscan[uiNumSUInLCU - uiNumSUInLCUWidth];
+        piRefMapLCU  = piSliceIDMapLCU - ( (uiNumLCUInPicWidth-1)*uiNumSUInLCU);        
+      }
+      else if(bLCUTBoundary)
+      {
+        zRefSU       = g_auiRasterToZscan[ rTRefSU+ uiWidthSU];
+        piRefMapLCU  = piTRefMapLCU;
+      }
+      else if(bLCURBoundary)
+      {
+        zRefSU       = g_auiRasterToZscan[ rRRefSU- uiNumSUInLCUWidth ];
+        piRefMapLCU  = piRRefMapLCU;
+      }
+      else //inside LCU
+      {
+        zRefSU       = g_auiRasterToZscan[ rTLSU - uiNumSUInLCUWidth +uiWidthSU];
+        piRefMapLCU  = piSliceIDMapLCU;
+      }
+      piRefID = piRefMapLCU + zRefSU;
+      *pbAvail = (*piRefID == iSliceID)?(true):(false);
+    }
+
+    //       SGU_BL
+    pbAvail = &(pbAvailBorder[SGU_BL]);
+    if(bPicBBoundary || bPicLBoundary)
+    {
+      *pbAvail = false;
+    }
+    else if (!bIndependentSliceBoundaryEnabled)
+    {
+      *pbAvail = true;
+    }
+    else
+    {
+      if(bLCUBBoundary && bLCULBoundary)
+      {
+        zRefSU      = g_auiRasterToZscan[uiNumSUInLCUWidth - 1];
+        piRefMapLCU  = piSliceIDMapLCU + ( (uiNumLCUInPicWidth-1)*uiNumSUInLCU);        
+      }
+      else if(bLCUBBoundary)
+      {
+        zRefSU       = g_auiRasterToZscan[ rBRefSU - 1];
+        piRefMapLCU  = piBRefMapLCU;
+      }
+      else if(bLCULBoundary)
+      {
+        zRefSU       = g_auiRasterToZscan[ rLRefSU+ uiHeightSU*uiNumSUInLCUWidth ];
+        piRefMapLCU  = piLRefMapLCU;
+      }
+      else //inside LCU
+      {
+        zRefSU       = g_auiRasterToZscan[ rTLSU + uiHeightSU*uiNumSUInLCUWidth -1];
+        piRefMapLCU  = piSliceIDMapLCU;
+      }
+      piRefID = piRefMapLCU + zRefSU;
+      *pbAvail = (*piRefID == iSliceID)?(true):(false);
+    }
+
+    //       SGU_BR
+    pbAvail = &(pbAvailBorder[SGU_BR]);
+    if(bPicBBoundary || bPicRBoundary)
+    {
+      *pbAvail = false;
+    }
+    else if (!bIndependentSliceBoundaryEnabled)
+    {
+      *pbAvail = true;
+    }
+    else
+    {
+      if(bLCUBBoundary && bLCURBoundary)
+      {
+        zRefSU = 0;
+        piRefMapLCU = piSliceIDMapLCU+ ( (uiNumLCUInPicWidth+1)*uiNumSUInLCU);
+      }
+      else if(bLCUBBoundary)
+      {
+        zRefSU      = g_auiRasterToZscan[ rBRefSU + uiWidthSU];
+        piRefMapLCU = piBRefMapLCU;
+      }
+      else if(bLCURBoundary)
+      {
+        zRefSU      = g_auiRasterToZscan[ rRRefSU + (uiHeightSU*uiNumSUInLCUWidth)];
+        piRefMapLCU = piRRefMapLCU;
+      }
+      else //inside LCU
+      {
+        zRefSU      = g_auiRasterToZscan[ rTLSU + (uiHeightSU*uiNumSUInLCUWidth)+ uiWidthSU];
+        piRefMapLCU = piSliceIDMapLCU;
+      }
+      piRefID = piRefMapLCU + zRefSU;
+      *pbAvail = (*piRefID == iSliceID)?(true):(false);
+    }
+
+    if(bIndependentTileBoundaryEnabled)
+    {
+      //left LCU boundary
+      if(!bPicLBoundary && bLCULBoundary)
+      {
+        if(bLeftTileBoundary)
+        {
+          pbAvailBorder[SGU_L] = pbAvailBorder[SGU_TL] = pbAvailBorder[SGU_BL] = false;
+        }
+      }
+      //right LCU boundary
+      if(!bPicRBoundary && bLCURBoundary)
+      {
+        if(bRightTileBoundary)
+        {
+          pbAvailBorder[SGU_R] = pbAvailBorder[SGU_TR] = pbAvailBorder[SGU_BR] = false;
+        }
+      }
+      //top LCU boundary
+      if(!bPicTBoundary && bLCUTBoundary)
+      {
+        if(bTopTileBoundary)
+        {
+          pbAvailBorder[SGU_T] = pbAvailBorder[SGU_TL] = pbAvailBorder[SGU_TR] = false;
+        }
+      }
+      //down LCU boundary
+      if(!bPicBBoundary && bLCUBBoundary)
+      {
+        if(bDownTileBoundary)
+        {
+          pbAvailBorder[SGU_B] = pbAvailBorder[SGU_BL] = pbAvailBorder[SGU_BR] = false;
+        }
+      }
+    }
+
+  }
+}
+#endif
+
+
 //! \}

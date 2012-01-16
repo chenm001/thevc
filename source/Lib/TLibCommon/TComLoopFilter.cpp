@@ -80,6 +80,9 @@ TComLoopFilter::TComLoopFilter()
 : m_uiNumPartitions( 0 )
 {
   m_uiDisableDeblockingFilterIdc = 0;
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  m_bLFCrossTileBoundary = true;
+#endif
 }
 
 TComLoopFilter::~TComLoopFilter()
@@ -90,9 +93,16 @@ TComLoopFilter::~TComLoopFilter()
 // Public member functions
 // ====================================================================================================================
 
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaOffset, Bool bLFCrossTileBoundary)
+#else
 Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaOffset)
+#endif
 {
   m_uiDisableDeblockingFilterIdc  = uiDisableDblkIdc;
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  m_bLFCrossTileBoundary = bLFCrossTileBoundary;
+#endif
 }
 
 #if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
@@ -577,7 +587,11 @@ Void TComLoopFilter::xSetLoopfilterParam( TComDataCU* pcCU, UInt uiAbsZorderIdx 
   }
   if ( m_stLFCUParam.bLeftEdge )
   {
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+    pcTempCU = pcCU->getPULeft( uiTempPartIdx, uiAbsZorderIdx, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false, !m_bLFCrossTileBoundary);
+#else
     pcTempCU = pcCU->getPULeft( uiTempPartIdx, uiAbsZorderIdx, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false );
+#endif
     if ( pcTempCU )
     {
       m_stLFCUParam.bLeftEdge = true;
@@ -598,7 +612,11 @@ Void TComLoopFilter::xSetLoopfilterParam( TComDataCU* pcCU, UInt uiAbsZorderIdx 
   }
   if ( m_stLFCUParam.bTopEdge )
   {
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+    pcTempCU = pcCU->getPUAbove( uiTempPartIdx, uiAbsZorderIdx, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false , false, false, !m_bLFCrossTileBoundary);
+#else
     pcTempCU = pcCU->getPUAbove( uiTempPartIdx, uiAbsZorderIdx, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false );
+#endif
     if ( pcTempCU )
     {
       m_stLFCUParam.bTopEdge = true;
@@ -632,11 +650,19 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
   //-- Calculate Block Index
   if (iDir == EDGE_VER)
   {
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+    pcCUP = pcCUQ->getPULeft(uiPartP, uiPartQ, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false, !m_bLFCrossTileBoundary);
+#else
     pcCUP = pcCUQ->getPULeft(uiPartP, uiPartQ, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false);
+#endif
   }
   else  // (iDir == EDGE_HOR)
   {
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+    pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false, false, false, !m_bLFCrossTileBoundary);
+#else
     pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false);
+#endif
   }
   
   //-- Set BS for Intra MB : BS = 4 or 3
@@ -668,7 +694,11 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
     {
       if (iDir == EDGE_HOR)
       {
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+        pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false, true, false, !m_bLFCrossTileBoundary);
+#else
         pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, !pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false, true);
+#endif
       }
       if (pcSlice->isInterB())
       {

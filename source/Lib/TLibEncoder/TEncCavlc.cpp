@@ -395,10 +395,15 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 
 #if TILES
   WRITE_FLAG( pcPPS->getColumnRowInfoPresent(),           "tile_info_present_flag" );
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  WRITE_FLAG( pcPPS->getTileBehaviorControlPresentFlag(),  "tile_control_present_flag");
+#endif
   if( pcPPS->getColumnRowInfoPresent() == 1 )
   {
     WRITE_FLAG( pcPPS->getUniformSpacingIdr(),                                   "uniform_spacing_flag" );
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
     WRITE_FLAG( pcPPS->getTileBoundaryIndependenceIdr(),                         "tile_boundary_independence_flag" );
+#endif
     WRITE_UVLC( pcPPS->getNumColumnsMinus1(),                                    "num_tile_columns_minus1" );
     WRITE_UVLC( pcPPS->getNumRowsMinus1(),                                       "num_tile_rows_minus1" );
     if( pcPPS->getUniformSpacingIdr() == 0 )
@@ -413,6 +418,23 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
       }
     }
   }
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  if(pcPPS->getTileBehaviorControlPresentFlag() == 1)
+  {
+    Int iNumColTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumColumnsMinus1()):(pcPPS->getSPS()->getNumColumnsMinus1());
+    Int iNumRowTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumColumnsMinus1()):(pcPPS->getSPS()->getNumRowsMinus1());
+
+    if(iNumColTilesMinus1 !=0 || iNumRowTilesMinus1 !=0)
+    {
+      WRITE_FLAG( pcPPS->getTileBoundaryIndependenceIdr(),                         "tile_boundary_independence_flag" );
+      if(pcPPS->getTileBoundaryIndependenceIdr() == 1)
+      {
+        WRITE_FLAG( pcPPS->getLFCrossTileBoundaryFlag()?1 : 0,            "loop_filter_across_tile_flag");
+      }
+    }
+  }
+#endif
+
 #endif
   return;
 }
@@ -577,7 +599,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 
 #if TILES
   WRITE_FLAG( pcSPS->getUniformSpacingIdr(),                          "uniform_spacing_flag" );
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
   WRITE_FLAG( pcSPS->getTileBoundaryIndependenceIdr(),                "tile_boundary_independence_flag" );
+#endif
   WRITE_UVLC( pcSPS->getNumColumnsMinus1(),                           "num_tile_columns_minus1" );
   WRITE_UVLC( pcSPS->getNumRowsMinus1(),                              "num_tile_rows_minus1" );
   if( pcSPS->getUniformSpacingIdr()==0 )
@@ -591,6 +615,18 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
       WRITE_UVLC( pcSPS->getRowHeight(i),                             "row_height" );
     }
   }
+
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  if( pcSPS->getNumColumnsMinus1() !=0 || pcSPS->getNumRowsMinus1() != 0)
+  {
+    WRITE_FLAG( pcSPS->getTileBoundaryIndependenceIdr(),                "tile_boundary_independence_flag" );
+    if(pcSPS->getTileBoundaryIndependenceIdr() == 1)
+    {
+      WRITE_FLAG( pcSPS->getLFCrossTileBoundaryFlag()?1 : 0,            "loop_filter_across_tile_flag");
+    }
+  }
+#endif
+
 #endif
 
 #if MAX_DPB_AND_LATENCY
