@@ -487,7 +487,11 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if G1002_RPS
   WRITE_UVLC( pcSPS->getBitsForPOC()-4,                 "log2_max_pic_order_cnt_lsb_minus4" );
   WRITE_UVLC( pcSPS->getMaxNumberOfReferencePictures(), "max_num_ref_pics" ); 
-  WRITE_UVLC( pcSPS->getMaxNumberOfReorderPictures(),   "max_num_reorder_pics" ); 
+  WRITE_UVLC( pcSPS->getNumReorderFrames(),             "num_reorder_frames" ); 
+#endif
+#if MAX_DPB_AND_LATENCY
+  WRITE_UVLC(pcSPS->getMaxDecFrameBuffering(),          "max_dec_frame_buffering" );
+  WRITE_UVLC(pcSPS->getMaxLatencyIncrease(),            "max_latency_increase"    );
 #endif
 #if !G507_COND_4X4_ENABLE_FLAG
 #if DISABLE_4x4_INTER
@@ -629,12 +633,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 
 #endif
 
-#if MAX_DPB_AND_LATENCY
-  WRITE_UVLC(pcSPS->getMaxDecFrameBuffering(),          "max_dec_frame_buffering" );
-  WRITE_UVLC(pcSPS->getNumReorderFrames(),              "max_reorder_frames"      );
-  WRITE_UVLC(pcSPS->getMaxLatencyIncrease(),            "max_latency_increase"    );
-#endif
-  
   // Software-only flags
 #if NSQT
   WRITE_FLAG( pcSPS->getUseNSQT(), "enable_nsqt" );

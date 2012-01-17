@@ -272,7 +272,7 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
     
 #if G1002_RPS
 #if G1002_IDR_POC_ZERO_BUGFIX
-    if ( pcPic->getOutputMark() && (not_displayed >  m_cTDecTop.getSPS()->getMaxNumberOfReorderPictures() && pcPic->getPOC() > m_iPOCLastDisplay))
+    if ( pcPic->getOutputMark() && (not_displayed >  m_cTDecTop.getSPS()->getNumReorderFrames() && pcPic->getPOC() > m_iPOCLastDisplay))
 #else
     if ( pcPic->getReconMark() && not_displayed >  m_cTDecTop.getSPS()->getMaxNumberOfReorderPictures() && pcPic->getPOC() > m_iPOCLastDisplay)
 #endif

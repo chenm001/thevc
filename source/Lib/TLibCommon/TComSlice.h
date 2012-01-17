@@ -86,7 +86,7 @@ private:
   UInt        m_uiMaxTrDepth;
 #if G1002_RPS
   UInt        m_uiMaxNumberOfReferencePictures;
-  UInt        m_uiMaxNumberOfReorderPictures;
+  Int         m_numReorderFrames;
 #endif
   
   // Tool list
@@ -172,7 +172,6 @@ private:
 #endif
 #if MAX_DPB_AND_LATENCY // These could be used later when encoder wants to set their values
   UInt        m_uiMaxDecFrameBuffering; 
-  UInt        m_uiNumReorderFrames;
   UInt        m_uiMaxLatencyIncrease;
 #endif
 
@@ -239,8 +238,8 @@ public:
 #if G1002_RPS
   Void setMaxNumberOfReferencePictures( UInt u ) { m_uiMaxNumberOfReferencePictures = u;    }
   UInt getMaxNumberOfReferencePictures()         { return m_uiMaxNumberOfReferencePictures; }
-  Void setMaxNumberOfReorderPictures( UInt u )   { m_uiMaxNumberOfReorderPictures = u;    }
-  UInt getMaxNumberOfReorderPictures()           { return m_uiMaxNumberOfReorderPictures; }
+  Void setNumReorderFrames( Int i )              { m_numReorderFrames = i;    }
+  Int  getNumReorderFrames()                     { return m_numReorderFrames; }
 #endif
   Void setPadX        ( Int  u ) { m_aiPad[0] = u; }
   Void setPadY        ( Int  u ) { m_aiPad[1] = u; }
@@ -378,8 +377,6 @@ public:
 #if MAX_DPB_AND_LATENCY
   UInt getMaxDecFrameBuffering  ()            { return m_uiMaxDecFrameBuffering; }
   Void setMaxDecFrameBuffering  ( UInt ui )   { m_uiMaxDecFrameBuffering = ui;   }
-  UInt getNumReorderFrames      ()            { return m_uiNumReorderFrames;     }
-  Void setNumReorderFrames      ( UInt ui )   { m_uiNumReorderFrames = ui;       }
   UInt getMaxLatencyIncrease    ()            { return m_uiMaxLatencyIncrease;   }
   Void setMaxLatencyIncrease    ( UInt ui )   { m_uiMaxLatencyIncrease= ui;      }
 #endif

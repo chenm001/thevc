@@ -1604,6 +1604,9 @@ TComSPS::TComSPS()
 , m_uiMaxCUDepth              (  3)
 , m_uiMinTrDepth              (  0)
 , m_uiMaxTrDepth              (  1)
+#if G1002_RPS
+, m_numReorderFrames          (  0)
+#endif
 , m_uiQuadtreeTULog2MaxSize   (  0)
 , m_uiQuadtreeTULog2MinSize   (  0)
 , m_uiQuadtreeTUMaxDepthInter (  0)
@@ -1656,7 +1659,6 @@ TComSPS::TComSPS()
 #endif
 #if MAX_DPB_AND_LATENCY 
 , m_uiMaxDecFrameBuffering    (  0)
-, m_uiNumReorderFrames        (  0)
 , m_uiMaxLatencyIncrease      (  0)
 #endif
 {

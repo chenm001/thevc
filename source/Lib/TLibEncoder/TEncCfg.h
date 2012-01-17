@@ -120,7 +120,7 @@ protected:
   GOPEntry  m_pcGOPList[MAX_GOP];
   Int       m_iExtraRPSs;
   UInt      m_uiMaxNumberOfReferencePictures;
-  UInt      m_uiMaxNumberOfReorderPictures;
+  Int       m_numReorderFrames;
 #else
   Int       m_iRateGOPSize;
   Int       m_iNumOfReference;
@@ -345,7 +345,7 @@ public:
   Void      setExtraRPSs                    ( Int   i )      { m_iExtraRPSs = i; }
   GOPEntry  getGOPEntry                     ( Int   i )      { return m_pcGOPList[i]; }
   Void      setMaxNumberOfReferencePictures ( UInt u )       { m_uiMaxNumberOfReferencePictures = u;    }
-  Void      setMaxNumberOfReorderPictures   ( UInt u )       { m_uiMaxNumberOfReorderPictures = u;    }
+  Void      setNumReorderFrames             ( Int  i )       { m_numReorderFrames = i;    }
 #else
   Void      setRateGOPSize                  ( Int   i )      { m_iRateGOPSize = i; }
   Void      setNumOfReference               ( Int   i )      { m_iNumOfReference = i; }
@@ -440,7 +440,7 @@ public:
   
 #else
   UInt      getMaxNumberOfReferencePictures ()      { return m_uiMaxNumberOfReferencePictures; }
-  UInt      getMaxNumberOfReorderPictures   ()      { return m_uiMaxNumberOfReorderPictures; }
+  Int       geNumReorderFrames              ()      { return m_numReorderFrames; }
 #endif
   Int       getQP                           ()      { return  m_iQP; }
   

@@ -193,8 +193,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("DecodingRefreshType,-dr",m_iDecodingRefreshType, 0, "intra refresh, (0:none 1:CDR 2:IDR)")
   ("GOPSize,g",      m_iGOPSize,      1, "GOP size of temporal structure")
 #if G1002_RPS
-  ("MaxNumberOfReorderPictures",   m_uiMaxNumberOfReorderPictures,   4u, "Max number of reorder pictures")
-  ("MaxNumberOfReferencePictures", m_uiMaxNumberOfReferencePictures, 6u, "Max number of reference pictures")
+  ("MaxNumberOfReorderPictures",   m_numReorderFrames,               -1, "Max. number of reorder pictures: -1: encoder determines value, >=0: set explicitly")
+  ("MaxNumberOfReferencePictures", m_uiMaxNumberOfReferencePictures, 6u, "Max. number of reference pictures")
 #else
   ("RateGOPSize,-rg",m_iRateGOPSize, -1, "GOP size of hierarchical QP assignment (-1: implies inherit GOPSize value)")
   ("NumOfReference,r",       m_iNumOfReference,     1, "Number of reference (P)")
@@ -659,7 +659,7 @@ Void TAppEncCfg::xCheckParameter()
     bIsOK[i]=false;
   }
   Int iNumOK=0;
-  m_uiMaxNumberOfReorderPictures=0;
+  Int numReorderFramesRequired=0;
   m_uiMaxNumberOfReferencePictures=0;
   Int iLastDisp = -1;
   m_iExtraRPSs=0;
@@ -845,17 +845,24 @@ Void TAppEncCfg::xCheckParameter()
         if(aRefList[i]>iLastDisp)
           iNonDisplayed++;
       }
-      if(iNonDisplayed>m_uiMaxNumberOfReorderPictures)
-        m_uiMaxNumberOfReorderPictures=iNonDisplayed;
+      if(iNonDisplayed>numReorderFramesRequired)
+      {
+        numReorderFramesRequired=iNonDisplayed;
+      }
     }
     iCheckGOP++;
+  }
+  if (m_numReorderFrames == -1)
+  {
+    m_numReorderFrames = numReorderFramesRequired;
   }
   xConfirmPara(bError_GOP,"Invalid GOP structure given");
   for(Int i=0; i<m_iGOPSize; i++) 
   {
     xConfirmPara(m_pcGOPList[i].m_iSliceType!='B'&&m_pcGOPList[i].m_iSliceType!='P', "Slice type must be equal to B or P");
   }
-  xConfirmPara( m_bUseLComb==false && m_uiMaxNumberOfReorderPictures!=0, "ListCombination can only be 0 in low delay coding (more precisely when L0 and L1 are identical)" );  // Note however this is not the full necessary condition as ref_pic_list_combination_flag can only be 0 if L0 == L1.
+  xConfirmPara( m_bUseLComb==false && m_numReorderFrames!=0, "ListCombination can only be 0 in low delay coding (more precisely when L0 and L1 are identical)" );  // Note however this is not the full necessary condition as ref_pic_list_combination_flag can only be 0 if L0 == L1.
+  xConfirmPara( m_numReorderFrames < numReorderFramesRequired, "For the used GOP the encoder requires more pictures for reordering than specified in MaxNumberOfReorderPictures" );
 #else
 #if REF_SETTING_FOR_LD
   xConfirmPara( m_bUseNewRefSetting && m_iGOPSize>1, "New reference frame setting was only designed for LD setting" );

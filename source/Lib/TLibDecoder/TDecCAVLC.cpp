@@ -531,7 +531,13 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #if G1002_RPS
   READ_UVLC( uiCode,    "log2_max_pic_order_cnt_lsb_minus4" );   pcSPS->setBitsForPOC( 4 + uiCode );
   READ_UVLC( uiCode,    "max_num_ref_pics" );                    pcSPS->setMaxNumberOfReferencePictures(uiCode);
-  READ_UVLC( uiCode,    "max_num_reorder_pics" );                pcSPS->setMaxNumberOfReorderPictures(uiCode);
+  READ_UVLC( uiCode,    "num_reorder_frames" );                  pcSPS->setNumReorderFrames(uiCode);
+#endif
+#if MAX_DPB_AND_LATENCY
+  READ_UVLC ( uiCode, "max_dec_frame_buffering");
+  pcSPS->setMaxDecFrameBuffering( uiCode );
+  READ_UVLC ( uiCode, "max_latency_increase");
+  pcSPS->setMaxLatencyIncrease( uiCode );
 #endif
 #if !G507_COND_4X4_ENABLE_FLAG
 #if DISABLE_4x4_INTER
@@ -689,15 +695,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   }
 #endif
 
-#endif
-
-#if MAX_DPB_AND_LATENCY
-  READ_UVLC ( uiCode, "max_dec_frame_buffering");
-  pcSPS->setMaxDecFrameBuffering( uiCode );
-  READ_UVLC ( uiCode, "num_reorder_frames");
-  pcSPS->setNumReorderFrames( uiCode );
-  READ_UVLC ( uiCode, "max_latency_increase");
-  pcSPS->setMaxLatencyIncrease( uiCode );
 #endif
 
   // Software-only flags

@@ -78,7 +78,7 @@ protected:
 #if G1002_RPS
   Int       m_iExtraRPSs;
   GOPEntry  m_pcGOPList[MAX_GOP];
-  UInt      m_uiMaxNumberOfReorderPictures;                   ///< total number of reorder pictures
+  Int       m_numReorderFrames;                               ///< total number of reorder pictures
   UInt      m_uiMaxNumberOfReferencePictures;                 ///< total number of reference pictures needed for decoding
 #else
   Int       m_iRateGOPSize;                                   ///< GOP size for QP variance

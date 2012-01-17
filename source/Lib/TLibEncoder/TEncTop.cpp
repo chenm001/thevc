@@ -579,7 +579,7 @@ Void TEncTop::xInitSPS()
   
 #if G1002_RPS
   m_cSPS.setMaxNumberOfReferencePictures(m_uiMaxNumberOfReferencePictures);
-  m_cSPS.setMaxNumberOfReorderPictures(m_uiMaxNumberOfReorderPictures);
+  m_cSPS.setNumReorderFrames(m_numReorderFrames);
 #endif
   m_cSPS.setPCMLog2MinSize (m_uiPCMLog2MinSize);
 #if MAX_PCM_SIZE

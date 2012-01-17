@@ -80,7 +80,7 @@ Void TAppEncTop::xInitLibCfg()
 #if G1002_RPS
   m_cTEncTop.setGopList                      ( m_pcGOPList );
   m_cTEncTop.setExtraRPSs                     ( m_iExtraRPSs );
-  m_cTEncTop.setMaxNumberOfReorderPictures   ( m_uiMaxNumberOfReorderPictures );
+  m_cTEncTop.setNumReorderFrames             ( m_numReorderFrames );
   m_cTEncTop.setMaxNumberOfReferencePictures ( m_uiMaxNumberOfReferencePictures );
 #else
   m_cTEncTop.setRateGOPSize                  ( m_iRateGOPSize );
