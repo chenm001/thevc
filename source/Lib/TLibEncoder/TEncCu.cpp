@@ -1137,6 +1137,13 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     m_pcEntropyCoder->encodeSliceFinish();
   }
 #endif
+  
+  Int numberOfWrittenBits = 0;
+  if (m_pcBitCounter)
+  {
+    numberOfWrittenBits = m_pcEntropyCoder->getNumberOfWrittenBits();
+  }
+  
   // Calculate slice end IF this CU puts us over slice bit size.
   unsigned iGranularitySize = pcCU->getPic()->getNumPartInCU()>>(pcSlice->getPPS()->getSliceGranularity()<<1);
   int iGranularityEnd = ((pcCU->getSCUAddr()+uiAbsPartIdx)/iGranularitySize)*iGranularitySize;
@@ -1145,7 +1152,7 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     iGranularityEnd+=max(iGranularitySize,(pcCU->getPic()->getNumPartInCU()>>(uiDepth<<1)));
   }
   // Set slice end parameter
-  if(pcSlice->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE&&!pcSlice->getFinalized()&&pcSlice->getSliceBits()+m_pcBitCounter->getNumberOfWrittenBits()>pcSlice->getSliceArgument()<<3) 
+  if(pcSlice->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE&&!pcSlice->getFinalized()&&pcSlice->getSliceBits()+numberOfWrittenBits>pcSlice->getSliceArgument()<<3) 
   {
     pcSlice->setEntropySliceCurEndCUAddr(iGranularityEnd);
     pcSlice->setSliceCurEndCUAddr(iGranularityEnd);
@@ -1164,7 +1171,7 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   }
   else
   {
-    if(pcSlice->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE&&!pcSlice->getFinalized()&&pcSlice->getEntropySliceCounter()+m_pcBitCounter->getNumberOfWrittenBits()>pcSlice->getEntropySliceArgument()) 
+    if(pcSlice->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE&&!pcSlice->getFinalized()&&pcSlice->getEntropySliceCounter()+numberOfWrittenBits>pcSlice->getEntropySliceArgument()) 
     {
       pcSlice->setEntropySliceCurEndCUAddr(iGranularityEnd);
       return;
@@ -1172,7 +1179,7 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   }
   if(granularityBoundary)
   {
-    pcSlice->setSliceBits( (UInt)(pcSlice->getSliceBits() + m_pcBitCounter->getNumberOfWrittenBits()) );
+    pcSlice->setSliceBits( (UInt)(pcSlice->getSliceBits() + numberOfWrittenBits) );
     if(m_pcEncCfg->getUseSBACRD()) 
     {
       TEncBinCABAC *pppcRDSbacCoder = (TEncBinCABAC *) m_pppcRDSbacCoder[0][CI_CURR_BEST]->getEncBinIf();
@@ -1181,9 +1188,12 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     }
     else 
     {
-      pcSlice->setEntropySliceCounter(pcSlice->getEntropySliceCounter()+m_pcBitCounter->getNumberOfWrittenBits());
+      pcSlice->setEntropySliceCounter(pcSlice->getEntropySliceCounter()+numberOfWrittenBits);
     }
-    m_pcBitCounter->resetBits();
+    if (m_pcBitCounter)
+    {
+      m_pcEntropyCoder->resetBits();      
+    }
   }
 }
 #endif

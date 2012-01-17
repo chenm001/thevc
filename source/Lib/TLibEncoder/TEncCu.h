@@ -115,6 +115,7 @@ public:
   /// CU encoding function
   Void  encodeCU            ( TComDataCU*    pcCU, Bool bForceTerminate = false  );
   
+  Void setBitCounter        ( TComBitCounter* pcBitCounter ) { m_pcBitCounter = pcBitCounter; }
 protected:
 #if FINE_GRANULARITY_SLICES
   Void  finishCU            ( TComDataCU*  pcCU, UInt uiAbsPartIdx,           UInt uiDepth        );

@@ -1073,6 +1073,8 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       m_pcEntropyCoder->setEntropyCoder ( m_pppcRDSbacCoder[0][CI_CURR_BEST], pcSlice );
 #if OL_USE_WPP
       m_pcEntropyCoder->setBitstream( &pcBitCounters[uiSubStrm] );
+      m_pcCuEncoder->setBitCounter( &pcBitCounters[uiSubStrm] );
+      m_pcBitCounter = &pcBitCounters[uiSubStrm];
 #else
       m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
 #endif
@@ -1085,24 +1087,24 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
 
       pppcRDSbacCoder->setBinCountingEnableFlag( false );
 #if FINE_GRANULARITY_SLICES
-      if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE && ( ( pcSlice->getSliceBits() + m_pcBitCounter->getNumberOfWrittenBits() ) ) > m_pcCfg->getSliceArgument()<<3)
+      if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE && ( ( pcSlice->getSliceBits() + m_pcEntropyCoder->getNumberOfWrittenBits() ) ) > m_pcCfg->getSliceArgument()<<3)
       {
 #else
-      uiBitsCoded += m_pcBitCounter->getNumberOfWrittenBits();
+      uiBitsCoded += m_pcEntropyCoder->getNumberOfWrittenBits();
       if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE && ( ( pcSlice->getSliceBits() + uiBitsCoded ) >> 3 ) > m_pcCfg->getSliceArgument())
       {
 #if TILES
         if (uiCUAddr == rpcPic->getPicSym()->getCUOrderMap(uiStartCUAddr) && pcSlice->getSliceBits()==0)
         {
           // Could not fit even a single LCU within the slice under the defined byte-constraint. Display a warning message and code 1 LCU in the slice.
-          fprintf(stdout,"\nSlice overflow warning! codedBits=%6d, limitBytes=%6d", m_pcBitCounter->getNumberOfWrittenBits(), m_pcCfg->getSliceArgument() );
+          fprintf(stdout,"\nSlice overflow warning! codedBits=%6d, limitBytes=%6d", m_pcEntropyCoder->getNumberOfWrittenBits(), m_pcCfg->getSliceArgument() );
           uiEncCUOrder++;
         }
 #else
         if (uiCUAddr==uiStartCUAddr && pcSlice->getSliceBits()==0)
         {
           // Could not fit even a single LCU within the slice under the defined byte-constraint. Display a warning message and code 1 LCU in the slice.
-          fprintf(stdout,"Slice overflow warning! codedBits=%6d, limitBytes=%6d\n", m_pcBitCounter->getNumberOfWrittenBits(), m_pcCfg->getSliceArgument() );
+          fprintf(stdout,"Slice overflow warning! codedBits=%6d, limitBytes=%6d\n", m_pcEntropyCoder->getNumberOfWrittenBits(), m_pcCfg->getSliceArgument() );
           uiCUAddr = uiCUAddr + 1;
         }
 #endif
@@ -1135,7 +1137,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
 #endif
 #endif
 #if !FINE_GRANULARITY_SLICES
-        uiBitsCoded -= m_pcBitCounter->getNumberOfWrittenBits();
+        uiBitsCoded -= m_pcEntropyCoder->getNumberOfWrittenBits();
 #endif
         pcSlice->setNextEntropySlice( true );
         break;
@@ -1178,26 +1180,25 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       m_pcCuEncoder->compressCU( pcCU );
       m_pcCavlcCoder ->setAdaptFlag(true);
       m_pcCuEncoder->encodeCU( pcCU );
-      
 #if FINE_GRANULARITY_SLICES
-      if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE && ( ( pcSlice->getSliceBits()+ m_pcBitCounter->getNumberOfWrittenBits() ) ) > m_pcCfg->getSliceArgument()<<3)
+      if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE && ( ( pcSlice->getSliceBits()+ m_pcEntropyCoder->getNumberOfWrittenBits() ) ) > m_pcCfg->getSliceArgument()<<3)
       {
 #else
-      uiBitsCoded += m_pcBitCounter->getNumberOfWrittenBits();
+      uiBitsCoded += m_pcEntropyCoder->getNumberOfWrittenBits();
       if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE && ( ( pcSlice->getSliceBits() + uiBitsCoded ) >> 3 ) > m_pcCfg->getSliceArgument())
       {
 #if TILES
         if (uiCUAddr == rpcPic->getPicSym()->getCUOrderMap(uiStartCUAddr) && pcSlice->getSliceBits()==0)
         {
           // Could not fit even a single LCU within the slice under the defined byte-constraint. Display a warning message and code 1 LCU in the slice.
-          fprintf(stdout,"\nSlice overflow warning! codedBits=%6d, limitBytes=%6d", m_pcBitCounter->getNumberOfWrittenBits(), m_pcCfg->getSliceArgument() );
+          fprintf(stdout,"\nSlice overflow warning! codedBits=%6d, limitBytes=%6d", m_pcEntropyCoder->getNumberOfWrittenBits(), m_pcCfg->getSliceArgument() );
           uiEncCUOrder++;
         }
 #else
         if (uiCUAddr==uiStartCUAddr && pcSlice->getSliceBits()==0)
         {
           // Could not fit even a single LCU within the slice under the defined byte-constraint. Display a warning message and code 1 LCU in the slice.
-          fprintf(stdout,"Slice overflow warning! codedBits=%6d, limitBytes=%6d\n", m_pcBitCounter->getNumberOfWrittenBits(), m_pcCfg->getSliceArgument() );
+          fprintf(stdout,"Slice overflow warning! codedBits=%6d, limitBytes=%6d\n", m_pcEntropyCoder->getNumberOfWrittenBits(), m_pcCfg->getSliceArgument() );
           uiCUAddr = uiCUAddr + 1;
         }
 #endif
@@ -1206,7 +1207,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         break;
       }
 #if FINE_GRANULARITY_SLICES
-      if (m_pcCfg->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE && pcSlice->getEntropySliceCounter()+ m_pcBitCounter->getNumberOfWrittenBits()> m_pcCfg->getEntropySliceArgument()&&pcSlice->getSliceCurEndCUAddr()!=pcSlice->getEntropySliceCurEndCUAddr())
+      if (m_pcCfg->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE && pcSlice->getEntropySliceCounter()+ m_pcEntropyCoder->getNumberOfWrittenBits()> m_pcCfg->getEntropySliceArgument()&&pcSlice->getSliceCurEndCUAddr()!=pcSlice->getEntropySliceCurEndCUAddr())
       {
 
 #else
@@ -1216,21 +1217,21 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         if (uiCUAddr == rpcPic->getPicSym()->getCUOrderMap(uiStartCUAddr))
         {
           // Could not fit even a single LCU within the entropy slice under the defined bit/bin-constraint. Display a warning message and code 1 LCU in the entropy slice.
-          fprintf(stdout,"\nEntropy Slice overflow warning! codedBits=%6d, limitBits=%6d", m_pcBitCounter->getNumberOfWrittenBits(), m_pcCfg->getEntropySliceArgument() );
+          fprintf(stdout,"\nEntropy Slice overflow warning! codedBits=%6d, limitBits=%6d", m_pcEntropyCoder->getNumberOfWrittenBits(), m_pcCfg->getEntropySliceArgument() );
           uiEncCUOrder++;
         }
 #else
         if (uiCUAddr == uiStartCUAddr)
         {
           // Could not fit even a single LCU within the entropy slice under the defined bit/bin-constraint. Display a warning message and code 1 LCU in the entropy slice.
-          fprintf(stdout,"Entropy Slice overflow warning! codedBits=%6d, limitBits=%6d\n", m_pcBitCounter->getNumberOfWrittenBits(), m_pcCfg->getEntropySliceArgument() );
+          fprintf(stdout,"Entropy Slice overflow warning! codedBits=%6d, limitBits=%6d\n", m_pcEntropyCoder->getNumberOfWrittenBits(), m_pcCfg->getEntropySliceArgument() );
           uiCUAddr = uiCUAddr + 1;
         }
 #endif
 #endif
 
 #if !FINE_GRANULARITY_SLICES
-        uiBitsCoded -= m_pcBitCounter->getNumberOfWrittenBits();
+        uiBitsCoded -= m_pcEntropyCoder->getNumberOfWrittenBits();
 #endif
         pcSlice->setNextEntropySlice( true );
         break;
@@ -1302,6 +1303,8 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
 #endif
   
 #if OL_USE_WPP
+  m_pcCuEncoder->setBitCounter( NULL );
+  m_pcBitCounter = NULL;
   // Appropriate substream bitstream is switched later.
 #else
   // set bitstream
