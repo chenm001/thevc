@@ -4402,6 +4402,23 @@ Void  TEncAdaptiveLoopFilter::decideFilterShapeLuma(Pel* ImgOrg, Pel* ImgDec, In
   Double dEstimatedCost, dEstimatedMinCost = MAX_DOUBLE;;
 
   UInt   uiBitShift = (g_uiBitIncrement<<1);
+#if G212_CROSS9x9_VB && G1023_FIX_NPASS_ALF
+  Int64  iEstimateDistBeforeFilter;
+  Int*   coeffNoFilter[NUM_ALF_FILTER_SHAPE][NO_VAR_BINS];
+  for(Int filter_shape = 0; filter_shape < NUM_ALF_FILTER_SHAPE; filter_shape++)
+  {
+    for(Int i=0; i< NO_VAR_BINS; i++)
+    {
+      coeffNoFilter[filter_shape][i]= new Int[ALF_MAX_NUM_COEF];
+      ::memset(coeffNoFilter[filter_shape][i], 0, sizeof(Int)*ALF_MAX_NUM_COEF);
+#if ALF_DC_OFFSET_REMOVAL
+      coeffNoFilter[filter_shape][i][ m_sqrFiltLengthTab[filter_shape]-1 ] = (1 << ((Int)ALF_NUM_BIT_SHIFT));
+#else
+      coeffNoFilter[filter_shape][i][ m_sqrFiltLengthTab[filter_shape]-2 ] = (1 << ((Int)ALF_NUM_BIT_SHIFT));
+#endif
+    }
+  }
+#endif
 
   m_pcTempAlfParam->alf_flag = 1;
 #if !F747_APS
@@ -4448,12 +4465,20 @@ Void  TEncAdaptiveLoopFilter::decideFilterShapeLuma(Pel* ImgOrg, Pel* ImgDec, In
     //estimate R-D cost
     uiRate         = xcodeFiltCoeff(m_filterCoeffSymQuant, filtNo, m_varIndTab, filters_per_fr, m_pcTempAlfParam);
     iEstimatedDist = xEstimateFiltDist(filters_per_fr, m_varIndTab, ESym, ySym, m_filterCoeffSym, m_pcTempAlfParam->num_coeff);
+#if G212_CROSS9x9_VB && G1023_FIX_NPASS_ALF
+    iEstimateDistBeforeFilter = xEstimateFiltDist(filters_per_fr, m_varIndTab, ESym, ySym, coeffNoFilter[filter_shape], m_pcTempAlfParam->num_coeff);
+    iEstimatedDist -= iEstimateDistBeforeFilter;
+#endif
     dEstimatedCost = (Double)(uiRate) * m_dLambdaLuma + (Double)(iEstimatedDist);
 
     if(dEstimatedCost < dEstimatedMinCost)
     {
       dEstimatedMinCost   = dEstimatedCost;
       copyALFParam(pcAlfSaved, m_pcTempAlfParam); 
+#if G212_CROSS9x9_VB && G1023_FIX_NPASS_ALF
+      iEstimatedDist += iEstimateDistBeforeFilter;
+#endif
+
       for(Int i=0; i< filters_per_fr; i++ )
       {
         iEstimatedDist += (((Int64)m_pixAcc_merged[i]) >> uiBitShift);
@@ -4493,6 +4518,50 @@ Void  TEncAdaptiveLoopFilter::decideFilterShapeLuma(Pel* ImgOrg, Pel* ImgDec, In
       rdCost  += (Double)uiOffRegionDistortion;
     }
   }
+#if G212_CROSS9x9_VB && G1023_FIX_NPASS_ALF
+  // if ALF_STAR5x5 is selected, the distortion of 2 skipped lines per LCU should be added.
+  if(pcAlfSaved->filter_shape == ALF_STAR5x5)
+  {
+    Int    iPelDiff;
+    UInt64  uiSkipPelsDistortion = 0;
+    Pel   *pOrgTemp, *pDecTemp;
+    for(Int y= m_lineIdxPadTop-1; y< m_img_height - m_lcuHeight ; y += m_lcuHeight)
+    {
+      pOrgTemp = ImgOrg + y*Stride;
+      pDecTemp = ImgDec + y*Stride;
+      for(Int x=0; x< m_img_width; x++)
+      {
+        if(m_maskImg[y][x] == 1)
+        {
+          iPelDiff = pOrgTemp[x] - pDecTemp[x];
+          uiSkipPelsDistortion += (UInt64)(  (iPelDiff*iPelDiff) >> uiBitShift );
+        }
+      }
+
+      pOrgTemp += Stride;
+      pDecTemp += Stride;
+      for(Int x=0; x< m_img_width; x++)
+      {
+        if(m_maskImg[y+1][x] == 1)
+        {
+          iPelDiff = pOrgTemp[x] - pDecTemp[x];
+          uiSkipPelsDistortion += (UInt64)(  (iPelDiff*iPelDiff) >> uiBitShift );
+        }
+      }
+    }
+    ruiDist += uiSkipPelsDistortion;
+    rdCost  += (Double)uiSkipPelsDistortion;
+  }
+
+  for(Int filter_shape = 0; filter_shape < NUM_ALF_FILTER_SHAPE; filter_shape++)
+  {
+    for(Int i=0; i< NO_VAR_BINS; i++)
+    {
+      delete[] coeffNoFilter[filter_shape][i];
+    }
+  }
+#endif
+
 }
 
 #if !G212_CROSS9x9_VB
