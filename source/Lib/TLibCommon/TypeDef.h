@@ -143,7 +143,7 @@
 
 #define NONCROSS_TILE_IN_LOOP_FILTERING     1      ///< G194 : Non-cross-tiles loop filtering
 
-#define ADAPTIVE_QP_SELECTION               1      ///< G382: Adaptive reconstruction levels, non-normative part for adaptive QP selection
+#define ADAPTIVE_QP_SELECTION               0      ///< G382: Adaptive reconstruction levels, non-normative part for adaptive QP selection
 #if ADAPTIVE_QP_SELECTION
 #define ARL_C_PRECISION                     7      ///< G382: 7-bit arithmetic precision
 #define LEVEL_RANGE                         30     ///< G382: max coefficient level in statistics collection
