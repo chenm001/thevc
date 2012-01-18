@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -421,7 +421,11 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
     Pel  piAdiLine[5 * MAX_CU_SIZE];
     Pel  *piAdiLineTemp; 
     Bool *pbNeighborFlags;
+#if PADDING_INTRA
+    Int  iNext, iCurr;
+#else
     Int  iPrev, iNext, iCurr;
+#endif
     Pel  piRef = 0;
 
     // Initialize
@@ -484,7 +488,9 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
     }
 
     // Pad reference samples when necessary
+#if !PADDING_INTRA  
     iPrev = -1;
+#endif
     iCurr = 0;
     iNext = 1;
     piAdiLineTemp = piAdiLine;

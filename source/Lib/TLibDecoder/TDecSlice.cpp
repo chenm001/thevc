@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,10 @@ TDecSlice::TDecSlice()
   m_pcBufferSbacDecoders = NULL;
   m_pcBufferBinCABACs    = NULL;
 #endif
+#if TILES_LOW_LATENCY_CABAC_INI
+  m_pcBufferLowLatSbacDecoders = NULL;
+  m_pcBufferLowLatBinCABACs    = NULL;
+#endif
 }
 
 TDecSlice::~TDecSlice()
@@ -72,6 +76,18 @@ Void TDecSlice::destroy()
   {
     delete[] m_pcBufferBinCABACs;
     m_pcBufferBinCABACs = NULL;
+  }
+#endif
+#if TILES_LOW_LATENCY_CABAC_INI
+  if ( m_pcBufferLowLatSbacDecoders )
+  {
+    delete[] m_pcBufferLowLatSbacDecoders;
+    m_pcBufferLowLatSbacDecoders = NULL;
+  }
+  if ( m_pcBufferLowLatBinCABACs )
+  {
+    delete[] m_pcBufferLowLatBinCABACs;
+    m_pcBufferLowLatBinCABACs = NULL;
   }
 #endif
 }
@@ -141,7 +157,19 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
     //save init. state
     for (UInt ui = 0; ui < uiTilesAcross; ui++)
       m_pcBufferSbacDecoders[ui].load(pcSbacDecoder);
+  }  
+#if TILES_LOW_LATENCY_CABAC_INI
+  if( iSymbolMode )
+  {
+    m_pcBufferLowLatSbacDecoders = new TDecSbac    [uiTilesAcross];  
+    m_pcBufferLowLatBinCABACs    = new TDecBinCABAC[uiTilesAcross];
+    for (UInt ui = 0; ui < uiTilesAcross; ui++)
+      m_pcBufferLowLatSbacDecoders[ui].init(&m_pcBufferLowLatBinCABACs[ui]);
+    //save init. state
+    for (UInt ui = 0; ui < uiTilesAcross; ui++)
+      m_pcBufferLowLatSbacDecoders[ui].load(pcSbacDecoder);
   }
+#endif
 
   UInt uiWidthInLCUs  = rpcPic->getPicSym()->getFrameWidthInCU();
   //UInt uiHeightInLCUs = rpcPic->getPicSym()->getFrameHeightInCU();
@@ -298,7 +326,11 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
     TComSlice *pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
 #endif
     if ( (iCUAddr == rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getFirstCUAddr()) && // 1st in tile.
+#if !TILES_LOW_LATENCY_CABAC_INI
          (iCUAddr!=0) && (iCUAddr!=rpcPic->getPicSym()->getPicSCUAddr(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr())/rpcPic->getNumPartInCU()) && rpcPic->getPicSym()->getTileBoundaryIndependenceIdr()) // !1st in frame && !1st in slice && tile-independant
+#else
+         (iCUAddr!=0) && (iCUAddr!=rpcPic->getPicSym()->getPicSCUAddr(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr())/rpcPic->getNumPartInCU())) // !1st in frame && !1st in slice
+#endif
     {
 #if !DISABLE_CAVLC
       if (pcSlice->getSymbolMode())
@@ -388,6 +420,40 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
     }
 #endif
 
+#if TILES_LOW_LATENCY_CABAC_INI
+    if ( (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr()==0) && (rpcPic->getPicSym()->getNumColumnsMinus1()!=0) )
+    {    
+      // Synchronize cabac probabilities with LCU among Tiles
+      if( (uiTileLCUX != 0) &&
+          (iCUAddr == rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getFirstCUAddr()) )
+      {        
+        TComDataCU *pcCULeft = pcCU->getCULeft();
+        UInt uiMaxParts = 1<<(pcSlice->getSPS()->getMaxCUDepth()<<1);
+
+        if ( (true/*bEnforceSliceRestriction*/ &&
+              ((pcCULeft==NULL) || (pcCULeft->getSlice()==NULL) || 
+               ((pcCULeft->getSCUAddr()+uiMaxParts-1) < pcSlice->getSliceCurStartCUAddr()) 
+              )
+             )||
+             (true/*bEnforceEntropySliceRestriction*/ &&
+              ((pcCULeft==NULL) || (pcCULeft->getSlice()==NULL) || 
+               ((pcCULeft->getSCUAddr()+uiMaxParts-1) < pcSlice->getEntropySliceCurStartCUAddr())
+              )
+             )
+           )
+        {
+          // Left not available.
+        }
+        else
+        {
+          // Left is available, we use it.
+          pcSbacDecoders[uiSubStrm].loadContexts( &m_pcBufferLowLatSbacDecoders[uiTileCol-1] );
+          pcSbacDecoder->loadContexts(&pcSbacDecoders[uiSubStrm]);  //this load is used to simplify the code (avoid to change all the call to pcSbacDecoders)
+        }
+      }
+    }
+#endif
+
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceEnable;
 #endif
@@ -432,6 +498,18 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
       }
 #endif
 
+    }
+#endif 
+#if TILES_LOW_LATENCY_CABAC_INI
+    if ( (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr()==0) && (rpcPic->getPicSym()->getNumColumnsMinus1()!=0) )
+    {
+      pcSbacDecoders[uiSubStrm].load(pcSbacDecoder);
+       //Store probabilties for next tile
+      if( (uiLin == (rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getFirstCUAddr() / uiWidthInLCUs )) && 
+          (uiCol == rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getRightEdgePosInCU()) )
+      {
+        m_pcBufferLowLatSbacDecoders[uiTileCol].loadContexts( &pcSbacDecoders[uiSubStrm] );
+      }
     }
 #endif
   }

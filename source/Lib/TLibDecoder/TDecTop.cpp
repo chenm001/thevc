@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -175,7 +175,7 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
   xUpdateGopSize(pcSlice);
   
 #if G1002_RPS
-  m_iMaxRefPicNum = pcSlice->getSPS()->getMaxNumberOfReferencePictures()+pcSlice->getSPS()->getMaxNumberOfReorderPictures() + 1; // +1 to have space for the picture currently being decoded
+  m_iMaxRefPicNum = pcSlice->getSPS()->getMaxNumberOfReferencePictures()+pcSlice->getSPS()->getNumReorderFrames() + 1; // +1 to have space for the picture currently being decoded
 #else
   m_iMaxRefPicNum = max(m_iMaxRefPicNum, max(max(2, pcSlice->getNumRefIdx(REF_PIC_LIST_0)+1), m_iGopSize/2 + 2 + pcSlice->getNumRefIdx(REF_PIC_LIST_0)));
   
@@ -195,14 +195,26 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
   while (iterPic != m_cListPic.end())
   {
     rpcPic = *(iterPic++);
+#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+    if ( rpcPic->getReconMark() == false && rpcPic->getOutputMark() == false)
+    {
+      rpcPic->setOutputMark(false);
+#else
     if ( rpcPic->getReconMark() == false )
     {
+#endif
       bBufferIsAvailable = true;
       break;
     }
 
+#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+    if ( rpcPic->getSlice( 0 )->isReferenced() == false  && rpcPic->getOutputMark() == false)
+    {
+      rpcPic->setOutputMark(false);
+#else
     if ( rpcPic->getSlice( 0 )->isReferenced() == false )
     {
+#endif
       rpcPic->setReconMark( false );
       rpcPic->getPicYuvRec()->setBorderExtension( false );
       bBufferIsAvailable = true;
@@ -216,6 +228,9 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
     iterPic = m_cListPic.begin();
     rpcPic = *(iterPic);
     rpcPic->setReconMark(false);
+#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+    rpcPic->setOutputMark(false);
+#endif
     
     // mark it should be extended
     rpcPic->getPicYuvRec()->setBorderExtension(false);
@@ -299,6 +314,9 @@ Void TDecTop::xCreateLostPicture(Int iLostPoc)
   cFillPic->getSlice(0)->setReferenced(true);
   cFillPic->getSlice(0)->setPOC(iLostPoc);
   cFillPic->setReconMark(true);
+#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+  cFillPic->setOutputMark(true);
+#endif
   if(m_uiPOCRA == MAX_UINT)
   {
     m_uiPOCRA = iLostPoc;
@@ -449,7 +467,11 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       {
         if(m_cSPS.getUseALF())
         {
+#if ALF_SAO_SLICE_FLAGS
+          if (m_apcSlicePilot->getAlfEnabledFlag())
+#else
           if(m_vAPS[m_apcSlicePilot->getAPSId()].back().getAlfEnabled())
+#endif
           {
             m_cGopDecoder.decodeAlfOnOffCtrlParam();
           }
@@ -474,13 +496,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         }
       }
 
-#if G1002_RPS
-      //detect lost reference picture and insert copy of earlier frame.
-      while(m_apcSlicePilot->checkThatAllRefPicsAreAvailable(m_cListPic, m_apcSlicePilot->getRPS(), true) > 0)
-      {
-        xCreateLostPicture(m_apcSlicePilot->checkThatAllRefPicsAreAvailable(m_cListPic, m_apcSlicePilot->getRPS(), false)-1);
-      }
-#else
+#if !G1002_RPS
       m_apcSlicePilot->setTLayerInfo(nalu.m_TemporalID);
 #endif
 
@@ -490,7 +506,15 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         return true;
       }
 #if F747_APS
+#if SCALING_LIST
+#if G174_DF_OFFSET
+      if(m_cSPS.getUseSAO() || m_cSPS.getUseALF()|| m_cSPS.getScalingListFlag() || m_cSPS.getUseDF())
+#else
+      if(m_cSPS.getUseSAO() || m_cSPS.getUseALF()|| m_cSPS.getScalingListFlag())
+#endif
+#else
       if(m_cSPS.getUseSAO() || m_cSPS.getUseALF())
+#endif
       {
         m_apcSlicePilot->setAPS( popAPS(m_apcSlicePilot->getAPSId())  );
       }
@@ -507,7 +531,13 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
           return false;
         }
       }
-      
+#if G1002_RPS
+      //detect lost reference picture and insert copy of earlier frame.
+      while(m_apcSlicePilot->checkThatAllRefPicsAreAvailable(m_cListPic, m_apcSlicePilot->getRPS(), true) > 0)
+      {
+        xCreateLostPicture(m_apcSlicePilot->checkThatAllRefPicsAreAvailable(m_cListPic, m_apcSlicePilot->getRPS(), false)-1);
+      }
+#endif
       if (m_bFirstSliceInPicture)
       {
         // Buffer initialize for prediction.
@@ -539,11 +569,24 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       UInt uiCummulativeTileHeight;
       UInt i, j, p;
 
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+      //set the TileBoundaryIndependenceIdr
+      if(pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)
+      {
+        pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getTileBoundaryIndependenceIdr() );
+      }
+      else
+      {
+        pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getSPS()->getTileBoundaryIndependenceIdr() );
+      }
+#endif
+
       if( pcSlice->getPPS()->getColumnRowInfoPresent() == 1 )
       {
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
         //set the TileBoundaryIndependenceIdr
         pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getTileBoundaryIndependenceIdr() );
-
+#endif
         //set NumColumnsMins1 and NumRowsMinus1
         pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getPPS()->getNumColumnsMinus1() );
         pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getPPS()->getNumRowsMinus1() );
@@ -604,9 +647,10 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       }
       else
       {
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
         //set the TileBoundaryIndependenceIdr
         pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getSPS()->getTileBoundaryIndependenceIdr() );
-
+#endif
         //set NumColumnsMins1 and NumRowsMinus1
         pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getSPS()->getNumColumnsMinus1() );
         pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getSPS()->getNumRowsMinus1() );
@@ -717,8 +761,19 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 
       if (bNextSlice)
       {
+#if G1002_RPS && G1002_CRA_CHECK
+        pcSlice->checkCRA(pcSlice->getRPS(), m_uiPOCCDR, m_cListPic); 
+#else
         // Do decoding refresh marking if any
         pcSlice->decodingRefreshMarking(m_uiPOCCDR, m_bRefreshPending, m_cListPic);
+#endif
+        
+#if NO_TMVP_MARKING
+        if ( !pcSlice->getPPS()->getEnableTMVPFlag() && pcPic->getTLayer() == 0 )
+        {
+          pcSlice->decodingMarkingForNoTMVP( m_cListPic, pcSlice->getPOC() );
+        }
+#endif
         
         // Set reference list
         pcSlice->setRefPicList( m_cListPic );
@@ -788,7 +843,13 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         {
           pcSlice->generateCombinedList();
         }
-        
+
+#if WP_IMPROVED_SYNTAX
+        if( pcSlice->getRefPicListCombinationFlag() && pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getSliceType()==B_SLICE )
+        {
+          pcSlice->setWpParamforLC();
+        }
+#endif
         pcSlice->setNoBackPredFlag( false );
         if ( pcSlice->getSliceType() == B_SLICE && !pcSlice->getRefPicListCombinationFlag())
         {
@@ -811,6 +872,26 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       }
       
       pcPic->setCurrSliceIdx(m_uiSliceIdx);
+#if SCALING_LIST
+      if(pcSlice->getSPS()->getScalingListFlag())
+      {
+        if(pcSlice->getAPS()->getScalingListEnabled())
+        {
+          pcSlice->setScalingList ( &m_scalingList  );
+          if(pcSlice->getScalingList()->getUseDefaultOnlyFlag())
+          {
+            pcSlice->setDefaultScalingList();
+          }
+          m_cTrQuant.setScalingListDec(pcSlice->getScalingList());
+        }
+        m_cTrQuant.setUseScalingList(true);
+      }
+      else
+      {
+        m_cTrQuant.setFlatScalingList();
+        m_cTrQuant.setUseScalingList(false);
+      }
+#endif
 
       //  Decode a picture
 #if G1002_RPS
@@ -891,6 +972,18 @@ Void TDecTop::decodeAPS(TComInputBitstream* bs, TComAPS& cAPS)
   Int iBitLeft;
 #endif
   m_cEntropyDecoder.decodeAPSInitInfo(cAPS);
+#if SCALING_LIST
+  if(cAPS.getScalingListEnabled())
+  {
+    m_cEntropyDecoder.decodeScalingList( &m_scalingList );
+  }
+#endif
+#if G174_DF_OFFSET
+  if(cAPS.getLoopFilterOffsetInAPS())
+  {
+    m_cEntropyDecoder.decodeDFParams( &cAPS );    
+  }
+#endif
 
   if(cAPS.getSaoEnabled())
   {
@@ -1018,6 +1111,12 @@ Void TDecTop::pushAPS  (TComAPS& cAPS)
 
 Void TDecTop::allocAPS (TComAPS* pAPS)
 {
+#if SCALING_LIST
+  if(m_cSPS.getScalingListFlag())
+  {
+    pAPS->createScalingList();
+  }
+#endif
   if(m_cSPS.getUseSAO())
   {
     pAPS->createSaoParam();
@@ -1031,6 +1130,12 @@ Void TDecTop::allocAPS (TComAPS* pAPS)
 }
 Void TDecTop::freeAPS (TComAPS* pAPS)
 {
+#if SCALING_LIST
+  if(m_cSPS.getScalingListFlag())
+  {
+    pAPS->destroyScalingList();
+  }
+#endif
   if(m_cSPS.getUseSAO())
   {
     m_cSAO.freeSaoParam(pAPS->getSaoParam());

@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -101,6 +101,10 @@ private:
 #if OL_USE_WPP
   TEncBinCABAC*           m_pcBufferBinCoderCABACs;       ///< line of bin coder CABAC
   TEncSbac*               m_pcBufferSbacCoders;                 ///< line to store temporary contexts
+#endif
+#if TILES_LOW_LATENCY_CABAC_INI
+  TEncBinCABAC*           m_pcBufferLowLatBinCoderCABACs;       ///< dependent tiles: line of bin coder CABAC
+  TEncSbac*               m_pcBufferLowLatSbacCoders;           ///< dependent tiles: line to store temporary contexts
 #endif
   
   UInt                    m_uiSliceIdx;

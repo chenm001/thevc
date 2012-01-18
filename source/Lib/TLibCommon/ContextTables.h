@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -84,7 +84,7 @@
 #define NUM_TRANS_SUBDIV_FLAG_CTX     10      ///< number of context models for transform subdivision flags
 #define NUM_QT_CBF_CTX                5       ///< number of context models for QT CBF
 #define NUM_QT_ROOT_CBF_CTX           1       ///< number of context models for QT ROOT CBF
-#define NUM_DELTA_QP_CTX              4       ///< number of context models for dQP
+#define NUM_DELTA_QP_CTX              3       ///< number of context models for dQP
 
 #if MULTI_LEVEL_SIGNIFICANCE
 #define NUM_SIG_CG_FLAG_CTX           2       ///< number of context models for MULTI_LEVEL_SIGNIFICANCE
@@ -447,15 +447,15 @@ static const UChar
 INIT_DQP[3][NUM_DELTA_QP_CTX] =
 {
   {
-    CNU, CNU, CNU, CNU,
+    CNU, CNU, CNU, 
     
   },
   {
-    CNU, CNU, CNU, CNU,
+    CNU, CNU, CNU, 
     
   },
   {
-    CNU, CNU, CNU, CNU,
+    CNU, CNU, CNU, 
     
   },
 };
@@ -1536,13 +1536,13 @@ static const Short
 INIT_DQP[3][NUM_DELTA_QP_CTX][2] =
 {
   {
-    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }
+    {    0,   64 }, {    0,   64 }, {    0,   64 }, 
   },
   {
-    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }
+    {    0,   64 }, {    0,   64 }, {    0,   64 }, 
   },
   {
-    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }
+    {    0,   64 }, {    0,   64 }, {    0,   64 }, 
   }
 };
 

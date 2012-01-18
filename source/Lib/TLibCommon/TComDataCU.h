@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,6 +54,54 @@
 //! \ingroup TLibCommon
 //! \{
 
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+
+// ====================================================================================================================
+// Non-deblocking in-loop filter processing block data structure
+// ====================================================================================================================
+
+/// Non-deblocking filter processing block border tag
+enum NDBFBlockBorderTag
+{
+  SGU_L = 0,
+  SGU_R,
+  SGU_T,
+  SGU_B,
+  SGU_TL,
+  SGU_TR,
+  SGU_BL,
+  SGU_BR,
+  NUM_SGU_BORDER
+};
+
+/// Non-deblocking filter processing block information
+struct NDBFBlockInfo
+{
+#if TILES
+  Int   tileID;   //!< tile ID
+#endif
+  Int   sliceID;  //!< slice ID
+  UInt  startSU;  //!< starting SU z-scan address in LCU
+  UInt  endSU;    //!< ending SU z-scan address in LCU
+  UInt  widthSU;  //!< number of SUs in width
+  UInt  heightSU; //!< number of SUs in height
+  UInt  posX;     //!< top-left X coordinate in picture
+  UInt  posY;     //!< top-left Y coordinate in picture
+  UInt  width;    //!< number of pixels in width
+  UInt  height;   //!< number of pixels in height
+  Bool  isBorderAvailable[NUM_SGU_BORDER];  //!< the border availabilities
+
+#if TILES
+  NDBFBlockInfo():tileID(0), sliceID(0), startSU(0), endSU(0) {} //!< constructor
+#else
+  NDBFBlockInfo():sliceID(0), startSU(0), endSU(0) {} //!< constructor
+#endif
+  const NDBFBlockInfo& operator= (const NDBFBlockInfo& src);  //!< "=" operator
+};
+
+#endif
+
+
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -98,12 +146,24 @@ private:
   TCoeff*       m_pcTrCoeffY;         ///< transformed coefficient buffer (Y)
   TCoeff*       m_pcTrCoeffCb;        ///< transformed coefficient buffer (Cb)
   TCoeff*       m_pcTrCoeffCr;        ///< transformed coefficient buffer (Cr)
+#if ADAPTIVE_QP_SELECTION
+  Int*          m_pcArlCoeffY;        ///< ARL coefficient buffer (Y)
+  Int*          m_pcArlCoeffCb;       ///< ARL coefficient buffer (Cb)
+  Int*          m_pcArlCoeffCr;       ///< ARL coefficient buffer (Cr)
+
+  static Int*   m_pcGlbArlCoeffY;     ///< ARL coefficient buffer (Y)
+  static Int*   m_pcGlbArlCoeffCb;    ///< ARL coefficient buffer (Cb)
+  static Int*   m_pcGlbArlCoeffCr;    ///< ARL coefficient buffer (Cr)
+#endif
   
   Pel*          m_pcIPCMSampleY;      ///< PCM sample buffer (Y)
   Pel*          m_pcIPCMSampleCb;     ///< PCM sample buffer (Cb)
   Pel*          m_pcIPCMSampleCr;     ///< PCM sample buffer (Cr)
 
   Int*          m_piSliceSUMap;       ///< pointer of slice ID map
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  std::vector<NDBFBlockInfo> m_vNDFBlock;
+#endif
 
   // -------------------------------------------------------------------------------------------------------------------
   // neighbour access variables
@@ -192,7 +252,11 @@ public:
   // create / destroy / initialize / copy
   // -------------------------------------------------------------------------------------------------------------------
   
-  Void          create                ( UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool bDecSubCu, Int unitSize );
+  Void          create                ( UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool bDecSubCu, Int unitSize
+#if ADAPTIVE_QP_SELECTION
+    , Bool bGlobalRMARLBuffer = false
+#endif  
+    );
   Void          destroy               ();
   
   Void          initCU                ( TComPic* pcPic, UInt uiCUAddr );
@@ -273,6 +337,11 @@ public:
   TCoeff*&      getCoeffY             ()                        { return m_pcTrCoeffY;        }
   TCoeff*&      getCoeffCb            ()                        { return m_pcTrCoeffCb;       }
   TCoeff*&      getCoeffCr            ()                        { return m_pcTrCoeffCr;       }
+#if ADAPTIVE_QP_SELECTION
+  Int*&         getArlCoeffY          ()                        { return m_pcArlCoeffY;       }
+  Int*&         getArlCoeffCb         ()                        { return m_pcArlCoeffCb;      }
+  Int*&         getArlCoeffCr         ()                        { return m_pcArlCoeffCr;      }
+#endif
   
   Pel*&         getPCMSampleY         ()                        { return m_pcIPCMSampleY;     }
   Pel*&         getPCMSampleCb        ()                        { return m_pcIPCMSampleCb;    }
@@ -349,6 +418,13 @@ public:
   /// set the pointer of slice ID map
   Void          setSliceSUMap         (Int *pi)                 {m_piSliceSUMap = pi;               }
 
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  std::vector<NDBFBlockInfo>* getNDBFilterBlocks()      {return &m_vNDFBlock;}
+  Void setNDBFilterBlockBorderAvailability(UInt uiNumLCUInPicWidth, UInt uiNumLCUInPicHeight, UInt uiNumSUInLCUWidth, UInt uiNumSUInLCUHeight, UInt uiPicWidth, UInt uiPicHeight
+                                          ,Bool bIndependentSliceBoundaryEnabled
+                                          ,Bool bTopTileBoundary, Bool bDownTileBoundary, Bool bLeftTileBoundary, Bool bRightTileBoundary
+                                          ,Bool bIndependentTileBoundaryEnabled );
+#endif
 
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for accessing partition information
@@ -396,13 +472,23 @@ public:
   TComDataCU*   getCUAboveLeft              () { return m_pcCUAboveLeft;  }
   TComDataCU*   getCUAboveRight             () { return m_pcCUAboveRight; }
   TComDataCU*   getCUColocated              ( RefPicList eRefPicList ) { return m_apcCUColocated[eRefPicList]; }
-  
-  TComDataCU*   getPULeft                   ( UInt&  uiLPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
-#if REMOVE_INTRA_LINE_BUFFER
-  TComDataCU*   getPUAbove                  ( UInt&  uiAPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false, Bool IntraLineBufferRemoval = false );
-#else
-  TComDataCU*   getPUAbove                  ( UInt&  uiAPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false );
+
+
+  TComDataCU*   getPULeft                   ( UInt&  uiLPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+                                            , Bool bEnforceTileRestriction=true 
 #endif
+                                            );
+
+  TComDataCU*   getPUAbove                  ( UInt&  uiAPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false
+#if REMOVE_INTRA_LINE_BUFFER
+                                            , Bool planarAtLCUBoundary = false 
+#endif
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+                                            , Bool bEnforceTileRestriction=true 
+#endif                                            
+                                            );
+
   TComDataCU*   getPUAboveLeft              ( UInt&  uiALPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false );
   TComDataCU*   getPUAboveRight             ( UInt&  uiARPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false );
   TComDataCU*   getPUBelowLeft              ( UInt& uiBLPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );

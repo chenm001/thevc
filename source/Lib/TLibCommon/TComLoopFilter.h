@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,11 @@ class TComLoopFilter
 {
 private:
   UInt      m_uiDisableDeblockingFilterIdc; ///< deblocking filter idc
+#if G174_DF_OFFSET
+  Int       m_betaOffsetDiv2;
+  Int       m_tcOffsetDiv2;
+#endif
+
   UInt      m_uiNumPartitions;
 #if !DEBLK_CLEANUP_CHROMA_BS
   UChar*    m_aapucBS[2][3];              ///< Bs for [Ver/Hor][Y/U/V][Blk_Idx]
@@ -67,7 +72,10 @@ private:
 #if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
   TComPicYuv m_preDeblockPic;
 #endif
-  
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  Bool      m_bLFCrossTileBoundary;
+#endif
+
 protected:
   /// CU-level deblocking function
 #if PARALLEL_MERGED_DEBLK
@@ -171,7 +179,15 @@ public:
   Void  destroy                   ();
   
   /// set configuration
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+#if G174_DF_OFFSET
+  Void setCfg( UInt uiDisableDblkIdc, Int betaOffsetDiv2, Int tcOffsetDiv2, Bool bLFCrossTileBoundary);
+#else
+  Void setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaOffset, Bool bLFCrossTileBoundary);
+#endif
+#else
   Void setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaOffset );
+#endif
   
   /// picture-level deblocking filter
   Void loopFilterPic( TComPic* pcPic );

@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -148,40 +148,39 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
           m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = Clip3(-m_iOffsetTh, m_iOffsetTh-1, (Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx]);
 #if SAO_RDO_OFFSET
           {
-              //Clean up, best_q_offset.
-              Int64 iIterOffset, iTempOffset;
-              Int64 iTempDist, iTempRate;
-              Double dTempCost, dTempMinCost;
-              UInt uiLength, uiTemp;
+            Int64 iterOffset, tempOffset;
+            Int64 tempDist, tempRate;
+            Double tempCost, tempMinCost;
+            UInt codeLength, tempValue;
 
-              iIterOffset = m_iOffset[iPartIdx][iTypeIdx][iClassIdx];
-              m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = 0;
-              dTempMinCost = dLambda; // Assuming sending quantized value 0 results in zero offset and sending the value zero needs 1 bit. entropy coder can be used to measure the exact rate here. 
-              
-              while (iIterOffset != 0)
+            iterOffset = m_iOffset[iPartIdx][iTypeIdx][iClassIdx];
+            m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = 0;
+            tempMinCost = dLambda; // Assuming sending quantized value 0 results in zero offset and sending the value zero needs 1 bit. entropy coder can be used to measure the exact rate here. 
+
+            while (iterOffset != 0)
+            {
+              // Calculate the bits required for signalling the offset
+              codeLength = 1;
+              tempValue = (UInt)((iterOffset <= 0) ? ( (-iterOffset<<1) + 1 ) : (iterOffset<<1));
+              while( 1 != tempValue )
               {
-                  // Calculate the bits required for signalling the offset
-                  uiLength = 1;
-                  uiTemp = (UInt)((iIterOffset <= 0) ? ( (-iIterOffset<<1) + 1 ) : (iIterOffset<<1));
-                  while( 1 != uiTemp )
-                  {
-                      uiTemp >>= 1;
-                      uiLength += 2;
-                  }
-                  iTempRate = (uiLength >> 1) + ((uiLength+1) >> 1);
-
-                  // Do the dequntization before distorion calculation
-                  iTempOffset    =  iIterOffset << m_uiSaoBitIncrease;
-                  iTempDist  = (( m_iCount [iPartIdx][iTypeIdx][iClassIdx]*iTempOffset*iTempOffset-m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]*iTempOffset*2 ) >> uiShift);
-
-                  dTempCost = ((Double)iTempDist + dLambda * (Double) iTempRate);
-                  if(dTempCost < dTempMinCost)
-                  {
-                      dTempMinCost = dTempCost;
-                      m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = iIterOffset;
-                  }
-                  iIterOffset = (iIterOffset > 0) ? (iIterOffset-1):(iIterOffset+1);
+                tempValue >>= 1;
+                codeLength += 2;
               }
+              tempRate = (codeLength >> 1) + ((codeLength+1) >> 1);
+
+              // Do the dequntization before distorion calculation
+              tempOffset    =  iterOffset << m_uiSaoBitIncrease;
+              tempDist  = (( m_iCount [iPartIdx][iTypeIdx][iClassIdx]*tempOffset*tempOffset-m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]*tempOffset*2 ) >> uiShift);
+
+              tempCost = ((Double)tempDist + dLambda * (Double) tempRate);
+              if(tempCost < tempMinCost)
+              {
+                tempMinCost = tempCost;
+                m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = iterOffset;
+              }
+              iterOffset = (iterOffset > 0) ? (iterOffset-1):(iterOffset+1);
+            }
           }
 #endif
         }
@@ -550,6 +549,321 @@ inline int xSign(int x)
 }
 
 #if SAO_FGS_NIF
+
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+/** Calculate SAO statistics for current LCU without crossing slice
+ * \param  iAddr,  iPartIdx,  iYCbCr
+ */
+Void TEncSampleAdaptiveOffset::calcSaoStatsBlock( Pel* pRecStart, Pel* pOrgStart, Int iStride, Int64** ppiStats, Int64** ppiCount, UInt uiWidth, UInt uiHeight, Bool* pbBorderAvail)
+{
+  Int64 *iStats, *iCount;
+  Int iClassIdx, posShift, iStartX, iEndX, iStartY, iEndY, iSignLeft,iSignRight,iSignDown,iSignDown1;
+  Pel *pOrg, *pRec;
+  UInt uiEdgeType;
+  Int x, y;
+
+  //--------- Band offset 0-----------//
+  iStats = ppiStats[SAO_BO_0];
+  iCount = ppiCount[SAO_BO_0];
+  pOrg   = pOrgStart;
+  pRec   = pRecStart;
+  for (y=0; y< uiHeight; y++)
+  {
+    for (x=0; x< uiWidth; x++)
+    {
+      iClassIdx = m_ppLumaTableBo0[pRec[x]];
+      if (iClassIdx)
+      {
+        iStats[iClassIdx] += (pOrg[x] - pRec[x]); 
+        iCount[iClassIdx] ++;
+      }
+    }
+    pOrg += iStride;
+    pRec += iStride;
+  }
+
+  //--------- Band offset 1-----------//
+  iStats = ppiStats[SAO_BO_1];
+  iCount = ppiCount[SAO_BO_1];
+  pOrg   = pOrgStart;
+  pRec   = pRecStart;
+
+  for (y=0; y< uiHeight; y++)
+  {
+    for (x=0; x< uiWidth; x++)
+    {
+      iClassIdx = m_ppLumaTableBo1[pRec[x]];
+      if (iClassIdx)
+      {
+        iStats[iClassIdx] += (pOrg[x] - pRec[x]); 
+        iCount[iClassIdx] ++;
+      }
+    }
+    pOrg += iStride;
+    pRec += iStride;
+  }
+
+  //---------- Edge offset 0--------------//
+  iStats = ppiStats[SAO_EO_0];
+  iCount = ppiCount[SAO_EO_0];
+  pOrg   = pOrgStart;
+  pRec   = pRecStart;
+
+
+  iStartX = (pbBorderAvail[SGU_L]) ? 0 : 1;
+  iEndX   = (pbBorderAvail[SGU_R]) ? uiWidth : (uiWidth -1);
+  for (y=0; y< uiHeight; y++)
+  {
+    iSignLeft = xSign(pRec[iStartX] - pRec[iStartX-1]);
+    for (x=iStartX; x< iEndX; x++)
+    {
+      iSignRight =  xSign(pRec[x] - pRec[x+1]); 
+      uiEdgeType =  iSignRight + iSignLeft + 2;
+      iSignLeft  = -iSignRight;
+
+      iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+      iCount[m_auiEoTable[uiEdgeType]] ++;
+    }
+    pRec  += iStride;
+    pOrg += iStride;
+  }
+
+  //---------- Edge offset 1--------------//
+  iStats = ppiStats[SAO_EO_1];
+  iCount = ppiCount[SAO_EO_1];
+  pOrg   = pOrgStart;
+  pRec   = pRecStart;
+
+  iStartY = (pbBorderAvail[SGU_T]) ? 0 : 1;
+  iEndY   = (pbBorderAvail[SGU_B]) ? uiHeight : uiHeight-1;
+  if (!pbBorderAvail[SGU_T])
+  {
+    pRec  += iStride;
+    pOrg  += iStride;
+  }
+
+  for (x=0; x< uiWidth; x++)
+  {
+    m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride]);
+  }
+  for (y=iStartY; y<iEndY; y++)
+  {
+    for (x=0; x< uiWidth; x++)
+    {
+      iSignDown     =  xSign(pRec[x] - pRec[x+iStride]); 
+      uiEdgeType    =  iSignDown + m_iUpBuff1[x] + 2;
+      m_iUpBuff1[x] = -iSignDown;
+
+      iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+      iCount[m_auiEoTable[uiEdgeType]] ++;
+    }
+    pOrg += iStride;
+    pRec += iStride;
+  }
+  //---------- Edge offset 2--------------//
+  iStats = ppiStats[SAO_EO_2];
+  iCount = ppiCount[SAO_EO_2];
+  pOrg   = pOrgStart;
+  pRec   = pRecStart;
+
+  posShift= iStride + 1;
+
+  iStartX = (pbBorderAvail[SGU_L]) ? 0 : 1 ;
+  iEndX   = (pbBorderAvail[SGU_R]) ? uiWidth : (uiWidth-1);
+
+  //prepare 2nd line upper sign
+  pRec += iStride;
+  for (x=iStartX; x< iEndX+1; x++)
+  {
+    m_iUpBuff1[x] = xSign(pRec[x] - pRec[x- posShift]);
+  }
+
+  //1st line
+  pRec -= iStride;
+  if(pbBorderAvail[SGU_TL])
+  {
+    x= 0;
+    uiEdgeType      =  xSign(pRec[x] - pRec[x- posShift]) - m_iUpBuff1[x+1] + 2;
+    iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+    iCount[m_auiEoTable[uiEdgeType]] ++;
+  }
+  if(pbBorderAvail[SGU_T])
+  {
+    for(x= 1; x< iEndX; x++)
+    {
+      uiEdgeType      =  xSign(pRec[x] - pRec[x- posShift]) - m_iUpBuff1[x+1] + 2;
+      iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+      iCount[m_auiEoTable[uiEdgeType]] ++;
+    }
+  }
+  pRec   += iStride;
+  pOrg   += iStride;
+
+  //middle lines
+  for (y= 1; y< uiHeight-1; y++)
+  {
+    for (x=iStartX; x<iEndX; x++)
+    {
+      iSignDown1      =  xSign(pRec[x] - pRec[x+ posShift]) ;
+      uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
+      iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+      iCount[m_auiEoTable[uiEdgeType]] ++;
+
+      m_iUpBufft[x+1] = -iSignDown1; 
+    }
+    m_iUpBufft[iStartX] = xSign(pRec[iStride+iStartX] - pRec[iStartX-1]);
+
+    ipSwap     = m_iUpBuff1;
+    m_iUpBuff1 = m_iUpBufft;
+    m_iUpBufft = ipSwap;
+
+    pRec  += iStride;
+    pOrg  += iStride;
+  }
+
+  //last line
+  if(pbBorderAvail[SGU_B])
+  {
+    for(x= iStartX; x< uiWidth-1; x++)
+    {
+      uiEdgeType =  xSign(pRec[x] - pRec[x+ posShift]) + m_iUpBuff1[x] + 2;
+      iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+      iCount[m_auiEoTable[uiEdgeType]] ++;
+    }
+  }
+  if(pbBorderAvail[SGU_BR])
+  {
+    x= uiWidth -1;
+    uiEdgeType =  xSign(pRec[x] - pRec[x+ posShift]) + m_iUpBuff1[x] + 2;
+    iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+    iCount[m_auiEoTable[uiEdgeType]] ++;
+  }
+
+  //---------- Edge offset 3--------------//
+
+  iStats = ppiStats[SAO_EO_3];
+  iCount = ppiCount[SAO_EO_3];
+  pOrg   = pOrgStart;
+  pRec   = pRecStart;
+
+  posShift     = iStride - 1;
+  iStartX = (pbBorderAvail[SGU_L]) ? 0 : 1;
+  iEndX   = (pbBorderAvail[SGU_R]) ? uiWidth : (uiWidth -1);
+
+  //prepare 2nd line upper sign
+  pRec += iStride;
+  for (x=iStartX-1; x< iEndX; x++)
+  {
+    m_iUpBuff1[x] = xSign(pRec[x] - pRec[x- posShift]);
+  }
+
+
+  //first line
+  pRec -= iStride;
+  if(pbBorderAvail[SGU_T])
+  {
+    for(x= iStartX; x< uiWidth -1; x++)
+    {
+      uiEdgeType = xSign(pRec[x] - pRec[x- posShift]) -m_iUpBuff1[x-1] + 2;
+      iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+      iCount[m_auiEoTable[uiEdgeType]] ++;
+    }
+  }
+  if(pbBorderAvail[SGU_TR])
+  {
+    x= uiWidth-1;
+    uiEdgeType = xSign(pRec[x] - pRec[x- posShift]) -m_iUpBuff1[x-1] + 2;
+    iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+    iCount[m_auiEoTable[uiEdgeType]] ++;
+  }
+  pRec  += iStride;
+  pOrg  += iStride;
+
+  //middle lines
+  for (y= 1; y< uiHeight-1; y++)
+  {
+    for(x= iStartX; x< iEndX; x++)
+    {
+      iSignDown1      =  xSign(pRec[x] - pRec[x+ posShift]) ;
+      uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
+
+      iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+      iCount[m_auiEoTable[uiEdgeType]] ++;
+      m_iUpBuff1[x-1] = -iSignDown1; 
+
+    }
+    m_iUpBuff1[iEndX-1] = xSign(pRec[iEndX-1 + iStride] - pRec[iEndX]);
+
+    pRec  += iStride;
+    pOrg  += iStride;
+  }
+
+  //last line
+  if(pbBorderAvail[SGU_BL])
+  {
+    x= 0;
+    uiEdgeType = xSign(pRec[x] - pRec[x+ posShift]) + m_iUpBuff1[x] + 2;
+    iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+    iCount[m_auiEoTable[uiEdgeType]] ++;
+
+  }
+  if(pbBorderAvail[SGU_B])
+  {
+    for(x= 1; x< iEndX; x++)
+    {
+      uiEdgeType = xSign(pRec[x] - pRec[x+ posShift]) + m_iUpBuff1[x] + 2;
+      iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+      iCount[m_auiEoTable[uiEdgeType]] ++;
+    }
+  }
+}
+
+/** Calculate SAO statistics for current LCU
+ * \param  iAddr,  iPartIdx,  iYCbCr
+ */
+Void TEncSampleAdaptiveOffset::calcSaoStatsCu(Int iAddr, Int iPartIdx, Int iYCbCr)
+{
+  if(!m_bUseNIF)
+  {
+    calcSaoStatsCuOrg( iAddr, iPartIdx, iYCbCr);
+  }
+  else
+  {
+    Int64** ppiStats = m_iOffsetOrg[iPartIdx];
+    Int64** ppiCount = m_iCount    [iPartIdx];
+
+    //parameters
+    Int  iIsChroma = (iYCbCr != 0)? 1:0;
+    Int  iStride   = (iYCbCr != 0)?(m_pcPic->getCStride()):(m_pcPic->getStride());
+    Pel* pPicOrg = getPicYuvAddr (m_pcPic->getPicYuvOrg(), iYCbCr);
+    Pel* pPicRec  = getPicYuvAddr(m_pcYuvTmp, iYCbCr);
+
+    std::vector<NDBFBlockInfo>& vFilterBlocks = *(m_pcPic->getCU(iAddr)->getNDBFilterBlocks());
+
+    //variables
+    UInt  uiXPos, uiYPos, uiWidth, uiHeight;
+    Bool* pbBorderAvail;
+    UInt  posOffset;
+
+    for(Int i=0; i< vFilterBlocks.size(); i++)
+    {
+      uiXPos        = vFilterBlocks[i].posX   >> iIsChroma;
+      uiYPos        = vFilterBlocks[i].posY   >> iIsChroma;
+      uiWidth       = vFilterBlocks[i].width  >> iIsChroma;
+      uiHeight      = vFilterBlocks[i].height >> iIsChroma;
+      pbBorderAvail = vFilterBlocks[i].isBorderAvailable;
+
+      posOffset = (uiYPos* iStride) + uiXPos;
+
+      calcSaoStatsBlock(pPicRec+ posOffset, pPicOrg+ posOffset, iStride, ppiStats, ppiCount,uiWidth, uiHeight, pbBorderAvail);
+    }
+  }
+
+}
+
+#else
+
+
 /** Calculate SAO statistics for current LCU without crossing slice
  * \param  iAddr,  iPartIdx,  iYCbCr
  */
@@ -1098,6 +1412,8 @@ Void TEncSampleAdaptiveOffset::calcSaoStatsCu(Int iAddr, Int iPartIdx, Int iYCbC
     calcSaoStatsCuOrg( iAddr, iPartIdx, iYCbCr);
   }
 }
+#endif
+
 #endif
 
 /** Calculate SAO statistics for current LCU without non-crossing slice
@@ -1709,6 +2025,15 @@ Void TEncSampleAdaptiveOffset::SAOProcess(SAOParam *pcSaoParam, Double dLambda)
 #else
   m_dLambdaLuma    = dLambda;
   m_dLambdaChroma  = dLambda;
+#endif
+
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+#if SAO_FGS_NIF
+  if(m_bUseNIF)
+  {
+    m_pcPic->getPicYuvRec()->copyToPic(m_pcYuvTmp);
+  }
+#endif
 #endif
 
 #if FULL_NBIT

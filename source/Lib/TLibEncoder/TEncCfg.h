@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,8 @@
 #include <assert.h>
 
 #if G1002_RPS
-struct GOPEntry {
+struct GOPEntry
+{
   Int m_iPOC;
   Int m_iQPOffset;
   Double m_iQPFactor;
@@ -73,14 +74,18 @@ struct GOPEntry {
   , m_iRefBufSize()
   , m_iSliceType()
   , m_iNumRefPics()
+#if INTER_RPS_PREDICTION
   , m_bInterRPSPrediction()
   , m_iDeltaRIdxMinus1()
   , m_iDeltaRPS()
   , m_iNumRefIdc()
+#endif
   {
     ::memset( m_aiReferencePics, 0, sizeof(m_aiReferencePics) );
     ::memset( m_aiUsedByCurrPic, 0, sizeof(m_aiUsedByCurrPic) );
+#if INTER_RPS_PREDICTION
     ::memset( m_aiRefIdc,        0, sizeof(m_aiRefIdc) );
+#endif
   }
 };
 
@@ -103,7 +108,10 @@ protected:
   Int       m_iSourceWidth;
   Int       m_iSourceHeight;
   Int       m_iFrameToBeEncoded;
-  
+#if G678_LAMBDA_ADJUSTMENT  
+  Double    m_adLambdaModifier[ MAX_TLAYER ];
+#endif
+
   //====== Coding Structure ========
   UInt      m_uiIntraPeriod;
   UInt      m_uiDecodingRefreshType;            ///< the type of decoding refresh employed for the random access.
@@ -112,7 +120,7 @@ protected:
   GOPEntry  m_pcGOPList[MAX_GOP];
   Int       m_iExtraRPSs;
   UInt      m_uiMaxNumberOfReferencePictures;
-  UInt      m_uiMaxNumberOfReorderPictures;
+  Int       m_numReorderFrames;
 #else
   Int       m_iRateGOPSize;
   Int       m_iNumOfReference;
@@ -159,9 +167,15 @@ protected:
   
   //====== Loop/Deblock Filter ========
   Bool      m_bLoopFilterDisable;
+#if G174_DF_OFFSET
+  Bool      m_loopFilterOffsetInAPS;
+  Int       m_loopFilterBetaOffsetDiv2;
+  Int       m_loopFilterTcOffsetDiv2;
+#else
   Int       m_iLoopFilterAlphaC0Offset;
   Int       m_iLoopFilterBetaOffset;
-  
+#endif
+
 #if SAO
   Bool      m_bUseSAO;
 #endif
@@ -174,6 +188,12 @@ protected:
   //====== Quality control ========
   Int       m_iMaxDeltaQP;                      //  Max. absolute delta QP (1:default)
   Int       m_iMaxCuDQPDepth;                   //  Max. depth for a minimum CuDQP (0:default)
+
+#if G509_CHROMA_QP_OFFSET
+  Int       m_iChromaQpOffset  ;                //  ChromaQpOffset    (0:default)
+  Int       m_iChromaQpOffset2nd;               //  ChromaQpOffset2nd (0:default)
+#endif
+
 #if QP_ADAPTATION
   Bool      m_bUseAdaptiveQP;
   Int       m_iQPAdaptationRange;
@@ -218,6 +238,10 @@ protected:
   UInt      m_uiDeltaQpRD;
   
   Bool      m_bUseConstrainedIntraPred;
+#if MAX_PCM_SIZE
+  Bool      m_usePCM;
+  UInt      m_pcmLog2MaxSize;
+#endif
   UInt      m_uiPCMLog2MinSize;
   //====== Slice ========
   Int       m_iSliceMode;
@@ -229,6 +253,7 @@ protected:
   Int       m_iSliceGranularity;
 #endif
   Bool      m_bLFCrossSliceBoundaryFlag;
+
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX
   Bool      m_bPCMInputBitDepthFlag;
   UInt      m_uiPCMBitDepthLuma;
@@ -238,6 +263,10 @@ protected:
   Bool      m_bPCMFilterDisableFlag;
 #endif
 #if TILES
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  Int       m_iTileBehaviorControlPresentFlag;
+  Bool      m_bLFCrossTileBoundaryFlag;
+#endif
   Int       m_iColumnRowInfoPresent;
   Int       m_iUniformSpacingIdr;
   Int       m_iTileBoundaryIndependenceIdr;
@@ -273,10 +302,19 @@ protected:
   Bool      m_bUseWeightPred;       //< Use of Weighting Prediction (P_SLICE)
   UInt      m_uiBiPredIdc;          //< Use of Bi-Directional Weighting Prediction (B_SLICE)
 #endif
+#if SCALING_LIST
+  Int       m_useScalingListId;            ///< Using quantization matrix i.e. 0=off, 1=default, 2=file.
+  char*     m_scalingListFile;          ///< quantization matrix file name
+#endif
+
+#if NO_TMVP_MARKING
+  Bool      m_bEnableTMVP;
+#endif
 
 public:
   TEncCfg()          {}
-  virtual ~TEncCfg() {
+  virtual ~TEncCfg()
+  {
 #if TILES
     if( m_iUniformSpacingIdr == 0 )
     {
@@ -313,7 +351,7 @@ public:
   Void      setExtraRPSs                    ( Int   i )      { m_iExtraRPSs = i; }
   GOPEntry  getGOPEntry                     ( Int   i )      { return m_pcGOPList[i]; }
   Void      setMaxNumberOfReferencePictures ( UInt u )       { m_uiMaxNumberOfReferencePictures = u;    }
-  Void      setMaxNumberOfReorderPictures   ( UInt u )       { m_uiMaxNumberOfReorderPictures = u;    }
+  Void      setNumReorderFrames             ( Int  i )       { m_numReorderFrames = i;    }
 #else
   Void      setRateGOPSize                  ( Int   i )      { m_iRateGOPSize = i; }
   Void      setNumOfReference               ( Int   i )      { m_iNumOfReference = i; }
@@ -363,9 +401,15 @@ public:
   
   //====== Loop/Deblock Filter ========
   Void      setLoopFilterDisable            ( Bool  b )      { m_bLoopFilterDisable       = b; }
+#if G174_DF_OFFSET
+  Void      setLoopFilterOffsetInAPS        ( Bool  b )      { m_loopFilterOffsetInAPS      = b; }
+  Void      setLoopFilterBetaOffset         ( Int   i )      { m_loopFilterBetaOffsetDiv2  = i; }
+  Void      setLoopFilterTcOffset           ( Int   i )      { m_loopFilterTcOffsetDiv2    = i; }
+#else
   Void      setLoopFilterAlphaC0Offset      ( Int   i )      { m_iLoopFilterAlphaC0Offset = i; }
   Void      setLoopFilterBetaOffset         ( Int   i )      { m_iLoopFilterBetaOffset    = i; }
-  
+#endif
+
   //====== Motion search ========
   Void      setFastSearch                   ( Int   i )      { m_iFastSearch = i; }
   Void      setSearchRange                  ( Int   i )      { m_iSearchRange = i; }
@@ -374,6 +418,12 @@ public:
   //====== Quality control ========
   Void      setMaxDeltaQP                   ( Int   i )      { m_iMaxDeltaQP = i; }
   Void      setMaxCuDQPDepth                ( Int   i )      { m_iMaxCuDQPDepth = i; }
+
+#if G509_CHROMA_QP_OFFSET
+  Void      setChromaQpOffset               ( Int   i ) { m_iChromaQpOffset    = i; }
+  Void      setChromaQpOffset2nd            ( Int   i ) { m_iChromaQpOffset2nd = i; }
+#endif
+
 #if QP_ADAPTATION
   Void      setUseAdaptiveQP                ( Bool  b )      { m_bUseAdaptiveQP = b; }
   Void      setQPAdaptationRange            ( Int   i )      { m_iQPAdaptationRange = i; }
@@ -385,7 +435,11 @@ public:
   Int       getSourceWidth                  ()      { return  m_iSourceWidth; }
   Int       getSourceHeight                 ()      { return  m_iSourceHeight; }
   Int       getFrameToBeEncoded             ()      { return  m_iFrameToBeEncoded; }
-  
+#if G678_LAMBDA_ADJUSTMENT  
+  void setLambdaModifier                    ( UInt uiIndex, Double dValue ) { m_adLambdaModifier[ uiIndex ] = dValue; }
+  Double getLambdaModifier                  ( UInt uiIndex ) const { return m_adLambdaModifier[ uiIndex ]; }
+#endif
+
   //==== Coding Structure ========
   UInt      getIntraPeriod                  ()      { return  m_uiIntraPeriod; }
   UInt      getDecodingRefreshType          ()      { return  m_uiDecodingRefreshType; }
@@ -398,7 +452,7 @@ public:
   
 #else
   UInt      getMaxNumberOfReferencePictures ()      { return m_uiMaxNumberOfReferencePictures; }
-  UInt      getMaxNumberOfReorderPictures   ()      { return m_uiMaxNumberOfReorderPictures; }
+  Int       geNumReorderFrames              ()      { return m_numReorderFrames; }
 #endif
   Int       getQP                           ()      { return  m_iQP; }
   
@@ -423,9 +477,15 @@ public:
   
   //==== Loop/Deblock Filter ========
   Bool      getLoopFilterDisable            ()      { return  m_bLoopFilterDisable;       }
+#if G174_DF_OFFSET
+  Bool      getLoopFilterOffsetInAPS        ()      { return m_loopFilterOffsetInAPS; }
+  Int       getLoopFilterBetaOffset         ()      { return m_loopFilterBetaOffsetDiv2; }
+  Int       getLoopFilterTcOffset           ()      { return m_loopFilterTcOffsetDiv2; }
+#else
   Int       getLoopFilterAlphaC0Offget      ()      { return  m_iLoopFilterAlphaC0Offset; }
   Int       getLoopFilterBetaOffget         ()      { return  m_iLoopFilterBetaOffset;    }
-  
+#endif
+
   //==== Motion search ========
   Int       getFastSearch                   ()      { return  m_iFastSearch; }
   Int       getSearchRange                  ()      { return  m_iSearchRange; }
@@ -471,6 +531,10 @@ public:
 #endif
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void      setPCMFilterDisableFlag         ( Bool  b )     {  m_bPCMFilterDisableFlag = b; }
+#endif
+#if MAX_PCM_SIZE
+  Void      setUsePCM                       ( Bool  b )     {  m_usePCM = b;               }
+  Void      setPCMLog2MaxSize               ( UInt u )      { m_pcmLog2MaxSize = u;      }
 #endif
   Void      setPCMLog2MinSize               ( UInt u )     { m_uiPCMLog2MinSize = u;      }
   Void      setdQPs                         ( Int*  p )     { m_aidQP       = p; }
@@ -519,6 +583,10 @@ public:
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Bool      getPCMFilterDisableFlag         ()      { return m_bPCMFilterDisableFlag;   } 
 #endif
+#if MAX_PCM_SIZE
+  Bool      getUsePCM                       ()      { return m_usePCM;                 }
+  UInt      getPCMLog2MaxSize               ()      { return m_pcmLog2MaxSize;  }
+#endif
   UInt      getPCMLog2MinSize               ()      { return  m_uiPCMLog2MinSize;  }
 
   Bool getUseLMChroma                       ()      { return m_bUseLMChroma;        }
@@ -543,11 +611,18 @@ public:
 #endif
   Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
   Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   }
+
 #if SAO
   Void      setUseSAO                  (Bool bVal)     {m_bUseSAO = bVal;}
   Bool      getUseSAO                  ()              {return m_bUseSAO;}
 #endif
 #if TILES
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  Void  setTileBehaviorControlPresentFlag        ( Int i )             { m_iTileBehaviorControlPresentFlag = i;    }
+  Int   getTileBehaviorControlPresentFlag        ()                    { return m_iTileBehaviorControlPresentFlag; }
+  Void  setLFCrossTileBoundaryFlag               ( Bool   bValue  )    { m_bLFCrossTileBoundaryFlag = bValue; }
+  Bool  getLFCrossTileBoundaryFlag               ()                    { return m_bLFCrossTileBoundaryFlag;   }
+#endif
   Void  setColumnRowInfoPresent        ( Int i )           { m_iColumnRowInfoPresent = i; }
   Int   getColumnRowInfoPresent        ()                  { return m_iColumnRowInfoPresent; }
   Void  setUniformSpacingIdr           ( Int i )           { m_iUniformSpacingIdr = i; }
@@ -656,7 +731,17 @@ public:
   Bool      getUseWP               ()            { return m_bUseWeightPred;    }
   UInt      getWPBiPredIdc         ()            { return m_uiBiPredIdc;       }
 #endif
+#if SCALING_LIST
+  Void      setUseScalingListId    ( Int  u )    { m_useScalingListId       = u;   }
+  Int       getUseScalingListId    ()            { return m_useScalingListId;      }
+  Void      setScalingListFile     ( char*  pch ){ m_scalingListFile     = pch; }
+  char*     getScalingListFile     ()            { return m_scalingListFile;    }
+#endif
 
+#if NO_TMVP_MARKING
+  Void      setEnableTMVP ( Bool b ) { m_bEnableTMVP = b;    }
+  Bool      getEnableTMVP ()         { return m_bEnableTMVP; }
+#endif
 };
 
 //! \}

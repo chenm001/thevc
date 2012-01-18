@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -506,7 +506,76 @@ __inline Void adaptCodeword( UInt uiCodeIdx, UChar * pucTableCounter, UChar & ru
     }
   }
 }
-
+#if SCALING_LIST
+#define SCALING_LIST_NUM 6                         ///< list number for quantization matrix
+#define SCALING_LIST_NUM_32x32 2                   ///< list number for quantization matrix 32x32
+#define SCALING_LIST_REM_NUM 6
+enum ScalingListDIR
+{
+  SCALING_LIST_SQT = 0,
+  SCALING_LIST_VER,
+  SCALING_LIST_HOR,
+  SCALING_LIST_DIR_NUM
+};
+enum ScalingListSize
+{
+  SCALING_LIST_4x4 = 0,
+  SCALING_LIST_8x8,
+  SCALING_LIST_16x16,
+  SCALING_LIST_32x32,
+  SCALING_LIST_SIZE_NUM
+};
+enum ScalingListPredMode
+{
+  SCALING_LIST_PRED_COPY = 0,
+  SCALING_LIST_PRED_DPCM,
+  SCALING_LIST_PRED_NUM
+};
+static const char MatrixType[4][6][20] =
+{
+  {
+  "INTRA4X4_LUMA",
+  "INTRA4X4_CHROMAU",
+  "INTRA4X4_CHROMAV",
+  "INTER4X4_LUMA",
+  "INTER4X4_CHROMAU",
+  "INTER4X4_CHROMAV"
+  },
+  {
+  "INTRA8X8_LUMA",
+  "INTRA8X8_CHROMAU", 
+  "INTRA8X8_CHROMAV", 
+  "INTER8X8_LUMA",
+  "INTER8X8_CHROMAU", 
+  "INTER8X8_CHROMAV"  
+  },
+  {
+  "INTRA16X16_LUMA",
+  "INTRA16X16_CHROMAU", 
+  "INTRA16X16_CHROMAV", 
+  "INTER16X16_LUMA",
+  "INTER16X16_CHROMAU", 
+  "INTER16X16_CHROMAV"  
+  },
+  {
+  "INTRA32X32_LUMA",
+  "INTER32X32_LUMA",
+  },
+};
+#define SCALING_LIST_START_VALUE 8                      ///< start value for dpcm mode
+extern Int g_quantIntraDefault4x4[16];
+extern Int g_quantIntraDefault8x8[64];
+extern Int g_quantIntraDefault16x16[256];
+extern Int g_quantIntraDefault32x32[1024];
+extern Int g_quantInterDefault4x4[16];
+extern Int g_quantInterDefault8x8[64];
+extern Int g_quantInterDefault16x16[256];
+extern Int g_quantInterDefault32x32[1024];
+extern UInt g_scalingListSize [SCALING_LIST_SIZE_NUM];
+extern UInt g_scalingListSizeX[SCALING_LIST_SIZE_NUM];
+extern UInt g_auiScalingListNum  [SCALING_LIST_SIZE_NUM];
+extern Int  g_eTTable[4];
+#endif
 //! \}
 
 #endif  //__TCOMROM__

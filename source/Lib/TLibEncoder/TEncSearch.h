@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,6 +68,14 @@ private:
   TCoeff*         m_pcQTTempCoeffY;
   TCoeff*         m_pcQTTempCoeffCb;
   TCoeff*         m_pcQTTempCoeffCr;
+#if ADAPTIVE_QP_SELECTION
+  Int**           m_ppcQTTempArlCoeffY;
+  Int**           m_ppcQTTempArlCoeffCb;
+  Int**           m_ppcQTTempArlCoeffCr;
+  Int*            m_pcQTTempArlCoeffY;
+  Int*            m_pcQTTempArlCoeffCb;
+  Int*            m_pcQTTempArlCoeffCr;
+#endif
   UChar*          m_puhQTTempTrIdx;
   UChar*          m_puhQTTempCbf[3];
   

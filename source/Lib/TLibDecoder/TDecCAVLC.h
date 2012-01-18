@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -210,8 +210,6 @@ public:
   Void parseIPCMInfo        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
 
   Void parseAlfCtrlDepth    ( UInt& ruiAlfCtrlDepth );
-  Void parseAlfCtrlFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void parseAlfFlagNum      ( UInt& ruiVal, UInt minValue, UInt depth );
   Void parseAlfCtrlFlag     ( UInt &ruiAlfCtrlFlag );
 #if TILES
 #if TILES_DECODER
@@ -229,8 +227,18 @@ public:
 #endif
 
 #if WEIGHT_PRED
-  Void parseWeightPredTable ( TComSlice* pcSlice );
+  Void xParsePredWeightTable ( TComSlice* pcSlice );
 #endif
+#if SCALING_LIST
+  Void  parseScalingList               ( TComScalingList* scalingList );
+  Void  xDecodeDPCMScalingListMatrix   ( TComScalingList *scalingList, Int* data, UInt sizeId, UInt listId);
+  Void  xReadScalingListCode           ( TComScalingList *scalingList, Int* buf,  UInt sizeId, UInt listId);
+#endif
+#if G174_DF_OFFSET
+  Void parseDFFlag         ( UInt& ruiVal, const Char *pSymbolName );
+  Void parseDFSvlc         ( Int&  riVal,  const Char *pSymbolName  );
+#endif
+
 };
 
 //! \}

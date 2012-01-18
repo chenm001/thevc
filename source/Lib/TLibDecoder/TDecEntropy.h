@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -122,8 +122,6 @@ public:
   virtual Void parseAlfUvlc       ( UInt& ruiVal           ) = 0;
   virtual Void parseAlfSvlc       ( Int&  riVal            ) = 0;
   virtual Void parseAlfCtrlDepth  ( UInt& ruiAlfCtrlDepth  ) = 0;
-  virtual Void parseAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
-  virtual Void parseAlfFlagNum    ( UInt& ruiVal, UInt minValue, UInt depth ) = 0;
   virtual Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag ) = 0;
 
 #if FINE_GRANULARITY_SLICES
@@ -148,6 +146,13 @@ public:
   
 #if F747_APS
   virtual Void parseAPSInitInfo   (TComAPS& cAPS) = 0;
+#endif
+#if SCALING_LIST
+  virtual Void parseScalingList   ( TComScalingList* scalingList ) = 0;
+#endif
+#if G174_DF_OFFSET
+  virtual Void parseDFFlag(UInt& ruiVal, const Char *pSymbolName) = 0;
+  virtual Void parseDFSvlc(Int&  riVal, const Char *pSymbolName) = 0;
 #endif
 
   virtual ~TDecEntropyIf() {}
@@ -201,7 +206,6 @@ public:
   Void decodeSkipFlag          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void decodeMergeFlag         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx );
   Void decodeMergeIndex        ( TComDataCU* pcSubCU, UInt uiPartIdx, UInt uiPartAddr, PartSize eCUMode, UChar* puhInterDirNeighbours, TComMvField* pcMvFieldNeighbours, UInt uiDepth );
-  Void decodeAlfCtrlFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 #if F747_APS
   Void decodeAlfCtrlParam      (AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
 #else
@@ -264,6 +268,12 @@ public:
 
 #if F747_APS
   Void decodeAPSInitInfo       (TComAPS& cAPS) {m_pcEntropyDecoderIf->parseAPSInitInfo(cAPS);}
+#endif
+#if SCALING_LIST
+  Void decodeScalingList       ( TComScalingList* scalingList ) { m_pcEntropyDecoderIf->parseScalingList(scalingList); }
+#endif
+#if G174_DF_OFFSET
+  Void decodeDFParams (TComAPS* pcAPS);
 #endif
 
 };// END CLASS DEFINITION TDecEntropy

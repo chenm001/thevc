@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -573,7 +573,13 @@ Void TEncEntropy::encodePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
  */
 Void TEncEntropy::encodeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
+#if MAX_PCM_SIZE
+  if(!pcCU->getSlice()->getSPS()->getUsePCM()
+    || pcCU->getWidth(uiAbsPartIdx) > (1<<pcCU->getSlice()->getSPS()->getPCMLog2MaxSize())
+    || pcCU->getWidth(uiAbsPartIdx) < (1<<pcCU->getSlice()->getSPS()->getPCMLog2MinSize()))
+#else
   if(pcCU->getWidth(uiAbsPartIdx) < (1<<pcCU->getSlice()->getSPS()->getPCMLog2MinSize()))
+#endif
   {
     return;
   }
@@ -660,7 +666,11 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
     {
       const UInt uiTrDepthCurr = uiDepth - pcCU->getDepth( uiAbsPartIdx );
       const Bool bFirstCbfOfCU = uiLog2TrafoSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() || uiTrDepthCurr == 0;
+#if MIN_CHROMA_TU
+      if( bFirstCbfOfCU || uiLog2TrafoSize > 2 )
+#else
       if( bFirstCbfOfCU || uiLog2TrafoSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+#endif
       {
         if( bFirstCbfOfCU || pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr - 1 ) )
         {
@@ -687,7 +697,11 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
           }
         }
       }
+#if MIN_CHROMA_TU
+      else if( uiLog2TrafoSize == 2 )
+#else
       else if( uiLog2TrafoSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+#endif
       {
         assert( pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr ) == pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr - 1 ) );
         assert( pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepthCurr ) == pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepthCurr - 1 ) );
@@ -992,7 +1006,11 @@ Void TEncEntropy::encodeQP( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
     uiAbsPartIdx = 0;
   }
   
+#if G507_QP_ISSUE_FIX
+  if ( pcCU->getSlice()->getPPS()->getUseDQP() )
+#else
   if ( pcCU->getSlice()->getSPS()->getUseDQP() )
+#endif
   {
     m_pcEntropyCoderIf->codeDeltaQP( pcCU, uiAbsPartIdx );
   }
@@ -1012,7 +1030,11 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
   UInt uiCbfU = pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrIdx );
   UInt uiCbfV = pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiTrIdx );
 
+#if MIN_CHROMA_TU
+  if( uiLog2TrSize == 2 )
+#else
   if( uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+#endif
   {
     UInt uiQPDiv = pcCU->getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
     if( ( uiAbsPartIdx % uiQPDiv ) == 0 )
@@ -1033,7 +1055,11 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
 #endif
   {
     // dQP: only for LCU once
+#if G507_QP_ISSUE_FIX
+    if ( pcCU->getSlice()->getPPS()->getUseDQP() )
+#else
     if ( pcCU->getSlice()->getSPS()->getUseDQP() )
+#endif
     {
       if ( bCodeDQP )
       {
@@ -1069,7 +1095,11 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
       uiWidth  >>= 1;
       uiHeight >>= 1;
 
+#if MIN_CHROMA_TU
+      if( uiLog2TrSize == 2 )
+#else
       if( uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+#endif
       {
         UInt uiQPDiv = pcCU->getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
         if( ( uiAbsPartIdx % uiQPDiv ) == (uiQPDiv - 1) )
@@ -1130,7 +1160,11 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
       Int trHeight = uiHeight;
       pcCU->getNSQTSize( uiTrIdx, uiAbsPartIdx, trWidth, trHeight );
 #endif
+#if MIN_CHROMA_TU
+      if( eType != TEXT_LUMA && uiLog2TrSize == 2 )
+#else
       if( eType != TEXT_LUMA && uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+#endif
       {
         UInt uiQPDiv = pcCU->getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
         if( ( uiAbsPartIdx % uiQPDiv ) != 0 )
@@ -1415,5 +1449,28 @@ Int TEncEntropy::countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize )
   
   return count;
 }
+
+#if SCALING_LIST
+/** encode quantization matrix
+ * \param scalingList quantization matrix information
+ */
+Void TEncEntropy::encodeScalingList( TComScalingList* scalingList )
+{
+  m_pcEntropyCoderIf->codeScalingList( scalingList );
+}
+#endif
+
+#if G174_DF_OFFSET
+Void TEncEntropy::encodeDFParams(TComAPS* pcAPS)
+{
+  m_pcEntropyCoderIf->codeDFFlag(pcAPS->getLoopFilterDisable(), "loop_filter_disable");
+
+  if (!pcAPS->getLoopFilterDisable())
+  {
+    m_pcEntropyCoderIf->codeDFSvlc(pcAPS->getLoopFilterBetaOffset(), "beta_offset_div2");
+    m_pcEntropyCoderIf->codeDFSvlc(pcAPS->getLoopFilterTcOffset(), "tc_offset_div2");
+  }
+}
+#endif
 
 //! \}

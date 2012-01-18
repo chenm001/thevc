@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,6 +94,9 @@ public:
   
   virtual Void codeAlfCtrlDepth() = 0;
   virtual Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList ) = 0;
+#if SCALING_LIST
+  virtual Void codeScalingList   ( TComScalingList* scalingList )      = 0;
+#endif
   
 public:
   virtual Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
@@ -135,8 +138,6 @@ public:
   virtual Int  getSliceGranularity()                      = 0;
 #endif
 
-  /// Code number of ALF CU control flags
-  virtual Void codeAlfFlagNum       ( UInt uiCode, UInt minValue, Int iDepth) = 0;
   virtual Void codeAlfCtrlFlag      ( UInt uiSymbol ) = 0;
 #if SAO
   virtual Void codeSaoFlag          ( UInt uiCode ) = 0;
@@ -160,6 +161,11 @@ public:
 #if F747_APS
   virtual Void codeAPSInitInfo  (TComAPS* pcAPS)= 0;
   virtual Void codeFinish       (Bool bEnd)= 0;
+#endif
+
+#if G174_DF_OFFSET
+  virtual Void codeDFFlag (UInt uiCode, const Char *pSymbolName) = 0;
+  virtual Void codeDFSvlc (Int iCode, const Char *pSymbolName)   = 0;
 #endif
 
   virtual ~TEncEntropyIf() {}
@@ -265,6 +271,12 @@ public:
 #if F747_APS
   Void encodeAPSInitInfo          (TComAPS* pcAPS) {m_pcEntropyCoderIf->codeAPSInitInfo(pcAPS);}
   Void encodeFinish               (Bool bEnd) {m_pcEntropyCoderIf->codeFinish(bEnd);}
+#endif
+#if SCALING_LIST
+  Void encodeScalingList       ( TComScalingList* scalingList );
+#endif
+#if G174_DF_OFFSET
+  Void encodeDFParams          (TComAPS* pcAPS);
 #endif
 
 private:

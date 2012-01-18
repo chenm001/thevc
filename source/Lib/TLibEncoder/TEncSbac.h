@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -120,14 +120,14 @@ public:
   Void  codeAlfSvlc       ( Int  uiCode );
   Void  codeAlfCtrlDepth  ();
 
-  /// Code number of ALF CU control flags
-  Void codeAlfFlagNum        ( UInt uiCode, UInt minValue, Int iDepth);
-
   Void codeAlfCtrlFlag       ( UInt uiSymbol );
 #if SAO
   Void  codeSaoFlag       ( UInt uiCode );
   Void  codeSaoUvlc       ( UInt uiCode );
   Void  codeSaoSvlc       ( Int  uiCode );
+#endif
+#if SCALING_LIST
+  Void  codeScalingList      ( TComScalingList* scalingList     ){ assert (0);  return;};
 #endif
 
 private:
@@ -145,6 +145,10 @@ private:
 #if F747_APS
   Void codeAPSInitInfo(TComAPS* pcAPS) {printf("Not supported in codeAPSInitInfo()\n"); assert(0); exit(1);}
   Void codeFinish     (Bool bEnd)      { m_pcBinIf->encodeFlush(bEnd); }  //<! flush bits when CABAC termination
+#endif
+#if G174_DF_OFFSET
+  Void codeDFFlag( UInt uiCode, const Char *pSymbolName )       {printf("Not supported in codeDFFlag()\n"); assert(0); exit(1);};
+  Void codeDFSvlc( Int iCode, const Char *pSymbolName )         {printf("Not supported in codeDFSvlc()\n"); assert(0); exit(1);};
 #endif
 
 protected:

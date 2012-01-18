@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -244,7 +244,9 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
         ppcSubstreams[ui] = pcBitstream->extractSubstream(ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
 #if TILES_DECODER
         // update location information from where tile markers were extracted
+#if !TILES_LOW_LATENCY_CABAC_INI
         if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+#endif
         {
           UInt uiDestIdx       = 0;
           for (UInt uiSrcIdx = 0; uiSrcIdx<pcBitstream->getTileMarkerLocationCount(); uiSrcIdx++)
@@ -294,7 +296,11 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #if !G220_PURE_VLC_SAO_ALF
         AlfCUCtrlInfo cAlfCUCtrlOneSlice;
 #endif
+#if ALF_SAO_SLICE_FLAGS
+        if(pcSlice->getAlfEnabledFlag())
+#else
         if(pcSlice->getAPS()->getAlfEnabled())
+#endif
         {
 #if G220_PURE_VLC_SAO_ALF
           vAlfCUCtrlSlices.push_back(m_cAlfCUCtrlOneSlice);
@@ -413,20 +419,71 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
   else
   {
     // deblocking filter
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+#if G174_DF_OFFSET
+    Bool bLFCrossTileBoundary = (pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)?
+                                (pcSlice->getPPS()->getLFCrossTileBoundaryFlag()):(pcSlice->getPPS()->getSPS()->getLFCrossTileBoundaryFlag());
+    if(pcSlice->getSPS()->getUseDF())
+    {
+      if(pcSlice->getInheritDblParamFromAPS())
+      {
+        pcSlice->setLoopFilterDisable(pcSlice->getAPS()->getLoopFilterDisable());
+        if (!pcSlice->getLoopFilterDisable())
+        {
+          pcSlice->setLoopFilterBetaOffset(pcSlice->getAPS()->getLoopFilterBetaOffset());
+          pcSlice->setLoopFilterTcOffset(pcSlice->getAPS()->getLoopFilterTcOffset());
+        }
+      }
+    }
+    m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), pcSlice->getLoopFilterBetaOffset(), pcSlice->getLoopFilterTcOffset(), bLFCrossTileBoundary);
+#else
+    Bool bLFCrossTileBoundary = (pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)?
+                                (pcSlice->getPPS()->getLFCrossTileBoundaryFlag()):(pcSlice->getPPS()->getSPS()->getLFCrossTileBoundaryFlag());
+    m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0, bLFCrossTileBoundary);
+#endif
+#else
     m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0);
+#endif
     m_pcLoopFilter->loopFilterPic( rpcPic );
+
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+    pcSlice = rpcPic->getSlice(0);
+    if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
+    {
+#if FINE_GRANULARITY_SLICES
+      Int sliceGranularity = pcSlice->getPPS()->getSliceGranularity();
+      puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU();
+#else
+      Int sliceGranularity = 0;
+      puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame();
+#endif
+      rpcPic->createNonDBFilterInfo(puiILSliceStartLCU, uiILSliceCount,sliceGranularity,pcSlice->getSPS()->getLFCrossSliceBoundaryFlag(),rpcPic->getPicSym()->getNumTiles() ,bLFCrossTileBoundary);
+    }
+#endif
+
 #if SAO
     {
 
 #if SAO && FINE_GRANULARITY_SLICES 
       if( pcSlice->getSPS()->getUseSAO() )
       {
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
         m_pcSAO->setNumSlicesInPic( uiILSliceCount );
         m_pcSAO->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
+#endif
 #if F747_APS
+#if ALF_SAO_SLICE_FLAGS
+        if(pcSlice->getSaoEnabledFlag())
+#else
         if(pcSlice->getAPS()->getSaoEnabled())
+#endif
         {
 #endif
+
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+          m_pcSAO->createPicSaoInfo(rpcPic, uiILSliceCount);
+#else
+
         if(uiILSliceCount == 1)
         {
           m_pcSAO->setUseNIF(false);
@@ -455,6 +512,8 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
           }
 #endif
         }
+#endif
+
 #if !F747_APS
       }
 #endif
@@ -479,6 +538,9 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
         m_pcSAO->freeSaoParam(&m_cSaoParam);
       }
 #endif
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+      m_pcSAO->destroyPicSaoInfo();
+#endif
 #if F747_APS
       }
     }
@@ -491,14 +553,24 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     // adaptive loop filter
     if( pcSlice->getSPS()->getUseALF() )
     {
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
       m_pcAdaptiveLoopFilter->setNumSlicesInPic( uiILSliceCount );
 #if FINE_GRANULARITY_SLICES
       m_pcAdaptiveLoopFilter->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
 #endif
+#endif
+
 #if F747_APS
+#if ALF_SAO_SLICE_FLAGS
+      if(pcSlice->getAlfEnabledFlag())
+#else
       if(pcSlice->getAPS()->getAlfEnabled())
+#endif
       {
 #endif
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+        m_pcAdaptiveLoopFilter->createPicAlfInfo(rpcPic, uiILSliceCount);
+#else
       if(uiILSliceCount == 1)
       {
         m_pcAdaptiveLoopFilter->setUseNonCrossAlf(false);
@@ -526,7 +598,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
           (*m_pcAdaptiveLoopFilter)[i].create(i, uiStartAddr, uiEndAddr);
         }
       }
-
+#endif
 #if F747_APS
       m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, pcSlice->getAPS()->getAlfParam(), vAlfCUCtrlSlices);
 #else
@@ -536,11 +608,14 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
       m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
 #endif
-
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+      m_pcAdaptiveLoopFilter->destroyPicAlfInfo();
+#else
       if(uiILSliceCount > 1)
       {
         m_pcAdaptiveLoopFilter->destroySlice();
       }
+#endif
 #if !F747_APS
       m_pcAdaptiveLoopFilter->freeALFParam(&m_cAlfParam);
 #endif
@@ -549,7 +624,13 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #endif
 
     }
-    
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+    if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
+    {
+      rpcPic->destroyNonDBFilterInfo();
+    }
+#endif
+
 #if AMVP_BUFFERCOMPRESS
     rpcPic->compressMotion(); 
 #endif 
@@ -595,7 +676,14 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     rpcPic->getPicYuvRec()->xFixedRoundingPic();
 #endif
 
+#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+    rpcPic->setOutputMark(true);
+#endif
     rpcPic->setReconMark(true);
+
+#if NO_TMVP_MARKING
+    rpcPic->setUsedForTMVP( true );
+#endif
 
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD

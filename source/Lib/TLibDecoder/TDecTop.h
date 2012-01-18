@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -124,6 +124,9 @@ private:
   Bool                    m_bFirstSliceInPicture;
   Bool                    m_bFirstSliceInSequence;
 
+#if SCALING_LIST
+  TComScalingList         m_scalingList;        ///< quantization matrix information
+#endif
 public:
   TDecTop();
   virtual ~TDecTop();

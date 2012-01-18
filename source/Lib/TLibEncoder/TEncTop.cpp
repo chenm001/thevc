@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -105,6 +105,9 @@ Void TEncTop::create ()
     m_cEncSAO.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
     m_cEncSAO.createEncBuffer();
   }
+#endif
+#if ADAPTIVE_QP_SELECTION
+  m_cTrQuant.initSliceQpDelta();
 #endif
   m_cAdaptiveLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 #if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
@@ -576,9 +579,13 @@ Void TEncTop::xInitSPS()
   
 #if G1002_RPS
   m_cSPS.setMaxNumberOfReferencePictures(m_uiMaxNumberOfReferencePictures);
-  m_cSPS.setMaxNumberOfReorderPictures(m_uiMaxNumberOfReorderPictures);
+  m_cSPS.setNumReorderFrames(m_numReorderFrames);
 #endif
   m_cSPS.setPCMLog2MinSize (m_uiPCMLog2MinSize);
+#if MAX_PCM_SIZE
+  m_cSPS.setUsePCM        ( m_usePCM           );
+  m_cSPS.setPCMLog2MaxSize( m_pcmLog2MaxSize  );
+#endif
 
   m_cSPS.setUseALF        ( m_bUseALF           );
   
@@ -587,10 +594,12 @@ Void TEncTop::xInitSPS()
   m_cSPS.setQuadtreeTUMaxDepthInter( m_uiQuadtreeTUMaxDepthInter    );
   m_cSPS.setQuadtreeTUMaxDepthIntra( m_uiQuadtreeTUMaxDepthIntra    );
   
+#if !G507_QP_ISSUE_FIX
 #if QP_ADAPTATION
   m_cSPS.setUseDQP        ( m_iMaxDeltaQP != 0 || m_bUseAdaptiveQP );
 #else
   m_cSPS.setUseDQP        ( m_iMaxDeltaQP != 0  );
+#endif
 #endif
 #if !G1002_RPS
   m_cSPS.setUseLDC        ( m_bUseLDC           );
@@ -699,6 +708,9 @@ Void TEncTop::xInitSPS()
 #endif
 
 #if TILES
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  m_cSPS.setLFCrossTileBoundaryFlag( m_bLFCrossTileBoundaryFlag );
+#endif
   m_cSPS.setUniformSpacingIdr( m_iUniformSpacingIdr );
   m_cSPS.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
   m_cSPS.setNumColumnsMinus1( m_iNumColumnsMinus1 );
@@ -708,6 +720,12 @@ Void TEncTop::xInitSPS()
     m_cSPS.setColumnWidth( m_puiColumnWidth );
     m_cSPS.setRowHeight( m_puiRowHeight );
   }
+#endif
+#if SCALING_LIST
+  m_cSPS.setScalingListFlag ( (m_useScalingListId == 0) ? 0 : 1 );
+#endif
+#if G174_DF_OFFSET
+  m_cSPS.setUseDF( m_loopFilterOffsetInAPS );
 #endif
 }
 
@@ -745,6 +763,34 @@ Void TEncTop::xInitPPS()
      m_cPPS.setBitsForTemporalId(0);
 
 #endif
+#if G507_QP_ISSUE_FIX
+  Bool bUseDQP = (getMaxCuDQPDepth() > 0)? true : false;
+
+  if(bUseDQP == false)
+  {
+#if QP_ADAPTATION
+    if((getMaxDeltaQP() != 0 )|| getUseAdaptiveQP())
+#else
+    if( getMaxDeltaQP() != 0)
+#endif
+    {
+      bUseDQP = true;
+    }
+  }
+
+  if(bUseDQP)
+  {
+    m_cPPS.setUseDQP(true);
+    m_cPPS.setMaxCuDQPDepth( m_iMaxCuDQPDepth );
+    m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
+  }
+  else
+  {
+    m_cPPS.setUseDQP(false);
+    m_cPPS.setMaxCuDQPDepth( 0 );
+    m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
+  }
+#else
   if( m_cPPS.getSPS()->getUseDQP() )
   {
     m_cPPS.setMaxCuDQPDepth( m_iMaxCuDQPDepth );
@@ -755,6 +801,13 @@ Void TEncTop::xInitPPS()
     m_cPPS.setMaxCuDQPDepth( 0 );
     m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
   }
+#endif
+
+#if G509_CHROMA_QP_OFFSET
+  m_cPPS.setChromaQpOffset   ( m_iChromaQpOffset    );
+  m_cPPS.setChromaQpOffset2nd( m_iChromaQpOffset2nd );
+#endif
+
 #if OL_USE_WPP
 #if DISABLE_CAVLC
   m_cPPS.setEntropyCodingMode( 1 ); // In the PPS now, but also remains in slice header!
@@ -768,6 +821,9 @@ Void TEncTop::xInitPPS()
 #if WEIGHT_PRED
   m_cPPS.setUseWP( m_bUseWeightPred );
   m_cPPS.setWPBiPredIdc( m_uiBiPredIdc );
+#endif
+#if NO_TMVP_MARKING
+  m_cPPS.setEnableTMVPFlag( m_bEnableTMVP );
 #endif
 }
 
@@ -792,10 +848,9 @@ Void TEncTop::xInitRPS()
   {
     GOPEntry pGE = getGOPEntry(i);
     pcRPS = m_cRPSList.getReferencePictureSet(i);
+    pcRPS->setNumberOfPictures(pGE.m_iNumRefPics);
 #if INTER_RPS_PREDICTION
-    pcRPS->create(pGE.m_iNumRefPics, pGE.m_iNumRefIdc);
-#else
-    pcRPS->create(pGE.m_iNumRefPics);
+    pcRPS->setNumRefIdc(pGE.m_iNumRefIdc);
 #endif
     int iNumNeg = 0;
     int iNumPos = 0;
@@ -896,11 +951,17 @@ Void  TEncTop::xInitPPSforTiles()
       m_cPPS.setColumnWidth( m_puiColumnWidth );
       m_cPPS.setRowHeight( m_puiRowHeight );
     }
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+    m_cPPS.setTileBehaviorControlPresentFlag( m_iTileBehaviorControlPresentFlag );
+    m_cPPS.setLFCrossTileBoundaryFlag( m_bLFCrossTileBoundaryFlag );
+#endif
+
 #if OL_USE_WPP
     // # substreams is "per tile" when tiles are independent.
     if (m_iTileBoundaryIndependenceIdr && m_iWaveFrontSynchro)
       m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams * (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1));
 #endif
+
 }
 
 Void  TEncCfg::xCheckGSParameters()
