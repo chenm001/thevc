@@ -2264,14 +2264,11 @@ UInt TComScalingList::xMakeResidual(Int *piOrg,Int *recon, Int *residual, UInt s
  */
 Void TComScalingList::xInvZigZag(Int *src,Int *dist, UInt sizeIdc)
 {
-  UInt i,x,y,size = g_scalingListSize[sizeIdc];
-  UInt sizeX   = g_scalingListSizeX[sizeIdc];
+  UInt i,size = g_scalingListSize[sizeIdc];
   UInt* scan  = g_auiFrameScanXY [ sizeIdc + 1 ];
   Int pcmCounter = 0;
   for(i=0;i<size;i++)
   {
-    x = scan[i] % sizeX;
-    y = scan[i] / sizeX;
     dist[scan[i]]  = src[pcmCounter];
     pcmCounter++;
   }
@@ -2369,16 +2366,13 @@ UInt TComScalingList::xCalcResidual(Int *org, Int *recon, Int *residual, UInt si
 Void TComScalingList::xMakeDPCM(Int* src, Int* dst, Int* dpcm, UInt sizeId)
 {
   Int startValue = SCALING_LIST_START_VALUE;
-  UInt i,x,y,size = g_scalingListSize[sizeId];
-  UInt sizeX = g_scalingListSizeX[sizeId];
+  UInt i,size = g_scalingListSize[sizeId];
   UInt* scan    = g_auiFrameScanXY [ sizeId + 1 ];
   Int  lastScale = startValue;
   UInt dataCounter = 0;
 
   for(i=0;i<size;i++)
   {
-    x = scan[i] % sizeX;
-    y = scan[i] / sizeX;
     dpcm[dataCounter] = src[scan[i]] - lastScale;
     dst[scan[i]] = lastScale + dpcm[dataCounter];
     lastScale = dst[scan[i]];

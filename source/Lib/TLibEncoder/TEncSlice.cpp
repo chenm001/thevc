@@ -856,7 +856,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
 #endif
   UInt uiWidthInLCUs  = rpcPic->getPicSym()->getFrameWidthInCU();
   //UInt uiHeightInLCUs = rpcPic->getPicSym()->getFrameHeightInCU();
-  UInt uiCol=0, uiLin, uiSubStrm=0;
+  UInt uiCol=0, uiLin=0, uiSubStrm=0;
 #if TILES
   Int  iBreakDep      = 0;
   UInt uiTileCol      = 0;
@@ -1370,7 +1370,7 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
   }
 
   UInt uiWidthInLCUs  = rpcPic->getPicSym()->getFrameWidthInCU();
-  UInt uiCol=0, uiLin, uiSubStrm=0;
+  UInt uiCol=0, uiLin=0, uiSubStrm=0;
 #if TILES
   Int  iBreakDep      = 0;
   UInt uiTileCol      = 0;

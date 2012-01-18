@@ -2988,8 +2988,8 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
 {
   UInt listId,sizeId;
   Int *dst=0;
-  Int *org=0;
 #if SCALING_LIST_OUTPUT_RESULT
+  Int *org=0;
   Int avg_error = 0;
   Int max_error = 0;
   Int startBit;
@@ -3011,8 +3011,8 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
       for(listId = 0; listId < g_auiScalingListNum[sizeId]; listId++)
       {
         dst = scalingList->getScalingListAddress(sizeId,listId);
-        org = scalingList->getScalingListOrgAddress(sizeId,listId);
 #if SCALING_LIST_OUTPUT_RESULT
+        org = scalingList->getScalingListOrgAddress(sizeId,listId);
         for(int i=0;i<g_scalingListSize[sizeId];i++)
         {
           avg_error += abs(dst[i] - org[i]);

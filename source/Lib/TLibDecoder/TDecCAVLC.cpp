@@ -3702,14 +3702,10 @@ Void TDecCavlc::parseScalingList(TComScalingList* scalingList)
  */
 Void TDecCavlc::xReadScalingListCode(TComScalingList *scalingList, Int* buf, UInt sizeId, UInt listId)
 {
-  UInt i,x,y,size = g_scalingListSize[sizeId];
-  UInt sizeX = g_scalingListSizeX[sizeId];
-  UInt* scan    = g_auiFrameScanXY [ sizeId + 1 ];
+  UInt i,size = g_scalingListSize[sizeId];
   UInt dataCounter = 0;
   for(i=0;i<size;i++)
   {
-    x = scan[i] % sizeX;
-    y = scan[i] / sizeX;
     READ_SVLC( buf[dataCounter], "delta_coef");
     dataCounter++;
   }

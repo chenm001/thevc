@@ -354,12 +354,10 @@ Void TComPic::createNonDBFilterInfoLCU(Int iSliceID, TComDataCU* pcCU, UInt uiSt
   UInt uiMaxNumSUInLCUWidth = getNumPartInWidth();
   UInt uiLPelX, uiTPelY;
   UInt uiCurrSU;
-  UInt uiNumSGU;
 
 
   //get the number of valid NBFilterBLock
   uiCurrSU   = uiStartSU;
-  uiNumSGU = 0;
   while(uiCurrSU <= uiEndSU)
   {
     uiLPelX = uiLCUX + g_auiRasterToPelX[ g_auiZscanToRaster[uiCurrSU] ];
