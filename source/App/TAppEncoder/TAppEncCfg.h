@@ -161,9 +161,9 @@ protected:
 
   Bool      m_bLoopFilterDisable;                             ///< flag for using deblocking filter
 #if G174_DF_OFFSET
-  Bool      m_bLoopFilterOffsetInAPS;                         ///< offset for deblocking filter in 0 = slice header, 1 = APS
-  Int       m_iLoopFilterBetaOffset_div2;                     ///< beta offset for deblocking filter
-  Int       m_iLoopFilterTcOffset_div2;                       ///< tc offset for deblocking filter
+  Bool      m_loopFilterOffsetInAPS;                         ///< offset for deblocking filter in 0 = slice header, 1 = APS
+  Int       m_loopFilterBetaOffsetDiv2;                     ///< beta offset for deblocking filter
+  Int       m_loopFilterTcOffsetDiv2;                       ///< tc offset for deblocking filter
 #else
   Int       m_iLoopFilterAlphaC0Offset;                       ///< alpha offset for deblocking filter
   Int       m_iLoopFilterBetaOffset;                          ///< beta offset for deblocking filter

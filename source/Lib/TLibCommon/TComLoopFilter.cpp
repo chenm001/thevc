@@ -109,8 +109,8 @@ Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaO
 #endif
 
 #if G174_DF_OFFSET
-  m_iBetaOffset_div2 = iBetaOffset_div2;
-  m_iTcOffset_div2 = iTcOffset_div2;
+  m_betaOffsetDiv2 = iBetaOffset_div2;
+  m_tcOffsetDiv2 = iTcOffset_div2;
 #endif
 
 }
@@ -925,19 +925,19 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
 #if !DEBLK_CLEANUP_G175_G620_G638
     Int uiTcOffset = ( uiBs > 2 ) ? DEFAULT_INTRA_TC_OFFSET : 0;
 #if G174_DF_OFFSET
-    Int iIndexTC = Clip3(0, MAX_QP+4, iQP + uiTcOffset + (m_iTcOffset_div2 << 1));
+    Int iIndexTC = Clip3(0, MAX_QP+4, iQP + uiTcOffset + (m_tcOffsetDiv2 << 1));
 #else
     Int iIndexTC = Clip3(0, MAX_QP+4, iQP + uiTcOffset );
 #endif
 #else
 #if G174_DF_OFFSET
-    Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, Int(iQP + DEFAULT_INTRA_TC_OFFSET*(uiBs-1) + (m_iTcOffset_div2 << 1)));
+    Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, Int(iQP + DEFAULT_INTRA_TC_OFFSET*(uiBs-1) + (m_tcOffsetDiv2 << 1)));
 #else
     Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, Int(iQP + DEFAULT_INTRA_TC_OFFSET*(uiBs-1)));
 #endif
 #endif
 #if G174_DF_OFFSET
-    Int iIndexB = Clip3(0, MAX_QP, iQP + (m_iBetaOffset_div2 << 1));
+    Int iIndexB = Clip3(0, MAX_QP, iQP + (m_betaOffsetDiv2 << 1));
 #else
     Int iIndexB = Clip3(0, MAX_QP, iQP );
 #endif
@@ -1240,13 +1240,13 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
 #if !DEBLK_CLEANUP_G175_G620_G638
     Int uiTcOffset = ( ucBs > 2 ) ? DEFAULT_INTRA_TC_OFFSET : 0;
 #if G174_DF_OFFSET
-    Int iIndexTC = Clip3(0, MAX_QP+4, iQP + uiTcOffset + (m_iTcOffset_div2 << 1));
+    Int iIndexTC = Clip3(0, MAX_QP+4, iQP + uiTcOffset + (m_tcOffsetDiv2 << 1));
 #else
     Int iIndexTC = Clip3(0, MAX_QP+4, iQP + uiTcOffset );
 #endif
 #else
 #if G174_DF_OFFSET
-    Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, iQP + DEFAULT_INTRA_TC_OFFSET*(ucBs - 1) + (m_iTcOffset_div2 << 1));
+    Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, iQP + DEFAULT_INTRA_TC_OFFSET*(ucBs - 1) + (m_tcOffsetDiv2 << 1));
 #else
     Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, iQP + DEFAULT_INTRA_TC_OFFSET*(ucBs - 1) );
 #endif

@@ -168,9 +168,9 @@ protected:
   //====== Loop/Deblock Filter ========
   Bool      m_bLoopFilterDisable;
 #if G174_DF_OFFSET
-  Bool      m_bLoopFilterOffsetInAPS;
-  Int       m_iLoopFilterBetaOffset_div2;
-  Int       m_iLoopFilterTcOffset_div2;
+  Bool      m_loopFilterOffsetInAPS;
+  Int       m_loopFilterBetaOffsetDiv2;
+  Int       m_loopFilterTcOffsetDiv2;
 #else
   Int       m_iLoopFilterAlphaC0Offset;
   Int       m_iLoopFilterBetaOffset;
@@ -402,9 +402,9 @@ public:
   //====== Loop/Deblock Filter ========
   Void      setLoopFilterDisable            ( Bool  b )      { m_bLoopFilterDisable       = b; }
 #if G174_DF_OFFSET
-  Void      setLoopFilterOffsetInAPS        ( Bool  b )      { m_bLoopFilterOffsetInAPS      = b; }
-  Void      setLoopFilterBetaOffset         ( Int   i )      { m_iLoopFilterBetaOffset_div2  = i; }
-  Void      setLoopFilterTcOffset           ( Int   i )      { m_iLoopFilterTcOffset_div2    = i; }
+  Void      setLoopFilterOffsetInAPS        ( Bool  b )      { m_loopFilterOffsetInAPS      = b; }
+  Void      setLoopFilterBetaOffset         ( Int   i )      { m_loopFilterBetaOffsetDiv2  = i; }
+  Void      setLoopFilterTcOffset           ( Int   i )      { m_loopFilterTcOffsetDiv2    = i; }
 #else
   Void      setLoopFilterAlphaC0Offset      ( Int   i )      { m_iLoopFilterAlphaC0Offset = i; }
   Void      setLoopFilterBetaOffset         ( Int   i )      { m_iLoopFilterBetaOffset    = i; }
@@ -478,9 +478,9 @@ public:
   //==== Loop/Deblock Filter ========
   Bool      getLoopFilterDisable            ()      { return  m_bLoopFilterDisable;       }
 #if G174_DF_OFFSET
-  Bool      getLoopFilterOffsetInAPS        ()      { return m_bLoopFilterOffsetInAPS; }
-  Int       getLoopFilterBetaOffset         ()      { return m_iLoopFilterBetaOffset_div2; }
-  Int       getLoopFilterTcOffset           ()      { return m_iLoopFilterTcOffset_div2; }
+  Bool      getLoopFilterOffsetInAPS        ()      { return m_loopFilterOffsetInAPS; }
+  Int       getLoopFilterBetaOffset         ()      { return m_loopFilterBetaOffsetDiv2; }
+  Int       getLoopFilterTcOffset           ()      { return m_loopFilterTcOffsetDiv2; }
 #else
   Int       getLoopFilterAlphaC0Offget      ()      { return  m_iLoopFilterAlphaC0Offset; }
   Int       getLoopFilterBetaOffget         ()      { return  m_iLoopFilterBetaOffset;    }

@@ -264,9 +264,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   /* Deblocking filter parameters */
   ("LoopFilterDisable", m_bLoopFilterDisable, false)
 #if G174_DF_OFFSET
-  ("LoopFilterOffsetInAPS", m_bLoopFilterOffsetInAPS, false)
-  ("LoopFilterBetaOffset_div2", m_iLoopFilterBetaOffset_div2, 0 )
-  ("LoopFilterTcOffset_div2", m_iLoopFilterTcOffset_div2, 0 )
+  ("LoopFilterOffsetInAPS", m_loopFilterOffsetInAPS, false)
+  ("LoopFilterBetaOffset_div2", m_loopFilterBetaOffsetDiv2, 0 )
+  ("LoopFilterTcOffset_div2", m_loopFilterTcOffsetDiv2, 0 )
 #else
   ("LoopFilterAlphaC0Offset", m_iLoopFilterAlphaC0Offset, 0)
   ("LoopFilterBetaOffset", m_iLoopFilterBetaOffset, 0 )
@@ -540,8 +540,8 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iALFMaxNumberFilters < 1 || m_iALFMaxNumberFilters > 16,                  "ALFMaxNumFilter exceeds supported range (1 to 16)");  
 #endif
 #if G174_DF_OFFSET
-  xConfirmPara( m_iLoopFilterBetaOffset_div2 < -13 || m_iLoopFilterBetaOffset_div2 > 13,          "Loop Filter Beta Offset div. 2 exceeds supported range (-13 to 13)");
-  xConfirmPara( m_iLoopFilterTcOffset_div2 < -13 || m_iLoopFilterTcOffset_div2 > 13,              "Loop Filter Tc Offset div. 2 exceeds supported range (-13 to 13)");
+  xConfirmPara( m_loopFilterBetaOffsetDiv2 < -13 || m_loopFilterBetaOffsetDiv2 > 13,          "Loop Filter Beta Offset div. 2 exceeds supported range (-13 to 13)");
+  xConfirmPara( m_loopFilterTcOffsetDiv2 < -13 || m_loopFilterTcOffsetDiv2 > 13,              "Loop Filter Tc Offset div. 2 exceeds supported range (-13 to 13)");
 #else
   xConfirmPara( m_iLoopFilterAlphaC0Offset < -26 || m_iLoopFilterAlphaC0Offset > 26,        "Loop Filter Alpha Offset exceeds supported range (-26 to 26)" );
   xConfirmPara( m_iLoopFilterBetaOffset < -26 || m_iLoopFilterBetaOffset > 26,              "Loop Filter Beta Offset exceeds supported range (-26 to 26)");
