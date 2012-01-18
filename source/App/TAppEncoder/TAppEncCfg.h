@@ -160,9 +160,15 @@ protected:
 #endif
 
   Bool      m_bLoopFilterDisable;                             ///< flag for using deblocking filter
+#if G174_DF_OFFSET
+  Bool      m_bLoopFilterOffsetInAPS;                         ///< offset for deblocking filter in 0 = slice header, 1 = APS
+  Int       m_iLoopFilterBetaOffset_div2;                     ///< beta offset for deblocking filter
+  Int       m_iLoopFilterTcOffset_div2;                       ///< tc offset for deblocking filter
+#else
   Int       m_iLoopFilterAlphaC0Offset;                       ///< alpha offset for deblocking filter
   Int       m_iLoopFilterBetaOffset;                          ///< beta offset for deblocking filter
-  
+#endif
+
 #if !DISABLE_CAVLC
   // coding tools (entropy coder)
   Int       m_iSymbolMode;                                    ///< entropy coder mode, 0 = VLC, 1 = CABAC

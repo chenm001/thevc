@@ -124,6 +124,11 @@ public:
   Void  parseSaoUvlc              ( UInt& ruiVal           );
   Void  parseSaoSvlc              ( Int&  riVal            );
 #endif
+#if G174_DF_OFFSET
+  Void parseDFFlag                (UInt& ruiVal, const Char *pSymbolName) {printf("Not supported\n");assert(0);exit(1);};
+  Void parseDFSvlc                (Int&  riVal, const Char *pSymbolName)  {printf("Not supported\n");assert(0);exit(1);};
+#endif
+
 private:
   Void  xReadUnarySymbol    ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset );
   Void  xReadUnaryMaxSymbol ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );

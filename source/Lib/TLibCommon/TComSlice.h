@@ -175,6 +175,10 @@ private:
   UInt        m_uiMaxLatencyIncrease;
 #endif
 
+#if G174_DF_OFFSET
+  Bool        m_bUseDF;
+#endif
+
 public:
   TComSPS();
   virtual ~TComSPS();
@@ -300,6 +304,11 @@ public:
 
   Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
   Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   } 
+
+#if G174_DF_OFFSET
+  Void setUseDF                   ( Bool bVal ) { m_bUseDF = bVal; }
+  Bool getUseDF                   ()            { return m_bUseDF; }
+#endif
 
 #if SAO
   Void setUseSAO                  (Bool bVal)  {m_bUseSAO = bVal;}
@@ -783,6 +792,18 @@ public:
 
   Void      createAlfParam();   //!< create ALF parameter object
   Void      destroyAlfParam();  //!< destroy ALF parameter object
+
+#if G174_DF_OFFSET
+  Void      setLoopFilterOffsetInAPS(Bool bVal) {m_bLoopFilterOffsetInAPS = bVal; }     //!< set offset for deblocking filter enabled/disabled in APS
+  Bool      getLoopFilterOffsetInAPS()          {return m_bLoopFilterOffsetInAPS; }     //!< get offset for deblocking filter enabled/disabled in APS
+  Void      setLoopFilterDisable(Bool bVal)     {m_bLoopFilterDisable = bVal; }         //!< set offset for deblocking filter disabled
+  Bool      getLoopFilterDisable()              {return m_bLoopFilterDisable; }         //!< get offset for deblocking filter disabled
+  Void      setLoopFilterBetaOffset(Int iVal)   {m_iLoopFilterBetaOffset_div2 = iVal; } //!< set beta offset for deblocking filter
+  Int       getLoopFilterBetaOffset()           {return m_iLoopFilterBetaOffset_div2; } //!< get beta offset for deblocking filter
+  Void      setLoopFilterTcOffset(Int iVal)     {m_iLoopFilterTcOffset_div2 = iVal; }   //!< set tc offset for deblocking filter
+  Int       getLoopFilterTcOffset()             {return m_iLoopFilterTcOffset_div2; }   //!< get tc offset for deblocking filter
+#endif
+
   Void      setCABACForAPS(Bool bVal) {m_bCABACForAPS = bVal;    }  //!< set CABAC enabled/disabled in APS
   Bool      getCABACForAPS()          {return m_bCABACForAPS;    }  //!< get CABAC enabled/disabled in APS
   Void      setCABACinitIDC(Int iVal) {m_CABACinitIDC = iVal;    }  //!< set CABAC initial IDC number for APS coding
@@ -803,6 +824,12 @@ private:
   Bool        m_bAlfEnabled;  //!< ALF enabled/disabled in APS (true for enabled)
   SAOParam*   m_pSaoParam;    //!< SAO parameter object pointer 
   ALFParam*   m_pAlfParam;    //!< ALF parameter object pointer
+#if G174_DF_OFFSET
+  Bool        m_bLoopFilterOffsetInAPS;       //< offset for deblocking filter in 0 = slice header, 1 = APS
+  Bool        m_bLoopFilterDisable;           //< Deblocking filter enabled/disabled in APS
+  Int         m_iLoopFilterBetaOffset_div2;   //< beta offset for deblocking filter
+  Int         m_iLoopFilterTcOffset_div2;     //< tc offset for deblocking filter
+#endif
   Bool        m_bCABACForAPS; //!< CABAC coding enabled/disabled for APS (true for enabling CABAC)
   Int         m_CABACinitIDC; //!< CABAC initial IDC number for APS coding
   Int         m_CABACinitQP;  //!< CABAC initial QP value for APS coding
@@ -873,6 +900,12 @@ private:
   Int         m_iSymbolMode;
 #endif
   Bool        m_bLoopFilterDisable;
+#if G174_DF_OFFSET
+  Bool        m_bLoopFilterOffsetInAPS;
+  Bool        m_bInheritDblParamFromAPS;      //< offsets for deblocking filter inherit from APS
+  Int         m_iLoopFilterBetaOffset_div2;   //< beta offset for deblocking filter
+  Int         m_iLoopFilterTcOffset_div2;     //< tc offset for deblocking filter
+#endif
   
   Bool        m_bDRBFlag;             //  flag for future usage as reference buffer
   ERBIndex    m_eERBIndex;            //  flag for future usage as reference buffer
@@ -1035,6 +1068,13 @@ public:
   Int       getSymbolMode   ()                          { return  m_iSymbolMode;        }
 #endif
   Bool      getLoopFilterDisable()                      { return  m_bLoopFilterDisable; }
+#if G174_DF_OFFSET
+  Bool      getLoopFilterOffsetInAPS()                  { return  m_bLoopFilterOffsetInAPS;}
+  Bool      getInheritDblParamFromAPS()                 { return  m_bInheritDblParamFromAPS; }
+  Int       getLoopFilterBetaOffset()                   { return  m_iLoopFilterBetaOffset_div2; }
+  Int       getLoopFilterTcOffset()                     { return  m_iLoopFilterTcOffset_div2; }
+#endif
+
   Int       getNumRefIdx        ( RefPicList e )                { return  m_aiNumRefIdx[e];             }
   TComPic*  getPic              ()                              { return  m_pcPic;                      }
   TComPic*  getRefPic           ( RefPicList e, Int iRefIdx)    { return  m_apcRefPicList[e][iRefIdx];  }
@@ -1082,6 +1122,12 @@ public:
   Void      setSymbolMode       ( Int b  )                      { m_iSymbolMode       = b;      }
 #endif
   Void      setLoopFilterDisable( Bool b )                      { m_bLoopFilterDisable= b;      }
+#if G174_DF_OFFSET
+  Void      setLoopFilterOffsetInAPS( Bool b )                  { m_bLoopFilterOffsetInAPS = b;}
+  Void      setInheritDblParamFromAPS( Bool b )                 { m_bInheritDblParamFromAPS = b; }
+  Void      setLoopFilterBetaOffset( Int i )                    { m_iLoopFilterBetaOffset_div2 = i; }
+  Void      setLoopFilterTcOffset( Int i )                      { m_iLoopFilterTcOffset_div2 = i; }
+#endif
   
   Void      setRefPic           ( TComPic* p, RefPicList e, Int iRefIdx ) { m_apcRefPicList[e][iRefIdx] = p; }
   Void      setRefPOC           ( Int i, RefPicList e, Int iRefIdx ) { m_aiRefPOCList[e][iRefIdx] = i; }

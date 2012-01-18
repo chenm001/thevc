@@ -780,9 +780,15 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
       //-- Loop filter
 #if NONCROSS_TILE_IN_LOOP_FILTERING
+#if G174_DF_OFFSET
+      Bool bLFCrossTileBoundary = (pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)?
+                                  (pcSlice->getPPS()->getLFCrossTileBoundaryFlag()):(pcSlice->getPPS()->getSPS()->getLFCrossTileBoundaryFlag());
+      m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), pcSlice->getLoopFilterBetaOffset(), pcSlice->getLoopFilterTcOffset(), bLFCrossTileBoundary);
+#else
       Bool bLFCrossTileBoundary = (pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)?
                                   (pcSlice->getPPS()->getLFCrossTileBoundaryFlag()):(pcSlice->getPPS()->getSPS()->getLFCrossTileBoundaryFlag());
       m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), m_pcCfg->getLoopFilterAlphaC0Offget(), m_pcCfg->getLoopFilterBetaOffget(), bLFCrossTileBoundary);
+#endif
 #else
       m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), m_pcCfg->getLoopFilterAlphaC0Offget(), m_pcCfg->getLoopFilterBetaOffget());
 #endif
@@ -932,7 +938,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
 #if SAO
 #if SCALING_LIST
+#if G174_DF_OFFSET
+      Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getScalingListFlag() || pcSlice->getSPS()->getUseDF())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
+#else
       Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getScalingListFlag())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
+#endif
 #else
       Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
 #endif
@@ -1953,6 +1963,13 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
   cAPS.setSaoEnabled(pcSlice->getSPS()->getUseSAO() ? (cAPS.getSaoParam()->bSaoFlag[0] ):(false));
   cAPS.setAlfEnabled(pcSlice->getSPS()->getUseALF() ? (cAPS.getAlfParam()->alf_flag ==1):(false));
 
+#if G174_DF_OFFSET
+  cAPS.setLoopFilterOffsetInAPS(m_pcCfg->getLoopFilterOffsetInAPS());
+  cAPS.setLoopFilterDisable(m_pcCfg->getLoopFilterDisable());
+  cAPS.setLoopFilterBetaOffset(m_pcCfg->getLoopFilterBetaOffset());
+  cAPS.setLoopFilterTcOffset(m_pcCfg->getLoopFilterTcOffset());
+#endif 
+
   if(cAPS.getSaoEnabled() || cAPS.getAlfEnabled())
   {
 #if DISABLE_CAVLC
@@ -1998,6 +2015,12 @@ Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* p
   if(pcAPS->getScalingListEnabled())
   {
     m_pcEntropyCoder->encodeScalingList( pcSlice->getScalingList() );
+  }
+#endif
+#if G174_DF_OFFSET
+  if(pcAPS->getLoopFilterOffsetInAPS())
+  {
+    m_pcEntropyCoder->encodeDFParams(pcAPS);
   }
 #endif
 
@@ -2163,7 +2186,11 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
   TComSlice* pcSlice = pcPic->getSlice(pcPic->getCurrSliceIdx());
   Bool bCalcDist = false;
 #if NONCROSS_TILE_IN_LOOP_FILTERING
+#if G174_DF_OFFSET
+  m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), m_pcCfg->getLoopFilterBetaOffset(), m_pcCfg->getLoopFilterTcOffset(), m_pcCfg->getLFCrossTileBoundaryFlag());
+#else
   m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), m_pcCfg->getLoopFilterAlphaC0Offget(), m_pcCfg->getLoopFilterBetaOffget(), m_pcCfg->getLFCrossTileBoundaryFlag());
+#endif
 #else
   m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), m_pcCfg->getLoopFilterAlphaC0Offget(), m_pcCfg->getLoopFilterBetaOffget());
 #endif

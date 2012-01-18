@@ -167,9 +167,15 @@ protected:
   
   //====== Loop/Deblock Filter ========
   Bool      m_bLoopFilterDisable;
+#if G174_DF_OFFSET
+  Bool      m_bLoopFilterOffsetInAPS;
+  Int       m_iLoopFilterBetaOffset_div2;
+  Int       m_iLoopFilterTcOffset_div2;
+#else
   Int       m_iLoopFilterAlphaC0Offset;
   Int       m_iLoopFilterBetaOffset;
-  
+#endif
+
 #if SAO
   Bool      m_bUseSAO;
 #endif
@@ -395,9 +401,15 @@ public:
   
   //====== Loop/Deblock Filter ========
   Void      setLoopFilterDisable            ( Bool  b )      { m_bLoopFilterDisable       = b; }
+#if G174_DF_OFFSET
+  Void      setLoopFilterOffsetInAPS        ( Bool  b )      { m_bLoopFilterOffsetInAPS      = b; }
+  Void      setLoopFilterBetaOffset         ( Int   i )      { m_iLoopFilterBetaOffset_div2  = i; }
+  Void      setLoopFilterTcOffset           ( Int   i )      { m_iLoopFilterTcOffset_div2    = i; }
+#else
   Void      setLoopFilterAlphaC0Offset      ( Int   i )      { m_iLoopFilterAlphaC0Offset = i; }
   Void      setLoopFilterBetaOffset         ( Int   i )      { m_iLoopFilterBetaOffset    = i; }
-  
+#endif
+
   //====== Motion search ========
   Void      setFastSearch                   ( Int   i )      { m_iFastSearch = i; }
   Void      setSearchRange                  ( Int   i )      { m_iSearchRange = i; }
@@ -465,9 +477,15 @@ public:
   
   //==== Loop/Deblock Filter ========
   Bool      getLoopFilterDisable            ()      { return  m_bLoopFilterDisable;       }
+#if G174_DF_OFFSET
+  Bool      getLoopFilterOffsetInAPS        ()      { return m_bLoopFilterOffsetInAPS; }
+  Int       getLoopFilterBetaOffset         ()      { return m_iLoopFilterBetaOffset_div2; }
+  Int       getLoopFilterTcOffset           ()      { return m_iLoopFilterTcOffset_div2; }
+#else
   Int       getLoopFilterAlphaC0Offget      ()      { return  m_iLoopFilterAlphaC0Offset; }
   Int       getLoopFilterBetaOffget         ()      { return  m_iLoopFilterBetaOffset;    }
-  
+#endif
+
   //==== Motion search ========
   Int       getFastSearch                   ()      { return  m_iFastSearch; }
   Int       getSearchRange                  ()      { return  m_iSearchRange; }

@@ -342,6 +342,8 @@
 
 #define SCALING_LIST                  1 //JCTVC-G880/JCTVC-G1016 quantization matrices
 #define SCALING_LIST_OUTPUT_RESULT    0 //JCTVC-G880/JCTVC-G1016 quantization matrices
+
+#define G174_DF_OFFSET                1 //JCTVC-G174 beta and tc offset for deblocking filter
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================

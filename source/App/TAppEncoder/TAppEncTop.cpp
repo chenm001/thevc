@@ -125,9 +125,15 @@ Void TAppEncTop::xInitLibCfg()
   
   //====== Loop/Deblock Filter ========
   m_cTEncTop.setLoopFilterDisable            ( m_bLoopFilterDisable       );
+#if G174_DF_OFFSET
+  m_cTEncTop.setLoopFilterOffsetInAPS        ( m_bLoopFilterOffsetInAPS );
+  m_cTEncTop.setLoopFilterBetaOffset         ( m_iLoopFilterBetaOffset_div2  );
+  m_cTEncTop.setLoopFilterTcOffset           ( m_iLoopFilterTcOffset_div2    );
+#else
   m_cTEncTop.setLoopFilterAlphaC0Offset      ( m_iLoopFilterAlphaC0Offset );
   m_cTEncTop.setLoopFilterBetaOffset         ( m_iLoopFilterBetaOffset    );
-  
+#endif
+
   //====== Motion search ========
   m_cTEncTop.setFastSearch                   ( m_iFastSearch  );
   m_cTEncTop.setSearchRange                  ( m_iSearchRange );

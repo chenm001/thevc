@@ -254,6 +254,10 @@ Void TDecCavlc::parseAPSInitInfo(TComAPS& cAPS)
 #if SCALING_LIST
   READ_FLAG(uiCode,"aps_scaling_list_data_present_flag");      cAPS.setScalingListEnabled( (uiCode==1)?true:false );
 #endif
+#if G174_DF_OFFSET
+  //DF flag
+  READ_FLAG(uiCode, "aps_deblocking_filter_flag"); cAPS.setLoopFilterOffsetInAPS( (uiCode==1)?true:false );
+#endif
   //SAO flag
   READ_FLAG(uiCode, "aps_sample_adaptive_offset_flag");  cAPS.setSaoEnabled( (uiCode==1)?true:false );
   //ALF flag
@@ -599,6 +603,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_FLAG( uiCode, "scaling_list_enable_flag" );               pcSPS->setScalingListFlag ( uiCode );
 #endif
   READ_FLAG( uiCode, "chroma_pred_from_luma_enabled_flag" );     pcSPS->setUseLMChroma ( uiCode ? true : false ); 
+#if G174_DF_OFFSET
+  READ_FLAG( uiCode, "deblocking_filter_In_APS_enabled_flag" );    pcSPS->setUseDF ( uiCode ? true : false );  
+#endif
   READ_FLAG( uiCode, "loop_filter_across_slice_flag" );          pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
 #if SAO
   READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO ( uiCode ? true : false );  
@@ -881,7 +888,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 #endif
 #if F747_APS
 #if SCALING_LIST
+#if G174_DF_OFFSET
+    if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF() || rpcSlice->getSPS()->getScalingListFlag() || rpcSlice->getSPS()->getUseDF())
+#else
     if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF() || rpcSlice->getSPS()->getScalingListFlag())
+#endif
 #else
     if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF())
 #endif
@@ -1123,7 +1134,20 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     //   if( deblocking_filter_control_present_flag ) {
     //     disable_deblocking_filter_idc
     // this should be an idc
+#if G174_DF_OFFSET
+    READ_FLAG ( uiCode, "inherit_dbl_param_from_APS_flag" ); rpcSlice->setInheritDblParamFromAPS(uiCode ? 1 : 0);
+    if(!rpcSlice->getInheritDblParamFromAPS())
+    {
+      READ_FLAG ( uiCode, "loop_filter_disable" );  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
+      if(!rpcSlice->getLoopFilterDisable())
+      {
+        READ_SVLC( iCode, "beta_offset_div2" ); rpcSlice->setLoopFilterBetaOffset(iCode);
+        READ_SVLC( iCode, "tc_offset_div2" ); rpcSlice->setLoopFilterTcOffset(iCode);
+      }
+    }
+#else
     READ_FLAG ( uiCode, "loop_filter_disable" );  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
+#endif
     //     if( disable_deblocking_filter_idc  !=  1 ) {
     //       slice_alpha_c0_offset_div2
     //       slice_beta_offset_div2
@@ -3707,6 +3731,16 @@ Void TDecCavlc::xDecodeDPCMScalingListMatrix(TComScalingList *scalingList, Int* 
   scalingList->xInvDPCM(buf, pcm, sizeId, startValue);
   //Inverse ZigZag scan
   scalingList->xInvZigZag(pcm, data, sizeId);
+}
+#endif
+#if G174_DF_OFFSET
+Void TDecCavlc::parseDFFlag(UInt& ruiVal, const Char *pSymbolName)
+{
+  READ_FLAG(ruiVal, pSymbolName);
+}
+Void TDecCavlc::parseDFSvlc(Int&  riVal, const Char *pSymbolName)
+{
+  READ_SVLC(riVal, pSymbolName);
 }
 #endif
 

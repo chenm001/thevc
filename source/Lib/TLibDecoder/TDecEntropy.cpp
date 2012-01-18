@@ -1342,4 +1342,23 @@ Void TDecEntropy::decodeSaoParam(SAOParam* pSaoParam)
 }
 
 #endif
+#if G174_DF_OFFSET
+Void TDecEntropy::decodeDFParams(TComAPS *pcAPS)
+{
+  UInt uiSymbol;
+  Int iSymbol;
+
+  m_pcEntropyDecoderIf->parseDFFlag(uiSymbol, "loop_filter_disable");
+  pcAPS->setLoopFilterDisable(uiSymbol?true:false);
+
+  if (!pcAPS->getLoopFilterDisable())
+  {
+    m_pcEntropyDecoderIf->parseDFSvlc(iSymbol, "beta_offset_div2");
+    pcAPS->setLoopFilterBetaOffset(iSymbol);
+    m_pcEntropyDecoderIf->parseDFSvlc(iSymbol, "tc_offset_div2");
+    pcAPS->setLoopFilterTcOffset(iSymbol);
+  }
+}
+#endif
+
 //! \}

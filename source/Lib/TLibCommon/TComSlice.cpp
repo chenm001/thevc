@@ -58,6 +58,11 @@ TComSlice::TComSlice()
 , m_iSymbolMode                   ( 1 )
 #endif
 , m_bLoopFilterDisable            ( false )
+#if G174_DF_OFFSET
+, m_bInheritDblParamFromAPS       ( true )
+, m_iLoopFilterBetaOffset_div2    ( 0 )
+, m_iLoopFilterTcOffset_div2      ( 0 )
+#endif
 , m_bDRBFlag                      ( true )
 , m_eERBIndex                     ( ERB_NONE )
 , m_bRefPicListModificationFlagLC ( false )
@@ -890,6 +895,11 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_iSymbolMode          = pSrc->m_iSymbolMode;
 #endif
   m_bLoopFilterDisable   = pSrc->m_bLoopFilterDisable;
+#if G174_DF_OFFSET
+  m_bInheritDblParamFromAPS = pSrc->m_bInheritDblParamFromAPS;
+  m_iLoopFilterBetaOffset_div2 = pSrc->m_iLoopFilterBetaOffset_div2;
+  m_iLoopFilterTcOffset_div2 = pSrc->m_iLoopFilterTcOffset_div2;
+#endif
   m_bDRBFlag             = pSrc->m_bDRBFlag;
   m_eERBIndex            = pSrc->m_eERBIndex;
   
@@ -1975,6 +1985,12 @@ TComAPS::~TComAPS()
 TComAPS& TComAPS::operator= (const TComAPS& src)
 {
   m_apsID       = src.m_apsID;
+#if G174_DF_OFFSET
+  m_bLoopFilterOffsetInAPS = src.m_bLoopFilterOffsetInAPS;
+  m_bLoopFilterDisable = src.m_bLoopFilterDisable;
+  m_iLoopFilterBetaOffset_div2 = src.m_iLoopFilterBetaOffset_div2;
+  m_iLoopFilterTcOffset_div2 = src.m_iLoopFilterTcOffset_div2;
+#endif
   m_bAlfEnabled = src.m_bAlfEnabled;
   m_bSaoEnabled = src.m_bSaoEnabled;
   m_pSaoParam   = src.m_pSaoParam; 

@@ -263,9 +263,15 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   
   /* Deblocking filter parameters */
   ("LoopFilterDisable", m_bLoopFilterDisable, false)
+#if G174_DF_OFFSET
+  ("LoopFilterOffsetInAPS", m_bLoopFilterOffsetInAPS, false)
+  ("LoopFilterBetaOffset_div2", m_iLoopFilterBetaOffset_div2, 0 )
+  ("LoopFilterTcOffset_div2", m_iLoopFilterTcOffset_div2, 0 )
+#else
   ("LoopFilterAlphaC0Offset", m_iLoopFilterAlphaC0Offset, 0)
   ("LoopFilterBetaOffset", m_iLoopFilterBetaOffset, 0 )
-  
+#endif
+
   /* Coding tools */
   ("MRG", m_bUseMRG, true, "merging of motion partitions")
 
@@ -533,9 +539,13 @@ Void TAppEncCfg::xCheckParameter()
 #if G215_ALF_NUM_FILTER
   xConfirmPara( m_iALFMaxNumberFilters < 1 || m_iALFMaxNumberFilters > 16,                  "ALFMaxNumFilter exceeds supported range (1 to 16)");  
 #endif
-
+#if G174_DF_OFFSET
+  xConfirmPara( m_iLoopFilterBetaOffset_div2 < -13 || m_iLoopFilterBetaOffset_div2 > 13,          "Loop Filter Beta Offset div. 2 exceeds supported range (-13 to 13)");
+  xConfirmPara( m_iLoopFilterTcOffset_div2 < -13 || m_iLoopFilterTcOffset_div2 > 13,              "Loop Filter Tc Offset div. 2 exceeds supported range (-13 to 13)");
+#else
   xConfirmPara( m_iLoopFilterAlphaC0Offset < -26 || m_iLoopFilterAlphaC0Offset > 26,        "Loop Filter Alpha Offset exceeds supported range (-26 to 26)" );
   xConfirmPara( m_iLoopFilterBetaOffset < -26 || m_iLoopFilterBetaOffset > 26,              "Loop Filter Beta Offset exceeds supported range (-26 to 26)");
+#endif
   xConfirmPara( m_iFastSearch < 0 || m_iFastSearch > 2,                                     "Fast Search Mode is not supported value (0:Full search  1:Diamond  2:PMVFAST)" );
   xConfirmPara( m_iSearchRange < 0 ,                                                        "Search Range must be more than 0" );
   xConfirmPara( m_bipredSearchRange < 0 ,                                                   "Search Range must be more than 0" );

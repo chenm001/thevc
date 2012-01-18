@@ -1460,4 +1460,17 @@ Void TEncEntropy::encodeScalingList( TComScalingList* scalingList )
 }
 #endif
 
+#if G174_DF_OFFSET
+Void TEncEntropy::encodeDFParams(TComAPS* pcAPS)
+{
+  m_pcEntropyCoderIf->codeDFFlag(pcAPS->getLoopFilterDisable(), "loop_filter_disable");
+
+  if (!pcAPS->getLoopFilterDisable())
+  {
+    m_pcEntropyCoderIf->codeDFSvlc(pcAPS->getLoopFilterBetaOffset(), "beta_offset_div2");
+    m_pcEntropyCoderIf->codeDFSvlc(pcAPS->getLoopFilterTcOffset(), "tc_offset_div2");
+  }
+}
+#endif
+
 //! \}

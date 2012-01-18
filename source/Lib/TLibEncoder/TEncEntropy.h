@@ -163,6 +163,11 @@ public:
   virtual Void codeFinish       (Bool bEnd)= 0;
 #endif
 
+#if G174_DF_OFFSET
+  virtual Void codeDFFlag (UInt uiCode, const Char *pSymbolName) = 0;
+  virtual Void codeDFSvlc (Int iCode, const Char *pSymbolName)   = 0;
+#endif
+
   virtual ~TEncEntropyIf() {}
 
 };
@@ -269,6 +274,9 @@ public:
 #endif
 #if SCALING_LIST
   Void encodeScalingList       ( TComScalingList* scalingList );
+#endif
+#if G174_DF_OFFSET
+  Void encodeDFParams          (TComAPS* pcAPS);
 #endif
 
 private:

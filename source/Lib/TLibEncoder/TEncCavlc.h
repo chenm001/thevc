@@ -269,7 +269,10 @@ public:
   Void  xCodeDPCMScalingListMatrix ( TComScalingList* scalingList, Int* data, UInt sizeId);
   Void  xWriteResidualCode         ( UInt size, Int *data);
 #endif
-
+#if G174_DF_OFFSET
+  Void codeDFFlag       ( UInt uiCode, const Char *pSymbolName );
+  Void codeDFSvlc       ( Int   iCode, const Char *pSymbolName );
+#endif
 
 };
 

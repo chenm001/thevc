@@ -94,7 +94,11 @@ TComLoopFilter::~TComLoopFilter()
 // ====================================================================================================================
 
 #if NONCROSS_TILE_IN_LOOP_FILTERING
+#if G174_DF_OFFSET
+Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc, Int iBetaOffset_div2, Int iTcOffset_div2, Bool bLFCrossTileBoundary)
+#else
 Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaOffset, Bool bLFCrossTileBoundary)
+#endif
 #else
 Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaOffset)
 #endif
@@ -103,6 +107,12 @@ Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaO
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   m_bLFCrossTileBoundary = bLFCrossTileBoundary;
 #endif
+
+#if G174_DF_OFFSET
+  m_iBetaOffset_div2 = iBetaOffset_div2;
+  m_iTcOffset_div2 = iTcOffset_div2;
+#endif
+
 }
 
 #if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
@@ -914,13 +924,24 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
     
 #if !DEBLK_CLEANUP_G175_G620_G638
     Int uiTcOffset = ( uiBs > 2 ) ? DEFAULT_INTRA_TC_OFFSET : 0;
-    
+#if G174_DF_OFFSET
+    Int iIndexTC = Clip3(0, MAX_QP+4, iQP + uiTcOffset + (m_iTcOffset_div2 << 1));
+#else
     Int iIndexTC = Clip3(0, MAX_QP+4, iQP + uiTcOffset );
+#endif
+#else
+#if G174_DF_OFFSET
+    Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, Int(iQP + DEFAULT_INTRA_TC_OFFSET*(uiBs-1) + (m_iTcOffset_div2 << 1)));
 #else
     Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, Int(iQP + DEFAULT_INTRA_TC_OFFSET*(uiBs-1)));
 #endif
+#endif
+#if G174_DF_OFFSET
+    Int iIndexB = Clip3(0, MAX_QP, iQP + (m_iBetaOffset_div2 << 1));
+#else
     Int iIndexB = Clip3(0, MAX_QP, iQP );
-    
+#endif
+
     Int iTc =  tctable_8x8[iIndexTC]*iBitdepthScale;
     Int iBeta = betatable_8x8[iIndexB]*iBitdepthScale;
     Int iSideThreshold = (iBeta+(iBeta>>1))>>3;
@@ -1218,11 +1239,17 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
     
 #if !DEBLK_CLEANUP_G175_G620_G638
     Int uiTcOffset = ( ucBs > 2 ) ? DEFAULT_INTRA_TC_OFFSET : 0;
-    
+#if G174_DF_OFFSET
+    Int iIndexTC = Clip3(0, MAX_QP+4, iQP + uiTcOffset + (m_iTcOffset_div2 << 1));
+#else
     Int iIndexTC = Clip3(0, MAX_QP+4, iQP + uiTcOffset );
-    
+#endif
+#else
+#if G174_DF_OFFSET
+    Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, iQP + DEFAULT_INTRA_TC_OFFSET*(ucBs - 1) + (m_iTcOffset_div2 << 1));
 #else
     Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, iQP + DEFAULT_INTRA_TC_OFFSET*(ucBs - 1) );
+#endif
 #endif
     Int iTc =  tctable_8x8[iIndexTC]*iBitdepthScale;
     
