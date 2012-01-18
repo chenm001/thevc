@@ -3480,7 +3480,7 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
     if( bChroma ) 
     {
       READ_SVLC( iDeltaDenom, "delta_chroma_log2_weight_denom" );     // se(v): delta_chroma_log2_weight_denom
-      assert((iDeltaDenom + uiLog2WeightDenomLuma)>=0);
+      assert((iDeltaDenom + (Int)uiLog2WeightDenomLuma)>=0);
       uiLog2WeightDenomChroma = (UInt)(iDeltaDenom + uiLog2WeightDenomLuma);
     }
 #else
@@ -3579,7 +3579,7 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
     if( bChroma ) 
     {
       READ_SVLC( iDeltaDenom, "delta_chroma_log2_weight_denom" );      // ue(v): delta_chroma_log2_weight_denom
-      assert((iDeltaDenom + uiLog2WeightDenomLuma)>=0);
+      assert((iDeltaDenom + (Int)uiLog2WeightDenomLuma)>=0);
       uiLog2WeightDenomChroma = (UInt)(iDeltaDenom + uiLog2WeightDenomLuma);
     }
 
