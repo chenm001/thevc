@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1006,7 +1006,11 @@ Void TEncEntropy::encodeQP( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
     uiAbsPartIdx = 0;
   }
   
+#if G507_QP_ISSUE_FIX
+  if ( pcCU->getSlice()->getPPS()->getUseDQP() )
+#else
   if ( pcCU->getSlice()->getSPS()->getUseDQP() )
+#endif
   {
     m_pcEntropyCoderIf->codeDeltaQP( pcCU, uiAbsPartIdx );
   }
@@ -1051,7 +1055,11 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPar
 #endif
   {
     // dQP: only for LCU once
+#if G507_QP_ISSUE_FIX
+    if ( pcCU->getSlice()->getPPS()->getUseDQP() )
+#else
     if ( pcCU->getSlice()->getSPS()->getUseDQP() )
+#endif
     {
       if ( bCodeDQP )
       {
@@ -1449,6 +1457,19 @@ Int TEncEntropy::countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize )
 Void TEncEntropy::encodeScalingList( TComScalingList* scalingList )
 {
   m_pcEntropyCoderIf->codeScalingList( scalingList );
+}
+#endif
+
+#if G174_DF_OFFSET
+Void TEncEntropy::encodeDFParams(TComAPS* pcAPS)
+{
+  m_pcEntropyCoderIf->codeDFFlag(pcAPS->getLoopFilterDisable(), "loop_filter_disable");
+
+  if (!pcAPS->getLoopFilterDisable())
+  {
+    m_pcEntropyCoderIf->codeDFSvlc(pcAPS->getLoopFilterBetaOffset(), "beta_offset_div2");
+    m_pcEntropyCoderIf->codeDFSvlc(pcAPS->getLoopFilterTcOffset(), "tc_offset_div2");
+  }
 }
 #endif
 

@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,9 @@
 
 //! \ingroup TLibCommon
 //! \{
+
+#define INC_CABACINITIDC_SLICETYPE 1 ///<G315: support for making presence of cabac_init_idc syntax element not dependent on slice type, and slice_type in slice header and entropy slice header
+#define SLICEADDR_BEGIN            1 ///<G315: support for moving slice address to beginning of slice
 #define PADDING_INTRA             1 ///< G812: padding from bottom left, copy previous pixel instead of averaging
 #define COEFF_CTX_RED             1 ///< G121: reduce max value of c1 and c2
 #define DBF_DQP                   1    ///< average QP for deblocking filter parameter lookup
@@ -85,6 +88,7 @@
 #define SAO_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for SAO
 
 #define MRG_TMVP_REFIDX_G163 1 ///< G163 : use refIdx of left PU. if not available, use 0.
+#define UNI_BI_IDENTICAL_MOTION   1 ///< chaning bi-prediction to uni-prediction for identical motion G415/G438
 
 #define G609_NEW_BA_SUB             1   ///< G609: Directional feature calculation on subset of pixels
 #define G216_ALF_MERGE_FLAG_FIX     1   ///< G216: bug fixed: removing 15th merge flag for BA mode
@@ -136,6 +140,17 @@
 #define PIC_SIZE_VLC                        1      ///< G325: code pic_width_in_luma_samples and pic_heigh_in_luma_samples as ue(v)
 #define MAX_DPB_AND_LATENCY                 1      ///< G546 : Move max_dec_frame_buffering and num_reorder_frames from VUI to SPS
                                                    ///< G779 : Put max_latency_increase in SPS
+
+#define NONCROSS_TILE_IN_LOOP_FILTERING     1      ///< G194 : Non-cross-tiles loop filtering
+
+#define ADAPTIVE_QP_SELECTION               1      ///< G382: Adaptive reconstruction levels, non-normative part for adaptive QP selection
+#if ADAPTIVE_QP_SELECTION
+#define ARL_C_PRECISION                     7      ///< G382: 7-bit arithmetic precision
+#define LEVEL_RANGE                         30     ///< G382: max coefficient level in statistics collection
+#endif
+
+#define G678_LAMBDA_ADJUSTMENT              1      ///< G678: lambda adjustment for rate-constrained test tool
+
 ////////////////////////////
 // JCT-VC G end
 ////////////////////////////
@@ -221,7 +236,7 @@
 #define G1002_IDR_POC_ZERO_BUGFIX       1
 #define INTER_RPS_PREDICTION            1           // remove this once tested.
 #define WRITE_BACK                      1           ///< Enable/disable the encoder to replace the deltaPOC and Used by current from the config file with the values derived by the refIdc parameter.
-#define PRINT_RPS_BITS_WRITTEN          0           ///< Enable/disable the printing of bits used to send the RPS.
+#define PRINT_RPS_INFO                  0           ///< Enable/disable the printing of bits used to send the RPS.
 #endif
                                                     // using one nearest frame as reference frame, and the other frames are high quality (POC%4==0) frames (1+X)
                                                     // this should be done with encoder only decision
@@ -279,6 +294,7 @@
 #if TILES
 #define TILES_DECODER                       1 // JCTVC-F594 - signalling of tile location
 #define MAX_MARKER_PER_NALU                 1000
+#define TILES_LOW_LATENCY_CABAC_INI         1 // JCTVC-G197 = low latency CABAC initialization for dependent tiles
 #else
 #define TILES_DECODER                       0
 #endif
@@ -319,8 +335,15 @@
 
 #define G665_ALF_COEFF_PRED                1 // JCTVC-G665
 
+#define G507_COND_4X4_ENABLE_FLAG      1
+#define G507_QP_ISSUE_FIX              1   // JCTVC-G507 (max_cu_qp_delta_depth, pic_init_qp_minus26, and slice_qp_delta)
+#define G507_FGS_ISSUE_FIX             1   // JCTVC-G507 (slice_granularity <= max_cu_qp_delta_depth)
+#define G509_CHROMA_QP_OFFSET          1   // JCTVC-G509 add chroma_qp_index_offset and second chroma_qp_index_offset
+
 #define SCALING_LIST                  1 //JCTVC-G880/JCTVC-G1016 quantization matrices
 #define SCALING_LIST_OUTPUT_RESULT    0 //JCTVC-G880/JCTVC-G1016 quantization matrices
+
+#define G174_DF_OFFSET                1 //JCTVC-G174 beta and tc offset for deblocking filter
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
@@ -649,4 +672,5 @@ enum COEFF_SCAN_TYPE
 //! \}
 
 #endif
+
 

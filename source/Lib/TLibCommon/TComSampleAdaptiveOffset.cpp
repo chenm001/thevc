@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,8 +59,10 @@ TComSampleAdaptiveOffset::TComSampleAdaptiveOffset()
   m_iUpBuff2 = NULL;
   m_iUpBufft = NULL;
   ipSwap = NULL;
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
   m_bIsFineSliceCu = NULL;
   m_pcPicYuvMap = NULL;
+#endif
 
   m_pTmpU1 = NULL;
   m_pTmpU2 = NULL;
@@ -296,9 +298,11 @@ Void TComSampleAdaptiveOffset::create( UInt uiSourceWidth, UInt uiSourceHeight, 
   m_pClipTable = &(m_pClipTableBase[iCRangeExt]);
 
 #if SAO_FGS_NIF
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
   m_pcPicYuvMap = new TComPicYuv;
   m_pcPicYuvMap->create( m_iPicWidth, m_iPicHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, uiMaxCUDepth );
   m_bIsFineSliceCu = new Bool [m_iNumCuInWidth*m_iNumCuInHeight];
+#endif
 #endif
 
 #if SAO_CROSS_LCU_BOUNDARIES
@@ -349,6 +353,7 @@ Void TComSampleAdaptiveOffset::destroy()
     delete [] m_iUpBufft; m_iUpBufft = NULL;
   }
 #if SAO_FGS_NIF
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
   if (m_pcPicYuvMap)
   {
     m_pcPicYuvMap->destroy();
@@ -358,6 +363,7 @@ Void TComSampleAdaptiveOffset::destroy()
   {
     delete [] m_bIsFineSliceCu; m_bIsFineSliceCu = NULL;
   }
+#endif
 #endif
 #if SAO_CROSS_LCU_BOUNDARIES
   if (m_pTmpL1)
@@ -557,6 +563,286 @@ inline int xSign(int x)
 }
 
 #if SAO_FGS_NIF
+
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+
+Void TComSampleAdaptiveOffset::createPicSaoInfo(TComPic* pcPic, Int uiNumSlicesInPic)
+{
+  m_pcPic   = pcPic;
+  m_uiNumSlicesInPic = uiNumSlicesInPic;
+  m_iSGDepth         = pcPic->getSliceGranularityForNDBFilter();
+  m_bUseNIF = ( pcPic->getIndependentSliceBoundaryForNDBFilter() || pcPic->getIndependentTileBoundaryForNDBFilter() );
+  if(m_bUseNIF)
+  {
+    m_pcYuvTmp = pcPic->getYuvPicBufferForIndependentBoundaryProcessing();
+  }
+}
+
+Void TComSampleAdaptiveOffset::destroyPicSaoInfo()
+{
+
+}
+
+/** sample adaptive offset process for one LCU
+ * \param   iAddr, iSaoType, iYCbCr
+ */
+Void TComSampleAdaptiveOffset::processSaoCu(Int iAddr, Int iSaoType, Int iYCbCr)
+{
+  if(!m_bUseNIF)
+  {
+    processSaoCuOrg( iAddr, iSaoType, iYCbCr);
+  }
+  else
+  {  
+    Int  iIsChroma = (iYCbCr != 0)? 1:0;
+    Int  iStride   = (iYCbCr != 0)?(m_pcPic->getCStride()):(m_pcPic->getStride());
+    Pel* pPicRest = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr);
+    Pel* pPicDec  = getPicYuvAddr(m_pcYuvTmp, iYCbCr);
+
+    std::vector<NDBFBlockInfo>& vFilterBlocks = *(m_pcPic->getCU(iAddr)->getNDBFilterBlocks());
+
+    //variables
+    UInt  uiXPos, uiYPos, uiWidth, uiHeight;
+    Bool* pbBorderAvail;
+    UInt  posOffset;
+
+    for(Int i=0; i< vFilterBlocks.size(); i++)
+    {
+      uiXPos        = vFilterBlocks[i].posX   >> iIsChroma;
+      uiYPos        = vFilterBlocks[i].posY   >> iIsChroma;
+      uiWidth       = vFilterBlocks[i].width  >> iIsChroma;
+      uiHeight      = vFilterBlocks[i].height >> iIsChroma;
+      pbBorderAvail = vFilterBlocks[i].isBorderAvailable;
+
+      posOffset = (uiYPos* iStride) + uiXPos;
+
+      processSaoBlock(pPicDec+ posOffset, pPicRest+ posOffset, iStride, iSaoType, uiXPos, uiYPos, uiWidth, uiHeight, pbBorderAvail);
+    }
+  }
+}
+
+Void TComSampleAdaptiveOffset::processSaoBlock(Pel* pDec, Pel* pRest, Int iStride, Int iSaoType, UInt uiXPos, UInt uiYPos, UInt uiWidth, UInt uiHeight, Bool* pbBorderAvail)
+{
+  //variables
+  Int iStartX, iStartY, iEndX, iEndY, x, y;
+  Int iSignLeft,iSignRight,iSignDown,iSignDown1;
+  UInt uiEdgeType;
+
+  switch (iSaoType)
+  {
+  case SAO_EO_0: // dir: -
+    {
+
+      iStartX = (pbBorderAvail[SGU_L]) ? 0 : 1;
+      iEndX   = (pbBorderAvail[SGU_R]) ? uiWidth : (uiWidth -1);
+      for (y=0; y< uiHeight; y++)
+      {
+        iSignLeft = xSign(pDec[iStartX] - pDec[iStartX-1]);
+        for (x=iStartX; x< iEndX; x++)
+        {
+          iSignRight =  xSign(pDec[x] - pDec[x+1]); 
+          uiEdgeType =  iSignRight + iSignLeft + 2;
+          iSignLeft  = -iSignRight;
+
+          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+        }
+        pDec  += iStride;
+        pRest += iStride;
+      }
+      break;
+    }
+  case SAO_EO_1: // dir: |
+    {
+      iStartY = (pbBorderAvail[SGU_T]) ? 0 : 1;
+      iEndY   = (pbBorderAvail[SGU_B]) ? uiHeight : uiHeight-1;
+      if (!pbBorderAvail[SGU_T])
+      {
+        pDec  += iStride;
+        pRest += iStride;
+      }
+      for (x=0; x< uiWidth; x++)
+      {
+        m_iUpBuff1[x] = xSign(pDec[x] - pDec[x-iStride]);
+      }
+      for (y=iStartY; y<iEndY; y++)
+      {
+        for (x=0; x< uiWidth; x++)
+        {
+          iSignDown  = xSign(pDec[x] - pDec[x+iStride]); 
+          uiEdgeType = iSignDown + m_iUpBuff1[x] + 2;
+          m_iUpBuff1[x]= -iSignDown;
+
+          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+        }
+        pDec  += iStride;
+        pRest += iStride;
+      }
+      break;
+    }
+  case SAO_EO_2: // dir: 135
+    {
+      Int posShift= iStride + 1;
+
+      iStartX = (pbBorderAvail[SGU_L]) ? 0 : 1 ;
+      iEndX   = (pbBorderAvail[SGU_R]) ? uiWidth : (uiWidth-1);
+
+      //prepare 2nd line upper sign
+      pDec += iStride;
+      for (x=iStartX; x< iEndX+1; x++)
+      {
+        m_iUpBuff1[x] = xSign(pDec[x] - pDec[x- posShift]);
+      }
+
+      //1st line
+      pDec -= iStride;
+      if(pbBorderAvail[SGU_TL])
+      {
+        x= 0;
+        uiEdgeType      =  xSign(pDec[x] - pDec[x- posShift]) - m_iUpBuff1[x+1] + 2;
+        pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+
+      }
+      if(pbBorderAvail[SGU_T])
+      {
+        for(x= 1; x< iEndX; x++)
+        {
+          uiEdgeType      =  xSign(pDec[x] - pDec[x- posShift]) - m_iUpBuff1[x+1] + 2;
+          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+        }
+      }
+      pDec   += iStride;
+      pRest  += iStride;
+
+
+      //middle lines
+      for (y= 1; y< uiHeight-1; y++)
+      {
+        for (x=iStartX; x<iEndX; x++)
+        {
+          iSignDown1      =  xSign(pDec[x] - pDec[x+ posShift]) ;
+          uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
+          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+
+          m_iUpBufft[x+1] = -iSignDown1; 
+        }
+        m_iUpBufft[iStartX] = xSign(pDec[iStride+iStartX] - pDec[iStartX-1]);
+
+        ipSwap     = m_iUpBuff1;
+        m_iUpBuff1 = m_iUpBufft;
+        m_iUpBufft = ipSwap;
+
+        pDec  += iStride;
+        pRest += iStride;
+      }
+
+      //last line
+      if(pbBorderAvail[SGU_B])
+      {
+        for(x= iStartX; x< uiWidth-1; x++)
+        {
+          uiEdgeType =  xSign(pDec[x] - pDec[x+ posShift]) + m_iUpBuff1[x] + 2;
+          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+        }
+      }
+      if(pbBorderAvail[SGU_BR])
+      {
+        x= uiWidth -1;
+        uiEdgeType =  xSign(pDec[x] - pDec[x+ posShift]) + m_iUpBuff1[x] + 2;
+        pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+      }
+      break;
+    } 
+  case SAO_EO_3: // dir: 45
+    {
+      Int  posShift     = iStride - 1;
+      iStartX = (pbBorderAvail[SGU_L]) ? 0 : 1;
+      iEndX   = (pbBorderAvail[SGU_R]) ? uiWidth : (uiWidth -1);
+
+      //prepare 2nd line upper sign
+      pDec += iStride;
+      for (x=iStartX-1; x< iEndX; x++)
+      {
+        m_iUpBuff1[x] = xSign(pDec[x] - pDec[x- posShift]);
+      }
+
+
+      //first line
+      pDec -= iStride;
+      if(pbBorderAvail[SGU_T])
+      {
+        for(x= iStartX; x< uiWidth -1; x++)
+        {
+          uiEdgeType = xSign(pDec[x] - pDec[x- posShift]) -m_iUpBuff1[x-1] + 2;
+          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+        }
+      }
+      if(pbBorderAvail[SGU_TR])
+      {
+        x= uiWidth-1;
+        uiEdgeType = xSign(pDec[x] - pDec[x- posShift]) -m_iUpBuff1[x-1] + 2;
+        pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+      }
+      pDec  += iStride;
+      pRest += iStride;
+
+      //middle lines
+      for (y= 1; y< uiHeight-1; y++)
+      {
+        for(x= iStartX; x< iEndX; x++)
+        {
+          iSignDown1      =  xSign(pDec[x] - pDec[x+ posShift]) ;
+          uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
+
+          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+          m_iUpBuff1[x-1] = -iSignDown1; 
+        }
+        m_iUpBuff1[iEndX-1] = xSign(pDec[iEndX-1 + iStride] - pDec[iEndX]);
+
+        pDec  += iStride;
+        pRest += iStride;
+      }
+
+      //last line
+      if(pbBorderAvail[SGU_BL])
+      {
+        x= 0;
+        uiEdgeType = xSign(pDec[x] - pDec[x+ posShift]) + m_iUpBuff1[x] + 2;
+        pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+
+      }
+      if(pbBorderAvail[SGU_B])
+      {
+        for(x= 1; x< iEndX; x++)
+        {
+          uiEdgeType = xSign(pDec[x] - pDec[x+ posShift]) + m_iUpBuff1[x] + 2;
+          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+        }
+      }
+      break;
+    }   
+  case SAO_BO_0:
+  case SAO_BO_1:
+    {
+      for (y=0; y< uiHeight; y++)
+      {
+        for (x=0; x< uiWidth; x++)
+        {
+          pRest[x] = m_iOffsetBo[pDec[x]];
+        }
+        pRest += iStride;
+        pDec  += iStride;
+      }
+      break;
+    }
+  default: break;
+  }
+
+}
+
+
+#else
+
+
 /** create Slice Map
  * \param   iSliceIdx, uiStartAddr, uiEndAddr
  */
@@ -1115,7 +1401,7 @@ Void TComSampleAdaptiveOffset::processSaoCuMap(Int iAddr, Int iSaoType, Int iYCb
 }
 #endif
 
-
+#endif
 
 #endif
 
@@ -1851,7 +2137,17 @@ Void TComSampleAdaptiveOffset::SAOProcess(TComPic* pcPic, SAOParam* pcSaoParam)
 #else
     m_uiSaoBitIncrease = g_uiBitDepth + g_uiBitIncrement - min((Int)(g_uiBitDepth + g_uiBitIncrement), 10);
 #endif
+
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+#if SAO_FGS_NIF
+    if(m_bUseNIF)
+    {
+      m_pcPic->getPicYuvRec()->copyToPic(m_pcYuvTmp);
+    }
+#endif
+#else
     m_pcPic = pcPic;
+#endif
 
     Int iY  = 0;
     processSaoQuadTree( pcSaoParam->psSaoPart[iY], 0 , iY);

@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -175,7 +175,7 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
   xUpdateGopSize(pcSlice);
   
 #if G1002_RPS
-  m_iMaxRefPicNum = pcSlice->getSPS()->getMaxNumberOfReferencePictures()+pcSlice->getSPS()->getMaxNumberOfReorderPictures() + 1; // +1 to have space for the picture currently being decoded
+  m_iMaxRefPicNum = pcSlice->getSPS()->getMaxNumberOfReferencePictures()+pcSlice->getSPS()->getNumReorderFrames() + 1; // +1 to have space for the picture currently being decoded
 #else
   m_iMaxRefPicNum = max(m_iMaxRefPicNum, max(max(2, pcSlice->getNumRefIdx(REF_PIC_LIST_0)+1), m_iGopSize/2 + 2 + pcSlice->getNumRefIdx(REF_PIC_LIST_0)));
   
@@ -507,7 +507,11 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       }
 #if F747_APS
 #if SCALING_LIST
+#if G174_DF_OFFSET
+      if(m_cSPS.getUseSAO() || m_cSPS.getUseALF()|| m_cSPS.getScalingListFlag() || m_cSPS.getUseDF())
+#else
       if(m_cSPS.getUseSAO() || m_cSPS.getUseALF()|| m_cSPS.getScalingListFlag())
+#endif
 #else
       if(m_cSPS.getUseSAO() || m_cSPS.getUseALF())
 #endif
@@ -565,11 +569,24 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       UInt uiCummulativeTileHeight;
       UInt i, j, p;
 
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+      //set the TileBoundaryIndependenceIdr
+      if(pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)
+      {
+        pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getTileBoundaryIndependenceIdr() );
+      }
+      else
+      {
+        pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getSPS()->getTileBoundaryIndependenceIdr() );
+      }
+#endif
+
       if( pcSlice->getPPS()->getColumnRowInfoPresent() == 1 )
       {
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
         //set the TileBoundaryIndependenceIdr
         pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getTileBoundaryIndependenceIdr() );
-
+#endif
         //set NumColumnsMins1 and NumRowsMinus1
         pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getPPS()->getNumColumnsMinus1() );
         pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getPPS()->getNumRowsMinus1() );
@@ -630,9 +647,10 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       }
       else
       {
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
         //set the TileBoundaryIndependenceIdr
         pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getSPS()->getTileBoundaryIndependenceIdr() );
-
+#endif
         //set NumColumnsMins1 and NumRowsMinus1
         pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getSPS()->getNumColumnsMinus1() );
         pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getSPS()->getNumRowsMinus1() );
@@ -958,6 +976,12 @@ Void TDecTop::decodeAPS(TComInputBitstream* bs, TComAPS& cAPS)
   if(cAPS.getScalingListEnabled())
   {
     m_cEntropyDecoder.decodeScalingList( &m_scalingList );
+  }
+#endif
+#if G174_DF_OFFSET
+  if(cAPS.getLoopFilterOffsetInAPS())
+  {
+    m_cEntropyDecoder.decodeDFParams( &cAPS );    
   }
 #endif
 

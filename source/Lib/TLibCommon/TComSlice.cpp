@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,10 +51,18 @@ TComSlice::TComSlice()
 , m_eNalUnitType                  ( NAL_UNIT_CODED_SLICE_IDR )
 , m_eSliceType                    ( I_SLICE )
 , m_iSliceQp                      ( 0 )
+#if ADAPTIVE_QP_SELECTION
+, m_iSliceQpBase                  ( 0 )
+#endif
 #if !DISABLE_CAVLC
 , m_iSymbolMode                   ( 1 )
 #endif
 , m_bLoopFilterDisable            ( false )
+#if G174_DF_OFFSET
+, m_inheritDblParamFromAPS       ( true )
+, m_loopFilterBetaOffsetDiv2    ( 0 )
+, m_loopFilterTcOffsetDiv2      ( 0 )
+#endif
 , m_bDRBFlag                      ( true )
 , m_eERBIndex                     ( ERB_NONE )
 , m_bRefPicListModificationFlagLC ( false )
@@ -101,6 +109,9 @@ TComSlice::TComSlice()
 #endif
 #if OL_USE_WPP
 , m_puiSubstreamSizes             ( NULL )
+#endif
+#if INC_CABACINITIDC_SLICETYPE
+, m_cabacInitIdc                 ( -1 )
 #endif
 {
   m_aiNumRefIdx[0] = m_aiNumRefIdx[1] = m_aiNumRefIdx[2] = 0;
@@ -877,10 +888,18 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_eNalUnitType         = pSrc->m_eNalUnitType;
   m_eSliceType           = pSrc->m_eSliceType;
   m_iSliceQp             = pSrc->m_iSliceQp;
+#if ADAPTIVE_QP_SELECTION
+  m_iSliceQpBase         = pSrc->m_iSliceQpBase;
+#endif
 #if !DISABLE_CAVLC
   m_iSymbolMode          = pSrc->m_iSymbolMode;
 #endif
   m_bLoopFilterDisable   = pSrc->m_bLoopFilterDisable;
+#if G174_DF_OFFSET
+  m_inheritDblParamFromAPS = pSrc->m_inheritDblParamFromAPS;
+  m_loopFilterBetaOffsetDiv2 = pSrc->m_loopFilterBetaOffsetDiv2;
+  m_loopFilterTcOffsetDiv2 = pSrc->m_loopFilterTcOffsetDiv2;
+#endif
   m_bDRBFlag             = pSrc->m_bDRBFlag;
   m_eERBIndex            = pSrc->m_eERBIndex;
   
@@ -1181,12 +1200,6 @@ Void TComSlice::createExplicitReferencePictureSetFromReference( TComList<TComPic
   Int nrOfNegativePictures = 0;
   Int nrOfPositivePictures = 0;
   TComReferencePictureSet* pcRPS = this->getLocalRPS();
-
-#if INTER_RPS_PREDICTION
-  pcRPS->create(this->getPPS()->getSPS()->getMaxNumberOfReferencePictures(), this->getPPS()->getSPS()->getMaxNumberOfReferencePictures()+1);
-#else
-  pcRPS->create(this->getPPS()->getSPS()->getMaxNumberOfReferencePictures());
-#endif
 
   // loop through all pictures in the Reference Picture Set
   for(i=0;i<pReferencePictureSet->getNumberOfPictures();i++)
@@ -1601,6 +1614,9 @@ TComSPS::TComSPS()
 , m_uiMaxCUDepth              (  3)
 , m_uiMinTrDepth              (  0)
 , m_uiMaxTrDepth              (  1)
+#if G1002_RPS
+, m_numReorderFrames          (  0)
+#endif
 , m_uiQuadtreeTULog2MaxSize   (  0)
 , m_uiQuadtreeTULog2MinSize   (  0)
 , m_uiQuadtreeTUMaxDepthInter (  0)
@@ -1615,7 +1631,9 @@ TComSPS::TComSPS()
 , m_bDisInter4x4              (  1)
 #endif    
 , m_bUseALF                   (false)
+#if !G507_QP_ISSUE_FIX
 , m_bUseDQP                   (false)
+#endif
 , m_bUseLDC                   (false)
 , m_bUsePAD                   (false)
 , m_bUseMRG                   (false)
@@ -1651,7 +1669,6 @@ TComSPS::TComSPS()
 #endif
 #if MAX_DPB_AND_LATENCY 
 , m_uiMaxDecFrameBuffering    (  0)
-, m_uiNumReorderFrames        (  0)
 , m_uiMaxLatencyIncrease      (  0)
 #endif
 {
@@ -1678,10 +1695,18 @@ TComSPS::~TComSPS()
 TComPPS::TComPPS()
 : m_PPSId                       (0)
 , m_SPSId                       (0)
+#if G507_QP_ISSUE_FIX
+, m_picInitQPMinus26            (0)
+, m_useDQP                      (false)
+#endif
 , m_bConstrainedIntraPred       (false)
 , m_pcSPS                       (NULL)
 , m_uiMaxCuDQPDepth             (0)
 , m_uiMinCuDQPSize              (0)
+#if G509_CHROMA_QP_OFFSET
+, m_iChromaQpOffset             (0)
+, m_iChromaQpOffset2nd          (0)
+#endif
 #if G1002_RPS
 , m_bLongTermRefsPresent        (false)
 , m_uiBitsForLongTermRefs       (0)
@@ -1694,6 +1719,10 @@ TComPPS::TComPPS()
 , m_bSharedPPSInfoEnabled       (false)
 #endif
 #if TILES
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+, m_iTileBehaviorControlPresentFlag (0)
+, m_bLFCrossTileBoundaryFlag     (true)
+#endif
 , m_iColumnRowInfoPresent        (0)
 , m_iUniformSpacingIdr           (0)
 , m_iTileBoundaryIndependenceIdr (0)
@@ -1732,47 +1761,27 @@ TComPPS::~TComPPS()
 #if G1002_RPS
 
 TComReferencePictureSet::TComReferencePictureSet()
+: m_uiNumberOfPictures (0)
+, m_uiNumberOfNegativePictures (0)
+, m_uiNumberOfPositivePictures (0)
+, m_uiNumberOfLongtermPictures (0)
+#if INTER_RPS_PREDICTION
+, m_bInterRPSPrediction (0) 
+, m_iDeltaRIdxMinus1 (0)   
+, m_iDeltaRPS (0) 
+, m_iNumRefIdc (0) 
+#endif
 {
+  ::memset( m_piDeltaPOC, 0, sizeof(m_piDeltaPOC) );
+  ::memset( m_piPOC, 0, sizeof(m_piPOC) );
+  ::memset( m_pbUsed, 0, sizeof(m_pbUsed) );
+#if INTER_RPS_PREDICTION
+  ::memset( m_piRefIdc, 0, sizeof(m_piRefIdc) );
+#endif
 }
 
 TComReferencePictureSet::~TComReferencePictureSet()
 {
-}
-
-#if INTER_RPS_PREDICTION
-Void TComReferencePictureSet::create( UInt uiNumberOfPictures, UInt uiNumberOfRefIdc)
-#else
-Void TComReferencePictureSet::create( UInt uiNumberOfPictures)
-#endif  
-{
-  m_uiNumberOfPictures = uiNumberOfPictures;
-  m_uiNumberOfNegativePictures = 0;
-  m_uiNumberOfPositivePictures = 0;
-  m_uiNumberOfLongtermPictures = 0;
-  m_piDeltaPOC    = new Int[uiNumberOfPictures];
-  m_piPOC    = new Int[uiNumberOfPictures];
-  m_pbUsed = new Bool[uiNumberOfPictures];
-#if INTER_RPS_PREDICTION
-  m_bInterRPSPrediction = 0; 
-  m_iDeltaRIdxMinus1 = 0;   
-  m_iDeltaRPS = 0; 
-  m_iNumRefIdc = uiNumberOfRefIdc; 
-  m_piRefIdc = new Int[uiNumberOfRefIdc];
-#endif  
-}
-
-Void TComReferencePictureSet::destroy()
-{
-  delete [] m_piPOC;     
-  m_piPOC = NULL;
-  delete [] m_piDeltaPOC;     
-  m_piDeltaPOC = NULL;
-  delete [] m_pbUsed;     
-  m_pbUsed = NULL;
-#if INTER_RPS_PREDICTION
-  delete [] m_piRefIdc;
-  m_piRefIdc = NULL;
-#endif  
 }
 
 Void TComReferencePictureSet::setUsed(UInt uiBufferNum, Bool bUsed)
@@ -1912,10 +1921,6 @@ Void TComRPS::create( UInt uiNumberOfReferencePictureSets)
 
 Void TComRPS::destroy()
 {
-  for(UInt i = 0; i < m_uiNumberOfReferencePictureSets; i++)
-  {
-     m_pReferencePictureSet[i].destroy();
-  }
   delete [] m_pReferencePictureSet;     
   m_uiNumberOfReferencePictureSets = 0;
   m_pReferencePictureSet = NULL;
@@ -1980,6 +1985,12 @@ TComAPS::~TComAPS()
 TComAPS& TComAPS::operator= (const TComAPS& src)
 {
   m_apsID       = src.m_apsID;
+#if G174_DF_OFFSET
+  m_loopFilterOffsetInAPS = src.m_loopFilterOffsetInAPS;
+  m_loopFilterDisable = src.m_loopFilterDisable;
+  m_loopFilterBetaOffsetDiv2 = src.m_loopFilterBetaOffsetDiv2;
+  m_loopFilterTcOffsetDiv2 = src.m_loopFilterTcOffsetDiv2;
+#endif
   m_bAlfEnabled = src.m_bAlfEnabled;
   m_bSaoEnabled = src.m_bSaoEnabled;
   m_pSaoParam   = src.m_pSaoParam; 
@@ -2300,7 +2311,7 @@ Void TComScalingList::xCalcBestBitCopyMode( Int *org, Int *recon, Int * bestReco
   for(estScalingList.predListIdx = listIdc -1 ; estScalingList.predListIdx >= 0; estScalingList.predListIdx--)
   {
     xPredScalingListMatrix(this, recon, sizeIdc, listIdc, sizeIdc, estScalingList.predListIdx);
-    sad = xCalcResidual(org, recon, residual, listIdc, &estScalingList);
+    sad = xCalcResidual(org, recon, residual, sizeIdc, &estScalingList);
     if(sad == 0 && *bestBit != 0)
     {
       *bestBit = 0;

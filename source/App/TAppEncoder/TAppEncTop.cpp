@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,7 +80,7 @@ Void TAppEncTop::xInitLibCfg()
 #if G1002_RPS
   m_cTEncTop.setGopList                      ( m_pcGOPList );
   m_cTEncTop.setExtraRPSs                     ( m_iExtraRPSs );
-  m_cTEncTop.setMaxNumberOfReorderPictures   ( m_uiMaxNumberOfReorderPictures );
+  m_cTEncTop.setNumReorderFrames             ( m_numReorderFrames );
   m_cTEncTop.setMaxNumberOfReferencePictures ( m_uiMaxNumberOfReferencePictures );
 #else
   m_cTEncTop.setRateGOPSize                  ( m_iRateGOPSize );
@@ -88,7 +88,12 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setNumOfReferenceB_L0           ( m_iNumOfReferenceB_L0 );
   m_cTEncTop.setNumOfReferenceB_L1           ( m_iNumOfReferenceB_L1 );
 #endif
-  
+#if G678_LAMBDA_ADJUSTMENT
+  for( UInt uiLoop = 0; uiLoop < MAX_TLAYER; ++uiLoop )
+  {
+    m_cTEncTop.setLambdaModifier( uiLoop, m_adLambdaModifier[ uiLoop ] );
+  }
+#endif
   m_cTEncTop.setQP                           ( m_iQP );
   
   m_cTEncTop.setTemporalLayerQPOffset        ( m_aiTLayerQPOffset );
@@ -120,9 +125,15 @@ Void TAppEncTop::xInitLibCfg()
   
   //====== Loop/Deblock Filter ========
   m_cTEncTop.setLoopFilterDisable            ( m_bLoopFilterDisable       );
+#if G174_DF_OFFSET
+  m_cTEncTop.setLoopFilterOffsetInAPS        ( m_loopFilterOffsetInAPS );
+  m_cTEncTop.setLoopFilterBetaOffset         ( m_loopFilterBetaOffsetDiv2  );
+  m_cTEncTop.setLoopFilterTcOffset           ( m_loopFilterTcOffsetDiv2    );
+#else
   m_cTEncTop.setLoopFilterAlphaC0Offset      ( m_iLoopFilterAlphaC0Offset );
   m_cTEncTop.setLoopFilterBetaOffset         ( m_iLoopFilterBetaOffset    );
-  
+#endif
+
   //====== Motion search ========
   m_cTEncTop.setFastSearch                   ( m_iFastSearch  );
   m_cTEncTop.setSearchRange                  ( m_iSearchRange );
@@ -131,6 +142,12 @@ Void TAppEncTop::xInitLibCfg()
   //====== Quality control ========
   m_cTEncTop.setMaxDeltaQP                   ( m_iMaxDeltaQP  );
   m_cTEncTop.setMaxCuDQPDepth                ( m_iMaxCuDQPDepth  );
+
+#if G509_CHROMA_QP_OFFSET
+  m_cTEncTop.setChromaQpOffset               ( m_iChromaQpOffset     );
+  m_cTEncTop.setChromaQpOffset2nd            ( m_iChromaQpOffset2nd  );
+#endif
+
 #if QP_ADAPTATION
   m_cTEncTop.setUseAdaptiveQP                ( m_bUseAdaptiveQP  );
   m_cTEncTop.setQPAdaptationRange            ( m_iQPAdaptationRange );
@@ -251,6 +268,14 @@ Void TAppEncTop::xInitLibCfg()
   Int uiTilesCount          = (m_iNumRowsMinus1+1) * (m_iNumColumnsMinus1+1);
   m_dMaxTileMarkerOffset  = ((Double)uiTilesCount) / m_iMaxTileMarkerEntryPoints;
   m_cTEncTop.setMaxTileMarkerOffset         ( m_dMaxTileMarkerOffset );
+#endif
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  m_cTEncTop.setTileBehaviorControlPresentFlag( m_iTileBehaviorControlPresentFlag );
+  if(m_iTileBoundaryIndependenceIdr == 0 || uiTilesCount == 1)
+  {
+    m_bLFCrossTileBoundaryFlag = true; 
+  }
+  m_cTEncTop.setLFCrossTileBoundaryFlag( m_bLFCrossTileBoundaryFlag );
 #endif
 #endif
 #if OL_USE_WPP

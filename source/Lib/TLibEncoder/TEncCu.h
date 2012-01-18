@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -115,6 +115,7 @@ public:
   /// CU encoding function
   Void  encodeCU            ( TComDataCU*    pcCU, Bool bForceTerminate = false  );
   
+  Void setBitCounter        ( TComBitCounter* pcBitCounter ) { m_pcBitCounter = pcBitCounter; }
 protected:
 #if FINE_GRANULARITY_SLICES
   Void  finishCU            ( TComDataCU*  pcCU, UInt uiAbsPartIdx,           UInt uiDepth        );
@@ -152,6 +153,12 @@ protected:
 
   Bool getdQPFlag           ()                        { return m_bEncodeDQP;        }
   Void setdQPFlag           ( Bool b )                { m_bEncodeDQP = b;           }
+
+#if ADAPTIVE_QP_SELECTION
+  // Adaptive reconstruction level (ARL) statistics collection functions
+  Void xLcuCollectARLStats(TComDataCU* rpcCU);
+  Int  xTuCollectARLStats(TCoeff* rpcCoeff, Int* rpcArlCoeff, Int NumCoeffInCU, Double* cSum, UInt* numSamples );
+#endif
 
 #if AMP_ENC_SPEEDUP 
 #if AMP_MRG

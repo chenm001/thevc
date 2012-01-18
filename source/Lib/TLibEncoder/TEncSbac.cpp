@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -647,9 +647,9 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
 #if DISABLE_4x4_INTER
-      if(!pcCU->getSlice()->getSPS()->getDisInter4x4() && (pcCU->getWidth(uiAbsPartIdx)==8) && (pcCU->getHeight(uiAbsPartIdx)==8) )
+      if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth && !( pcCU->getSlice()->getSPS()->getDisInter4x4() && pcCU->getWidth(uiAbsPartIdx) == 8 && pcCU->getHeight(uiAbsPartIdx) == 8 ) )
 #else
-      if( (pcCU->getWidth(uiAbsPartIdx)==8) && (pcCU->getHeight(uiAbsPartIdx)==8) )
+      if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
 #endif
       {
         m_pcBinIf->encodeBin( 1, m_cCUPartSizeSCModel.get( 0, 0, 2) );
@@ -707,8 +707,20 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     }
     case SIZE_NxN:
     {
+#if PREDTYPE_CLEANUP
 #if DISABLE_4x4_INTER
-#if !PREDTYPE_CLEANUP
+      if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth && !( pcCU->getSlice()->getSPS()->getDisInter4x4() && pcCU->getWidth(uiAbsPartIdx) == 8 && pcCU->getHeight(uiAbsPartIdx) == 8 ) )
+#else
+      if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
+#endif
+      {
+        m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
+        m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
+        m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 2) );
+      }
+      break;
+#else//PREDTYPE_CLEANUP
+#if DISABLE_4x4_INTER
     if(pcCU->getSlice()->getSPS()->getDisInter4x4() && (pcCU->getWidth(uiAbsPartIdx)==8) && (pcCU->getHeight(uiAbsPartIdx)==8) )
     {
       assert(0);
@@ -716,10 +728,6 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     }
     else
     {
-#else //PREDTYPE_CLEANUP
-    if( !pcCU->getSlice()->getSPS()->getDisInter4x4() || (pcCU->getWidth(uiAbsPartIdx)>8) || (pcCU->getHeight(uiAbsPartIdx)>8) )  
-    {
-#endif //PREDTYPE_CLEANUP
 #endif
       if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
       {
@@ -728,16 +736,15 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
           m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
           m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 2) );
         }
-#if !PREDTYPE_CLEANUP
         if (pcCU->getSlice()->isInterB())
         {
           m_pcBinIf->encodeBin( 1, m_cCUPartSizeSCModel.get( 0, 0, 3) );
         }
-#endif
       }
       break;
 #if DISABLE_4x4_INTER
     }
+#endif
 #endif
     }
     default:
@@ -1111,10 +1118,10 @@ Void TEncSbac::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
     UInt uiMaxAbsDQpMinus1 = 24 + (uiQpBdOffsetY/2) + (uiSign);
     UInt uiAbsDQpMinus1 = (UInt)((iDQp > 0)? iDQp  : (-iDQp)) - 1;
-    xWriteUnaryMaxSymbol( uiAbsDQpMinus1, &m_cCUDeltaQpSCModel.get( 0, 0, 2 ), 1, uiMaxAbsDQpMinus1);
+    xWriteUnaryMaxSymbol( uiAbsDQpMinus1, &m_cCUDeltaQpSCModel.get( 0, 0, 1 ), 1, uiMaxAbsDQpMinus1);
 #else
     UInt uiDQp = (UInt)( iDQp > 0 ? ( 2 * iDQp - 2 ) : ( -2 * iDQp - 1 ) );
-    xWriteUnarySymbol( uiDQp, &m_cCUDeltaQpSCModel.get( 0, 0, 2 ), 1 );
+    xWriteUnarySymbol( uiDQp, &m_cCUDeltaQpSCModel.get( 0, 0, 1 ), 1 );
 #endif
   }
   
@@ -1997,35 +2004,6 @@ Void TEncSbac::codeAlfFlag       ( UInt uiCode )
 {
   UInt uiSymbol = ( ( uiCode == 0 ) ? 0 : 1 );
   m_pcBinIf->encodeBin( uiSymbol, m_cALFFlagSCModel.get( 0, 0, 0 ) );
-}
-
-/** Code number of ALF CU control flags
- * \param uiCode number of ALF CU control flags
- * \param minValue predictor of number of ALF CU control flags
- * \param iDepth the possible max. processing CU depth
- */
-Void TEncSbac::codeAlfFlagNum( UInt uiCode, UInt minValue, Int iDepth)
-{
-  UInt uiLength = 0;
-  UInt maxValue = (minValue << (iDepth*2));
-  assert((uiCode>=minValue)&&(uiCode<=maxValue));
-  UInt temp = maxValue - minValue;
-  for(UInt i=0; i<32; i++)
-  {
-    if(temp&0x1)
-    {
-      uiLength = i+1;
-    }
-    temp = (temp >> 1);
-  }
-  UInt uiSymbol = uiCode - minValue;
-  if(uiLength)
-  {
-    while( uiLength-- )
-    {
-      m_pcBinIf->encodeBinEP( (uiSymbol>>uiLength) & 0x1 );
-    }
-  }
 }
 
 Void TEncSbac::codeAlfCtrlFlag( UInt uiSymbol )

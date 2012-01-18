@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,9 @@ protected:
   char*     m_pchInputFile;                                   ///< source file name
   char*     m_pchBitstreamFile;                               ///< output bitstream file
   char*     m_pchReconFile;                                   ///< output reconstruction file
-  
+#if G678_LAMBDA_ADJUSTMENT  
+  Double    m_adLambdaModifier[ MAX_TLAYER ];                 ///< Lambda modifier array for each temporal layer
+#endif
   // source specification
   Int       m_iFrameRate;                                     ///< source frame-rates (Hz)
   unsigned int m_FrameSkip;                                   ///< number of skipped frames from the beginning
@@ -76,7 +78,7 @@ protected:
 #if G1002_RPS
   Int       m_iExtraRPSs;
   GOPEntry  m_pcGOPList[MAX_GOP];
-  UInt      m_uiMaxNumberOfReorderPictures;                   ///< total number of reorder pictures
+  Int       m_numReorderFrames;                               ///< total number of reorder pictures
   UInt      m_uiMaxNumberOfReferencePictures;                 ///< total number of reference pictures needed for decoding
 #else
   Int       m_iRateGOPSize;                                   ///< GOP size for QP variance
@@ -108,6 +110,12 @@ protected:
   Int       m_iMaxDeltaQP;                                    ///< max. |delta QP|
   UInt      m_uiDeltaQpRD;                                    ///< dQP range for multi-pass slice QP optimization
   Int       m_iMaxCuDQPDepth;                                 ///< Max. depth for a minimum CuDQPSize (0:default)
+
+#if G509_CHROMA_QP_OFFSET
+  Int       m_iChromaQpOffset;                                 ///< ChromaQpOffset    (0:default) 
+  Int       m_iChromaQpOffset2nd;                              ///< ChromaQpOffset2nd (0:default)
+#endif
+
 #if QP_ADAPTATION
   Bool      m_bUseAdaptiveQP;                                 ///< Flag for enabling QP adaptation based on a psycho-visual model
   Int       m_iQPAdaptationRange;                             ///< dQP range by QP adaptation
@@ -152,9 +160,15 @@ protected:
 #endif
 
   Bool      m_bLoopFilterDisable;                             ///< flag for using deblocking filter
+#if G174_DF_OFFSET
+  Bool      m_loopFilterOffsetInAPS;                         ///< offset for deblocking filter in 0 = slice header, 1 = APS
+  Int       m_loopFilterBetaOffsetDiv2;                     ///< beta offset for deblocking filter
+  Int       m_loopFilterTcOffsetDiv2;                       ///< tc offset for deblocking filter
+#else
   Int       m_iLoopFilterAlphaC0Offset;                       ///< alpha offset for deblocking filter
   Int       m_iLoopFilterBetaOffset;                          ///< beta offset for deblocking filter
-  
+#endif
+
 #if !DISABLE_CAVLC
   // coding tools (entropy coder)
   Int       m_iSymbolMode;                                    ///< entropy coder mode, 0 = VLC, 1 = CABAC
@@ -203,6 +217,10 @@ protected:
 #endif
   Bool m_bLFCrossSliceBoundaryFlag;  ///< 0: Cross-slice-boundary in-loop filtering 1: non-cross-slice-boundary in-loop filtering
 #if TILES
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  Int  m_iTileBehaviorControlPresentFlag; //!< 1: tile behavior control parameters are in PPS 0: tile behavior control parameters are not in PPS
+  Bool m_bLFCrossTileBoundaryFlag;  //!< 1: Cross-tile-boundary in-loop filtering 0: non-cross-tile-boundary in-loop filtering
+#endif
   Int       m_iColumnRowInfoPresent;
   Int       m_iUniformSpacingIdr;
   Int       m_iTileBoundaryIndependenceIdr;

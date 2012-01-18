@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -105,8 +105,13 @@ protected:
   Bool  m_bUseNIF;       //!< true for performing non-cross slice boundary ALF
   UInt  m_uiNumSlicesInPic;      //!< number of slices in picture
   Int   m_iSGDepth;              //!< slice granularity depth
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  TComPicYuv* m_pcYuvTmp;    //!< temporary picture buffer pointer when non-across slice/tile boundary SAO is enabled
+#else
   Bool  *m_bIsFineSliceCu;
   TComPicYuv* m_pcPicYuvMap;
+#endif
+
 #endif
 #if SAO_CROSS_LCU_BOUNDARIES
   Pel* m_pTmpU1;
@@ -140,10 +145,19 @@ public:
   Void processSaoCu(Int iAddr, Int iSaoType, Int iYCbCr);
   Void processSaoOnePart(SAOQTPart *psQTPart, UInt uiPartIdx, Int iYCbCr);
   Void processSaoQuadTree(SAOQTPart *psQTPart, UInt uiPartIdx, Int iYCbCr);
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  Pel* getPicYuvAddr(TComPicYuv* pcPicYuv, Int iYCbCr,Int iAddr = 0);
+#else
   Pel* getPicYuvAddr(TComPicYuv* pcPicYuv, Int iYCbCr,Int iAddr);
+#endif
 
 #if SAO_FGS_NIF
   Void processSaoCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process without slice granularity 
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  Void createPicSaoInfo(TComPic* pcPic, Int uiNumSlicesInPic = 1);
+  Void destroyPicSaoInfo();
+  Void processSaoBlock(Pel* pDec, Pel* pRest, Int iStride, Int iSaoType, UInt uiXPos, UInt uiYPos, UInt uiWidth, UInt uiHeight, Bool* pbBorderAvail);
+#else
   Void processSaoCuMap(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process with slice granularity
   Void setNumSlicesInPic(UInt uiNum) {m_uiNumSlicesInPic = uiNum;}  //!< set num of slices in picture
   UInt getNumSlicesInPic()           {return m_uiNumSlicesInPic;}   //!< get num of slices in picture
@@ -154,6 +168,7 @@ public:
   Void createSliceMap(UInt iSliceIdx, UInt uiStartAddr, UInt uiEndAddr);//!< create slice map
   Void InitIsFineSliceCu(){memset(m_bIsFineSliceCu,0, sizeof(Bool)*m_iNumCuInWidth*m_iNumCuInHeight);} //!< Init is fine slice LCU
   Void setPic(TComPic* pcPic){m_pcPic = pcPic;} //!< set pic
+#endif
 #endif
 
 };

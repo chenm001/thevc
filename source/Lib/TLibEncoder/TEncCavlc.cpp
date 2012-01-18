@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -227,6 +227,10 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
 #if SCALING_LIST
   WRITE_FLAG( pcAPS->getScalingListEnabled()?1:0, "aps_scaling_list_data_present_flag");
 #endif
+#if G174_DF_OFFSET
+  //DF flag
+  WRITE_FLAG(pcAPS->getLoopFilterOffsetInAPS()?1:0, "aps_deblocking_filter_flag");
+#endif
   //SAO flag
   WRITE_FLAG( pcAPS->getSaoEnabled()?1:0, "aps_sample_adaptive_offset_flag"); 
 
@@ -249,10 +253,22 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
 #endif
 }
 #endif
+
+#if G174_DF_OFFSET
+Void TEncCavlc::codeDFFlag(UInt uiCode, const Char *pSymbolName)
+{
+  WRITE_FLAG(uiCode, pSymbolName);
+}
+Void TEncCavlc::codeDFSvlc(Int iCode, const Char *pSymbolName)
+{
+  WRITE_SVLC(iCode, pSymbolName);
+}
+#endif
+
 #if G1002_RPS
 Void TEncCavlc::codeShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet* pcRPS )
 {
-#if PRINT_RPS_BITS_WRITTEN
+#if PRINT_RPS_INFO
   int lastBits = getNumberOfWrittenBits();
 #endif
 #if INTER_RPS_PREDICTION
@@ -299,7 +315,7 @@ Void TEncCavlc::codeShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet*
   }
 #endif // INTER_RPS_PREDICTION
 
-#if PRINT_RPS_BITS_WRITTEN
+#if PRINT_RPS_INFO
 #if INTER_RPS_PREDICTION  
   printf("irps=%d (%2d bits) ", pcRPS->getInterRPSPrediction(), getNumberOfWrittenBits() - lastBits);
 #else
@@ -356,7 +372,11 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   }
   //   num_ref_idx_l0_default_active_minus1
   //   num_ref_idx_l1_default_active_minus1
+#if G507_QP_ISSUE_FIX
+  WRITE_SVLC( pcPPS->getPicInitQPMinus26(),                  "pic_init_qp_minus26");
+#else
   //   pic_init_qp_minus26  /* relative to 26 */
+#endif
   WRITE_FLAG( pcPPS->getConstrainedIntraPred() ? 1 : 0,      "constrained_intra_pred_flag" );
 #if NO_TMVP_MARKING
   WRITE_FLAG( pcPPS->getEnableTMVPFlag() ? 1 : 0,            "enable_temporal_mvp_flag" );
@@ -370,24 +390,36 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   //     if( adaptive_loop_filter_enabled_flag )
   //       alf_param( )
 #endif
-  //   if( cu_qp_delta_enabled_flag )
-  //     max_cu_qp_delta_depth
+#if G507_QP_ISSUE_FIX
+  WRITE_UVLC( pcPPS->getMaxCuDQPDepth() + pcPPS->getUseDQP(),                   "max_cu_qp_delta_depth" );
+#else
   if( pcPPS->getSPS()->getUseDQP() )
   {
     WRITE_UVLC( pcPPS->getMaxCuDQPDepth(),                   "max_cu_qp_delta_depth" );
   }
+#endif
+
+#if G509_CHROMA_QP_OFFSET
+  WRITE_SVLC( pcPPS->getChromaQpOffset(),                   "chroma_qp_offset"     );
+  WRITE_SVLC( pcPPS->getChromaQpOffset2nd(),                "chroma_qp_offset_2nd" );
+#endif
 
 #if WEIGHT_PRED
-  WRITE_FLAG( pcPPS->getUseWP() ? 1 : 0,  "weighted_pred_flat" );   // Use of Weighting Prediction (P_SLICE)
+  WRITE_FLAG( pcPPS->getUseWP() ? 1 : 0,  "weighted_pred_flag" );   // Use of Weighting Prediction (P_SLICE)
   WRITE_CODE( pcPPS->getWPBiPredIdc(), 2, "weighted_bipred_idc" );  // Use of Weighting Bi-Prediction (B_SLICE)
 #endif
 
 #if TILES
   WRITE_FLAG( pcPPS->getColumnRowInfoPresent(),           "tile_info_present_flag" );
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  WRITE_FLAG( pcPPS->getTileBehaviorControlPresentFlag(),  "tile_control_present_flag");
+#endif
   if( pcPPS->getColumnRowInfoPresent() == 1 )
   {
     WRITE_FLAG( pcPPS->getUniformSpacingIdr(),                                   "uniform_spacing_flag" );
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
     WRITE_FLAG( pcPPS->getTileBoundaryIndependenceIdr(),                         "tile_boundary_independence_flag" );
+#endif
     WRITE_UVLC( pcPPS->getNumColumnsMinus1(),                                    "num_tile_columns_minus1" );
     WRITE_UVLC( pcPPS->getNumRowsMinus1(),                                       "num_tile_rows_minus1" );
     if( pcPPS->getUniformSpacingIdr() == 0 )
@@ -402,6 +434,23 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
       }
     }
   }
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  if(pcPPS->getTileBehaviorControlPresentFlag() == 1)
+  {
+    Int iNumColTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumColumnsMinus1()):(pcPPS->getSPS()->getNumColumnsMinus1());
+    Int iNumRowTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumColumnsMinus1()):(pcPPS->getSPS()->getNumRowsMinus1());
+
+    if(iNumColTilesMinus1 !=0 || iNumRowTilesMinus1 !=0)
+    {
+      WRITE_FLAG( pcPPS->getTileBoundaryIndependenceIdr(),                         "tile_boundary_independence_flag" );
+      if(pcPPS->getTileBoundaryIndependenceIdr() == 1)
+      {
+        WRITE_FLAG( pcPPS->getLFCrossTileBoundaryFlag()?1 : 0,            "loop_filter_across_tile_flag");
+      }
+    }
+  }
+#endif
+
 #endif
   return;
 }
@@ -454,10 +503,16 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if G1002_RPS
   WRITE_UVLC( pcSPS->getBitsForPOC()-4,                 "log2_max_pic_order_cnt_lsb_minus4" );
   WRITE_UVLC( pcSPS->getMaxNumberOfReferencePictures(), "max_num_ref_pics" ); 
-  WRITE_UVLC( pcSPS->getMaxNumberOfReorderPictures(),   "max_num_reorder_pics" ); 
+  WRITE_UVLC( pcSPS->getNumReorderFrames(),             "num_reorder_frames" ); 
 #endif
+#if MAX_DPB_AND_LATENCY
+  WRITE_UVLC(pcSPS->getMaxDecFrameBuffering(),          "max_dec_frame_buffering" );
+  WRITE_UVLC(pcSPS->getMaxLatencyIncrease(),            "max_latency_increase"    );
+#endif
+#if !G507_COND_4X4_ENABLE_FLAG
 #if DISABLE_4x4_INTER
   xWriteFlag  ( (pcSPS->getDisInter4x4()) ? 1 : 0 );
+#endif
 #endif  
 #if !G1002_RPS
   // log2_max_frame_num_minus4
@@ -483,11 +538,19 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
     MinCUSize >>= 1;
     log2MinCUSize++;
   }
-  
+
   WRITE_UVLC( log2MinCUSize - 3,                                                     "log2_min_coding_block_size_minus3" );
   WRITE_UVLC( pcSPS->getMaxCUDepth()-g_uiAddCUDepth,                                 "log2_diff_max_min_coding_block_size" );
   WRITE_UVLC( pcSPS->getQuadtreeTULog2MinSize() - 2,                                 "log2_min_transform_block_size_minus2" );
   WRITE_UVLC( pcSPS->getQuadtreeTULog2MaxSize() - pcSPS->getQuadtreeTULog2MinSize(), "log2_diff_max_min_transform_block_size" );
+
+#if G507_COND_4X4_ENABLE_FLAG
+#if DISABLE_4x4_INTER
+  if(log2MinCUSize == 3)
+    xWriteFlag  ( (pcSPS->getDisInter4x4()) ? 1 : 0 );
+#endif
+#endif
+
 #if MAX_PCM_SIZE
   if( pcSPS->getUsePCM() )
   {
@@ -504,6 +567,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_FLAG( (pcSPS->getScalingListFlag()) ? 1 : 0,                                  "scaling_list_enabled_flag" ); 
 #endif
   WRITE_FLAG  ( (pcSPS->getUseLMChroma ()) ? 1 : 0,                                  "chroma_pred_from_luma_enabled_flag" ); 
+#if G174_DF_OFFSET
+  WRITE_FLAG( pcSPS->getUseDF() ? 1 : 0,                                             "deblocking_filter_in_aps_enabled_flag");
+#endif
   WRITE_FLAG( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0,                            "loop_filter_across_slice_flag");
 #if SAO
   WRITE_FLAG( pcSPS->getUseSAO() ? 1 : 0,                                            "sample_adaptive_offset_enabled_flag");
@@ -519,8 +585,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #endif
   }
 
-
+#if !G507_QP_ISSUE_FIX
   WRITE_FLAG( (pcSPS->getUseDQP ()) ? 1 : 0,                                         "cu_qp_delta_enabled_flag" );
+#endif
   assert( pcSPS->getMaxTLayers() > 0 );         
 
   WRITE_FLAG( pcSPS->getTemporalIdNestingFlag() ? 1 : 0,                             "temporal_id_nesting_flag" );
@@ -555,7 +622,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 
 #if TILES
   WRITE_FLAG( pcSPS->getUniformSpacingIdr(),                          "uniform_spacing_flag" );
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
   WRITE_FLAG( pcSPS->getTileBoundaryIndependenceIdr(),                "tile_boundary_independence_flag" );
+#endif
   WRITE_UVLC( pcSPS->getNumColumnsMinus1(),                           "num_tile_columns_minus1" );
   WRITE_UVLC( pcSPS->getNumRowsMinus1(),                              "num_tile_rows_minus1" );
   if( pcSPS->getUniformSpacingIdr()==0 )
@@ -569,14 +638,20 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
       WRITE_UVLC( pcSPS->getRowHeight(i),                             "row_height" );
     }
   }
+
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  if( pcSPS->getNumColumnsMinus1() !=0 || pcSPS->getNumRowsMinus1() != 0)
+  {
+    WRITE_FLAG( pcSPS->getTileBoundaryIndependenceIdr(),                "tile_boundary_independence_flag" );
+    if(pcSPS->getTileBoundaryIndependenceIdr() == 1)
+    {
+      WRITE_FLAG( pcSPS->getLFCrossTileBoundaryFlag()?1 : 0,            "loop_filter_across_tile_flag");
+    }
+  }
 #endif
 
-#if MAX_DPB_AND_LATENCY
-  WRITE_UVLC(pcSPS->getMaxDecFrameBuffering(),          "max_dec_frame_buffering" );
-  WRITE_UVLC(pcSPS->getNumReorderFrames(),              "max_reorder_frames"      );
-  WRITE_UVLC(pcSPS->getMaxLatencyIncrease(),            "max_latency_increase"    );
 #endif
-  
+
   // Software-only flags
 #if NSQT
   WRITE_FLAG( pcSPS->getUseNSQT(), "enable_nsqt" );
@@ -598,13 +673,90 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #if ENC_DEC_TRACE  
   xTraceSliceHeader (pcSlice);
 #endif
+
+#if SLICEADDR_BEGIN
+  // if( nal_ref_idc != 0 )
+  //   dec_ref_pic_marking( )
+  // if( entropy_coding_mode_flag  &&  slice_type  !=  I)
+  //   cabac_init_idc
+  // first_slice_in_pic_flag
+  // if( first_slice_in_pic_flag == 0 )
+  //    slice_address
+  // the slice start address seems to be aligned with the WD if FINE_GRANULARITY_SLICES is enabled
+#if FINE_GRANULARITY_SLICES
+  //calculate number of bits required for slice address
+  Int maxAddrOuter = pcSlice->getPic()->getNumCUsInFrame();
+  Int reqBitsOuter = 0;
+  while(maxAddrOuter>(1<<reqBitsOuter)) 
+  {
+    reqBitsOuter++;
+  }
+  Int maxAddrInner = pcSlice->getPic()->getNumPartInCU()>>(2);
+  maxAddrInner = (1<<(pcSlice->getPPS()->getSliceGranularity()<<1));
+  Int reqBitsInner = 0;
   
+  while(maxAddrInner>(1<<reqBitsInner))
+  {
+    reqBitsInner++;
+  }
+  Int lCUAddress;
+  Int innerAddress;
+#endif
+  if (pcSlice->isNextSlice())
+  {
+#if !FINE_GRANULARITY_SLICES
+#if TILES
+    WRITE_UVLC( pcSlice->getPic()->getPicSym()->getCUOrderMap(pcSlice->getSliceCurStartCUAddr()), "slice_address" );        // Start CU addr for slice
+#else
+    WRITE_UVLC( pcSlice->getSliceCurStartCUAddr(), "slice_address" );        // Start CU addr for slice
+#endif
+#else
+    // Calculate slice address
+    lCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
+    innerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+#endif
+  }
+  else
+  {
+#if !FINE_GRANULARITY_SLICES
+#if TILES
+    WRITE_UVLC( pcSlice->getPic()->getPicSym()->getCUOrderMap(pcSlice->getEntropySliceCurStartCUAddr()), "slice_address" ); // Start CU addr for entropy slice
+#else
+    WRITE_UVLC( pcSlice->getEntropySliceCurStartCUAddr(), "slice_address" ); // Start CU addr for entropy slice
+#endif
+#else
+    // Calculate slice address
+    lCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
+    innerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+    
+#endif
+  }
+#if FINE_GRANULARITY_SLICES
+  //write slice address
+#if TILES
+  Int address = (pcSlice->getPic()->getPicSym()->getCUOrderMap(lCUAddress) << reqBitsInner) + innerAddress;
+#else
+  Int address    = (lCUAddress << reqBitsInner) + innerAddress;
+#endif
+  WRITE_FLAG( address==0, "first_slice_in_pic_flag" );
+  if(address>0) 
+  {
+    WRITE_CODE( address, reqBitsOuter+reqBitsInner, "slice_address" );
+  }
+#endif
+#endif
+
+#if INC_CABACINITIDC_SLICETYPE
+  WRITE_UVLC( pcSlice->getSliceType(),       "slice_type" );
+#endif
   Bool bEntropySlice = (!pcSlice->isNextSlice());
   WRITE_FLAG( bEntropySlice ? 1 : 0, "lightweight_slice_flag" );
   
   if (!bEntropySlice)
   {
+#if !INC_CABACINITIDC_SLICETYPE
     WRITE_UVLC( pcSlice->getSliceType(),       "slice_type" );
+#endif
     WRITE_UVLC( pcSlice->getPPS()->getPPSId(), "pic_parameter_set_id" );
 #if G1002_RPS
     if(pcSlice->getNalUnitType()==NAL_UNIT_CODED_SLICE_IDR) 
@@ -646,7 +798,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #endif
 #if F747_APS
 #if SCALING_LIST
+#if G174_DF_OFFSET
+    if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF()|| pcSlice->getSPS()->getScalingListFlag() || pcSlice->getSPS()->getUseDF())
+#else
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF()|| pcSlice->getSPS()->getScalingListFlag())
+#endif
 #else
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
 #endif
@@ -755,6 +911,14 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     }
   }
     
+#if INC_CABACINITIDC_SLICETYPE
+  if(pcSlice->getPPS()->getEntropyCodingMode() && !pcSlice->isIntra())
+  {
+    WRITE_UVLC(pcSlice->getCABACinitIDC(),  "cabac_init_idc");
+  }
+#endif
+
+#if !SLICEADDR_BEGIN
   // if( nal_ref_idc != 0 )
   //   dec_ref_pic_marking( )
   // if( entropy_coding_mode_flag  &&  slice_type  !=  I)
@@ -824,18 +988,35 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     WRITE_CODE( iAddress, iReqBitsOuter+iReqBitsInner, "slice_address" );
   }
 #endif
+#endif
   
   // if( !lightweight_slice_flag ) {
   if (!bEntropySlice)
   {
-    //   slice_qp_delta
+#if G507_QP_ISSUE_FIX
+    Int iCode = pcSlice->getSliceQp() - ( pcSlice->getPPS()->getPicInitQPMinus26() + 26 );
+    WRITE_SVLC( iCode, "slice_qp_delta" ); 
+#else
     WRITE_SVLC( pcSlice->getSliceQp(), "slice_qp" ); // this should be delta
+#endif
   //   if( sample_adaptive_offset_enabled_flag )
   //     sao_param()
   //   if( deblocking_filter_control_present_flag ) {
   //     disable_deblocking_filter_idc
+#if G174_DF_OFFSET
+    WRITE_FLAG(pcSlice->getInheritDblParamFromAPS(), "inherit_dbl_param_from_APS_flag");
+    if (!pcSlice->getInheritDblParamFromAPS())
+    {
+      WRITE_FLAG(pcSlice->getLoopFilterDisable(), "loop_filter_disable");  // should be an IDC
+      if(!pcSlice->getLoopFilterDisable())
+      {
+        WRITE_SVLC (pcSlice->getLoopFilterBetaOffset(), "beta_offset_div2");
+        WRITE_SVLC (pcSlice->getLoopFilterTcOffset(), "tc_offset_div2");
+      }
+    }
+#else
     WRITE_FLAG(pcSlice->getLoopFilterDisable(), "loop_filter_disable");  // should be an IDC
-
+#endif
   //     if( disable_deblocking_filter_idc  !=  1 ) {
   //       slice_alpha_c0_offset_div2
   //       slice_beta_offset_div2
@@ -853,14 +1034,14 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   //     alf_cu_control_param( )
   //   }
   // }
-  }
   
 #if WEIGHT_PRED
-  if ( (pcSlice->getPPS()->getUseWP() && pcSlice->getSliceType()==P_SLICE) || (pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getSliceType()==B_SLICE) )
-  {
-    codeWeightPredTable( pcSlice );
-  }
+    if ( (pcSlice->getPPS()->getUseWP() && pcSlice->getSliceType()==P_SLICE) || (pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getSliceType()==B_SLICE) )
+    {
+      xCodePredWeightTable( pcSlice );
+    }
 #endif
+  }
 
   // !!!! sytnax elements not in the WD !!!!
   
@@ -900,7 +1081,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 Void TEncCavlc::codeTileMarkerFlag(TComSlice* pcSlice) 
 {
   Bool bEntropySlice = (!pcSlice->isNextSlice());
+#if TILES_LOW_LATENCY_CABAC_INI
+  if (!bEntropySlice)
+#else
   if (!bEntropySlice && pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+#endif
   {
     xWriteFlag  (pcSlice->getTileMarkerFlag() ? 1 : 0 );
   }
@@ -2146,31 +2331,6 @@ Void TEncCavlc::codeAlfFlag( UInt uiCode )
   xWriteFlag( uiCode );
 }
 
-/** Code number of ALF CU control flags
- * \param uiCode number of ALF CU control flags
- * \param minValue predictor of number of ALF CU control flags
- * \param iDepth the possible max. processing CU depth
- */
-Void TEncCavlc::codeAlfFlagNum( UInt uiCode, UInt minValue, Int iDepth)
-{
-  UInt uiLength = 0;
-  UInt maxValue = (minValue << (iDepth*2));
-  assert((uiCode>=minValue)&&(uiCode<=maxValue));
-  UInt temp = maxValue - minValue;
-  for(UInt i=0; i<32; i++)
-  {
-    if(temp&0x1)
-    {
-      uiLength = i+1;
-    }
-    temp = (temp >> 1);
-  }
-  if(uiLength)
-  {
-    xWriteCode( uiCode - minValue, uiLength );
-  }
-}
-
 Void TEncCavlc::codeAlfCtrlFlag( UInt uiSymbol )
 {
   xWriteFlag( uiSymbol );
@@ -2683,7 +2843,7 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int blockType, Int blSize
  * \param TComSlice* pcSlice
  * \returns Void
  */
-Void TEncCavlc::codeWeightPredTable( TComSlice* pcSlice )
+Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
 {
   wpScalingParam  *wp;
   Bool            bChroma     = true; // color always present in HEVC ?
@@ -2713,47 +2873,54 @@ Void TEncCavlc::codeWeightPredTable( TComSlice* pcSlice )
         {
 #if WP_IMPROVED_SYNTAX
           Int iDeltaDenom;
-          xWriteUvlc( wp[0].uiLog2WeightDenom );    // ue(v): luma_log2_weight_denom
+          WRITE_UVLC( wp[0].uiLog2WeightDenom, "luma_log2_weight_denom" );     // ue(v): luma_log2_weight_denom
+
           if( bChroma )
           {
             iDeltaDenom = (wp[1].uiLog2WeightDenom - wp[0].uiLog2WeightDenom);
-            xWriteSvlc( iDeltaDenom );              // ue(v): chroma_log2_weight_denom
+            WRITE_SVLC( iDeltaDenom, "delta_chroma_log2_weight_denom" );       // se(v): delta_chroma_log2_weight_denom
           }
 #else
-          xWriteUvlc( wp[0].uiLog2WeightDenom );    // ue(v): luma_log2_weight_denom
+          WRITE_UVLC( wp[0].uiLog2WeightDenom, "luma_log2_weight_denom" );     // ue(v): luma_log2_weight_denom
+
           if( bChroma )
-            xWriteUvlc( wp[1].uiLog2WeightDenom );  // ue(v): chroma_log2_weight_denom
+          {
+            WRITE_UVLC( wp[1].uiLog2WeightDenom, "chroma_log2_weight_denom" ); // ue(v): chroma_log2_weight_denom
+          }
 #endif
           bDenomCoded = true;
         }
 
-        xWriteFlag( wp[0].bPresentFlag );           // u(1): luma_weight_l0_flag
+        WRITE_FLAG( wp[0].bPresentFlag, "luma_weight_lX_flag" );               // u(1): luma_weight_lX_flag
+
         if ( wp[0].bPresentFlag ) 
         {
 #if WP_IMPROVED_SYNTAX
           Int iDeltaWeight = (wp[0].iWeight - (1<<wp[0].uiLog2WeightDenom));
-          xWriteSvlc( iDeltaWeight );                // se(v): luma_weight_l0[i]
+          WRITE_SVLC( iDeltaWeight, "delta_luma_weight_lX" );                  // se(v): delta_luma_weight_lX
 #else
-          xWriteSvlc( wp[0].iWeight );              // se(v): luma_weight_l0[i]
+          WRITE_SVLC( wp[0].iWeight, "luma_weight_lX" );                       // se(v): luma_weight_lX
 #endif
-          xWriteSvlc( wp[0].iOffset );              // se(v): luma_offset_l0[i]
+          WRITE_SVLC( wp[0].iOffset, "luma_offset_lX" );                       // se(v): luma_offset_lX
         }
+
         if ( bChroma ) 
         {
-          xWriteFlag( wp[1].bPresentFlag );         // u(1): chroma_weight_l0_flag
+          WRITE_FLAG( wp[1].bPresentFlag, "chroma_weight_lX_flag" );           // u(1): chroma_weight_lX_flag
+
           if ( wp[1].bPresentFlag )
           {
             for ( Int j=1 ; j<3 ; j++ ) 
             {
 #if WP_IMPROVED_SYNTAX
               Int iDeltaWeight = (wp[j].iWeight - (1<<wp[1].uiLog2WeightDenom));
-              xWriteSvlc( iDeltaWeight );            // se(v): chroma_weight_l0[i][j]
+              WRITE_SVLC( iDeltaWeight, "delta_chroma_weight_lX" );            // se(v): delta_chroma_weight_lX
 
               Int iDeltaChroma = (wp[j].iOffset + ( ( (g_uiIBDI_MAX>>1)*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) - (g_uiIBDI_MAX>>1));
-              xWriteSvlc( iDeltaChroma );           // se(v): chroma_offset_l0[i][j]
+              WRITE_SVLC( iDeltaChroma, "delta_chroma_offset_lX" );            // se(v): delta_chroma_offset_lX
 #else
-              xWriteSvlc( wp[j].iWeight );          // se(v): chroma_weight_l0[i][j]
-              xWriteSvlc( wp[j].iOffset );          // se(v): chroma_offset_l0[i][j]
+              WRITE_SVLC( wp[j].iWeight, "chroma_weight_lX" );                 // se(v): chroma_weight_lX
+              WRITE_SVLC( wp[j].iOffset, "chroma_offset_lX" );                 // se(v): chroma_offset_lX
 #endif
             }
           }
@@ -2773,35 +2940,37 @@ Void TEncCavlc::codeWeightPredTable( TComSlice* pcSlice )
       if ( !bDenomCoded ) 
       {
         Int iDeltaDenom;
-        xWriteUvlc( wp[0].uiLog2WeightDenom );    // ue(v): luma_log2_weight_denom
+        WRITE_UVLC( wp[0].uiLog2WeightDenom, "luma_log2_weight_denom" );       // ue(v): luma_log2_weight_denom
+
         if( bChroma )
         {
           iDeltaDenom = (wp[1].uiLog2WeightDenom - wp[0].uiLog2WeightDenom);
-          xWriteSvlc( iDeltaDenom );              // ue(v): chroma_log2_weight_denom
+          WRITE_SVLC( iDeltaDenom, "delta_chroma_log2_weight_denom" );         // se(v): delta_chroma_log2_weight_denom
         }
         bDenomCoded = true;
       }
 
-      xWriteFlag( wp[0].bPresentFlag );           // u(1): luma_weight_l0_flag
+      WRITE_FLAG( wp[0].bPresentFlag, "luma_weight_lc_flag" );                 // u(1): luma_weight_lc_flag
 
       if ( wp[0].bPresentFlag ) 
       {
         Int iDeltaWeight = (wp[0].iWeight - (1<<wp[0].uiLog2WeightDenom));
-        xWriteSvlc( iDeltaWeight );                // se(v): luma_weight_l0[i]
-        xWriteSvlc( wp[0].iOffset );              // se(v): luma_offset_l0[i]
+        WRITE_SVLC( iDeltaWeight, "delta_luma_weight_lc" );                    // se(v): delta_luma_weight_lc
+        WRITE_SVLC( wp[0].iOffset, "luma_offset_lc" );                         // se(v): luma_offset_lc
       }
       if ( bChroma ) 
       {
-        xWriteFlag( wp[1].bPresentFlag );         // u(1): chroma_weight_l0_flag
+        WRITE_FLAG( wp[1].bPresentFlag, "chroma_weight_lc_flag" );             // u(1): luma_weight_lc_flag
+
         if ( wp[1].bPresentFlag )
         {
           for ( Int j=1 ; j<3 ; j++ ) 
           {
             Int iDeltaWeight = (wp[j].iWeight - (1<<wp[1].uiLog2WeightDenom));
-            xWriteSvlc( iDeltaWeight );            // se(v): chroma_weight_l0[i][j]
+            WRITE_SVLC( iDeltaWeight, "delta_chroma_weight_lc" );              // se(v): delta_chroma_weight_lc
 
             Int iDeltaChroma = (wp[j].iOffset + ( ( (g_uiIBDI_MAX>>1)*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) - (g_uiIBDI_MAX>>1));
-            xWriteSvlc( iDeltaChroma );           // se(v): chroma_offset_l0[i][j]
+            WRITE_SVLC( iDeltaChroma, "delta_chroma_offset_lc" );              // se(v): delta_chroma_offset_lc
           }
         }
       }
@@ -2834,7 +3003,7 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
   if(scalingList->getUseDefaultOnlyFlag () == false)
   {
 #if SCALING_LIST_OUTPUT_RESULT
-    printf("Header Bit %d\n",m_pcBitIf->getNumberOfWrittenBits()-iStartBit);
+    printf("Header Bit %d\n",m_pcBitIf->getNumberOfWrittenBits()-startBit);
 #endif
     //for each size
     for(sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
@@ -2846,7 +3015,7 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
 #if SCALING_LIST_OUTPUT_RESULT
         for(int i=0;i<g_scalingListSize[sizeId];i++)
         {
-          avg_error += abs(piDst[i] - piOrg[i]);
+          avg_error += abs(dst[i] - org[i]);
           if(abs(max_error) < abs(dst[i] - org[i]))
           {
             max_error = dst[i] - org[i];

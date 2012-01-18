@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -213,9 +213,6 @@ public:
   Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
 #endif
 
-  /// Code number of ALF CU control flags
-  Void codeAlfFlagNum    ( UInt uiCode, UInt minValue, Int iDepth);
-
   Void codeAlfCtrlFlag   ( UInt uiSymbol );
   Void codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiEncMode );
   Void codeSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
@@ -253,7 +250,7 @@ public:
   Bool getAdaptFlag      ()          { return m_bAdaptFlag; }
   Void setAdaptFlag      ( Bool b )  { m_bAdaptFlag = b;     }
 #if WEIGHT_PRED
-  Void codeWeightPredTable           ( TComSlice* pcSlice );
+  Void xCodePredWeightTable          ( TComSlice* pcSlice );
 #endif
 #if TILES
   Void updateContextTables           ( SliceType eSliceType, Int iQp, Bool bExecuteFinish=true ) { return;   }
@@ -272,7 +269,10 @@ public:
   Void  xCodeDPCMScalingListMatrix ( TComScalingList* scalingList, Int* data, UInt sizeId);
   Void  xWriteResidualCode         ( UInt size, Int *data);
 #endif
-
+#if G174_DF_OFFSET
+  Void codeDFFlag       ( UInt uiCode, const Char *pSymbolName );
+  Void codeDFSvlc       ( Int   iCode, const Char *pSymbolName );
+#endif
 
 };
 

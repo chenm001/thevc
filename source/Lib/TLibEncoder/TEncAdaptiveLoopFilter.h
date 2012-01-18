@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2011, ITU/ISO/IEC
+ * Copyright (c) 2010-2012, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,7 +88,9 @@ private:
   TComPicYuv* m_pcPicYuvTmp;
   TComPicYuv* pcPicYuvRecShape0;
   TComPicYuv* pcPicYuvRecShape1;
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
   TComPicYuv* m_pcSliceYuvTmp;    //!< temporary picture buffer when non-across slice boundary ALF is enabled
+#endif
 
   ///
   /// temporary filter buffers or pointers
@@ -136,7 +138,9 @@ private:
   /// miscs. 
   ///
   TEncEntropy* m_pcEntropyCoder;
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
   TComPic* m_pcPic;
+#endif
 #if !G212_CROSS9x9_VB
   static Int  m_aiFilterPosShape0In11x5Sym[10]; //!< for N-pass encoding- filter shape relative position in 19x5 footprint
   static Int  m_aiFilterPosShape1In11x5Sym[9]; //!< for N-pass encoding- filter shape relative position in 19x5 footprint
@@ -152,12 +156,19 @@ private:
   Void xDestroyTmpAlfCtrlFlags  ();
   Void xCopyTmpAlfCtrlFlagsTo   ();
   Void xCopyTmpAlfCtrlFlagsFrom ();
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  Void getCtrlFlagsFromCU(AlfLCUInfo* pcAlfLCU, std::vector<UInt> *pvFlags, Int iAlfDepth, UInt uiMaxNumSUInLCU);
+  Void xEncodeCUAlfCtrlFlags  (std::vector<AlfCUCtrlInfo> &vAlfCUCtrlParam);
+#else
   Void getCtrlFlagsForSlices(Bool bCUCtrlEnabled, Int iCUCtrlDepth); //!< Copy CU control flags from TComCU
   Void xEncodeCUAlfCtrlFlags  ();
+#endif
   Void xEncodeCUAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
   Void xCUAdaptiveControl_qc           ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, UInt64& ruiMinDist, Double& rdMinCost );
 #if F747_APS
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
   Void transferCtrlFlagsToAlfParam(std::vector<AlfCUCtrlInfo>& vAlfCUCtrlInfo); //!< Copy CU control flags to ALF parameters
+#endif
   Void xSetCUAlfCtrlFlags_qc            (UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam);
   Void xSetCUAlfCtrlFlag_qc             (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, std::vector<UInt>& vCUCtrlFlag);
 #else
@@ -170,10 +181,18 @@ private:
 
   // functions related to correlation computation
   Void xstoreInBlockMatrix(Int ypos, Int xpos, Int iheight, Int iwidth, Bool bResetBlockMatrix, Bool bSymmCopyBlockMatrix, Pel* pImgOrg, Pel* pImgPad, Int filtNo, Int stride); //!< Calculate correlations for luma
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  Void xstoreInBlockMatrixforRegion(std::vector< AlfLCUInfo* > &vpAlfLCU, Pel* ImgOrg, Pel* ImgDec, Int tap, Int iStride, Bool bFirstSlice, Bool bLastSlice); //!< Calculate block autocorrelations and crosscorrelations for one ALF slice
+#else
   Void xstoreInBlockMatrixforOneSlice(CAlfSlice* pSlice, Pel* ImgOrg, Pel* ImgDec, Int tap, Int iStride, Bool bFirstSlice, Bool bLastSlice); //!< Calculate block autocorrelations and crosscorrelations for one ALF slice
+#endif
   Void xstoreInBlockMatrixforSlices  (Pel* ImgOrg, Pel* ImgDec, Int tap, Int iStride); //!< Calculate block autocorrelations and crosscorrelations for ALF slices
   Void xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgOrg, Pel* pImgPad, Int filtNo, Int iWidth, Int iHeight, Int iOrgStride, Int iCmpStride, Bool bSymmCopyBlockMatrix); //!< Calculate correlations for chroma
+#if NONCROSS_TILE_IN_LOOP_FILTERING
+  Void xCalcCorrelationFuncforChromaRegion(std::vector< AlfLCUInfo* > &vpAlfLCU, Pel* pOrg, Pel* pCmp, Int filtNo, Int iStride, Bool bLastSlice, Int iFormatShift); //!< Calculate autocorrelations and crosscorrelations for one chroma slice
+#else
   Void xCalcCorrelationFuncforChromaOneSlice(CAlfSlice* pSlice, Pel* pOrg, Pel* pCmp, Int iTap, Int iStride, Bool bLastSlice); //!< Calculate autocorrelations and crosscorrelations for one chroma slice
+#endif
   Void xCalcCorrelationFuncforChromaSlices  (Int ComponentID, Pel* pOrg, Pel* pCmp, Int iTap, Int iOrgStride, Int iCmpStride); //!< Calculate autocorrelations and crosscorrelations for chroma slices
 #if !G212_CROSS9x9_VB
   Void xretriveBlockMatrix (Int iNumTaps, Int* piTapPosInMaxFilter, Double*** pppdEBase, Double*** pppdETarget, Double** ppdyBase, Double** ppdyTarget ); //!< Retrieve correlations from other correlation matrix
@@ -190,11 +209,15 @@ private:
   Void saveFilterCoeffToBuffer(Int **filterSet, Int numFilter, Int* mergeTable, Int mode, Int filtNo); //!< save filter coefficients to buffer
   Void setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec); //!< set initial m_maskImg with previous (time-delayed) filters
   Void decideFilterShapeLuma(Pel* ImgOrg, Pel* ImgDec, Int Stride, ALFParam* pcAlfSaved, UInt64& ruiRate, UInt64& ruiDist,Double& rdCost); //!< Estimate RD cost of all filter size & store the best one
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
   Void xFilterChromaSlices(Int ComponentID, TComPicYuv* pcPicDecYuv, TComPicYuv* pcPicRestYuv, Int *coeff, Int filtNo, Int iChromaFormatShift);  //!< interface function to filter chroma components for multi-slice picture
+#endif
   Void   xFilterTapDecisionChroma      (UInt64 uiLumaRate, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, UInt64& ruiBits);
   Int64  xFastFiltDistEstimationChroma (Double** ppdCorr, Int* piCoeff, Int iSqrFiltLength);
   Void  xfilterSlicesEncoder(Pel* ImgDec, Pel* ImgRest, Int iStride, Int filtNo, Int** filterCoeff, Int* mergeTable, Pel** varImg); //!< Calculate ALF grouping indices for ALF slices
+#if !NONCROSS_TILE_IN_LOOP_FILTERING
   Void  xfilterOneSliceEncoder(CAlfSlice* pSlice, Pel* ImgDec, Pel* ImgRest, Int iStride, Int filtNo, Int** filterCoeff, Int* mergeTable, Pel** varImg); //!< calculate ALF grouping indices for one ALF slice
+#endif
   Void  setALFEncodingParam(TComPic *pcPic); //!< set ALF encoding parameters
 #if !G609_NEW_BA_SUB
   Void  calcVarforSlices(Pel **varmap, Pel *imgY_pad, Int fl, Int img_stride); //!< Calculate ALF grouping indices for ALF slices
