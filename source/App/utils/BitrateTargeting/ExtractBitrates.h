@@ -3,7 +3,7 @@
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.  
  *
- * Copyright (c) 2010-2012, ITU/ISO/IEC
+ * Copyright (c) 2010-2011, ITU/ISO/IEC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,8 @@
 #include <vector>
 
 /// An error occured while parsing a POC line from within a log file
-class POCParseException: public RuntimeError {
+class POCParseException: public RuntimeError
+{
   public:
     POCParseException( const std::string& pocLine ): m_pocLine( pocLine ) { }
     virtual ~POCParseException( ) throw ( ) { }
@@ -51,7 +52,8 @@ class POCParseException: public RuntimeError {
 };
 
 /// The QP set from the log file was not contiguous.  The QP set must be contiguous to be able to convert the results into a vector.
-class NonContiguousQPSetException: public RuntimeError {
+class NonContiguousQPSetException: public RuntimeError
+{
   public:
     virtual ~NonContiguousQPSetException( ) throw( ) { }
   
