@@ -148,6 +148,10 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setChromaQpOffset2nd            ( m_iChromaQpOffset2nd  );
 #endif
 
+#if ADAPTIVE_QP_SELECTION
+  m_cTEncTop.setUseAdaptQpSelect             ( m_bUseAdaptQpSelect   );
+#endif
+
 #if QP_ADAPTATION
   m_cTEncTop.setUseAdaptiveQP                ( m_bUseAdaptiveQP  );
   m_cTEncTop.setQPAdaptationRange            ( m_iQPAdaptationRange );

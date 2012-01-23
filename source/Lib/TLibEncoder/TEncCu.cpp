@@ -235,9 +235,12 @@ Void TEncCu::compressCU( TComDataCU*& rpcCU )
   xCompressCU( m_ppcBestCU[0], m_ppcTempCU[0], 0 );
 
 #if ADAPTIVE_QP_SELECTION
-  if(rpcCU->getSlice()->getSliceType()!=I_SLICE) //IIII
+  if( m_pcEncCfg->getUseAdaptQpSelect() )
   {
-    xLcuCollectARLStats( rpcCU);
+    if(rpcCU->getSlice()->getSliceType()!=I_SLICE) //IIII
+    {
+      xLcuCollectARLStats( rpcCU);
+    }
   }
 #endif
 }

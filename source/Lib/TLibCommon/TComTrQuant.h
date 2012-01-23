@@ -154,7 +154,11 @@ public:
   ~TComTrQuant();
   
   // initialize class
-  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, UInt *aTableLastPosVlcIndex=NULL, Bool bUseRDOQ = false,  Bool bEnc = false );
+  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, UInt *aTableLastPosVlcIndex=NULL, Bool bUseRDOQ = false,  Bool bEnc = false
+#if ADAPTIVE_QP_SELECTION
+                       , Bool bUseAdaptQpSelect = false
+#endif    
+    );
   
   // transform & inverse transform functions
   Void transformNxN( TComDataCU* pcCU, 
@@ -270,7 +274,10 @@ protected:
   UInt     m_uiMaxTrSize;
   Bool     m_bEnc;
   Bool     m_bUseRDOQ;
-  
+#if ADAPTIVE_QP_SELECTION
+  Bool     m_bUseAdaptQpSelect;
+#endif
+
 #if !DISABLE_CAVLC 
   UInt     *m_uiLPTableE8;
   UInt     *m_uiLPTableE4;

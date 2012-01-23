@@ -795,11 +795,14 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
 #endif
 
 #if ADAPTIVE_QP_SELECTION
-  m_pcTrQuant->clearSliceARLCnt();
-  if(pcSlice->getSliceType()!=I_SLICE)
+  if( m_pcCfg->getUseAdaptQpSelect() )
   {
-    Int qpBase = pcSlice->getSliceQpBase();
-    pcSlice->setSliceQp(qpBase + m_pcTrQuant->getQpDelta(qpBase));
+    m_pcTrQuant->clearSliceARLCnt();
+    if(pcSlice->getSliceType()!=I_SLICE)
+    {
+      Int qpBase = pcSlice->getSliceQpBase();
+      pcSlice->setSliceQp(qpBase + m_pcTrQuant->getQpDelta(qpBase));
+    }
   }
 #endif
   // initialize ALF parameters
@@ -1725,7 +1728,10 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
   }
 
 #if ADAPTIVE_QP_SELECTION
-  m_pcTrQuant->storeSliceQpNext(pcSlice);
+  if( m_pcCfg->getUseAdaptQpSelect() )
+  {
+    m_pcTrQuant->storeSliceQpNext(pcSlice);
+  }
 #endif
 }
 

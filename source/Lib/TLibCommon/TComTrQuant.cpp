@@ -2531,8 +2531,10 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
 #if SCALING_LIST
 #if ADAPTIVE_QP_SELECTION
       Int64 tmpLevel = (Int64)abs(iLevel) * piQuantCoeff[uiBlockPos];
-      piArlCCoef[uiBlockPos] = (Int)((tmpLevel + iAddC ) >> iQBitsC);
-
+      if( m_bUseAdaptQpSelect )
+      {
+        piArlCCoef[uiBlockPos] = (Int)((tmpLevel + iAddC ) >> iQBitsC);
+      }
       iLevel = (Int)((tmpLevel + iAdd ) >> iQBits);
 #else
       iLevel = ((Int64)abs(iLevel) * piQuantCoeff[uiBlockPos] + iAdd ) >> iQBits;
@@ -2677,11 +2679,18 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
 }
 
 Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode, UInt *aTableLP4, UInt *aTableLP8, UInt *aTableLastPosVlcIndex,
-                       Bool bUseRDOQ,  Bool bEnc )
+                       Bool bUseRDOQ,  Bool bEnc
+#if ADAPTIVE_QP_SELECTION
+                       , Bool bUseAdaptQpSelect
+#endif
+                       )
 {
   m_uiMaxTrSize  = uiMaxTrSize;
   m_bEnc         = bEnc;
   m_bUseRDOQ     = bUseRDOQ;
+#if ADAPTIVE_QP_SELECTION
+  m_bUseAdaptQpSelect = bUseAdaptQpSelect;
+#endif
 #if !DISABLE_CAVLC
   m_uiLPTableE8 = aTableLP8;
   m_uiLPTableE4 = aTableLP4;
@@ -3382,7 +3391,10 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     lLevelDouble              = abs(lLevelDouble * uiQ);
 #endif
 #if ADAPTIVE_QP_SELECTION
-    piArlDstCoeff[uiBlkPos]   = (Int)(( lLevelDouble + iAddC) >> iQBitsC );
+    if( m_bUseAdaptQpSelect )
+    {
+      piArlDstCoeff[uiBlkPos]   = (Int)(( lLevelDouble + iAddC) >> iQBitsC );
+    }
 #endif
     UInt uiMaxAbsLevel        = (lLevelDouble + (1 << (iQBits - 1))) >> iQBits;
 #if LEVEL_LIMIT
@@ -3539,7 +3551,10 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         lLevelDouble              = abs(lLevelDouble * uiQ);     
 #endif
 #if ADAPTIVE_QP_SELECTION
-        piArlDstCoeff[uiBlkPos]   = (Int)(( lLevelDouble + iAddC) >> iQBitsC );
+        if( m_bUseAdaptQpSelect )
+        {
+          piArlDstCoeff[uiBlkPos]   = (Int)(( lLevelDouble + iAddC) >> iQBitsC );
+        }
 #endif
         UInt uiMaxAbsLevel        = (lLevelDouble + (1 << (iQBits - 1))) >> iQBits;
 

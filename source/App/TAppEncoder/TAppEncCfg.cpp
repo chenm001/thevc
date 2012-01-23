@@ -237,6 +237,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("ChromaQpOffset2nd,-cqo2",  m_iChromaQpOffset2nd,        0, "ChromaQpOffset2nd")
 #endif
 
+#if ADAPTIVE_QP_SELECTION
+    ("AdaptiveQpSelection,-aqps",   m_bUseAdaptQpSelect,           false, "AdaptiveQpSelection")
+#endif
+
 #if QP_ADAPTATION
   ("AdaptiveQP,-aq", m_bUseAdaptiveQP, false, "QP adaptation based on a psycho-visual model")
   ("MaxQPAdaptationRange,-aqr", m_iQPAdaptationRange, 6, "QP adaptation range")
@@ -1134,6 +1138,10 @@ Void TAppEncCfg::xPrintParameter()
 
 #if NO_TMVP_MARKING
   printf("TMVP:%d ", m_enableTMVP     );
+#endif
+
+#if ADAPTIVE_QP_SELECTION
+  printf("AQpS:%d", m_bUseAdaptQpSelect   );
 #endif
 
   printf("\n\n");

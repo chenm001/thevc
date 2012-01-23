@@ -116,6 +116,10 @@ protected:
   Int       m_iChromaQpOffset2nd;                              ///< ChromaQpOffset2nd (0:default)
 #endif
 
+#if ADAPTIVE_QP_SELECTION
+  Bool      m_bUseAdaptQpSelect;
+#endif
+
 #if QP_ADAPTATION
   Bool      m_bUseAdaptiveQP;                                 ///< Flag for enabling QP adaptation based on a psycho-visual model
   Int       m_iQPAdaptationRange;                             ///< dQP range by QP adaptation

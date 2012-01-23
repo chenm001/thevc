@@ -107,7 +107,10 @@ Void TEncTop::create ()
   }
 #endif
 #if ADAPTIVE_QP_SELECTION
-  m_cTrQuant.initSliceQpDelta();
+  if (m_bUseAdaptQpSelect)
+  {
+    m_cTrQuant.initSliceQpDelta();
+  }
 #endif
   m_cAdaptiveLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 #if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
@@ -343,7 +346,11 @@ Void TEncTop::init()
                   m_iSymbolMode,
 #endif
                   aTable4, aTable8, 
-                  aTableLastPosVlcIndex, m_bUseRDOQ, true );
+                  aTableLastPosVlcIndex, m_bUseRDOQ, true 
+#if ADAPTIVE_QP_SELECTION                  
+                  , m_bUseAdaptQpSelect
+#endif
+                  );
   
   // initialize encoder search class
   m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_bipredSearchRange, m_iFastSearch, 0, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
