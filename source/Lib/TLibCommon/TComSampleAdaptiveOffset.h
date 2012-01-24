@@ -154,9 +154,9 @@ public:
 #if SAO_FGS_NIF
   Void processSaoCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process without slice granularity 
 #if NONCROSS_TILE_IN_LOOP_FILTERING
-  Void createPicSaoInfo(TComPic* pcPic, Int uiNumSlicesInPic = 1);
+  Void createPicSaoInfo(TComPic* pcPic, Int numSlicesInPic = 1);
   Void destroyPicSaoInfo();
-  Void processSaoBlock(Pel* pDec, Pel* pRest, Int iStride, Int iSaoType, UInt uiXPos, UInt uiYPos, UInt uiWidth, UInt uiHeight, Bool* pbBorderAvail);
+  Void processSaoBlock(Pel* pDec, Pel* pRest, Int stride, Int iSaoType, UInt xPos, UInt yPos, UInt width, UInt height, Bool* pbBorderAvail);
 #else
   Void processSaoCuMap(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process with slice granularity
   Void setNumSlicesInPic(UInt uiNum) {m_uiNumSlicesInPic = uiNum;}  //!< set num of slices in picture

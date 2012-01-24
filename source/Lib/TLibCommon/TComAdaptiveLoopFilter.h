@@ -167,16 +167,16 @@ struct AlfCUCtrlInfo
 struct AlfLCUInfo
 {
   TComDataCU* pcCU;            //!< TComDataCU pointer
-  Int         iSliceID;        //!< slice ID
-  Int         iTileID;         //!< tile ID
-  UInt        uiNumSGU;        //!< number of slice granularity blocks 
-  UInt        uiStartSU;       //!< starting SU z-scan address in LCU
-  UInt        uiEndSU;         //!< ending SU z-scan address in LCU
+  Int         sliceID;        //!< slice ID
+  Int         tileID;         //!< tile ID
+  UInt        numSGU;        //!< number of slice granularity blocks 
+  UInt        startSU;       //!< starting SU z-scan address in LCU
+  UInt        endSU;         //!< ending SU z-scan address in LCU
   Bool        bAllSUsInLCUInSameSlice; //!< true: all SUs in this LCU belong to same slice
   std::vector<NDBFBlockInfo*> vpAlfBlock; //!< container for filter block pointers
 
   NDBFBlockInfo& operator[] (Int idx) { return *( vpAlfBlock[idx]); } //!< [] operator
-  AlfLCUInfo():pcCU(NULL), iSliceID(0), iTileID(0), uiNumSGU(0), uiStartSU(0), uiEndSU(0), bAllSUsInLCUInSameSlice(false) {} //!< constructor
+  AlfLCUInfo():pcCU(NULL), sliceID(0), tileID(0), numSGU(0), startSU(0), endSU(0), bAllSUsInLCUInSameSlice(false) {} //!< constructor
 };
 
 #else
@@ -378,7 +378,7 @@ private: //private member variables
 protected: //protected methods
 
 #if NONCROSS_TILE_IN_LOOP_FILTERING
-  Void InitAlfLCUInfo(AlfLCUInfo& rAlfLCU, Int iSliceID, Int iTileID, TComDataCU* pcCU, UInt uiMaxNumSUInLCU);
+  Void InitAlfLCUInfo(AlfLCUInfo& rAlfLCU, Int sliceID, Int tileID, TComDataCU* pcCU, UInt maxNumSUInLCU);
 #endif
 
 #if !G609_NEW_BA_SUB
@@ -393,10 +393,10 @@ protected: //protected methods
   Void filterLuma(Pel *pImgYRes, Pel *pImgYPad, Int stride, Int ypos, Int yposEnd, Int xpos, Int xposEnd, Int filtNo, Int** filterSet, Int* mergeTable, Pel** ppVarImg); //!< filtering operation for luma region
   Void filterChroma(Pel *pImgRes, Pel *pImgPad, Int stride, Int ypos, Int yposEnd, Int xpos, Int xposEnd, Int filtNo, Int* coef);
 #if NONCROSS_TILE_IN_LOOP_FILTERING
-  Void filterChromaRegion(std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* pDec, Pel* pRest, Int iStride, Int *coeff, Int filtNo, Int iChromaFormatShift); //!< filtering operation for chroma region
+  Void filterChromaRegion(std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* pDec, Pel* pRest, Int stride, Int *coeff, Int filtNo, Int chromaFormatShift); //!< filtering operation for chroma region
 #else
   Void xFilterOneSlice             (CAlfSlice* pSlice, Pel* pDec, Pel* pRest, Int iStride, ALFParam* pcAlfParam); //!< Perform ALF for one luma slice
-  Void xFilterOneChromaSlice(CAlfSlice* pSlice, Pel* pDec, Pel* pRest, Int iStride, Int *coeff, Int filtNo, Int iChromaFormatShift); //!< ALF for chroma component
+  Void xFilterOneChromaSlice(CAlfSlice* pSlice, Pel* pDec, Pel* pRest, Int stride, Int *coeff, Int filtNo, Int chromaFormatShift); //!< ALF for chroma component
 #endif
   Void xCUAdaptive   (TComPic* pcPic, Int filtNo, Pel *imgYFilt, Pel *imgYRec, Int Stride);
   Void xSubCUAdaptive(TComDataCU* pcCU, Int filtNo, Pel *imgYFilt, Pel *imgYRec, UInt uiAbsPartIdx, UInt uiDepth, Int Stride);
@@ -410,8 +410,8 @@ protected: //protected methods
   Void decodeFilterSet(ALFParam* pcAlfParam, Int* varIndTab, Int** filterCoeff);
   Void xALFChroma   ( ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
 #if NONCROSS_TILE_IN_LOOP_FILTERING
-  Void xFilterChromaSlices(Int ComponentID, TComPicYuv* pcPicDecYuv, TComPicYuv* pcPicRestYuv, Int *coeff, Int filtNo, Int iChromaFormatShift);
-  Void xFilterChromaOneCmp(Int ComponentID, TComPicYuv *pDecYuv, TComPicYuv *pRestYuv, Int iShape, Int *pCoeff);
+  Void xFilterChromaSlices(Int componentID, TComPicYuv* pcPicDecYuv, TComPicYuv* pcPicRestYuv, Int *coeff, Int filtNo, Int chromaFormatShift);
+  Void xFilterChromaOneCmp(Int componentID, TComPicYuv *pDecYuv, TComPicYuv *pRestYuv, Int shape, Int *pCoeff);
 #else
   Void xFilterChromaOneCmp(Pel *pDec, Pel *pRest, Int iStride, Int iShape, Int *pCoeff);
 #endif
@@ -431,11 +431,11 @@ protected: //protected methods
   Void xALFLuma( TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
 #endif
 #if NONCROSS_TILE_IN_LOOP_FILTERING
-  Void extendBorderCoreFunction(Pel* pPel, Int iStride, Bool* pbAvail, UInt uiWidth, UInt uiHeight, UInt uiExtSize); //!< Extend slice boundary border  
-  Void copyRegion(std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* pPicDst, Pel* pPicSrc, Int iStride, Int iFormatShift = 0);
-  Void extendRegionBorder(std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* pPelSrc, Int iStride, Int iFormatShift = 0);
-  Void filterLumaRegion (std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* ImgDec, Pel* ImgRest, Int iStride, Int filtNo, Int** filterCoeff, Int* mergeTable, Pel** varImg);
-  Void xCUAdaptiveRegion(std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* ImgDec, Pel* ImgRest, Int iStride, Int filtNo, Int** filterCoeff, Int* mergeTable, Pel** varImg);
+  Void extendBorderCoreFunction(Pel* pPel, Int stride, Bool* pbAvail, UInt width, UInt height, UInt extSize); //!< Extend slice boundary border  
+  Void copyRegion(std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* pPicDst, Pel* pPicSrc, Int stride, Int formatShift = 0);
+  Void extendRegionBorder(std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* pPelSrc, Int stride, Int formatShift = 0);
+  Void filterLumaRegion (std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* imgDec, Pel* imgRest, Int stride, Int filtNo, Int** filterCoeff, Int* mergeTable, Pel** varImg);
+  Void xCUAdaptiveRegion(std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* imgDec, Pel* imgRest, Int stride, Int filtNo, Int** filterCoeff, Int* mergeTable, Pel** varImg);
   Int  getCtrlFlagsFromAlfParam(AlfLCUInfo* pcAlfLCU, Int iAlfDepth, UInt* puiFlags);
 #endif
 
@@ -468,7 +468,7 @@ public: //public methods, interface functions
 
 
 #if NONCROSS_TILE_IN_LOOP_FILTERING
-  Void createPicAlfInfo (TComPic* pcPic, Int uiNumSlicesInPic = 1);
+  Void createPicAlfInfo (TComPic* pcPic, Int numSlicesInPic = 1);
   Void destroyPicAlfInfo();
 #else
 #if FINE_GRANULARITY_SLICES

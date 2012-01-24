@@ -420,7 +420,7 @@ public:
 
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   std::vector<NDBFBlockInfo>* getNDBFilterBlocks()      {return &m_vNDFBlock;}
-  Void setNDBFilterBlockBorderAvailability(UInt uiNumLCUInPicWidth, UInt uiNumLCUInPicHeight, UInt uiNumSUInLCUWidth, UInt uiNumSUInLCUHeight, UInt uiPicWidth, UInt uiPicHeight
+  Void setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt numLCUInPicHeight, UInt numSUInLCUWidth, UInt numSUInLCUHeight, UInt picWidth, UInt picHeight
                                           ,Bool bIndependentSliceBoundaryEnabled
                                           ,Bool bTopTileBoundary, Bool bDownTileBoundary, Bool bLeftTileBoundary, Bool bRightTileBoundary
                                           ,Bool bIndependentTileBoundaryEnabled );

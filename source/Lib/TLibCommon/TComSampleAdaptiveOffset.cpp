@@ -565,11 +565,14 @@ inline int xSign(int x)
 #if SAO_FGS_NIF
 
 #if NONCROSS_TILE_IN_LOOP_FILTERING
-
-Void TComSampleAdaptiveOffset::createPicSaoInfo(TComPic* pcPic, Int uiNumSlicesInPic)
+/** initialize variables for SAO process
+ * \param  pcPic picture data pointer
+ * \param  numSlicesInPic number of slices in picture
+ */
+Void TComSampleAdaptiveOffset::createPicSaoInfo(TComPic* pcPic, Int numSlicesInPic)
 {
   m_pcPic   = pcPic;
-  m_uiNumSlicesInPic = uiNumSlicesInPic;
+  m_uiNumSlicesInPic = numSlicesInPic;
   m_iSGDepth         = pcPic->getSliceGranularityForNDBFilter();
   m_bUseNIF = ( pcPic->getIndependentSliceBoundaryForNDBFilter() || pcPic->getIndependentTileBoundaryForNDBFilter() );
   if(m_bUseNIF)
@@ -594,228 +597,239 @@ Void TComSampleAdaptiveOffset::processSaoCu(Int iAddr, Int iSaoType, Int iYCbCr)
   }
   else
   {  
-    Int  iIsChroma = (iYCbCr != 0)? 1:0;
-    Int  iStride   = (iYCbCr != 0)?(m_pcPic->getCStride()):(m_pcPic->getStride());
+    Int  isChroma = (iYCbCr != 0)? 1:0;
+    Int  stride   = (iYCbCr != 0)?(m_pcPic->getCStride()):(m_pcPic->getStride());
     Pel* pPicRest = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr);
     Pel* pPicDec  = getPicYuvAddr(m_pcYuvTmp, iYCbCr);
 
     std::vector<NDBFBlockInfo>& vFilterBlocks = *(m_pcPic->getCU(iAddr)->getNDBFilterBlocks());
 
     //variables
-    UInt  uiXPos, uiYPos, uiWidth, uiHeight;
+    UInt  xPos, yPos, width, height;
     Bool* pbBorderAvail;
     UInt  posOffset;
 
     for(Int i=0; i< vFilterBlocks.size(); i++)
     {
-      uiXPos        = vFilterBlocks[i].posX   >> iIsChroma;
-      uiYPos        = vFilterBlocks[i].posY   >> iIsChroma;
-      uiWidth       = vFilterBlocks[i].width  >> iIsChroma;
-      uiHeight      = vFilterBlocks[i].height >> iIsChroma;
+      xPos        = vFilterBlocks[i].posX   >> isChroma;
+      yPos        = vFilterBlocks[i].posY   >> isChroma;
+      width       = vFilterBlocks[i].width  >> isChroma;
+      height      = vFilterBlocks[i].height >> isChroma;
       pbBorderAvail = vFilterBlocks[i].isBorderAvailable;
 
-      posOffset = (uiYPos* iStride) + uiXPos;
+      posOffset = (yPos* stride) + xPos;
 
-      processSaoBlock(pPicDec+ posOffset, pPicRest+ posOffset, iStride, iSaoType, uiXPos, uiYPos, uiWidth, uiHeight, pbBorderAvail);
+      processSaoBlock(pPicDec+ posOffset, pPicRest+ posOffset, stride, iSaoType, xPos, yPos, width, height, pbBorderAvail);
     }
   }
 }
 
-Void TComSampleAdaptiveOffset::processSaoBlock(Pel* pDec, Pel* pRest, Int iStride, Int iSaoType, UInt uiXPos, UInt uiYPos, UInt uiWidth, UInt uiHeight, Bool* pbBorderAvail)
+/** Perform SAO for non-cross-slice or non-cross-tile process
+ * \param  pDec to-be-filtered block buffer pointer
+ * \param  pRest filtered block buffer pointer
+ * \param  stride picture buffer stride
+ * \param  saoType SAO offset type
+ * \param  xPos x coordinate
+ * \param  yPos y coordinate
+ * \param  width block width
+ * \param  height block height
+ * \param  pbBorderAvail availabilities of block border pixels
+ */
+Void TComSampleAdaptiveOffset::processSaoBlock(Pel* pDec, Pel* pRest, Int stride, Int saoType, UInt xPos, UInt yPos, UInt width, UInt height, Bool* pbBorderAvail)
 {
   //variables
-  Int iStartX, iStartY, iEndX, iEndY, x, y;
-  Int iSignLeft,iSignRight,iSignDown,iSignDown1;
-  UInt uiEdgeType;
+  Int startX, startY, endX, endY, x, y;
+  Int signLeft,signRight,signDown,signDown1;
+  UInt edgeType;
 
-  switch (iSaoType)
+  switch (saoType)
   {
   case SAO_EO_0: // dir: -
     {
 
-      iStartX = (pbBorderAvail[SGU_L]) ? 0 : 1;
-      iEndX   = (pbBorderAvail[SGU_R]) ? uiWidth : (uiWidth -1);
-      for (y=0; y< uiHeight; y++)
+      startX = (pbBorderAvail[SGU_L]) ? 0 : 1;
+      endX   = (pbBorderAvail[SGU_R]) ? width : (width -1);
+      for (y=0; y< height; y++)
       {
-        iSignLeft = xSign(pDec[iStartX] - pDec[iStartX-1]);
-        for (x=iStartX; x< iEndX; x++)
+        signLeft = xSign(pDec[startX] - pDec[startX-1]);
+        for (x=startX; x< endX; x++)
         {
-          iSignRight =  xSign(pDec[x] - pDec[x+1]); 
-          uiEdgeType =  iSignRight + iSignLeft + 2;
-          iSignLeft  = -iSignRight;
+          signRight =  xSign(pDec[x] - pDec[x+1]); 
+          edgeType =  signRight + signLeft + 2;
+          signLeft  = -signRight;
 
-          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[edgeType]];
         }
-        pDec  += iStride;
-        pRest += iStride;
+        pDec  += stride;
+        pRest += stride;
       }
       break;
     }
   case SAO_EO_1: // dir: |
     {
-      iStartY = (pbBorderAvail[SGU_T]) ? 0 : 1;
-      iEndY   = (pbBorderAvail[SGU_B]) ? uiHeight : uiHeight-1;
+      startY = (pbBorderAvail[SGU_T]) ? 0 : 1;
+      endY   = (pbBorderAvail[SGU_B]) ? height : height-1;
       if (!pbBorderAvail[SGU_T])
       {
-        pDec  += iStride;
-        pRest += iStride;
+        pDec  += stride;
+        pRest += stride;
       }
-      for (x=0; x< uiWidth; x++)
+      for (x=0; x< width; x++)
       {
-        m_iUpBuff1[x] = xSign(pDec[x] - pDec[x-iStride]);
+        m_iUpBuff1[x] = xSign(pDec[x] - pDec[x-stride]);
       }
-      for (y=iStartY; y<iEndY; y++)
+      for (y=startY; y<endY; y++)
       {
-        for (x=0; x< uiWidth; x++)
+        for (x=0; x< width; x++)
         {
-          iSignDown  = xSign(pDec[x] - pDec[x+iStride]); 
-          uiEdgeType = iSignDown + m_iUpBuff1[x] + 2;
-          m_iUpBuff1[x]= -iSignDown;
+          signDown  = xSign(pDec[x] - pDec[x+stride]); 
+          edgeType = signDown + m_iUpBuff1[x] + 2;
+          m_iUpBuff1[x]= -signDown;
 
-          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[edgeType]];
         }
-        pDec  += iStride;
-        pRest += iStride;
+        pDec  += stride;
+        pRest += stride;
       }
       break;
     }
   case SAO_EO_2: // dir: 135
     {
-      Int posShift= iStride + 1;
+      Int posShift= stride + 1;
 
-      iStartX = (pbBorderAvail[SGU_L]) ? 0 : 1 ;
-      iEndX   = (pbBorderAvail[SGU_R]) ? uiWidth : (uiWidth-1);
+      startX = (pbBorderAvail[SGU_L]) ? 0 : 1 ;
+      endX   = (pbBorderAvail[SGU_R]) ? width : (width-1);
 
       //prepare 2nd line upper sign
-      pDec += iStride;
-      for (x=iStartX; x< iEndX+1; x++)
+      pDec += stride;
+      for (x=startX; x< endX+1; x++)
       {
         m_iUpBuff1[x] = xSign(pDec[x] - pDec[x- posShift]);
       }
 
       //1st line
-      pDec -= iStride;
+      pDec -= stride;
       if(pbBorderAvail[SGU_TL])
       {
         x= 0;
-        uiEdgeType      =  xSign(pDec[x] - pDec[x- posShift]) - m_iUpBuff1[x+1] + 2;
-        pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+        edgeType      =  xSign(pDec[x] - pDec[x- posShift]) - m_iUpBuff1[x+1] + 2;
+        pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[edgeType]];
 
       }
       if(pbBorderAvail[SGU_T])
       {
-        for(x= 1; x< iEndX; x++)
+        for(x= 1; x< endX; x++)
         {
-          uiEdgeType      =  xSign(pDec[x] - pDec[x- posShift]) - m_iUpBuff1[x+1] + 2;
-          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+          edgeType      =  xSign(pDec[x] - pDec[x- posShift]) - m_iUpBuff1[x+1] + 2;
+          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[edgeType]];
         }
       }
-      pDec   += iStride;
-      pRest  += iStride;
+      pDec   += stride;
+      pRest  += stride;
 
 
       //middle lines
-      for (y= 1; y< uiHeight-1; y++)
+      for (y= 1; y< height-1; y++)
       {
-        for (x=iStartX; x<iEndX; x++)
+        for (x=startX; x<endX; x++)
         {
-          iSignDown1      =  xSign(pDec[x] - pDec[x+ posShift]) ;
-          uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
-          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+          signDown1      =  xSign(pDec[x] - pDec[x+ posShift]) ;
+          edgeType      =  signDown1 + m_iUpBuff1[x] + 2;
+          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[edgeType]];
 
-          m_iUpBufft[x+1] = -iSignDown1; 
+          m_iUpBufft[x+1] = -signDown1; 
         }
-        m_iUpBufft[iStartX] = xSign(pDec[iStride+iStartX] - pDec[iStartX-1]);
+        m_iUpBufft[startX] = xSign(pDec[stride+startX] - pDec[startX-1]);
 
         ipSwap     = m_iUpBuff1;
         m_iUpBuff1 = m_iUpBufft;
         m_iUpBufft = ipSwap;
 
-        pDec  += iStride;
-        pRest += iStride;
+        pDec  += stride;
+        pRest += stride;
       }
 
       //last line
       if(pbBorderAvail[SGU_B])
       {
-        for(x= iStartX; x< uiWidth-1; x++)
+        for(x= startX; x< width-1; x++)
         {
-          uiEdgeType =  xSign(pDec[x] - pDec[x+ posShift]) + m_iUpBuff1[x] + 2;
-          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+          edgeType =  xSign(pDec[x] - pDec[x+ posShift]) + m_iUpBuff1[x] + 2;
+          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[edgeType]];
         }
       }
       if(pbBorderAvail[SGU_BR])
       {
-        x= uiWidth -1;
-        uiEdgeType =  xSign(pDec[x] - pDec[x+ posShift]) + m_iUpBuff1[x] + 2;
-        pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+        x= width -1;
+        edgeType =  xSign(pDec[x] - pDec[x+ posShift]) + m_iUpBuff1[x] + 2;
+        pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[edgeType]];
       }
       break;
     } 
   case SAO_EO_3: // dir: 45
     {
-      Int  posShift     = iStride - 1;
-      iStartX = (pbBorderAvail[SGU_L]) ? 0 : 1;
-      iEndX   = (pbBorderAvail[SGU_R]) ? uiWidth : (uiWidth -1);
+      Int  posShift     = stride - 1;
+      startX = (pbBorderAvail[SGU_L]) ? 0 : 1;
+      endX   = (pbBorderAvail[SGU_R]) ? width : (width -1);
 
       //prepare 2nd line upper sign
-      pDec += iStride;
-      for (x=iStartX-1; x< iEndX; x++)
+      pDec += stride;
+      for (x=startX-1; x< endX; x++)
       {
         m_iUpBuff1[x] = xSign(pDec[x] - pDec[x- posShift]);
       }
 
 
       //first line
-      pDec -= iStride;
+      pDec -= stride;
       if(pbBorderAvail[SGU_T])
       {
-        for(x= iStartX; x< uiWidth -1; x++)
+        for(x= startX; x< width -1; x++)
         {
-          uiEdgeType = xSign(pDec[x] - pDec[x- posShift]) -m_iUpBuff1[x-1] + 2;
-          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+          edgeType = xSign(pDec[x] - pDec[x- posShift]) -m_iUpBuff1[x-1] + 2;
+          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[edgeType]];
         }
       }
       if(pbBorderAvail[SGU_TR])
       {
-        x= uiWidth-1;
-        uiEdgeType = xSign(pDec[x] - pDec[x- posShift]) -m_iUpBuff1[x-1] + 2;
-        pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+        x= width-1;
+        edgeType = xSign(pDec[x] - pDec[x- posShift]) -m_iUpBuff1[x-1] + 2;
+        pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[edgeType]];
       }
-      pDec  += iStride;
-      pRest += iStride;
+      pDec  += stride;
+      pRest += stride;
 
       //middle lines
-      for (y= 1; y< uiHeight-1; y++)
+      for (y= 1; y< height-1; y++)
       {
-        for(x= iStartX; x< iEndX; x++)
+        for(x= startX; x< endX; x++)
         {
-          iSignDown1      =  xSign(pDec[x] - pDec[x+ posShift]) ;
-          uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
+          signDown1      =  xSign(pDec[x] - pDec[x+ posShift]) ;
+          edgeType      =  signDown1 + m_iUpBuff1[x] + 2;
 
-          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
-          m_iUpBuff1[x-1] = -iSignDown1; 
+          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[edgeType]];
+          m_iUpBuff1[x-1] = -signDown1; 
         }
-        m_iUpBuff1[iEndX-1] = xSign(pDec[iEndX-1 + iStride] - pDec[iEndX]);
+        m_iUpBuff1[endX-1] = xSign(pDec[endX-1 + stride] - pDec[endX]);
 
-        pDec  += iStride;
-        pRest += iStride;
+        pDec  += stride;
+        pRest += stride;
       }
 
       //last line
       if(pbBorderAvail[SGU_BL])
       {
         x= 0;
-        uiEdgeType = xSign(pDec[x] - pDec[x+ posShift]) + m_iUpBuff1[x] + 2;
-        pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+        edgeType = xSign(pDec[x] - pDec[x+ posShift]) + m_iUpBuff1[x] + 2;
+        pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[edgeType]];
 
       }
       if(pbBorderAvail[SGU_B])
       {
-        for(x= 1; x< iEndX; x++)
+        for(x= 1; x< endX; x++)
         {
-          uiEdgeType = xSign(pDec[x] - pDec[x+ posShift]) + m_iUpBuff1[x] + 2;
-          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[uiEdgeType]];
+          edgeType = xSign(pDec[x] - pDec[x+ posShift]) + m_iUpBuff1[x] + 2;
+          pRest[x] = m_pClipTable[pDec[x] + m_iOffsetEo[edgeType]];
         }
       }
       break;
@@ -823,14 +837,14 @@ Void TComSampleAdaptiveOffset::processSaoBlock(Pel* pDec, Pel* pRest, Int iStrid
   case SAO_BO_0:
   case SAO_BO_1:
     {
-      for (y=0; y< uiHeight; y++)
+      for (y=0; y< height; y++)
       {
-        for (x=0; x< uiWidth; x++)
+        for (x=0; x< width; x++)
         {
           pRest[x] = m_iOffsetBo[pDec[x]];
         }
-        pRest += iStride;
-        pDec  += iStride;
+        pRest += stride;
+        pDec  += stride;
       }
       break;
     }
