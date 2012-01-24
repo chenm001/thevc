@@ -2463,7 +2463,11 @@ UInt TComDataCU::getQuadtreeTULog2MinSizeInCU( UInt uiIdx )
 
 #if MOT_TUPU_MAXDEPTH1
   PartSize  partSize  = getPartitionSize( uiIdx );
+#if G519_TU_AMP_NSQT_HARMONIZATION
   Int   SplitFlag = ((uiQuadtreeTUMaxDepth == 1) && (getPredictionMode( uiIdx ) == MODE_INTER) && (partSize != SIZE_2Nx2N) );
+#else
+  Int   SplitFlag = ((uiQuadtreeTUMaxDepth == 1) && (getPredictionMode( uiIdx ) == MODE_INTER) && (partSize == SIZE_Nx2N || partSize == SIZE_2NxN) );
+#endif
 
   if (uiLog2MinTUSizeInCU < m_pcSlice->getSPS()->getQuadtreeTULog2MinSize() + uiQuadtreeTUMaxDepth - 1 + SplitFlag)
   {
