@@ -3492,16 +3492,27 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         if( uiNumOne > 0 )
         {
           uiCtxSet++;
+#if CLEANUP_CTXINIT
+#if COEFF_CTXSET_RED
+          if(uiNumOne > 3 && eTType==TEXT_LUMA)
+#else
+          if( uiNumOne > 3 )
+#endif
+          {
+            uiCtxSet++;
+          }
+#else
 #if COEFF_CTXSET_RED
           if(eTType==TEXT_LUMA)
           {
 #endif
-          if( uiNumOne > 3 )
-          {
-            uiCtxSet++;
-          }
+            if( uiNumOne > 3 )
+            {
+              uiCtxSet++;
+            }
 #if COEFF_CTXSET_RED
           }
+#endif
 #endif
         }
         uiNumOne    >>= 1;
@@ -3654,6 +3665,16 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
             if( uiNumOne > 0 )
             {
               uiCtxSet++;
+#if CLEANUP_CTXINIT
+#if COEFF_CTXSET_RED
+              if( uiNumOne > 3 && eTType==TEXT_LUMA)
+#else
+              if( uiNumOne > 3 )
+#endif
+              {
+                uiCtxSet++;
+              }
+#else
 #if COEFF_CTXSET_RED
               if(eTType==TEXT_LUMA)
               {
@@ -3664,6 +3685,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
                 }
 #if COEFF_CTXSET_RED
               }
+#endif
 #endif
             }
             uiNumOne    >>= 1;

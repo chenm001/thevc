@@ -262,22 +262,31 @@ private:
 #if MULTI_LEVEL_SIGNIFICANCE
   ContextModel3DBuffer m_cCUSigCoeffGroupSCModel;
 #endif
-#if SIGMAP_CTX_RED
-  ContextModel3DBuffer m_cCUSigSCModelLuma;
-  ContextModel3DBuffer m_cCUSigSCModelChroma;
-#else
-  ContextModel3DBuffer m_cCUSigSCModel;
+#if CLEANUP_CTXINI
+  ContextModel3DBuffer m_cCUSigSCModel
+#els
+#if SIGMAP_CTX_RE
+  ContextModel3DBuffer m_cCUSigSCModelLuma
+  ContextModel3DBuffer m_cCUSigSCModelChroma
+#els
+  ContextModel3DBuffer m_cCUSigSCModel
+#endi
 #endif
   ContextModel3DBuffer m_cCuCtxLastX;
   ContextModel3DBuffer m_cCuCtxLastY;
-#if COEFF_CTXSET_RED
-  ContextModel3DBuffer m_cCUOneSCModelLuma;
-  ContextModel3DBuffer m_cCUOneSCModelChroma;
-  ContextModel3DBuffer m_cCUAbsSCModelLuma;
-  ContextModel3DBuffer m_cCUAbsSCModelChroma;
-#else
-  ContextModel3DBuffer m_cCUOneSCModel;
-  ContextModel3DBuffer m_cCUAbsSCModel;
+#if CLEANUP_CTXINI
+  ContextModel3DBuffer m_cCUOneSCModel
+  ContextModel3DBuffer m_cCUAbsSCModel
+#els
+#if COEFF_CTXSET_RE
+  ContextModel3DBuffer m_cCUOneSCModelLuma
+  ContextModel3DBuffer m_cCUOneSCModelChroma
+  ContextModel3DBuffer m_cCUAbsSCModelLuma
+  ContextModel3DBuffer m_cCUAbsSCModelChroma
+#els
+  ContextModel3DBuffer m_cCUOneSCModel
+  ContextModel3DBuffer m_cCUAbsSCModel
+#endif
 #endif
   
   ContextModel3DBuffer m_cMVPIdxSCModel;
