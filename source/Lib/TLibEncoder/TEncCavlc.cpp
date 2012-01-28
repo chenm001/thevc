@@ -990,6 +990,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     xWriteFlag  (pcSlice->getSymbolMode() > 0 ? 1 : 0); // entropy_coding_mode_flag -> PPS
 #endif
     
+#if !G1002_RPS
     // ????
     xWriteFlag  (pcSlice->getDRBFlag() ? 1 : 0 );
     if ( !pcSlice->getDRBFlag() )
@@ -997,6 +998,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       // looks like a long-term flag that is currently unused
       xWriteCode  (pcSlice->getERBIndex(), 2);
     }
+#endif
   }
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   assert(pcSlice->getMaxNumMergeCand()<=MRG_MAX_NUM_CANDS_SIGNALED);

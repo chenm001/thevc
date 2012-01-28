@@ -63,8 +63,10 @@ TComSlice::TComSlice()
 , m_loopFilterBetaOffsetDiv2    ( 0 )
 , m_loopFilterTcOffsetDiv2      ( 0 )
 #endif
+#if !G1002_RPS
 , m_bDRBFlag                      ( true )
 , m_eERBIndex                     ( ERB_NONE )
+#endif
 , m_bRefPicListModificationFlagLC ( false )
 , m_bRefPicListCombinationFlag    ( false )
 , m_bCheckLDC                     ( false )
@@ -165,8 +167,10 @@ Void TComSlice::initSlice()
   m_aiNumRefIdx[0]      = 0;
   m_aiNumRefIdx[1]      = 0;
   
+#if !G1002_RPS
   m_bDRBFlag            = true;
   m_eERBIndex           = ERB_NONE;
+#endif
   
   m_uiColDir = 0;
   
@@ -896,8 +900,10 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_loopFilterBetaOffsetDiv2 = pSrc->m_loopFilterBetaOffsetDiv2;
   m_loopFilterTcOffsetDiv2 = pSrc->m_loopFilterTcOffsetDiv2;
 #endif
+#if !G1002_RPS
   m_bDRBFlag             = pSrc->m_bDRBFlag;
   m_eERBIndex            = pSrc->m_eERBIndex;
+#endif
   
   for (i = 0; i < 3; i++)
   {

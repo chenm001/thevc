@@ -1138,11 +1138,13 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     xReadFlag ( uiCode ); rpcSlice->setSymbolMode( uiCode );
 #endif
     
+#if !G1002_RPS
     xReadFlag (uiCode);   rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
     if ( !rpcSlice->getDRBFlag() )
     {
       xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
-    }      
+    }
+#endif
   }
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   READ_UVLC( uiCode, "MaxNumMergeCand");

@@ -880,8 +880,10 @@ private:
   Int         m_loopFilterTcOffsetDiv2;      //< tc offset for deblocking filter
 #endif
   
+#if !G1002_RPS
   Bool        m_bDRBFlag;             //  flag for future usage as reference buffer
   ERBIndex    m_eERBIndex;            //  flag for future usage as reference buffer
+#endif
   Int         m_aiNumRefIdx   [3];    //  for multiple reference of current slice
 
   Int         m_iRefIdxOfLC[2][MAX_NUM_REF_LC];
@@ -1029,8 +1031,10 @@ public:
   Int       getSliceQpBase  ()                          { return  m_iSliceQpBase;       }
 #endif
   Int       getSliceQpDelta ()                          { return  m_iSliceQpDelta;      }
+#if !G1002_RPS
   Bool      getDRBFlag      ()                          { return  m_bDRBFlag;           }
   ERBIndex  getERBIndex     ()                          { return  m_eERBIndex;          }
+#endif
 #if !DISABLE_CAVLC
   Int       getSymbolMode   ()                          { return  m_iSymbolMode;        }
 #endif
@@ -1083,8 +1087,10 @@ public:
   Void      setSliceQpBase      ( Int i )                       { m_iSliceQpBase      = i;      }
 #endif
   Void      setSliceQpDelta     ( Int i )                       { m_iSliceQpDelta     = i;      }
+#if !G1002_RPS
   Void      setDRBFlag          ( Bool b )                      { m_bDRBFlag = b;               }
   Void      setERBIndex         ( ERBIndex e )                  { m_eERBIndex = e;              }
+#endif
 #if !DISABLE_CAVLC
   Void      setSymbolMode       ( Int b  )                      { m_iSymbolMode       = b;      }
 #endif
