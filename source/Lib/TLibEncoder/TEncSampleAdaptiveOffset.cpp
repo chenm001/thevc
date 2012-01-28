@@ -2059,12 +2059,10 @@ Void TEncSampleAdaptiveOffset::SAOProcess(SAOParam *pcSaoParam, Double dLambda)
   Int iY  = 0;
   Double dCostFinal = 0;
 
-#if SAO_CHROMA
   Int iCb = 1;
   Int iCr = 2;
   Double dCostFinalCb = 0;
   Double dCostFinalCr = 0;
-#endif
 
   getSaoStats(pcSaoParam->psSaoPart[iY], iY);
   runQuadTreeDecision(pcSaoParam->psSaoPart[iY], 0, dCostFinal, m_uiMaxSplitLevel, m_dLambdaLuma);
@@ -2073,7 +2071,6 @@ Void TEncSampleAdaptiveOffset::SAOProcess(SAOParam *pcSaoParam, Double dLambda)
   {
     processSaoQuadTree(pcSaoParam->psSaoPart[iY], 0, 0);
 
-#if SAO_CHROMA
     resetStats();
     getSaoStats(pcSaoParam->psSaoPart[iCb], iCb);
     runQuadTreeDecision(pcSaoParam->psSaoPart[iCb], 0, dCostFinalCb, m_uiMaxSplitLevel, m_dLambdaChroma);
@@ -2091,7 +2088,6 @@ Void TEncSampleAdaptiveOffset::SAOProcess(SAOParam *pcSaoParam, Double dLambda)
     {
       processSaoQuadTree(pcSaoParam->psSaoPart[iCr], 0, iCr);
     }
-#endif
   }
 }
 //! \}

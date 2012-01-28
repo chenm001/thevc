@@ -1264,7 +1264,6 @@ Void TDecEntropy::decodeSaoParam(SAOParam* pSaoParam)
   {
     decodeQuadTreeSplitFlag(pSaoParam, 0, 0);
     decodeSaoOnePart(pSaoParam, 0, 0);
-#if SAO_CHROMA
     m_pcEntropyDecoderIf->parseSaoFlag(uiSymbol);
     pSaoParam->bSaoFlag[1] = uiSymbol? true:false;
     if (pSaoParam->bSaoFlag[1])
@@ -1280,7 +1279,6 @@ Void TDecEntropy::decodeSaoParam(SAOParam* pSaoParam)
       decodeQuadTreeSplitFlag(pSaoParam, 0, 2);
       decodeSaoOnePart(pSaoParam, 0, 2);
     }
-#endif
   }
 
 }

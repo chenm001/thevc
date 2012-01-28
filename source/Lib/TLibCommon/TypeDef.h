@@ -297,7 +297,6 @@
 #endif
 
 #define SAO                           1           // JCTVC-E049: Sample adaptive offset
-#define SAO_CHROMA                    1           // JCTVC-F057: Sample adaptive offset for Chroma
 #define SAO_CROSS_LCU_BOUNDARIES      1
 
 #define PARALLEL_MERGED_DEBLK        1 // JCTC-E224, JCTVC-E181: Parallel decisions + Parallel filtering

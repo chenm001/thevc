@@ -1362,7 +1362,6 @@ Void TEncEntropy::encodeSaoParam(SAOParam* pSaoParam)
   {
     encodeQuadTreeSplitFlag(pSaoParam, 0, 0);
     encodeSaoOnePart(pSaoParam, 0, 0);
-#if SAO_CHROMA
     m_pcEntropyCoderIf->codeSaoFlag(pSaoParam->bSaoFlag[1]); 
     if (pSaoParam->bSaoFlag[1])
     {
@@ -1375,7 +1374,6 @@ Void TEncEntropy::encodeSaoParam(SAOParam* pSaoParam)
       encodeQuadTreeSplitFlag(pSaoParam, 0, 2);
       encodeSaoOnePart(pSaoParam, 0, 2);
     }
-#endif
   }
 }
 #endif

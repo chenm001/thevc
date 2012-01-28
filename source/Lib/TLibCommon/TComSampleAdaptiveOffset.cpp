@@ -397,12 +397,10 @@ Void TComSampleAdaptiveOffset::allocSaoParam(SAOParam *pcSaoParam)
   pcSaoParam->iMaxSplitLevel = m_uiMaxSplitLevel;
   pcSaoParam->psSaoPart[0] = new SAOQTPart[ m_aiNumCulPartsLevel[pcSaoParam->iMaxSplitLevel] ];
   initSAOParam(pcSaoParam, 0, 0, 0, -1, 0, m_iNumCuInWidth-1,  0, m_iNumCuInHeight-1,0);
-#if SAO_CHROMA
   pcSaoParam->psSaoPart[1] = new SAOQTPart[ m_aiNumCulPartsLevel[pcSaoParam->iMaxSplitLevel] ];
   pcSaoParam->psSaoPart[2] = new SAOQTPart[ m_aiNumCulPartsLevel[pcSaoParam->iMaxSplitLevel] ];
   initSAOParam(pcSaoParam, 0, 0, 0, -1, 0, m_iNumCuInWidth-1,  0, m_iNumCuInHeight-1,1);
   initSAOParam(pcSaoParam, 0, 0, 0, -1, 0, m_iNumCuInWidth-1,  0, m_iNumCuInHeight-1,2);
-#endif
   for(Int j=0;j<MAX_NUM_SAO_TYPE;j++)
   {
     pcSaoParam->iNumClass[j] = m_iNumClass[j];
@@ -526,11 +524,7 @@ Void TComSampleAdaptiveOffset::freeSaoParam(SAOParam *pcSaoParam)
  */
 Void TComSampleAdaptiveOffset::resetSAOParam(SAOParam *pcSaoParam)
 {
-#if SAO_CHROMA
   Int iNumComponet = 3;
-#else
-  Int iNumComponet = 1;
-#endif
   for(Int c=0; c<iNumComponet; c++)
   {
     pcSaoParam->bSaoFlag[c] = 0;
@@ -863,11 +857,9 @@ Void TComSampleAdaptiveOffset::processSaoBlock(Pel* pDec, Pel* pRest, Int stride
 Void TComSampleAdaptiveOffset::createSliceMap(UInt iSliceIdx, UInt uiStartAddr, UInt uiEndAddr)
 {
   Pel* pMap;    
-#if SAO_CHROMA
   Pel* pMapCb;
   Pel* pMapCr;
   Int  iStrideC = m_pcPicYuvMap->getCStride();
-#endif
   Int  iStride = m_pcPicYuvMap->getStride();
   UInt uiLPelX;
   UInt uiTPelY;
@@ -901,16 +893,12 @@ Void TComSampleAdaptiveOffset::createSliceMap(UInt iSliceIdx, UInt uiStartAddr, 
     {
 #if TILES
       pMap = m_pcPicYuvMap->getLumaAddr(m_pcPic->getPicSym()->getCUOrderMap(iLcuIdx));
-#if SAO_CHROMA
       pMapCb = m_pcPicYuvMap->getCbAddr(m_pcPic->getPicSym()->getCUOrderMap(iLcuIdx));
       pMapCr = m_pcPicYuvMap->getCrAddr(m_pcPic->getPicSym()->getCUOrderMap(iLcuIdx));
-#endif
 #else
       pMap = m_pcPicYuvMap->getLumaAddr(iLcuIdx);
-#if SAO_CHROMA
       pMapCb = m_pcPicYuvMap->getCbAddr(iLcuIdx);
       pMapCr = m_pcPicYuvMap->getCrAddr(iLcuIdx);
-#endif
 #endif
       UInt uiFirstCUInStartLCUTmp = (iLcuIdx == uiStartLCU) ? uiFirstCUInStartLCU : 0;
       UInt uiLastCUInEndLCUTmp    = (iLcuIdx == uiEndLCU  ) ? uiLastCUInEndLCU+1 : uiNumSUInLCU;
@@ -926,10 +914,8 @@ Void TComSampleAdaptiveOffset::createSliceMap(UInt iSliceIdx, UInt uiStartAddr, 
           for (k=0;k<uiMinCUWidth;k++)
           {
             pMap[(uiLPelX+k)+(uiTPelY+l)*iStride] = iSliceIdx;
-#if SAO_CHROMA
             pMapCb[((uiLPelX+k)>>1)+((uiTPelY+l)>>1)*iStrideC] = iSliceIdx;
             pMapCr[((uiLPelX+k)>>1)+((uiTPelY+l)>>1)*iStrideC] = iSliceIdx;
-#endif
           }
         }
       } 
@@ -938,26 +924,20 @@ Void TComSampleAdaptiveOffset::createSliceMap(UInt iSliceIdx, UInt uiStartAddr, 
     {
 #if TILES
       pMap = m_pcPicYuvMap->getLumaAddr(m_pcPic->getPicSym()->getCUOrderMap(iLcuIdx));
-#if SAO_CHROMA
       pMapCb = m_pcPicYuvMap->getCbAddr(m_pcPic->getPicSym()->getCUOrderMap(iLcuIdx));
       pMapCr = m_pcPicYuvMap->getCrAddr(m_pcPic->getPicSym()->getCUOrderMap(iLcuIdx));
-#endif
 #else
       pMap = m_pcPicYuvMap->getLumaAddr(iLcuIdx);
-#if SAO_CHROMA
       pMapCb = m_pcPicYuvMap->getCbAddr(iLcuIdx);
       pMapCr = m_pcPicYuvMap->getCrAddr(iLcuIdx);
-#endif
 #endif
       for (l=0;l<uiMaxCUHeight;l++)
       {
         for (k=0;k<uiMaxCUWidth;k++)
         {
           pMap[k+l*iStride] = iSliceIdx;
-#if SAO_CHROMA
           pMapCb[(k>>1)+(l>>1)*iStrideC] = iSliceIdx;
           pMapCr[(k>>1)+(l>>1)*iStrideC] = iSliceIdx;
-#endif
         }
       }
     }
@@ -2166,7 +2146,6 @@ Void TComSampleAdaptiveOffset::SAOProcess(TComPic* pcPic, SAOParam* pcSaoParam)
     Int iY  = 0;
     processSaoQuadTree( pcSaoParam->psSaoPart[iY], 0 , iY);
 
-#if SAO_CHROMA
     Int iCb = 1;
     Int iCr = 2;
     if (pcSaoParam->bSaoFlag[iCb])
@@ -2177,7 +2156,6 @@ Void TComSampleAdaptiveOffset::SAOProcess(TComPic* pcPic, SAOParam* pcSaoParam)
     {
       processSaoQuadTree( pcSaoParam->psSaoPart[iCr], 0 , iCr);
     }
-#endif
     m_pcPic = NULL;
   }
 }
