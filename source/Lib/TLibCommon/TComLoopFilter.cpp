@@ -639,11 +639,7 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
   //-- Set BS for Intra MB : BS = 4 or 3
   if ( pcCUP->isIntra(uiPartP) || pcCUQ->isIntra(uiPartQ) )
   {
-#if DEBLK_CLEANUP_G175_G620_G638
     uiBs = 2;
-#else
-    uiBs = bAtCUBoundary ? 4 : 3;   // Intra MB && MB boundary
-#endif
   }
   
   //-- Set BS for not Intra MB : BS = 2 or 1 or 0
@@ -655,11 +651,7 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
     if ( m_aapucBS[iDir][uiAbsPartIdx] && (pcCUQ->getCbf( uiPartQ, TEXT_LUMA, pcCUQ->getTransformIdx(uiPartQ)) != 0 || pcCUP->getCbf( uiPartP, TEXT_LUMA, pcCUP->getTransformIdx(uiPartP) ) != 0) )
 #endif
     {
-#if DEBLK_CLEANUP_G175_G620_G638
       uiBs = 1;
-#else
-      uiBs = 2;
-#endif
     }
     else
     {
@@ -847,10 +839,8 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
 #endif
     }
     
-#if DEBLK_CLEANUP_G175_G620_G638
     if ( uiBs )
     {
-#endif
 #if DBF_DQP
       iQP_Q = pcCU->getQP( uiBsAbsIdx );
       uiPartQIdx = uiBsAbsIdx;
@@ -883,19 +873,10 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
 #endif
     Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
     
-#if !DEBLK_CLEANUP_G175_G620_G638
-    Int uiTcOffset = ( uiBs > 2 ) ? DEFAULT_INTRA_TC_OFFSET : 0;
-#if G174_DF_OFFSET
-    Int iIndexTC = Clip3(0, MAX_QP+4, iQP + uiTcOffset + (m_tcOffsetDiv2 << 1));
-#else
-    Int iIndexTC = Clip3(0, MAX_QP+4, iQP + uiTcOffset );
-#endif
-#else
 #if G174_DF_OFFSET
     Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, Int(iQP + DEFAULT_INTRA_TC_OFFSET*(uiBs-1) + (m_tcOffsetDiv2 << 1)));
 #else
     Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, Int(iQP + DEFAULT_INTRA_TC_OFFSET*(uiBs-1)));
-#endif
 #endif
 #if G174_DF_OFFSET
     Int iIndexB = Clip3(0, MAX_QP, iQP + (m_betaOffsetDiv2 << 1));
@@ -911,11 +892,6 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
     
     for (UInt iBlkIdx = 0; iBlkIdx< uiBlocksInPart; iBlkIdx ++)
     {
-#if !DEBLK_CLEANUP_G175_G620_G638
-      if ( uiBs )
-      {
-#endif
-
 #if !DISABLE_PARALLEL_DECISIONS        
 
 #if DEBLK_G590
@@ -1162,10 +1138,8 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
     ucBs = m_aapucBS[iDir][uiBsAbsIdx];
 #endif
     
-#if DEBLK_CLEANUP_G175_G620_G638
     if ( ucBs > 1)
     {
-#endif
 #if DBF_DQP
       iQP_Q = pcCU->getQP( uiBsAbsIdx );
       uiPartQIdx = uiBsAbsIdx;
@@ -1198,26 +1172,13 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
 #endif
     Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
     
-#if !DEBLK_CLEANUP_G175_G620_G638
-    Int uiTcOffset = ( ucBs > 2 ) ? DEFAULT_INTRA_TC_OFFSET : 0;
-#if G174_DF_OFFSET
-    Int iIndexTC = Clip3(0, MAX_QP+4, iQP + uiTcOffset + (m_tcOffsetDiv2 << 1));
-#else
-    Int iIndexTC = Clip3(0, MAX_QP+4, iQP + uiTcOffset );
-#endif
-#else
 #if G174_DF_OFFSET
     Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, iQP + DEFAULT_INTRA_TC_OFFSET*(ucBs - 1) + (m_tcOffsetDiv2 << 1));
 #else
     Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, iQP + DEFAULT_INTRA_TC_OFFSET*(ucBs - 1) );
 #endif
-#endif
     Int iTc =  tctable_8x8[iIndexTC]*iBitdepthScale;
     
-#if !DEBLK_CLEANUP_G175_G620_G638
-    if ( ucBs > 2)
-    {
-#endif
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
       if(bPCMFilter)
       {
