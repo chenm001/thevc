@@ -154,13 +154,11 @@ public:
 #if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
   NalUnitType getNalUnitType( UInt uiPOCCurr );
 #endif
-#if F747_APS
   Void freeAPS     (TComAPS* pAPS, TComSPS* pSPS);
   Void allocAPS    (TComAPS* pAPS, TComSPS* pSPS);
 protected:
   Void encodeAPS   (TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* pcSlice);            //!< encode APS syntax elements
   Void assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS, TComSlice* pcSlice);  //!< Assign APS object into APS container
-#endif
   
 
 protected:
@@ -186,11 +184,7 @@ protected:
 enum PROCESSING_STATE
 {
   EXECUTE_INLOOPFILTER,
-#if F747_APS
   ENCODE_APS,
-#else
-  ENCODE_PPS,
-#endif
   ENCODE_SLICE
 };
 

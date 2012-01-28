@@ -58,12 +58,10 @@ Void  xTracePPSHeader (TComPPS *pPPS)
   fprintf( g_hTrace, "=========== Picture Parameter Set ID: %d ===========\n", pPPS->getPPSId() );
 }
 
-#if F747_APS
 Void  xTraceAPSHeader (TComAPS *pAPS)
 {
   fprintf( g_hTrace, "=========== Adaptation Parameter Set ===========\n");
 }
-#endif
 
 Void  xTraceSliceHeader (TComSlice *pSlice)
 {
@@ -239,7 +237,6 @@ void TDecCavlc::parseShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet
 }
 #endif
 
-#if F747_APS
 Void TDecCavlc::parseAPSInitInfo(TComAPS& cAPS)
 {
 #if ENC_DEC_TRACE  
@@ -277,9 +274,6 @@ Void TDecCavlc::parseAPSInitInfo(TComAPS& cAPS)
   }
 #endif
 }
-#endif
-
-
 
 Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 {
@@ -349,9 +343,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 #endif
   READ_CODE( 2, uiCode, "slice_granularity" );                     pcPPS->setSliceGranularity(uiCode);
 
-#if !F747_APS
-  READ_FLAG( uiCode, "shared_pps_info_enabled_flag" );             pcPPS->setSharedPPSInfoEnabled( uiCode ? true : false);
-#endif
   // alf_param() ?
 
 #if G507_QP_ISSUE_FIX
@@ -864,7 +855,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       }  
     }
 #endif
-#if F747_APS
 #if SCALING_LIST
 #if G174_DF_OFFSET
     if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF() || rpcSlice->getSPS()->getScalingListFlag() || rpcSlice->getSPS()->getUseDF())
@@ -889,7 +879,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 #endif
       READ_UVLC (    uiCode, "aps_id" );  rpcSlice->setAPSId(uiCode);
     }
-#endif
 #if !G1002_RPS
     //   frame_num
     //   if( IdrPicFlag )

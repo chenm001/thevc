@@ -256,10 +256,8 @@ public:
 #endif
 #endif
 
-#if F747_APS
   Void  codeAPSInitInfo(TComAPS* pcAPS);  //!< code APS flags before encoding SAO and ALF parameters
   Void  codeFinish(Bool bEnd) { /*do nothing*/}
-#endif
 #if SCALING_LIST
   Void  codeScalingList            ( TComScalingList* scalingList );
   Void  xCodeDPCMScalingListMatrix ( TComScalingList* scalingList, Int* data, UInt sizeId);

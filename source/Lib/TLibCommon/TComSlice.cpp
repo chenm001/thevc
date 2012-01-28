@@ -946,10 +946,8 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
 #endif
 
   m_pcPic                = pSrc->m_pcPic;
-#if F747_APS
   m_pcAPS                = pSrc->m_pcAPS;
   m_iAPSId               = pSrc->m_iAPSId;
-#endif
 
   m_uiColDir             = pSrc->m_uiColDir;
 #if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA 
@@ -1709,9 +1707,6 @@ TComPPS::TComPPS()
 #endif
 , m_uiNumTlayerSwitchingFlags   (0)
 , m_iSliceGranularity           (0)
-#if !F747_APS
-, m_bSharedPPSInfoEnabled       (false)
-#endif
 #if TILES
 #if NONCROSS_TILE_IN_LOOP_FILTERING
 , m_iTileBehaviorControlPresentFlag (0)
@@ -1954,7 +1949,6 @@ TComRefPicListModification::~TComRefPicListModification()
 }
 #endif
 
-#if F747_APS
 TComAPS::TComAPS()
 {
   m_apsID = 0;
@@ -2026,7 +2020,7 @@ Void TComAPS::destroyAlfParam()
     m_pAlfParam = NULL;
   }
 }
-#endif
+
 #if SCALING_LIST
 Void TComAPS::createScalingList()
 {

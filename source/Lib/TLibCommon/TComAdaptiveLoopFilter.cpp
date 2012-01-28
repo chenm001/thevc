@@ -145,7 +145,6 @@ Int* pDepthIntTabShapes[NUM_ALF_FILTER_SHAPE] =
 // Constructor / destructor / create / destroy
 // ====================================================================================================================
 
-#if F747_APS
 const AlfCUCtrlInfo& AlfCUCtrlInfo::operator= (const AlfCUCtrlInfo& src)
 {
   this->cu_control_flag = src.cu_control_flag;
@@ -154,7 +153,6 @@ const AlfCUCtrlInfo& AlfCUCtrlInfo::operator= (const AlfCUCtrlInfo& src)
   this->alf_cu_flag     = src.alf_cu_flag;
   return *this;
 }
-#endif
 
 TComAdaptiveLoopFilter::TComAdaptiveLoopFilter()
 {
@@ -432,11 +430,6 @@ Void TComAdaptiveLoopFilter::allocALFParam(ALFParam* pAlfParam)
 #endif
   pAlfParam->filterPattern = new Int[NO_VAR_BINS];
   ::memset(pAlfParam->filterPattern, 0, sizeof(Int)*NO_VAR_BINS);
-#if !F747_APS
-  pAlfParam->num_cus_in_frame = m_uiNumCUsInFrame;
-  pAlfParam->num_alf_cu_flag  = 0;
-  pAlfParam->alf_cu_flag      = new UInt[(m_uiNumCUsInFrame << ((g_uiMaxCUDepth-1)*2))];
-#endif
   pAlfParam->alf_pcr_region_flag = 0;
 }
 
@@ -463,23 +456,12 @@ Void TComAdaptiveLoopFilter::freeALFParam(ALFParam* pAlfParam)
 
   delete[] pAlfParam->filterPattern;
   pAlfParam->filterPattern = NULL;
-
-#if !F747_APS
-  if(pAlfParam->alf_cu_flag != NULL)
-  {
-    delete[] pAlfParam->alf_cu_flag;
-    pAlfParam->alf_cu_flag = NULL;
-  }
-#endif
 }
 
 
 Void TComAdaptiveLoopFilter::copyALFParam(ALFParam* pDesAlfParam, ALFParam* pSrcAlfParam)
 {
   pDesAlfParam->alf_flag = pSrcAlfParam->alf_flag;
-#if !F747_APS
-  pDesAlfParam->cu_control_flag = pSrcAlfParam->cu_control_flag;
-#endif
   pDesAlfParam->chroma_idc = pSrcAlfParam->chroma_idc;
   pDesAlfParam->num_coeff = pSrcAlfParam->num_coeff;
   pDesAlfParam->filter_shape_chroma = pSrcAlfParam->filter_shape_chroma;
@@ -500,10 +482,6 @@ Void TComAdaptiveLoopFilter::copyALFParam(ALFParam* pDesAlfParam, ALFParam* pSrc
   {
     ::memcpy(pDesAlfParam->coeffmulti[i], pSrcAlfParam->coeffmulti[i], sizeof(Int)*ALF_MAX_NUM_COEF);
   }
-#if !F747_APS
-  pDesAlfParam->num_alf_cu_flag = pSrcAlfParam->num_alf_cu_flag;
-  ::memcpy(pDesAlfParam->alf_cu_flag, pSrcAlfParam->alf_cu_flag, sizeof(UInt)*pSrcAlfParam->num_alf_cu_flag);
-#endif
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -539,14 +517,9 @@ Void TComAdaptiveLoopFilter::predictALFCoeffChroma( ALFParam* pAlfParam )
  \param [in,out] vAlfCUCtrlParam ALF CU control parameters
  \todo   for temporal buffer, it uses residual picture buffer, which may not be safe. Make it be safer.
  */
-#if F747_APS
 Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam)
 {
   assert(m_uiNumSlicesInPic == vAlfCUCtrlParam.size());
-#else
-Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam)
-{
-#endif
   if(!pcAlfParam->alf_flag)
   {
     return;
@@ -575,7 +548,6 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam)
   }
 #endif
 
-#if F747_APS
   if(m_uiNumSlicesInPic == 1)
   {
     AlfCUCtrlInfo* pcAlfCtrlParam = &(vAlfCUCtrlParam[0]);
@@ -594,25 +566,6 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam)
     transferCtrlFlagsFromAlfParam(vAlfCUCtrlParam);
   }
   xALFLuma(pcPic, pcAlfParam, vAlfCUCtrlParam, pcPicYuvExtRec, pcPicYuvRec);
-#else
-  if(pcAlfParam->cu_control_flag)
-  {
-    if(m_uiNumSlicesInPic == 1)
-    {
-      UInt idx = 0;
-      for(UInt uiCUAddr = 0; uiCUAddr < pcPic->getNumCUsInFrame(); uiCUAddr++)
-      {
-        TComDataCU *pcCU = pcPic->getCU(uiCUAddr);
-        setAlfCtrlFlags(pcAlfParam, pcCU, 0, 0, idx);
-      }
-    }
-    else
-    {
-      transferCtrlFlagsFromAlfParam(pcAlfParam);
-    }
-  }
-  xALFLuma(pcPic, pcAlfParam, pcPicYuvExtRec, pcPicYuvRec);
-#endif  
   if(pcAlfParam->chroma_idc)
   {
     predictALFCoeffChroma(pcAlfParam);
@@ -668,11 +621,7 @@ Void TComAdaptiveLoopFilter::checkFilterCoeffValue( Int *filter, Int filterLengt
 #endif
 
 
-#if F747_APS
 Void TComAdaptiveLoopFilter::xALFLuma(TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam,TComPicYuv* pcPicDec, TComPicYuv* pcPicRest)
-#else
-Void TComAdaptiveLoopFilter::xALFLuma(TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest)
-#endif
 {
   Int    LumaStride = pcPicDec->getStride();
   Pel* pDec = pcPicDec->getLumaAddr();
@@ -691,7 +640,6 @@ Void TComAdaptiveLoopFilter::xALFLuma(TComPic* pcPic, ALFParam* pcAlfParam, TCom
 #if !G609_NEW_BA_SUB
     calcVar(0, 0, m_varImg, pDec, VAR_SIZE, m_img_height, m_img_width, LumaStride);
 #endif
-#if F747_APS
     Bool bCUCtrlEnabled = false;
     for(UInt s=0; s< m_uiNumSlicesInPic; s++)
     {
@@ -716,9 +664,6 @@ Void TComAdaptiveLoopFilter::xALFLuma(TComPic* pcPic, ALFParam* pcAlfParam, TCom
     }
 
     if(bCUCtrlEnabled)  
-#else
-    if(pcAlfParam->cu_control_flag)
-#endif
     {
       xCUAdaptive(pcPic, pcAlfParam->filter_shape, pRest, pDec, LumaStride);
     }  
@@ -2056,11 +2001,7 @@ Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicD
   }
 }
 
-#if F747_APS
 Void TComAdaptiveLoopFilter::setAlfCtrlFlags(AlfCUCtrlInfo* pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx)
-#else
-Void TComAdaptiveLoopFilter::setAlfCtrlFlags(ALFParam *pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx)
-#endif
 {
   TComPic* pcPic = pcCU->getPic();
   UInt uiCurNumParts    = pcPic->getNumPartInCU() >> (uiDepth<<1);
@@ -2462,11 +2403,7 @@ Void TComAdaptiveLoopFilter::xFilterOneChromaSlice(CAlfSlice* pSlice, Pel* pDec,
  */
 Void TComAdaptiveLoopFilter::xFilterOneSlice(CAlfSlice* pSlice, Pel* pDec, Pel* pRest, Int iStride, ALFParam* pcAlfParam)
 {
-#if F747_APS
   if(pSlice->getCUCtrlEnabled())
-#else
-  if(pcAlfParam->cu_control_flag)
-#endif
   {
     TComPic* pcPic       = pSlice->getPic();
     UInt     uiNumLCU    = pSlice->getNumLCUs();
@@ -2524,7 +2461,6 @@ Void TComAdaptiveLoopFilter::xFilterOneSlice(CAlfSlice* pSlice, Pel* pDec, Pel* 
 /** Copy ALF CU control flags from ALF parameters for slices
  * \param [in] vAlfParamSlices ALF CU control parameters
  */
-#if F747_APS
 Void TComAdaptiveLoopFilter::transferCtrlFlagsFromAlfParam(std::vector<AlfCUCtrlInfo>& vAlfParamSlices)
 {
   assert(m_uiNumSlicesInPic == vAlfParamSlices.size());
@@ -2543,51 +2479,20 @@ Void TComAdaptiveLoopFilter::transferCtrlFlagsFromAlfParam(std::vector<AlfCUCtrl
       );
   }
 }
-#else
-Void TComAdaptiveLoopFilter::transferCtrlFlagsFromAlfParam(ALFParam* pcAlfParam)
-{
-  Bool  bCUCtrlEnabled = (pcAlfParam->cu_control_flag ==1);
-  Int   iAlfDepth      = (Int)pcAlfParam->alf_max_depth;
-  UInt* puiFlags       =  pcAlfParam->alf_cu_flag;
-
-  UInt uiNumFlags = 0;
-  for(UInt s=0; s< m_uiNumSlicesInPic; s++)
-  {
-
-    if(!m_pSlice[s].isValidSlice()) 
-    {
-      continue;
-    }
-
-    transferCtrlFlagsFromAlfParamOneSlice(s,bCUCtrlEnabled, iAlfDepth, &(puiFlags[uiNumFlags]));
-    uiNumFlags += m_pSlice[s].getNumCtrlFlags();
-  }
-
-  assert(uiNumFlags == pcAlfParam->num_alf_cu_flag);
-}
-#endif
 /** Copy ALF CU control flags from ALF CU control parameters for one slice
  * \param [in] vpAlfLCU ALF LCU data container 
  * \param [in] bCUCtrlEnabled true for ALF CU control enabled
  * \param [in] iAlfDepth ALF CU control depth
  * \param [in] vCtrlFlags ALF CU control flags
  */
-#if F747_APS
 #if NONCROSS_TILE_IN_LOOP_FILTERING
 Void TComAdaptiveLoopFilter::transferCtrlFlagsFromAlfParamOneSlice(std::vector< AlfLCUInfo* > &vpAlfLCU, Bool bCUCtrlEnabled, Int iAlfDepth, std::vector<UInt>& vCtrlFlags)
 #else
 Void TComAdaptiveLoopFilter::transferCtrlFlagsFromAlfParamOneSlice(UInt s, Bool bCUCtrlEnabled, Int iAlfDepth, std::vector<UInt>& vCtrlFlags)
 #endif
-
-#else
-Void TComAdaptiveLoopFilter::transferCtrlFlagsFromAlfParamOneSlice(UInt s, Bool bCUCtrlEnabled, Int iAlfDepth, UInt* puiFlagsAlfParam)
-#endif
 {
 #if !NONCROSS_TILE_IN_LOOP_FILTERING
   CAlfSlice& cSlice   = m_pSlice[s];
-#endif
-#if !F747_APS
-  UInt*      puiFlags = puiFlagsAlfParam;
 #endif
 
 #if NONCROSS_TILE_IN_LOOP_FILTERING
@@ -2631,7 +2536,6 @@ Void TComAdaptiveLoopFilter::transferCtrlFlagsFromAlfParamOneSlice(UInt s, Bool 
   {
     CAlfLCU& cAlfLCU = cSlice[idx];
 #endif
-#if F747_APS
 
 #if NONCROSS_TILE_IN_LOOP_FILTERING
     uiNumCtrlFlags += (UInt)getCtrlFlagsFromAlfParam(&cAlfLCU, iAlfDepth, &(vCtrlFlags[uiNumCtrlFlags]) );
@@ -2639,19 +2543,6 @@ Void TComAdaptiveLoopFilter::transferCtrlFlagsFromAlfParamOneSlice(UInt s, Bool 
     cAlfLCU.getCtrlFlagsFromAlfParam(iAlfDepth, &(vCtrlFlags[uiNumCtrlFlags]) );
     uiNumCtrlFlags += cAlfLCU.getNumCtrlFlags();
 #endif
-#else
-
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-    UInt uiNumFlags = (UInt)getCtrlFlagsFromAlfParam(&cAlfLCU, iAlfDepth, puiFlags );
-#else
-    cAlfLCU.getCtrlFlagsFromAlfParam(iAlfDepth, puiFlags);
-    UInt uiNumFlags = cAlfLCU.getNumCtrlFlags();
-#endif
-
-    puiFlags += uiNumFlags;
-    uiNumCtrlFlags += uiNumFlags;
-#endif
-
   }
 #if !NONCROSS_TILE_IN_LOOP_FILTERING
   cSlice.setNumCtrlFlags(uiNumCtrlFlags);

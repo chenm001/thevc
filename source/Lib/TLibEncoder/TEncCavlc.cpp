@@ -65,12 +65,10 @@ Void  xTracePPSHeader (TComPPS *pPPS)
   fprintf( g_hTrace, "=========== Picture Parameter Set ID: %d ===========\n", pPPS->getPPSId() );
 }
 
-#if F747_APS
 Void  xTraceAPSHeader (TComAPS *pAPS)
 {
   fprintf( g_hTrace, "=========== Adaptation Parameter Set ===========\n");
 }
-#endif
 
 Void  xTraceSliceHeader (TComSlice *pSlice)
 {
@@ -212,7 +210,6 @@ void TEncCavlc::codeSEI(const SEI& sei)
   writeSEImessage(*m_pcBitIf, sei);
 }
 
-#if F747_APS
 Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
 {
 
@@ -250,7 +247,6 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
   }
 #endif
 }
-#endif
 
 #if G174_DF_OFFSET
 Void TEncCavlc::codeDFFlag(UInt uiCode, const Char *pSymbolName)
@@ -380,12 +376,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   WRITE_FLAG( pcPPS->getEnableTMVPFlag() ? 1 : 0,            "enable_temporal_mvp_flag" );
 #endif
   WRITE_CODE( pcPPS->getSliceGranularity(), 2,               "slice_granularity");
-#if !F747_APS
-  WRITE_FLAG( pcPPS->getSharedPPSInfoEnabled() ? 1: 0,       "shared_pps_info_enabled_flag" );
-  //   if( shared_pps_info_enabled_flag )
-  //     if( adaptive_loop_filter_enabled_flag )
-  //       alf_param( )
-#endif
 #if G507_QP_ISSUE_FIX
   WRITE_UVLC( pcPPS->getMaxCuDQPDepth() + pcPPS->getUseDQP(),                   "max_cu_qp_delta_depth" );
 #else
@@ -771,7 +761,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       }
     }
 #endif
-#if F747_APS
 #if SCALING_LIST
 #if G174_DF_OFFSET
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF()|| pcSlice->getSPS()->getScalingListFlag() || pcSlice->getSPS()->getUseDF())
@@ -799,7 +788,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #endif
       WRITE_UVLC( pcSlice->getAPS()->getAPSID(), "aps_id");
     }
-#endif
 
 #if !G1002_RPS
     // frame_num

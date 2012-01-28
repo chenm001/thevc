@@ -400,9 +400,6 @@ Void TEncEntropy::encodeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
 
 Void TEncEntropy::encodeAlfParam(ALFParam* pAlfParam)
 {
-#if !F747_APS
-  m_pcEntropyCoderIf->codeAlfFlag(pAlfParam->alf_flag);
-#endif
   if (!pAlfParam->alf_flag)
   {
     return;
@@ -447,7 +444,6 @@ Void TEncEntropy::encodeAlfCtrlFlag(UInt uiFlag)
 /** Encode ALF CU control flag parameters
  * \param pAlfParam ALF parameters
  */
-#if F747_APS
 Void TEncEntropy::encodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic)
 {
   // region control parameters for luma
@@ -468,53 +464,6 @@ Void TEncEntropy::encodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic)
     m_pcEntropyCoderIf->codeAlfCtrlFlag( cAlfParam.alf_cu_flag[i] );
   }
 }
-
-#else
-
-Void TEncEntropy::encodeAlfCtrlParam( ALFParam* pAlfParam, UInt uiNumSlices, CAlfSlice* pcAlfSlice)
-{
-
-  if(pAlfParam->alf_flag == 0)
-  {
-    return;
-  }
-  // region control parameters for luma
-  m_pcEntropyCoderIf->codeAlfFlag(pAlfParam->cu_control_flag);
-
-  if (pAlfParam->cu_control_flag == 0)
-  { 
-    return;
-  }
-
-  m_pcEntropyCoderIf->codeAlfCtrlDepth();
-
-  UInt uiNumAlfCUFlags = (uiNumSlices == 1)?(pAlfParam->num_alf_cu_flag):(pcAlfSlice->getNumCtrlFlags());
-
-  Int iSymbol    = ((Int)uiNumAlfCUFlags - (Int)pAlfParam->num_cus_in_frame);
-  m_pcEntropyCoderIf->codeAlfSvlc(iSymbol);
-
-  if(uiNumSlices ==1)
-  {
-    for(UInt i=0; i<pAlfParam->num_alf_cu_flag; i++)
-    {
-      m_pcEntropyCoderIf->codeAlfCtrlFlag( pAlfParam->alf_cu_flag[i] );
-    }
-  }
-  else
-  {
-    for(UInt idx=0; idx < pcAlfSlice->getNumLCUs(); idx++)
-    {
-      CAlfLCU& cAlfLCU = (*pcAlfSlice)[idx];
-
-      for(UInt i=0; i< cAlfLCU.getNumCtrlFlags(); i++)
-      {
-        m_pcEntropyCoderIf->codeAlfCtrlFlag( cAlfLCU.getCUCtrlFlag(i) );
-      }
-    }
-  }
-}
-
-#endif
 
 /** encode prediction mode
  * \param pcCU
@@ -1409,9 +1358,6 @@ Void TEncEntropy::encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int
  */
 Void TEncEntropy::encodeSaoParam(SAOParam* pSaoParam)
 {
-#if !F747_APS
-  m_pcEntropyCoderIf->codeSaoFlag(pSaoParam->bSaoFlag[0]); 
-#endif
   if (pSaoParam->bSaoFlag[0])
   {
     encodeQuadTreeSplitFlag(pSaoParam, 0, 0);

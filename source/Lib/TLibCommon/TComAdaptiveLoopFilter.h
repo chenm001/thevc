@@ -144,7 +144,6 @@ extern Int *pDepthIntTabShapes[NUM_ALF_FILTER_SHAPE];
 // Class definition
 // ====================================================================================================================
 
-#if F747_APS
 /// ALF CU control parameters
 struct AlfCUCtrlInfo
 {
@@ -157,7 +156,6 @@ struct AlfCUCtrlInfo
   AlfCUCtrlInfo():cu_control_flag(0), num_alf_cu_flag(0), alf_max_depth(0) {} //!< constructor
 
 };
-#endif
 
 
 #if NONCROSS_TILE_IN_LOOP_FILTERING
@@ -270,9 +268,7 @@ public:
   Void copySliceChroma(Pel* pPicDst, Pel* pPicSrc, Int iStride ); //!< Copy one chroma slice
   Void getCtrlFlagsForOneSlice(); //!< Copy ALF CU Control Flags for one slice
   UInt getNumLCUs      ()          {return m_uiNumLCUs;} //!< Get number of LCUs of this slice
-#if F747_APS
   Bool getCUCtrlEnabled()          {return m_bCUCtrlEnabled;   } /// Get ALF CU control enabled/disable for this slice
-#endif
   Void setCUCtrlEnabled(Bool b)    {m_bCUCtrlEnabled = b;   } /// Set ALF CU control enabled/disable for this slice
   void setCUCtrlDepth  (Int iDepth){m_iCUCtrlDepth = iDepth;} /// Set ALF CU control depth of this slice
   Int  getCUCtrlDepth  ()          {return m_iCUCtrlDepth;  } /// Get ALF CU control depth of this slice
@@ -415,7 +411,6 @@ protected: //protected methods
 #else
   Void xFilterChromaOneCmp(Pel *pDec, Pel *pRest, Int iStride, Int iShape, Int *pCoeff);
 #endif
-#if F747_APS
   Void xALFLuma( TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
   Void setAlfCtrlFlags(AlfCUCtrlInfo* pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx);
   Void transferCtrlFlagsFromAlfParam(std::vector<AlfCUCtrlInfo>& vAlfParamSlices); //!< Copy ALF CU control flags from ALF parameters for slices  
@@ -423,12 +418,6 @@ protected: //protected methods
   Void transferCtrlFlagsFromAlfParamOneSlice(std::vector<AlfLCUInfo*> &vpAlfLCU, Bool bCUCtrlEnabled, Int iAlfDepth, std::vector<UInt>& vCtrlFlags); //!< Copy ALF CU control flags from ALF parameter for one slice
 #else
   Void transferCtrlFlagsFromAlfParamOneSlice(UInt s, Bool bCUCtrlEnabled, Int iAlfDepth, std::vector<UInt>& vCtrlFlags); //!< Copy ALF CU control flags from ALF parameter for one slice
-#endif
-#else
-  Void  setAlfCtrlFlags (ALFParam *pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx);
-  Void transferCtrlFlagsFromAlfParam(ALFParam* pcAlfParam); //!< Copy ALF CU control flags from ALF parameters for slices  
-  Void transferCtrlFlagsFromAlfParamOneSlice(UInt s, Bool bCUCtrlEnabled, Int iAlfDepth, UInt* puiFlags); //!< Copy ALF CU control flags from ALF parameter for one slice
-  Void xALFLuma( TComPic* pcPic, ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
 #endif
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   Void extendBorderCoreFunction(Pel* pPel, Int stride, Bool* pbAvail, UInt width, UInt height, UInt extSize); //!< Extend slice boundary border  
@@ -452,19 +441,13 @@ public: //public methods, interface functions
   Void destroy ();
   Void predictALFCoeffChroma  ( ALFParam* pAlfParam );                  //!< prediction of chroma ALF coefficients
 
-#if F747_APS
   Void ALFProcess             ( TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam ); ///< interface function for ALF process
-#else
-  Void ALFProcess             ( TComPic* pcPic, ALFParam* pcAlfParam ); ///< interface function for ALF process
-#endif
 
   Void allocALFParam  ( ALFParam* pAlfParam ); //!< allocate ALF parameters
   Void freeALFParam   ( ALFParam* pAlfParam ); //!< free ALF parameters
   Void copyALFParam   ( ALFParam* pDesAlfParam, ALFParam* pSrcAlfParam ); //!< copy ALF parameters
 
-#if F747_APS
   Int  getNumCUsInPic()  {return m_uiNumCUsInFrame;} //!< get number of LCU in picture for ALF process
-#endif
 
 
 #if NONCROSS_TILE_IN_LOOP_FILTERING

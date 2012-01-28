@@ -171,11 +171,8 @@
 #define NS_HAD                               1
 #endif
 
-#define F747_APS                             1       // F747 : Adaptation Parameter Set (APS)
-#if F747_APS
   #define APS_BITS_FOR_SAO_BYTE_LENGTH 12           
   #define APS_BITS_FOR_ALF_BYTE_LENGTH 8
-#endif
 
 #define F747_CABAC_FLUSH_SLICE_HEADER        1       // F747 & F399: CABAC Flush after slice header
 
@@ -456,9 +453,6 @@ struct _SaoParam
 struct _AlfParam
 {
   Int alf_flag;                           ///< indicates use of ALF
-#if !F747_APS
-  Int cu_control_flag;                    ///< coding unit based control flag
-#endif
   Int chroma_idc;                         ///< indicates use of ALF for chroma
   Int num_coeff;                          ///< number of filter coefficients
   Int filter_shape;
@@ -476,12 +470,6 @@ struct _AlfParam
   Int minKStart;
   Int maxScanVal;
   Int kMinTab[42];
-#if !F747_APS
-  UInt num_alf_cu_flag;
-  UInt num_cus_in_frame;
-  UInt alf_max_depth;
-  UInt *alf_cu_flag;
-#endif
 
   Int alf_pcr_region_flag; 
 };

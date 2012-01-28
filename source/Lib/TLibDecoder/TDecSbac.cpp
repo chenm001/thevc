@@ -126,18 +126,10 @@ TDecSbac::~TDecSbac()
 // Public member functions
 // ====================================================================================================================
 
-#if F747_APS
 Void TDecSbac::resetEntropywithQPandInitIDC (Int  iQp, Int iID)
 {
   SliceType eSliceType = (SliceType)iID;
 
-#else
-
-Void TDecSbac::resetEntropy          (TComSlice* pcSlice)
-{
-  Int  iQp              = pcSlice->getSliceQp();
-  SliceType eSliceType  = pcSlice->getSliceType();
-#endif
 #if G633_8BIT_INIT
   m_cCUSplitFlagSCModel.initBuffer       ( eSliceType, iQp, (UChar*)INIT_SPLIT_FLAG );
   m_cCUSkipFlagSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SKIP_FLAG );

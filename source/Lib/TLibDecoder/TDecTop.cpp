@@ -60,16 +60,11 @@ TDecTop::TDecTop()
   m_uiPrevPOC               = UInt(-1);
   m_bFirstSliceInPicture    = true;
   m_bFirstSliceInSequence   = true;
-#if F747_APS
   m_vAPS.resize(MAX_NUM_SUPPORTED_APS);
   for(Int i=0; i< MAX_NUM_SUPPORTED_APS; i++)
   {
     m_vAPS[i].reserve(APS_RESERVED_BUFFER_SIZE);
   }
-#else
-  m_pcPPSBuffer = NULL;
-  m_pbHasNewPPS = NULL;
-#endif
 }
 
 TDecTop::~TDecTop()
@@ -89,7 +84,6 @@ Void TDecTop::create()
 Void TDecTop::destroy()
 {
 
-#if F747_APS
   if(m_vAPS.size() != 0)
   {
     for(Int i=0; i< m_vAPS.size(); i++)
@@ -105,9 +99,6 @@ Void TDecTop::destroy()
       }
     }
   }
-#else
-  destroyPPSBuffer();
-#endif
   m_cGopDecoder.destroy();
   
   delete m_apcSlicePilot;
@@ -326,9 +317,6 @@ Void TDecTop::xCreateLostPicture(Int iLostPoc)
 Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 {
   TComPic*&   pcPic         = m_pcPic;
-#if !F747_APS
-  static TComPPS*    pcNewPPS = NULL;
-#endif
   // Initialize entropy decoder
   m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
   m_cEntropyDecoder.setBitstream      (nalu.m_Bitstream);
@@ -361,9 +349,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 #else
       m_cLoopFilter.        create( g_uiMaxCUDepth );
 #endif
-#if !F747_APS
-      createPPSBuffer();
-#endif
       m_uiValidPS |= 1;
       
       return false;
@@ -372,30 +357,12 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 #if G1002_RPS
       m_cPPS.setRPSList(&m_cRPSList);
 #endif
-#if F747_APS
       m_cPPS.setSPS(&m_cSPS);
       m_cEntropyDecoder.decodePPS( &m_cPPS );
-#else
-      pcNewPPS = getNewPPSBuffer();
-      pcNewPPS->setSPS(&m_cSPS);
-      m_cEntropyDecoder.decodePPS( pcNewPPS );
-      if(pcNewPPS->getSharedPPSInfoEnabled())
-      {
-        if(m_cSPS.getUseALF())
-        {
-          m_cEntropyDecoder.decodeAlfParam( pcNewPPS->getSharedAlfParam());
-        }
-      }
-      signalNewPPSAvailable();
-#if G1002_RPS
-      m_cPPS.setRPSList(&m_cRPSList);
-#endif
-#endif
 
       m_uiValidPS |= 2;
       return false;
 
-#if F747_APS
     case NAL_UNIT_APS:
       {
         TComAPS  cAPS;
@@ -404,7 +371,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         pushAPS(cAPS);
       }
       return false;
-#endif
 
     case NAL_UNIT_SEI:
       m_SEIs = new SEImessages;
@@ -428,24 +394,13 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 #endif
         m_uiSliceIdx     = 0;
         m_uiLastSliceIdx = 0;
-#if !F747_APS
-        if(hasNewPPS())
-        {
-          m_pcPPS = pcNewPPS;
-          updatePPSBuffer();
-        }
-#endif
       }
       m_apcSlicePilot->setSliceIdx(m_uiSliceIdx);
 
       //  Read slice header
       m_apcSlicePilot->setSPS( &m_cSPS );
 
-#if F747_APS
       m_apcSlicePilot->setPPS( &m_cPPS );
-#else
-      m_apcSlicePilot->setPPS( m_pcPPS );
-#endif
       m_apcSlicePilot->setSliceIdx(m_uiSliceIdx);
       if (!m_bFirstSliceInPicture)
       {
@@ -505,7 +460,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         m_uiPrevPOC = m_apcSlicePilot->getPOC();
         return true;
       }
-#if F747_APS
 #if SCALING_LIST
 #if G174_DF_OFFSET
       if(m_cSPS.getUseSAO() || m_cSPS.getUseALF()|| m_cSPS.getScalingListFlag() || m_cSPS.getUseDF())
@@ -518,7 +472,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       {
         m_apcSlicePilot->setAPS( popAPS(m_apcSlicePilot->getAPSId())  );
       }
-#endif
 
       if (m_apcSlicePilot->isNextSlice()) 
         m_uiPrevPOC = m_apcSlicePilot->getPOC();
@@ -952,7 +905,6 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
   return false; 
 }
 
-#if F747_APS
 /** decode APS syntax elements
  * \param [in] bs bistream pointer
  * \param [in,out] cAPS APS object to store the decoded results
@@ -1138,72 +1090,6 @@ Void TDecTop::freeAPS (TComAPS* pAPS)
     pAPS->destroyAlfParam();
   }
 }
-
-#else
-
-Void TDecTop::createPPSBuffer()
-{
-  m_pcPPSBuffer = new TComPPS[MAX_NUM_PPS_BUFFER];
-  m_pbHasNewPPS = new Bool[MAX_NUM_PPS_BUFFER];
-
-  m_iPPSCounter = 0;
-
-  for(Int i=0; i< MAX_NUM_PPS_BUFFER; i++)
-  {
-    m_pbHasNewPPS[i] = false;
-  }
-
-  if(m_cSPS.getUseALF())
-  {
-    for(Int i=0; i< MAX_NUM_PPS_BUFFER; i++)
-    {
-      m_cAdaptiveLoopFilter.allocALFParam(m_pcPPSBuffer[i].getSharedAlfParam());
-    }
-  }
-
-  m_pcPPS = &(m_pcPPSBuffer[0]);
-}
-
-Void TDecTop::destroyPPSBuffer()
-{
-  if(m_pbHasNewPPS != NULL)
-  {
-    delete[] m_pbHasNewPPS;
-    m_pbHasNewPPS = NULL;
-  }
-
-  if(m_pcPPSBuffer != NULL)
-  {
-    if(m_cSPS.getUseALF())
-    {
-      for (Int i=0; i< MAX_NUM_PPS_BUFFER; i++)
-      {
-        m_cAdaptiveLoopFilter.freeALFParam(m_pcPPSBuffer[i].getSharedAlfParam());
-      }
-    }
-    delete[] m_pcPPSBuffer;
-    m_pcPPSBuffer = NULL;
-  }
-}
-
-TComPPS* TDecTop::getNewPPSBuffer()
-{
-  return &(m_pcPPSBuffer[m_iPPSCounter]);
-}
-
-Void TDecTop::signalNewPPSAvailable()
-{
-  m_pbHasNewPPS[m_iPPSCounter] = true;
-}
-
-Void TDecTop::updatePPSBuffer()
-{
-  m_pbHasNewPPS[m_iPPSCounter] = false;
-  m_iPPSCounter = (m_iPPSCounter +1)%MAX_NUM_PPS_BUFFER;
-}
-
-
-#endif
 
 
 //! \}

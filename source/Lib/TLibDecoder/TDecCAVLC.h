@@ -143,10 +143,8 @@ private:
   
 public:
 
-#if F747_APS
   /// rest entropy coder by intial QP and IDC in CABAC
   Void  resetEntropy        (Int  iQp, Int iID) { printf("Not supported yet\n"); assert(0); exit(1);}
-#endif
   Void  resetEntropy        ( TComSlice* pcSlice  );
   Void  setBitstream        ( TComInputBitstream* p )   { m_pcBitstream = p; }
   Void  setAlfCtrl          ( Bool bAlfCtrl )            { m_bAlfCtrl = bAlfCtrl; }
@@ -217,10 +215,8 @@ public:
   Void decodeFlush() {};
 #endif
 
-#if F747_APS
   /// parse APF flags before SAO and ALF parameters
   Void parseAPSInitInfo(TComAPS& cAPS);
-#endif
 
 #if WEIGHT_PRED
   Void xParsePredWeightTable ( TComSlice* pcSlice );

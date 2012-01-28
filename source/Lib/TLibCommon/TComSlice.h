@@ -53,10 +53,8 @@ class TComTrQuant;
 // Constants
 // ====================================================================================================================
 
-#if F747_APS
 /// max number of supported APS in software
 #define MAX_NUM_SUPPORTED_APS 1
-#endif
 
 // ====================================================================================================================
 // Class definition
@@ -544,11 +542,6 @@ private:
 
   Int         m_iSliceGranularity;
 
-#if !F747_APS
-  Bool        m_bSharedPPSInfoEnabled;  //!< Shared info. in PPS is enabled/disabled
-  ALFParam    m_cSharedAlfParam;        //!< Shared ALF parameters in PPS 
-#endif
-
 #if WEIGHT_PRED
   Bool        m_bUseWeightPred;           // Use of Weighting Prediction (P_SLICE)
   UInt        m_uiBiPredIdc;              // Use of Weighting Bi-Prediction (B_SLICE)
@@ -631,15 +624,6 @@ public:
   Int       getChromaQpOffset   () { return m_iChromaQpOffset;}
   Void      setChromaQpOffset2nd( Int i ) { m_iChromaQpOffset2nd = i; }
   Int       getChromaQpOffset2nd() { return m_iChromaQpOffset2nd;}
-#endif
-
-#if !F747_APS
-  ///  set shared PPS info enabled/disabled
-  Void      setSharedPPSInfoEnabled(Bool b) {m_bSharedPPSInfoEnabled = b;   }
-  /// get shared PPS info enabled/disabled flag
-  Bool      getSharedPPSInfoEnabled()       {return m_bSharedPPSInfoEnabled;}
-  /// get shared ALF parameters in PPS
-  ALFParam* getSharedAlfParam()             {return &m_cSharedAlfParam;     }
 #endif
 
 #if WEIGHT_PRED
@@ -765,7 +749,7 @@ private:
   Int      *m_scalingList32x32_Org [SCALING_LIST_NUM];  //!< default quantization matrix 32x32
 };
 #endif
-#if F747_APS
+
 /// APS class
 class TComAPS
 {
@@ -837,7 +821,6 @@ private:
 public:
   TComAPS& operator= (const TComAPS& src);  //!< "=" operator for APS object
 };
-#endif
 
 
 #if WEIGHT_PRED
@@ -865,9 +848,7 @@ class TComSlice
   
 private:
   //  Bitstream writing
-#if F747_APS
   Int         m_iAPSId; //!< APS ID in slice header
-#endif
 #if ALF_SAO_SLICE_FLAGS
   bool       m_alfEnabledFlag;
   bool       m_saoEnabledFlag;
@@ -938,9 +919,7 @@ private:
 #if ADAPTIVE_QP_SELECTION
   TComTrQuant* m_pcTrQuant;
 #endif  
-#if F747_APS
   TComAPS*    m_pcAPS;  //!< pointer to APS parameter object
-#endif
 
   UInt        m_uiColDir;  // direction to get colocated CUs
   
@@ -1018,12 +997,10 @@ public:
 
   Void      setPPSId        ( Int PPSId )         { m_iPPSId = PPSId; }
   Int       getPPSId        () { return m_iPPSId; }
-#if F747_APS
   Void      setAPS          ( TComAPS* pcAPS ) { m_pcAPS = pcAPS; } //!< set APS pointer
   TComAPS*  getAPS          ()                 { return m_pcAPS;  } //!< get APS pointer
   Void      setAPSId        ( Int Id)          { m_iAPSId =Id;    } //!< set APS ID
   Int       getAPSId        ()                 { return m_iAPSId; } //!< get APS ID
-#endif
 #if ALF_SAO_SLICE_FLAGS
   Void      setAlfEnabledFlag(Bool s) {m_alfEnabledFlag =s; }
   Bool      getAlfEnabledFlag() { return m_alfEnabledFlag; }

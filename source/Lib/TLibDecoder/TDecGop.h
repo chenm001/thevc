@@ -86,12 +86,6 @@ private:
   TComAdaptiveLoopFilter*       m_pcAdaptiveLoopFilter;
 #if SAO
   TComSampleAdaptiveOffset*     m_pcSAO;
-#if !F747_APS
-  SAOParam              m_cSaoParam;
-#endif
-#endif
-#if !F747_APS
-  ALFParam              m_cAlfParam;
 #endif
   Double                m_dDecTime;
 
@@ -131,12 +125,6 @@ public:
   void setPictureDigestEnabled(bool enabled) { m_pictureDigestEnabled = enabled; }
 #if G220_PURE_VLC_SAO_ALF
   Void decodeAlfOnOffCtrlParam() { m_pcEntropyDecoder->decodeAlfCtrlParam( m_cAlfCUCtrlOneSlice, m_pcAdaptiveLoopFilter->getNumCUsInPic());}
-#endif
-
-#if !F747_APS
-private:
-  /// copy shared ALF parameters from PPS
-  Void copySharedAlfParamFromPPS(ALFParam* pAlfDst, ALFParam* pAlfSrc);
 #endif
 
 };

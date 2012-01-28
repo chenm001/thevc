@@ -224,10 +224,6 @@ Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
 {
   UInt uiSymbol;
   Int iSymbol;
-#if !F747_APS
-  m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
-  pAlfParam->alf_flag = uiSymbol;
-#endif  
   if (!pAlfParam->alf_flag)
   {
     m_pcEntropyDecoderIf->setAlfCtrl(false);
@@ -275,7 +271,6 @@ Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
  * \param [in] iNumCUsinPic number of LCUs in picture for ALF
  */
 
-#if F747_APS
 Void TDecEntropy::decodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic)
 {
   UInt uiSymbol;
@@ -305,52 +300,6 @@ Void TDecEntropy::decodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic)
     m_pcEntropyDecoderIf->parseAlfCtrlFlag( cAlfParam.alf_cu_flag[i] );
   }
 }
-#else
-
-Void TDecEntropy::decodeAlfCtrlParam( ALFParam* pAlfParam , Bool bFirstSliceInPic)
-{
-  UInt uiSymbol;
-
-  if(pAlfParam->alf_flag ==0)
-  {
-    return;
-  }
-  m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
-  pAlfParam->cu_control_flag = uiSymbol;
-  if (pAlfParam->cu_control_flag)
-  {
-    m_pcEntropyDecoderIf->setAlfCtrl(true);
-    m_pcEntropyDecoderIf->parseAlfCtrlDepth(uiSymbol);
-    m_pcEntropyDecoderIf->setMaxAlfCtrlDepth(uiSymbol);
-    pAlfParam->alf_max_depth = uiSymbol;
-  }
-  else
-  {
-    m_pcEntropyDecoderIf->setAlfCtrl(false);
-    return;
-  }
-
-  Int iSymbol;
-  m_pcEntropyDecoderIf->parseAlfSvlc(iSymbol);
-
-  uiSymbol = (UInt)(iSymbol + (Int)pAlfParam->num_cus_in_frame);
-
-  if(bFirstSliceInPic)
-  {
-    pAlfParam->num_alf_cu_flag = 0;
-  }
-  UInt uiSliceNumAlfFlags = uiSymbol;
-  UInt uiSliceAlfFlagsPos = pAlfParam->num_alf_cu_flag;
-
-  pAlfParam->num_alf_cu_flag += uiSliceNumAlfFlags;
-
-  for(UInt i=uiSliceAlfFlagsPos; i<pAlfParam->num_alf_cu_flag; i++)
-  {
-    m_pcEntropyDecoderIf->parseAlfCtrlFlag( pAlfParam->alf_cu_flag[i] );
-  }
-}
-
-#endif
 
 Void TDecEntropy::decodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
@@ -1310,11 +1259,6 @@ Void TDecEntropy::decodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int
 Void TDecEntropy::decodeSaoParam(SAOParam* pSaoParam)
 {
   UInt uiSymbol;
-
-#if !F747_APS
-  m_pcEntropyDecoderIf->parseSaoFlag(uiSymbol);
-  pSaoParam->bSaoFlag[0] = uiSymbol? true:false;
-#endif
 
   if (pSaoParam->bSaoFlag[0])
   {

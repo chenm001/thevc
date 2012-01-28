@@ -156,10 +156,8 @@ public:
 #endif
 #endif
 
-#if F747_APS
   virtual Void codeAPSInitInfo  (TComAPS* pcAPS)= 0;
   virtual Void codeFinish       (Bool bEnd)= 0;
-#endif
 
 #if G174_DF_OFFSET
   virtual Void codeDFFlag (UInt uiCode, const Char *pSymbolName) = 0;
@@ -236,12 +234,7 @@ public:
   /// encode ALF CU control flag
   Void encodeAlfCtrlFlag(UInt uiFlag);
 
-#if F747_APS
   Void encodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
-#else
-  /// encode ALF CU control flags
-  Void encodeAlfCtrlParam      ( ALFParam *pAlfParam, UInt uiNumSlices= 1, CAlfSlice* pcAlfSlice= NULL);
-#endif
 
   Void encodePredMode          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   Void encodePartSize          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD = false );
@@ -264,10 +257,8 @@ public:
 #endif
 #endif
   
-#if F747_APS
   Void encodeAPSInitInfo          (TComAPS* pcAPS) {m_pcEntropyCoderIf->codeAPSInitInfo(pcAPS);}
   Void encodeFinish               (Bool bEnd) {m_pcEntropyCoderIf->codeFinish(bEnd);}
-#endif
 #if SCALING_LIST
   Void encodeScalingList       ( TComScalingList* scalingList );
 #endif

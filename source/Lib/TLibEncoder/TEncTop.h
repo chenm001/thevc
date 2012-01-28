@@ -103,9 +103,7 @@ private:
   // SPS
   TComSPS                 m_cSPS;                         ///< SPS
   TComPPS                 m_cPPS;                         ///< PPS
-#if F747_APS
   std::vector<TComAPS>    m_vAPS;  //!< APS container
-#endif
 #if G1002_RPS
   TComRPS                 m_cRPSList;                         ///< RPS
 #endif
@@ -203,9 +201,7 @@ public:
   
   TComSPS*                getSPS                () { return  &m_cSPS;                 }
   TComPPS*                getPPS                () { return  &m_cPPS;                 }
-#if F747_APS
   std::vector<TComAPS>&   getAPS                () { return m_vAPS; }
-#endif
 #if G1002_RPS
   TComRPS*                getRPSList                () { return  &m_cRPSList;                 }
   

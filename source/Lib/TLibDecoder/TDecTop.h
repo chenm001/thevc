@@ -55,14 +55,7 @@ struct InputNALUnit;
 //! \ingroup TLibDecoder
 //! \{
 
-#if F747_APS
-
 #define APS_RESERVED_BUFFER_SIZE 2 //!< must be equal to or larger than 2 to handle bitstream parsing
-
-#else
-#define MAX_NUM_PPS 1
-#define MAX_NUM_PPS_BUFFER (MAX_NUM_PPS +1)
-#endif
 
 // ====================================================================================================================
 // Class definition
@@ -84,15 +77,8 @@ private:
   TComList<TComPic*>      m_cListPic;         //  Dynamic buffer
   TComSPS                 m_cSPS;
 
-#if F747_APS
   TComPPS                 m_cPPS;               //!< PPS
   std::vector<std::vector<TComAPS> >   m_vAPS;  //!< APS container
-#else
-  TComPPS*                m_pcPPS;       //!< PPS
-  TComPPS*                m_pcPPSBuffer; //!< PPS buffer
-  Bool*                   m_pbHasNewPPS; //!< Availability for each PPS in PPS buffer
-  Int                     m_iPPSCounter; //!< PPS counter
-#endif
 #if G1002_RPS
   TComRPS                 m_cRPSList;
 #endif
@@ -152,28 +138,11 @@ protected:
   Void  xCreateLostPicture (Int iLostPOC);
 #endif
 
-#if F747_APS
   Void      decodeAPS(TComInputBitstream* bs, TComAPS& cAPS); //!< decode process for APS
   TComAPS*  popAPS   (UInt apsID);  //!< pop APS parameter object pointer with APS ID equal to apsID
   Void      pushAPS  (TComAPS& cAPS); //!< push APS object into APS container
   Void      allocAPS (TComAPS* pAPS); //!< memory allocation for APS
   Void      freeAPS  (TComAPS* pAPS); //!< memory deallocation for APS
-#else
-  /// create PPS buffer
-  Void     createPPSBuffer      ();
-  /// destroy PPS buffer
-  Void     destroyPPSBuffer     ();
-  /// signal the PPS availability
-  Void     signalNewPPSAvailable();
-  /// update PPS buffer counter
-  Void     updatePPSBuffer      ();
-  /// get new PPS buffer for the coming PPS
-  TComPPS* getNewPPSBuffer      ();
-  /// get PPS pointer
-  TComPPS* getPPS               ()   {return m_pcPPS;}
-  /// signal if the PPS is available
-  Bool     hasNewPPS            ()   {return m_pbHasNewPPS[m_iPPSCounter];}
-#endif
 
 };// END CLASS DEFINITION TDecTop
 

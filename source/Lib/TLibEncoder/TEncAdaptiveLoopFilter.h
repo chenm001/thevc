@@ -121,18 +121,13 @@ private:
 #endif
 
   Int  m_iALFNumOfRedesign;       //!< number of redesigning filter for each CU control depth
-#if !F747_APS
-  Bool  m_bSharedPPSAlfParamEnabled; //!< true for shared ALF parameters in PPS enabled
-#endif
 
   ///
   /// variables for on/off control
   ///
   Pel **m_maskImg;
-#if F747_APS
   Bool m_bAlfCUCtrlEnabled;                         //!< if input ALF CU control param is NULL, this variable is set to be false (Disable CU control)
   std::vector<AlfCUCtrlInfo> m_vBestAlfCUCtrlParam; //!< ALF CU control parameters container to store the ALF CU control parameters after RDO
-#endif
 
   ///
   /// miscs. 
@@ -165,19 +160,11 @@ private:
 #endif
   Void xEncodeCUAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
   Void xCUAdaptiveControl_qc           ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiMinRate, UInt64& ruiMinDist, Double& rdMinCost );
-#if F747_APS
 #if !NONCROSS_TILE_IN_LOOP_FILTERING
   Void transferCtrlFlagsToAlfParam(std::vector<AlfCUCtrlInfo>& vAlfCUCtrlInfo); //!< Copy CU control flags to ALF parameters
 #endif
   Void xSetCUAlfCtrlFlags_qc            (UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam);
   Void xSetCUAlfCtrlFlag_qc             (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, std::vector<UInt>& vCUCtrlFlag);
-#else
-  Void transferCtrlFlagsToAlfParam(UInt& ruiNumFlags, UInt* puiFlags); //!< Copy CU control flags to ALF parameters
-  Void xSetCUAlfCtrlFlags_qc            (UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, 
-    UInt64& ruiDist, ALFParam *pAlfParam);
-  Void xSetCUAlfCtrlFlag_qc             (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg,
-    TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, ALFParam *pAlfParam);
-#endif
 
   // functions related to correlation computation
   Void xstoreInBlockMatrix(Int ypos, Int xpos, Int iheight, Int iwidth, Bool bResetBlockMatrix, Bool bSymmCopyBlockMatrix, Pel* pImgOrg, Pel* pImgPad, Int filtNo, Int stride); //!< Calculate correlations for luma
@@ -229,13 +216,8 @@ private:
 
   // distortion / misc functions
   UInt64 xCalcSSD             ( Pel* pOrg, Pel* pCmp, Int iWidth, Int iHeight, Int iStride );
-#if F747_APS
   Void  xCalcRDCost          ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost, std::vector<AlfCUCtrlInfo>* pvAlfCUCtrlParam = NULL);
   Void  xCalcRDCost          ( ALFParam* pAlfParam, UInt64& ruiRate, UInt64 uiDist, Double& rdCost, std::vector<AlfCUCtrlInfo>* pvAlfCUCtrlParam = NULL);
-#else
-  Void  xCalcRDCost          ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost );
-  Void  xCalcRDCost          ( ALFParam* pAlfParam, UInt64& ruiRate, UInt64 uiDist, Double& rdCost );
-#endif
   Void  xCalcRDCostChroma    ( TComPicYuv* pcPicOrg, TComPicYuv* pcPicCmp, ALFParam* pAlfParam, UInt64& ruiRate, UInt64& ruiDist, Double& rdCost );
   Int64 xFastFiltDistEstimation(Double** ppdE, Double* pdy, Int* piCoeff, Int iFiltLength); //!< Estimate filtering distortion by correlation values and filter coefficients
   Int64 xEstimateFiltDist      (Int filters_per_fr, Int* VarIndTab, Double*** pppdE, Double** ppdy, Int** ppiCoeffSet, Int iFiltLength); //!< Estimate total filtering cost of all groups  
@@ -279,17 +261,9 @@ public:
   Void endALFEnc(); //!< destroy temporal memory
 
 #if ALF_CHROMA_LAMBDA  
-#if F747_APS
   Void ALFProcess(ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>* pvAlfCtrlParam, Double dLambdaLuma, Double dLambdaChroma, UInt64& ruiDist, UInt64& ruiBits); //!< estimate ALF parameters
 #else
-  Void ALFProcess(ALFParam* pcAlfParam, Double dLambdaLuma, Double dLambdaChroma, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth ); //!< estimate ALF parameters
-#endif
-#else
-#if F747_APS
   Void ALFProcess(ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>* pvAlfCtrlParam, Double dLambda, UInt64& ruiDist, UInt64& ruiBits); //!< estimate ALF parameters
-#else
-  Void ALFProcess(ALFParam* pcAlfParam, Double dLambda, UInt64& ruiDist, UInt64& ruiBits, UInt& ruiMaxAlfCtrlDepth ); //!< estimate ALF parameters
-#endif
 #endif
 
   Void setGOPSize(Int val) { m_iGOPSize = val; } //!< set GOP size
@@ -301,10 +275,6 @@ public:
 
   Void createAlfGlobalBuffers(Int iALFEncodePassReduction); //!< create ALF global buffers
   Void destroyAlfGlobalBuffers(); //!< destroy ALF global buffers
-#if !F747_APS
-  /// set shared ALF parameters in PPS enabled/disabled
-  Void setSharedPPSAlfParamEnabled(Bool b) {m_bSharedPPSAlfParamEnabled = b;}
-#endif
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void PCMLFDisableProcess (TComPic* pcPic);
 #endif
