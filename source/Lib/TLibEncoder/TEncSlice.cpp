@@ -723,11 +723,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   UInt  uiCUAddr;
   UInt   uiStartCUAddr;
   UInt   uiBoundingCUAddr;
-#if FINE_GRANULARITY_SLICES
   rpcPic->getSlice(getSliceIdx())->setEntropySliceCounter(0);
-#else
-  UInt64 uiBitsCoded            = 0;
-#endif
   TEncBinCABAC* pppcRDSbacCoder = NULL;
   TComSlice* pcSlice            = rpcPic->getSlice(getSliceIdx());
   xDetermineStartAndBoundingCUAddr ( uiStartCUAddr, uiBoundingCUAddr, rpcPic, false );
@@ -869,7 +865,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
 #endif
 
   // for every CU in slice
-#if FINE_GRANULARITY_SLICES
 #if TILES
   UInt uiEncCUOrder;
   uiCUAddr = rpcPic->getPicSym()->getCUOrderMap( uiStartCUAddr /rpcPic->getNumPartInCU()); 
@@ -878,17 +873,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
        uiCUAddr = rpcPic->getPicSym()->getCUOrderMap(++uiEncCUOrder) )
 #else
   for(  uiCUAddr = uiStartCUAddr/rpcPic->getNumPartInCU(); uiCUAddr < (uiBoundingCUAddr+(rpcPic->getNumPartInCU()-1))/rpcPic->getNumPartInCU(); uiCUAddr++  )
-#endif
-#else
-#if TILES
-  UInt uiEncCUOrder;
-  uiCUAddr = rpcPic->getPicSym()->getCUOrderMap( uiStartCUAddr ); 
-  for( uiEncCUOrder = uiStartCUAddr;
-       uiEncCUOrder < uiBoundingCUAddr;
-       uiCUAddr = rpcPic->getPicSym()->getCUOrderMap(++uiEncCUOrder) )
-#else
-  for(  uiCUAddr = uiStartCUAddr; uiCUAddr < uiBoundingCUAddr; uiCUAddr++  )
-#endif
 #endif
   {
     // initialize CU encoder
@@ -931,7 +915,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         {
           pcCUTR = rpcPic->getCU( uiCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
         }
-#if FINE_GRANULARITY_SLICES
         if ( (true/*bEnforceSliceRestriction*/ &&
              ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || 
              (pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getSliceCurStartCUAddr()) ||
@@ -943,16 +926,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
              (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && (rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr)))
              ))
            )
-#else
-        if( (true/*bEnforceSliceRestriction*/ &&
-            ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || (rpcPic->getPicSym()->getInverseCUOrderMap( pcCUTR->getAddr()) < rpcPic->getPicSym()->getTempInverseCUOrderMap(uiSliceStartLCU)) ||
-            (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && (rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr)) ))) ||
-            (true/*bEnforceEntropySliceRestriction*/ &&
-            ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || (rpcPic->getPicSym()->getInverseCUOrderMap( pcCUTR->getAddr()) < rpcPic->getPicSym()->getTempInverseCUOrderMap(pcSlice->getEntropySliceCurStartCUAddr()))
-    ||
-            (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && (rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr)) )))
-          )
-#endif
         {
           // TR not available.
         }
@@ -978,17 +951,10 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         {
           pcCUTR = rpcPic->getCU( uiCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
         }
-#if FINE_GRANULARITY_SLICES
         if ((true/*bEnforceSliceRestriction*/ &&
             ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || (pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getSliceCurStartCUAddr())))
           ||(true/*bEnforceEntropySliceRestriction*/ &&
             ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || (pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getEntropySliceCurStartCUAddr()))))
-#else
-        if ((pcCUTR == NULL)
-            || (pcCUTR->getSlice() == NULL)
-            || (pcCUTR->getAddr() < pcSlice->getSliceCurStartCUAddr())
-            || (pcCUTR->getAddr() < pcSlice->getEntropySliceCurStartCUAddr()))
-#endif
         {
           // TR is not available.
         }
@@ -1077,9 +1043,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
 #endif
       
-#if FINE_GRANULARITY_SLICES
       ((TEncBinCABAC*)m_pcRDGoOnSbacCoder->getEncBinIf())->setBinCountingEnableFlag(true);
-#endif
       // run CU encoder
       m_pcCuEncoder->compressCU( pcCU );
       
@@ -1093,66 +1057,18 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
 #endif
       pppcRDSbacCoder->setBinCountingEnableFlag( true );
-#if FINE_GRANULARITY_SLICES
       m_pcBitCounter->resetBits();
       pppcRDSbacCoder->setBinsCoded( 0 );
-#endif
       m_pcCuEncoder->encodeCU( pcCU );
 
       pppcRDSbacCoder->setBinCountingEnableFlag( false );
-#if FINE_GRANULARITY_SLICES
       if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE && ( ( pcSlice->getSliceBits() + m_pcEntropyCoder->getNumberOfWrittenBits() ) ) > m_pcCfg->getSliceArgument()<<3)
       {
-#else
-      uiBitsCoded += m_pcEntropyCoder->getNumberOfWrittenBits();
-      if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE && ( ( pcSlice->getSliceBits() + uiBitsCoded ) >> 3 ) > m_pcCfg->getSliceArgument())
-      {
-#if TILES
-        if (uiCUAddr == rpcPic->getPicSym()->getCUOrderMap(uiStartCUAddr) && pcSlice->getSliceBits()==0)
-        {
-          // Could not fit even a single LCU within the slice under the defined byte-constraint. Display a warning message and code 1 LCU in the slice.
-          fprintf(stdout,"\nSlice overflow warning! codedBits=%6d, limitBytes=%6d", m_pcEntropyCoder->getNumberOfWrittenBits(), m_pcCfg->getSliceArgument() );
-          uiEncCUOrder++;
-        }
-#else
-        if (uiCUAddr==uiStartCUAddr && pcSlice->getSliceBits()==0)
-        {
-          // Could not fit even a single LCU within the slice under the defined byte-constraint. Display a warning message and code 1 LCU in the slice.
-          fprintf(stdout,"Slice overflow warning! codedBits=%6d, limitBytes=%6d\n", m_pcEntropyCoder->getNumberOfWrittenBits(), m_pcCfg->getSliceArgument() );
-          uiCUAddr = uiCUAddr + 1;
-        }
-#endif
-#endif
         pcSlice->setNextSlice( true );
         break;
       }
-#if FINE_GRANULARITY_SLICES
       if (m_pcCfg->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE && pcSlice->getEntropySliceCounter()+pppcRDSbacCoder->getBinsCoded() > m_pcCfg->getEntropySliceArgument()&&pcSlice->getSliceCurEndCUAddr()!=pcSlice->getEntropySliceCurEndCUAddr())
       {
-#else
-      
-      UInt uiBinsCoded = pppcRDSbacCoder->getBinsCoded();
-      if (m_pcCfg->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE && uiBinsCoded > m_pcCfg->getEntropySliceArgument())
-      {
-#if TILES
-        if (uiCUAddr == rpcPic->getPicSym()->getCUOrderMap(uiStartCUAddr))
-        {
-          // Could not fit even a single LCU within the entropy slice under the defined byte-constraint. Display a warning message and code 1 LCU in the entropy slice.
-          fprintf(stdout,"\nEntropy Slice overflow warning! codedBins=%6d, limitBins=%6d", uiBinsCoded, m_pcCfg->getEntropySliceArgument() );
-          uiEncCUOrder++;
-        }
-#else
-        if (uiCUAddr == uiStartCUAddr)
-        {
-          // Could not fit even a single LCU within the entropy slice under the defined byte-constraint. Display a warning message and code 1 LCU in the entropy slice.
-          fprintf(stdout,"Entropy Slice overflow warning! codedBins=%6d, limitBins=%6d\n", uiBinsCoded, m_pcCfg->getEntropySliceArgument() );
-          uiCUAddr = uiCUAddr + 1;
-        }
-#endif
-#endif
-#if !FINE_GRANULARITY_SLICES
-        uiBitsCoded -= m_pcEntropyCoder->getNumberOfWrittenBits();
-#endif
         pcSlice->setNextEntropySlice( true );
         break;
       }
@@ -1194,59 +1110,13 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       m_pcCuEncoder->compressCU( pcCU );
       m_pcCavlcCoder ->setAdaptFlag(true);
       m_pcCuEncoder->encodeCU( pcCU );
-#if FINE_GRANULARITY_SLICES
       if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE && ( ( pcSlice->getSliceBits()+ m_pcEntropyCoder->getNumberOfWrittenBits() ) ) > m_pcCfg->getSliceArgument()<<3)
       {
-#else
-      uiBitsCoded += m_pcEntropyCoder->getNumberOfWrittenBits();
-      if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE && ( ( pcSlice->getSliceBits() + uiBitsCoded ) >> 3 ) > m_pcCfg->getSliceArgument())
-      {
-#if TILES
-        if (uiCUAddr == rpcPic->getPicSym()->getCUOrderMap(uiStartCUAddr) && pcSlice->getSliceBits()==0)
-        {
-          // Could not fit even a single LCU within the slice under the defined byte-constraint. Display a warning message and code 1 LCU in the slice.
-          fprintf(stdout,"\nSlice overflow warning! codedBits=%6d, limitBytes=%6d", m_pcEntropyCoder->getNumberOfWrittenBits(), m_pcCfg->getSliceArgument() );
-          uiEncCUOrder++;
-        }
-#else
-        if (uiCUAddr==uiStartCUAddr && pcSlice->getSliceBits()==0)
-        {
-          // Could not fit even a single LCU within the slice under the defined byte-constraint. Display a warning message and code 1 LCU in the slice.
-          fprintf(stdout,"Slice overflow warning! codedBits=%6d, limitBytes=%6d\n", m_pcEntropyCoder->getNumberOfWrittenBits(), m_pcCfg->getSliceArgument() );
-          uiCUAddr = uiCUAddr + 1;
-        }
-#endif
-#endif
         pcSlice->setNextSlice( true );
         break;
       }
-#if FINE_GRANULARITY_SLICES
       if (m_pcCfg->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE && pcSlice->getEntropySliceCounter()+ m_pcEntropyCoder->getNumberOfWrittenBits()> m_pcCfg->getEntropySliceArgument()&&pcSlice->getSliceCurEndCUAddr()!=pcSlice->getEntropySliceCurEndCUAddr())
       {
-
-#else
-      if (m_pcCfg->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE && uiBitsCoded > m_pcCfg->getEntropySliceArgument())
-      {
-#if TILES
-        if (uiCUAddr == rpcPic->getPicSym()->getCUOrderMap(uiStartCUAddr))
-        {
-          // Could not fit even a single LCU within the entropy slice under the defined bit/bin-constraint. Display a warning message and code 1 LCU in the entropy slice.
-          fprintf(stdout,"\nEntropy Slice overflow warning! codedBits=%6d, limitBits=%6d", m_pcEntropyCoder->getNumberOfWrittenBits(), m_pcCfg->getEntropySliceArgument() );
-          uiEncCUOrder++;
-        }
-#else
-        if (uiCUAddr == uiStartCUAddr)
-        {
-          // Could not fit even a single LCU within the entropy slice under the defined bit/bin-constraint. Display a warning message and code 1 LCU in the entropy slice.
-          fprintf(stdout,"Entropy Slice overflow warning! codedBits=%6d, limitBits=%6d\n", m_pcEntropyCoder->getNumberOfWrittenBits(), m_pcCfg->getEntropySliceArgument() );
-          uiCUAddr = uiCUAddr + 1;
-        }
-#endif
-#endif
-
-#if !FINE_GRANULARITY_SLICES
-        uiBitsCoded -= m_pcEntropyCoder->getNumberOfWrittenBits();
-#endif
         pcSlice->setNextEntropySlice( true );
         break;
       }
@@ -1257,16 +1127,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     m_dPicRdCost     += pcCU->getTotalCost();
     m_uiPicDist      += pcCU->getTotalDistortion();
   }
-#if !FINE_GRANULARITY_SLICES
-#if TILES
-  pcSlice->setSliceCurEndCUAddr( uiEncCUOrder );
-  pcSlice->setEntropySliceCurEndCUAddr( uiEncCUOrder );
-#else
-  pcSlice->setSliceCurEndCUAddr( uiCUAddr );
-  pcSlice->setEntropySliceCurEndCUAddr( uiCUAddr );
-#endif
-  pcSlice->setSliceBits( (UInt)(pcSlice->getSliceBits() + uiBitsCoded) );
-#endif
 #if WEIGHT_PRED
   xRestoreWPparam( pcSlice );
 #endif
@@ -1289,15 +1149,10 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
   UInt       uiCUAddr;
   UInt       uiStartCUAddr;
   UInt       uiBoundingCUAddr;
-#if !FINE_GRANULARITY_SLICES
-  xDetermineStartAndBoundingCUAddr  ( uiStartCUAddr, uiBoundingCUAddr, rpcPic, true );
-#endif
   TComSlice* pcSlice = rpcPic->getSlice(getSliceIdx());
 
-#if FINE_GRANULARITY_SLICES
   uiStartCUAddr=pcSlice->getEntropySliceCurStartCUAddr();
   uiBoundingCUAddr=pcSlice->getEntropySliceCurEndCUAddr();
-#endif
   // choose entropy coder
 #if !DISABLE_CAVLC
   Int iSymbolMode = pcSlice->getSymbolMode();
@@ -1383,7 +1238,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
 #endif
 
 
-#if FINE_GRANULARITY_SLICES
 #if TILES
   UInt uiEncCUOrder;
   uiCUAddr = rpcPic->getPicSym()->getCUOrderMap( uiStartCUAddr /rpcPic->getNumPartInCU());  /*for tiles, uiStartCUAddr is NOT the real raster scan address, it is actually
@@ -1394,19 +1248,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
        uiCUAddr = rpcPic->getPicSym()->getCUOrderMap(++uiEncCUOrder) )
 #else
   for(  uiCUAddr = uiStartCUAddr/rpcPic->getNumPartInCU(); uiCUAddr<(uiBoundingCUAddr+rpcPic->getNumPartInCU()-1)/rpcPic->getNumPartInCU(); uiCUAddr++  )
-#endif
-#else
-#if TILES
-  UInt uiEncCUOrder;
-  uiCUAddr = rpcPic->getPicSym()->getCUOrderMap( uiStartCUAddr );  /*for tiles, uiStartCUAddr is NOT the real raster scan address, it is actually
-                                                                   an encoding order index, so we need to convert the index (uiStartCUAddr)
-                                                                   into the real raster scan address (uiCUAddr) via the CUOrderMap*/
-  for( uiEncCUOrder = uiStartCUAddr;
-       uiEncCUOrder < uiBoundingCUAddr;
-       uiCUAddr = rpcPic->getPicSym()->getCUOrderMap(++uiEncCUOrder) )
-#else
-  for(  uiCUAddr = uiStartCUAddr; uiCUAddr<uiBoundingCUAddr; uiCUAddr++  )
-#endif
 #endif
   {
 #if OL_USE_WPP
@@ -1447,7 +1288,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         {
           pcCUTR = rpcPic->getCU( uiCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
         }
-#if FINE_GRANULARITY_SLICES
         if ( (true/*bEnforceSliceRestriction*/ &&
              ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || 
              (pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getSliceCurStartCUAddr()) ||
@@ -1459,16 +1299,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
              (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && (rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr)))
              ))
            )
-#else
-        if( (true/*bEnforceSliceRestriction*/ &&
-            ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || (rpcPic->getPicSym()->getInverseCUOrderMap( pcCUTR->getAddr()) < rpcPic->getPicSym()->getTempInverseCUOrderMap(uiSliceStartLCU)) ||
-            (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && (rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr)) ))) ||
-            (true/*bEnforceEntropySliceRestriction*/ &&
-            ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || (rpcPic->getPicSym()->getInverseCUOrderMap( pcCUTR->getAddr()) < rpcPic->getPicSym()->getTempInverseCUOrderMap(pcSlice->getEntropySliceCurStartCUAddr()))
-    ||
-            (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && (rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr)) )))
-          )
-#endif
         {
           // TR not available.
         }
@@ -1496,17 +1326,10 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         if ( pcCUUp && ((uiCUAddr%uiWidthInCU+pcSlice->getPPS()->getEntropyCodingSynchro()) < uiWidthInCU)  )
           pcCUTR = rpcPic->getCU( uiCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
 
-#if FINE_GRANULARITY_SLICES
         if ((true/*bEnforceSliceRestriction*/ &&
             ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || (pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getSliceCurStartCUAddr())))
           ||(true/*bEnforceEntropySliceRestriction*/ &&
             ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || (pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getEntropySliceCurStartCUAddr()))))
-#else
-        if ((pcCUTR == NULL)
-            || (pcCUTR->getSlice() == NULL)
-            || (pcCUTR->getAddr() < pcSlice->getSliceCurStartCUAddr())
-            || (pcCUTR->getAddr() < pcSlice->getEntropySliceCurStartCUAddr()))
-#endif
         {
           // TR is not available.
         }
@@ -1673,13 +1496,8 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
     g_bJustDoIt = g_bEncDecTraceEnable;
 #endif
 #if TILES
-#if FINE_GRANULARITY_SLICES
     if ( (m_pcCfg->getSliceMode()!=0 || m_pcCfg->getEntropySliceMode()!=0) && 
       uiCUAddr == rpcPic->getPicSym()->getCUOrderMap((uiBoundingCUAddr+rpcPic->getNumPartInCU()-1)/rpcPic->getNumPartInCU()-1) )
-#else
-    if ( (m_pcCfg->getSliceMode()!=0 || m_pcCfg->getEntropySliceMode()!=0) && 
-      uiCUAddr == rpcPic->getPicSym()->getCUOrderMap(uiBoundingCUAddr-1) )
-#endif
 #else
     if ( (m_pcCfg->getSliceMode()!=0 || m_pcCfg->getEntropySliceMode()!=0) && uiCUAddr==uiBoundingCUAddr-1 )
 #endif
@@ -1753,11 +1571,7 @@ Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& u
     {
     case AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE:
       uiCUAddrIncrement        = m_pcCfg->getSliceArgument();
-#if FINE_GRANULARITY_SLICES
       uiBoundingCUAddrSlice    = ((uiStartCUAddrSlice + uiCUAddrIncrement) < uiNumberOfCUsInFrame*rpcPic->getNumPartInCU()) ? (uiStartCUAddrSlice + uiCUAddrIncrement) : uiNumberOfCUsInFrame*rpcPic->getNumPartInCU();
-#else
-      uiBoundingCUAddrSlice    = ((uiStartCUAddrSlice + uiCUAddrIncrement     ) < uiNumberOfCUsInFrame ) ? (uiStartCUAddrSlice + uiCUAddrIncrement     ) : uiNumberOfCUsInFrame;
-#endif
       break;
     case AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE:
       uiCUAddrIncrement        = rpcPic->getNumCUsInFrame();
@@ -1765,11 +1579,7 @@ Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& u
       break;
     default:
       uiCUAddrIncrement        = rpcPic->getNumCUsInFrame();
-#if FINE_GRANULARITY_SLICES
       uiBoundingCUAddrSlice    = uiNumberOfCUsInFrame*rpcPic->getNumPartInCU();
-#else
-      uiBoundingCUAddrSlice    = uiNumberOfCUsInFrame;
-#endif
       break;
     } 
     pcSlice->setSliceCurEndCUAddr( uiBoundingCUAddrSlice );
@@ -1781,19 +1591,11 @@ Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& u
     {
     case AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE:
       uiCUAddrIncrement        = m_pcCfg->getSliceArgument();
-#if FINE_GRANULARITY_SLICES
       uiBoundingCUAddrSlice    = ((uiStartCUAddrSlice + uiCUAddrIncrement) < uiNumberOfCUsInFrame*rpcPic->getNumPartInCU()) ? (uiStartCUAddrSlice + uiCUAddrIncrement) : uiNumberOfCUsInFrame*rpcPic->getNumPartInCU();
-#else
-      uiBoundingCUAddrSlice    = ((uiStartCUAddrSlice + uiCUAddrIncrement     ) < uiNumberOfCUsInFrame ) ? (uiStartCUAddrSlice + uiCUAddrIncrement     ) : uiNumberOfCUsInFrame;
-#endif
       break;
     default:
       uiCUAddrIncrement        = rpcPic->getNumCUsInFrame();
-#if FINE_GRANULARITY_SLICES
       uiBoundingCUAddrSlice    = uiNumberOfCUsInFrame*rpcPic->getNumPartInCU();
-#else
-      uiBoundingCUAddrSlice    = uiNumberOfCUsInFrame;
-#endif
       break;
     } 
     pcSlice->setSliceCurEndCUAddr( uiBoundingCUAddrSlice );
@@ -1810,11 +1612,7 @@ Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& u
     {
     case SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE:
       uiCUAddrIncrement               = m_pcCfg->getEntropySliceArgument();
-#if FINE_GRANULARITY_SLICES
       uiBoundingCUAddrEntropySlice    = ((uiStartCUAddrEntropySlice + uiCUAddrIncrement) < uiNumberOfCUsInFrame*rpcPic->getNumPartInCU() ) ? (uiStartCUAddrEntropySlice + uiCUAddrIncrement) : uiNumberOfCUsInFrame*rpcPic->getNumPartInCU();
-#else
-      uiBoundingCUAddrEntropySlice    = ((uiStartCUAddrEntropySlice + uiCUAddrIncrement) < uiNumberOfCUsInFrame ) ? (uiStartCUAddrEntropySlice + uiCUAddrIncrement) : uiNumberOfCUsInFrame;
-#endif
       break;
     case SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE:
       uiCUAddrIncrement               = rpcPic->getNumCUsInFrame();
@@ -1822,11 +1620,7 @@ Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& u
       break;
     default:
       uiCUAddrIncrement               = rpcPic->getNumCUsInFrame();
-#if FINE_GRANULARITY_SLICES
       uiBoundingCUAddrEntropySlice    = uiNumberOfCUsInFrame*rpcPic->getNumPartInCU();
-#else
-      uiBoundingCUAddrEntropySlice    = uiNumberOfCUsInFrame;
-#endif
       break;
     } 
     pcSlice->setEntropySliceCurEndCUAddr( uiBoundingCUAddrEntropySlice );
@@ -1838,24 +1632,15 @@ Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& u
     {
     case SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE:
       uiCUAddrIncrement               = m_pcCfg->getEntropySliceArgument();
-#if FINE_GRANULARITY_SLICES
       uiBoundingCUAddrEntropySlice    = ((uiStartCUAddrEntropySlice + uiCUAddrIncrement) < uiNumberOfCUsInFrame*rpcPic->getNumPartInCU() ) ? (uiStartCUAddrEntropySlice + uiCUAddrIncrement) : uiNumberOfCUsInFrame*rpcPic->getNumPartInCU();
-#else
-      uiBoundingCUAddrEntropySlice    = ((uiStartCUAddrEntropySlice + uiCUAddrIncrement) < uiNumberOfCUsInFrame ) ? (uiStartCUAddrEntropySlice + uiCUAddrIncrement) : uiNumberOfCUsInFrame;
-#endif
       break;
     default:
       uiCUAddrIncrement               = rpcPic->getNumCUsInFrame();
-#if FINE_GRANULARITY_SLICES
       uiBoundingCUAddrEntropySlice    = uiNumberOfCUsInFrame*rpcPic->getNumPartInCU();
-#else
-      uiBoundingCUAddrEntropySlice    = uiNumberOfCUsInFrame;
-#endif
       break;
     } 
     pcSlice->setEntropySliceCurEndCUAddr( uiBoundingCUAddrEntropySlice );
   }
-#if FINE_GRANULARITY_SLICES
   if(uiBoundingCUAddrEntropySlice>uiBoundingCUAddrSlice)
   {
     uiBoundingCUAddrEntropySlice = uiBoundingCUAddrSlice;
@@ -1933,8 +1718,6 @@ Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& u
   pcSlice->setSliceCurStartCUAddr(uiRealStartAddress);
   uiStartCUAddrSlice=uiRealStartAddress;
   
-  
-#endif
   // Make a joint decision based on reconstruction and entropy slice bounds
   uiStartCUAddr    = max(uiStartCUAddrSlice   , uiStartCUAddrEntropySlice   );
   uiBoundingCUAddr = min(uiBoundingCUAddrSlice, uiBoundingCUAddrEntropySlice);

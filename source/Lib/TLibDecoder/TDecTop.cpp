@@ -723,7 +723,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       pcPic->getPicSym()->setCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());
       pcPic->getPicSym()->setInverseCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());
 
-#if FINE_GRANULARITY_SLICES
       //convert the start and end CU addresses of the slice and entropy slice into encoding order
       pcSlice->setEntropySliceCurStartCUAddr( pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getEntropySliceCurStartCUAddr()) );
       pcSlice->setEntropySliceCurEndCUAddr( pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getEntropySliceCurEndCUAddr()) );
@@ -732,14 +731,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         pcSlice->setSliceCurStartCUAddr(pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getSliceCurStartCUAddr()));
         pcSlice->setSliceCurEndCUAddr(pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getSliceCurEndCUAddr()));
       }
-#else
-      //convert the start and end CU addresses of the slice and entropy slice into encoding order
-      pcSlice->setEntropySliceCurStartCUAddr( pcPic->getPicSym()->getInverseCUOrderMap(pcSlice->getEntropySliceCurStartCUAddr()) );
-      if(pcSlice->isNextSlice())
-      {
-        pcSlice->setSliceCurStartCUAddr(pcPic->getPicSym()->getInverseCUOrderMap(pcSlice->getSliceCurStartCUAddr()));
-      }
-#endif
 #endif
 
       if (m_bFirstSliceInPicture) 

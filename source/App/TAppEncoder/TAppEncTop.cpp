@@ -217,7 +217,6 @@ Void TAppEncTop::xInitLibCfg()
   //====== Entropy Slice ========
   m_cTEncTop.setEntropySliceMode        ( m_iEntropySliceMode         );
   m_cTEncTop.setEntropySliceArgument    ( m_iEntropySliceArgument     );
-#if FINE_GRANULARITY_SLICES
   int iNumPartInCU = 1<<(m_uiMaxCUDepth<<1);
   if(m_iEntropySliceMode==SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE)
   {
@@ -229,7 +228,6 @@ Void TAppEncTop::xInitLibCfg()
   }
   
   m_cTEncTop.setSliceGranularity        ( m_iSliceGranularity         );
-#endif
   if(m_iSliceMode == 0 )
   {
     m_bLFCrossSliceBoundaryFlag = true;

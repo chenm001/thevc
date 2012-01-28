@@ -275,7 +275,6 @@
 /////////////////////////////////
 // AHG SLICES defines section start
 /////////////////////////////////
-#define FINE_GRANULARITY_SLICES 1
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE      1          ///< OPTION IDENTIFIER. mode==1 -> Limit maximum number of largest coding tree blocks in a slice
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE    2          ///< OPTION IDENTIFIER. mode==2 -> Limit maximum number of bins/bits in a slice
 

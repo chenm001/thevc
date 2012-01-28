@@ -99,13 +99,8 @@ Void  TEncGOP::create( Int iWidth, Int iHeight, UInt iMaxCUWidth, UInt iMaxCUHei
   UInt uiWidthInCU       = ( iWidth %iMaxCUWidth  ) ? iWidth /iMaxCUWidth  + 1 : iWidth /iMaxCUWidth;
   UInt uiHeightInCU      = ( iHeight%iMaxCUHeight ) ? iHeight/iMaxCUHeight + 1 : iHeight/iMaxCUHeight;
   UInt uiNumCUsInFrame   = uiWidthInCU * uiHeightInCU;
-#if FINE_GRANULARITY_SLICES
   m_uiStoredStartCUAddrForEncodingSlice = new UInt [uiNumCUsInFrame*(1<<(g_uiMaxCUDepth<<1))+1];
   m_uiStoredStartCUAddrForEncodingEntropySlice = new UInt [uiNumCUsInFrame*(1<<(g_uiMaxCUDepth<<1))+1];
-#else
-  m_uiStoredStartCUAddrForEncodingSlice = new UInt [uiNumCUsInFrame+1];
-  m_uiStoredStartCUAddrForEncodingEntropySlice = new UInt [uiNumCUsInFrame+1];
-#endif
 #if G1002_RPS
   m_bLongtermTestPictureHasBeenCoded = 0;
   m_bLongtermTestPictureHasBeenCoded2 = 0;
@@ -489,7 +484,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
       UInt uiNumSlices = 1;
 
-#if FINE_GRANULARITY_SLICES
       UInt uiInternalAddress = pcPic->getNumPartInCU()-4;
       UInt uiExternalAddress = pcPic->getPicSym()->getNumberOfCUsInFrame()-1;
       UInt uiPosX = ( uiExternalAddress % pcPic->getFrameWidthInCU() ) * g_uiMaxCUWidth+ g_auiRasterToPelX[ g_auiZscanToRaster[uiInternalAddress] ];
@@ -509,7 +503,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         uiExternalAddress++;
       }
       UInt uiRealEndAddress = uiExternalAddress*pcPic->getNumPartInCU()+uiInternalAddress;
-#endif
 
 #if TILES
     UInt uiCummulativeTileWidth;
@@ -694,30 +687,18 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       UInt uiStartCUAddrSliceIdx = 0; // used to index "m_uiStoredStartCUAddrForEncodingSlice" containing locations of slice boundaries
       UInt uiStartCUAddrSlice    = 0; // used to keep track of current slice's starting CU addr.
       pcSlice->setSliceCurStartCUAddr( uiStartCUAddrSlice ); // Setting "start CU addr" for current slice
-#if FINE_GRANULARITY_SLICES
       memset(m_uiStoredStartCUAddrForEncodingSlice, 0, sizeof(UInt) * (pcPic->getPicSym()->getNumberOfCUsInFrame()*pcPic->getNumPartInCU()+1));
-#else
-      memset(m_uiStoredStartCUAddrForEncodingSlice, 0, sizeof(UInt) * (pcPic->getPicSym()->getNumberOfCUsInFrame()+1));
-#endif
 
       UInt uiStartCUAddrEntropySliceIdx = 0; // used to index "m_uiStoredStartCUAddrForEntropyEncodingSlice" containing locations of slice boundaries
       UInt uiStartCUAddrEntropySlice    = 0; // used to keep track of current Entropy slice's starting CU addr.
       pcSlice->setEntropySliceCurStartCUAddr( uiStartCUAddrEntropySlice ); // Setting "start CU addr" for current Entropy slice
       
-#if FINE_GRANULARITY_SLICES
       memset(m_uiStoredStartCUAddrForEncodingEntropySlice, 0, sizeof(UInt) * (pcPic->getPicSym()->getNumberOfCUsInFrame()*pcPic->getNumPartInCU()+1));
-#else
-      memset(m_uiStoredStartCUAddrForEncodingEntropySlice, 0, sizeof(UInt) * (pcPic->getPicSym()->getNumberOfCUsInFrame()+1));
-#endif
       UInt uiNextCUAddr = 0;
       m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx++]                = uiNextCUAddr;
       m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx++]  = uiNextCUAddr;
 
-#if FINE_GRANULARITY_SLICES
       while(uiNextCUAddr<uiRealEndAddress) // determine slice boundaries
-#else
-      while(uiNextCUAddr<pcPic->getPicSym()->getNumberOfCUsInFrame()) // determine slice boundaries
-#endif
       {
         pcSlice->setNextSlice       ( false );
         pcSlice->setNextEntropySlice( false );
@@ -737,11 +718,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx++]  = uiStartCUAddrSlice;
           }
           
-#if FINE_GRANULARITY_SLICES
           if (uiStartCUAddrSlice < uiRealEndAddress)
-#else
-          if (uiStartCUAddrSlice < pcPic->getPicSym()->getNumberOfCUsInFrame())
-#endif
           {
             pcPic->allocateNewSlice();          
             pcPic->setCurrSliceIdx                  ( uiStartCUAddrSliceIdx-1 );
@@ -798,17 +775,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcSlice = pcPic->getSlice(0);
       if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
       {
-#if FINE_GRANULARITY_SLICES
         Int sliceGranularity = pcSlice->getPPS()->getSliceGranularity();
-#else
-        Int sliceGranularity = 0;
-#endif
         pcPic->createNonDBFilterInfo(m_uiStoredStartCUAddrForEncodingSlice, uiNumSlices, sliceGranularity, pcSlice->getSPS()->getLFCrossSliceBoundaryFlag(),pcPic->getPicSym()->getNumTiles() ,bLFCrossTileBoundary);
       }
 #endif
 
 
-#if SAO && FINE_GRANULARITY_SLICES 
+#if SAO 
       pcSlice = pcPic->getSlice(0);
 
       if(pcSlice->getSPS()->getUseSAO())
@@ -863,9 +836,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcAdaptiveLoopFilter->createPicAlfInfo(pcPic, uiNumSlices);
 #else
         m_pcAdaptiveLoopFilter->setNumSlicesInPic( uiNumSlices );
-#if FINE_GRANULARITY_SLICES
         m_pcAdaptiveLoopFilter->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
-#endif
         if(uiNumSlices == 1)
         {
           m_pcAdaptiveLoopFilter->setUseNonCrossAlf(false);
@@ -879,14 +850,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
           for(UInt i=0; i< uiNumSlices ; i++)
           {
-#if FINE_GRANULARITY_SLICES
             uiStartAddr = m_uiStoredStartCUAddrForEncodingSlice[i];
             uiEndAddr   = m_uiStoredStartCUAddrForEncodingSlice[i+1]-1;
-#else
-            uiStartAddr = (m_uiStoredStartCUAddrForEncodingSlice[i]* (pcPic->getNumPartInCU()));
-            uiEndAddr   = (m_uiStoredStartCUAddrForEncodingSlice[i+1]*(pcPic->getNumPartInCU()))-1;
-
-#endif
             (*m_pcAdaptiveLoopFilter)[i].create(i, uiStartAddr, uiEndAddr);
           }
 
@@ -956,12 +921,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       TComSlice* pcSliceForAPS = NULL;
 #endif
 
-#if FINE_GRANULARITY_SLICES
       bool skippedSlice=false;
       while (uiNextCUAddr < uiRealEndAddress) // Iterate over all slices
-#else
-      while (uiNextCUAddr < pcPic->getPicSym()->getNumberOfCUsInFrame()) // Iterate over all slices
-#endif
       {
         switch(processingState)
         {
@@ -1002,7 +963,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcSlice->setRPS(pcPic->getSlice(0)->getRPS());
       pcSlice->setRPSidx(pcPic->getSlice(0)->getRPSidx());
 #endif
-#if FINE_GRANULARITY_SLICES
         UInt uiDummyStartCUAddr;
         UInt uiDummyBoundingCUAddr;
         m_pcSliceEncoder->xDetermineStartAndBoundingCUAddr(uiDummyStartCUAddr,uiDummyBoundingCUAddr,pcPic,true);
@@ -1056,7 +1016,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           pcSlice->setNextEntropySlice( false );
         }
         skippedSlice=false;
-#endif
 #if OL_USE_WPP
         if (pcSlice->getPPS()->getEntropyCodingMode())
         {
@@ -1316,9 +1275,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           }
 #endif
         }
-#if FINE_GRANULARITY_SLICES
         pcSlice->setFinalized(true);
-#endif
 
 #if OL_USE_WPP
 #if !DISABLE_CAVLC

@@ -253,9 +253,7 @@ protected:
   //====== Entropy Slice ========
   Int       m_iEntropySliceMode;
   Int       m_iEntropySliceArgument;
-#if FINE_GRANULARITY_SLICES
   Int       m_iSliceGranularity;
-#endif
   Bool      m_bLFCrossSliceBoundaryFlag;
 
 #if E192_SPS_PCM_BIT_DEPTH_SYNTAX
@@ -614,10 +612,8 @@ public:
   Void  setEntropySliceArgument        ( Int  i )      { m_iEntropySliceArgument = i;   }
   Int   getEntropySliceMode            ()              { return m_iEntropySliceMode;    }
   Int   getEntropySliceArgument        ()              { return m_iEntropySliceArgument;}
-#if FINE_GRANULARITY_SLICES
   Void  setSliceGranularity            ( Int  i )      { m_iSliceGranularity = i;       }
   Int   getSliceGranularity            ()              { return m_iSliceGranularity;    }
-#endif
   Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
   Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   }
 

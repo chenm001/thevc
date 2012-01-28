@@ -141,20 +141,16 @@ private:
   
   Bool m_bAlfCtrl;
   UInt m_uiMaxAlfCtrlDepth;
-#if FINE_GRANULARITY_SLICES
   Int           m_iSliceGranularity; //!< slice granularity
-#endif
 
 public:
   Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag );
 
-#if FINE_GRANULARITY_SLICES
   /// set slice granularity
   Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
 
   /// get slice granularity
   Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
-#endif
 
   Void parseSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );

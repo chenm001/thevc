@@ -191,13 +191,8 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
   for(Int s=0; s< numSlices; s++)
   {
     //1st step: decide the real start address
-#if FINE_GRANULARITY_SLICES
     startAddr = pSliceStartAddress[s];
     endAddr   = pSliceStartAddress[s+1] -1;
-#else
-    startAddr = (pSliceStartAddress[s]*maxNumSUInLCU);
-    endAddr   = (pSliceStartAddress[s+1]*maxNumSUInLCU) -1;
-#endif
 
     startLCU            = startAddr / maxNumSUInLCU;
     firstCUInStartLCU   = startAddr % maxNumSUInLCU;

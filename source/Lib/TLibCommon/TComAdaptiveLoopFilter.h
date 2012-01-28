@@ -471,10 +471,8 @@ public: //public methods, interface functions
   Void createPicAlfInfo (TComPic* pcPic, Int numSlicesInPic = 1);
   Void destroyPicAlfInfo();
 #else
-#if FINE_GRANULARITY_SLICES
   Void setSliceGranularityDepth(Int iDepth) { m_iSGDepth = iDepth;} //!< Set slice granularity
   Int  getSliceGranularityDepth()           { return m_iSGDepth;  } //!< get slice granularity
-#endif
   Void setNumSlicesInPic(UInt uiNum) {m_uiNumSlicesInPic = uiNum;} //!< Set number of slices in picture
   UInt getNumSlicesInPic()           {return m_uiNumSlicesInPic;} //!< Get number of slices in picture
   Void setUseNonCrossAlf(Bool bVal)  {m_bUseNonCrossALF = bVal;} //!< Set across/non-across slice boundary ALF

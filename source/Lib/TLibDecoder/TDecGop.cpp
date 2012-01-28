@@ -450,13 +450,8 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     pcSlice = rpcPic->getSlice(0);
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
     {
-#if FINE_GRANULARITY_SLICES
       Int sliceGranularity = pcSlice->getPPS()->getSliceGranularity();
       puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU();
-#else
-      Int sliceGranularity = 0;
-      puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame();
-#endif
       rpcPic->createNonDBFilterInfo(puiILSliceStartLCU, uiILSliceCount,sliceGranularity,pcSlice->getSPS()->getLFCrossSliceBoundaryFlag(),rpcPic->getPicSym()->getNumTiles() ,bLFCrossTileBoundary);
     }
 #endif
@@ -464,7 +459,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #if SAO
     {
 
-#if SAO && FINE_GRANULARITY_SLICES 
+#if SAO 
       if( pcSlice->getSPS()->getUseSAO() )
       {
 #if !NONCROSS_TILE_IN_LOOP_FILTERING
@@ -555,9 +550,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     {
 #if !NONCROSS_TILE_IN_LOOP_FILTERING
       m_pcAdaptiveLoopFilter->setNumSlicesInPic( uiILSliceCount );
-#if FINE_GRANULARITY_SLICES
       m_pcAdaptiveLoopFilter->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
-#endif
 #endif
 
 #if F747_APS
@@ -577,24 +570,14 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       }
       else
       {
-#if FINE_GRANULARITY_SLICES
         puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU();
-#else
-        puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame();
-#endif
         m_pcAdaptiveLoopFilter->setUseNonCrossAlf(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
         m_pcAdaptiveLoopFilter->createSlice(rpcPic);
 
         for(UInt i=0; i< uiILSliceCount ; i++)
         {
-#if FINE_GRANULARITY_SLICES
           UInt uiStartAddr = puiILSliceStartLCU[i];
           UInt uiEndAddr   = puiILSliceStartLCU[i+1]-1;
-#else
-          UInt uiStartAddr = (puiILSliceStartLCU[i]*rpcPic->getNumPartInCU());
-          UInt uiEndAddr   = (puiILSliceStartLCU[i+1]*rpcPic->getNumPartInCU())-1;
-
-#endif
           (*m_pcAdaptiveLoopFilter)[i].create(i, uiStartAddr, uiEndAddr);
         }
       }

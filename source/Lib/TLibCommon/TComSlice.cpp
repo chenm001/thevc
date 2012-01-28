@@ -97,10 +97,8 @@ TComSlice::TComSlice()
 , m_bNextSlice                    ( false )
 , m_bNextEntropySlice             ( false )
 , m_uiSliceBits                   ( 0 )
-#if FINE_GRANULARITY_SLICES
 , m_uiEntropySliceCounter         ( 0 )
 , m_bFinalized                    ( false )
-#endif
 #if TILES_DECODER
 , m_uiTileByteLocation            ( NULL )
 , m_uiTileCount                   ( 0 )
@@ -185,9 +183,7 @@ Void TComSlice::initSlice()
   m_uiMaxNumMergeCand = MRG_MAX_NUM_CANDS_SIGNALED;
 #endif
 
-#if FINE_GRANULARITY_SLICES
   m_bFinalized=false;
-#endif
 
 #if TILES_DECODER
   Int iWidth             = m_pcSPS->getWidth();
@@ -1712,9 +1708,7 @@ TComPPS::TComPPS()
 , m_uiBitsForLongTermRefs       (0)
 #endif
 , m_uiNumTlayerSwitchingFlags   (0)
-#if FINE_GRANULARITY_SLICES
 , m_iSliceGranularity           (0)
-#endif
 #if !F747_APS
 , m_bSharedPPSInfoEnabled       (false)
 #endif
