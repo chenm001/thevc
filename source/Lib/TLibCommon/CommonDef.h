@@ -236,9 +236,7 @@ enum NalUnitType
 };
 
 typedef _AlfParam    ALFParam;
-#if SAO
 typedef _SaoParam    SAOParam;
-#endif
 
 //! \}
 

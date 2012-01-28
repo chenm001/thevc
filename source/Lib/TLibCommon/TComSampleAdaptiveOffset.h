@@ -48,14 +48,11 @@
 // Constants
 // ====================================================================================================================
 
-#if SAO
-
 #define SAO_MAX_DEPTH                 4
 #define SAO_BO_BITS                   5
 #define LUMA_GROUP_NUM                (1<<SAO_BO_BITS)
 #define MAX_NUM_SAO_CLASS             32
-#define SAO_RDCO                      0
-#define SAO_FGS_NIF                   SAO
+#define SAO_FGS_NIF                   1
 
 // ====================================================================================================================
 // Class definition
@@ -172,8 +169,7 @@ public:
 #endif
 
 };
-#endif
 
 //! \}
-
 #endif
+

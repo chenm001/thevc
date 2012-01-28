@@ -282,9 +282,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("LMChroma", m_bUseLMChroma, true, "intra chroma prediction based on recontructed luma")
 
   ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
-#if SAO
   ("SAO", m_bUseSAO, true, "SAO")   
-#endif
 
   ("ALFEncodePassReduction", m_iALFEncodePassReduction, 0, "0:Original 16-pass, 1: 1-pass, 2: 2-pass encoding")
 
@@ -1047,9 +1045,7 @@ Void TAppEncCfg::xPrintParameter()
     printf("A=%d ", m_iEntropySliceArgument);
   }
   printf("CIP:%d ", m_bUseConstrainedIntraPred);
-#if SAO
   printf("SAO:%d ", (m_bUseSAO)?(1):(0));
-#endif
   printf("PCM:%d ", ((1<<m_uiPCMLog2MinSize) <= m_uiMaxCUWidth)? 1 : 0);
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD

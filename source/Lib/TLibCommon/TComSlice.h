@@ -141,9 +141,7 @@ private:
   Int m_iAMPAcc[MAX_CU_DEPTH];
 
   Bool        m_bLFCrossSliceBoundaryFlag;
-#if SAO
   Bool        m_bUseSAO; 
-#endif
 
 #if TILES
 #if NONCROSS_TILE_IN_LOOP_FILTERING
@@ -308,10 +306,8 @@ public:
   Bool getUseDF                   ()         { return m_useDF; }
 #endif
 
-#if SAO
   Void setUseSAO                  (Bool bVal)  {m_bUseSAO = bVal;}
   Bool getUseSAO                  ()           {return m_bUseSAO;}
-#endif
 
   UInt      getMaxTLayers()                           { return m_uiMaxTLayers; }
   Void      setMaxTLayers( UInt uiMaxTLayers )        { assert( uiMaxTLayers <= MAX_TLAYER ); m_uiMaxTLayers = uiMaxTLayers; }

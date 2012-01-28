@@ -128,11 +128,9 @@ public:
   /// get slice granularity
   virtual Int  getSliceGranularity()                      = 0;
 
-#if SAO
   virtual Void parseSaoFlag       ( UInt& ruiVal           ) = 0;
   virtual Void parseSaoUvlc       ( UInt& ruiVal           ) = 0;
   virtual Void parseSaoSvlc       ( Int&  riVal            ) = 0;
-#endif
 #if TILES
 #if TILES_DECODER
   virtual Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed ) = 0;
@@ -242,11 +240,9 @@ public:
   /// set slice granularity
   Void setSliceGranularity (Int iSliceGranularity) {m_pcEntropyDecoderIf->setSliceGranularity(iSliceGranularity);}
 
-#if SAO
   Void decodeSaoOnePart       (SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
   Void decodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
   Void decodeSaoParam         (SAOParam* pSaoParam);
-#endif
 #if OL_FLUSH
   Void decodeFlush() { m_pcEntropyDecoderIf->decodeFlush(); }
 #endif

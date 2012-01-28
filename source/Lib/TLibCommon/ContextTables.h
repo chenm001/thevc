@@ -160,11 +160,9 @@
 #define NUM_ALF_UVLC_CTX              2       ///< number of context models for ALF UVLC (filter length)
 #define NUM_ALF_SVLC_CTX              3       ///< number of context models for ALF SVLC (filter coeff.)
 
-#if SAO
 #define NUM_SAO_FLAG_CTX              1       ///< number of context models for SAO flag
 #define NUM_SAO_UVLC_CTX              2       ///< number of context models for SAO UVLC
 #define NUM_SAO_SVLC_CTX              3       ///< number of context models for SAO SVLC
-#endif
 
 #if G633_8BIT_INIT
 #define CNU                          119      ///< dummy initialization value for unused context models 'Context model Not Used'
@@ -1372,7 +1370,6 @@ INIT_ALF_SVLC[3][NUM_ALF_SVLC_CTX] =
   },
 };
 
-#if SAO
 // initial probability for SAO flag
 static const UChar
 INIT_SAO_FLAG[3][NUM_SAO_FLAG_CTX] =
@@ -1426,7 +1423,6 @@ INIT_SAO_SVLC[3][NUM_SAO_SVLC_CTX] =
     
   },
 };
-#endif
 
 static const UChar
 INIT_TRANS_SUBDIV_FLAG[3][NUM_TRANS_SUBDIV_FLAG_CTX] =
@@ -2880,7 +2876,6 @@ INIT_ALF_SVLC[3][NUM_ALF_SVLC_CTX][2] =
     {    1,   73 }, {    2,   61 }, {    0,   64 }
   }
 };
-#if SAO
 // initial probability for SAO flag
 static const Short
 INIT_SAO_FLAG[3][NUM_SAO_FLAG_CTX][2] =
@@ -2925,7 +2920,6 @@ INIT_SAO_SVLC[3][NUM_SAO_SVLC_CTX][2] =
     {    1,   73 }, {    2,   61 }, {    0,   64 }
   }
 };
-#endif
 
 static const Short
 INIT_TRANS_SUBDIV_FLAG[3][NUM_TRANS_SUBDIV_FLAG_CTX][2] =

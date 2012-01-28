@@ -121,11 +121,9 @@ public:
   Void  codeAlfCtrlDepth  ();
 
   Void codeAlfCtrlFlag       ( UInt uiSymbol );
-#if SAO
   Void  codeSaoFlag       ( UInt uiCode );
   Void  codeSaoUvlc       ( UInt uiCode );
   Void  codeSaoSvlc       ( Int  uiCode );
-#endif
 #if SCALING_LIST
   Void  codeScalingList      ( TComScalingList* scalingList     ){ assert (0);  return;};
 #endif
@@ -292,11 +290,9 @@ private:
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;
 #endif
-#if SAO
   ContextModel3DBuffer m_cSaoFlagSCModel;
   ContextModel3DBuffer m_cSaoUvlcSCModel;
   ContextModel3DBuffer m_cSaoSvlcSCModel;
-#endif
 
 };
 

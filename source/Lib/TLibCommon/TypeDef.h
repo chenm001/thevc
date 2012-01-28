@@ -296,7 +296,6 @@
 #define TILES_DECODER                       0
 #endif
 
-#define SAO                           1           // JCTVC-E049: Sample adaptive offset
 #define SAO_CROSS_LCU_BOUNDARIES      1
 
 #define PARALLEL_MERGED_DEBLK        1 // JCTC-E224, JCTVC-E181: Parallel decisions + Parallel filtering
@@ -386,8 +385,6 @@ typedef       Int             TCoeff;     ///< transform coefficient
 /// parameters for adaptive loop filter
 class TComPicSym;
 
-#if SAO
-
 #define NUM_DOWN_PART 4
 #define NUM_MAX_OFFSET  32
 
@@ -446,8 +443,6 @@ struct _SaoParam
   Int        iMaxSplitLevel;
   Int        iNumClass[MAX_NUM_SAO_TYPE];
 };
-
-#endif
 
 struct _AlfParam
 {

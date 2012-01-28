@@ -111,11 +111,9 @@ public:
   Void  parseAlfUvlc              ( UInt& ruiVal           );
   Void  parseAlfSvlc              ( Int&  riVal            );
   Void  parseAlfCtrlDepth         ( UInt& ruiAlfCtrlDepth  );
-#if SAO
   Void  parseSaoFlag              ( UInt& ruiVal           );
   Void  parseSaoUvlc              ( UInt& ruiVal           );
   Void  parseSaoSvlc              ( Int&  riVal            );
-#endif
 #if G174_DF_OFFSET
   Void parseDFFlag                (UInt& ruiVal, const Char *pSymbolName) {printf("Not supported\n");assert(0);exit(1);};
   Void parseDFSvlc                (Int&  riVal, const Char *pSymbolName)  {printf("Not supported\n");assert(0);exit(1);};
@@ -249,11 +247,9 @@ private:
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;
 #endif
-#if SAO
   ContextModel3DBuffer m_cSaoFlagSCModel;
   ContextModel3DBuffer m_cSaoUvlcSCModel;
   ContextModel3DBuffer m_cSaoSvlcSCModel;
-#endif
 
 };
 

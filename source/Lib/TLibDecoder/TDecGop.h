@@ -84,9 +84,7 @@ private:
   
   // Adaptive Loop filter
   TComAdaptiveLoopFilter*       m_pcAdaptiveLoopFilter;
-#if SAO
   TComSampleAdaptiveOffset*     m_pcSAO;
-#endif
   Double                m_dDecTime;
 
   bool m_pictureDigestEnabled; ///< if true, handle picture_digest SEI messages
@@ -105,9 +103,7 @@ public:
                  TDecSlice*              pcSliceDecoder, 
                  TComLoopFilter*         pcLoopFilter, 
                  TComAdaptiveLoopFilter* pcAdaptiveLoopFilter
-#if SAO
                  ,TComSampleAdaptiveOffset* pcSAO
-#endif
                  );
   Void  create  ();
   Void  destroy ();

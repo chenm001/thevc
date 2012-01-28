@@ -130,10 +130,7 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
   // Adaptive Loop filter
   m_pcAdaptiveLoopFilter = pcTEncTop->getAdaptiveLoopFilter();
   //--Adaptive Loop filter
-#if SAO
   m_pcSAO                = pcTEncTop->getSAO();
-#endif
-
 }
 
 // ====================================================================================================================
@@ -774,7 +771,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
 
 
-#if SAO 
       pcSlice = pcPic->getSlice(0);
 
       if(pcSlice->getSPS()->getUseSAO())
@@ -806,7 +802,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
 #endif
       }
-#endif
 
       std::vector<AlfCUCtrlInfo> vAlfCUCtrlParam;
 
@@ -876,7 +871,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       uiNextCUAddr                 = 0;
       pcSlice = pcPic->getSlice(uiStartCUAddrSliceIdx);
 
-#if SAO
 #if SCALING_LIST
 #if G174_DF_OFFSET
       Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getScalingListFlag() || pcSlice->getSPS()->getUseDF())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
@@ -885,9 +879,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
 #else
       Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
-#endif
-#else
-      Int processingState = (pcSlice->getSPS()->getUseALF() )?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
 #endif
 
       static Int iCurrAPSIdx = 0;
@@ -1499,7 +1490,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
 #endif
 
-#if SAO
             if ( pcSlice->getSPS()->getUseSAO() )
             {
               m_pcEntropyCoder->resetEntropy();
@@ -1527,7 +1517,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
             }
 
-#endif
             // adaptive loop filter
             UInt64 uiDist, uiBits;
             if ( pcSlice->getSPS()->getUseALF())

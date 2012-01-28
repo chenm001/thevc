@@ -151,9 +151,7 @@ protected:
   UInt      m_uiPCMBitDepthLuma;                              ///< PCM bit-depth for luma
 #endif
 
-#if SAO
   Bool      m_bUseSAO; 
-#endif
 
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter

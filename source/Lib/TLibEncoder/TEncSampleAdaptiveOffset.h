@@ -51,7 +51,6 @@
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
-#if SAO
 
 class TEncSampleAdaptiveOffset : public TComSampleAdaptiveOffset
 {
@@ -108,7 +107,6 @@ public:
   Void destroyEncBuffer();
   Void createEncBuffer();
 };
-#endif
 
 //! \}
 

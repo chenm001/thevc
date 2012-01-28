@@ -106,9 +106,7 @@ private:
   // Adaptive Loop filter
   TEncAdaptiveLoopFilter* m_pcAdaptiveLoopFilter;
   //--Adaptive Loop filter
-#if SAO
   TEncSampleAdaptiveOffset*  m_pcSAO;
-#endif
   TComBitCounter*         m_pcBitCounter;
   
   // indicate sequence first

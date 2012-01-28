@@ -594,9 +594,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_FLAG( uiCode, "deblocking_filter_In_APS_enabled_flag" );    pcSPS->setUseDF ( uiCode ? true : false );  
 #endif
   READ_FLAG( uiCode, "loop_filter_across_slice_flag" );          pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
-#if SAO
   READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO ( uiCode ? true : false );  
-#endif
   READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );      pcSPS->setUseALF ( uiCode ? true : false );
 
 #if MAX_PCM_SIZE
@@ -2696,9 +2694,6 @@ Void TDecCavlc::parseAlfSvlc (Int&  riVal)
   xReadSvlc( riVal );
 }
 
-
-
-#if SAO
 Void TDecCavlc::parseSaoFlag (UInt& ruiVal)
 {
   xReadFlag( ruiVal );
@@ -2713,7 +2708,6 @@ Void TDecCavlc::parseSaoSvlc (Int&  riVal)
 {
   xReadSvlc( riVal );
 }
-#endif
 
 Void TDecCavlc::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx )
 {

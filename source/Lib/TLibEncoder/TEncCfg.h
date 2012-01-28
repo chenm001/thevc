@@ -176,9 +176,7 @@ protected:
   Int       m_iLoopFilterBetaOffset;
 #endif
 
-#if SAO
   Bool      m_bUseSAO;
-#endif
 
   //====== Motion search ========
   Int       m_iFastSearch;                      //  0:Full search  1:Diamond  2:PMVFAST
@@ -617,10 +615,8 @@ public:
   Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
   Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   }
 
-#if SAO
   Void      setUseSAO                  (Bool bVal)     {m_bUseSAO = bVal;}
   Bool      getUseSAO                  ()              {return m_bUseSAO;}
-#endif
 #if TILES
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   Void  setTileBehaviorControlPresentFlag        ( Int i )             { m_iTileBehaviorControlPresentFlag = i;    }

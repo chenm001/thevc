@@ -99,13 +99,11 @@ Void TEncTop::create ()
   m_cGOPEncoder.        create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight );
   m_cSliceEncoder.      create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   m_cCuEncoder.         create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
-#if SAO
   if (m_bUseSAO)
   {
     m_cEncSAO.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
     m_cEncSAO.createEncBuffer();
   }
-#endif
 #if ADAPTIVE_QP_SELECTION
   if (m_bUseAdaptQpSelect)
   {
@@ -230,13 +228,11 @@ Void TEncTop::destroy ()
   m_cGOPEncoder.        destroy();
   m_cSliceEncoder.      destroy();
   m_cCuEncoder.         destroy();
-#if SAO
   if (m_cSPS.getUseSAO())
   {
     m_cEncSAO.destroy();
     m_cEncSAO.destroyEncBuffer();
   }
-#endif
   m_cAdaptiveLoopFilter.destroy();
   m_cLoopFilter.        destroy();
 #if G1002_RPS
@@ -653,9 +649,7 @@ Void TEncTop::xInitSPS()
   m_cSPS.setBitIncrement( g_uiBitIncrement    );
 
   m_cSPS.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
-#if SAO
   m_cSPS.setUseSAO( m_bUseSAO );
-#endif
 
   if ( m_bTLayering )
   {

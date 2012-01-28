@@ -1648,9 +1648,7 @@ TComSPS::TComSPS()
 #endif
 , m_uiMaxTrSize               ( 32)
 , m_bLFCrossSliceBoundaryFlag (false)
-#if SAO
 , m_bUseSAO                   (false) 
-#endif
 , m_bTemporalIdNestingFlag    (false)
 #if  !G1002_RPS
 #if REF_SETTING_FOR_LD

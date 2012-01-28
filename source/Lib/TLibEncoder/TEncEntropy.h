@@ -137,11 +137,9 @@ public:
   virtual Int  getSliceGranularity()                      = 0;
 
   virtual Void codeAlfCtrlFlag      ( UInt uiSymbol ) = 0;
-#if SAO
   virtual Void codeSaoFlag          ( UInt uiCode ) = 0;
   virtual Void codeSaoUvlc          ( UInt uiCode ) = 0;
   virtual Void codeSaoSvlc          ( Int   iCode ) = 0;
-#endif
 #if NSQT_DIAG_SCAN
   virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType) = 0;
 #else
@@ -303,11 +301,9 @@ public:
                         int **FilterCoeff, int kMinTab[]);
   Int golombEncode(int coeff, int k);
   Int lengthGolomb(int coeffVal, int k);
-#if SAO
   Void    encodeSaoOnePart       (SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
   Void    encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
   Void    encodeSaoParam         (SAOParam* pSaoParam);
-#endif
 
   static Int countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize );
 

@@ -1286,7 +1286,6 @@ Void TEncEntropy::estimateBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiWidth, T
 #endif
 }
 
-#if SAO
 /** Encode SAO for one partition
  * \param  pSaoParam, iPartIdx
  */
@@ -1376,7 +1375,6 @@ Void TEncEntropy::encodeSaoParam(SAOParam* pSaoParam)
     }
   }
 }
-#endif
 
 Int TEncEntropy::countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize )
 {

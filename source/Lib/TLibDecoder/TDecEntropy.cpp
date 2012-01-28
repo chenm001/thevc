@@ -1170,7 +1170,6 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 #endif
 }
 
-#if SAO
 /** Decode SAO for one partition
  * \param  pSaoParam, iPartIdx
  */
@@ -1283,7 +1282,6 @@ Void TDecEntropy::decodeSaoParam(SAOParam* pSaoParam)
 
 }
 
-#endif
 #if G174_DF_OFFSET
 Void TDecEntropy::decodeDFParams(TComAPS *pcAPS)
 {

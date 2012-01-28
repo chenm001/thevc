@@ -89,9 +89,7 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
                    TDecSlice*              pcSliceDecoder, 
                    TComLoopFilter*         pcLoopFilter, 
                    TComAdaptiveLoopFilter* pcAdaptiveLoopFilter 
-#if SAO
                    ,TComSampleAdaptiveOffset* pcSAO
-#endif                   
                    )
 {
   m_pcEntropyDecoder      = pcEntropyDecoder;
@@ -101,10 +99,7 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
   m_pcSliceDecoder        = pcSliceDecoder;
   m_pcLoopFilter          = pcLoopFilter;
   m_pcAdaptiveLoopFilter  = pcAdaptiveLoopFilter;
-#if SAO
   m_pcSAO  = pcSAO;
-#endif
-
 }
 
 
@@ -375,10 +370,8 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     }
 #endif
 
-#if SAO
     {
 
-#if SAO 
       if( pcSlice->getSPS()->getUseSAO() )
       {
 #if !NONCROSS_TILE_IN_LOOP_FILTERING
@@ -419,8 +412,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
         }
 #endif
 
-#endif
-
         m_pcSAO->SAOProcess(rpcPic, pcSlice->getAPS()->getSaoParam());  
 
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
@@ -433,8 +424,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     }
 
     }
-#endif
-
 
     // adaptive loop filter
     if( pcSlice->getSPS()->getUseALF() )
