@@ -4149,7 +4149,6 @@ Bool TComDataCU::xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRef
   return true;
 }
 
-#if AMVP_BUFFERCOMPRESS
 Void TComDataCU::compressMV()
 {
   Int scaleFactor = 4 * AMVP_DECIMATION_FACTOR / m_unitSize;
@@ -4159,7 +4158,6 @@ Void TComDataCU::compressMV()
     m_acCUMvField[1].compress(m_pePredMode, scaleFactor);    
   }
 }
-#endif 
 
 UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, Bool bIsIntra)
 {

@@ -1614,9 +1614,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       }
 #endif
 
-#if AMVP_BUFFERCOMPRESS
       pcPic->compressMotion(); 
-#endif 
       
 #if !G1002_RPS
       // Mark higher temporal layer pictures after switching point as unused

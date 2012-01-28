@@ -483,9 +483,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     }
 #endif
 
-#if AMVP_BUFFERCOMPRESS
     rpcPic->compressMotion(); 
-#endif 
     Char c = (pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B');
     if (!pcSlice->isReferenced()) c += 32;
     

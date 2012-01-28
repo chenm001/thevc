@@ -164,10 +164,7 @@ public:
     m_piRefIdx = src->m_piRefIdx + offset;
   }
   
-#if AMVP_BUFFERCOMPRESS
   Void compress(Char* pePredMode, Int scale); 
-#endif 
-  
 };
 
 //! \}

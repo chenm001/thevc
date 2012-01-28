@@ -117,7 +117,6 @@ Void TComPic::destroy()
   delete m_SEIs;
 }
 
-#if AMVP_BUFFERCOMPRESS
 Void TComPic::compressMotion()
 {
   TComPicSym* pPicSym = getPicSym(); 
@@ -127,7 +126,6 @@ Void TComPic::compressMotion()
     pcCU->compressMV(); 
   } 
 }
-#endif
 
 #if NONCROSS_TILE_IN_LOOP_FILTERING
 /** Create non-deblocked filter information

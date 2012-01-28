@@ -156,9 +156,7 @@ public:
   Bool          getOutputMark ()       { return m_bNeededForOutput;  }
 #endif
  
-#if AMVP_BUFFERCOMPRESS
   Void          compressMotion(); 
-#endif 
   UInt          getCurrSliceIdx()            { return m_uiCurrSliceIdx;                }
   Void          setCurrSliceIdx(UInt i)      { m_uiCurrSliceIdx = i;                   }
   UInt          getNumAllocatedSlice()       {return m_apcPicSym->getNumAllocatedSlice();}

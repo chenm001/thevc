@@ -452,9 +452,7 @@ public:
   Void          getMvPredAbove        ( TComMv&     rcMvPred )   { rcMvPred = m_cMvFieldB.getMv(); }
   Void          getMvPredAboveRight   ( TComMv&     rcMvPred )   { rcMvPred = m_cMvFieldC.getMv(); }
   
-#if AMVP_BUFFERCOMPRESS
   Void          compressMV            ();
-#endif 
   
   // -------------------------------------------------------------------------------------------------------------------
   // utility functions for neighbouring information

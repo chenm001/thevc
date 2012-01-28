@@ -206,7 +206,6 @@
 // FOR MERGE
 #define MRG_TMVP_REFIDX                   1           ///< (JCTVC-E481 - D274 (2) ) refidx derivation for merge TMVP  
 // FOR AMVP AND MERGE
-#define AMVP_BUFFERCOMPRESS               1           ///< motion vector buffer compression
 #define AMVP_DECIMATION_FACTOR            4
 
 #define SCAN_SET_SIZE                     16
