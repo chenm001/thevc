@@ -180,7 +180,7 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
   while (iterPic != m_cListPic.end())
   {
     rpcPic = *(iterPic++);
-#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+#if G1002_RPS
     if ( rpcPic->getReconMark() == false && rpcPic->getOutputMark() == false)
     {
       rpcPic->setOutputMark(false);
@@ -192,7 +192,7 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
       break;
     }
 
-#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+#if G1002_RPS
     if ( rpcPic->getSlice( 0 )->isReferenced() == false  && rpcPic->getOutputMark() == false)
     {
       rpcPic->setOutputMark(false);
@@ -213,7 +213,7 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
     iterPic = m_cListPic.begin();
     rpcPic = *(iterPic);
     rpcPic->setReconMark(false);
-#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+#if G1002_RPS
     rpcPic->setOutputMark(false);
 #endif
     
@@ -299,7 +299,7 @@ Void TDecTop::xCreateLostPicture(Int iLostPoc)
   cFillPic->getSlice(0)->setReferenced(true);
   cFillPic->getSlice(0)->setPOC(iLostPoc);
   cFillPic->setReconMark(true);
-#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+#if G1002_RPS
   cFillPic->setOutputMark(true);
 #endif
   if(m_uiPOCRA == MAX_UINT)

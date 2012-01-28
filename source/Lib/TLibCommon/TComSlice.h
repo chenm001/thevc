@@ -852,9 +852,7 @@ private:
   Int         m_iPPSId;               ///< picture parameter set ID
   Int         m_iPOC;
 #if G1002_RPS
-#if G1002_IDR_POC_ZERO_BUGFIX
   Int         m_iLastIDR;
-#endif
   static Int  m_iPrevPOC;
   TComReferencePictureSet *m_pcRPS;
   TComReferencePictureSet m_LocalRPS;
@@ -1019,10 +1017,8 @@ public:
   Int       getPrevPOC      ()                          { return  m_iPrevPOC;       }
 
   TComRefPicListModification* getRefPicListModification() { return &m_RefPicListModification; }
-#if G1002_IDR_POC_ZERO_BUGFIX
   Void      setLastIDR(Int iIDRPOC)                       { m_iLastIDR = iIDRPOC; }
   Int       getLastIDR()                                  { return m_iLastIDR; }
-#endif
 #endif
   SliceType getSliceType    ()                          { return  m_eSliceType;         }
   Int       getPOC          ()                          { return  m_iPOC;           }

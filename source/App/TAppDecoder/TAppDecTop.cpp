@@ -55,7 +55,7 @@
 TAppDecTop::TAppDecTop()
 {
   ::memset (m_abDecFlag, 0, sizeof (m_abDecFlag));
-#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+#if G1002_RPS
   m_iPOCLastDisplay  = -MAX_INT;
 #else
   m_iPOCLastDisplay  = -1;
@@ -117,7 +117,7 @@ Void TAppDecTop::decode()
 #endif
 
     vector<uint8_t> nalUnit;
-#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+#if G1002_RPS
     InputNALUnit nalu;
 #endif
     byteStreamNALUnit(bytestream, nalUnit, stats);
@@ -133,7 +133,7 @@ Void TAppDecTop::decode()
       fprintf(stderr, "Warning: Attempt to decode an empty NAL unit\n");
     else
     {
-#if !G1002_RPS || !G1002_IDR_POC_ZERO_BUGFIX
+#if !G1002_RPS
       InputNALUnit nalu;
 #endif
       read(nalu, nalUnit);
@@ -172,7 +172,7 @@ Void TAppDecTop::decode()
     if (bNewPicture || !bitstreamFile)
     {
       m_cTDecTop.executeDeblockAndAlf(uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
-#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+#if G1002_RPS
       if(nalu.m_UnitType == NAL_UNIT_CODED_SLICE_IDR)
       {
         xFlushOutput( pcListPic );
@@ -191,7 +191,7 @@ Void TAppDecTop::decode()
         recon_opened = true;
       }
       // write reconstuction to file
-#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+#if G1002_RPS
       if(bNewPicture)
       {
         xWriteOutput( pcListPic );
@@ -252,15 +252,10 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
   while (iterPic != pcListPic->end())
   {
     TComPic* pcPic = *(iterPic);
-#if G1002_IDR_POC_ZERO_BUGFIX
     if(pcPic->getOutputMark() && pcPic->getPOC() > m_iPOCLastDisplay)
     {
        not_displayed++;
     }
-#else
-    if(pcPic->getReconMark() && pcPic->getPOC() > m_iPOCLastDisplay)
-       not_displayed++;
-#endif
     iterPic++;
   }
   iterPic   = pcListPic->begin();
@@ -271,11 +266,7 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
     TComPic* pcPic = *(iterPic);
     
 #if G1002_RPS
-#if G1002_IDR_POC_ZERO_BUGFIX
     if ( pcPic->getOutputMark() && (not_displayed >  m_cTDecTop.getSPS()->getNumReorderFrames() && pcPic->getPOC() > m_iPOCLastDisplay))
-#else
-    if ( pcPic->getReconMark() && not_displayed >  m_cTDecTop.getSPS()->getMaxNumberOfReorderPictures() && pcPic->getPOC() > m_iPOCLastDisplay)
-#endif
     {
       // write to file
        not_displayed--;
@@ -308,7 +299,7 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
         continue;
 #endif
       }
-#if G1002_IDR_POC_ZERO_BUGFIX
+#if G1002_RPS
       pcPic->setOutputMark(false);
 #endif
     }
@@ -323,12 +314,10 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
  */
 Void TAppDecTop::xFlushOutput( TComList<TComPic*>* pcListPic )
 {
-#if G1002_IDR_POC_ZERO_BUGFIX
   if(!pcListPic)
   {
     return;
   } 
-#endif
   TComList<TComPic*>::iterator iterPic   = pcListPic->begin();
 
   iterPic   = pcListPic->begin();
@@ -337,11 +326,7 @@ Void TAppDecTop::xFlushOutput( TComList<TComPic*>* pcListPic )
   {
     TComPic* pcPic = *(iterPic);
 
-#if G1002_IDR_POC_ZERO_BUGFIX
     if ( pcPic->getOutputMark() )
-#else
-    if ( pcPic->getReconMark() && pcPic->getPOC() > m_iPOCLastDisplay)
-#endif
     {
       // write to file
       if ( m_pchReconFile )
@@ -368,17 +353,13 @@ Void TAppDecTop::xFlushOutput( TComList<TComPic*>* pcListPic )
         continue;
 #endif
       }
-#if G1002_IDR_POC_ZERO_BUGFIX
       pcPic->setOutputMark(false);
-#endif
     }
     
     iterPic++;
   }
-#if G1002_IDR_POC_ZERO_BUGFIX
   pcListPic->clear();
   m_iPOCLastDisplay = -MAX_INT;
-#endif
 }
 #endif
 

@@ -77,9 +77,7 @@ private:
 #if G1002_RPS
   Bool                    m_bLongtermTestPictureHasBeenCoded;
   Bool                    m_bLongtermTestPictureHasBeenCoded2;
-#if G1002_IDR_POC_ZERO_BUGFIX
   Int                     m_iLastIDR;
-#endif
 #endif
 #if !G1002_RPS
   Int                     m_iHrchDepth;
@@ -149,7 +147,7 @@ public:
   Void  preLoopFilterPicAll  ( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiBits );
   
   TEncSlice*  getSliceEncoder()   { return m_pcSliceEncoder; }
-#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+#if G1002_RPS
   NalUnitType getNalUnitType( UInt uiPOCCurr );
 #endif
   Void freeAPS     (TComAPS* pAPS, TComSPS* pSPS);
@@ -163,7 +161,7 @@ protected:
   Void  xInitGOP          ( Int iPOC, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut );
   Void  xGetBuffer        ( TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, Int iNumPicRcvd, Int iTimeOffset, TComPic*& rpcPic, TComPicYuv*& rpcPicYuvRecOut, UInt uiPOCCurr );
   
-#if !G1002_RPS || !G1002_IDR_POC_ZERO_BUGFIX
+#if !G1002_RPS
   NalUnitType getNalUnitType( UInt uiPOCCurr );
 #endif
 

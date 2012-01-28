@@ -526,7 +526,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     rpcPic->getPicYuvRec()->xFixedRoundingPic();
 #endif
 
-#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+#if G1002_RPS
     rpcPic->setOutputMark(true);
 #endif
     rpcPic->setReconMark(true);

@@ -61,7 +61,7 @@ TComPic::TComPic()
 #if NO_TMVP_MARKING
   m_usedForTMVP      = true;
 #endif
-#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+#if G1002_RPS
   m_bNeededForOutput  = false;
 #endif
 #if NONCROSS_TILE_IN_LOOP_FILTERING

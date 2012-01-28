@@ -69,7 +69,7 @@ private:
   TComPicYuv*           m_pcPicYuvPred;           //  Prediction
   TComPicYuv*           m_pcPicYuvResi;           //  Residual
   Bool                  m_bReconstructed;
-#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+#if G1002_RPS
   Bool                  m_bNeededForOutput;
 #endif
   UInt                  m_uiCurrSliceIdx;         // Index of current slice
@@ -151,7 +151,7 @@ public:
   Bool          getUsedForTMVP()         { return m_usedForTMVP; }
 #endif
 
-#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+#if G1002_RPS
   Void          setOutputMark (Bool b) { m_bNeededForOutput = b;     }
   Bool          getOutputMark ()       { return m_bNeededForOutput;  }
 #endif

@@ -45,7 +45,7 @@
 TComSlice::TComSlice()
 : m_iPPSId                        ( -1 )
 , m_iPOC                          ( 0 )
-#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
+#if G1002_RPS
 , m_iLastIDR                      ( 0 )
 #endif
 , m_eNalUnitType                  ( NAL_UNIT_CODED_SLICE_IDR )
@@ -946,9 +946,7 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_pcPPS                = pSrc->m_pcPPS;
 #if  G1002_RPS
   m_pcRPS                = pSrc->m_pcRPS;
-#if G1002_IDR_POC_ZERO_BUGFIX
   m_iLastIDR             = pSrc->m_iLastIDR;
-#endif
 #endif
 
   m_pcPic                = pSrc->m_pcPic;
