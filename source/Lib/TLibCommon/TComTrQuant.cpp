@@ -3290,7 +3290,11 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 #endif
 #if DIAG_SCAN
   UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
-  uiScanIdx = ( uiScanIdx == SCAN_ZIGZAG ) ? SCAN_DIAG : uiScanIdx; // Map value zigzag to diagonal scan
+  if (uiScanIdx == SCAN_ZIGZAG)
+  {
+    // Map value zigzag to diagonal scan
+    uiScanIdx = SCAN_DIAG;
+  }
 #else
   const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
 #endif

@@ -1587,7 +1587,11 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   //===== decode significance flags =====
   UInt uiScanPosLast   = uiBlkPosLast;
 #if SUBBLOCK_SCAN
-  uiScanIdx = ( uiScanIdx == SCAN_ZIGZAG ) ? SCAN_DIAG : uiScanIdx; // Map zigzag to diagonal scan
+  if (uiScanIdx == SCAN_ZIGZAG)
+  {
+    // Map zigzag to diagonal scan
+    uiScanIdx = SCAN_DIAG;
+  }
 #if NSQT_DIAG_SCAN
   const UInt * scan;
   if (uiWidth == uiHeight)
