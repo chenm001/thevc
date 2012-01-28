@@ -115,7 +115,7 @@ Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaO
 
 }
 
-#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
+#if !DISABLE_PARALLEL_DECISIONS
 Void TComLoopFilter::create( Int width, Int height, Int maxCUWidth, Int maxCUHeight, Int uiMaxCUDepth )
 #else
 Void TComLoopFilter::create( UInt uiMaxCUDepth )
@@ -136,7 +136,7 @@ Void TComLoopFilter::create( UInt uiMaxCUDepth )
     }
   }
   
-#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
+#if !DISABLE_PARALLEL_DECISIONS
   m_preDeblockPic.createLuma( width, height, maxCUWidth, maxCUHeight, uiMaxCUDepth );
 #endif
 }
@@ -157,7 +157,7 @@ Void TComLoopFilter::destroy()
     }
   }
   
-#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
+#if !DISABLE_PARALLEL_DECISIONS
   m_preDeblockPic.destroyLuma();
 #endif
 }
@@ -174,7 +174,6 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
     return;
   }
   
-#if PARALLEL_MERGED_DEBLK
 #if !DISABLE_PARALLEL_DECISIONS
   pcPic->getPicYuvRec()->copyToPicLuma(&m_preDeblockPic);
 #endif
@@ -218,29 +217,6 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
     // CU-based deblocking
     xDeblockCU( pcCU, 0, 0, EDGE_HOR );
   }
-#else
-  // for every CU
-  for ( UInt uiCUAddr = 0; uiCUAddr < pcPic->getNumCUsInFrame(); uiCUAddr++ )
-  {
-    TComDataCU* pcCU = pcPic->getCU( uiCUAddr );
-    
-    for( Int iDir = EDGE_VER; iDir <= EDGE_HOR; iDir++ )
-    {
-#if DEBLK_CLEANUP_CHROMA_BS
-      ::memset( m_aapucBS       [iDir], 0, sizeof( UChar ) * m_uiNumPartitions );
-#endif
-      for( Int iPlane = 0; iPlane < 3; iPlane++ )
-      {
-#if !DEBLK_CLEANUP_CHROMA_BS
-        ::memset( m_aapucBS       [iDir][iPlane], 0, sizeof( UChar ) * m_uiNumPartitions );
-#endif
-        ::memset( m_aapbEdgeFilter[iDir][iPlane], 0, sizeof( bool  ) * m_uiNumPartitions );
-      }
-    }
-    // CU-based deblocking
-    xDeblockCU( pcCU, 0, 0 );
-  }
-#endif
 }
 
 
@@ -248,16 +224,12 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
 // Protected member functions
 // ====================================================================================================================
 
-#if PARALLEL_MERGED_DEBLK
 /**
  - Deblocking filter process in CU-based (the same function as conventional's)
  .
  \param Edge          the direction of the edge in block boundary (horizonta/vertical), which is added newly
 */
 Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int Edge )
-#else
-Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth )
-#endif
 {
   TComPic* pcPic     = pcCU->getPic();
   UInt uiCurNumParts = pcPic->getNumPartInCU() >> (uiDepth<<1);
@@ -271,11 +243,7 @@ Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiD
       UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsZorderIdx] ];
       if( ( uiLPelX < pcCU->getSlice()->getSPS()->getWidth() ) && ( uiTPelY < pcCU->getSlice()->getSPS()->getHeight() ) )
       {
-#if PARALLEL_MERGED_DEBLK
         xDeblockCU( pcCU, uiAbsZorderIdx, uiDepth+1, Edge );
-#else
-        xDeblockCU( pcCU, uiAbsZorderIdx, uiDepth+1 );
-#endif
       }
     }
     return;
@@ -290,11 +258,7 @@ Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiD
 #endif
   xSetEdgefilterPU   ( pcCU, uiAbsZorderIdx );
   
-#if PARALLEL_MERGED_DEBLK
   Int iDir = Edge;
-#else
-  for ( Int iDir = EDGE_VER; iDir <= EDGE_HOR; iDir++ )
-#endif
   {
     for( UInt uiPartIdx = uiAbsZorderIdx; uiPartIdx < uiAbsZorderIdx + uiCurNumParts; uiPartIdx++ )
     {
@@ -315,9 +279,6 @@ Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiD
   
   UInt uiSizeInPU = pcPic->getNumPartInWidth()>>(uiDepth);
   
-#if !PARALLEL_MERGED_DEBLK
-  for ( Int iDir = EDGE_VER; iDir <= EDGE_HOR; iDir++ )
-#endif
   {
     for ( UInt iEdge = 0; iEdge < uiSizeInPU ; iEdge+=PartIdxIncr)
     {
@@ -798,7 +759,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
   TComPicYuv* pcPicYuvRec = pcCU->getPic()->getPicYuvRec();
   Pel* piSrc    = pcPicYuvRec->getLumaAddr( pcCU->getAddr(), uiAbsZorderIdx );
   Pel* piTmpSrc = piSrc;
-#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
+#if !DISABLE_PARALLEL_DECISIONS
   Pel* piSrcJudge    = m_preDeblockPic.getLumaAddr( pcCU->getAddr(), uiAbsZorderIdx );
   Pel* piTmpSrcJudge = piSrcJudge;
 #endif
@@ -852,7 +813,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
     iOffset = 1;
     iSrcStep = iStride;
     piTmpSrc += iEdge*uiPelsInPart;
-#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
+#if !DISABLE_PARALLEL_DECISIONS
     piTmpSrcJudge += iEdge*uiPelsInPart;
 #endif
   }
@@ -861,7 +822,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
     iOffset = iStride;
     iSrcStep = 1;
     piTmpSrc += iEdge*uiPelsInPart*iStride;
-#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
+#if !DISABLE_PARALLEL_DECISIONS
     piTmpSrcJudge += iEdge*uiPelsInPart*iStride;
 #endif
   }
@@ -955,7 +916,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
       {
 #endif
 
-#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS        
+#if !DISABLE_PARALLEL_DECISIONS        
 
 #if DEBLK_G590
         Int dp0 = xCalcDP( piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+0), iOffset);
@@ -1029,7 +990,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
           Bool bFilterP = (dp0+dp3 < iSideThreshold);
           Bool bFilterQ = (dq0+dq3 < iSideThreshold);
 
-#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
+#if !DISABLE_PARALLEL_DECISIONS
           Bool sw =  xUseStrongFiltering( iOffset, 2*d0, iBeta, iTc , piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+0))
                   && xUseStrongFiltering( iOffset, 2*d3, iBeta, iTc , piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+3));
 #else          
@@ -1051,7 +1012,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
           Bool bFilterP = (dp4+dp7 < iSideThreshold);
           Bool bFilterQ = (dq4+dq7 < iSideThreshold);
 
-#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS        
+#if !DISABLE_PARALLEL_DECISIONS        
           Bool sw =  xUseStrongFiltering( iOffset, 2*d4, iBeta, iTc , piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+4))
                   && xUseStrongFiltering( iOffset, 2*d7, iBeta, iTc , piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+7));
 #else          
@@ -1097,7 +1058,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
 #endif
           for ( UInt i = 0; i < DEBLOCK_SMALLEST_BLOCK; i++)
           {
-#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
+#if !DISABLE_PARALLEL_DECISIONS
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
             xPelFilterLuma( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i), iOffset, iD, iBeta, iTc , piTmpSrcJudge+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i), bPartPNoFilter, bPartQNoFilter, iThrCut, bFilterP, bFilterQ);
 #else
@@ -1319,7 +1280,7 @@ __inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, In
 
 #else // !DEBLK_G590
 
-#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
+#if !DISABLE_PARALLEL_DECISIONS
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
 /**
  - Deblocking for the luminance component with strong or weak filter
@@ -1365,7 +1326,7 @@ __inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, In
   if (sw)
 #else // !DEBLK_G590
       
-#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
+#if !DISABLE_PARALLEL_DECISIONS
   Pel m4j  = piSrcJudge[0];
   Pel m3j  = piSrcJudge[-iOffset];
   Pel m7j  = piSrcJudge[ iOffset*3];

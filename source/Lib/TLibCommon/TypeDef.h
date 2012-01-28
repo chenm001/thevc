@@ -298,7 +298,6 @@
 
 #define SAO_CROSS_LCU_BOUNDARIES      1
 
-#define PARALLEL_MERGED_DEBLK        1 // JCTC-E224, JCTVC-E181: Parallel decisions + Parallel filtering
 #define DEBLK_CLEANUP_G175_G620_G638    1 // Clean-up of deblocking filter description
 #define DEBLK_CLEANUP_CHROMA_BS         1 // Clean-up of chroma Bs (not used in HEVC deblocking)
 

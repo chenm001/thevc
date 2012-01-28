@@ -69,7 +69,7 @@ private:
   Bool*     m_aapbEdgeFilter[2][3];
   LFCUParam m_stLFCUParam;                  ///< status structure
   
-#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
+#if !DISABLE_PARALLEL_DECISIONS
   TComPicYuv m_preDeblockPic;
 #endif
 #if NONCROSS_TILE_IN_LOOP_FILTERING
@@ -78,11 +78,7 @@ private:
 
 protected:
   /// CU-level deblocking function
-#if PARALLEL_MERGED_DEBLK
   Void xDeblockCU                 ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int Edge );
-#else
-  Void xDeblockCU                 ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth );
-#endif
 
   // set / get functions
   Void xSetLoopfilterParam        ( TComDataCU* pcCU, UInt uiAbsZorderIdx );
@@ -140,7 +136,7 @@ protected:
   
 #else// !DEBLK_G590
     
-#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
+#if !DISABLE_PARALLEL_DECISIONS
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
   __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Pel* piSrcJudge, Bool bPartPNoFilter, Bool bPartQNoFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
 #else
@@ -171,7 +167,7 @@ public:
   TComLoopFilter();
   virtual ~TComLoopFilter();
   
-#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
+#if !DISABLE_PARALLEL_DECISIONS
   Void  create                    ( Int width, Int height, Int maxCUWidth, Int maxCUHeight, Int uiMaxCUDepth );
 #else
   Void  create                    ( UInt uiMaxCUDepth );

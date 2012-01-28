@@ -336,7 +336,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       // create ALF temporary buffer
       m_cAdaptiveLoopFilter.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
       m_cSAO.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
+#if !DISABLE_PARALLEL_DECISIONS
       m_cLoopFilter.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 #else
       m_cLoopFilter.        create( g_uiMaxCUDepth );

@@ -111,7 +111,7 @@ Void TEncTop::create ()
   }
 #endif
   m_cAdaptiveLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-#if PARALLEL_MERGED_DEBLK && !DISABLE_PARALLEL_DECISIONS
+#if !DISABLE_PARALLEL_DECISIONS
   m_cLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 #else
   m_cLoopFilter.        create( g_uiMaxCUDepth );
