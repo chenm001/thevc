@@ -124,10 +124,8 @@ private:
   UInt        m_uiBitDepth;
   UInt        m_uiBitIncrement;
 
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
   UInt        m_uiPCMBitDepthLuma;
   UInt        m_uiPCMBitDepthChroma;
-#endif
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Bool        m_bPCMFilterDisableFlag;
 #endif
@@ -314,12 +312,10 @@ public:
 
   Bool      getTemporalIdNestingFlag()                { return m_bTemporalIdNestingFlag; }
   Void      setTemporalIdNestingFlag( Bool bValue )   { m_bTemporalIdNestingFlag = bValue; }
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
   UInt      getPCMBitDepthLuma     ()         { return m_uiPCMBitDepthLuma;     }
   Void      setPCMBitDepthLuma     ( UInt u ) { m_uiPCMBitDepthLuma = u;        }
   UInt      getPCMBitDepthChroma   ()         { return m_uiPCMBitDepthChroma;   }
   Void      setPCMBitDepthChroma   ( UInt u ) { m_uiPCMBitDepthChroma = u;      }
-#endif
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void      setPCMFilterDisableFlag     ( Bool   bValue  )    { m_bPCMFilterDisableFlag = bValue; }
   Bool      getPCMFilterDisableFlag     ()                    { return m_bPCMFilterDisableFlag;   } 

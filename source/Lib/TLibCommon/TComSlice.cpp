@@ -1640,10 +1640,8 @@ TComSPS::TComSPS()
 , m_bLCMod                    (false)
 , m_uiBitDepth                (  8)
 , m_uiBitIncrement            (  0)
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
 , m_uiPCMBitDepthLuma         (  8)
 , m_uiPCMBitDepthChroma       (  8)
-#endif
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
 , m_bPCMFilterDisableFlag     (false)
 #endif

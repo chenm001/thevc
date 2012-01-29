@@ -4112,9 +4112,7 @@ Void TComAdaptiveLoopFilter::xPCMSampleRestoration (TComDataCU* pcCU, UInt uiAbs
   UInt uiStride;
   UInt uiWidth;
   UInt uiHeight;
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
   UInt uiPcmLeftShiftBit; 
-#endif
   UInt uiX, uiY;
   UInt uiMinCoeffSize = pcCU->getPic()->getMinCUWidth()*pcCU->getPic()->getMinCUHeight();
   UInt uiLumaOffset   = uiMinCoeffSize*uiAbsZorderIdx;
@@ -4127,9 +4125,7 @@ Void TComAdaptiveLoopFilter::xPCMSampleRestoration (TComDataCU* pcCU, UInt uiAbs
     uiStride  = pcPicYuvRec->getStride();
     uiWidth  = (g_uiMaxCUWidth >> uiDepth);
     uiHeight = (g_uiMaxCUHeight >> uiDepth);
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
     uiPcmLeftShiftBit = g_uiBitDepth + g_uiBitIncrement - pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
-#endif
   }
   else
   {
@@ -4147,27 +4143,14 @@ Void TComAdaptiveLoopFilter::xPCMSampleRestoration (TComDataCU* pcCU, UInt uiAbs
     uiStride = pcPicYuvRec->getCStride();
     uiWidth  = ((g_uiMaxCUWidth >> uiDepth)/2);
     uiHeight = ((g_uiMaxCUWidth >> uiDepth)/2);
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
     uiPcmLeftShiftBit = g_uiBitDepth + g_uiBitIncrement - pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
-#endif
   }
 
   for( uiY = 0; uiY < uiHeight; uiY++ )
   {
     for( uiX = 0; uiX < uiWidth; uiX++ )
     {
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
       piSrc[uiX] = (piPcm[uiX] << uiPcmLeftShiftBit);
-#else
-      if(g_uiBitIncrement > 0)
-      {
-        piSrc[uiX] = (piPcm[uiX] << g_uiBitIncrement);
-      }
-      else
-      {
-        piSrc[uiX] = piPcm[uiX];
-      }
-#endif
     }
     piPcm += uiWidth;
     piSrc += uiStride;

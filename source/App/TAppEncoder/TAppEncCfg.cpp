@@ -306,9 +306,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("PCMLog2MinSize", m_uiPCMLog2MinSize, 7u)
 #endif
 
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
     ("PCMInputBitDepthFlag", m_bPCMInputBitDepthFlag, true)
-#endif
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
     ("PCMFilterDisableFlag", m_bPCMFilterDisableFlag, false)
 #endif
@@ -930,10 +928,8 @@ Void TAppEncCfg::xSetGlobal()
     m_uiOutputBitDepth = m_uiInternalBitDepth;
   }
 
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
   g_uiPCMBitDepthLuma = m_uiPCMBitDepthLuma = ((m_bPCMInputBitDepthFlag)? m_uiInputBitDepth : m_uiInternalBitDepth);
   g_uiPCMBitDepthChroma = ((m_bPCMInputBitDepthFlag)? m_uiInputBitDepth : m_uiInternalBitDepth);
-#endif
 }
 
 Void TAppEncCfg::xPrintParameter()
@@ -975,9 +971,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("Rate GOP size                : %d\n", m_iRateGOPSize );
 #endif
   printf("Internal bit depth           : %d\n", m_uiInternalBitDepth );
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
   printf("PCM sample bit depth         : %d\n", m_uiPCMBitDepthLuma );
-#endif
 #if DISABLE_4x4_INTER
 
 #if G507_COND_4X4_ENABLE_FLAG

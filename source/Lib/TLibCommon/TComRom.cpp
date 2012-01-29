@@ -738,10 +738,8 @@ UInt g_uiBitIncrement = 0;    // increments
 UInt g_uiIBDI_MAX     = 255;  // max. value after  IBDI
 UInt g_uiBASE_MAX     = 255;  // max. value before IBDI
 
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
 UInt g_uiPCMBitDepthLuma     = 8;    // PCM bit-depth
 UInt g_uiPCMBitDepthChroma   = 8;    // PCM bit-depth
-#endif
 
 // ====================================================================================================================
 // Misc.

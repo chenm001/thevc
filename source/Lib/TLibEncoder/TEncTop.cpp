@@ -686,10 +686,8 @@ Void TEncTop::xInitSPS()
     m_cSPS.setMaxTLayers( 1 );
     m_cSPS.setTemporalIdNestingFlag( false );
   }
-#if E192_SPS_PCM_BIT_DEPTH_SYNTAX
   m_cSPS.setPCMBitDepthLuma (g_uiPCMBitDepthLuma);
   m_cSPS.setPCMBitDepthChroma (g_uiPCMBitDepthChroma);
-#endif
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   m_cSPS.setPCMFilterDisableFlag  ( m_bPCMFilterDisableFlag );
 #endif
