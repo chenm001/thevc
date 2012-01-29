@@ -102,9 +102,7 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setTLayering                    ( m_bTLayering );
   m_cTEncTop.setTLayerSwitchingFlag          ( m_abTLayerSwitchingFlag );
 
-#if DISABLE_4x4_INTER
   m_cTEncTop.setDisInter4x4                  ( m_bDisInter4x4);
-#endif
   
 #if NSQT
   m_cTEncTop.setUseNSQT( m_enableNSQT );

@@ -210,9 +210,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("NRF", m_bUseNRF,  true, "non-reference frame marking in last layer")
   ("BQP", m_bUseBQP, false, "hier-P style QP assignment in low-delay mode")
 #endif
-#if DISABLE_4x4_INTER
   ("DisableInter4x4", m_bDisInter4x4, true, "Disable Inter 4x4")
-#endif
 #if NSQT
   ("NSQT", m_enableNSQT, true, "Enable non-square transforms")
 #endif
@@ -972,13 +970,12 @@ Void TAppEncCfg::xPrintParameter()
 #endif
   printf("Internal bit depth           : %d\n", m_uiInternalBitDepth );
   printf("PCM sample bit depth         : %d\n", m_uiPCMBitDepthLuma );
-#if DISABLE_4x4_INTER
-
 #if G507_COND_4X4_ENABLE_FLAG
   if((m_uiMaxCUWidth >> m_uiMaxCUDepth) == 4)
 #endif
+  {
     printf("DisableInter4x4              : %d\n", m_bDisInter4x4);  
-#endif
+  }
 #if !DISABLE_CAVLC
   if ( m_iSymbolMode == 0 )
   {

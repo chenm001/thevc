@@ -821,11 +821,7 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   {
 #if PREDTYPE_CLEANUP
     UInt uiMaxNumBits = 2;
-#if DISABLE_4x4_INTER
     if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth && !( pcCU->getSlice()->getSPS()->getDisInter4x4() && (g_uiMaxCUWidth>>uiDepth) == 8 && (g_uiMaxCUHeight>>uiDepth) == 8 ) )
-#else
-    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
     {
       uiMaxNumBits ++;
     }
@@ -866,12 +862,10 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
 #else //PREDTYPE_CLEANUP   
     {
       UInt uiMaxNumBits = 3;
-#if DISABLE_4x4_INTER
       if(pcCU->getSlice()->getSPS()->getDisInter4x4() && ( (g_uiMaxCUWidth>>uiDepth)==8) && ( (g_uiMaxCUHeight>>uiDepth)==8) )
       {
         uiMaxNumBits = 2;
       }
-#endif
       for ( UInt ui = 0; ui < uiMaxNumBits; ui++ )
       {
         m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, ui) );
@@ -883,7 +877,6 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       }
     }
     eMode = (PartSize) uiMode;
-#if DISABLE_4x4_INTER
     if(pcCU->getSlice()->getSPS()->getDisInter4x4() && ( (g_uiMaxCUWidth>>uiDepth)==8) && ( (g_uiMaxCUHeight>>uiDepth)==8) )
     {
       if (pcCU->getSlice()->isInterB() && uiMode == 2)
@@ -907,7 +900,6 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
     }
     else
     {
-#endif    
     if (pcCU->getSlice()->isInterB() && uiMode == 3)
     {
       uiSymbol = 0;
@@ -952,9 +944,7 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       }
     }
 #endif
-#if DISABLE_4x4_INTER
     }
-#endif
   }
 #endif //PREDTYPE_CLEANUP   
   pcCU->setPartSizeSubParts( eMode, uiAbsPartIdx, uiDepth );

@@ -159,7 +159,6 @@
 ////////////////////////////
 // JCT-VC F start
 ////////////////////////////
-#define DISABLE_4x4_INTER                    1       // Coding one flag into SPS to enable/disable INTER4x4 
 #define MRG_AMVP_ADD_CAND_F470               1       // 1:add new candidates following original ones
 #define NSQT                                 1       // F410 & F412 : Non-Square Quadtree Transform
 #define NSQT_MOD (NSQT && 1) // Modify NSQT such as to always pass proper width/height to coeff coding functions

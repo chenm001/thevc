@@ -529,9 +529,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   pcSPS->setMaxLatencyIncrease( uiCode );
 #endif
 #if !G507_COND_4X4_ENABLE_FLAG
-#if DISABLE_4x4_INTER
   xReadFlag( uiCode ); pcSPS->setDisInter4x4( uiCode ? true : false );
-#endif
 #endif
 #if !G1002_RPS
   // log2_max_frame_num_minus4
@@ -560,10 +558,10 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   pcSPS->setMaxTrSize( 1<<(uiCode + pcSPS->getQuadtreeTULog2MinSize()) );
 
 #if G507_COND_4X4_ENABLE_FLAG
-#if DISABLE_4x4_INTER
   if(log2MinCUSize == 3)
+  {
     xReadFlag( uiCode ); pcSPS->setDisInter4x4( uiCode ? true : false );
-#endif
+  }
 #endif
 
 #if MAX_PCM_SIZE
@@ -1616,19 +1614,15 @@ Void TDecCavlc::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     }
     else
     {
-#if DISABLE_4x4_INTER
       if(pcCU->getSlice()->getSPS()->getDisInter4x4() && ( (g_uiMaxCUWidth>>uiDepth)==8) && ( (g_uiMaxCUHeight>>uiDepth)==8) )
       {
         uiMode = 2;
       }
       else
       {
-#endif
       xReadFlag( uiSymbol );
       uiMode = uiSymbol ? 2 : 0;
-#if DISABLE_4x4_INTER
       }
-#endif
     }
   }
   PartSize ePartSize;

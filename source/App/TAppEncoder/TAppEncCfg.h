@@ -92,9 +92,7 @@ protected:
 #endif
   Bool      m_bUseLComb;                                      ///< flag for using combined reference list for uni-prediction in B-slices (JCTVC-D421)
   Bool      m_bLCMod;                                         ///< flag for specifying whether the combined reference list for uni-prediction in B-slices is uploaded explicitly
-#if DISABLE_4x4_INTER
   Bool      m_bDisInter4x4;
-#endif
 #if NSQT
   Bool      m_enableNSQT;                                     ///< flag for enabling NSQT
 #endif

@@ -274,9 +274,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
       pcSlice->setSliceIdx(0);
 
-#if DISABLE_4x4_INTER
       m_pcEncTop->getSPS()->setDisInter4x4(m_pcEncTop->getDisInter4x4());
-#endif 
 #if SCALING_LIST
       pcSlice->setScalingList ( m_pcEncTop->getScalingList()  );
       if(m_pcEncTop->getUseScalingListId() == SCALING_LIST_OFF)

@@ -97,9 +97,7 @@ private:
   UInt        m_pcmLog2MaxSize;
 #endif
   UInt        m_uiPCMLog2MinSize;
-#if DISABLE_4x4_INTER
   Bool        m_bDisInter4x4;
-#endif
 #if AMP
   Bool        m_useAMP;
 #endif
@@ -212,10 +210,8 @@ public:
   Void setBitsForPOC  ( UInt u ) { m_uiBitsForPOC = u;      }
   UInt getBitsForPOC  ()         { return m_uiBitsForPOC;   }
 #endif
-#if DISABLE_4x4_INTER
   Bool getDisInter4x4()         { return m_bDisInter4x4;        }
   Void setDisInter4x4      ( Bool b ) { m_bDisInter4x4  = b;          }
-#endif
 #if AMP
   Bool getUseAMP() { return m_useAMP; }
   Void setUseAMP( Bool b ) { m_useAMP = b; }

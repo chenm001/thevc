@@ -1625,9 +1625,7 @@ TComSPS::TComSPS()
 , m_pcmLog2MaxSize            (  5)
 #endif
 , m_uiPCMLog2MinSize          (  7)
-#if DISABLE_4x4_INTER
 , m_bDisInter4x4              (  1)
-#endif    
 , m_bUseALF                   (false)
 #if !G507_QP_ISSUE_FIX
 , m_bUseDQP                   (false)
