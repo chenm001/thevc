@@ -514,8 +514,8 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   if( pcSPS->getUsePCM() )
 #endif
   {
-  READ_CODE( 4, uiCode, "pcm_bit_depth_luma_minus1" );           pcSPS->setPCMBitDepthLuma   ( 1 + uiCode );
-  READ_CODE( 4, uiCode, "pcm_bit_depth_chroma_minus1" );         pcSPS->setPCMBitDepthChroma ( 1 + uiCode );
+    READ_CODE( 4, uiCode, "pcm_bit_depth_luma_minus1" );           pcSPS->setPCMBitDepthLuma   ( 1 + uiCode );
+    READ_CODE( 4, uiCode, "pcm_bit_depth_chroma_minus1" );         pcSPS->setPCMBitDepthChroma ( 1 + uiCode );
   }
 #if G1002_RPS
   READ_UVLC( uiCode,    "log2_max_pic_order_cnt_lsb_minus4" );   pcSPS->setBitsForPOC( 4 + uiCode );
@@ -566,13 +566,13 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 
 #if MAX_PCM_SIZE
   if( pcSPS->getUsePCM() )
+#endif
   {
-#endif
-  READ_UVLC( uiCode, "log2_min_pcm_coding_block_size_minus3" );  pcSPS->setPCMLog2MinSize (uiCode+3); 
+    READ_UVLC( uiCode, "log2_min_pcm_coding_block_size_minus3" );  pcSPS->setPCMLog2MinSize (uiCode+3); 
 #if MAX_PCM_SIZE
-  READ_UVLC( uiCode, "log2_diff_max_min_pcm_coding_block_size" ); pcSPS->setPCMLog2MaxSize ( uiCode+pcSPS->getPCMLog2MinSize() );
-  }
+    READ_UVLC( uiCode, "log2_diff_max_min_pcm_coding_block_size" ); pcSPS->setPCMLog2MaxSize ( uiCode+pcSPS->getPCMLog2MinSize() );
 #endif
+  }
 
   READ_UVLC( uiCode, "max_transform_hierarchy_depth_inter" );    pcSPS->setQuadtreeTUMaxDepthInter( uiCode+1 );
   READ_UVLC( uiCode, "max_transform_hierarchy_depth_intra" );    pcSPS->setQuadtreeTUMaxDepthIntra( uiCode+1 );
@@ -598,7 +598,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #endif
   {
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  READ_FLAG( uiCode, "pcm_loop_filter_disable_flag" );           pcSPS->setPCMFilterDisableFlag ( uiCode ? true : false );
+    READ_FLAG( uiCode, "pcm_loop_filter_disable_flag" );           pcSPS->setPCMFilterDisableFlag ( uiCode ? true : false );
 #endif
   }
 
@@ -771,7 +771,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     rpcSlice->setNextSlice        ( true  );
     rpcSlice->setNextEntropySlice ( false );
     
-  uiCode=(maxParts*lCUAddress)+(innerAddress*(maxParts>>(rpcSlice->getPPS()->getSliceGranularity()<<1)));
+    uiCode=(maxParts*lCUAddress)+(innerAddress*(maxParts>>(rpcSlice->getPPS()->getSliceGranularity()<<1)));
     rpcSlice->setSliceCurStartCUAddr(uiCode);
     rpcSlice->setSliceCurEndCUAddr(numCUs*maxParts);
   }
@@ -798,7 +798,8 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       pcRPS->setNumberOfPictures(0);
       rpcSlice->setRPS(pcRPS);
     }
-    else {
+    else
+    {
       READ_CODE(rpcSlice->getSPS()->getBitsForPOC(), uiCode, "pic_order_cnt_lsb");  
       Int iPOClsb = uiCode;
       Int iPrevPOC = rpcSlice->getPrevPOC();
@@ -807,11 +808,17 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       Int iPrevPOCmsb = iPrevPOC-iPrevPOClsb;
       Int iPOCmsb;
       if( ( iPOClsb  <  iPrevPOClsb ) && ( ( iPrevPOClsb - iPOClsb )  >=  ( iMaxPOClsb / 2 ) ) )
+      {
         iPOCmsb = iPrevPOCmsb + iMaxPOClsb;
-      else if( (iPOClsb  >  iPrevPOClsb )  && ( (iPOClsb - iPrevPOClsb )  >  ( iMaxPOClsb / 2 ) ) )  
+      }
+      else if( (iPOClsb  >  iPrevPOClsb )  && ( (iPOClsb - iPrevPOClsb )  >  ( iMaxPOClsb / 2 ) ) ) 
+      {
         iPOCmsb = iPrevPOCmsb - iMaxPOClsb;
+      }
       else
+      {
         iPOCmsb = iPrevPOCmsb;
+      }
       rpcSlice->setPOC              (iPOCmsb+iPOClsb);
 
       TComReferencePictureSet* pcRPS;
@@ -934,7 +941,9 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
         refPicListModification->setNumberOfRefPicListModificationsL0(i-1);
       }
       else
+      {
         refPicListModification->setNumberOfRefPicListModificationsL0(0); 
+      }
     }
     else
     {
@@ -962,7 +971,9 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
         refPicListModification->setNumberOfRefPicListModificationsL1(i-1);
       }
       else
+      {
         refPicListModification->setNumberOfRefPicListModificationsL1(0);
+      }
     }  
     else
     {
@@ -1011,7 +1022,8 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   {
     READ_UVLC(uiCode, "cabac_init_idc");
     rpcSlice->setCABACinitIDC(uiCode);
-  } else if (rpcSlice->getPPS()->getEntropyCodingMode() && rpcSlice->isIntra())
+  }
+  else if (rpcSlice->getPPS()->getEntropyCodingMode() && rpcSlice->isIntra())
   {
     rpcSlice->setCABACinitIDC(0);
   }
@@ -1412,7 +1424,9 @@ Void TDecCavlc::parseTerminatingBit( UInt& ruiBit )
   {
     UInt uiPeekValue = m_pcBitstream->peekBits(iBitsLeft);
     if (uiPeekValue == (1<<(iBitsLeft-1)))
+    {
       ruiBit = true;
+    }
   }
 }
 
