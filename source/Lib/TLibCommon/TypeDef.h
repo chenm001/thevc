@@ -137,7 +137,6 @@
 #define MAX_PCM_SIZE                        1      ///< G112 : SPS control of PCM mode; Maximum PCM size no larger than 32x32
 #define MIN_CHROMA_TU                       1      ///< G112 : Log2_minimum_chroma_transform_size = max (Log2_minimum_luma_transform_size-1, 2)
 #define ALF_SAO_SLICE_FLAGS                 1      ///< G566 : Re-insert ALF and SAO flags in the slice header
-#define CHROMA_FORMAT_IDC                   1      ///< G1039 : add chroma_format_idc syntax element
 #define PIC_SIZE_VLC                        1      ///< G325: code pic_width_in_luma_samples and pic_heigh_in_luma_samples as ue(v)
 #define MAX_DPB_AND_LATENCY                 1      ///< G546 : Move max_dec_frame_buffering and num_reorder_frames from VUI to SPS
                                                    ///< G779 : Put max_latency_increase in SPS
@@ -488,7 +487,6 @@ enum SliceType
   B_SLICE
 };
 
-#if CHROMA_FORMAT_IDC
 /// chroma formats (according to semantics of chroma_format_idc)
 enum ChromaFormat
 {
@@ -497,7 +495,6 @@ enum ChromaFormat
   CHROMA_422  = 2,
   CHROMA_444  = 3
 };
-#endif
 
 /// supported partition shape
 enum PartSize

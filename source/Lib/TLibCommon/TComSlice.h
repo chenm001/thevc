@@ -67,9 +67,7 @@ private:
   Int         m_SPSId;
   Int         m_ProfileIdc;
   Int         m_LevelIdc;
-#if CHROMA_FORMAT_IDC
   Int         m_chromaFormatIdc;
-#endif
 
   UInt        m_uiMaxTLayers;           // maximum number of temporal layers
 
@@ -182,10 +180,8 @@ public:
   Int  getLevelIdc    ()         { return m_LevelIdc;       }
   Void setLevelIdc    (Int i)    { m_LevelIdc = i;          }
 
-#if CHROMA_FORMAT_IDC
   Int  getChromaFormatIdc ()         { return m_chromaFormatIdc;       }
   Void setChromaFormatIdc (Int i)    { m_chromaFormatIdc = i;          }
-#endif
   
   // structure
   Void setWidth       ( UInt u ) { m_uiWidth = u;           }

@@ -450,9 +450,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_CODE( 0,                           8,       "reserved_zero_8bits" );
   WRITE_CODE( pcSPS->getLevelIdc (),       8,       "level_idc" );
   WRITE_UVLC( pcSPS->getSPSId (),                   "seq_parameter_set_id" );
-#if CHROMA_FORMAT_IDC
   WRITE_UVLC( pcSPS->getChromaFormatIdc (),         "chroma_format_idc" );
-#endif
   WRITE_CODE( pcSPS->getMaxTLayers() - 1,  3,       "max_temporal_layers_minus1" );
 #if PIC_SIZE_VLC
   WRITE_UVLC( pcSPS->getWidth (),                   "pic_width_in_luma_samples" );
