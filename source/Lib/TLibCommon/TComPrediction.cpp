@@ -107,7 +107,9 @@ Void TComPrediction::initTempBuff()
   m_pLumaRecBuffer = new Pel[ m_iLumaRecStride * m_iLumaRecStride ];
 
   for( Int i = 1; i < 64; i++ )
+  {
     m_uiaShift[i-1] = ( (1 << 15) + i/2 ) / i;
+  }
 }
 
 // ====================================================================================================================
@@ -275,7 +277,9 @@ Void TComPrediction::xPredIntraAng( Int* pSrc, Int srcStride, Pel*& rpDst, Int d
       if ( bFilter )
       {
         for (k=0;k<blkSize;k++)
+        {
           pDst[k*dstStride] = Clip ( pDst[k*dstStride] + ( refSide[k+1] - refSide[0] ) / 2 );
+        }
       }
 #endif
     }
@@ -424,9 +428,13 @@ Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, 
     {
 #if (WEIGHT_PRED)
       if( pcCU->getSlice()->getPPS()->getUseWP())
+      {
         xPredInterUni (pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx, true );
+      }
       else
+      {
         xPredInterUni (pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx );
+      }
 #else
       xPredInterUni (pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx );
 #endif
@@ -463,9 +471,13 @@ Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, 
     {
 #if (WEIGHT_PRED)
       if( pcCU->getSlice()->getPPS()->getUseWP())
+      {
         xPredInterUni (pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx, true );
+      }
       else
+      {
         xPredInterUni (pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx );
+      }
 #else
       xPredInterUni (pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx );
 #endif
@@ -530,9 +542,13 @@ Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidt
     {
 #if (WEIGHT_PRED)
       if ( pcCU->getSlice()->getPPS()->getWPBiPredIdc() )
+      {
         xPredInterUni ( pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, iPartIdx, true );
+      }
       else
+      {
         xPredInterUni ( pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, iPartIdx );
+      }
 #else
       xPredInterUni ( pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, iPartIdx );
 #endif
@@ -541,10 +557,14 @@ Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidt
 
 #if WEIGHT_PRED
   if ( pcCU->getSlice()->getPPS()->getWPBiPredIdc() )
+  {
     xWeightedPredictionBi( pcCU, &m_acYuvPred[0], &m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, iWidth, iHeight, rpcYuvPred );
+  }
   else
 #endif
-  xWeightedAverage( pcCU, &m_acYuvPred[0], &m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, iWidth, iHeight, rpcYuvPred );
+  {
+    xWeightedAverage( pcCU, &m_acYuvPred[0], &m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, iWidth, iHeight, rpcYuvPred );
+  }
 }
 
 /**
@@ -866,20 +886,29 @@ Short CountLeadingZerosOnes (Short x)
   Short clz;
   Short i;
 
-  if(x == 0) {
+  if(x == 0)
+  {
     clz = 0;
   }
-  else {
+  else
+  {
     if (x == -1)
     {
       clz = 15;
     }
-    else {
+    else
+    {
       if(x < 0)
+      {
         x = ~x;
+      }
       clz = 15;
-      for(i = 0;i < 15;++i) {
-        if(x) clz --;
+      for(i = 0;i < 15;++i)
+      {
+        if(x) 
+        {
+          clz --;
+        }
         x = x >> 1;
       }
     }
@@ -997,10 +1026,14 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
       a1s = a1 >> iScaleShiftA1;
 
       if (a2s >= 1)
+      {
         a = a1s * m_uiaShift[ a2s - 1];
+      }
       else
+      {
         a = 0;
-
+      }
+      
       if( iScaleShiftA < 0 )
       {
         a = a << -iScaleShiftA;
@@ -1012,17 +1045,17 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
       
        a = Clip3(-( 1 << 15 ), ( 1 << 15 ) - 1, a); 
      
+      Int minA = -(1 << (6));
+      Int maxA = (1 << 6) - 1;
+      if( a <= maxA && a >= minA )
       {
-        Int minA = -(1 << (6));
-        Int maxA = (1 << 6) - 1;
-        if( a <= maxA && a >= minA ) {
-          // do nothing
-        }
-        else {
-          Short n = CountLeadingZerosOnes(a);
-          a = a >> (9-n);
-          iShift -= (9-n);
-        }
+        // do nothing
+      }
+      else
+      {
+        Short n = CountLeadingZerosOnes(a);
+        a = a >> (9-n);
+        iShift -= (9-n);
       }
 
       b = (  y - ( ( a * x ) >> iShift ) + ( 1 << ( iCountShift - 1 ) ) ) >> iCountShift;
