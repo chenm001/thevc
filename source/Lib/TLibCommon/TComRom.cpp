@@ -72,12 +72,8 @@ Void initROM()
     g_auiSigLastScan[0][i] = new UInt[ c*c ];
     g_auiSigLastScan[1][i] = new UInt[ c*c ];
     g_auiSigLastScan[2][i] = new UInt[ c*c ];
-#if DIAG_SCAN
     g_auiSigLastScan[3][i] = new UInt[ c*c ];
     initSigLastScan( g_auiSigLastScan[0][i], g_auiSigLastScan[1][i], g_auiSigLastScan[2][i], g_auiSigLastScan[3][i], c, c, i);
-#else
-    initSigLastScan( g_auiSigLastScan[0][i], g_auiSigLastScan[1][i], g_auiSigLastScan[2][i], c, c, i);
-#endif
 
     c <<= 1;
   }  
@@ -172,9 +168,7 @@ Void destroyROM()
     delete[] g_auiSigLastScan[0][i];
     delete[] g_auiSigLastScan[1][i];
     delete[] g_auiSigLastScan[2][i];
-#if DIAG_SCAN
     delete[] g_auiSigLastScan[3][i];
-#endif
   }
 #if NSQT_DIAG_SCAN
   for (i = 0; i < 4; i++)
@@ -762,11 +756,7 @@ UInt64 g_nSymbolCounter = 0;
 UInt* g_auiFrameScanXY[ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanX [ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanY [ MAX_CU_DEPTH  ];
-#if DIAG_SCAN
 UInt* g_auiSigLastScan[4][ MAX_CU_DEPTH ];
-#else
-UInt* g_auiSigLastScan[3][ MAX_CU_DEPTH ];
-#endif
 #if NSQT_DIAG_SCAN
 UInt *g_sigScanNSQT[ 4 ]; // scan for non-square partitions
 UInt g_sigCGScanNSQT[ 4 ][ 16 ] =
@@ -909,13 +899,8 @@ Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int i
   }
 }
 
-#if DIAG_SCAN
 Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int iWidth, Int iHeight, Int iDepth)
-#else
-Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int iHeight, Int iDepth)
-#endif
 {
-#if DIAG_SCAN
   const UInt  uiNumScanPos  = UInt( iWidth * iWidth );
   UInt        uiNextScanPos = 0;
 
@@ -975,7 +960,6 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, Int iWidth, Int i
       }
     }
   }
-#endif
 #endif
   
   memcpy(pBuffZ, g_auiFrameScanXY[iDepth], sizeof(UInt)*iWidth*iHeight);

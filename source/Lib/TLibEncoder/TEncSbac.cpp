@@ -1487,16 +1487,12 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 #if NSQT && !NSQT_DIAG_SCAN
   const UInt   uiMaxNumCoeff     = uiWidth * uiHeight;
 #endif
-#if DIAG_SCAN
   UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
   if (uiScanIdx == SCAN_ZIGZAG)
   {
     // Map zigzag to diagonal scan
     uiScanIdx = SCAN_DIAG;
   }
-#else
-  const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
-#endif
 #if NSQT_DIAG_SCAN
   Int blockType = uiLog2BlockSize;
   if (uiWidth != uiHeight)

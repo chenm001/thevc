@@ -3288,16 +3288,12 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   Int iQBitsC = iQBits - ARL_C_PRECISION;
   Int iAddC =  1 << (iQBitsC-1);
 #endif
-#if DIAG_SCAN
   UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
   if (uiScanIdx == SCAN_ZIGZAG)
   {
     // Map value zigzag to diagonal scan
     uiScanIdx = SCAN_DIAG;
   }
-#else
-  const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
-#endif
 #if NSQT_DIAG_SCAN
   Int blockType = uiLog2BlkSize;
   if (uiWidth != uiHeight)

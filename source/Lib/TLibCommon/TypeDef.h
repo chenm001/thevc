@@ -209,7 +209,6 @@
 
 #define SCAN_SET_SIZE                     16
 #define LOG2_SCAN_SET_SIZE                4
-#define DIAG_SCAN                         1           ///< JCTVC-F129: use up-right diagonal scan rather than zig-zag for CABAC           
 
 #define FAST_UDI_MAX_RDMODE_NUM               35          ///< maximum number of RD comparison in fast-UDI estimation loop 
 
@@ -639,12 +638,8 @@ enum COEFF_SCAN_TYPE
 {
   SCAN_ZIGZAG = 0,      ///< typical zigzag scan
   SCAN_HOR,             ///< horizontal first scan
-#if DIAG_SCAN
   SCAN_VER,              ///< vertical first scan
   SCAN_DIAG              ///< up-right diagonal scan
-#else
-  SCAN_VER              ///< vertical first scan
-#endif
 };
 
 //! \}

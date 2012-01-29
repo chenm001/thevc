@@ -1532,11 +1532,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   const UInt  uiLog2BlockSize   = g_aucConvertToBit[ uiWidth ] + 2;
   const UInt  uiMaxNumCoeff     = uiWidth * uiHeight;
   const UInt  uiMaxNumCoeffM1   = uiMaxNumCoeff - 1;
-#if DIAG_SCAN
   UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
-#else
-  const UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
-#endif
 #if NSQT_DIAG_SCAN
   int blockType = uiLog2BlockSize;
   if (uiWidth != uiHeight)
@@ -1597,22 +1593,12 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     UInt uiD         = uiPosLastY + uiPosLastX;
     if( uiD < uiWidth )
     {
-#if DIAG_SCAN
       uiScanPosLast  = uiPosLastX + (( uiD * ( uiD + 1 ) ) >> 1);
-#else
-      uiScanPosLast  = ( uiD * ( uiD + 1 ) ) >> 1;
-      uiScanPosLast += uiD % 2 ? uiPosLastY : uiPosLastX;
-#endif
     } 
     else
     {
       UInt uiDI      = ( (uiWidth-1) << 1 ) - uiD;
-#if DIAG_SCAN
       uiScanPosLast  = uiMaxNumCoeffM1 - ( uiDI * ( uiDI + 1 ) >> 1 ) - uiWidth + 1 + uiPosLastX;
-#else
-      uiScanPosLast  = uiMaxNumCoeffM1 - ( uiDI * ( uiDI + 1 ) >> 1 );
-      uiScanPosLast -= uiDI % 2 ? uiWidth - 1 - uiPosLastY : uiWidth - 1 - uiPosLastX;
-#endif
     }
   }
   else if( uiScanIdx == SCAN_VER )
@@ -1622,9 +1608,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 #endif
 
 #if !SUBBLOCK_SCAN
-#if DIAG_SCAN
   uiScanIdx = ( uiScanIdx == SCAN_ZIGZAG ) ? SCAN_DIAG : uiScanIdx; // Map zigzag to diagonal scan
-#endif
   
   const UInt * const scan = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize-1 ];
 #endif
