@@ -215,7 +215,6 @@ protected:
 #endif
   Bool      m_bUseLComb;
   Bool      m_bLCMod;
-  Bool      m_bUseRDOQ;
 #if !G1002_RPS
   Bool      m_bUseLDC;
 #endif
@@ -507,7 +506,6 @@ public:
 #endif
   Void      setUseLComb                     ( Bool  b )     { m_bUseLComb   = b; }
   Void      setLCMod                        ( Bool  b )     { m_bLCMod   = b;    }
-  Void      setUseRDOQ                      ( Bool  b )     { m_bUseRDOQ    = b; }
 #if !G1002_RPS
   Void      setUseLDC                       ( Bool  b )     { m_bUseLDC     = b; }
 #endif
@@ -553,7 +551,6 @@ public:
 #endif
   Bool      getUseLComb                     ()      { return m_bUseLComb;   }
   Bool      getLCMod                        ()      { return m_bLCMod; }
-  Bool      getUseRDOQ                      ()      { return m_bUseRDOQ;    }
 #if !G1002_RPS
   Bool      getUseLDC                       ()      { return m_bUseLDC;     }
 #endif

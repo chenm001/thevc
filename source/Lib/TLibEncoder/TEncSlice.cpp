@@ -334,23 +334,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   Double dOrigQP = dQP;
 
   // pre-compute lambda and QP values for all possible QP candidates
-#if !G1002_RPS
-  if (pcPic->getSlice(0)->isIntra())
-  {
-    m_pcTrQuant->setRDOQOffset(1);
-  }
-  else
-  {
-    if (m_pcCfg->getHierarchicalCoding())
-    {
-      m_pcTrQuant->setRDOQOffset(1);
-    }
-    else
-    {
-      m_pcTrQuant->setRDOQOffset(0);
-    }
-  }
-#endif
 
   for ( Int iDQpIdx = 0; iDQpIdx < 2 * m_pcCfg->getDeltaQpRD() + 1; iDQpIdx++ )
   {
@@ -395,12 +378,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 #else
     if ( iDepth == 0 )
     {
-      if ( m_pcCfg->getUseRDOQ() && rpcSlice->isIntra() && dQP == dOrigQP )
-      {
-        dLambda = 0.57 * pow( 2.0, qp_temp/3.0 );
-      }
-      else
-      {
         if ( NumberBFrames > 0 ) // HB structure or HP structure
         {
           dLambda = 0.68 * pow( 2.0, qp_temp/3.0 );
@@ -409,7 +386,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
         {
           dLambda = 0.85 * pow( 2.0, qp_temp/3.0 );
         }
-      }
       dLambda *= dLambda_scale;
     }
     else // P or B slices for HB or HP structure

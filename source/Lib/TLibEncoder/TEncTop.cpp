@@ -338,7 +338,7 @@ Void TEncTop::init()
                   m_iSymbolMode,
 #endif
                   aTable4, aTable8, 
-                  aTableLastPosVlcIndex, m_bUseRDOQ, true 
+                  aTableLastPosVlcIndex, true 
 #if ADAPTIVE_QP_SELECTION                  
                   , m_bUseAdaptQpSelect
 #endif

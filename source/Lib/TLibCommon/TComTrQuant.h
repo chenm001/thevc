@@ -154,7 +154,7 @@ public:
   ~TComTrQuant();
   
   // initialize class
-  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, UInt *aTableLastPosVlcIndex=NULL, Bool bUseRDOQ = false,  Bool bEnc = false
+  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, UInt *aTableLastPosVlcIndex=NULL, Bool bEnc = false
 #if ADAPTIVE_QP_SELECTION
                        , Bool bUseAdaptQpSelect = false
 #endif    
@@ -193,9 +193,6 @@ public:
 #else
   Void setLambda(Double dLambda) { m_dLambda = dLambda;}
 #endif
-  Void setRDOQOffset( UInt uiRDOQOffset ) { m_uiRDOQOffset = uiRDOQOffset; }
-  
-  estBitsSbacStruct* m_pcEstBitsSbac;
   
   static Int      getSigCtxInc     ( TCoeff*                         pcCoeff,
                                      Int                             posX,
@@ -270,10 +267,8 @@ protected:
   Double   m_dLambdaChroma;
 #endif
   Double   m_dLambda;
-  UInt     m_uiRDOQOffset;
   UInt     m_uiMaxTrSize;
   Bool     m_bEnc;
-  Bool     m_bUseRDOQ;
 #if ADAPTIVE_QP_SELECTION
   Bool     m_bUseAdaptQpSelect;
 #endif
@@ -326,62 +321,7 @@ private:
                                         , Int isIntra
                                         );
   UInt           xCountVlcBits(UInt uiTableNumber, UInt uiCodeNumber);
-  Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int* vlc_adaptive, Int N, 
-                              UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1, Int iNextRun
-                              , Int isIntra
-                              );
-  Void           xRateDistOptQuant_LCEC ( TComDataCU*                     pcCU,
-                                          Int*                            plSrcCoeff,
-                                          TCoeff*                         piDstCoeff,
-#if ADAPTIVE_QP_SELECTION
-                                          Int*&                           pArlDstCoeff, 
 #endif
-                                          UInt                            uiWidth,
-                                          UInt                            uiHeight,
-                                          UInt&                           uiAbsSum,
-                                          TextType                        eTType,
-                                          UInt                            uiAbsPartIdx );
-#endif
-  
-  Void           xRateDistOptQuant ( TComDataCU*                     pcCU,
-                                     Int*                            plSrcCoeff,
-                                     TCoeff*                         piDstCoeff,
-#if ADAPTIVE_QP_SELECTION
-                                     Int*&                           piArlDstCoeff,
-#endif
-                                     UInt                            uiWidth,
-                                     UInt                            uiHeight,
-                                     UInt&                           uiAbsSum,
-                                     TextType                        eTType,
-                                     UInt                            uiAbsPartIdx );
-__inline UInt              xGetCodedLevel  ( Double&                         rd64CodedCost,
-                                             Double&                         rd64CodedCost0,
-                                             Double&                         rd64CodedCostSig,
-                                             Int                             lLevelDouble,
-                                             UInt                            uiMaxAbsLevel,
-                                             UShort                          ui16CtxNumSig,
-                                             UShort                          ui16CtxNumOne,
-                                             UShort                          ui16CtxNumAbs,
-                                             UShort                          ui16AbsGoRice,
-                                             Int                             iQBits,
-                                             Double                          dTemp,
-                                             Bool                            bLast        ) const;
-  __inline Double xGetICRateCost   ( UInt                            uiAbsLevel,
-                                     UShort                          ui16CtxNumOne,
-                                     UShort                          ui16CtxNumAbs,
-                                     UShort                          ui16AbsGoRice ) const;
-  __inline Double xGetRateLast     ( const UInt                      uiPosX,
-                                     const UInt                      uiPosY,
-                                     const UInt                      uiBlkWdth     ) const;
-#if MULTI_LEVEL_SIGNIFICANCE
-  __inline Double xGetRateSigCoeffGroup (  UShort                    uiSignificanceCoeffGroup,
-                                     UShort                          ui16CtxNumSig ) const;
-#endif
-  __inline Double xGetRateSigCoef (  UShort                          uiSignificance,
-                                     UShort                          ui16CtxNumSig ) const;
-  __inline Double xGetICost        ( Double                          dRate         ) const; 
-  __inline Double xGetIEPRate      (                                               ) const;
-  
   
   // dequantization
 #if SCALING_LIST

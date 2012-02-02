@@ -244,7 +244,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("MaxQPAdaptationRange,-aqr", m_iQPAdaptationRange, 6, "QP adaptation range")
 #endif
   ("dQPFile,m",     cfg_dQPFile, string(""), "dQP file name")
-  ("RDOQ",          m_bUseRDOQ, true)
   ("TemporalLayerQPOffset_L0,-tq0", m_aiTLayerQPOffset[0], MAX_QP + 1, "QP offset of temporal layer 0")
   ("TemporalLayerQPOffset_L1,-tq1", m_aiTLayerQPOffset[1], MAX_QP + 1, "QP offset of temporal layer 1")
   ("TemporalLayerQPOffset_L2,-tq2", m_aiTLayerQPOffset[2], MAX_QP + 1, "QP offset of temporal layer 2")
@@ -1001,7 +1000,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("IBD:%d ", !!g_uiBitIncrement);
   printf("HAD:%d ", m_bUseHADME           );
   printf("SRD:%d ", m_bUseSBACRD          );
-  printf("RDQ:%d ", m_bUseRDOQ            );
   printf("SQP:%d ", m_uiDeltaQpRD         );
   printf("ASR:%d ", m_bUseASR             );
   printf("PAD:%d ", m_bUsePAD             );
@@ -1124,7 +1122,6 @@ Void TAppEncCfg::xPrintUsage()
   printf( "                   GPB - generalized B instead of P in low-delay mode\n");
   printf( "                   HAD - hadamard ME for fractional-pel\n");
   printf( "                   SRD - SBAC based RD estimation\n");
-  printf( "                   RDQ - RDOQ\n");
   printf( "                   LDC - low-delay mode\n");
   printf( "                   NRF - non-reference frame marking in last layer\n");
   printf( "                   BQP - hier-P style QP assignment in low-delay mode\n");
@@ -1166,10 +1163,6 @@ void translateOldStyleCmdline(const char* value, po::Options& opts, const std::s
   if (arg == "LDC")
   {
     argv[0] = "LowDelayCoding";
-  }
-  else if (arg == "RDQ")
-  {
-    argv[0] = "RDOQ";
   }
   else if (arg == "HAD")
   {

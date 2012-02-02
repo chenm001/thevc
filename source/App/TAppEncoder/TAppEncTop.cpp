@@ -173,7 +173,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseLComb                     ( m_bUseLComb    );
   m_cTEncTop.setLCMod                        ( m_bLCMod         );
   m_cTEncTop.setdQPs                         ( m_aidQP        );
-  m_cTEncTop.setUseRDOQ                      ( m_bUseRDOQ     );
 #if !G1002_RPS
   m_cTEncTop.setUseLDC                       ( m_bUseLDC      );
 #endif
