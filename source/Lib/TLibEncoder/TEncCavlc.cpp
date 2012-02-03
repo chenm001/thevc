@@ -371,7 +371,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #else
   //   pic_init_qp_minus26  /* relative to 26 */
 #endif
-  WRITE_FLAG( pcPPS->getConstrainedIntraPred() ? 1 : 0,      "constrained_intra_pred_flag" );
+  WRITE_FLAG( 0,                                             "constrained_intra_pred_flag" );
 #if NO_TMVP_MARKING
   WRITE_FLAG( pcPPS->getEnableTMVPFlag() ? 1 : 0,            "enable_temporal_mvp_flag" );
 #endif

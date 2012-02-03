@@ -337,7 +337,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 #else
   // pic_init_qp_minus26  /* relative to 26 */
 #endif
-  READ_FLAG( uiCode, "constrained_intra_pred_flag" );              pcPPS->setConstrainedIntraPred( uiCode ? true : false );
+  READ_FLAG( uiCode, "constrained_intra_pred_flag" );              assert( uiCode == 0 );
 #if NO_TMVP_MARKING
   READ_FLAG( uiCode, "enable_temporal_mvp_flag" );                 pcPPS->setEnableTMVPFlag( uiCode ? true : false );
 #endif

@@ -726,7 +726,6 @@ Void TEncTop::xInitSPS()
 
 Void TEncTop::xInitPPS()
 {
-  m_cPPS.setConstrainedIntraPred( m_bUseConstrainedIntraPred );
   m_cPPS.setSliceGranularity(m_iSliceGranularity);
   if ( m_cSPS.getTemporalIdNestingFlag() ) 
   {

@@ -500,7 +500,6 @@ private:
   Int         m_picInitQPMinus26;
   Bool        m_useDQP;
 #endif
-  Bool        m_bConstrainedIntraPred;    // constrained_intra_pred_flag
  
   // access channel
   TComSPS*    m_pcSPS;
@@ -575,8 +574,6 @@ public:
   Bool      getUseDQP ()                   { return m_useDQP;        }
   Void      setUseDQP ( Bool b )           { m_useDQP   = b;         }
 #endif
-  Bool      getConstrainedIntraPred ()         { return  m_bConstrainedIntraPred; }
-  Void      setConstrainedIntraPred ( Bool b ) { m_bConstrainedIntraPred = b;     }
 
   UInt      getNumTLayerSwitchingFlags()                                  { return m_uiNumTlayerSwitchingFlags; }
   Void      setNumTLayerSwitchingFlags( UInt uiNumTlayerSwitchingFlags )  { assert( uiNumTlayerSwitchingFlags < MAX_TLAYER ); m_uiNumTlayerSwitchingFlags = uiNumTlayerSwitchingFlags; }

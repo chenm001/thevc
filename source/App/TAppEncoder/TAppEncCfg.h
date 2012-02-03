@@ -237,8 +237,6 @@ protected:
   Int       m_iWaveFrontSubstreams; //< If iWaveFrontSynchro, this is the number of substreams per frame (dependent tiles) or per tile (independent tiles).
 #endif
 
-  Bool      m_bUseConstrainedIntraPred;                       ///< flag for using constrained intra prediction
-  
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
 #if !G1002_RPS

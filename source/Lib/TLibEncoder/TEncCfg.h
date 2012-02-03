@@ -236,7 +236,6 @@ protected:
   Int*      m_aidQP;
   UInt      m_uiDeltaQpRD;
   
-  Bool      m_bUseConstrainedIntraPred;
 #if MAX_PCM_SIZE
   Bool      m_usePCM;
   UInt      m_pcmLog2MaxSize;
@@ -522,7 +521,6 @@ public:
   Void      setUseCbfFastMode            ( Bool  b )     { m_bUseCbfFastMode = b; }
 #endif
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
-  Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
   Void      setPCMInputBitDepthFlag         ( Bool  b )     { m_bPCMInputBitDepthFlag = b; }
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void      setPCMFilterDisableFlag         ( Bool  b )     {  m_bPCMFilterDisableFlag = b; }
@@ -567,7 +565,6 @@ public:
   Bool      getUseCbfFastMode           ()      { return m_bUseCbfFastMode; }
 #endif
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
-  Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
 #if NS_HAD
   Bool      getUseNSQT                      ()      { return m_useNSQT; }
 #endif

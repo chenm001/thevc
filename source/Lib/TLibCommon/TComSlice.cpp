@@ -1689,7 +1689,6 @@ TComPPS::TComPPS()
 , m_picInitQPMinus26            (0)
 , m_useDQP                      (false)
 #endif
-, m_bConstrainedIntraPred       (false)
 , m_pcSPS                       (NULL)
 , m_uiMaxCuDQPDepth             (0)
 , m_uiMinCuDQPSize              (0)

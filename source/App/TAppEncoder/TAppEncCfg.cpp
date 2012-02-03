@@ -294,7 +294,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("SliceGranularity",     m_iSliceGranularity,    0, "0: Slices always end at LCU borders. 1-3: slices may end at a depth of 1-3 below LCU level.")
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
 
-    ("ConstrainedIntraPred", m_bUseConstrainedIntraPred, false, "Constrained Intra Prediction")
 #if MAX_PCM_SIZE
     ("PCMEnabledFlag", m_usePCM         , false)
     ("PCMLog2MaxSize", m_pcmLog2MaxSize, 5u)
@@ -1031,7 +1030,6 @@ Void TAppEncCfg::xPrintParameter()
   {
     printf("A=%d ", m_iEntropySliceArgument);
   }
-  printf("CIP:%d ", m_bUseConstrainedIntraPred);
   printf("SAO:%d ", (m_bUseSAO)?(1):(0));
   printf("PCM:%d ", ((1<<m_uiPCMLog2MinSize) <= m_uiMaxCUWidth)? 1 : 0);
 #if !G1002_RPS

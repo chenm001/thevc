@@ -647,14 +647,7 @@ Bool TComPattern::isAboveLeftAvailable( TComDataCU* pcCU, UInt uiPartIdxLT )
   Bool bAboveLeftFlag;
   UInt uiPartAboveLeft;
   TComDataCU* pcCUAboveLeft = pcCU->getPUAboveLeft( uiPartAboveLeft, uiPartIdxLT, true, false );
-  if(pcCU->getSlice()->getPPS()->getConstrainedIntraPred())
-  {
-    bAboveLeftFlag = ( pcCUAboveLeft && pcCUAboveLeft->getPredictionMode( uiPartAboveLeft ) == MODE_INTRA );
-  }
-  else
-  {
     bAboveLeftFlag = (pcCUAboveLeft ? true : false);
-  }
   return bAboveLeftFlag;
 }
 
@@ -670,20 +663,6 @@ Int TComPattern::isAboveAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPa
   {
     UInt uiPartAbove;
     TComDataCU* pcCUAbove = pcCU->getPUAbove( uiPartAbove, g_auiRasterToZscan[uiRasterPart], true, false );
-  if(pcCU->getSlice()->getPPS()->getConstrainedIntraPred())
-  {
-    if ( pcCUAbove && pcCUAbove->getPredictionMode( uiPartAbove ) == MODE_INTRA )
-    {
-      iNumIntra++;
-      *pbValidFlags = true;
-    }
-    else
-    {
-      *pbValidFlags = false;
-    }
-  }
-  else
-  {
     if (pcCUAbove)
     {
       iNumIntra++;
@@ -693,7 +672,6 @@ Int TComPattern::isAboveAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPa
     {
       *pbValidFlags = false;
     }
-  }
     pbValidFlags++;
   }
   return iNumIntra;
@@ -711,20 +689,6 @@ Int TComPattern::isLeftAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPar
   {
     UInt uiPartLeft;
     TComDataCU* pcCULeft = pcCU->getPULeft( uiPartLeft, g_auiRasterToZscan[uiRasterPart], true, false );
-  if(pcCU->getSlice()->getPPS()->getConstrainedIntraPred())
-  {
-    if ( pcCULeft && pcCULeft->getPredictionMode( uiPartLeft ) == MODE_INTRA )
-    {
-      iNumIntra++;
-      *pbValidFlags = true;
-    }
-    else
-    {
-      *pbValidFlags = false;
-    }
-  }
-  else
-  {
     if ( pcCULeft )
     {
       iNumIntra++;
@@ -734,7 +698,6 @@ Int TComPattern::isLeftAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt uiPar
     {
       *pbValidFlags = false;
     }
-  }
     pbValidFlags--; // opposite direction
   }
 
@@ -752,20 +715,6 @@ Int TComPattern::isAboveRightAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt
   {
     UInt uiPartAboveRight;
     TComDataCU* pcCUAboveRight = pcCU->getPUAboveRightAdi( uiPartAboveRight, uiPuWidth, uiPartIdxRT, uiOffset, true, false );
-  if(pcCU->getSlice()->getPPS()->getConstrainedIntraPred())
-  {
-    if ( pcCUAboveRight && pcCUAboveRight->getPredictionMode( uiPartAboveRight ) == MODE_INTRA )
-    {
-      iNumIntra++;
-      *pbValidFlags = true;
-    }
-    else
-    {
-      *pbValidFlags = false;
-    }
-  }
-  else
-  {
     if ( pcCUAboveRight )
     {
       iNumIntra++;
@@ -775,7 +724,6 @@ Int TComPattern::isAboveRightAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt
     {
       *pbValidFlags = false;
     }
-  }
     pbValidFlags++;
   }
 
@@ -793,20 +741,6 @@ Int TComPattern::isBelowLeftAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt 
   {
     UInt uiPartBelowLeft;
     TComDataCU* pcCUBelowLeft = pcCU->getPUBelowLeftAdi( uiPartBelowLeft, uiPuHeight, uiPartIdxLB, uiOffset, true, false );
-  if(pcCU->getSlice()->getPPS()->getConstrainedIntraPred())
-  {
-    if ( pcCUBelowLeft && pcCUBelowLeft->getPredictionMode( uiPartBelowLeft ) == MODE_INTRA )
-    {
-      iNumIntra++;
-      *pbValidFlags = true;
-    }
-    else
-    {
-      *pbValidFlags = false;
-    }
-  }
-  else
-  {
     if ( pcCUBelowLeft )
     {
       iNumIntra++;
@@ -816,7 +750,6 @@ Int TComPattern::isBelowLeftAvailable( TComDataCU* pcCU, UInt uiPartIdxLT, UInt 
     {
       *pbValidFlags = false;
     }
-  }
     pbValidFlags--; // opposite direction
   }
 
