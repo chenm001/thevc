@@ -1067,27 +1067,11 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   } 
   else 
   {
-    if( pcCU->getSlice()->getSPS()->getUseLMChroma() )
-    {
-      m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUChromaPredSCModel.get( 0, 0, 1 ) );
-    }
-    else
-    {
-      uiSymbol = 1;
-    }
-
-    if( uiSymbol == 0 )
-    {
-      uiSymbol = LM_CHROMA_IDX;
-    } 
-    else
-    {
       UInt uiIPredMode;
       xReadUnaryMaxSymbol( uiIPredMode, m_cCUChromaPredSCModel.get( 0, 0 ) + 1, 0, 3 );
       UInt uiAllowedChromaDir[ NUM_CHROMA_MODE ];
       pcCU->getAllowedChromaDir( uiAbsPartIdx, uiAllowedChromaDir );
       uiSymbol = uiAllowedChromaDir[ uiIPredMode ];
-    }
   }
   pcCU->setChromIntraDirSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
   return;

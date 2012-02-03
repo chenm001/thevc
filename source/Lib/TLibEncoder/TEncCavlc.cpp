@@ -546,7 +546,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if SCALING_LIST
   WRITE_FLAG( (pcSPS->getScalingListFlag()) ? 1 : 0,                                  "scaling_list_enabled_flag" ); 
 #endif
-  WRITE_FLAG  ( (pcSPS->getUseLMChroma ()) ? 1 : 0,                                  "chroma_pred_from_luma_enabled_flag" ); 
+  WRITE_FLAG  ( 0,                                                                   "chroma_pred_from_luma_enabled_flag" );
 #if G174_DF_OFFSET
   WRITE_FLAG( pcSPS->getUseDF() ? 1 : 0,                                             "deblocking_filter_in_aps_enabled_flag");
 #endif
@@ -1502,14 +1502,7 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
         break;
       }
     }
-    if( pcCU->getSlice()->getSPS()->getUseLMChroma() )
-    {
-      xWriteCode( 3, 2 );
-    }
-    else
-    {
       xWriteFlag(1);
-    }
 
     xWriteUnaryMaxSymbol( uiIntraDirChroma, 3 );
   }

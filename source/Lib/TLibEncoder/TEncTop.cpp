@@ -607,8 +607,6 @@ Void TEncTop::xInitSPS()
   
   m_cSPS.setUseMRG        ( m_bUseMRG           ); // SOPH:
 
-  m_cSPS.setUseLMChroma   ( m_bUseLMChroma           );  
-  
   m_cSPS.setMaxTrSize   ( 1 << m_uiQuadtreeTULog2MaxSize );
   
   m_cSPS.setUseLComb    ( m_bUseLComb           );

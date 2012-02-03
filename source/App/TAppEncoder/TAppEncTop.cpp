@@ -194,7 +194,6 @@ Void TAppEncTop::xInitLibCfg()
 #endif
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
 
-  m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );
   m_cTEncTop.setPCMLog2MinSize          ( m_uiPCMLog2MinSize);
 #if MAX_PCM_SIZE
   m_cTEncTop.setUsePCM                       ( m_usePCM );

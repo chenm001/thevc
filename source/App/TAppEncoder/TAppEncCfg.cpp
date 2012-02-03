@@ -276,8 +276,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   /* Coding tools */
   ("MRG", m_bUseMRG, true, "merging of motion partitions")
 
-  ("LMChroma", m_bUseLMChroma, true, "intra chroma prediction based on recontructed luma")
-
   ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
   ("SAO", m_bUseSAO, true, "SAO")   
 
@@ -1019,7 +1017,6 @@ Void TAppEncCfg::xPrintParameter()
 #endif
   printf("RQT:%d ", 1     );
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
-  printf("LMC:%d ", m_bUseLMChroma        ); 
   printf("Slice: G=%d M=%d ", m_iSliceGranularity, m_iSliceMode);
   if (m_iSliceMode!=0)
   {

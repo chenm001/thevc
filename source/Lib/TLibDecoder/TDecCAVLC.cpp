@@ -583,7 +583,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #if SCALING_LIST
   READ_FLAG( uiCode, "scaling_list_enable_flag" );               pcSPS->setScalingListFlag ( uiCode );
 #endif
-  READ_FLAG( uiCode, "chroma_pred_from_luma_enabled_flag" );     pcSPS->setUseLMChroma ( uiCode ? true : false ); 
+  READ_FLAG( uiCode, "chroma_pred_from_luma_enabled_flag" );     assert( uiCode == 0 );
 #if G174_DF_OFFSET
   READ_FLAG( uiCode, "deblocking_filter_In_APS_enabled_flag" );    pcSPS->setUseDF ( uiCode ? true : false );  
 #endif
@@ -1883,26 +1883,10 @@ Void TDecCavlc::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
   } 
   else 
   {
-    if( pcCU->getSlice()->getSPS()->getUseLMChroma() )
-    {
-      xReadFlag( uiSymbol );
-    }
-    else
-    {
-      uiSymbol = 1;
-    }
-
-    if( uiSymbol == 0 )
-    {
-      uiSymbol = LM_CHROMA_IDX;
-    } 
-    else
-    {
       xReadUnaryMaxSymbol( uiSymbol, 3 );
       UInt uiAllowedChromaDir[ NUM_CHROMA_MODE ];
       pcCU->getAllowedChromaDir( uiAbsPartIdx, uiAllowedChromaDir );
       uiSymbol = uiAllowedChromaDir[ uiSymbol ];
-    }
   }
   pcCU->setChromIntraDirSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
   return;
