@@ -74,7 +74,6 @@ private:
   // Structure
   UInt        m_uiWidth;
   UInt        m_uiHeight;
-  Int         m_aiPad[2];
   UInt        m_uiMaxCUWidth;
   UInt        m_uiMaxCUHeight;
   UInt        m_uiMaxCUDepth;
@@ -104,7 +103,6 @@ private:
   Bool        m_bUseDQP;
 #endif
   Bool        m_bUseLDC;
-  Bool        m_bUsePAD;
   Bool        m_bUseMRG; // SOPH:
 
   Bool        m_bUseLComb;
@@ -222,17 +220,12 @@ public:
   Void setQuadtreeTUMaxDepthIntra( UInt u ) { m_uiQuadtreeTUMaxDepthIntra = u;    }
   UInt getQuadtreeTUMaxDepthInter()         { return m_uiQuadtreeTUMaxDepthInter; }
   UInt getQuadtreeTUMaxDepthIntra()         { return m_uiQuadtreeTUMaxDepthIntra; }
-  Void setPad         (Int iPad[2]) { m_aiPad[0] = iPad[0]; m_aiPad[1] = iPad[1]; }
 #if G1002_RPS
   Void setMaxNumberOfReferencePictures( UInt u ) { m_uiMaxNumberOfReferencePictures = u;    }
   UInt getMaxNumberOfReferencePictures()         { return m_uiMaxNumberOfReferencePictures; }
   Void setNumReorderFrames( Int i )              { m_numReorderFrames = i;    }
   Int  getNumReorderFrames()                     { return m_numReorderFrames; }
 #endif
-  Void setPadX        ( Int  u ) { m_aiPad[0] = u; }
-  Void setPadY        ( Int  u ) { m_aiPad[1] = u; }
-  Int  getPad         ( Int  u ) { assert(u < 2); return m_aiPad[u];}
-  Int* getPad         ( )        { return m_aiPad; }
   
   // physical transform
   Void setMaxTrSize   ( UInt u ) { m_uiMaxTrSize = u;       }
@@ -245,7 +238,6 @@ public:
 #endif
 
   Bool getUseLDC      ()         { return m_bUseLDC;        }
-  Bool getUsePAD      ()         { return m_bUsePAD;        }
   Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
   
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
@@ -254,7 +246,6 @@ public:
 #endif
   
   Void setUseLDC      ( Bool b ) { m_bUseLDC   = b;         }
-  Void setUsePAD      ( Bool b ) { m_bUsePAD   = b;         }
   Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:
   
   Void setUseLComb    (Bool b)   { m_bUseLComb = b;         }

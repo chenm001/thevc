@@ -61,11 +61,6 @@ void doOldStyleCmdlineOff(po::Options& opts, const std::string& arg);
 // Local constants
 // ====================================================================================================================
 
-/// max value of source padding size
-/** \todo replace it by command line option
- */
-#define MAX_PAD_SIZE                16
-
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
 // ====================================================================================================================
@@ -166,9 +161,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("BitDepth",              m_uiInputBitDepth, 8u, "deprecated alias of InputBitDepth")
   ("OutputBitDepth",        m_uiOutputBitDepth, 0u, "bit-depth of output file")
   ("InternalBitDepth",      m_uiInternalBitDepth, 0u, "Internal bit-depth (BitDepth+BitIncrement)")
-  ("HorizontalPadding,-pdx",m_aiPad[0],      0, "horizontal source padding size")
-  ("VerticalPadding,-pdy",  m_aiPad[1],      0, "vertical source padding size")
-  ("PAD",                   m_bUsePAD,   false, "automatic source padding of multiple of 16" )
   ("FrameRate,-fr",         m_iFrameRate,        0, "Frame rate")
   ("FrameSkip,-fs",         m_FrameSkip,         0u, "Number of frames to skip at start of input YUV")
   ("FramesToBeEncoded,f",   m_iFrameToBeEncoded, 0, "number of frames to be encoded (default=all)")
@@ -412,22 +404,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     m_iRateGOPSize = m_iGOPSize;
   }
 #endif
-  
-  // compute source padding size
-  if ( m_bUsePAD )
-  {
-    if ( m_iSourceWidth%MAX_PAD_SIZE )
-    {
-      m_aiPad[0] = (m_iSourceWidth/MAX_PAD_SIZE+1)*MAX_PAD_SIZE - m_iSourceWidth;
-    }
-    
-    if ( m_iSourceHeight%MAX_PAD_SIZE )
-    {
-      m_aiPad[1] = (m_iSourceHeight/MAX_PAD_SIZE+1)*MAX_PAD_SIZE - m_iSourceHeight;
-    }
-  }
-  m_iSourceWidth  += m_aiPad[0];
-  m_iSourceHeight += m_aiPad[1];
   
   // allocate slice-based dQP values
 #if G1002_RPS
@@ -932,7 +908,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("Input          File          : %s\n", m_pchInputFile          );
   printf("Bitstream      File          : %s\n", m_pchBitstreamFile      );
   printf("Reconstruction File          : %s\n", m_pchReconFile          );
-  printf("Real     Format              : %dx%d %dHz\n", m_iSourceWidth - m_aiPad[0], m_iSourceHeight-m_aiPad[1], m_iFrameRate );
   printf("Internal Format              : %dx%d %dHz\n", m_iSourceWidth, m_iSourceHeight, m_iFrameRate );
   printf("Frame index                  : %u - %d (%d frames)\n", m_FrameSkip, m_FrameSkip+m_iFrameToBeEncoded-1, m_iFrameToBeEncoded );
 #if !G1002_RPS
@@ -999,7 +974,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("SRD:%d ", m_bUseSBACRD          );
   printf("SQP:%d ", m_uiDeltaQpRD         );
   printf("ASR:%d ", m_bUseASR             );
-  printf("PAD:%d ", m_bUsePAD             );
 #if !G1002_RPS
   printf("LDC:%d ", m_bUseLDC             );
   printf("NRF:%d ", m_bUseNRF             );
@@ -1120,7 +1094,6 @@ Void TAppEncCfg::xPrintUsage()
   printf( "                   LDC - low-delay mode\n");
   printf( "                   NRF - non-reference frame marking in last layer\n");
   printf( "                   BQP - hier-P style QP assignment in low-delay mode\n");
-  printf( "                   PAD - automatic source padding of multiple of 16\n");
   printf( "                   ASR - adaptive motion search range\n");
   printf( "                   FEN - fast encoder setting\n");  
 #if EARLY_CU_DETERMINATION

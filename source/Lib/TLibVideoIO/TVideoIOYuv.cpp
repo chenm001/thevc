@@ -240,8 +240,7 @@ void TVideoIOYuv::skipFrames(unsigned int numFrames, unsigned int width, unsigne
  */
 static bool readPlane(Pel* dst, istream& fd, bool is16bit,
                       unsigned int stride,
-                      unsigned int width, unsigned int height,
-                      unsigned int pad_x, unsigned int pad_y)
+                      unsigned int width, unsigned int height)
 {
   int read_len = width * (is16bit ? 2 : 1);
   unsigned char *buf = new unsigned char[read_len];
@@ -269,15 +268,15 @@ static bool readPlane(Pel* dst, istream& fd, bool is16bit,
       }
     }
 
-    for (int x = width; x < width + pad_x; x++)
+    for (int x = width; x < width; x++)
     {
       dst[x] = dst[width - 1];
     }
     dst += stride;
   }
-  for (int y = height; y < height + pad_y; y++)
+  for (int y = height; y < height; y++)
   {
-    for (int x = 0; x < width + pad_x; x++)
+    for (int x = 0; x < width; x++)
     {
       dst[x] = (dst - stride)[x];
     }
@@ -344,10 +343,9 @@ static bool writePlane(ostream& fd, Pel* src, bool is16bit,
  * file had been provided at the lower-bitdepth compliant to Rec601/709.
  *
  * @param pPicYuv      input picture YUV buffer class pointer
- * @param aiPad        source padding size, aiPad[0] = horizontal, aiPad[1] = vertical
  * @return true for success, false in case of error
  */
-bool TVideoIOYuv::read ( TComPicYuv*  pPicYuv, Int aiPad[2] )
+bool TVideoIOYuv::read ( TComPicYuv*  pPicYuv )
 {
   // check end-of-file
   if ( isEof() ) return false;
@@ -355,12 +353,10 @@ bool TVideoIOYuv::read ( TComPicYuv*  pPicYuv, Int aiPad[2] )
   Int   iStride = pPicYuv->getStride();
   
   // compute actual YUV width & height excluding padding size
-  unsigned int pad_h = aiPad[0];
-  unsigned int pad_v = aiPad[1];
   unsigned int width_full = pPicYuv->getWidth();
   unsigned int height_full = pPicYuv->getHeight();
-  unsigned int width  = width_full - pad_h;
-  unsigned int height = height_full - pad_v;
+  unsigned int width  = width_full;
+  unsigned int height = height_full;
   bool is16bit = m_fileBitdepth > 8;
 
   int desired_bitdepth = m_fileBitdepth + m_bitdepthShift;
@@ -375,7 +371,7 @@ bool TVideoIOYuv::read ( TComPicYuv*  pPicYuv, Int aiPad[2] )
   }
 #endif
   
-  if (! readPlane(pPicYuv->getLumaAddr(), m_cHandle, is16bit, iStride, width, height, pad_h, pad_v))
+  if (! readPlane(pPicYuv->getLumaAddr(), m_cHandle, is16bit, iStride, width, height))
     return false;
   scalePlane(pPicYuv->getLumaAddr(), iStride, width_full, height_full, m_bitdepthShift, minval, maxval);
 
@@ -384,14 +380,12 @@ bool TVideoIOYuv::read ( TComPicYuv*  pPicYuv, Int aiPad[2] )
   height_full >>= 1;
   width >>= 1;
   height >>= 1;
-  pad_h >>= 1;
-  pad_v >>= 1;
 
-  if (! readPlane(pPicYuv->getCbAddr(), m_cHandle, is16bit, iStride, width, height, pad_h, pad_v))
+  if (! readPlane(pPicYuv->getCbAddr(), m_cHandle, is16bit, iStride, width, height))
     return false;
   scalePlane(pPicYuv->getCbAddr(), iStride, width_full, height_full, m_bitdepthShift, minval, maxval);
 
-  if (! readPlane(pPicYuv->getCrAddr(), m_cHandle, is16bit, iStride, width, height, pad_h, pad_v))
+  if (! readPlane(pPicYuv->getCrAddr(), m_cHandle, is16bit, iStride, width, height))
     return false;
   scalePlane(pPicYuv->getCrAddr(), iStride, width_full, height_full, m_bitdepthShift, minval, maxval);
 
@@ -406,12 +400,12 @@ bool TVideoIOYuv::read ( TComPicYuv*  pPicYuv, Int aiPad[2] )
  * @param aiPad       source padding size, aiPad[0] = horizontal, aiPad[1] = vertical
  * @return true for success, false in case of error
  */
-bool TVideoIOYuv::write( TComPicYuv* pPicYuv, Int aiPad[2] )
+bool TVideoIOYuv::write( TComPicYuv* pPicYuv )
 {
   // compute actual YUV frame size excluding padding size
   Int   iStride = pPicYuv->getStride();
-  unsigned int width  = pPicYuv->getWidth() - aiPad[0];
-  unsigned int height = pPicYuv->getHeight() - aiPad[1];
+  unsigned int width  = pPicYuv->getWidth();
+  unsigned int height = pPicYuv->getHeight();
   bool is16bit = m_fileBitdepth > 8;
   TComPicYuv *dstPicYuv = NULL;
   bool retval = true;

@@ -2235,8 +2235,8 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
   Int   iWidth;
   Int   iHeight;
   
-  iWidth  = pcPicD->getWidth () - m_pcEncTop->getPad(0);
-  iHeight = pcPicD->getHeight() - m_pcEncTop->getPad(1);
+  iWidth  = pcPicD->getWidth ();
+  iHeight = pcPicD->getHeight();
   
   Int   iSize   = iWidth*iHeight;
   

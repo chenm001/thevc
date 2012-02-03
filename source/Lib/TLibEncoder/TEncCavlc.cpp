@@ -572,8 +572,8 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 
   // !!!KS: Syntax not in WD !!!
   
-  xWriteUvlc  ( pcSPS->getPad (0) );
-  xWriteUvlc  ( pcSPS->getPad (1) );
+  xWriteUvlc  ( 0 );
+  xWriteUvlc  ( 0 );
 
   // Tools
 #if !G1002_RPS

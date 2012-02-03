@@ -1629,7 +1629,6 @@ TComSPS::TComSPS()
 , m_bUseDQP                   (false)
 #endif
 , m_bUseLDC                   (false)
-, m_bUsePAD                   (false)
 , m_bUseMRG                   (false)
 , m_bUseLComb                 (false)
 , m_bLCMod                    (false)

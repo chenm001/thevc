@@ -607,8 +607,8 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 
   // !!!KS: Syntax not in WD !!!
 
-  xReadUvlc ( uiCode ); pcSPS->setPadX        ( uiCode    );
-  xReadUvlc ( uiCode ); pcSPS->setPadY        ( uiCode    );
+  xReadUvlc ( uiCode ); assert( uiCode == 0 );
+  xReadUvlc ( uiCode ); assert( uiCode == 0 );
 
 #if !G1002_RPS
   xReadFlag( uiCode ); pcSPS->setUseLDC ( uiCode ? true : false );

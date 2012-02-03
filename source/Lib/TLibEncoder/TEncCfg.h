@@ -131,8 +131,6 @@ protected:
   Int       m_iQP;                              //  if (AdaptiveQP == OFF)
   
   Int       m_aiTLayerQPOffset[MAX_TLAYER];
-  Int       m_aiPad[2];
-  
 
   Int       m_iMaxRefPicNum;                     ///< this is used to mimic the sliding mechanism used by the decoder
                                                  // TODO: We need to have a common sliding mechanism used by both the encoder and decoder
@@ -218,7 +216,6 @@ protected:
 #if !G1002_RPS
   Bool      m_bUseLDC;
 #endif
-  Bool      m_bUsePAD;
 #if !G1002_RPS
   Bool      m_bUseNRF;
   Bool      m_bUseBQP;
@@ -355,7 +352,6 @@ public:
   Void      setQP                           ( Int   i )      { m_iQP = i; }
   
   Void      setTemporalLayerQPOffset        ( Int*  piTemporalLayerQPOffset )      { for ( Int i = 0; i < MAX_TLAYER; i++ ) m_aiTLayerQPOffset[i] = piTemporalLayerQPOffset[i]; }
-  Void      setPad                          ( Int*  iPad                   )      { for ( Int i = 0; i < 2; i++ ) m_aiPad[i] = iPad[i]; }
   
   Int       getMaxRefPicNum                 ()                              { return m_iMaxRefPicNum;           }
   Void      setMaxRefPicNum                 ( Int iMaxRefPicNum )           { m_iMaxRefPicNum = iMaxRefPicNum;  }
@@ -453,7 +449,6 @@ public:
   Int       getQP                           ()      { return  m_iQP; }
   
   Int       getTemporalLayerQPOffset        ( Int i )      { assert (i < MAX_TLAYER ); return  m_aiTLayerQPOffset[i]; }
-  Int       getPad                          ( Int i )      { assert (i < 2 );                      return  m_aiPad[i]; }
   
   //======== Transform =============
   UInt      getQuadtreeTULog2MaxSize        ()      const { return m_uiQuadtreeTULog2MaxSize; }
@@ -507,7 +502,6 @@ public:
 #if !G1002_RPS
   Void      setUseLDC                       ( Bool  b )     { m_bUseLDC     = b; }
 #endif
-  Void      setUsePAD                       ( Bool  b )     { m_bUsePAD     = b; }
 #if !G1002_RPS
   Void      setUseNRF                       ( Bool  b )     { m_bUseNRF     = b; }
   Void      setUseBQP                       ( Bool  b )     { m_bUseBQP     = b; }
@@ -551,7 +545,6 @@ public:
 #if !G1002_RPS
   Bool      getUseLDC                       ()      { return m_bUseLDC;     }
 #endif
-  Bool      getUsePAD                       ()      { return m_bUsePAD;     }
 #if !G1002_RPS
   Bool      getUseNRF                       ()      { return m_bUseNRF;     }
   Bool      getUseBQP                       ()      { return m_bUseBQP;     }

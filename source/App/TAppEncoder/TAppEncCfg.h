@@ -68,8 +68,6 @@ protected:
   Int       m_iSourceWidth;                                   ///< source width in pixel
   Int       m_iSourceHeight;                                  ///< source height in pixel
   Int       m_iFrameToBeEncoded;                              ///< number of encoded frames
-  Bool      m_bUsePAD;                                        ///< flag for using source padding
-  Int       m_aiPad[2];                                       ///< number of padded pixels for width and height
   
   // coding structure
   Int       m_iIntraPeriod;                                   ///< period of I-slice (random access period)

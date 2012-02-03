@@ -277,7 +277,7 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
 #endif
       if ( m_pchReconFile )
       {
-        m_cTVideoIOYuvReconFile.write( pcPic->getPicYuvRec(), pcPic->getSlice(0)->getSPS()->getPad() );
+        m_cTVideoIOYuvReconFile.write( pcPic->getPicYuvRec() );
       }
       
       // update POC of display order
@@ -331,7 +331,7 @@ Void TAppDecTop::xFlushOutput( TComList<TComPic*>* pcListPic )
       // write to file
       if ( m_pchReconFile )
       {
-        m_cTVideoIOYuvReconFile.write( pcPic->getPicYuvRec(), pcPic->getSlice(0)->getSPS()->getPad() );
+        m_cTVideoIOYuvReconFile.write( pcPic->getPicYuvRec() );
       }
       
       // update POC of display order

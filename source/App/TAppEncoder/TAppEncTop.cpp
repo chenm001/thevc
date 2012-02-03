@@ -97,7 +97,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setQP                           ( m_iQP );
   
   m_cTEncTop.setTemporalLayerQPOffset        ( m_aiTLayerQPOffset );
-  m_cTEncTop.setPad                          ( m_aiPad );
     
   m_cTEncTop.setTLayering                    ( m_bTLayering );
   m_cTEncTop.setTLayerSwitchingFlag          ( m_abTLayerSwitchingFlag );
@@ -176,7 +175,6 @@ Void TAppEncTop::xInitLibCfg()
 #if !G1002_RPS
   m_cTEncTop.setUseLDC                       ( m_bUseLDC      );
 #endif
-  m_cTEncTop.setUsePAD                       ( m_bUsePAD      );
   m_cTEncTop.setQuadtreeTULog2MaxSize        ( m_uiQuadtreeTULog2MaxSize );
   m_cTEncTop.setQuadtreeTULog2MinSize        ( m_uiQuadtreeTULog2MinSize );
   m_cTEncTop.setQuadtreeTUMaxDepthInter      ( m_uiQuadtreeTUMaxDepthInter );
@@ -357,7 +355,7 @@ Void TAppEncTop::encode()
     xGetBuffer(pcPicYuvRec);
 
     // read input YUV file
-    m_cTVideoIOYuvInputFile.read( pcPicYuvOrg, m_aiPad );
+    m_cTVideoIOYuvInputFile.read( pcPicYuvOrg );
     
     // increase number of received frames
     m_iFrameRcvd++;
@@ -456,7 +454,7 @@ Void TAppEncTop::xWriteOutput(std::ostream& bitstreamFile, Int iNumEncoded, cons
   {
     TComPicYuv*  pcPicYuvRec  = *(iterPicYuvRec++);
     if (m_pchReconFile)
-      m_cTVideoIOYuvReconFile.write( pcPicYuvRec, m_aiPad );
+      m_cTVideoIOYuvReconFile.write( pcPicYuvRec );
 
     const AccessUnit& au = *(iterBitstream++);
     const vector<unsigned>& stats = writeAnnexB(bitstreamFile, au);
