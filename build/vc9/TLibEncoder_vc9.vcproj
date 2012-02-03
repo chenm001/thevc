@@ -349,10 +349,6 @@
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncTop.cpp"
 				>
 			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibEncoder\WeightPredAnalysis.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -436,10 +432,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibEncoder\TEncTop.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibEncoder\WeightPredAnalysis.h"
 				>
 			</File>
 		</Filter>

@@ -511,11 +511,6 @@ private:
 
   Int         m_iSliceGranularity;
 
-#if WEIGHT_PRED
-  Bool        m_bUseWeightPred;           // Use of Weighting Prediction (P_SLICE)
-  UInt        m_uiBiPredIdc;              // Use of Weighting Bi-Prediction (B_SLICE)
-#endif
-
 #if TILES
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   Int      m_iTileBehaviorControlPresentFlag;
@@ -591,14 +586,6 @@ public:
   Int       getChromaQpOffset   () { return m_iChromaQpOffset;}
   Void      setChromaQpOffset2nd( Int i ) { m_iChromaQpOffset2nd = i; }
   Int       getChromaQpOffset2nd() { return m_iChromaQpOffset2nd;}
-#endif
-
-#if WEIGHT_PRED
-  Bool getUseWP                     ()          { return m_bUseWeightPred;  }
-  UInt getWPBiPredIdc               ()          { return m_uiBiPredIdc;     }
-
-  Void setUseWP                     ( Bool b )  { m_bUseWeightPred = b;     }
-  Void setWPBiPredIdc               ( UInt u )  { m_uiBiPredIdc = u;        }
 #endif
 
 #if TILES
@@ -789,26 +776,6 @@ public:
   TComAPS& operator= (const TComAPS& src);  //!< "=" operator for APS object
 };
 
-
-#if WEIGHT_PRED
-typedef struct {
-  // Explicit weighted prediction parameters parsed in slice header,
-  // or Implicit weighted prediction parameters (8 bits depth values).
-  Bool        bPresentFlag;
-  UInt        uiLog2WeightDenom;
-  Int         iWeight;
-  Int         iOffset;
-
-  // Weighted prediction scaling values built from above parameters (bitdepth scaled):
-  Int         w, o, offset, shift, round;
-} wpScalingParam;
-
-typedef struct {
-  Int64 iAC;
-  Int64 iDC;
-} wpACDCParam;
-#endif
-
 /// slice header class
 class TComSlice
 {
@@ -919,14 +886,6 @@ private:
   UInt        m_uiSliceBits;
   UInt        m_uiEntropySliceCounter;
   Bool        m_bFinalized;
-
-#if WEIGHT_PRED
-  wpScalingParam  m_weightPredTable[2][MAX_NUM_REF][3]; // [REF_PIC_LIST_0 or REF_PIC_LIST_1][refIdx][0:Y, 1:U, 2:V]
-  wpACDCParam    m_weightACDCParam[3];                 // [0:Y, 1:U, 2:V]
-#if WP_IMPROVED_SYNTAX
-  wpScalingParam  m_weightPredTableLC[2*MAX_NUM_REF][3]; // [refIdxLC][0:Y, 1:U, 2:V]
-#endif
-#endif
 
 #if TILES_DECODER
   UInt        *m_uiTileByteLocation;
@@ -1173,25 +1132,6 @@ public:
   UInt getEntropySliceCounter           ()                  { return m_uiEntropySliceCounter;             }
   Void setFinalized                     ( Bool uiVal )      { m_bFinalized = uiVal;                       }
   Bool getFinalized                     ()                  { return m_bFinalized;                        }
-#if WEIGHT_PRED
-  Void  setWpScaling    ( wpScalingParam  wp[2][MAX_NUM_REF][3] ) { memcpy(m_weightPredTable, wp, sizeof(wpScalingParam)*2*MAX_NUM_REF*3); }
-  Void  getWpScaling    ( RefPicList e, Int iRefIdx, wpScalingParam *&wp);
-
-  Void  resetWpScaling  (wpScalingParam  wp[2][MAX_NUM_REF][3]);
-  Void  initWpScaling    (wpScalingParam  wp[2][MAX_NUM_REF][3]);
-  Void  initWpScaling   ();
-  inline Bool applyWP   () { return( (m_eSliceType==P_SLICE && m_pcPPS->getUseWP()) || (m_eSliceType==B_SLICE && m_pcPPS->getWPBiPredIdc()) ); }
-  
-  Void  setWpAcDcParam  ( wpACDCParam wp[3] ) { memcpy(m_weightACDCParam, wp, sizeof(wpACDCParam)*3); }
-  Void  getWpAcDcParam  ( wpACDCParam *&wp );
-  Void  initWpAcDcParam ();
-#if WP_IMPROVED_SYNTAX
-  Void  copyWPtable     (wpScalingParam *&wp_src, wpScalingParam *&wp_dst);
-  Void  getWpScalingLC  ( Int iRefIdx, wpScalingParam *&wp);
-  Void  resetWpScalingLC(wpScalingParam  wp[2*MAX_NUM_REF][3]);
-  Void  setWpParamforLC();
-#endif
-#endif
 #if TILES_DECODER
   Void setTileLocationCount             ( UInt uiCount )      { m_uiTileCount = uiCount;                  }
   UInt getTileLocationCount             ()                    { return m_uiTileCount;                     }

@@ -391,8 +391,8 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #endif
 
 #if WEIGHT_PRED
-  WRITE_FLAG( pcPPS->getUseWP() ? 1 : 0,  "weighted_pred_flag" );   // Use of Weighting Prediction (P_SLICE)
-  WRITE_CODE( pcPPS->getWPBiPredIdc(), 2, "weighted_bipred_idc" );  // Use of Weighting Bi-Prediction (B_SLICE)
+  WRITE_FLAG( 0,  "weighted_pred_flag" );   // Use of Weighting Prediction (P_SLICE)
+  WRITE_CODE( 0, 2, "weighted_bipred_idc" );  // Use of Weighting Bi-Prediction (B_SLICE)
 #endif
 
 #if TILES
@@ -968,12 +968,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   //   }
   // }
   
-#if WEIGHT_PRED
-    if ( (pcSlice->getPPS()->getUseWP() && pcSlice->getSliceType()==P_SLICE) || (pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getSliceType()==B_SLICE) )
-    {
-      xCodePredWeightTable( pcSlice );
-    }
-#endif
   }
 
   // !!!! sytnax elements not in the WD !!!!
@@ -2748,148 +2742,6 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int blockType, Int blSize
   return;
 }
 
-#if WEIGHT_PRED
-/** code explicit wp tables
- * \param TComSlice* pcSlice
- * \returns Void
- */
-Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
-{
-  wpScalingParam  *wp;
-  Bool            bChroma     = true; // color always present in HEVC ?
-  Int             iNbRef       = (pcSlice->getSliceType() == B_SLICE ) ? (2) : (1);
-  Bool            bDenomCoded  = false;
-
-#if WP_IMPROVED_SYNTAX
-  UInt            uiMode = 0;
-  if ( (pcSlice->getSliceType()==P_SLICE && pcSlice->getPPS()->getUseWP()) || (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getRefPicListCombinationFlag()==0 ) )
-    uiMode = 1; // explicit
-  else if ( pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==2 )
-    uiMode = 2; // implicit (does not use this mode in this syntax)
-  if (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getRefPicListCombinationFlag())
-    uiMode = 3; // combined explicit
-#endif
-#if WP_IMPROVED_SYNTAX
-  if(uiMode == 1)
-  {
-#endif
-    for ( Int iNumRef=0 ; iNumRef<iNbRef ; iNumRef++ ) 
-    {
-      RefPicList  eRefPicList = ( iNumRef ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
-      for ( Int iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx++ ) 
-      {
-        pcSlice->getWpScaling(eRefPicList, iRefIdx, wp);
-        if ( !bDenomCoded ) 
-        {
-#if WP_IMPROVED_SYNTAX
-          Int iDeltaDenom;
-          WRITE_UVLC( wp[0].uiLog2WeightDenom, "luma_log2_weight_denom" );     // ue(v): luma_log2_weight_denom
-
-          if( bChroma )
-          {
-            iDeltaDenom = (wp[1].uiLog2WeightDenom - wp[0].uiLog2WeightDenom);
-            WRITE_SVLC( iDeltaDenom, "delta_chroma_log2_weight_denom" );       // se(v): delta_chroma_log2_weight_denom
-          }
-#else
-          WRITE_UVLC( wp[0].uiLog2WeightDenom, "luma_log2_weight_denom" );     // ue(v): luma_log2_weight_denom
-
-          if( bChroma )
-          {
-            WRITE_UVLC( wp[1].uiLog2WeightDenom, "chroma_log2_weight_denom" ); // ue(v): chroma_log2_weight_denom
-          }
-#endif
-          bDenomCoded = true;
-        }
-
-        WRITE_FLAG( wp[0].bPresentFlag, "luma_weight_lX_flag" );               // u(1): luma_weight_lX_flag
-
-        if ( wp[0].bPresentFlag ) 
-        {
-#if WP_IMPROVED_SYNTAX
-          Int iDeltaWeight = (wp[0].iWeight - (1<<wp[0].uiLog2WeightDenom));
-          WRITE_SVLC( iDeltaWeight, "delta_luma_weight_lX" );                  // se(v): delta_luma_weight_lX
-#else
-          WRITE_SVLC( wp[0].iWeight, "luma_weight_lX" );                       // se(v): luma_weight_lX
-#endif
-          WRITE_SVLC( wp[0].iOffset, "luma_offset_lX" );                       // se(v): luma_offset_lX
-        }
-
-        if ( bChroma ) 
-        {
-          WRITE_FLAG( wp[1].bPresentFlag, "chroma_weight_lX_flag" );           // u(1): chroma_weight_lX_flag
-
-          if ( wp[1].bPresentFlag )
-          {
-            for ( Int j=1 ; j<3 ; j++ ) 
-            {
-#if WP_IMPROVED_SYNTAX
-              Int iDeltaWeight = (wp[j].iWeight - (1<<wp[1].uiLog2WeightDenom));
-              WRITE_SVLC( iDeltaWeight, "delta_chroma_weight_lX" );            // se(v): delta_chroma_weight_lX
-
-              Int iDeltaChroma = (wp[j].iOffset + ( ( (g_uiIBDI_MAX>>1)*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) - (g_uiIBDI_MAX>>1));
-              WRITE_SVLC( iDeltaChroma, "delta_chroma_offset_lX" );            // se(v): delta_chroma_offset_lX
-#else
-              WRITE_SVLC( wp[j].iWeight, "chroma_weight_lX" );                 // se(v): chroma_weight_lX
-              WRITE_SVLC( wp[j].iOffset, "chroma_offset_lX" );                 // se(v): chroma_offset_lX
-#endif
-            }
-          }
-        }
-      }
-    }
-#if WP_IMPROVED_SYNTAX
-  }
-  else if (uiMode == 3)
-  {
-    for ( Int iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(REF_PIC_LIST_C) ; iRefIdx++ ) 
-    {
-      RefPicList  eRefPicList = (RefPicList)pcSlice->getListIdFromIdxOfLC(iRefIdx);
-      Int iCombRefIdx = pcSlice->getRefIdxFromIdxOfLC(iRefIdx);
-
-      pcSlice->getWpScaling(eRefPicList, iCombRefIdx, wp);
-      if ( !bDenomCoded ) 
-      {
-        Int iDeltaDenom;
-        WRITE_UVLC( wp[0].uiLog2WeightDenom, "luma_log2_weight_denom" );       // ue(v): luma_log2_weight_denom
-
-        if( bChroma )
-        {
-          iDeltaDenom = (wp[1].uiLog2WeightDenom - wp[0].uiLog2WeightDenom);
-          WRITE_SVLC( iDeltaDenom, "delta_chroma_log2_weight_denom" );         // se(v): delta_chroma_log2_weight_denom
-        }
-        bDenomCoded = true;
-      }
-
-      WRITE_FLAG( wp[0].bPresentFlag, "luma_weight_lc_flag" );                 // u(1): luma_weight_lc_flag
-
-      if ( wp[0].bPresentFlag ) 
-      {
-        Int iDeltaWeight = (wp[0].iWeight - (1<<wp[0].uiLog2WeightDenom));
-        WRITE_SVLC( iDeltaWeight, "delta_luma_weight_lc" );                    // se(v): delta_luma_weight_lc
-        WRITE_SVLC( wp[0].iOffset, "luma_offset_lc" );                         // se(v): luma_offset_lc
-      }
-      if ( bChroma ) 
-      {
-        WRITE_FLAG( wp[1].bPresentFlag, "chroma_weight_lc_flag" );             // u(1): luma_weight_lc_flag
-
-        if ( wp[1].bPresentFlag )
-        {
-          for ( Int j=1 ; j<3 ; j++ ) 
-          {
-            Int iDeltaWeight = (wp[j].iWeight - (1<<wp[1].uiLog2WeightDenom));
-            WRITE_SVLC( iDeltaWeight, "delta_chroma_weight_lc" );              // se(v): delta_chroma_weight_lc
-
-            Int iDeltaChroma = (wp[j].iOffset + ( ( (g_uiIBDI_MAX>>1)*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) - (g_uiIBDI_MAX>>1));
-            WRITE_SVLC( iDeltaChroma, "delta_chroma_offset_lc" );              // se(v): delta_chroma_offset_lc
-          }
-        }
-      }
-    }
-  }
-#endif
-}
-
-#endif
 #if SCALING_LIST
 /** code quantization matrix
  *  \param scalingList quantization matrix information
