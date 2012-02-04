@@ -313,8 +313,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   // entropy_coding_mode_flag
 #if OL_USE_WPP
   // We code the entropy_coding_mode_flag, it's needed for tests.
-  READ_FLAG( uiCode, "entropy_coding_mode_flag" );                 pcPPS->setEntropyCodingMode( uiCode ? true : false );
-  if (pcPPS->getEntropyCodingMode())
+  READ_FLAG( uiCode, "entropy_coding_mode_flag" );                 assert( uiCode == 1 );
   {
     READ_UVLC( uiCode, "entropy_coding_synchro" );                 pcPPS->setEntropyCodingSynchro( uiCode );
     READ_FLAG( uiCode, "cabac_istate_reset" );                     pcPPS->setCabacIstateReset( uiCode ? true : false );
@@ -903,12 +902,12 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   }
   
 #if INC_CABACINITIDC_SLICETYPE
-  if(rpcSlice->getPPS()->getEntropyCodingMode() && !rpcSlice->isIntra())
+  if(!rpcSlice->isIntra())
   {
     READ_UVLC(uiCode, "cabac_init_idc");
     rpcSlice->setCABACinitIDC(uiCode);
   }
-  else if (rpcSlice->getPPS()->getEntropyCodingMode() && rpcSlice->isIntra())
+  else if (rpcSlice->isIntra())
   {
     rpcSlice->setCABACinitIDC(0);
   }
@@ -1020,10 +1019,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   
   if (!bEntropySlice)
   {
-#if !DISABLE_CAVLC
-    xReadFlag ( uiCode ); rpcSlice->setSymbolMode( uiCode );
-#endif
-    
 #if !G1002_RPS
     xReadFlag (uiCode);   rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
     if ( !rpcSlice->getDRBFlag() )

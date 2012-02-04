@@ -66,29 +66,6 @@ typedef struct
 // Tables
 // ====================================================================================================================
 
-// RDOQ parameter
-
-#if !DISABLE_CAVLC
-static const int VLClength[14][128] =
-{
-  { 1, 2, 3, 4, 5, 6, 7, 9, 9,11,11,11,11,13,13,13,13,13,13,13,13,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19,19},
-  { 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8,10,10,10,10,12,12,12,12,12,12,12,12,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18,18},
-  { 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9,11,11,11,11,11,11,11,11,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17},
-  { 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9,10,10,10,10,10,10,10,10,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,14,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16,16},
-  { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13},
-  { 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9,10,10,11,11,12,12,13,13,14,14,15,15,16,16,17,17,18,18,19,19,20,20,21,21,22,22,23,23,24,24,25,25,26,26,27,27,28,28,29,29,30,30,31,31,32,32,33,33,34,34,35,35,36,36,37,37,38,38,39,39,40,40,41,41,42,42,43,43,44,44,45,45,46,46,47,47,48,48,49,49,50,50,51,51,52,52,53,53,54,54,55,55,56,56,57,57,58,58,59,59,60,60,61,61,62,62,63,63,64,64,65,65},
-  { 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9,10,10,10,10,11,11,11,11,12,12,12,12,13,13,13,13,14,14,14,14,15,15,15,15,16,16,16,16,17,17,17,17,18,18,18,18,19,19,19,19,20,20,20,20,21,21,21,21,22,22,22,22,23,23,23,23,24,24,24,24,25,25,25,25,26,26,26,26,27,27,27,27,28,28,28,28,29,29,29,29,30,30,30,30,31,31,31,31,32,32,32,32,33,33,33,33,34,34,34,34},
-  { 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,12,12,12,12,12,12,12,12,13,13,13,13,13,13,13,13,14,14,14,14,14,14,14,14,15,15,15,15,15,15,15,15,16,16,16,16,16,16,16,16,17,17,17,17,17,17,17,17,18,18,18,18,18,18,18,18,19,19,19,19,19,19,19,19},
-  { 1, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-  { 3, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,13,13,13,13,13},
-  { 1, 3, 3, 5, 5, 5, 5, 7, 7, 7, 7, 7, 7, 7, 7, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,13,15},
-
-  { 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8},
-  { 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8},
-  { 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12,12}
-};
-#endif
-
 // ====================================================================================================================
 // Qp class member functions
 // ====================================================================================================================
@@ -1462,277 +1439,6 @@ void xITrMxN(short *coeff,short *block, int iWidth, int iHeight)
 
 #endif //MATRIX_MULT
 
-#if !DISABLE_CAVLC
-UInt TComTrQuant::xCountVlcBits(UInt uiTableNumber, UInt uiCodeNumber)
-{
-  UInt uiLength = 0;
-  UInt uiCode = 0;
-
-  if ( uiCodeNumber < 128 )
-  {
-    uiLength=VLClength[uiTableNumber][uiCodeNumber];
-  }
-  else
-  {
-    if ( uiTableNumber < 10 )
-    {
-      if ( uiTableNumber < 5 )
-      {
-        uiCode = uiCodeNumber - (6 * (1 << uiTableNumber)) + (1 << uiTableNumber);
-        uiLength = ( 6 - uiTableNumber ) + 1 + 2 * xLeadingZeros(uiCode);
-      }
-      else if ( uiTableNumber < 8 )
-      {
-        uiLength = 1 + (uiTableNumber - 4) + (uiCodeNumber >> (uiTableNumber - 4));
-      }
-      else if ( uiTableNumber == 9 )
-      {
-        uiLength = 5 + ((uiCodeNumber + 5) >> 4);
-      }
-    }
-    else
-    {
-      if ( uiTableNumber == 10 )
-      {
-        uiCode = uiCodeNumber + 1;
-        uiLength = 1 + 2 * xLeadingZeros(uiCode);
-      }
-      else if (uiTableNumber == 12)
-      {
-        uiLength = 7+(uiCodeNumber>>6);
-      }
-      else if(uiTableNumber == 13)
-      {
-        uiLength = 5+(uiCodeNumber>>4);
-      }
-    }
-  }
-  return uiLength;
-}
-
-Int TComTrQuant::xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelData, Int nTab, UInt N, Int iStartLast
-                                         , Int isIntra
-                                         )
-{
-  Int i, prevCoeffInd, lastPosMin, iRate;
-  Int done,last_pos;
-  Int run_done, maxrun,run, bitsLast[1024], bitsRun[1024], bitsLastPrev;
-  quantLevelStruct quantCoeffInfo[1024];
-  UInt last_pos_init, bitsLevel, sign, lev, cn, vlc, uiBitShift=15, uiNoCoeff=N*N, absLevel;
-  Int n;
-  double lagrMin, lagr, lagrPrev;
-  UInt uiLumaRunNoTr14x4[15]={2, 1, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2};
-  UInt uiLumaRunNoTr18x8[29]={2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 9, 9, 13};
-
-  Int scale = (isIntra && nTab < 2) ? 0 : 3;
-
-  if ( N == 4 )
-  {
-    n = max(0, nTab - 2);
-  }
-  else
-  {
-    n = nTab;
-  }
-
-  /* Do the last coefficient first */
-  i = uiNoCoeff - 1;
-  done = 0;
-
-  while ( !done && i >= 0 )
-  {
-    if (scoeff[i])
-    {
-      done = 1;
-    }
-    else
-    {
-      i--;
-    }
-  }
-  if (i == -1)
-  {
-    return(-1);
-  }
-
-  last_pos = last_pos_init = i;
-  prevCoeffInd = i;
-
-  i--;
-  lastPosMin=iStartLast;
-  if (last_pos_init>iStartLast)
-  {
-    if ( i >= iStartLast )
-  {
-    /* Go into run mode */
-    run_done = 0;
-    while ( !run_done )
-    {
-      maxrun = i;
-
-      run = 0;
-      done = 0;
-      while ( !done )
-      {
-        if ( !scoeff[i] )
-        {
-          run++;
-        }
-        else
-        {
-          quantCoeffInfo[prevCoeffInd].run=run;
-          quantCoeffInfo[prevCoeffInd].maxrun=maxrun;
-          quantCoeffInfo[prevCoeffInd].nextLev=(abs(scoeff[i]) == 1) ? 0 : 1;
-          quantCoeffInfo[prevCoeffInd].nexLevelVal=scoeff[i];
-
-          prevCoeffInd = i;
-
-          run = 0;
-          done = 1;
-        }
-        if (i == 0)
-        {
-          quantCoeffInfo[prevCoeffInd].run=run;
-          quantCoeffInfo[prevCoeffInd].maxrun=maxrun;
-          quantCoeffInfo[prevCoeffInd].nextLev=0;
-          quantCoeffInfo[prevCoeffInd].nexLevelVal=0;
-
-          done = 1;
-          run_done = 1;
-        }
-        i--;
-      }
-    }
-  }
-
-  UInt  const *  vlcTableIntra;
-  vlcTableIntra =  g_auiVlcTable8x8Intra;
-  const UInt *vlcTableInter = (N<=8)? g_auiVlcTable8x8Inter:g_auiVlcTable16x16Inter;
-  const UInt *pLumaRunTr1 = (N==4)? uiLumaRunNoTr14x4:uiLumaRunNoTr18x8;
-  for (i = last_pos_init; i >= iStartLast; i--)
-  {
-    if (scoeff[i])
-    {
-      bitsLast[i] = bitsRun[i] = 0; 
-
-      last_pos = i;
-      {
-        int x,cx,vlcNum;
-        int vlcTable[3] = {2,2,2};
-
-        bitsLevel=0;
-        absLevel = abs(scoeff[i]);
-        sign = (scoeff[i] < 0) ? 1 : 0;
-        lev = (absLevel == 1) ? 0 : 1;
-
-        if (absLevel > 1)
-        {
-          bitsLevel=xCountVlcBits( 0, 2*(absLevel-2)+sign );
-        }
-        else
-        {
-          bitsLevel++;
-        }
-
-        x = uiNoCoeff*lev + last_pos;
-
-        if ( uiNoCoeff == 16 )
-        {
-          cx = m_uiLPTableE4[n * 32 + x];
-          vlcNum = vlcTable[n];
-        }
-        else
-        {
-          cx = xLastLevelInd(lev, last_pos, N);
-          vlcNum = g_auiLastPosVlcNum[n][min(16u,m_uiLastPosVlcIndex[n])];
-        }
-        bitsLast[i]=bitsLevel + xCountVlcBits( vlcNum, cx);
-      }
-
-      bitsRun[i]=0;
-
-      if ( i > 0 )
-      {
-        bitsLevel = 0;
-        if ( quantCoeffInfo[i].nexLevelVal != 0 )
-        {
-          absLevel = abs(quantCoeffInfo[i].nexLevelVal);
-          sign = (quantCoeffInfo[i].nexLevelVal < 0) ? 1 : 0;
-          lev = (absLevel == 1) ? 0 : 1;
-
-          if (absLevel > 1)
-          {
-            bitsLevel = xCountVlcBits( 0, 2 * (absLevel - 2) + sign );
-          }
-          else
-          {
-            bitsLevel++;
-          }
-        }
-
-        bitsRun[i] = bitsLevel;
-        run = quantCoeffInfo[i].run;
-        maxrun = quantCoeffInfo[i].maxrun;
-
-        Int tmprun = min(maxrun,28);
-        if(nTab == 2 || nTab == 5)
-        {
-          if (tmprun<28 || uiNoCoeff<=64)
-          {
-            vlc = vlcTableIntra[tmprun];
-          }
-          else
-          {
-            vlc = 2;
-          }
-          cn = xRunLevelInd(quantCoeffInfo[i].nextLev, run, maxrun, pLumaRunTr1[tmprun]);
-        }
-        else
-        {
-          vlc = vlcTableInter[tmprun];
-          cn = xRunLevelIndInter(quantCoeffInfo[i].nextLev, run, maxrun, scale);
-        }
-        bitsRun[i] += xCountVlcBits( vlc, cn );
-      }
-    }
-  }
-
-  lagrMin=0; lastPosMin=-1; 
-  for (i=iStartLast; i<uiNoCoeff; i++)
-  {
-    if ( scoeff[i] != 0 )
-    {
-      lagrMin += levelData[i].errLevel[0];
-    }
-  }
-
-  UInt first=1; 
-
-  bitsLastPrev=0; lagrPrev=lagrMin;
-  for (i=iStartLast; i<uiNoCoeff; i++)
-  {
-    if (scoeff[i])
-    {
-      iRate = (bitsRun[i] + bitsLast[i] - bitsLastPrev) << uiBitShift;
-      lagr = lagrPrev-levelData[i].errLevel[0] + levelData[i].errLevel[levelData[i].quantInd] + m_dLambda*iRate;
-      bitsLastPrev = bitsLast[i];
-      lagrPrev = lagr;
-
-      if ( lagr < lagrMin || abs(scoeff[i]) > 1 || first == 1)
-      {
-        lagrMin = lagr;
-        lastPosMin =i;
-        first = 0;
-      }
-    }
-  }
-}
-  return(lastPosMin);
-}
-    
-static levelDataStruct slevelData  [ MAX_CU_SIZE*MAX_CU_SIZE ];
-#endif
-
 Void TComTrQuant::xQuant( TComDataCU* pcCU, 
                           Int*        pSrc, 
                           TCoeff*     pDes, 
@@ -1762,9 +1468,6 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
 
 #if NSQT 
     Bool bNonSqureFlag = ( iWidth != iHeight );
-#if !DISABLE_CAVLC
-    UInt uiNonSqureScanTableIdx = 0;
-#endif
 #if SCALING_LIST
     UInt dir           = SCALING_LIST_SQT;
 #endif
@@ -1775,30 +1478,11 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
 #endif
       UInt uiWidthBit  = g_aucConvertToBit[ iWidth ] + 2;
       UInt uiHeightBit = g_aucConvertToBit[ iHeight ] + 2;
-#if !DISABLE_CAVLC
-#if NSQT_TX_ORDER
-      uiNonSqureScanTableIdx = ( iWidth * iHeight ) == 64 ? 2 * ( iHeight > iWidth ) : 2 * ( iHeight > iWidth ) + 1;
-#else
-      uiNonSqureScanTableIdx = ( iWidth * iHeight ) == 64 ? 0 : 1;
-#endif
-#endif
       iWidth  = 1 << ( ( uiWidthBit + uiHeightBit) >> 1 );
       iHeight = iWidth;
     }    
 #endif
 
-#if !DISABLE_CAVLC
-    const UInt*  pucScan;
-    UInt uiConvBit = g_aucConvertToBit[ iWidth ];
-    pucScan        = g_auiFrameScanXY [ uiConvBit + 1 ];
-#if NSQT
-    if( bNonSqureFlag)
-    {
-      pucScan = g_auiNonSquareSigLastScan[ uiNonSqureScanTableIdx ];
-    }
-#endif
-#endif
-    
     UInt uiLog2TrSize = g_aucConvertToBit[ iWidth ] + 2;
 #if !SCALING_LIST
     UInt uiQ = g_quantScales[m_cQP.rem()];
@@ -1835,11 +1519,7 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
     {
       Int iLevel;
       Int  iSign;
-#if !DISABLE_CAVLC
-      UInt uiBlockPos = pucScan[n]; 
-#else
       UInt uiBlockPos = n;
-#endif
       iLevel  = piCoef[uiBlockPos];
       iSign   = (iLevel < 0 ? -1: 1);      
 
@@ -1863,28 +1543,6 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
 #else
       iLevel = (abs(iLevel) * uiQ + iAdd ) >> iQBits;
 #endif
-#endif
-#if !DISABLE_CAVLC
-      if (pcCU->isIntra( uiAbsPartIdx ))
-      {
-        if (m_iSymbolMode == 0 && n>=64 && eTType != TEXT_LUMA)
-        {
-          iLevel = 0;
-#if ADAPTIVE_QP_SELECTION
-          piArlCCoef[uiBlockPos] = 0;
-#endif
-        }
-      }
-      else   
-      {
-        if (m_iSymbolMode == 0 && ((uiBlockPos%iWidth)>=8 || (uiBlockPos/iWidth)>=8) && eTType != TEXT_LUMA)
-        {
-          iLevel = 0;
-#if ADAPTIVE_QP_SELECTION
-          piArlCCoef[uiBlockPos] = 0;
-#endif
-        }
-      }
 #endif
       uiAcSum += iLevel;
       iLevel *= iSign;        
@@ -1990,7 +1648,7 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
 #endif
 }
 
-Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode, UInt *aTableLP4, UInt *aTableLP8, UInt *aTableLastPosVlcIndex,
+Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, UInt *aTableLP4, UInt *aTableLP8, UInt *aTableLastPosVlcIndex,
                         Bool bEnc
 #if ADAPTIVE_QP_SELECTION
                        , Bool bUseAdaptQpSelect
@@ -2001,12 +1659,6 @@ Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int
   m_bEnc         = bEnc;
 #if ADAPTIVE_QP_SELECTION
   m_bUseAdaptQpSelect = bUseAdaptQpSelect;
-#endif
-#if !DISABLE_CAVLC
-  m_uiLPTableE8 = aTableLP8;
-  m_uiLPTableE4 = aTableLP4;
-  m_uiLastPosVlcIndex=aTableLastPosVlcIndex;
-  m_iSymbolMode = iSymbolMode;
 #endif
 }
 

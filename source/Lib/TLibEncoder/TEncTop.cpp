@@ -328,11 +328,6 @@ Void TEncTop::init()
   aTableLastPosVlcIndex=m_pcCavlcCoder->GetLastPosVlcIndexTable();
   
   m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize,
-#if DISABLE_CAVLC
-                  0,
-#else
-                  m_iSymbolMode,
-#endif
                   aTable4, aTable8, 
                   aTableLastPosVlcIndex, true 
 #if ADAPTIVE_QP_SELECTION                  
@@ -779,11 +774,6 @@ Void TEncTop::xInitPPS()
 #endif
 
 #if OL_USE_WPP
-#if DISABLE_CAVLC
-  m_cPPS.setEntropyCodingMode( 1 ); // In the PPS now, but also remains in slice header!
-#else
-  m_cPPS.setEntropyCodingMode(getSymbolMode()); // In the PPS now, but also remains in slice header!
-#endif
   m_cPPS.setEntropyCodingSynchro(m_iWaveFrontSynchro);
   m_cPPS.setCabacIstateReset(m_iWaveFrontFlush != 0);
   m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams);

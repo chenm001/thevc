@@ -54,9 +54,6 @@ TComSlice::TComSlice()
 #if ADAPTIVE_QP_SELECTION
 , m_iSliceQpBase                  ( 0 )
 #endif
-#if !DISABLE_CAVLC
-, m_iSymbolMode                   ( 1 )
-#endif
 , m_bLoopFilterDisable            ( false )
 #if G174_DF_OFFSET
 , m_inheritDblParamFromAPS       ( true )
@@ -860,9 +857,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_iSliceQp             = pSrc->m_iSliceQp;
 #if ADAPTIVE_QP_SELECTION
   m_iSliceQpBase         = pSrc->m_iSliceQpBase;
-#endif
-#if !DISABLE_CAVLC
-  m_iSymbolMode          = pSrc->m_iSymbolMode;
 #endif
   m_bLoopFilterDisable   = pSrc->m_bLoopFilterDisable;
 #if G174_DF_OFFSET
@@ -1698,7 +1692,6 @@ TComAPS::TComAPS()
   m_bSaoEnabled = false;
   m_pSaoParam = NULL;
   m_pAlfParam = NULL;
-  m_bCABACForAPS = false;
   m_CABACinitIDC = -1;
   m_CABACinitQP = -1;
 #if SCALING_LIST
@@ -1725,7 +1718,6 @@ TComAPS& TComAPS::operator= (const TComAPS& src)
   m_bSaoEnabled = src.m_bSaoEnabled;
   m_pSaoParam   = src.m_pSaoParam; 
   m_pAlfParam   = src.m_pAlfParam; 
-  m_bCABACForAPS= src.m_bCABACForAPS;
   m_CABACinitIDC= src.m_CABACinitIDC;
   m_CABACinitQP = src.m_CABACinitQP;
 #if SCALING_LIST

@@ -156,11 +156,6 @@ protected:
   Bool      m_bHierarchicalCoding;              //  hierarchical-B coding
 #endif
   
-#if !DISABLE_CAVLC
-  //====== Entropy Coding ========
-  Int       m_iSymbolMode;                      //  (CAVLC, CABAC)
-#endif
-  
   //====== Loop/Deblock Filter ========
   Bool      m_bLoopFilterDisable;
 #if G174_DF_OFFSET
@@ -337,11 +332,6 @@ public:
   Void      setHierarchicalCoding           ( Bool  b )      { m_bHierarchicalCoding = b; }
 #endif
   
-#if !DISABLE_CAVLC
-  //====== Entropy Coding ========
-  Void      setSymbolMode                   ( Int   i )      { m_iSymbolMode = i; }
-#endif
-  
   //====== Loop/Deblock Filter ========
   Void      setLoopFilterDisable            ( Bool  b )      { m_bLoopFilterDisable       = b; }
 #if G174_DF_OFFSET
@@ -415,11 +405,6 @@ public:
   //==== b; Slice ========
 #if !G1002_RPS
   Bool      getHierarchicalCoding           ()      { return  m_bHierarchicalCoding; }
-#endif
-  
-#if !DISABLE_CAVLC
-  //==== Entropy Coding ========
-  Int       getSymbolMode                   ()      { return  m_iSymbolMode; }
 #endif
   
   //==== Loop/Deblock Filter ========

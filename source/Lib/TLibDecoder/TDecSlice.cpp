@@ -110,10 +110,8 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
 
 #if OL_USE_WPP
   TComSlice*  pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
-  UInt iSymbolMode    = pcSlice->getPPS()->getEntropyCodingMode();
   Int  iNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
 
-  if( iSymbolMode )
   {
     m_pcBufferSbacDecoders = new TDecSbac    [1];  
     m_pcBufferBinCABACs    = new TDecBinCABAC[1];
@@ -136,7 +134,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
 
 #if OL_USE_WPP
     // inherit from TR if necessary, select substream to use.
-    if( iSymbolMode && pcSlice->getPPS()->getEntropyCodingSynchro() )
+    if( pcSlice->getPPS()->getEntropyCodingSynchro() )
     {
       uiCol     = iCUAddr % uiWidthInLCUs;
       uiLin     = iCUAddr / uiWidthInLCUs;
@@ -167,7 +165,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
       }
       pcSbacDecoder->load(&pcSbacDecoders[uiSubStrm]);  //this load is used to simplify the code (avoid to change all the call to pcSbacDecoders)
     }
-    else if ( iSymbolMode && !pcSlice->getPPS()->getEntropyCodingSynchro() )
+    else if ( !pcSlice->getPPS()->getEntropyCodingSynchro() )
     {
       // Set variables to appropriate values to avoid later code change.
     }
@@ -184,7 +182,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
     g_bJustDoIt = g_bEncDecTraceDisable;
 #endif
 #if OL_USE_WPP
-    if( iSymbolMode )
     {
 #if OL_FLUSH
       /*If at the end of a LCU line but not at the end of a substream, perform CABAC flush*/

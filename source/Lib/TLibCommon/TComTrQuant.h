@@ -73,32 +73,6 @@ typedef struct
   Int scanNonZigzag[2];         ///< flag for non zigzag scan
 } estBitsSbacStruct;
 
-#if !DISABLE_CAVLC
-typedef struct
-{
-  Int level[4];
-  Int pre_level;
-  Int coeff_ctr;
-  Int levelDouble;
-  Double errLevel[4];
-  Int noLevels;
-  Int levelQ;
-  Bool lowerInt;
-  UInt quantInd;
-  Int iNextRun;
-} levelDataStruct;
-
-typedef struct
-{
-  Int run;
-  Int maxrun;
-  Int nextLev;
-  Int nexLevelVal;
-} quantLevelStruct;
-
-class TEncCavlc;
-#endif
-
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -154,7 +128,7 @@ public:
   ~TComTrQuant();
   
   // initialize class
-  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, UInt *aTableLastPosVlcIndex=NULL, Bool bEnc = false
+  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, UInt *aTable4 = NULL, UInt *aTable8 = NULL, UInt *aTableLastPosVlcIndex=NULL, Bool bEnc = false
 #if ADAPTIVE_QP_SELECTION
                        , Bool bUseAdaptQpSelect = false
 #endif    
@@ -273,12 +247,6 @@ protected:
   Bool     m_bUseAdaptQpSelect;
 #endif
 
-#if !DISABLE_CAVLC 
-  UInt     *m_uiLPTableE8;
-  UInt     *m_uiLPTableE4;
-  Int      m_iSymbolMode;
-  UInt     *m_uiLastPosVlcIndex;
-#endif
 #if SCALING_LIST
   Bool     m_scalingListEnabledFlag;
   Int      *m_quantCoef      [SCALING_LIST_NUM][SCALING_LIST_REM_NUM];             ///< array of quantization matrix coefficient 4x4
@@ -315,14 +283,6 @@ private:
                TextType    eTType, 
                UInt        uiAbsPartIdx );
 
-  // RDOQ functions
-#if !DISABLE_CAVLC
-  Int            xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelData, Int nTab, UInt uiNoCoeff, Int iStartLast
-                                        , Int isIntra
-                                        );
-  UInt           xCountVlcBits(UInt uiTableNumber, UInt uiCodeNumber);
-#endif
-  
   // dequantization
 #if SCALING_LIST
   Void xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeight, Int scalingListType );

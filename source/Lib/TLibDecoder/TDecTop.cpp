@@ -424,10 +424,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 
 #endif
 
-#if !DISABLE_CAVLC
-      if ( m_apcSlicePilot->getSymbolMode() )
-#endif
-      {
         Int numBitsForByteAlignment = nalu.m_Bitstream->getNumBitsUntilByteAligned();
         if ( numBitsForByteAlignment > 0 )
         {
@@ -435,7 +431,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
           nalu.m_Bitstream->read( numBitsForByteAlignment, bitsForByteAlignment );
           assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
         }
-      }
 
 #if !G1002_RPS
       m_apcSlicePilot->setTLayerInfo(nalu.m_TemporalID);

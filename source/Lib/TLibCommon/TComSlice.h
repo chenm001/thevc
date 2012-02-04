@@ -459,9 +459,6 @@ private:
 
   Int         m_iSliceGranularity;
 
-#if OL_USE_WPP || INC_CABACINITIDC_SLICETYPE
-  Int      m_iEntropyCodingMode; // !!! in PPS now, but also remains in slice header!
-#endif
 #if OL_USE_WPP
   Int      m_iEntropyCodingSynchro;
   Bool     m_bCabacIstateReset;
@@ -522,10 +519,6 @@ public:
   Int       getChromaQpOffset2nd() { return m_iChromaQpOffset2nd;}
 #endif
 
-#if OL_USE_WPP || INC_CABACINITIDC_SLICETYPE
-  Void     setEntropyCodingMode(Int iEntropyCodingMode)       { m_iEntropyCodingMode = iEntropyCodingMode; }
-  Int      getEntropyCodingMode()                             { return m_iEntropyCodingMode; }
-#endif
 #if OL_USE_WPP
   Void     setEntropyCodingSynchro(Int iEntropyCodingSynchro) { m_iEntropyCodingSynchro = iEntropyCodingSynchro; }
   Int      getEntropyCodingSynchro()                          { return m_iEntropyCodingSynchro; }
@@ -628,8 +621,6 @@ public:
   Int       getLoopFilterTcOffset()             {return m_loopFilterTcOffsetDiv2; }     //!< get tc offset for deblocking filter
 #endif
 
-  Void      setCABACForAPS(Bool bVal) {m_bCABACForAPS = bVal;    }  //!< set CABAC enabled/disabled in APS
-  Bool      getCABACForAPS()          {return m_bCABACForAPS;    }  //!< get CABAC enabled/disabled in APS
   Void      setCABACinitIDC(Int iVal) {m_CABACinitIDC = iVal;    }  //!< set CABAC initial IDC number for APS coding
   Int       getCABACinitIDC()         {return m_CABACinitIDC;    }  //!< get CABAC initial IDC number for APS coding
   Void      setCABACinitQP(Int iVal)  {m_CABACinitQP = iVal;     }  //!< set CABAC initial QP value for APS coding
@@ -654,7 +645,6 @@ private:
   Int         m_loopFilterBetaOffsetDiv2;    //< beta offset for deblocking filter
   Int         m_loopFilterTcOffsetDiv2;      //< tc offset for deblocking filter
 #endif
-  Bool        m_bCABACForAPS; //!< CABAC coding enabled/disabled for APS (true for enabling CABAC)
   Int         m_CABACinitIDC; //!< CABAC initial IDC number for APS coding
   Int         m_CABACinitQP;  //!< CABAC initial QP value for APS coding
 #if SCALING_LIST
@@ -694,9 +684,6 @@ private:
   Int         m_iSliceQp;
 #if ADAPTIVE_QP_SELECTION
   Int         m_iSliceQpBase;
-#endif
-#if !DISABLE_CAVLC
-  Int         m_iSymbolMode;
 #endif
   Bool        m_bLoopFilterDisable;
 #if G174_DF_OFFSET
@@ -844,9 +831,6 @@ public:
   Bool      getDRBFlag      ()                          { return  m_bDRBFlag;           }
   ERBIndex  getERBIndex     ()                          { return  m_eERBIndex;          }
 #endif
-#if !DISABLE_CAVLC
-  Int       getSymbolMode   ()                          { return  m_iSymbolMode;        }
-#endif
   Bool      getLoopFilterDisable()                      { return  m_bLoopFilterDisable; }
 #if G174_DF_OFFSET
   Bool      getLoopFilterOffsetInAPS()                  { return  m_loopFilterOffsetInAPS;}
@@ -899,9 +883,6 @@ public:
 #if !G1002_RPS
   Void      setDRBFlag          ( Bool b )                      { m_bDRBFlag = b;               }
   Void      setERBIndex         ( ERBIndex e )                  { m_eERBIndex = e;              }
-#endif
-#if !DISABLE_CAVLC
-  Void      setSymbolMode       ( Int b  )                      { m_iSymbolMode       = b;      }
 #endif
   Void      setLoopFilterDisable( Bool b )                      { m_bLoopFilterDisable= b;      }
 #if G174_DF_OFFSET
