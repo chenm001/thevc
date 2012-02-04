@@ -96,10 +96,6 @@ private:
   TEncBinCABAC*           m_pcBufferBinCoderCABACs;       ///< line of bin coder CABAC
   TEncSbac*               m_pcBufferSbacCoders;                 ///< line to store temporary contexts
 #endif
-#if TILES_LOW_LATENCY_CABAC_INI
-  TEncBinCABAC*           m_pcBufferLowLatBinCoderCABACs;       ///< dependent tiles: line of bin coder CABAC
-  TEncSbac*               m_pcBufferLowLatSbacCoders;           ///< dependent tiles: line to store temporary contexts
-#endif
   
   UInt                    m_uiSliceIdx;
 public:
@@ -122,11 +118,7 @@ public:
   Void    precompressSlice    ( TComPic*& rpcPic                                );      ///< precompress slice for multi-loop opt.
   Void    compressSlice       ( TComPic*& rpcPic                                );      ///< analysis stage of slice
 #if OL_USE_WPP
-#if TILES_DECODER
-  Void    encodeSlice         ( TComPic*& rpcPic, TComOutputBitstream* rpcBitstream, TComOutputBitstream* pcSubstreams  );
-#else
   Void    encodeSlice         ( TComPic*& rpcPic,                                    TComOutputBitstream* pcSubstreams  );
-#endif
 #else
   Void    encodeSlice         ( TComPic*& rpcPic, TComOutputBitstream* rpcBitstream  );      ///< entropy coding of slice
 #endif

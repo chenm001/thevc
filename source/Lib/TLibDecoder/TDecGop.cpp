@@ -182,37 +182,10 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       ppcSubstreams    = new TComInputBitstream*[uiNumSubstreams];
       m_pcSbacDecoders = new TDecSbac[uiNumSubstreams];
       m_pcBinCABACs    = new TDecBinCABAC[uiNumSubstreams];
-#if TILES_DECODER
-      UInt uiBitsRead = pcBitstream->getByteLocation()<<3;
-#endif
       for ( UInt ui = 0 ; ui < uiNumSubstreams ; ui++ )
       {
         m_pcSbacDecoders[ui].init(&m_pcBinCABACs[ui]);
-#if TILES_DECODER
-        UInt uiSubstreamSizeBits = (ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
-#endif
         ppcSubstreams[ui] = pcBitstream->extractSubstream(ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
-#if TILES_DECODER
-        // update location information from where tile markers were extracted
-#if !TILES_LOW_LATENCY_CABAC_INI
-        if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
-#endif
-        {
-          UInt uiDestIdx       = 0;
-          for (UInt uiSrcIdx = 0; uiSrcIdx<pcBitstream->getTileMarkerLocationCount(); uiSrcIdx++)
-          {
-            UInt uiLocation = pcBitstream->getTileMarkerLocation(uiSrcIdx);
-            if ((uiBitsRead>>3)<=uiLocation  &&  uiLocation<((uiBitsRead+uiSubstreamSizeBits)>>3))
-            {
-              ppcSubstreams[ui]->setTileMarkerLocation( uiDestIdx, uiLocation - (uiBitsRead>>3) );
-              ppcSubstreams[ui]->setTileMarkerLocationCount( uiDestIdx+1 );
-              uiDestIdx++;
-            }
-          }
-          ppcSubstreams[ui]->setTileMarkerLocationCount( uiDestIdx );
-          uiBitsRead += uiSubstreamSizeBits;
-        }
-#endif
       }
 
       for ( UInt ui = 0 ; ui+1 < uiNumSubstreams; ui++ )
@@ -335,8 +308,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     // deblocking filter
 #if NONCROSS_TILE_IN_LOOP_FILTERING
 #if G174_DF_OFFSET
-    Bool bLFCrossTileBoundary = (pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)?
-                                (pcSlice->getPPS()->getLFCrossTileBoundaryFlag()):(pcSlice->getPPS()->getSPS()->getLFCrossTileBoundaryFlag());
     if(pcSlice->getSPS()->getUseDF())
     {
       if(pcSlice->getInheritDblParamFromAPS())
@@ -349,11 +320,9 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
         }
       }
     }
-    m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), pcSlice->getLoopFilterBetaOffset(), pcSlice->getLoopFilterTcOffset(), bLFCrossTileBoundary);
+    m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), pcSlice->getLoopFilterBetaOffset(), pcSlice->getLoopFilterTcOffset(), true);
 #else
-    Bool bLFCrossTileBoundary = (pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)?
-                                (pcSlice->getPPS()->getLFCrossTileBoundaryFlag()):(pcSlice->getPPS()->getSPS()->getLFCrossTileBoundaryFlag());
-    m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0, bLFCrossTileBoundary);
+    m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0, true);
 #endif
 #else
     m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0);
@@ -366,7 +335,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     {
       Int sliceGranularity = pcSlice->getPPS()->getSliceGranularity();
       puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU();
-      rpcPic->createNonDBFilterInfo(puiILSliceStartLCU, uiILSliceCount,sliceGranularity,pcSlice->getSPS()->getLFCrossSliceBoundaryFlag(),rpcPic->getPicSym()->getNumTiles() ,bLFCrossTileBoundary);
+      rpcPic->createNonDBFilterInfo(puiILSliceStartLCU, uiILSliceCount,sliceGranularity,pcSlice->getSPS()->getLFCrossSliceBoundaryFlag(), true);
     }
 #endif
 

@@ -166,7 +166,6 @@ struct AlfLCUInfo
 {
   TComDataCU* pcCU;            //!< TComDataCU pointer
   Int         sliceID;        //!< slice ID
-  Int         tileID;         //!< tile ID
   UInt        numSGU;        //!< number of slice granularity blocks 
   UInt        startSU;       //!< starting SU z-scan address in LCU
   UInt        endSU;         //!< ending SU z-scan address in LCU
@@ -174,7 +173,7 @@ struct AlfLCUInfo
   std::vector<NDBFBlockInfo*> vpAlfBlock; //!< container for filter block pointers
 
   NDBFBlockInfo& operator[] (Int idx) { return *( vpAlfBlock[idx]); } //!< [] operator
-  AlfLCUInfo():pcCU(NULL), sliceID(0), tileID(0), numSGU(0), startSU(0), endSU(0), bAllSUsInLCUInSameSlice(false) {} //!< constructor
+  AlfLCUInfo():pcCU(NULL), sliceID(0), numSGU(0), startSU(0), endSU(0), bAllSUsInLCUInSameSlice(false) {} //!< constructor
 };
 
 #else
@@ -374,7 +373,7 @@ private: //private member variables
 protected: //protected methods
 
 #if NONCROSS_TILE_IN_LOOP_FILTERING
-  Void InitAlfLCUInfo(AlfLCUInfo& rAlfLCU, Int sliceID, Int tileID, TComDataCU* pcCU, UInt maxNumSUInLCU);
+  Void InitAlfLCUInfo(AlfLCUInfo& rAlfLCU, Int sliceID, TComDataCU* pcCU, UInt maxNumSUInLCU);
 #endif
 
 #if !G609_NEW_BA_SUB

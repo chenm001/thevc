@@ -172,12 +172,6 @@ public:
   void codeSEI(const SEI&);
   Void  codeSliceHeader         ( TComSlice* pcSlice );
 
-#if G220_PURE_VLC_SAO_ALF
-#if TILES_DECODER
-  Void codeTileMarkerFlag(TComSlice* pcSlice);
-#endif
-#endif
-
 #if OL_USE_WPP
   Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );
 #endif
@@ -243,13 +237,6 @@ public:
   
   Bool getAdaptFlag      ()          { return m_bAdaptFlag; }
   Void setAdaptFlag      ( Bool b )  { m_bAdaptFlag = b;     }
-#if TILES
-  Void updateContextTables           ( SliceType eSliceType, Int iQp, Bool bExecuteFinish=true ) { return;   }
-  Void updateContextTables           ( SliceType eSliceType, Int iQp  )                          { return;   }
-#if TILES_DECODER
-  Void writeTileMarker               ( UInt uiTileIdx, UInt uiBitsUsed );
-#endif
-#endif
 
   Void  codeAPSInitInfo(TComAPS* pcAPS);  //!< code APS flags before encoding SAO and ALF parameters
   Void  codeFinish(Bool bEnd) { /*do nothing*/}

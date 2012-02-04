@@ -133,18 +133,6 @@ private:
   Bool        m_bLFCrossSliceBoundaryFlag;
   Bool        m_bUseSAO; 
 
-#if TILES
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-  Bool     m_bLFCrossTileBoundaryFlag;
-#endif
-  Int      m_iUniformSpacingIdr;
-  Int      m_iTileBoundaryIndependenceIdr;
-  Int      m_iNumColumnsMinus1;
-  UInt*    m_puiColumnWidth;
-  Int      m_iNumRowsMinus1;
-  UInt*    m_puiRowHeight;
-#endif
-  
   Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
 
 #if !G1002_RPS
@@ -306,46 +294,6 @@ public:
   Void      setMaxNumRefFrames     ( UInt u ) { m_uiMaxNumRefFrames = u;    }
   UInt      getMaxNumRefFrames     ()         { return m_uiMaxNumRefFrames; }
 #endif
-#endif
-#if TILES
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-  Void    setLFCrossTileBoundaryFlag               ( Bool   bValue  )    { m_bLFCrossTileBoundaryFlag = bValue; }
-  Bool    getLFCrossTileBoundaryFlag               ()                    { return m_bLFCrossTileBoundaryFlag;   }
-#endif
-  Void     setUniformSpacingIdr             ( Int i )           { m_iUniformSpacingIdr = i; }
-  Int      getUniformSpacingIdr             ()                  { return m_iUniformSpacingIdr; }
-  Void     setTileBoundaryIndependenceIdr   ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
-  Int      getTileBoundaryIndependenceIdr   ()                  { return m_iTileBoundaryIndependenceIdr; }
-  Void     setNumColumnsMinus1              ( Int i )           { m_iNumColumnsMinus1 = i; }
-  Int      getNumColumnsMinus1              ()                  { return m_iNumColumnsMinus1; }
-  Void     setColumnWidth ( UInt* columnWidth )
-  {
-    if( m_iUniformSpacingIdr == 0 && m_iNumColumnsMinus1 > 0 )
-    {
-      m_puiColumnWidth = new UInt[ m_iNumColumnsMinus1 ];
-
-      for(Int i=0; i<m_iNumColumnsMinus1; i++)
-      {
-        m_puiColumnWidth[i] = columnWidth[i];
-     }
-    }
-  }
-  UInt     getColumnWidth  (UInt columnIdx) { return *( m_puiColumnWidth + columnIdx ); }
-  Void     setNumRowsMinus1( Int i )        { m_iNumRowsMinus1 = i; }
-  Int      getNumRowsMinus1()               { return m_iNumRowsMinus1; }
-  Void     setRowHeight    ( UInt* rowHeight )
-  {
-    if( m_iUniformSpacingIdr == 0 && m_iNumRowsMinus1 > 0 )
-    {
-      m_puiRowHeight = new UInt[ m_iNumRowsMinus1 ];
-
-      for(Int i=0; i<m_iNumRowsMinus1; i++)
-      {
-        m_puiRowHeight[i] = rowHeight[i];
-      }
-    }
-  }
-  UInt     getRowHeight           (UInt rowIdx)    { return *( m_puiRowHeight + rowIdx ); }
 #endif
 #if SCALING_LIST
   Bool getScalingListFlag       ()         { return m_scalingListEnabledFlag;     }
@@ -511,20 +459,6 @@ private:
 
   Int         m_iSliceGranularity;
 
-#if TILES
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-  Int      m_iTileBehaviorControlPresentFlag;
-  Bool     m_bLFCrossTileBoundaryFlag;
-#endif
-  Int      m_iColumnRowInfoPresent;
-  Int      m_iUniformSpacingIdr;
-  Int      m_iTileBoundaryIndependenceIdr;
-  Int      m_iNumColumnsMinus1;
-  UInt*    m_puiColumnWidth;
-  Int      m_iNumRowsMinus1;
-  UInt*    m_puiRowHeight;
-#endif
-  
 #if OL_USE_WPP || INC_CABACINITIDC_SLICETYPE
   Int      m_iEntropyCodingMode; // !!! in PPS now, but also remains in slice header!
 #endif
@@ -588,50 +522,6 @@ public:
   Int       getChromaQpOffset2nd() { return m_iChromaQpOffset2nd;}
 #endif
 
-#if TILES
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-  Void    setTileBehaviorControlPresentFlag        ( Int i )             { m_iTileBehaviorControlPresentFlag = i;    }
-  Int     getTileBehaviorControlPresentFlag        ()                    { return m_iTileBehaviorControlPresentFlag; }
-  Void    setLFCrossTileBoundaryFlag               ( Bool   bValue  )    { m_bLFCrossTileBoundaryFlag = bValue; }
-  Bool    getLFCrossTileBoundaryFlag               ()                    { return m_bLFCrossTileBoundaryFlag;   }
-#endif
-  Void     setColumnRowInfoPresent          ( Int i )           { m_iColumnRowInfoPresent = i; }
-  Int      getColumnRowInfoPresent          ()                  { return m_iColumnRowInfoPresent; }
-  Void     setUniformSpacingIdr             ( Int i )           { m_iUniformSpacingIdr = i; }
-  Int      getUniformSpacingIdr             ()                  { return m_iUniformSpacingIdr; }
-  Void     setTileBoundaryIndependenceIdr   ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
-  Int      getTileBoundaryIndependenceIdr   ()                  { return m_iTileBoundaryIndependenceIdr; }
-  Void     setNumColumnsMinus1              ( Int i )           { m_iNumColumnsMinus1 = i; }
-  Int      getNumColumnsMinus1              ()                  { return m_iNumColumnsMinus1; }
-  Void     setColumnWidth ( UInt* columnWidth )
-  {
-    if( m_iUniformSpacingIdr == 0 && m_iNumColumnsMinus1 > 0 )
-    {
-      m_puiColumnWidth = new UInt[ m_iNumColumnsMinus1 ];
-
-      for(Int i=0; i<m_iNumColumnsMinus1; i++)
-      {
-        m_puiColumnWidth[i] = columnWidth[i];
-      }
-    }
-  }
-  UInt     getColumnWidth  (UInt columnIdx) { return *( m_puiColumnWidth + columnIdx ); }
-  Void     setNumRowsMinus1( Int i )        { m_iNumRowsMinus1 = i; }
-  Int      getNumRowsMinus1()               { return m_iNumRowsMinus1; }
-  Void     setRowHeight    ( UInt* rowHeight )
-  {
-    if( m_iUniformSpacingIdr == 0 && m_iNumRowsMinus1 > 0 )
-    {
-      m_puiRowHeight = new UInt[ m_iNumRowsMinus1 ];
-
-      for(Int i=0; i<m_iNumRowsMinus1; i++)
-      {
-        m_puiRowHeight[i] = rowHeight[i];
-      }
-    }
-  }
-  UInt     getRowHeight           (UInt rowIdx)    { return *( m_puiRowHeight + rowIdx ); }
-#endif
 #if OL_USE_WPP || INC_CABACINITIDC_SLICETYPE
   Void     setEntropyCodingMode(Int iEntropyCodingMode)       { m_iEntropyCodingMode = iEntropyCodingMode; }
   Int      getEntropyCodingMode()                             { return m_iEntropyCodingMode; }
@@ -887,13 +777,6 @@ private:
   UInt        m_uiEntropySliceCounter;
   Bool        m_bFinalized;
 
-#if TILES_DECODER
-  UInt        *m_uiTileByteLocation;
-  UInt        m_uiTileCount;
-  Int         m_iTileMarkerFlag;
-  UInt        m_uiTileOffstForMultES;
-#endif
-
 #if OL_USE_WPP
   UInt*       m_puiSubstreamSizes;
 #endif
@@ -1132,16 +1015,6 @@ public:
   UInt getEntropySliceCounter           ()                  { return m_uiEntropySliceCounter;             }
   Void setFinalized                     ( Bool uiVal )      { m_bFinalized = uiVal;                       }
   Bool getFinalized                     ()                  { return m_bFinalized;                        }
-#if TILES_DECODER
-  Void setTileLocationCount             ( UInt uiCount )      { m_uiTileCount = uiCount;                  }
-  UInt getTileLocationCount             ()                    { return m_uiTileCount;                     }
-  Void setTileLocation                  ( Int i, UInt uiLOC ) { m_uiTileByteLocation[i] = uiLOC;          }
-  UInt getTileLocation                  ( Int i )             { return m_uiTileByteLocation[i];           }
-  Void setTileMarkerFlag                ( Int iFlag )         { m_iTileMarkerFlag = iFlag;                }
-  Int  getTileMarkerFlag                ()                    { return m_iTileMarkerFlag;                 }
-  Void setTileOffstForMultES            (UInt uiOffset )      { m_uiTileOffstForMultES = uiOffset;        }
-  UInt getTileOffstForMultES            ()                    { return m_uiTileOffstForMultES;            }
-#endif
 #if OL_USE_WPP
   Void allocSubstreamSizes              ( UInt uiNumSubstreams );
   UInt* getSubstreamSizes               ()                  { return m_puiSubstreamSizes; }

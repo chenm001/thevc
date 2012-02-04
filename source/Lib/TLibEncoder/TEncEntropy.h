@@ -76,11 +76,6 @@ public:
   virtual Void  codePPS                 ( TComPPS* pcPPS )                                      = 0;
   virtual void codeSEI(const SEI&) = 0;
   virtual Void  codeSliceHeader         ( TComSlice* pcSlice )                                  = 0;
-#if G220_PURE_VLC_SAO_ALF
-#if TILES_DECODER
-  virtual Void codeTileMarkerFlag      ( TComSlice* pcSlice )                                  = 0;
-#endif
-#endif
 
 #if OL_USE_WPP
   virtual Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice )                             = 0;
@@ -146,14 +141,6 @@ public:
   virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType) = 0;
 #endif
   
-#if TILES
-  virtual Void updateContextTables ( SliceType eSliceType, Int iQp, Bool bExecuteFinish )   = 0;
-  virtual Void updateContextTables ( SliceType eSliceType, Int iQp )   = 0;
-#if TILES_DECODER
-  virtual Void writeTileMarker             ( UInt uiTileIdx, UInt uiBitsUsed ) = 0;
-#endif
-#endif
-
   virtual Void codeAPSInitInfo  (TComAPS* pcAPS)= 0;
   virtual Void codeFinish       (Bool bEnd)= 0;
 
@@ -185,11 +172,6 @@ public:
   Void    resetEntropy              ()                        { m_pcEntropyCoderIf->resetEntropy();  }
   
   Void    encodeSliceHeader         ( TComSlice* pcSlice );
-#if G220_PURE_VLC_SAO_ALF
-#if TILES_DECODER
-  Void    encodeTileMarkerFlag       (TComSlice* pcSlice) {m_pcEntropyCoderIf->codeTileMarkerFlag(pcSlice);}
-#endif
-#endif
 #if OL_USE_WPP
   Void    encodeSliceHeaderSubstreamTable( TComSlice* pcSlice );
 #endif
@@ -247,13 +229,6 @@ public:
   Void encodeQtCbf             ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   Void encodeQtRootCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void encodeQP                ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
-#if TILES
-  Void updateContextTables     ( SliceType eSliceType, Int iQp, Bool bExecuteFinish )   { m_pcEntropyCoderIf->updateContextTables( eSliceType, iQp, bExecuteFinish );     }
-  Void updateContextTables     ( SliceType eSliceType, Int iQp )                        { m_pcEntropyCoderIf->updateContextTables( eSliceType, iQp, true );               }
-#if TILES_DECODER
-  Void writeTileMarker              ( UInt uiTileIdx, UInt uiBitsUsed ) { m_pcEntropyCoderIf->writeTileMarker( uiTileIdx, uiBitsUsed ); }
-#endif
-#endif
   
   Void encodeAPSInitInfo          (TComAPS* pcAPS) {m_pcEntropyCoderIf->codeAPSInitInfo(pcAPS);}
   Void encodeFinish               (Bool bEnd) {m_pcEntropyCoderIf->codeFinish(bEnd);}

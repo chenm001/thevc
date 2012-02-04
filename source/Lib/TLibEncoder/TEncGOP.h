@@ -129,10 +129,6 @@ public:
   
   Void  init        ( TEncTop* pcTEncTop );
   Void  compressGOP ( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRec, std::list<AccessUnit>& accessUnitsInGOP );
-#if TILES_DECODER
-  Void xWriteTileLocationToSliceHeader (OutputNALUnit& rNalu, TComOutputBitstream*& rpcBitstreamRedirect, TComSlice*& rpcSlice);
-#endif
-
   
   Int   getGOPSize()          { return  m_iGopSize;  }
 #if !G1002_RPS

@@ -169,7 +169,7 @@ public:
   void parseSEI(SEImessages&);
   Void  parseSliceHeader    ( TComSlice*& rpcSlice );
 #if G220_PURE_VLC_SAO_ALF
-#if (TILES_DECODER || OL_USE_WPP)
+#if (OL_USE_WPP)
   Void parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice);
 #endif
 #endif
@@ -203,12 +203,6 @@ public:
 
   Void parseAlfCtrlDepth    ( UInt& ruiAlfCtrlDepth );
   Void parseAlfCtrlFlag     ( UInt &ruiAlfCtrlFlag );
-#if TILES
-#if TILES_DECODER
-  Void readTileMarker     ( UInt& uiTileIdx, UInt uiBitsUsed );
-#endif
-  Void updateContextTables  ( SliceType eSliceType, Int iQp ) { return; }
-#endif    
 #if OL_FLUSH
   Void decodeFlush() {};
 #endif

@@ -141,9 +141,6 @@ protected:
   Void  xInitSPS          ();                             ///< initialize SPS from encoder options
   Void  xInitPPS          ();                             ///< initialize PPS from encoder options
   
-#if TILES
-  Void  xInitPPSforTiles  ();
-#endif
 #if G1002_RPS
   Void  xInitRPS          ();                             ///< initialize PPS from encoder options
 #endif

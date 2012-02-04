@@ -100,11 +100,6 @@ public:
   Void  codePPS                 ( TComPPS* pcPPS     );
   void codeSEI(const SEI&);
   Void  codeSliceHeader         ( TComSlice* pcSlice );
-#if G220_PURE_VLC_SAO_ALF
-#if TILES_DECODER
-  Void codeTileMarkerFlag(TComSlice* pcSlice) {printf("Not supported\n"); assert(0); exit(1);}
-#endif
-#endif
 #if OL_USE_WPP
   Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );
 #endif
@@ -217,16 +212,6 @@ public:
   Void estSignificantMapBit          ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
 #endif
   Void estSignificantCoefficientsBit ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
-  
-
-#if TILES
-  Void updateContextTables           ( SliceType eSliceType, Int iQp, Bool bExecuteFinish=true  );
-  Void updateContextTables           ( SliceType eSliceType, Int iQp  ) { this->updateContextTables( eSliceType, iQp, true); };
-#if TILES_DECODER
-  Void writeTileMarker               ( UInt uiTileIdx, UInt uiBitsUsed );
-#endif
-#endif
-
   
   TEncBinIf* getEncBinIf()  { return m_pcBinIf; }
 private:

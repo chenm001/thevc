@@ -99,7 +99,7 @@ public:
   void parseSEI(SEImessages&) {}
   Void  parseSliceHeader          ( TComSlice*& rpcSlice   ) {}
 #if G220_PURE_VLC_SAO_ALF
-#if (TILES_DECODER || OL_USE_WPP)
+#if (OL_USE_WPP)
   Void parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice) {printf("Not supported\n");assert(0); exit(1);}
 #endif
 #endif
@@ -173,13 +173,6 @@ public:
   Void parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int width, Int height, TextType eTType, UInt uiScanIdx );
   Void parseCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
-#if TILES
-#if TILES_DECODER
-  Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed );
-#endif
-  Void updateContextTables( SliceType eSliceType, Int iQp );
-#endif
-
   Void parseAPSInitInfo(TComAPS& cAPS) {printf("Not supported in parseAPSInitInfo()\n");assert(0);exit(1);}
 #if SCALING_LIST
   Void  parseScalingList ( TComScalingList* scalingList ) {}

@@ -133,12 +133,10 @@ Void TComPic::compressMotion()
  * \param numSlices number of slices in picture
  * \param sliceGranularityDepth slice granularity 
  * \param bNDBFilterCrossSliceBoundary cross-slice-boundary in-loop filtering; true for "cross".
- * \param numTiles number of tiles in picture
  * \param bNDBFilterCrossTileBoundary cross-tile-boundary in-loop filtering; true for "cross".
  */
 Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int sliceGranularityDepth
                                     ,Bool bNDBFilterCrossSliceBoundary
-                                    ,Int numTiles
                                     ,Bool bNDBFilterCrossTileBoundary)
 {
   UInt maxNumSUInLCU = getNumPartInCU();
@@ -152,7 +150,7 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
 
   m_bIndependentSliceBoundaryForNDBFilter = (bNDBFilterCrossSliceBoundary)?(false):((numSlices > 1)?(true):(false)) ;
   m_sliceGranularityForNDBFilter = sliceGranularityDepth;
-  m_bIndependentTileBoundaryForNDBFilter  = (bNDBFilterCrossTileBoundary)?(false) :((numTiles > 1)?(true):(false));
+  m_bIndependentTileBoundaryForNDBFilter  = (bNDBFilterCrossTileBoundary)?(false) :(false);
 
   m_pbValidSlice = new Bool[numSlices];
   for(Int s=0; s< numSlices; s++)
@@ -160,7 +158,7 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
     m_pbValidSlice[s] = true;
   }
 
-  if( pSliceStartAddress == NULL || (numSlices == 1 && numTiles == 1) )
+  if( pSliceStartAddress == NULL || (numSlices == 1) )
   {
     return;
   }
@@ -198,11 +196,7 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
     endLCU              = endAddr   / maxNumSUInLCU;
     lastCUInEndLCU      = endAddr   % maxNumSUInLCU;   
 
-#if TILES
-    uiAddr = m_apcPicSym->getCUOrderMap(startLCU);
-#else
     uiAddr = startLCU;
-#endif
 
     LCUX      = getCU(uiAddr)->getCUPelX();
     LCUY      = getCU(uiAddr)->getCUPelY();
@@ -265,21 +259,12 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
       startSU = (i == startLCU)?(firstCUInStartLCU):(0);
       endSU   = (i == endLCU  )?(lastCUInEndLCU   ):(maxNumSUInLCU -1);
 
-#if TILES
-      uiAddr = m_apcPicSym->getCUOrderMap(i);
-      Int iTileID= m_apcPicSym->getTileIdxMap(uiAddr);
-#else
       uiAddr = i;
-#endif
 
       TComDataCU* pcCU = getCU(uiAddr);
       m_vSliceCUDataLink[s].push_back(pcCU);
 
-#if TILES
-      createNonDBFilterInfoLCU(iTileID, s, pcCU, startSU, endSU, m_sliceGranularityForNDBFilter, picWidth, picHeight);
-#else
-      createNonDBFilterInfoLCU(s, pcCU, uiStartSU, uiEndSU, m_sliceGranularityForNDBFilter, picWidth, picHeight);
-#endif
+      createNonDBFilterInfoLCU(s, pcCU, startSU, endSU, m_sliceGranularityForNDBFilter, picWidth, picHeight);
     }
   }
 
@@ -296,37 +281,9 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
       TComDataCU* pcCU = m_vSliceCUDataLink[s][i];
       uiAddr = pcCU->getAddr();
 
-      Int iTileID= m_apcPicSym->getTileIdxMap(uiAddr);
-      Bool bTopTileBoundary = false, bDownTileBoundary= false, bLeftTileBoundary= false, bRightTileBoundary= false;
-
-      if(m_bIndependentTileBoundaryForNDBFilter)
-      {
-        //left
-        if( uiAddr % numLCUsInPicWidth != 0)
-        {
-          bLeftTileBoundary = ( m_apcPicSym->getTileIdxMap(uiAddr -1) != iTileID )?true:false;
-        }
-        //right
-        if( (uiAddr % numLCUsInPicWidth) != (numLCUsInPicWidth -1) )
-        {
-          bRightTileBoundary = ( m_apcPicSym->getTileIdxMap(uiAddr +1) != iTileID)?true:false;
-        }
-        //top
-        if( uiAddr >= numLCUsInPicWidth)
-        {
-          bTopTileBoundary = (m_apcPicSym->getTileIdxMap(uiAddr - numLCUsInPicWidth) !=  iTileID )?true:false;
-        }
-        //down
-        if( uiAddr + numLCUsInPicWidth < numLCUInPic )
-        {
-          bDownTileBoundary = (m_apcPicSym->getTileIdxMap(uiAddr + numLCUsInPicWidth) != iTileID)?true:false;
-        }
-
-      }
-
       pcCU->setNDBFilterBlockBorderAvailability(numLCUsInPicWidth, numLCUsInPicHeight, maxNumSUInLCUWidth, maxNumSUInLCUHeight,picWidth, picHeight
         ,m_bIndependentSliceBoundaryForNDBFilter
-        ,bTopTileBoundary, bDownTileBoundary, bLeftTileBoundary, bRightTileBoundary
+        ,false, false, false, false
         ,m_bIndependentTileBoundaryForNDBFilter);
 
     }
@@ -351,11 +308,7 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
  * \param picWidth picture width
  * \param picHeight picture height
  */
-#if TILES
-Void TComPic::createNonDBFilterInfoLCU(Int tileID, Int sliceID, TComDataCU* pcCU, UInt startSU, UInt endSU, Int sliceGranularyDepth, UInt picWidth, UInt picHeight)
-#else
 Void TComPic::createNonDBFilterInfoLCU(Int sliceID, TComDataCU* pcCU, UInt startSU, UInt endSU, Int sliceGranularyDepth, UInt picWidth, UInt picHeight)
-#endif
 {
   UInt LCUX          = pcCU->getCUPelX();
   UInt LCUY          = pcCU->getCUPelY();
@@ -392,9 +345,6 @@ Void TComPic::createNonDBFilterInfoLCU(Int sliceID, TComDataCU* pcCU, UInt start
 
     NDBFBlockInfo NDBFBlock;
 
-#if TILES
-    NDBFBlock.tileID  = tileID;
-#endif
     NDBFBlock.sliceID = sliceID;
     NDBFBlock.posY    = TPelY;
     NDBFBlock.posX    = LPelX;

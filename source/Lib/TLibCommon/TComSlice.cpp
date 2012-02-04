@@ -101,12 +101,6 @@ TComSlice::TComSlice()
 , m_uiSliceBits                   ( 0 )
 , m_uiEntropySliceCounter         ( 0 )
 , m_bFinalized                    ( false )
-#if TILES_DECODER
-, m_uiTileByteLocation            ( NULL )
-, m_uiTileCount                   ( 0 )
-, m_iTileMarkerFlag               ( 0 )
-, m_uiTileOffstForMultES          ( 0 )
-#endif
 #if OL_USE_WPP
 , m_puiSubstreamSizes             ( NULL )
 #endif
@@ -141,13 +135,6 @@ TComSlice::TComSlice()
 
 TComSlice::~TComSlice()
 {
-#if TILES_DECODER
-  if (m_uiTileByteLocation) 
-  {
-    delete [] m_uiTileByteLocation;
-    m_uiTileByteLocation = NULL;
-  }
-#endif
 #if OL_USE_WPP
   delete[] m_puiSubstreamSizes;
   m_puiSubstreamSizes = NULL;
@@ -182,16 +169,6 @@ Void TComSlice::initSlice()
 
   m_bFinalized=false;
 
-#if TILES_DECODER
-  Int iWidth             = m_pcSPS->getWidth();
-  Int iHeight            = m_pcSPS->getHeight();
-  UInt uiWidthInCU       = ( iWidth %g_uiMaxCUWidth  ) ? iWidth /g_uiMaxCUWidth  + 1 : iWidth /g_uiMaxCUWidth;
-  UInt uiHeightInCU      = ( iHeight%g_uiMaxCUHeight ) ? iHeight/g_uiMaxCUHeight + 1 : iHeight/g_uiMaxCUHeight;
-  UInt uiNumCUsInFrame   = uiWidthInCU * uiHeightInCU;
-
-  m_uiTileCount          = 0;
-  if (m_uiTileByteLocation==NULL) m_uiTileByteLocation   = new UInt[uiNumCUsInFrame];
-#endif
 }
 
 #if OL_USE_WPP
@@ -981,9 +958,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_uiEntropySliceCurEndCUAddr    = pSrc->m_uiEntropySliceCurEndCUAddr;
   m_bNextSlice                    = pSrc->m_bNextSlice;
   m_bNextEntropySlice             = pSrc->m_bNextEntropySlice;
-#if TILES_DECODER
-  m_iTileMarkerFlag             = pSrc->m_iTileMarkerFlag;
-#endif
 }
 
 #if  G1002_RPS
@@ -1478,18 +1452,6 @@ TComSPS::TComSPS()
 
 TComSPS::~TComSPS()
 {
-#if TILES
-  if( m_iNumColumnsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
-  {
-    delete [] m_puiColumnWidth; 
-    m_puiColumnWidth = NULL;
-  }
-  if( m_iNumRowsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
-  {
-    delete [] m_puiRowHeight;
-    m_puiRowHeight = NULL;
-  }
-#endif
 }
 
 TComPPS::TComPPS()
@@ -1512,19 +1474,6 @@ TComPPS::TComPPS()
 #endif
 , m_uiNumTlayerSwitchingFlags   (0)
 , m_iSliceGranularity           (0)
-#if TILES
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-, m_iTileBehaviorControlPresentFlag (0)
-, m_bLFCrossTileBoundaryFlag     (true)
-#endif
-, m_iColumnRowInfoPresent        (0)
-, m_iUniformSpacingIdr           (0)
-, m_iTileBoundaryIndependenceIdr (0)
-, m_iNumColumnsMinus1            (0)
-, m_puiColumnWidth               (NULL)
-, m_iNumRowsMinus1               (0)
-, m_puiRowHeight                 (NULL)
-#endif
 #if OL_USE_WPP
 ,  m_iEntropyCodingSynchro      (0)
 ,  m_bCabacIstateReset          (false)
@@ -1539,18 +1488,6 @@ TComPPS::TComPPS()
 
 TComPPS::~TComPPS()
 {
-#if TILES
-  if( m_iNumColumnsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
-  {
-    if (m_puiColumnWidth) delete [] m_puiColumnWidth; 
-    m_puiColumnWidth = NULL;
-  }
-  if( m_iNumRowsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
-  {
-    if (m_puiRowHeight) delete [] m_puiRowHeight;
-    m_puiRowHeight = NULL;
-  }
-#endif
 }
 #if G1002_RPS
 

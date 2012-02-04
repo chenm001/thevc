@@ -375,15 +375,9 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
     {
       // make sure we already received both parameter sets
       assert( 3 == m_uiValidPS );
-#if TILES_DECODER
-      m_apcSlicePilot->setSPS(&m_cSPS);
-      m_apcSlicePilot->initSlice();
-#endif
       if (m_bFirstSliceInPicture)
       {
-#if !TILES_DECODER
         m_apcSlicePilot->initSlice();
-#endif
         m_uiSliceIdx     = 0;
         m_uiLastSliceIdx = 0;
       }
@@ -396,7 +390,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       m_apcSlicePilot->setSliceIdx(m_uiSliceIdx);
       if (!m_bFirstSliceInPicture)
       {
-#if TILES_DECODER || OL_USE_WPP
+#if OL_USE_WPP
         m_apcSlicePilot->copySliceInfo( pcPic->getPicSym()->getSlice(m_uiSliceIdx-1) );
 #else
         memcpy(m_apcSlicePilot, pcPic->getPicSym()->getSlice(m_uiSliceIdx-1), sizeof(TComSlice));
@@ -424,7 +418,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
           }
         }
       }
-#if (TILES_DECODER || OL_USE_WPP)
+#if (OL_USE_WPP)
       m_cEntropyDecoder.decodeWPPTileInfoToSliceHeader(m_apcSlicePilot);
 #endif
 
@@ -508,175 +502,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       //  Set picture slice pointer
       TComSlice*  pcSlice = m_apcSlicePilot;
       Bool bNextSlice     = pcSlice->isNextSlice();
-
-#if TILES
-      UInt uiCummulativeTileWidth;
-      UInt uiCummulativeTileHeight;
-      UInt i, j, p;
-
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-      //set the TileBoundaryIndependenceIdr
-      if(pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)
-      {
-        pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getTileBoundaryIndependenceIdr() );
-      }
-      else
-      {
-        pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getSPS()->getTileBoundaryIndependenceIdr() );
-      }
-#endif
-
-      if( pcSlice->getPPS()->getColumnRowInfoPresent() == 1 )
-      {
-#if !NONCROSS_TILE_IN_LOOP_FILTERING
-        //set the TileBoundaryIndependenceIdr
-        pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getTileBoundaryIndependenceIdr() );
-#endif
-        //set NumColumnsMins1 and NumRowsMinus1
-        pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getPPS()->getNumColumnsMinus1() );
-        pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getPPS()->getNumRowsMinus1() );
-
-        //create the TComTileArray
-        pcPic->getPicSym()->xCreateTComTileArray();
-
-        if( pcSlice->getPPS()->getUniformSpacingIdr() == 1)
-        {
-          //set the width for each tile
-          for(j=0; j < pcPic->getPicSym()->getNumRowsMinus1()+1; j++)
-          {
-            for(p=0; p < pcPic->getPicSym()->getNumColumnsMinus1()+1; p++)
-            {
-              pcPic->getPicSym()->getTComTile( j * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + p )->
-                setTileWidth( (p+1)*pcPic->getPicSym()->getFrameWidthInCU()/(pcPic->getPicSym()->getNumColumnsMinus1()+1) 
-                - (p*pcPic->getPicSym()->getFrameWidthInCU())/(pcPic->getPicSym()->getNumColumnsMinus1()+1) );
-            }
-          }
-
-          //set the height for each tile
-          for(j=0; j < pcPic->getPicSym()->getNumColumnsMinus1()+1; j++)
-          {
-            for(p=0; p < pcPic->getPicSym()->getNumRowsMinus1()+1; p++)
-            {
-              pcPic->getPicSym()->getTComTile( p * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + j )->
-                setTileHeight( (p+1)*pcPic->getPicSym()->getFrameHeightInCU()/(pcPic->getPicSym()->getNumRowsMinus1()+1) 
-                - (p*pcPic->getPicSym()->getFrameHeightInCU())/(pcPic->getPicSym()->getNumRowsMinus1()+1) );   
-            }
-          }
-        }
-        else
-        {
-          //set the width for each tile
-          for(j=0; j < pcSlice->getPPS()->getNumRowsMinus1()+1; j++)
-          {
-            uiCummulativeTileWidth = 0;
-            for(i=0; i < pcSlice->getPPS()->getNumColumnsMinus1(); i++)
-            {
-              pcPic->getPicSym()->getTComTile(j * (pcSlice->getPPS()->getNumColumnsMinus1()+1) + i)->setTileWidth( pcSlice->getPPS()->getColumnWidth(i) );
-              uiCummulativeTileWidth += pcSlice->getPPS()->getColumnWidth(i);
-            }
-            pcPic->getPicSym()->getTComTile(j * (pcSlice->getPPS()->getNumColumnsMinus1()+1) + i)->setTileWidth( pcPic->getPicSym()->getFrameWidthInCU()-uiCummulativeTileWidth );
-          }
-  
-          //set the height for each tile
-          for(j=0; j < pcSlice->getPPS()->getNumColumnsMinus1()+1; j++)
-          {
-            uiCummulativeTileHeight = 0;
-            for(i=0; i < pcSlice->getPPS()->getNumRowsMinus1(); i++)
-            { 
-              pcPic->getPicSym()->getTComTile(i * (pcSlice->getPPS()->getNumColumnsMinus1()+1) + j)->setTileHeight( pcSlice->getPPS()->getRowHeight(i) );
-              uiCummulativeTileHeight += pcSlice->getPPS()->getRowHeight(i);
-            }
-            pcPic->getPicSym()->getTComTile(i * (pcSlice->getPPS()->getNumColumnsMinus1()+1) + j)->setTileHeight( pcPic->getPicSym()->getFrameHeightInCU()-uiCummulativeTileHeight );
-          }
-        }
-      }
-      else
-      {
-#if !NONCROSS_TILE_IN_LOOP_FILTERING
-        //set the TileBoundaryIndependenceIdr
-        pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getSPS()->getTileBoundaryIndependenceIdr() );
-#endif
-        //set NumColumnsMins1 and NumRowsMinus1
-        pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getSPS()->getNumColumnsMinus1() );
-        pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getSPS()->getNumRowsMinus1() );
-
-        //create the TComTileArray
-        pcPic->getPicSym()->xCreateTComTileArray();
-
-        //automatically set the column and row boundary if UniformSpacingIdr = 1
-        if( pcSlice->getSPS()->getUniformSpacingIdr() == 1 )
-        {
-          //set the width for each tile
-          for(j=0; j < pcPic->getPicSym()->getNumRowsMinus1()+1; j++)
-          {
-            for(p=0; p < pcPic->getPicSym()->getNumColumnsMinus1()+1; p++)
-            {
-              pcPic->getPicSym()->getTComTile( j * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + p )->
-                setTileWidth( (p+1)*pcPic->getPicSym()->getFrameWidthInCU()/(pcPic->getPicSym()->getNumColumnsMinus1()+1) 
-                - (p*pcPic->getPicSym()->getFrameWidthInCU())/(pcPic->getPicSym()->getNumColumnsMinus1()+1) );
-            }
-          }
-
-          //set the height for each tile
-          for(j=0; j < pcPic->getPicSym()->getNumColumnsMinus1()+1; j++)
-          {
-            for(p=0; p < pcPic->getPicSym()->getNumRowsMinus1()+1; p++)
-            {
-              pcPic->getPicSym()->getTComTile( p * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + j )->
-                setTileHeight( (p+1)*pcPic->getPicSym()->getFrameHeightInCU()/(pcPic->getPicSym()->getNumRowsMinus1()+1) 
-                - (p*pcPic->getPicSym()->getFrameHeightInCU())/(pcPic->getPicSym()->getNumRowsMinus1()+1) );   
-            }
-          }
-        }
-        else
-        {
-          //set the width for each tile
-          for(j=0; j < pcSlice->getSPS()->getNumRowsMinus1()+1; j++)
-          {
-            uiCummulativeTileWidth = 0;
-            for(i=0; i < pcSlice->getSPS()->getNumColumnsMinus1(); i++)
-            {
-              pcPic->getPicSym()->getTComTile(j * (pcSlice->getSPS()->getNumColumnsMinus1()+1) + i)->setTileWidth( pcSlice->getSPS()->getColumnWidth(i) );
-              uiCummulativeTileWidth += pcSlice->getSPS()->getColumnWidth(i);
-            }
-            pcPic->getPicSym()->getTComTile(j * (pcSlice->getSPS()->getNumColumnsMinus1()+1) + i)->setTileWidth( pcPic->getPicSym()->getFrameWidthInCU()-uiCummulativeTileWidth );
-          }
-  
-          //set the height for each tile
-          for(j=0; j < pcSlice->getSPS()->getNumColumnsMinus1()+1; j++)
-          {
-            uiCummulativeTileHeight = 0;
-            for(i=0; i < pcSlice->getSPS()->getNumRowsMinus1(); i++)
-            { 
-              pcPic->getPicSym()->getTComTile(i * (pcSlice->getSPS()->getNumColumnsMinus1()+1) + j)->setTileHeight( pcSlice->getSPS()->getRowHeight(i) );
-              uiCummulativeTileHeight += pcSlice->getSPS()->getRowHeight(i);
-            }
-            pcPic->getPicSym()->getTComTile(i * (pcSlice->getSPS()->getNumColumnsMinus1()+1) + j)->setTileHeight( pcPic->getPicSym()->getFrameHeightInCU()-uiCummulativeTileHeight );
-          }
-        }
-      }
-
-      pcPic->getPicSym()->xInitTiles();
-
-      //generate the Coding Order Map and Inverse Coding Order Map
-      UInt uiEncCUAddr;
-      for(i=0, uiEncCUAddr=0; i<pcPic->getPicSym()->getNumberOfCUsInFrame(); i++, uiEncCUAddr = pcPic->getPicSym()->xCalculateNxtCUAddr(uiEncCUAddr))
-      {
-        pcPic->getPicSym()->setCUOrderMap(i, uiEncCUAddr);
-        pcPic->getPicSym()->setInverseCUOrderMap(uiEncCUAddr, i);
-      }
-      pcPic->getPicSym()->setCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());
-      pcPic->getPicSym()->setInverseCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());
-
-      //convert the start and end CU addresses of the slice and entropy slice into encoding order
-      pcSlice->setEntropySliceCurStartCUAddr( pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getEntropySliceCurStartCUAddr()) );
-      pcSlice->setEntropySliceCurEndCUAddr( pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getEntropySliceCurEndCUAddr()) );
-      if(pcSlice->isNextSlice())
-      {
-        pcSlice->setSliceCurStartCUAddr(pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getSliceCurStartCUAddr()));
-        pcSlice->setSliceCurEndCUAddr(pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getSliceCurEndCUAddr()));
-      }
-#endif
 
       if (m_bFirstSliceInPicture) 
       {
@@ -786,9 +611,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
           if ( pcSlice->getNumRefIdx(RefPicList( 0 ) ) == pcSlice->getNumRefIdx(RefPicList( 1 ) ) )
           {
             pcSlice->setNoBackPredFlag( true );
-#if !TILES
             Int i;
-#endif
             for ( i=0; i < pcSlice->getNumRefIdx(RefPicList( 1 ) ); i++ )
             {
               if ( pcSlice->getRefPOC(RefPicList(1), i) != pcSlice->getRefPOC(RefPicList(0), i) ) 

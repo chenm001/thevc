@@ -2058,14 +2058,12 @@ Void TComAdaptiveLoopFilter::setAlfCtrlFlags(AlfCUCtrlInfo* pAlfParam, TComDataC
  * \param pcCU CU data pointer
  * \param maxNumSUInLCU maximum number of SUs in one LCU
  */
-Void TComAdaptiveLoopFilter::InitAlfLCUInfo(AlfLCUInfo& rAlfLCU, Int sliceID, Int tileID, TComDataCU* pcCU, UInt maxNumSUInLCU)
+Void TComAdaptiveLoopFilter::InitAlfLCUInfo(AlfLCUInfo& rAlfLCU, Int sliceID, TComDataCU* pcCU, UInt maxNumSUInLCU)
 {
   //pcCU
   rAlfLCU.pcCU     = pcCU;
   //sliceID
   rAlfLCU.sliceID = sliceID;
-  //tileID
-  rAlfLCU.tileID  = tileID;
 
   //numSGU, vpAlfBLock;
   std::vector<NDBFBlockInfo>& vNDBFBlock = *(pcCU->getNDBFilterBlocks());
@@ -2121,9 +2119,8 @@ Void TComAdaptiveLoopFilter::createPicAlfInfo(TComPic* pcPic, Int numSlicesInPic
       for(Int i=0; i< numLCU; i++)
       {
         TComDataCU* pcCU       = vSliceLCUPointers[i];
-        Int         currTileID = pcPic->getPicSym()->getTileIdxMap(pcCU->getAddr());
 
-        InitAlfLCUInfo(m_ppSliceAlfLCUs[s][i], s, currTileID, pcCU, pcPic->getNumPartInCU());
+        InitAlfLCUInfo(m_ppSliceAlfLCUs[s][i], s, pcCU, pcPic->getNumPartInCU());
       }
 
       //distribute Alf LCU info pointers to slice container
@@ -2141,11 +2138,11 @@ Void TComAdaptiveLoopFilter::createPicAlfInfo(TComPic* pcPic, Int numSlicesInPic
         //container of Alf LCU pointers for slice processing
         vpSliceAlfLCU.push_back( pcAlfLCU);
 
-        if(pcAlfLCU->tileID != prevTileID)
+        if(0 != prevTileID)
         {
           if(prevTileID == -1 || pcPic->getIndependentTileBoundaryForNDBFilter())
           {
-            prevTileID = pcAlfLCU->tileID;
+            prevTileID = 0;
             numValidTilesInSlice ++;
             vpSliceTileAlfLCU.resize(numValidTilesInSlice);
           }
@@ -3849,11 +3846,7 @@ Void CAlfSlice::create(Int iSliceID, UInt uiStartAddr, UInt uiEndAddr)
   UInt uiNumSUInLCU = uiNumSUInLCUHeight * uiNumSUInLCUWidth;
 
   //start LCU and SU address
-#if TILES
-  m_uiStartLCU             = m_pcPic->getPicSym()->getPicSCUAddr(uiStartAddr) / uiNumSUInLCU;
-#else
   m_uiStartLCU             = uiStartAddr / uiNumSUInLCU;
-#endif
   m_uiFirstCUInStartLCU    = uiStartAddr % uiNumSUInLCU;
 
   //check if the star SU is out of picture boundary
@@ -3865,10 +3858,6 @@ Void CAlfSlice::create(Int iSliceID, UInt uiStartAddr, UInt uiEndAddr)
   UInt uiTPelY     = uiLCUY + g_auiRasterToPelY[ g_auiZscanToRaster[m_uiFirstCUInStartLCU] ];
   UInt uiCurrSU    = m_uiFirstCUInStartLCU;
   Bool bMoveToNextLCU = false;
-
-#if TILES
-  m_uiStartLCU             = uiStartAddr / uiNumSUInLCU;
-#endif
 
   m_uiEndLCU               = uiEndAddr   / uiNumSUInLCU;
   m_uiLastCUInEndLCU       = uiEndAddr   % uiNumSUInLCU;   
@@ -3931,11 +3920,7 @@ Void CAlfSlice::create(Int iSliceID, UInt uiStartAddr, UInt uiEndAddr)
     UInt uiStartSU = (uiAddr == m_uiStartLCU)?(m_uiFirstCUInStartLCU):(0);
     UInt uiEndSU   = (uiAddr == m_uiEndLCU  )?(m_uiLastCUInEndLCU   ):(uiNumSUInLCU -1);
 
-#if TILES
-    m_pcAlfLCU[uiAddr - m_uiStartLCU].create(m_iSliceID, m_pcPic, m_pcPic->getPicSym()->getCUOrderMap(uiAddr), uiStartSU, uiEndSU, m_iSGDepth);
-#else
     m_pcAlfLCU[uiAddr - m_uiStartLCU].create(m_iSliceID, m_pcPic, uiAddr, uiStartSU, uiEndSU, m_iSGDepth);
-#endif
   }
 
 

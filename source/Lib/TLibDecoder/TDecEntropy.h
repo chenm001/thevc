@@ -78,7 +78,7 @@ public:
   virtual void parseSEI(SEImessages&) = 0;
   virtual Void  parseSliceHeader          ( TComSlice*& rpcSlice )                                = 0;
 #if G220_PURE_VLC_SAO_ALF
-#if (TILES_DECODER || OL_USE_WPP)
+#if (OL_USE_WPP)
   virtual Void  parseWPPTileInfoToSliceHeader  ( TComSlice*& rpcSlice )                           = 0;
 #endif
 #endif
@@ -131,12 +131,6 @@ public:
   virtual Void parseSaoFlag       ( UInt& ruiVal           ) = 0;
   virtual Void parseSaoUvlc       ( UInt& ruiVal           ) = 0;
   virtual Void parseSaoSvlc       ( Int&  riVal            ) = 0;
-#if TILES
-#if TILES_DECODER
-  virtual Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed ) = 0;
-#endif
-  virtual Void updateContextTables( SliceType eSliceType, Int iQp ) = 0;
-#endif
   
   virtual Void parseAPSInitInfo   (TComAPS& cAPS) = 0;
 #if SCALING_LIST
@@ -179,7 +173,7 @@ public:
   void decodeSEI(SEImessages& seis) { m_pcEntropyDecoderIf->parseSEI(seis); }
   Void    decodeSliceHeader           ( TComSlice*& rpcSlice )  { m_pcEntropyDecoderIf->parseSliceHeader(rpcSlice);         }
 #if G220_PURE_VLC_SAO_ALF
-#if (TILES_DECODER || OL_USE_WPP)
+#if (OL_USE_WPP)
   Void    decodeWPPTileInfoToSliceHeader  ( TComSlice*& rpcSlice )  { m_pcEntropyDecoderIf->parseWPPTileInfoToSliceHeader(rpcSlice); }
 #endif
 #endif
@@ -209,14 +203,6 @@ public:
   
   Void decodeTransformIdx      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void decodeQP                ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  
-#if TILES
-#if TILES_DECODER
-  Void readTileMarker       ( UInt& uiTileIdx, UInt uiBitsUsed )  {  m_pcEntropyDecoderIf->readTileMarker( uiTileIdx, uiBitsUsed ); }
-#endif
-  Void updateContextTables    ( SliceType eSliceType, Int iQp ) { m_pcEntropyDecoderIf->updateContextTables( eSliceType, iQp ); }
-#endif  
-  
   
 private:
   Void xDecodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 );
