@@ -69,10 +69,6 @@ public:
   virtual Void  resetEntropy          (TComSlice* pcSlice)                = 0;
   virtual Void  setBitstream          ( TComInputBitstream* p )  = 0;
 
-#if OL_FLUSH
-  virtual Void  decodeFlush()                                                                      = 0;
-#endif
-
   virtual Void  parseSPS                  ( TComSPS* pcSPS )                                      = 0;
   virtual Void  parsePPS                  ( TComPPS* pcPPS )                                      = 0;
   virtual void parseSEI(SEImessages&) = 0;
@@ -229,9 +225,6 @@ public:
   Void decodeSaoOnePart       (SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
   Void decodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
   Void decodeSaoParam         (SAOParam* pSaoParam);
-#if OL_FLUSH
-  Void decodeFlush() { m_pcEntropyDecoderIf->decodeFlush(); }
-#endif
 
   Void decodeAPSInitInfo       (TComAPS& cAPS) {m_pcEntropyDecoderIf->parseAPSInitInfo(cAPS);}
 #if SCALING_LIST

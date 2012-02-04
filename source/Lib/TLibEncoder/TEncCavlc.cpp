@@ -350,12 +350,8 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   // We code the entropy_coding_mode_flag, it's needed for tests.
   WRITE_FLAG( 1,                                             "entropy_coding_mode_flag" );
   {
-    WRITE_UVLC( pcPPS->getEntropyCodingSynchro(),            "entropy_coding_synchro" );
-    WRITE_FLAG( pcPPS->getCabacIstateReset() ? 1 : 0,        "cabac_istate_reset" );
-    if ( pcPPS->getEntropyCodingSynchro() )
-    {
-      WRITE_UVLC( pcPPS->getNumSubstreams()-1,               "num_substreams_minus1" );
-    }
+    WRITE_UVLC( 0,                                           "entropy_coding_synchro" );
+    WRITE_FLAG( 0,                                           "cabac_istate_reset" );
   }
 #endif
   WRITE_UVLC( pcPPS->getNumTLayerSwitchingFlags(),           "num_temporal_layer_switching_point_flags" );
@@ -916,52 +912,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 
 }
 
-
-#if OL_USE_WPP
-/**
- - write wavefront substreams sizes for the slice header.
- .
- \param pcSlice Where we find the substream size information.
- */
-Void TEncCavlc::codeSliceHeaderSubstreamTable( TComSlice* pcSlice )
-{
-  UInt uiNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
-  UInt*puiSubstreamSizes = pcSlice->getSubstreamSizes();
-
-  // Write header information for all substreams except the last.
-  for (UInt ui = 0; ui+1 < uiNumSubstreams; ui++)
-  {
-    UInt uiNumbits = puiSubstreamSizes[ui];
-
-    //the 2 first bits are used to give the size of the header
-    if ( uiNumbits < (1<<8) )
-    {
-      xWriteCode(0,         2  );
-      xWriteCode(uiNumbits, 8  );
-    }
-    else if ( uiNumbits < (1<<16) )
-    {
-      xWriteCode(1,         2  );
-      xWriteCode(uiNumbits, 16 );
-    }
-    else if ( uiNumbits < (1<<24) )
-    {
-      xWriteCode(2,         2  );
-      xWriteCode(uiNumbits, 24 );
-    }
-    else if ( uiNumbits < (1<<31) )
-    {
-      xWriteCode(3,         2  );
-      xWriteCode(uiNumbits, 32 );
-    }
-    else
-    {
-      printf("Error in codeSliceHeaderTable\n");
-      exit(-1);
-    }
-  }
-}
-#endif
 
 Void TEncCavlc::codeTerminatingBit      ( UInt uilsLast )
 {

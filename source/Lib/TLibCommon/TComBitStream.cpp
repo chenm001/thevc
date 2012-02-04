@@ -149,28 +149,6 @@ Void TComOutputBitstream::writeAlignZero()
   m_num_held_bits = 0;
 }
 
-#if OL_USE_WPP
-/**
- - add substream to the end of the current bitstream
- .
- \param  pcSubstream  substream to be added
- */
-Void   TComOutputBitstream::addSubstream( TComOutputBitstream* pcSubstream )
-{
-  UInt uiNumBits = pcSubstream->getNumberOfWrittenBits();
-
-  const vector<uint8_t>& rbsp = pcSubstream->getFIFO();
-  for (vector<uint8_t>::const_iterator it = rbsp.begin(); it != rbsp.end();)
-  {
-    write(*it++, 8);
-  }
-  if (uiNumBits&0x7)
-  {
-    write(pcSubstream->getHeldBits()>>(8-(uiNumBits&0x7)), uiNumBits&0x7);
-  }
-}
-#endif
-
 /**
  * read #uiNumberOfBits# from bitstream without updating the bitstream
  * state, storing the result in #ruiBits#.
@@ -267,45 +245,5 @@ void TComOutputBitstream::insertAt(const TComOutputBitstream& src, unsigned pos)
   vector<uint8_t>::iterator at = this->m_fifo->begin() + pos;
   this->m_fifo->insert(at, src.m_fifo->begin(), src.m_fifo->end());
 }
-
-#if OL_USE_WPP
-/**
- - extract substream from the current bitstream
- .
- \param  pcBitstream  bitstream which contains substreams
- \param  uiNumBits    number of bits to transfer
- */
-TComInputBitstream *TComInputBitstream::extractSubstream( UInt uiNumBits )
-{
-  UInt uiNumBytes = uiNumBits/8;
-  std::vector<uint8_t>* buf = new std::vector<uint8_t>;
-  UInt uiByte;
-  for (UInt ui = 0; ui < uiNumBytes; ui++)
-  {
-    read(8, uiByte);
-    buf->push_back(uiByte);
-  }
-  if (uiNumBits&0x7)
-  {
-    uiByte = 0;
-    read(uiNumBits&0x7, uiByte);
-    uiByte <<= 8-(uiNumBits&0x7);
-    buf->push_back(uiByte);
-  }
-#if OL_FLUSH && !OL_FLUSH_ALIGN
-  buf->push_back(0); // The final chunk might not start byte aligned.
-#endif
-  return new TComInputBitstream(buf);
-}
-
-/**
- - delete internal fifo
- */
-Void TComInputBitstream::deleteFifo()
-{
-  delete m_fifo;
-  m_fifo = NULL;
-}
-#endif
 
 //! \}

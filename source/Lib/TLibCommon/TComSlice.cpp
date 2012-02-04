@@ -98,9 +98,6 @@ TComSlice::TComSlice()
 , m_uiSliceBits                   ( 0 )
 , m_uiEntropySliceCounter         ( 0 )
 , m_bFinalized                    ( false )
-#if OL_USE_WPP
-, m_puiSubstreamSizes             ( NULL )
-#endif
 #if INC_CABACINITIDC_SLICETYPE
 , m_cabacInitIdc                 ( -1 )
 #endif
@@ -132,10 +129,6 @@ TComSlice::TComSlice()
 
 TComSlice::~TComSlice()
 {
-#if OL_USE_WPP
-  delete[] m_puiSubstreamSizes;
-  m_puiSubstreamSizes = NULL;
-#endif
 }
 
 
@@ -167,19 +160,6 @@ Void TComSlice::initSlice()
   m_bFinalized=false;
 
 }
-
-#if OL_USE_WPP
-/**
- - allocate table to contain substream sizes to be written to the slice header.
- .
- \param uiNumSubstreams Number of substreams -- the allocation will be this value - 1.
- */
-Void  TComSlice::allocSubstreamSizes(UInt uiNumSubstreams)
-{
-  delete[] m_puiSubstreamSizes;
-  m_puiSubstreamSizes = new UInt[uiNumSubstreams > 0 ? uiNumSubstreams-1 : 0];
-}
-#endif
 
 Void  TComSlice::sortPicList        (TComList<TComPic*>& rcListPic)
 {
@@ -1468,11 +1448,6 @@ TComPPS::TComPPS()
 #endif
 , m_uiNumTlayerSwitchingFlags   (0)
 , m_iSliceGranularity           (0)
-#if OL_USE_WPP
-,  m_iEntropyCodingSynchro      (0)
-,  m_bCabacIstateReset          (false)
-,  m_iNumSubstreams             (1)
-#endif
 {
   for ( UInt i = 0; i < MAX_TLAYER; i++ )
   {

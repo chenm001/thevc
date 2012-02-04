@@ -2053,44 +2053,4 @@ Void TDecSbac::parseSaoSvlc (Int&  riVal)
   riVal = i*iSign;
 }
 
-#if OL_USE_WPP
-/**
- - Initialize our contexts from the nominated source.
- .
- \param pSrc Contexts to be copied.
- */
-Void TDecSbac::xCopyContextsFrom( TDecSbac* pSrc )
-{
-  memcpy(m_contextModels, pSrc->m_contextModels, m_numContextModels*sizeof(m_contextModels[0]));
-}
-
-Void TDecSbac::xCopyFrom( TDecSbac* pSrc )
-{
-  m_pcTDecBinIf->copyState( pSrc->m_pcTDecBinIf );
-
-  m_uiLastQp           = pSrc->m_uiLastQp;
-  xCopyContextsFrom( pSrc );
-
-}
-
-Void TDecSbac::load ( TDecSbac* pScr )
-{
-  xCopyFrom(pScr);
-}
-
-Void TDecSbac::loadContexts ( TDecSbac* pScr )
-{
-  xCopyContextsFrom(pScr);
-}
-
-#endif
-#if OL_FLUSH
-Void TDecSbac::decodeFlush ( )
-{
-  UInt uiBit;
-  m_pcTDecBinIf->decodeBinTrm(uiBit);
-  m_pcTDecBinIf->flush();
-
-}
-#endif
 //! \}

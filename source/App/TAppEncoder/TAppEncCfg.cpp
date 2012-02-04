@@ -289,11 +289,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
     ("PCMFilterDisableFlag", m_bPCMFilterDisableFlag, false)
 #endif
-#if OL_USE_WPP
-    ("WaveFrontSynchro",            m_iWaveFrontSynchro,             0,          "0: no synchro; 1 synchro with TR; 2 TRR etc")
-    ("WaveFrontFlush",              m_iWaveFrontFlush,               0,          "Flush and terminate CABAC coding for each LCU line")
-    ("WaveFrontSubstreams",         m_iWaveFrontSubstreams,          1,          "# coded substreams wanted; per tile if TileBoundaryIndependenceIdc is 1, otherwise per frame")
-#endif
 #if SCALING_LIST
     ("ScalingList",                 m_useScalingListId,              0,          "0: no scaling list, 1: default scaling lists, 2: scaling lists specified in ScalingListFile")
     ("ScalingListFile",             cfg_ScalingListFile,             string(""), "Scaling list file name")
@@ -793,13 +788,6 @@ Void TAppEncCfg::xCheckParameter()
 #endif
 #endif
 
-#if OL_USE_WPP
-  xConfirmPara( m_iWaveFrontSynchro < 0, "WaveFrontSynchro cannot be negative" );
-  xConfirmPara( m_iWaveFrontFlush < 0, "WaveFrontFlush cannot be negative" );
-  xConfirmPara( m_iWaveFrontSubstreams <= 0, "WaveFrontSubstreams must be positive" );
-  xConfirmPara( m_iWaveFrontSubstreams > 1 && !m_iWaveFrontSynchro, "Must have WaveFrontSynchro > 0 in order to have WaveFrontSubstreams > 1" );
-#endif
-
 #undef xConfirmPara
   if (check_failed)
   {
@@ -936,10 +924,6 @@ Void TAppEncCfg::xPrintParameter()
 #if REF_SETTING_FOR_LD
   printf("NewRefSetting:%d ", m_bUseNewRefSetting?1:0);
 #endif
-#endif
-#if OL_USE_WPP
-  printf(" WaveFrontSynchro:%d WaveFrontFlush:%d WaveFrontSubstreams:%d",
-          m_iWaveFrontSynchro, m_iWaveFrontFlush, m_iWaveFrontSubstreams);
 #endif
 #if SCALING_LIST
   printf(" ScalingList:%d ", m_useScalingListId );

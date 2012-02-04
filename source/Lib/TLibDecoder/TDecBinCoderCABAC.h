@@ -55,9 +55,6 @@ public:
   
   Void  start             ();
   Void  finish            ();
-#if OL_FLUSH
-  Void  flush             ();
-#endif
   
   Void  decodeBin         ( UInt& ruiBin, ContextModel& rcCtxModel );
   Void  decodeBinEP       ( UInt& ruiBin                           );
@@ -68,21 +65,10 @@ public:
   Void  decodePCMAlignBits();
   Void  xReadPCMCode      (UInt uiLength, UInt& ruiCode);
   
-#if OL_USE_WPP
-  Void  copyState         ( TDecBinIf* pcTDecBinIf );
-  TDecBinCABAC* getTDecBinCABAC()  { return this; }
-#if !OL_FLUSH_ALIGN
-  Int   getBitsReadAhead() { return -m_bitsNeeded; }
-#endif
-#endif
-
 private:
   TComInputBitstream* m_pcTComBitstream;
   UInt                m_uiRange;
   UInt                m_uiValue;
-#if OL_FLUSH && !OL_FLUSH_ALIGN
-  UInt                m_uiLastByte;
-#endif
   Int                 m_bitsNeeded;
 };
 

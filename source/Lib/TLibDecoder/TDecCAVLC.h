@@ -203,9 +203,6 @@ public:
 
   Void parseAlfCtrlDepth    ( UInt& ruiAlfCtrlDepth );
   Void parseAlfCtrlFlag     ( UInt &ruiAlfCtrlFlag );
-#if OL_FLUSH
-  Void decodeFlush() {};
-#endif
 
   /// parse APF flags before SAO and ALF parameters
   Void parseAPSInitInfo(TComAPS& cAPS);

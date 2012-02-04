@@ -229,11 +229,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseNewRefSetting( m_bUseNewRefSetting );
 #endif
 #endif
-#if OL_USE_WPP
-  m_cTEncTop.setWaveFrontSynchro           ( m_iWaveFrontSynchro );
-  m_cTEncTop.setWaveFrontFlush             ( m_iWaveFrontFlush );
-  m_cTEncTop.setWaveFrontSubstreams        ( m_iWaveFrontSubstreams );
-#endif
 #if NO_TMVP_MARKING
   m_cTEncTop.setEnableTMVP ( m_enableTMVP );
 #endif

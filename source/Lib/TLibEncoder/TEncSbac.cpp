@@ -284,13 +284,6 @@ Void TEncSbac::codeSliceHeader( TComSlice* pcSlice )
   return;
 }
 
-#if OL_USE_WPP
-Void TEncSbac::codeSliceHeaderSubstreamTable( TComSlice* pcSlice )
-{
-  assert (0);
-}
-#endif
-
 Void TEncSbac::codeTerminatingBit( UInt uilsLast )
 {
   m_pcBinIf->encodeBinTrm( uilsLast );
@@ -300,18 +293,6 @@ Void TEncSbac::codeSliceFinish()
 {
   m_pcBinIf->finish();
 }
-
-#if OL_FLUSH
-Void TEncSbac::codeFlush()
-{
-  m_pcBinIf->flush();
-}
-
-Void TEncSbac::encodeStart()
-{
-  m_pcBinIf->start();
-}
-#endif
 
 Void TEncSbac::xWriteUnarySymbol( UInt uiSymbol, ContextModel* pcSCModel, Int iOffset )
 {
@@ -2369,21 +2350,4 @@ Void TEncSbac::estSignificantCoefficientsBit( estBitsSbacStruct* pcEstBitsSbac, 
 #endif
 }
 
-#if OL_USE_WPP
-/**
- - Initialize our context information from the nominated source.
- .
- \param pSrc From where to copy context information.
- */
-Void TEncSbac::xCopyContextsFrom( TEncSbac* pSrc )
-{  
-  memcpy(m_contextModels, pSrc->m_contextModels, m_numContextModels*sizeof(m_contextModels[0]));
-}
-
-Void  TEncSbac::loadContexts ( TEncSbac* pScr)
-{
-  this->xCopyContextsFrom(pScr);
-}
-
-#endif
 //! \}

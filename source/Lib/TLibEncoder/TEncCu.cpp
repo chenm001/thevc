@@ -259,22 +259,6 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
   // Encode CU data
   xEncodeCU( pcCU, 0, 0 );
   
-#if OL_FLUSH
-  bool bTerminateSlice = bForceTerminate;
-  UInt uiCUAddr = pcCU->getAddr();
-    /* If at the end of an LCU line but not at the end of a substream, perform CABAC flush */
-    if (!bTerminateSlice && pcCU->getSlice()->getPPS()->getCabacIstateReset())
-    {
-      Int iNumSubstreams = pcCU->getSlice()->getPPS()->getNumSubstreams();
-      UInt uiWidthInLCUs = pcCU->getPic()->getPicSym()->getFrameWidthInCU();
-      UInt uiCol     = uiCUAddr % uiWidthInLCUs;
-      UInt uiLin     = uiCUAddr / uiWidthInLCUs;
-      if (uiCol == uiWidthInLCUs-1 && uiLin+iNumSubstreams < pcCU->getPic()->getFrameHeightInCU())
-      {
-        m_pcEntropyCoder->encodeFlush();
-      }
-    }
-#endif // OL_FLUSH
 }
 
 // ====================================================================================================================
@@ -1022,20 +1006,12 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     &&((uiPosY+pcCU->getHeight(uiAbsPartIdx))%uiGranularityWidth==0||(uiPosY+pcCU->getHeight(uiAbsPartIdx)==uiHeight));
   if(granularityBoundary)
   {
-#if OL_USE_WPP
-    // The 1-terminating bit is added to all streams, so don't add it here when it's 1.
-    if (!bTerminateSlice)
-      m_pcEntropyCoder->encodeTerminatingBit( bTerminateSlice ? 1 : 0 );
-#else
     m_pcEntropyCoder->encodeTerminatingBit( bTerminateSlice ? 1 : 0 );
-#endif
   }
-#if !OL_USE_WPP
   if ( bTerminateSlice )
   {
     m_pcEntropyCoder->encodeSliceFinish();
   }
-#endif
   
   Int numberOfWrittenBits = 0;
   if (m_pcBitCounter)

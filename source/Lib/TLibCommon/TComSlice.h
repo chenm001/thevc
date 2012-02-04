@@ -459,12 +459,6 @@ private:
 
   Int         m_iSliceGranularity;
 
-#if OL_USE_WPP
-  Int      m_iEntropyCodingSynchro;
-  Bool     m_bCabacIstateReset;
-  Int      m_iNumSubstreams;
-#endif
-
 #if NO_TMVP_MARKING
   Bool     m_enableTMVPFlag;
 #endif
@@ -517,15 +511,6 @@ public:
   Int       getChromaQpOffset   () { return m_iChromaQpOffset;}
   Void      setChromaQpOffset2nd( Int i ) { m_iChromaQpOffset2nd = i; }
   Int       getChromaQpOffset2nd() { return m_iChromaQpOffset2nd;}
-#endif
-
-#if OL_USE_WPP
-  Void     setEntropyCodingSynchro(Int iEntropyCodingSynchro) { m_iEntropyCodingSynchro = iEntropyCodingSynchro; }
-  Int      getEntropyCodingSynchro()                          { return m_iEntropyCodingSynchro; }
-  Void     setCabacIstateReset(Bool bCabacIstateReset)        { m_bCabacIstateReset = bCabacIstateReset; }
-  Bool     getCabacIstateReset()                              { return m_bCabacIstateReset; }
-  Void     setNumSubstreams(Int iNumSubstreams)               { m_iNumSubstreams = iNumSubstreams; }
-  Int      getNumSubstreams()                                 { return m_iNumSubstreams; }
 #endif
 
 #if NO_TMVP_MARKING
@@ -764,9 +749,6 @@ private:
   UInt        m_uiEntropySliceCounter;
   Bool        m_bFinalized;
 
-#if OL_USE_WPP
-  UInt*       m_puiSubstreamSizes;
-#endif
 #if SCALING_LIST
   TComScalingList*     m_scalingList;                 //!< pointer of quantization matrix
 #endif
@@ -996,10 +978,6 @@ public:
   UInt getEntropySliceCounter           ()                  { return m_uiEntropySliceCounter;             }
   Void setFinalized                     ( Bool uiVal )      { m_bFinalized = uiVal;                       }
   Bool getFinalized                     ()                  { return m_bFinalized;                        }
-#if OL_USE_WPP
-  Void allocSubstreamSizes              ( UInt uiNumSubstreams );
-  UInt* getSubstreamSizes               ()                  { return m_puiSubstreamSizes; }
-#endif
 #if SCALING_LIST
   Void  setScalingList              ( TComScalingList* scalingList ) { m_scalingList = scalingList; }
   TComScalingList*   getScalingList ()                               { return m_scalingList; }

@@ -60,10 +60,6 @@ TDecGop::TDecGop()
 {
   m_iGopSize = 0;
   m_dDecTime = 0;
-#if OL_USE_WPP
-  m_pcSbacDecoders = NULL;
-  m_pcBinCABACs = NULL;
-#endif
 }
 
 TDecGop::~TDecGop()
@@ -122,11 +118,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #endif
 {
   TComSlice*  pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
-#if OL_USE_WPP
-  // Table of extracted substreams.
-  // These must be deallocated AND their internal fifos, too.
-  TComInputBitstream **ppcSubstreams = NULL;
-#endif
 
   //-- For time output for each slice
   long iBeforeTime = clock();
@@ -156,36 +147,8 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinCABAC );
       m_pcEntropyDecoder->setEntropyDecoder (m_pcSbacDecoder);
     
-#if OL_USE_WPP
-    UInt uiNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
-#endif
-
-#if OL_USE_WPP
-      //init each couple {EntropyDecoder, Substream}
-      UInt *puiSubstreamSizes = pcSlice->getSubstreamSizes();
-      ppcSubstreams    = new TComInputBitstream*[uiNumSubstreams];
-      m_pcSbacDecoders = new TDecSbac[uiNumSubstreams];
-      m_pcBinCABACs    = new TDecBinCABAC[uiNumSubstreams];
-      for ( UInt ui = 0 ; ui < uiNumSubstreams ; ui++ )
-      {
-        m_pcSbacDecoders[ui].init(&m_pcBinCABACs[ui]);
-        ppcSubstreams[ui] = pcBitstream->extractSubstream(ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
-      }
-
-      for ( UInt ui = 0 ; ui+1 < uiNumSubstreams; ui++ )
-      {
-        m_pcEntropyDecoder->setEntropyDecoder ( &m_pcSbacDecoders[uiNumSubstreams - 1 - ui] );
-        m_pcEntropyDecoder->setBitstream      (  ppcSubstreams   [uiNumSubstreams - 1 - ui] );
-        m_pcEntropyDecoder->resetEntropy      (pcSlice);
-      }
-
-      m_pcEntropyDecoder->setEntropyDecoder ( m_pcSbacDecoder  );
-      m_pcEntropyDecoder->setBitstream      ( ppcSubstreams[0] );
-      m_pcEntropyDecoder->resetEntropy      (pcSlice);
-#else
     m_pcEntropyDecoder->setBitstream      (pcBitstream);
     m_pcEntropyDecoder->resetEntropy      (pcSlice);
-#endif
 
     if(uiSliceStartCuAddr == uiStartCUAddr)
     {
@@ -205,29 +168,17 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #else
           m_pcEntropyDecoder->decodeAlfCtrlParam( cAlfCUCtrlOneSlice, m_pcAdaptiveLoopFilter->getNumCUsInPic());
 #if F747_CABAC_FLUSH_SLICE_HEADER
-#if OL_USE_WPP
-            Int numBitsForByteAlignment = ppcSubstreams[0]->getNumBitsUntilByteAligned();
-#else            
             Int numBitsForByteAlignment = pcBitstream->getNumBitsUntilByteAligned();
-#endif
             if ( numBitsForByteAlignment > 0 )
             {
               UInt bitsForByteAlignment;
-#if OL_USE_WPP
-              ppcSubstreams[0]->read( numBitsForByteAlignment, bitsForByteAlignment );
-#else                
               pcBitstream->read( numBitsForByteAlignment, bitsForByteAlignment );
-#endif
               assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
             }
             
             m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinCABAC );
             m_pcEntropyDecoder->setEntropyDecoder (m_pcSbacDecoder);
-#if OL_USE_WPP
-            m_pcEntropyDecoder->setBitstream(ppcSubstreams[0]);
-#else            
             m_pcEntropyDecoder->setBitstream(pcBitstream);
-#endif            
             m_pcEntropyDecoder->resetEntropy(pcSlice);
 #endif
           vAlfCUCtrlSlices.push_back(cAlfCUCtrlOneSlice);
@@ -236,28 +187,8 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       }
     }
 
-#if OL_USE_WPP
-      m_pcSbacDecoders[0].load(m_pcSbacDecoder);
-    m_pcSliceDecoder->decompressSlice( pcBitstream, ppcSubstreams, rpcPic, m_pcSbacDecoder, m_pcSbacDecoders);
-      m_pcEntropyDecoder->setBitstream(  ppcSubstreams[uiNumSubstreams-1] );
-#else
     m_pcSliceDecoder->decompressSlice(pcBitstream, rpcPic, m_pcSbacDecoder);
-#endif
     
-#if OL_USE_WPP
-    if ( pcSlice->getPPS()->getEntropyCodingSynchro() )
-    {
-      // deallocate all created substreams, including internal buffers.
-      for (UInt ui = 0; ui < uiNumSubstreams; ui++)
-      {
-        ppcSubstreams[ui]->deleteFifo();
-        delete ppcSubstreams[ui];
-      }
-      delete[] ppcSubstreams;
-      delete[] m_pcSbacDecoders; m_pcSbacDecoders = NULL;
-      delete[] m_pcBinCABACs; m_pcBinCABACs = NULL;
-    }
-#endif
     m_dDecTime += (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
   }
   else
