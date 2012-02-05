@@ -625,7 +625,7 @@ Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic )
   {
     for( i = 0; i < m_RefPicListModification.getNumberOfRefPicListModificationsL0(); i++)
     {
-      for( cIdx = num_ref_idx_l1_active_minus1 + 1; cIdx > i; cIdx-- )
+      for( cIdx = num_ref_idx_l0_active_minus1 + 1; cIdx > i; cIdx-- )
         m_apcRefPicList[0][ cIdx ] = m_apcRefPicList[0][ cIdx - 1];
       if(m_RefPicListModification.getListIdcL0(i) == 0)
         m_apcRefPicList[0][ i ] =  RefPicSetStCurr0[ m_RefPicListModification.getRefPicSetIdxL0(i) ];
