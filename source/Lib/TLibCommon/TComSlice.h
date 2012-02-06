@@ -119,7 +119,6 @@ private:
   
   Int m_iAMPAcc[MAX_CU_DEPTH];
 
-  Bool        m_bLFCrossSliceBoundaryFlag;
   Bool        m_bUseSAO; 
 
   Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
@@ -239,9 +238,6 @@ public:
   Void      setBitDepth     ( UInt u ) { m_uiBitDepth = u;        }
   UInt      getBitIncrement ()         { return m_uiBitIncrement; }
   Void      setBitIncrement ( UInt u ) { m_uiBitIncrement = u;    }
-
-  Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
-  Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   } 
 
 #if G174_DF_OFFSET
   Void setUseDF                   ( Bool b ) { m_useDF = b; }

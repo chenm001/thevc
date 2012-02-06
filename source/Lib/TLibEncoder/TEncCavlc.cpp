@@ -490,7 +490,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if G174_DF_OFFSET
   WRITE_FLAG( pcSPS->getUseDF() ? 1 : 0,                                             "deblocking_filter_in_aps_enabled_flag");
 #endif
-  WRITE_FLAG( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0,                            "loop_filter_across_slice_flag");
+  WRITE_FLAG( 1,                                                                     "loop_filter_across_slice_flag");
   WRITE_FLAG( pcSPS->getUseSAO() ? 1 : 0,                                            "sample_adaptive_offset_enabled_flag");
   WRITE_FLAG( (pcSPS->getUseALF ()) ? 1 : 0,                                         "adaptive_loop_filter_enabled_flag");
 

@@ -204,11 +204,6 @@ Void TAppEncTop::xInitLibCfg()
     m_cTEncTop.setSliceArgument ( m_iSliceArgument * iNumPartInCU );
   }
   
-  if(m_iSliceMode == 0 )
-  {
-    m_bLFCrossSliceBoundaryFlag = true;
-  }
-  m_cTEncTop.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
   m_cTEncTop.setUseSAO ( m_bUseSAO );
 
   m_cTEncTop.setPictureDigestEnabled(m_pictureDigestEnabled);

@@ -218,7 +218,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
     {
       puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU();
-      rpcPic->createNonDBFilterInfo(puiILSliceStartLCU, uiILSliceCount,pcSlice->getSPS()->getLFCrossSliceBoundaryFlag(), true);
+      rpcPic->createNonDBFilterInfo(puiILSliceStartLCU, uiILSliceCount,true, true);
     }
 #endif
 
@@ -248,7 +248,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
         {
             m_pcSAO->setPic(rpcPic);
             puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU();
-            m_pcSAO->setUseNIF(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+            m_pcSAO->setUseNIF(false);
             if (m_pcSAO->getUseNIF())
             {
               m_pcSAO->InitIsFineSliceCu();
@@ -296,7 +296,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       else
       {
         puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU();
-        m_pcAdaptiveLoopFilter->setUseNonCrossAlf(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+        m_pcAdaptiveLoopFilter->setUseNonCrossAlf(false);
         m_pcAdaptiveLoopFilter->createSlice(rpcPic);
 
         for(UInt i=0; i< uiILSliceCount ; i++)

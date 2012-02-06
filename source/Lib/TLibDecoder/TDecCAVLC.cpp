@@ -494,7 +494,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #if G174_DF_OFFSET
   READ_FLAG( uiCode, "deblocking_filter_In_APS_enabled_flag" );    pcSPS->setUseDF ( uiCode ? true : false );  
 #endif
-  READ_FLAG( uiCode, "loop_filter_across_slice_flag" );          pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
+  READ_FLAG( uiCode, "loop_filter_across_slice_flag" );          assert( uiCode == 1 );
   READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO ( uiCode ? true : false );  
   READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );      pcSPS->setUseALF ( uiCode ? true : false );
 

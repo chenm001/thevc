@@ -233,7 +233,6 @@ protected:
   //====== Entropy Slice ========
   Int       m_iEntropySliceMode;
   Int       m_iEntropySliceArgument;
-  Bool      m_bLFCrossSliceBoundaryFlag;
 
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
@@ -482,8 +481,6 @@ public:
   Void  setEntropySliceArgument        ( Int  i )      { m_iEntropySliceArgument = i;   }
   Int   getEntropySliceMode            ()              { return m_iEntropySliceMode;    }
   Int   getEntropySliceArgument        ()              { return m_iEntropySliceArgument;}
-  Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
-  Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   }
 
   Void      setUseSAO                  (Bool bVal)     {m_bUseSAO = bVal;}
   Bool      getUseSAO                  ()              {return m_bUseSAO;}

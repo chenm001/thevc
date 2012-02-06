@@ -530,7 +530,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcSlice = pcPic->getSlice(0);
       if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
       {
-        pcPic->createNonDBFilterInfo(m_uiStoredStartCUAddrForEncodingSlice, uiNumSlices, pcSlice->getSPS()->getLFCrossSliceBoundaryFlag(),true);
+        pcPic->createNonDBFilterInfo(m_uiStoredStartCUAddrForEncodingSlice, uiNumSlices, true,true);
       }
 #endif
 
@@ -550,7 +550,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         else
         {
           m_pcSAO->setPic(pcPic);
-          m_pcSAO->setUseNIF(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+          m_pcSAO->setUseNIF(false);
           if (m_pcSAO->getUseNIF())
           {
             m_pcSAO->InitIsFineSliceCu();
@@ -584,7 +584,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
         else
         {
-          m_pcAdaptiveLoopFilter->setUseNonCrossAlf(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+          m_pcAdaptiveLoopFilter->setUseNonCrossAlf(false);
           m_pcAdaptiveLoopFilter->createSlice(pcPic);
 
           UInt uiStartAddr, uiEndAddr;

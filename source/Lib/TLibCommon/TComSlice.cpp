@@ -1393,7 +1393,6 @@ TComSPS::TComSPS()
 , m_uiBitsForPOC              (  8)
 #endif
 , m_uiMaxTrSize               ( 32)
-, m_bLFCrossSliceBoundaryFlag (false)
 , m_bUseSAO                   (false) 
 , m_bTemporalIdNestingFlag    (false)
 #if  !G1002_RPS
