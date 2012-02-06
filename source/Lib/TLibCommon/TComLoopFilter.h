@@ -72,9 +72,6 @@ private:
 #if !DISABLE_PARALLEL_DECISIONS
   TComPicYuv m_preDeblockPic;
 #endif
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-  Bool      m_bLFCrossTileBoundary;
-#endif
 
 protected:
   /// CU-level deblocking function
@@ -159,14 +156,10 @@ public:
   Void  destroy                   ();
   
   /// set configuration
-#if NONCROSS_TILE_IN_LOOP_FILTERING
 #if G174_DF_OFFSET
-  Void setCfg( UInt uiDisableDblkIdc, Int betaOffsetDiv2, Int tcOffsetDiv2, Bool bLFCrossTileBoundary);
+  Void setCfg( UInt uiDisableDblkIdc, Int betaOffsetDiv2, Int tcOffsetDiv2);
 #else
-  Void setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaOffset, Bool bLFCrossTileBoundary);
-#endif
-#else
-  Void setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaOffset );
+  Void setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaOffset);
 #endif
   
   /// picture-level deblocking filter

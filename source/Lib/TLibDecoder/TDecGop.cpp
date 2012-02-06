@@ -194,7 +194,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
   else
   {
     // deblocking filter
-#if NONCROSS_TILE_IN_LOOP_FILTERING
 #if G174_DF_OFFSET
     if(pcSlice->getSPS()->getUseDF())
     {
@@ -208,10 +207,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
         }
       }
     }
-    m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), pcSlice->getLoopFilterBetaOffset(), pcSlice->getLoopFilterTcOffset(), true);
-#else
-    m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0, true);
-#endif
+    m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), pcSlice->getLoopFilterBetaOffset(), pcSlice->getLoopFilterTcOffset());
 #else
     m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0);
 #endif
