@@ -62,8 +62,6 @@ public:
   Void  decodeBinTrm      ( UInt& ruiBin                           );
   
   Void  resetBac          ();
-  Void  decodePCMAlignBits();
-  Void  xReadPCMCode      (UInt uiLength, UInt& ruiCode);
   
 private:
   TComInputBitstream* m_pcTComBitstream;

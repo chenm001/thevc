@@ -1378,11 +1378,6 @@ TComSPS::TComSPS()
 , m_uiQuadtreeTUMaxDepthInter (  0)
 , m_uiQuadtreeTUMaxDepthIntra (  0)
 // Tool list
-#if MAX_PCM_SIZE
-, m_usePCM                   (false)
-, m_pcmLog2MaxSize            (  5)
-#endif
-, m_uiPCMLog2MinSize          (  7)
 , m_bDisInter4x4              (  1)
 , m_bUseALF                   (false)
 #if !G507_QP_ISSUE_FIX
@@ -1394,11 +1389,6 @@ TComSPS::TComSPS()
 , m_bLCMod                    (false)
 , m_uiBitDepth                (  8)
 , m_uiBitIncrement            (  0)
-, m_uiPCMBitDepthLuma         (  8)
-, m_uiPCMBitDepthChroma       (  8)
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-, m_bPCMFilterDisableFlag     (false)
-#endif
 #if  G1002_RPS
 , m_uiBitsForPOC              (  8)
 #endif

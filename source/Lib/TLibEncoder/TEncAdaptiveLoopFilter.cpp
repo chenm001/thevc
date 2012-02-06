@@ -429,19 +429,6 @@ Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, std::vector<AlfCU
   }
 }
 
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-/** PCM LF disable process.
- * \param pcPic picture (TComPic) pointer
- * \returns Void
- *
- * \note Replace filtered sample values of PCM mode blocks with the transmitted and reconstructed ones.
- */
-Void TEncAdaptiveLoopFilter::PCMLFDisableProcess (TComPic* pcPic)
-{
-  xPCMRestoration(pcPic);
-}
-#endif
-
 // ====================================================================================================================
 // Protected member functions
 // ====================================================================================================================

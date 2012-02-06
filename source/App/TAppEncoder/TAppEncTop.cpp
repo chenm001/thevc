@@ -187,12 +187,6 @@ Void TAppEncTop::xInitLibCfg()
 #endif
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
 
-  m_cTEncTop.setPCMLog2MinSize          ( m_uiPCMLog2MinSize);
-#if MAX_PCM_SIZE
-  m_cTEncTop.setUsePCM                       ( m_usePCM );
-  m_cTEncTop.setPCMLog2MaxSize               ( m_pcmLog2MaxSize);
-#endif
-
   //====== Slice ========
   m_cTEncTop.setSliceMode               ( m_iSliceMode                );
   m_cTEncTop.setSliceArgument           ( m_iSliceArgument            );
@@ -217,10 +211,6 @@ Void TAppEncTop::xInitLibCfg()
   }
   m_cTEncTop.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
   m_cTEncTop.setUseSAO ( m_bUseSAO );
-  m_cTEncTop.setPCMInputBitDepthFlag  ( m_bPCMInputBitDepthFlag); 
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  m_cTEncTop.setPCMFilterDisableFlag  ( m_bPCMFilterDisableFlag); 
-#endif
 
   m_cTEncTop.setPictureDigestEnabled(m_pictureDigestEnabled);
 

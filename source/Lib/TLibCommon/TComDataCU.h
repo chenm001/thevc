@@ -149,10 +149,6 @@ private:
   static Int*   m_pcGlbArlCoeffCr;    ///< ARL coefficient buffer (Cr)
 #endif
   
-  Pel*          m_pcIPCMSampleY;      ///< PCM sample buffer (Y)
-  Pel*          m_pcIPCMSampleCb;     ///< PCM sample buffer (Cb)
-  Pel*          m_pcIPCMSampleCr;     ///< PCM sample buffer (Cr)
-
   Int*          m_piSliceSUMap;       ///< pointer of slice ID map
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   std::vector<NDBFBlockInfo> m_vNDFBlock;
@@ -189,8 +185,6 @@ private:
   Bool*         m_puiAlfCtrlFlag;     ///< array of ALF flags
   Bool*         m_puiTmpAlfCtrlFlag;  ///< temporal array of ALF flags
   
-  Bool*         m_pbIPCMFlag;         ///< array of intra_pcm flags
-
   // -------------------------------------------------------------------------------------------------------------------
   // misc. variables
   // -------------------------------------------------------------------------------------------------------------------
@@ -325,10 +319,6 @@ public:
   Int*&         getArlCoeffCr         ()                        { return m_pcArlCoeffCr;      }
 #endif
   
-  Pel*&         getPCMSampleY         ()                        { return m_pcIPCMSampleY;     }
-  Pel*&         getPCMSampleCb        ()                        { return m_pcIPCMSampleCb;    }
-  Pel*&         getPCMSampleCr        ()                        { return m_pcIPCMSampleCr;    }
-
   UChar         getCbf    ( UInt uiIdx, TextType eType )                  { return m_puhCbf[g_aucConvertTxtTypeToIdx[eType]][uiIdx];  }
   UChar*        getCbf    ( TextType eType )                              { return m_puhCbf[g_aucConvertTxtTypeToIdx[eType]];         }
   UChar         getCbf    ( UInt uiIdx, TextType eType, UInt uiTrDepth )  { return ( ( getCbf( uiIdx, eType ) >> uiTrDepth ) & 0x1 ); }
@@ -386,11 +376,6 @@ public:
   Void          copyAlfCtrlFlagToTmp  ();
   Void          copyAlfCtrlFlagFromTmp();
   
-  Bool*         getIPCMFlag          ()                        { return m_pbIPCMFlag;               }
-  Bool          getIPCMFlag          (UInt uiIdx )             { return m_pbIPCMFlag[uiIdx];        }
-  Void          setIPCMFlag          (UInt uiIdx, Bool b )     { m_pbIPCMFlag[uiIdx] = b;           }
-  Void          setIPCMFlagSubParts  (Bool bIpcmFlag, UInt uiAbsPartIdx, UInt uiDepth);
-
   /// get slice ID for SU
   Int           getSUSliceID          (UInt uiIdx)              {return m_piSliceSUMap[uiIdx];      } 
 

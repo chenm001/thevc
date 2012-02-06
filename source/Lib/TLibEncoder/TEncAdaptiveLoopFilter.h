@@ -275,9 +275,6 @@ public:
 
   Void createAlfGlobalBuffers(Int iALFEncodePassReduction); //!< create ALF global buffers
   Void destroyAlfGlobalBuffers(); //!< destroy ALF global buffers
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  Void PCMLFDisableProcess (TComPic* pcPic);
-#endif
 
 };
 

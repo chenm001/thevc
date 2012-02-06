@@ -89,11 +89,6 @@ private:
   UInt        m_uiQuadtreeTULog2MinSize;
   UInt        m_uiQuadtreeTUMaxDepthInter;
   UInt        m_uiQuadtreeTUMaxDepthIntra;
-#if MAX_PCM_SIZE
-  Bool        m_usePCM;
-  UInt        m_pcmLog2MaxSize;
-#endif
-  UInt        m_uiPCMLog2MinSize;
   Bool        m_bDisInter4x4;
 #if AMP
   Bool        m_useAMP;
@@ -115,12 +110,6 @@ private:
   AMVP_MODE   m_aeAMVPMode[MAX_CU_DEPTH];
   UInt        m_uiBitDepth;
   UInt        m_uiBitIncrement;
-
-  UInt        m_uiPCMBitDepthLuma;
-  UInt        m_uiPCMBitDepthChroma;
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  Bool        m_bPCMFilterDisableFlag;
-#endif
 
 #if G1002_RPS
   UInt        m_uiBitsForPOC;
@@ -178,14 +167,6 @@ public:
   UInt getMaxCUHeight ()         { return  m_uiMaxCUHeight; }
   Void setMaxCUDepth  ( UInt u ) { m_uiMaxCUDepth = u;      }
   UInt getMaxCUDepth  ()         { return  m_uiMaxCUDepth;  }
-#if MAX_PCM_SIZE
-  Void setUsePCM      ( Bool b ) { m_usePCM = b;           }
-  Bool getUsePCM      ()         { return m_usePCM;        }
-  Void setPCMLog2MaxSize  ( UInt u ) { m_pcmLog2MaxSize = u;      }
-  UInt getPCMLog2MaxSize  ()         { return  m_pcmLog2MaxSize;  }
-#endif
-  Void setPCMLog2MinSize  ( UInt u ) { m_uiPCMLog2MinSize = u;      }
-  UInt getPCMLog2MinSize  ()         { return  m_uiPCMLog2MinSize;  }
 #if G1002_RPS
   Void setBitsForPOC  ( UInt u ) { m_uiBitsForPOC = u;      }
   UInt getBitsForPOC  ()         { return m_uiBitsForPOC;   }
@@ -278,14 +259,6 @@ public:
 
   Bool      getTemporalIdNestingFlag()                { return m_bTemporalIdNestingFlag; }
   Void      setTemporalIdNestingFlag( Bool bValue )   { m_bTemporalIdNestingFlag = bValue; }
-  UInt      getPCMBitDepthLuma     ()         { return m_uiPCMBitDepthLuma;     }
-  Void      setPCMBitDepthLuma     ( UInt u ) { m_uiPCMBitDepthLuma = u;        }
-  UInt      getPCMBitDepthChroma   ()         { return m_uiPCMBitDepthChroma;   }
-  Void      setPCMBitDepthChroma   ( UInt u ) { m_uiPCMBitDepthChroma = u;      }
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  Void      setPCMFilterDisableFlag     ( Bool   bValue  )    { m_bPCMFilterDisableFlag = bValue; }
-  Bool      getPCMFilterDisableFlag     ()                    { return m_bPCMFilterDisableFlag;   } 
-#endif
 
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD

@@ -911,10 +911,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
 #endif
               m_pcSAO->endSaoEnc();
-
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-              m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
-#endif
             }
 
             // adaptive loop filter
@@ -937,10 +933,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
 #endif
               m_pcAdaptiveLoopFilter->endALFEnc();
-
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-              m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
-#endif
             }
             iCodedAPSIdx = iCurrAPSIdx;  
             pcSliceForAPS = pcSlice;
@@ -1417,9 +1409,6 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
     m_pcAdaptiveLoopFilter->endALFEnc();
     m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
 
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-    m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
-#endif
 #if NONCROSS_TILE_IN_LOOP_FILTERING
     m_pcAdaptiveLoopFilter->destroyPicAlfInfo();
 #endif

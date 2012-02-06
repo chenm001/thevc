@@ -271,9 +271,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 
         m_pcSAO->SAOProcess(rpcPic, pcSlice->getAPS()->getSaoParam());  
 
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-        m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
-#endif
 #if NONCROSS_TILE_IN_LOOP_FILTERING
       m_pcSAO->destroyPicSaoInfo();
 #endif
@@ -319,9 +316,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #endif
       m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, pcSlice->getAPS()->getAlfParam(), vAlfCUCtrlSlices);
 
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-      m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
-#endif
 #if NONCROSS_TILE_IN_LOOP_FILTERING
       m_pcAdaptiveLoopFilter->destroyPicAlfInfo();
 #else

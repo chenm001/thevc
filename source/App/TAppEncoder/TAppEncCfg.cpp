@@ -277,18 +277,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("SliceGranularity",     m_iSliceGranularity,    0, "0: Slices always end at LCU borders. 1-3: slices may end at a depth of 1-3 below LCU level.")
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
 
-#if MAX_PCM_SIZE
-    ("PCMEnabledFlag", m_usePCM         , false)
-    ("PCMLog2MaxSize", m_pcmLog2MaxSize, 5u)
-    ("PCMLog2MinSize", m_uiPCMLog2MinSize, 3u)
-#else
-    ("PCMLog2MinSize", m_uiPCMLog2MinSize, 7u)
-#endif
-
-    ("PCMInputBitDepthFlag", m_bPCMInputBitDepthFlag, true)
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-    ("PCMFilterDisableFlag", m_bPCMFilterDisableFlag, false)
-#endif
 #if SCALING_LIST
     ("ScalingList",                 m_useScalingListId,              0,          "0: no scaling list, 1: default scaling lists, 2: scaling lists specified in ScalingListFile")
     ("ScalingListFile",             cfg_ScalingListFile,             string(""), "Scaling list file name")
@@ -516,19 +504,6 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiQuadtreeTUMaxDepthInter > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthInter must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra < 1,                                                         "QuadtreeTUMaxDepthIntra must be greater than or equal to 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
-
-#if MAX_PCM_SIZE
-  if( m_usePCM)
-  {
-    xConfirmPara(  m_uiPCMLog2MinSize < 3,                                      "PCMLog2MinSize must be 3 or greater.");
-    xConfirmPara(  m_uiPCMLog2MinSize > 5,                                      "PCMLog2MinSize must be 5 or smaller.");
-    xConfirmPara(  m_pcmLog2MaxSize > 5,                                        "PCMLog2MaxSize must be 5 or smaller.");
-    xConfirmPara(  m_pcmLog2MaxSize < m_uiPCMLog2MinSize,                       "PCMLog2MaxSize must be equal to or greater than m_uiPCMLog2MinSize.");
-  }
-#else
-  xConfirmPara(  m_uiPCMLog2MinSize < 3,                                        "PCMLog2MinSize must be 3 or greater.");
-  xConfirmPara(  m_uiPCMLog2MinSize > 7,                                        "PCMLog2MinSize must be 7 or smaller.");
-#endif
 
   xConfirmPara( m_iSliceMode < 0 || m_iSliceMode > 2, "SliceMode exceeds supported range (0 to 2)" );
   if (m_iSliceMode!=0)
@@ -832,9 +807,6 @@ Void TAppEncCfg::xSetGlobal()
   {
     m_uiOutputBitDepth = m_uiInternalBitDepth;
   }
-
-  g_uiPCMBitDepthLuma = m_uiPCMBitDepthLuma = ((m_bPCMInputBitDepthFlag)? m_uiInputBitDepth : m_uiInternalBitDepth);
-  g_uiPCMBitDepthChroma = ((m_bPCMInputBitDepthFlag)? m_uiInputBitDepth : m_uiInternalBitDepth);
 }
 
 Void TAppEncCfg::xPrintParameter()
@@ -855,7 +827,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("RQT trans. size (min / max)  : %d / %d\n", 1 << m_uiQuadtreeTULog2MinSize, 1 << m_uiQuadtreeTULog2MaxSize );
   printf("Max RQT depth inter          : %d\n", m_uiQuadtreeTUMaxDepthInter);
   printf("Max RQT depth intra          : %d\n", m_uiQuadtreeTUMaxDepthIntra);
-  printf("Min PCM size                 : %d\n", 1 << m_uiPCMLog2MinSize);
   printf("Motion search range          : %d\n", m_iSearchRange );
   printf("Intra period                 : %d\n", m_iIntraPeriod );
   printf("Decoding refresh type        : %d\n", m_iDecodingRefreshType );
@@ -875,7 +846,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("Rate GOP size                : %d\n", m_iRateGOPSize );
 #endif
   printf("Internal bit depth           : %d\n", m_uiInternalBitDepth );
-  printf("PCM sample bit depth         : %d\n", m_uiPCMBitDepthLuma );
 #if G507_COND_4X4_ENABLE_FLAG
   if((m_uiMaxCUWidth >> m_uiMaxCUDepth) == 4)
 #endif
@@ -919,7 +889,6 @@ Void TAppEncCfg::xPrintParameter()
     printf("A=%d ", m_iEntropySliceArgument);
   }
   printf("SAO:%d ", (m_bUseSAO)?(1):(0));
-  printf("PCM:%d ", ((1<<m_uiPCMLog2MinSize) <= m_uiMaxCUWidth)? 1 : 0);
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD
   printf("NewRefSetting:%d ", m_bUseNewRefSetting?1:0);

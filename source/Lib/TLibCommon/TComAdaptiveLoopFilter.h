@@ -427,10 +427,6 @@ protected: //protected methods
   Int  getCtrlFlagsFromAlfParam(AlfLCUInfo* pcAlfLCU, Int iAlfDepth, UInt* puiFlags);
 #endif
 
-  Void xPCMRestoration        (TComPic* pcPic);
-  Void xPCMCURestoration      (TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth);
-  Void xPCMSampleRestoration  (TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, TextType ttText);
-
 public: //public methods, interface functions
 
   TComAdaptiveLoopFilter();
@@ -461,10 +457,6 @@ public: //public methods, interface functions
   Bool getUseNonCrossAlf()           {return m_bUseNonCrossALF;} //!< Get across/non-across slice boundary ALF
   Void createSlice (TComPic* pcPic); //!< Create ALF slice units
   Void destroySlice     (); //!< Destroy ALF slice units
-#endif
-
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  Void PCMLFDisableProcess    ( TComPic* pcPic);                        ///< interface function for ALF process 
 #endif
 
 protected: //memory allocation

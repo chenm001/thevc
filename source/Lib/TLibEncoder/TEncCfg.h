@@ -227,11 +227,6 @@ protected:
   Int*      m_aidQP;
   UInt      m_uiDeltaQpRD;
   
-#if MAX_PCM_SIZE
-  Bool      m_usePCM;
-  UInt      m_pcmLog2MaxSize;
-#endif
-  UInt      m_uiPCMLog2MinSize;
   //====== Slice ========
   Int       m_iSliceMode;
   Int       m_iSliceArgument; 
@@ -240,13 +235,6 @@ protected:
   Int       m_iEntropySliceArgument;
   Int       m_iSliceGranularity;
   Bool      m_bLFCrossSliceBoundaryFlag;
-
-  Bool      m_bPCMInputBitDepthFlag;
-  UInt      m_uiPCMBitDepthLuma;
-  UInt      m_uiPCMBitDepthChroma;
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
-  Bool      m_bPCMFilterDisableFlag;
-#endif
 
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
@@ -449,15 +437,6 @@ public:
   Void      setUseCbfFastMode            ( Bool  b )     { m_bUseCbfFastMode = b; }
 #endif
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
-  Void      setPCMInputBitDepthFlag         ( Bool  b )     { m_bPCMInputBitDepthFlag = b; }
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  Void      setPCMFilterDisableFlag         ( Bool  b )     {  m_bPCMFilterDisableFlag = b; }
-#endif
-#if MAX_PCM_SIZE
-  Void      setUsePCM                       ( Bool  b )     {  m_usePCM = b;               }
-  Void      setPCMLog2MaxSize               ( UInt u )      { m_pcmLog2MaxSize = u;      }
-#endif
-  Void      setPCMLog2MinSize               ( UInt u )     { m_uiPCMLog2MinSize = u;      }
   Void      setdQPs                         ( Int*  p )     { m_aidQP       = p; }
   Void      setDeltaQpRD                    ( UInt  u )     {m_uiDeltaQpRD  = u; }
   Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
@@ -495,15 +474,6 @@ public:
 #if NS_HAD
   Bool      getUseNSQT                      ()      { return m_useNSQT; }
 #endif
-  Bool      getPCMInputBitDepthFlag         ()      { return m_bPCMInputBitDepthFlag;   } 
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  Bool      getPCMFilterDisableFlag         ()      { return m_bPCMFilterDisableFlag;   } 
-#endif
-#if MAX_PCM_SIZE
-  Bool      getUsePCM                       ()      { return m_usePCM;                 }
-  UInt      getPCMLog2MaxSize               ()      { return m_pcmLog2MaxSize;  }
-#endif
-  UInt      getPCMLog2MinSize               ()      { return  m_uiPCMLog2MinSize;  }
 
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }

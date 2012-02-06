@@ -58,8 +58,6 @@ public:
   Void  copyState         ( TEncBinIf* pcTEncBinIf );
 
   Void  resetBac          ();
-  Void  encodePCMAlignBits();
-  Void  xWritePCMCode     (UInt uiCode, UInt uiLength);
   
   Void encodeFlush(Bool bEnd);  //!< flush bits when CABAC termination
 

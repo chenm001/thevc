@@ -59,8 +59,6 @@ public:
   virtual Void  encodeFlush     (Bool bEnd) = 0;
 
   virtual Void  resetBac          ()                                          = 0;
-  virtual Void  encodePCMAlignBits()                                          = 0;
-  virtual Void  xWritePCMCode     (UInt uiCode, UInt uiLength)                = 0;
 
   virtual Void  resetBits         ()                                          = 0;
   virtual UInt  getNumWrittenBits ()                                          = 0;

@@ -141,10 +141,6 @@ protected:
   UInt      m_uiOutputBitDepth;                               ///< bit-depth of output file
   UInt      m_uiInternalBitDepth;                             ///< Internal bit-depth (BitDepth+BitIncrement)
 
-  // coding tools (PCM bit-depth)
-  Bool      m_bPCMInputBitDepthFlag;                          ///< 0: PCM bit-depth is internal bit-depth. 1: PCM bit-depth is input bit-depth.
-  UInt      m_uiPCMBitDepthLuma;                              ///< PCM bit-depth for luma
-
   Bool      m_bUseSAO; 
 
   // coding tools (loop filter)
@@ -167,16 +163,6 @@ protected:
 
   // coding tools (inter - merge motion partitions)
   Bool      m_bUseMRG;                                        ///< SOPH: flag for using motion partition Merge Mode
-  
-  // coding tools (PCM)
-#if MAX_PCM_SIZE
-  Bool      m_usePCM;                                         ///< flag for using IPCM
-  UInt      m_pcmLog2MaxSize;                                 ///< log2 of maximum PCM block size
-#endif
-  UInt      m_uiPCMLog2MinSize;                               ///< log2 of minimum PCM block size
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
-  Bool      m_bPCMFilterDisableFlag;                          ///< PCM filter disable flag
-#endif
 
   // coding tools (encoder-only parameters)
   Bool      m_bUseSBACRD;                                     ///< flag for using RD optimization based on SBAC
