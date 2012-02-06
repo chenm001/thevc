@@ -587,9 +587,6 @@ Void TEncTop::xInitSPS()
 #endif
 #endif
 
-#if SCALING_LIST
-  m_cSPS.setScalingListFlag ( (m_useScalingListId == 0) ? 0 : 1 );
-#endif
 #if G174_DF_OFFSET
   m_cSPS.setUseDF( m_loopFilterOffsetInAPS );
 #endif

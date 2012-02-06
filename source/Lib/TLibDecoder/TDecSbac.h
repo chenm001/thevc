@@ -162,9 +162,6 @@ public:
   Void parseCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
   Void parseAPSInitInfo(TComAPS& cAPS) {printf("Not supported in parseAPSInitInfo()\n");assert(0);exit(1);}
-#if SCALING_LIST
-  Void  parseScalingList ( TComScalingList* scalingList ) {}
-#endif
 
 private:
   UInt m_uiLastDQpNonZero;

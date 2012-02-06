@@ -222,10 +222,6 @@ Void TAppEncTop::xInitLibCfg()
 #if NO_TMVP_MARKING
   m_cTEncTop.setEnableTMVP ( m_enableTMVP );
 #endif
-#if SCALING_LIST
-  m_cTEncTop.setUseScalingListId           ( m_useScalingListId  );
-  m_cTEncTop.setScalingListFile            ( m_scalingListFile   );
-#endif
 }
 
 Void TAppEncTop::xCreateLib()

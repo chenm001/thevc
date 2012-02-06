@@ -133,9 +133,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   string cfg_BitstreamFile;
   string cfg_ReconFile;
   string cfg_dQPFile;
-#if SCALING_LIST
-  string cfg_ScalingListFile;
-#endif
   po::Options opts;
   opts.addOptions()
   ("help", do_help, false, "this help text")
@@ -277,10 +274,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("SliceGranularity",     m_iSliceGranularity,    0, "0: Slices always end at LCU borders. 1-3: slices may end at a depth of 1-3 below LCU level.")
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
 
-#if SCALING_LIST
-    ("ScalingList",                 m_useScalingListId,              0,          "0: no scaling list, 1: default scaling lists, 2: scaling lists specified in ScalingListFile")
-    ("ScalingListFile",             cfg_ScalingListFile,             string(""), "Scaling list file name")
-#endif
   /* Misc. */
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
                                               "\t1: use MD5\n"
@@ -339,9 +332,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   m_pchReconFile = cfg_ReconFile.empty() ? NULL : strdup(cfg_ReconFile.c_str());
   m_pchdQPFile = cfg_dQPFile.empty() ? NULL : strdup(cfg_dQPFile.c_str());
   
-#if SCALING_LIST
-  m_scalingListFile = cfg_ScalingListFile.empty() ? NULL : strdup(cfg_ScalingListFile.c_str());
-#endif
 #if !G1002_RPS
   if (m_iRateGOPSize == -1)
   {
@@ -893,9 +883,6 @@ Void TAppEncCfg::xPrintParameter()
 #if REF_SETTING_FOR_LD
   printf("NewRefSetting:%d ", m_bUseNewRefSetting?1:0);
 #endif
-#endif
-#if SCALING_LIST
-  printf(" ScalingList:%d ", m_useScalingListId );
 #endif
 
 #if NO_TMVP_MARKING

@@ -247,7 +247,7 @@ Void TDecCavlc::parseAPSInitInfo(TComAPS& cAPS)
   //aps ID
   READ_UVLC(uiCode, "aps_id");  cAPS.setAPSID(uiCode);
 #if SCALING_LIST
-  READ_FLAG(uiCode,"aps_scaling_list_data_present_flag");      cAPS.setScalingListEnabled( (uiCode==1)?true:false );
+  READ_FLAG(uiCode,"aps_scaling_list_data_present_flag");      assert( uiCode == 0 );
 #endif
 #if G174_DF_OFFSET
   //DF flag
@@ -489,7 +489,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   pcSPS->setMinTrDepth( 0 );
   pcSPS->setMaxTrDepth( 1 );
 #if SCALING_LIST
-  READ_FLAG( uiCode, "scaling_list_enable_flag" );               pcSPS->setScalingListFlag ( uiCode );
+  READ_FLAG( uiCode, "scaling_list_enable_flag" );               assert( uiCode == 0 );
 #endif
   READ_FLAG( uiCode, "chroma_pred_from_luma_enabled_flag" );     assert( uiCode == 0 );
 #if G174_DF_OFFSET
@@ -710,12 +710,8 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       }  
     }
 #endif
-#if SCALING_LIST
 #if G174_DF_OFFSET
-    if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF() || rpcSlice->getSPS()->getScalingListFlag() || rpcSlice->getSPS()->getUseDF())
-#else
-    if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF() || rpcSlice->getSPS()->getScalingListFlag())
-#endif
+    if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF() || rpcSlice->getSPS()->getUseDF())
 #else
     if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF())
 #endif
@@ -2917,77 +2913,6 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, Int blockType, Int blSize
   return;
 }
 
-#if SCALING_LIST
-/** decode quantization matrix
- * \param scalingList quantization matrix information
- */
-Void TDecCavlc::parseScalingList(TComScalingList* scalingList)
-{
-  UInt  code, sizeId, listId;
-  Int *dst=0;
-  READ_FLAG( code, "use_default_scaling_list_flag" );
-  scalingList->setUseDefaultOnlyFlag  ( code    );
-  if(scalingList->getUseDefaultOnlyFlag() == false)
-  {
-      //for each size
-    for(sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
-    {
-      for(listId = 0; listId <  g_auiScalingListNum[sizeId]; listId++)
-      {
-        dst = scalingList->getScalingListAddress(sizeId, listId);
-        READ_FLAG( code, "pred_mode_flag");
-        scalingList->setPredMode (sizeId,listId,code);
-        if(scalingList->getPredMode (sizeId,listId) == SCALING_LIST_PRED_COPY) // Matrix_Copy_Mode
-        {
-          READ_UVLC( code, "pred_matrix_id_delta");
-          scalingList->setPredMatrixId (sizeId,listId,(UInt)((Int)(listId)-(code+1)));
-          scalingList->xPredScalingListMatrix( scalingList, dst, sizeId, listId,sizeId, scalingList->getPredMatrixId (sizeId,listId));
-        }
-        else if(scalingList->getPredMode (sizeId,listId) == SCALING_LIST_PRED_DPCM)//DPCM mode
-        {
-          xDecodeDPCMScalingListMatrix(scalingList, dst, sizeId, listId);
-        }
-      }
-    }
-  }
-
-  return;
-}
-/** read Code
- * \param scalingList  quantization matrix information
- * \param piBuf buffer of decoding data
- * \param uiSizeId size index
- * \param listId list index
- */
-Void TDecCavlc::xReadScalingListCode(TComScalingList *scalingList, Int* buf, UInt sizeId, UInt listId)
-{
-  UInt i,size = g_scalingListSize[sizeId];
-  UInt dataCounter = 0;
-  for(i=0;i<size;i++)
-  {
-    READ_SVLC( buf[dataCounter], "delta_coef");
-    dataCounter++;
-  }
-}
-/** decode DPCM with quantization matrix
- * \param scalingList  quantization matrix information
- * \param piData decoded data
- * \param uiSizeId size index
- * \param listId list index
- */
-Void TDecCavlc::xDecodeDPCMScalingListMatrix(TComScalingList *scalingList, Int* data, UInt sizeId, UInt listId)
-{
-  Int  buf[1024];
-  Int  pcm[1024];
-  Int  startValue   = SCALING_LIST_START_VALUE;
-
-  xReadScalingListCode(scalingList, buf, sizeId, listId);
-  //Inverse DPCM
-  scalingList->xInvDPCM(buf, pcm, sizeId, startValue);
-  //Inverse ZigZag scan
-  scalingList->xInvZigZag(pcm, data, sizeId);
-}
-#endif
 #if G174_DF_OFFSET
 Void TDecCavlc::parseDFFlag(UInt& ruiVal, const Char *pSymbolName)
 {

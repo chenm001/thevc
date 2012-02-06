@@ -127,9 +127,6 @@ public:
   virtual Void parseSaoSvlc       ( Int&  riVal            ) = 0;
   
   virtual Void parseAPSInitInfo   (TComAPS& cAPS) = 0;
-#if SCALING_LIST
-  virtual Void parseScalingList   ( TComScalingList* scalingList ) = 0;
-#endif
 #if G174_DF_OFFSET
   virtual Void parseDFFlag(UInt& ruiVal, const Char *pSymbolName) = 0;
   virtual Void parseDFSvlc(Int&  riVal, const Char *pSymbolName) = 0;
@@ -223,9 +220,6 @@ public:
   Void decodeSaoParam         (SAOParam* pSaoParam);
 
   Void decodeAPSInitInfo       (TComAPS& cAPS) {m_pcEntropyDecoderIf->parseAPSInitInfo(cAPS);}
-#if SCALING_LIST
-  Void decodeScalingList       ( TComScalingList* scalingList ) { m_pcEntropyDecoderIf->parseScalingList(scalingList); }
-#endif
 #if G174_DF_OFFSET
   Void decodeDFParams (TComAPS* pcAPS);
 #endif
