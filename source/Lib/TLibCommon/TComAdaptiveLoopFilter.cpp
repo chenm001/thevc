@@ -44,6 +44,37 @@
 //! \ingroup TLibCommon
 //! \{
 
+ALFParam::~ALFParam()
+{
+  if (coeff_chroma != NULL)
+  {
+    delete[] coeff_chroma;
+  }
+  if (coeffmulti)
+  {
+    for (Int i=0; i<NO_VAR_BINS; i++)
+    {
+      if (coeffmulti[i] != NULL)
+      {
+        delete[] coeffmulti[i];
+      }
+    }
+    delete[] coeffmulti;
+  }
+
+#if G665_ALF_COEFF_PRED
+  if (nbSPred != NULL)
+  {
+    delete[] nbSPred;
+  }
+#endif
+  if (filterPattern != NULL)
+  {
+    delete[] filterPattern;
+  }
+}
+
+
 // ====================================================================================================================
 // Tables
 // ====================================================================================================================
