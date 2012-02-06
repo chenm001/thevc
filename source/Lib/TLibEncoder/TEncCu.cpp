@@ -977,13 +977,6 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   {
     iGranularityEnd+=max(iGranularitySize,(pcCU->getPic()->getNumPartInCU()>>(uiDepth<<1)));
   }
-  // Set slice end parameter
-  if(pcSlice->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE&&!pcSlice->getFinalized()&&pcSlice->getSliceBits()+numberOfWrittenBits>pcSlice->getSliceArgument()<<3) 
-  {
-    pcSlice->setEntropySliceCurEndCUAddr(iGranularityEnd);
-    pcSlice->setSliceCurEndCUAddr(iGranularityEnd);
-    return;
-  }
   // Set entropy slice end parameter
   if(m_pcEncCfg->getUseSBACRD()) 
   {

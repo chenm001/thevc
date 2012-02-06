@@ -475,7 +475,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcSliceEncoder->compressSlice   ( pcPic );
 
         Bool bNoBinBitConstraintViolated = (!pcSlice->isNextSlice() && !pcSlice->isNextEntropySlice());
-        if (pcSlice->isNextSlice() || (bNoBinBitConstraintViolated && m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE))
+        if (pcSlice->isNextSlice())
         {
           uiStartCUAddrSlice                                              = pcSlice->getSliceCurEndCUAddr();
           // Reconstruction slice
@@ -500,7 +500,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             uiNumSlices ++;
           }
         }
-        else if (pcSlice->isNextEntropySlice() || (bNoBinBitConstraintViolated && m_pcCfg->getEntropySliceMode()==SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE))
+        else if (pcSlice->isNextEntropySlice())
         {
           uiStartCUAddrEntropySlice                                                     = pcSlice->getEntropySliceCurEndCUAddr();
           m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx++]  = uiStartCUAddrEntropySlice;

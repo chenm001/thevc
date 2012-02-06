@@ -187,10 +187,6 @@ Void TAppEncTop::xInitLibCfg()
 #endif
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
 
-  //====== Slice ========
-  m_cTEncTop.setSliceMode               ( m_iSliceMode                );
-  m_cTEncTop.setSliceArgument           ( m_iSliceArgument            );
-
   //====== Entropy Slice ========
   m_cTEncTop.setEntropySliceMode        ( m_iEntropySliceMode         );
   m_cTEncTop.setEntropySliceArgument    ( m_iEntropySliceArgument     );
@@ -198,10 +194,6 @@ Void TAppEncTop::xInitLibCfg()
   if(m_iEntropySliceMode==SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE)
   {
     m_cTEncTop.setEntropySliceArgument ( m_iEntropySliceArgument * iNumPartInCU );
-  }
-  if(m_iSliceMode==AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE)
-  {
-    m_cTEncTop.setSliceArgument ( m_iSliceArgument * iNumPartInCU );
   }
   
   m_cTEncTop.setUseSAO ( m_bUseSAO );

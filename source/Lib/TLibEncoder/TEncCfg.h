@@ -227,9 +227,6 @@ protected:
   Int*      m_aidQP;
   UInt      m_uiDeltaQpRD;
   
-  //====== Slice ========
-  Int       m_iSliceMode;
-  Int       m_iSliceArgument; 
   //====== Entropy Slice ========
   Int       m_iEntropySliceMode;
   Int       m_iEntropySliceArgument;
@@ -471,11 +468,6 @@ public:
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }
 
-  //====== Slice ========
-  Void  setSliceMode                   ( Int  i )       { m_iSliceMode = i;              }
-  Void  setSliceArgument               ( Int  i )       { m_iSliceArgument = i;          }
-  Int   getSliceMode                   ()              { return m_iSliceMode;           }
-  Int   getSliceArgument               ()              { return m_iSliceArgument;       }
   //====== Entropy Slice ========
   Void  setEntropySliceMode            ( Int  i )      { m_iEntropySliceMode = i;       }
   Void  setEntropySliceArgument        ( Int  i )      { m_iEntropySliceArgument = i;   }
