@@ -87,12 +87,8 @@ TComSlice::TComSlice()
 , m_uiSliceCurStartCUAddr         ( 0 )
 , m_uiSliceCurEndCUAddr           ( 0 )
 , m_uiSliceIdx                    ( 0 )
-, m_uiEntropySliceCurStartCUAddr  ( 0 )
-, m_uiEntropySliceCurEndCUAddr    ( 0 )
 , m_bNextSlice                    ( false )
-, m_bNextEntropySlice             ( false )
 , m_uiSliceBits                   ( 0 )
-, m_uiEntropySliceCounter         ( 0 )
 , m_bFinalized                    ( false )
 #if INC_CABACINITIDC_SLICETYPE
 , m_cabacInitIdc                 ( -1 )
@@ -920,10 +916,7 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_uiSliceCurStartCUAddr         = pSrc->m_uiSliceCurStartCUAddr;
   m_uiSliceCurEndCUAddr           = pSrc->m_uiSliceCurEndCUAddr;
   m_uiSliceIdx                    = pSrc->m_uiSliceIdx;
-  m_uiEntropySliceCurStartCUAddr  = pSrc->m_uiEntropySliceCurStartCUAddr;
-  m_uiEntropySliceCurEndCUAddr    = pSrc->m_uiEntropySliceCurEndCUAddr;
   m_bNextSlice                    = pSrc->m_bNextSlice;
-  m_bNextEntropySlice             = pSrc->m_bNextEntropySlice;
 }
 
 #if  G1002_RPS

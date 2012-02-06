@@ -200,7 +200,7 @@ public:
   Void encodeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx );
   Void encodeQtCbf             ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   Void encodeQtRootCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  Void encodeQP                ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
+  Void encodeQP                ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   
   Void encodeAPSInitInfo          (TComAPS* pcAPS) {m_pcEntropyCoderIf->codeAPSInitInfo(pcAPS);}
   Void encodeFinish               (Bool bEnd) {m_pcEntropyCoderIf->codeFinish(bEnd);}

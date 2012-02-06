@@ -583,19 +583,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     reqBitsOuter++;
   }
   READ_FLAG( uiCode, "first_slice_in_pic_flag" );
-  UInt address;
-  UInt innerAddress = 0;
-  if(!uiCode)
-  {
-    READ_CODE( reqBitsOuter, address, "slice_address" );
-    lCUAddress = address;
-    innerAddress = address - lCUAddress;
-  }
-  //set uiCode to equal slice start address (or entropy slice start address)
-  uiCode=(maxParts*lCUAddress)+(innerAddress*maxParts);
-  
-  rpcSlice->setEntropySliceCurStartCUAddr( uiCode );
-  rpcSlice->setEntropySliceCurEndCUAddr(numCUs*maxParts);
+  assert( uiCode == 1 );
 #endif
 
 #if INC_CABACINITIDC_SLICETYPE
@@ -604,28 +592,19 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 #endif
   // lightweight_slice_flag
   READ_FLAG( uiCode, "lightweight_slice_flag" );
-  Bool bEntropySlice = uiCode ? true : false;
-
+  assert( uiCode == 0 );
 
 #if SLICEADDR_BEGIN
-  if (bEntropySlice)
-  {
-    rpcSlice->setNextSlice        ( false );
-    rpcSlice->setNextEntropySlice ( true  );
-  }
-  else
   {
     rpcSlice->setNextSlice        ( true  );
-    rpcSlice->setNextEntropySlice ( false );
     
-    uiCode=(maxParts*lCUAddress)+(innerAddress*maxParts);
+    uiCode=(maxParts*lCUAddress);
     rpcSlice->setSliceCurStartCUAddr(uiCode);
     rpcSlice->setSliceCurEndCUAddr(numCUs*maxParts);
   }
 #endif
   
   // if( !lightweight_slice_flag ) {
-  if (!bEntropySlice)
   {
 #if !INC_CABACINITIDC_SLICETYPE
     //   slice_type
@@ -882,41 +861,19 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   //   slice_address
   int iNumCUs = ((rpcSlice->getSPS()->getWidth()+rpcSlice->getSPS()->getMaxCUWidth()-1)/rpcSlice->getSPS()->getMaxCUWidth())*((rpcSlice->getSPS()->getHeight()+rpcSlice->getSPS()->getMaxCUHeight()-1)/rpcSlice->getSPS()->getMaxCUHeight());
   int iMaxParts = (1<<(rpcSlice->getSPS()->getMaxCUDepth()<<1));
-  UInt uiLCUAddress = 0;
   int iReqBitsOuter = 0;
   while(iNumCUs>(1<<iReqBitsOuter))
   {
     iReqBitsOuter++;
   }
   READ_FLAG( uiCode, "first_slice_in_pic_flag" );
-  UInt uiAddress;
-  UInt uiInnerAddress = 0;
-  if(!uiCode)
-  {
-    READ_CODE( iReqBitsOuter, uiAddress, "slice_address" );
-    uiLCUAddress = uiAddress;
-    uiInnerAddress = uiAddress - uiLCUAddress;
-  }
-  //set uiCode to equal slice start address (or entropy slice start address)
-  uiCode=(iMaxParts*uiLCUAddress)+(uiInnerAddress*iMaxParts);
+  assert( uiCode == 1 );
   
-  rpcSlice->setEntropySliceCurStartCUAddr( uiCode );
-  rpcSlice->setEntropySliceCurEndCUAddr(iNumCUs*iMaxParts);
-  if (bEntropySlice)
-  {
-    rpcSlice->setNextSlice        ( false );
-    rpcSlice->setNextEntropySlice ( true  );
-  }
-  else
-  {
     rpcSlice->setNextSlice        ( true  );
-    rpcSlice->setNextEntropySlice ( false );
     
-    rpcSlice->setSliceCurStartCUAddr(uiCode);
+    rpcSlice->setSliceCurStartCUAddr(0);
     rpcSlice->setSliceCurEndCUAddr(iNumCUs*iMaxParts);
-  }
 #endif
-  if(!bEntropySlice)
   {
 #if G507_QP_ISSUE_FIX
     READ_SVLC( iCode, "slice_qp_delta" ); 
@@ -970,7 +927,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 
   // !!!! Syntax elements not in the WD  !!!!!
   
-  if (!bEntropySlice)
   {
 #if !G1002_RPS
     xReadFlag (uiCode);   rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
@@ -991,7 +947,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 #if (OL_USE_WPP)
 Void TDecCavlc::parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice)
 {
-  Bool bEntropySlice = (!rpcSlice->isNextSlice());
   UInt uiCode;
 
 #if TILES_DECODER

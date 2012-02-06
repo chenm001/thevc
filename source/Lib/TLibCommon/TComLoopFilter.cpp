@@ -549,9 +549,9 @@ Void TComLoopFilter::xSetLoopfilterParam( TComDataCU* pcCU, UInt uiAbsZorderIdx 
   if ( m_stLFCUParam.bLeftEdge )
   {
 #if NONCROSS_TILE_IN_LOOP_FILTERING
-    pcTempCU = pcCU->getPULeft( uiTempPartIdx, uiAbsZorderIdx, false, false, false);
+    pcTempCU = pcCU->getPULeft( uiTempPartIdx, uiAbsZorderIdx, false, false);
 #else
-    pcTempCU = pcCU->getPULeft( uiTempPartIdx, uiAbsZorderIdx, false, false );
+    pcTempCU = pcCU->getPULeft( uiTempPartIdx, uiAbsZorderIdx, false );
 #endif
     if ( pcTempCU )
     {
@@ -574,9 +574,9 @@ Void TComLoopFilter::xSetLoopfilterParam( TComDataCU* pcCU, UInt uiAbsZorderIdx 
   if ( m_stLFCUParam.bTopEdge )
   {
 #if NONCROSS_TILE_IN_LOOP_FILTERING
-    pcTempCU = pcCU->getPUAbove( uiTempPartIdx, uiAbsZorderIdx, false, false , false, false, false);
+    pcTempCU = pcCU->getPUAbove( uiTempPartIdx, uiAbsZorderIdx, false , false, false, false);
 #else
-    pcTempCU = pcCU->getPUAbove( uiTempPartIdx, uiAbsZorderIdx, false, false );
+    pcTempCU = pcCU->getPUAbove( uiTempPartIdx, uiAbsZorderIdx, false );
 #endif
     if ( pcTempCU )
     {
@@ -612,17 +612,17 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
   if (iDir == EDGE_VER)
   {
 #if NONCROSS_TILE_IN_LOOP_FILTERING
-    pcCUP = pcCUQ->getPULeft(uiPartP, uiPartQ, false, false, false);
-#else
     pcCUP = pcCUQ->getPULeft(uiPartP, uiPartQ, false, false);
+#else
+    pcCUP = pcCUQ->getPULeft(uiPartP, uiPartQ, false);
 #endif
   }
   else  // (iDir == EDGE_HOR)
   {
 #if NONCROSS_TILE_IN_LOOP_FILTERING
-    pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, false, false, false, false, false);
+    pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, false, false, false, false);
 #else
-    pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, false, false);
+    pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, false);
 #endif
   }
   
@@ -648,9 +648,9 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
       if (iDir == EDGE_HOR)
       {
 #if NONCROSS_TILE_IN_LOOP_FILTERING
-        pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, false, false, true, false, false);
+        pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, false, true, false, false);
 #else
-        pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, false, false, true);
+        pcCUP = pcCUQ->getPUAbove(uiPartP, uiPartQ, false, true);
 #endif
       }
       if (pcSlice->isInterB())

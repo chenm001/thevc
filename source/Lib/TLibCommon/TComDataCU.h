@@ -195,7 +195,6 @@ private:
   UInt          m_uiTotalBits;        ///< sum of partition bits
   UInt          m_uiTotalBins;       ///< sum of partition bins
   UInt*         m_uiSliceStartCU;    ///< Start CU address of current slice
-  UInt*         m_uiEntropySliceStartCU; ///< Start CU address of current slice
   
 protected:
   
@@ -439,13 +438,13 @@ public:
   TComDataCU*   getCUColocated              ( RefPicList eRefPicList ) { return m_apcCUColocated[eRefPicList]; }
 
 
-  TComDataCU*   getPULeft                   ( UInt&  uiLPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true
+  TComDataCU*   getPULeft                   ( UInt&  uiLPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true
 #if NONCROSS_TILE_IN_LOOP_FILTERING
                                             , Bool bEnforceTileRestriction=true 
 #endif
                                             );
 
-  TComDataCU*   getPUAbove                  ( UInt&  uiAPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false
+  TComDataCU*   getPUAbove                  ( UInt&  uiAPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool MotionDataCompresssion = false
 #if REMOVE_INTRA_LINE_BUFFER
                                             , Bool planarAtLCUBoundary = false 
 #endif
@@ -454,15 +453,15 @@ public:
 #endif                                            
                                             );
 
-  TComDataCU*   getPUAboveLeft              ( UInt&  uiALPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false );
-  TComDataCU*   getPUAboveRight             ( UInt&  uiARPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false );
-  TComDataCU*   getPUBelowLeft              ( UInt& uiBLPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
+  TComDataCU*   getPUAboveLeft              ( UInt&  uiALPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool MotionDataCompresssion = false );
+  TComDataCU*   getPUAboveRight             ( UInt&  uiARPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool MotionDataCompresssion = false );
+  TComDataCU*   getPUBelowLeft              ( UInt& uiBLPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true );
 
-  TComDataCU*   getQpMinCuLeft                   ( UInt&  uiLPartUnitIdx , UInt uiCurrAbsIdxInLCU, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
+  TComDataCU*   getQpMinCuLeft                   ( UInt&  uiLPartUnitIdx , UInt uiCurrAbsIdxInLCU, Bool bEnforceSliceRestriction=true );
   UChar         getRefQP                         ( UInt   uiCurrAbsIdxInLCU                       );
 
-  TComDataCU*   getPUAboveRightAdi          ( UInt&  uiARPartUnitIdx, UInt uiPuWidth, UInt uiCurrPartUnitIdx, UInt uiPartUnitOffset = 1, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
-  TComDataCU*   getPUBelowLeftAdi           ( UInt& uiBLPartUnitIdx, UInt uiPuHeight, UInt uiCurrPartUnitIdx, UInt uiPartUnitOffset = 1, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
+  TComDataCU*   getPUAboveRightAdi          ( UInt&  uiARPartUnitIdx, UInt uiPuWidth, UInt uiCurrPartUnitIdx, UInt uiPartUnitOffset = 1, Bool bEnforceSliceRestriction=true );
+  TComDataCU*   getPUBelowLeftAdi           ( UInt& uiBLPartUnitIdx, UInt uiPuHeight, UInt uiCurrPartUnitIdx, UInt uiPartUnitOffset = 1, Bool bEnforceSliceRestriction=true );
   
   Void          deriveLeftRightTopIdx       ( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxLT, UInt& ruiPartIdxRT );
   Void          deriveLeftBottomIdx         ( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxLB );
@@ -507,7 +506,6 @@ public:
   UInt          getCtxInterDir                  ( UInt   uiAbsPartIdx                                 );
   
   UInt          getSliceStartCU         ( UInt pos )                  { return m_uiSliceStartCU[pos-m_uiAbsIdxInLCU];                                                                                          }
-  UInt          getEntropySliceStartCU  ( UInt pos )                  { return m_uiEntropySliceStartCU[pos-m_uiAbsIdxInLCU];                                                                                   }
   UInt&         getTotalBins            ()                            { return m_uiTotalBins;                                                                                                  }
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for RD cost storage

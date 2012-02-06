@@ -631,12 +631,8 @@ private:
   UInt        m_uiSliceCurStartCUAddr;
   UInt        m_uiSliceCurEndCUAddr;
   UInt        m_uiSliceIdx;
-  UInt        m_uiEntropySliceCurStartCUAddr;
-  UInt        m_uiEntropySliceCurEndCUAddr;
   Bool        m_bNextSlice;
-  Bool        m_bNextEntropySlice;
   UInt        m_uiSliceBits;
-  UInt        m_uiEntropySliceCounter;
   Bool        m_bFinalized;
 
 #if INC_CABACINITIDC_SLICETYPE
@@ -843,18 +839,10 @@ public:
   Void setSliceIdx                      ( UInt i)           { m_uiSliceIdx = i;                           }
   UInt getSliceIdx                      ()                  { return  m_uiSliceIdx;                       }
   Void copySliceInfo                    (TComSlice *pcSliceSrc);
-  Void setEntropySliceCurStartCUAddr    ( UInt uiAddr )     { m_uiEntropySliceCurStartCUAddr = uiAddr;    }
-  UInt getEntropySliceCurStartCUAddr    ()                  { return m_uiEntropySliceCurStartCUAddr;      }
-  Void setEntropySliceCurEndCUAddr      ( UInt uiAddr )     { m_uiEntropySliceCurEndCUAddr = uiAddr;      }
-  UInt getEntropySliceCurEndCUAddr      ()                  { return m_uiEntropySliceCurEndCUAddr;        }
   Void setNextSlice                     ( Bool b )          { m_bNextSlice = b;                           }
   Bool isNextSlice                      ()                  { return m_bNextSlice;                        }
-  Void setNextEntropySlice              ( Bool b )          { m_bNextEntropySlice = b;                    }
-  Bool isNextEntropySlice               ()                  { return m_bNextEntropySlice;                 }
   Void setSliceBits                     ( UInt uiVal )      { m_uiSliceBits = uiVal;                      }
   UInt getSliceBits                     ()                  { return m_uiSliceBits;                       }  
-  Void setEntropySliceCounter           ( UInt uiVal )      { m_uiEntropySliceCounter = uiVal;            }
-  UInt getEntropySliceCounter           ()                  { return m_uiEntropySliceCounter;             }
   Void setFinalized                     ( Bool uiVal )      { m_bFinalized = uiVal;                       }
   Bool getFinalized                     ()                  { return m_bFinalized;                        }
 #if INC_CABACINITIDC_SLICETYPE

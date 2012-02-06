@@ -114,7 +114,6 @@ private:
   Bool                    m_bRefreshPending;
   UInt                    m_uiPOCCDR;
   UInt*                   m_uiStoredStartCUAddrForEncodingSlice;
-  UInt*                   m_uiStoredStartCUAddrForEncodingEntropySlice;
 
 #if RVM_VCEGAM10
   std::vector<Int> m_vRVM_RP;

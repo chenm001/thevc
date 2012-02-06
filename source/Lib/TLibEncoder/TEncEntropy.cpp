@@ -860,13 +860,8 @@ Void TEncEntropy::encodeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
 }
 
 // dQP
-Void TEncEntropy::encodeQP( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
+Void TEncEntropy::encodeQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-  if( bRD )
-  {
-    uiAbsPartIdx = 0;
-  }
-  
 #if G507_QP_ISSUE_FIX
   if ( pcCU->getSlice()->getPPS()->getUseDQP() )
 #else

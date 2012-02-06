@@ -562,44 +562,16 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   // if( first_slice_in_pic_flag == 0 )
   //    slice_address
   //calculate number of bits required for slice address
-  Int maxAddrOuter = pcSlice->getPic()->getNumCUsInFrame();
-  Int reqBitsOuter = 0;
-  while(maxAddrOuter>(1<<reqBitsOuter)) 
-  {
-    reqBitsOuter++;
-  }
   
-  Int lCUAddress;
-  Int innerAddress;
-  if (pcSlice->isNextSlice())
-  {
-    // Calculate slice address
-    lCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
-    innerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth())<<1);
-  }
-  else
-  {
-    // Calculate slice address
-    lCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
-    innerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth())<<1);
-    
-  }
   //write slice address
-  Int address    = lCUAddress + innerAddress;
-  WRITE_FLAG( address==0, "first_slice_in_pic_flag" );
-  if(address>0) 
-  {
-    WRITE_CODE( address, reqBitsOuter, "slice_address" );
-  }
+  WRITE_FLAG( 1, "first_slice_in_pic_flag" );
 #endif
 
 #if INC_CABACINITIDC_SLICETYPE
   WRITE_UVLC( pcSlice->getSliceType(),       "slice_type" );
 #endif
-  Bool bEntropySlice = (!pcSlice->isNextSlice());
-  WRITE_FLAG( bEntropySlice ? 1 : 0, "lightweight_slice_flag" );
+  WRITE_FLAG( 0, "lightweight_slice_flag" );
   
-  if (!bEntropySlice)
   {
 #if !INC_CABACINITIDC_SLICETYPE
     WRITE_UVLC( pcSlice->getSliceType(),       "slice_type" );
@@ -777,18 +749,9 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   
   Int iLCUAddress;
   Int iInnerAddress;
-  if (pcSlice->isNextSlice())
-  {
     // Calculate slice address
     iLCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
     iInnerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth())<<1);
-  }
-  else
-  {
-    // Calculate slice address
-    iLCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
-    iInnerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth())<<1);
-  }
   //write slice address
   int iAddress    = iLCUAddress + iInnerAddress;
   WRITE_FLAG( iAddress==0, "first_slice_in_pic_flag" );
@@ -799,7 +762,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #endif
   
   // if( !lightweight_slice_flag ) {
-  if (!bEntropySlice)
   {
 #if G507_QP_ISSUE_FIX
     Int iCode = pcSlice->getSliceQp() - ( pcSlice->getPPS()->getPicInitQPMinus26() + 26 );
@@ -847,7 +809,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 
   // !!!! sytnax elements not in the WD !!!!
   
-  if (!bEntropySlice)
   {
 #if !G1002_RPS
     // ????
