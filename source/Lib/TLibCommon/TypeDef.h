@@ -112,6 +112,8 @@
 #define FAST_BIT_EST                1   ///< G763: Table-based bit estimation for CABAC
 #define G633_8BIT_INIT              1   ///< G633: Context model initialization method using 8 bit initialization values
 
+#define G519_TU_AMP_NSQT_HARMONIZATION  1   ///< G519: Harmonization of implicit TU, AMP and NSQT
+
 ////////////////////////////
 // JCT-VC G start
 ////////////////////////////
