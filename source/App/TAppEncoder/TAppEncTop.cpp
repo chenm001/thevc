@@ -187,15 +187,6 @@ Void TAppEncTop::xInitLibCfg()
 #endif
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
 
-  //====== Entropy Slice ========
-  m_cTEncTop.setEntropySliceMode        ( m_iEntropySliceMode         );
-  m_cTEncTop.setEntropySliceArgument    ( m_iEntropySliceArgument     );
-  int iNumPartInCU = 1<<(m_uiMaxCUDepth<<1);
-  if(m_iEntropySliceMode==SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE)
-  {
-    m_cTEncTop.setEntropySliceArgument ( m_iEntropySliceArgument * iNumPartInCU );
-  }
-  
   m_cTEncTop.setUseSAO ( m_bUseSAO );
 
   m_cTEncTop.setPictureDigestEnabled(m_pictureDigestEnabled);

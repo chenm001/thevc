@@ -181,9 +181,6 @@ protected:
 #if CBF_FAST_MODE
   Bool      m_bUseCbfFastMode;                              ///< flag for using Cbf Fast PU Mode Decision
 #endif  
-  Int       m_iEntropySliceMode;    ///< 0: Disable all entropy slice limits, 1 : Maximum number of largest coding units per slice, 2: Constraint based entropy slice
-  Int       m_iEntropySliceArgument;///< If m_iEntropySliceMode==1, m_iEntropySliceArgument=max. # of largest coding units. If m_iEntropySliceMode==2, m_iEntropySliceArgument=max. # of bins.
-
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
 #if !G1002_RPS

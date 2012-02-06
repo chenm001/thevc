@@ -631,8 +631,6 @@ private:
   UInt        m_uiSliceCurStartCUAddr;
   UInt        m_uiSliceCurEndCUAddr;
   UInt        m_uiSliceIdx;
-  UInt        m_uiEntropySliceMode;
-  UInt        m_uiEntropySliceArgument;
   UInt        m_uiEntropySliceCurStartCUAddr;
   UInt        m_uiEntropySliceCurEndCUAddr;
   Bool        m_bNextSlice;
@@ -845,10 +843,6 @@ public:
   Void setSliceIdx                      ( UInt i)           { m_uiSliceIdx = i;                           }
   UInt getSliceIdx                      ()                  { return  m_uiSliceIdx;                       }
   Void copySliceInfo                    (TComSlice *pcSliceSrc);
-  Void setEntropySliceMode              ( UInt uiMode )     { m_uiEntropySliceMode = uiMode;              }
-  UInt getEntropySliceMode              ()                  { return m_uiEntropySliceMode;                }
-  Void setEntropySliceArgument          ( UInt uiArgument ) { m_uiEntropySliceArgument = uiArgument;      }
-  UInt getEntropySliceArgument          ()                  { return m_uiEntropySliceArgument;            }
   Void setEntropySliceCurStartCUAddr    ( UInt uiAddr )     { m_uiEntropySliceCurStartCUAddr = uiAddr;    }
   UInt getEntropySliceCurStartCUAddr    ()                  { return m_uiEntropySliceCurStartCUAddr;      }
   Void setEntropySliceCurEndCUAddr      ( UInt uiAddr )     { m_uiEntropySliceCurEndCUAddr = uiAddr;      }

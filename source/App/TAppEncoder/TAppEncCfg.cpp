@@ -267,9 +267,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("ALFMaxNumFilter,-ALFMNF", m_iALFMaxNumberFilters, 16, "16: No Constrained, 1-15: Constrained max number of filter")
 #endif
 
-    ("EntropySliceMode",     m_iEntropySliceMode,    0, "0: Disable all entropy slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based entropy slices")
-    ("EntropySliceArgument", m_iEntropySliceArgument,0, "if EntropySliceMode==1 SliceArgument represents max # of LCUs. if EntropySliceMode==2 EntropySliceArgument represents max # of bins.")
-
   /* Misc. */
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
                                               "\t1: use MD5\n"
@@ -491,12 +488,6 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra < 1,                                                         "QuadtreeTUMaxDepthIntra must be greater than or equal to 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
 
-  xConfirmPara( m_iEntropySliceMode < 0 || m_iEntropySliceMode > 2, "EntropySliceMode exceeds supported range (0 to 2)" );
-  if (m_iEntropySliceMode!=0)
-  {
-    xConfirmPara( m_iEntropySliceArgument < 1 ,         "EntropySliceArgument should be larger than or equal to 1" );
-  }
-  
 #if !G1002_RPS
   xConfirmPara( m_bUseLComb==false && m_bUseLDC==false,         "LComb can only be 0 if LowDelayCoding is 1" );
 #endif
@@ -854,11 +845,6 @@ Void TAppEncCfg::xPrintParameter()
 #endif
   printf("RQT:%d ", 1     );
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
-  printf("EntropySlice: M=%d ",m_iEntropySliceMode);
-  if (m_iEntropySliceMode!=0)
-  {
-    printf("A=%d ", m_iEntropySliceArgument);
-  }
   printf("SAO:%d ", (m_bUseSAO)?(1):(0));
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD

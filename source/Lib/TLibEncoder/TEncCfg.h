@@ -227,10 +227,6 @@ protected:
   Int*      m_aidQP;
   UInt      m_uiDeltaQpRD;
   
-  //====== Entropy Slice ========
-  Int       m_iEntropySliceMode;
-  Int       m_iEntropySliceArgument;
-
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
 #if !G1002_RPS
@@ -467,12 +463,6 @@ public:
 
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }
-
-  //====== Entropy Slice ========
-  Void  setEntropySliceMode            ( Int  i )      { m_iEntropySliceMode = i;       }
-  Void  setEntropySliceArgument        ( Int  i )      { m_iEntropySliceArgument = i;   }
-  Int   getEntropySliceMode            ()              { return m_iEntropySliceMode;    }
-  Int   getEntropySliceArgument        ()              { return m_iEntropySliceArgument;}
 
   Void      setUseSAO                  (Bool bVal)     {m_bUseSAO = bVal;}
   Bool      getUseSAO                  ()              {return m_bUseSAO;}
