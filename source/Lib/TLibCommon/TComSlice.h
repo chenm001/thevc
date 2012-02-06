@@ -423,8 +423,6 @@ private:
   UInt        m_uiNumTlayerSwitchingFlags;            // num_temporal_layer_switching_point_flags
   Bool        m_abTLayerSwitchingFlag[ MAX_TLAYER ];  // temporal_layer_switching_point_flag
 
-  Int         m_iSliceGranularity;
-
 #if NO_TMVP_MARKING
   Bool     m_enableTMVPFlag;
 #endif
@@ -438,8 +436,6 @@ public:
   Int       getSPSId ()      { return m_SPSId; }
   Void      setSPSId (Int i) { m_SPSId = i; }
   
-  Int       getSliceGranularity()        { return m_iSliceGranularity; }
-  Void      setSliceGranularity( Int i ) { m_iSliceGranularity = i;    }
 #if G507_QP_ISSUE_FIX
   Int       getPicInitQPMinus26 ()         { return  m_picInitQPMinus26; }
   Void      setPicInitQPMinus26 ( Int i )  { m_picInitQPMinus26 = i;     }

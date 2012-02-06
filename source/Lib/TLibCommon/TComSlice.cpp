@@ -1434,7 +1434,6 @@ TComPPS::TComPPS()
 , m_uiBitsForLongTermRefs       (0)
 #endif
 , m_uiNumTlayerSwitchingFlags   (0)
-, m_iSliceGranularity           (0)
 {
   for ( UInt i = 0; i < MAX_TLAYER; i++ )
   {

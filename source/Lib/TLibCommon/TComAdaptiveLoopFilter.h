@@ -286,7 +286,6 @@ private:
   UInt     m_uiStartLCU;             //!< starting LCU raster-scan address in picture
   UInt     m_uiEndLCU;               //!< ending LCU raster-scan address in picture
   UInt     m_uiNumLCUs;              //!< number of LCUs in this slices
-  Int      m_iSGDepth;               //!< slice granularity
   UInt     m_uiFirstCUInStartLCU;    //!< first SU z-scan address of the starting LCU
   UInt     m_uiLastCUInEndLCU;       //!< last  SU z-scan address of the ending LCU
   Bool     m_bCUCtrlEnabled;         //!< ALF CU control enabled/disabled
@@ -343,7 +342,6 @@ protected: //protected member variables
   Int   m_img_width;
   Bool  m_bUseNonCrossALF;       //!< true for performing non-cross slice boundary ALF
   UInt  m_uiNumSlicesInPic;      //!< number of slices in picture
-  Int   m_iSGDepth;              //!< slice granularity depth
   UInt  m_uiNumCUsInFrame;
 
 #if G212_CROSS9x9_VB
@@ -449,8 +447,6 @@ public: //public methods, interface functions
   Void createPicAlfInfo (TComPic* pcPic, Int numSlicesInPic = 1);
   Void destroyPicAlfInfo();
 #else
-  Void setSliceGranularityDepth(Int iDepth) { m_iSGDepth = iDepth;} //!< Set slice granularity
-  Int  getSliceGranularityDepth()           { return m_iSGDepth;  } //!< get slice granularity
   Void setNumSlicesInPic(UInt uiNum) {m_uiNumSlicesInPic = uiNum;} //!< Set number of slices in picture
   UInt getNumSlicesInPic()           {return m_uiNumSlicesInPic;} //!< Get number of slices in picture
   Void setUseNonCrossAlf(Bool bVal)  {m_bUseNonCrossALF = bVal;} //!< Set across/non-across slice boundary ALF

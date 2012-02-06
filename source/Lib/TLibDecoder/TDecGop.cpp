@@ -221,9 +221,8 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     pcSlice = rpcPic->getSlice(0);
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
     {
-      Int sliceGranularity = pcSlice->getPPS()->getSliceGranularity();
       puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU();
-      rpcPic->createNonDBFilterInfo(puiILSliceStartLCU, uiILSliceCount,sliceGranularity,pcSlice->getSPS()->getLFCrossSliceBoundaryFlag(), true);
+      rpcPic->createNonDBFilterInfo(puiILSliceStartLCU, uiILSliceCount,pcSlice->getSPS()->getLFCrossSliceBoundaryFlag(), true);
     }
 #endif
 
@@ -233,7 +232,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       {
 #if !NONCROSS_TILE_IN_LOOP_FILTERING
         m_pcSAO->setNumSlicesInPic( uiILSliceCount );
-        m_pcSAO->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
 #endif
 #if ALF_SAO_SLICE_FLAGS
         if(pcSlice->getSaoEnabledFlag())
@@ -284,7 +282,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     {
 #if !NONCROSS_TILE_IN_LOOP_FILTERING
       m_pcAdaptiveLoopFilter->setNumSlicesInPic( uiILSliceCount );
-      m_pcAdaptiveLoopFilter->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
 #endif
 
 #if ALF_SAO_SLICE_FLAGS

@@ -197,14 +197,13 @@ Void TAppEncTop::xInitLibCfg()
   int iNumPartInCU = 1<<(m_uiMaxCUDepth<<1);
   if(m_iEntropySliceMode==SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE)
   {
-    m_cTEncTop.setEntropySliceArgument ( m_iEntropySliceArgument * ( iNumPartInCU >> ( m_iSliceGranularity << 1 ) ) );
+    m_cTEncTop.setEntropySliceArgument ( m_iEntropySliceArgument * iNumPartInCU );
   }
   if(m_iSliceMode==AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE)
   {
-    m_cTEncTop.setSliceArgument ( m_iSliceArgument * ( iNumPartInCU >> ( m_iSliceGranularity << 1 ) ) );
+    m_cTEncTop.setSliceArgument ( m_iSliceArgument * iNumPartInCU );
   }
   
-  m_cTEncTop.setSliceGranularity        ( m_iSliceGranularity         );
   if(m_iSliceMode == 0 )
   {
     m_bLFCrossSliceBoundaryFlag = true;

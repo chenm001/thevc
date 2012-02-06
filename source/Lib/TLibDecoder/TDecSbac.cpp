@@ -113,7 +113,6 @@ TDecSbac::TDecSbac()
 , m_cSaoSvlcSCModel           ( 1,             1,               NUM_SAO_SVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 {
   assert( m_numContextModels <= MAX_NUM_CTX_MOD );
-  m_iSliceGranularity = 0;
 }
 
 TDecSbac::~TDecSbac()

@@ -75,7 +75,6 @@ protected:
   UInt          m_uiRun;
   Bool          m_bAlfCtrl;
   UInt          m_uiMaxAlfCtrlDepth;
-  Int           m_iSliceGranularity;  //!< slice granularity
   UInt          m_uiLPTableE4[3][32];
   UInt          m_uiLPTableD4[3][32];
   UInt          m_uiLastPosVlcIndex[10];
@@ -186,12 +185,6 @@ public:
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-
-  /// set slice granularity
-  Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
-
-  ///get slice granularity
-  Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
 
   Void codeAlfCtrlFlag   ( UInt uiSymbol );
   Void codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiEncMode );

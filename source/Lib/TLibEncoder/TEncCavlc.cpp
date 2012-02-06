@@ -128,7 +128,6 @@ TEncCavlc::TEncCavlc()
   m_uiMaxAlfCtrlDepth = 0;
   
   m_bAdaptFlag        = true;    // adaptive VLC table
-  m_iSliceGranularity = 0;
 }
 
 TEncCavlc::~TEncCavlc()
@@ -370,7 +369,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #if NO_TMVP_MARKING
   WRITE_FLAG( pcPPS->getEnableTMVPFlag() ? 1 : 0,            "enable_temporal_mvp_flag" );
 #endif
-  WRITE_CODE( pcPPS->getSliceGranularity(), 2,               "slice_granularity");
+  WRITE_CODE( 0, 2,                                          "slice_granularity");
 #if G507_QP_ISSUE_FIX
   WRITE_UVLC( pcPPS->getMaxCuDQPDepth() + pcPPS->getUseDQP(),                   "max_cu_qp_delta_depth" );
 #else
@@ -569,35 +568,28 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   {
     reqBitsOuter++;
   }
-  Int maxAddrInner = pcSlice->getPic()->getNumPartInCU()>>(2);
-  maxAddrInner = (1<<(pcSlice->getPPS()->getSliceGranularity()<<1));
-  Int reqBitsInner = 0;
   
-  while(maxAddrInner>(1<<reqBitsInner))
-  {
-    reqBitsInner++;
-  }
   Int lCUAddress;
   Int innerAddress;
   if (pcSlice->isNextSlice())
   {
     // Calculate slice address
     lCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
-    innerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+    innerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth())<<1);
   }
   else
   {
     // Calculate slice address
     lCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
-    innerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+    innerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth())<<1);
     
   }
   //write slice address
-  Int address    = (lCUAddress << reqBitsInner) + innerAddress;
+  Int address    = lCUAddress + innerAddress;
   WRITE_FLAG( address==0, "first_slice_in_pic_flag" );
   if(address>0) 
   {
-    WRITE_CODE( address, reqBitsOuter+reqBitsInner, "slice_address" );
+    WRITE_CODE( address, reqBitsOuter, "slice_address" );
   }
 #endif
 
@@ -782,34 +774,27 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   {
     iReqBitsOuter++;
   }
-  Int iMaxAddrInner = pcSlice->getPic()->getNumPartInCU()>>(2);
-  iMaxAddrInner = (1<<(pcSlice->getPPS()->getSliceGranularity()<<1));
-  int iReqBitsInner = 0;
   
-  while(iMaxAddrInner>(1<<iReqBitsInner))
-  {
-    iReqBitsInner++;
-  }
   Int iLCUAddress;
   Int iInnerAddress;
   if (pcSlice->isNextSlice())
   {
     // Calculate slice address
     iLCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
-    iInnerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+    iInnerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth())<<1);
   }
   else
   {
     // Calculate slice address
     iLCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
-    iInnerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+    iInnerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth())<<1);
   }
   //write slice address
-  int iAddress    = (iLCUAddress << iReqBitsInner) + iInnerAddress;
+  int iAddress    = iLCUAddress + iInnerAddress;
   WRITE_FLAG( iAddress==0, "first_slice_in_pic_flag" );
   if(iAddress>0) 
   {
-    WRITE_CODE( iAddress, iReqBitsOuter+iReqBitsInner, "slice_address" );
+    WRITE_CODE( iAddress, iReqBitsOuter, "slice_address" );
   }
 #endif
   

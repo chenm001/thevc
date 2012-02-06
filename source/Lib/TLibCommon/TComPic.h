@@ -81,7 +81,6 @@ private:
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   Int*                  m_pSliceSUMap;
   Bool*                 m_pbValidSlice;
-  Int                   m_sliceGranularityForNDBFilter;
   Bool                  m_bIndependentSliceBoundaryForNDBFilter;
   Bool                  m_bIndependentTileBoundaryForNDBFilter;
   TComPicYuv*           m_pNDBFilterYuvTmp;    //!< temporary picture buffer when non-cross slice/tile boundary in-loop filtering is enabled
@@ -165,14 +164,13 @@ public:
   
 #if NONCROSS_TILE_IN_LOOP_FILTERING
 
-  Void          createNonDBFilterInfo   (UInt* pSliceStartAddress = NULL, Int numSlices = 1, Int sliceGranularityDepth= 0
+  Void          createNonDBFilterInfo   (UInt* pSliceStartAddress = NULL, Int numSlices = 1
                                         ,Bool bNDBFilterCrossSliceBoundary = true
                                         ,Bool bNDBFilterCrossTileBoundary = true);
-  Void          createNonDBFilterInfoLCU(Int sliceID, TComDataCU* pcCU, UInt startSU, UInt endSU, Int sliceGranularyDepth, UInt picWidth, UInt picHeight);
+  Void          createNonDBFilterInfoLCU(Int sliceID, TComDataCU* pcCU, UInt startSU, UInt endSU, UInt picWidth, UInt picHeight);
   Void          destroyNonDBFilterInfo();
 
   Bool          getValidSlice                                  (Int sliceID)  {return m_pbValidSlice[sliceID];}
-  Int           getSliceGranularityForNDBFilter                ()             {return m_sliceGranularityForNDBFilter;}
   Bool          getIndependentSliceBoundaryForNDBFilter        ()             {return m_bIndependentSliceBoundaryForNDBFilter;}
   Bool          getIndependentTileBoundaryForNDBFilter         ()             {return m_bIndependentTileBoundaryForNDBFilter; }
   TComPicYuv*   getYuvPicBufferForIndependentBoundaryProcessing()             {return m_pNDBFilterYuvTmp;}

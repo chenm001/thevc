@@ -116,12 +116,6 @@ public:
   virtual Void parseAlfCtrlDepth  ( UInt& ruiAlfCtrlDepth  ) = 0;
   virtual Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag ) = 0;
 
-  /// set slice granularity
-  virtual Void setSliceGranularity(Int iSliceGranularity) = 0;
-
-  /// get slice granularity
-  virtual Int  getSliceGranularity()                      = 0;
-
   virtual Void parseSaoFlag       ( UInt& ruiVal           ) = 0;
   virtual Void parseSaoUvlc       ( UInt& ruiVal           ) = 0;
   virtual Void parseSaoSvlc       ( Int&  riVal            ) = 0;
@@ -211,9 +205,6 @@ public:
   Void readFilterCoeffs(ALFParam* pAlfParam);
   Void decodeFilterCoeff (ALFParam* pAlfParam);
   Int golombDecode(Int k);
-
-  /// set slice granularity
-  Void setSliceGranularity (Int iSliceGranularity) {m_pcEntropyDecoderIf->setSliceGranularity(iSliceGranularity);}
 
   Void decodeSaoOnePart       (SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
   Void decodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);

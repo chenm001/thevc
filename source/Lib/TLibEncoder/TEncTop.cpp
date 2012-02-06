@@ -594,7 +594,6 @@ Void TEncTop::xInitSPS()
 
 Void TEncTop::xInitPPS()
 {
-  m_cPPS.setSliceGranularity(m_iSliceGranularity);
   if ( m_cSPS.getTemporalIdNestingFlag() ) 
   {
     m_cPPS.setNumTLayerSwitchingFlags( 0 );

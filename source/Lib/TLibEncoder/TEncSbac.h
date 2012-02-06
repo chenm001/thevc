@@ -137,16 +137,10 @@ protected:
   
   // Adaptive loop filter
   UInt          m_uiMaxAlfCtrlDepth;
-  Int           m_iSliceGranularity; //!< slice granularity
   //--Adaptive loop filter
   
 public:
 
-  /// set slice granularity
-  Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
-
-  /// get slice granularity
-  Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
   Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
