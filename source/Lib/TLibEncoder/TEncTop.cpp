@@ -100,20 +100,13 @@ Void TEncTop::create ()
     m_cTrQuant.initSliceQpDelta();
   }
 #endif
-  m_cAdaptiveLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 #if !DISABLE_PARALLEL_DECISIONS
   m_cLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 #else
   m_cLoopFilter.        create( g_uiMaxCUDepth );
 #endif
   
-  if(m_bUseALF)
-  {
-    m_cAdaptiveLoopFilter.setGOPSize( getGOPSize() );
-    m_cAdaptiveLoopFilter.createAlfGlobalBuffers(m_iALFEncodePassReduction);
-  }
-
-  if(m_bUseSAO || m_bUseALF)
+  if(m_bUseSAO)
   {
     m_vAPS.reserve(MAX_NUM_SUPPORTED_APS);
   }
@@ -153,11 +146,6 @@ Void TEncTop::create ()
 
 Void TEncTop::destroy ()
 {
-  if(m_bUseALF)
-  {
-    m_cAdaptiveLoopFilter.destroyAlfGlobalBuffers();
-  }
-
   for(Int i=0; i< m_vAPS.size(); i++)
   {
     TComAPS& cAPS = m_vAPS[i];
@@ -173,7 +161,6 @@ Void TEncTop::destroy ()
     m_cEncSAO.destroy();
     m_cEncSAO.destroyEncBuffer();
   }
-  m_cAdaptiveLoopFilter.destroy();
   m_cLoopFilter.        destroy();
 #if G1002_RPS
   m_cRPSList.               destroy();
@@ -245,14 +232,6 @@ Void TEncTop::init()
   
   // initialize encoder search class
   m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_bipredSearchRange, m_iFastSearch, 0, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
-
-  if(m_bUseALF)
-  {
-    m_cAdaptiveLoopFilter.setALFEncodePassReduction( m_iALFEncodePassReduction );
-#if G215_ALF_NUM_FILTER
-    m_cAdaptiveLoopFilter.setALFMaxNumberFilters( m_iALFMaxNumberFilters );
-#endif
-  }
 
   m_iMaxRefPicNum = 0;
 }
@@ -479,8 +458,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setNumReorderFrames(m_numReorderFrames);
 #endif
 
-  m_cSPS.setUseALF        ( m_bUseALF           );
-  
   m_cSPS.setQuadtreeTULog2MaxSize( m_uiQuadtreeTULog2MaxSize );
   m_cSPS.setQuadtreeTULog2MinSize( m_uiQuadtreeTULog2MinSize );
   m_cSPS.setQuadtreeTUMaxDepthInter( m_uiQuadtreeTUMaxDepthInter    );

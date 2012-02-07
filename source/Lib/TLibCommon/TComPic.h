@@ -164,9 +164,7 @@ public:
   
 #if NONCROSS_TILE_IN_LOOP_FILTERING
 
-  Void          createNonDBFilterInfo   (UInt* pSliceStartAddress = NULL, Int numSlices = 1
-                                        ,Bool bNDBFilterCrossSliceBoundary = true
-                                        ,Bool bNDBFilterCrossTileBoundary = true);
+  Void          createNonDBFilterInfo   (UInt* pSliceStartAddress = NULL, Int numSlices = 1);
   Void          createNonDBFilterInfoLCU(Int sliceID, TComDataCU* pcCU, UInt startSU, UInt endSU, UInt picWidth, UInt picHeight);
   Void          destroyNonDBFilterInfo();
 

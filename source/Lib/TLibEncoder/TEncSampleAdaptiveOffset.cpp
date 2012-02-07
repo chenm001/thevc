@@ -830,42 +830,7 @@ Void TEncSampleAdaptiveOffset::calcSaoStatsBlock( Pel* pRecStart, Pel* pOrgStart
  */
 Void TEncSampleAdaptiveOffset::calcSaoStatsCu(Int iAddr, Int iPartIdx, Int iYCbCr)
 {
-  if(!m_bUseNIF)
-  {
     calcSaoStatsCuOrg( iAddr, iPartIdx, iYCbCr);
-  }
-  else
-  {
-    Int64** ppStats = m_iOffsetOrg[iPartIdx];
-    Int64** ppCount = m_iCount    [iPartIdx];
-
-    //parameters
-    Int  isChroma = (iYCbCr != 0)? 1:0;
-    Int  stride   = (iYCbCr != 0)?(m_pcPic->getCStride()):(m_pcPic->getStride());
-    Pel* pPicOrg = getPicYuvAddr (m_pcPic->getPicYuvOrg(), iYCbCr);
-    Pel* pPicRec  = getPicYuvAddr(m_pcYuvTmp, iYCbCr);
-
-    std::vector<NDBFBlockInfo>& vFilterBlocks = *(m_pcPic->getCU(iAddr)->getNDBFilterBlocks());
-
-    //variables
-    UInt  xPos, yPos, width, height;
-    Bool* pbBorderAvail;
-    UInt  posOffset;
-
-    for(Int i=0; i< vFilterBlocks.size(); i++)
-    {
-      xPos        = vFilterBlocks[i].posX   >> isChroma;
-      yPos        = vFilterBlocks[i].posY   >> isChroma;
-      width       = vFilterBlocks[i].width  >> isChroma;
-      height      = vFilterBlocks[i].height >> isChroma;
-      pbBorderAvail = vFilterBlocks[i].isBorderAvailable;
-
-      posOffset = (yPos* stride) + xPos;
-
-      calcSaoStatsBlock(pPicRec+ posOffset, pPicOrg+ posOffset, stride, ppStats, ppCount,width, height, pbBorderAvail);
-    }
-  }
-
 }
 
 #else
@@ -2032,15 +1997,6 @@ Void TEncSampleAdaptiveOffset::SAOProcess(SAOParam *pcSaoParam, Double dLambda)
 #else
   m_dLambdaLuma    = dLambda;
   m_dLambdaChroma  = dLambda;
-#endif
-
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-#if SAO_FGS_NIF
-  if(m_bUseNIF)
-  {
-    m_pcPic->getPicYuvRec()->copyToPic(m_pcYuvTmp);
-  }
-#endif
 #endif
 
 #if FULL_NBIT

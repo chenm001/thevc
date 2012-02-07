@@ -132,12 +132,8 @@ Void TComPic::compressMotion()
  * \param pSliceStartAddress array for storing slice start addresses
  * \param numSlices number of slices in picture
  * \param sliceGranularityDepth slice granularity 
- * \param bNDBFilterCrossSliceBoundary cross-slice-boundary in-loop filtering; true for "cross".
- * \param bNDBFilterCrossTileBoundary cross-tile-boundary in-loop filtering; true for "cross".
  */
-Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices
-                                    ,Bool bNDBFilterCrossSliceBoundary
-                                    ,Bool bNDBFilterCrossTileBoundary)
+Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices)
 {
   UInt maxNumSUInLCU = getNumPartInCU();
   UInt numLCUInPic   = getNumCUsInFrame();
@@ -148,8 +144,8 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices
   UInt maxNumSUInLCUWidth = getNumPartInWidth();
   UInt maxNumSUInLCUHeight= getNumPartInHeight();
 
-  m_bIndependentSliceBoundaryForNDBFilter = (bNDBFilterCrossSliceBoundary)?(false):((numSlices > 1)?(true):(false)) ;
-  m_bIndependentTileBoundaryForNDBFilter  = (bNDBFilterCrossTileBoundary)?(false) :(false);
+  m_bIndependentSliceBoundaryForNDBFilter = (false);
+  m_bIndependentTileBoundaryForNDBFilter  = (false);
 
   m_pbValidSlice = new Bool[numSlices];
   for(Int s=0; s< numSlices; s++)

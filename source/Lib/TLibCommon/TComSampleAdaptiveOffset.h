@@ -99,8 +99,6 @@ protected:
   Int   *m_iUpBufft;
   Int   *ipSwap;
 #if SAO_FGS_NIF
-  Bool  m_bUseNIF;       //!< true for performing non-cross slice boundary ALF
-  UInt  m_uiNumSlicesInPic;      //!< number of slices in picture
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   TComPicYuv* m_pcYuvTmp;    //!< temporary picture buffer pointer when non-across slice/tile boundary SAO is enabled
 #else
@@ -150,15 +148,13 @@ public:
 #if SAO_FGS_NIF
   Void processSaoCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process without slice granularity 
 #if NONCROSS_TILE_IN_LOOP_FILTERING
-  Void createPicSaoInfo(TComPic* pcPic, Int numSlicesInPic = 1);
+  Void createPicSaoInfo(TComPic* pcPic);
   Void destroyPicSaoInfo();
   Void processSaoBlock(Pel* pDec, Pel* pRest, Int stride, Int iSaoType, UInt xPos, UInt yPos, UInt width, UInt height, Bool* pbBorderAvail);
 #else
   Void processSaoCuMap(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process with slice granularity
   Void setNumSlicesInPic(UInt uiNum) {m_uiNumSlicesInPic = uiNum;}  //!< set num of slices in picture
   UInt getNumSlicesInPic()           {return m_uiNumSlicesInPic;}   //!< get num of slices in picture
-  Void setUseNIF(Bool bVal)  {m_bUseNIF = bVal;}    //!< set use non-cross-slice-boundaries in-loop filter (NIF)
-  Bool getUseNIF()           {return m_bUseNIF;}    //!< get use non-cross-slice-boundaries in-loop filter (NIF)
   Void createSliceMap(UInt iSliceIdx, UInt uiStartAddr, UInt uiEndAddr);//!< create slice map
   Void InitIsFineSliceCu(){memset(m_bIsFineSliceCu,0, sizeof(Bool)*m_iNumCuInWidth*m_iNumCuInHeight);} //!< Init is fine slice LCU
   Void setPic(TComPic* pcPic){m_pcPic = pcPic;} //!< set pic

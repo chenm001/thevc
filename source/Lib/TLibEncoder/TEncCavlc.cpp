@@ -229,10 +229,10 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
   WRITE_FLAG( pcAPS->getSaoEnabled()?1:0, "aps_sample_adaptive_offset_flag"); 
 
   //ALF flag
-  WRITE_FLAG( pcAPS->getAlfEnabled()?1:0, "aps_adaptive_loop_filter_flag"); 
+  WRITE_FLAG( 0,                          "aps_adaptive_loop_filter_flag"); 
 
 #if !G220_PURE_VLC_SAO_ALF
-  if(pcAPS->getSaoEnabled() || pcAPS->getAlfEnabled())
+  if(pcAPS->getSaoEnabled())
   {
     //CABAC usage flag
     WRITE_FLAG(pcAPS->getCABACForAPS()?1:0, "aps_cabac_use_flag"); 
@@ -492,7 +492,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #endif
   WRITE_FLAG( 1,                                                                     "loop_filter_across_slice_flag");
   WRITE_FLAG( pcSPS->getUseSAO() ? 1 : 0,                                            "sample_adaptive_offset_enabled_flag");
-  WRITE_FLAG( (pcSPS->getUseALF ()) ? 1 : 0,                                         "adaptive_loop_filter_enabled_flag");
+  WRITE_FLAG( 0,                                                                     "adaptive_loop_filter_enabled_flag");
 
 #if !G507_QP_ISSUE_FIX
   WRITE_FLAG( (pcSPS->getUseDQP ()) ? 1 : 0,                                         "cu_qp_delta_enabled_flag" );
@@ -616,20 +616,12 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     }
 #endif
 #if G174_DF_OFFSET
-    if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseDF())
+    if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseDF())
 #else
-    if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
+    if(pcSlice->getSPS()->getUseSAO())
 #endif
     {
 #if ALF_SAO_SLICE_FLAGS
-      if (pcSlice->getSPS()->getUseALF())
-      {
-         if (pcSlice->getAlfEnabledFlag())
-         {
-           assert (pcSlice->getAPS()->getAlfEnabled());
-         }
-         WRITE_FLAG( pcSlice->getAlfEnabledFlag(), "ALF on/off flag in slice header" );
-      }
       if (pcSlice->getSPS()->getUseSAO())
       {
          assert (pcSlice->getSaoEnabledFlag() == pcSlice->getAPS()->getSaoEnabled());
@@ -934,32 +926,6 @@ Void TEncCavlc::codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   }
 #endif
-}
-
-Void TEncCavlc::codeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{  
-  if (!m_bAlfCtrl)
-    return;
-  
-  if( pcCU->getDepth(uiAbsPartIdx) > m_uiMaxAlfCtrlDepth && !pcCU->isFirstAbsZorderIdxInDepth(uiAbsPartIdx, m_uiMaxAlfCtrlDepth))
-  {
-    return;
-  }
-  
-  // get context function is here
-  UInt uiSymbol = pcCU->getAlfCtrlFlag( uiAbsPartIdx ) ? 1 : 0;
-  
-  xWriteFlag( uiSymbol );
-}
-
-Void TEncCavlc::codeAlfCtrlDepth()
-{  
-  if (!m_bAlfCtrl)
-    return;
-  
-  UInt uiDepth = m_uiMaxAlfCtrlDepth;
-  
-  xWriteUnaryMaxSymbol(uiDepth, g_uiMaxCUDepth-1);
 }
 
 Void TEncCavlc::codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiEncMode )
@@ -1916,27 +1882,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
     }  
   }
 #endif
-}
-
-Void TEncCavlc::codeAlfFlag( UInt uiCode )
-{
-  
-  xWriteFlag( uiCode );
-}
-
-Void TEncCavlc::codeAlfCtrlFlag( UInt uiSymbol )
-{
-  xWriteFlag( uiSymbol );
-}
-
-Void TEncCavlc::codeAlfUvlc( UInt uiCode )
-{
-  xWriteUvlc( uiCode );
-}
-
-Void TEncCavlc::codeAlfSvlc( Int iCode )
-{
-  xWriteSvlc( iCode );
 }
 
 Void TEncCavlc::codeSaoFlag( UInt uiCode )

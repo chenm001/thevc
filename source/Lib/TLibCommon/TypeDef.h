@@ -430,38 +430,6 @@ struct _SaoParam
 #endif
 };
 
-#if ALF_SAO_MEMORY_CLEANUP
-struct ALFParam
-#else
-struct _AlfParam
-#endif
-{
-  Int alf_flag;                           ///< indicates use of ALF
-  Int chroma_idc;                         ///< indicates use of ALF for chroma
-  Int num_coeff;                          ///< number of filter coefficients
-  Int filter_shape;
-  Int filter_shape_chroma;
-  Int num_coeff_chroma;                   ///< number of filter coefficients (chroma)
-  Int *coeff_chroma;                      ///< filter coefficient array (chroma)
-  Int *filterPattern;
-  Int startSecondFilter;
-  Int filters_per_group;
-  Int predMethod;
-#if G665_ALF_COEFF_PRED
-  Int *nbSPred;
-#endif
-  Int **coeffmulti;
-  Int minKStart;
-  Int maxScanVal;
-  Int kMinTab[42];
-
-  Int alf_pcr_region_flag;
-#if ALF_SAO_MEMORY_CLEANUP
-  ~ALFParam();
-#endif
-};
-
-
 /// parameters for deblocking filter
 typedef struct _LFCUParam
 {

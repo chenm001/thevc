@@ -699,10 +699,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     }
   }
 #endif
-  // initialize ALF parameters
-  m_pcEntropyCoder->setAlfCtrl(false);
-  m_pcEntropyCoder->setMaxAlfCtrlDepth(0); //unnecessary
-
   // chen
   TEncTop* pcEncTop = (TEncTop*) m_pcCfg;
   m_pcBitCounter = pcEncTop->getBitCounter();

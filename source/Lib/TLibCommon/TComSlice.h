@@ -93,7 +93,6 @@ private:
 #if AMP
   Bool        m_useAMP;
 #endif
-  Bool        m_bUseALF;
 #if !G507_QP_ISSUE_FIX
   Bool        m_bUseDQP;
 #endif
@@ -197,7 +196,6 @@ public:
   UInt getMaxTrSize   ()         { return  m_uiMaxTrSize;   }
   
   // Tool list
-  Bool getUseALF      ()         { return m_bUseALF;        }
 #if !G507_QP_ISSUE_FIX
   Bool getUseDQP      ()         { return m_bUseDQP;        }
 #endif
@@ -205,7 +203,6 @@ public:
   Bool getUseLDC      ()         { return m_bUseLDC;        }
   Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
   
-  Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
 #if !G507_QP_ISSUE_FIX
   Void setUseDQP      ( Bool b ) { m_bUseDQP   = b;         }
 #endif
@@ -488,17 +485,11 @@ public:
   Int       getAPSID      ()          {return m_apsID;           }  //!< get APS ID
   Void      setSaoEnabled (Bool bVal) {m_bSaoEnabled = bVal;     }  //!< set SAO enabled/disabled in APS
   Bool      getSaoEnabled ()          {return m_bSaoEnabled;     }  //!< get SAO enabled/disabled in APS
-  Void      setAlfEnabled (Bool bVal) {m_bAlfEnabled = bVal;     }  //!< set ALF enabled/disabled in APS
-  Bool      getAlfEnabled ()          {return m_bAlfEnabled;     }  //!< get ALF enabled/disabled in APS
 
-  ALFParam* getAlfParam   ()          {return m_pAlfParam;       }  //!< get ALF parameters in APS
   SAOParam* getSaoParam   ()          {return m_pSaoParam;       }  //!< get SAO parameters in APS
 
   Void      createSaoParam();   //!< create SAO parameter object
   Void      destroySaoParam();  //!< destroy SAO parameter object
-
-  Void      createAlfParam();   //!< create ALF parameter object
-  Void      destroyAlfParam();  //!< destroy ALF parameter object
 
 #if G174_DF_OFFSET
   Void      setLoopFilterOffsetInAPS(Bool val)  {m_loopFilterOffsetInAPS = val; }      //!< set offset for deblocking filter enabled/disabled in APS
@@ -519,9 +510,7 @@ public:
 private:
   Int         m_apsID;        //!< APS ID
   Bool        m_bSaoEnabled;  //!< SAO enabled/disabled in APS (true for enabled)
-  Bool        m_bAlfEnabled;  //!< ALF enabled/disabled in APS (true for enabled)
   SAOParam*   m_pSaoParam;    //!< SAO parameter object pointer 
-  ALFParam*   m_pAlfParam;    //!< ALF parameter object pointer
 #if G174_DF_OFFSET
   Bool        m_loopFilterOffsetInAPS;       //< offset for deblocking filter in 0 = slice header, 1 = APS
   Bool        m_loopFilterDisable;           //< Deblocking filter enabled/disabled in APS
@@ -543,7 +532,6 @@ private:
   //  Bitstream writing
   Int         m_iAPSId; //!< APS ID in slice header
 #if ALF_SAO_SLICE_FLAGS
-  bool       m_alfEnabledFlag;
   bool       m_saoEnabledFlag;
 #endif
   Int         m_iPPSId;               ///< picture parameter set ID
@@ -663,8 +651,6 @@ public:
   Void      setAPSId        ( Int Id)          { m_iAPSId =Id;    } //!< set APS ID
   Int       getAPSId        ()                 { return m_iAPSId; } //!< get APS ID
 #if ALF_SAO_SLICE_FLAGS
-  Void      setAlfEnabledFlag(Bool s) {m_alfEnabledFlag =s; }
-  Bool      getAlfEnabledFlag() { return m_alfEnabledFlag; }
   Void      setSaoEnabledFlag(Bool s) {m_saoEnabledFlag =s; }
   Bool      getSaoEnabledFlag() { return m_saoEnabledFlag; }
 #endif

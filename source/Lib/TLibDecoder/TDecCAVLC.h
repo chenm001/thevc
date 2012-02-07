@@ -95,8 +95,6 @@ private:
   UInt                  m_uiCoeffCost;
   Bool                  m_bRunLengthCoding;
   UInt                  m_uiRun;
-  Bool m_bAlfCtrl;
-  UInt m_uiMaxAlfCtrlDepth;
   UInt                      m_uiLPTableD4[3][32];
   UInt                      m_uiLastPosVlcIndex[10];
   
@@ -144,14 +142,9 @@ public:
   Void  resetEntropy        (Int  iQp, Int iID) { printf("Not supported yet\n"); assert(0); exit(1);}
   Void  resetEntropy        ( TComSlice* pcSlice  );
   Void  setBitstream        ( TComInputBitstream* p )   { m_pcBitstream = p; }
-  Void  setAlfCtrl          ( Bool bAlfCtrl )            { m_bAlfCtrl = bAlfCtrl; }
-  Void  setMaxAlfCtrlDepth  ( UInt uiMaxAlfCtrlDepth )  { m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth; }
   Void  parseTransformSubdivFlag( UInt& ruiSubdivFlag, UInt uiLog2TransformBlockSize );
   Void  parseQtCbf          ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
   Void  parseQtRootCbf      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf );
-  Void  parseAlfFlag        ( UInt& ruiVal );
-  Void  parseAlfUvlc        ( UInt& ruiVal );
-  Void  parseAlfSvlc        ( Int&  riVal  );
   Void  parseSaoFlag        ( UInt& ruiVal );
   Void  parseSaoUvlc        ( UInt& ruiVal );
   Void  parseSaoSvlc        ( Int&  riVal  );
@@ -191,9 +184,6 @@ public:
   Void parseBlockCbf        ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum );
   Void parseCoeffNxN        ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
-  Void parseAlfCtrlDepth    ( UInt& ruiAlfCtrlDepth );
-  Void parseAlfCtrlFlag     ( UInt &ruiAlfCtrlFlag );
-
   /// parse APF flags before SAO and ALF parameters
   Void parseAPSInitInfo(TComAPS& cAPS);
 

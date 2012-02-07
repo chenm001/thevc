@@ -54,7 +54,6 @@
 #define NUM_MERGE_FLAG_EXT_CTX        1       ///< number of context models for merge flag of merge extended
 #define NUM_MERGE_IDX_EXT_CTX         4       ///< number of context models for merge index of merge extended
 
-#define NUM_ALF_CTRL_FLAG_CTX         1       ///< number of context models for ALF control flag
 #if PREDTYPE_CLEANUP
 #define NUM_PART_SIZE_CTX             4       ///< number of context models for partition size
 #else
@@ -156,10 +155,6 @@
 
 #define NUM_MVP_IDX_CTX               2       ///< number of context models for MVP index
 
-#define NUM_ALF_FLAG_CTX              1       ///< number of context models for ALF flag
-#define NUM_ALF_UVLC_CTX              2       ///< number of context models for ALF UVLC (filter length)
-#define NUM_ALF_SVLC_CTX              3       ///< number of context models for ALF SVLC (filter coeff.)
-
 #define NUM_SAO_FLAG_CTX              1       ///< number of context models for SAO flag
 #define NUM_SAO_UVLC_CTX              2       ///< number of context models for SAO UVLC
 #define NUM_SAO_SVLC_CTX              3       ///< number of context models for SAO SVLC
@@ -211,23 +206,6 @@ INIT_SKIP_FLAG[3][NUM_SKIP_FLAG_CTX] =
 };
 
 // initial probability for skip flag
-static const UChar
-INIT_ALF_CTRL_FLAG[3][NUM_ALF_CTRL_FLAG_CTX] =
-{
-  {
-    153,
-    
-  },
-  {
-     87,
-    
-  },
-  {
-    135,
-    
-  },
-};
-
 // initial probability for merge flag
 static const UChar
 INIT_MERGE_FLAG_EXT[3][NUM_MERGE_FLAG_EXT_CTX] =
@@ -1316,60 +1294,6 @@ INIT_MVP_IDX[3][NUM_MVP_IDX_CTX] =
   },
 };
 
-// initial probability for ALF flag
-static const UChar
-INIT_ALF_FLAG[3][NUM_ALF_FLAG_CTX] =
-{
-  {
-    118,
-    
-  },
-  {
-    102,
-    
-  },
-  {
-    102,
-    
-  },
-};
-
-// initial probability for ALF side information (unsigned)
-static const UChar
-INIT_ALF_UVLC[3][NUM_ALF_UVLC_CTX] =
-{
-  {
-    120, 119,
-    
-  },
-  {
-    119, 119,
-    
-  },
-  {
-    119, 119,
-    
-  },
-};
-
-// initial probability for ALF side information (signed)
-static const UChar
-INIT_ALF_SVLC[3][NUM_ALF_SVLC_CTX] =
-{
-  {
-    139, 119, 124,
-    
-  },
-  {
-     90, 119, 140,
-    
-  },
-  {
-     90, 119, 124,
-    
-  },
-};
-
 // initial probability for SAO flag
 static const UChar
 INIT_SAO_FLAG[3][NUM_SAO_FLAG_CTX] =
@@ -1472,21 +1396,6 @@ INIT_SKIP_FLAG[3][NUM_SKIP_FLAG_CTX][2] =
   },
   {
     {    0,   64 }, {    0,   64 }, {    0,   64 }
-  }
-};
-
-// initial probability for skip flag
-static const Short
-INIT_ALF_CTRL_FLAG[3][NUM_ALF_CTRL_FLAG_CTX][2] =
-{
-  {
-    {    0,   64 }
-  },
-  {
-    {    0,   64 }
-  },
-  {
-    {    0,   64 }
   }
 };
 
@@ -2832,50 +2741,6 @@ INIT_MVP_IDX[3][NUM_MVP_IDX_CTX][2] =
   }
 };
 
-// initial probability for ALF flag
-static const Short
-INIT_ALF_FLAG[3][NUM_ALF_FLAG_CTX][2] =
-{
-  {
-    {   50,  -48 }
-  },
-  {
-    {   27,  -20 }
-  },
-  {
-    {  -12,   68 }
-  }
-};
-
-// initial probability for ALF side information (unsigned)
-static const Short
-INIT_ALF_UVLC[3][NUM_ALF_UVLC_CTX][2] =
-{
-  {
-    {    1,   66 }, {   -3,   77 }
-  },
-  {
-    {   -5,   75 }, {  -14,   94 }
-  },
-  {
-    {   -5,   72 }, {  -30,  122 }
-  }
-};
-
-// initial probability for ALF side information (signed)
-static const Short
-INIT_ALF_SVLC[3][NUM_ALF_SVLC_CTX][2] =
-{
-  {
-    {   11,   57 }, {   -1,   62 }, {    0,   64 }
-  },
-  {
-    {    6,   66 }, {   -1,   64 }, {    0,   64 }
-  },
-  {
-    {    1,   73 }, {    2,   61 }, {    0,   64 }
-  }
-};
 // initial probability for SAO flag
 static const Short
 INIT_SAO_FLAG[3][NUM_SAO_FLAG_CTX][2] =

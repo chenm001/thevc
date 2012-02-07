@@ -236,7 +236,6 @@ enum NalUnitType
 };
 
 #if !ALF_SAO_MEMORY_CLEANUP
-typedef _AlfParam    ALFParam;
 typedef _SaoParam    SAOParam;
 #endif
 

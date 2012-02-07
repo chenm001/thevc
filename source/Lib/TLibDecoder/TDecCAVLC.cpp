@@ -118,8 +118,6 @@ Void  TDecCavlc::xReadFlagTr           (UInt& rValue, const Char *pSymbolName)
 
 TDecCavlc::TDecCavlc()
 {
-  m_bAlfCtrl = false;
-  m_uiMaxAlfCtrlDepth = 0;
 }
 
 TDecCavlc::~TDecCavlc()
@@ -255,10 +253,10 @@ Void TDecCavlc::parseAPSInitInfo(TComAPS& cAPS)
   //SAO flag
   READ_FLAG(uiCode, "aps_sample_adaptive_offset_flag");  cAPS.setSaoEnabled( (uiCode==1)?true:false );
   //ALF flag
-  READ_FLAG(uiCode, "aps_adaptive_loop_filter_flag");  cAPS.setAlfEnabled( (uiCode==1)?true:false );
+  READ_FLAG(uiCode, "aps_adaptive_loop_filter_flag");  assert( uiCode == 0 );
 
 #if !G220_PURE_VLC_SAO_ALF
-  if(cAPS.getSaoEnabled() || cAPS.getAlfEnabled())
+  if(cAPS.getSaoEnabled())
   {
     //CABAC usage flag
     READ_FLAG(uiCode, "aps_cabac_use_flag");  cAPS.setCABACForAPS( (uiCode==1)?true:false );
@@ -496,7 +494,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #endif
   READ_FLAG( uiCode, "loop_filter_across_slice_flag" );          assert( uiCode == 1 );
   READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO ( uiCode ? true : false );  
-  READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );      pcSPS->setUseALF ( uiCode ? true : false );
+  READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );      assert( uiCode == 0 );
 
 #if !G507_QP_ISSUE_FIX
   READ_FLAG( uiCode, "cu_qp_delta_enabled_flag" );               pcSPS->setUseDQP ( uiCode ? true : false );
@@ -683,17 +681,12 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     }
 #endif
 #if G174_DF_OFFSET
-    if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF() || rpcSlice->getSPS()->getUseDF())
+    if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseDF())
 #else
-    if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF())
+    if(rpcSlice->getSPS()->getUseSAO())
 #endif
     {
 #if ALF_SAO_SLICE_FLAGS
-      if (rpcSlice->getSPS()->getUseALF())
-      {
-        READ_FLAG(uiCode, "ALF flag in slice header");
-        rpcSlice->setAlfEnabledFlag((Bool)uiCode);
-      }
       if (rpcSlice->getSPS()->getUseSAO())
       {
         READ_FLAG(uiCode, "SAO flag in slice header");
@@ -1019,14 +1012,6 @@ Void TDecCavlc::parseTerminatingBit( UInt& ruiBit )
     }
   }
 }
-
-Void TDecCavlc::parseAlfCtrlDepth              ( UInt& ruiAlfCtrlDepth )
-{
-  UInt uiSymbol;
-  xReadUnaryMaxSymbol(uiSymbol, g_uiMaxCUDepth-1);
-  ruiAlfCtrlDepth = uiSymbol;
-}
-
 
 Void TDecCavlc::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
@@ -2159,28 +2144,6 @@ Void TDecCavlc::parseQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
   UInt uiSymbol;
   xReadFlag( uiSymbol );
   uiQtRootCbf = uiSymbol;
-}
-
-Void TDecCavlc::parseAlfFlag (UInt& ruiVal)
-{
-  xReadFlag( ruiVal );
-}
-
-Void TDecCavlc::parseAlfCtrlFlag( UInt &ruiAlfCtrlFlag )
-{
-  UInt uiSymbol;
-  xReadFlag( uiSymbol );
-  ruiAlfCtrlFlag = uiSymbol;
-}
-
-Void TDecCavlc::parseAlfUvlc (UInt& ruiVal)
-{
-  xReadUvlc( ruiVal );
-}
-
-Void TDecCavlc::parseAlfSvlc (Int&  riVal)
-{
-  xReadSvlc( riVal );
 }
 
 Void TDecCavlc::parseSaoFlag (UInt& ruiVal)

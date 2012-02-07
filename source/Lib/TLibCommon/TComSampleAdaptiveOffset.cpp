@@ -581,15 +581,9 @@ inline int xSign(int x)
  * \param  pcPic picture data pointer
  * \param  numSlicesInPic number of slices in picture
  */
-Void TComSampleAdaptiveOffset::createPicSaoInfo(TComPic* pcPic, Int numSlicesInPic)
+Void TComSampleAdaptiveOffset::createPicSaoInfo(TComPic* pcPic)
 {
   m_pcPic   = pcPic;
-  m_uiNumSlicesInPic = numSlicesInPic;
-  m_bUseNIF = ( pcPic->getIndependentSliceBoundaryForNDBFilter() || pcPic->getIndependentTileBoundaryForNDBFilter() );
-  if(m_bUseNIF)
-  {
-    m_pcYuvTmp = pcPic->getYuvPicBufferForIndependentBoundaryProcessing();
-  }
 }
 
 Void TComSampleAdaptiveOffset::destroyPicSaoInfo()
@@ -602,37 +596,7 @@ Void TComSampleAdaptiveOffset::destroyPicSaoInfo()
  */
 Void TComSampleAdaptiveOffset::processSaoCu(Int iAddr, Int iSaoType, Int iYCbCr)
 {
-  if(!m_bUseNIF)
-  {
     processSaoCuOrg( iAddr, iSaoType, iYCbCr);
-  }
-  else
-  {  
-    Int  isChroma = (iYCbCr != 0)? 1:0;
-    Int  stride   = (iYCbCr != 0)?(m_pcPic->getCStride()):(m_pcPic->getStride());
-    Pel* pPicRest = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr);
-    Pel* pPicDec  = getPicYuvAddr(m_pcYuvTmp, iYCbCr);
-
-    std::vector<NDBFBlockInfo>& vFilterBlocks = *(m_pcPic->getCU(iAddr)->getNDBFilterBlocks());
-
-    //variables
-    UInt  xPos, yPos, width, height;
-    Bool* pbBorderAvail;
-    UInt  posOffset;
-
-    for(Int i=0; i< vFilterBlocks.size(); i++)
-    {
-      xPos        = vFilterBlocks[i].posX   >> isChroma;
-      yPos        = vFilterBlocks[i].posY   >> isChroma;
-      width       = vFilterBlocks[i].width  >> isChroma;
-      height      = vFilterBlocks[i].height >> isChroma;
-      pbBorderAvail = vFilterBlocks[i].isBorderAvailable;
-
-      posOffset = (yPos* stride) + xPos;
-
-      processSaoBlock(pPicDec+ posOffset, pPicRest+ posOffset, stride, iSaoType, xPos, yPos, width, height, pbBorderAvail);
-    }
-  }
 }
 
 /** Perform SAO for non-cross-slice or non-cross-tile process
@@ -2138,12 +2102,6 @@ Void TComSampleAdaptiveOffset::SAOProcess(TComPic* pcPic, SAOParam* pcSaoParam)
 #endif
 
 #if NONCROSS_TILE_IN_LOOP_FILTERING
-#if SAO_FGS_NIF
-    if(m_bUseNIF)
-    {
-      m_pcPic->getPicYuvRec()->copyToPic(m_pcYuvTmp);
-    }
-#endif
 #else
     m_pcPic = pcPic;
 #endif

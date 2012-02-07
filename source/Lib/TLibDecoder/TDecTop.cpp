@@ -114,7 +114,7 @@ Void TDecTop::init()
 {
   // initialize ROM
   initROM();
-  m_cGopDecoder.init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter, &m_cAdaptiveLoopFilter, &m_cSAO);
+  m_cGopDecoder.init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter, &m_cSAO);
   m_cSliceDecoder.init( &m_cEntropyDecoder, &m_cCuDecoder );
   m_cEntropyDecoder.init(&m_cPrediction);
 }
@@ -133,9 +133,6 @@ Void TDecTop::deletePicBuffer ( )
     pcPic = NULL;
   }
   
-  // destroy ALF temporary buffers
-  m_cAdaptiveLoopFilter.destroy();
-
   m_cSAO.destroy();
   
   m_cLoopFilter.        destroy();
@@ -333,8 +330,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       }
 #endif
 
-      // create ALF temporary buffer
-      m_cAdaptiveLoopFilter.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
       m_cSAO.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 #if !DISABLE_PARALLEL_DECISIONS
       m_cLoopFilter.create( m_cSPS.getWidth(), m_cSPS.getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
@@ -400,24 +395,9 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 #endif
       m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot);
 #if G220_PURE_VLC_SAO_ALF
-      if(m_apcSlicePilot->isNextSlice())
-      {
-        if(m_cSPS.getUseALF())
-        {
-#if ALF_SAO_SLICE_FLAGS
-          if (m_apcSlicePilot->getAlfEnabledFlag())
-#else
-          if(m_vAPS[m_apcSlicePilot->getAPSId()].back().getAlfEnabled())
-#endif
-          {
-            m_cGopDecoder.decodeAlfOnOffCtrlParam();
-          }
-        }
-      }
 #if (OL_USE_WPP)
       m_cEntropyDecoder.decodeWPPTileInfoToSliceHeader(m_apcSlicePilot);
 #endif
-
 #endif
 
         Int numBitsForByteAlignment = nalu.m_Bitstream->getNumBitsUntilByteAligned();
@@ -438,9 +418,9 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         return true;
       }
 #if G174_DF_OFFSET
-      if(m_cSPS.getUseSAO() || m_cSPS.getUseALF() || m_cSPS.getUseDF())
+      if(m_cSPS.getUseSAO() || m_cSPS.getUseDF())
 #else
-      if(m_cSPS.getUseSAO() || m_cSPS.getUseALF())
+      if(m_cSPS.getUseSAO())
 #endif
       {
         m_apcSlicePilot->setAPS( popAPS(m_apcSlicePilot->getAPSId())  );
@@ -738,40 +718,6 @@ Void TDecTop::decodeAPS(TComInputBitstream* bs, TComAPS& cAPS)
     //else  trailing bits
 #endif
   }
-
-  if(cAPS.getAlfEnabled())
-  {
-    cAPS.getAlfParam()->alf_flag = 1;
-#if !G220_PURE_VLC_SAO_ALF
-    //read ALF bitstream length in byte
-    UInt uiBsLength = bs->read(APS_BITS_FOR_ALF_BYTE_LENGTH);
-    assert(uiBsLength > 0);
-
-    //read byte-alignment bits
-    Int numBitsForByteAlignment = bs->getNumBitsUntilByteAligned();
-    if ( numBitsForByteAlignment > 0 )
-    {
-      UInt bitsForByteAlignment;
-      bs->read( numBitsForByteAlignment, bitsForByteAlignment );
-      assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
-    }
-
-    if (cAPS.getCABACForAPS())
-    {
-      m_cSbacDecoder.init((TDecBinIf*)(&m_cBinCABAC));
-      m_cEntropyDecoder.setEntropyDecoder(&m_cSbacDecoder);
-      m_cEntropyDecoder.setBitstream(bs);
-      m_cEntropyDecoder.resetEntropy(cAPS.getCABACinitQP(), cAPS.getCABACinitIDC());
-    }
-    else
-    {
-      m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
-      m_cEntropyDecoder.setBitstream(bs);
-    }
-#endif
-    m_cEntropyDecoder.decodeAlfParam( cAPS.getAlfParam());
-  }
-
 }
 
 /** Pop APS object pointer from APS container
@@ -829,11 +775,6 @@ Void TDecTop::allocAPS (TComAPS* pAPS)
     pAPS->createSaoParam();
     m_cSAO.allocSaoParam(pAPS->getSaoParam());
   }
-  if(m_cSPS.getUseALF())
-  {
-    pAPS->createAlfParam();
-    m_cAdaptiveLoopFilter.allocALFParam(pAPS->getAlfParam());
-  }
 }
 Void TDecTop::freeAPS (TComAPS* pAPS)
 {
@@ -841,11 +782,6 @@ Void TDecTop::freeAPS (TComAPS* pAPS)
   {
     m_cSAO.freeSaoParam(pAPS->getSaoParam());
     pAPS->destroySaoParam();
-  }
-  if(m_cSPS.getUseALF())
-  {
-    m_cAdaptiveLoopFilter.freeALFParam(pAPS->getAlfParam());
-    pAPS->destroyAlfParam();
   }
 }
 

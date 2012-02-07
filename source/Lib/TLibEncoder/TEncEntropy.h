@@ -44,7 +44,6 @@
 #include "TLibCommon/ContextModel.h"
 #include "TLibCommon/TComPic.h"
 #include "TLibCommon/TComTrQuant.h"
-#include "TLibCommon/TComAdaptiveLoopFilter.h"
 #include "TLibCommon/TComSampleAdaptiveOffset.h"
 
 class TEncSbac;
@@ -59,11 +58,6 @@ class SEI;
 class TEncEntropyIf
 {
 public:
-  virtual Bool getAlfCtrl()                = 0;
-  virtual UInt getMaxAlfCtrlDepth()                = 0;
-  virtual Void setAlfCtrl(Bool bAlfCtrl)                = 0;
-  virtual Void setMaxAlfCtrlDepth(UInt uiMaxAlfCtrlDepth)                = 0;
-  
   virtual Void  resetEntropy          ()                = 0;
   virtual Void  setBitstream          ( TComBitIf* p )  = 0;
   virtual Void  setSlice              ( TComSlice* p )  = 0;
@@ -80,12 +74,9 @@ public:
   virtual Void  codeTerminatingBit      ( UInt uilsLast )                                       = 0;
   virtual Void  codeSliceFinish         ()                                                      = 0;
   
-  virtual Void codeAlfCtrlDepth() = 0;
   virtual Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList ) = 0;
   
 public:
-  virtual Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
-  
   virtual Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
   virtual Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
   virtual Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
@@ -110,11 +101,6 @@ public:
   virtual UInt xGetFlagPattern   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
   virtual Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType ) = 0;
   
-  virtual Void codeAlfFlag          ( UInt uiCode ) = 0;
-  virtual Void codeAlfUvlc          ( UInt uiCode ) = 0;
-  virtual Void codeAlfSvlc          ( Int   iCode ) = 0;
-
-  virtual Void codeAlfCtrlFlag      ( UInt uiSymbol ) = 0;
   virtual Void codeSaoFlag          ( UInt uiCode ) = 0;
   virtual Void codeSaoUvlc          ( UInt uiCode ) = 0;
   virtual Void codeSaoSvlc          ( Int   iCode ) = 0;
@@ -158,9 +144,6 @@ public:
   Void    encodeTerminatingBit      ( UInt uiIsLast );
   Void    encodeSliceFinish         ();
 
-  
-  Void encodeAlfParam(ALFParam* pAlfParam);
-  
   TEncEntropyIf*      m_pcEntropyCoderIf;
   
 public:
@@ -168,10 +151,6 @@ public:
   Void encodeSPS               ( TComSPS* pcSPS );
   Void encodePPS               ( TComPPS* pcPPS );
   void encodeSEI(const SEI&);
-  Bool getAlfCtrl() {return m_pcEntropyCoderIf->getAlfCtrl();}
-  UInt getMaxAlfCtrlDepth() {return m_pcEntropyCoderIf->getMaxAlfCtrlDepth();}
-  Void setAlfCtrl(Bool bAlfCtrl) {m_pcEntropyCoderIf->setAlfCtrl(bAlfCtrl);}
-  Void setMaxAlfCtrlDepth(UInt uiMaxAlfCtrlDepth) {m_pcEntropyCoderIf->setMaxAlfCtrlDepth(uiMaxAlfCtrlDepth);}
   
   Void encodeSplitFlag         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD = false );
   Void encodeSkipFlag          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
@@ -182,12 +161,6 @@ public:
   Void encodeMVPIdxPU     ( TComDataCU* pcSubCU, UInt uiAbsPartIdx, RefPicList eRefList );
   Void encodeMergeFlag    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPUIdx );
   Void encodeMergeIndex   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPUIdx, Bool bRD = false );
-  Void encodeAlfCtrlFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
-
-  /// encode ALF CU control flag
-  Void encodeAlfCtrlFlag(UInt uiFlag);
-
-  Void encodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
 
   Void encodePredMode          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   Void encodePartSize          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD = false );
@@ -229,22 +202,6 @@ public:
   Void estimateBit             ( estBitsSbacStruct* pcEstBitsSbac, UInt uiWidth, TextType eTType);
 #endif
   
-  // ALF-related
-  Void codeAuxCountBit(ALFParam* pAlfParam, Int64* ruiRate);
-  Void codeFiltCountBit(ALFParam* pAlfParam, Int64* ruiRate);
-  Void codeAux (ALFParam* pAlfParam);
-  Void codeFilt (ALFParam* pAlfParam);
-  Int codeFilterCoeff(ALFParam* ALFp);
-#if G610_ALF_K_BIT_FIX
-  Int writeFilterCodingParams(int minKStart, int minScanVal, int maxScanVal, int kMinTab[]);
-#else
-  Int writeFilterCodingParams(int minKStart, int maxScanVal, int kMinTab[]);
-#endif
-
-  Int writeFilterCoeffs(int sqrFiltLength, int filters_per_group, int pDepthInt[], 
-                        int **FilterCoeff, int kMinTab[]);
-  Int golombEncode(int coeff, int k);
-  Int lengthGolomb(int coeffVal, int k);
   Void    encodeSaoOnePart       (SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
   Void    encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
   Void    encodeSaoParam         (SAOParam* pSaoParam);

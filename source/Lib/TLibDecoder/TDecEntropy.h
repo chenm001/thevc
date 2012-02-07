@@ -43,7 +43,6 @@
 #include "TLibCommon/TComSlice.h"
 #include "TLibCommon/TComPic.h"
 #include "TLibCommon/TComPrediction.h"
-#include "TLibCommon/TComAdaptiveLoopFilter.h"
 #include "TLibCommon/TComSampleAdaptiveOffset.h"
 
 class TDecSbac;
@@ -62,9 +61,6 @@ class TDecEntropyIf
 {
 public:
   //  Virtual list for SBAC/CAVLC
-  virtual Void setAlfCtrl(Bool bAlfCtrl)  = 0;
-  virtual Void setMaxAlfCtrlDepth(UInt uiMaxAlfCtrlDepth)  = 0;
-  
   virtual Void  resetEntropy          (Int  iQp, Int iID) = 0;
   virtual Void  resetEntropy          (TComSlice* pcSlice)                = 0;
   virtual Void  setBitstream          ( TComInputBitstream* p )  = 0;
@@ -110,12 +106,6 @@ public:
   
   virtual Void parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType ) = 0;
   
-  virtual Void parseAlfFlag       ( UInt& ruiVal           ) = 0;
-  virtual Void parseAlfUvlc       ( UInt& ruiVal           ) = 0;
-  virtual Void parseAlfSvlc       ( Int&  riVal            ) = 0;
-  virtual Void parseAlfCtrlDepth  ( UInt& ruiAlfCtrlDepth  ) = 0;
-  virtual Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag ) = 0;
-
   virtual Void parseSaoFlag       ( UInt& ruiVal           ) = 0;
   virtual Void parseSaoUvlc       ( UInt& ruiVal           ) = 0;
   virtual Void parseSaoSvlc       ( Int&  riVal            ) = 0;
@@ -164,10 +154,6 @@ public:
 #endif
   Void    decodeTerminatingBit        ( UInt& ruiIsLast )       { m_pcEntropyDecoderIf->parseTerminatingBit(ruiIsLast);     }
   
-  // Adaptive Loop filter
-  Void decodeAlfParam(ALFParam* pAlfParam);
-  //--Adaptive Loop filter
-  
   TDecEntropyIf* getEntropyDecoder() { return m_pcEntropyDecoderIf; }
   
 public:
@@ -175,7 +161,6 @@ public:
   Void decodeSkipFlag          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void decodeMergeFlag         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx );
   Void decodeMergeIndex        ( TComDataCU* pcSubCU, UInt uiPartIdx, UInt uiPartAddr, PartSize eCUMode, UChar* puhInterDirNeighbours, TComMvField* pcMvFieldNeighbours, UInt uiDepth );
-  Void decodeAlfCtrlParam      (AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
   Void decodePredMode          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void decodePartSize          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   
@@ -198,14 +183,6 @@ private:
 public:
   Void decodeCoeff             ( TComDataCU* pcCU                 , UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, Bool& bCodeDQP );
   
-  // ALF-related
-  Void decodeAux(ALFParam* pAlfParam);
-  Void decodeFilt(ALFParam* pAlfParam);
-  Void readFilterCodingParams(ALFParam* pAlfParam);
-  Void readFilterCoeffs(ALFParam* pAlfParam);
-  Void decodeFilterCoeff (ALFParam* pAlfParam);
-  Int golombDecode(Int k);
-
   Void decodeSaoOnePart       (SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
   Void decodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
   Void decodeSaoParam         (SAOParam* pSaoParam);
