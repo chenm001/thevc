@@ -156,8 +156,6 @@ protected:
   Bool      m_bHierarchicalCoding;              //  hierarchical-B coding
 #endif
   
-  Bool      m_bUseSAO;
-
   //====== Motion search ========
   Int       m_iFastSearch;                      //  0:Full search  1:Diamond  2:PMVFAST
   Int       m_iSearchRange;                     //  0:Full frame
@@ -431,8 +429,6 @@ public:
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }
 
-  Void      setUseSAO                  (Bool bVal)     {m_bUseSAO = bVal;}
-  Bool      getUseSAO                  ()              {return m_bUseSAO;}
   void setPictureDigestEnabled(bool b) { m_pictureDigestEnabled = b; }
   bool getPictureDigestEnabled() { return m_pictureDigestEnabled; }
 

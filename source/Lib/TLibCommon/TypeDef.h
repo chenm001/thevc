@@ -42,8 +42,6 @@
 //! \ingroup TLibCommon
 //! \{
 
-#define ALF_SAO_MEMORY_CLEANUP     1
-
 #define INC_CABACINITIDC_SLICETYPE 1 ///<G315: support for making presence of cabac_init_idc syntax element not dependent on slice type, and slice_type in slice header and entropy slice header
 #define SLICEADDR_BEGIN            1 ///<G315: support for moving slice address to beginning of slice
 #define PADDING_INTRA             1 ///< G812: padding from bottom left, copy previous pixel instead of averaging
@@ -171,9 +169,6 @@
 #if NSQT
 #define NS_HAD                               1
 #endif
-
-  #define APS_BITS_FOR_SAO_BYTE_LENGTH 12           
-  #define APS_BITS_FOR_ALF_BYTE_LENGTH 8
 
 #define F747_CABAC_FLUSH_SLICE_HEADER        1       // F747 & F399: CABAC Flush after slice header
 
@@ -366,69 +361,6 @@ class TComPicSym;
 
 #define NUM_DOWN_PART 4
 #define NUM_MAX_OFFSET  32
-
-enum SAOTypeLen
-{
-  SAO_EO_LEN    = 4, 
-  SAO_EO_LEN_2D = 6, 
-  SAO_BO_LEN    = 16
-};
-
-enum SAOType
-{
-  SAO_EO_0 = 0, 
-  SAO_EO_1,
-  SAO_EO_2, 
-  SAO_EO_3,
-  SAO_BO_0,
-  SAO_BO_1,
-  MAX_NUM_SAO_TYPE
-};
-
-typedef struct _SaoQTPart
-{
-  Bool        bEnableFlag;
-  Int         iBestType;
-  Int         iLength;
-  Int         iOffset[32];
-
-  Int         StartCUX;
-  Int         StartCUY;
-  Int         EndCUX;
-  Int         EndCUY;
-
-  Int         PartIdx;
-  Int         PartLevel;
-  Int         PartCol;
-  Int         PartRow;
-
-  Int         DownPartsIdx[NUM_DOWN_PART];
-  Int         UpPartIdx;
-
-  Bool        bSplit;
-
-  //---- encoder only start -----//
-  Bool        bProcessed;
-  Double      dMinCost;
-  Int64       iMinDist;
-  Int         iMinRate;
-  //---- encoder only end -----//
-} SAOQTPart;
-
-#if ALF_SAO_MEMORY_CLEANUP
-struct SAOParam
-#else
-struct _SaoParam
-#endif
-{
-  Bool       bSaoFlag[3];
-  SAOQTPart* psSaoPart[3];
-  Int        iMaxSplitLevel;
-  Int        iNumClass[MAX_NUM_SAO_TYPE];
-#if ALF_SAO_MEMORY_CLEANUP
-  ~SAOParam();
-#endif
-};
 
 /// parapeters for TENTM coefficient VLC
 typedef struct _LastCoeffStruct

@@ -251,25 +251,9 @@ Void TDecCavlc::parseAPSInitInfo(TComAPS& cAPS)
   READ_FLAG(uiCode, "aps_deblocking_filter_flag"); assert( uiCode == 0 );
 #endif
   //SAO flag
-  READ_FLAG(uiCode, "aps_sample_adaptive_offset_flag");  cAPS.setSaoEnabled( (uiCode==1)?true:false );
+  READ_FLAG(uiCode, "aps_sample_adaptive_offset_flag");  assert( uiCode == 0 );
   //ALF flag
   READ_FLAG(uiCode, "aps_adaptive_loop_filter_flag");  assert( uiCode == 0 );
-
-#if !G220_PURE_VLC_SAO_ALF
-  if(cAPS.getSaoEnabled())
-  {
-    //CABAC usage flag
-    READ_FLAG(uiCode, "aps_cabac_use_flag");  cAPS.setCABACForAPS( (uiCode==1)?true:false );
-    if(cAPS.getCABACForAPS())
-    {
-      Int iCode;
-      //CABAC init IDC
-      READ_UVLC(uiCode, "aps_cabac_init_idc");  cAPS.setCABACinitIDC( uiCode );
-      //CABAC init QP
-      READ_SVLC(iCode, "aps_cabac_init_qp_minus26");  cAPS.setCABACinitQP( iCode + 26);
-    }
-  }
-#endif
 }
 
 Void TDecCavlc::parsePPS(TComPPS* pcPPS)
@@ -493,7 +477,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_FLAG( uiCode, "deblocking_filter_In_APS_enabled_flag" );  assert( uiCode == 0 );
 #endif
   READ_FLAG( uiCode, "loop_filter_across_slice_flag" );          assert( uiCode == 1 );
-  READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO ( uiCode ? true : false );  
+  READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    assert( uiCode == 0 );
   READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );      assert( uiCode == 0 );
 
 #if !G507_QP_ISSUE_FIX
@@ -680,17 +664,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       }  
     }
 #endif
-    if(rpcSlice->getSPS()->getUseSAO())
-    {
-#if ALF_SAO_SLICE_FLAGS
-      if (rpcSlice->getSPS()->getUseSAO())
-      {
-        READ_FLAG(uiCode, "SAO flag in slice header");
-        rpcSlice->setSaoEnabledFlag((Bool)uiCode);
-      }
-#endif
-      READ_UVLC (    uiCode, "aps_id" );  rpcSlice->setAPSId(uiCode);
-    }
 #if !G1002_RPS
     //   frame_num
     //   if( IdrPicFlag )
@@ -2132,21 +2105,6 @@ Void TDecCavlc::parseQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
   UInt uiSymbol;
   xReadFlag( uiSymbol );
   uiQtRootCbf = uiSymbol;
-}
-
-Void TDecCavlc::parseSaoFlag (UInt& ruiVal)
-{
-  xReadFlag( ruiVal );
-}
-
-Void TDecCavlc::parseSaoUvlc (UInt& ruiVal)
-{
-  xReadUvlc( ruiVal );
-}
-
-Void TDecCavlc::parseSaoSvlc (Int&  riVal)
-{
-  xReadSvlc( riVal );
 }
 
 Void TDecCavlc::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx )

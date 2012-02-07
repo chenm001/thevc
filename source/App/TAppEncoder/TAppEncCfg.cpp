@@ -247,8 +247,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   /* Coding tools */
   ("MRG", m_bUseMRG, true, "merging of motion partitions")
 
-  ("SAO", m_bUseSAO, true, "SAO")   
-
   /* Misc. */
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
                                               "\t1: use MD5\n"
@@ -815,7 +813,6 @@ Void TAppEncCfg::xPrintParameter()
 #endif
   printf("RQT:%d ", 1     );
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
-  printf("SAO:%d ", (m_bUseSAO)?(1):(0));
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD
   printf("NewRefSetting:%d ", m_bUseNewRefSetting?1:0);

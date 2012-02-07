@@ -123,8 +123,6 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
   m_pcSbacCoder          = pcTEncTop->getSbacCoder();
   m_pcBinCABAC           = pcTEncTop->getBinCABAC();
   m_pcBitCounter         = pcTEncTop->getBitCounter();
-  
-  m_pcSAO                = pcTEncTop->getSAO();
 }
 
 // ====================================================================================================================
@@ -467,50 +465,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         uiNextCUAddr = uiStartCUAddrSlice;
       }
       m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx++]                = pcSlice->getSliceCurEndCUAddr();
-      
-      pcSlice = pcPic->getSlice(0);
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-      pcSlice = pcPic->getSlice(0);
-      if(pcSlice->getSPS()->getUseSAO())
-      {
-        pcPic->createNonDBFilterInfo(m_uiStoredStartCUAddrForEncodingSlice, uiNumSlices);
-      }
-#endif
-
-
-      pcSlice = pcPic->getSlice(0);
-
-      if(pcSlice->getSPS()->getUseSAO())
-      {
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-        m_pcSAO->createPicSaoInfo(pcPic);
-#else
-        m_pcSAO->setNumSlicesInPic( uiNumSlices );
-        if(uiNumSlices == 1)
-        {
-          m_pcSAO->setUseNIF(false);
-        }
-        else
-        {
-          m_pcSAO->setPic(pcPic);
-          m_pcSAO->setUseNIF(false);
-          if (m_pcSAO->getUseNIF())
-          {
-            m_pcSAO->InitIsFineSliceCu();
-            UInt uiStartAddr, uiEndAddr;
-            for(UInt i=0; i< uiNumSlices ; i++)
-            {
-              uiStartAddr = m_uiStoredStartCUAddrForEncodingSlice[i];
-              uiEndAddr   = m_uiStoredStartCUAddrForEncodingSlice[i+1]-1;
-              m_pcSAO->createSliceMap(i, uiStartAddr, uiEndAddr);
-            }
-          }
-        }
-#endif
-      }
-
-      pcSlice = pcPic->getSlice(0);
+      // CHECK_ME
+      assert(pcSlice == pcPic->getSlice(0));
 
       /////////////////////////////////////////////////////////////////////////////////////////////////// File writing
       // Set entropy coder
@@ -543,7 +500,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       uiNextCUAddr                 = 0;
       pcSlice = pcPic->getSlice(uiStartCUAddrSliceIdx);
 
-      Int processingState = (pcSlice->getSPS()->getUseSAO())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
+      Int processingState = ENCODE_SLICE;
 
       static Int iCurrAPSIdx = 0;
       Int iCodedAPSIdx = 0;
@@ -703,70 +660,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         processingState = ENCODE_SLICE;
           }
           break;
-        case EXECUTE_INLOOPFILTER:
-          {
-            TComAPS cAPS;
-            allocAPS(&cAPS, pcSlice->getSPS());
-            // set entropy coder for RD
-#if G220_PURE_VLC_SAO_ALF
-            m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
-#else
-              m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcSlice );
-#endif
-
-            if ( pcSlice->getSPS()->getUseSAO() )
-            {
-              m_pcEntropyCoder->resetEntropy();
-              m_pcEntropyCoder->setBitstream( m_pcBitCounter );
-#if G220_PURE_VLC_SAO_ALF
-              m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), NULL);
-#else
-              m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcCfg->getUseSBACRD() ?  m_pcEncTop->getRDGoOnSbacCoder() : NULL);
-#endif
-              SAOParam& cSaoParam = *(cAPS.getSaoParam());
-
-#if SAO_CHROMA_LAMBDA 
-              m_pcSAO->SAOProcess(&cSaoParam, pcPic->getSlice(0)->getLambdaLuma(), pcPic->getSlice(0)->getLambdaChroma());
-#else
-#if ALF_CHROMA_LAMBDA
-              m_pcSAO->SAOProcess(&cSaoParam, pcPic->getSlice(0)->getLambdaLuma());
-#else
-              m_pcSAO->SAOProcess(&cSaoParam, pcPic->getSlice(0)->getLambda());
-#endif
-#endif
-              m_pcSAO->endSaoEnc();
-            }
-
-            iCodedAPSIdx = iCurrAPSIdx;  
-            pcSliceForAPS = pcSlice;
-
-            assignNewAPS(cAPS, iCodedAPSIdx, vAPS, pcSliceForAPS);
-            iCurrAPSIdx = (iCurrAPSIdx +1)%MAX_NUM_SUPPORTED_APS;
-            processingState = ENCODE_APS;
-
-            //set APS link to the slices
-            for(Int s=0; s< uiNumSlices; s++)
-            {
-#if ALF_SAO_SLICE_FLAGS
-              if (pcSlice->getSPS()->getUseSAO())
-              {
-                pcPic->getSlice(s)->setSaoEnabledFlag((cAPS.getSaoParam()->bSaoFlag[0]==1)?true:false);
-              }
-#endif
-              pcPic->getSlice(s)->setAPS(&(vAPS[iCodedAPSIdx]));
-              pcPic->getSlice(s)->setAPSId(iCodedAPSIdx);
-            }
-          }
-          break;
-        case ENCODE_APS:
-          {
-            OutputNALUnit nalu(NAL_UNIT_APS, NAL_REF_IDC_PRIORITY_HIGHEST);
-            encodeAPS(&(vAPS[iCodedAPSIdx]), nalu.m_Bitstream, pcSliceForAPS);
-            accessUnit.push_back(new NALUnitEBSP(nalu));
-
-            processingState = ENCODE_SLICE;
-          }
-          break;
         default:
           {
             printf("Not a supported encoding state\n");
@@ -775,19 +668,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           }
         }
       } // end iteration over slices
-
-
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-      if(pcSlice->getSPS()->getUseSAO())
-      {
-        if(pcSlice->getSPS()->getUseSAO())
-        {
-          m_pcSAO->destroyPicSaoInfo();
-        }
-
-        pcPic->destroyNonDBFilterInfo();
-      }
-#endif
 
       pcPic->compressMotion(); 
       
@@ -866,36 +746,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
   assert ( m_iNumPicCoded == iNumPicRcvd );
 }
 
-/** Memory allocation for APS
-  * \param [out] pAPS APS pointer
-  * \param [in] pSPS SPS pointer
-  */
-Void TEncGOP::allocAPS (TComAPS* pAPS, TComSPS* pSPS)
-{
-  if(pSPS->getUseSAO())
-  {
-    pAPS->createSaoParam();
-    m_pcSAO->allocSaoParam(pAPS->getSaoParam());
-  }
-}
-
-/** Memory deallocation for APS
-  * \param [out] pAPS APS pointer
-  * \param [in] pSPS SPS pointer
-  */
-Void TEncGOP::freeAPS (TComAPS* pAPS, TComSPS* pSPS)
-{
-  if(pSPS->getUseSAO())
-  {
-    if(pAPS->getSaoParam() != NULL)
-    {
-      m_pcSAO->freeSaoParam(pAPS->getSaoParam());
-      pAPS->destroySaoParam();
-
-    }
-  }
-}
-
 /** Assign APS object into APS container according to APS ID
   * \param [in] cAPS APS object
   * \param [in] apsID APS ID
@@ -904,16 +754,8 @@ Void TEncGOP::freeAPS (TComAPS* pAPS, TComSPS* pSPS)
   */
 Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS, TComSlice* pcSlice)
 {
-
   cAPS.setAPSID(apsID);
 
-  cAPS.setSaoEnabled(pcSlice->getSPS()->getUseSAO() ? (cAPS.getSaoParam()->bSaoFlag[0] ):(false));
-
-  if(cAPS.getSaoEnabled())
-  {
-      cAPS.setCABACinitIDC(pcSlice->getSliceType());
-      cAPS.setCABACinitQP(pcSlice->getSliceQp());
-  }
   //assign new APS into APS container
   Int apsBufSize= (Int)vAPS.size();
 
@@ -922,84 +764,7 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
     vAPS.resize(apsID +1);
   }
 
-  freeAPS(&(vAPS[apsID]), pcSlice->getSPS());
   vAPS[apsID] = cAPS;
-}
-
-
-/** encode APS syntax elements
-  * \param [in] pcAPS APS pointer
-  * \param [in, out] APSbs bitstream
-  * \param [in] pointer to slice (just used for entropy coder initialization)
-  */
-Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* pcSlice)
-{
-#if !G220_PURE_VLC_SAO_ALF
-  UInt uiAPSbsWrittenBits = 0;
-#endif
-  m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice);
-  m_pcEntropyCoder->resetEntropy      ();
-  m_pcEntropyCoder->setBitstream(&APSbs);
-
-  m_pcEntropyCoder->encodeAPSInitInfo(pcAPS);
-
-  if(pcAPS->getSaoEnabled())
-  {
-#if !G220_PURE_VLC_SAO_ALF
-    Bool bEndAtSAO   = true;
-    TComOutputBitstream cSAObs;
-    UInt uiSAObsWrittenBits;
-
-    m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
-    if (pcAPS->getCABACForAPS() )
-    {
-      m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice);
-    }
-    else
-    {
-      m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice);
-    }
-
-    m_pcEntropyCoder->resetEntropy    ();
-    m_pcEntropyCoder->setBitstream(&cSAObs);
-#endif
-    m_pcEntropyCoder->encodeSaoParam(pcAPS->getSaoParam());
-#if !G220_PURE_VLC_SAO_ALF
-    if (pcAPS->getCABACForAPS() )
-    {
-      m_pcEntropyCoder->encodeFinish(bEndAtSAO);
-    }
-
-    if(bEndAtSAO)
-    {
-      writeRBSPTrailingBits(cSAObs);
-    }
-    else
-    {
-      cSAObs.writeAlignOne();
-    }
-    uiSAObsWrittenBits = cSAObs.getNumberOfWrittenBits();
-
-    assert(uiSAObsWrittenBits % 8 == 0     ); 
-    assert(uiSAObsWrittenBits / 8 <= (1<<APS_BITS_FOR_SAO_BYTE_LENGTH) ); 
-
-    //---- attach SAO bitstream to APS main bitstream ----- //
-    APSbs.write(uiSAObsWrittenBits/8, APS_BITS_FOR_SAO_BYTE_LENGTH);
-    APSbs.writeAlignOne();
-
-    uiAPSbsWrittenBits = APSbs.getNumberOfWrittenBits();
-    assert(uiAPSbsWrittenBits % 8 ==0);
-    APSbs.insertAt(cSAObs, uiAPSbsWrittenBits/8);
-
-    if(bEndAtSAO)
-    {
-      return;
-    }
-#endif
-  }
-
-  //neither SAO and ALF is enabled
-  writeRBSPTrailingBits(APSbs);
 }
 
 Void TEncGOP::printOutSummary(UInt uiNumAllPicCoded)
@@ -1050,17 +815,6 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
   m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   pcSlice = pcPic->getSlice(0);
-  if(pcSlice->getSPS()->getUseSAO())
-  {
-    pcPic->createNonDBFilterInfo();
-  }
-#endif
-  
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-  if( pcSlice->getSPS()->getUseSAO())
-  {
-    pcPic->destroyNonDBFilterInfo();
-  }
 #endif
   
   m_pcEntropyCoder->resetEntropy    ();

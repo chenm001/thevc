@@ -46,7 +46,6 @@
 #include "TLibCommon/TComPic.h"
 #include "TLibCommon/TComBitCounter.h"
 #include "TLibCommon/AccessUnit.h"
-#include "TEncSampleAdaptiveOffset.h"
 #include "TEncSlice.h"
 #include "TEncEntropy.h"
 #include "TEncCavlc.h"
@@ -98,7 +97,6 @@ private:
   TEncSbac*               m_pcSbacCoder;
   TEncBinCABAC*           m_pcBinCABAC;
   
-  TEncSampleAdaptiveOffset*  m_pcSAO;
   TComBitCounter*         m_pcBitCounter;
   
   // indicate sequence first
@@ -139,10 +137,7 @@ public:
 #if G1002_RPS
   NalUnitType getNalUnitType( UInt uiPOCCurr );
 #endif
-  Void freeAPS     (TComAPS* pAPS, TComSPS* pSPS);
-  Void allocAPS    (TComAPS* pAPS, TComSPS* pSPS);
 protected:
-  Void encodeAPS   (TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* pcSlice);            //!< encode APS syntax elements
   Void assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS, TComSlice* pcSlice);  //!< Assign APS object into APS container
   
 
@@ -168,8 +163,6 @@ protected:
 // ====================================================================================================================
 enum PROCESSING_STATE
 {
-  EXECUTE_INLOOPFILTER,
-  ENCODE_APS,
   ENCODE_SLICE
 };
 

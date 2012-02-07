@@ -95,10 +95,6 @@ public:
   Void  codeTerminatingBit      ( UInt uilsLast      );
   Void  codeSliceFinish         ();
   
-  Void  codeSaoFlag       ( UInt uiCode );
-  Void  codeSaoUvlc       ( UInt uiCode );
-  Void  codeSaoSvlc       ( Int  uiCode );
-
 private:
   Void  xWriteUnarySymbol    ( UInt uiSymbol, ContextModel* pcSCModel, Int iOffset );
   Void  xWriteUnaryMaxSymbol ( UInt uiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );
@@ -227,9 +223,6 @@ private:
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;
 #endif
-  ContextModel3DBuffer m_cSaoFlagSCModel;
-  ContextModel3DBuffer m_cSaoUvlcSCModel;
-  ContextModel3DBuffer m_cSaoSvlcSCModel;
 
 };
 

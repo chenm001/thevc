@@ -96,7 +96,6 @@ private:
   TDecCavlc               m_cCavlcDecoder;
   TDecSbac                m_cSbacDecoder;
   TDecBinCABAC            m_cBinCABAC;
-  TComSampleAdaptiveOffset m_cSAO;
 
   Bool isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay);
   TComPic*                m_pcPic;
@@ -132,10 +131,7 @@ protected:
 #endif
 
   Void      decodeAPS(TComInputBitstream* bs, TComAPS& cAPS); //!< decode process for APS
-  TComAPS*  popAPS   (UInt apsID);  //!< pop APS parameter object pointer with APS ID equal to apsID
   Void      pushAPS  (TComAPS& cAPS); //!< push APS object into APS container
-  Void      allocAPS (TComAPS* pAPS); //!< memory allocation for APS
-  Void      freeAPS  (TComAPS* pAPS); //!< memory deallocation for APS
 
 };// END CLASS DEFINITION TDecTop
 

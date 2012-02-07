@@ -166,7 +166,6 @@ public:
 
   Void          createNonDBFilterInfo   (UInt* pSliceStartAddress = NULL, Int numSlices = 1);
   Void          createNonDBFilterInfoLCU(Int sliceID, TComDataCU* pcCU, UInt startSU, UInt endSU, UInt picWidth, UInt picHeight);
-  Void          destroyNonDBFilterInfo();
 
   Bool          getValidSlice                                  (Int sliceID)  {return m_pbValidSlice[sliceID];}
   Bool          getIndependentSliceBoundaryForNDBFilter        ()             {return m_bIndependentSliceBoundaryForNDBFilter;}

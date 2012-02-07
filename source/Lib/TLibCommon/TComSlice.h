@@ -118,8 +118,6 @@ private:
   
   Int m_iAMPAcc[MAX_CU_DEPTH];
 
-  Bool        m_bUseSAO; 
-
   Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
 
 #if !G1002_RPS
@@ -231,9 +229,6 @@ public:
   Void      setBitDepth     ( UInt u ) { m_uiBitDepth = u;        }
   UInt      getBitIncrement ()         { return m_uiBitIncrement; }
   Void      setBitIncrement ( UInt u ) { m_uiBitIncrement = u;    }
-
-  Void setUseSAO                  (Bool bVal)  {m_bUseSAO = bVal;}
-  Bool getUseSAO                  ()           {return m_bUseSAO;}
 
   UInt      getMaxTLayers()                           { return m_uiMaxTLayers; }
   Void      setMaxTLayers( UInt uiMaxTLayers )        { assert( uiMaxTLayers <= MAX_TLAYER ); m_uiMaxTLayers = uiMaxTLayers; }
@@ -474,13 +469,6 @@ public:
 
   Void      setAPSID      (Int iID)   {m_apsID = iID;            }  //!< set APS ID 
   Int       getAPSID      ()          {return m_apsID;           }  //!< get APS ID
-  Void      setSaoEnabled (Bool bVal) {m_bSaoEnabled = bVal;     }  //!< set SAO enabled/disabled in APS
-  Bool      getSaoEnabled ()          {return m_bSaoEnabled;     }  //!< get SAO enabled/disabled in APS
-
-  SAOParam* getSaoParam   ()          {return m_pSaoParam;       }  //!< get SAO parameters in APS
-
-  Void      createSaoParam();   //!< create SAO parameter object
-  Void      destroySaoParam();  //!< destroy SAO parameter object
 
   Void      setCABACinitIDC(Int iVal) {m_CABACinitIDC = iVal;    }  //!< set CABAC initial IDC number for APS coding
   Int       getCABACinitIDC()         {return m_CABACinitIDC;    }  //!< get CABAC initial IDC number for APS coding
@@ -489,8 +477,6 @@ public:
 
 private:
   Int         m_apsID;        //!< APS ID
-  Bool        m_bSaoEnabled;  //!< SAO enabled/disabled in APS (true for enabled)
-  SAOParam*   m_pSaoParam;    //!< SAO parameter object pointer 
   Int         m_CABACinitIDC; //!< CABAC initial IDC number for APS coding
   Int         m_CABACinitQP;  //!< CABAC initial QP value for APS coding
 
@@ -505,9 +491,6 @@ class TComSlice
 private:
   //  Bitstream writing
   Int         m_iAPSId; //!< APS ID in slice header
-#if ALF_SAO_SLICE_FLAGS
-  bool       m_saoEnabledFlag;
-#endif
   Int         m_iPPSId;               ///< picture parameter set ID
   Int         m_iPOC;
 #if G1002_RPS
@@ -617,10 +600,6 @@ public:
   TComAPS*  getAPS          ()                 { return m_pcAPS;  } //!< get APS pointer
   Void      setAPSId        ( Int Id)          { m_iAPSId =Id;    } //!< set APS ID
   Int       getAPSId        ()                 { return m_iAPSId; } //!< get APS ID
-#if ALF_SAO_SLICE_FLAGS
-  Void      setSaoEnabledFlag(Bool s) {m_saoEnabledFlag =s; }
-  Bool      getSaoEnabledFlag() { return m_saoEnabledFlag; }
-#endif
 #if G1002_RPS
   Void      setRPS          ( TComReferencePictureSet *pcRPS ) { m_pcRPS = pcRPS; }
   TComReferencePictureSet*  getRPS          () { return m_pcRPS; }

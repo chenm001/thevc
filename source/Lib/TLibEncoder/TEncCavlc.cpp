@@ -226,25 +226,10 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
   WRITE_FLAG(0, "aps_deblocking_filter_flag");
 #endif
   //SAO flag
-  WRITE_FLAG( pcAPS->getSaoEnabled()?1:0, "aps_sample_adaptive_offset_flag"); 
+  WRITE_FLAG( 0,                          "aps_sample_adaptive_offset_flag"); 
 
   //ALF flag
   WRITE_FLAG( 0,                          "aps_adaptive_loop_filter_flag"); 
-
-#if !G220_PURE_VLC_SAO_ALF
-  if(pcAPS->getSaoEnabled())
-  {
-    //CABAC usage flag
-    WRITE_FLAG(pcAPS->getCABACForAPS()?1:0, "aps_cabac_use_flag"); 
-    if(pcAPS->getCABACForAPS())
-    {
-      //CABAC init IDC
-      WRITE_UVLC(pcAPS->getCABACinitIDC(), "aps_cabac_init_idc" );
-      //CABAC init QP
-      WRITE_SVLC(pcAPS->getCABACinitQP()-26, "aps_cabac_init_qp_minus26" );
-    }
-  }
-#endif
 }
 
 #if G1002_RPS
@@ -480,7 +465,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_FLAG( 0,                                                                     "deblocking_filter_in_aps_enabled_flag");
 #endif
   WRITE_FLAG( 1,                                                                     "loop_filter_across_slice_flag");
-  WRITE_FLAG( pcSPS->getUseSAO() ? 1 : 0,                                            "sample_adaptive_offset_enabled_flag");
+  WRITE_FLAG( 0,                                                                     "sample_adaptive_offset_enabled_flag");
   WRITE_FLAG( 0,                                                                     "adaptive_loop_filter_enabled_flag");
 
 #if !G507_QP_ISSUE_FIX
@@ -604,17 +589,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       }
     }
 #endif
-    if(pcSlice->getSPS()->getUseSAO())
-    {
-#if ALF_SAO_SLICE_FLAGS
-      if (pcSlice->getSPS()->getUseSAO())
-      {
-         assert (pcSlice->getSaoEnabledFlag() == pcSlice->getAPS()->getSaoEnabled());
-         WRITE_FLAG( pcSlice->getSaoEnabledFlag(), "SAO on/off flag in slice header" );
-      }
-#endif
-      WRITE_UVLC( pcSlice->getAPS()->getAPSID(), "aps_id");
-    }
 
 #if !G1002_RPS
     // frame_num
@@ -1857,21 +1831,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
     }  
   }
 #endif
-}
-
-Void TEncCavlc::codeSaoFlag( UInt uiCode )
-{
-  xWriteFlag( uiCode );
-}
-
-Void TEncCavlc::codeSaoUvlc( UInt uiCode )
-{
-    xWriteUvlc( uiCode );
-}
-
-Void TEncCavlc::codeSaoSvlc( Int iCode )
-{
-    xWriteSvlc( iCode );
 }
 
 #if NSQT_DIAG_SCAN

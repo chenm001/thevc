@@ -83,7 +83,6 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
                    TDecBinCABAC*           pcBinCABAC,
                    TDecCavlc*              pcCavlcDecoder, 
                    TDecSlice*              pcSliceDecoder
-                   ,TComSampleAdaptiveOffset* pcSAO
                    )
 {
   m_pcEntropyDecoder      = pcEntropyDecoder;
@@ -91,7 +90,6 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
   m_pcBinCABAC            = pcBinCABAC;
   m_pcCavlcDecoder        = pcCavlcDecoder;
   m_pcSliceDecoder        = pcSliceDecoder;
-  m_pcSAO  = pcSAO;
 }
 
 
@@ -151,56 +149,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
   {
 #if NONCROSS_TILE_IN_LOOP_FILTERING
     pcSlice = rpcPic->getSlice(0);
-    if(pcSlice->getSPS()->getUseSAO())
-    {
-      puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU();
-      rpcPic->createNonDBFilterInfo(puiILSliceStartLCU, uiILSliceCount);
-    }
-#endif
-
-    {
-
-      if( pcSlice->getSPS()->getUseSAO() )
-      {
-#if !NONCROSS_TILE_IN_LOOP_FILTERING
-        m_pcSAO->setNumSlicesInPic( uiILSliceCount );
-#endif
-#if ALF_SAO_SLICE_FLAGS
-        if(pcSlice->getSaoEnabledFlag())
-#else
-        if(pcSlice->getAPS()->getSaoEnabled())
-#endif
-        {
-
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-          m_pcSAO->createPicSaoInfo(rpcPic);
-#else
-
-        if(uiILSliceCount == 1)
-        {
-        }
-        else
-        {
-            m_pcSAO->setPic(rpcPic);
-            puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU();
-        }
-#endif
-
-        m_pcSAO->SAOProcess(rpcPic, pcSlice->getAPS()->getSaoParam());  
-
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-      m_pcSAO->destroyPicSaoInfo();
-#endif
-      }
-    }
-
-    }
-
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-    if(pcSlice->getSPS()->getUseSAO())
-    {
-      rpcPic->destroyNonDBFilterInfo();
-    }
 #endif
 
     rpcPic->compressMotion(); 

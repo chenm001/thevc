@@ -170,8 +170,6 @@ Void TAppEncTop::xInitLibCfg()
 #endif
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
 
-  m_cTEncTop.setUseSAO ( m_bUseSAO );
-
   m_cTEncTop.setPictureDigestEnabled(m_pictureDigestEnabled);
 
 #if !G1002_RPS

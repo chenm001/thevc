@@ -1365,7 +1365,6 @@ TComSPS::TComSPS()
 , m_uiBitsForPOC              (  8)
 #endif
 , m_uiMaxTrSize               ( 32)
-, m_bUseSAO                   (false) 
 , m_bTemporalIdNestingFlag    (false)
 #if  !G1002_RPS
 #if REF_SETTING_FOR_LD
@@ -1620,8 +1619,6 @@ TComRefPicListModification::~TComRefPicListModification()
 TComAPS::TComAPS()
 {
   m_apsID = 0;
-  m_bSaoEnabled = false;
-  m_pSaoParam = NULL;
   m_CABACinitIDC = -1;
   m_CABACinitQP = -1;
 }
@@ -1634,26 +1631,10 @@ TComAPS::~TComAPS()
 TComAPS& TComAPS::operator= (const TComAPS& src)
 {
   m_apsID       = src.m_apsID;
-  m_bSaoEnabled = src.m_bSaoEnabled;
-  m_pSaoParam   = src.m_pSaoParam; 
   m_CABACinitIDC= src.m_CABACinitIDC;
   m_CABACinitQP = src.m_CABACinitQP;
 
   return *this;
-}
-
-Void TComAPS::createSaoParam()
-{
-  m_pSaoParam = new SAOParam;
-}
-
-Void TComAPS::destroySaoParam()
-{
-  if(m_pSaoParam != NULL)
-  {
-    delete m_pSaoParam;
-    m_pSaoParam = NULL;
-  }
 }
 
 //! \}

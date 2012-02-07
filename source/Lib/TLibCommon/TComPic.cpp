@@ -377,36 +377,6 @@ Void TComPic::createNonDBFilterInfoLCU(Int sliceID, TComDataCU* pcCU, UInt start
 
 }
 
-/** destroy non-deblocked filter information for LCU
- */
-Void TComPic::destroyNonDBFilterInfo()
-{
-  if(m_pbValidSlice != NULL)
-  {
-    delete[] m_pbValidSlice;
-    m_pbValidSlice = NULL;
-  }
-
-  if(m_pSliceSUMap != NULL)
-  {
-    delete[] m_pSliceSUMap;
-    m_pSliceSUMap = NULL;
-  }
-  for( UInt CUAddr = 0; CUAddr < getNumCUsInFrame() ; CUAddr++ )
-  {
-    TComDataCU* pcCU = getCU( CUAddr );
-    pcCU->getNDBFilterBlocks()->clear();
-  }
-
-  if( m_bIndependentSliceBoundaryForNDBFilter || m_bIndependentTileBoundaryForNDBFilter)
-  {
-    m_pNDBFilterYuvTmp->destroy();
-    delete m_pNDBFilterYuvTmp;
-    m_pNDBFilterYuvTmp = NULL;
-  }
-
-}
-
 #endif
 
 

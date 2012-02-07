@@ -53,7 +53,6 @@
 #include "TEncCavlc.h"
 #include "TEncSbac.h"
 #include "TEncSearch.h"
-#include "TEncSampleAdaptiveOffset.h"
 #if QP_ADAPTATION
 #include "TEncPreanalyzer.h"
 #endif
@@ -81,7 +80,6 @@ private:
   TEncCavlc*              m_pcCavlcCoder;                       ///< CAVLC encoder  
   // coding tool
   TComTrQuant             m_cTrQuant;                     ///< transform & quantization class
-  TEncSampleAdaptiveOffset m_cEncSAO;                     ///< sample adaptive offset class
   TEncEntropy             m_cEntropyCoder;                ///< entropy encoder
   TEncCavlc               m_cCavlcCoder;                  ///< CAVLC encoder
   TEncSbac                m_cSbacCoder;                   ///< SBAC encoder
@@ -143,7 +141,6 @@ public:
   TEncSearch*             getPredSearch         () { return  &m_cSearch;              }
   
   TComTrQuant*            getTrQuant            () { return  &m_cTrQuant;             }
-  TEncSampleAdaptiveOffset* getSAO              () { return  &m_cEncSAO;              }
   TEncGOP*                getGOPEncoder         () { return  &m_cGOPEncoder;          }
   TEncSlice*              getSliceEncoder       () { return  &m_cSliceEncoder;        }
   TEncCu*                 getCuEncoder          () { return  &m_cCuEncoder;           }
