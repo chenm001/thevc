@@ -37,7 +37,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <time.h>
 #include "TAppDecTop.h"
 
 //! \ingroup TAppDecoder
@@ -71,10 +70,6 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  // starting time
-  double dResult;
-  long lBefore = clock();
-
   // call decoding function
   cTAppDecTop.decode();
 
@@ -82,10 +77,6 @@ int main(int argc, char* argv[])
   {
     printf("\n\n***ERROR*** A decoding mismatch occured: signalled md5sum does not match\n");
   }
-
-  // ending time
-  dResult = (double)(clock()-lBefore) / CLOCKS_PER_SEC;
-  printf("\n Total Time: %12.3f sec.\n", dResult);
 
   // destroy application decoder class
   cTAppDecTop.destroy();

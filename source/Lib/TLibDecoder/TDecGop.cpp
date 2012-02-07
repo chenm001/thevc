@@ -45,8 +45,6 @@ extern bool g_md5_mismatch; ///< top level flag to signal when there is a decode
 #include "libmd5/MD5.h"
 #include "TLibCommon/SEI.h"
 
-#include <time.h>
-
 //! \ingroup TLibDecoder
 //! \{
 
@@ -59,7 +57,6 @@ static void calcAndPrintMD5Status(TComPicYuv& pic, const SEImessages* seis);
 TDecGop::TDecGop()
 {
   m_iGopSize = 0;
-  m_dDecTime = 0;
 }
 
 TDecGop::~TDecGop()
@@ -113,9 +110,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 {
   TComSlice*  pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
 
-  //-- For time output for each slice
-  long iBeforeTime = clock();
-  
   static Bool  bFirst = true;
   static UInt  uiILSliceCount;
   static UInt* puiILSliceStartLCU;
@@ -142,8 +136,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     m_pcEntropyDecoder->resetEntropy      (pcSlice);
 
     m_pcSliceDecoder->decompressSlice(pcBitstream, rpcPic, m_pcSbacDecoder);
-    
-    m_dDecTime += (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
   }
   else
   {
@@ -162,10 +154,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
           c,
           pcSlice->getSliceQp() );
 
-    m_dDecTime += (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
-    printf ("[DT %6.3f] ", m_dDecTime );
-    m_dDecTime  = 0;
-    
     for (Int iRefList = 0; iRefList < 2; iRefList++)
     {
       printf ("[L%d ", iRefList);

@@ -46,7 +46,6 @@
 #include "TLibCommon/NAL.h"
 #include "NALwrite.h"
 
-#include <time.h>
 #include <math.h>
 
 using namespace std;
@@ -162,8 +161,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if G1002_RPS
       UInt uiColDir = 1;
 #endif
-      //-- For time output for each slice
-      long iBeforeTime = clock();
       
 #if G1002_RPS
       //select uiColDir
@@ -622,9 +619,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       // Mark higher temporal layer pictures after switching point as unused
       pcSlice->decodingTLayerSwitchingMarking( rcListPic );
 #endif
-      //-- For time output for each slice
-      Double dEncTime = (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
-
       const char* digestStr = NULL;
       if (m_pcCfg->getPictureDigestEnabled())
       {
@@ -647,7 +641,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         accessUnit.insert(it, new NALUnitEBSP(nalu));
       }
 
-      xCalculateAddPSNR( pcPic, pcPic->getPicYuvRec(), accessUnit, dEncTime );
+      xCalculateAddPSNR( pcPic, pcPic->getPicYuvRec(), accessUnit );
       if (digestStr)
         printf(" [MD5:%s]", digestStr);
 
@@ -914,7 +908,7 @@ static const char* nalUnitTypeToString(NalUnitType type)
 }
 #endif
 
-Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const AccessUnit& accessUnit, Double dEncTime )
+Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const AccessUnit& accessUnit )
 {
   Int     x, y;
   UInt64 uiSSDY  = 0;
@@ -1048,7 +1042,6 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
 #endif
 
   printf(" [Y %6.4lf dB    U %6.4lf dB    V %6.4lf dB]", dYPSNR, dUPSNR, dVPSNR );
-  printf(" [ET %5.0f ]", dEncTime );
   
   for (Int iRefList = 0; iRefList < 2; iRefList++)
   {

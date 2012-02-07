@@ -74,8 +74,6 @@ private:
   TDecCavlc*            m_pcCavlcDecoder;
   TDecSlice*            m_pcSliceDecoder;
   
-  Double                m_dDecTime;
-
   bool m_pictureDigestEnabled; ///< if true, handle picture_digest SEI messages
 
 public:
