@@ -78,7 +78,6 @@ private:
   TComSPS                 m_cSPS;
 
   TComPPS                 m_cPPS;               //!< PPS
-  std::vector<std::vector<TComAPS> >   m_vAPS;  //!< APS container
 #if G1002_RPS
   TComRPS                 m_cRPSList;
 #endif
@@ -129,9 +128,6 @@ protected:
 #if G1002_RPS
   Void  xCreateLostPicture (Int iLostPOC);
 #endif
-
-  Void      decodeAPS(TComInputBitstream* bs, TComAPS& cAPS); //!< decode process for APS
-  Void      pushAPS  (TComAPS& cAPS); //!< push APS object into APS container
 
 };// END CLASS DEFINITION TDecTop
 

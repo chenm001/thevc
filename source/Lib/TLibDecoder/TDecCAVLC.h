@@ -181,9 +181,6 @@ public:
   Void parseBlockCbf        ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum );
   Void parseCoeffNxN        ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
-  /// parse APF flags before SAO and ALF parameters
-  Void parseAPSInitInfo(TComAPS& cAPS);
-
 };
 
 //! \}

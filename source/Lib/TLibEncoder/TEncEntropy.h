@@ -106,7 +106,6 @@ public:
   virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType) = 0;
 #endif
   
-  virtual Void codeAPSInitInfo  (TComAPS* pcAPS)= 0;
   virtual Void codeFinish       (Bool bEnd)= 0;
 
   virtual ~TEncEntropyIf() {}
@@ -166,7 +165,6 @@ public:
   Void encodeQtRootCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void encodeQP                ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   
-  Void encodeAPSInitInfo          (TComAPS* pcAPS) {m_pcEntropyCoderIf->codeAPSInitInfo(pcAPS);}
   Void encodeFinish               (Bool bEnd) {m_pcEntropyCoderIf->codeFinish(bEnd);}
 
 private:

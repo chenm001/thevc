@@ -60,11 +60,6 @@ TDecTop::TDecTop()
   m_uiPrevPOC               = UInt(-1);
   m_bFirstSliceInPicture    = true;
   m_bFirstSliceInSequence   = true;
-  m_vAPS.resize(MAX_NUM_SUPPORTED_APS);
-  for(Int i=0; i< MAX_NUM_SUPPORTED_APS; i++)
-  {
-    m_vAPS[i].reserve(APS_RESERVED_BUFFER_SIZE);
-  }
 }
 
 TDecTop::~TDecTop()
@@ -310,7 +305,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       }
 #endif
 
-      // CHECK_ME
       m_uiValidPS |= 1;
       
       return false;
@@ -326,11 +320,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       return false;
 
     case NAL_UNIT_APS:
-      {
-        TComAPS  cAPS;
-        decodeAPS(nalu.m_Bitstream, cAPS);
-        pushAPS(cAPS);
-      }
+        assert(0);
       return false;
 
     case NAL_UNIT_SEI:
@@ -575,7 +565,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
     }
       break;
     default:
-      assert (1);
+      assert (0);
   }
 
   return false;
@@ -625,40 +615,6 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
   }
   // if we reach here, then the picture is not skipped.
   return false; 
-}
-
-/** decode APS syntax elements
- * \param [in] bs bistream pointer
- * \param [in,out] cAPS APS object to store the decoded results
- */
-Void TDecTop::decodeAPS(TComInputBitstream* bs, TComAPS& cAPS)
-{
-#if !G220_PURE_VLC_SAO_ALF
-  Int iBitLeft;
-#endif
-  m_cEntropyDecoder.decodeAPSInitInfo(cAPS);
-}
-
-/** Push APS object into APS container
- * \param [in] cAPS APS object to be pushed.
- */
-
-Void TDecTop::pushAPS  (TComAPS& cAPS)
-{
-  UInt apsID = cAPS.getAPSID();
-  assert(apsID < MAX_NUM_SUPPORTED_APS);
-
-  std::vector<TComAPS>& vAPS = m_vAPS[apsID];
-
-  if(vAPS.size() < APS_RESERVED_BUFFER_SIZE)
-  {
-    vAPS.push_back(cAPS);
-  }
-  else
-  {
-    vAPS[APS_RESERVED_BUFFER_SIZE-1] = cAPS;
-  }
-
 }
 
 //! \}

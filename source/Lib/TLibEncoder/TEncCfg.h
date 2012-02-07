@@ -181,12 +181,6 @@ protected:
   
   //====== Tool list ========
   Bool      m_bUseSBACRD;
-  Bool      m_bUseALF;
-  Int       m_iALFEncodePassReduction;
-
-#if G215_ALF_NUM_FILTER
-  Int       m_iALFMaxNumberFilters;
-#endif
 
   Bool      m_bUseASR;
   Bool      m_bUseHADME;
@@ -367,7 +361,6 @@ public:
   Void      setUseSBACRD                    ( Bool  b )     { m_bUseSBACRD  = b; }
   Void      setUseASR                       ( Bool  b )     { m_bUseASR     = b; }
   Void      setUseHADME                     ( Bool  b )     { m_bUseHADME   = b; }
-  Void      setUseALF                       ( Bool  b )     { m_bUseALF   = b; }
 #if !G1002_RPS
   Void      setUseGPB                       ( Bool  b )     { m_bUseGPB     = b; }
 #endif
@@ -393,14 +386,6 @@ public:
   Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
   Bool      getUseASR                       ()      { return m_bUseASR;     }
   Bool      getUseHADME                     ()      { return m_bUseHADME;   }
-  Bool      getUseALF                       ()      { return m_bUseALF;     }
-  Void      setALFEncodePassReduction       (Int i)  { m_iALFEncodePassReduction = i; }
-  Int       getALFEncodePassReduction       ()       { return m_iALFEncodePassReduction; }
-
-#if G215_ALF_NUM_FILTER
-  Void      setALFMaxNumberFilters          (Int i)  { m_iALFMaxNumberFilters = i; } 
-  Int       getALFMaxNumberFilters          ()       { return m_iALFMaxNumberFilters; } 
-#endif
 
 #if !G1002_RPS
   Bool      getUseGPB                       ()      { return m_bUseGPB;     }

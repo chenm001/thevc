@@ -65,11 +65,6 @@ Void  xTracePPSHeader (TComPPS *pPPS)
   fprintf( g_hTrace, "=========== Picture Parameter Set ID: %d ===========\n", pPPS->getPPSId() );
 }
 
-Void  xTraceAPSHeader (TComAPS *pAPS)
-{
-  fprintf( g_hTrace, "=========== Adaptation Parameter Set ===========\n");
-}
-
 Void  xTraceSliceHeader (TComSlice *pSlice)
 {
   fprintf( g_hTrace, "=========== Slice ===========\n");
@@ -124,8 +119,6 @@ TEncCavlc::TEncCavlc()
   m_pcBitIf           = NULL;
   m_bRunLengthCoding  = false;   //  m_bRunLengthCoding  = !rcSliceHeader.isIntra();
   m_uiCoeffCost       = 0;
-  m_bAlfCtrl = false;
-  m_uiMaxAlfCtrlDepth = 0;
   
   m_bAdaptFlag        = true;    // adaptive VLC table
 }
@@ -207,29 +200,6 @@ UInt* TEncCavlc::GetLastPosVlcIndexTable()
 void TEncCavlc::codeSEI(const SEI& sei)
 {
   writeSEImessage(*m_pcBitIf, sei);
-}
-
-Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
-{
-
-#if ENC_DEC_TRACE  
-  xTraceAPSHeader(pcAPS);
-#endif
-  //APS ID
-  WRITE_UVLC( pcAPS->getAPSID(), "aps_id" );
-
-#if SCALING_LIST
-  WRITE_FLAG( 0, "aps_scaling_list_data_present_flag");
-#endif
-#if G174_DF_OFFSET
-  //DF flag
-  WRITE_FLAG(0, "aps_deblocking_filter_flag");
-#endif
-  //SAO flag
-  WRITE_FLAG( 0,                          "aps_sample_adaptive_offset_flag"); 
-
-  //ALF flag
-  WRITE_FLAG( 0,                          "aps_adaptive_loop_filter_flag"); 
 }
 
 #if G1002_RPS

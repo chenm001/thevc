@@ -105,8 +105,6 @@ public:
   
   virtual Void parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType ) = 0;
   
-  virtual Void parseAPSInitInfo   (TComAPS& cAPS) = 0;
-
   virtual ~TDecEntropyIf() {}
 };
 
@@ -174,8 +172,6 @@ private:
 public:
   Void decodeCoeff             ( TComDataCU* pcCU                 , UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, Bool& bCodeDQP );
   
-  Void decodeAPSInitInfo       (TComAPS& cAPS) {m_pcEntropyDecoderIf->parseAPSInitInfo(cAPS);}
-
 };// END CLASS DEFINITION TDecEntropy
 
 //! \}

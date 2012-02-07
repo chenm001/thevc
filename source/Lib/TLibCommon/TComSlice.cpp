@@ -68,12 +68,7 @@ TComSlice::TComSlice()
 , m_pcPPS                         ( NULL )
 , m_pcPic                         ( NULL )
 , m_uiColDir                      ( 0 )
-#if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA
-, m_dLambdaLuma( 0.0 )
-, m_dLambdaChroma( 0.0 )
-#else
 , m_dLambda                       ( 0.0 )
-#endif
 , m_bNoBackPredFlag               ( false )
 , m_bRefIdxCombineCoding          ( false )
 , m_uiTLayer                      ( 0 )
@@ -874,16 +869,10 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
 #endif
 
   m_pcPic                = pSrc->m_pcPic;
-  m_pcAPS                = pSrc->m_pcAPS;
   m_iAPSId               = pSrc->m_iAPSId;
 
   m_uiColDir             = pSrc->m_uiColDir;
-#if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA 
-  m_dLambdaLuma          = pSrc->m_dLambdaLuma;
-  m_dLambdaChroma        = pSrc->m_dLambdaChroma;
-#else
   m_dLambda              = pSrc->m_dLambda;
-#endif
   for (i = 0; i < 2; i++)
   {
     for (j = 0; j < MAX_NUM_REF; j++)
@@ -1615,26 +1604,5 @@ TComRefPicListModification::~TComRefPicListModification()
 {
 }
 #endif
-
-TComAPS::TComAPS()
-{
-  m_apsID = 0;
-  m_CABACinitIDC = -1;
-  m_CABACinitQP = -1;
-}
-
-TComAPS::~TComAPS()
-{
-
-}
-
-TComAPS& TComAPS::operator= (const TComAPS& src)
-{
-  m_apsID       = src.m_apsID;
-  m_CABACinitIDC= src.m_CABACinitIDC;
-  m_CABACinitQP = src.m_CABACinitQP;
-
-  return *this;
-}
 
 //! \}

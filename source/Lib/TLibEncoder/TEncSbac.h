@@ -104,7 +104,6 @@ private:
   
   Void  xCopyFrom            ( TEncSbac* pSrc );
   
-  Void codeAPSInitInfo(TComAPS* pcAPS) {printf("Not supported in codeAPSInitInfo()\n"); assert(0); exit(1);}
   Void codeFinish     (Bool bEnd)      { m_pcBinIf->encodeFlush(bEnd); }  //<! flush bits when CABAC termination
 
 protected:

@@ -58,11 +58,6 @@ Void  xTracePPSHeader (TComPPS *pPPS)
   fprintf( g_hTrace, "=========== Picture Parameter Set ID: %d ===========\n", pPPS->getPPSId() );
 }
 
-Void  xTraceAPSHeader (TComAPS *pAPS)
-{
-  fprintf( g_hTrace, "=========== Adaptation Parameter Set ===========\n");
-}
-
 Void  xTraceSliceHeader (TComSlice *pSlice)
 {
   fprintf( g_hTrace, "=========== Slice ===========\n");
@@ -233,28 +228,6 @@ void TDecCavlc::parseShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet
 #endif
 }
 #endif
-
-Void TDecCavlc::parseAPSInitInfo(TComAPS& cAPS)
-{
-#if ENC_DEC_TRACE  
-  xTraceAPSHeader(&cAPS);
-#endif
-
-  UInt uiCode;
-  //aps ID
-  READ_UVLC(uiCode, "aps_id");  cAPS.setAPSID(uiCode);
-#if SCALING_LIST
-  READ_FLAG(uiCode,"aps_scaling_list_data_present_flag");      assert( uiCode == 0 );
-#endif
-#if G174_DF_OFFSET
-  //DF flag
-  READ_FLAG(uiCode, "aps_deblocking_filter_flag"); assert( uiCode == 0 );
-#endif
-  //SAO flag
-  READ_FLAG(uiCode, "aps_sample_adaptive_offset_flag");  assert( uiCode == 0 );
-  //ALF flag
-  READ_FLAG(uiCode, "aps_adaptive_loop_filter_flag");  assert( uiCode == 0 );
-}
 
 Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 {

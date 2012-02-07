@@ -137,9 +137,6 @@ public:
 #if G1002_RPS
   NalUnitType getNalUnitType( UInt uiPOCCurr );
 #endif
-protected:
-  Void assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS, TComSlice* pcSlice);  //!< Assign APS object into APS container
-  
 
 protected:
   Void  xInitGOP          ( Int iPOC, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut );

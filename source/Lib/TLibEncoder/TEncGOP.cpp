@@ -245,7 +245,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       m_pcSliceEncoder->setSliceIdx(0);
       pcPic->setCurrSliceIdx(0);
 
-      std::vector<TComAPS>& vAPS = m_pcEncTop->getAPS();
 #if G1002_RPS
       m_pcSliceEncoder->initEncSlice ( pcPic, iPOCLast, uiPOCCurr, iNumPicRcvd, iGOPid, pcSlice, m_pcEncTop->getSPS(), m_pcEncTop->getPPS() );
       pcSlice->setLastIDR(m_iLastIDR);
@@ -466,9 +465,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       }
       m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx++]                = pcSlice->getSliceCurEndCUAddr();
 
-      // CHECK_ME
-      assert(pcSlice == pcPic->getSlice(0));
-
       /////////////////////////////////////////////////////////////////////////////////////////////////// File writing
       // Set entropy coder
       m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
@@ -500,8 +496,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       uiNextCUAddr                 = 0;
       pcSlice = pcPic->getSlice(uiStartCUAddrSliceIdx);
 
-      Int processingState = ENCODE_SLICE;
-
       static Int iCurrAPSIdx = 0;
       Int iCodedAPSIdx = 0;
       TComSlice* pcSliceForAPS = NULL;
@@ -509,10 +503,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       bool skippedSlice=false;
       while (uiNextCUAddr < uiRealEndAddress) // Iterate over all slices
       {
-        switch(processingState)
-        {
-        case ENCODE_SLICE:
-          {
         pcSlice->setNextSlice       ( false );
         if (uiNextCUAddr == m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx])
         {
@@ -604,33 +594,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
           m_pcEntropyCoder->resetEntropy    ();
           m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
-
-#if !G220_PURE_VLC_SAO_ALF
-          if (pcSlice->getSPS()->getUseALF())
-          {
-            if(pcSlice->getAPS()->getAlfEnabled())
-            {
-              AlfCUCtrlInfo& cAlfCUCtrlParam = vAlfCUCtrlParam[pcSlice->getSliceIdx()];
-              if(cAlfCUCtrlParam.cu_control_flag)
-              {
-                m_pcEntropyCoder->setAlfCtrl( true );
-                m_pcEntropyCoder->setMaxAlfCtrlDepth(cAlfCUCtrlParam.alf_max_depth);
-              }
-              else
-              {
-                m_pcEntropyCoder->setAlfCtrl(false);
-              }
-              m_pcEntropyCoder->encodeAlfCtrlParam(cAlfCUCtrlParam, m_pcAdaptiveLoopFilter->getNumCUsInPic());
-#if F747_CABAC_FLUSH_SLICE_HEADER
-                m_pcEntropyCoder->encodeFinish(0);
-                nalu.m_Bitstream.writeAlignOne();
-                m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
-                m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
-                m_pcEntropyCoder->resetEntropy    ();
-              }
-#endif              
-          }
-#endif
         }
         pcSlice->setFinalized(true);
 
@@ -641,32 +604,16 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         {
           // Construct the final bitstream by flushing and concatenating substreams.
           // The final bitstream is either nalu.m_Bitstream or pcBitstreamRedirect;
-          {
             nalu.m_Bitstream.write( 1, 1 ); // stop bit.
-          }
         }
 #endif // OL_USE_WPP
 
-#if OL_USE_WPP && !TILES
-          nalu.m_Bitstream.writeAlignZero();
-#else
         writeRBSPTrailingBits(nalu.m_Bitstream);
-#endif
         accessUnit.push_back(new NALUnitEBSP(nalu));
 
         UInt uiBoundingAddrSlice;
         uiBoundingAddrSlice        = m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx];          
         uiNextCUAddr               = uiBoundingAddrSlice;
-        processingState = ENCODE_SLICE;
-          }
-          break;
-        default:
-          {
-            printf("Not a supported encoding state\n");
-            assert(0);
-            exit(-1);
-          }
-        }
       } // end iteration over slices
 
       pcPic->compressMotion(); 
@@ -746,27 +693,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
   assert ( m_iNumPicCoded == iNumPicRcvd );
 }
 
-/** Assign APS object into APS container according to APS ID
-  * \param [in] cAPS APS object
-  * \param [in] apsID APS ID
-  * \param [in,out] vAPS APS container
-  * \param [in] pcSlice pointer to slice
-  */
-Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS, TComSlice* pcSlice)
-{
-  cAPS.setAPSID(apsID);
-
-  //assign new APS into APS container
-  Int apsBufSize= (Int)vAPS.size();
-
-  if(apsID >= apsBufSize)
-  {
-    vAPS.resize(apsID +1);
-  }
-
-  vAPS[apsID] = cAPS;
-}
-
 Void TEncGOP::printOutSummary(UInt uiNumAllPicCoded)
 {
   assert (uiNumAllPicCoded == m_gcAnalyzeAll.getNumPic());
@@ -813,9 +739,6 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
   m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcSlice );
   m_pcEntropyCoder->resetEntropy    ();
   m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-  pcSlice = pcPic->getSlice(0);
-#endif
   
   m_pcEntropyCoder->resetEntropy    ();
   ruiBits += m_pcEntropyCoder->getNumberOfWrittenBits();

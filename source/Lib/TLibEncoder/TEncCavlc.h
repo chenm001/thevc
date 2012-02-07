@@ -73,8 +73,6 @@ protected:
   UInt          m_uiCoeffCost;
   Bool          m_bRunLengthCoding;
   UInt          m_uiRun;
-  Bool          m_bAlfCtrl;
-  UInt          m_uiMaxAlfCtrlDepth;
   UInt          m_uiLPTableE4[3][32];
   UInt          m_uiLPTableD4[3][32];
   UInt          m_uiLastPosVlcIndex[10];
@@ -156,10 +154,6 @@ public:
   UInt* GetLastPosVlcIndexTable();
   Void  setBitstream          ( TComBitIf* p )  { m_pcBitIf = p;  }
   Void  setSlice              ( TComSlice* p )  { m_pcSlice = p;  }
-  Bool getAlfCtrl() {return m_bAlfCtrl;}
-  UInt getMaxAlfCtrlDepth() {return m_uiMaxAlfCtrlDepth;}
-  Void setAlfCtrl(Bool bAlfCtrl) {m_bAlfCtrl = bAlfCtrl;}
-  Void setMaxAlfCtrlDepth(UInt uiMaxAlfCtrlDepth) {m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth;}
   Void  resetBits             ()                { m_pcBitIf->resetBits(); }
   Void  resetCoeffCost        ()                { m_uiCoeffCost = 0;  }
   UInt  getNumberOfWrittenBits()                { return  m_pcBitIf->getNumberOfWrittenBits();  }
@@ -212,7 +206,6 @@ public:
   Bool getAdaptFlag      ()          { return m_bAdaptFlag; }
   Void setAdaptFlag      ( Bool b )  { m_bAdaptFlag = b;     }
 
-  Void  codeAPSInitInfo(TComAPS* pcAPS);  //!< code APS flags before encoding SAO and ALF parameters
   Void  codeFinish(Bool bEnd) { /*do nothing*/}
 
 };

@@ -53,9 +53,6 @@ class TComTrQuant;
 // Constants
 // ====================================================================================================================
 
-/// max number of supported APS in software
-#define MAX_NUM_SUPPORTED_APS 1
-
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -460,30 +457,6 @@ public:
 #endif
 };
 
-/// APS class
-class TComAPS
-{
-public:
-  TComAPS();
-  virtual ~TComAPS();
-
-  Void      setAPSID      (Int iID)   {m_apsID = iID;            }  //!< set APS ID 
-  Int       getAPSID      ()          {return m_apsID;           }  //!< get APS ID
-
-  Void      setCABACinitIDC(Int iVal) {m_CABACinitIDC = iVal;    }  //!< set CABAC initial IDC number for APS coding
-  Int       getCABACinitIDC()         {return m_CABACinitIDC;    }  //!< get CABAC initial IDC number for APS coding
-  Void      setCABACinitQP(Int iVal)  {m_CABACinitQP = iVal;     }  //!< set CABAC initial QP value for APS coding
-  Int       getCABACinitQP()          {return m_CABACinitQP;     }  //!< get CABAC initial QP value for APS coding
-
-private:
-  Int         m_apsID;        //!< APS ID
-  Int         m_CABACinitIDC; //!< CABAC initial IDC number for APS coding
-  Int         m_CABACinitQP;  //!< CABAC initial QP value for APS coding
-
-public:
-  TComAPS& operator= (const TComAPS& src);  //!< "=" operator for APS object
-};
-
 /// slice header class
 class TComSlice
 {
@@ -547,16 +520,9 @@ private:
 #if ADAPTIVE_QP_SELECTION
   TComTrQuant* m_pcTrQuant;
 #endif  
-  TComAPS*    m_pcAPS;  //!< pointer to APS parameter object
-
   UInt        m_uiColDir;  // direction to get colocated CUs
   
-#if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA
-  Double      m_dLambdaLuma;
-  Double      m_dLambdaChroma;
-#else
   Double      m_dLambda;
-#endif
 
   Bool        m_abEqualRef  [2][MAX_NUM_REF][MAX_NUM_REF];
   
@@ -596,10 +562,6 @@ public:
 
   Void      setPPSId        ( Int PPSId )         { m_iPPSId = PPSId; }
   Int       getPPSId        () { return m_iPPSId; }
-  Void      setAPS          ( TComAPS* pcAPS ) { m_pcAPS = pcAPS; } //!< set APS pointer
-  TComAPS*  getAPS          ()                 { return m_pcAPS;  } //!< get APS pointer
-  Void      setAPSId        ( Int Id)          { m_iAPSId =Id;    } //!< set APS ID
-  Int       getAPSId        ()                 { return m_iAPSId; } //!< get APS ID
 #if G1002_RPS
   Void      setRPS          ( TComReferencePictureSet *pcRPS ) { m_pcRPS = pcRPS; }
   TComReferencePictureSet*  getRPS          () { return m_pcRPS; }
@@ -690,14 +652,8 @@ public:
   Bool      isInterB        ()                          { return  m_eSliceType == B_SLICE;  }
   Bool      isInterP        ()                          { return  m_eSliceType == P_SLICE;  }
   
-#if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA  
-  Void      setLambda( Double d, Double e ) { m_dLambdaLuma = d; m_dLambdaChroma = e;}
-  Double    getLambdaLuma() { return m_dLambdaLuma;        }
-  Double    getLambdaChroma() { return m_dLambdaChroma;        }
-#else
   Void      setLambda( Double d ) { m_dLambda = d; }
   Double    getLambda() { return m_dLambda;        }
-#endif
   
   Void      initEqualRef();
   Bool      isEqualRef  ( RefPicList e, Int iRefIdx1, Int iRefIdx2 )

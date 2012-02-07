@@ -84,8 +84,6 @@
 
 #define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO
 #define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ
-#define ALF_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for ALF
-#define SAO_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for SAO
 
 #define MRG_TMVP_REFIDX_G163 1 ///< G163 : use refIdx of left PU. if not available, use 0.
 #define UNI_BI_IDENTICAL_MOTION   1 ///< chaning bi-prediction to uni-prediction for identical motion G415/G438
