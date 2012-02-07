@@ -482,7 +482,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       uiStartCUAddrSlice    = 0; 
 
       uiNextCUAddr                 = 0;
-      pcSlice = pcPic->getSlice(uiStartCUAddrSliceIdx);
+      pcSlice = pcPic->getSlice(0);
 
       static Int iCurrAPSIdx = 0;
       Int iCodedAPSIdx = 0;
@@ -492,12 +492,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       while (uiNextCUAddr < uiRealEndAddress) // Iterate over all slices
       {
         pcSlice->setNextSlice       ( false );
-        if (uiNextCUAddr == m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx])
+        if (uiNextCUAddr == m_uiStoredStartCUAddrForEncodingSlice[0])
         {
-          pcSlice = pcPic->getSlice(uiStartCUAddrSliceIdx);
-          pcPic->setCurrSliceIdx(uiStartCUAddrSliceIdx);
-          m_pcSliceEncoder->setSliceIdx(uiStartCUAddrSliceIdx);
-          assert(uiStartCUAddrSliceIdx == pcSlice->getSliceIdx());
+          pcSlice = pcPic->getSlice(0);
+          pcPic->setCurrSliceIdx(0);
+          m_pcSliceEncoder->setSliceIdx(0);
+          assert(0 == pcSlice->getSliceIdx());
           // Reconstruction slice
           pcSlice->setSliceCurStartCUAddr( uiNextCUAddr );  // to be used in encodeSlice() + context restriction
           pcSlice->setSliceCurEndCUAddr  ( m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx+1 ] );
@@ -716,22 +716,6 @@ Void TEncGOP::printOutSummary(UInt uiNumAllPicCoded)
 #endif
 }
 
-Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiBits )
-{
-  TComSlice* pcSlice = pcPic->getSlice(pcPic->getCurrSliceIdx());
-  Bool bCalcDist = false;
-  
-  m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcSlice );
-  m_pcEntropyCoder->resetEntropy    ();
-  m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-  
-  m_pcEntropyCoder->resetEntropy    ();
-  ruiBits += m_pcEntropyCoder->getNumberOfWrittenBits();
-  
-  if (!bCalcDist)
-    ruiDist = xFindDistortionFrame(pcPic->getPicYuvOrg(), pcPic->getPicYuvRec());
-}
-
 // ====================================================================================================================
 // Protected member functions
 // ====================================================================================================================
@@ -806,62 +790,6 @@ Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
   assert (rpcPic->getPOC() == (Int)uiPOCCurr);
   
   return;
-}
-
-UInt64 TEncGOP::xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1)
-{
-  Int     x, y;
-  Pel*  pSrc0   = pcPic0 ->getLumaAddr();
-  Pel*  pSrc1   = pcPic1 ->getLumaAddr();
-  Int   iTemp;
-  
-  Int   iStride = pcPic0->getStride();
-  Int   iWidth  = pcPic0->getWidth();
-  Int   iHeight = pcPic0->getHeight();
-  
-  UInt64  uiTotalDiff = 0;
-  
-  for( y = 0; y < iHeight; y++ )
-  {
-    for( x = 0; x < iWidth; x++ )
-    {
-      iTemp = pSrc0[x] - pSrc1[x]; uiTotalDiff += iTemp * iTemp;
-    }
-    pSrc0 += iStride;
-    pSrc1 += iStride;
-  }
-  
-  iHeight >>= 1;
-  iWidth  >>= 1;
-  iStride >>= 1;
-  
-  pSrc0  = pcPic0->getCbAddr();
-  pSrc1  = pcPic1->getCbAddr();
-  
-  for( y = 0; y < iHeight; y++ )
-  {
-    for( x = 0; x < iWidth; x++ )
-    {
-      iTemp = pSrc0[x] - pSrc1[x]; uiTotalDiff += iTemp * iTemp;
-    }
-    pSrc0 += iStride;
-    pSrc1 += iStride;
-  }
-  
-  pSrc0  = pcPic0->getCrAddr();
-  pSrc1  = pcPic1->getCrAddr();
-  
-  for( y = 0; y < iHeight; y++ )
-  {
-    for( x = 0; x < iWidth; x++ )
-    {
-      iTemp = pSrc0[x] - pSrc1[x]; uiTotalDiff += iTemp * iTemp;
-    }
-    pSrc0 += iStride;
-    pSrc1 += iStride;
-  }
-  
-  return uiTotalDiff;
 }
 
 #if VERBOSE_RATE

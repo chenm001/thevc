@@ -99,8 +99,6 @@ private:
   TCoeff*       m_pcTrCoeffCb;        ///< transformed coefficient buffer (Cb)
   TCoeff*       m_pcTrCoeffCr;        ///< transformed coefficient buffer (Cr)
   
-  Int*          m_piSliceSUMap;       ///< pointer of slice ID map
-
   // -------------------------------------------------------------------------------------------------------------------
   // neighbour access variables
   // -------------------------------------------------------------------------------------------------------------------
@@ -301,15 +299,6 @@ public:
   Void          setInterDir           ( UInt uiIdx, UChar  uh ) { m_puhInterDir[uiIdx] = uh;          }
   Void          setInterDirSubParts   ( UInt uiDir,  UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
   
-  /// get slice ID for SU
-  Int           getSUSliceID          (UInt uiIdx)              {return m_piSliceSUMap[uiIdx];      } 
-
-  /// get the pointer of slice ID map
-  Int*          getSliceSUMap         ()                        {return m_piSliceSUMap;             }
-
-  /// set the pointer of slice ID map
-  Void          setSliceSUMap         (Int *pi)                 {m_piSliceSUMap = pi;               }
-
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for accessing partition information
   // -------------------------------------------------------------------------------------------------------------------

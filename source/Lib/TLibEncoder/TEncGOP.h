@@ -131,7 +131,6 @@ public:
   TComList<TComPic*>*   getListPic()      { return m_pcListPic; }
   
   Void  printOutSummary      ( UInt uiNumAllPicCoded );
-  Void  preLoopFilterPicAll  ( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiBits );
   
   TEncSlice*  getSliceEncoder()   { return m_pcSliceEncoder; }
 #if G1002_RPS
@@ -148,8 +147,6 @@ protected:
 
   Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, const AccessUnit& );
   
-  UInt64 xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1);
-
 #if RVM_VCEGAM10
   Double xCalculateRVM();
 #endif
