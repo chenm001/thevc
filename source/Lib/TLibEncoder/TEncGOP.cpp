@@ -413,11 +413,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       
       /////////////////////////////////////////////////////////////////////////////////////////////////// Compress a slice
       //  Slice compression
-      if (m_pcCfg->getUseASR())
-      {
-        m_pcSliceEncoder->setSearchRange(pcSlice);
-      }
-
       UInt uiNumSlices = 1;
 
       UInt uiInternalAddress = pcPic->getNumPartInCU()-4;

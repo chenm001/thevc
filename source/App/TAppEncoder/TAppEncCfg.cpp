@@ -203,7 +203,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("SearchRange,-sr",m_iSearchRange, 96, "motion search range")
   ("BipredSearchRange", m_bipredSearchRange, 4, "motion search range for bipred refinement")
   ("HadamardME", m_bUseHADME, true, "hadamard ME for fractional-pel")
-  ("ASR", m_bUseASR, false, "adaptive motion search range")
   
   /* Quantization parameters */
   ("QP,q",          m_fQP,             30.0, "Qp value, if value is float, QP is switched once during encoding")
@@ -767,7 +766,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("HAD:%d ", m_bUseHADME           );
   printf("SRD:%d ", m_bUseSBACRD          );
   printf("SQP:%d ", m_uiDeltaQpRD         );
-  printf("ASR:%d ", m_bUseASR             );
 #if !G1002_RPS
   printf("LDC:%d ", m_bUseLDC             );
   printf("NRF:%d ", m_bUseNRF             );
@@ -813,7 +811,6 @@ Void TAppEncCfg::xPrintUsage()
   printf( "                   LDC - low-delay mode\n");
   printf( "                   NRF - non-reference frame marking in last layer\n");
   printf( "                   BQP - hier-P style QP assignment in low-delay mode\n");
-  printf( "                   ASR - adaptive motion search range\n");
   printf( "                   FEN - fast encoder setting\n");  
 #if EARLY_CU_DETERMINATION
   printf( "                   ECU - Early CU setting\n");
