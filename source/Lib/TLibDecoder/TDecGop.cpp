@@ -139,10 +139,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
   }
   else
   {
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-    pcSlice = rpcPic->getSlice(0);
-#endif
-
     rpcPic->compressMotion(); 
     Char c = (pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B');
     if (!pcSlice->isReferenced()) c += 32;

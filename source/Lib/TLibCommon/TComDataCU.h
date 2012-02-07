@@ -54,47 +54,6 @@
 //! \ingroup TLibCommon
 //! \{
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-
-// ====================================================================================================================
-// Non-deblocking in-loop filter processing block data structure
-// ====================================================================================================================
-
-/// Non-deblocking filter processing block border tag
-enum NDBFBlockBorderTag
-{
-  SGU_L = 0,
-  SGU_R,
-  SGU_T,
-  SGU_B,
-  SGU_TL,
-  SGU_TR,
-  SGU_BL,
-  SGU_BR,
-  NUM_SGU_BORDER
-};
-
-/// Non-deblocking filter processing block information
-struct NDBFBlockInfo
-{
-  Int   sliceID;  //!< slice ID
-  UInt  startSU;  //!< starting SU z-scan address in LCU
-  UInt  endSU;    //!< ending SU z-scan address in LCU
-  UInt  widthSU;  //!< number of SUs in width
-  UInt  heightSU; //!< number of SUs in height
-  UInt  posX;     //!< top-left X coordinate in picture
-  UInt  posY;     //!< top-left Y coordinate in picture
-  UInt  width;    //!< number of pixels in width
-  UInt  height;   //!< number of pixels in height
-  Bool  isBorderAvailable[NUM_SGU_BORDER];  //!< the border availabilities
-
-  NDBFBlockInfo():sliceID(0), startSU(0), endSU(0) {} //!< constructor
-  const NDBFBlockInfo& operator= (const NDBFBlockInfo& src);  //!< "=" operator
-};
-
-#endif
-
-
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -141,9 +100,6 @@ private:
   TCoeff*       m_pcTrCoeffCr;        ///< transformed coefficient buffer (Cr)
   
   Int*          m_piSliceSUMap;       ///< pointer of slice ID map
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-  std::vector<NDBFBlockInfo> m_vNDFBlock;
-#endif
 
   // -------------------------------------------------------------------------------------------------------------------
   // neighbour access variables
@@ -354,14 +310,6 @@ public:
   /// set the pointer of slice ID map
   Void          setSliceSUMap         (Int *pi)                 {m_piSliceSUMap = pi;               }
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-  std::vector<NDBFBlockInfo>* getNDBFilterBlocks()      {return &m_vNDFBlock;}
-  Void setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt numLCUInPicHeight, UInt numSUInLCUWidth, UInt numSUInLCUHeight, UInt picWidth, UInt picHeight
-                                          ,Bool bIndependentSliceBoundaryEnabled
-                                          ,Bool bTopTileBoundary, Bool bDownTileBoundary, Bool bLeftTileBoundary, Bool bRightTileBoundary
-                                          ,Bool bIndependentTileBoundaryEnabled );
-#endif
-
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for accessing partition information
   // -------------------------------------------------------------------------------------------------------------------
@@ -409,18 +357,12 @@ public:
 
 
   TComDataCU*   getPULeft                   ( UInt&  uiLPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-                                            , Bool bEnforceTileRestriction=true 
-#endif
                                             );
 
   TComDataCU*   getPUAbove                  ( UInt&  uiAPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool MotionDataCompresssion = false
 #if REMOVE_INTRA_LINE_BUFFER
                                             , Bool planarAtLCUBoundary = false 
 #endif
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-                                            , Bool bEnforceTileRestriction=true 
-#endif                                            
                                             );
 
   TComDataCU*   getPUAboveLeft              ( UInt&  uiALPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool MotionDataCompresssion = false );
