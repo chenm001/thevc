@@ -443,9 +443,6 @@ private:
   NalUnitType m_eNalUnitType;         ///< Nal unit type for the slice
   SliceType   m_eSliceType;
   Int         m_iSliceQp;
-#if ADAPTIVE_QP_SELECTION
-  Int         m_iSliceQpBase;
-#endif
   
 #if !G1002_RPS
   Bool        m_bDRBFlag;             //  flag for future usage as reference buffer
@@ -481,9 +478,6 @@ private:
   TComSPS*    m_pcSPS;
   TComPPS*    m_pcPPS;
   TComPic*    m_pcPic;
-#if ADAPTIVE_QP_SELECTION
-  TComTrQuant* m_pcTrQuant;
-#endif  
   UInt        m_uiColDir;  // direction to get colocated CUs
   
   Double      m_dLambda;
@@ -519,11 +513,6 @@ public:
   Void      setPPS          ( TComPPS* pcPPS )         { assert(pcPPS!=NULL); m_pcPPS = pcPPS; m_iPPSId = pcPPS->getPPSId(); }
   TComPPS*  getPPS          () { return m_pcPPS; }
 
-#if ADAPTIVE_QP_SELECTION
-  Void          setTrQuant          ( TComTrQuant* pcTrQuant ) { m_pcTrQuant = pcTrQuant; }
-  TComTrQuant*  getTrQuant          () { return m_pcTrQuant; }
-#endif
-
   Void      setPPSId        ( Int PPSId )         { m_iPPSId = PPSId; }
   Int       getPPSId        () { return m_iPPSId; }
 #if G1002_RPS
@@ -546,9 +535,6 @@ public:
   SliceType getSliceType    ()                          { return  m_eSliceType;         }
   Int       getPOC          ()                          { return  m_iPOC;           }
   Int       getSliceQp      ()                          { return  m_iSliceQp;           }
-#if ADAPTIVE_QP_SELECTION
-  Int       getSliceQpBase  ()                          { return  m_iSliceQpBase;       }
-#endif
   Int       getSliceQpDelta ()                          { return  m_iSliceQpDelta;      }
 #if !G1002_RPS
   Bool      getDRBFlag      ()                          { return  m_bDRBFlag;           }
@@ -592,9 +578,6 @@ public:
   Void      decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TComList<TComPic*>& rcListPic);
   Void      setSliceType        ( SliceType e )                 { m_eSliceType        = e;      }
   Void      setSliceQp          ( Int i )                       { m_iSliceQp          = i;      }
-#if ADAPTIVE_QP_SELECTION
-  Void      setSliceQpBase      ( Int i )                       { m_iSliceQpBase      = i;      }
-#endif
   Void      setSliceQpDelta     ( Int i )                       { m_iSliceQpDelta     = i;      }
 #if !G1002_RPS
   Void      setDRBFlag          ( Bool b )                      { m_bDRBFlag = b;               }

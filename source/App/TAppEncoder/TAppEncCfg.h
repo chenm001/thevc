@@ -102,10 +102,6 @@ protected:
   Int       m_iQP;                                            ///< QP value of key-picture (integer)
   Int       m_aiTLayerQPOffset[MAX_TLAYER];                   ///< QP offset corresponding to temporal layer depth
 
-#if ADAPTIVE_QP_SELECTION
-  Bool      m_bUseAdaptQpSelect;
-#endif
-
   Bool      m_bTLayering;                                     ///< indicates whether temporal IDs are set based on the hierarchical coding structure
   Bool      m_abTLayerSwitchingFlag[MAX_TLAYER];              ///< temporal layer switching flags corresponding to each temporal layer
 

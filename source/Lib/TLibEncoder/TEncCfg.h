@@ -161,11 +161,6 @@ protected:
   Int       m_iSearchRange;                     //  0:Full frame
   Int       m_bipredSearchRange;
 
-  //====== Quality control ========
-#if ADAPTIVE_QP_SELECTION
-  Bool      m_bUseAdaptQpSelect;
-#endif
-
   //====== Tool list ========
   Bool      m_bUseSBACRD;
 
@@ -268,12 +263,6 @@ public:
   Void      setFastSearch                   ( Int   i )      { m_iFastSearch = i; }
   Void      setSearchRange                  ( Int   i )      { m_iSearchRange = i; }
   Void      setBipredSearchRange            ( Int   i )      { m_bipredSearchRange = i; }
-
-  //====== Quality control ========
-#if ADAPTIVE_QP_SELECTION
-  Void      setUseAdaptQpSelect             ( Bool   i ) { m_bUseAdaptQpSelect    = i; }
-  Bool      getUseAdaptQpSelect             ()           { return   m_bUseAdaptQpSelect; }
-#endif
 
   //====== Sequence ========
   Int       getFrameRate                    ()      { return  m_iFrameRate; }

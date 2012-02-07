@@ -202,10 +202,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   /* Quantization parameters */
   ("QP,q",          m_fQP,             30.0, "Qp value, if value is float, QP is switched once during encoding")
 
-#if ADAPTIVE_QP_SELECTION
-    ("AdaptiveQpSelection,-aqps",   m_bUseAdaptQpSelect,           false, "AdaptiveQpSelection")
-#endif
-
   ("dQPFile,m",     cfg_dQPFile, string(""), "dQP file name")
   ("TemporalLayerQPOffset_L0,-tq0", m_aiTLayerQPOffset[0], MAX_QP + 1, "QP offset of temporal layer 0")
   ("TemporalLayerQPOffset_L1,-tq1", m_aiTLayerQPOffset[1], MAX_QP + 1, "QP offset of temporal layer 1")
@@ -712,10 +708,6 @@ Void TAppEncCfg::xPrintParameter()
 
 #if NO_TMVP_MARKING
   printf("TMVP:%d ", m_enableTMVP     );
-#endif
-
-#if ADAPTIVE_QP_SELECTION
-  printf("AQpS:%d", m_bUseAdaptQpSelect   );
 #endif
 
   printf("\n\n");

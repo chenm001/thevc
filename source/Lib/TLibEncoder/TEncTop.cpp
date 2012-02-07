@@ -89,12 +89,6 @@ Void TEncTop::create ()
   m_cGOPEncoder.        create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight );
   m_cSliceEncoder.      create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   m_cCuEncoder.         create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
-#if ADAPTIVE_QP_SELECTION
-  if (m_bUseAdaptQpSelect)
-  {
-    m_cTrQuant.initSliceQpDelta();
-  }
-#endif
   
   // if SBAC-based RD optimization is used
   if( m_bUseSBACRD )
@@ -198,9 +192,6 @@ Void TEncTop::init()
   m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize,
                   aTable4, aTable8, 
                   aTableLastPosVlcIndex, true 
-#if ADAPTIVE_QP_SELECTION                  
-                  , m_bUseAdaptQpSelect
-#endif
                   );
   
   // initialize encoder search class

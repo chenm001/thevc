@@ -51,9 +51,6 @@ TComSlice::TComSlice()
 , m_eNalUnitType                  ( NAL_UNIT_CODED_SLICE_IDR )
 , m_eSliceType                    ( I_SLICE )
 , m_iSliceQp                      ( 0 )
-#if ADAPTIVE_QP_SELECTION
-, m_iSliceQpBase                  ( 0 )
-#endif
 #if !G1002_RPS
 , m_bDRBFlag                      ( true )
 , m_eERBIndex                     ( ERB_NONE )
@@ -816,9 +813,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_eNalUnitType         = pSrc->m_eNalUnitType;
   m_eSliceType           = pSrc->m_eSliceType;
   m_iSliceQp             = pSrc->m_iSliceQp;
-#if ADAPTIVE_QP_SELECTION
-  m_iSliceQpBase         = pSrc->m_iSliceQpBase;
-#endif
 #if !G1002_RPS
   m_bDRBFlag             = pSrc->m_bDRBFlag;
   m_eERBIndex            = pSrc->m_eERBIndex;

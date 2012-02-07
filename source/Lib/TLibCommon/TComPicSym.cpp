@@ -81,9 +81,6 @@ Void TComPicSym::create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt 
   {
     m_apcTComDataCU[i] = new TComDataCU;
     m_apcTComDataCU[i]->create( m_uiNumPartitions, m_uiMaxCUWidth, m_uiMaxCUHeight, false, m_uiMaxCUWidth >> m_uhTotalDepth
-#if ADAPTIVE_QP_SELECTION
-      , true
-#endif     
       );
   }
 }

@@ -120,11 +120,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setSearchRange                  ( m_iSearchRange );
   m_cTEncTop.setBipredSearchRange            ( m_bipredSearchRange );
 
-  //====== Quality control ========
-#if ADAPTIVE_QP_SELECTION
-  m_cTEncTop.setUseAdaptQpSelect             ( m_bUseAdaptQpSelect   );
-#endif
-
   //====== Tool list ========
   m_cTEncTop.setUseSBACRD                    ( m_bUseSBACRD   );
   m_cTEncTop.setUseHADME                     ( m_bUseHADME    );

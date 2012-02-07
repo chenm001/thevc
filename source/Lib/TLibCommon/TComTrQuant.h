@@ -126,9 +126,6 @@ public:
   
   // initialize class
   Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, UInt *aTable4 = NULL, UInt *aTable8 = NULL, UInt *aTableLastPosVlcIndex=NULL, Bool bEnc = false
-#if ADAPTIVE_QP_SELECTION
-                       , Bool bUseAdaptQpSelect = false
-#endif    
     );
   
   // transform & inverse transform functions
@@ -136,9 +133,6 @@ public:
                      Pel*        pcResidual, 
                      UInt        uiStride, 
                      TCoeff*     rpcCoeff, 
-#if ADAPTIVE_QP_SELECTION
-                     Int*&       rpcArlCoeff, 
-#endif
                      UInt        uiWidth, 
                      UInt        uiHeight, 
                      UInt&       uiAbsSum, 
@@ -192,20 +186,7 @@ public:
                                      const UInt                       uiLog2BlockSize);
 #endif
 #endif
-#if ADAPTIVE_QP_SELECTION
-  Void    initSliceQpDelta() ;
-  Void    storeSliceQpNext(TComSlice* pcSlice);
-  Void    clearSliceARLCnt();
-  Int     getQpDelta(Int qp) { return m_qpDelta[qp]; } 
-  Int*    getSliceNSamples(){ return m_sliceNsamples ;} 
-  Double* getSliceSumC()    { return m_sliceSumC; }
-#endif
 protected:
-#if ADAPTIVE_QP_SELECTION
-  Int     m_qpDelta[MAX_QP+1]; 
-  Int     m_sliceNsamples[LEVEL_RANGE+1];  
-  Double  m_sliceSumC[LEVEL_RANGE+1] ;  
-#endif
   Int*    m_plTempCoeff;
   
   QpParam  m_cQP;
@@ -216,9 +197,6 @@ protected:
   Double   m_dLambda;
   UInt     m_uiMaxTrSize;
   Bool     m_bEnc;
-#if ADAPTIVE_QP_SELECTION
-  Bool     m_bUseAdaptQpSelect;
-#endif
 
 private:
   // forward Transform
@@ -232,9 +210,6 @@ private:
   Void xQuant( TComDataCU* pcCU, 
                Int*        pSrc, 
                TCoeff*     pDes, 
-#if ADAPTIVE_QP_SELECTION
-               Int*&       pArlDes,
-#endif
                Int         iWidth, 
                Int         iHeight, 
                UInt&       uiAcSum, 

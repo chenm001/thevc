@@ -139,15 +139,6 @@ private:
   TCoeff*       m_pcTrCoeffY;         ///< transformed coefficient buffer (Y)
   TCoeff*       m_pcTrCoeffCb;        ///< transformed coefficient buffer (Cb)
   TCoeff*       m_pcTrCoeffCr;        ///< transformed coefficient buffer (Cr)
-#if ADAPTIVE_QP_SELECTION
-  Int*          m_pcArlCoeffY;        ///< ARL coefficient buffer (Y)
-  Int*          m_pcArlCoeffCb;       ///< ARL coefficient buffer (Cb)
-  Int*          m_pcArlCoeffCr;       ///< ARL coefficient buffer (Cr)
-
-  static Int*   m_pcGlbArlCoeffY;     ///< ARL coefficient buffer (Y)
-  static Int*   m_pcGlbArlCoeffCb;    ///< ARL coefficient buffer (Cb)
-  static Int*   m_pcGlbArlCoeffCr;    ///< ARL coefficient buffer (Cr)
-#endif
   
   Int*          m_piSliceSUMap;       ///< pointer of slice ID map
 #if NONCROSS_TILE_IN_LOOP_FILTERING
@@ -232,9 +223,6 @@ public:
   // -------------------------------------------------------------------------------------------------------------------
   
   Void          create                ( UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool bDecSubCu, Int unitSize
-#if ADAPTIVE_QP_SELECTION
-    , Bool bGlobalRMARLBuffer = false
-#endif  
     );
   Void          destroy               ();
   
@@ -309,11 +297,6 @@ public:
   TCoeff*&      getCoeffY             ()                        { return m_pcTrCoeffY;        }
   TCoeff*&      getCoeffCb            ()                        { return m_pcTrCoeffCb;       }
   TCoeff*&      getCoeffCr            ()                        { return m_pcTrCoeffCr;       }
-#if ADAPTIVE_QP_SELECTION
-  Int*&         getArlCoeffY          ()                        { return m_pcArlCoeffY;       }
-  Int*&         getArlCoeffCb         ()                        { return m_pcArlCoeffCb;      }
-  Int*&         getArlCoeffCr         ()                        { return m_pcArlCoeffCr;      }
-#endif
   
   UChar         getCbf    ( UInt uiIdx, TextType eType )                  { return m_puhCbf[g_aucConvertTxtTypeToIdx[eType]][uiIdx];  }
   UChar*        getCbf    ( TextType eType )                              { return m_puhCbf[g_aucConvertTxtTypeToIdx[eType]];         }

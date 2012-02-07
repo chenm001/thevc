@@ -96,74 +96,6 @@ TComTrQuant::~TComTrQuant()
   }
 }
 
-#if ADAPTIVE_QP_SELECTION
-Void TComTrQuant::storeSliceQpNext(TComSlice* pcSlice)
-{
-  Int qpBase = pcSlice->getSliceQpBase();
-  Int sliceQpused = pcSlice->getSliceQp();
-  Int sliceQpnext;
-  Double alpha = qpBase < 17 ? 0.5 : 1;
-  
-  Int cnt=0;
-  for(int u=1; u<=LEVEL_RANGE; u++)
-  { 
-    cnt += m_sliceNsamples[u] ;
-  }
-
-    sliceQpused = qpBase;
-    alpha = 0.5;
-
-  if( cnt > 120 )
-  {
-    Double sum = 0;
-    Int k = 0;
-    for(Int u=1; u<LEVEL_RANGE; u++)
-    {
-      sum += u*m_sliceSumC[u];
-      k += u*u*m_sliceNsamples[u];
-    }
-
-    Int v;
-    Double q[MAX_QP+1] ;
-    for(v=0; v<=MAX_QP; v++)
-    {
-      q[v] = (Double)(g_invQuantScales[v%6] * (1<<(v/6)))/64 ;
-    }
-
-    Double qnext = sum/k * q[sliceQpused] / (1<<ARL_C_PRECISION);
-
-    for(v=0; v<MAX_QP; v++)
-    {
-      if(qnext < alpha * q[v] + (1 - alpha) * q[v+1] )
-      {
-        break;
-      }
-    }
-    sliceQpnext = Clip3(sliceQpused - 3, sliceQpused + 3, v);
-  }
-  else
-  {
-    sliceQpnext = sliceQpused;
-  }
-
-  m_qpDelta[qpBase] = sliceQpnext - qpBase; 
-}
-
-Void TComTrQuant::initSliceQpDelta()
-{
-  for(Int qp=0; qp<=MAX_QP; qp++)
-  {
-    m_qpDelta[qp] = qp < 17 ? 0 : 1;
-  }
-}
-
-Void TComTrQuant::clearSliceARLCnt()
-{ 
-  memset(m_sliceSumC, 0, sizeof(Double)*(LEVEL_RANGE+1));
-  memset(m_sliceNsamples, 0, sizeof(Int)*(LEVEL_RANGE+1));
-}
-#endif
-
 /// Including Chroma QP Parameter setting
 Void TComTrQuant::setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, TextType eTxtType)
 {
@@ -1378,9 +1310,6 @@ void xITrMxN(short *coeff,short *block, int iWidth, int iHeight)
 Void TComTrQuant::xQuant( TComDataCU* pcCU, 
                           Int*        pSrc, 
                           TCoeff*     pDes, 
-#if ADAPTIVE_QP_SELECTION
-                          Int*&       pArlDes,
-#endif
                           Int         iWidth, 
                           Int         iHeight, 
                           UInt&       uiAcSum, 
@@ -1389,19 +1318,8 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
 {
   Int*   piCoef    = pSrc;
   TCoeff* piQCoef   = pDes;
-#if ADAPTIVE_QP_SELECTION
-  Int*   piArlCCoef = pArlDes;
-#endif
   Int   iAdd = 0;
   
-#if ADAPTIVE_QP_SELECTION
-    QpParam cQpBase;
-    Int iQpBase = pcCU->getSlice()->getSliceQpBase();
-    if(eTType != TEXT_LUMA)
-      iQpBase = g_aucChromaScale[iQpBase];
-    cQpBase.setQpParam(iQpBase, false, pcCU->getSlice()->getSliceType());
-#endif
-
 #if NSQT 
     Bool bNonSqureFlag = ( iWidth != iHeight );
     if( bNonSqureFlag )
@@ -1421,14 +1339,6 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
 
     iAdd = (pcCU->getSlice()->getSliceType()==I_SLICE ? 171 : 85) << (iQBits-9);
 
-#if ADAPTIVE_QP_SELECTION
-    uiQ = g_quantScales[cQpBase.rem()];
-    iQBits = QUANT_SHIFT + cQpBase.m_iPer + iTransformShift;
-    iAdd = (pcCU->getSlice()->getSliceType()==I_SLICE ? 171 : 85) << (iQBits-9);
-    Int iQBitsC = QUANT_SHIFT + cQpBase.m_iPer + iTransformShift - ARL_C_PRECISION;  
-    Int iAddC   = 1 << (iQBitsC-1);
-#endif
-
     for( Int n = 0; n < iWidth*iHeight; n++ )
     {
       Int iLevel;
@@ -1437,14 +1347,7 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
       iLevel  = piCoef[uiBlockPos];
       iSign   = (iLevel < 0 ? -1: 1);      
 
-#if ADAPTIVE_QP_SELECTION
-      Int tmpLevel = abs(iLevel) * uiQ;
-      piArlCCoef[uiBlockPos] = (tmpLevel + iAddC ) >> iQBitsC;
-
-      iLevel = (tmpLevel + iAdd ) >> iQBits;
-#else
       iLevel = (abs(iLevel) * uiQ + iAdd ) >> iQBits;
-#endif
       uiAcSum += iLevel;
       iLevel *= iSign;        
       piQCoef[uiBlockPos] = iLevel;
@@ -1492,25 +1395,16 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
 
 Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, UInt *aTableLP4, UInt *aTableLP8, UInt *aTableLastPosVlcIndex,
                         Bool bEnc
-#if ADAPTIVE_QP_SELECTION
-                       , Bool bUseAdaptQpSelect
-#endif
                        )
 {
   m_uiMaxTrSize  = uiMaxTrSize;
   m_bEnc         = bEnc;
-#if ADAPTIVE_QP_SELECTION
-  m_bUseAdaptQpSelect = bUseAdaptQpSelect;
-#endif
 }
 
 Void TComTrQuant::transformNxN( TComDataCU* pcCU, 
                                 Pel*        pcResidual, 
                                 UInt        uiStride, 
                                 TCoeff*     rpcCoeff, 
-#if ADAPTIVE_QP_SELECTION
-                                Int*&       rpcArlCoeff, 
-#endif
                                 UInt        uiWidth, 
                                 UInt        uiHeight, 
                                 UInt&       uiAbsSum, 
@@ -1536,9 +1430,6 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
   xT( uiMode, pcResidual, uiStride, m_plTempCoeff, uiWidth );
 #endif
   xQuant( pcCU, m_plTempCoeff, rpcCoeff,
-#if ADAPTIVE_QP_SELECTION
-       rpcArlCoeff,
-#endif
        uiWidth, uiHeight, uiAbsSum, eTType, uiAbsPartIdx );
 }
 

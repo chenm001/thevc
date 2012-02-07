@@ -298,9 +298,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
 #endif
 
-#if ADAPTIVE_QP_SELECTION
-      pcSlice->setTrQuant( m_pcEncTop->getTrQuant() );
-#endif      
       //  Set reference list
       pcSlice->setRefPicList ( rcListPic );
       
@@ -996,26 +993,12 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
   Char c = (pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B');
   if (!pcSlice->isReferenced()) c += 32;
 
-#if ADAPTIVE_QP_SELECTION
-  printf("POC %4d TId: %1d ( %c-SLICE, nQP %d QP %d ) %10d bits",
-         pcSlice->getPOC(),
-         pcSlice->getTLayer(),
-         c,
-         pcSlice->getSliceQpBase(),
-         pcSlice->getSliceQp(),
-         uibits );
-#else
   printf("POC %4d TId: %1d ( %c-SLICE, QP %d ) %10d bits",
-#if G1002_RPS
-         pcSlice->getPOC()-pcSlice->getLastIDR(),
-#else
          pcSlice->getPOC(),
-#endif
          pcSlice->getTLayer(),
          c,
          pcSlice->getSliceQp(),
          uibits );
-#endif
 
   printf(" [Y %6.4lf dB    U %6.4lf dB    V %6.4lf dB]", dYPSNR, dUPSNR, dVPSNR );
   

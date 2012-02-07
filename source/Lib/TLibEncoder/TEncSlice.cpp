@@ -386,9 +386,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 #endif
   
   rpcSlice->setSliceQp          ( iQP );
-#if ADAPTIVE_QP_SELECTION
-  rpcSlice->setSliceQpBase      ( iQP );
-#endif
   rpcSlice->setSliceQpDelta     ( 0 );
 #if G1002_RPS
   rpcSlice->setNumRefIdx(REF_PIC_LIST_0,m_pcCfg->getGOPEntry(iGOPid).m_iRefBufSize);
@@ -507,17 +504,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
   }
   
-#if ADAPTIVE_QP_SELECTION
-  if( m_pcCfg->getUseAdaptQpSelect() )
-  {
-    m_pcTrQuant->clearSliceARLCnt();
-    if(pcSlice->getSliceType()!=I_SLICE)
-    {
-      Int qpBase = pcSlice->getSliceQpBase();
-      pcSlice->setSliceQp(qpBase + m_pcTrQuant->getQpDelta(qpBase));
-    }
-  }
-#endif
   // chen
   TEncTop* pcEncTop = (TEncTop*) m_pcCfg;
   m_pcBitCounter = pcEncTop->getBitCounter();
@@ -611,12 +597,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
 #endif    
   }
 
-#if ADAPTIVE_QP_SELECTION
-  if( m_pcCfg->getUseAdaptQpSelect() )
-  {
-    m_pcTrQuant->storeSliceQpNext(pcSlice);
-  }
-#endif
 }
 
 /** Determines the starting and bounding LCU address of current slice / entropy slice
