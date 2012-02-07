@@ -202,11 +202,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   /* Quantization parameters */
   ("QP,q",          m_fQP,             30.0, "Qp value, if value is float, QP is switched once during encoding")
 
-#if G509_CHROMA_QP_OFFSET
-    ("ChromaQpOffset,   -cqo",   m_iChromaQpOffset,           0, "ChromaQpOffset")
-    ("ChromaQpOffset2nd,-cqo2",  m_iChromaQpOffset2nd,        0, "ChromaQpOffset2nd")
-#endif
-
 #if ADAPTIVE_QP_SELECTION
     ("AdaptiveQpSelection,-aqps",   m_bUseAdaptQpSelect,           false, "AdaptiveQpSelection")
 #endif
@@ -353,13 +348,6 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iFastSearch < 0 || m_iFastSearch > 2,                                     "Fast Search Mode is not supported value (0:Full search  1:Diamond  2:PMVFAST)" );
   xConfirmPara( m_iSearchRange < 0 ,                                                        "Search Range must be more than 0" );
   xConfirmPara( m_bipredSearchRange < 0 ,                                                   "Search Range must be more than 0" );
-
-#if G509_CHROMA_QP_OFFSET
-  xConfirmPara( m_iChromaQpOffset    < -12,   "Min. Chroma Qp Offset is -12"     );
-  xConfirmPara( m_iChromaQpOffset    >  12,   "Max. Chroma Qp Offset is  12"     );
-  xConfirmPara( m_iChromaQpOffset2nd < -12,   "Min. Chroma Qp Offset 2nd is -12" );
-  xConfirmPara( m_iChromaQpOffset2nd >  12,   "Max. Chroma Qp Offset 2nd is  12" );
-#endif
 
 #if QP_ADAPTATION
   xConfirmPara( m_iQPAdaptationRange <= 0,                                                  "QP Adaptation Range must be more than 0" );
@@ -682,11 +670,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("Intra period                 : %d\n", m_iIntraPeriod );
   printf("Decoding refresh type        : %d\n", m_iDecodingRefreshType );
   printf("QP                           : %5.2f\n", m_fQP );
-
-#if G509_CHROMA_QP_OFFSET
-  printf("Chroma Qp Offset             : %d\n", m_iChromaQpOffset   );
-  printf("Chroma Qp Offset 2nd         : %d\n", m_iChromaQpOffset2nd);
-#endif
 
   printf("GOP size                     : %d\n", m_iGOPSize );
 #if !G1002_RPS

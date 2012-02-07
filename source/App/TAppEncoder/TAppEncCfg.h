@@ -102,11 +102,6 @@ protected:
   Int       m_iQP;                                            ///< QP value of key-picture (integer)
   Int       m_aiTLayerQPOffset[MAX_TLAYER];                   ///< QP offset corresponding to temporal layer depth
 
-#if G509_CHROMA_QP_OFFSET
-  Int       m_iChromaQpOffset;                                 ///< ChromaQpOffset    (0:default) 
-  Int       m_iChromaQpOffset2nd;                              ///< ChromaQpOffset2nd (0:default)
-#endif
-
 #if ADAPTIVE_QP_SELECTION
   Bool      m_bUseAdaptQpSelect;
 #endif

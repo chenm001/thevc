@@ -301,10 +301,10 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 
 #if G509_CHROMA_QP_OFFSET
   READ_SVLC( iCode, "chroma_qp_offset");
-  pcPPS->setChromaQpOffset(iCode);
+  assert( iCode == 0 );
 
   READ_SVLC( iCode, "chroma_qp_offset_2nd");
-  pcPPS->setChromaQpOffset2nd(iCode);
+  assert( iCode == 0 );
 #endif
 
 #if WEIGHT_PRED

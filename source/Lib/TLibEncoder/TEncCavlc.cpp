@@ -319,8 +319,8 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #endif
 
 #if G509_CHROMA_QP_OFFSET
-  WRITE_SVLC( pcPPS->getChromaQpOffset(),                   "chroma_qp_offset"     );
-  WRITE_SVLC( pcPPS->getChromaQpOffset2nd(),                "chroma_qp_offset_2nd" );
+  WRITE_SVLC( 0,                                             "chroma_qp_offset"     );
+  WRITE_SVLC( 0,                                             "chroma_qp_offset_2nd" );
 #endif
 
 #if WEIGHT_PRED

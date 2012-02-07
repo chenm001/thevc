@@ -367,11 +367,6 @@ private:
   TComRPS*    m_pcRPSList;
 #endif
 
-#if G509_CHROMA_QP_OFFSET
-  Int        m_iChromaQpOffset;
-  Int        m_iChromaQpOffset2nd;
-#endif
-
 #if G1002_RPS
   Bool        m_bLongTermRefsPresent;
   UInt        m_uiBitsForLongTermRefs;
@@ -418,13 +413,6 @@ public:
 #if G1002_RPS
   Void      setRPSList              ( TComRPS* pcRPSList ) { m_pcRPSList = pcRPSList; }
   TComRPS*  getRPSList              ()         { return m_pcRPSList;          }
-#endif
-
-#if G509_CHROMA_QP_OFFSET
-  Void      setChromaQpOffset   ( Int i ) { m_iChromaQpOffset = i; }
-  Int       getChromaQpOffset   () { return m_iChromaQpOffset;}
-  Void      setChromaQpOffset2nd( Int i ) { m_iChromaQpOffset2nd = i; }
-  Int       getChromaQpOffset2nd() { return m_iChromaQpOffset2nd;}
 #endif
 
 #if NO_TMVP_MARKING

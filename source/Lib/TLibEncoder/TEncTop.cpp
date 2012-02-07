@@ -556,11 +556,6 @@ Void TEncTop::xInitPPS()
 
 #endif
 
-#if G509_CHROMA_QP_OFFSET
-  m_cPPS.setChromaQpOffset   ( m_iChromaQpOffset    );
-  m_cPPS.setChromaQpOffset2nd( m_iChromaQpOffset2nd );
-#endif
-
 #if NO_TMVP_MARKING
   m_cPPS.setEnableTMVPFlag( m_bEnableTMVP );
 #endif

@@ -1379,10 +1379,6 @@ TComPPS::TComPPS()
 , m_picInitQPMinus26            (0)
 #endif
 , m_pcSPS                       (NULL)
-#if G509_CHROMA_QP_OFFSET
-, m_iChromaQpOffset             (0)
-, m_iChromaQpOffset2nd          (0)
-#endif
 #if G1002_RPS
 , m_bLongTermRefsPresent        (false)
 , m_uiBitsForLongTermRefs       (0)

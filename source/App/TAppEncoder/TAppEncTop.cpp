@@ -121,11 +121,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setBipredSearchRange            ( m_bipredSearchRange );
 
   //====== Quality control ========
-#if G509_CHROMA_QP_OFFSET
-  m_cTEncTop.setChromaQpOffset               ( m_iChromaQpOffset     );
-  m_cTEncTop.setChromaQpOffset2nd            ( m_iChromaQpOffset2nd  );
-#endif
-
 #if ADAPTIVE_QP_SELECTION
   m_cTEncTop.setUseAdaptQpSelect             ( m_bUseAdaptQpSelect   );
 #endif
