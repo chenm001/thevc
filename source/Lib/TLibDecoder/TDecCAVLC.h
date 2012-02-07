@@ -187,11 +187,6 @@ public:
   /// parse APF flags before SAO and ALF parameters
   Void parseAPSInitInfo(TComAPS& cAPS);
 
-#if G174_DF_OFFSET
-  Void parseDFFlag         ( UInt& ruiVal, const Char *pSymbolName );
-  Void parseDFSvlc         ( Int&  riVal,  const Char *pSymbolName  );
-#endif
-
 };
 
 //! \}

@@ -248,7 +248,7 @@ Void TDecCavlc::parseAPSInitInfo(TComAPS& cAPS)
 #endif
 #if G174_DF_OFFSET
   //DF flag
-  READ_FLAG(uiCode, "aps_deblocking_filter_flag"); cAPS.setLoopFilterOffsetInAPS( (uiCode==1)?true:false );
+  READ_FLAG(uiCode, "aps_deblocking_filter_flag"); assert( uiCode == 0 );
 #endif
   //SAO flag
   READ_FLAG(uiCode, "aps_sample_adaptive_offset_flag");  cAPS.setSaoEnabled( (uiCode==1)?true:false );
@@ -490,7 +490,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #endif
   READ_FLAG( uiCode, "chroma_pred_from_luma_enabled_flag" );     assert( uiCode == 0 );
 #if G174_DF_OFFSET
-  READ_FLAG( uiCode, "deblocking_filter_In_APS_enabled_flag" );    pcSPS->setUseDF ( uiCode ? true : false );  
+  READ_FLAG( uiCode, "deblocking_filter_In_APS_enabled_flag" );  assert( uiCode == 0 );
 #endif
   READ_FLAG( uiCode, "loop_filter_across_slice_flag" );          assert( uiCode == 1 );
   READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO ( uiCode ? true : false );  
@@ -680,11 +680,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       }  
     }
 #endif
-#if G174_DF_OFFSET
-    if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseDF())
-#else
     if(rpcSlice->getSPS()->getUseSAO())
-#endif
     {
 #if ALF_SAO_SLICE_FLAGS
       if (rpcSlice->getSPS()->getUseSAO())
@@ -883,14 +879,13 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     //     disable_deblocking_filter_idc
     // this should be an idc
 #if G174_DF_OFFSET
-    READ_FLAG ( uiCode, "inherit_dbl_param_from_APS_flag" ); rpcSlice->setInheritDblParamFromAPS(uiCode ? 1 : 0);
-    if(!rpcSlice->getInheritDblParamFromAPS())
+    READ_FLAG ( uiCode, "inherit_dbl_param_from_APS_flag" ); assert( uiCode == 0 );
     {
       READ_FLAG ( uiCode, "loop_filter_disable" );  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
       if(!rpcSlice->getLoopFilterDisable())
       {
-        READ_SVLC( iCode, "beta_offset_div2" ); rpcSlice->setLoopFilterBetaOffset(iCode);
-        READ_SVLC( iCode, "tc_offset_div2" ); rpcSlice->setLoopFilterTcOffset(iCode);
+        READ_SVLC( iCode, "beta_offset_div2" ); assert( iCode == 0 );
+        READ_SVLC( iCode, "tc_offset_div2" ); assert( iCode == 0 );
       }
     }
 #else
@@ -2817,16 +2812,5 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, Int blockType, Int blSize
 
   return;
 }
-
-#if G174_DF_OFFSET
-Void TDecCavlc::parseDFFlag(UInt& ruiVal, const Char *pSymbolName)
-{
-  READ_FLAG(ruiVal, pSymbolName);
-}
-Void TDecCavlc::parseDFSvlc(Int&  riVal, const Char *pSymbolName)
-{
-  READ_SVLC(riVal, pSymbolName);
-}
-#endif
 
 //! \}

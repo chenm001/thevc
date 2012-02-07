@@ -471,11 +471,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       
       pcSlice = pcPic->getSlice(0);
       //-- Loop filter
-#if G174_DF_OFFSET
-      m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), pcSlice->getLoopFilterBetaOffset(), pcSlice->getLoopFilterTcOffset());
-#else
-      m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), m_pcCfg->getLoopFilterAlphaC0Offget(), m_pcCfg->getLoopFilterBetaOffget());
-#endif
+      m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable());
       m_pcLoopFilter->loopFilterPic( pcPic );
 
 #if NONCROSS_TILE_IN_LOOP_FILTERING
@@ -551,11 +547,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       uiNextCUAddr                 = 0;
       pcSlice = pcPic->getSlice(uiStartCUAddrSliceIdx);
 
-#if G174_DF_OFFSET
-      Int processingState = (pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseDF())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
-#else
       Int processingState = (pcSlice->getSPS()->getUseSAO())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
-#endif
 
       static Int iCurrAPSIdx = 0;
       Int iCodedAPSIdx = 0;
@@ -922,10 +914,7 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
   cAPS.setSaoEnabled(pcSlice->getSPS()->getUseSAO() ? (cAPS.getSaoParam()->bSaoFlag[0] ):(false));
 
 #if G174_DF_OFFSET
-  cAPS.setLoopFilterOffsetInAPS(m_pcCfg->getLoopFilterOffsetInAPS());
   cAPS.setLoopFilterDisable(m_pcCfg->getLoopFilterDisable());
-  cAPS.setLoopFilterBetaOffset(m_pcCfg->getLoopFilterBetaOffset());
-  cAPS.setLoopFilterTcOffset(m_pcCfg->getLoopFilterTcOffset());
 #endif 
 
   if(cAPS.getSaoEnabled())
@@ -961,17 +950,11 @@ Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* p
   m_pcEntropyCoder->setBitstream(&APSbs);
 
   m_pcEntropyCoder->encodeAPSInitInfo(pcAPS);
-#if G174_DF_OFFSET
-  if(pcAPS->getLoopFilterOffsetInAPS())
-  {
-    m_pcEntropyCoder->encodeDFParams(pcAPS);
-  }
-#endif
 
   if(pcAPS->getSaoEnabled())
   {
 #if !G220_PURE_VLC_SAO_ALF
-    Bool bEndAtSAO   = (!pcAPS->getAlfEnabled());
+    Bool bEndAtSAO   = true;
     TComOutputBitstream cSAObs;
     UInt uiSAObsWrittenBits;
 
@@ -1069,11 +1052,7 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
 {
   TComSlice* pcSlice = pcPic->getSlice(pcPic->getCurrSliceIdx());
   Bool bCalcDist = false;
-#if G174_DF_OFFSET
-  m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), m_pcCfg->getLoopFilterBetaOffset(), m_pcCfg->getLoopFilterTcOffset());
-#else
-  m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), m_pcCfg->getLoopFilterAlphaC0Offget(), m_pcCfg->getLoopFilterBetaOffget());
-#endif
+  m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable());
   m_pcLoopFilter->loopFilterPic( pcPic );
   
   m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcSlice );

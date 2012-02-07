@@ -417,11 +417,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         m_uiPrevPOC = m_apcSlicePilot->getPOC();
         return true;
       }
-#if G174_DF_OFFSET
-      if(m_cSPS.getUseSAO() || m_cSPS.getUseDF())
-#else
       if(m_cSPS.getUseSAO())
-#endif
       {
         m_apcSlicePilot->setAPS( popAPS(m_apcSlicePilot->getAPSId())  );
       }
@@ -671,12 +667,6 @@ Void TDecTop::decodeAPS(TComInputBitstream* bs, TComAPS& cAPS)
   Int iBitLeft;
 #endif
   m_cEntropyDecoder.decodeAPSInitInfo(cAPS);
-#if G174_DF_OFFSET
-  if(cAPS.getLoopFilterOffsetInAPS())
-  {
-    m_cEntropyDecoder.decodeDFParams( &cAPS );    
-  }
-#endif
 
   if(cAPS.getSaoEnabled())
   {

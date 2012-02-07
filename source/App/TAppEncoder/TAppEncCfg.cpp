@@ -246,14 +246,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   
   /* Deblocking filter parameters */
   ("LoopFilterDisable", m_bLoopFilterDisable, false)
-#if G174_DF_OFFSET
-  ("LoopFilterOffsetInAPS", m_loopFilterOffsetInAPS, false)
-  ("LoopFilterBetaOffset_div2", m_loopFilterBetaOffsetDiv2, 0 )
-  ("LoopFilterTcOffset_div2", m_loopFilterTcOffsetDiv2, 0 )
-#else
-  ("LoopFilterAlphaC0Offset", m_iLoopFilterAlphaC0Offset, 0)
-  ("LoopFilterBetaOffset", m_iLoopFilterBetaOffset, 0 )
-#endif
 
   /* Coding tools */
   ("MRG", m_bUseMRG, true, "merging of motion partitions")
@@ -424,13 +416,6 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iDecodingRefreshType < 0 || m_iDecodingRefreshType > 2,                   "Decoding Refresh Type must be equal to 0, 1 or 2" );
   xConfirmPara( m_iQP < 0 || m_iQP > 51,                                                    "QP exceeds supported range (0 to 51)" );
 
-#if G174_DF_OFFSET
-  xConfirmPara( m_loopFilterBetaOffsetDiv2 < -13 || m_loopFilterBetaOffsetDiv2 > 13,          "Loop Filter Beta Offset div. 2 exceeds supported range (-13 to 13)");
-  xConfirmPara( m_loopFilterTcOffsetDiv2 < -13 || m_loopFilterTcOffsetDiv2 > 13,              "Loop Filter Tc Offset div. 2 exceeds supported range (-13 to 13)");
-#else
-  xConfirmPara( m_iLoopFilterAlphaC0Offset < -26 || m_iLoopFilterAlphaC0Offset > 26,        "Loop Filter Alpha Offset exceeds supported range (-26 to 26)" );
-  xConfirmPara( m_iLoopFilterBetaOffset < -26 || m_iLoopFilterBetaOffset > 26,              "Loop Filter Beta Offset exceeds supported range (-26 to 26)");
-#endif
   xConfirmPara( m_iFastSearch < 0 || m_iFastSearch > 2,                                     "Fast Search Mode is not supported value (0:Full search  1:Diamond  2:PMVFAST)" );
   xConfirmPara( m_iSearchRange < 0 ,                                                        "Search Range must be more than 0" );
   xConfirmPara( m_bipredSearchRange < 0 ,                                                   "Search Range must be more than 0" );

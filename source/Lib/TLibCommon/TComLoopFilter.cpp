@@ -90,19 +90,9 @@ TComLoopFilter::~TComLoopFilter()
 // Public member functions
 // ====================================================================================================================
 
-#if G174_DF_OFFSET
-Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc, Int iBetaOffset_div2, Int iTcOffset_div2)
-#else
-Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaOffset)
-#endif
+Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc )
 {
   m_uiDisableDeblockingFilterIdc  = uiDisableDblkIdc;
-
-#if G174_DF_OFFSET
-  m_betaOffsetDiv2 = iBetaOffset_div2;
-  m_tcOffsetDiv2 = iTcOffset_div2;
-#endif
-
 }
 
 #if !DISABLE_PARALLEL_DECISIONS
@@ -840,16 +830,8 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
 #endif
     Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
     
-#if G174_DF_OFFSET
-    Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, Int(iQP + DEFAULT_INTRA_TC_OFFSET*(uiBs-1) + (m_tcOffsetDiv2 << 1)));
-#else
     Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, Int(iQP + DEFAULT_INTRA_TC_OFFSET*(uiBs-1)));
-#endif
-#if G174_DF_OFFSET
-    Int iIndexB = Clip3(0, MAX_QP, iQP + (m_betaOffsetDiv2 << 1));
-#else
     Int iIndexB = Clip3(0, MAX_QP, iQP );
-#endif
 
     Int iTc =  tctable_8x8[iIndexTC]*iBitdepthScale;
     Int iBeta = betatable_8x8[iIndexB]*iBitdepthScale;
@@ -1059,11 +1041,7 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
 #endif
     Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
     
-#if G174_DF_OFFSET
-    Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, iQP + DEFAULT_INTRA_TC_OFFSET*(ucBs - 1) + (m_tcOffsetDiv2 << 1));
-#else
     Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, iQP + DEFAULT_INTRA_TC_OFFSET*(ucBs - 1) );
-#endif
     Int iTc =  tctable_8x8[iIndexTC]*iBitdepthScale;
     
       for ( UInt uiStep = 0; uiStep < uiPelsInPartChroma; uiStep++ )

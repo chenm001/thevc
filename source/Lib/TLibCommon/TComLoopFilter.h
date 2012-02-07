@@ -55,10 +55,6 @@ class TComLoopFilter
 {
 private:
   UInt      m_uiDisableDeblockingFilterIdc; ///< deblocking filter idc
-#if G174_DF_OFFSET
-  Int       m_betaOffsetDiv2;
-  Int       m_tcOffsetDiv2;
-#endif
 
   UInt      m_uiNumPartitions;
 #if !DEBLK_CLEANUP_CHROMA_BS
@@ -156,11 +152,7 @@ public:
   Void  destroy                   ();
   
   /// set configuration
-#if G174_DF_OFFSET
-  Void setCfg( UInt uiDisableDblkIdc, Int betaOffsetDiv2, Int tcOffsetDiv2);
-#else
-  Void setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaOffset);
-#endif
+  Void setCfg( UInt uiDisableDblkIdc );
   
   /// picture-level deblocking filter
   Void loopFilterPic( TComPic* pcPic );

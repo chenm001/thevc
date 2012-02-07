@@ -562,10 +562,6 @@ Void TEncTop::xInitSPS()
   }
 #endif
 #endif
-
-#if G174_DF_OFFSET
-  m_cSPS.setUseDF( m_loopFilterOffsetInAPS );
-#endif
 }
 
 Void TEncTop::xInitPPS()

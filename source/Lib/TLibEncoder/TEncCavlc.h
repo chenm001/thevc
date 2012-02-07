@@ -217,10 +217,6 @@ public:
 
   Void  codeAPSInitInfo(TComAPS* pcAPS);  //!< code APS flags before encoding SAO and ALF parameters
   Void  codeFinish(Bool bEnd) { /*do nothing*/}
-#if G174_DF_OFFSET
-  Void codeDFFlag       ( UInt uiCode, const Char *pSymbolName );
-  Void codeDFSvlc       ( Int   iCode, const Char *pSymbolName );
-#endif
 
 };
 

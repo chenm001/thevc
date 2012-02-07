@@ -111,10 +111,6 @@ public:
   virtual Void parseSaoSvlc       ( Int&  riVal            ) = 0;
   
   virtual Void parseAPSInitInfo   (TComAPS& cAPS) = 0;
-#if G174_DF_OFFSET
-  virtual Void parseDFFlag(UInt& ruiVal, const Char *pSymbolName) = 0;
-  virtual Void parseDFSvlc(Int&  riVal, const Char *pSymbolName) = 0;
-#endif
 
   virtual ~TDecEntropyIf() {}
 };
@@ -188,9 +184,6 @@ public:
   Void decodeSaoParam         (SAOParam* pSaoParam);
 
   Void decodeAPSInitInfo       (TComAPS& cAPS) {m_pcEntropyDecoderIf->parseAPSInitInfo(cAPS);}
-#if G174_DF_OFFSET
-  Void decodeDFParams (TComAPS* pcAPS);
-#endif
 
 };// END CLASS DEFINITION TDecEntropy
 
