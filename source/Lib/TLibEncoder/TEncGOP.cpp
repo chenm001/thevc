@@ -122,7 +122,6 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
   m_pcCavlcCoder         = pcTEncTop->getCavlcCoder();
   m_pcSbacCoder          = pcTEncTop->getSbacCoder();
   m_pcBinCABAC           = pcTEncTop->getBinCABAC();
-  m_pcLoopFilter         = pcTEncTop->getLoopFilter();
   m_pcBitCounter         = pcTEncTop->getBitCounter();
   
   m_pcSAO                = pcTEncTop->getSAO();
@@ -470,9 +469,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx++]                = pcSlice->getSliceCurEndCUAddr();
       
       pcSlice = pcPic->getSlice(0);
-      //-- Loop filter
-      m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable());
-      m_pcLoopFilter->loopFilterPic( pcPic );
 
 #if NONCROSS_TILE_IN_LOOP_FILTERING
       pcSlice = pcPic->getSlice(0);
@@ -913,10 +909,6 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
 
   cAPS.setSaoEnabled(pcSlice->getSPS()->getUseSAO() ? (cAPS.getSaoParam()->bSaoFlag[0] ):(false));
 
-#if G174_DF_OFFSET
-  cAPS.setLoopFilterDisable(m_pcCfg->getLoopFilterDisable());
-#endif 
-
   if(cAPS.getSaoEnabled())
   {
       cAPS.setCABACinitIDC(pcSlice->getSliceType());
@@ -1052,8 +1044,6 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
 {
   TComSlice* pcSlice = pcPic->getSlice(pcPic->getCurrSliceIdx());
   Bool bCalcDist = false;
-  m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable());
-  m_pcLoopFilter->loopFilterPic( pcPic );
   
   m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcSlice );
   m_pcEntropyCoder->resetEntropy    ();

@@ -244,9 +244,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   /* Entropy coding parameters */
   ("SBACRD", m_bUseSBACRD, true, "SBAC based RD estimation")
   
-  /* Deblocking filter parameters */
-  ("LoopFilterDisable", m_bLoopFilterDisable, false)
-
   /* Coding tools */
   ("MRG", m_bUseMRG, true, "merging of motion partitions")
 

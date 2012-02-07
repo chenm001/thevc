@@ -311,10 +311,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComLoopFilter.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComMotionInfo.cpp"
 				>
 			</File>
@@ -430,10 +426,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComList.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComLoopFilter.h"
 				>
 			</File>
 			<File

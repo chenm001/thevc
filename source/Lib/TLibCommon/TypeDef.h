@@ -430,14 +430,6 @@ struct _SaoParam
 #endif
 };
 
-/// parameters for deblocking filter
-typedef struct _LFCUParam
-{
-  Bool bInternalEdge;                     ///< indicates internal edge
-  Bool bLeftEdge;                         ///< indicates left edge
-  Bool bTopEdge;                          ///< indicates top edge
-} LFCUParam;
-
 /// parapeters for TENTM coefficient VLC
 typedef struct _LastCoeffStruct
 {

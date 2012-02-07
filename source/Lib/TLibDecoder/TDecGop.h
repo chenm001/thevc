@@ -47,7 +47,6 @@
 #include "TLibCommon/TComList.h"
 #include "TLibCommon/TComPicYuv.h"
 #include "TLibCommon/TComPic.h"
-#include "TLibCommon/TComLoopFilter.h"
 #include "TLibCommon/TComSampleAdaptiveOffset.h"
 
 #include "TDecEntropy.h"
@@ -75,7 +74,6 @@ private:
   TDecBinCABAC*         m_pcBinCABAC;
   TDecCavlc*            m_pcCavlcDecoder;
   TDecSlice*            m_pcSliceDecoder;
-  TComLoopFilter*       m_pcLoopFilter;
   
   // Adaptive Loop filter
   TComSampleAdaptiveOffset*     m_pcSAO;
@@ -91,8 +89,7 @@ public:
                  TDecSbac*               pcSbacDecoder, 
                  TDecBinCABAC*           pcBinCABAC,
                  TDecCavlc*              pcCavlcDecoder, 
-                 TDecSlice*              pcSliceDecoder, 
-                 TComLoopFilter*         pcLoopFilter
+                 TDecSlice*              pcSliceDecoder
                  ,TComSampleAdaptiveOffset* pcSAO
                  );
   Void  create  ();

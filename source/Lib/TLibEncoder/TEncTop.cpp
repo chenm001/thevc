@@ -100,11 +100,6 @@ Void TEncTop::create ()
     m_cTrQuant.initSliceQpDelta();
   }
 #endif
-#if !DISABLE_PARALLEL_DECISIONS
-  m_cLoopFilter.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-#else
-  m_cLoopFilter.        create( g_uiMaxCUDepth );
-#endif
   
   if(m_bUseSAO)
   {
@@ -161,7 +156,6 @@ Void TEncTop::destroy ()
     m_cEncSAO.destroy();
     m_cEncSAO.destroyEncBuffer();
   }
-  m_cLoopFilter.        destroy();
 #if G1002_RPS
   m_cRPSList.               destroy();
 #endif

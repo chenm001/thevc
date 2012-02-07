@@ -482,11 +482,6 @@ public:
   Void      createSaoParam();   //!< create SAO parameter object
   Void      destroySaoParam();  //!< destroy SAO parameter object
 
-#if G174_DF_OFFSET
-  Void      setLoopFilterDisable(Bool val)      {m_loopFilterDisable = val; }          //!< set offset for deblocking filter disabled
-  Bool      getLoopFilterDisable()              {return m_loopFilterDisable; }         //!< get offset for deblocking filter disabled
-#endif
-
   Void      setCABACinitIDC(Int iVal) {m_CABACinitIDC = iVal;    }  //!< set CABAC initial IDC number for APS coding
   Int       getCABACinitIDC()         {return m_CABACinitIDC;    }  //!< get CABAC initial IDC number for APS coding
   Void      setCABACinitQP(Int iVal)  {m_CABACinitQP = iVal;     }  //!< set CABAC initial QP value for APS coding
@@ -496,9 +491,6 @@ private:
   Int         m_apsID;        //!< APS ID
   Bool        m_bSaoEnabled;  //!< SAO enabled/disabled in APS (true for enabled)
   SAOParam*   m_pSaoParam;    //!< SAO parameter object pointer 
-#if G174_DF_OFFSET
-  Bool        m_loopFilterDisable;           //< Deblocking filter enabled/disabled in APS
-#endif
   Int         m_CABACinitIDC; //!< CABAC initial IDC number for APS coding
   Int         m_CABACinitQP;  //!< CABAC initial QP value for APS coding
 
@@ -534,7 +526,6 @@ private:
 #if ADAPTIVE_QP_SELECTION
   Int         m_iSliceQpBase;
 #endif
-  Bool        m_bLoopFilterDisable;
   
 #if !G1002_RPS
   Bool        m_bDRBFlag;             //  flag for future usage as reference buffer
@@ -658,7 +649,6 @@ public:
   Bool      getDRBFlag      ()                          { return  m_bDRBFlag;           }
   ERBIndex  getERBIndex     ()                          { return  m_eERBIndex;          }
 #endif
-  Bool      getLoopFilterDisable()                      { return  m_bLoopFilterDisable; }
 
   Int       getNumRefIdx        ( RefPicList e )                { return  m_aiNumRefIdx[e];             }
   TComPic*  getPic              ()                              { return  m_pcPic;                      }
@@ -705,7 +695,6 @@ public:
   Void      setDRBFlag          ( Bool b )                      { m_bDRBFlag = b;               }
   Void      setERBIndex         ( ERBIndex e )                  { m_eERBIndex = e;              }
 #endif
-  Void      setLoopFilterDisable( Bool b )                      { m_bLoopFilterDisable= b;      }
   
   Void      setRefPic           ( TComPic* p, RefPicList e, Int iRefIdx ) { m_apcRefPicList[e][iRefIdx] = p; }
   Void      setRefPOC           ( Int i, RefPicList e, Int iRefIdx ) { m_aiRefPOCList[e][iRefIdx] = i; }

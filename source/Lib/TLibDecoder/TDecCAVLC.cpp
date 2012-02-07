@@ -880,16 +880,9 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     // this should be an idc
 #if G174_DF_OFFSET
     READ_FLAG ( uiCode, "inherit_dbl_param_from_APS_flag" ); assert( uiCode == 0 );
-    {
-      READ_FLAG ( uiCode, "loop_filter_disable" );  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
-      if(!rpcSlice->getLoopFilterDisable())
-      {
-        READ_SVLC( iCode, "beta_offset_div2" ); assert( iCode == 0 );
-        READ_SVLC( iCode, "tc_offset_div2" ); assert( iCode == 0 );
-      }
-    }
+    READ_FLAG ( uiCode, "loop_filter_disable" );  assert( uiCode == 1 );
 #else
-    READ_FLAG ( uiCode, "loop_filter_disable" );  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
+    READ_FLAG ( uiCode, "loop_filter_disable" );  assert( uiCode == 1 );
 #endif
     //     if( disable_deblocking_filter_idc  !=  1 ) {
     //       slice_alpha_c0_offset_div2

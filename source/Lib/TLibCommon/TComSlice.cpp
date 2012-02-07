@@ -54,7 +54,6 @@ TComSlice::TComSlice()
 #if ADAPTIVE_QP_SELECTION
 , m_iSliceQpBase                  ( 0 )
 #endif
-, m_bLoopFilterDisable            ( false )
 #if !G1002_RPS
 , m_bDRBFlag                      ( true )
 , m_eERBIndex                     ( ERB_NONE )
@@ -825,7 +824,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
 #if ADAPTIVE_QP_SELECTION
   m_iSliceQpBase         = pSrc->m_iSliceQpBase;
 #endif
-  m_bLoopFilterDisable   = pSrc->m_bLoopFilterDisable;
 #if !G1002_RPS
   m_bDRBFlag             = pSrc->m_bDRBFlag;
   m_eERBIndex            = pSrc->m_eERBIndex;
@@ -1636,9 +1634,6 @@ TComAPS::~TComAPS()
 TComAPS& TComAPS::operator= (const TComAPS& src)
 {
   m_apsID       = src.m_apsID;
-#if G174_DF_OFFSET
-  m_loopFilterDisable = src.m_loopFilterDisable;
-#endif
   m_bSaoEnabled = src.m_bSaoEnabled;
   m_pSaoParam   = src.m_pSaoParam; 
   m_CABACinitIDC= src.m_CABACinitIDC;

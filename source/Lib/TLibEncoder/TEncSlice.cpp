@@ -456,8 +456,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setNumRefIdx        ( REF_PIC_LIST_1, eSliceType == B_SLICE ? (m_pcCfg->getNumOfReferenceB_L1()) : 0 );
 #endif
   
-  rpcSlice->setLoopFilterDisable( m_pcCfg->getLoopFilterDisable() );
-
   rpcSlice->setDepth            ( iDepth );
   
 #if G1002_RPS

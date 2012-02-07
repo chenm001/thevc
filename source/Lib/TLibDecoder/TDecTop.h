@@ -96,7 +96,6 @@ private:
   TDecCavlc               m_cCavlcDecoder;
   TDecSbac                m_cSbacDecoder;
   TDecBinCABAC            m_cBinCABAC;
-  TComLoopFilter          m_cLoopFilter;
   TComSampleAdaptiveOffset m_cSAO;
 
   Bool isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay);

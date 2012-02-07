@@ -115,9 +115,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setHierarchicalCoding           ( m_bHierarchicalCoding );
 #endif
   
-  //====== Loop/Deblock Filter ========
-  m_cTEncTop.setLoopFilterDisable            ( m_bLoopFilterDisable       );
-
   //====== Motion search ========
   m_cTEncTop.setFastSearch                   ( m_iFastSearch  );
   m_cTEncTop.setSearchRange                  ( m_iSearchRange );

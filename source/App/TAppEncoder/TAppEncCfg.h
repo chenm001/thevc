@@ -143,9 +143,6 @@ protected:
 
   Bool      m_bUseSAO; 
 
-  // coding tools (loop filter)
-  Bool      m_bLoopFilterDisable;                             ///< flag for using deblocking filter
-
   // coding tools (inter - merge motion partitions)
   Bool      m_bUseMRG;                                        ///< SOPH: flag for using motion partition Merge Mode
 

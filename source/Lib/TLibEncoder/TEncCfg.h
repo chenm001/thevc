@@ -156,9 +156,6 @@ protected:
   Bool      m_bHierarchicalCoding;              //  hierarchical-B coding
 #endif
   
-  //====== Loop/Deblock Filter ========
-  Bool      m_bLoopFilterDisable;
-
   Bool      m_bUseSAO;
 
   //====== Motion search ========
@@ -292,9 +289,6 @@ public:
   Void      setHierarchicalCoding           ( Bool  b )      { m_bHierarchicalCoding = b; }
 #endif
   
-  //====== Loop/Deblock Filter ========
-  Void      setLoopFilterDisable            ( Bool  b )      { m_bLoopFilterDisable       = b; }
-
   //====== Motion search ========
   Void      setFastSearch                   ( Int   i )      { m_iFastSearch = i; }
   Void      setSearchRange                  ( Int   i )      { m_iSearchRange = i; }
@@ -359,9 +353,6 @@ public:
   Bool      getHierarchicalCoding           ()      { return  m_bHierarchicalCoding; }
 #endif
   
-  //==== Loop/Deblock Filter ========
-  Bool      getLoopFilterDisable            ()      { return  m_bLoopFilterDisable;       }
-
   //==== Motion search ========
   Int       getFastSearch                   ()      { return  m_iFastSearch; }
   Int       getSearchRange                  ()      { return  m_iSearchRange; }

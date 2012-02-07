@@ -45,7 +45,6 @@
 #include "TLibCommon/TComList.h"
 #include "TLibCommon/TComPic.h"
 #include "TLibCommon/TComBitCounter.h"
-#include "TLibCommon/TComLoopFilter.h"
 #include "TLibCommon/AccessUnit.h"
 #include "TEncSampleAdaptiveOffset.h"
 #include "TEncSlice.h"
@@ -98,7 +97,6 @@ private:
   TEncCavlc*              m_pcCavlcCoder;
   TEncSbac*               m_pcSbacCoder;
   TEncBinCABAC*           m_pcBinCABAC;
-  TComLoopFilter*         m_pcLoopFilter;
   
   TEncSampleAdaptiveOffset*  m_pcSAO;
   TComBitCounter*         m_pcBitCounter;

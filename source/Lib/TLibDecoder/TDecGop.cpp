@@ -82,8 +82,7 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
                    TDecSbac*               pcSbacDecoder, 
                    TDecBinCABAC*           pcBinCABAC,
                    TDecCavlc*              pcCavlcDecoder, 
-                   TDecSlice*              pcSliceDecoder, 
-                   TComLoopFilter*         pcLoopFilter
+                   TDecSlice*              pcSliceDecoder
                    ,TComSampleAdaptiveOffset* pcSAO
                    )
 {
@@ -92,7 +91,6 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
   m_pcBinCABAC            = pcBinCABAC;
   m_pcCavlcDecoder        = pcCavlcDecoder;
   m_pcSliceDecoder        = pcSliceDecoder;
-  m_pcLoopFilter          = pcLoopFilter;
   m_pcSAO  = pcSAO;
 }
 
@@ -151,10 +149,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
   }
   else
   {
-    // deblocking filter
-    m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable());
-    m_pcLoopFilter->loopFilterPic( rpcPic );
-
 #if NONCROSS_TILE_IN_LOOP_FILTERING
     pcSlice = rpcPic->getSlice(0);
     if(pcSlice->getSPS()->getUseSAO())

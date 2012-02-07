@@ -752,17 +752,8 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   //     disable_deblocking_filter_idc
 #if G174_DF_OFFSET
     WRITE_FLAG(0, "inherit_dbl_param_from_APS_flag");
-    {
-      WRITE_FLAG(pcSlice->getLoopFilterDisable(), "loop_filter_disable");  // should be an IDC
-      if(!pcSlice->getLoopFilterDisable())
-      {
-        WRITE_SVLC (0, "beta_offset_div2");
-        WRITE_SVLC (0, "tc_offset_div2");
-      }
-    }
-#else
-    WRITE_FLAG(pcSlice->getLoopFilterDisable(), "loop_filter_disable");  // should be an IDC
 #endif
+    WRITE_FLAG(1, "loop_filter_disable");  // should be an IDC
   //     if( disable_deblocking_filter_idc  !=  1 ) {
   //       slice_alpha_c0_offset_div2
   //       slice_beta_offset_div2
