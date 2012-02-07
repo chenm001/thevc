@@ -204,7 +204,7 @@ Void TEncTop::init()
                   );
   
   // initialize encoder search class
-  m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_bipredSearchRange, m_iFastSearch, 0, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
+  m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_bipredSearchRange, m_iFastSearch, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
 
   m_iMaxRefPicNum = 0;
 }
@@ -436,13 +436,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setQuadtreeTUMaxDepthInter( m_uiQuadtreeTUMaxDepthInter    );
   m_cSPS.setQuadtreeTUMaxDepthIntra( m_uiQuadtreeTUMaxDepthIntra    );
   
-#if !G507_QP_ISSUE_FIX
-#if QP_ADAPTATION
-  m_cSPS.setUseDQP        ( m_iMaxDeltaQP != 0 || m_bUseAdaptiveQP );
-#else
-  m_cSPS.setUseDQP        ( m_iMaxDeltaQP != 0  );
-#endif
-#endif
 #if !G1002_RPS
   m_cSPS.setUseLDC        ( m_bUseLDC           );
 #endif
@@ -561,45 +554,6 @@ Void TEncTop::xInitPPS()
   else
      m_cPPS.setBitsForTemporalId(0);
 
-#endif
-#if G507_QP_ISSUE_FIX
-  Bool bUseDQP = (getMaxCuDQPDepth() > 0)? true : false;
-
-  if(bUseDQP == false)
-  {
-#if QP_ADAPTATION
-    if((getMaxDeltaQP() != 0 )|| getUseAdaptiveQP())
-#else
-    if( getMaxDeltaQP() != 0)
-#endif
-    {
-      bUseDQP = true;
-    }
-  }
-
-  if(bUseDQP)
-  {
-    m_cPPS.setUseDQP(true);
-    m_cPPS.setMaxCuDQPDepth( m_iMaxCuDQPDepth );
-    m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
-  }
-  else
-  {
-    m_cPPS.setUseDQP(false);
-    m_cPPS.setMaxCuDQPDepth( 0 );
-    m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
-  }
-#else
-  if( m_cPPS.getSPS()->getUseDQP() )
-  {
-    m_cPPS.setMaxCuDQPDepth( m_iMaxCuDQPDepth );
-    m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
-  }
-  else
-  {
-    m_cPPS.setMaxCuDQPDepth( 0 );
-    m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
-  }
 #endif
 
 #if G509_CHROMA_QP_OFFSET

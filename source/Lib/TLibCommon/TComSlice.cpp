@@ -1377,11 +1377,8 @@ TComPPS::TComPPS()
 , m_SPSId                       (0)
 #if G507_QP_ISSUE_FIX
 , m_picInitQPMinus26            (0)
-, m_useDQP                      (false)
 #endif
 , m_pcSPS                       (NULL)
-, m_uiMaxCuDQPDepth             (0)
-, m_uiMinCuDQPSize              (0)
 #if G509_CHROMA_QP_OFFSET
 , m_iChromaQpOffset             (0)
 , m_iChromaQpOffset2nd          (0)

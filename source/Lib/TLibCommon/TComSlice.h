@@ -90,9 +90,6 @@ private:
 #if AMP
   Bool        m_useAMP;
 #endif
-#if !G507_QP_ISSUE_FIX
-  Bool        m_bUseDQP;
-#endif
   Bool        m_bUseLDC;
   Bool        m_bUseMRG; // SOPH:
 
@@ -191,10 +188,6 @@ public:
 
   Bool getUseLDC      ()         { return m_bUseLDC;        }
   Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
-  
-#if !G507_QP_ISSUE_FIX
-  Void setUseDQP      ( Bool b ) { m_bUseDQP   = b;         }
-#endif
   
   Void setUseLDC      ( Bool b ) { m_bUseLDC   = b;         }
   Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:
@@ -366,7 +359,6 @@ private:
   Int         m_SPSId;                    // seq_parameter_set_id
 #if G507_QP_ISSUE_FIX
   Int         m_picInitQPMinus26;
-  Bool        m_useDQP;
 #endif
  
   // access channel
@@ -374,8 +366,6 @@ private:
 #if G1002_RPS
   TComRPS*    m_pcRPSList;
 #endif
-  UInt        m_uiMaxCuDQPDepth;
-  UInt        m_uiMinCuDQPSize;
 
 #if G509_CHROMA_QP_OFFSET
   Int        m_iChromaQpOffset;
@@ -407,8 +397,6 @@ public:
 #if G507_QP_ISSUE_FIX
   Int       getPicInitQPMinus26 ()         { return  m_picInitQPMinus26; }
   Void      setPicInitQPMinus26 ( Int i )  { m_picInitQPMinus26 = i;     }
-  Bool      getUseDQP ()                   { return m_useDQP;        }
-  Void      setUseDQP ( Bool b )           { m_useDQP   = b;         }
 #endif
 
   UInt      getNumTLayerSwitchingFlags()                                  { return m_uiNumTlayerSwitchingFlags; }
@@ -431,10 +419,6 @@ public:
   Void      setRPSList              ( TComRPS* pcRPSList ) { m_pcRPSList = pcRPSList; }
   TComRPS*  getRPSList              ()         { return m_pcRPSList;          }
 #endif
-  Void      setMaxCuDQPDepth    ( UInt u ) { m_uiMaxCuDQPDepth = u;   }
-  UInt      getMaxCuDQPDepth    ()         { return m_uiMaxCuDQPDepth;}
-  Void      setMinCuDQPSize     ( UInt u ) { m_uiMinCuDQPSize = u;    }
-  UInt      getMinCuDQPSize     ()         { return m_uiMinCuDQPSize; }
 
 #if G509_CHROMA_QP_OFFSET
   Void      setChromaQpOffset   ( Int i ) { m_iChromaQpOffset = i; }

@@ -315,12 +315,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #endif
   WRITE_CODE( 0, 2,                                          "slice_granularity");
 #if G507_QP_ISSUE_FIX
-  WRITE_UVLC( pcPPS->getMaxCuDQPDepth() + pcPPS->getUseDQP(),                   "max_cu_qp_delta_depth" );
-#else
-  if( pcPPS->getSPS()->getUseDQP() )
-  {
-    WRITE_UVLC( pcPPS->getMaxCuDQPDepth(),                   "max_cu_qp_delta_depth" );
-  }
+  WRITE_UVLC( 0,                                             "max_cu_qp_delta_depth" );
 #endif
 
 #if G509_CHROMA_QP_OFFSET
@@ -1315,15 +1310,6 @@ Void TEncCavlc::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefLis
     
   xWriteSvlc( iHor );
   xWriteSvlc( iVer );
-  
-  return;
-}
-
-Void TEncCavlc::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  Int iDQp  = pcCU->getQP( uiAbsPartIdx ) - pcCU->getRefQP( uiAbsPartIdx );
-
-  xWriteSvlc( iDQp );
   
   return;
 }

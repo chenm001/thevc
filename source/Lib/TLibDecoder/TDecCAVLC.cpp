@@ -296,29 +296,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 
 #if G507_QP_ISSUE_FIX
   READ_UVLC( uiCode, "max_cu_qp_delta_depth");
-  if(uiCode == 0)
-  {
-    pcPPS->setUseDQP (false);
-    pcPPS->setMaxCuDQPDepth( 0 );
-  }
-  else
-  {
-    pcPPS->setUseDQP (true);
-    pcPPS->setMaxCuDQPDepth(uiCode - 1);
-  }
-  pcPPS->setMinCuDQPSize( pcPPS->getSPS()->getMaxCUWidth() >> ( pcPPS->getMaxCuDQPDepth()) );
-#else
-  if( pcPPS->getSPS()->getUseDQP() )
-  {
-    READ_UVLC( uiCode, "max_cu_qp_delta_depth");
-    pcPPS->setMaxCuDQPDepth(uiCode);
-    pcPPS->setMinCuDQPSize( pcPPS->getSPS()->getMaxCUWidth() >> ( pcPPS->getMaxCuDQPDepth()) );
-  }
-  else
-  {
-    pcPPS->setMaxCuDQPDepth( 0 );
-    pcPPS->setMinCuDQPSize( pcPPS->getSPS()->getMaxCUWidth() >> ( pcPPS->getMaxCuDQPDepth()) );
-  }
+  assert( uiCode == 0 );
 #endif
 
 #if G509_CHROMA_QP_OFFSET
@@ -1541,19 +1519,6 @@ Void TDecCavlc::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, U
 #endif  
   
   return;
-}
-
-Void TDecCavlc::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiQp;
-  Int  iDQp;
-  
-  xReadSvlc( iDQp );
-  uiQp = pcCU->getRefQP( uiAbsPartIdx ) + iDQp;
-
-  UInt uiAbsQpCUPartIdx = (uiAbsPartIdx>>(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)) ;
-  UInt uiQpCUDepth =   min(uiDepth,pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()) ;
-  pcCU->setQPSubParts( uiQp, uiAbsQpCUPartIdx, uiQpCUDepth );
 }
 
 /** Function for parsing cbf and split 

@@ -50,10 +50,6 @@ TEncSlice::TEncSlice()
 {
   m_apcPicYuvPred = NULL;
   m_apcPicYuvResi = NULL;
-  
-  m_pdRdPicLambda = NULL;
-  m_pdRdPicQp     = NULL;
-  m_piRdPicQp     = NULL;
 }
 
 TEncSlice::~TEncSlice()
@@ -94,12 +90,6 @@ Void TEncSlice::destroy()
     delete m_apcPicYuvResi;
     m_apcPicYuvResi  = NULL;
   }
-  
-  // free lambda and QP arrays
-  if ( m_pdRdPicLambda ) { xFree( m_pdRdPicLambda ); m_pdRdPicLambda = NULL; }
-  if ( m_pdRdPicQp     ) { xFree( m_pdRdPicQp     ); m_pdRdPicQp     = NULL; }
-  if ( m_piRdPicQp     ) { xFree( m_piRdPicQp     ); m_piRdPicQp     = NULL; }
-
 }
 
 Void TEncSlice::init( TEncTop* pcEncTop )
@@ -121,11 +111,6 @@ Void TEncSlice::init( TEncTop* pcEncTop )
   m_pcRdCost          = pcEncTop->getRdCost();
   m_pppcRDSbacCoder   = pcEncTop->getRDSbacCoder();
   m_pcRDGoOnSbacCoder = pcEncTop->getRDGoOnSbacCoder();
-  
-  // create lambda and QP arrays
-  m_pdRdPicLambda     = (Double*)xMalloc( Double, m_pcCfg->getDeltaQpRD() * 2 + 1 );
-  m_pdRdPicQp         = (Double*)xMalloc( Double, m_pcCfg->getDeltaQpRD() * 2 + 1 );
-  m_piRdPicQp         = (Int*   )xMalloc( Int,    m_pcCfg->getDeltaQpRD() * 2 + 1 );
 }
 
 /**
@@ -291,27 +276,14 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   }
 #endif
   
-  // modify QP
-  Int* pdQPs = m_pcCfg->getdQPs();
-  if ( pdQPs )
-  {
-    dQP += pdQPs[ rpcSlice->getPOC() ];
-  }
-  
   // ------------------------------------------------------------------------------------------------------------------
   // Lambda computation
   // ------------------------------------------------------------------------------------------------------------------
   
   Int iQP;
-  Double dOrigQP = dQP;
 
   // pre-compute lambda and QP values for all possible QP candidates
-
-  for ( Int iDQpIdx = 0; iDQpIdx < 2 * m_pcCfg->getDeltaQpRD() + 1; iDQpIdx++ )
   {
-    // compute QP value
-    dQP = dOrigQP + ((iDQpIdx+1)>>1)*(iDQpIdx%2 ? -1 : 1);
-    
     // compute lambda value
 #if G1002_RPS
     Int    NumberBFrames = ( m_pcCfg->getGOPSize() - 1 );
@@ -321,9 +293,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     Int    SHIFT_QP = 12;
     Double dLambda_scale = 1.0 - Clip3( 0.0, 0.5, 0.05*(Double)NumberBFrames );
     Double qp_temp = (double) dQP - SHIFT_QP;
-#if FULL_NBIT
-    Double qp_temp_orig = (double) dQP - SHIFT_QP;
-#endif
     // Case #1: I or P-slices (key-frame)
 #if G1002_RPS
     Double dQPFactor = m_pcCfg->getGOPEntry(iGOPid).m_iQPFactor;
@@ -335,11 +304,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 
     if ( iDepth>0 )
     {
-#if FULL_NBIT
-        dLambda *= Clip3( 2.00, 4.00, (qp_temp_orig / 6.0) ); // (j == B_SLICE && p_cur_frm->layer != 0 )
-#else
         dLambda *= Clip3( 2.00, 4.00, (qp_temp / 6.0) ); // (j == B_SLICE && p_cur_frm->layer != 0 )
-#endif
     }
     
 #else
@@ -360,11 +325,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
       dLambda = 0.68 * pow( 2.0, qp_temp/3.0 );
       if ( pcPic->getSlice(0)->isInterB () )
       {
-#if FULL_NBIT
-        dLambda *= Clip3( 2.00, 4.00, (qp_temp_orig / 6.0) ); // (j == B_SLICE && p_cur_frm->layer != 0 )
-#else
         dLambda *= Clip3( 2.00, 4.00, (qp_temp / 6.0) ); // (j == B_SLICE && p_cur_frm->layer != 0 )
-#endif
         if ( rpcSlice->isReferenced() ) // HB structure and referenced
         {
           dLambda *= 0.80;
@@ -384,16 +345,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     }
     
     iQP = max( MIN_QP, min( MAX_QP, (Int)floor( dQP + 0.5 ) ) );
-    
-    m_pdRdPicLambda[iDQpIdx] = dLambda;
-    m_pdRdPicQp    [iDQpIdx] = dQP;
-    m_piRdPicQp    [iDQpIdx] = iQP;
   }
-  
-  // obtain dQP = 0 case
-  dLambda = m_pdRdPicLambda[0];
-  dQP     = m_pdRdPicQp    [0];
-  iQP     = m_piRdPicQp    [0];
   
 #if G678_LAMBDA_ADJUSTMENT
   if( rpcSlice->getSliceType( ) != I_SLICE )
@@ -519,102 +471,6 @@ Void TEncSlice::setSearchRange( TComSlice* pcSlice )
       m_pcPredSearch->setAdaptiveSearchRange(iDir, iRefIdx, iNewSR);
     }
   }
-}
-
-/**
- - multi-loop slice encoding for different slice QP
- .
- \param rpcPic    picture class
- */
-Void TEncSlice::precompressSlice( TComPic*& rpcPic )
-{
-  // if deltaQP RD is not used, simply return
-  if ( m_pcCfg->getDeltaQpRD() == 0 )
-  {
-    return;
-  }
-  
-  TComSlice* pcSlice        = rpcPic->getSlice(getSliceIdx());
-  Double     dPicRdCostBest = MAX_DOUBLE;
-  UInt       uiQpIdxBest = 0;
-  
-  Double dFrameLambda;
-  Int    SHIFT_QP = 12;
-  
-  // set frame lambda
-  if (m_pcCfg->getGOPSize() > 1)
-  {
-    dFrameLambda = 0.68 * pow (2, (m_piRdPicQp[0]  - SHIFT_QP) / 3.0) * (pcSlice->isInterB()? 2 : 1);
-  }
-  else
-  {
-    dFrameLambda = 0.68 * pow (2, (m_piRdPicQp[0] - SHIFT_QP) / 3.0);
-  }
-  m_pcRdCost      ->setFrameLambda(dFrameLambda);
-  
-  // for each QP candidate
-  for ( UInt uiQpIdx = 0; uiQpIdx < 2 * m_pcCfg->getDeltaQpRD() + 1; uiQpIdx++ )
-  {
-    pcSlice       ->setSliceQp             ( m_piRdPicQp    [uiQpIdx] );
-#if ADAPTIVE_QP_SELECTION
-    pcSlice       ->setSliceQpBase         ( m_piRdPicQp    [uiQpIdx] );
-#endif
-    m_pcRdCost    ->setLambda              ( m_pdRdPicLambda[uiQpIdx] );
-#if WEIGHTED_CHROMA_DISTORTION
-    // for RDO
-    // in RdCost there is only one lambda because the luma and chroma bits are not separated, instead we weight the distortion of chroma.
-    int iQP = m_piRdPicQp    [uiQpIdx];
-    double weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
-    m_pcRdCost    ->setChromaDistortionWeight( weight );     
-#endif
-
-#if RDOQ_CHROMA_LAMBDA 
-    // for RDOQ
-    m_pcTrQuant   ->setLambda( m_pdRdPicLambda[uiQpIdx], m_pdRdPicLambda[uiQpIdx] / weight );
-#else
-    m_pcTrQuant   ->setLambda              ( m_pdRdPicLambda[uiQpIdx] );
-#endif
-    pcSlice       ->setLambda              ( m_pdRdPicLambda[uiQpIdx] );
-    
-    // try compress
-    compressSlice   ( rpcPic );
-    
-    Double dPicRdCost;
-    UInt64 uiPicDist        = m_uiPicDist;
-    UInt64 uiALFBits        = 0;
-    
-    m_pcGOPEncoder->preLoopFilterPicAll( rpcPic, uiPicDist, uiALFBits );
-    
-    // compute RD cost and choose the best
-    dPicRdCost = m_pcRdCost->calcRdCost64( m_uiPicTotalBits + uiALFBits, uiPicDist, true, DF_SSE_FRAME);
-    
-    if ( dPicRdCost < dPicRdCostBest )
-    {
-      uiQpIdxBest    = uiQpIdx;
-      dPicRdCostBest = dPicRdCost;
-    }
-  }
-  
-  // set best values
-  pcSlice       ->setSliceQp             ( m_piRdPicQp    [uiQpIdxBest] );
-#if ADAPTIVE_QP_SELECTION
-  pcSlice       ->setSliceQpBase         ( m_piRdPicQp    [uiQpIdxBest] );
-#endif
-  m_pcRdCost    ->setLambda              ( m_pdRdPicLambda[uiQpIdxBest] );
-#if WEIGHTED_CHROMA_DISTORTION
-  // in RdCost there is only one lambda because the luma and chroma bits are not separated, instead we weight the distortion of chroma.
-  int iQP = m_piRdPicQp    [uiQpIdxBest];
-  double weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
-  m_pcRdCost ->setChromaDistortionWeight( weight );     
-#endif
-
-#if RDOQ_CHROMA_LAMBDA 
-  // for RDOQ 
-  m_pcTrQuant   ->setLambda( m_pdRdPicLambda[uiQpIdxBest], m_pdRdPicLambda[uiQpIdxBest] / weight ); 
-#else
-  m_pcTrQuant   ->setLambda              ( m_pdRdPicLambda[uiQpIdxBest] );
-#endif
-  pcSlice       ->setLambda              ( m_pdRdPicLambda[uiQpIdxBest] );
 }
 
 /** \param rpcPic   picture class

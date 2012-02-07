@@ -108,7 +108,6 @@ protected:
   // Misc.
   Pel*            m_pTempPel;
   UInt*           m_puiDFilter;
-  Int             m_iMaxDeltaQP;
   
   // AMVP cost computation
   // UInt            m_auiMVPIdxCost[AMVP_MAX_NUM_CANDS+1][AMVP_MAX_NUM_CANDS];
@@ -123,7 +122,6 @@ public:
             Int           iSearchRange,
             Int           bipredSearchRange,
             Int           iFastSearch,
-            Int           iMaxDeltaQP,
             TEncEntropy*  pcEntropyCoder,
             TComRdCost*   pcRdCost,
             TEncSbac***   pppcRDSbacCoder,

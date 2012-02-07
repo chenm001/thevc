@@ -95,8 +95,6 @@ Void TEncCu::create(UChar uhTotalDepth, UInt uiMaxWidth, UInt uiMaxHeight)
     m_ppcOrigYuv    [i] = new TComYuv; m_ppcOrigYuv    [i]->create(uiWidth, uiHeight);
   }
   
-  m_bEncodeDQP = false;
-
   // initialize partition order.
   UInt* piTmp = &g_auiZscanToRaster[0];
   initZscanToRaster( m_uhTotalDepth, 1, 0, piTmp);
@@ -244,18 +242,10 @@ Void TEncCu::compressCU( TComDataCU*& rpcCU )
   }
 #endif
 }
-/** \param  pcCU  pointer of CU data class, bForceTerminate when set to true terminates slice (default is false).
+/** \param  pcCU  pointer of CU data class
  */
-Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
+Void TEncCu::encodeCU ( TComDataCU* pcCU )
 {
-#if G507_QP_ISSUE_FIX
-  if ( pcCU->getSlice()->getPPS()->getUseDQP() )
-#else
-  if ( pcCU->getSlice()->getSPS()->getUseDQP() )
-#endif
-  {
-    setdQPFlag(true);
-  }
   // Encode CU data
   xEncodeCU( pcCU, 0, 0 );
   
@@ -401,20 +391,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #else
   Int iBaseQP = rpcBestCU->getSlice()->getSliceQp();
 #endif
-  Int iMinQP;
-  Int iMaxQP;
-
-  if( (g_uiMaxCUWidth>>uiDepth) >= rpcTempCU->getSlice()->getPPS()->getMinCuDQPSize() )
-  {
-    Int idQP = m_pcEncCfg->getMaxDeltaQP();
-    iMinQP = Clip3( MIN_QP, MAX_QP, iBaseQP-idQP );
-    iMaxQP = Clip3( MIN_QP, MAX_QP, iBaseQP+idQP );
-  }
-  else
-  {
-    iMinQP = rpcTempCU->getQP(0);
-    iMaxQP = rpcTempCU->getQP(0);
-  }
 
   // If slice start or slice end is within this cu...
   TComSlice * pcSlice = rpcTempCU->getPic()->getSlice(rpcTempCU->getPic()->getCurrSliceIdx());
@@ -424,14 +400,13 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   // We need to split, so don't try these modes.
   if(!bSliceEnd && !bSliceStart && bInsidePicture )
   {
-    for (Int iQP=iMinQP; iQP<=iMaxQP; iQP++)
     {
       // variables for fast encoder decision
       bEarlySkip  = false;
       bTrySplit    = true;
       fRD_Skip    = MAX_DOUBLE;
 
-      rpcTempCU->initEstData( uiDepth, iQP );
+      rpcTempCU->initEstData( uiDepth, iBaseQP );
 
       // do inter modes, SKIP and 2Nx2N
       if( rpcBestCU->getSlice()->getSliceType() != I_SLICE )
@@ -441,12 +416,12 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         if( pcPic->getSlice(0)->getSPS()->getUseMRG() )
         {
           xCheckRDCostMerge2Nx2N( rpcBestCU, rpcTempCU );
-          rpcTempCU->initEstData( uiDepth, iQP );
+          rpcTempCU->initEstData( uiDepth, iBaseQP );
         }
         else
         {
           xCheckRDCostAMVPSkip ( rpcBestCU, rpcTempCU );
-          rpcTempCU->initEstData( uiDepth, iQP );
+          rpcTempCU->initEstData( uiDepth, iBaseQP );
         }
 
         // fast encoder decision for early skip
@@ -463,7 +438,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         // 2Nx2N, NxN
         if ( !bEarlySkip )
         {
-          xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2Nx2N );  rpcTempCU->initEstData( uiDepth, iQP );
+          xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2Nx2N );  rpcTempCU->initEstData( uiDepth, iBaseQP );
 #if CBF_FAST_MODE
           if(m_pcEncCfg->getUseCbfFastMode())
           {
@@ -473,23 +448,11 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         }
       }
 
-      if( (g_uiMaxCUWidth>>uiDepth) >= rpcTempCU->getSlice()->getPPS()->getMinCuDQPSize() )
-      {
-        if(iQP == iBaseQP)
-        {
-          bTrySplitDQP = bTrySplit;
-        }
-      }
-      else
-      {
         bTrySplitDQP = bTrySplit;
-      }
     }
 
-
-    for (Int iQP=iMinQP; iQP<=iMaxQP; iQP++)
     {
-      rpcTempCU->initEstData( uiDepth, iQP );
+      rpcTempCU->initEstData( uiDepth, iBaseQP );
 
       // do inter modes, NxN, 2NxN, and Nx2N
       if( rpcBestCU->getSlice()->getSliceType() != I_SLICE )
@@ -507,7 +470,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #endif
           {
             xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_NxN   );
-            rpcTempCU->initEstData( uiDepth, iQP );
+            rpcTempCU->initEstData( uiDepth, iBaseQP );
           }
         }
         }
@@ -518,7 +481,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #endif
           {
             xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_Nx2N  );
-            rpcTempCU->initEstData( uiDepth, iQP );
+            rpcTempCU->initEstData( uiDepth, iBaseQP );
 #if CBF_FAST_MODE
             if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_Nx2N )
             {
@@ -531,7 +494,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #endif
           {
             xCheckRDCostInter      ( rpcBestCU, rpcTempCU, SIZE_2NxN  );
-            rpcTempCU->initEstData( uiDepth, iQP );
+            rpcTempCU->initEstData( uiDepth, iBaseQP );
 #if CBF_FAST_MODE
             if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxN)
             {
@@ -564,7 +527,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #endif
             {
               xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnU );
-              rpcTempCU->initEstData( uiDepth, iQP );
+              rpcTempCU->initEstData( uiDepth, iBaseQP );
 #if CBF_FAST_MODE
               if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnU )
               {
@@ -577,7 +540,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #endif
             {
               xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnD );
-              rpcTempCU->initEstData( uiDepth, iQP );
+              rpcTempCU->initEstData( uiDepth, iBaseQP );
 #if CBF_FAST_MODE
               if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnD )
               {
@@ -594,7 +557,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #endif
             {
               xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnU, true );
-              rpcTempCU->initEstData( uiDepth, iQP );
+              rpcTempCU->initEstData( uiDepth, iBaseQP );
 #if CBF_FAST_MODE
               if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnU )
               {
@@ -607,7 +570,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #endif
             {
               xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnD, true );
-              rpcTempCU->initEstData( uiDepth, iQP );
+              rpcTempCU->initEstData( uiDepth, iBaseQP );
 #if CBF_FAST_MODE
               if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnD )
               {
@@ -626,7 +589,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #endif
             {
               xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nLx2N );
-              rpcTempCU->initEstData( uiDepth, iQP );
+              rpcTempCU->initEstData( uiDepth, iBaseQP );
 #if CBF_FAST_MODE
               if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_nLx2N )
               {
@@ -639,7 +602,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #endif
             {
               xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nRx2N );
-              rpcTempCU->initEstData( uiDepth, iQP );
+              rpcTempCU->initEstData( uiDepth, iBaseQP );
             }
           }
 #if AMP_MRG
@@ -650,7 +613,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #endif
             {
               xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nLx2N, true );
-              rpcTempCU->initEstData( uiDepth, iQP );
+              rpcTempCU->initEstData( uiDepth, iBaseQP );
 #if CBF_FAST_MODE
               if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_nLx2N )
               {
@@ -663,7 +626,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #endif
             {
               xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nRx2N, true );
-              rpcTempCU->initEstData( uiDepth, iQP );
+              rpcTempCU->initEstData( uiDepth, iBaseQP );
             }
           }
 #endif
@@ -694,13 +657,13 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
           rpcBestCU->getCbf( 0, TEXT_CHROMA_V ) != 0     ) // avoid very complex intra if it is unlikely
         {
           xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_2Nx2N );
-          rpcTempCU->initEstData( uiDepth, iQP );
+          rpcTempCU->initEstData( uiDepth, iBaseQP );
           if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
           {
             if( rpcTempCU->getWidth(0) > ( 1 << rpcTempCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() ) )
             {
               xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_NxN   );
-              rpcTempCU->initEstData( uiDepth, iQP );
+              rpcTempCU->initEstData( uiDepth, iBaseQP );
             }
           }
         }
@@ -744,28 +707,8 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
     bBoundary = true;
   }
 
-  if( (g_uiMaxCUWidth>>uiDepth) == rpcTempCU->getSlice()->getPPS()->getMinCuDQPSize() )
   {
-    Int idQP = m_pcEncCfg->getMaxDeltaQP();
-    iMinQP = Clip3( MIN_QP, MAX_QP, iBaseQP-idQP );
-    iMaxQP = Clip3( MIN_QP, MAX_QP, iBaseQP+idQP );
-  }
-  else if( (g_uiMaxCUWidth>>uiDepth) > rpcTempCU->getSlice()->getPPS()->getMinCuDQPSize() )
-  {
-    iMinQP = iBaseQP;
-    iMaxQP = iBaseQP;
-  }
-  else
-  {
-    Int iStartQP;
-      iStartQP = rpcTempCU->getQP(0);
-    iMinQP = iStartQP;
-    iMaxQP = iStartQP;
-  }
-
-  for (Int iQP=iMinQP; iQP<=iMaxQP; iQP++)
-  {
-    rpcTempCU->initEstData( uiDepth, iQP );
+    rpcTempCU->initEstData( uiDepth, iBaseQP );
 
     // further split
 #if EARLY_CU_DETERMINATION
@@ -780,8 +723,8 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 
       for ( UInt uiPartUnitIdx = 0; uiPartUnitIdx < 4; uiPartUnitIdx++ )
       {
-        pcSubBestPartCU->initSubCU( rpcTempCU, uiPartUnitIdx, uhNextDepth, iQP );           // clear sub partition datas or init.
-        pcSubTempPartCU->initSubCU( rpcTempCU, uiPartUnitIdx, uhNextDepth, iQP );           // clear sub partition datas or init.
+        pcSubBestPartCU->initSubCU( rpcTempCU, uiPartUnitIdx, uhNextDepth, iBaseQP );           // clear sub partition datas or init.
+        pcSubTempPartCU->initSubCU( rpcTempCU, uiPartUnitIdx, uhNextDepth, iBaseQP );           // clear sub partition datas or init.
 
         Bool bInSlice = pcSubBestPartCU->getSCUAddr()+pcSubBestPartCU->getTotalNumPart()>pcSlice->getSliceCurStartCUAddr()&&pcSubBestPartCU->getSCUAddr()<pcSlice->getSliceCurEndCUAddr();
         if(bInSlice && ( pcSubBestPartCU->getCUPelX() < pcSlice->getSPS()->getWidth() ) && ( pcSubBestPartCU->getCUPelY() < pcSlice->getSPS()->getHeight() ) )
@@ -833,42 +776,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         }
       }
       rpcTempCU->getTotalCost()  = m_pcRdCost->calcRdCost( rpcTempCU->getTotalBits(), rpcTempCU->getTotalDistortion() );
-
-#if G507_QP_ISSUE_FIX
-      if( (g_uiMaxCUWidth>>uiDepth) == rpcTempCU->getSlice()->getPPS()->getMinCuDQPSize() && rpcTempCU->getSlice()->getPPS()->getUseDQP())
-#else
-      if( (g_uiMaxCUWidth>>uiDepth) == rpcTempCU->getSlice()->getPPS()->getMinCuDQPSize() && rpcTempCU->getSlice()->getSPS()->getUseDQP())
-#endif
-      {
-        Bool bHasRedisual = false;
-        for( UInt uiBlkIdx = 0; uiBlkIdx < rpcTempCU->getTotalNumPart(); uiBlkIdx ++)
-        {
-          if( ( pcPic->getCU( rpcTempCU->getAddr() )->getSliceStartCU(uiBlkIdx+rpcTempCU->getZorderIdxInCU()) == rpcTempCU->getSlice()->getSliceCurStartCUAddr() ) && 
-              ( rpcTempCU->getCbf( uiBlkIdx, TEXT_LUMA ) || rpcTempCU->getCbf( uiBlkIdx, TEXT_CHROMA_U ) || rpcTempCU->getCbf( uiBlkIdx, TEXT_CHROMA_V ) ) )
-          {
-            bHasRedisual = true;
-            break;
-          }
-        }
-
-        if ( bHasRedisual )
-        {
-#if !RDO_WITHOUT_DQP_BITS
-          m_pcEntropyCoder->resetBits();
-          m_pcEntropyCoder->encodeQP( rpcTempCU, 0 );
-          rpcTempCU->getTotalBits() += m_pcEntropyCoder->getNumberOfWrittenBits(); // dQP bits
-          if(m_pcEncCfg->getUseSBACRD())
-          {
-            rpcTempCU->getTotalBins() += ((TEncBinCABAC *)((TEncSbac*)m_pcEntropyCoder->m_pcEntropyCoderIf)->getEncBinIf())->getBinsCoded();
-          }
-          rpcTempCU->getTotalCost()  = m_pcRdCost->calcRdCost( rpcTempCU->getTotalBits(), rpcTempCU->getTotalDistortion() );
-#endif
-        }
-        else
-        {
-          rpcTempCU->setQPSubParts( rpcTempCU->getRefQP( 0 ), 0, uiDepth ); // set QP to default QP
-        }
-      }
 
       if( m_bUseSBACRD )
       {
@@ -1038,14 +945,6 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   if( ( ( uiDepth < pcCU->getDepth( uiAbsPartIdx ) ) && ( uiDepth < (g_uiMaxCUDepth-g_uiAddCUDepth) ) ) || bBoundary )
   {
     UInt uiQNumParts = ( pcPic->getNumPartInCU() >> (uiDepth<<1) )>>2;
-#if G507_QP_ISSUE_FIX
-    if( (g_uiMaxCUWidth>>uiDepth) == pcCU->getSlice()->getPPS()->getMinCuDQPSize() && pcCU->getSlice()->getPPS()->getUseDQP())
-#else
-    if( (g_uiMaxCUWidth>>uiDepth) == pcCU->getSlice()->getPPS()->getMinCuDQPSize() && pcCU->getSlice()->getSPS()->getUseDQP())
-#endif
-    {
-      setdQPFlag(true);
-    }
     for ( UInt uiPartUnitIdx = 0; uiPartUnitIdx < 4; uiPartUnitIdx++, uiAbsPartIdx+=uiQNumParts )
     {
       uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
@@ -1059,14 +958,6 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     return;
   }
   
-#if G507_QP_ISSUE_FIX
-  if( (g_uiMaxCUWidth>>uiDepth) >= pcCU->getSlice()->getPPS()->getMinCuDQPSize() && pcCU->getSlice()->getPPS()->getUseDQP())
-#else
-  if( (g_uiMaxCUWidth>>uiDepth) >= pcCU->getSlice()->getPPS()->getMinCuDQPSize() && pcCU->getSlice()->getSPS()->getUseDQP())
-#endif
-  {
-    setdQPFlag(true);
-  }
   if( !pcCU->getSlice()->isIntra() )
   {
     m_pcEntropyCoder->encodeSkipFlag( pcCU, uiAbsPartIdx );
@@ -1099,9 +990,7 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   m_pcEntropyCoder->encodePredInfo( pcCU, uiAbsPartIdx );
   
   // Encode Coefficients
-  Bool bCodeDQP = getdQPFlag();
-  m_pcEntropyCoder->encodeCoeff( pcCU, uiAbsPartIdx, uiDepth, pcCU->getWidth (uiAbsPartIdx), pcCU->getHeight(uiAbsPartIdx), bCodeDQP );
-  setdQPFlag( bCodeDQP );
+  m_pcEntropyCoder->encodeCoeff( pcCU, uiAbsPartIdx, uiDepth, pcCU->getWidth (uiAbsPartIdx), pcCU->getHeight(uiAbsPartIdx) );
 
   // --- write terminating bit ---
   finishCU(pcCU,uiAbsPartIdx,uiDepth);
@@ -1128,7 +1017,6 @@ Void TEncCu::xCheckRDCostSkip( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, B
                                              m_ppcRecoYuvTemp[uhDepth],
                                              bSkipRes );
   
-  xCheckDQP( rpcTempCU );
   xCheckBestMode(rpcBestCU, rpcTempCU, uhDepth);
 }
 
@@ -1194,7 +1082,6 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
       Bool bQtRootCbf = rpcTempCU->getQtRootCbf(0) == 1;
 
       UInt uiOrgQP = rpcTempCU->getQP( 0 );
-      xCheckDQP( rpcTempCU );
       xCheckBestMode(rpcBestCU, rpcTempCU, uhDepth);
       rpcTempCU->initEstData( uhDepth, uiOrgQP );
 
@@ -1235,7 +1122,6 @@ Void TEncCu::xCheckRDCostInter( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   m_pcPredSearch->encodeResAndCalcRdInterCU( rpcTempCU, m_ppcOrigYuv[uhDepth], m_ppcPredYuvTemp[uhDepth], m_ppcResiYuvTemp[uhDepth], m_ppcResiYuvBest[uhDepth], m_ppcRecoYuvTemp[uhDepth], false );
   rpcTempCU->getTotalCost()  = m_pcRdCost->calcRdCost( rpcTempCU->getTotalBits(), rpcTempCU->getTotalDistortion() );
 
-  xCheckDQP( rpcTempCU );
   xCheckBestMode(rpcBestCU, rpcTempCU, uhDepth);
 }
 
@@ -1265,9 +1151,7 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   m_pcEntropyCoder->encodePredInfo( rpcTempCU, 0,          true );
 
   // Encode Coefficients
-  Bool bCodeDQP = getdQPFlag();
-  m_pcEntropyCoder->encodeCoeff( rpcTempCU, 0, uiDepth, rpcTempCU->getWidth (0), rpcTempCU->getHeight(0), bCodeDQP );
-  setdQPFlag( bCodeDQP );
+  m_pcEntropyCoder->encodeCoeff( rpcTempCU, 0, uiDepth, rpcTempCU->getWidth (0), rpcTempCU->getHeight(0) );
   
   if( m_bUseSBACRD ) m_pcRDGoOnSbacCoder->store(m_pppcRDSbacCoder[uiDepth][CI_TEMP_BEST]);
   
@@ -1278,7 +1162,6 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
   }
   rpcTempCU->getTotalCost() = m_pcRdCost->calcRdCost( rpcTempCU->getTotalBits(), rpcTempCU->getTotalDistortion() );
   
-  xCheckDQP( rpcTempCU );
   xCheckBestMode(rpcBestCU, rpcTempCU, uiDepth);
 }
 
@@ -1343,36 +1226,6 @@ Void TEncCu::xCheckBestMode( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UIn
 
     if( m_bUseSBACRD )  // store temp best CI for next CU coding
       m_pppcRDSbacCoder[uiDepth][CI_TEMP_BEST]->store(m_pppcRDSbacCoder[uiDepth][CI_NEXT_BEST]);
-  }
-}
-
-Void TEncCu::xCheckDQP( TComDataCU* pcCU )
-{
-  UInt uiDepth = pcCU->getDepth( 0 );
-
-#if G507_QP_ISSUE_FIX
-  if( pcCU->getSlice()->getPPS()->getUseDQP() && (g_uiMaxCUWidth>>uiDepth) >= pcCU->getSlice()->getPPS()->getMinCuDQPSize() )
-#else
-  if( pcCU->getSlice()->getSPS()->getUseDQP() && (g_uiMaxCUWidth>>uiDepth) >= pcCU->getSlice()->getPPS()->getMinCuDQPSize() )
-#endif
-  {
-    if ( pcCU->getCbf( 0, TEXT_LUMA, 0 ) || pcCU->getCbf( 0, TEXT_CHROMA_U, 0 ) || pcCU->getCbf( 0, TEXT_CHROMA_V, 0 ) )
-    {
-#if !RDO_WITHOUT_DQP_BITS
-      m_pcEntropyCoder->resetBits();
-      m_pcEntropyCoder->encodeQP( pcCU, 0 );
-      pcCU->getTotalBits() += m_pcEntropyCoder->getNumberOfWrittenBits(); // dQP bits
-      if(m_pcEncCfg->getUseSBACRD())
-      {
-        pcCU->getTotalBins() += ((TEncBinCABAC *)((TEncSbac*)m_pcEntropyCoder->m_pcEntropyCoderIf)->getEncBinIf())->getBinsCoded();
-      }
-      pcCU->getTotalCost() = m_pcRdCost->calcRdCost( pcCU->getTotalBits(), pcCU->getTotalDistortion() );
-#endif
-    }
-    else
-    {
-      pcCU->setQPSubParts( pcCU->getRefQP( 0 ), 0, uiDepth ); // set QP to default QP
-    }
   }
 }
 

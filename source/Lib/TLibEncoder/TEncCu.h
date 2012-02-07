@@ -78,9 +78,6 @@ private:
   TComYuv**               m_ppcRecoYuvTemp; ///< Temporary Reconstruction Yuv for each depth
   TComYuv**               m_ppcOrigYuv;     ///< Original Yuv for each depth
   
-  //  Data : encoder control
-  Bool                    m_bEncodeDQP;
-  
   //  Access channel
   TEncCfg*                m_pcEncCfg;
   TComPrediction*         m_pcPrediction;
@@ -113,7 +110,7 @@ public:
   Void  compressCU          ( TComDataCU*&  rpcCU );
   
   /// CU encoding function
-  Void  encodeCU            ( TComDataCU*    pcCU, Bool bForceTerminate = false  );
+  Void  encodeCU            ( TComDataCU*    pcCU );
   
   Void setBitCounter        ( TComBitCounter* pcBitCounter ) { m_pcBitCounter = pcBitCounter; }
 protected:
@@ -142,14 +139,10 @@ protected:
 #endif
   Void  xCheckRDCostIntra   ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize ePartSize  );
   Void  xCheckBestMode      ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU                      );
-  Void  xCheckDQP           ( TComDataCU*  pcCU );
   
   Void  xCopyAMVPInfo       ( AMVPInfo* pSrc, AMVPInfo* pDst );
   Void  xCopyYuv2Pic        (TComPic* rpcPic, UInt uiCUAddr, UInt uiAbsPartIdx, UInt uiDepth, UInt uiSrcDepth, TComDataCU* pcCU, UInt uiLPelX, UInt uiTPelY );
   Void  xCopyYuv2Tmp        ( UInt uhPartUnitIdx, UInt uiDepth );
-
-  Bool getdQPFlag           ()                        { return m_bEncodeDQP;        }
-  Void setdQPFlag           ( Bool b )                { m_bEncodeDQP = b;           }
 
 #if ADAPTIVE_QP_SELECTION
   // Adaptive reconstruction level (ARL) statistics collection functions

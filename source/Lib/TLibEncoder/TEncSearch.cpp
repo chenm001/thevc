@@ -153,7 +153,6 @@ void TEncSearch::init(TEncCfg*      pcEncCfg,
                       Int           iSearchRange,
                       Int           bipredSearchRange,
                       Int           iFastSearch,
-                      Int           iMaxDeltaQP,
                       TEncEntropy*  pcEntropyCoder,
                       TComRdCost*   pcRdCost,
                       TEncSbac*** pppcRDSbacCoder,
@@ -165,7 +164,6 @@ void TEncSearch::init(TEncCfg*      pcEncCfg,
   m_iSearchRange         = iSearchRange;
   m_bipredSearchRange    = bipredSearchRange;
   m_iFastSearch          = iFastSearch;
-  m_iMaxDeltaQP          = iMaxDeltaQP;
   m_pcEntropyCoder       = pcEntropyCoder;
   m_pcRdCost             = pcRdCost;
   
@@ -1672,18 +1670,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
   Double  CandCostList[ FAST_UDI_MAX_RDMODE_NUM ];
   
   //===== set QP and clear Cbf =====
-#if G507_QP_ISSUE_FIX
-  if ( pcCU->getSlice()->getPPS()->getUseDQP() == true)
-#else
-  if ( pcCU->getSlice()->getSPS()->getUseDQP() == true)
-#endif
-  {
-    pcCU->setQPSubParts( pcCU->getQP(0), 0, uiDepth );
-  }
-  else
-  {
     pcCU->setQPSubParts( pcCU->getSlice()->getSliceQp(), 0, uiDepth );
-  }
   
   //===== loop over partitions =====
   UInt uiPartOffset = 0;
@@ -3722,8 +3709,8 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
   
   while((uiWidth>>uiMaxTrMode) < (g_uiMaxCUWidth>>g_uiMaxCUDepth)) uiMaxTrMode--;
   
-  uiQpMin      = bHighPass ? min( MAX_QP, max( MIN_QP, pcCU->getQP(0) - m_iMaxDeltaQP ) ) : pcCU->getQP( 0 );
-  uiQpMax      = bHighPass ? min( MAX_QP, max( MIN_QP, pcCU->getQP(0) + m_iMaxDeltaQP ) ) : pcCU->getQP( 0 );
+  uiQpMin      = bHighPass ? min( MAX_QP, max( MIN_QP, (Int)pcCU->getQP(0) ) ) : pcCU->getQP( 0 );
+  uiQpMax      = bHighPass ? min( MAX_QP, max( MIN_QP, (Int)pcCU->getQP(0) ) ) : pcCU->getQP( 0 );
   
   rpcYuvResi->subtract( pcYuvOrg, pcYuvPred, 0, uiWidth );
   for ( uiQp = uiQpMin; uiQp <= uiQpMax; uiQp++ )
@@ -5020,8 +5007,7 @@ Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMod
     m_pcEntropyCoder->encodePredMode( pcCU, 0, true );
     m_pcEntropyCoder->encodePartSize( pcCU, 0, pcCU->getDepth(0), true );
     m_pcEntropyCoder->encodePredInfo( pcCU, 0, true );
-    Bool bDummy = false;
-    m_pcEntropyCoder->encodeCoeff   ( pcCU, 0, pcCU->getDepth(0), pcCU->getWidth(0), pcCU->getHeight(0), bDummy );
+    m_pcEntropyCoder->encodeCoeff   ( pcCU, 0, pcCU->getDepth(0), pcCU->getWidth(0), pcCU->getHeight(0) );
     
     ruiBits += m_pcEntropyCoder->getNumberOfWrittenBits();
   }

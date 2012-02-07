@@ -1316,66 +1316,6 @@ TComDataCU* TComDataCU::getPUAboveRightAdi(UInt&  uiARPartUnitIdx, UInt uiPuWidt
   return m_pcCUAboveRight;
 }
 
-/** Get left QpMinCu
-*\param   uiLPartUnitIdx
-*\param   uiCurrAbsIdxInLCU
-*\param   bEnforceSliceRestriction
-*\param   bEnforceEntropySliceRestriction
-*\returns TComDataCU*   point of TComDataCU of left QpMinCu
-*/
-TComDataCU* TComDataCU::getQpMinCuLeft( UInt& uiLPartUnitIdx, UInt uiCurrAbsIdxInLCU, Bool bEnforceSliceRestriction )
-{
-  UInt uiNumPartInCUWidth = m_pcPic->getNumPartInWidth();
-
-  UInt uiAbsRorderQpMinCUIdx   = g_auiZscanToRaster[(uiCurrAbsIdxInLCU>>(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1))];
-  UInt uiNumPartInQpMinCUWidth = getSlice()->getPPS()->getMinCuDQPSize()>>2;
-
-  UInt uiAbsZorderQpMinCUIdx   = (uiCurrAbsIdxInLCU>>(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1));
-  if( (uiCurrAbsIdxInLCU != uiAbsZorderQpMinCUIdx) && 
-      (bEnforceSliceRestriction && (m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrAbsIdxInLCU) != m_pcPic->getCU( getAddr() )->getSliceStartCU (uiAbsZorderQpMinCUIdx))) )
-  {
-    return NULL;
-  }
-
-  if ( !RasterAddress::isZeroCol( uiAbsRorderQpMinCUIdx, uiNumPartInCUWidth ) )
-  {
-    uiLPartUnitIdx = g_auiRasterToZscan[ uiAbsRorderQpMinCUIdx - uiNumPartInQpMinCUWidth ];
-    TComDataCU* pcTempReconCU = m_pcPic->getCU( getAddr() );
-    if ((bEnforceSliceRestriction        && (pcTempReconCU==NULL || pcTempReconCU->getSlice() == NULL || pcTempReconCU->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiAbsZorderQpMinCUIdx))))
-    {
-      return NULL;
-    }
-    return m_pcPic->getCU( getAddr() );
-  }
-
-  uiLPartUnitIdx = g_auiRasterToZscan[ uiAbsRorderQpMinCUIdx + uiNumPartInCUWidth - uiNumPartInQpMinCUWidth ];
-
-  if ((bEnforceSliceRestriction        && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiAbsZorderQpMinCUIdx))))
-  {
-    return NULL;
-  }
-
-  return m_pcCULeft;
-}
-
-/** Get reference QP from left QpMinCu or latest coded QP
-*\param   uiCurrAbsIdxInLCU
-*\returns UChar   reference QP value
-*/
-UChar TComDataCU::getRefQP( UInt uiCurrAbsIdxInLCU )
-{
-  // Left CU
-  TComDataCU* pcCULeft;
-  UInt        uiLPartIdx;
-  pcCULeft = getQpMinCuLeft( uiLPartIdx, m_uiAbsIdxInLCU + uiCurrAbsIdxInLCU );
-  if ( pcCULeft )
-  {
-    return pcCULeft->getQP(uiLPartIdx);
-  }
-  // Last QP
-  return getLastCodedQP( uiCurrAbsIdxInLCU );
-}
-
 Int TComDataCU::getLastValidPartIdx( Int iAbsPartIdx )
 {
   Int iLastValidPartIdx = iAbsPartIdx-1;
@@ -1386,37 +1326,6 @@ Int TComDataCU::getLastValidPartIdx( Int iAbsPartIdx )
     iLastValidPartIdx -= m_uiNumPartition>>(uiDepth<<1);
   }
   return iLastValidPartIdx;
-}
-
-UChar TComDataCU::getLastCodedQP( UInt uiAbsPartIdx )
-{
-  UInt uiQUPartIdxMask = ~((1<<(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))-1);
-  Int iLastValidPartIdx = getLastValidPartIdx( uiAbsPartIdx&uiQUPartIdxMask );
-  if ( uiAbsPartIdx < m_uiNumPartition
-    && (getSCUAddr()+iLastValidPartIdx < getSliceStartCU(m_uiAbsIdxInLCU+uiAbsPartIdx) || getSCUAddr()+iLastValidPartIdx < getSliceStartCU(m_uiAbsIdxInLCU+uiAbsPartIdx) ))
-  {
-    return getSlice()->getSliceQp();
-  }
-  else
-  if ( iLastValidPartIdx >= 0 )
-  {
-    return getQP( iLastValidPartIdx );
-  }
-  else
-  {
-    if ( getZorderIdxInCU() > 0 )
-    {
-      return getPic()->getCU( getAddr() )->getLastCodedQP( getZorderIdxInCU() );
-    }
-    else if ( getAddr() > 0 )
-    {
-      return getPic()->getCU( getAddr()-1 )->getLastCodedQP( getPic()->getNumPartInCU() );
-    }
-    else
-    {
-      return getSlice()->getSliceQp();
-    }
-  }
 }
 
 /** Get allowed chroma intra modes

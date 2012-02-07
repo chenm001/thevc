@@ -447,7 +447,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       {
         pcSlice->setNextSlice       ( false );
         assert(pcPic->getNumAllocatedSlice() == uiStartCUAddrSliceIdx);
-        m_pcSliceEncoder->precompressSlice( pcPic );
         m_pcSliceEncoder->compressSlice   ( pcPic );
 
         Bool bNoBinBitConstraintViolated = (!pcSlice->isNextSlice());

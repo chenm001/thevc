@@ -57,7 +57,6 @@ TDecSbac::TDecSbac()
 , m_cCUPredModeSCModel        ( 1,             1,               NUM_PRED_MODE_CTX             , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUIntraPredSCModel       ( 1,             1,               NUM_ADI_CTX                   , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUChromaPredSCModel      ( 1,             1,               NUM_CHROMA_PRED_CTX           , m_contextModels + m_numContextModels, m_numContextModels)
-, m_cCUDeltaQpSCModel         ( 1,             1,               NUM_DELTA_QP_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUInterDirSCModel        ( 1,             1,               NUM_INTER_DIR_CTX             , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCURefPicSCModel          ( 1,             1,               NUM_REF_NO_CTX                , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUMvdSCModel             ( 1,             1,               NUM_MV_RES_CTX                , m_contextModels + m_numContextModels, m_numContextModels)
@@ -134,7 +133,6 @@ Void TDecSbac::resetEntropywithQPandInitIDC (Int  iQp, Int iID)
   m_cCUInterDirSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_INTER_DIR );
   m_cCUMvdSCModel.initBuffer             ( eSliceType, iQp, (UChar*)INIT_MVD );
   m_cCURefPicSCModel.initBuffer          ( eSliceType, iQp, (UChar*)INIT_REF_PIC );
-  m_cCUDeltaQpSCModel.initBuffer         ( eSliceType, iQp, (UChar*)INIT_DQP );
   m_cCUQtCbfSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_QT_CBF );
   m_cCUQtRootCbfSCModel.initBuffer       ( eSliceType, iQp, (UChar*)INIT_QT_ROOT_CBF );
 #if MULTI_LEVEL_SIGNIFICANCE
@@ -186,7 +184,6 @@ Void TDecSbac::resetEntropywithQPandInitIDC (Int  iQp, Int iID)
   m_cCUInterDirSCModel.initBuffer        ( eSliceType, iQp, (Short*)INIT_INTER_DIR );
   m_cCUMvdSCModel.initBuffer             ( eSliceType, iQp, (Short*)INIT_MVD );
   m_cCURefPicSCModel.initBuffer          ( eSliceType, iQp, (Short*)INIT_REF_PIC );
-  m_cCUDeltaQpSCModel.initBuffer         ( eSliceType, iQp, (Short*)INIT_DQP );
   m_cCUQtCbfSCModel.initBuffer           ( eSliceType, iQp, (Short*)INIT_QT_CBF );
   m_cCUQtRootCbfSCModel.initBuffer       ( eSliceType, iQp, (Short*)INIT_QT_ROOT_CBF );
 #if MULTI_LEVEL_SIGNIFICANCE
@@ -948,51 +945,6 @@ Void TDecSbac::parseQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   DTRACE_CABAC_T( "\n" )
   
   uiQtRootCbf = uiSymbol;
-}
-
-Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiDQp;
-  Int  iDQp;
-  
-  m_pcTDecBinIf->decodeBin( uiDQp, m_cCUDeltaQpSCModel.get( 0, 0, 0 ) );
-  
-  if ( uiDQp == 0 )
-  {
-    uiDQp = pcCU->getRefQP(uiAbsPartIdx);
-  }
-  else
-  {
-#if F745_DQP_BINARIZATION
-    UInt uiSign;
-    m_pcTDecBinIf->decodeBinEP(uiSign);
-
-    UInt uiMaxAbsDQpMinus1 = 24 + (uiSign);
-    UInt uiAbsDQpMinus1;
-    xReadUnaryMaxSymbol (uiAbsDQpMinus1,  &m_cCUDeltaQpSCModel.get( 0, 0, 1 ), 1, uiMaxAbsDQpMinus1);
-
-    iDQp = uiAbsDQpMinus1 + 1;
-
-    if(uiSign)
-    {
-      iDQp = -iDQp;
-    }
-#else
-    xReadUnarySymbol( uiDQp, &m_cCUDeltaQpSCModel.get( 0, 0, 1 ), 1 );
-    iDQp = ( uiDQp + 2 ) / 2;
-    
-    if ( uiDQp & 1 )
-    {
-      iDQp = -iDQp;
-    }
-#endif
-    uiDQp = pcCU->getRefQP(uiAbsPartIdx) + iDQp;
-
-  }
-  
-  UInt uiAbsQpCUPartIdx = (uiAbsPartIdx>>(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)) ;
-  UInt uiQpCUDepth =   min(uiDepth,pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()) ;
-  pcCU->setQPSubParts( uiDQp, uiAbsQpCUPartIdx, uiQpCUDepth );
 }
 
 Void TDecSbac::parseQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth )

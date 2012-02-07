@@ -101,11 +101,6 @@ protected:
   Double    m_fQP;                                            ///< QP value of key-picture (floating point)
   Int       m_iQP;                                            ///< QP value of key-picture (integer)
   Int       m_aiTLayerQPOffset[MAX_TLAYER];                   ///< QP offset corresponding to temporal layer depth
-  char*     m_pchdQPFile;                                     ///< QP offset for each slice (initialized from external file)
-  Int*      m_aidQP;                                          ///< array of slice QP values
-  Int       m_iMaxDeltaQP;                                    ///< max. |delta QP|
-  UInt      m_uiDeltaQpRD;                                    ///< dQP range for multi-pass slice QP optimization
-  Int       m_iMaxCuDQPDepth;                                 ///< Max. depth for a minimum CuDQPSize (0:default)
 
 #if G509_CHROMA_QP_OFFSET
   Int       m_iChromaQpOffset;                                 ///< ChromaQpOffset    (0:default) 
@@ -116,11 +111,6 @@ protected:
   Bool      m_bUseAdaptQpSelect;
 #endif
 
-#if QP_ADAPTATION
-  Bool      m_bUseAdaptiveQP;                                 ///< Flag for enabling QP adaptation based on a psycho-visual model
-  Int       m_iQPAdaptationRange;                             ///< dQP range by QP adaptation
-#endif
-  
   Bool      m_bTLayering;                                     ///< indicates whether temporal IDs are set based on the hierarchical coding structure
   Bool      m_abTLayerSwitchingFlag[MAX_TLAYER];              ///< temporal layer switching flags corresponding to each temporal layer
 

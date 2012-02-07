@@ -67,8 +67,6 @@ private:
   TComPrediction*     m_pcPrediction;
   TDecEntropy*        m_pcEntropyDecoder;
 
-  Bool                m_bDecodeDQP;
-  
 public:
   TDecCu();
   virtual ~TDecCu();
@@ -110,8 +108,6 @@ protected:
   Void  xIntraLumaRecQT         ( TComDataCU* pcCU, UInt uiTrDepth, UInt uiAbsPartIdx, TComYuv* pcRecoYuv, TComYuv* pcPredYuv, TComYuv* pcResiYuv );
   Void  xIntraChromaRecQT       ( TComDataCU* pcCU, UInt uiTrDepth, UInt uiAbsPartIdx, TComYuv* pcRecoYuv, TComYuv* pcPredYuv, TComYuv* pcResiYuv );
 
-  Bool getdQPFlag               ()                        { return m_bDecodeDQP;        }
-  Void setdQPFlag               ( Bool b )                { m_bDecodeDQP = b;           }
 };
 
 //! \}

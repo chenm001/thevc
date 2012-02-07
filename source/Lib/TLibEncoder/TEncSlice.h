@@ -89,9 +89,6 @@ private:
   UInt64                  m_uiPicTotalBits;                     ///< total bits for the picture
   UInt64                  m_uiPicDist;                          ///< total distortion for the picture
   Double                  m_dPicRdCost;                         ///< picture-level RD cost
-  Double*                 m_pdRdPicLambda;                      ///< array of lambda candidates
-  Double*                 m_pdRdPicQp;                          ///< array of picture QP candidates (double-type for lambda)
-  Int*                    m_piRdPicQp;                          ///< array of picture QP candidates (int-type)
   UInt                    m_uiSliceIdx;
 public:
   TEncSlice();
@@ -110,7 +107,6 @@ public:
 #endif
 
   // compress and encode slice
-  Void    precompressSlice    ( TComPic*& rpcPic                                );      ///< precompress slice for multi-loop opt.
   Void    compressSlice       ( TComPic*& rpcPic                                );      ///< analysis stage of slice
   Void    encodeSlice         ( TComPic*& rpcPic, TComOutputBitstream* rpcBitstream  );      ///< entropy coding of slice
   

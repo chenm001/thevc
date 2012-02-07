@@ -121,9 +121,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setBipredSearchRange            ( m_bipredSearchRange );
 
   //====== Quality control ========
-  m_cTEncTop.setMaxDeltaQP                   ( m_iMaxDeltaQP  );
-  m_cTEncTop.setMaxCuDQPDepth                ( m_iMaxCuDQPDepth  );
-
 #if G509_CHROMA_QP_OFFSET
   m_cTEncTop.setChromaQpOffset               ( m_iChromaQpOffset     );
   m_cTEncTop.setChromaQpOffset2nd            ( m_iChromaQpOffset2nd  );
@@ -133,14 +130,8 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseAdaptQpSelect             ( m_bUseAdaptQpSelect   );
 #endif
 
-#if QP_ADAPTATION
-  m_cTEncTop.setUseAdaptiveQP                ( m_bUseAdaptiveQP  );
-  m_cTEncTop.setQPAdaptationRange            ( m_iQPAdaptationRange );
-#endif
-  
   //====== Tool list ========
   m_cTEncTop.setUseSBACRD                    ( m_bUseSBACRD   );
-  m_cTEncTop.setDeltaQpRD                    ( m_uiDeltaQpRD  );
   m_cTEncTop.setUseHADME                     ( m_bUseHADME    );
 
 #if !G1002_RPS
@@ -148,7 +139,6 @@ Void TAppEncTop::xInitLibCfg()
 #endif
   m_cTEncTop.setUseLComb                     ( m_bUseLComb    );
   m_cTEncTop.setLCMod                        ( m_bLCMod         );
-  m_cTEncTop.setdQPs                         ( m_aidQP        );
 #if !G1002_RPS
   m_cTEncTop.setUseLDC                       ( m_bUseLDC      );
 #endif
