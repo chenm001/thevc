@@ -485,9 +485,6 @@ Void TEncTop::xInitSPS()
   }
 #endif
 
-  m_cSPS.setBitDepth    ( g_uiBitDepth        );
-  m_cSPS.setBitIncrement( g_uiBitIncrement    );
-
   if ( m_bTLayering )
   {
     Int iMaxTLayers = 1;

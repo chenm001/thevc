@@ -58,7 +58,6 @@ protected:
   char*         m_pchBitstreamFile;                   ///< input bitstream file name
   char*         m_pchReconFile;                       ///< output reconstruction file name
   Int           m_iSkipFrame;                         ///< counter for frames prior to the random access point to skip
-  UInt          m_outputBitDepth;                     ///< bit depth used for writing output
 
 #if G1002_RPS
   Int           m_iMaxTemporalLayer;                  ///< maximum temporal layer to be decoded

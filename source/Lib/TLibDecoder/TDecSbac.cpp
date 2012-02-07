@@ -965,10 +965,9 @@ Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   {
 #if F745_DQP_BINARIZATION
     UInt uiSign;
-    UInt uiQpBdOffsetY = 6*(g_uiBitIncrement + g_uiBitDepth - 8);
     m_pcTDecBinIf->decodeBinEP(uiSign);
 
-    UInt uiMaxAbsDQpMinus1 = 24 + (uiQpBdOffsetY/2) + (uiSign);
+    UInt uiMaxAbsDQpMinus1 = 24 + (uiSign);
     UInt uiAbsDQpMinus1;
     xReadUnaryMaxSymbol (uiAbsDQpMinus1,  &m_cCUDeltaQpSCModel.get( 0, 0, 1 ), 1, uiMaxAbsDQpMinus1);
 

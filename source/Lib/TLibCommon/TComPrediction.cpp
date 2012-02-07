@@ -918,7 +918,7 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
   }
   iCountShift += iCountShift > 0 ? 1 : ( g_aucConvertToBit[ uiWidth ] + 2 );
 
-  Int iTempShift = ( g_uiBitDepth + g_uiBitIncrement ) + g_aucConvertToBit[ uiWidth ] + 3 - 15;
+  Int iTempShift = 8 + g_aucConvertToBit[ uiWidth ] + 3 - 15;
 
   if(iTempShift > 0)
   {
@@ -934,7 +934,7 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
   if( iCountShift == 0 )
   {
     a = 0;
-    b = 1 << (g_uiBitDepth + g_uiBitIncrement - 1);
+    b = 1 << (8 - 1);
     iShift = 0;
   }
   else

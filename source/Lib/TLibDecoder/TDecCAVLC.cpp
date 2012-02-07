@@ -360,27 +360,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_CODE( 16, uiCode, "pic_height_in_luma_samples" );         pcSPS->setHeight      ( uiCode    );
 #endif
 
-#if FULL_NBIT
   READ_UVLC(     uiCode, "bit_depth_luma_minus8" );
-  g_uiBitDepth = 8 + uiCode;
-  g_uiBitIncrement = 0;
-  pcSPS->setBitDepth(g_uiBitDepth);
-  pcSPS->setBitIncrement(g_uiBitIncrement);
-#else
-  READ_UVLC(     uiCode, "bit_depth_luma_minus8" );
-  g_uiBitDepth = 8;
-  g_uiBitIncrement = uiCode;
-  pcSPS->setBitDepth(g_uiBitDepth);
-  pcSPS->setBitIncrement(g_uiBitIncrement);
-#endif
+  assert( uiCode == 0 );
   
-  g_uiBASE_MAX  = ((1<<(g_uiBitDepth))-1);
-  
-#if IBDI_NOCLIP_RANGE
-  g_uiIBDI_MAX  = g_uiBASE_MAX << g_uiBitIncrement;
-#else
-  g_uiIBDI_MAX  = ((1<<(g_uiBitDepth+g_uiBitIncrement))-1);
-#endif
   READ_UVLC( uiCode,    "bit_depth_chroma_minus8" );
 
 #if MAX_PCM_SIZE

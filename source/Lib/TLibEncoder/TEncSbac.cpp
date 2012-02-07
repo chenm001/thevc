@@ -911,14 +911,13 @@ Void TEncSbac::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
    
 #if F745_DQP_BINARIZATION
     UInt uiSign = (iDQp > 0 ? 0 : 1);
-    UInt uiQpBdOffsetY = 6*(g_uiBitIncrement + g_uiBitDepth - 8);
 
     m_pcBinIf->encodeBinEP(uiSign);
 
-    assert(iDQp >= -(26+(Int)(uiQpBdOffsetY/2)));
-    assert(iDQp <=  (25+(Int)(uiQpBdOffsetY/2)));
+    assert(iDQp >= -26);
+    assert(iDQp <=  25);
 
-    UInt uiMaxAbsDQpMinus1 = 24 + (uiQpBdOffsetY/2) + (uiSign);
+    UInt uiMaxAbsDQpMinus1 = 24 + (uiSign);
     UInt uiAbsDQpMinus1 = (UInt)((iDQp > 0)? iDQp  : (-iDQp)) - 1;
     xWriteUnaryMaxSymbol( uiAbsDQpMinus1, &m_cCUDeltaQpSCModel.get( 0, 0, 1 ), 1, uiMaxAbsDQpMinus1);
 #else

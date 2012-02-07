@@ -95,10 +95,7 @@ public:
     assert ( iQP >= MIN_QP && iQP <= MAX_QP );
     m_iQP   = iQP;
     
-    m_iPer  = (iQP + 6*g_uiBitIncrement)/6;
-#if FULL_NBIT
-    m_iPer += g_uiBitDepth - 8;
-#endif
+    m_iPer  = iQP / 6;
     m_iRem  = iQP % 6;
     
     m_iBits = QP_BITS + m_iPer;

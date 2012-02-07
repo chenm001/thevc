@@ -150,10 +150,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #endif
   ("SourceWidth,-wdt",      m_iSourceWidth,  0, "Source picture width")
   ("SourceHeight,-hgt",     m_iSourceHeight, 0, "Source picture height")
-  ("InputBitDepth",         m_uiInputBitDepth, 8u, "bit-depth of input file")
-  ("BitDepth",              m_uiInputBitDepth, 8u, "deprecated alias of InputBitDepth")
-  ("OutputBitDepth",        m_uiOutputBitDepth, 0u, "bit-depth of output file")
-  ("InternalBitDepth",      m_uiInternalBitDepth, 0u, "Internal bit-depth (BitDepth+BitIncrement)")
   ("FrameRate,-fr",         m_iFrameRate,        0, "Frame rate")
   ("FrameSkip,-fs",         m_FrameSkip,         0u, "Number of frames to skip at start of input YUV")
   ("FramesToBeEncoded,f",   m_iFrameToBeEncoded, 0, "number of frames to be encoded (default=all)")
@@ -402,7 +398,6 @@ Void TAppEncCfg::xCheckParameter()
   bool check_failed = false; /* abort if there is a fatal configuration problem */
 #define xConfirmPara(a,b) check_failed |= confirmPara(a,b)
   // check range of parameters
-  xConfirmPara( m_uiInputBitDepth < 8,                                                      "InputBitDepth must be at least 8" );
   xConfirmPara( m_iFrameRate <= 0,                                                          "Frame rate must be more than 1" );
   xConfirmPara( m_iFrameToBeEncoded <= 0,                                                   "Total Number Of Frames encoded must be more than 1" );
   xConfirmPara( m_iGOPSize < 1 ,                                                            "GOP Size must be more than 1" );
@@ -721,28 +716,6 @@ Void TAppEncCfg::xSetGlobal()
   m_uiMaxCUDepth += g_uiAddCUDepth;
   g_uiAddCUDepth++;
   g_uiMaxCUDepth = m_uiMaxCUDepth;
-  
-  // set internal bit-depth and constants
-#if FULL_NBIT
-  g_uiBitDepth = m_uiInternalBitDepth;
-  g_uiBitIncrement = 0;
-#else
-  g_uiBitDepth = 8;
-  g_uiBitIncrement = m_uiInternalBitDepth - g_uiBitDepth;
-#endif
-
-  g_uiBASE_MAX     = ((1<<(g_uiBitDepth))-1);
-  
-#if IBDI_NOCLIP_RANGE
-  g_uiIBDI_MAX     = g_uiBASE_MAX << g_uiBitIncrement;
-#else
-  g_uiIBDI_MAX     = ((1<<(g_uiBitDepth+g_uiBitIncrement))-1);
-#endif
-  
-  if (m_uiOutputBitDepth == 0)
-  {
-    m_uiOutputBitDepth = m_uiInternalBitDepth;
-  }
 }
 
 Void TAppEncCfg::xPrintParameter()
@@ -781,7 +754,6 @@ Void TAppEncCfg::xPrintParameter()
 #if !G1002_RPS
   printf("Rate GOP size                : %d\n", m_iRateGOPSize );
 #endif
-  printf("Internal bit depth           : %d\n", m_uiInternalBitDepth );
 #if G507_COND_4X4_ENABLE_FLAG
   if((m_uiMaxCUWidth >> m_uiMaxCUDepth) == 4)
 #endif
@@ -791,7 +763,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("\n");
   
   printf("TOOL CFG: ");
-  printf("IBD:%d ", !!g_uiBitIncrement);
+  printf("IBD:%d ", !!0);
   printf("HAD:%d ", m_bUseHADME           );
   printf("SRD:%d ", m_bUseSBACRD          );
   printf("SQP:%d ", m_uiDeltaQpRD         );

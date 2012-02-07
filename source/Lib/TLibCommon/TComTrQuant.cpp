@@ -221,11 +221,7 @@ void xTr(Pel *block, Int *coeff, UInt uiStride, UInt uiTrSize, UInt uiMode)
     assert(0);
   }
 
-#if FULL_NBIT
-  int shift_1st = uiLog2TrSize - 1 + g_uiBitDepth - 8; // log2(N) - 1 + g_uiBitDepth - 8
-#else
-  int shift_1st = uiLog2TrSize - 1 + g_uiBitIncrement; // log2(N) - 1 + g_uiBitIncrement
-#endif
+  int shift_1st = uiLog2TrSize - 1; // log2(N) - 1 + g_uiBitIncrement
 
   int add_1st = 1<<(shift_1st-1);
   int shift_2nd = uiLog2TrSize + 6;
@@ -314,11 +310,7 @@ void xITr(Int *coeff, Pel *block, UInt uiStride, UInt uiTrSize, UInt uiMode)
   
   int shift_1st = SHIFT_INV_1ST;
   int add_1st = 1<<(shift_1st-1);  
-#if FULL_NBIT
-  int shift_2nd = SHIFT_INV_2ND - ((short)g_uiBitDepth - 8);
-#else
-  int shift_2nd = SHIFT_INV_2ND - g_uiBitIncrement;
-#endif
+  int shift_2nd = SHIFT_INV_2ND;
   int add_2nd = 1<<(shift_2nd-1);
   if (uiTrSize==4)
   {
@@ -484,11 +476,7 @@ void fastInverseDst(short tmp[4][4],short block[4][4],int shift)  // input tmp, 
  */
 void xTr4(short block[4][4],short coeff[4][4],UInt uiMode)
 {
-#if FULL_NBIT
-  int shift_1st = 1 + g_uiBitDepth - 8; // log2(4) - 1 + g_uiBitDepth - 8
-#else
-  int shift_1st = 1 + g_uiBitIncrement; // log2(4) - 1 + g_uiBitIncrement
-#endif
+  int shift_1st = 1; // log2(4) - 1 + g_uiBitIncrement
   int shift_2nd = 8;                    // log2(4) + 6
   short tmp[4][4]; 
   if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode])// Check for DCT or DST
@@ -586,11 +574,7 @@ void partialButterflyInverse4(short *src,short *dst,int shift, int line)
 void xITr4(short coeff[4][4],short block[4][4], UInt uiMode)
 {
   int shift_1st = SHIFT_INV_1ST;
-#if FULL_NBIT
-  int shift_2nd = SHIFT_INV_2ND - ((short)g_uiBitDepth - 8);
-#else
-  int shift_2nd = SHIFT_INV_2ND - g_uiBitIncrement;
-#endif
+  int shift_2nd = SHIFT_INV_2ND;
   short tmp[4][4];
   
   if (uiMode != REG_DCT && g_aucDCTDSTMode_Vert[uiMode] )    // Check for DCT or DST
@@ -693,11 +677,7 @@ void partialButterfly8(short *src,short *dst,int shift, int line)
  */
 void xTr8(short block[8][8],short coeff[8][8])
 {
-#if FULL_NBIT
-  int shift_1st = 2 + g_uiBitDepth - 8; // log2(8) - 1 + g_uiBitDepth - 8
-#else
-  int shift_1st = 2 + g_uiBitIncrement; // log2(8) - 1 + g_uiBitIncrement
-#endif
+  int shift_1st = 2; // log2(8) - 1 + g_uiBitIncrement
   int shift_2nd = 9;                    // log2(8) + 6
   short tmp[8][8]; 
 
@@ -797,11 +777,7 @@ void partialButterflyInverse8(short *src,short *dst,int shift, int line)
 void xITr8(short coeff[8][8],short block[8][8])
 {
   int shift_1st = SHIFT_INV_1ST;
-#if FULL_NBIT
-  int shift_2nd = SHIFT_INV_2ND - ((short)g_uiBitDepth - 8);
-#else
-  int shift_2nd = SHIFT_INV_2ND - g_uiBitIncrement;
-#endif
+  int shift_2nd = SHIFT_INV_2ND;
   short tmp[8][8];
   
   partialButterflyInverse8(coeff,tmp,shift_1st);
@@ -918,11 +894,7 @@ void partialButterfly16(short *src,short *dst,int shift, int line)
  */
 void xTr16(short block[16][16],short coeff[16][16])
 {
- #if FULL_NBIT
-  int shift_1st = 3 + g_uiBitDepth - 8; // log2(16) - 1 + g_uiBitDepth - 8
-#else
-  int shift_1st = 3 + g_uiBitIncrement; // log2(16) - 1 + g_uiBitIncrement
-#endif
+  int shift_1st = 3; // log2(16) - 1 + g_uiBitIncrement
   int shift_2nd = 10;                   // log2(16) + 6
   short tmp[16][16]; 
 
@@ -1044,11 +1016,7 @@ void partialButterflyInverse16(short *src,short *dst,int shift, int line)
 void xITr16(short coeff[16][16],short block[16][16])
 {
   int shift_1st = SHIFT_INV_1ST;
-#if FULL_NBIT
-  int shift_2nd = SHIFT_INV_2ND - ((short)g_uiBitDepth - 8);
-#else
-  int shift_2nd = SHIFT_INV_2ND - g_uiBitIncrement;
-#endif
+  int shift_2nd = SHIFT_INV_2ND;
   short tmp[16][16];
   
   partialButterflyInverse16(coeff,tmp,shift_1st);
@@ -1186,11 +1154,7 @@ void partialButterfly32(short *src,short *dst,int shift, int line)
  */
 void xTr32(short block[32][32],short coeff[32][32])
 {
- #if FULL_NBIT
-  int shift_1st = 4 + g_uiBitDepth - 8; // log2(32) - 1 + g_uiBitDepth - 8
-#else
-  int shift_1st = 4 + g_uiBitIncrement; // log2(32) - 1 + g_uiBitIncrement
-#endif
+  int shift_1st = 4; // log2(32) - 1 + g_uiBitIncrement
   int shift_2nd = 11;                   // log2(32) + 6
   short tmp[32][32]; 
 
@@ -1336,11 +1300,7 @@ void partialButterflyInverse32(short *src,short *dst,int shift, int line)
 void xITr32(short coeff[32][32],short block[32][32])
 {
   int shift_1st = SHIFT_INV_1ST;
-#if FULL_NBIT
-  int shift_2nd = SHIFT_INV_2ND - ((short)g_uiBitDepth - 8);
-#else
-  int shift_2nd = SHIFT_INV_2ND - g_uiBitIncrement;
-#endif
+  int shift_2nd = SHIFT_INV_2ND;
   short tmp[32][32];
   
   partialButterflyInverse32(coeff,tmp,shift_1st);
@@ -1356,11 +1316,7 @@ void xITr32(short coeff[32][32],short block[32][32])
 */
 void xTrMxN(short *block,short *coeff, int iWidth, int iHeight)
 {
-#if FULL_NBIT
-  int shift_1st = g_aucConvertToBit[iWidth]  + 1 + g_uiBitDepth - 8; // log2(iWidth) - 1 + g_uiBitDepth - 8
-#else
-  int shift_1st = g_aucConvertToBit[iWidth]  + 1 + g_uiBitIncrement; // log2(iWidth) - 1 + g_uiBitIncrement
-#endif
+  int shift_1st = g_aucConvertToBit[iWidth]  + 1; // log2(iWidth) - 1 + g_uiBitIncrement
   int shift_2nd = g_aucConvertToBit[iHeight]  + 8;                   // log2(iHeight) + 6
 
   short tmp[ 64 * 64 ];
@@ -1397,11 +1353,7 @@ void xTrMxN(short *block,short *coeff, int iWidth, int iHeight)
 void xITrMxN(short *coeff,short *block, int iWidth, int iHeight)
 {
   int shift_1st = SHIFT_INV_1ST;
-#if FULL_NBIT
-  int shift_2nd = SHIFT_INV_2ND - ((short)g_uiBitDepth - 8);
-#else
-  int shift_2nd = SHIFT_INV_2ND - g_uiBitIncrement;
-#endif
+  int shift_2nd = SHIFT_INV_2ND;
 
   short tmp[ 64*64];
   if( iWidth == 16 && iHeight == 4)
@@ -1472,12 +1424,7 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
     UInt uiLog2TrSize = g_aucConvertToBit[ iWidth ] + 2;
     UInt uiQ = g_quantScales[m_cQP.rem()];
 
-#if FULL_NBIT
-    UInt uiBitDepth = g_uiBitDepth;
-#else
-    UInt uiBitDepth = g_uiBitDepth + g_uiBitIncrement;
-#endif
-    UInt iTransformShift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize;  // Represents scaling through forward transform
+    UInt iTransformShift = MAX_TR_DYNAMIC_RANGE - 8 - uiLog2TrSize;  // Represents scaling through forward transform
     Int iQBits = QUANT_SHIFT + m_cQP.m_iPer + iTransformShift;                // Right shift of non-RDOQ quantizer;  level = (coeff*uiQ + offset)>>q_bits
 
     iAdd = (pcCU->getSlice()->getSliceType()==I_SLICE ? 171 : 85) << (iQBits-9);
@@ -1539,12 +1486,7 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
   Int iShift,iAdd,iCoeffQ;
   UInt uiLog2TrSize = g_aucConvertToBit[ iWidth ] + 2;
 
-#if FULL_NBIT
-  UInt uiBitDepth = g_uiBitDepth;
-#else
-  UInt uiBitDepth = g_uiBitDepth + g_uiBitIncrement;
-#endif
-  UInt iTransformShift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize; 
+  UInt iTransformShift = MAX_TR_DYNAMIC_RANGE - 8 - uiLog2TrSize; 
   iShift = QUANT_IQUANT_SHIFT - QUANT_SHIFT - iTransformShift;
   iAdd = 1 << (iShift-1);
   Int scale = g_invQuantScales[m_cQP.m_iRem] << m_cQP.m_iPer;

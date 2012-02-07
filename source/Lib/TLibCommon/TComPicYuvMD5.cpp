@@ -38,31 +38,23 @@
 //! \{
 
 /**
- * Update md5 using n samples from plane, each sample is adjusted to
- * OUTBIT_BITDEPTH_DIV8.
+ * Update md5 using n samples from plane.
  */
-template<unsigned OUTPUT_BITDEPTH_DIV8>
 static void md5_block(MD5& md5, const Pel* plane, unsigned n)
 {
   /* create a 64 byte buffer for packing Pel's into */
-  unsigned char buf[64/OUTPUT_BITDEPTH_DIV8][OUTPUT_BITDEPTH_DIV8];
+  unsigned char buf[64];
   for (unsigned i = 0; i < n; i++)
   {
     Pel pel = plane[i];
-    /* perform bitdepth and endian conversion */
-    for (unsigned d = 0; d < OUTPUT_BITDEPTH_DIV8; d++)
-    {
-      buf[i][d] = pel >> (d*8);
-    }
+      buf[i] = (UChar)pel;
   }
-  md5.update((unsigned char*)buf, n * OUTPUT_BITDEPTH_DIV8);
+  md5.update((unsigned char*)buf, n);
 }
 
 /**
- * Update md5 with all samples in plane in raster order, each sample
- * is adjusted to OUTBIT_BITDEPTH_DIV8.
+ * Update md5 with all samples in plane in raster order
  */
-template<unsigned OUTPUT_BITDEPTH_DIV8>
 static void md5_plane(MD5& md5, const Pel* plane, unsigned width, unsigned height, unsigned stride)
 {
   /* N is the number of samples to process per md5 update.
@@ -76,10 +68,10 @@ static void md5_plane(MD5& md5, const Pel* plane, unsigned width, unsigned heigh
     /* convert pel's into unsigned chars in little endian byte order.
      * NB, for 8bit data, data is truncated to 8bits. */
     for (unsigned x = 0; x < width_less_modN; x += N)
-      md5_block<OUTPUT_BITDEPTH_DIV8>(md5, &plane[y*stride + x], N);
+      md5_block(md5, &plane[y*stride + x], N);
 
     /* mop up any of the remaining line */
-    md5_block<OUTPUT_BITDEPTH_DIV8>(md5, &plane[y*stride + width_less_modN], width_modN);
+    md5_block(md5, &plane[y*stride + width_less_modN], width_modN);
   }
 }
 
@@ -92,25 +84,19 @@ static void md5_plane(MD5& md5, const Pel* plane, unsigned width, unsigned heigh
  */
 void calcMD5(TComPicYuv& pic, unsigned char digest[16])
 {
-  unsigned bitdepth = g_uiBitDepth + g_uiBitIncrement;
-  /* choose an md5_plane packing function based on the system bitdepth */
-  typedef void (*MD5PlaneFunc)(MD5&, const Pel*, unsigned, unsigned, unsigned);
-  MD5PlaneFunc md5_plane_func;
-  md5_plane_func = bitdepth <= 8 ? (MD5PlaneFunc)md5_plane<1> : (MD5PlaneFunc)md5_plane<2>;
-
   MD5 md5;
   unsigned width = pic.getWidth();
   unsigned height = pic.getHeight();
   unsigned stride = pic.getStride();
 
-  md5_plane_func(md5, pic.getLumaAddr(), width, height, stride);
+  md5_plane(md5, pic.getLumaAddr(), width, height, stride);
 
   width >>= 1;
   height >>= 1;
   stride >>= 1;
 
-  md5_plane_func(md5, pic.getCbAddr(), width, height, stride);
-  md5_plane_func(md5, pic.getCrAddr(), width, height, stride);
+  md5_plane(md5, pic.getCbAddr(), width, height, stride);
+  md5_plane(md5, pic.getCrAddr(), width, height, stride);
 
   md5.finalize(digest);
 }

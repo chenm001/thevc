@@ -1348,8 +1348,6 @@ TComSPS::TComSPS()
 , m_bUseMRG                   (false)
 , m_bUseLComb                 (false)
 , m_bLCMod                    (false)
-, m_uiBitDepth                (  8)
-, m_uiBitIncrement            (  0)
 #if  G1002_RPS
 , m_uiBitsForPOC              (  8)
 #endif

@@ -320,12 +320,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 #endif
     Int    SHIFT_QP = 12;
     Double dLambda_scale = 1.0 - Clip3( 0.0, 0.5, 0.05*(Double)NumberBFrames );
-#if FULL_NBIT
-    Int    bitdepth_luma_qp_scale = 6 * (g_uiBitDepth - 8);
-#else
-    Int    bitdepth_luma_qp_scale = 0;
-#endif
-    Double qp_temp = (double) dQP + bitdepth_luma_qp_scale - SHIFT_QP;
+    Double qp_temp = (double) dQP - SHIFT_QP;
 #if FULL_NBIT
     Double qp_temp_orig = (double) dQP - SHIFT_QP;
 #endif
@@ -544,11 +539,7 @@ Void TEncSlice::precompressSlice( TComPic*& rpcPic )
   UInt       uiQpIdxBest = 0;
   
   Double dFrameLambda;
-#if FULL_NBIT
-  Int    SHIFT_QP = 12 + 6 * (g_uiBitDepth - 8);
-#else
   Int    SHIFT_QP = 12;
-#endif
   
   // set frame lambda
   if (m_pcCfg->getGOPSize() > 1)

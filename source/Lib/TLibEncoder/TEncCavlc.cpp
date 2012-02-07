@@ -361,16 +361,8 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_CODE( pcSPS->getHeight(),         16,       "pic_height_in_luma_samples" );
 #endif
 
-#if FULL_NBIT
-  WRITE_UVLC( pcSPS->getBitDepth() - 8,             "bit_depth_luma_minus8" );
-#else
-  WRITE_UVLC( pcSPS->getBitIncrement(),             "bit_depth_luma_minus8" );
-#endif
-#if FULL_NBIT
-  WRITE_UVLC( pcSPS->getBitDepth() - 8,             "bit_depth_chroma_minus8" );
-#else
-  WRITE_UVLC( pcSPS->getBitIncrement(),             "bit_depth_chroma_minus8" );
-#endif
+  WRITE_UVLC( 0,                                    "bit_depth_luma_minus8" );
+  WRITE_UVLC( 0,                                    "bit_depth_chroma_minus8" );
 
 #if MAX_PCM_SIZE
   WRITE_FLAG( 0,                                    "pcm_enabled_flag");
