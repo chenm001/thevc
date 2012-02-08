@@ -1578,7 +1578,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
 
 #if !G1002_RPS
-#if REF_SETTING_FOR_LD
       if ( pcPic->getSlice(0)->getSPS()->getUseNewRefSetting() )
       {
         if ( pcPic->getSlice(0)->isReferenced() )
@@ -1586,7 +1585,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           pcPic->getSlice(0)->decodingRefMarkingForLD( rcListPic, pcPic->getSlice(0)->getSPS()->getMaxNumRefFrames(), pcPic->getSlice(0)->getPOC() );
         }
       }
-#endif
 #endif
       
       m_bFirst = false;

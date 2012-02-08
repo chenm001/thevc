@@ -341,9 +341,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
                                               "\t1: use MD5\n"
                                               "\t0: disable")
 #if !G1002_RPS
-#if REF_SETTING_FOR_LD
   ("UsingNewRefSetting", m_bUseNewRefSetting, false, "Use 1+X reference frame setting for LD" )
-#endif
 #endif
 
 #if NO_TMVP_MARKING
@@ -468,7 +466,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   }
 
 #if !G1002_RPS
-#if REF_SETTING_FOR_LD
   if ( m_iGOPSize > 1 )
   {
     if ( m_bUseNewRefSetting )
@@ -484,7 +481,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
       printf( "\nwarning: new reference frame setting was originally designed for default LD setting (rateGOPSize=4), no action" );
     }
   }
-#endif
 #endif
   
   // check validity of input parameters
@@ -854,9 +850,7 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_bUseLComb==false && m_numReorderFrames!=0, "ListCombination can only be 0 in low delay coding (more precisely when L0 and L1 are identical)" );  // Note however this is not the full necessary condition as ref_pic_list_combination_flag can only be 0 if L0 == L1.
   xConfirmPara( m_numReorderFrames < numReorderFramesRequired, "For the used GOP the encoder requires more pictures for reordering than specified in MaxNumberOfReorderPictures" );
 #else
-#if REF_SETTING_FOR_LD
   xConfirmPara( m_bUseNewRefSetting && m_iGOPSize>1, "New reference frame setting was only designed for LD setting" );
-#endif
 #endif
 
   xConfirmPara( m_iWaveFrontSynchro < 0, "WaveFrontSynchro cannot be negative" );
@@ -1019,9 +1013,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("SAO:%d ", (m_bUseSAO)?(1):(0));
   printf("PCM:%d ", ((1<<m_uiPCMLog2MinSize) <= m_uiMaxCUWidth)? 1 : 0);
 #if !G1002_RPS
-#if REF_SETTING_FOR_LD
   printf("NewRefSetting:%d ", m_bUseNewRefSetting?1:0);
-#endif
 #endif
   printf("WPP:%d ", (Int)m_bUseWeightPred);
   printf("WPB:%d ", m_uiBiPredIdc);

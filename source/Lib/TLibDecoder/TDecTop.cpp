@@ -235,11 +235,7 @@ Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic
 #if G1002_RPS
   m_cGopDecoder.decompressGop(NULL, pcPic, true);
 #else
-#if REF_SETTING_FOR_LD
   m_cGopDecoder.decompressGop(NULL, pcPic, true, m_cListPic );
-#else
-  m_cGopDecoder.decompressGop(NULL, pcPic, true);
-#endif
 #endif
 
 #if !G1002_RPS
@@ -827,11 +823,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 #if G1002_RPS
       m_cGopDecoder.decompressGop(nalu.m_Bitstream, pcPic, false);
 #else
-#if REF_SETTING_FOR_LD
       m_cGopDecoder.decompressGop(nalu.m_Bitstream, pcPic, false, m_cListPic );
-#else
-      m_cGopDecoder.decompressGop(nalu.m_Bitstream, pcPic, false);
-#endif
 #endif
 
       m_bFirstSliceInPicture = false;

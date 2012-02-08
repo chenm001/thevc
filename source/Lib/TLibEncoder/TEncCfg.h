@@ -278,9 +278,7 @@ protected:
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
 #if !G1002_RPS
-#if REF_SETTING_FOR_LD
   Bool      m_bUseNewRefSetting;
-#endif
 #endif
 
   //====== Weighted Prediction ========
@@ -682,10 +680,8 @@ public:
   bool getPictureDigestEnabled() { return m_pictureDigestEnabled; }
 
 #if !G1002_RPS
-#if REF_SETTING_FOR_LD
   Void      setUseNewRefSetting    ( Bool b ) { m_bUseNewRefSetting = b;    }
   Bool      getUseNewRefSetting    ()         { return m_bUseNewRefSetting; }
-#endif
 #endif
 
   Void      setUseWP               ( Bool  b )   { m_bUseWeightPred    = b;    }

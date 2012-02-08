@@ -112,11 +112,7 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
 #if G1002_RPS
 Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf)
 #else
-#if REF_SETTING_FOR_LD
 Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf, TComList<TComPic*>& rcListPic )
-#else
-Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf)
-#endif
 #endif
 {
   TComSlice*  pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
@@ -503,7 +499,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #endif
 
 #if !G1002_RPS
-#if REF_SETTING_FOR_LD
       if ( rpcPic->getSlice(0)->getSPS()->getUseNewRefSetting() )
       {
         if ( rpcPic->getSlice(0)->isReferenced() )
@@ -511,7 +506,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
           rpcPic->getSlice(0)->decodingRefMarkingForLD( rcListPic, rpcPic->getSlice(0)->getSPS()->getMaxNumRefFrames(), rpcPic->getSlice(0)->getPOC() );
         }
       }
-#endif
 #endif
 
     uiILSliceCount = 0;

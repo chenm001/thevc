@@ -577,14 +577,12 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   }
 
 #if !G1002_RPS
-#if REF_SETTING_FOR_LD
   // these syntax elements should not be sent at SPS when the full reference frame management is supported
   xWriteFlag( pcSPS->getUseNewRefSetting() ? 1 : 0 );
   if ( pcSPS->getUseNewRefSetting() )
   {
     xWriteUvlc( pcSPS->getMaxNumRefFrames() );
   }
-#endif
 #endif
 
 #if TILES

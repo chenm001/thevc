@@ -150,10 +150,8 @@ private:
   Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
 
 #if !G1002_RPS
-#if REF_SETTING_FOR_LD
   Bool        m_bUseNewRefSetting;
   UInt        m_uiMaxNumRefFrames;
-#endif
 #endif
 #if SCALING_LIST
   Bool        m_scalingListEnabledFlag;
@@ -310,12 +308,10 @@ public:
   Bool      getPCMFilterDisableFlag     ()                    { return m_bPCMFilterDisableFlag;   } 
 
 #if !G1002_RPS
-#if REF_SETTING_FOR_LD
   Void      setUseNewRefSetting    ( Bool b ) { m_bUseNewRefSetting = b;    }
   Bool      getUseNewRefSetting    ()         { return m_bUseNewRefSetting; }
   Void      setMaxNumRefFrames     ( UInt u ) { m_uiMaxNumRefFrames = u;    }
   UInt      getMaxNumRefFrames     ()         { return m_uiMaxNumRefFrames; }
-#endif
 #endif
 #if TILES
 #if NONCROSS_TILE_IN_LOOP_FILTERING
@@ -1122,10 +1118,8 @@ public:
 #else
   Void decodingTLayerSwitchingMarking( TComList<TComPic*>& rcListPic );
 
-#if REF_SETTING_FOR_LD
   Int getActualRefNumber( TComList<TComPic*>& rcListPic );
   Void decodingRefMarkingForLD( TComList<TComPic*>& rcListPic, Int iMaxNumRefFrames, Int iCurrentPOC );
-#endif
 #endif
 
 #if NO_TMVP_MARKING

@@ -617,7 +617,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   }
 
 #if !G1002_RPS
-#if REF_SETTING_FOR_LD
   // these syntax elements should not be sent at SPS when the full reference frame management is supported
   xReadFlag( uiCode ); pcSPS->setUseNewRefSetting( uiCode>0 ? true : false );
   if ( pcSPS->getUseNewRefSetting() )
@@ -625,7 +624,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     xReadUvlc( uiCode );
     pcSPS->setMaxNumRefFrames( uiCode );
   }
-#endif
 #endif
 
 #if TILES

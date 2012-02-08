@@ -448,7 +448,6 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
   // bug-fix - erase frame memory (previous GOP) which is not used for reference any more
   if (m_cListPic.size() >= (UInt)(m_iGOPSize + 2 * getNumOfReference() + 1) )  // 2)   //  K. Lee bug fix - for multiple reference > 2
   {
-#if REF_SETTING_FOR_LD
     if ( m_bUseNewRefSetting )
     {
       Bool bFound = false;
@@ -483,9 +482,6 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
     {
       rpcPic = m_cListPic.popFront();
     }
-#else
-    rpcPic = m_cListPic.popFront();
-#endif
     
     // is it necessary without long-term reference?
     if ( rpcPic->getERBIndex() > 0 && abs(rpcPic->getPOC() - m_iPOCLast) <= 0 )
@@ -681,13 +677,11 @@ Void TEncTop::xInitSPS()
   m_cSPS.setPCMFilterDisableFlag  ( m_bPCMFilterDisableFlag );
 
 #if !G1002_RPS
-#if REF_SETTING_FOR_LD
   m_cSPS.setUseNewRefSetting( m_bUseNewRefSetting );
   if ( m_bUseNewRefSetting )
   {
     m_cSPS.setMaxNumRefFrames( m_iNumOfReference );
   }
-#endif
 #endif
 
 #if TILES

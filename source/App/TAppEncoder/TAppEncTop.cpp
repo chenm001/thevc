@@ -230,9 +230,7 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setPictureDigestEnabled(m_pictureDigestEnabled);
 
 #if !G1002_RPS
-#if REF_SETTING_FOR_LD
   m_cTEncTop.setUseNewRefSetting( m_bUseNewRefSetting );
-#endif
 #endif
 #if TILES
   m_cTEncTop.setColumnRowInfoPresent       ( m_iColumnRowInfoPresent );

@@ -207,9 +207,7 @@
 #define MS_LCEC_UNI_EXCEPTION_THRES     1           // for GPB case, uni-prediction, > MS_LCEC_UNI_EXCEPTION_THRES is exception
 
 #define  G1002_RPS                           1
-#if  !G1002_RPS
-#define REF_SETTING_FOR_LD              1           // reference frame setting for low delay setting (JCTVC-F701)
-#else
+#if G1002_RPS
 #define G1002_CRA_CHECK                 1
 #define INTER_RPS_PREDICTION            1           // remove this once tested.
 #define WRITE_BACK                      1           ///< Enable/disable the encoder to replace the deltaPOC and Used by current from the config file with the values derived by the refIdc parameter.

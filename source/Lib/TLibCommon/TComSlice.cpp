@@ -1338,7 +1338,6 @@ Void TComSlice::decodingTLayerSwitchingMarking( TComList<TComPic*>& rcListPic )
   }
 }
 
-#if REF_SETTING_FOR_LD
 Int TComSlice::getActualRefNumber( TComList<TComPic*>& rcListPic )
 {
   Int iActualNumOfReference = 0;
@@ -1388,7 +1387,6 @@ Void TComSlice::decodingRefMarkingForLD( TComList<TComPic*>& rcListPic, Int iMax
     }
   }
 }
-#endif
 
 #endif
 
@@ -1637,10 +1635,8 @@ TComSPS::TComSPS()
 , m_bUseSAO                   (false) 
 , m_bTemporalIdNestingFlag    (false)
 #if  !G1002_RPS
-#if REF_SETTING_FOR_LD
 , m_bUseNewRefSetting         (false)
 , m_uiMaxNumRefFrames         (  0)
-#endif
 #endif
 #if SCALING_LIST
 , m_scalingListEnabledFlag    (false)

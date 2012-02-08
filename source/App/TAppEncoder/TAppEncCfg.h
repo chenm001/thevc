@@ -233,9 +233,7 @@ protected:
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
 #if !G1002_RPS
-#if REF_SETTING_FOR_LD
   Bool      m_bUseNewRefSetting;
-#endif
 #endif
 
   // weighted prediction
