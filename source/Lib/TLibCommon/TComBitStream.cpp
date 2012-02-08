@@ -170,7 +170,6 @@ Void TComOutputBitstream::writeAlignZero()
   m_num_held_bits = 0;
 }
 
-#if OL_USE_WPP
 /**
  - add substream to the end of the current bitstream
  .
@@ -190,7 +189,6 @@ Void   TComOutputBitstream::addSubstream( TComOutputBitstream* pcSubstream )
     write(pcSubstream->getHeldBits()>>(8-(uiNumBits&0x7)), uiNumBits&0x7);
   }
 }
-#endif
 
 /**
  * read #uiNumberOfBits# from bitstream without updating the bitstream
@@ -317,7 +315,6 @@ TComOutputBitstream& TComOutputBitstream::operator= (const TComOutputBitstream& 
 #endif
 #endif
 
-#if OL_USE_WPP
 /**
  - extract substream from the current bitstream
  .
@@ -355,6 +352,5 @@ Void TComInputBitstream::deleteFifo()
   delete m_fifo;
   m_fifo = NULL;
 }
-#endif
 
 //! \}

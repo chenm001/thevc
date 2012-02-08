@@ -109,7 +109,6 @@ TDecBinCABAC::flush()
 }
 #endif // OL_FLUSH
 
-#if OL_USE_WPP
 /**
  - Copy CABAC state.
  .
@@ -126,7 +125,6 @@ TDecBinCABAC::copyState( TDecBinIf* pcTDecBinIf )
   m_uiLastByte= pcTDecBinCABAC->m_uiLastByte;
 #endif
 }
-#endif
 
 
 Void

@@ -173,15 +173,11 @@ public:
 #endif
 #endif
 
-#if OL_USE_WPP
   Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );
-#endif
   Void  codeTerminatingBit      ( UInt uilsLast );
   Void  codeSliceFinish         ();
-#if OL_FLUSH
   Void  codeFlush               () {}
   Void  encodeStart             () {}
-#endif
   
   Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
   Void codeAlfFlag       ( UInt uiCode );

@@ -256,7 +256,7 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   UInt uiBit;
   m_pcTDecBinIf->decodeBinTrm(uiBit);
   m_pcTDecBinIf->finish();  
-#if OL_USE_WPP && !OL_FLUSH_ALIGN
+#if !OL_FLUSH_ALIGN
   // Account for misaligned CABAC.
   Int iCABACReadAhead = m_pcTDecBinIf->getBitsReadAhead();
   iCABACReadAhead--;
@@ -2198,7 +2198,6 @@ Void TDecSbac::parseSaoSvlc (Int&  riVal)
   riVal = i*iSign;
 }
 
-#if OL_USE_WPP
 /**
  - Initialize our contexts from the nominated source.
  .
@@ -2228,7 +2227,6 @@ Void TDecSbac::loadContexts ( TDecSbac* pScr )
   xCopyContextsFrom(pScr);
 }
 
-#endif
 #if OL_FLUSH
 Void TDecSbac::decodeFlush ( )
 {

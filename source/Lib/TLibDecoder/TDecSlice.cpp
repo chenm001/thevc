@@ -46,10 +46,8 @@
 
 TDecSlice::TDecSlice()
 {
-#if OL_USE_WPP
   m_pcBufferSbacDecoders = NULL;
   m_pcBufferBinCABACs    = NULL;
-#endif
 #if TILES_LOW_LATENCY_CABAC_INI
   m_pcBufferLowLatSbacDecoders = NULL;
   m_pcBufferLowLatBinCABACs    = NULL;
@@ -66,7 +64,6 @@ Void TDecSlice::create( TComSlice* pcSlice, Int iWidth, Int iHeight, UInt uiMaxW
 
 Void TDecSlice::destroy()
 {
-#if OL_USE_WPP
   if ( m_pcBufferSbacDecoders )
   {
     delete[] m_pcBufferSbacDecoders;
@@ -77,7 +74,6 @@ Void TDecSlice::destroy()
     delete[] m_pcBufferBinCABACs;
     m_pcBufferBinCABACs = NULL;
   }
-#endif
 #if TILES_LOW_LATENCY_CABAC_INI
   if ( m_pcBufferLowLatSbacDecoders )
   {
@@ -98,11 +94,7 @@ Void TDecSlice::init(TDecEntropy* pcEntropyDecoder, TDecCu* pcCuDecoder)
   m_pcCuDecoder       = pcCuDecoder;
 }
 
-#if OL_USE_WPP
 Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstream** ppcSubstreams, TComPic*& rpcPic, TDecSbac* pcSbacDecoder, TDecSbac* pcSbacDecoders)
-#else
-Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPic, TDecSbac* pcSbacDecoder)
-#endif
 {
   TComDataCU* pcCU;
   UInt        uiIsLast = 0;
@@ -129,7 +121,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
   g_bJustDoIt = g_bEncDecTraceDisable;
 #endif
 
-#if OL_USE_WPP
 #if TILES
   UInt uiTilesAcross   = rpcPic->getPicSym()->getNumColumnsMinus1()+1;
 #else
@@ -175,7 +166,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
   UInt uiTileHeight;
   Int iNumSubstreamsPerTile = 1; // if independent.
 #endif
-#endif
 
 #if TILES
   for( Int iCUAddr = iStartCUAddr; !uiIsLast && iCUAddr < rpcPic->getNumCUsInFrame(); iCUAddr = rpcPic->getPicSym()->xCalculateNxtCUAddr(iCUAddr) )
@@ -188,7 +178,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
     pcCU = rpcPic->getCU( iCUAddr );
     pcCU->initCU( rpcPic, iCUAddr );
 
-#if OL_USE_WPP
 #if TILES
     iBreakDep = rpcPic->getPicSym()->getTileBoundaryIndependenceIdr();
     uiTileCol = rpcPic->getPicSym()->getTileIdxMap(iCUAddr) % (rpcPic->getPicSym()->getNumColumnsMinus1()+1); // what column of tiles are we in?
@@ -286,12 +275,8 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
       iNumSubstreamsPerTile = 1;
 #endif
     }
-#endif // OL_USE_WPP
 
 #if TILES
-#if !OL_USE_WPP
-    TComSlice *pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
-#endif
     if ( (iCUAddr == rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getFirstCUAddr()) && // 1st in tile.
 #if !TILES_LOW_LATENCY_CABAC_INI
          (iCUAddr!=0) && (iCUAddr!=rpcPic->getPicSym()->getPicSCUAddr(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr())/rpcPic->getNumPartInCU()) && rpcPic->getPicSym()->getTileBoundaryIndependenceIdr()) // !1st in frame && !1st in slice && tile-independant
@@ -303,7 +288,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
       if (pcSlice->getSymbolMode())
 #endif
       {
-#if OL_USE_WPP
         if (pcSlice->getPPS()->getEntropyCodingSynchro())
         {
           // We're crossing into another tile, tiles are independent.
@@ -314,11 +298,8 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
         }
         else
         {
-#endif // OL_USE_WPP
           m_pcEntropyDecoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp() );
-#if OL_USE_WPP
         }
-#endif
       }
 #if !DISABLE_CAVLC
       else
@@ -331,7 +312,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
 #endif
 #if TILES_DECODER
       Bool bTileMarkerFoundFlag = false;
-#if OL_USE_WPP
       TComInputBitstream *pcTmpPtr;
 #if !DISABLE_CAVLC
       if (pcSlice->getSymbolMode()==1)
@@ -359,23 +339,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
           break;
         }
       }
-#else
-      for (UInt uiIdx=0; uiIdx<pcBitstream->getTileMarkerLocationCount(); uiIdx++)
-      {
-        // If tile marker was found at this location then we need to read tile index data.
-        // NOTE: This is sensitive to the logged position of tile markers in bitstream.
-#if DISABLE_CAVLC
-        if ( pcBitstream->getByteLocation() == (pcBitstream->getTileMarkerLocation( uiIdx )+2) )
-#else
-        if ((pcSlice->getSymbolMode()==0 && pcBitstream->getByteLocation() == pcBitstream->getTileMarkerLocation( uiIdx )) ||  // VLC
-            (pcSlice->getSymbolMode()==1 && pcBitstream->getByteLocation() == pcBitstream->getTileMarkerLocation( uiIdx )+2) ) // CABAC, 2 bytes consumed in CABAC->start()
-#endif
-        {
-          bTileMarkerFoundFlag = true;
-          break;
-        }
-      }
-#endif
 
       if (bTileMarkerFoundFlag)
       {
@@ -431,7 +394,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceDisable;
 #endif
-#if OL_USE_WPP
     if( iSymbolMode )
     {
 #if OL_FLUSH
@@ -466,7 +428,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
 #endif
 
     }
-#endif 
 #if TILES_LOW_LATENCY_CABAC_INI
     if ( (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr()==0) && (rpcPic->getPicSym()->getNumColumnsMinus1()!=0) )
     {

@@ -61,9 +61,7 @@ public:
   
   UChar getState  ()                { return ( m_ucState >> 1 ); }                    ///< get current state
   UChar getMps    ()                { return ( m_ucState  & 1 ); }                    ///< get curret MPS
-#if OL_USE_WPP
   Void  setStateAndMps( UChar ucState, UChar ucMPS) { m_ucState = (ucState << 1) + ucMPS; } ///< set state and MPS
-#endif
   
 #if G633_8BIT_INIT
   Void init ( Int qp, Int initValue );   ///< initialize state with initial probability

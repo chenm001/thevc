@@ -55,12 +55,10 @@ Void TEncEntropy::encodeSliceHeader ( TComSlice* pcSlice )
   return;
 }
 
-#if OL_USE_WPP
 Void TEncEntropy::encodeSliceHeaderSubstreamTable( TComSlice* pcSlice )
 {
   m_pcEntropyCoderIf->codeSliceHeaderSubstreamTable( pcSlice );
 }
-#endif
 
 Void TEncEntropy::encodeTerminatingBit      ( UInt uiIsLast )
 {

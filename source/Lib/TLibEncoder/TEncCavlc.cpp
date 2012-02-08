@@ -341,7 +341,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   WRITE_FLAG( pcPPS->getLongTermRefsPresent() ? 1 : 0,         "long_term_ref_pics_present_flag" );
 #endif
   // entropy_coding_mode_flag
-#if OL_USE_WPP
   // We code the entropy_coding_mode_flag, it's needed for tests.
   WRITE_FLAG( pcPPS->getEntropyCodingMode() ? 1 : 0,         "entropy_coding_mode_flag" );
   if (pcPPS->getEntropyCodingMode())
@@ -353,7 +352,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
       WRITE_UVLC( pcPPS->getNumSubstreams()-1,               "num_substreams_minus1" );
     }
   }
-#endif
   WRITE_UVLC( pcPPS->getNumTLayerSwitchingFlags(),           "num_temporal_layer_switching_point_flags" );
   for( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ ) 
   {
@@ -1015,8 +1013,6 @@ Void TEncCavlc::codeTileMarkerFlag(TComSlice* pcSlice)
 #endif
 #endif
 
-
-#if OL_USE_WPP
 /**
  - write wavefront substreams sizes for the slice header.
  .
@@ -1060,7 +1056,6 @@ Void TEncCavlc::codeSliceHeaderSubstreamTable( TComSlice* pcSlice )
     }
   }
 }
-#endif
 
 Void TEncCavlc::codeTerminatingBit      ( UInt uilsLast )
 {

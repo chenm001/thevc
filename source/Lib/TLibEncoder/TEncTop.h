@@ -89,10 +89,8 @@ private:
   TEncCavlc               m_cCavlcCoder;                  ///< CAVLC encoder
   TEncSbac                m_cSbacCoder;                   ///< SBAC encoder
   TEncBinCABAC            m_cBinCoderCABAC;               ///< bin coder CABAC
-#if OL_USE_WPP
   TEncSbac*               m_pcSbacCoders;                 ///< SBAC encoders (to encode substreams )
   TEncBinCABAC*           m_pcBinCoderCABACs;             ///< bin coders CABAC (one per substream)
-#endif
   
   // processing unit
   TEncGOP                 m_cGOPEncoder;                  ///< GOP encoder
@@ -118,7 +116,6 @@ private:
   TEncBinCABAC***         m_pppcBinCoderCABAC;            ///< temporal CABAC state storage for RD computation
   TEncBinCABAC            m_cRDGoOnBinCoderCABAC;         ///< going on bin coder CABAC for RD stage
 #endif
-#if OL_USE_WPP
   Int                     m_iNumSubstreams;                ///< # of top-level elements allocated.
   TComBitCounter*         m_pcBitCounters;                 ///< bit counters for RD optimization per substream
   TComRdCost*             m_pcRdCosts;                     ///< RD cost computation class per substream
@@ -126,7 +123,6 @@ private:
   TEncSbac*               m_pcRDGoOnSbacCoders;            ///< going on SBAC model for RD stage per substream
   TEncBinCABAC****        m_ppppcBinCodersCABAC;           ///< temporal CABAC state storage for RD computation per substream
   TEncBinCABAC*           m_pcRDGoOnBinCodersCABAC;        ///< going on bin coder CABAC for RD stage per substream
-#endif 
 
 #if QP_ADAPTATION
   // quality control
@@ -157,9 +153,7 @@ public:
   Void      init            ();
   Void      deletePicBuffer ();
 
-#if OL_USE_WPP
   Void      createWPPCoders(Int iNumSubstreams);
-#endif
   
   // -------------------------------------------------------------------------------------------------------------------
   // member access functions
@@ -179,21 +173,17 @@ public:
   TEncCavlc*              getCavlcCoder         () { return  &m_cCavlcCoder;          }
   TEncSbac*               getSbacCoder          () { return  &m_cSbacCoder;           }
   TEncBinCABAC*           getBinCABAC           () { return  &m_cBinCoderCABAC;       }
-#if OL_USE_WPP
   TEncSbac*               getSbacCoders     () { return  m_pcSbacCoders;      }
   TEncBinCABAC*           getBinCABACs          () { return  m_pcBinCoderCABACs;      }
-#endif
   
   TComBitCounter*         getBitCounter         () { return  &m_cBitCounter;          }
   TComRdCost*             getRdCost             () { return  &m_cRdCost;              }
   TEncSbac***             getRDSbacCoder        () { return  m_pppcRDSbacCoder;       }
   TEncSbac*               getRDGoOnSbacCoder    () { return  &m_cRDGoOnSbacCoder;     }
-#if OL_USE_WPP
   TComBitCounter*         getBitCounters        () { return  m_pcBitCounters;         }
   TComRdCost*             getRdCosts            () { return  m_pcRdCosts;             }
   TEncSbac****            getRDSbacCoders       () { return  m_ppppcRDSbacCoders;     }
   TEncSbac*               getRDGoOnSbacCoders   () { return  m_pcRDGoOnSbacCoders;   }
-#endif
   
   TComSPS*                getSPS                () { return  &m_cSPS;                 }
   TComPPS*                getPPS                () { return  &m_cPPS;                 }

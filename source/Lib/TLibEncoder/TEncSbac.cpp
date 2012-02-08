@@ -415,12 +415,10 @@ Void TEncSbac::codeSliceHeader( TComSlice* pcSlice )
   return;
 }
 
-#if OL_USE_WPP
 Void TEncSbac::codeSliceHeaderSubstreamTable( TComSlice* pcSlice )
 {
   assert (0);
 }
-#endif
 
 Void TEncSbac::codeTerminatingBit( UInt uilsLast )
 {
@@ -2483,7 +2481,6 @@ Void TEncSbac::estSignificantCoefficientsBit( estBitsSbacStruct* pcEstBitsSbac, 
 #endif
 }
 
-#if OL_USE_WPP
 /**
  - Initialize our context information from the nominated source.
  .
@@ -2498,6 +2495,4 @@ Void  TEncSbac::loadContexts ( TEncSbac* pScr)
 {
   this->xCopyContextsFrom(pScr);
 }
-
-#endif
 //! \}

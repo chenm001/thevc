@@ -71,7 +71,6 @@ TEncTop::TEncTop()
   ContextModel::buildNextStateTable();
 #endif
 
-#if OL_USE_WPP
   m_pcSbacCoders           = NULL;
   m_pcBinCoderCABACs       = NULL;
   m_ppppcRDSbacCoders      = NULL;
@@ -80,7 +79,6 @@ TEncTop::TEncTop()
   m_pcRDGoOnBinCodersCABAC = NULL;
   m_pcBitCounters          = NULL;
   m_pcRdCosts              = NULL;
-#endif
 }
 
 TEncTop::~TEncTop()
@@ -161,7 +159,6 @@ Void TEncTop::create ()
   }
 }
 
-#if OL_USE_WPP
 /**
  - Allocate coders required for wavefront for the nominated number of substreams.
  .
@@ -209,7 +206,6 @@ Void TEncTop::createWPPCoders(Int iNumSubstreams)
     }
   }
 }
-#endif
 
 Void TEncTop::destroy ()
 {
@@ -261,7 +257,6 @@ Void TEncTop::destroy ()
     delete [] m_pppcRDSbacCoder;
     delete [] m_pppcBinCoderCABAC;
 
-#if OL_USE_WPP
     for ( UInt ui = 0; ui < m_iNumSubstreams; ui++ )
     {
       for ( iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
@@ -283,16 +278,13 @@ Void TEncTop::destroy ()
     }
     delete[] m_ppppcRDSbacCoders;
     delete[] m_ppppcBinCodersCABAC;
-#endif
   }
-#if OL_USE_WPP
   delete[] m_pcSbacCoders;
   delete[] m_pcBinCoderCABACs;
   delete[] m_pcRDGoOnSbacCoders;  
   delete[] m_pcRDGoOnBinCodersCABAC;
   delete[] m_pcBitCounters;
   delete[] m_pcRdCosts;
-#endif
   
   // destroy ROM
   destroyROM();
@@ -797,7 +789,6 @@ Void TEncTop::xInitPPS()
   m_cPPS.setChromaQpOffset2nd( m_iChromaQpOffset2nd );
 #endif
 
-#if OL_USE_WPP
 #if DISABLE_CAVLC
   m_cPPS.setEntropyCodingMode( 1 ); // In the PPS now, but also remains in slice header!
 #else
@@ -806,7 +797,6 @@ Void TEncTop::xInitPPS()
   m_cPPS.setEntropyCodingSynchro(m_iWaveFrontSynchro);
   m_cPPS.setCabacIstateReset(m_iWaveFrontFlush != 0);
   m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams);
-#endif
   m_cPPS.setUseWP( m_bUseWeightPred );
   m_cPPS.setWPBiPredIdc( m_uiBiPredIdc );
 #if NO_TMVP_MARKING
@@ -943,12 +933,9 @@ Void  TEncTop::xInitPPSforTiles()
     m_cPPS.setLFCrossTileBoundaryFlag( m_bLFCrossTileBoundaryFlag );
 #endif
 
-#if OL_USE_WPP
     // # substreams is "per tile" when tiles are independent.
     if (m_iTileBoundaryIndependenceIdr && m_iWaveFrontSynchro)
       m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams * (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1));
-#endif
-
 }
 
 Void  TEncCfg::xCheckGSParameters()

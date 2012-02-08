@@ -74,10 +74,8 @@ private:
   TDecEntropy*          m_pcEntropyDecoder;
   TDecSbac*             m_pcSbacDecoder;
   TDecBinCABAC*         m_pcBinCABAC;
-#if OL_USE_WPP
   TDecSbac*             m_pcSbacDecoders; // independant CABAC decoders
   TDecBinCABAC*         m_pcBinCABACs;
-#endif
   TDecCavlc*            m_pcCavlcDecoder;
   TDecSlice*            m_pcSliceDecoder;
   TComLoopFilter*       m_pcLoopFilter;

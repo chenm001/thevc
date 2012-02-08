@@ -219,14 +219,11 @@
                                                     // this should be done with encoder only decision
                                                     // but because of the absence of reference frame management, the related code was hard coded currently
 
-#define OL_USE_WPP    1     // Set to 1 to enable Wavefront Parallel Processing, 0 otherwise
-#if OL_USE_WPP
 #define OL_FLUSH 1          // Set to 1 to enable Wavefront Flush.
 #define OL_FLUSH_ALIGN 0    // Align flush to byte boundary.  This preserves byte operations in CABAC (faster) but at the expense of an average
                             // of 4 bits per flush.
                             // Setting to 0 will slow cabac by an as yet unknown amount.
                             // This is here just to perform timing tests -- OL_FLUSH_ALIGN should be 0 for WPP.
-#endif
 
 #define RVM_VCEGAM10 1 // RVM model proposed in VCEG-AM10
 #if RVM_VCEGAM10

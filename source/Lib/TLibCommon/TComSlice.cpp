@@ -107,9 +107,7 @@ TComSlice::TComSlice()
 , m_iTileMarkerFlag               ( 0 )
 , m_uiTileOffstForMultES          ( 0 )
 #endif
-#if OL_USE_WPP
 , m_puiSubstreamSizes             ( NULL )
-#endif
 #if INC_CABACINITIDC_SLICETYPE
 , m_cabacInitIdc                 ( -1 )
 #endif
@@ -153,10 +151,8 @@ TComSlice::~TComSlice()
     m_uiTileByteLocation = NULL;
   }
 #endif
-#if OL_USE_WPP
   delete[] m_puiSubstreamSizes;
   m_puiSubstreamSizes = NULL;
-#endif
 }
 
 
@@ -199,7 +195,6 @@ Void TComSlice::initSlice()
 #endif
 }
 
-#if OL_USE_WPP
 /**
  - allocate table to contain substream sizes to be written to the slice header.
  .
@@ -210,7 +205,6 @@ Void  TComSlice::allocSubstreamSizes(UInt uiNumSubstreams)
   delete[] m_puiSubstreamSizes;
   m_puiSubstreamSizes = new UInt[uiNumSubstreams > 0 ? uiNumSubstreams-1 : 0];
 }
-#endif
 
 Void  TComSlice::sortPicList        (TComList<TComPic*>& rcListPic)
 {
@@ -1710,11 +1704,9 @@ TComPPS::TComPPS()
 , m_iNumRowsMinus1               (0)
 , m_puiRowHeight                 (NULL)
 #endif
-#if OL_USE_WPP
 ,  m_iEntropyCodingSynchro      (0)
 ,  m_bCabacIstateReset          (false)
 ,  m_iNumSubstreams             (1)
-#endif
 {
   for ( UInt i = 0; i < MAX_TLAYER; i++ )
   {

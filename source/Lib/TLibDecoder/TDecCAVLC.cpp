@@ -311,7 +311,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   READ_FLAG( uiCode, "long_term_ref_pics_present_flag" );          pcPPS->setLongTermRefsPresent(uiCode);
 #endif
   // entropy_coding_mode_flag
-#if OL_USE_WPP
   // We code the entropy_coding_mode_flag, it's needed for tests.
   READ_FLAG( uiCode, "entropy_coding_mode_flag" );                 pcPPS->setEntropyCodingMode( uiCode ? true : false );
   if (pcPPS->getEntropyCodingMode())
@@ -323,7 +322,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
       READ_UVLC( uiCode, "num_substreams_minus1" );                pcPPS->setNumSubstreams(uiCode+1);
     }
   }
-#endif
   READ_UVLC( uiCode, "num_temporal_layer_switching_point_flags" ); pcPPS->setNumTLayerSwitchingFlags( uiCode );
   for ( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ )
   {
@@ -1163,7 +1161,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   }
 #endif
 
-#if OL_USE_WPP
   if (rpcSlice->getPPS()->getEntropyCodingSynchro())
   {
     UInt uiNumSubstreams = rpcSlice->getPPS()->getNumSubstreams();
@@ -1196,7 +1193,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       puiSubstreamSizes[ui] = uiCode;
     }
   }
-#endif
 
 #if TILES_DECODER
   if (!bEntropySlice)
@@ -1252,7 +1248,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 }
 
 #if G220_PURE_VLC_SAO_ALF
-#if (TILES_DECODER || OL_USE_WPP)
 Void TDecCavlc::parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice)
 {
   Bool bEntropySlice = (!rpcSlice->isNextSlice());
@@ -1270,9 +1265,7 @@ Void TDecCavlc::parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice)
       rpcSlice->setTileMarkerFlag( uiCode );
     }
   }
-#endif
 
-#if OL_USE_WPP
   if (rpcSlice->getPPS()->getEntropyCodingSynchro())
   {
     UInt uiNumSubstreams = rpcSlice->getPPS()->getNumSubstreams();
@@ -1305,7 +1298,6 @@ Void TDecCavlc::parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice)
       puiSubstreamSizes[ui] = uiCode;
     }
   }
-#endif
 
 #if TILES_DECODER
   if (!bEntropySlice)

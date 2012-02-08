@@ -1049,20 +1049,10 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     &&((uiPosY+pcCU->getHeight(uiAbsPartIdx))%uiGranularityWidth==0||(uiPosY+pcCU->getHeight(uiAbsPartIdx)==uiHeight));
   if(granularityBoundary)
   {
-#if OL_USE_WPP
     // The 1-terminating bit is added to all streams, so don't add it here when it's 1.
     if (!bTerminateSlice)
       m_pcEntropyCoder->encodeTerminatingBit( bTerminateSlice ? 1 : 0 );
-#else
-    m_pcEntropyCoder->encodeTerminatingBit( bTerminateSlice ? 1 : 0 );
-#endif
   }
-#if !OL_USE_WPP
-  if ( bTerminateSlice )
-  {
-    m_pcEntropyCoder->encodeSliceFinish();
-  }
-#endif
   
   Int numberOfWrittenBits = 0;
   if (m_pcBitCounter)

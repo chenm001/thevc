@@ -60,10 +60,8 @@ TDecGop::TDecGop()
 {
   m_iGopSize = 0;
   m_dDecTime = 0;
-#if OL_USE_WPP
   m_pcSbacDecoders = NULL;
   m_pcBinCABACs = NULL;
-#endif
 }
 
 TDecGop::~TDecGop()
@@ -122,11 +120,9 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #endif
 {
   TComSlice*  pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
-#if OL_USE_WPP
   // Table of extracted substreams.
   // These must be deallocated AND their internal fifos, too.
   TComInputBitstream **ppcSubstreams = NULL;
-#endif
 
   //-- For time output for each slice
   long iBeforeTime = clock();
@@ -168,11 +164,8 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     }
 #endif
     
-#if OL_USE_WPP
     UInt uiNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
-#endif
 
-#if OL_USE_WPP
 #if !DISABLE_CAVLC
     if (iSymbolMode)
 #endif
@@ -233,10 +226,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       m_pcEntropyDecoder->resetEntropy      (pcSlice);
     }
 #endif
-#else
-    m_pcEntropyDecoder->setBitstream      (pcBitstream);
-    m_pcEntropyDecoder->resetEntropy      (pcSlice);
-#endif
 
     if(uiSliceStartCuAddr == uiStartCUAddr)
     {
@@ -260,29 +249,17 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
           if ( iSymbolMode )
 #endif
           {            
-#if OL_USE_WPP
             Int numBitsForByteAlignment = ppcSubstreams[0]->getNumBitsUntilByteAligned();
-#else            
-            Int numBitsForByteAlignment = pcBitstream->getNumBitsUntilByteAligned();
-#endif
             if ( numBitsForByteAlignment > 0 )
             {
               UInt bitsForByteAlignment;
-#if OL_USE_WPP
               ppcSubstreams[0]->read( numBitsForByteAlignment, bitsForByteAlignment );
-#else                
-              pcBitstream->read( numBitsForByteAlignment, bitsForByteAlignment );
-#endif
               assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
             }
             
             m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinCABAC );
             m_pcEntropyDecoder->setEntropyDecoder (m_pcSbacDecoder);
-#if OL_USE_WPP
             m_pcEntropyDecoder->setBitstream(ppcSubstreams[0]);
-#else            
-            m_pcEntropyDecoder->setBitstream(pcBitstream);
-#endif            
             m_pcEntropyDecoder->resetEntropy(pcSlice);
           }
 #endif
@@ -292,7 +269,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       }
     }
 
-#if OL_USE_WPP
 #if !DISABLE_CAVLC
     if (iSymbolMode)
 #endif
@@ -306,11 +282,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     {
       m_pcEntropyDecoder->setBitstream(  ppcSubstreams[uiNumSubstreams-1] );
     }
-#else
-    m_pcSliceDecoder->decompressSlice(pcBitstream, rpcPic, m_pcSbacDecoder);
-#endif
     
-#if OL_USE_WPP
 #if DISABLE_CAVLC
     if ( pcSlice->getPPS()->getEntropyCodingSynchro() )
 #else
@@ -327,7 +299,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       delete[] m_pcSbacDecoders; m_pcSbacDecoders = NULL;
       delete[] m_pcBinCABACs; m_pcBinCABACs = NULL;
     }
-#endif
     m_dDecTime += (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
   }
   else

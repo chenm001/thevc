@@ -149,9 +149,7 @@ public:
    */
   std::vector<uint8_t>& getFIFO() { return *m_fifo; }
 
-#if TILES_DECODER || OL_USE_WPP
   UChar getHeldBits  ()          { return m_held_bits;          }
-#endif
 
 #if TILES_DECODER
   TComOutputBitstream& operator= (const TComOutputBitstream& src);
@@ -166,9 +164,7 @@ public:
   const std::vector<uint8_t>& getFIFO() const { return *m_fifo; }
 #endif
 
-#if OL_USE_WPP
   Void          addSubstream    ( TComOutputBitstream* pcSubstream );
-#endif
 };
 
 /**
@@ -238,12 +234,10 @@ public:
   UInt     readByte() { UInt tmp; readByte( tmp ); return tmp; }
   unsigned getNumBitsUntilByteAligned() { return m_num_held_bits & (0x7); }
   unsigned getNumBitsLeft() { return 8*((unsigned)m_fifo->size() - m_fifo_idx) + m_num_held_bits; }
-#if OL_USE_WPP
   TComInputBitstream *extractSubstream( UInt uiNumBits ); // Read the nominated number of bits, and return as a bitstream.
   Void                deleteFifo(); // Delete internal fifo of bitstream.
 #if !OL_FLUSH_ALIGN
   Void                backupByte() { m_fifo_idx--; }
-#endif
 #endif
 };
 

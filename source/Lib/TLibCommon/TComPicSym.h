@@ -141,9 +141,7 @@ public:
   Int          getNumColumnsMinus1()                                 { return m_iNumColumnsMinus1; }  
   Void         setNumRowsMinus1( Int i )                             { m_iNumRowsMinus1 = i; }
   Int          getNumRowsMinus1()                                    { return m_iNumRowsMinus1; }
-#if OL_USE_WPP
   Int          getNumTiles()                                         { return (m_iNumRowsMinus1+1)*(m_iNumColumnsMinus1+1); }
-#endif
   TComTile*    getTComTile  ( UInt tileIdx )                         { return *(m_apcTComTile + tileIdx); }
   Void         setCUOrderMap( Int encCUOrder, Int cuAddr )           { *(m_puiCUOrderMap + encCUOrder) = cuAddr; }
   UInt         getCUOrderMap( Int encCUOrder )                       { return *(m_puiCUOrderMap + (encCUOrder>=m_uiNumCUsInFrame ? m_uiNumCUsInFrame : encCUOrder)); }

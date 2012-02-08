@@ -82,9 +82,7 @@ public:
 #endif
 #endif
 
-#if OL_USE_WPP
   virtual Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice )                             = 0;
-#endif
   virtual Void  codeTerminatingBit      ( UInt uilsLast )                                       = 0;
   virtual Void  codeSliceFinish         ()                                                      = 0;
 #if OL_FLUSH
@@ -190,9 +188,7 @@ public:
   Void    encodeTileMarkerFlag       (TComSlice* pcSlice) {m_pcEntropyCoderIf->codeTileMarkerFlag(pcSlice);}
 #endif
 #endif
-#if OL_USE_WPP
   Void    encodeSliceHeaderSubstreamTable( TComSlice* pcSlice );
-#endif
   Void    encodeTerminatingBit      ( UInt uiIsLast );
   Void    encodeSliceFinish         ();
 #if OL_FLUSH

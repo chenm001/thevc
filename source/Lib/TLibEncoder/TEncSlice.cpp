@@ -54,10 +54,8 @@ TEncSlice::TEncSlice()
   m_pdRdPicLambda = NULL;
   m_pdRdPicQp     = NULL;
   m_piRdPicQp     = NULL;
-#if OL_USE_WPP
   m_pcBufferSbacCoders    = NULL;
   m_pcBufferBinCoderCABACs  = NULL;
-#endif
 #if TILES_LOW_LATENCY_CABAC_INI
   m_pcBufferLowLatSbacCoders    = NULL;
   m_pcBufferLowLatBinCoderCABACs  = NULL;
@@ -108,7 +106,6 @@ Void TEncSlice::destroy()
   if ( m_pdRdPicQp     ) { xFree( m_pdRdPicQp     ); m_pdRdPicQp     = NULL; }
   if ( m_piRdPicQp     ) { xFree( m_piRdPicQp     ); m_piRdPicQp     = NULL; }
 
-#if OL_USE_WPP
   if ( m_pcBufferSbacCoders )
   {
     delete[] m_pcBufferSbacCoders;
@@ -117,7 +114,6 @@ Void TEncSlice::destroy()
   {
     delete[] m_pcBufferBinCoderCABACs;
   }
-#endif
 #if TILES_LOW_LATENCY_CABAC_INI
   if ( m_pcBufferLowLatSbacCoders )
     delete[] m_pcBufferLowLatSbacCoders;
@@ -803,7 +799,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   m_pcEntropyCoder->setAlfCtrl(false);
   m_pcEntropyCoder->setMaxAlfCtrlDepth(0); //unnecessary
   
-#if OL_USE_WPP
   TEncTop* pcEncTop = (TEncTop*) m_pcCfg;
   TEncSbac**** ppppcRDSbacCoders    = pcEncTop->getRDSbacCoders();
   TComBitCounter* pcBitCounters     = pcEncTop->getBitCounters();
@@ -860,7 +855,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   UInt uiTileStartLCU = 0;
   UInt uiTileLCUX     = 0;
 #endif
-#endif
 
   // for every CU in slice
 #if TILES
@@ -877,7 +871,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );
     pcCU->initCU( rpcPic, uiCUAddr );
 
-#if OL_USE_WPP
     // inherit from TR if necessary, select substream to use.
     if( m_pcCfg->getUseSBACRD() )
     {
@@ -965,7 +958,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
 #endif
       m_pppcRDSbacCoder[0][CI_CURR_BEST]->load( ppppcRDSbacCoders[uiSubStrm][0][CI_CURR_BEST] ); //this load is used to simplify the code
   }
-#endif // OL_USE_WPP
 
 #if TILES
     // reset the entropy coder
@@ -1035,11 +1027,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     {
       // set go-on entropy coder
       m_pcEntropyCoder->setEntropyCoder ( m_pcRDGoOnSbacCoder, pcSlice );
-#if OL_USE_WPP
       m_pcEntropyCoder->setBitstream( &pcBitCounters[uiSubStrm] );
-#else
-      m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-#endif
       
       ((TEncBinCABAC*)m_pcRDGoOnSbacCoder->getEncBinIf())->setBinCountingEnableFlag(true);
       // run CU encoder
@@ -1047,13 +1035,9 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       
       // restore entropy coder to an initial stage
       m_pcEntropyCoder->setEntropyCoder ( m_pppcRDSbacCoder[0][CI_CURR_BEST], pcSlice );
-#if OL_USE_WPP
       m_pcEntropyCoder->setBitstream( &pcBitCounters[uiSubStrm] );
       m_pcCuEncoder->setBitCounter( &pcBitCounters[uiSubStrm] );
       m_pcBitCounter = &pcBitCounters[uiSubStrm];
-#else
-      m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-#endif
       pppcRDSbacCoder->setBinCountingEnableFlag( true );
       m_pcBitCounter->resetBits();
       pppcRDSbacCoder->setBinsCoded( 0 );
@@ -1070,7 +1054,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         pcSlice->setNextEntropySlice( true );
         break;
       }
-#if OL_USE_WPP
       if( m_pcCfg->getUseSBACRD() )
       {
          ppppcRDSbacCoders[uiSubStrm][0][CI_CURR_BEST]->load( m_pppcRDSbacCoder[0][CI_CURR_BEST] );
@@ -1088,7 +1071,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         }
 #endif
       }
-#endif
 #if TILES_LOW_LATENCY_CABAC_INI
       if( (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr()==0) && (rpcPic->getPicSym()->getNumColumnsMinus1()!=0) )
       {
@@ -1132,14 +1114,10 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
  \param  rpcPic        picture class
  \retval rpcBitstream  bitstream class
  */
-#if OL_USE_WPP
 #if TILES_DECODER
 Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstream, TComOutputBitstream* pcSubstreams )
 #else
 Void TEncSlice::encodeSlice   ( TComPic*& rpcPic,                                   TComOutputBitstream* pcSubstreams )
-#endif
-#else
-Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstream )
 #endif
 {
   UInt       uiCUAddr;
@@ -1167,14 +1145,9 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
   }
 #endif
   
-#if OL_USE_WPP
   m_pcCuEncoder->setBitCounter( NULL );
   m_pcBitCounter = NULL;
   // Appropriate substream bitstream is switched later.
-#else
-  // set bitstream
-  m_pcEntropyCoder->setBitstream( pcBitstream );
-#endif
   // for every CU
 #if ENC_DEC_TRACE
   g_bJustDoIt = g_bEncDecTraceEnable;
@@ -1187,7 +1160,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
   g_bJustDoIt = g_bEncDecTraceDisable;
 #endif
 
-#if OL_USE_WPP
   TEncTop* pcEncTop = (TEncTop*) m_pcCfg;
   TEncSbac* pcSbacCoders = pcEncTop->getSbacCoders(); //coder for each substream
   Int iNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
@@ -1231,8 +1203,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
   UInt uiTileStartLCU = 0;
   UInt uiTileLCUX     = 0;
 #endif
-#endif
-
 
 #if TILES
   UInt uiEncCUOrder;
@@ -1246,7 +1216,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
   for(  uiCUAddr = uiStartCUAddr/rpcPic->getNumPartInCU(); uiCUAddr<(uiBoundingCUAddr+rpcPic->getNumPartInCU()-1)/rpcPic->getNumPartInCU(); uiCUAddr++  )
 #endif
   {
-#if OL_USE_WPP
     if( m_pcCfg->getUseSBACRD() )
     {
 #if TILES
@@ -1338,7 +1307,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
 #endif
       m_pcSbacCoder->load(&pcSbacCoders[uiSubStrm]);  //this load is used to simplify the code (avoid to change all the call to m_pcSbacCoder)
     }
-#endif
 #if TILES
     // reset the entropy coder
     if( uiCUAddr == rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(uiCUAddr))->getFirstCUAddr() &&                                   // must be first CU of tile
@@ -1367,7 +1335,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
       if (iSymbolMode)
 #endif
       {
-#if OL_USE_WPP
         // We're crossing into another tile, tiles are independent.
         // When tiles are independent, we have "substreams per tile".  Each substream has already been terminated, and we no longer
         // have to perform it here.
@@ -1381,11 +1348,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
           pcSubstreams[uiSubStrm].write( 1, 1 );
           pcSubstreams[uiSubStrm].writeAlignZero();
         }
-#else
-        m_pcEntropyCoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp() );
-        pcBitstream->write( 1, 1 );
-        pcBitstream->writeAlignZero();
-#endif
       }
 #if !DISABLE_CAVLC
       else
@@ -1397,7 +1359,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
       }
 #endif
 #if TILES_DECODER
-#if OL_USE_WPP
 #if !DISABLE_CAVLC
       if (iSymbolMode)
 #endif
@@ -1427,7 +1388,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
 #if !DISABLE_CAVLC
       else
 #endif
-#endif // OL_USE_WPP
 #if !DISABLE_CAVLC
       {
         if (m_pcCfg->getTileMarkerFlag() && bWriteTileMarker)
@@ -1507,7 +1467,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceDisable;
 #endif    
-#if OL_USE_WPP
     if( m_pcCfg->getUseSBACRD() )
     {
        pcSbacCoders[uiSubStrm].load(m_pcSbacCoder);   //load back status of the entropy coder after encoding the LCU into relevant bitstream entropy coder
@@ -1526,7 +1485,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
       }
 #endif
     }
-#endif
 #if TILES_LOW_LATENCY_CABAC_INI
     if( (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr()==0) && (rpcPic->getPicSym()->getNumColumnsMinus1()!=0) )
     {
