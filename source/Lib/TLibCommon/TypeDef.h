@@ -288,8 +288,6 @@
 #endif
 
 
-#define F745_DQP_BINARIZATION          1 //JCTVC-F745: DQP binarization
-
 #define EARLY_CU_DETERMINATION            1 //JCTVC-F092
 
 #define CBF_FAST_MODE                      1 //JCTVC-F045
