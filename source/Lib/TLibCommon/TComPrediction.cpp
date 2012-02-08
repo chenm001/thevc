@@ -731,24 +731,15 @@ Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel* rpDst, Int
   UInt shift2D = shift1D + 1;
 
   // Get left and above reference column and row
-#if PLANAR_F483
   for(k=0;k<blkSize+1;k++)
-#else
-  for(k=0;k<blkSize;k++)
-#endif
   {
     topRow[k] = pSrc[k-srcStride];
     leftColumn[k] = pSrc[k*srcStride-1];
   }
 
   // Prepare intermediate variables used in interpolation
-#if PLANAR_F483
   bottomLeft = leftColumn[blkSize];
   topRight   = topRow[blkSize];
-#else
-  bottomLeft = leftColumn[blkSize-1];
-  topRight   = topRow[blkSize-1];
-#endif
   for (k=0;k<blkSize;k++)
   {
     bottomRow[k]   = bottomLeft - topRow[k];

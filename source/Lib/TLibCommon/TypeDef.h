@@ -218,7 +218,6 @@
 
 #define NUM_INTRA_MODE 36
 #define LM_CHROMA_IDX  35
-#define PLANAR_F483 1 ///< Modify samples used for planar prediction as per JCTVC-F483
 
 #define IBDI_DISTORTION                0           ///< enable/disable SSE modification when IBDI is used (JCTVC-D152)
 #define FIXED_ROUNDING_FRAME_MEMORY    0           ///< enable/disable fixed rounding to 8-bitdepth of frame memory when IBDI is used  
