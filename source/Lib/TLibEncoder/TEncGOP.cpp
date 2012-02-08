@@ -65,7 +65,6 @@ TEncGOP::TEncGOP()
 #if !G1002_RPS
   m_iHrchDepth          = 0;
 #endif
-  m_iGopSize            = 0;
   m_iNumPicCoded        = 0; //Niko
   m_bFirst              = true;
   
@@ -138,8 +137,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
   m_iNumPicCoded = 0;
 
 #if G1002_RPS
-  
-  for ( Int iGOPid=0; iGOPid < m_iGopSize; iGOPid++ )
+  for ( Int iGOPid=0; iGOPid < 1; iGOPid++ )
 #else
   for ( Int iDepth = 0; iDepth < m_iHrchDepth; iDepth++ )
   {
@@ -165,9 +163,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if G1002_RPS
       //select uiColDir
       Int iCloseLeft=1, iCloseRight=-1;
-      for(Int i = 0; i<m_pcCfg->getGOPEntry(iGOPid).m_iNumRefPics; i++) 
+      for(Int i = 0; i<m_pcCfg->getGOPEntry(0).m_iNumRefPics; i++) 
       {
-        Int iRef = m_pcCfg->getGOPEntry(iGOPid).m_aiReferencePics[i];
+        Int iRef = m_pcCfg->getGOPEntry(0).m_aiReferencePics[i];
         if(iRef>0&&(iRef<iCloseRight||iCloseRight==-1))
         {
           iCloseRight=iRef;
@@ -179,23 +177,22 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       }
       if(iCloseRight>-1)
       {
-        iCloseRight=iCloseRight+m_pcCfg->getGOPEntry(iGOPid).m_iPOC-1;
+        iCloseRight=iCloseRight+m_pcCfg->getGOPEntry(0).m_iPOC-1;
       }
       if(iCloseLeft<1) 
       {
-        iCloseLeft=iCloseLeft+m_pcCfg->getGOPEntry(iGOPid).m_iPOC-1;
+        iCloseLeft=iCloseLeft+m_pcCfg->getGOPEntry(0).m_iPOC-1;
         while(iCloseLeft<0)
         {
-          iCloseLeft+=m_iGopSize;
+          iCloseLeft+=1;
         }
       }
       int iLeftQP=0, iRightQP=0;
-      for(Int i=0; i<m_iGopSize; i++)
       {
-        if(m_pcCfg->getGOPEntry(i).m_iPOC==(iCloseLeft%m_iGopSize)+1)
-          iLeftQP= m_pcCfg->getGOPEntry(i).m_iQPOffset;
-        if (m_pcCfg->getGOPEntry(i).m_iPOC==(iCloseRight%m_iGopSize)+1)
-          iRightQP=m_pcCfg->getGOPEntry(i).m_iQPOffset;
+        if(m_pcCfg->getGOPEntry(0).m_iPOC==1)
+          iLeftQP= m_pcCfg->getGOPEntry(0).m_iQPOffset;
+        if (m_pcCfg->getGOPEntry(0).m_iPOC==1)
+          iRightQP=m_pcCfg->getGOPEntry(0).m_iQPOffset;
       }
       if(iCloseRight>-1&&iRightQP<iLeftQP)
       {
@@ -203,8 +200,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       }
 
       /////////////////////////////////////////////////////////////////////////////////////////////////// Initial to start encoding
-      UInt uiPOCCurr = iPOCLast -iNumPicRcvd+ m_pcCfg->getGOPEntry(iGOPid).m_iPOC;
-      Int iTimeOffset = m_pcCfg->getGOPEntry(iGOPid).m_iPOC;
+      UInt uiPOCCurr = iPOCLast -iNumPicRcvd+ m_pcCfg->getGOPEntry(0).m_iPOC;
+      Int iTimeOffset = m_pcCfg->getGOPEntry(0).m_iPOC;
       if(uiPOCCurr>=m_pcCfg->getFrameToBeEncoded())
       {
         continue;
@@ -221,7 +218,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       }        
 #else
       // generalized B info.
-      if ( (m_pcCfg->getHierarchicalCoding() == false) && (iDepth != 0) && (iTimeOffset == m_iGopSize) && (iPOCLast != 0) )
+      if ( (m_pcCfg->getHierarchicalCoding() == false) && (iDepth != 0) && (iTimeOffset == 1) && (iPOCLast != 0) )
       {
         continue;
       }
@@ -274,7 +271,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       // TODO: We need a common sliding mechanism used by both the encoder and decoder
       // Below is a temporay solution to mark pictures that will be taken off the decoder's ref pic buffer (due to limit on the buffer size) as unused
       Int iMaxRefPicNum = m_pcCfg->getMaxRefPicNum();
-      pcSlice->decodingMarking( rcListPic, m_pcCfg->getGOPSize(), iMaxRefPicNum ); 
+      pcSlice->decodingMarking( rcListPic, iMaxRefPicNum ); 
       m_pcCfg->setMaxRefPicNum( iMaxRefPicNum );
 
 #else
@@ -724,35 +721,17 @@ Void TEncGOP::xInitGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcLis
 {
   assert( iNumPicRcvd > 0 );
 #if !G1002_RPS
-  Int i;
-  
   //  Set hierarchical B info.
-  m_iGopSize    = m_pcCfg->getGOPSize();
-  for( i=1 ; ; i++)
-  {
-    m_iHrchDepth = i;
-    if((m_iGopSize >> i)==0)
-    {
-      break;
-    }
-  }
-  
+    m_iHrchDepth = 1;
 #endif
   //  Exception for the first frame
   if ( iPOCLast == 0 )
   {
-    m_iGopSize    = 1;
 #if !G1002_RPS
     m_iHrchDepth  = 1;
 #endif
   }
-#if G1002_RPS
-  else
-    m_iGopSize    = m_pcCfg->getGOPSize();
-#endif
   
-  assert (m_iGopSize > 0); 
-
   return;
 }
 
@@ -988,7 +967,7 @@ Double TEncGOP::xCalculateRVM()
 {
   Double dRVM = 0;
   
-  if( m_pcCfg->getGOPSize() == 1 && m_pcCfg->getIntraPeriod() != 1 && m_pcCfg->getFrameToBeEncoded() > RVM_VCEGAM10_M * 2 )
+  if( m_pcCfg->getIntraPeriod() != 1 && m_pcCfg->getFrameToBeEncoded() > RVM_VCEGAM10_M * 2 )
   {
     // calculate RVM only for lowdelay configurations
     std::vector<Double> vRL , vB;

@@ -45,8 +45,6 @@ TDecTop::TDecTop()
 : m_SEIs(0)
 {
   m_pcPic = 0;
-  m_iGopSize      = 0;
-  m_bGopSizeSet   = false;
   m_iMaxRefPicNum = 0;
   m_uiValidPS = 0;
 #if ENC_DEC_TRACE
@@ -116,25 +114,12 @@ Void TDecTop::deletePicBuffer ( )
   destroyROM();
 }
 
-Void TDecTop::xUpdateGopSize (TComSlice* pcSlice)
-{
-  if ( !pcSlice->isIntra() && !m_bGopSizeSet)
-  {
-    m_iGopSize    = pcSlice->getPOC();
-    m_bGopSizeSet = true;
-    
-    m_cGopDecoder.setGopSize(m_iGopSize);
-  }
-}
-
 Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
 {
-  xUpdateGopSize(pcSlice);
-  
 #if G1002_RPS
   m_iMaxRefPicNum = pcSlice->getSPS()->getMaxNumberOfReferencePictures()+pcSlice->getSPS()->getNumReorderFrames() + 1; // +1 to have space for the picture currently being decoded
 #else
-  m_iMaxRefPicNum = max(m_iMaxRefPicNum, max(max(2, pcSlice->getNumRefIdx(REF_PIC_LIST_0)+1), m_iGopSize/2 + 2 + pcSlice->getNumRefIdx(REF_PIC_LIST_0)));
+  m_iMaxRefPicNum = max(m_iMaxRefPicNum, max(max(2, pcSlice->getNumRefIdx(REF_PIC_LIST_0)+1), 2 + pcSlice->getNumRefIdx(REF_PIC_LIST_0)));
   
 #endif
   if (m_cListPic.size() < (UInt)m_iMaxRefPicNum)

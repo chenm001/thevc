@@ -629,7 +629,7 @@ public:
   Void setTLayerSwitchingFlag( Bool bValue )               { m_bTLayerSwitchingFlag = bValue;        }
 
   Void setTLayerInfo( UInt uiTLayer );
-  Void decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, Int& iMaxRefPicNum ); 
+  Void decodingMarking( TComList<TComPic*>& rcListPic, Int& iMaxRefPicNum ); 
 #if G1002_RPS
   Void      applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pcRPSList);
   Int       checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool outputFlag);

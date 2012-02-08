@@ -1170,7 +1170,6 @@ Void TComSlice::createExplicitReferencePictureSetFromReference( TComList<TComPic
 #else
 /** Function for mimicking decoder's reference picture buffer management.
  * \param rcListPic List of picture buffers
- * \param iGOPSIze Current GOP size
  * \param iMaxRefPicNum Maximum number of reference pictures allowed
  * The encoder calls this function to mimic the picture buffer management of the decoder in the function xGetNewPicBuffer.
  * This will ensure in the encoder that the pictures that does not exist in the decoder will not be used as reference.
@@ -1178,7 +1177,7 @@ Void TComSlice::createExplicitReferencePictureSetFromReference( TComList<TComPic
  *       This needs to be changed for the general case including for the long-term ref pics.
  *       In the future, we should create a single common function for both the encoder and decoder.
  */
-Void TComSlice::decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, Int& iMaxRefPicNum )
+Void TComSlice::decodingMarking( TComList<TComPic*>& rcListPic, Int& iMaxRefPicNum )
 {
   Int iActualNumOfReference = 0;
 
@@ -1198,7 +1197,7 @@ Void TComSlice::decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, In
 
   // TODO: This assumes that the new pics are added at the end of the list
   // This needs to be changed for the general case including for the long-term ref pics
-  iMaxRefPicNum = max(iMaxRefPicNum, max(max(2, getNumRefIdx(REF_PIC_LIST_0)+1), iGOPSIze/2 + 2 + getNumRefIdx(REF_PIC_LIST_0)));
+  iMaxRefPicNum = max(iMaxRefPicNum, max(max(2, getNumRefIdx(REF_PIC_LIST_0)+1), 2 + getNumRefIdx(REF_PIC_LIST_0)));
   if ( iActualNumOfReference >= iMaxRefPicNum )
   {
     Int iNumToBeReset = iActualNumOfReference - iMaxRefPicNum + 1;
