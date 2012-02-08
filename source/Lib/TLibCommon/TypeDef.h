@@ -288,8 +288,6 @@
 #endif
 
 
-#define EARLY_CU_DETERMINATION            1 //JCTVC-F092
-
 #define CBF_FAST_MODE                      1 //JCTVC-F045
 
 #define G665_ALF_COEFF_PRED                1 // JCTVC-G665

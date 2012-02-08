@@ -351,9 +351,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #endif
 
   ("FEN", m_bUseFastEnc, false, "fast encoder setting")
-#if EARLY_CU_DETERMINATION
   ("ECU", m_bUseEarlyCU, false, "Early CU setting") 
-#endif
 #if CBF_FAST_MODE
   ("CFM", m_bUseCbfFastMode, false, "Cbf fast mode setting")
 #endif
@@ -1004,9 +1002,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("LComb:%d ", m_bUseLComb         );
   printf("LCMod:%d ", m_bLCMod         );
   printf("FEN:%d ", m_bUseFastEnc         );
-#if EARLY_CU_DETERMINATION
   printf("ECU:%d ", m_bUseEarlyCU         );
-#endif
 #if CBF_FAST_MODE
   printf("CFM:%d ", m_bUseCbfFastMode         );
 #endif
@@ -1117,9 +1113,7 @@ Void TAppEncCfg::xPrintUsage()
   printf( "                   PAD - automatic source padding of multiple of 16\n");
   printf( "                   ASR - adaptive motion search range\n");
   printf( "                   FEN - fast encoder setting\n");  
-#if EARLY_CU_DETERMINATION
   printf( "                   ECU - Early CU setting\n");
-#endif
 #if CBF_FAST_MODE
   printf( "                   CFM - Cbf fast mode setting\n");
 #endif

@@ -223,9 +223,7 @@ protected:
   Bool      m_bUseBQP;
 #endif
   Bool      m_bUseFastEnc;
-#if EARLY_CU_DETERMINATION
   Bool      m_bUseEarlyCU;
-#endif
 #if CBF_FAST_MODE
   Bool      m_bUseCbfFastMode;
 #endif
@@ -507,9 +505,7 @@ public:
   Void      setUseBQP                       ( Bool  b )     { m_bUseBQP     = b; }
 #endif
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
-#if EARLY_CU_DETERMINATION
   Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
-#endif
 #if CBF_FAST_MODE
   Void      setUseCbfFastMode            ( Bool  b )     { m_bUseCbfFastMode = b; }
 #endif
@@ -551,9 +547,7 @@ public:
   Bool      getUseBQP                       ()      { return m_bUseBQP;     }
 #endif
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
-#if EARLY_CU_DETERMINATION
   Bool      getUseEarlyCU                   ()      { return m_bUseEarlyCU; }
-#endif
 #if CBF_FAST_MODE
   Bool      getUseCbfFastMode           ()      { return m_bUseCbfFastMode; }
 #endif

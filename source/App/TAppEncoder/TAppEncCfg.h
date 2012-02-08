@@ -195,9 +195,7 @@ protected:
   Int       m_iSearchRange;                                   ///< ME search range
   Int       m_bipredSearchRange;                              ///< ME search range for bipred refinement
   Bool      m_bUseFastEnc;                                    ///< flag for using fast encoder setting
-#if EARLY_CU_DETERMINATION
   Bool      m_bUseEarlyCU;                                    ///< flag for using Early CU setting
-#endif  
 #if CBF_FAST_MODE
   Bool      m_bUseCbfFastMode;                              ///< flag for using Cbf Fast PU Mode Decision
 #endif  

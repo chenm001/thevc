@@ -400,9 +400,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   Double  fRD_Skip    = MAX_DOUBLE;
 
   // variable for Early CU determination
-#if EARLY_CU_DETERMINATION
   Bool    bSubBranch = true;
-#endif
 
   // variable for Cbf fast mode PU decision
 #if CBF_FAST_MODE
@@ -780,7 +778,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
     }
 
     // Early CU determination
-#if EARLY_CU_DETERMINATION
     if( m_pcEncCfg->getUseEarlyCU() && ((*rpcBestCU->getPredictionMode()) == 0) )
     {
       bSubBranch = false;
@@ -789,7 +786,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
     {
       bSubBranch = true;
     }
-#endif
   }
   else if(!(bSliceEnd && bInsidePicture))
   {
@@ -828,11 +824,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
     rpcTempCU->initEstData( uiDepth, iQP );
 
     // further split
-#if EARLY_CU_DETERMINATION
     if( bSubBranch && bTrySplitDQP && uiDepth < g_uiMaxCUDepth - g_uiAddCUDepth )
-#else
-    if( bTrySplitDQP && uiDepth < g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
     {
       UChar       uhNextDepth         = uiDepth+1;
       TComDataCU* pcSubBestPartCU     = m_ppcBestCU[uhNextDepth];
