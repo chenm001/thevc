@@ -96,9 +96,7 @@ private:
 #endif
   UInt        m_uiPCMLog2MinSize;
   Bool        m_bDisInter4x4;
-#if AMP
   Bool        m_useAMP;
-#endif
   Bool        m_bUseALF;
 #if !G507_QP_ISSUE_FIX
   Bool        m_bUseDQP;
@@ -208,10 +206,8 @@ public:
 #endif
   Bool getDisInter4x4()         { return m_bDisInter4x4;        }
   Void setDisInter4x4      ( Bool b ) { m_bDisInter4x4  = b;          }
-#if AMP
   Bool getUseAMP() { return m_useAMP; }
   Void setUseAMP( Bool b ) { m_useAMP = b; }
-#endif
   Void setMinTrDepth  ( UInt u ) { m_uiMinTrDepth = u;      }
   UInt getMinTrDepth  ()         { return  m_uiMinTrDepth;  }
   Void setMaxTrDepth  ( UInt u ) { m_uiMaxTrDepth = u;      }
@@ -280,11 +276,9 @@ public:
   AMVP_MODE getAMVPMode ( UInt uiDepth ) { assert(uiDepth < g_uiMaxCUDepth);  return m_aeAMVPMode[uiDepth]; }
   Void      setAMVPMode ( UInt uiDepth, AMVP_MODE eMode) { assert(uiDepth < g_uiMaxCUDepth);  m_aeAMVPMode[uiDepth] = eMode; }
   
-#if AMP
   // AMP accuracy
   Int       getAMPAcc   ( UInt uiDepth ) { return m_iAMPAcc[uiDepth]; }
   Void      setAMPAcc   ( UInt uiDepth, Int iAccu ) { assert( uiDepth < g_uiMaxCUDepth);  m_iAMPAcc[uiDepth] = iAccu; }
-#endif  
 
   // Bit-depth
   UInt      getBitDepth     ()         { return m_uiBitDepth;     }

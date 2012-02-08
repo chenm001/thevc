@@ -107,9 +107,7 @@ Void TAppEncTop::xInitLibCfg()
 #if NSQT
   m_cTEncTop.setUseNSQT( m_enableNSQT );
 #endif
-#if AMP
   m_cTEncTop.setUseAMP( m_enableAMP );
-#endif
   
   //===== Slice ========
 #if !G1002_RPS

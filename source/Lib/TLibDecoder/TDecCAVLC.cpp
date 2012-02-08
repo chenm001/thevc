@@ -684,10 +684,8 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_FLAG( uiCode, "enable_nsqt" );
   pcSPS->setUseNSQT( uiCode );
 #endif
-#if AMP
   READ_FLAG( uiCode, "enable_amp" );
   pcSPS->setUseAMP( uiCode );
-#endif
   return;
 }
 
@@ -1384,11 +1382,7 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
   
   ::memcpy(m_uiIntraModeTableD17, g_auiIntraModeTableD17, 17*sizeof(UInt));
   ::memcpy(m_uiIntraModeTableD34, g_auiIntraModeTableD34, 34*sizeof(UInt));
-#if AMP
   ::memcpy(m_uiSplitTableD, g_auiInterModeTableD, 4*11*sizeof(UInt));
-#else
-  ::memcpy(m_uiSplitTableD, g_auiInterModeTableD, 4*7*sizeof(UInt));
-#endif
   m_uiMITableVlcIdx = 0;
 
   ::memset(m_ucCBP_YUV_TableCounter, 0, 4*4*sizeof(UChar));
@@ -1478,11 +1472,7 @@ Void TDecCavlc::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt u
   UInt cx=0;
   UInt uiMode ;
   {
-#if AMP
     UInt iMaxLen= (uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth)? 9:10;
-#else
-    UInt iMaxLen= (uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth)? 5:6;
-#endif
 
     while (tmp==0 && cx<iMaxLen)
     {
@@ -2101,22 +2091,14 @@ Void TDecCavlc::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, U
   Int iHor, iVer;
   
   TComMv cTmpMv( 0, 0 );
-#if AMP
   pcCU->getCUMvField( eRefList )->setAllMv( cTmpMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiDepth, uiPartIdx );
-#else
-  pcCU->getCUMvField( eRefList )->setAllMv( cTmpMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiDepth );
-#endif  
   
   xReadSvlc( iHor );
   xReadSvlc( iVer );
   
   // set mvd
   TComMv cMv( iHor, iVer );
-#if AMP
   pcCU->getCUMvField( eRefList )->setAllMvd( cMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiDepth, uiPartIdx );
-#else
-  pcCU->getCUMvField( eRefList )->setAllMvd( cMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiDepth );
-#endif  
   
   return;
 }

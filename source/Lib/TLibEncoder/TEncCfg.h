@@ -140,9 +140,7 @@ protected:
   Bool      m_bTLayering;                        ///< indicates whether temporal IDs are set based on the hierarchical coding structure
   Bool      m_abTLayerSwitchingFlag[MAX_TLAYER]; ///< temporal layer switching flags corresponding to temporal layer
   Bool      m_bDisInter4x4;
-#if AMP
   Bool m_useAMP;
-#endif
   //======= Transform =============
   UInt      m_uiQuadtreeTULog2MaxSize;
   UInt      m_uiQuadtreeTULog2MinSize;
@@ -375,9 +373,7 @@ public:
 #if NSQT
   Void setUseNSQT( Bool b ) { m_useNSQT = b; }
 #endif
-#if AMP
   Void setUseAMP( Bool b ) { m_useAMP = b; }
-#endif
   
   //====== b; Slice ========
 #if !G1002_RPS

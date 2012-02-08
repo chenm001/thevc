@@ -571,7 +571,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
           }
         }
 
-#if AMP
+#if 1
         //! Try AMP (SIZE_2NxnU, SIZE_2NxnD, SIZE_nLx2N, SIZE_nRx2N)
         if( pcPic->getSlice(0)->getSPS()->getAMPAcc(uiDepth) )
         {

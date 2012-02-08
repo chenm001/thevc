@@ -2382,13 +2382,8 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
       
       PartSize ePartSize = pcCU->getPartitionSize( 0 );
 
-#if AMP
       pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvField( cMvFieldNeighbours[0 + 2*uiMergeCand], ePartSize, uiAbsPartIdx, 0, iPUIdx );
       pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvField( cMvFieldNeighbours[1 + 2*uiMergeCand], ePartSize, uiAbsPartIdx, 0, iPUIdx );
-#else
-      pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvField( cMvFieldNeighbours[0 + 2*uiMergeCand], ePartSize, uiAbsPartIdx, 0 );
-      pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvField( cMvFieldNeighbours[1 + 2*uiMergeCand], ePartSize, uiAbsPartIdx, 0 );
-#endif
 
       xGetInterPredictionError( pcCU, pcYuvOrg, iPUIdx, uiCostCand, m_pcEncCfg->getUseHADME() );
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
@@ -2684,13 +2679,8 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
             // set motion
             cMv[iRefList]     = cMvTemp[iRefList][iRefIdxTemp];
             iRefIdx[iRefList] = iRefIdxTemp;
-#if AMP
             pcCU->getCUMvField(eRefPicList)->setAllMv( cMv[iRefList], ePartSize, uiPartAddr, 0, iPartIdx );
             pcCU->getCUMvField(eRefPicList)->setAllRefIdx( iRefIdx[iRefList], ePartSize, uiPartAddr, 0, iPartIdx );
-#else
-            pcCU->getCUMvField(eRefPicList)->setAllMv( cMv[iRefList], ePartSize, uiPartAddr, 0 );
-            pcCU->getCUMvField(eRefPicList)->setAllRefIdx( iRefIdx[iRefList], ePartSize, uiPartAddr, 0 );
-#endif            
 
             // storing list 1 prediction signal for iterative bi-directional prediction
             if ( eRefPicList == REF_PIC_LIST_1 )
@@ -2793,13 +2783,8 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
             uiBits[2]           = uiBitsTemp;
             
             //  Set motion
-#if AMP
               pcCU->getCUMvField( eRefPicList )->setAllMv( cMvBi[iRefList], ePartSize, uiPartAddr, 0, iPartIdx );
               pcCU->getCUMvField( eRefPicList )->setAllRefIdx( iRefIdxBi[iRefList], ePartSize, uiPartAddr, 0, iPartIdx );
-#else
-              pcCU->getCUMvField( eRefPicList )->setAllMv( cMvBi[iRefList], ePartSize, uiPartAddr, 0 );
-              pcCU->getCUMvField( eRefPicList )->setAllRefIdx( iRefIdxBi[iRefList], ePartSize, uiPartAddr, 0 );
-#endif            
 
             TComYuv* pcYuvPred = &m_acYuvPred[iRefList];
             motionCompensation( pcCU, pcYuvPred, eRefPicList, iPartIdx );
@@ -2875,17 +2860,10 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     } //end if bTestNormalMC
 #endif
     //  Clear Motion Field
-#if AMP
     pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvField( TComMvField(), ePartSize, uiPartAddr, 0, iPartIdx );
     pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvField( TComMvField(), ePartSize, uiPartAddr, 0, iPartIdx );
     pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvd    ( cMvZero,       ePartSize, uiPartAddr, 0, iPartIdx );
     pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvd    ( cMvZero,       ePartSize, uiPartAddr, 0, iPartIdx );
-#else
-    pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvField( TComMvField(), ePartSize, uiPartAddr, 0 );
-    pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvField( TComMvField(), ePartSize, uiPartAddr, 0 );
-    pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvd    ( cMvZero,       ePartSize, uiPartAddr, 0 );
-    pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvd    ( cMvZero,       ePartSize, uiPartAddr, 0 );
-#endif    
 
     pcCU->setMVPIdxSubParts( -1, REF_PIC_LIST_0, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
     pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_0, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
@@ -2955,33 +2933,18 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     {
       uiLastMode = 2;
       {
-#if AMP
             pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMv( cMvBi[0], ePartSize, uiPartAddr, 0, iPartIdx );
             pcCU->getCUMvField(REF_PIC_LIST_0)->setAllRefIdx( iRefIdxBi[0], ePartSize, uiPartAddr, 0, iPartIdx );
             pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMv( cMvBi[1], ePartSize, uiPartAddr, 0, iPartIdx );
             pcCU->getCUMvField(REF_PIC_LIST_1)->setAllRefIdx( iRefIdxBi[1], ePartSize, uiPartAddr, 0, iPartIdx );
-#else
-            pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMv( cMvBi[0], ePartSize, uiPartAddr, 0 );
-            pcCU->getCUMvField(REF_PIC_LIST_0)->setAllRefIdx( iRefIdxBi[0], ePartSize, uiPartAddr, 0 );
-            pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMv( cMvBi[1], ePartSize, uiPartAddr, 0 );
-            pcCU->getCUMvField(REF_PIC_LIST_1)->setAllRefIdx( iRefIdxBi[1], ePartSize, uiPartAddr, 0 );
-#endif
       }
       {
         TempMv = cMvBi[0] - cMvPredBi[0][iRefIdxBi[0]];
-#if AMP
             pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvd    ( TempMv,                 ePartSize, uiPartAddr, 0, iPartIdx );
-#else
-            pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvd    ( TempMv,                 ePartSize, uiPartAddr, 0 );
-#endif
       }
       {
         TempMv = cMvBi[1] - cMvPredBi[1][iRefIdxBi[1]];
-#if AMP
             pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvd    ( TempMv,                 ePartSize, uiPartAddr, 0, iPartIdx );
-#else
-            pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvd    ( TempMv,                 ePartSize, uiPartAddr, 0 );
-#endif
       }
       
       pcCU->setInterDirSubParts( 3, uiPartAddr, iPartIdx, pcCU->getDepth(0) );
@@ -2996,20 +2959,11 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     else if ( uiCost[0] <= uiCost[1] )
     {
       uiLastMode = 0;
-#if AMP
           pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMv( cMv[0], ePartSize, uiPartAddr, 0, iPartIdx );
           pcCU->getCUMvField(REF_PIC_LIST_0)->setAllRefIdx( iRefIdx[0], ePartSize, uiPartAddr, 0, iPartIdx );
-#else
-          pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMv( cMv[0], ePartSize, uiPartAddr, 0 );
-          pcCU->getCUMvField(REF_PIC_LIST_0)->setAllRefIdx( iRefIdx[0], ePartSize, uiPartAddr, 0 );
-#endif      
       {
         TempMv = cMv[0] - cMvPred[0][iRefIdx[0]];
-#if AMP
             pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvd    ( TempMv,                 ePartSize, uiPartAddr, 0, iPartIdx );
-#else
-            pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvd    ( TempMv,                 ePartSize, uiPartAddr, 0 );
-#endif
       }
       pcCU->setInterDirSubParts( 1, uiPartAddr, iPartIdx, pcCU->getDepth(0) );
       
@@ -3021,20 +2975,11 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     else
     {
       uiLastMode = 1;
-#if AMP
           pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMv( cMv[1], ePartSize, uiPartAddr, 0, iPartIdx );
           pcCU->getCUMvField(REF_PIC_LIST_1)->setAllRefIdx( iRefIdx[1], ePartSize, uiPartAddr, 0, iPartIdx );
-#else
-          pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMv( cMv[1], ePartSize, uiPartAddr, 0 );
-          pcCU->getCUMvField(REF_PIC_LIST_1)->setAllRefIdx( iRefIdx[1], ePartSize, uiPartAddr, 0 );
-#endif      
       {
         TempMv = cMv[1] - cMvPred[1][iRefIdx[1]];
-#if AMP
             pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvd    ( TempMv,                 ePartSize, uiPartAddr, 0, iPartIdx );
-#else
-            pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvd    ( TempMv,                 ePartSize, uiPartAddr, 0 );
-#endif
       }
       pcCU->setInterDirSubParts( 2, uiPartAddr, iPartIdx, pcCU->getDepth(0) );
       
@@ -3096,22 +3041,12 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
         pcCU->setMergeIndexSubParts( uiMRGIndex,    uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
         pcCU->setInterDirSubParts  ( uiMRGInterDir, uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
         {
-#if AMP
           pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMRGMvField[0], ePartSize, uiPartAddr, 0, iPartIdx );
           pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMRGMvField[1], ePartSize, uiPartAddr, 0, iPartIdx );
-#else
-          pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMRGMvField[0], ePartSize, uiPartAddr, 0 );
-          pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMRGMvField[1], ePartSize, uiPartAddr, 0 );
-#endif
         }
 
-#if AMP
         pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvd    ( cMvZero,            ePartSize, uiPartAddr, 0, iPartIdx );
         pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvd    ( cMvZero,            ePartSize, uiPartAddr, 0, iPartIdx );
-#else
-        pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvd    ( cMvZero,            ePartSize, uiPartAddr, 0 );
-        pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvd    ( cMvZero,            ePartSize, uiPartAddr, 0 );
-#endif
 
         pcCU->setMVPIdxSubParts( -1, REF_PIC_LIST_0, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
         pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_0, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
@@ -3124,13 +3059,8 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
         pcCU->setMergeFlagSubParts( false,        uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
         pcCU->setInterDirSubParts ( uiMEInterDir, uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
         {
-#if AMP
           pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMEMvField[0], ePartSize, uiPartAddr, 0, iPartIdx );
           pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMEMvField[1], ePartSize, uiPartAddr, 0, iPartIdx );
-#else
-          pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMEMvField[0], ePartSize, uiPartAddr, 0 );
-          pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMEMvField[1], ePartSize, uiPartAddr, 0 );
-#endif
         }
       }
     }
@@ -3260,7 +3190,6 @@ Void TEncSearch::xGetBlkBits( PartSize eCUMode, Bool bPSlice, Int iPartIdx, UInt
     uiBlkBit[1] = 3;
     uiBlkBit[2] = 5;
   }
-#if AMP
   else if ( (eCUMode == SIZE_2NxN || eCUMode == SIZE_2NxnU) || eCUMode == SIZE_2NxnD )
   {
     UInt aauiMbBits[2][3][3] = { { {0,0,3}, {0,0,0}, {0,0,0} } , { {5,7,7}, {7,5,7}, {9-3,9-3,9-3} } };
@@ -3289,36 +3218,6 @@ Void TEncSearch::xGetBlkBits( PartSize eCUMode, Bool bPSlice, Int iPartIdx, UInt
       ::memcpy( uiBlkBit, aauiMbBits[iPartIdx][uiLastMode], 3*sizeof(UInt) );
     }
   }
-#else
-  else if ( eCUMode == SIZE_2NxN )
-  {
-    UInt aauiMbBits[2][3][3] = { { {0,0,3}, {0,0,0}, {0,0,0} } , { {5,7,7}, {7,5,7}, {9-3,9-3,9-3} } };
-    if ( bPSlice )
-    {
-      uiBlkBit[0] = 3;
-      uiBlkBit[1] = 0;
-      uiBlkBit[2] = 0;
-    }
-    else
-    {
-      ::memcpy( uiBlkBit, aauiMbBits[iPartIdx][uiLastMode], 3*sizeof(UInt) );
-    }
-  }
-  else if ( eCUMode == SIZE_Nx2N )
-  {
-    UInt aauiMbBits[2][3][3] = { { {0,2,3}, {0,0,0}, {0,0,0} } , { {5,7,7}, {7-2,7-2,9-2}, {9-3,9-3,9-3} } };
-    if ( bPSlice )
-    {
-      uiBlkBit[0] = 3;
-      uiBlkBit[1] = 0;
-      uiBlkBit[2] = 0;
-    }
-    else
-    {
-      ::memcpy( uiBlkBit, aauiMbBits[iPartIdx][uiLastMode], 3*sizeof(UInt) );
-    }
-  }
-#endif
   else if ( eCUMode == SIZE_NxN )
   {
     uiBlkBit[0] = (! bPSlice) ? 3 : 1;
@@ -4258,13 +4157,8 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
       else
       {
         bNonSquareFlag = true;
-#if AMP
         uiTrWidth  = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N ) ? 1 << ( uiLog2TrSize - 1 ) : 1 << ( uiLog2TrSize + 1 );
         uiTrHeight = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N ) ? 1 << ( uiLog2TrSize + 1 ) : 1 << ( uiLog2TrSize - 1 );
-#else
-        uiTrWidth  = ( ePartSize == SIZE_Nx2N ) ? 1 << ( uiLog2TrSize - 1 ) : 1 << ( uiLog2TrSize + 1 );
-        uiTrHeight = ( ePartSize == SIZE_Nx2N ) ? 1 << ( uiLog2TrSize + 1 ) : 1 << ( uiLog2TrSize - 1 );
-#endif
       }
       if( bNonSquareFlag )
       {
@@ -4282,13 +4176,8 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
       else
       {
         bNonSquareFlagChroma = true;
-#if AMP
         uiTrWidthC  = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N ) ? 1 << ( uiLog2TrSizeC - 1 ) : 1 << ( uiLog2TrSizeC + 1 );
         uiTrHeightC = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N ) ? 1 << ( uiLog2TrSizeC + 1 ) : 1 << ( uiLog2TrSizeC - 1 );
-#else
-        uiTrWidthC  = ( ePartSize == SIZE_Nx2N ) ? 1 << ( uiLog2TrSizeC - 1 ) : 1 << ( uiLog2TrSizeC + 1 );
-        uiTrHeightC = ( ePartSize == SIZE_Nx2N ) ? 1 << ( uiLog2TrSizeC + 1 ) : 1 << ( uiLog2TrSizeC - 1 );
-#endif
       }
 
       if( bNonSquareFlagChroma )
@@ -5217,13 +5106,8 @@ Void TEncSearch::xSetResidualQTData( TComDataCU* pcCU, UInt uiAbsPartIdx, TComYu
         else
         {
           bNonSquareFlag = true;
-#if AMP
           uiTrWidth  = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N ) ? 1 << ( uiLog2TrSize - 1 ) : 1 << ( uiLog2TrSize + 1 );
           uiTrHeight = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N ) ? 1 << ( uiLog2TrSize + 1 ) : 1 << ( uiLog2TrSize - 1 );
-#else
-          uiTrWidth  = ( ePartSize == SIZE_Nx2N ) ? 1 << ( uiLog2TrSize - 1 ) : 1 << ( uiLog2TrSize + 1 );
-          uiTrHeight = ( ePartSize == SIZE_Nx2N ) ? 1 << ( uiLog2TrSize + 1 ) : 1 << ( uiLog2TrSize - 1 );
-#endif
         }
 
         if( bNonSquareFlag )
@@ -5252,13 +5136,8 @@ Void TEncSearch::xSetResidualQTData( TComDataCU* pcCU, UInt uiAbsPartIdx, TComYu
           else
           {
             bNonSquareFlagChroma = 1;
-#if AMP
             uiTrWidthC  = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N ) ? 1 << ( uiLog2TrSizeC - 1 ): 1 << ( uiLog2TrSizeC + 1 );
             uiTrHeightC = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N ) ? 1 << ( uiLog2TrSizeC + 1 ): 1 << ( uiLog2TrSizeC - 1 );
-#else
-            uiTrWidthC  = ( ePartSize == SIZE_Nx2N ) ? 1 << ( uiLog2TrSizeC - 1 ): 1 << ( uiLog2TrSizeC + 1 );
-            uiTrHeightC = ( ePartSize == SIZE_Nx2N ) ? 1 << ( uiLog2TrSizeC + 1 ): 1 << ( uiLog2TrSizeC - 1 );
-#endif
           }
 
           if( bNonSquareFlagChroma )

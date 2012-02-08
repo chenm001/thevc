@@ -102,13 +102,8 @@ protected:
   UInt          m_uiMI2TableD[15];
   
   UInt          m_uiMITableVlcIdx;
-#if AMP
   UInt          m_uiSplitTableE[4][11];
   UInt          m_uiSplitTableD[4][11];
-#else
-  UInt          m_uiSplitTableE[4][7];
-  UInt          m_uiSplitTableD[4][7];
-#endif
 
   UChar         m_ucCBP_YUV_TableCounter[4][4];
   UChar         m_ucCBP_4Y_TableCounter[2][2];

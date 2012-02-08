@@ -369,12 +369,8 @@ Void TComLoopFilter::xSetEdgefilterTU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UI
 #if NSQT
     const UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> ( uiDepth + 1 ) ] + 2;
     if( !pcCU->isIntra( uiAbsZorderIdx ) && pcCU->getTransformIdx( uiAbsZorderIdx ) && uiLog2TrSize < pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() && pcCU->getWidth( uiAbsZorderIdx ) > 8 && pcCU->getSlice()->getSPS()->getUseNSQT() &&
-#if AMP
       ( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_2NxN || 
       ( pcCU->getPartitionSize( uiAbsZorderIdx ) >= SIZE_2NxnU && pcCU->getPartitionSize( uiAbsZorderIdx ) <= SIZE_nRx2N ) ) )
-#else
-      ( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N ||pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_2NxN ) )
-#endif
     {
       TComPic* const pcPic = pcCU->getPic();
       const UInt uiLCUWidthInBaseUnits = pcPic->getNumPartInWidth();
@@ -383,11 +379,7 @@ Void TComLoopFilter::xSetEdgefilterTU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UI
         ( 1 << uiLog2TrSize ) == ( pcCU->getSlice()->getSPS()->getMaxTrSize() >> 1 ) ) 
       {
         const UInt iBaseUnitIdx = uiLCUWidthInBaseUnits >> ( uiDepth + 2 );
-#if AMP
         UInt offset = ( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nLx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nRx2N ) ? iBaseUnitIdx : iBaseUnitIdx * uiLCUWidthInBaseUnits;
-#else
-        UInt offset = ( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N ) ? iBaseUnitIdx : iBaseUnitIdx * uiLCUWidthInBaseUnits;
-#endif
         for ( UInt uiPartIdx = 0; uiPartIdx < 4; uiPartIdx++, uiAbsZorderIdx += uiQNumParts )
         {
           xSetEdgefilterTU( pcCU, uiRasterIdx+uiPartIdx * offset, uiAbsZorderIdx, uiDepth+1 );
@@ -399,13 +391,8 @@ Void TComLoopFilter::xSetEdgefilterTU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UI
         {
           return;
         }
-#if AMP
         UInt uiTrWidth  = ( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nLx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nRx2N ) ? 1 << ( uiLog2TrSize - 4 + 1) : 1 << ( uiLog2TrSize - 2 + 1 );
         UInt uiTrHeight = ( pcCU->getPartitionSize( uiAbsZorderIdx  )== SIZE_Nx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nLx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nRx2N ) ? 1 << ( uiLog2TrSize - 2 + 1) : 1 << ( uiLog2TrSize - 4 + 1 );
-#else
-        UInt uiTrWidth  = ( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N ) ? 1 << ( uiLog2TrSize - 4 + 1) : 1 << ( uiLog2TrSize - 2 + 1 );
-        UInt uiTrHeight = ( pcCU->getPartitionSize( uiAbsZorderIdx  )== SIZE_Nx2N ) ? 1 << ( uiLog2TrSize - 2 + 1) : 1 << ( uiLog2TrSize - 4 + 1 );
-#endif
         xSetEdgefilterTU( pcCU, uiRasterIdx,                                                  uiAbsZorderIdx, uiDepth + 1 ); uiAbsZorderIdx += uiQNumParts;
         xSetEdgefilterTU( pcCU, uiRasterIdx + uiTrWidth,                                      uiAbsZorderIdx, uiDepth + 1 ); uiAbsZorderIdx += uiQNumParts;
         xSetEdgefilterTU( pcCU, uiRasterIdx + uiTrHeight * uiLCUWidthInBaseUnits,             uiAbsZorderIdx, uiDepth + 1 ); uiAbsZorderIdx += uiQNumParts;
@@ -428,12 +415,8 @@ Void TComLoopFilter::xSetEdgefilterTU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UI
 #if NSQT
   const UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
   if( !pcCU->isIntra( uiAbsZorderIdx ) && pcCU->getTransformIdx( uiAbsZorderIdx ) && uiLog2TrSize<pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() && pcCU->getWidth( uiAbsZorderIdx ) > 8 && pcCU->getSlice()->getSPS()->getUseNSQT() &&
-#if AMP
     ( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_2NxN || 
     ( pcCU->getPartitionSize( uiAbsZorderIdx ) >= SIZE_2NxnU && pcCU->getPartitionSize( uiAbsZorderIdx ) <= SIZE_nRx2N ) ) )
-#else
-    ( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_2NxN ) )
-#endif
   {
     if( ( 1 << uiLog2TrSize ) < DEBLOCK_SMALLEST_BLOCK )
     {
@@ -443,11 +426,7 @@ Void TComLoopFilter::xSetEdgefilterTU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UI
     UInt uiWidthInBaseUnits  = pcCU->getPic()->getNumPartInWidth () >> uiDepth;
     UInt uiHeightInBaseUnits = pcCU->getPic()->getNumPartInWidth () >> uiDepth;
 
-#if AMP
     if( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nLx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nRx2N )
-#else
-    if( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N )
-#endif
     {
       uiWidthInBaseUnits  >>= 1;
       uiHeightInBaseUnits <<= 1;
@@ -477,10 +456,8 @@ Void TComLoopFilter::xSetEdgefilterPU( TComDataCU* pcCU, UInt uiAbsZorderIdx )
   const UInt uiHeightInBaseUnits = pcCU->getPic()->getNumPartInHeight() >> uiDepth;
   const UInt uiHWidthInBaseUnits  = uiWidthInBaseUnits  >> 1;
   const UInt uiHHeightInBaseUnits = uiHeightInBaseUnits >> 1;
-#if AMP
   const UInt uiQWidthInBaseUnits  = uiWidthInBaseUnits  >> 2;
   const UInt uiQHeightInBaseUnits = uiHeightInBaseUnits >> 2;
-#endif
   
   xSetEdgefilterMultiple( pcCU, uiAbsZorderIdx, uiDepth, EDGE_VER, 0, m_stLFCUParam.bLeftEdge );
   xSetEdgefilterMultiple( pcCU, uiAbsZorderIdx, uiDepth, EDGE_HOR, 0, m_stLFCUParam.bTopEdge );
@@ -507,7 +484,6 @@ Void TComLoopFilter::xSetEdgefilterPU( TComDataCU* pcCU, UInt uiAbsZorderIdx )
       xSetEdgefilterMultiple( pcCU, uiAbsZorderIdx, uiDepth, EDGE_HOR, uiHHeightInBaseUnits, m_stLFCUParam.bInternalEdge );
       break;
     }
-#if AMP
   case SIZE_2NxnU:
     {
       xSetEdgefilterMultiple( pcCU, uiAbsZorderIdx, uiDepth, EDGE_HOR, uiQHeightInBaseUnits, m_stLFCUParam.bInternalEdge );
@@ -528,7 +504,6 @@ Void TComLoopFilter::xSetEdgefilterPU( TComDataCU* pcCU, UInt uiAbsZorderIdx )
       xSetEdgefilterMultiple( pcCU, uiAbsZorderIdx, uiDepth, EDGE_VER, uiWidthInBaseUnits - uiQWidthInBaseUnits, m_stLFCUParam.bInternalEdge );
       break;
     }
-#endif
     default:
     {
       assert(0);

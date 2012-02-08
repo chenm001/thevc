@@ -60,10 +60,8 @@
 #else
 #define NUM_PART_SIZE_CTX             5       ///< number of context models for partition size
 #endif
-#if AMP
 #define NUM_CU_X_POS_CTX              2       ///< number of context models for partition size (AMP)
 #define NUM_CU_Y_POS_CTX              2       ///< number of context models for partition size (AMP)
-#endif
 #if PREDTYPE_CLEANUP
 #define NUM_PRED_MODE_CTX             1       ///< number of context models for prediction mode
 #else
@@ -296,7 +294,6 @@ INIT_PART_SIZE[3][NUM_PART_SIZE_CTX] =
 #endif
 };
 
-#if AMP
 // initial probability for AMP split position (X)
 static const UChar
 INIT_CU_X_POS[3][NUM_CU_X_POS_CTX] =
@@ -332,7 +329,6 @@ INIT_CU_Y_POS[3][NUM_CU_Y_POS_CTX] =
     
   },
 };
-#endif
 
 // initial probability for prediction mode
 static const UChar
@@ -1549,7 +1545,6 @@ INIT_PART_SIZE[3][NUM_PART_SIZE_CTX][2] =
 #endif
 };
 
-#if AMP
 // initial probability for AMP split position (X)
 static const Short
 INIT_CU_X_POS[3][NUM_CU_X_POS_CTX][2] =
@@ -1579,7 +1574,6 @@ INIT_CU_Y_POS[3][NUM_CU_Y_POS_CTX][2] =
     {   -3,   61 }, {   -3,   66 }
   }
 };
-#endif
 
 // initial probability for prediction mode
 static const Short

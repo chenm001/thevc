@@ -166,13 +166,8 @@ Void TEncCavlc::resetEntropy()
   ::memcpy(m_uiMI1TableE, g_auiComMI1TableE, 9*sizeof(UInt));
   ::memcpy(m_uiMI1TableD, g_auiComMI1TableD, 9*sizeof(UInt));
 
-#if AMP
   ::memcpy(m_uiSplitTableE, g_auiInterModeTableE, 4*11*sizeof(UInt));
   ::memcpy(m_uiSplitTableD, g_auiInterModeTableD, 4*11*sizeof(UInt));
-#else
-  ::memcpy(m_uiSplitTableE, g_auiInterModeTableE, 4*7*sizeof(UInt));
-  ::memcpy(m_uiSplitTableD, g_auiInterModeTableD, 4*7*sizeof(UInt));
-#endif
   
   m_uiMITableVlcIdx = 0;  
 
@@ -630,9 +625,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if NSQT
   WRITE_FLAG( pcSPS->getUseNSQT(), "enable_nsqt" );
 #endif
-#if AMP
   WRITE_FLAG( pcSPS->getUseAMP(), "enable_amp" );
-#endif
 }
 
 #if TILES_DECODER
@@ -1231,11 +1224,7 @@ Void TEncCavlc::codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
   }
   if (uiEncMode != uiControl )
     return;
-#if AMP
   UInt uiEndSym = bHasSplit ? 11 : 11;
-#else
-  UInt uiEndSym = bHasSplit ? 7 : 6;
-#endif
   uiDepth = uiTableDepth;
   UInt uiLength = m_uiSplitTableE[uiDepth][uiMode] + 1;
   if (uiLength == uiEndSym)

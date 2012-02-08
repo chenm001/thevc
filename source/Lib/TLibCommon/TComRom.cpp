@@ -193,11 +193,7 @@ UInt g_auiRasterToPelX  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToPelY  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_motionRefer   [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, }; 
 
-#if AMP
 UInt g_auiPUOffset[8] = { 0, 8, 4, 4, 2, 10, 1, 5};
-#else
-UInt g_auiPUOffset[4] = { 0, 8, 4, 4 };
-#endif
 
 Void initZscanToRaster ( Int iMaxDepth, Int iDepth, UInt uiStartVal, UInt*& rpuiCurrIdx )
 {
@@ -490,13 +486,8 @@ const UInt g_auiCBP_4Y_VlcNum[15] =
 const UInt g_auiComMI1TableE[9] = {0,1,2,3,4,5,6,7,8};
 const UInt g_auiComMI1TableD[9] = {0,1,2,3,4,5,6,7,8};
 
-#if AMP
 const UInt g_auiInterModeTableE[4][11] = {{0,1,2,3,4,5,6,7,8,9,10},{0,1,2,3,4,5,6,7,8,9,10},{0,1,2,3,4,5,6,7,8,9,10},{6,0,1,2,3,4,5,7,8,9,10}};
 const UInt g_auiInterModeTableD[4][11] = {{0,1,2,3,4,5,6,7,8,9,10},{0,1,2,3,4,5,6,7,8,9,10},{0,1,2,3,4,5,6,7,8,9,10},{1,2,3,4,5,6,0,7,8,9,10}};
-#else
-const UInt g_auiInterModeTableE[4][7] = {{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{6,0,1,2,3,4,5}};
-const UInt g_auiInterModeTableD[4][7] = {{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{1,2,3,4,5,6,0}};
-#endif
 
 // Below table need to be optimized
 const UInt g_auiMITableVlcNum[15] = 

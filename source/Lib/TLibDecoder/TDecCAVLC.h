@@ -105,11 +105,7 @@ private:
   
   UInt                      m_uiIntraModeTableD17[17];
   UInt                      m_uiIntraModeTableD34[34];
-#if AMP
   UInt                      m_uiSplitTableD[4][11];
-#else
-  UInt                      m_uiSplitTableD[4][7];
-#endif
   UInt                      m_uiCBP_YUV_TableD[4][8];
   UInt                      m_uiCBP_YS_TableD[2][4];
   UInt                      m_uiCBP_YCS_TableD[2][8];

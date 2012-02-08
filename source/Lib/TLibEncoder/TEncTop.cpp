@@ -630,7 +630,6 @@ Void TEncTop::xInitSPS()
   }
 #endif
   
-#if AMP
   for (i = 0; i < g_uiMaxCUDepth-1; i++ )
   {
     m_cSPS.setAMPAcc( i, m_useAMP );
@@ -643,7 +642,6 @@ Void TEncTop::xInitSPS()
   {
     m_cSPS.setAMPAcc(i, 0);
   }
-#endif
 
   m_cSPS.setBitDepth    ( g_uiBitDepth        );
   m_cSPS.setBitIncrement( g_uiBitIncrement    );
