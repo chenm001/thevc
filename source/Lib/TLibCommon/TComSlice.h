@@ -103,7 +103,9 @@ private:
 #if !G507_QP_ISSUE_FIX
   Bool        m_bUseDQP;
 #endif
+#if !G1002_RPS
   Bool        m_bUseLDC;
+#endif
   Bool        m_bUsePAD;
   Bool        m_bUseMRG; // SOPH:
 
@@ -246,7 +248,9 @@ public:
   Bool getUseDQP      ()         { return m_bUseDQP;        }
 #endif
 
+#if !G1002_RPS
   Bool getUseLDC      ()         { return m_bUseLDC;        }
+#endif
   Bool getUsePAD      ()         { return m_bUsePAD;        }
   Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
   
@@ -255,7 +259,9 @@ public:
   Void setUseDQP      ( Bool b ) { m_bUseDQP   = b;         }
 #endif
   
+#if !G1002_RPS
   Void setUseLDC      ( Bool b ) { m_bUseLDC   = b;         }
+#endif
   Void setUsePAD      ( Bool b ) { m_bUsePAD   = b;         }
   Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:
   

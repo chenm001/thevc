@@ -714,6 +714,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         // Set reference list
         pcSlice->setRefPicList( m_cListPic );
         
+#if !G1002_RPS
         // HierP + GPB case
         if ( m_cSPS.getUseLDC() && pcSlice->isInterB() )
         {
@@ -735,6 +736,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
             }
           }
         }
+#endif
         
         // For generalized B
         // note: maybe not existed case (always L0 is copied to L1 if L1 is empty)

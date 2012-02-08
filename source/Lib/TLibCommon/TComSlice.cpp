@@ -1628,7 +1628,9 @@ TComSPS::TComSPS()
 #if !G507_QP_ISSUE_FIX
 , m_bUseDQP                   (false)
 #endif
+#if !G1002_RPS
 , m_bUseLDC                   (false)
+#endif
 , m_bUsePAD                   (false)
 , m_bUseMRG                   (false)
 , m_bUseLMChroma              (false)
