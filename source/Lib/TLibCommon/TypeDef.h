@@ -42,8 +42,6 @@
 //! \ingroup TLibCommon
 //! \{
 
-#define ALF_SAO_MEMORY_CLEANUP     1
-
 #define INC_CABACINITIDC_SLICETYPE 1 ///<G315: support for making presence of cabac_init_idc syntax element not dependent on slice type, and slice_type in slice header and entropy slice header
 #define SLICEADDR_BEGIN            1 ///<G315: support for moving slice address to beginning of slice
 #define PADDING_INTRA             1 ///< G812: padding from bottom left, copy previous pixel instead of averaging
@@ -394,26 +392,16 @@ typedef struct _SaoQTPart
   //---- encoder only end -----//
 } SAOQTPart;
 
-#if ALF_SAO_MEMORY_CLEANUP
 struct SAOParam
-#else
-struct _SaoParam
-#endif
 {
   Bool       bSaoFlag[3];
   SAOQTPart* psSaoPart[3];
   Int        iMaxSplitLevel;
   Int        iNumClass[MAX_NUM_SAO_TYPE];
-#if ALF_SAO_MEMORY_CLEANUP
   ~SAOParam();
-#endif
 };
 
-#if ALF_SAO_MEMORY_CLEANUP
 struct ALFParam
-#else
-struct _AlfParam
-#endif
 {
   Int alf_flag;                           ///< indicates use of ALF
   Int chroma_idc;                         ///< indicates use of ALF for chroma
@@ -435,9 +423,7 @@ struct _AlfParam
   Int kMinTab[42];
 
   Int alf_pcr_region_flag;
-#if ALF_SAO_MEMORY_CLEANUP
   ~ALFParam();
-#endif
 };
 
 

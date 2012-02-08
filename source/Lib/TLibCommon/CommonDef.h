@@ -235,11 +235,6 @@ enum NalUnitType
   NAL_UNIT_INVALID,
 };
 
-#if !ALF_SAO_MEMORY_CLEANUP
-typedef _AlfParam    ALFParam;
-typedef _SaoParam    SAOParam;
-#endif
-
 //! \}
 
 #endif // end of #ifndef  __COMMONDEF__

@@ -44,7 +44,6 @@
 //! \ingroup TLibCommon
 //! \{
 
-#if ALF_SAO_MEMORY_CLEANUP
 SAOParam::~SAOParam()
 {
   for (Int i = 0 ; i<3; i++)
@@ -55,7 +54,6 @@ SAOParam::~SAOParam()
     }
   }
 }
-#endif
 
 // ====================================================================================================================
 // Tables
@@ -526,11 +524,9 @@ Void TComSampleAdaptiveOffset::freeSaoParam(SAOParam *pcSaoParam)
   delete [] pcSaoParam->psSaoPart[0];
   delete [] pcSaoParam->psSaoPart[1];
   delete [] pcSaoParam->psSaoPart[2];
-#if ALF_SAO_MEMORY_CLEANUP
   pcSaoParam->psSaoPart[0] = 0;
   pcSaoParam->psSaoPart[1] = 0;
   pcSaoParam->psSaoPart[2] = 0;
-#endif
 } 
 
 /** reset SAO parameters
