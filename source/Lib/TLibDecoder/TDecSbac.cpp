@@ -1300,19 +1300,6 @@ Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int w
       break;
     }
   }
-#if !BYPASS_FOR_LAST_COEFF_MOD
-  if ( uiPosLastX > 3 )
-  {
-    UInt uiTemp  = 0;
-    UInt uiCount = ( uiPosLastX - 2 ) >> 1;
-    for ( Int i = uiCount - 1; i >= 0; i-- )
-    {
-      m_pcTDecBinIf->decodeBinEP( uiLast );
-      uiTemp += uiLast << i;
-    }
-    uiPosLastX = g_uiMinInGroup[ uiPosLastX ] + uiTemp;
-  }
-#endif
 
   // posY
   const UInt *puiCtxIdxY = g_uiLastCtx + ( g_aucConvertToBit[ height ] * ( g_aucConvertToBit[ height ] + 3 ) );
@@ -1324,7 +1311,6 @@ Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int w
       break;
     }
   }
-#if BYPASS_FOR_LAST_COEFF_MOD
   if ( uiPosLastX > 3 )
   {
     UInt uiTemp  = 0;
@@ -1336,7 +1322,6 @@ Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int w
     }
     uiPosLastX = g_uiMinInGroup[ uiPosLastX ] + uiTemp;
   }
-#endif
   if ( uiPosLastY > 3 )
   {
     UInt uiTemp  = 0;
@@ -1375,22 +1360,7 @@ Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int w
     }
   }
 
-#if BYPASS_FOR_LAST_COEFF_MOD
   Int lastX = uiLast;
-#else
-  if( !uiLast && halfWidth >= minWidth )
-  {
-    UInt uiCount = 0, uiTemp = 0;
-
-    while( uiCount < log2BlkWidth )
-    {
-      m_pcTDecBinIf->decodeBinEP( uiLast );
-      uiTemp += uiLast << uiCount;
-      uiCount++;
-    }
-    uiPosLastX += uiTemp;
-  }
-#endif
   
   // posY
   puiCtxIdx    = g_uiLastCtx + ( halfHeight >= minHeight ? halfHeight : 0 );
@@ -1405,20 +1375,6 @@ Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int w
     }
   }
 
-#if !BYPASS_FOR_LAST_COEFF_MOD
-  if( !uiLast && halfHeight >= minHeight )
-  {
-    UInt uiCount = 0, uiTemp = 0;
-
-    while( uiCount < log2BlkHeight )
-    {
-      m_pcTDecBinIf->decodeBinEP( uiLast );
-      uiTemp += uiLast << uiCount;
-      uiCount++;
-    }
-    uiPosLastY += uiTemp;
-  }
-#else
   if ( !lastX && halfWidth >= minWidth )
   {
     UInt temp;
@@ -1431,7 +1387,6 @@ Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int w
     m_pcTDecBinIf->decodeBinsEP( temp, log2BlkHeight );
     uiPosLastY += temp;
   }
-#endif
 #endif
   
   if( uiScanIdx == SCAN_VER )

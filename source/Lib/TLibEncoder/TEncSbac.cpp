@@ -1250,17 +1250,6 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
   {
     m_pcBinIf->encodeBin( 0, *( pCtxX + puiCtxIdxX[ uiCtxLast ] ) );
   }
-#if !BYPASS_FOR_LAST_COEFF_MOD
-  if ( uiGroupIdxX > 3 )
-  {      
-    UInt uiCount = ( uiGroupIdxX - 2 ) >> 1;
-    uiPosX       = uiPosX - g_uiMinInGroup[ uiGroupIdxX ];
-    for (Int i = uiCount - 1 ; i >= 0; i-- )
-    {
-      m_pcBinIf->encodeBinEP( ( uiPosX >> i ) & 1 );
-    }
-  }
-#endif
 
   // posY
   const UInt *puiCtxIdxY = g_uiLastCtx + ( g_aucConvertToBit[ height ] * ( g_aucConvertToBit[ height ] + 3 ) );
@@ -1272,7 +1261,6 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
   {
     m_pcBinIf->encodeBin( 0, *( pCtxY + puiCtxIdxY[ uiCtxLast ] ) );
   }
-#if BYPASS_FOR_LAST_COEFF_MOD
   if ( uiGroupIdxX > 3 )
   {      
     UInt uiCount = ( uiGroupIdxX - 2 ) >> 1;
@@ -1282,7 +1270,6 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
       m_pcBinIf->encodeBinEP( ( uiPosX >> i ) & 1 );
     }
   }
-#endif
   if ( uiGroupIdxY > 3 )
   {      
     UInt uiCount = ( uiGroupIdxY - 2 ) >> 1;
@@ -1328,19 +1315,6 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
     m_pcBinIf->encodeBin( 1, *( pCtxX + puiCtxIdx[ uiCtxLast ] ) );
   }
 
-#if !BYPASS_FOR_LAST_COEFF_MOD
-  if( uiPosX0 >= halfWidth && halfWidth >= minWidth )
-  {
-    uiPosX0     -= halfWidth;
-    UInt uiCount = 0;
-    while( uiCount < log2BlkWidth )
-    {
-      m_pcBinIf->encodeBinEP( ( uiPosX0 >> uiCount ) & 1 );
-      uiCount++;
-    }
-  }
-#endif
-  
   // posY
   puiCtxIdx    = g_uiLastCtx + ( halfHeight >= minHeight ? halfHeight : 0 );
   
@@ -1353,18 +1327,6 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
     m_pcBinIf->encodeBin( 1, *( pCtxY + puiCtxIdx[ uiCtxLast ] ) );
   }
 
-#if !BYPASS_FOR_LAST_COEFF_MOD
-  if( uiPosY0 >= halfHeight && halfHeight >= minHeight )
-  {
-    uiPosY0     -= halfHeight;
-    UInt uiCount = 0;
-    while( uiCount < log2BlkHeight )
-    {
-      m_pcBinIf->encodeBinEP( ( uiPosY0 >> uiCount ) & 1 );
-      uiCount++;
-    }
-  }
-#else  
   if ( uiPosX0 >= halfWidth && halfWidth >= minWidth )
   {
     m_pcBinIf->encodeBinsEP( uiPosX0 - halfWidth, log2BlkWidth );
@@ -1373,7 +1335,6 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
   {
     m_pcBinIf->encodeBinsEP( uiPosY0 - halfHeight, log2BlkHeight );
   }
-#endif
 #endif
 
 }

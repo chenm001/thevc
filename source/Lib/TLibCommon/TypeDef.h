@@ -63,7 +63,6 @@
 #endif
 #define G776_MRG_ENC_FIX          1 //<G776: Merge encoder estimation improvement
 
-#define BYPASS_FOR_LAST_COEFF_MOD 1 ///< grouping of bypass bins for last_significant_coeff_x/y, MSB first
 #define IT_CLIPPING               1 ///< clipping in inverse transform G782
 #define CABAC_RICE_UPDATE_MOD     1 ///< modified Rice parameter update function G700
 #define BYPASS_FOR_INTRA_MODE     1 ///< use bypass bins for intra luma mode coding G707
