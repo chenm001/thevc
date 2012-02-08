@@ -464,9 +464,7 @@ public: //public methods, interface functions
   Void destroySlice     (); //!< Destroy ALF slice units
 #endif
 
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void PCMLFDisableProcess    ( TComPic* pcPic);                        ///< interface function for ALF process 
-#endif
 
 protected: //memory allocation
   Void destroyMatrix_Pel(Pel **m2D);

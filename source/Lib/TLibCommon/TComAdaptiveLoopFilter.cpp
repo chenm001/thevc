@@ -4059,7 +4059,6 @@ Void CAlfSlice::getCtrlFlagsForOneSlice()
 }
 #endif
 
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
 /** PCM LF disable process. 
  * \param pcPic picture (TComPic) pointer
  * \returns Void
@@ -4187,5 +4186,4 @@ Void TComAdaptiveLoopFilter::xPCMSampleRestoration (TComDataCU* pcCU, UInt uiAbs
     piSrc += uiStride;
   }
 }
-#endif
 //! \}

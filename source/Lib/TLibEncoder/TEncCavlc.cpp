@@ -556,9 +556,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   if( pcSPS->getUsePCM() )
 #endif
   {
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   WRITE_FLAG( pcSPS->getPCMFilterDisableFlag()?1 : 0,                                "pcm_loop_filter_disable_flag");
-#endif
   }
 
 #if !G507_QP_ISSUE_FIX

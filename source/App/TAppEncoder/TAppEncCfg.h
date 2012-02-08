@@ -183,9 +183,7 @@ protected:
   UInt      m_pcmLog2MaxSize;                                 ///< log2 of maximum PCM block size
 #endif
   UInt      m_uiPCMLog2MinSize;                               ///< log2 of minimum PCM block size
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Bool      m_bPCMFilterDisableFlag;                          ///< PCM filter disable flag
-#endif
 
   // coding tools (encoder-only parameters)
   Bool      m_bUseSBACRD;                                     ///< flag for using RD optimization based on SBAC

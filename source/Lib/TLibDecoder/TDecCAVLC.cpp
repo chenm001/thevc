@@ -593,9 +593,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   if( pcSPS->getUsePCM() )
 #endif
   {
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
     READ_FLAG( uiCode, "pcm_loop_filter_disable_flag" );           pcSPS->setPCMFilterDisableFlag ( uiCode ? true : false );
-#endif
   }
 
 #if !G507_QP_ISSUE_FIX

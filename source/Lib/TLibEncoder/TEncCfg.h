@@ -255,9 +255,7 @@ protected:
   Bool      m_bPCMInputBitDepthFlag;
   UInt      m_uiPCMBitDepthLuma;
   UInt      m_uiPCMBitDepthChroma;
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
   Bool      m_bPCMFilterDisableFlag;
-#endif
 #if TILES
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   Int       m_iTileBehaviorControlPresentFlag;
@@ -524,9 +522,7 @@ public:
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
   Void      setPCMInputBitDepthFlag         ( Bool  b )     { m_bPCMInputBitDepthFlag = b; }
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void      setPCMFilterDisableFlag         ( Bool  b )     {  m_bPCMFilterDisableFlag = b; }
-#endif
 #if MAX_PCM_SIZE
   Void      setUsePCM                       ( Bool  b )     {  m_usePCM = b;               }
   Void      setPCMLog2MaxSize               ( UInt u )      { m_pcmLog2MaxSize = u;      }
@@ -573,9 +569,7 @@ public:
   Bool      getUseNSQT                      ()      { return m_useNSQT; }
 #endif
   Bool      getPCMInputBitDepthFlag         ()      { return m_bPCMInputBitDepthFlag;   } 
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Bool      getPCMFilterDisableFlag         ()      { return m_bPCMFilterDisableFlag;   } 
-#endif
 #if MAX_PCM_SIZE
   Bool      getUsePCM                       ()      { return m_usePCM;                 }
   UInt      getPCMLog2MaxSize               ()      { return m_pcmLog2MaxSize;  }

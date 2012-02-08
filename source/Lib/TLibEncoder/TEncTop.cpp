@@ -688,9 +688,7 @@ Void TEncTop::xInitSPS()
   }
   m_cSPS.setPCMBitDepthLuma (g_uiPCMBitDepthLuma);
   m_cSPS.setPCMBitDepthChroma (g_uiPCMBitDepthChroma);
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   m_cSPS.setPCMFilterDisableFlag  ( m_bPCMFilterDisableFlag );
-#endif
 
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD

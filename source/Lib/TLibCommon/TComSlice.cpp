@@ -1634,9 +1634,7 @@ TComSPS::TComSPS()
 , m_uiBitIncrement            (  0)
 , m_uiPCMBitDepthLuma         (  8)
 , m_uiPCMBitDepthChroma       (  8)
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
 , m_bPCMFilterDisableFlag     (false)
-#endif
 #if  G1002_RPS
 , m_uiBitsForPOC              (  8)
 #endif

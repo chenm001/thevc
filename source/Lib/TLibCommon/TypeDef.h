@@ -284,8 +284,6 @@
 
 #define REG_DCT 65535
 
-#define E192_SPS_PCM_FILTER_DISABLE_SYNTAX  1 // JCTVC-E192: PCM filter disable flag
-
 #define AMP                                   1           ///< JCTVC-F379: asymmetric motion partition
 #if AMP
 #define AMP_SAD                               1           ///< dedicated SAD functions for AMP

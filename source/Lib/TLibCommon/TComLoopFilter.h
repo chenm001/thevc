@@ -128,33 +128,17 @@ protected:
   
 #if DEBLK_G590
   
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
   __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Bool sw, Bool bPartPNoFilter, Bool bPartQNoFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
-#else
-  __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Bool sw, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
-#endif  
   
 #else// !DEBLK_G590
     
 #if !DISABLE_PARALLEL_DECISIONS
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
   __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Pel* piSrcJudge, Bool bPartPNoFilter, Bool bPartQNoFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
 #else
-  __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Pel* piSrcJudge, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
-#endif
-#else
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
   __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Bool bPartPNoFilter, Bool bPartQNoFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
-#else
-  __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ );
-#endif
 #endif
 #endif // DEBLK_G590
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX 
   __inline Void xPelFilterChroma( Pel* piSrc, Int iOffset, Int tc, Bool bPartPNoFilter, Bool bPartQNoFilter);
-#else
-  __inline Void xPelFilterChroma( Pel* piSrc, Int iOffset, Int tc );
-#endif
   
 
 #if DEBLK_G590

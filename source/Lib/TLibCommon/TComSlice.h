@@ -124,9 +124,7 @@ private:
 
   UInt        m_uiPCMBitDepthLuma;
   UInt        m_uiPCMBitDepthChroma;
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Bool        m_bPCMFilterDisableFlag;
-#endif
 
 #if G1002_RPS
   UInt        m_uiBitsForPOC;
@@ -314,10 +312,8 @@ public:
   Void      setPCMBitDepthLuma     ( UInt u ) { m_uiPCMBitDepthLuma = u;        }
   UInt      getPCMBitDepthChroma   ()         { return m_uiPCMBitDepthChroma;   }
   Void      setPCMBitDepthChroma   ( UInt u ) { m_uiPCMBitDepthChroma = u;      }
-#if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
   Void      setPCMFilterDisableFlag     ( Bool   bValue  )    { m_bPCMFilterDisableFlag = bValue; }
   Bool      getPCMFilterDisableFlag     ()                    { return m_bPCMFilterDisableFlag;   } 
-#endif
 
 #if !G1002_RPS
 #if REF_SETTING_FOR_LD
