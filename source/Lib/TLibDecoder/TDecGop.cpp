@@ -236,7 +236,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
           vAlfCUCtrlSlices.push_back(m_cAlfCUCtrlOneSlice);
 #else
           m_pcEntropyDecoder->decodeAlfCtrlParam( cAlfCUCtrlOneSlice, m_pcAdaptiveLoopFilter->getNumCUsInPic());
-#if F747_CABAC_FLUSH_SLICE_HEADER
 #if !DISABLE_CAVLC
           if ( iSymbolMode )
 #endif
@@ -254,7 +253,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
             m_pcEntropyDecoder->setBitstream(ppcSubstreams[0]);
             m_pcEntropyDecoder->resetEntropy(pcSlice);
           }
-#endif
           vAlfCUCtrlSlices.push_back(cAlfCUCtrlOneSlice);
 #endif
         }

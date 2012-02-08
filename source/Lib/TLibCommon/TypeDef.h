@@ -172,8 +172,6 @@
   #define APS_BITS_FOR_SAO_BYTE_LENGTH 12           
   #define APS_BITS_FOR_ALF_BYTE_LENGTH 8
 
-#define F747_CABAC_FLUSH_SLICE_HEADER        1       // F747 & F399: CABAC Flush after slice header
-
 ////////////////////////////
 // JCT-VC F end
 ////////////////////////////

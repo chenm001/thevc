@@ -1035,7 +1035,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
                 m_pcEntropyCoder->setAlfCtrl(false);
               }
               m_pcEntropyCoder->encodeAlfCtrlParam(cAlfCUCtrlParam, m_pcAdaptiveLoopFilter->getNumCUsInPic());
-#if F747_CABAC_FLUSH_SLICE_HEADER
 #if !DISABLE_CAVLC
               if (pcSlice->getSymbolMode())
 #endif
@@ -1046,7 +1045,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
                 m_pcEntropyCoder->setEntropyCoder ( &pcSbacCoders[0], pcSlice );
                 m_pcEntropyCoder->resetEntropy    ();
               }
-#endif              
             }
           }
 #endif
