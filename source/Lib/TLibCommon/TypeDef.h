@@ -275,8 +275,6 @@
 #define TILES_DECODER                       0
 #endif
 
-#define SAO_CROSS_LCU_BOUNDARIES      1
-
 #define DEBLK_CLEANUP_CHROMA_BS         1 // Clean-up of chroma Bs (not used in HEVC deblocking)
 
 #define DEBLK_G590                      1 // Self-contained deblocking of 8x8 blocks

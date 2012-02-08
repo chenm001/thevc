@@ -110,7 +110,6 @@ protected:
 #endif
 
 #endif
-#if SAO_CROSS_LCU_BOUNDARIES
   Pel* m_pTmpU1;
   Pel* m_pTmpU2;
   Pel* m_pTmpL1;
@@ -121,7 +120,6 @@ protected:
   Void xSaoQt2Lcu(SAOQTPart *psQTPart,UInt uiPartIdx);
   Void convertSaoQt2Lcu(SAOQTPart *psQTPart,UInt uiPartIdx);
   Void xSaoAllPart(SAOQTPart *psQTPart, Int iYCbCr);
-#endif
 
 public:
   TComSampleAdaptiveOffset         ();
