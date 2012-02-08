@@ -78,12 +78,6 @@ protected:
   Void  xReadPCMAlignZero     ();
 
   UInt  xGetBit             ();
-  Int   xReadVlc            ( Int n );
-  Void  xParseCoeff         ( TCoeff* scoeff, Int blockType, Int blSize
-                            , Int isIntra
-                            );
-  Void  xRunLevelIndInv     (LastCoeffStruct *combo, Int maxrun, UInt lrg1Pos, UInt cn);
-  Void  xRunLevelIndInterInv(LastCoeffStruct *combo, Int maxrun, UInt cn, UInt scale);
   
 #if INTER_RPS_PREDICTION
   void  parseShortTermRefPicSet            (TComPPS* pcPPS, TComReferencePictureSet* pcRPS, Int idx);
