@@ -68,11 +68,7 @@
 #define NUM_PRED_MODE_CTX             2       ///< number of context models for prediction mode
 #endif
 
-#if BYPASS_FOR_INTRA_MODE
 #define NUM_ADI_CTX                   1       ///< number of context models for intra prediction
-#else
-#define NUM_ADI_CTX                   3       ///< number of context models for intra prediction
-#endif
 
 #define NUM_CHROMA_PRED_CTX           2       ///< number of context models for intra prediction (chroma)
 #define NUM_INTER_DIR_CTX             4       ///< number of context models for inter prediction direction
@@ -367,7 +363,6 @@ INIT_PRED_MODE[3][NUM_PRED_MODE_CTX] =
 static const UChar
 INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX] =
 {
-#if BYPASS_FOR_INTRA_MODE
   {
     167,
     
@@ -380,20 +375,6 @@ INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX] =
     150,
     
   },
-#else
-  {
-    136, 134, 119,
-    
-  },
-  {
-    119, 119,  87,
-    
-  },
-  {
-    119, 119,  87,
-    
-  },
-#endif
 };
 
 // initial probability for intra direction of chroma
@@ -1606,7 +1587,6 @@ INIT_PRED_MODE[3][NUM_PRED_MODE_CTX][2] =
 static const Short
 INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX][2] =
 {
-#if BYPASS_FOR_INTRA_MODE
   {
     {    2,   54 }
   },
@@ -1616,17 +1596,6 @@ INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX][2] =
   {
     {    0,   51 }
   }
-#else
-  {
-    {    2,   54 }, {  -3,   65  }, {   -3,   65 }
-  },
-  {
-    {    0,   50 }, {  -2,   61  }, {   -2,   61 }
-  },
-  {
-    {    0,   51 }, {  1,   55   }, {    1,   55 }
-  }
-#endif
 };
 
 // initial probability for intra direction of chroma
