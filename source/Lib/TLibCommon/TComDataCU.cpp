@@ -2720,79 +2720,12 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 #endif
     // col [2]
     Int iRefIdxSkip[2] = {-1, -1};
-#if MRG_TMVP_REFIDX_G163
     for (Int i=0; i<2; i++)
     {
       RefPicList  eRefPicList = ( i==1 ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
       Int iRefIdxTmp = (pcCULeft != NULL) ? pcCULeft->getCUMvField(eRefPicList)->getRefIdx(uiLeftPartIdx) : -1;
       iRefIdxSkip[i] = (iRefIdxTmp != -1) ? iRefIdxTmp : 0;
     }
-#else
-    TComDataCU* pcTmpCU = NULL;
-    UInt uiIdxblk;
-    Int iRefIdxLeft[2] = {-1, -1};
-    Int iRefIdxAbove[2] = {-1, -1};
-    Int iRefIdxCor[2] = {-1, -1};
-
-    UInt uiPUIdxLT = 0;
-    UInt uiPUIdxRT  = 0;
-    UInt uiPUIdxLB = 0;
-    cCurPS = getPartitionSize( uiAbsPartIdx );
-    deriveLeftRightTopIdxGeneral( cCurPS, uiAbsPartIdx, uiPUIdx, uiPUIdxLT, uiPUIdxRT );
-    deriveLeftBottomIdxGeneral( cCurPS, uiAbsPartIdx, uiPUIdx, uiPUIdxLB );
-
-    for (int i=0; i<2; i++) 
-    {
-      RefPicList  eRefPicList = ( i==1 ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
-      pcTmpCU = getPULeft(uiIdxblk, uiPUIdxLB);
-      iRefIdxLeft[i] = (pcTmpCU != NULL) ? pcTmpCU->getCUMvField(eRefPicList)->getRefIdx(uiIdxblk) : -1;
-      pcTmpCU = getPUAbove(uiIdxblk, uiPUIdxRT, true, true, true);
-      iRefIdxAbove[i] = (pcTmpCU != NULL) ? pcTmpCU->getCUMvField(eRefPicList)->getRefIdx(uiIdxblk) : -1;
-      pcTmpCU = getPUAboveRight( uiIdxblk, uiPUIdxRT, true, true, true );
-      if (pcTmpCU == NULL) 
-      {
-        pcTmpCU = getPUBelowLeft( uiIdxblk, uiPUIdxLB );
-      }
-      if (pcTmpCU == NULL) 
-      {
-        pcTmpCU = getPUAboveLeft( uiIdxblk, uiPUIdxLT, true, true, true );
-      }
-      iRefIdxCor[i] = (pcTmpCU != NULL) ? pcTmpCU->getCUMvField(eRefPicList)->getRefIdx(uiIdxblk) : -1;
-
-      if (iRefIdxLeft[i] == iRefIdxAbove[i] && iRefIdxAbove[i] == iRefIdxCor[i])
-      {
-        iRefIdxSkip[i] = (iRefIdxLeft[i] == -1) ? 0 : iRefIdxLeft[i];
-      }
-      else if (iRefIdxLeft[i] == iRefIdxAbove[i])
-      {
-        iRefIdxSkip[i] = (iRefIdxLeft[i] == -1) ? iRefIdxCor[i] : iRefIdxLeft[i];
-      }
-      else if (iRefIdxAbove[i] == iRefIdxCor[i])
-      {
-        iRefIdxSkip[i] = (iRefIdxAbove[i] == -1) ? iRefIdxLeft[i] : iRefIdxAbove[i];
-      }
-      else if (iRefIdxLeft[i] == iRefIdxCor[i])
-      {
-        iRefIdxSkip[i] = (iRefIdxLeft[i] == -1) ? iRefIdxAbove[i] : iRefIdxLeft[i];
-      }
-      else if (iRefIdxLeft[i] == -1)
-      {
-        iRefIdxSkip[i] = min(iRefIdxAbove[i], iRefIdxCor[i]);
-      }
-      else if (iRefIdxAbove[i] == -1)
-      {
-        iRefIdxSkip[i] = min(iRefIdxLeft[i], iRefIdxCor[i]);
-      }
-      else if (iRefIdxCor[i] == -1)
-      {
-        iRefIdxSkip[i] = min(iRefIdxLeft[i], iRefIdxAbove[i]);
-      }
-      else
-      {
-        iRefIdxSkip[i] = min( min(iRefIdxLeft[i], iRefIdxAbove[i]), iRefIdxCor[i]);
-      }
-    }
-#endif 
     //>> MTK colocated-RightBottom
     UInt uiPartIdxRB;
     Int uiLCUIdx = getAddr();
