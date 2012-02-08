@@ -224,9 +224,7 @@ protected:
 #endif
   Bool      m_bUseFastEnc;
   Bool      m_bUseEarlyCU;
-#if CBF_FAST_MODE
   Bool      m_bUseCbfFastMode;
-#endif
   Bool      m_bUseMRG; // SOPH:
   Bool      m_bUseLMChroma; 
 
@@ -506,9 +504,7 @@ public:
 #endif
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
   Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
-#if CBF_FAST_MODE
   Void      setUseCbfFastMode            ( Bool  b )     { m_bUseCbfFastMode = b; }
-#endif
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
   Void      setPCMInputBitDepthFlag         ( Bool  b )     { m_bPCMInputBitDepthFlag = b; }
@@ -548,9 +544,7 @@ public:
 #endif
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
   Bool      getUseEarlyCU                   ()      { return m_bUseEarlyCU; }
-#if CBF_FAST_MODE
   Bool      getUseCbfFastMode           ()      { return m_bUseCbfFastMode; }
-#endif
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
 #if NS_HAD

@@ -186,9 +186,7 @@ Void TAppEncTop::xInitLibCfg()
 #endif
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
   m_cTEncTop.setUseEarlyCU                   ( m_bUseEarlyCU  ); 
-#if CBF_FAST_MODE
   m_cTEncTop.setUseCbfFastMode            ( m_bUseCbfFastMode  );
-#endif
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
 
   m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );

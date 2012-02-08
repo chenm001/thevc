@@ -403,9 +403,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   Bool    bSubBranch = true;
 
   // variable for Cbf fast mode PU decision
-#if CBF_FAST_MODE
   Bool    doNotBlockPu = true;
-#endif
 
   Bool    bTrySplitDQP  = true;
 
@@ -492,12 +490,10 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         if ( !bEarlySkip )
         {
           xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2Nx2N );  rpcTempCU->initEstData( uiDepth, iQP );
-#if CBF_FAST_MODE
           if(m_pcEncCfg->getUseCbfFastMode())
           {
             doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
           }
-#endif
         }
       }
 
@@ -528,11 +524,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 
         if(!( rpcBestCU->getSlice()->getSPS()->getDisInter4x4()  && (rpcBestCU->getWidth(0)==8) && (rpcBestCU->getHeight(0)==8) ))
         {
-#if CBF_FAST_MODE
           if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth && doNotBlockPu)
-#else
-          if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-#endif
           {
             xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_NxN   );
             rpcTempCU->initEstData( uiDepth, iQP );
@@ -541,31 +533,23 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         }
 
         { // 2NxN, Nx2N
-#if CBF_FAST_MODE
           if(doNotBlockPu)
-#endif
           {
             xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_Nx2N  );
             rpcTempCU->initEstData( uiDepth, iQP );
-#if CBF_FAST_MODE
             if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_Nx2N )
             {
               doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
             }
-#endif
           }
-#if CBF_FAST_MODE
           if(doNotBlockPu)
-#endif
           {
             xCheckRDCostInter      ( rpcBestCU, rpcTempCU, SIZE_2NxN  );
             rpcTempCU->initEstData( uiDepth, iQP );
-#if CBF_FAST_MODE
             if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxN)
             {
               doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
             }
-#endif
           }
         }
 
@@ -587,61 +571,45 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
           //! Do horizontal AMP
           if ( bTestAMP_Hor )
           {
-#if CBF_FAST_MODE
             if(doNotBlockPu)
-#endif
             {
               xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnU );
               rpcTempCU->initEstData( uiDepth, iQP );
-#if CBF_FAST_MODE
               if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnU )
               {
                 doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
               }
-#endif
             }
-#if CBF_FAST_MODE
             if(doNotBlockPu)
-#endif
             {
               xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnD );
               rpcTempCU->initEstData( uiDepth, iQP );
-#if CBF_FAST_MODE
               if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnD )
               {
                 doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
               }
-#endif
             }
           }
 #if AMP_MRG
           else if ( bTestMergeAMP_Hor ) 
           {
-#if CBF_FAST_MODE
             if(doNotBlockPu)
-#endif
             {
               xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnU, true );
               rpcTempCU->initEstData( uiDepth, iQP );
-#if CBF_FAST_MODE
               if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnU )
               {
                 doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
               }
-#endif
             }
-#if CBF_FAST_MODE
             if(doNotBlockPu)
-#endif
             {
               xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnD, true );
               rpcTempCU->initEstData( uiDepth, iQP );
-#if CBF_FAST_MODE
               if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnD )
               {
                 doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
               }
-#endif
             }
           }
 #endif
@@ -649,22 +617,16 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
           //! Do horizontal AMP
           if ( bTestAMP_Ver )
           {
-#if CBF_FAST_MODE
             if(doNotBlockPu)
-#endif
             {
               xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nLx2N );
               rpcTempCU->initEstData( uiDepth, iQP );
-#if CBF_FAST_MODE
               if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_nLx2N )
               {
                 doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
               }
-#endif
             }
-#if CBF_FAST_MODE
             if(doNotBlockPu)
-#endif
             {
               xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nRx2N );
               rpcTempCU->initEstData( uiDepth, iQP );
@@ -673,22 +635,16 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #if AMP_MRG
           else if ( bTestMergeAMP_Ver )
           {
-#if CBF_FAST_MODE
             if(doNotBlockPu)
-#endif
             {
               xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nLx2N, true );
               rpcTempCU->initEstData( uiDepth, iQP );
-#if CBF_FAST_MODE
               if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_nLx2N )
               {
                 doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
               }
-#endif
             }
-#if CBF_FAST_MODE
             if(doNotBlockPu)
-#endif
             {
               xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nRx2N, true );
               rpcTempCU->initEstData( uiDepth, iQP );

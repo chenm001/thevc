@@ -288,8 +288,6 @@
 #endif
 
 
-#define CBF_FAST_MODE                      1 //JCTVC-F045
-
 #define G665_ALF_COEFF_PRED                1 // JCTVC-G665
 
 #define G507_COND_4X4_ENABLE_FLAG      1

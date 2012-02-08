@@ -352,9 +352,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 
   ("FEN", m_bUseFastEnc, false, "fast encoder setting")
   ("ECU", m_bUseEarlyCU, false, "Early CU setting") 
-#if CBF_FAST_MODE
   ("CFM", m_bUseCbfFastMode, false, "Cbf fast mode setting")
-#endif
   /* Compatability with old style -1 FOO or -0 FOO options. */
   ("1", doOldStyleCmdlineOn, "turn option <name> on")
   ("0", doOldStyleCmdlineOff, "turn option <name> off")
@@ -1003,9 +1001,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("LCMod:%d ", m_bLCMod         );
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("ECU:%d ", m_bUseEarlyCU         );
-#if CBF_FAST_MODE
   printf("CFM:%d ", m_bUseCbfFastMode         );
-#endif
   printf("RQT:%d ", 1     );
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
   printf("LMC:%d ", m_bUseLMChroma        ); 
@@ -1114,9 +1110,7 @@ Void TAppEncCfg::xPrintUsage()
   printf( "                   ASR - adaptive motion search range\n");
   printf( "                   FEN - fast encoder setting\n");  
   printf( "                   ECU - Early CU setting\n");
-#if CBF_FAST_MODE
   printf( "                   CFM - Cbf fast mode setting\n");
-#endif
   printf( "                   MRG - merging of motion partitions\n"); // SOPH: Merge Mode
 
   printf( "                   LMC - intra chroma prediction based on luma\n");
