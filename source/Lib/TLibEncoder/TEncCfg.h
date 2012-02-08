@@ -221,7 +221,6 @@ protected:
   UInt      m_uiPCMBitDepthLuma;
   UInt      m_uiPCMBitDepthChroma;
   Bool      m_bPCMFilterDisableFlag;
-#if TILES
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   Int       m_iTileBehaviorControlPresentFlag;
   Bool      m_bLFCrossTileBoundaryFlag;
@@ -239,7 +238,6 @@ protected:
   Int       m_iTileMarkerFlag;              //< enable(1)/disable(0) transmitssion of light weight tile marker
   Int       m_iMaxTileMarkerEntryPoints;    //< maximum number of tile markers allowed in a slice (controls degree of parallelism)
   Double    m_dMaxTileMarkerOffset;         //< Calculated offset. Light weight tile markers will be transmitted for TileIdx= Offset, 2*Offset, 3*Offset ... 
-#endif
 #endif
 
   Int       m_iWaveFrontSynchro;
@@ -264,7 +262,6 @@ public:
   TEncCfg()          {}
   virtual ~TEncCfg()
   {
-#if TILES
     if( m_iUniformSpacingIdr == 0 )
     {
       if( m_iNumColumnsMinus1 )
@@ -281,7 +278,6 @@ public:
 #if TILES_DECODER
     m_iTileLocationInSliceHeaderFlag = 0;
     m_iTileMarkerFlag              = 0;
-#endif
 #endif
   }
   
@@ -491,7 +487,6 @@ public:
 
   Void      setUseSAO                  (Bool bVal)     {m_bUseSAO = bVal;}
   Bool      getUseSAO                  ()              {return m_bUseSAO;}
-#if TILES
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   Void  setTileBehaviorControlPresentFlag        ( Int i )             { m_iTileBehaviorControlPresentFlag = i;    }
   Int   getTileBehaviorControlPresentFlag        ()                    { return m_iTileBehaviorControlPresentFlag; }
@@ -580,7 +575,6 @@ public:
   Void setMaxTileMarkerEntryPoints    ( Int iCount )     { m_iMaxTileMarkerEntryPoints = iCount;  }
   Double getMaxTileMarkerOffset       ()                 { return m_dMaxTileMarkerOffset;         }
   Void setMaxTileMarkerOffset         ( Double dCount )  { m_dMaxTileMarkerOffset = dCount;       }
-#endif
 #endif
   Void  setWaveFrontSynchro(Int iWaveFrontSynchro)       { m_iWaveFrontSynchro = iWaveFrontSynchro; }
   Int   getWaveFrontsynchro()                            { return m_iWaveFrontSynchro; }

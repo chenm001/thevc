@@ -130,11 +130,7 @@ extern UInt g_sigCGScanNSQT[ 4 ][ 16 ]; // coarse-grain scan for non-square part
 #endif
 
 #if NSQT
-#if NSQT_TX_ORDER
 extern       UInt*  g_auiNonSquareSigLastScan[ 4 ];      // raster index from scanning index (zigzag)
-#else
-extern       UInt*  g_auiNonSquareSigLastScan[ 2 ];      // raster index from scanning index (zigzag)
-#endif
 #endif 
 
 #if MODIFIED_LAST_XY_CODING

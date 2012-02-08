@@ -1204,7 +1204,6 @@ TComSPS::TComSPS()
 
 TComSPS::~TComSPS()
 {
-#if TILES
   if( m_iNumColumnsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
   {
     delete [] m_puiColumnWidth; 
@@ -1215,7 +1214,6 @@ TComSPS::~TComSPS()
     delete [] m_puiRowHeight;
     m_puiRowHeight = NULL;
   }
-#endif
 }
 
 TComPPS::TComPPS()
@@ -1237,7 +1235,6 @@ TComPPS::TComPPS()
 , m_uiBitsForLongTermRefs       (0)
 , m_uiNumTlayerSwitchingFlags   (0)
 , m_iSliceGranularity           (0)
-#if TILES
 #if NONCROSS_TILE_IN_LOOP_FILTERING
 , m_iTileBehaviorControlPresentFlag (0)
 , m_bLFCrossTileBoundaryFlag     (true)
@@ -1249,7 +1246,6 @@ TComPPS::TComPPS()
 , m_puiColumnWidth               (NULL)
 , m_iNumRowsMinus1               (0)
 , m_puiRowHeight                 (NULL)
-#endif
 ,  m_iEntropyCodingSynchro      (0)
 ,  m_bCabacIstateReset          (false)
 ,  m_iNumSubstreams             (1)
@@ -1262,7 +1258,6 @@ TComPPS::TComPPS()
 
 TComPPS::~TComPPS()
 {
-#if TILES
   if( m_iNumColumnsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
   {
     if (m_puiColumnWidth) delete [] m_puiColumnWidth; 
@@ -1273,7 +1268,6 @@ TComPPS::~TComPPS()
     if (m_puiRowHeight) delete [] m_puiRowHeight;
     m_puiRowHeight = NULL;
   }
-#endif
 }
 
 TComReferencePictureSet::TComReferencePictureSet()

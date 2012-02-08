@@ -87,7 +87,6 @@ Void TComPicSym::create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt 
       );
   }
 
-#if TILES
   m_puiCUOrderMap = new UInt[m_uiNumCUsInFrame+1];
   m_puiTileIdxMap = new UInt[m_uiNumCUsInFrame];
   m_puiInverseCUOrderMap = new UInt[m_uiNumCUsInFrame+1];
@@ -97,7 +96,6 @@ Void TComPicSym::create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt 
     m_puiCUOrderMap[i] = i;
     m_puiInverseCUOrderMap[i] = i;
   }
-#endif
 }
 
 Void TComPicSym::destroy()
@@ -123,7 +121,6 @@ Void TComPicSym::destroy()
   delete [] m_apcTComDataCU;
   m_apcTComDataCU = NULL;
 
-#if TILES
   delete [] m_apcTComTile;
   m_apcTComTile = NULL;
 
@@ -135,7 +132,6 @@ Void TComPicSym::destroy()
 
   delete [] m_puiInverseCUOrderMap;
   m_puiInverseCUOrderMap = NULL;
-#endif
 }
 
 Void TComPicSym::allocateNewSlice()
@@ -160,7 +156,6 @@ Void TComPicSym::clearSliceBuffer()
   m_uiNumAllocatedSlice = 1;
 }
 
-#if TILES
 UInt TComPicSym::getPicSCUEncOrder( UInt SCUAddr )
 { 
   return getInverseCUOrderMap(SCUAddr/m_uiNumPartitions)*m_uiNumPartitions + SCUAddr%m_uiNumPartitions; 
@@ -293,5 +288,4 @@ TComTile::TComTile()
 TComTile::~TComTile()
 {
 }
-#endif
 //! \}

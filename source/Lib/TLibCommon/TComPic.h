@@ -157,11 +157,7 @@ public:
                                         ,Bool bNDBFilterCrossSliceBoundary = true
                                         ,Int  numTiles = 1
                                         ,Bool bNDBFilterCrossTileBoundary = true);
-#if TILES
   Void          createNonDBFilterInfoLCU(Int tileID, Int sliceID, TComDataCU* pcCU, UInt startSU, UInt endSU, Int sliceGranularyDepth, UInt picWidth, UInt picHeight);
-#else
-  Void          createNonDBFilterInfoLCU(Int sliceID, TComDataCU* pcCU, UInt startSU, UInt endSU, Int sliceGranularyDepth, UInt picWidth, UInt picHeight);
-#endif
   Void          destroyNonDBFilterInfo();
 
   Bool          getValidSlice                                  (Int sliceID)  {return m_pbValidSlice[sliceID];}

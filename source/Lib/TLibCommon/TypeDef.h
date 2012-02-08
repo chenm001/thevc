@@ -65,7 +65,6 @@
 
 #define BYPASS_FOR_LAST_COEFF_MOD 1 ///< grouping of bypass bins for last_significant_coeff_x/y, MSB first
 #define IT_CLIPPING               1 ///< clipping in inverse transform G782
-#define NSQT_TX_ORDER             1 ///< modify transform order in NSQT G517
 #define CABAC_RICE_UPDATE_MOD     1 ///< modified Rice parameter update function G700
 #define BYPASS_FOR_INTRA_MODE     1 ///< use bypass bins for intra luma mode coding G707
 #define WEIGHT_PRED_IMP           1 ///< high-precision offset for weighted bipred G065
@@ -247,19 +246,14 @@
 // AHG SLICES defines section end
 /////////////////////////////////
 
-#define TILES                              1
 #define LOG2_MAX_NUM_COLUMNS_MINUS1        7
 #define LOG2_MAX_NUM_ROWS_MINUS1           7
 #define LOG2_MAX_COLUMN_WIDTH              13
 #define LOG2_MAX_ROW_HEIGHT                13
 
-#if TILES
 #define TILES_DECODER                       1 // JCTVC-F594 - signalling of tile location
 #define MAX_MARKER_PER_NALU                 1000
 #define TILES_LOW_LATENCY_CABAC_INI         1 // JCTVC-G197 = low latency CABAC initialization for dependent tiles
-#else
-#define TILES_DECODER                       0
-#endif
 
 #define DEBLK_CLEANUP_CHROMA_BS         1 // Clean-up of chroma Bs (not used in HEVC deblocking)
 

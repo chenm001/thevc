@@ -189,12 +189,10 @@ public:
 
   Void parseAlfCtrlDepth    ( UInt& ruiAlfCtrlDepth );
   Void parseAlfCtrlFlag     ( UInt &ruiAlfCtrlFlag );
-#if TILES
 #if TILES_DECODER
   Void readTileMarker     ( UInt& uiTileIdx, UInt uiBitsUsed );
 #endif
   Void updateContextTables  ( SliceType eSliceType, Int iQp ) { return; }
-#endif    
 #if OL_FLUSH
   Void decodeFlush() {};
 #endif

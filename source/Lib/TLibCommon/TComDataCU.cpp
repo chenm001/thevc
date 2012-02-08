@@ -285,9 +285,7 @@ Void TComDataCU::destroy()
 
 const NDBFBlockInfo& NDBFBlockInfo::operator= (const NDBFBlockInfo& src)
 {
-#if TILES
   this->tileID = src.tileID;
-#endif
   this->sliceID= src.sliceID;
   this->startSU= src.startSU;
   this->endSU  = src.endSU;
@@ -337,11 +335,7 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
   
   for(int i=0; i<pcPic->getNumPartInCU(); i++) 
   {
-#if TILES
     if(pcPic->getPicSym()->getInverseCUOrderMap(iCUAddr)*pcPic->getNumPartInCU()+i>=getSlice()->getSliceCurStartCUAddr())
-#else
-    if(iCUAddr*pcPic->getNumPartInCU()+i>=getSlice()->getSliceCurStartCUAddr())
-#endif
     {
       m_uiSliceStartCU[i]=getSlice()->getSliceCurStartCUAddr();
     }
@@ -352,11 +346,7 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
   }
   for(int i=0; i<pcPic->getNumPartInCU(); i++) 
   {
-#if TILES
     if(pcPic->getPicSym()->getInverseCUOrderMap(iCUAddr)*pcPic->getNumPartInCU()+i>=getSlice()->getEntropySliceCurStartCUAddr())
-#else
-    if(iCUAddr*pcPic->getNumPartInCU()+i>=getSlice()->getEntropySliceCurStartCUAddr())
-#endif
     {
       m_uiEntropySliceStartCU[i]=getSlice()->getEntropySliceCurStartCUAddr();
     }
@@ -366,11 +356,7 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
     }
   }
 
-#if TILES
   Int partStartIdx = getSlice()->getEntropySliceCurStartCUAddr() - pcPic->getPicSym()->getInverseCUOrderMap(iCUAddr) * pcPic->getNumPartInCU();
-#else
-  Int partStartIdx = getSlice()->getEntropySliceCurStartCUAddr() - iCUAddr * pcPic->getNumPartInCU();
-#endif
 
   Int numElements = min<Int>( partStartIdx, m_uiNumPartition );
   for ( Int ui = 0; ui < numElements; ui++ )
@@ -533,11 +519,7 @@ Void TComDataCU::initEstData( UInt uiDepth, UInt uiQP )
 
   for (UInt ui = 0; ui < m_uiNumPartition; ui++)
   {
-#if TILES
     if(getPic()->getPicSym()->getInverseCUOrderMap(getAddr())*m_pcPic->getNumPartInCU()+m_uiAbsIdxInLCU+ui >= getSlice()->getEntropySliceCurStartCUAddr())
-#else
-    if(getAddr()*m_pcPic->getNumPartInCU()+m_uiAbsIdxInLCU+ui >= getSlice()->getEntropySliceCurStartCUAddr()) 
-#endif
     {
       m_apiMVPIdx[0][ui] = -1;
       m_apiMVPIdx[1][ui] = -1;
@@ -565,11 +547,7 @@ Void TComDataCU::initEstData( UInt uiDepth, UInt uiQP )
 
   UInt uiTmp = uhWidth*uhHeight;
 
-#if TILES
   if(getPic()->getPicSym()->getInverseCUOrderMap(getAddr())*m_pcPic->getNumPartInCU()+m_uiAbsIdxInLCU >= getSlice()->getEntropySliceCurStartCUAddr())
-#else
-  if(getAddr()*m_pcPic->getNumPartInCU()+m_uiAbsIdxInLCU >= getSlice()->getEntropySliceCurStartCUAddr())
-#endif
   {
     m_acCUMvField[0].clearMvField();
     m_acCUMvField[1].clearMvField();
@@ -645,11 +623,7 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, 
     m_apiMVPIdx[1][ui] = -1;
     m_apiMVPNum[0][ui] = -1;
     m_apiMVPNum[1][ui] = -1;
-#if TILES
     if(m_pcPic->getPicSym()->getInverseCUOrderMap(getAddr())*m_pcPic->getNumPartInCU()+m_uiAbsIdxInLCU+ui<getSlice()->getEntropySliceCurStartCUAddr())
-#else
-    if(getAddr()*m_pcPic->getNumPartInCU()+m_uiAbsIdxInLCU+ui<getSlice()->getEntropySliceCurStartCUAddr())
-#endif
     {
       m_apiMVPIdx[0][ui] = pcCU->m_apiMVPIdx[0][uiPartOffset+ui];
       m_apiMVPIdx[1][ui] = pcCU->m_apiMVPIdx[1][uiPartOffset+ui];;
@@ -693,11 +667,7 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, 
   m_acCUMvField[0].clearMvField();
   m_acCUMvField[1].clearMvField();
 
-#if TILES
   if(m_pcPic->getPicSym()->getInverseCUOrderMap(getAddr())*m_pcPic->getNumPartInCU()+m_uiAbsIdxInLCU<getSlice()->getEntropySliceCurStartCUAddr())
-#else
-  if(getAddr()*m_pcPic->getNumPartInCU()+m_uiAbsIdxInLCU<getSlice()->getEntropySliceCurStartCUAddr()) 
-#endif
   {
     // Part of this CU contains data from an older slice. Now copy in that data.
     UInt uiMaxCuWidth=pcCU->getSlice()->getSPS()->getMaxCUWidth();
@@ -1131,7 +1101,6 @@ TComDataCU* TComDataCU::getPULeft( UInt& uiLPartUnitIdx, UInt uiCurrPartUnitIdx,
   
   uiLPartUnitIdx = g_auiRasterToZscan[ uiAbsPartIdx + uiNumPartInCUWidth - 1 ];
 
-#if TILES
 
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   if ( (bEnforceSliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrPartUnitIdx)))
@@ -1150,11 +1119,6 @@ TComDataCU* TComDataCU::getPULeft( UInt& uiLPartUnitIdx, UInt uiCurrPartUnitIdx,
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
        ))
      )
-#endif
-
-#else
-  if ((bEnforceSliceRestriction        && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiCurrPartUnitIdx)))
-    ||(bEnforceEntropySliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrPartUnitIdx))))
 #endif
   {
     return NULL;
@@ -1214,8 +1178,6 @@ TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx
     uiAPartUnitIdx = g_motionRefer[uiAPartUnitIdx];
   }
 
-#if TILES
-
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   if ( (bEnforceSliceRestriction && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcCUAbove->getSCUAddr()+uiAPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrPartUnitIdx)))
       ||
@@ -1233,11 +1195,6 @@ TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
        ))
      )
-#endif
-
-#else
-  if ((bEnforceSliceRestriction        && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcCUAbove->getSCUAddr()+uiAPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiCurrPartUnitIdx)))
-    ||(bEnforceEntropySliceRestriction && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcCUAbove->getSCUAddr()+uiAPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrPartUnitIdx))))
 #endif
   {
     return NULL;
@@ -1282,7 +1239,6 @@ TComDataCU* TComDataCU::getPUAboveLeft( UInt& uiALPartUnitIdx, UInt uiCurrPartUn
     {
       uiALPartUnitIdx = g_motionRefer[uiALPartUnitIdx];
     }
-#if TILES
   if ( (bEnforceSliceRestriction && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || 
        m_pcCUAbove->getSCUAddr()+uiALPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrPartUnitIdx)||
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
@@ -1292,10 +1248,6 @@ TComDataCU* TComDataCU::getPUAboveLeft( UInt& uiALPartUnitIdx, UInt uiCurrPartUn
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
        ))
      )
-#else
-    if ((bEnforceSliceRestriction        && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcCUAbove->getSCUAddr()+uiALPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiCurrPartUnitIdx)))
-      ||(bEnforceEntropySliceRestriction && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcCUAbove->getSCUAddr()+uiALPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrPartUnitIdx))))
-#endif
     {
       return NULL;
     }
@@ -1305,7 +1257,6 @@ TComDataCU* TComDataCU::getPUAboveLeft( UInt& uiALPartUnitIdx, UInt uiCurrPartUn
   if ( !RasterAddress::isZeroRow( uiAbsPartIdx, uiNumPartInCUWidth ) )
   {
     uiALPartUnitIdx = g_auiRasterToZscan[ uiAbsPartIdx - 1 ];
-#if TILES
   if ( (bEnforceSliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || 
        m_pcCULeft->getSCUAddr()+uiALPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrPartUnitIdx)||
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
@@ -1315,10 +1266,6 @@ TComDataCU* TComDataCU::getPUAboveLeft( UInt& uiALPartUnitIdx, UInt uiCurrPartUn
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
        ))
      )
-#else
-    if ((bEnforceSliceRestriction        && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiALPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiCurrPartUnitIdx)))
-      ||(bEnforceEntropySliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiALPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrPartUnitIdx))))
-#endif
     {
       return NULL;
     }
@@ -1330,7 +1277,6 @@ TComDataCU* TComDataCU::getPUAboveLeft( UInt& uiALPartUnitIdx, UInt uiCurrPartUn
   {
     uiALPartUnitIdx = g_motionRefer[uiALPartUnitIdx];
   }
-#if TILES
   if ( (bEnforceSliceRestriction && (m_pcCUAboveLeft==NULL || m_pcCUAboveLeft->getSlice()==NULL || 
        m_pcCUAboveLeft->getSCUAddr()+uiALPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrPartUnitIdx)||
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAboveLeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
@@ -1340,10 +1286,6 @@ TComDataCU* TComDataCU::getPUAboveLeft( UInt& uiALPartUnitIdx, UInt uiCurrPartUn
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAboveLeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
        ))
      )
-#else
-  if ((bEnforceSliceRestriction        && (m_pcCUAboveLeft==NULL || m_pcCUAboveLeft->getSlice()==NULL || m_pcCUAboveLeft->getSCUAddr()+uiALPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiCurrPartUnitIdx)))
-    ||(bEnforceEntropySliceRestriction && (m_pcCUAboveLeft==NULL || m_pcCUAboveLeft->getSlice()==NULL || m_pcCUAboveLeft->getSCUAddr()+uiALPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrPartUnitIdx))))
-#endif
   {
     return NULL;
   }
@@ -1399,7 +1341,6 @@ TComDataCU* TComDataCU::getPUAboveRight( UInt& uiARPartUnitIdx, UInt uiCurrPartU
       uiARPartUnitIdx = g_motionRefer[uiARPartUnitIdx];
     }
 
-#if TILES
   if ( (bEnforceSliceRestriction && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || 
        m_pcCUAbove->getSCUAddr()+uiARPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrPartUnitIdx)||
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
@@ -1409,10 +1350,6 @@ TComDataCU* TComDataCU::getPUAboveRight( UInt& uiARPartUnitIdx, UInt uiCurrPartU
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
        ))
      )
-#else
-    if ((bEnforceSliceRestriction        && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcCUAbove->getSCUAddr()+uiARPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiCurrPartUnitIdx)))
-      ||(bEnforceEntropySliceRestriction && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcCUAbove->getSCUAddr()+uiARPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrPartUnitIdx))))
-#endif
     {
       return NULL;
     }
@@ -1430,7 +1367,6 @@ TComDataCU* TComDataCU::getPUAboveRight( UInt& uiARPartUnitIdx, UInt uiCurrPartU
   {
     uiARPartUnitIdx = g_motionRefer[uiARPartUnitIdx];
   }
-#if TILES
   if ( (bEnforceSliceRestriction && (m_pcCUAboveRight==NULL || m_pcCUAboveRight->getSlice()==NULL ||
        m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAboveRight->getAddr()) > m_pcPic->getPicSym()->getInverseCUOrderMap( getAddr()) ||
        m_pcCUAboveRight->getSCUAddr()+uiARPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrPartUnitIdx)||
@@ -1442,10 +1378,6 @@ TComDataCU* TComDataCU::getPUAboveRight( UInt& uiARPartUnitIdx, UInt uiCurrPartU
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAboveRight->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
        ))
      )
-#else
-  if ((bEnforceSliceRestriction        && (m_pcCUAboveRight==NULL || m_pcCUAboveRight->getSlice()==NULL || m_pcCUAboveRight->getSCUAddr()+uiARPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiCurrPartUnitIdx)))
-    ||(bEnforceEntropySliceRestriction && (m_pcCUAboveRight==NULL || m_pcCUAboveRight->getSlice()==NULL || m_pcCUAboveRight->getSCUAddr()+uiARPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrPartUnitIdx))))
-#endif
   {
     return NULL;
   }
@@ -1496,7 +1428,6 @@ TComDataCU* TComDataCU::getPUBelowLeft( UInt& uiBLPartUnitIdx, UInt uiCurrPartUn
       return NULL;
     }
     uiBLPartUnitIdx = g_auiRasterToZscan[ uiAbsPartIdxLB + uiNumPartInCUWidth*2 - 1 ];
-#if TILES
   if ( (bEnforceSliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || 
        m_pcCULeft->getSCUAddr()+uiBLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrPartUnitIdx)||
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
@@ -1506,10 +1437,6 @@ TComDataCU* TComDataCU::getPUBelowLeft( UInt& uiBLPartUnitIdx, UInt uiCurrPartUn
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
        ))
      )
-#else
-    if ((bEnforceSliceRestriction        && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiBLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiCurrPartUnitIdx)))
-      ||(bEnforceEntropySliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiBLPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrPartUnitIdx))))
-#endif
     {
       return NULL;
     }
@@ -1564,7 +1491,6 @@ TComDataCU* TComDataCU::getPUBelowLeftAdi(UInt& uiBLPartUnitIdx, UInt uiPuHeight
       return NULL;
     }
     uiBLPartUnitIdx = g_auiRasterToZscan[ uiAbsPartIdxLB + (1+uiPartUnitOffset) * uiNumPartInCUWidth - 1 ];
-#if TILES
   if ( (bEnforceSliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || 
        m_pcCULeft->getSCUAddr()+uiBLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrPartUnitIdx)||
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
@@ -1574,10 +1500,6 @@ TComDataCU* TComDataCU::getPUBelowLeftAdi(UInt& uiBLPartUnitIdx, UInt uiPuHeight
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
        ))
      )
-#else
-    if ((bEnforceSliceRestriction        && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiBLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiCurrPartUnitIdx)))
-      ||(bEnforceEntropySliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiBLPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrPartUnitIdx))))
-#endif
     {
       return NULL;
     }
@@ -1633,7 +1555,6 @@ TComDataCU* TComDataCU::getPUAboveRightAdi(UInt&  uiARPartUnitIdx, UInt uiPuWidt
       return NULL;
     }
     uiARPartUnitIdx = g_auiRasterToZscan[ uiAbsPartIdxRT + m_pcPic->getNumPartInCU() - uiNumPartInCUWidth + uiPartUnitOffset ];
-#if TILES
   if ( (bEnforceSliceRestriction && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || 
        m_pcCUAbove->getSCUAddr()+uiARPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrPartUnitIdx)||
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
@@ -1643,10 +1564,6 @@ TComDataCU* TComDataCU::getPUAboveRightAdi(UInt&  uiARPartUnitIdx, UInt uiPuWidt
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
        ))
      )
-#else
-    if ((bEnforceSliceRestriction && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcCUAbove->getSCUAddr()+uiARPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrPartUnitIdx)))
-      ||(bEnforceEntropySliceRestriction && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || m_pcCUAbove->getSCUAddr()+uiARPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiCurrPartUnitIdx))))
-#endif
     {
       return NULL;
     }
@@ -1660,7 +1577,6 @@ TComDataCU* TComDataCU::getPUAboveRightAdi(UInt&  uiARPartUnitIdx, UInt uiPuWidt
   }
   
   uiARPartUnitIdx = g_auiRasterToZscan[ m_pcPic->getNumPartInCU() - uiNumPartInCUWidth + uiPartUnitOffset-1 ];
-#if TILES
   if ( (bEnforceSliceRestriction && (m_pcCUAboveRight==NULL || m_pcCUAboveRight->getSlice()==NULL ||
        m_pcPic->getPicSym()->getInverseCUOrderMap( m_pcCUAboveRight->getAddr()) > m_pcPic->getPicSym()->getInverseCUOrderMap( getAddr()) ||
        m_pcCUAboveRight->getSCUAddr()+uiARPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrPartUnitIdx)||
@@ -1672,9 +1588,6 @@ TComDataCU* TComDataCU::getPUAboveRightAdi(UInt&  uiARPartUnitIdx, UInt uiPuWidt
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAboveRight->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
        ))
      )
-#else
-  if (bEnforceSliceRestriction && (m_pcCUAboveRight==NULL || m_pcCUAboveRight->getSlice()==NULL || m_pcCUAboveRight->getSCUAddr()+uiARPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrPartUnitIdx)))
-#endif
   {
     return NULL;
   }
@@ -1717,7 +1630,6 @@ TComDataCU* TComDataCU::getQpMinCuLeft( UInt& uiLPartUnitIdx, UInt uiCurrAbsIdxI
 
   uiLPartUnitIdx = g_auiRasterToZscan[ uiAbsRorderQpMinCUIdx + uiNumPartInCUWidth - uiNumPartInQpMinCUWidth ];
 
-#if TILES
   if ( (bEnforceSliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || 
        m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiAbsZorderQpMinCUIdx)||
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
@@ -1727,10 +1639,6 @@ TComDataCU* TComDataCU::getQpMinCuLeft( UInt& uiLPartUnitIdx, UInt uiCurrAbsIdxI
        (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
        ))
      )
-#else
-  if ((bEnforceSliceRestriction        && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiAbsZorderQpMinCUIdx)))
-    ||(bEnforceEntropySliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiAbsZorderQpMinCUIdx))))
-#endif
   {
     return NULL;
   }
@@ -4242,12 +4150,10 @@ Void TComDataCU::getPixOffset(UInt uiTrMode,  UInt ui, UInt uiAbsPartIdx, UInt u
 }
 #endif
 
-#if TILES
 UInt TComDataCU::getSCUAddr()
 { 
   return getPic()->getPicSym()->getInverseCUOrderMap(m_uiCUAddr)*(1<<(m_pcSlice->getSPS()->getMaxCUDepth()<<1))+m_uiAbsIdxInLCU; 
 }
-#endif
 
 #if NONCROSS_TILE_IN_LOOP_FILTERING
 /** Set neighboring blocks availabilities for non-deblocked filtering 

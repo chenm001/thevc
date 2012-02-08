@@ -204,7 +204,6 @@ Void TAppEncTop::xInitLibCfg()
 
   m_cTEncTop.setPictureDigestEnabled(m_pictureDigestEnabled);
 
-#if TILES
   m_cTEncTop.setColumnRowInfoPresent       ( m_iColumnRowInfoPresent );
   m_cTEncTop.setUniformSpacingIdr          ( m_iUniformSpacingIdr );
   m_cTEncTop.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
@@ -232,7 +231,6 @@ Void TAppEncTop::xInitLibCfg()
     m_bLFCrossTileBoundaryFlag = true; 
   }
   m_cTEncTop.setLFCrossTileBoundaryFlag( m_bLFCrossTileBoundaryFlag );
-#endif
 #endif
   m_cTEncTop.setWaveFrontSynchro           ( m_iWaveFrontSynchro );
   m_cTEncTop.setWaveFrontFlush             ( m_iWaveFrontFlush );

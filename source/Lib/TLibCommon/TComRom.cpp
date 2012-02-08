@@ -137,15 +137,9 @@ Void initROM()
   }
 #else
 #if NSQT
-#if NSQT_TX_ORDER
   UInt uiWidth[ 4 ]  = { 16, 32, 4,  8  };
   UInt uiHeight[ 4 ] = { 4,  8,  16, 32 };
   for ( i = 0; i < 4; i++ )
-#else
-  UInt uiWidth[ 2 ]  = { 16, 32 };
-  UInt uiHeight[ 2 ] = { 4,  8  };
-  for ( i = 0; i < 2; i++ )
-#endif
   {
     UInt uiW = uiWidth[ i ];
     UInt uiH = uiHeight[ i ];
@@ -760,11 +754,7 @@ UInt g_sigCGScanNSQT[ 4 ][ 16 ] =
 #endif
 
 #if NSQT
-#if NSQT_TX_ORDER
 UInt* g_auiNonSquareSigLastScan[ 4 ];
-#else
-UInt* g_auiNonSquareSigLastScan[ 2 ];
-#endif
 #endif
 
 #if MODIFIED_LAST_XY_CODING
@@ -982,9 +972,7 @@ Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)
   pBuffZ[ c++ ] = 0;
 
   // loop
-#if NSQT_TX_ORDER
   if ( uiWidth > uiHeight )
-#endif
   {
     x=0; y=1;
     while (1)
@@ -1018,7 +1006,6 @@ Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)
         break;
     }
   }
-#if NSQT_TX_ORDER
   else
   {
     x=1; y=0;
@@ -1053,7 +1040,6 @@ Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)
         break;
     }
   }
-#endif
 }
 #endif
 #if SCALING_LIST

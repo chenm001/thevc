@@ -378,7 +378,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   WRITE_FLAG( pcPPS->getUseWP() ? 1 : 0,  "weighted_pred_flag" );   // Use of Weighting Prediction (P_SLICE)
   WRITE_CODE( pcPPS->getWPBiPredIdc(), 2, "weighted_bipred_idc" );  // Use of Weighting Bi-Prediction (B_SLICE)
 
-#if TILES
   WRITE_FLAG( pcPPS->getColumnRowInfoPresent(),           "tile_info_present_flag" );
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   WRITE_FLAG( pcPPS->getTileBehaviorControlPresentFlag(),  "tile_control_present_flag");
@@ -420,7 +419,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   }
 #endif
 
-#endif
   return;
 }
 
@@ -548,7 +546,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
     xWriteFlag( pcSPS->getAMVPMode(i) ? 1 : 0);
   }
 
-#if TILES
   WRITE_FLAG( pcSPS->getUniformSpacingIdr(),                          "uniform_spacing_flag" );
 #if !NONCROSS_TILE_IN_LOOP_FILTERING
   WRITE_FLAG( pcSPS->getTileBoundaryIndependenceIdr(),                "tile_boundary_independence_flag" );
@@ -576,8 +573,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
       WRITE_FLAG( pcSPS->getLFCrossTileBoundaryFlag()?1 : 0,            "loop_filter_across_tile_flag");
     }
   }
-#endif
-
 #endif
 
   // Software-only flags
@@ -639,11 +634,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     
   }
   //write slice address
-#if TILES
   Int address = (pcSlice->getPic()->getPicSym()->getCUOrderMap(lCUAddress) << reqBitsInner) + innerAddress;
-#else
-  Int address    = (lCUAddress << reqBitsInner) + innerAddress;
-#endif
   WRITE_FLAG( address==0, "first_slice_in_pic_flag" );
   if(address>0) 
   {
@@ -831,11 +822,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     iInnerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
   }
   //write slice address
-#if TILES
   int iAddress = (pcSlice->getPic()->getPicSym()->getCUOrderMap(iLCUAddress) << iReqBitsInner) + iInnerAddress;
-#else
-  int iAddress    = (iLCUAddress << iReqBitsInner) + iInnerAddress;
-#endif
   WRITE_FLAG( iAddress==0, "first_slice_in_pic_flag" );
   if(iAddress>0) 
   {
@@ -1956,11 +1943,7 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
   {
     UInt uiWidthBit  =  g_aucConvertToBit[ uiWidth ] + 2;
     UInt uiHeightBit =  g_aucConvertToBit[ uiHeight ] + 2;
-#if NSQT_TX_ORDER
     uiNonSqureScanTableIdx = ( uiWidth * uiHeight ) == 64 ? 2 * ( uiHeight > uiWidth ) : 2 * ( uiHeight > uiWidth ) + 1;
-#else
-    uiNonSqureScanTableIdx = ( uiWidth * uiHeight ) == 64 ? 0 : 1;
-#endif
     uiWidth  = 1 << ( ( uiWidthBit + uiHeightBit) >> 1 );
     uiHeight = uiWidth;
   }    

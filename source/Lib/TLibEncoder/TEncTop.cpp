@@ -303,9 +303,7 @@ Void TEncTop::init()
   xInitPPS();
   xInitRPS();
 
-#if TILES
   xInitPPSforTiles();
-#endif
 
   // initialize processing unit classes
   m_cGOPEncoder.  init( this );
@@ -575,7 +573,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setPCMBitDepthChroma (g_uiPCMBitDepthChroma);
   m_cSPS.setPCMFilterDisableFlag  ( m_bPCMFilterDisableFlag );
 
-#if TILES
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   m_cSPS.setLFCrossTileBoundaryFlag( m_bLFCrossTileBoundaryFlag );
 #endif
@@ -588,7 +585,6 @@ Void TEncTop::xInitSPS()
     m_cSPS.setColumnWidth( m_puiColumnWidth );
     m_cSPS.setRowHeight( m_puiRowHeight );
   }
-#endif
 #if SCALING_LIST
   m_cSPS.setScalingListFlag ( (m_useScalingListId == 0) ? 0 : 1 );
 #endif
@@ -791,7 +787,6 @@ Void TEncTop::selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, UInt
 
 }
 
-#if TILES
 Void  TEncTop::xInitPPSforTiles()
 {
     m_cPPS.setColumnRowInfoPresent( m_iColumnRowInfoPresent );
@@ -871,5 +866,4 @@ Void  TEncCfg::xCheckGSParameters()
     }
   }
 }
-#endif
 //! \}

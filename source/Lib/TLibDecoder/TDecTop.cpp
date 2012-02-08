@@ -452,7 +452,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       TComSlice*  pcSlice = m_apcSlicePilot;
       Bool bNextSlice     = pcSlice->isNextSlice();
 
-#if TILES
       UInt uiCummulativeTileWidth;
       UInt uiCummulativeTileHeight;
       UInt i, j, p;
@@ -619,7 +618,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         pcSlice->setSliceCurStartCUAddr(pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getSliceCurStartCUAddr()));
         pcSlice->setSliceCurEndCUAddr(pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getSliceCurEndCUAddr()));
       }
-#endif
 
       if (m_bFirstSliceInPicture) 
       {
@@ -713,9 +711,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
           if ( pcSlice->getNumRefIdx(RefPicList( 0 ) ) == pcSlice->getNumRefIdx(RefPicList( 1 ) ) )
           {
             pcSlice->setNoBackPredFlag( true );
-#if !TILES
-            Int i;
-#endif
             for ( i=0; i < pcSlice->getNumRefIdx(RefPicList( 1 ) ); i++ )
             {
               if ( pcSlice->getRefPOC(RefPicList(1), i) != pcSlice->getRefPOC(RefPicList(0), i) ) 

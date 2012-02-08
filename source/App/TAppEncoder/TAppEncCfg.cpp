@@ -137,10 +137,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   string cfg_BitstreamFile;
   string cfg_ReconFile;
   string cfg_dQPFile;
-#if TILES
   string cfg_ColumnWidth;
   string cfg_RowHeight;
-#endif
 #if SCALING_LIST
   string cfg_ScalingListFile;
 #endif
@@ -288,7 +286,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("PCMFilterDisableFlag", m_bPCMFilterDisableFlag, false)
     ("weighted_pred_flag,-wpP",     m_bUseWeightPred, false, "weighted prediction flag (P-Slices)")
     ("weighted_bipred_idc,-wpBidc", m_uiBiPredIdc,    0u,    "weighted bipred idc (B-Slices)")
-#if TILES
     ("TileInfoPresentFlag",         m_iColumnRowInfoPresent,         1,          "0: tiles parameters are NOT present in the PPS. 1: tiles parameters are present in the PPS")
     ("UniformSpacingIdc",           m_iUniformSpacingIdr,            0,          "Indicates if the column and row boundaries are distributed uniformly")
     ("TileBoundaryIndependenceIdc", m_iTileBoundaryIndependenceIdr,  1,          "Indicates if the column and row boundaries break the prediction")
@@ -309,7 +306,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if NONCROSS_TILE_IN_LOOP_FILTERING
     ("TileControlPresentFlag",       m_iTileBehaviorControlPresentFlag,         1,          "0: tiles behavior control parameters are NOT present in the PPS. 1: tiles behavior control parameters are present in the PPS")
     ("LFCrossTileBoundaryFlag",      m_bLFCrossTileBoundaryFlag,             true,          "1: cross-tile-boundary loop filtering. 0:non-cross-tile-boundary loop filtering")
-#endif
 #endif
     ("WaveFrontSynchro",            m_iWaveFrontSynchro,             0,          "0: no synchro; 1 synchro with TR; 2 TRR etc")
     ("WaveFrontFlush",              m_iWaveFrontFlush,               0,          "Flush and terminate CABAC coding for each LCU line")
@@ -365,10 +361,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   m_pchReconFile = cfg_ReconFile.empty() ? NULL : strdup(cfg_ReconFile.c_str());
   m_pchdQPFile = cfg_dQPFile.empty() ? NULL : strdup(cfg_dQPFile.c_str());
   
-#if TILES
   m_pchColumnWidth = cfg_ColumnWidth.empty() ? NULL: strdup(cfg_ColumnWidth.c_str());
   m_pchRowHeight = cfg_RowHeight.empty() ? NULL : strdup(cfg_RowHeight.c_str());
-#endif
 #if SCALING_LIST
   m_scalingListFile = cfg_ScalingListFile.empty() ? NULL : strdup(cfg_ScalingListFile.c_str());
 #endif
@@ -896,7 +890,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("PCM:%d ", ((1<<m_uiPCMLog2MinSize) <= m_uiMaxCUWidth)? 1 : 0);
   printf("WPP:%d ", (Int)m_bUseWeightPred);
   printf("WPB:%d ", m_uiBiPredIdc);
-#if TILES 
   printf("TileBoundaryIndependence:%d ", m_iTileBoundaryIndependenceIdr ); 
 #if TILES_DECODER
 #if TILES_LOW_LATENCY_CABAC_INI
@@ -944,7 +937,6 @@ Void TAppEncCfg::xPrintParameter()
       m_iTileMarkerFlag = 0;
     }
   }
-#endif
 #endif
 #endif
   printf(" WaveFrontSynchro:%d WaveFrontFlush:%d WaveFrontSubstreams:%d",

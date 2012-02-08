@@ -3880,11 +3880,7 @@ Void CAlfSlice::create(Int iSliceID, UInt uiStartAddr, UInt uiEndAddr)
   UInt uiNumSUInLCU = uiNumSUInLCUHeight * uiNumSUInLCUWidth;
 
   //start LCU and SU address
-#if TILES
   m_uiStartLCU             = m_pcPic->getPicSym()->getPicSCUAddr(uiStartAddr) / uiNumSUInLCU;
-#else
-  m_uiStartLCU             = uiStartAddr / uiNumSUInLCU;
-#endif
   m_uiFirstCUInStartLCU    = uiStartAddr % uiNumSUInLCU;
 
   //check if the star SU is out of picture boundary
@@ -3897,9 +3893,7 @@ Void CAlfSlice::create(Int iSliceID, UInt uiStartAddr, UInt uiEndAddr)
   UInt uiCurrSU    = m_uiFirstCUInStartLCU;
   Bool bMoveToNextLCU = false;
 
-#if TILES
   m_uiStartLCU             = uiStartAddr / uiNumSUInLCU;
-#endif
 
   m_uiEndLCU               = uiEndAddr   / uiNumSUInLCU;
   m_uiLastCUInEndLCU       = uiEndAddr   % uiNumSUInLCU;   
@@ -3962,11 +3956,7 @@ Void CAlfSlice::create(Int iSliceID, UInt uiStartAddr, UInt uiEndAddr)
     UInt uiStartSU = (uiAddr == m_uiStartLCU)?(m_uiFirstCUInStartLCU):(0);
     UInt uiEndSU   = (uiAddr == m_uiEndLCU  )?(m_uiLastCUInEndLCU   ):(uiNumSUInLCU -1);
 
-#if TILES
     m_pcAlfLCU[uiAddr - m_uiStartLCU].create(m_iSliceID, m_pcPic, m_pcPic->getPicSym()->getCUOrderMap(uiAddr), uiStartSU, uiEndSU, m_iSGDepth);
-#else
-    m_pcAlfLCU[uiAddr - m_uiStartLCU].create(m_iSliceID, m_pcPic, uiAddr, uiStartSU, uiEndSU, m_iSGDepth);
-#endif
   }
 
 

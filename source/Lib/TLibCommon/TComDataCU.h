@@ -77,9 +77,7 @@ enum NDBFBlockBorderTag
 /// Non-deblocking filter processing block information
 struct NDBFBlockInfo
 {
-#if TILES
   Int   tileID;   //!< tile ID
-#endif
   Int   sliceID;  //!< slice ID
   UInt  startSU;  //!< starting SU z-scan address in LCU
   UInt  endSU;    //!< ending SU z-scan address in LCU
@@ -91,11 +89,7 @@ struct NDBFBlockInfo
   UInt  height;   //!< number of pixels in height
   Bool  isBorderAvailable[NUM_SGU_BORDER];  //!< the border availabilities
 
-#if TILES
   NDBFBlockInfo():tileID(0), sliceID(0), startSU(0), endSU(0) {} //!< constructor
-#else
-  NDBFBlockInfo():sliceID(0), startSU(0), endSU(0) {} //!< constructor
-#endif
   const NDBFBlockInfo& operator= (const NDBFBlockInfo& src);  //!< "=" operator
 };
 
@@ -272,11 +266,7 @@ public:
   TComSlice*    getSlice              ()                        { return m_pcSlice;         }
   UInt&         getAddr               ()                        { return m_uiCUAddr;        }
   UInt&         getZorderIdxInCU      ()                        { return m_uiAbsIdxInLCU; }
-#if TILES
   UInt          getSCUAddr            ();
-#else
-  UInt          getSCUAddr            ()                        { return m_uiCUAddr*(1<<(m_pcSlice->getSPS()->getMaxCUDepth()<<1))+m_uiAbsIdxInLCU;}
-#endif
   UInt          getCUPelX             ()                        { return m_uiCUPelX;        }
   UInt          getCUPelY             ()                        { return m_uiCUPelY;        }
   TComPattern*  getPattern            ()                        { return m_pcPattern;       }

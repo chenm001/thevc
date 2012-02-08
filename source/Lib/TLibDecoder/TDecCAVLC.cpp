@@ -378,7 +378,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   pcPPS->setWPBiPredIdc( uiCode );
   printf("TDecCavlc::parsePPS():\tm_bUseWeightPred=%d\tm_uiBiPredIdc=%d\n", pcPPS->getUseWP(), pcPPS->getWPBiPredIdc());
 
-#if TILES
   READ_FLAG ( uiCode, "tile_info_present_flag" );
   pcPPS->setColumnRowInfoPresent(uiCode);
 #if NONCROSS_TILE_IN_LOOP_FILTERING
@@ -445,7 +444,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   }
 #endif
 
-#endif
   return;
 }
 
@@ -590,7 +588,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     pcSPS->setAMVPMode( i, (AMVP_MODE)uiCode );
   }
 
-#if TILES
   READ_FLAG ( uiCode, "uniform_spacing_flag" ); 
   pcSPS->setUniformSpacingIdr( uiCode );
 #if !NONCROSS_TILE_IN_LOOP_FILTERING
@@ -635,8 +632,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
       pcSPS->setLFCrossTileBoundaryFlag( (uiCode==1)?true:false);
     }
   }
-#endif
-
 #endif
 
   // Software-only flags

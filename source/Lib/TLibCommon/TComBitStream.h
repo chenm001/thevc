@@ -213,7 +213,6 @@ public:
   }
 #endif // OL_FLUSH && !OL_FLUSH_ALIGN
 
-#if TILES
   Void        readOutTrailingBits ();
 #if TILES_DECODER
   UChar getHeldBits  ()          { return m_held_bits;          }
@@ -223,7 +222,6 @@ public:
   UInt  getTileMarkerLocation        ( UInt i)               { return m_puiTileMarkerLocation[i]    ; }
   Void  setTileMarkerLocation        ( UInt i, UInt uiLOC )  { m_puiTileMarkerLocation[i] = uiLOC   ; }
   UInt  getByteLocation              ( )                     { return m_fifo_idx                    ; }
-#endif
 #endif
 
   // Peek at bits in word-storage. Used in determining if we have completed reading of current bitstream and therefore slice in LCEC.

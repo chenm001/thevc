@@ -255,7 +255,6 @@ Void TEncSbac::resetEntropy           ()
   return;
 }
 
-#if TILES
 /** The function does the followng: Write out terminate bit. Flush CABAC. Intialize CABAC states. Start CABAC.
  */
 Void TEncSbac::updateContextTables( SliceType eSliceType, Int iQp, Bool bExecuteFinish )
@@ -389,7 +388,6 @@ Void TEncSbac::writeTileMarker( UInt uiTileIdx, UInt uiBitsUsed )
     m_pcBinIf->encodeBinEP ( (uiTileIdx & (1 << iShift)) >> iShift );
   }
 }
-#endif
 #endif
 
 void TEncSbac::codeSEI(const SEI&)
@@ -1414,11 +1412,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   {
     UInt uiWidthBit  =  g_aucConvertToBit[ uiWidth ] + 2;
     UInt uiHeightBit =  g_aucConvertToBit[ uiHeight ] + 2;
-#if NSQT_TX_ORDER
     uiNonSqureScanTableIdx = ( uiWidth * uiHeight ) == 64 ? 2 * ( uiHeight > uiWidth ) : 2 * ( uiHeight > uiWidth ) + 1;
-#else
-    uiNonSqureScanTableIdx = ( uiWidth * uiHeight ) == 64 ? 0 : 1;
-#endif
     uiWidth  = 1 << ( ( uiWidthBit + uiHeightBit ) >> 1 );
     uiHeight = uiWidth;
   }    

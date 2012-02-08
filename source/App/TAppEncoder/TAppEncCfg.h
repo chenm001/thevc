@@ -183,7 +183,6 @@ protected:
 
   Int       m_iSliceGranularity;///< 0: Slices always end at LCU borders. 1-3: slices may end at a depth of 1-3 below LCU level.
   Bool m_bLFCrossSliceBoundaryFlag;  ///< 0: Cross-slice-boundary in-loop filtering 1: non-cross-slice-boundary in-loop filtering
-#if TILES
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   Int  m_iTileBehaviorControlPresentFlag; //!< 1: tile behavior control parameters are in PPS 0: tile behavior control parameters are not in PPS
   Bool m_bLFCrossTileBoundaryFlag;  //!< 1: Cross-tile-boundary in-loop filtering 0: non-cross-tile-boundary in-loop filtering
@@ -200,7 +199,6 @@ protected:
   Int       m_iTileMarkerFlag;              //< enable(1)/disable(0) transmitssion of light weight tile marker
   Int       m_iMaxTileMarkerEntryPoints;    //< maximum number of tile markers allowed in a slice (controls degree of parallelism)
   Double    m_dMaxTileMarkerOffset;         //< Calculated offset. Light weight tile markers will be transmitted for TileIdx= Offset, 2*Offset, 3*Offset ... 
-#endif
 #endif
 
   Int       m_iWaveFrontSynchro; //< 0: no WPP. >= 1: WPP is enabled, the "Top right" from which inheritance occurs is this LCU offset in the line above the current.

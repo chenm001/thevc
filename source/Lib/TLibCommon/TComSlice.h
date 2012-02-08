@@ -128,7 +128,6 @@ private:
   Bool        m_bLFCrossSliceBoundaryFlag;
   Bool        m_bUseSAO; 
 
-#if TILES
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   Bool     m_bLFCrossTileBoundaryFlag;
 #endif
@@ -138,7 +137,6 @@ private:
   UInt*    m_puiColumnWidth;
   Int      m_iNumRowsMinus1;
   UInt*    m_puiRowHeight;
-#endif
   
   Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
 
@@ -286,7 +284,6 @@ public:
   Void      setPCMFilterDisableFlag     ( Bool   bValue  )    { m_bPCMFilterDisableFlag = bValue; }
   Bool      getPCMFilterDisableFlag     ()                    { return m_bPCMFilterDisableFlag;   } 
 
-#if TILES
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   Void    setLFCrossTileBoundaryFlag               ( Bool   bValue  )    { m_bLFCrossTileBoundaryFlag = bValue; }
   Bool    getLFCrossTileBoundaryFlag               ()                    { return m_bLFCrossTileBoundaryFlag;   }
@@ -325,7 +322,6 @@ public:
     }
   }
   UInt     getRowHeight           (UInt rowIdx)    { return *( m_puiRowHeight + rowIdx ); }
-#endif
 #if SCALING_LIST
   Bool getScalingListFlag       ()         { return m_scalingListEnabledFlag;     }
   Void setScalingListFlag       ( Bool b ) { m_scalingListEnabledFlag  = b;       }
@@ -489,7 +485,6 @@ private:
   Bool        m_bUseWeightPred;           // Use of Weighting Prediction (P_SLICE)
   UInt        m_uiBiPredIdc;              // Use of Weighting Bi-Prediction (B_SLICE)
 
-#if TILES
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   Int      m_iTileBehaviorControlPresentFlag;
   Bool     m_bLFCrossTileBoundaryFlag;
@@ -501,7 +496,6 @@ private:
   UInt*    m_puiColumnWidth;
   Int      m_iNumRowsMinus1;
   UInt*    m_puiRowHeight;
-#endif
   
   Int      m_iEntropyCodingMode; // !!! in PPS now, but also remains in slice header!
   Int      m_iEntropyCodingSynchro;
@@ -566,7 +560,6 @@ public:
   Void setUseWP                     ( Bool b )  { m_bUseWeightPred = b;     }
   Void setWPBiPredIdc               ( UInt u )  { m_uiBiPredIdc = u;        }
 
-#if TILES
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   Void    setTileBehaviorControlPresentFlag        ( Int i )             { m_iTileBehaviorControlPresentFlag = i;    }
   Int     getTileBehaviorControlPresentFlag        ()                    { return m_iTileBehaviorControlPresentFlag; }
@@ -609,7 +602,6 @@ public:
     }
   }
   UInt     getRowHeight           (UInt rowIdx)    { return *( m_puiRowHeight + rowIdx ); }
-#endif
   Void     setEntropyCodingMode(Int iEntropyCodingMode)       { m_iEntropyCodingMode = iEntropyCodingMode; }
   Int      getEntropyCodingMode()                             { return m_iEntropyCodingMode; }
   Void     setEntropyCodingSynchro(Int iEntropyCodingSynchro) { m_iEntropyCodingSynchro = iEntropyCodingSynchro; }

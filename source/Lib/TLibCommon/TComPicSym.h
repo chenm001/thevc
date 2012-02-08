@@ -51,7 +51,6 @@
 // Class definition
 // ====================================================================================================================
 
-#if TILES
 class TComTile
 {
 private:
@@ -76,7 +75,6 @@ public:
   Void      setFirstCUAddr       ( UInt i )            { m_uiFirstCUAddr = i; }
   UInt      getFirstCUAddr       ()                    { return m_uiFirstCUAddr; }
 };
-#endif
 
 /// picture symbol class
 class TComPicSym
@@ -100,7 +98,6 @@ private:
   UInt          m_uiNumAllocatedSlice;
   TComDataCU**  m_apcTComDataCU;        ///< array of CU data
   
-#if TILES
   Int           m_iTileBoundaryIndependenceIdr;
   Int           m_iNumColumnsMinus1; 
   Int           m_iNumRowsMinus1;
@@ -110,7 +107,6 @@ private:
   UInt*         m_puiInverseCUOrderMap;
 #if TILES_DECODER
   UInt          m_uiBitsUsedByTileIdx;
-#endif
 #endif
 
 public:
@@ -134,7 +130,6 @@ public:
   UInt        getNumPartInWidth()       { return m_uiNumPartInWidth;            }
   UInt        getNumPartInHeight()      { return m_uiNumPartInHeight;           }
 
-#if TILES
   Void         setTileBoundaryIndependenceIdr( Int i )               { m_iTileBoundaryIndependenceIdr = i; }
   Int          getTileBoundaryIndependenceIdr()                      { return m_iTileBoundaryIndependenceIdr; }
   Void         setNumColumnsMinus1( Int i )                          { m_iNumColumnsMinus1 = i; }
@@ -156,7 +151,6 @@ public:
 #if TILES_DECODER
   UInt         getBitsUsedByTileIdx()                                { return m_uiBitsUsedByTileIdx; }
 #endif
-#endif  
 };// END CLASS DEFINITION TComPicSym
 
 //! \}

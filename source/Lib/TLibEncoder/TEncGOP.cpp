@@ -403,7 +403,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       }
       UInt uiRealEndAddress = uiExternalAddress*pcPic->getNumPartInCU()+uiInternalAddress;
 
-#if TILES
     UInt uiCummulativeTileWidth;
     UInt uiCummulativeTileHeight;
     Int  p, j;
@@ -565,10 +564,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
     }
     pcPic->getPicSym()->setCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());    
     pcPic->getPicSym()->setInverseCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());
-#else
-    // Allocate some coders, now we know how many tiles there are.
-    Int iNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
-#endif
     if (pcSlice->getPPS()->getEntropyCodingMode())
     {
       // Allocate some coders, now we know how many tiles there are.
@@ -827,13 +822,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         UInt uiDummyBoundingCUAddr;
         m_pcSliceEncoder->xDetermineStartAndBoundingCUAddr(uiDummyStartCUAddr,uiDummyBoundingCUAddr,pcPic,true);
 
-#if TILES
         uiInternalAddress = pcPic->getPicSym()->getPicSCUAddr(pcSlice->getEntropySliceCurEndCUAddr()-1) % pcPic->getNumPartInCU();
         uiExternalAddress = pcPic->getPicSym()->getPicSCUAddr(pcSlice->getEntropySliceCurEndCUAddr()-1) / pcPic->getNumPartInCU();
-#else
-        uiInternalAddress = (pcSlice->getEntropySliceCurEndCUAddr()-1) % pcPic->getNumPartInCU();
-        uiExternalAddress = (pcSlice->getEntropySliceCurEndCUAddr()-1) / pcPic->getNumPartInCU();
-#endif
         uiPosX = ( uiExternalAddress % pcPic->getFrameWidthInCU() ) * g_uiMaxCUWidth+ g_auiRasterToPelX[ g_auiZscanToRaster[uiInternalAddress] ];
         uiPosY = ( uiExternalAddress / pcPic->getFrameWidthInCU() ) * g_uiMaxCUHeight+ g_auiRasterToPelY[ g_auiZscanToRaster[uiInternalAddress] ];
         uiWidth = pcSlice->getSPS()->getWidth();
@@ -848,17 +838,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         if(uiInternalAddress==pcPic->getNumPartInCU())
         {
           uiInternalAddress = 0;
-#if TILES
           uiExternalAddress = pcPic->getPicSym()->getCUOrderMap(pcPic->getPicSym()->getInverseCUOrderMap(uiExternalAddress)+1);
-#else
-          uiExternalAddress++;
-#endif
         }
-#if TILES
         UInt uiEndAddress = pcPic->getPicSym()->getPicSCUEncOrder(uiExternalAddress*pcPic->getNumPartInCU()+uiInternalAddress);
-#else
-        UInt uiEndAddress = uiExternalAddress*pcPic->getNumPartInCU()+uiInternalAddress;
-#endif
         if(uiEndAddress<=pcSlice->getEntropySliceCurStartCUAddr()) {
           UInt uiBoundingAddrSlice, uiBoundingAddrEntropySlice;
           uiBoundingAddrSlice        = m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx];          
@@ -1066,7 +1048,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             m_pcEntropyCoder->encodeTerminatingBit( 1 );
             m_pcEntropyCoder->encodeSliceFinish();
             pcSubstreamsOut[ui].write( 1, 1 ); // stop bit.
-#if TILES
             // Byte alignment is necessary between tiles when tiles are independent.
             uiTotalCodedSize += pcSubstreamsOut[ui].getNumberOfWrittenBits();
 
@@ -1092,7 +1073,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
                 pcSlice->setTileLocation(ui/uiNumSubstreamsPerTile, pcSlice->getTileOffstForMultES()+(uiTotalCodedSize>>3));
 #endif
             }
-#endif
             if (ui+1 < pcSlice->getPPS()->getNumSubstreams())
               puiSubstreamSizes[ui] = pcSubstreamsOut[ui].getNumberOfWrittenBits();
           }

@@ -286,7 +286,7 @@ void TComOutputBitstream::insertAt(const TComOutputBitstream& src, unsigned pos)
   vector<uint8_t>::iterator at = this->m_fifo->begin() + pos;
   this->m_fifo->insert(at, src.m_fifo->begin(), src.m_fifo->end());
 }
-#if TILES
+
 Void TComInputBitstream::readOutTrailingBits ()
 {
   UInt uiBits = 0;
@@ -312,7 +312,6 @@ TComOutputBitstream& TComOutputBitstream::operator= (const TComOutputBitstream& 
 
   return *this;
 }
-#endif
 #endif
 
 /**

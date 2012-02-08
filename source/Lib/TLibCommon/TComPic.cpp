@@ -192,11 +192,7 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
     endLCU              = endAddr   / maxNumSUInLCU;
     lastCUInEndLCU      = endAddr   % maxNumSUInLCU;   
 
-#if TILES
     uiAddr = m_apcPicSym->getCUOrderMap(startLCU);
-#else
-    uiAddr = startLCU;
-#endif
 
     LCUX      = getCU(uiAddr)->getCUPelX();
     LCUY      = getCU(uiAddr)->getCUPelY();
@@ -259,21 +255,13 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
       startSU = (i == startLCU)?(firstCUInStartLCU):(0);
       endSU   = (i == endLCU  )?(lastCUInEndLCU   ):(maxNumSUInLCU -1);
 
-#if TILES
       uiAddr = m_apcPicSym->getCUOrderMap(i);
       Int iTileID= m_apcPicSym->getTileIdxMap(uiAddr);
-#else
-      uiAddr = i;
-#endif
 
       TComDataCU* pcCU = getCU(uiAddr);
       m_vSliceCUDataLink[s].push_back(pcCU);
 
-#if TILES
       createNonDBFilterInfoLCU(iTileID, s, pcCU, startSU, endSU, m_sliceGranularityForNDBFilter, picWidth, picHeight);
-#else
-      createNonDBFilterInfoLCU(s, pcCU, uiStartSU, uiEndSU, m_sliceGranularityForNDBFilter, picWidth, picHeight);
-#endif
     }
   }
 
@@ -345,11 +333,7 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
  * \param picWidth picture width
  * \param picHeight picture height
  */
-#if TILES
 Void TComPic::createNonDBFilterInfoLCU(Int tileID, Int sliceID, TComDataCU* pcCU, UInt startSU, UInt endSU, Int sliceGranularyDepth, UInt picWidth, UInt picHeight)
-#else
-Void TComPic::createNonDBFilterInfoLCU(Int sliceID, TComDataCU* pcCU, UInt startSU, UInt endSU, Int sliceGranularyDepth, UInt picWidth, UInt picHeight)
-#endif
 {
   UInt LCUX          = pcCU->getCUPelX();
   UInt LCUY          = pcCU->getCUPelY();
@@ -386,9 +370,7 @@ Void TComPic::createNonDBFilterInfoLCU(Int sliceID, TComDataCU* pcCU, UInt start
 
     NDBFBlockInfo NDBFBlock;
 
-#if TILES
     NDBFBlock.tileID  = tileID;
-#endif
     NDBFBlock.sliceID = sliceID;
     NDBFBlock.posY    = TPelY;
     NDBFBlock.posX    = LPelX;
