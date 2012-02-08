@@ -384,9 +384,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 
 #endif
 
-#if !DISABLE_CAVLC
-      if ( m_apcSlicePilot->getSymbolMode() )
-#endif
       {
         Int numBitsForByteAlignment = nalu.m_Bitstream->getNumBitsUntilByteAligned();
         if ( numBitsForByteAlignment > 0 )

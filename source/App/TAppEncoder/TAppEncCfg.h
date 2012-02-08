@@ -152,11 +152,6 @@ protected:
   Int       m_iLoopFilterBetaOffset;                          ///< beta offset for deblocking filter
 #endif
 
-#if !DISABLE_CAVLC
-  // coding tools (entropy coder)
-  Int       m_iSymbolMode;                                    ///< entropy coder mode, 0 = VLC, 1 = CABAC
-#endif
-  
   // coding tools (inter - merge motion partitions)
   Bool      m_bUseMRG;                                        ///< SOPH: flag for using motion partition Merge Mode
   

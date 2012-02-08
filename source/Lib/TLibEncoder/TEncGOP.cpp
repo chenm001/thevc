@@ -933,9 +933,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
 
         // is it needed?
-#if !DISABLE_CAVLC
-        if ( pcSlice->getSymbolMode() )
-#endif
         {
 #if TILES_DECODER
 #if TILES_LOW_LATENCY_CABAC_INI
@@ -967,9 +964,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         {
           // set entropy coder for writing
           m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
-#if !DISABLE_CAVLC
-          if ( pcSlice->getSymbolMode() )
-#endif
           {
             for ( UInt ui = 0 ; ui < pcSlice->getPPS()->getNumSubstreams() ; ui++ )
             {
@@ -979,12 +973,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             pcSbacCoders[0].load(m_pcSbacCoder);
             m_pcEntropyCoder->setEntropyCoder ( &pcSbacCoders[0], pcSlice );  //ALF is written in substream #0 with CABAC coder #0 (see ALF param encoding below)
           }
-#if !DISABLE_CAVLC
-          else
-          {
-            m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
-          }
-#endif
           m_pcEntropyCoder->resetEntropy    ();
 #if TILES_DECODER
           // File writing
@@ -1007,9 +995,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
 #endif
           // for now, override the TILES_DECODER setting in order to write substreams.
-#if !DISABLE_CAVLC
-          if (pcSlice->getSymbolMode())
-#endif
             m_pcEntropyCoder->setBitstream    ( &pcSubstreamsOut[0] );
 
 #if !G220_PURE_VLC_SAO_ALF
@@ -1022,22 +1007,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
               {
                 m_pcEntropyCoder->setAlfCtrl( true );
                 m_pcEntropyCoder->setMaxAlfCtrlDepth(cAlfCUCtrlParam.alf_max_depth);
-#if !DISABLE_CAVLC
-                if (pcSlice->getSymbolMode() == 0)
-                {
-                  m_pcCavlcCoder->setAlfCtrl(true);
-                  m_pcCavlcCoder->setMaxAlfCtrlDepth(cAlfCUCtrlParam.alf_max_depth); 
-                }
-#endif
               }
               else
               {
                 m_pcEntropyCoder->setAlfCtrl(false);
               }
               m_pcEntropyCoder->encodeAlfCtrlParam(cAlfCUCtrlParam, m_pcAdaptiveLoopFilter->getNumCUsInPic());
-#if !DISABLE_CAVLC
-              if (pcSlice->getSymbolMode())
-#endif
               {
                 m_pcEntropyCoder->encodeFinish(0);
                 pcSubstreamsOut[0].writeAlignOne();// for now, override the TILES_DECODER setting in order to write substreams (as done above).
@@ -1051,9 +1026,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
         pcSlice->setFinalized(true);
 
-#if !DISABLE_CAVLC
-        if (pcSlice->getSymbolMode())
-#endif
           m_pcSbacCoder->load( &pcSbacCoders[0] );
 
 #if TILES_DECODER
@@ -1075,9 +1047,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcSliceEncoder->encodeSlice(pcPic, pcSubstreamsOut);
 #endif // TILES_DECODER
 
-#if !DISABLE_CAVLC
-        if ( pcSlice->getSymbolMode() )
-#endif
         {
           // Construct the final bitstream by flushing and concatenating substreams.
           // The final bitstream is either nalu.m_Bitstream or pcBitstreamRedirect;
@@ -1268,18 +1237,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         if (!bNALUAlignedWrittenToList)
         {
 #endif
-#if !DISABLE_CAVLC
-        if (pcSlice->getSymbolMode())
-#endif
         {
           nalu.m_Bitstream.writeAlignZero();
         }
-#if !DISABLE_CAVLC
-        else
-        {
-          writeRBSPTrailingBits(nalu.m_Bitstream);
-        }
-#endif
         accessUnit.push_back(new NALUnitEBSP(nalu));
 #if TILES_DECODER
         uiOneBitstreamPerSliceLength += nalu.m_Bitstream.getNumberOfWrittenBits() + 24; // length of bitstream after byte-alignment + 3 byte startcode 0x000001
@@ -1304,18 +1264,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if G220_PURE_VLC_SAO_ALF
             m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
 #else
-#if !DISABLE_CAVLC
-            if ( pcSlice->getSymbolMode() )
-#endif
             {
               m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcSlice );
             }
-#if !DISABLE_CAVLC
-            else
-            {
-              m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
-            }
-#endif
 #endif
 
             if ( pcSlice->getSPS()->getUseSAO() )
@@ -1571,11 +1522,7 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
 
   if(cAPS.getSaoEnabled() || cAPS.getAlfEnabled())
   {
-#if DISABLE_CAVLC
     cAPS.setCABACForAPS( true );
-#else
-    cAPS.setCABACForAPS(pcSlice->getSymbolMode() ==1);
-#endif
     if(cAPS.getCABACForAPS())
     {
       cAPS.setCABACinitIDC(pcSlice->getSliceType());

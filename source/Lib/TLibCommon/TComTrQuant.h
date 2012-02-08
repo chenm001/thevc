@@ -73,32 +73,6 @@ typedef struct
   Int scanNonZigzag[2];         ///< flag for non zigzag scan
 } estBitsSbacStruct;
 
-#if !DISABLE_CAVLC
-typedef struct
-{
-  Int level[4];
-  Int pre_level;
-  Int coeff_ctr;
-  Int levelDouble;
-  Double errLevel[4];
-  Int noLevels;
-  Int levelQ;
-  Bool lowerInt;
-  UInt quantInd;
-  Int iNextRun;
-} levelDataStruct;
-
-typedef struct
-{
-  Int run;
-  Int maxrun;
-  Int nextLev;
-  Int nexLevelVal;
-} quantLevelStruct;
-
-class TEncCavlc;
-#endif
-
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -278,12 +252,6 @@ protected:
   Bool     m_bUseAdaptQpSelect;
 #endif
 
-#if !DISABLE_CAVLC 
-  UInt     *m_uiLPTableE8;
-  UInt     *m_uiLPTableE4;
-  Int      m_iSymbolMode;
-  UInt     *m_uiLastPosVlcIndex;
-#endif
 #if SCALING_LIST
   Bool     m_scalingListEnabledFlag;
   Int      *m_quantCoef      [SCALING_LIST_NUM][SCALING_LIST_REM_NUM];             ///< array of quantization matrix coefficient 4x4
@@ -321,27 +289,6 @@ private:
                UInt        uiAbsPartIdx );
 
   // RDOQ functions
-#if !DISABLE_CAVLC
-  Int            xCodeCoeffCountBitsLast(TCoeff* scoeff, levelDataStruct* levelData, Int nTab, UInt uiNoCoeff, Int iStartLast
-                                        , Int isIntra
-                                        );
-  UInt           xCountVlcBits(UInt uiTableNumber, UInt uiCodeNumber);
-  Int            bitCountRDOQ(Int coeff, Int pos, Int nTab, Int lastCoeffFlag,Int levelMode,Int run, Int maxrun, Int* vlc_adaptive, Int N, 
-                              UInt uiTr1, Int iSum_big_coef, Int iBlockType, TComDataCU* pcCU, const UInt **pLumaRunTr1, Int iNextRun
-                              , Int isIntra
-                              );
-  Void           xRateDistOptQuant_LCEC ( TComDataCU*                     pcCU,
-                                          Int*                            plSrcCoeff,
-                                          TCoeff*                         piDstCoeff,
-#if ADAPTIVE_QP_SELECTION
-                                          Int*&                           pArlDstCoeff, 
-#endif
-                                          UInt                            uiWidth,
-                                          UInt                            uiHeight,
-                                          UInt&                           uiAbsSum,
-                                          TextType                        eTType,
-                                          UInt                            uiAbsPartIdx );
-#endif
   
   Void           xRateDistOptQuant ( TComDataCU*                     pcCU,
                                      Int*                            plSrcCoeff,

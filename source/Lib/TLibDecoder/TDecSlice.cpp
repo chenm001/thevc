@@ -284,9 +284,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
          (iCUAddr!=0) && (iCUAddr!=rpcPic->getPicSym()->getPicSCUAddr(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr())/rpcPic->getNumPartInCU())) // !1st in frame && !1st in slice
 #endif
     {
-#if !DISABLE_CAVLC
-      if (pcSlice->getSymbolMode())
-#endif
       {
         if (pcSlice->getPPS()->getEntropyCodingSynchro())
         {
@@ -301,39 +298,16 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
           m_pcEntropyDecoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp() );
         }
       }
-#if !DISABLE_CAVLC
-      else
-      {
-        m_pcEntropyDecoder->resetEntropy( pcSlice );
-#if TILES_DECODER
-        pcBitstream->readOutTrailingBits();
-#endif
-      }
-#endif
 #if TILES_DECODER
       Bool bTileMarkerFoundFlag = false;
       TComInputBitstream *pcTmpPtr;
-#if !DISABLE_CAVLC
-      if (pcSlice->getSymbolMode()==1)
-#endif
       {
         pcTmpPtr = ppcSubstreams[uiSubStrm]; // for CABAC
       }
-#if !DISABLE_CAVLC
-      else
-      {
-        pcTmpPtr = pcBitstream;              // for VLC
-      }
-#endif
 
       for (UInt uiIdx=0; uiIdx<pcTmpPtr->getTileMarkerLocationCount(); uiIdx++)
       {
-#if DISABLE_CAVLC
         if ( pcTmpPtr->getByteLocation() == (pcTmpPtr->getTileMarkerLocation( uiIdx )+2) )
-#else
-        if ((pcSlice->getSymbolMode()==0 && pcTmpPtr->getByteLocation() == pcTmpPtr->getTileMarkerLocation( uiIdx )) ||  // VLC
-            (pcSlice->getSymbolMode()==1 && pcTmpPtr->getByteLocation() == (pcTmpPtr->getTileMarkerLocation( uiIdx )+2)) ) // CABAC, 2 bytes consumed in CABAC->start()
-#endif
         {
           bTileMarkerFoundFlag = true;
           break;

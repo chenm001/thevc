@@ -794,9 +794,6 @@ private:
 #if ADAPTIVE_QP_SELECTION
   Int         m_iSliceQpBase;
 #endif
-#if !DISABLE_CAVLC
-  Int         m_iSymbolMode;
-#endif
   Bool        m_bLoopFilterDisable;
 #if G174_DF_OFFSET
   Bool        m_loopFilterOffsetInAPS;
@@ -939,9 +936,6 @@ public:
   Int       getSliceQpBase  ()                          { return  m_iSliceQpBase;       }
 #endif
   Int       getSliceQpDelta ()                          { return  m_iSliceQpDelta;      }
-#if !DISABLE_CAVLC
-  Int       getSymbolMode   ()                          { return  m_iSymbolMode;        }
-#endif
   Bool      getLoopFilterDisable()                      { return  m_bLoopFilterDisable; }
 #if G174_DF_OFFSET
   Bool      getLoopFilterOffsetInAPS()                  { return  m_loopFilterOffsetInAPS;}
@@ -987,9 +981,6 @@ public:
   Void      setSliceQpBase      ( Int i )                       { m_iSliceQpBase      = i;      }
 #endif
   Void      setSliceQpDelta     ( Int i )                       { m_iSliceQpDelta     = i;      }
-#if !DISABLE_CAVLC
-  Void      setSymbolMode       ( Int b  )                      { m_iSymbolMode       = b;      }
-#endif
   Void      setLoopFilterDisable( Bool b )                      { m_bLoopFilterDisable= b;      }
 #if G174_DF_OFFSET
   Void      setLoopFilterOffsetInAPS( Bool b )                  { m_loopFilterOffsetInAPS = b;}

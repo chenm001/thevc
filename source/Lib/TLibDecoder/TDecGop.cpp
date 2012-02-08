@@ -141,26 +141,13 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       uiILSliceCount++;
     }
 
-#if !DISABLE_CAVLC
-    UInt iSymbolMode = pcSlice->getSymbolMode();
-    if (iSymbolMode)
-#endif
     {
       m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinCABAC );
       m_pcEntropyDecoder->setEntropyDecoder (m_pcSbacDecoder);
     }
-#if !DISABLE_CAVLC
-    else
-    {
-      m_pcEntropyDecoder->setEntropyDecoder (m_pcCavlcDecoder);
-    }
-#endif
     
     UInt uiNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
 
-#if !DISABLE_CAVLC
-    if (iSymbolMode)
-#endif
     {
       //init each couple {EntropyDecoder, Substream}
       UInt *puiSubstreamSizes = pcSlice->getSubstreamSizes();
@@ -211,13 +198,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       m_pcEntropyDecoder->setBitstream      ( ppcSubstreams[0] );
       m_pcEntropyDecoder->resetEntropy      (pcSlice);
     }
-#if !DISABLE_CAVLC
-    else
-    {
-      m_pcEntropyDecoder->setBitstream      (pcBitstream);
-      m_pcEntropyDecoder->resetEntropy      (pcSlice);
-    }
-#endif
 
     if(uiSliceStartCuAddr == uiStartCUAddr)
     {
@@ -236,9 +216,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
           vAlfCUCtrlSlices.push_back(m_cAlfCUCtrlOneSlice);
 #else
           m_pcEntropyDecoder->decodeAlfCtrlParam( cAlfCUCtrlOneSlice, m_pcAdaptiveLoopFilter->getNumCUsInPic());
-#if !DISABLE_CAVLC
-          if ( iSymbolMode )
-#endif
           {            
             Int numBitsForByteAlignment = ppcSubstreams[0]->getNumBitsUntilByteAligned();
             if ( numBitsForByteAlignment > 0 )
@@ -259,25 +236,15 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       }
     }
 
-#if !DISABLE_CAVLC
-    if (iSymbolMode)
-#endif
     {
       m_pcSbacDecoders[0].load(m_pcSbacDecoder);
     }
     m_pcSliceDecoder->decompressSlice( pcBitstream, ppcSubstreams, rpcPic, m_pcSbacDecoder, m_pcSbacDecoders);
-#if !DISABLE_CAVLC
-    if (iSymbolMode)
-#endif
     {
       m_pcEntropyDecoder->setBitstream(  ppcSubstreams[uiNumSubstreams-1] );
     }
     
-#if DISABLE_CAVLC
     if ( pcSlice->getPPS()->getEntropyCodingSynchro() )
-#else
-    if (iSymbolMode && pcSlice->getPPS()->getEntropyCodingSynchro())
-#endif
     {
       // deallocate all created substreams, including internal buffers.
       for (UInt ui = 0; ui < uiNumSubstreams; ui++)

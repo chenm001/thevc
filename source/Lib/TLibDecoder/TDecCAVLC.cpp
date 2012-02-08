@@ -1068,13 +1068,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 
   // !!!! Syntax elements not in the WD  !!!!!
   
-  if (!bEntropySlice)
-  {
-#if !DISABLE_CAVLC
-    xReadFlag ( uiCode ); rpcSlice->setSymbolMode( uiCode );
-#endif
-    
-  }
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   READ_UVLC( uiCode, "MaxNumMergeCand");
   rpcSlice->setMaxNumMergeCand(MRG_MAX_NUM_CANDS - uiCode);

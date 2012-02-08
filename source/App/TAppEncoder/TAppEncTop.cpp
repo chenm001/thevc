@@ -104,11 +104,6 @@ Void TAppEncTop::xInitLibCfg()
   
   //===== Slice ========
   
-#if !DISABLE_CAVLC
-  //====== Entropy Coding ========
-  m_cTEncTop.setSymbolMode                   ( m_iSymbolMode );
-#endif
-  
   //====== Loop/Deblock Filter ========
   m_cTEncTop.setLoopFilterDisable            ( m_bLoopFilterDisable       );
 #if G174_DF_OFFSET

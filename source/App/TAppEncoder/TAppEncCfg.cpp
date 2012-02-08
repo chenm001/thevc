@@ -241,9 +241,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("TLayerSwitchingFlag_L3,-ts3", m_abTLayerSwitchingFlag[3], false, "Switching flag for temporal layer 3")
 
   /* Entropy coding parameters */
-#if !DISABLE_CAVLC
-  ("SymbolMode,-sym", m_iSymbolMode, 1, "symbol mode (0=VLC, 1=SBAC)")
-#endif
   ("SBACRD", m_bUseSBACRD, true, "SBAC based RD estimation")
   
   /* Deblocking filter parameters */
@@ -541,9 +538,6 @@ Void TAppEncCfg::xCheckParameter()
 #if G507_FGS_ISSUE_FIX
   xConfirmPara( m_iSliceGranularity > m_iMaxCuDQPDepth, "SliceGranularity must be smaller smaller than or equal to maximum dqp depth" );
 #endif
-#if !DISABLE_CAVLC
-  xConfirmPara( m_iSymbolMode < 0 || m_iSymbolMode > 1,                                     "SymbolMode must be equal to 0 or 1" );
-#endif
   
   // max CU width and height should be power of 2
   UInt ui = m_uiMaxCUWidth;
@@ -560,14 +554,6 @@ Void TAppEncCfg::xCheckParameter()
     if( (ui & 1) == 1)
       xConfirmPara( ui != 1 , "Height should be 2^n");
   }
-  
-#if !DISABLE_CAVLC
-  // SBACRD is supported only for SBAC
-  if ( m_iSymbolMode == 0 )
-  {
-    m_bUseSBACRD = false;
-  }
-#endif
   
   Bool bVerified_GOP=false;
   Bool bError_GOP=false;
@@ -789,9 +775,6 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iWaveFrontFlush < 0, "WaveFrontFlush cannot be negative" );
   xConfirmPara( m_iWaveFrontSubstreams <= 0, "WaveFrontSubstreams must be positive" );
   xConfirmPara( m_iWaveFrontSubstreams > 1 && !m_iWaveFrontSynchro, "Must have WaveFrontSynchro > 0 in order to have WaveFrontSubstreams > 1" );
-#if !DISABLE_CAVLC
-  xConfirmPara( m_iWaveFrontSynchro > 0 && m_iSymbolMode == 0, "WaveFrontSynchro > 0 requires CABAC" );
-#endif
 
 #undef xConfirmPara
   if (check_failed)
@@ -879,24 +862,6 @@ Void TAppEncCfg::xPrintParameter()
   {
     printf("DisableInter4x4              : %d\n", m_bDisInter4x4);  
   }
-#if !DISABLE_CAVLC
-  if ( m_iSymbolMode == 0 )
-  {
-    printf("Entropy coder                : VLC\n");
-  }
-  else if( m_iSymbolMode == 1 )
-  {
-    printf("Entropy coder                : CABAC\n");
-  }
-  else if( m_iSymbolMode == 2 )
-  {
-    printf("Entropy coder                : PIPE\n");
-  }
-  else
-  {
-    assert(0);
-  }
-#endif
   printf("\n");
   
   printf("TOOL CFG: ");

@@ -65,7 +65,6 @@
 
 #define CABAC_RICE_FIX            1 ///< G495: fixing an entry in g_auiGoRicePrefixLen table
 #define BYPASS_FOR_LAST_COEFF_MOD 1 ///< grouping of bypass bins for last_significant_coeff_x/y, MSB first
-#define DISABLE_CAVLC             1 ///< disable second entropy coder
 #define IT_CLIPPING               1 ///< clipping in inverse transform G782
 #define NSQT_TX_ORDER             1 ///< modify transform order in NSQT G517
 #define CABAC_RICE_UPDATE_MOD     1 ///< modified Rice parameter update function G700
