@@ -124,12 +124,6 @@ Void TComPicSym::destroy()
   m_apcTComDataCU = NULL;
 
 #if TILES
-  for (i = 0; i < (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1); i++)
-  {
-#if !G1002_RPS
-    delete m_apcTComTile[i];
-#endif
-  }
   delete [] m_apcTComTile;
   m_apcTComTile = NULL;
 

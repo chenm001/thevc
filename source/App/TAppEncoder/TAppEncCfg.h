@@ -40,10 +40,8 @@
 
 #include "TLibCommon/CommonDef.h"
 
-#if G1002_RPS
 #include "TLibEncoder/TEncCfg.h"
 #include <sstream>
-#endif
 //! \ingroup TAppEncoder
 //! \{
 
@@ -75,21 +73,10 @@ protected:
   Int       m_iIntraPeriod;                                   ///< period of I-slice (random access period)
   Int       m_iDecodingRefreshType;                           ///< random access type
   Int       m_iGOPSize;                                       ///< GOP size of hierarchical structure
-#if G1002_RPS
   Int       m_iExtraRPSs;
   GOPEntry  m_pcGOPList[MAX_GOP];
   Int       m_numReorderFrames;                               ///< total number of reorder pictures
   UInt      m_uiMaxNumberOfReferencePictures;                 ///< total number of reference pictures needed for decoding
-#else
-  Int       m_iRateGOPSize;                                   ///< GOP size for QP variance
-  Int       m_iNumOfReference;                                ///< total number of reference frames in P-slice
-  Int       m_iNumOfReferenceB_L0;                            ///< total number of reference frames for reference list L0 in B-slice
-  Int       m_iNumOfReferenceB_L1;                            ///< total number of reference frames for reference list L1 in B-slice
-  Bool      m_bHierarchicalCoding;                            ///< flag for specifying hierarchical B structure
-  Bool      m_bUseLDC;                                        ///< flag for using low-delay coding mode
-  Bool      m_bUseNRF;                                        ///< flag for using non-referenced frame in hierarchical structure
-  Bool      m_bUseGPB;                                        ///< flag for using generalized P & B structure
-#endif
   Bool      m_bUseLComb;                                      ///< flag for using combined reference list for uni-prediction in B-slices (JCTVC-D421)
   Bool      m_bLCMod;                                         ///< flag for specifying whether the combined reference list for uni-prediction in B-slices is uploaded explicitly
   Bool      m_bDisInter4x4;
@@ -188,9 +175,6 @@ protected:
   Bool      m_bUseASR;                                        ///< flag for using adaptive motion search range
   Bool      m_bUseHADME;                                      ///< flag for using HAD in sub-pel ME
   Bool      m_bUseRDOQ;                                       ///< flag for using RD optimized quantization
-#if !G1002_RPS
-  Bool      m_bUseBQP;                                        ///< flag for using B-slice based QP assignment in low-delay hier. structure
-#endif
   Int       m_iFastSearch;                                    ///< ME mode, 0 = full, 1 = diamond, 2 = PMVFAST
   Int       m_iSearchRange;                                   ///< ME search range
   Int       m_bipredSearchRange;                              ///< ME search range for bipred refinement
@@ -231,10 +215,6 @@ protected:
   Bool      m_bUseConstrainedIntraPred;                       ///< flag for using constrained intra prediction
   
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
-
-#if !G1002_RPS
-  Bool      m_bUseNewRefSetting;
-#endif
 
   // weighted prediction
   Bool      m_bUseWeightPred;                                 ///< Use of explicit Weighting Prediction for P_SLICE

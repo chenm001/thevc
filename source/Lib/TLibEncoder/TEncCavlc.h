@@ -136,9 +136,7 @@ protected:
   Void  xWriteUnaryMaxSymbol  ( UInt uiSymbol, UInt uiMaxSymbol );
   Void  xWriteVlc             ( UInt uiTableNumber, UInt uiCodeNumber );
 
-#if G1002_RPS
   Void codeShortTermRefPicSet              ( TComPPS* pcPPS, TComReferencePictureSet* pcRPS );
-#endif
   Void  xCodeCoeff             ( TCoeff* scoeff, Int blockType, Int blSize
                                , Int isIntra
                                );

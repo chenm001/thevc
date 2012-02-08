@@ -204,13 +204,10 @@
 
 #define MS_LCEC_UNI_EXCEPTION_THRES     1           // for GPB case, uni-prediction, > MS_LCEC_UNI_EXCEPTION_THRES is exception
 
-#define  G1002_RPS                           1
-#if G1002_RPS
 #define G1002_CRA_CHECK                 1
 #define INTER_RPS_PREDICTION            1           // remove this once tested.
 #define WRITE_BACK                      1           ///< Enable/disable the encoder to replace the deltaPOC and Used by current from the config file with the values derived by the refIdc parameter.
 #define PRINT_RPS_INFO                  0           ///< Enable/disable the printing of bits used to send the RPS.
-#endif
                                                     // using one nearest frame as reference frame, and the other frames are high quality (POC%4==0) frames (1+X)
                                                     // this should be done with encoder only decision
                                                     // but because of the absence of reference frame management, the related code was hard coded currently
@@ -556,15 +553,6 @@ enum DFunc
   DF_SSE_FRAME = 33     ///< Frame-based SSE
 #endif
 };
-
-#if !G1002_RPS
-/// index for reference type
-enum  ERBIndex
-{
-  ERB_NONE    = 0,      ///< normal case
-  ERB_LTR     = 1       ///< long-term reference
-};
-#endif
 
 /// index for SBAC based RD optimization
 enum CI_IDX

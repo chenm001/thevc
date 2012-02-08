@@ -79,9 +79,7 @@ private:
 
   TComPPS                 m_cPPS;               //!< PPS
   std::vector<std::vector<TComAPS> >   m_vAPS;  //!< APS container
-#if G1002_RPS
   TComRPS                 m_cRPSList;
-#endif
   TComSlice*              m_apcSlicePilot;
   
   SEImessages *m_SEIs; ///< "all" SEI messages.  If not NULL, we own the object.
@@ -132,9 +130,7 @@ public:
 protected:
   Void  xGetNewPicBuffer  (TComSlice* pcSlice, TComPic*& rpcPic);
   Void  xUpdateGopSize    (TComSlice* pcSlice);
-#if G1002_RPS
   Void  xCreateLostPicture (Int iLostPOC);
-#endif
 
   Void      decodeAPS(TComInputBitstream* bs, TComAPS& cAPS); //!< decode process for APS
   TComAPS*  popAPS   (UInt apsID);  //!< pop APS parameter object pointer with APS ID equal to apsID

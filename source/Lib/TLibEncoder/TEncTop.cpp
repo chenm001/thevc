@@ -231,9 +231,7 @@ Void TEncTop::destroy ()
   }
   m_cAdaptiveLoopFilter.destroy();
   m_cLoopFilter.        destroy();
-#if G1002_RPS
   m_cRPSList.               destroy();
-#endif
   
   // SBAC RD
   if( m_bUseSBACRD )
@@ -301,13 +299,9 @@ Void TEncTop::init()
   
   // initialize PPS
   m_cPPS.setSPS(&m_cSPS);
-#if G1002_RPS
   m_cPPS.setRPSList(&m_cRPSList);
-#endif
   xInitPPS();
-#if G1002_RPS
   xInitRPS();
-#endif
 
 #if TILES
   xInitPPSforTiles();
@@ -430,7 +424,6 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
 {
   TComSlice::sortPicList(m_cListPic);
   
-#if G1002_RPS
   if (m_cListPic.size() >= (UInt)(m_iGOPSize + getMaxNumberOfReferencePictures() + 2) )
   {
     TComList<TComPic*>::iterator iterPic  = m_cListPic.begin();
@@ -444,55 +437,6 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
   }
   else
   {
-#else
-  // bug-fix - erase frame memory (previous GOP) which is not used for reference any more
-  if (m_cListPic.size() >= (UInt)(m_iGOPSize + 2 * getNumOfReference() + 1) )  // 2)   //  K. Lee bug fix - for multiple reference > 2
-  {
-    if ( m_bUseNewRefSetting )
-    {
-      Bool bFound = false;
-      TComList<TComPic*>::iterator  it = m_cListPic.begin();
-      while ( it != m_cListPic.end() )
-      {
-        if ( (*it)->getReconMark() == false )
-        {
-          bFound = true;
-          rpcPic = *it;
-          m_cListPic.erase( it );
-          break;
-        }
-        if ( !(*it)->getSlice(0)->isReferenced() )
-        {
-          bFound = true;
-          (*it)->setReconMark( false );
-          (*it)->getPicYuvRec()->setBorderExtension( false );
-          rpcPic = *it;
-          m_cListPic.erase( it );
-          break;
-        }
-
-        it++;
-      }
-      if ( !bFound )
-      {
-        assert(0);
-      }
-    }
-    else
-    {
-      rpcPic = m_cListPic.popFront();
-    }
-    
-    // is it necessary without long-term reference?
-    if ( rpcPic->getERBIndex() > 0 && abs(rpcPic->getPOC() - m_iPOCLast) <= 0 )
-    {
-      m_cListPic.pushFront(rpcPic);
-      
-      TComList<TComPic*>::iterator iterPic  = m_cListPic.begin();
-      rpcPic = *(++iterPic);
-      if ( abs(rpcPic->getPOC() - m_iPOCLast) <= m_iGOPSize )
-      {
-#endif
 #if QP_ADAPTATION
         if ( getUseAdaptiveQP() )
         {
@@ -509,40 +453,8 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
         rpcPic = new TComPic;
         rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 #endif
-#if G1002_RPS
     m_cListPic.pushBack( rpcPic );
   }
-#else
-      }
-      else
-      {
-        m_cListPic.erase( iterPic );
-        TComSlice::sortPicList( m_cListPic );
-      }
-    }
-  }
-  else
-  {
-#if QP_ADAPTATION
-    if ( getUseAdaptiveQP() )
-    {
-      TEncPic* pcEPic = new TEncPic;
-      pcEPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, m_cPPS.getMaxCuDQPDepth()+1 );
-      rpcPic = pcEPic;
-    }
-    else
-    {
-      rpcPic = new TComPic;
-      rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-    }
-#else
-    rpcPic = new TComPic;
-    rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-#endif
-  }
-  
-  m_cListPic.pushBack( rpcPic );
-#endif
   rpcPic->setReconMark (false);
   
   m_iPOCLast++;
@@ -564,10 +476,8 @@ Void TEncTop::xInitSPS()
   m_cSPS.setMinTrDepth    ( 0                   );
   m_cSPS.setMaxTrDepth    ( 1                   );
   
-#if G1002_RPS
   m_cSPS.setMaxNumberOfReferencePictures(m_uiMaxNumberOfReferencePictures);
   m_cSPS.setNumReorderFrames(m_numReorderFrames);
-#endif
   m_cSPS.setPCMLog2MinSize (m_uiPCMLog2MinSize);
 #if MAX_PCM_SIZE
   m_cSPS.setUsePCM        ( m_usePCM           );
@@ -587,9 +497,6 @@ Void TEncTop::xInitSPS()
 #else
   m_cSPS.setUseDQP        ( m_iMaxDeltaQP != 0  );
 #endif
-#endif
-#if !G1002_RPS
-  m_cSPS.setUseLDC        ( m_bUseLDC           );
 #endif
   m_cSPS.setUsePAD        ( m_bUsePAD           );
   
@@ -643,11 +550,7 @@ Void TEncTop::xInitSPS()
     for ( i = 1; ; i++)
     {
       iMaxTLayers = i;
-#if G1002_RPS
       if ( (m_iGOPSize >> i) == 0 ) 
-#else
-      if ( (m_iRateGOPSize >> i) == 0 ) 
-#endif
       {
         break;
       }
@@ -675,14 +578,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setPCMBitDepthLuma (g_uiPCMBitDepthLuma);
   m_cSPS.setPCMBitDepthChroma (g_uiPCMBitDepthChroma);
   m_cSPS.setPCMFilterDisableFlag  ( m_bPCMFilterDisableFlag );
-
-#if !G1002_RPS
-  m_cSPS.setUseNewRefSetting( m_bUseNewRefSetting );
-  if ( m_bUseNewRefSetting )
-  {
-    m_cSPS.setMaxNumRefFrames( m_iNumOfReference );
-  }
-#endif
 
 #if TILES
 #if NONCROSS_TILE_IN_LOOP_FILTERING
@@ -726,7 +621,6 @@ Void TEncTop::xInitPPS()
       m_cPPS.setTLayerSwitchingFlag( i, m_abTLayerSwitchingFlag[i] );
     }
   }   
-#if G1002_RPS
   Int max_temporal_layers = m_cPPS.getSPS()->getMaxTLayers();
   if(max_temporal_layers > 4)
      m_cPPS.setBitsForTemporalId(3);
@@ -737,7 +631,6 @@ Void TEncTop::xInitPPS()
   else
      m_cPPS.setBitsForTemporalId(0);
 
-#endif
 #if G507_QP_ISSUE_FIX
   Bool bUseDQP = (getMaxCuDQPDepth() > 0)? true : false;
 
@@ -798,8 +691,6 @@ Void TEncTop::xInitPPS()
 #endif
 }
 
-
-#if G1002_RPS
 Void TEncTop::xInitRPS()
 {
   TComReferencePictureSet*      pcRPS;
@@ -907,7 +798,6 @@ Void TEncTop::selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, UInt
   pcSlice->getRPS()->setNumberOfPictures(pcSlice->getRPS()->getNumberOfNegativePictures()+pcSlice->getRPS()->getNumberOfPositivePictures());
 
 }
-#endif
 
 #if TILES
 Void  TEncTop::xInitPPSforTiles()

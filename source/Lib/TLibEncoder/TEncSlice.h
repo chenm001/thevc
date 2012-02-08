@@ -112,11 +112,7 @@ public:
   
   /// preparation of slice encoding (reference marking, QP and lambda)
   Void    initEncSlice        ( TComPic*  pcPic, Int iPOCLast, UInt uiPOCCurr, Int iNumPicRcvd,
-#if G1002_RPS
                                 Int iGOPid,   TComSlice*& rpcSlice, TComSPS* pSPS, TComPPS *pPPS );
-#else
-                                Int iTimeOffset, Int iDepth,   TComSlice*& rpcSlice, TComSPS* pSPS, TComPPS *pPPS );
-#endif
 
   // compress and encode slice
   Void    precompressSlice    ( TComPic*& rpcPic                                );      ///< precompress slice for multi-loop opt.

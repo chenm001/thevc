@@ -58,10 +58,8 @@ class TComPic
 {
 private:
   UInt                  m_uiTLayer;               //  Temporal layer
-#if G1002_RPS
   Bool                  m_bUsedByCurr;            //  Used by current picture
   Bool                  m_bIsLongTerm;            //  IS long term picture
-#endif
   TComPicSym*           m_apcPicSym;              //  Symbol
   
   TComPicYuv*           m_apcPicYuv[2];           //  Texture,  0:org / 1:rec
@@ -69,9 +67,7 @@ private:
   TComPicYuv*           m_pcPicYuvPred;           //  Prediction
   TComPicYuv*           m_pcPicYuvResi;           //  Residual
   Bool                  m_bReconstructed;
-#if G1002_RPS
   Bool                  m_bNeededForOutput;
-#endif
   UInt                  m_uiCurrSliceIdx;         // Index of current slice
 
 #if NO_TMVP_MARKING
@@ -104,20 +100,14 @@ public:
   UInt          getTLayer()                { return m_uiTLayer;   }
   Void          setTLayer( UInt uiTLayer ) { m_uiTLayer = uiTLayer; }
 
-#if G1002_RPS
   Bool          getUsedByCurr()             { return m_bUsedByCurr; }
   Void          setUsedByCurr( Bool bUsed ) { m_bUsedByCurr = bUsed; }
   Bool          getIsLongTerm()             { return m_bIsLongTerm; }
   Void          setIsLongTerm( Bool lt ) { m_bIsLongTerm = lt; }
-#endif
 
   TComPicSym*   getPicSym()           { return  m_apcPicSym;    }
   TComSlice*    getSlice(Int i)       { return  m_apcPicSym->getSlice(i);  }
   Int           getPOC()              { return  m_apcPicSym->getSlice(m_uiCurrSliceIdx)->getPOC();  }
-#if !G1002_RPS
-  Bool          getDRBFlag()          { return  m_apcPicSym->getSlice(m_uiCurrSliceIdx)->getDRBFlag();  }
-  Int           getERBIndex()         { return  m_apcPicSym->getSlice(m_uiCurrSliceIdx)->getERBIndex();  }
-#endif
   TComDataCU*&  getCU( UInt uiCUAddr )  { return  m_apcPicSym->getCU( uiCUAddr ); }
   
   TComPicYuv*   getPicYuvOrg()        { return  m_apcPicYuv[0]; }
@@ -151,10 +141,8 @@ public:
   Bool          getUsedForTMVP()         { return m_usedForTMVP; }
 #endif
 
-#if G1002_RPS
   Void          setOutputMark (Bool b) { m_bNeededForOutput = b;     }
   Bool          getOutputMark ()       { return m_bNeededForOutput;  }
-#endif
  
   Void          compressMotion(); 
   UInt          getCurrSliceIdx()            { return m_uiCurrSliceIdx;                }

@@ -74,18 +74,10 @@ class TEncGOP
 {
 private:
   //  Data
-#if G1002_RPS
   Bool                    m_bLongtermTestPictureHasBeenCoded;
   Bool                    m_bLongtermTestPictureHasBeenCoded2;
   Int                     m_iLastIDR;
-#endif
-#if !G1002_RPS
-  Int                     m_iHrchDepth;
-#endif
   Int                     m_iGopSize;
-#if !G1002_RPS
-  Int                     m_iRateGopSize;
-#endif
   Int                     m_iNumPicCoded;
   Bool                    m_bFirst;
   
@@ -135,11 +127,6 @@ public:
 
   
   Int   getGOPSize()          { return  m_iGopSize;  }
-#if !G1002_RPS
-  Int   getRateGOPSize()      { return  m_iRateGopSize;  }
-  Int   isHierarchicalB()     { return  m_pcCfg->getHierarchicalCoding();  }
-  Int   getHrchDepth()        { return  m_iHrchDepth; }
-#endif
   
   TComList<TComPic*>*   getListPic()      { return m_pcListPic; }
   
@@ -147,9 +134,7 @@ public:
   Void  preLoopFilterPicAll  ( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiBits );
   
   TEncSlice*  getSliceEncoder()   { return m_pcSliceEncoder; }
-#if G1002_RPS
   NalUnitType getNalUnitType( UInt uiPOCCurr );
-#endif
   Void freeAPS     (TComAPS* pAPS, TComSPS* pSPS);
   Void allocAPS    (TComAPS* pAPS, TComSPS* pSPS);
 protected:
@@ -161,10 +146,6 @@ protected:
   Void  xInitGOP          ( Int iPOC, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut );
   Void  xGetBuffer        ( TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, Int iNumPicRcvd, Int iTimeOffset, TComPic*& rpcPic, TComPicYuv*& rpcPicYuvRecOut, UInt uiPOCCurr );
   
-#if !G1002_RPS
-  NalUnitType getNalUnitType( UInt uiPOCCurr );
-#endif
-
   Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, const AccessUnit&, Double dEncTime );
   
   UInt64 xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1);

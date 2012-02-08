@@ -147,7 +147,6 @@ void TDecCavlc::parseSEI(SEImessages& seis)
   } while (0x80 != m_pcBitstream->peekBits(8));
   assert(m_pcBitstream->getNumBitsLeft() == 8); /* rsbp_trailing_bits */
 }
-#if G1002_RPS
 #if INTER_RPS_PREDICTION
 void TDecCavlc::parseShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet* pcRPS, Int idx )
 #else
@@ -235,7 +234,6 @@ void TDecCavlc::parseShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet
   pcRPS->printDeltaPOC();
 #endif
 }
-#endif
 
 Void TDecCavlc::parseAPSInitInfo(TComAPS& cAPS)
 {
@@ -286,12 +284,9 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   Int   iCode;
 #endif
 
-#if G1002_RPS
   TComRPS* pcRPSList = pcPPS->getRPSList();
-#endif
   READ_UVLC( uiCode, "pic_parameter_set_id");                      pcPPS->setPPSId (uiCode);
   READ_UVLC( uiCode, "seq_parameter_set_id");                      pcPPS->setSPSId (uiCode);
-#if G1002_RPS
   // RPS is put before entropy_coding_mode_flag
   // since entropy_coding_mode_flag will probably be removed from the WD
   TComReferencePictureSet*      pcRPS;
@@ -309,7 +304,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 #endif
   }
   READ_FLAG( uiCode, "long_term_ref_pics_present_flag" );          pcPPS->setLongTermRefsPresent(uiCode);
-#endif
   // entropy_coding_mode_flag
   // We code the entropy_coding_mode_flag, it's needed for tests.
   READ_FLAG( uiCode, "entropy_coding_mode_flag" );                 pcPPS->setEntropyCodingMode( uiCode ? true : false );
@@ -511,11 +505,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     READ_CODE( 4, uiCode, "pcm_bit_depth_luma_minus1" );           pcSPS->setPCMBitDepthLuma   ( 1 + uiCode );
     READ_CODE( 4, uiCode, "pcm_bit_depth_chroma_minus1" );         pcSPS->setPCMBitDepthChroma ( 1 + uiCode );
   }
-#if G1002_RPS
   READ_UVLC( uiCode,    "log2_max_pic_order_cnt_lsb_minus4" );   pcSPS->setBitsForPOC( 4 + uiCode );
   READ_UVLC( uiCode,    "max_num_ref_pics" );                    pcSPS->setMaxNumberOfReferencePictures(uiCode);
   READ_UVLC( uiCode,    "num_reorder_frames" );                  pcSPS->setNumReorderFrames(uiCode);
-#endif
 #if MAX_DPB_AND_LATENCY
   READ_UVLC ( uiCode, "max_dec_frame_buffering");
   pcSPS->setMaxDecFrameBuffering( uiCode );
@@ -524,21 +516,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #endif
 #if !G507_COND_4X4_ENABLE_FLAG
   xReadFlag( uiCode ); pcSPS->setDisInter4x4( uiCode ? true : false );
-#endif
-#if !G1002_RPS
-  // log2_max_frame_num_minus4
-  // pic_order_cnt_type
-  // if( pic_order_cnt_type  = =  0 )
-  //   log2_max_pic_order_cnt_lsb_minus4
-  // else if( pic_order_cnt_type  = =  1 ) {
-  //   delta_pic_order_always_zero_flag
-  //   offset_for_non_ref_pic
-  //   num_ref_frames_in_pic_order_cnt_cycle
-  //   for( i = 0; i < num_ref_frames_in_pic_order_cnt_cycle; i++ )
-  //     offset_for_ref_frame[ i ]
-  //  }
-  // max_num_ref_frames
-  // gaps_in_frame_num_value_allowed_flag
 #endif
   READ_UVLC( uiCode, "log2_min_coding_block_size_minus3" );
   UInt log2MinCUSize = uiCode + 3;
@@ -604,9 +581,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   xReadUvlc ( uiCode ); pcSPS->setPadX        ( uiCode    );
   xReadUvlc ( uiCode ); pcSPS->setPadY        ( uiCode    );
 
-#if !G1002_RPS
-  xReadFlag( uiCode ); pcSPS->setUseLDC ( uiCode ? true : false );
-#endif
   xReadFlag( uiCode ); pcSPS->setUseMRG ( uiCode ? true : false );
   
   // AMVP mode for each depth (AM_NONE or AM_EXPL)
@@ -615,16 +589,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     xReadFlag( uiCode );
     pcSPS->setAMVPMode( i, (AMVP_MODE)uiCode );
   }
-
-#if !G1002_RPS
-  // these syntax elements should not be sent at SPS when the full reference frame management is supported
-  xReadFlag( uiCode ); pcSPS->setUseNewRefSetting( uiCode>0 ? true : false );
-  if ( pcSPS->getUseNewRefSetting() )
-  {
-    xReadUvlc( uiCode );
-    pcSPS->setMaxNumRefFrames( uiCode );
-  }
-#endif
 
 #if TILES
   READ_FLAG ( uiCode, "uniform_spacing_flag" ); 
@@ -773,7 +737,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     READ_UVLC (    uiCode, "slice_type" );            rpcSlice->setSliceType((SliceType)uiCode);
 #endif
     READ_UVLC (    uiCode, "pic_parameter_set_id" );  rpcSlice->setPPSId(uiCode);
-#if G1002_RPS
     if(rpcSlice->getNalUnitType()==NAL_UNIT_CODED_SLICE_IDR) 
     { 
       READ_UVLC( uiCode, "idr_pic_id" );  //ignored
@@ -843,7 +806,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
         pcRPS->setNumberOfPictures(offset);        
       }  
     }
-#endif
 #if SCALING_LIST
 #if G174_DF_OFFSET
     if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF() || rpcSlice->getSPS()->getScalingListFlag() || rpcSlice->getSPS()->getUseDF())
@@ -868,21 +830,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 #endif
       READ_UVLC (    uiCode, "aps_id" );  rpcSlice->setAPSId(uiCode);
     }
-#if !G1002_RPS
-    //   frame_num
-    //   if( IdrPicFlag )
-    //     idr_pic_id
-    //   if( pic_order_cnt_type  = =  0 )
-    //     pic_order_cnt_lsb  
-    READ_CODE (10, uiCode, "pic_order_cnt_lsb" );     rpcSlice->setPOC(uiCode);             // 9 == SPS->Log2MaxFrameNum()
-    //   if( slice_type  = =  P  | |  slice_type  = =  B ) {
-    //     num_ref_idx_active_override_flag
-    //   if( num_ref_idx_active_override_flag ) {
-    //     num_ref_idx_l0_active_minus1
-    //     if( slice_type  = =  B )
-    //       num_ref_idx_l1_active_minus1
-    //   }
-#endif
     if (!rpcSlice->isIntra())
     {
       READ_FLAG( uiCode, "num_ref_idx_active_override_flag");
@@ -905,7 +852,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       }
     }
     // }
-#if G1002_RPS
     TComRefPicListModification* refPicListModification = rpcSlice->getRefPicListModification();
     if(!rpcSlice->isIntra())
     {
@@ -968,11 +914,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       refPicListModification->setRefPicListModificationFlagL1(0);
       refPicListModification->setNumberOfRefPicListModificationsL1(0);
     }
-#endif
   }
-#if !G1002_RPS
-  // ref_pic_list_modification( )
-#endif
   // ref_pic_list_combination( )
   if (rpcSlice->isInterB())
   {
@@ -1132,13 +1074,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     xReadFlag ( uiCode ); rpcSlice->setSymbolMode( uiCode );
 #endif
     
-#if !G1002_RPS
-    xReadFlag (uiCode);   rpcSlice->setDRBFlag          (uiCode ? 1 : 0);
-    if ( !rpcSlice->getDRBFlag() )
-    {
-      xReadCode(2, uiCode); rpcSlice->setERBIndex( (ERBIndex)uiCode );    assert (uiCode == ERB_NONE || uiCode == ERB_LTR);
-    }
-#endif
   }
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   READ_UVLC( uiCode, "MaxNumMergeCand");

@@ -109,11 +109,7 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
 // Public member functions
 // ====================================================================================================================
 
-#if G1002_RPS
 Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf)
-#else
-Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf, TComList<TComPic*>& rcListPic )
-#endif
 {
   TComSlice*  pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
   // Table of extracted substreams.
@@ -489,23 +485,11 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     rpcPic->getPicYuvRec()->xFixedRoundingPic();
 #endif
 
-#if G1002_RPS
     rpcPic->setOutputMark(true);
-#endif
     rpcPic->setReconMark(true);
 
 #if NO_TMVP_MARKING
     rpcPic->setUsedForTMVP( true );
-#endif
-
-#if !G1002_RPS
-      if ( rpcPic->getSlice(0)->getSPS()->getUseNewRefSetting() )
-      {
-        if ( rpcPic->getSlice(0)->isReferenced() )
-        {
-          rpcPic->getSlice(0)->decodingRefMarkingForLD( rcListPic, rpcPic->getSlice(0)->getSPS()->getMaxNumRefFrames(), rpcPic->getSlice(0)->getPOC() );
-        }
-      }
 #endif
 
     uiILSliceCount = 0;

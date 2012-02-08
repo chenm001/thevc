@@ -2590,19 +2590,11 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
 #endif
         
 #if GPB_SIMPLE_UNI
-#if G1002_RPS
         if ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
         {
           if ( iRefList && ( pcCU->getSlice()->getNoBackPredFlag() || (pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && !pcCU->getSlice()->getNoBackPredFlag() && pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(iRefIdxTemp)>=0 ) ) )
             {
               if ( pcCU->getSlice()->getNoBackPredFlag() )
-#else
-        if ( pcCU->getSlice()->getSPS()->getUseLDC() || pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
-        {
-          if ( iRefList && ( (pcCU->getSlice()->getSPS()->getUseLDC() && (iRefIdxTemp != iRefIdx[0])) || pcCU->getSlice()->getNoBackPredFlag() || (pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && !pcCU->getSlice()->getNoBackPredFlag() && pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(iRefIdxTemp)>=0 ) ) )
-            {
-              if ( pcCU->getSlice()->getNoBackPredFlag() || pcCU->getSlice()->getSPS()->getUseLDC() )
-#endif
               {
                 cMvTemp[1][iRefIdxTemp] = cMvTemp[0][iRefIdxTemp];
                 uiCostTemp = uiCostTempL0[iRefIdxTemp];
@@ -2730,29 +2722,8 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
         
         Bool bChanged = false;
         
-#if GPB_SIMPLE && !G1002_RPS
-        if ( pcCU->getSlice()->getSPS()->getUseLDC() && iRefList )
-        {
-          iRefStart = iRefIdxBi[1-iRefList];
-          iRefEnd   = iRefIdxBi[1-iRefList];
-        }
-        else
-        {
-          iRefStart = 0;
-          iRefEnd   = pcCU->getSlice()->getNumRefIdx(eRefPicList)-1;
-        }
-#else
         iRefStart = 0;
         iRefEnd   = pcCU->getSlice()->getNumRefIdx(eRefPicList)-1;
-#endif
-        
-#if !G1002_RPS
-        if ( m_pcEncCfg->getUseFastEnc() && (pcCU->getSlice()->getNoBackPredFlag() || (pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getSlice()->getRefIdxOfL0FromRefIdxOfL1(0)==0 )) )
-        {
-          iRefStart = 0;
-          iRefEnd   = pcCU->getSlice()->getNumRefIdx(eRefPicList)-1;
-        }
-#endif
         
         for ( Int iRefIdxTemp = iRefStart; iRefIdxTemp <= iRefEnd; iRefIdxTemp++ )
         {

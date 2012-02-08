@@ -77,17 +77,10 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setIntraPeriod                  ( m_iIntraPeriod );
   m_cTEncTop.setDecodingRefreshType          ( m_iDecodingRefreshType );
   m_cTEncTop.setGOPSize                      ( m_iGOPSize );
-#if G1002_RPS
   m_cTEncTop.setGopList                      ( m_pcGOPList );
   m_cTEncTop.setExtraRPSs                     ( m_iExtraRPSs );
   m_cTEncTop.setNumReorderFrames             ( m_numReorderFrames );
   m_cTEncTop.setMaxNumberOfReferencePictures ( m_uiMaxNumberOfReferencePictures );
-#else
-  m_cTEncTop.setRateGOPSize                  ( m_iRateGOPSize );
-  m_cTEncTop.setNumOfReference               ( m_iNumOfReference );
-  m_cTEncTop.setNumOfReferenceB_L0           ( m_iNumOfReferenceB_L0 );
-  m_cTEncTop.setNumOfReferenceB_L1           ( m_iNumOfReferenceB_L1 );
-#endif
 #if G678_LAMBDA_ADJUSTMENT
   for( UInt uiLoop = 0; uiLoop < MAX_TLAYER; ++uiLoop )
   {
@@ -110,9 +103,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseAMP( m_enableAMP );
   
   //===== Slice ========
-#if !G1002_RPS
-  m_cTEncTop.setHierarchicalCoding           ( m_bHierarchicalCoding );
-#endif
   
 #if !DISABLE_CAVLC
   //====== Entropy Coding ========
@@ -165,25 +155,15 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setALFMaxNumberFilters          ( m_iALFMaxNumberFilters ) ;
 #endif
 
-#if !G1002_RPS
-  m_cTEncTop.setUseGPB                       ( m_bUseGPB      );
-#endif
   m_cTEncTop.setUseLComb                     ( m_bUseLComb    );
   m_cTEncTop.setLCMod                        ( m_bLCMod         );
   m_cTEncTop.setdQPs                         ( m_aidQP        );
   m_cTEncTop.setUseRDOQ                      ( m_bUseRDOQ     );
-#if !G1002_RPS
-  m_cTEncTop.setUseLDC                       ( m_bUseLDC      );
-#endif
   m_cTEncTop.setUsePAD                       ( m_bUsePAD      );
   m_cTEncTop.setQuadtreeTULog2MaxSize        ( m_uiQuadtreeTULog2MaxSize );
   m_cTEncTop.setQuadtreeTULog2MinSize        ( m_uiQuadtreeTULog2MinSize );
   m_cTEncTop.setQuadtreeTUMaxDepthInter      ( m_uiQuadtreeTUMaxDepthInter );
   m_cTEncTop.setQuadtreeTUMaxDepthIntra      ( m_uiQuadtreeTUMaxDepthIntra );
-#if !G1002_RPS
-  m_cTEncTop.setUseNRF                       ( m_bUseNRF      );
-  m_cTEncTop.setUseBQP                       ( m_bUseBQP      );
-#endif
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
   m_cTEncTop.setUseEarlyCU                   ( m_bUseEarlyCU  ); 
   m_cTEncTop.setUseCbfFastMode            ( m_bUseCbfFastMode  );
@@ -229,9 +209,6 @@ Void TAppEncTop::xInitLibCfg()
 
   m_cTEncTop.setPictureDigestEnabled(m_pictureDigestEnabled);
 
-#if !G1002_RPS
-  m_cTEncTop.setUseNewRefSetting( m_bUseNewRefSetting );
-#endif
 #if TILES
   m_cTEncTop.setColumnRowInfoPresent       ( m_iColumnRowInfoPresent );
   m_cTEncTop.setUniformSpacingIdr          ( m_iUniformSpacingIdr );
