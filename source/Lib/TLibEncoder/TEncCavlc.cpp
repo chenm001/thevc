@@ -1961,7 +1961,6 @@ UInt TEncCavlc::xGetFlagPattern( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDep
   {
     patternDiv = 0;
   }
-#if MOT_TUPU_MAXDEPTH1
 #if G519_TU_AMP_NSQT_HARMONIZATION
   else if( (pcCU->getSlice()->getSPS()->getQuadtreeTUMaxDepthInter() == 1) && (pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTER) && ( pcCU->getPartitionSize(uiAbsPartIdx) != SIZE_2Nx2N ) && (uiDepth == pcCU->getDepth(uiAbsPartIdx)) )
 #else
@@ -1970,7 +1969,6 @@ UInt TEncCavlc::xGetFlagPattern( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDep
   {
     patternDiv = 0; 
   }
-#endif
   else if( uiLog2TrafoSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
   {
     patternDiv = 0;
