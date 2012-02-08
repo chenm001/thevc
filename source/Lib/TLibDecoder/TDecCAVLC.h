@@ -216,9 +216,7 @@ public:
   /// parse APF flags before SAO and ALF parameters
   Void parseAPSInitInfo(TComAPS& cAPS);
 
-#if WEIGHT_PRED
   Void xParsePredWeightTable ( TComSlice* pcSlice );
-#endif
 #if SCALING_LIST
   Void  parseScalingList               ( TComScalingList* scalingList );
   Void  xDecodeDPCMScalingListMatrix   ( TComScalingList *scalingList, Int* data, UInt sizeId, UInt listId);

@@ -45,9 +45,7 @@
 #include "TComPattern.h"
 #include "TComTrQuant.h"
 #include "TComInterpolationFilter.h"
-#if WEIGHT_PRED
-  #include "TComWeightPrediction.h"
-#endif
+#include "TComWeightPrediction.h"
 
 //! \ingroup TLibCommon
 //! \{
@@ -57,11 +55,7 @@
 // ====================================================================================================================
 
 /// prediction class
-#if WEIGHT_PRED
 class TComPrediction : public TComWeightPrediction
-#else
-class TComPrediction
-#endif
 {
 protected:
   Int*      m_piYuvExt;

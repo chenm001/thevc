@@ -41,8 +41,6 @@
 #include "../TLibCommon/TComSlice.h"
 #include "TEncCavlc.h"
 
-#if WEIGHT_PRED
-
 class  WeightPredAnalysis {
 
   Bool m_weighted_pred_flag;
@@ -72,8 +70,6 @@ public:
   Void  xRestoreWPparam(TComSlice *slice);
   Void  xCheckWPEnable(TComSlice *slice);
 };
-
-#endif // WEIGHT_PRED
 
 #endif // __WEIGHTPREDANALYSIS__
 

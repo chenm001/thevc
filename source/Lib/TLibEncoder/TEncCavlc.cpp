@@ -390,10 +390,8 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   WRITE_SVLC( pcPPS->getChromaQpOffset2nd(),                "chroma_qp_offset_2nd" );
 #endif
 
-#if WEIGHT_PRED
   WRITE_FLAG( pcPPS->getUseWP() ? 1 : 0,  "weighted_pred_flag" );   // Use of Weighting Prediction (P_SLICE)
   WRITE_CODE( pcPPS->getWPBiPredIdc(), 2, "weighted_bipred_idc" );  // Use of Weighting Bi-Prediction (B_SLICE)
-#endif
 
 #if TILES
   WRITE_FLAG( pcPPS->getColumnRowInfoPresent(),           "tile_info_present_flag" );
@@ -968,12 +966,10 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   //   }
   // }
   
-#if WEIGHT_PRED
     if ( (pcSlice->getPPS()->getUseWP() && pcSlice->getSliceType()==P_SLICE) || (pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getSliceType()==B_SLICE) )
     {
       xCodePredWeightTable( pcSlice );
     }
-#endif
   }
 
   // !!!! sytnax elements not in the WD !!!!
@@ -2736,7 +2732,6 @@ Void TEncCavlc::xCodeCoeff( TCoeff* scoeff, Int blockType, Int blSize
   return;
 }
 
-#if WEIGHT_PRED
 /** code explicit wp tables
  * \param TComSlice* pcSlice
  * \returns Void
@@ -2877,7 +2872,6 @@ Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
 #endif
 }
 
-#endif
 #if SCALING_LIST
 /** code quantization matrix
  *  \param scalingList quantization matrix information

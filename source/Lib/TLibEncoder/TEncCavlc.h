@@ -243,9 +243,7 @@ public:
   
   Bool getAdaptFlag      ()          { return m_bAdaptFlag; }
   Void setAdaptFlag      ( Bool b )  { m_bAdaptFlag = b;     }
-#if WEIGHT_PRED
   Void xCodePredWeightTable          ( TComSlice* pcSlice );
-#endif
 #if TILES
   Void updateContextTables           ( SliceType eSliceType, Int iQp, Bool bExecuteFinish=true ) { return;   }
   Void updateContextTables           ( SliceType eSliceType, Int iQp  )                          { return;   }

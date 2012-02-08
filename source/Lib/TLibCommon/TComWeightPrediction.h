@@ -46,8 +46,6 @@
 #include "TComTrQuant.h"
 #include "TComInterpolationFilter.h"
 
-#if WEIGHT_PRED
-
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -94,8 +92,4 @@ inline  Pel TComWeightPrediction::weightUnidir( Int w0, Pel P0, Int round, Int s
   return xClip( ( (w0*(P0 + IF_INTERNAL_OFFS) + round) >> shift ) + offset );
 }
 
-#endif  // WEIGHT_PRED
-
-#endif
-
-
+#endif 

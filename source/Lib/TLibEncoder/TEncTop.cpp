@@ -811,10 +811,8 @@ Void TEncTop::xInitPPS()
   m_cPPS.setCabacIstateReset(m_iWaveFrontFlush != 0);
   m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams);
 #endif
-#if WEIGHT_PRED
   m_cPPS.setUseWP( m_bUseWeightPred );
   m_cPPS.setWPBiPredIdc( m_uiBiPredIdc );
-#endif
 #if NO_TMVP_MARKING
   m_cPPS.setEnableTMVPFlag( m_bEnableTMVP );
 #endif

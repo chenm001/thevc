@@ -137,13 +137,11 @@ TComSlice::TComSlice()
 #if  G1002_RPS
   m_bCombineWithReferenceFlag = 0;
 #endif
-#if WEIGHT_PRED
   resetWpScaling(m_weightPredTable);
 #if WP_IMPROVED_SYNTAX
   resetWpScalingLC(m_weightPredTableLC);
 #endif
   initWpAcDcParam();
-#endif
 }
 
 TComSlice::~TComSlice()
@@ -991,11 +989,9 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
 #if TILES_DECODER
   m_iTileMarkerFlag             = pSrc->m_iTileMarkerFlag;
 #endif
-#if WEIGHT_PRED
   for ( int e=0 ; e<2 ; e++ )
     for ( int n=0 ; n<MAX_NUM_REF ; n++ )
       memcpy(m_weightPredTable[e][n], pSrc->m_weightPredTable[e][n], sizeof(wpScalingParam)*3 );
-#endif
 }
 
 #if  G1002_RPS
@@ -1416,7 +1412,6 @@ Void TComSlice::decodingMarkingForNoTMVP( TComList<TComPic*>& rcListPic, Int cur
 }
 #endif
 
-#if WEIGHT_PRED
 /** get AC and DC values for weighted pred
  * \param *wp
  * \returns Void
@@ -1590,7 +1585,6 @@ Void TComSlice::copyWPtable(wpScalingParam *&wp_src, wpScalingParam *&wp_dst)
 }
 #endif
 
-#endif
 
 // ------------------------------------------------------------------------------------------------
 // Sequence parameter set (SPS)

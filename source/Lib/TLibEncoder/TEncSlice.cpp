@@ -569,9 +569,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   rpcSlice->setMaxNumMergeCand      (MRG_MAX_NUM_CANDS_SIGNALED);
 #endif
-#if WEIGHT_PRED
   xStoreWPparam( pPPS->getUseWP(), pPPS->getWPBiPredIdc() );
-#endif
 }
 
 // ====================================================================================================================
@@ -754,7 +752,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
   }
   
-#if WEIGHT_PRED
   //------------------------------------------------------------------------------
   //  Weighted Prediction parameters estimation.
   //------------------------------------------------------------------------------
@@ -790,7 +787,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       xCheckWPEnable( pcSlice );
     }
   }
-#endif
 
 #if ADAPTIVE_QP_SELECTION
   if( m_pcCfg->getUseAdaptQpSelect() )
@@ -1129,9 +1125,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     m_dPicRdCost     += pcCU->getTotalCost();
     m_uiPicDist      += pcCU->getTotalDistortion();
   }
-#if WEIGHT_PRED
   xRestoreWPparam( pcSlice );
-#endif
 }
 
 /**

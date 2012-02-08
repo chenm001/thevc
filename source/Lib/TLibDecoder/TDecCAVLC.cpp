@@ -380,13 +380,11 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   pcPPS->setChromaQpOffset2nd(iCode);
 #endif
 
-#if WEIGHT_PRED
   READ_FLAG( uiCode, "weighted_pred_flag" );          // Use of Weighting Prediction (P_SLICE)
   pcPPS->setUseWP( uiCode==1 );
   READ_CODE( 2, uiCode, "weighted_bipred_idc" );      // Use of Bi-Directional Weighting Prediction (B_SLICE)
   pcPPS->setWPBiPredIdc( uiCode );
   printf("TDecCavlc::parsePPS():\tm_bUseWeightPred=%d\tm_uiBiPredIdc=%d\n", pcPPS->getUseWP(), pcPPS->getWPBiPredIdc());
-#endif
 
 #if TILES
   READ_FLAG ( uiCode, "tile_info_present_flag" );
@@ -1127,13 +1125,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     //   }
     // }
   
-#if WEIGHT_PRED
     if ( (rpcSlice->getPPS()->getUseWP() && rpcSlice->getSliceType()==P_SLICE) || (rpcSlice->getPPS()->getWPBiPredIdc() && rpcSlice->getSliceType()==B_SLICE) )
     {
       xParsePredWeightTable(rpcSlice);
       rpcSlice->initWpScaling();
     }
-#endif
   }
 
   // !!!! Syntax elements not in the WD  !!!!!
@@ -3362,7 +3358,6 @@ Void TDecCavlc::xParseCoeff(TCoeff* scoeff, Int blockType, Int blSize
   return;
 }
 
-#if WEIGHT_PRED
 /** parse explicit wp tables
  * \param TComSlice* pcSlice
  * \returns Void
@@ -3578,7 +3573,6 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
 #endif
 }
 
-#endif
 #if SCALING_LIST
 /** decode quantization matrix
  * \param scalingList quantization matrix information

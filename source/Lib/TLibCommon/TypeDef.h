@@ -176,8 +176,6 @@
 
 #define F747_CABAC_FLUSH_SLICE_HEADER        1       // F747 & F399: CABAC Flush after slice header
 
-
-#define WEIGHT_PRED                          1       ///< F265 & F326: enable weighted prediction
 ////////////////////////////
 // JCT-VC F end
 ////////////////////////////

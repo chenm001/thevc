@@ -308,10 +308,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if E192_SPS_PCM_FILTER_DISABLE_SYNTAX
     ("PCMFilterDisableFlag", m_bPCMFilterDisableFlag, false)
 #endif
-#if WEIGHT_PRED
     ("weighted_pred_flag,-wpP",     m_bUseWeightPred, false, "weighted prediction flag (P-Slices)")
     ("weighted_bipred_idc,-wpBidc", m_uiBiPredIdc,    0u,    "weighted bipred idc (B-Slices)")
-#endif
 #if TILES
     ("TileInfoPresentFlag",         m_iColumnRowInfoPresent,         1,          "0: tiles parameters are NOT present in the PPS. 1: tiles parameters are present in the PPS")
     ("UniformSpacingIdc",           m_iUniformSpacingIdr,            0,          "Indicates if the column and row boundaries are distributed uniformly")
@@ -1041,10 +1039,8 @@ Void TAppEncCfg::xPrintParameter()
   printf("NewRefSetting:%d ", m_bUseNewRefSetting?1:0);
 #endif
 #endif
-#if WEIGHT_PRED
   printf("WPP:%d ", (Int)m_bUseWeightPred);
   printf("WPB:%d ", m_uiBiPredIdc);
-#endif
 #if TILES 
   printf("TileBoundaryIndependence:%d ", m_iTileBoundaryIndependenceIdr ); 
 #if TILES_DECODER

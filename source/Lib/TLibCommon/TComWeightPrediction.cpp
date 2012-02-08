@@ -40,8 +40,6 @@
 #include "TComWeightPrediction.h"
 #include "TComInterpolationFilter.h"
 
-#if WEIGHT_PRED
-
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -446,5 +444,4 @@ Void TComWeightPrediction::xWeightedPredictionUni( TComDataCU* pcCU, TComYuv* pc
   addWeightUni( pcYuvSrc, uiPartAddr, iWidth, iHeight, pwp, rpcYuvPred );
 }
 
-#endif  // WEIGHT_PRED
 

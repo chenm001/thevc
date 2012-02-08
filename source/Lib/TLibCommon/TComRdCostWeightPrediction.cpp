@@ -40,8 +40,6 @@
 #include "TComRdCost.h"
 #include "TComRdCostWeightPrediction.h"
 
-#if WEIGHT_PRED
-
 Int   TComRdCostWeightPrediction::m_w0        = 0;
 Int   TComRdCostWeightPrediction::m_w1        = 0;
 Int   TComRdCostWeightPrediction::m_shift     = 0;
@@ -559,5 +557,3 @@ UInt TComRdCostWeightPrediction::xGetHADsw( DistParam* pcDtParam )
 
   return ( uiSum >> g_uiBitIncrement );
 }
-
-#endif
