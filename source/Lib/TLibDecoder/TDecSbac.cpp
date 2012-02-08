@@ -1104,19 +1104,7 @@ Void TDecSbac::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPar
   {
     uiSymbol = 2;
   }
-  else if( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 )
-  {
-    uiSymbol = 0;
-  }
-  else if( pcCU->getSlice()->getNoBackPredFlag() )
-  {
-    uiSymbol = 0;
-  }
-  else
-  {
-    pCtx++;
-    m_pcTDecBinIf->decodeBin( uiSymbol, *( pCtx + 3 ) );
-  }
+
   uiSymbol++;
   ruiInterDir = uiSymbol;
   return;

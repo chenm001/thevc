@@ -1538,19 +1538,7 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
     m_uiMITableE = m_uiMI1TableE;
     m_uiMITableD = m_uiMI1TableD;
 
-    UInt uiMaxVal;
-    if (uiNumRefIdxOfLC > 0)
-    {
-      uiMaxVal = uiValNumRefIdxOfLC + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
-    }
-    else if (m_pcSlice->getNoBackPredFlag())
-    {
-      uiMaxVal = uiValNumRefIdxOfL0 + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
-    }
-    else
-    {
-      uiMaxVal = uiValNumRefIdxOfL0 + uiValNumRefIdxOfL1 + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
-    }
+    UInt uiMaxVal = (uiNumRefIdxOfLC > 0 ? uiValNumRefIdxOfLC : uiValNumRefIdxOfL0) + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
 
     if (uiInterDir==0)
     { 
@@ -1662,15 +1650,6 @@ Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
   }
 
   xWriteFlag( ( uiInterDir == 2 ? 1 : 0 ));
-  if ( pcCU->getSlice()->getNoBackPredFlag() )
-  {
-    assert( uiInterDir != 1 );
-    return;
-  }
-  if ( uiInterDir < 2 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 0)
-  {
-    xWriteFlag( uiInterDir );
-  }
   
   return;
 }

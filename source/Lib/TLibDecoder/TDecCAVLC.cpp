@@ -1924,19 +1924,7 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
     
     UInt *m_uiMITableD = m_uiMI1TableD;
 
-    UInt uiMaxVal;
-    if (uiNumRefIdxOfLC > 0)
-    {
-      uiMaxVal = uiValNumRefIdxOfLC + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
-    }
-    else if (pcCU->getSlice()->getNoBackPredFlag())
-    {
-      uiMaxVal = uiValNumRefIdxOfL0 + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
-    }
-    else
-    {
-      uiMaxVal = uiValNumRefIdxOfL0 + uiValNumRefIdxOfL1 + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
-    }
+    UInt uiMaxVal = (uiNumRefIdxOfLC > 0 ? uiValNumRefIdxOfLC : uiValNumRefIdxOfL0) + uiValNumRefIdxOfL0*uiValNumRefIdxOfL1;
 
     Bool bCodeException = false;
     if ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 4 ||
@@ -2029,18 +2017,6 @@ Void TDecCavlc::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPa
   if ( uiSymbol )
   {
     uiSymbol = 2;
-  }
-  else if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0)
-  {
-    uiSymbol = 0;
-  }
-  else if ( pcCU->getSlice()->getNoBackPredFlag() )
-  {
-    uiSymbol = 0;
-  }
-  else
-  {
-    xReadFlag( uiSymbol );
   }
   uiSymbol++;
   ruiInterDir = uiSymbol;

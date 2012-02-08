@@ -1017,17 +1017,6 @@ Void TEncSbac::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
   ContextModel *pCtx    = m_cCUInterDirSCModel.get( 0 );
   m_pcBinIf->encodeBin( uiInterDir == 2 ? 1 : 0, *( pCtx + uiCtx ) );
 
-  if ( pcCU->getSlice()->getNoBackPredFlag() )
-  {
-    assert( uiInterDir != 1 );
-    return;
-  }
-
-  if ( uiInterDir < 2 && pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) <= 0 )
-  {
-    pCtx++;
-    m_pcBinIf->encodeBin( uiInterDir, *( pCtx + 3 ) );
-  }
   return;
 }
 
