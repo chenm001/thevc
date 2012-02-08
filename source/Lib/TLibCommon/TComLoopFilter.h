@@ -69,9 +69,6 @@ private:
   Bool*     m_aapbEdgeFilter[2][3];
   LFCUParam m_stLFCUParam;                  ///< status structure
   
-#if !DISABLE_PARALLEL_DECISIONS
-  TComPicYuv m_preDeblockPic;
-#endif
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   Bool      m_bLFCrossTileBoundary;
 #endif
@@ -132,11 +129,7 @@ protected:
   
 #else// !DEBLK_G590
     
-#if !DISABLE_PARALLEL_DECISIONS
-  __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Pel* piSrcJudge, Bool bPartPNoFilter, Bool bPartQNoFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
-#else
   __inline Void xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc, Bool bPartPNoFilter, Bool bPartQNoFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ);
-#endif
 #endif // DEBLK_G590
   __inline Void xPelFilterChroma( Pel* piSrc, Int iOffset, Int tc, Bool bPartPNoFilter, Bool bPartQNoFilter);
   
@@ -151,11 +144,7 @@ public:
   TComLoopFilter();
   virtual ~TComLoopFilter();
   
-#if !DISABLE_PARALLEL_DECISIONS
-  Void  create                    ( Int width, Int height, Int maxCUWidth, Int maxCUHeight, Int uiMaxCUDepth );
-#else
   Void  create                    ( UInt uiMaxCUDepth );
-#endif
   Void  destroy                   ();
   
   /// set configuration

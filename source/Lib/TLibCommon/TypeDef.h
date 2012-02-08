@@ -70,7 +70,6 @@
 #define REMAP_TO_PLANAR           1 ///< default to planar if neighbor out of range G119
 #define INTRA_MODES_64X64         1 ///< enable 35 intra modes for 64x64 PUs
 #define CBF_CODING_SKIP_COND_FIX  1 ///< G444: fixing the condition of skipping cbf_luma coding
-#define DISABLE_PARALLEL_DECISIONS 1 ///< disable parallel decisions part of deblocking filter G088
 #define VER_HOR_FILTER            1 ///< F172: intra ver/hor prediction filter
 #define WP_IMPROVED_SYNTAX        1 ///< improved weighted prediction syntax to remove redundancy G441
 #define NO_TMVP_MARKING           1 ///< before decoding a non-TMVP picture with tid=0, mark all pictures in DPB except the current picture unused for TMVP, G398
