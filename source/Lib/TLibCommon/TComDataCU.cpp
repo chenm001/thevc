@@ -3118,7 +3118,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     }
   }
 
-#if MRG_AMVP_ADD_CAND_F470
   UInt uiCutoff = uiArrayAddr;
     
   if ( getSlice()->isInterB() )
@@ -3234,17 +3233,8 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   }
 #endif
   numValidMergeCand = uiArrayAddr;
-#endif
-
-#if !MRG_AMVP_ADD_CAND_F470
-  if( numValidMergeCand == 0 )
-  {
-    numValidMergeCand = 1;
-  }
-#endif
 }
 
-#if MRG_AMVP_ADD_CAND_F470
 /** Check the duplicated candidate in the list
  * \param pcMvFieldNeighbours
  * \param puhInterDirNeighbours 
@@ -3300,7 +3290,6 @@ Void TComDataCU::xCheckDuplicateCand(TComMvField* pcMvFieldNeighbours, UChar* pu
     ++ruiArrayAddr;
   }
 }
-#endif
 
 Void TComDataCU::xCheckCornerCand( TComDataCU* pcCorner, UInt uiCornerPUIdx, UInt uiIter, Bool& rbValidCand )
 {
@@ -3562,7 +3551,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   {
     pInfo->iN = AMVP_MAX_NUM_CANDS;
   }
-#if MRG_AMVP_ADD_CAND_F470
   else if (pInfo->iN < AMVP_MAX_NUM_CANDS)
   {
     int j;
@@ -3579,7 +3567,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
       pInfo->iN++;
     }
   }
-#endif
   return ;
 }
 
