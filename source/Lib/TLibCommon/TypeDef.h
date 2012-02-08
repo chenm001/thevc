@@ -157,9 +157,8 @@
 // JCT-VC F start
 ////////////////////////////
 #define NSQT                                 1       // F410 & F412 : Non-Square Quadtree Transform
-#define NSQT_MOD (NSQT && 1) // Modify NSQT such as to always pass proper width/height to coeff coding functions
 #define NSQT_DIAG_SCAN                      1      ///< G1038: use diagonal and subblock scans for NSQT
-#if NSQT_DIAG_SCAN && !(SUBBLOCK_SCAN && NSQT_MOD)
+#if NSQT_DIAG_SCAN && !(SUBBLOCK_SCAN)
 #error
 #endif
 #if NSQT

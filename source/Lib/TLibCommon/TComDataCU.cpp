@@ -4084,7 +4084,6 @@ Bool TComDataCU::useNonSquareTrans(UInt uiTrMode)
   }
 }
 
-#if NSQT_MOD
 Bool TComDataCU::useNonSquareTrans(UInt uiTrMode, Int absPartIdx)
 {
   const UInt uiLog2TrSize = g_aucConvertToBit[ getSlice()->getSPS()->getMaxCUWidth() >> ( m_puhDepth[ absPartIdx ] + uiTrMode ) ] + 2;
@@ -4107,7 +4106,6 @@ Void TComDataCU::getNSQTSize(Int trMode, Int absPartIdx, Int &trWidth, Int &trHe
     trHeight = ( m_pePartSize[absPartIdx] == SIZE_Nx2N || m_pePartSize[absPartIdx] == SIZE_nLx2N || m_pePartSize[absPartIdx] == SIZE_nRx2N )? trHeight << 1 : trHeight >> 1;
   }
 }
-#endif
   
 Void TComDataCU::getPixOffset(UInt uiTrMode,  UInt ui, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiPix_X, UInt& uiPix_Y, TextType eTxt)
 {

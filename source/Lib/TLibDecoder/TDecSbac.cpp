@@ -1467,7 +1467,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   DTRACE_CABAC_V(  pcCU->getPredictionMode( uiAbsPartIdx ) )
   DTRACE_CABAC_T( "\n" )
   
-#if NSQT_MOD && !NSQT_DIAG_SCAN
+#if !NSQT_DIAG_SCAN
   Int orgWidth = uiWidth;
   Int orgHeight = uiHeight;
   if (orgWidth != orgHeight)
@@ -2020,7 +2020,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     }
   }
   
-#if NSQT_MOD && !NSQT_DIAG_SCAN
+#if !NSQT_DIAG_SCAN
   if (orgHeight != orgWidth)
   {
     TCoeff  orgCoeff[ 256 ];
