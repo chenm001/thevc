@@ -47,7 +47,6 @@
 #define PADDING_INTRA             1 ///< G812: padding from bottom left, copy previous pixel instead of averaging
 #define COEFF_CTX_RED             1 ///< G121: reduce max value of c1 and c2
 
-#define G082_MOD_H_TMVP_POS       1 //<G082, modified H TMVP position (configuration 2) for memory bandwidth reduction
 #define G091_SIGNAL_MAX_NUM_MERGE_CANDS    1   //<G091: maxNumMergeCand signaling in slice header
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
 #define MRG_MAX_NUM_CANDS_SIGNALED         5   //<G091: value of maxNumMergeCand signaled in slice header 
