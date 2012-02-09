@@ -181,11 +181,7 @@ Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
   
   pDepthInt = pDepthIntTabShapes[ALFp->filter_shape];
   maxScanVal = 0;
-#if G610_ALF_K_BIT_FIX
   int minScanVal = ( ALFp->filter_shape==ALF_STAR5x5 ) ? 0 : MIN_SCAN_POS_CROSS;
-#else
-  int minScanVal = 0;  
-#endif
 
   for(i = 0; i < sqrFiltLength; i++)
   {
@@ -257,11 +253,7 @@ Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
     ALFp->kMinTab[scanPos] = kMinTab[scanPos];
   }
 
-#if G610_ALF_K_BIT_FIX
   len += writeFilterCodingParams(minKStart, minScanVal, maxScanVal, kMinTab);
-#else
-  len += writeFilterCodingParams(minKStart, maxScanVal, kMinTab);
-#endif
 
   // Filter coefficients
   len += writeFilterCoeffs(sqrFiltLength, filters_per_group, pDepthInt, ALFp->coeffmulti, kMinTab);
@@ -269,18 +261,11 @@ Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
   return len;
 }
 
-#if G610_ALF_K_BIT_FIX
 Int TEncEntropy::writeFilterCodingParams(int minKStart, int minScanVal, int maxScanVal, int kMinTab[])
-#else
-Int TEncEntropy::writeFilterCodingParams(int minKStart, int maxScanVal, int kMinTab[])
-#endif
 {
   int scanPos;
   int golombIndexBit;
   int kMin;
-#if !G610_ALF_K_BIT_FIX
-  int minScanVal = 0;
-#endif
 
   // Golomb parameters
   m_pcEntropyCoderIf->codeAlfUvlc(minKStart - 1);

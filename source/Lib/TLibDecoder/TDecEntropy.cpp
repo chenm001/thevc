@@ -108,11 +108,7 @@ Void TDecEntropy::readFilterCodingParams(ALFParam* pAlfParam)
   int kMin;
   int maxScanVal;
   int *pDepthInt;
-#if G610_ALF_K_BIT_FIX
   int minScanVal = (pAlfParam->filter_shape == ALF_STAR5x5) ? 0: MIN_SCAN_POS_CROSS;
-#else
-  int minScanVal = 0;
-#endif
   // Determine maxScanVal
   maxScanVal = 0;
   pDepthInt = pDepthIntTabShapes[pAlfParam->filter_shape];

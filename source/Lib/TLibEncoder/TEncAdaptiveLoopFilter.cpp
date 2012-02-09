@@ -1895,11 +1895,7 @@ Int   TEncAdaptiveLoopFilter::xcodeFilterCoeff(int **pDiffQFilterCoeffIntPP, int
     *pDepthInt=NULL, kMinTab[MAX_SCAN_VAL], bitsCoeffScan[MAX_SCAN_VAL][MAX_EXP_GOLOMB],
   minKStart, minBitsKStart, bitsKStart;
   
-#if G610_ALF_K_BIT_FIX
   int minScanVal = (fl==ALF_STAR5x5) ? 0 : MIN_SCAN_POS_CROSS;
-#else
-  int minScanVal = 0; 
-#endif
 
   pDepthInt = pDepthIntTabShapes[fl];
   
