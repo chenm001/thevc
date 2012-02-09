@@ -174,9 +174,7 @@ protected:
   Bool      m_bUseALF;
   Int       m_iALFEncodePassReduction;
 
-#if G215_ALF_NUM_FILTER
   Int       m_iALFMaxNumberFilters;
-#endif
 
   Bool      m_bUseASR;
   Bool      m_bUseHADME;
@@ -406,10 +404,8 @@ public:
   Void      setALFEncodePassReduction       (Int i)  { m_iALFEncodePassReduction = i; }
   Int       getALFEncodePassReduction       ()       { return m_iALFEncodePassReduction; }
 
-#if G215_ALF_NUM_FILTER
   Void      setALFMaxNumberFilters          (Int i)  { m_iALFMaxNumberFilters = i; } 
   Int       getALFMaxNumberFilters          ()       { return m_iALFMaxNumberFilters; } 
-#endif
 
   Bool      getUseLComb                     ()      { return m_bUseLComb;   }
   Bool      getLCMod                        ()      { return m_bLCMod; }

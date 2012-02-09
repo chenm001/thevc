@@ -134,9 +134,7 @@ protected:
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
   Int       m_iALFEncodePassReduction;                        //!< ALF encoding pass, 0 = original 16-pass, 1 = 1-pass, 2 = 2-pass
   
-#if G215_ALF_NUM_FILTER
   Int       m_iALFMaxNumberFilters;                           ///< ALF Max Number Filters in one picture
-#endif
 
   Bool      m_bLoopFilterDisable;                             ///< flag for using deblocking filter
   Bool      m_loopFilterOffsetInAPS;                         ///< offset for deblocking filter in 0 = slice header, 1 = APS

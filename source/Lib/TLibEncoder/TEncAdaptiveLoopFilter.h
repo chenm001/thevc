@@ -116,9 +116,7 @@ private:
   Int  m_iCurrentPOC;             //!< POC
   Int  m_iALFEncodePassReduction; //!< 0: 16-pass encoding, 1: 1-pass encoding, 2: 2-pass encoding
 
-#if G215_ALF_NUM_FILTER
   Int  m_iALFMaxNumberFilters;    //!< ALF Max Number Filters per unit
-#endif
 
   Int  m_iALFNumOfRedesign;       //!< number of redesigning filter for each CU control depth
 
@@ -264,9 +262,7 @@ public:
   Void setGOPSize(Int val) { m_iGOPSize = val; } //!< set GOP size
   Void setALFEncodePassReduction (Int iVal) {m_iALFEncodePassReduction = iVal;} //!< set N-pass encoding. 0: 16(14)-pass encoding, 1: 1-pass encoding, 2: 2-pass encoding
 
-#if G215_ALF_NUM_FILTER
   Void setALFMaxNumberFilters    (Int iVal) {m_iALFMaxNumberFilters = iVal;} //!< set ALF Max Number of Filters
-#endif
 
   Void createAlfGlobalBuffers(Int iALFEncodePassReduction); //!< create ALF global buffers
   Void destroyAlfGlobalBuffers(); //!< destroy ALF global buffers

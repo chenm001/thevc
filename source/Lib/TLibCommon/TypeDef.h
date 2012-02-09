@@ -68,7 +68,6 @@
 #define MIN_SCAN_POS_CROSS          5
 #endif
 #endif
-#define G215_ALF_NUM_FILTER         1   ///< G215: the number of filters in one picture, encoder only
 #define ALF_DC_OFFSET_REMOVAL       1   ///< G445: Remove DC offset for ALF
 
 #define SAO_RDO_OFFSET              1   ///< G915: Considering rate-distortion-cost in optimal offset calculation for SAO

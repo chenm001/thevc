@@ -98,9 +98,7 @@ TEncAdaptiveLoopFilter::TEncAdaptiveLoopFilter()
   pcPicYuvRecShape1 = NULL;
   m_pcSliceYuvTmp = NULL;
 
-#if G215_ALF_NUM_FILTER
   m_iALFMaxNumberFilters = NO_FILTERS;
-#endif
 
   m_bAlfCUCtrlEnabled = false;
 }
@@ -2694,11 +2692,7 @@ Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESy
 
     lagrangian=xfindBestCoeffCodMethod(filterCoeffSymQuant, filter_shape, sqrFiltLength, filters_per_fr, errorForce0CoeffTab, lambda_val);
 
-#if G215_ALF_NUM_FILTER
     if (lagrangian<lagrangianMin || firstFilt==1 || filters_per_fr == m_iALFMaxNumberFilters)
-#else
-    if (lagrangian<lagrangianMin || firstFilt==1)
-#endif
     {
       firstFilt=0;
       lagrangianMin=lagrangian;

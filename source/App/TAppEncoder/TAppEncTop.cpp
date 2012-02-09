@@ -137,9 +137,7 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseALF                       ( m_bUseALF      );
   m_cTEncTop.setALFEncodePassReduction       ( m_iALFEncodePassReduction );
 
-#if G215_ALF_NUM_FILTER
   m_cTEncTop.setALFMaxNumberFilters          ( m_iALFMaxNumberFilters ) ;
-#endif
 
   m_cTEncTop.setUseLComb                     ( m_bUseLComb    );
   m_cTEncTop.setLCMod                        ( m_bLCMod         );
