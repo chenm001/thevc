@@ -447,9 +447,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_UVLC(pcSPS->getMaxDecFrameBuffering(),          "max_dec_frame_buffering" );
   WRITE_UVLC(pcSPS->getMaxLatencyIncrease(),            "max_latency_increase"    );
 #endif
-#if !G507_COND_4X4_ENABLE_FLAG
-  xWriteFlag  ( (pcSPS->getDisInter4x4()) ? 1 : 0 );
-#endif  
   assert( pcSPS->getMaxCUWidth() == pcSPS->getMaxCUHeight() );
   
   UInt MinCUSize = pcSPS->getMaxCUWidth() >> ( pcSPS->getMaxCUDepth()-g_uiAddCUDepth );
@@ -465,12 +462,10 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_UVLC( pcSPS->getQuadtreeTULog2MinSize() - 2,                                 "log2_min_transform_block_size_minus2" );
   WRITE_UVLC( pcSPS->getQuadtreeTULog2MaxSize() - pcSPS->getQuadtreeTULog2MinSize(), "log2_diff_max_min_transform_block_size" );
 
-#if G507_COND_4X4_ENABLE_FLAG
   if(log2MinCUSize == 3)
   {
     xWriteFlag  ( (pcSPS->getDisInter4x4()) ? 1 : 0 );
   }
-#endif
 
   if( pcSPS->getUsePCM() )
   {

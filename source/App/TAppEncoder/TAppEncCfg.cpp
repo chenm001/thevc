@@ -819,9 +819,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("GOP size                     : %d\n", m_iGOPSize );
   printf("Internal bit depth           : %d\n", m_uiInternalBitDepth );
   printf("PCM sample bit depth         : %d\n", m_uiPCMBitDepthLuma );
-#if G507_COND_4X4_ENABLE_FLAG
   if((m_uiMaxCUWidth >> m_uiMaxCUDepth) == 4)
-#endif
   {
     printf("DisableInter4x4              : %d\n", m_bDisInter4x4);  
   }

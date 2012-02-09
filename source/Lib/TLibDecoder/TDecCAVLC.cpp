@@ -482,9 +482,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_UVLC ( uiCode, "max_latency_increase");
   pcSPS->setMaxLatencyIncrease( uiCode );
 #endif
-#if !G507_COND_4X4_ENABLE_FLAG
-  xReadFlag( uiCode ); pcSPS->setDisInter4x4( uiCode ? true : false );
-#endif
   READ_UVLC( uiCode, "log2_min_coding_block_size_minus3" );
   UInt log2MinCUSize = uiCode + 3;
   READ_UVLC( uiCode, "log2_diff_max_min_coding_block_size" );
@@ -496,12 +493,10 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_UVLC( uiCode, "log2_diff_max_min_transform_block_size" ); pcSPS->setQuadtreeTULog2MaxSize( uiCode + pcSPS->getQuadtreeTULog2MinSize() );
   pcSPS->setMaxTrSize( 1<<(uiCode + pcSPS->getQuadtreeTULog2MinSize()) );
 
-#if G507_COND_4X4_ENABLE_FLAG
   if(log2MinCUSize == 3)
   {
     xReadFlag( uiCode ); pcSPS->setDisInter4x4( uiCode ? true : false );
   }
-#endif
 
   if( pcSPS->getUsePCM() )
   {
