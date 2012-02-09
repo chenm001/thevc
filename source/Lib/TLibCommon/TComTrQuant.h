@@ -145,11 +145,7 @@ public:
                      UInt&       uiAbsSum, 
                      TextType    eTType, 
                      UInt        uiAbsPartIdx );
-#if SCALING_LIST
   Void invtransformNxN      (TextType eText, UInt uiMode,Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight, Int scalingListType);
-#else
-  Void invtransformNxN      (TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight);
-#endif
   Void invRecurTransformNxN ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel* rpcResidual, UInt uiAddr,   UInt uiStride, UInt uiWidth, UInt uiHeight,
                              UInt uiMaxTrMode,  UInt uiTrMode, TCoeff* rpcCoeff );
   
@@ -182,7 +178,6 @@ public:
                                     const UInt                       uiCGPosX,
                                     const UInt                       uiCGPosY,
                                     Int width, Int height);
-#if SCALING_LIST
   Void initScalingList                      ();
   Void destroyScalingList                   ();
   Void setErrScaleCoeff    ( UInt list, UInt size, UInt qp, UInt dir);
@@ -197,7 +192,6 @@ public:
   Void xSetScalingListDec  ( Int *scalingList, UInt list, UInt size, UInt qp);
   Void setScalingList      ( TComScalingList *scalingList);
   Void setScalingListDec   ( TComScalingList *scalingList);
-#endif
 #if ADAPTIVE_QP_SELECTION
   Void    initSliceQpDelta() ;
   Void    storeSliceQpNext(TComSlice* pcSlice);
@@ -228,7 +222,6 @@ protected:
   Bool     m_bUseAdaptQpSelect;
 #endif
 
-#if SCALING_LIST
   Bool     m_scalingListEnabledFlag;
   Int      *m_quantCoef      [SCALING_LIST_NUM][SCALING_LIST_REM_NUM];             ///< array of quantization matrix coefficient 4x4
   Int      *m_dequantCoef    [SCALING_LIST_NUM][SCALING_LIST_REM_NUM];             ///< array of dequantization matrix coefficient 4x4
@@ -242,7 +235,6 @@ protected:
   double   *m_errScale64     [SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of quantization matrix coefficient 8x8
   double   *m_errScale256    [SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of quantization matrix coefficient 16x16
   double   *m_errScale1024   [SCALING_LIST_NUM][SCALING_LIST_REM_NUM];             ///< array of quantization matrix coefficient 32x32
-#endif  
 private:
   // forward Transform
   Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Int* plCoeff, Int iWidth, Int iHeight );
@@ -301,11 +293,7 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
   
   
   // dequantization
-#if SCALING_LIST
   Void xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeight, Int scalingListType );
-#else
-  Void xDeQuant( const TCoeff* pSrc,     Int* pDes,       Int iWidth, Int iHeight );
-#endif
   
   // inverse transform
   Void xIT    ( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight );

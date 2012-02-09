@@ -139,9 +139,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   string cfg_dQPFile;
   string cfg_ColumnWidth;
   string cfg_RowHeight;
-#if SCALING_LIST
   string cfg_ScalingListFile;
-#endif
   po::Options opts;
   opts.addOptions()
   ("help", do_help, false, "this help text")
@@ -293,10 +291,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("WaveFrontSynchro",            m_iWaveFrontSynchro,             0,          "0: no synchro; 1 synchro with TR; 2 TRR etc")
     ("WaveFrontFlush",              m_iWaveFrontFlush,               0,          "Flush and terminate CABAC coding for each LCU line")
     ("WaveFrontSubstreams",         m_iWaveFrontSubstreams,          1,          "# coded substreams wanted; per tile if TileBoundaryIndependenceIdc is 1, otherwise per frame")
-#if SCALING_LIST
     ("ScalingList",                 m_useScalingListId,              0,          "0: no scaling list, 1: default scaling lists, 2: scaling lists specified in ScalingListFile")
     ("ScalingListFile",             cfg_ScalingListFile,             string(""), "Scaling list file name")
-#endif
   /* Misc. */
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
                                               "\t1: use MD5\n"
@@ -344,9 +340,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   
   m_pchColumnWidth = cfg_ColumnWidth.empty() ? NULL: strdup(cfg_ColumnWidth.c_str());
   m_pchRowHeight = cfg_RowHeight.empty() ? NULL : strdup(cfg_RowHeight.c_str());
-#if SCALING_LIST
   m_scalingListFile = cfg_ScalingListFile.empty() ? NULL : strdup(cfg_ScalingListFile.c_str());
-#endif
   
   // compute source padding size
   if ( m_bUsePAD )
@@ -900,9 +894,7 @@ Void TAppEncCfg::xPrintParameter()
 #endif
   printf(" WaveFrontSynchro:%d WaveFrontFlush:%d WaveFrontSubstreams:%d",
           m_iWaveFrontSynchro, m_iWaveFrontFlush, m_iWaveFrontSubstreams);
-#if SCALING_LIST
   printf(" ScalingList:%d ", m_useScalingListId );
-#endif
 
   printf("TMVP:%d ", m_enableTMVP     );
 

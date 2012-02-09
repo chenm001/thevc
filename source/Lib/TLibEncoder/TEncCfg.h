@@ -234,10 +234,8 @@ protected:
   //====== Weighted Prediction ========
   Bool      m_bUseWeightPred;       //< Use of Weighting Prediction (P_SLICE)
   UInt      m_uiBiPredIdc;          //< Use of Bi-Directional Weighting Prediction (B_SLICE)
-#if SCALING_LIST
   Int       m_useScalingListId;            ///< Using quantization matrix i.e. 0=off, 1=default, 2=file.
   char*     m_scalingListFile;          ///< quantization matrix file name
-#endif
 
   Bool      m_bEnableTMVP;
 
@@ -548,12 +546,10 @@ public:
   Void      setWPBiPredIdc         ( UInt u )    { m_uiBiPredIdc       = u;    }
   Bool      getUseWP               ()            { return m_bUseWeightPred;    }
   UInt      getWPBiPredIdc         ()            { return m_uiBiPredIdc;       }
-#if SCALING_LIST
   Void      setUseScalingListId    ( Int  u )    { m_useScalingListId       = u;   }
   Int       getUseScalingListId    ()            { return m_useScalingListId;      }
   Void      setScalingListFile     ( char*  pch ){ m_scalingListFile     = pch; }
   char*     getScalingListFile     ()            { return m_scalingListFile;    }
-#endif
 
   Void      setEnableTMVP ( Bool b ) { m_bEnableTMVP = b;    }
   Bool      getEnableTMVP ()         { return m_bEnableTMVP; }

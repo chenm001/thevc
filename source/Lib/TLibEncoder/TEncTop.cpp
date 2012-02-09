@@ -568,9 +568,7 @@ Void TEncTop::xInitSPS()
     m_cSPS.setColumnWidth( m_puiColumnWidth );
     m_cSPS.setRowHeight( m_puiRowHeight );
   }
-#if SCALING_LIST
   m_cSPS.setScalingListFlag ( (m_useScalingListId == 0) ? 0 : 1 );
-#endif
   m_cSPS.setUseDF( m_loopFilterOffsetInAPS );
 }
 

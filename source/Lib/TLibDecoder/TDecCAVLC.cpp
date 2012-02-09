@@ -244,9 +244,7 @@ Void TDecCavlc::parseAPSInitInfo(TComAPS& cAPS)
   UInt uiCode;
   //aps ID
   READ_UVLC(uiCode, "aps_id");  cAPS.setAPSID(uiCode);
-#if SCALING_LIST
   READ_FLAG(uiCode,"aps_scaling_list_data_present_flag");      cAPS.setScalingListEnabled( (uiCode==1)?true:false );
-#endif
   //DF flag
   READ_FLAG(uiCode, "aps_deblocking_filter_flag"); cAPS.setLoopFilterOffsetInAPS( (uiCode==1)?true:false );
   //SAO flag
@@ -489,9 +487,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   // BB: these parameters may be removed completly and replaced by the fixed values
   pcSPS->setMinTrDepth( 0 );
   pcSPS->setMaxTrDepth( 1 );
-#if SCALING_LIST
   READ_FLAG( uiCode, "scaling_list_enable_flag" );               pcSPS->setScalingListFlag ( uiCode );
-#endif
   READ_FLAG( uiCode, "chroma_pred_from_luma_enabled_flag" );     pcSPS->setUseLMChroma ( uiCode ? true : false ); 
   READ_FLAG( uiCode, "deblocking_filter_In_APS_enabled_flag" );    pcSPS->setUseDF ( uiCode ? true : false );  
   READ_FLAG( uiCode, "loop_filter_across_slice_flag" );          pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
@@ -717,11 +713,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
         pcRPS->setNumberOfPictures(offset);        
       }  
     }
-#if SCALING_LIST
     if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF() || rpcSlice->getSPS()->getScalingListFlag() || rpcSlice->getSPS()->getUseDF())
-#else
-    if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF())
-#endif
     {
       if (rpcSlice->getSPS()->getUseALF())
       {
@@ -1675,7 +1667,6 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
   }
 }
 
-#if SCALING_LIST
 /** decode quantization matrix
  * \param scalingList quantization matrix information
  */
@@ -1745,7 +1736,6 @@ Void TDecCavlc::xDecodeDPCMScalingListMatrix(TComScalingList *scalingList, Int* 
   //Inverse ZigZag scan
   scalingList->xInvZigZag(pcm, data, sizeId);
 }
-#endif
 
 Void TDecCavlc::parseDFFlag(UInt& ruiVal, const Char *pSymbolName)
 {

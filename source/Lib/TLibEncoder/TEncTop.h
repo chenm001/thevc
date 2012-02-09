@@ -127,9 +127,7 @@ private:
   TEncPreanalyzer         m_cPreanalyzer;                 ///< image characteristics analyzer for TM5-step3-like adaptive QP
 #endif
 
-#if SCALING_LIST
   TComScalingList         m_scalingList;                 ///< quantization matrix information
-#endif
 protected:
   Void  xGetNewPicBuffer  ( TComPic*& rpcPic );           ///< get picture buffer which will be processed
   Void  xInitSPS          ();                             ///< initialize SPS from encoder options
@@ -185,9 +183,7 @@ public:
   TComRPS*                getRPSList                () { return  &m_cRPSList;                 }
   
   Void selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, UInt iGOPid,TComList<TComPic*>& rcListPic );
-#if SCALING_LIST
   TComScalingList*        getScalingList        () { return  &m_scalingList;         }
-#endif
   // -------------------------------------------------------------------------------------------------------------------
   // encoder function
   // -------------------------------------------------------------------------------------------------------------------

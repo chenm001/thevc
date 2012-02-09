@@ -470,7 +470,7 @@ __inline Void adaptCodeword( UInt uiCodeIdx, UChar * pucTableCounter, UChar & ru
     }
   }
 }
-#if SCALING_LIST
+
 #define SCALING_LIST_NUM 6                         ///< list number for quantization matrix
 #define SCALING_LIST_NUM_32x32 2                   ///< list number for quantization matrix 32x32
 #define SCALING_LIST_REM_NUM 6
@@ -539,7 +539,6 @@ extern UInt g_scalingListSize [SCALING_LIST_SIZE_NUM];
 extern UInt g_scalingListSizeX[SCALING_LIST_SIZE_NUM];
 extern UInt g_auiScalingListNum  [SCALING_LIST_SIZE_NUM];
 extern Int  g_eTTable[4];
-#endif
 //! \}
 
 #endif  //__TCOMROM__

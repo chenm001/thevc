@@ -1162,9 +1162,7 @@ TComSPS::TComSPS()
 , m_bLFCrossSliceBoundaryFlag (false)
 , m_bUseSAO                   (false) 
 , m_bTemporalIdNestingFlag    (false)
-#if SCALING_LIST
 , m_scalingListEnabledFlag    (false)
-#endif
 , m_uiMaxDecFrameBuffering    (  0)
 , m_uiMaxLatencyIncrease      (  0)
 {
@@ -1445,10 +1443,8 @@ TComAPS::TComAPS()
   m_bCABACForAPS = false;
   m_CABACinitIDC = -1;
   m_CABACinitQP = -1;
-#if SCALING_LIST
   m_scalingList = NULL;
   m_scalingListEnabled = false;
-#endif
 }
 
 TComAPS::~TComAPS()
@@ -1470,10 +1466,8 @@ TComAPS& TComAPS::operator= (const TComAPS& src)
   m_bCABACForAPS= src.m_bCABACForAPS;
   m_CABACinitIDC= src.m_CABACinitIDC;
   m_CABACinitQP = src.m_CABACinitQP;
-#if SCALING_LIST
   m_scalingList = src.m_scalingList;
   m_scalingListEnabled = src.m_scalingListEnabled;
-#endif
 
   return *this;
 }
@@ -1505,7 +1499,6 @@ Void TComAPS::destroyAlfParam()
   }
 }
 
-#if SCALING_LIST
 Void TComAPS::createScalingList()
 {
   m_scalingList = new TComScalingList;
@@ -1976,7 +1969,5 @@ Void TComScalingList::destroy()
     if(m_scalingList32x32_Org[listId]) delete [] m_scalingList32x32_Org[listId];
   }
 }
-
-#endif
 
 //! \}

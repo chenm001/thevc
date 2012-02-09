@@ -131,9 +131,7 @@ public:
   virtual Void updateContextTables( SliceType eSliceType, Int iQp ) = 0;
   
   virtual Void parseAPSInitInfo   (TComAPS& cAPS) = 0;
-#if SCALING_LIST
   virtual Void parseScalingList   ( TComScalingList* scalingList ) = 0;
-#endif
   virtual Void parseDFFlag(UInt& ruiVal, const Char *pSymbolName) = 0;
   virtual Void parseDFSvlc(Int&  riVal, const Char *pSymbolName) = 0;
 
@@ -224,9 +222,7 @@ public:
 #endif
 
   Void decodeAPSInitInfo       (TComAPS& cAPS) {m_pcEntropyDecoderIf->parseAPSInitInfo(cAPS);}
-#if SCALING_LIST
   Void decodeScalingList       ( TComScalingList* scalingList ) { m_pcEntropyDecoderIf->parseScalingList(scalingList); }
-#endif
   Void decodeDFParams (TComAPS* pcAPS);
 
 };// END CLASS DEFINITION TDecEntropy

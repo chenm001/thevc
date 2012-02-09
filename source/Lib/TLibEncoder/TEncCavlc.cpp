@@ -212,9 +212,7 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
   //APS ID
   WRITE_UVLC( pcAPS->getAPSID(), "aps_id" );
 
-#if SCALING_LIST
   WRITE_FLAG( pcAPS->getScalingListEnabled()?1:0, "aps_scaling_list_data_present_flag");
-#endif
   //DF flag
   WRITE_FLAG(pcAPS->getLoopFilterOffsetInAPS()?1:0, "aps_deblocking_filter_flag");
   //SAO flag
@@ -454,9 +452,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   }
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthInter() - 1,                               "max_transform_hierarchy_depth_inter" );
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthIntra() - 1,                               "max_transform_hierarchy_depth_intra" );
-#if SCALING_LIST
   WRITE_FLAG( (pcSPS->getScalingListFlag()) ? 1 : 0,                                  "scaling_list_enabled_flag" ); 
-#endif
   WRITE_FLAG  ( (pcSPS->getUseLMChroma ()) ? 1 : 0,                                  "chroma_pred_from_luma_enabled_flag" ); 
   WRITE_FLAG( pcSPS->getUseDF() ? 1 : 0,                                             "deblocking_filter_in_aps_enabled_flag");
   WRITE_FLAG( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0,                            "loop_filter_across_slice_flag");
@@ -615,11 +611,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
         }
       }
     }
-#if SCALING_LIST
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF()|| pcSlice->getSPS()->getScalingListFlag() || pcSlice->getSPS()->getUseDF())
-#else
-    if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
-#endif
     {
       if (pcSlice->getSPS()->getUseALF())
       {
@@ -2566,7 +2558,6 @@ Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
   }
 }
 
-#if SCALING_LIST
 /** code quantization matrix
  *  \param scalingList quantization matrix information
  */
@@ -2661,7 +2652,5 @@ Void TEncCavlc::xWriteResidualCode(UInt uiSize, Int *data)
     WRITE_SVLC( data[i],  "delta_coef");
   }
 }
-
-#endif
 
 //! \}

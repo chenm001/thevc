@@ -197,11 +197,9 @@ public:
   Void parseAPSInitInfo(TComAPS& cAPS);
 
   Void xParsePredWeightTable ( TComSlice* pcSlice );
-#if SCALING_LIST
   Void  parseScalingList               ( TComScalingList* scalingList );
   Void  xDecodeDPCMScalingListMatrix   ( TComScalingList *scalingList, Int* data, UInt sizeId, UInt listId);
   Void  xReadScalingListCode           ( TComScalingList *scalingList, Int* buf,  UInt sizeId, UInt listId);
-#endif
   Void parseDFFlag         ( UInt& ruiVal, const Char *pSymbolName );
   Void parseDFSvlc         ( Int&  riVal,  const Char *pSymbolName  );
 
