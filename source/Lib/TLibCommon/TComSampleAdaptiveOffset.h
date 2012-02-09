@@ -52,7 +52,6 @@
 #define SAO_BO_BITS                   5
 #define LUMA_GROUP_NUM                (1<<SAO_BO_BITS)
 #define MAX_NUM_SAO_CLASS             32
-#define SAO_FGS_NIF                   1
 
 // ====================================================================================================================
 // Class definition
@@ -98,13 +97,11 @@ protected:
   Int   *m_iUpBuff2;
   Int   *m_iUpBufft;
   Int   *ipSwap;
-#if SAO_FGS_NIF
   Bool  m_bUseNIF;       //!< true for performing non-cross slice boundary ALF
   UInt  m_uiNumSlicesInPic;      //!< number of slices in picture
   Int   m_iSGDepth;              //!< slice granularity depth
   TComPicYuv* m_pcYuvTmp;    //!< temporary picture buffer pointer when non-across slice/tile boundary SAO is enabled
 
-#endif
   Pel* m_pTmpU1;
   Pel* m_pTmpU2;
   Pel* m_pTmpL1;
@@ -137,13 +134,10 @@ public:
   Void processSaoQuadTree(SAOQTPart *psQTPart, UInt uiPartIdx, Int iYCbCr);
   Pel* getPicYuvAddr(TComPicYuv* pcPicYuv, Int iYCbCr,Int iAddr = 0);
 
-#if SAO_FGS_NIF
   Void processSaoCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process without slice granularity 
   Void createPicSaoInfo(TComPic* pcPic, Int numSlicesInPic = 1);
   Void destroyPicSaoInfo();
   Void processSaoBlock(Pel* pDec, Pel* pRest, Int stride, Int iSaoType, UInt xPos, UInt yPos, UInt width, UInt height, Bool* pbBorderAvail);
-#endif
-
 };
 
 //! \}

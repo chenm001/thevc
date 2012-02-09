@@ -541,8 +541,6 @@ inline int xSign(int x)
   return ((x >> 31) | ((int)( (((unsigned int) -x)) >> 31)));
 }
 
-#if SAO_FGS_NIF
-
 /** initialize variables for SAO process
  * \param  pcPic picture data pointer
  * \param  numSlicesInPic number of slices in picture
@@ -831,17 +829,10 @@ Void TComSampleAdaptiveOffset::processSaoBlock(Pel* pDec, Pel* pRest, Int stride
 
 }
 
-
-#endif
-
 /** sample adaptive offset process for one LCU crossing LCU boundary
  * \param   iAddr, iSaoType, iYCbCr
  */
-#if SAO_FGS_NIF
 Void TComSampleAdaptiveOffset::processSaoCuOrg(Int iAddr, Int iSaoType, Int iYCbCr)
-#else
-Void TComSampleAdaptiveOffset::processSaoCu(Int iAddr, Int iSaoType, Int iYCbCr)
-#endif
 {
   Int x,y;
   TComDataCU *pTmpCu = m_pcPic->getCU(iAddr);
@@ -1393,12 +1384,10 @@ Void TComSampleAdaptiveOffset::SAOProcess(TComPic* pcPic, SAOParam* pcSaoParam)
     m_uiSaoBitIncrease = g_uiBitDepth + g_uiBitIncrement - min((Int)(g_uiBitDepth + g_uiBitIncrement), 10);
 #endif
 
-#if SAO_FGS_NIF
     if(m_bUseNIF)
     {
       m_pcPic->getPicYuvRec()->copyToPic(m_pcYuvTmp);
     }
-#endif
 
     Int iY  = 0;
     processSaoQuadTree( pcSaoParam->psSaoPart[iY], 0 , iY);

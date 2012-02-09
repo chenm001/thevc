@@ -546,8 +546,6 @@ inline int xSign(int x)
   return ((x >> 31) | ((int)( (((unsigned int) -x)) >> 31)));
 }
 
-#if SAO_FGS_NIF
-
 /** Calculate SAO statistics for non-cross-slice or non-cross-tile processing
  * \param  pRecStart to-be-filtered block buffer pointer
  * \param  pOrgStart original block buffer pointer
@@ -865,17 +863,10 @@ Void TEncSampleAdaptiveOffset::calcSaoStatsCu(Int iAddr, Int iPartIdx, Int iYCbC
 
 }
 
-
-#endif
-
 /** Calculate SAO statistics for current LCU without non-crossing slice
  * \param  iAddr,  iPartIdx,  iYCbCr
  */
-#if SAO_FGS_NIF
 Void TEncSampleAdaptiveOffset::calcSaoStatsCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr)
-#else
-Void TEncSampleAdaptiveOffset::calcSaoStatsCu(Int iAddr, Int iPartIdx, Int iYCbCr)
-#endif
 {
   Int x,y;
   TComDataCU *pTmpCu = m_pcPic->getCU(iAddr);
@@ -1243,12 +1234,10 @@ Void TEncSampleAdaptiveOffset::SAOProcess(SAOParam *pcSaoParam, Double dLambda)
   m_dLambdaChroma  = dLambda;
 #endif
 
-#if SAO_FGS_NIF
   if(m_bUseNIF)
   {
     m_pcPic->getPicYuvRec()->copyToPic(m_pcYuvTmp);
   }
-#endif
 
 #if FULL_NBIT
   m_uiSaoBitIncrease = g_uiBitDepth + (g_uiBitDepth-8) - min((Int)(g_uiBitDepth + (g_uiBitDepth-8)), 10);
