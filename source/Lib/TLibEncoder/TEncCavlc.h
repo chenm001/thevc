@@ -165,9 +165,7 @@ public:
   void codeSEI(const SEI&);
   Void  codeSliceHeader         ( TComSlice* pcSlice );
 
-#if TILES_DECODER
   Void codeTileMarkerFlag(TComSlice* pcSlice);
-#endif
 
   Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );
   Void  codeTerminatingBit      ( UInt uilsLast );
@@ -233,9 +231,7 @@ public:
   Void xCodePredWeightTable          ( TComSlice* pcSlice );
   Void updateContextTables           ( SliceType eSliceType, Int iQp, Bool bExecuteFinish=true ) { return;   }
   Void updateContextTables           ( SliceType eSliceType, Int iQp  )                          { return;   }
-#if TILES_DECODER
   Void writeTileMarker               ( UInt uiTileIdx, UInt uiBitsUsed );
-#endif
 
   Void  codeAPSInitInfo(TComAPS* pcAPS);  //!< code APS flags before encoding SAO and ALF parameters
   Void  codeFinish(Bool bEnd) { /*do nothing*/}

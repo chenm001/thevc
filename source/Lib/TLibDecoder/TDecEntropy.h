@@ -127,9 +127,7 @@ public:
   virtual Void parseSaoFlag       ( UInt& ruiVal           ) = 0;
   virtual Void parseSaoUvlc       ( UInt& ruiVal           ) = 0;
   virtual Void parseSaoSvlc       ( Int&  riVal            ) = 0;
-#if TILES_DECODER
   virtual Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed ) = 0;
-#endif
   virtual Void updateContextTables( SliceType eSliceType, Int iQp ) = 0;
   
   virtual Void parseAPSInitInfo   (TComAPS& cAPS) = 0;
@@ -196,9 +194,7 @@ public:
   Void decodeTransformIdx      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void decodeQP                ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   
-#if TILES_DECODER
   Void readTileMarker       ( UInt& uiTileIdx, UInt uiBitsUsed )  {  m_pcEntropyDecoderIf->readTileMarker( uiTileIdx, uiBitsUsed ); }
-#endif
   Void updateContextTables    ( SliceType eSliceType, Int iQp ) { m_pcEntropyDecoderIf->updateContextTables( eSliceType, iQp ); }
   
   

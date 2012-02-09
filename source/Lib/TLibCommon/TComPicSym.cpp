@@ -137,13 +137,11 @@ Void TComPicSym::destroy()
 Void TComPicSym::allocateNewSlice()
 {
   m_apcTComSlice[m_uiNumAllocatedSlice ++] = new TComSlice;
-#if TILES_DECODER
   if (m_uiNumAllocatedSlice>=2)
   {
     m_apcTComSlice[m_uiNumAllocatedSlice-1]->copySliceInfo( m_apcTComSlice[m_uiNumAllocatedSlice-2] );
     m_apcTComSlice[m_uiNumAllocatedSlice-1]->initSlice();
   }
-#endif
 }
 
 Void TComPicSym::clearSliceBuffer()
@@ -233,7 +231,6 @@ Void TComPicSym::xInitTiles()
     m_puiTileIdxMap[i] = uiRowIdx * (m_iNumColumnsMinus1 + 1) + uiColumnIdx;
   }
 
-#if TILES_DECODER
   // Determine bits required for tile index
   Int uiTilesCount = (m_iNumRowsMinus1+1) * (m_iNumColumnsMinus1+1);
   m_uiBitsUsedByTileIdx = 0;
@@ -242,7 +239,6 @@ Void TComPicSym::xInitTiles()
     m_uiBitsUsedByTileIdx++;
     uiTilesCount >>= 1;
   }
-#endif
 }
 
 UInt TComPicSym::xCalculateNxtCUAddr( UInt uiCurrCUAddr )

@@ -364,7 +364,6 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   m_pcTDecBinIf->start();
 }
 
-#if TILES_DECODER
 Void TDecSbac::readTileMarker( UInt& uiTileIdx, UInt uiBitsUsed )
 {
   UInt uiSymbol;
@@ -378,7 +377,6 @@ Void TDecSbac::readTileMarker( UInt& uiTileIdx, UInt uiBitsUsed )
     }
   }
 }
-#endif
 
 Void TDecSbac::parseTerminatingBit( UInt& ruiBit )
 {

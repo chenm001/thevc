@@ -72,25 +72,15 @@ struct OutputNALUnit : public NALUnit
   TComOutputBitstream m_Bitstream;
 };
 
-#if TILES_DECODER
 void write(std::ostream& out, OutputNALUnit& nalu);
-#else
-void write(std::ostream& out, const OutputNALUnit& nalu);
-#endif
 void writeRBSPTrailingBits(TComOutputBitstream& bs);
 
-#if TILES_DECODER
 inline NALUnitEBSP::NALUnitEBSP(OutputNALUnit& nalu)
-#else
-inline NALUnitEBSP::NALUnitEBSP(const OutputNALUnit& nalu)
-#endif
   : NALUnit(nalu)
 {
   write(m_nalUnitData, nalu);
 }
 
-#if TILES_DECODER
 void copyNaluData(OutputNALUnit& naluDest, const OutputNALUnit& naluSrc);
-#endif
 
 //! \}

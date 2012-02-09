@@ -333,15 +333,10 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
     {
       // make sure we already received both parameter sets
       assert( 3 == m_uiValidPS );
-#if TILES_DECODER
       m_apcSlicePilot->setSPS(&m_cSPS);
       m_apcSlicePilot->initSlice();
-#endif
       if (m_bFirstSliceInPicture)
       {
-#if !TILES_DECODER
-        m_apcSlicePilot->initSlice();
-#endif
         m_uiSliceIdx     = 0;
         m_uiLastSliceIdx = 0;
       }

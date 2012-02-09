@@ -204,7 +204,6 @@ Void TAppEncTop::xInitLibCfg()
     m_cTEncTop.setRowHeight                ( m_pchRowHeight );
   }
   m_cTEncTop.xCheckGSParameters();
-#if TILES_DECODER
   m_cTEncTop.setTileLocationInSliceHeaderFlag ( m_iTileLocationInSliceHeaderFlag );
   m_cTEncTop.setTileMarkerFlag              ( m_iTileMarkerFlag );
   m_cTEncTop.setMaxTileMarkerEntryPoints    ( m_iMaxTileMarkerEntryPoints );
@@ -212,7 +211,6 @@ Void TAppEncTop::xInitLibCfg()
   Int uiTilesCount          = (m_iNumRowsMinus1+1) * (m_iNumColumnsMinus1+1);
   m_dMaxTileMarkerOffset  = ((Double)uiTilesCount) / m_iMaxTileMarkerEntryPoints;
   m_cTEncTop.setMaxTileMarkerOffset         ( m_dMaxTileMarkerOffset );
-#endif
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   m_cTEncTop.setTileBehaviorControlPresentFlag( m_iTileBehaviorControlPresentFlag );
   if(m_iTileBoundaryIndependenceIdr == 0 || uiTilesCount == 1)

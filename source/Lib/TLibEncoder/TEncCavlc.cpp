@@ -520,12 +520,10 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_FLAG( pcSPS->getUseAMP(), "enable_amp" );
 }
 
-#if TILES_DECODER
 Void TEncCavlc::writeTileMarker( UInt uiTileIdx, UInt uiBitsUsed )
 {
   xWriteCode( uiTileIdx, uiBitsUsed );
 }
-#endif
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 {
@@ -811,7 +809,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 }
 
 
-#if TILES_DECODER
 Void TEncCavlc::codeTileMarkerFlag(TComSlice* pcSlice) 
 {
   Bool bEntropySlice = (!pcSlice->isNextSlice());
@@ -824,7 +821,6 @@ Void TEncCavlc::codeTileMarkerFlag(TComSlice* pcSlice)
     xWriteFlag  (pcSlice->getTileMarkerFlag() ? 1 : 0 );
   }
 }
-#endif
 
 /**
  - write wavefront substreams sizes for the slice header.

@@ -170,10 +170,8 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   Double dLambda;
   
   rpcSlice = pcPic->getSlice(0);
-#if TILES_DECODER
   rpcSlice->setSPS( pSPS );
   rpcSlice->setPPS( pPPS );
-#endif
   rpcSlice->setSliceBits(0);
   rpcSlice->setPic( pcPic );
   rpcSlice->initSlice();
@@ -367,11 +365,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   }
   rpcSlice->setTLayer( pcPic->getTLayer() );
   rpcSlice->setTLayerSwitchingFlag( pPPS->getTLayerSwitchingFlag( pcPic->getTLayer() ) );
-
-#if !TILES_DECODER
-  rpcSlice->setSPS( pSPS );
-  rpcSlice->setPPS( pPPS );
-#endif
 
   assert( m_apcPicYuvPred );
   assert( m_apcPicYuvResi );
@@ -866,11 +859,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
  \param  rpcPic        picture class
  \retval rpcBitstream  bitstream class
  */
-#if TILES_DECODER
 Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstream, TComOutputBitstream* pcSubstreams )
-#else
-Void TEncSlice::encodeSlice   ( TComPic*& rpcPic,                                   TComOutputBitstream* pcSubstreams )
-#endif
 {
   UInt       uiCUAddr;
   UInt       uiStartCUAddr;
@@ -903,9 +892,7 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic,                               
   TEncTop* pcEncTop = (TEncTop*) m_pcCfg;
   TEncSbac* pcSbacCoders = pcEncTop->getSbacCoders(); //coder for each substream
   Int iNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
-#if TILES_DECODER
   UInt uiBitsOriginallyInSubstreams = 0;
-#endif
   {
     UInt uiTilesAcross = rpcPic->getPicSym()->getNumColumnsMinus1()+1;
     for (UInt ui = 0; ui < uiTilesAcross; ui++)
@@ -913,12 +900,10 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic,                               
       m_pcBufferSbacCoders[ui].load(m_pcSbacCoder); //init. state
     }
     
-#if TILES_DECODER
     for (Int iSubstrmIdx=0; iSubstrmIdx < iNumSubstreams; iSubstrmIdx++)
     {
       uiBitsOriginallyInSubstreams += pcSubstreams[iSubstrmIdx].getNumberOfWrittenBits();
     }
-#endif
 
 #if TILES_LOW_LATENCY_CABAC_INI  
     for (UInt ui = 0; ui < uiTilesAcross; ui++)
@@ -1011,7 +996,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic,                               
         uiCUAddr!=rpcPic->getPicSym()->getPicSCUAddr(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr())/rpcPic->getNumPartInCU())     // cannot be first CU of slice
 #endif
     {
-#if TILES_DECODER
       Int iTileIdx            = rpcPic->getPicSym()->getTileIdxMap(uiCUAddr);
       Bool bWriteTileMarker   = false;
       // check if current iTileIdx should have a marker
@@ -1023,7 +1007,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic,                               
           break;
         }
       }
-#endif
       {
         // We're crossing into another tile, tiles are independent.
         // When tiles are independent, we have "substreams per tile".  Each substream has already been terminated, and we no longer
@@ -1039,7 +1022,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic,                               
           pcSubstreams[uiSubStrm].writeAlignZero();
         }
       }
-#if TILES_DECODER
       {
         // Write TileMarker into the appropriate substream (nothing has been written to it yet).
         if (m_pcCfg->getTileMarkerFlag() && bWriteTileMarker)
@@ -1063,7 +1045,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic,                               
         pcSlice->setTileLocation( uiLocationCount, (pcSlice->getTileOffstForMultES() + uiAccumulatedSubstreamLength - uiBitsOriginallyInSubstreams) >> 3 ); 
         pcSlice->setTileLocationCount( uiLocationCount + 1 );
       }
-#endif // TILES_DECODER
     }
 
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );    

@@ -819,12 +819,10 @@ private:
   wpScalingParam  m_weightPredTableLC[2*MAX_NUM_REF][3]; // [refIdxLC][0:Y, 1:U, 2:V]
 #endif
 
-#if TILES_DECODER
   UInt        *m_uiTileByteLocation;
   UInt        m_uiTileCount;
   Int         m_iTileMarkerFlag;
   UInt        m_uiTileOffstForMultES;
-#endif
 
   UInt*       m_puiSubstreamSizes;
 #if SCALING_LIST
@@ -1042,7 +1040,6 @@ public:
   Void  resetWpScalingLC(wpScalingParam  wp[2*MAX_NUM_REF][3]);
   Void  setWpParamforLC();
 #endif
-#if TILES_DECODER
   Void setTileLocationCount             ( UInt uiCount )      { m_uiTileCount = uiCount;                  }
   UInt getTileLocationCount             ()                    { return m_uiTileCount;                     }
   Void setTileLocation                  ( Int i, UInt uiLOC ) { m_uiTileByteLocation[i] = uiLOC;          }
@@ -1051,7 +1048,6 @@ public:
   Int  getTileMarkerFlag                ()                    { return m_iTileMarkerFlag;                 }
   Void setTileOffstForMultES            (UInt uiOffset )      { m_uiTileOffstForMultES = uiOffset;        }
   UInt getTileOffstForMultES            ()                    { return m_uiTileOffstForMultES;            }
-#endif
   Void allocSubstreamSizes              ( UInt uiNumSubstreams );
   UInt* getSubstreamSizes               ()                  { return m_puiSubstreamSizes; }
 #if SCALING_LIST

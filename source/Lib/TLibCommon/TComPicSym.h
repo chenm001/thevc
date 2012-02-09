@@ -105,9 +105,7 @@ private:
   UInt*         m_puiCUOrderMap;       //the map of LCU raster scan address relative to LCU encoding order 
   UInt*         m_puiTileIdxMap;       //the map of the tile index relative to LCU raster scan address 
   UInt*         m_puiInverseCUOrderMap;
-#if TILES_DECODER
   UInt          m_uiBitsUsedByTileIdx;
-#endif
 
 public:
   Void        create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth );
@@ -148,9 +146,7 @@ public:
   Void         xCreateTComTileArray();
   Void         xInitTiles();
   UInt         xCalculateNxtCUAddr( UInt uiCurrCUAddr );
-#if TILES_DECODER
   UInt         getBitsUsedByTileIdx()                                { return m_uiBitsUsedByTileIdx; }
-#endif
 };// END CLASS DEFINITION TComPicSym
 
 //! \}

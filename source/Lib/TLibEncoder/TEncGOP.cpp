@@ -134,14 +134,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
   TComPic*        pcPic;
   TComPicYuv*     pcPicYuvRecOut;
   TComSlice*      pcSlice;
-#if TILES_DECODER
   TComOutputBitstream  *pcBitstreamRedirect;
   pcBitstreamRedirect = new TComOutputBitstream;
   OutputNALUnit        *naluBuffered             = NULL;
   Bool                  bIteratorAtListStart     = false;
   AccessUnit::iterator  itLocationToPushSliceHeaderNALU; // used to store location where NALU containing slice header is to be inserted
   UInt                  uiOneBitstreamPerSliceLength = 0;
-#endif
   TEncSbac* pcSbacCoders = NULL;
   TComOutputBitstream* pcSubstreamsOut = NULL;
 
@@ -857,7 +855,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           m_pcEntropyCoder->resetEntropy      ();
         /* start slice NALunit */
         OutputNALUnit nalu(pcSlice->getNalUnitType(), pcSlice->isReferenced() ? NAL_REF_IDC_PRIORITY_HIGHEST: NAL_REF_IDC_PRIORITY_LOWEST, pcSlice->getTLayer(), true);
-#if TILES_DECODER
         Bool bEntropySlice = (!pcSlice->isNextSlice());
         if (!bEntropySlice)
         {
@@ -867,7 +864,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         // used while writing slice header
         Int iTransmitLWHeader = (m_pcCfg->getTileMarkerFlag()==0) ? 0 : 1;
         pcSlice->setTileMarkerFlag ( iTransmitLWHeader );
-#endif
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         pcSlice->setCABACinitIDC(pcSlice->getSliceType());
         m_pcEntropyCoder->encodeSliceHeader(pcSlice);
@@ -893,14 +889,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             }
           }
         }
-#if TILES_DECODER
         m_pcEntropyCoder->encodeTileMarkerFlag(pcSlice);
-#endif
 
 
         // is it needed?
         {
-#if TILES_DECODER
 #if TILES_LOW_LATENCY_CABAC_INI
           if (!bEntropySlice)
 #else
@@ -913,9 +906,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           {
           // We've not completed our slice header info yet, do the alignment later.
           }
-#else
-          // We've not completed our slice header info yet, do the alignment later.
-#endif
           m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
           m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
           m_pcEntropyCoder->resetEntropy    ();
@@ -940,7 +930,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             m_pcEntropyCoder->setEntropyCoder ( &pcSbacCoders[0], pcSlice );  //ALF is written in substream #0 with CABAC coder #0 (see ALF param encoding below)
           }
           m_pcEntropyCoder->resetEntropy    ();
-#if TILES_DECODER
           // File writing
 #if TILES_LOW_LATENCY_CABAC_INI
           if (!bEntropySlice)
@@ -954,12 +943,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           {
             m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
           }
-#else
-          if (pcSlice->getSymbolMode())
-            m_pcEntropyCoder->setBitstream    ( &pcSubstreamsOut[0] );
-          else
-            m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
-#endif
           // for now, override the TILES_DECODER setting in order to write substreams.
             m_pcEntropyCoder->setBitstream    ( &pcSubstreamsOut[0] );
 
@@ -968,7 +951,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
           m_pcSbacCoder->load( &pcSbacCoders[0] );
 
-#if TILES_DECODER
         pcSlice->setTileOffstForMultES( uiOneBitstreamPerSliceLength );
 #if TILES_LOW_LATENCY_CABAC_INI
         if (!bEntropySlice)
@@ -983,20 +965,15 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         {
           m_pcSliceEncoder->encodeSlice(pcPic, &nalu.m_Bitstream, pcSubstreamsOut); // nalu.m_Bitstream is only used for CAVLC tile position info.
         }
-#else // !TILES_DECODER
-        m_pcSliceEncoder->encodeSlice(pcPic, pcSubstreamsOut);
-#endif // TILES_DECODER
 
         {
           // Construct the final bitstream by flushing and concatenating substreams.
           // The final bitstream is either nalu.m_Bitstream or pcBitstreamRedirect;
           UInt* puiSubstreamSizes = pcSlice->getSubstreamSizes();
-#if TILES_DECODER
           UInt uiTotalCodedSize = 0; // for padding calcs.
           UInt uiNumSubstreamsPerTile = iNumSubstreams;
           if (pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && pcSlice->getPPS()->getEntropyCodingSynchro())
             uiNumSubstreamsPerTile /= pcPic->getPicSym()->getNumTiles();
-#endif
           for ( UInt ui = 0 ; ui < iNumSubstreams; ui++ )
           {
             // Flush all substreams -- this includes empty ones.
@@ -1024,12 +1001,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
                   uiTotalCodedSize++;
                 }
               }
-#if TILES_DECODER
               Bool bRecordOffsetNext = m_pcCfg->getTileLocationInSliceHeaderFlag()
                                             && bNextSubstreamInNewTile;
               if (bRecordOffsetNext)
                 pcSlice->setTileLocation(ui/uiNumSubstreamsPerTile, pcSlice->getTileOffstForMultES()+(uiTotalCodedSize>>3));
-#endif
             }
             if (ui+1 < pcSlice->getPPS()->getNumSubstreams())
               puiSubstreamSizes[ui] = pcSubstreamsOut[ui].getNumberOfWrittenBits();
@@ -1041,7 +1016,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           m_pcEntropyCoder->encodeSliceHeaderSubstreamTable(pcSlice);
 
           // Substreams...
-#if TILES_DECODER
           TComOutputBitstream *pcOut = pcBitstreamRedirect;
           // xWriteTileLocation will perform byte-alignment...
 #if !TILES_LOW_LATENCY_CABAC_INI
@@ -1055,18 +1029,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
               pcOut->writeAlignOne();
             }
           }
-#else
-          TComOutputBitstream *pcOut = &nalu.m_Bitstream;
-          nalu.m_Bitstream.writeAlignOne(); // Byte-alignment before CABAC data
-#endif
-#if TILES_DECODER
           UInt uiAccumulatedLength = 0;
-#endif
           for ( UInt ui = 0 ; ui < pcSlice->getPPS()->getNumSubstreams(); ui++ )
           {
             pcOut->addSubstream(&pcSubstreamsOut[ui]);
 
-#if TILES_DECODER
             // Update tile marker location information
             for (Int uiMrkIdx = 0; uiMrkIdx < pcSubstreamsOut[ui].getTileMarkerLocationCount(); uiMrkIdx++)
             {
@@ -1075,11 +1042,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
               pcOut->setTileMarkerLocationCount ( uiBottom + 1 );
             }
             uiAccumulatedLength = (pcOut->getNumberOfWrittenBits() >> 3);
-#endif
           }
         }
 
-#if TILES_DECODER
         UInt uiBoundingAddrSlice, uiBoundingAddrEntropySlice;
         uiBoundingAddrSlice        = m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx];          
         uiBoundingAddrEntropySlice = m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx];          
@@ -1169,28 +1134,17 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           bNALUAlignedWrittenToList = true; 
           uiOneBitstreamPerSliceLength += nalu.m_Bitstream.getNumberOfWrittenBits(); // length of bitstream after byte-alignment
         }
-#endif
 
-#if TILES_DECODER
         if (!bNALUAlignedWrittenToList)
         {
-#endif
         {
           nalu.m_Bitstream.writeAlignZero();
         }
         accessUnit.push_back(new NALUnitEBSP(nalu));
-#if TILES_DECODER
         uiOneBitstreamPerSliceLength += nalu.m_Bitstream.getNumberOfWrittenBits() + 24; // length of bitstream after byte-alignment + 3 byte startcode 0x000001
         }
-#endif
 
 
-#if !TILES_DECODER
-        UInt uiBoundingAddrSlice, uiBoundingAddrEntropySlice;
-        uiBoundingAddrSlice        = m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx];          
-        uiBoundingAddrEntropySlice = m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx];          
-        uiNextCUAddr               = min(uiBoundingAddrSlice, uiBoundingAddrEntropySlice);
-#endif
         processingState = ENCODE_SLICE;
           }
           break;
@@ -1365,9 +1319,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
   }
   
   delete[] pcSubstreamsOut;
-#if TILES_DECODER
   delete pcBitstreamRedirect;
-#endif
 
   assert ( m_iNumPicCoded == iNumPicRcvd );
 }
@@ -1982,7 +1934,6 @@ Double TEncGOP::xCalculateRVM()
 }
 #endif
 
-#if TILES_DECODER
 /** Determine the difference between consecutive tile sizes (in bytes) and writes it to  bistream rNalu [slice header]
  * \param rpcBitstreamRedirect contains the bitstream to be concatenated to rNalu. rpcBitstreamRedirect contains slice payload. rpcSlice contains tile location information.
  * \returns Updates rNalu to contain concatenated bitstream. rpcBitstreamRedirect is cleared at the end of this function call.
@@ -2133,5 +2084,4 @@ Void TEncGOP::xWriteTileLocationToSliceHeader (OutputNALUnit& rNalu, TComOutputB
   delete rpcBitstreamRedirect;
   rpcBitstreamRedirect = new TComOutputBitstream;
 }
-#endif
 //! \}

@@ -90,12 +90,10 @@ TComSlice::TComSlice()
 , m_uiSliceBits                   ( 0 )
 , m_uiEntropySliceCounter         ( 0 )
 , m_bFinalized                    ( false )
-#if TILES_DECODER
 , m_uiTileByteLocation            ( NULL )
 , m_uiTileCount                   ( 0 )
 , m_iTileMarkerFlag               ( 0 )
 , m_uiTileOffstForMultES          ( 0 )
-#endif
 , m_puiSubstreamSizes             ( NULL )
 , m_cabacInitIdc                 ( -1 )
 {
@@ -129,13 +127,11 @@ TComSlice::TComSlice()
 
 TComSlice::~TComSlice()
 {
-#if TILES_DECODER
   if (m_uiTileByteLocation) 
   {
     delete [] m_uiTileByteLocation;
     m_uiTileByteLocation = NULL;
   }
-#endif
   delete[] m_puiSubstreamSizes;
   m_puiSubstreamSizes = NULL;
 }
@@ -163,7 +159,6 @@ Void TComSlice::initSlice()
 
   m_bFinalized=false;
 
-#if TILES_DECODER
   Int iWidth             = m_pcSPS->getWidth();
   Int iHeight            = m_pcSPS->getHeight();
   UInt uiWidthInCU       = ( iWidth %g_uiMaxCUWidth  ) ? iWidth /g_uiMaxCUWidth  + 1 : iWidth /g_uiMaxCUWidth;
@@ -172,7 +167,6 @@ Void TComSlice::initSlice()
 
   m_uiTileCount          = 0;
   if (m_uiTileByteLocation==NULL) m_uiTileByteLocation   = new UInt[uiNumCUsInFrame];
-#endif
 }
 
 /**
@@ -664,9 +658,7 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_uiEntropySliceCurEndCUAddr    = pSrc->m_uiEntropySliceCurEndCUAddr;
   m_bNextSlice                    = pSrc->m_bNextSlice;
   m_bNextEntropySlice             = pSrc->m_bNextEntropySlice;
-#if TILES_DECODER
   m_iTileMarkerFlag             = pSrc->m_iTileMarkerFlag;
-#endif
   for ( int e=0 ; e<2 ; e++ )
     for ( int n=0 ; n<MAX_NUM_REF ; n++ )
       memcpy(m_weightPredTable[e][n], pSrc->m_weightPredTable[e][n], sizeof(wpScalingParam)*3 );

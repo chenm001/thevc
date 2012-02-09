@@ -215,7 +215,6 @@
 #define LOG2_MAX_COLUMN_WIDTH              13
 #define LOG2_MAX_ROW_HEIGHT                13
 
-#define TILES_DECODER                       1 // JCTVC-F594 - signalling of tile location
 #define MAX_MARKER_PER_NALU                 1000
 #define TILES_LOW_LATENCY_CABAC_INI         1 // JCTVC-G197 = low latency CABAC initialization for dependent tiles
 

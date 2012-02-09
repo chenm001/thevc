@@ -573,12 +573,10 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   return;
 }
 
-#if TILES_DECODER
 Void TDecCavlc::readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed )
 {
   xReadCode ( uiBitsUsed, uiTileIdx );
 }
-#endif
 
 Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 {
@@ -983,7 +981,6 @@ Void TDecCavlc::parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice)
   Bool bEntropySlice = (!rpcSlice->isNextSlice());
   UInt uiCode;
 
-#if TILES_DECODER
   rpcSlice->setTileMarkerFlag ( 0 ); // default
   if (!bEntropySlice)
   {
@@ -1029,7 +1026,6 @@ Void TDecCavlc::parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice)
     }
   }
 
-#if TILES_DECODER
   if (!bEntropySlice)
   {
     // Reading location information
@@ -1079,10 +1075,7 @@ Void TDecCavlc::parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice)
       m_pcBitstream->readOutTrailingBits();
     }
   }
-#endif
-
 }
-#endif
 
 
 Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
