@@ -912,11 +912,9 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 
   // !!!! Syntax elements not in the WD  !!!!!
   
-#if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   READ_UVLC( uiCode, "MaxNumMergeCand");
   rpcSlice->setMaxNumMergeCand(MRG_MAX_NUM_CANDS - uiCode);
   assert(rpcSlice->getMaxNumMergeCand()==MRG_MAX_NUM_CANDS_SIGNALED);
-#endif
 
   return;
 }

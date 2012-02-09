@@ -2302,20 +2302,12 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
       pcCU->getCUMvField(REF_PIC_LIST_1)->setAllMvField( cMvFieldNeighbours[1 + 2*uiMergeCand], ePartSize, uiAbsPartIdx, 0, iPUIdx );
 
       xGetInterPredictionError( pcCU, pcYuvOrg, iPUIdx, uiCostCand, m_pcEncCfg->getUseHADME() );
-#if G091_SIGNAL_MAX_NUM_MERGE_CANDS
       uiBitsCand = uiMergeCand + 1;
       if (uiMergeCand == MRG_MAX_NUM_CANDS_SIGNALED -1)
       {
          uiBitsCand--;
       }
       uiCostCand = uiCostCand + m_pcRdCost->getCost( uiBitsCand );
-#else     
-      uiBitsCand = uiMergeCand+1;
-      if (uiBitsCand == MRG_MAX_NUM_CANDS)
-        uiBitsCand--;
-
-      uiCostCand = uiCostCand + m_pcRdCost->getCost( uiBitsCand );
-#endif
       if ( uiCostCand < ruiCost )
       {
         ruiCost = uiCostCand;

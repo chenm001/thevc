@@ -153,9 +153,7 @@ Void TComSlice::initSlice()
 
   m_aiNumRefIdx[REF_PIC_LIST_C]      = 0;
 
-#if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   m_uiMaxNumMergeCand = MRG_MAX_NUM_CANDS_SIGNALED;
-#endif
 
   m_bFinalized=false;
 
