@@ -308,9 +308,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
                                               "\t1: use MD5\n"
                                               "\t0: disable")
 
-#if NO_TMVP_MARKING
   ("TMVP", m_enableTMVP, true, "Enable TMVP" )
-#endif
 
   ("FEN", m_bUseFastEnc, false, "fast encoder setting")
   ("ECU", m_bUseEarlyCU, false, "Early CU setting") 
@@ -924,9 +922,7 @@ Void TAppEncCfg::xPrintParameter()
   printf(" ScalingList:%d ", m_useScalingListId );
 #endif
 
-#if NO_TMVP_MARKING
   printf("TMVP:%d ", m_enableTMVP     );
-#endif
 
 #if ADAPTIVE_QP_SELECTION
   printf("AQpS:%d", m_bUseAdaptQpSelect   );

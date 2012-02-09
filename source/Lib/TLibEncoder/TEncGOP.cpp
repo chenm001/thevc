@@ -270,12 +270,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       // Do decoding refresh marking if any 
       pcSlice->decodingRefreshMarking(m_uiPOCCDR, m_bRefreshPending, rcListPic);
 
-#if NO_TMVP_MARKING
       if ( !pcSlice->getPPS()->getEnableTMVPFlag() && pcPic->getTLayer() == 0 )
       {
         pcSlice->decodingMarkingForNoTMVP( rcListPic, pcSlice->getPOC() );
       }
-#endif
 
       m_pcEncTop->selectReferencePictureSet(pcSlice, uiPOCCurr, iGOPid,rcListPic);
       pcSlice->getRPS()->setNumberOfLongtermPictures(0);
@@ -1396,9 +1394,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       
       pcPic->setReconMark   ( true );
 
-#if NO_TMVP_MARKING
       pcPic->setUsedForTMVP ( true );
-#endif
 
       m_bFirst = false;
       m_iNumPicCoded++;

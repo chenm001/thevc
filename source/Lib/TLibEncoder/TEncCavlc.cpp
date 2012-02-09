@@ -353,9 +353,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   //   pic_init_qp_minus26  /* relative to 26 */
 #endif
   WRITE_FLAG( pcPPS->getConstrainedIntraPred() ? 1 : 0,      "constrained_intra_pred_flag" );
-#if NO_TMVP_MARKING
   WRITE_FLAG( pcPPS->getEnableTMVPFlag() ? 1 : 0,            "enable_temporal_mvp_flag" );
-#endif
   WRITE_CODE( pcPPS->getSliceGranularity(), 2,               "slice_granularity");
 #if G507_QP_ISSUE_FIX
   WRITE_UVLC( pcPPS->getMaxCuDQPDepth() + pcPPS->getUseDQP(),                   "max_cu_qp_delta_depth" );

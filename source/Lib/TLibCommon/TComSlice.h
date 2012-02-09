@@ -490,9 +490,7 @@ private:
   Bool     m_bCabacIstateReset;
   Int      m_iNumSubstreams;
 
-#if NO_TMVP_MARKING
   Bool     m_enableTMVPFlag;
-#endif
 
 public:
   TComPPS();
@@ -599,10 +597,8 @@ public:
   Void     setNumSubstreams(Int iNumSubstreams)               { m_iNumSubstreams = iNumSubstreams; }
   Int      getNumSubstreams()                                 { return m_iNumSubstreams; }
 
-#if NO_TMVP_MARKING
   Void     setEnableTMVPFlag( Bool b )  { m_enableTMVPFlag = b;    }
   Bool     getEnableTMVPFlag()          { return m_enableTMVPFlag; }
-#endif
 };
 #if SCALING_LIST
 typedef struct
@@ -1015,9 +1011,7 @@ public:
   Int       checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool outputFlag);
   Void      createExplicitReferencePictureSetFromReference( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet);
 
-#if NO_TMVP_MARKING
   Void decodingMarkingForNoTMVP( TComList<TComPic*>& rcListPic, Int currentPOC );
-#endif
 
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   UInt m_uiMaxNumMergeCand;

@@ -245,9 +245,7 @@ protected:
   char*     m_scalingListFile;          ///< quantization matrix file name
 #endif
 
-#if NO_TMVP_MARKING
   Bool      m_bEnableTMVP;
-#endif
 
 public:
   TEncCfg()          {}
@@ -571,10 +569,8 @@ public:
   char*     getScalingListFile     ()            { return m_scalingListFile;    }
 #endif
 
-#if NO_TMVP_MARKING
   Void      setEnableTMVP ( Bool b ) { m_bEnableTMVP = b;    }
   Bool      getEnableTMVP ()         { return m_bEnableTMVP; }
-#endif
 };
 
 //! \}

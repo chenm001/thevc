@@ -70,9 +70,7 @@ private:
   Bool                  m_bNeededForOutput;
   UInt                  m_uiCurrSliceIdx;         // Index of current slice
 
-#if NO_TMVP_MARKING
   Bool                  m_usedForTMVP;
-#endif
   
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   Int*                  m_pSliceSUMap;
@@ -136,10 +134,8 @@ public:
   Void          setReconMark (Bool b) { m_bReconstructed = b;     }
   Bool          getReconMark ()       { return m_bReconstructed;  }
 
-#if NO_TMVP_MARKING
   Void          setUsedForTMVP( Bool b ) { m_usedForTMVP = b;    }
   Bool          getUsedForTMVP()         { return m_usedForTMVP; }
-#endif
 
   Void          setOutputMark (Bool b) { m_bNeededForOutput = b;     }
   Bool          getOutputMark ()       { return m_bNeededForOutput;  }

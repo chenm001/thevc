@@ -664,9 +664,7 @@ Void TEncTop::xInitPPS()
   m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams);
   m_cPPS.setUseWP( m_bUseWeightPred );
   m_cPPS.setWPBiPredIdc( m_uiBiPredIdc );
-#if NO_TMVP_MARKING
   m_cPPS.setEnableTMVPFlag( m_bEnableTMVP );
-#endif
 }
 
 Void TEncTop::xInitRPS()

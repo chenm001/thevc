@@ -637,12 +637,10 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         pcSlice->decodingRefreshMarking(m_uiPOCCDR, m_bRefreshPending, m_cListPic);
 #endif
         
-#if NO_TMVP_MARKING
         if ( !pcSlice->getPPS()->getEnableTMVPFlag() && pcPic->getTLayer() == 0 )
         {
           pcSlice->decodingMarkingForNoTMVP( m_cListPic, pcSlice->getPOC() );
         }
-#endif
         
         // Set reference list
         pcSlice->setRefPicList( m_cListPic );

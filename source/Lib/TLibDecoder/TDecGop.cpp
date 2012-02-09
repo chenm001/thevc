@@ -447,9 +447,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     rpcPic->setOutputMark(true);
     rpcPic->setReconMark(true);
 
-#if NO_TMVP_MARKING
     rpcPic->setUsedForTMVP( true );
-#endif
 
     uiILSliceCount = 0;
     vAlfCUCtrlSlices.clear();

@@ -56,9 +56,7 @@ TComPic::TComPic()
   m_pcPicYuvResi      = NULL;
   m_bIsLongTerm       = false;
   m_bReconstructed    = false;
-#if NO_TMVP_MARKING
   m_usedForTMVP      = true;
-#endif
   m_bNeededForOutput  = false;
 #if NONCROSS_TILE_IN_LOOP_FILTERING
   m_pSliceSUMap      = NULL;

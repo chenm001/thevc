@@ -948,8 +948,6 @@ Void TComSlice::createExplicitReferencePictureSetFromReference( TComList<TComPic
   this->setRPSidx(-1);
 }
 
-
-#if NO_TMVP_MARKING
 Void TComSlice::decodingMarkingForNoTMVP( TComList<TComPic*>& rcListPic, Int currentPOC )
 {
   TComList<TComPic*>::iterator it;
@@ -961,7 +959,6 @@ Void TComSlice::decodingMarkingForNoTMVP( TComList<TComPic*>& rcListPic, Int cur
     }
   }
 }
-#endif
 
 /** get AC and DC values for weighted pred
  * \param *wp
