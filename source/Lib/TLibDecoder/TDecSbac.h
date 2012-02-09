@@ -205,15 +205,10 @@ private:
   ContextModel3DBuffer m_cCUOneSCModel;
   ContextModel3DBuffer m_cCUAbsSCModel;
 #else
-#if COEFF_CTXSET_RED
   ContextModel3DBuffer m_cCUOneSCModelLuma;
   ContextModel3DBuffer m_cCUOneSCModelChroma;
   ContextModel3DBuffer m_cCUAbsSCModelLuma;
   ContextModel3DBuffer m_cCUAbsSCModelChroma;
-#else
-  ContextModel3DBuffer m_cCUOneSCModel;
-  ContextModel3DBuffer m_cCUAbsSCModel;
-#endif
 #endif
   
   ContextModel3DBuffer m_cMVPIdxSCModel;

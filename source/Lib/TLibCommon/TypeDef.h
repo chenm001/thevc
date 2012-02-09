@@ -86,8 +86,6 @@
 #define MLS_CG_SIZE                         4      ///< G644 : Coefficient group size of 4x4
 #endif
 
-#define COEFF_CTXSET_RED                    1      ///< G783 : reduce level context set of chroma
-
 #define NONCROSS_TILE_IN_LOOP_FILTERING     1      ///< G194 : Non-cross-tiles loop filtering
 
 #define ADAPTIVE_QP_SELECTION               1      ///< G382: Adaptive reconstruction levels, non-normative part for adaptive QP selection

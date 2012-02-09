@@ -2190,11 +2190,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     {
       iLastScanPos            = iScanPos;
       uiCtxSet                = iScanPos < SCAN_SET_SIZE ? 0 : 3;
-#if COEFF_CTXSET_RED
       uiCtxSet                = (iScanPos < SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
-#else
-      uiCtxSet                = iScanPos < SCAN_SET_SIZE ? 0 : 3;
-#endif
     }    
 
     if ( iLastScanPos >= 0 )
@@ -2244,35 +2240,23 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         c1                = 1;
         c2                = 0;
         uiGoRiceParam     = 0;
-#if COEFF_CTXSET_RED
         uiCtxSet          = (iScanPos == SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
-#else
-        uiCtxSet          = iScanPos == SCAN_SET_SIZE ? 0 : 3;
-#endif
         if( uiNumOne > 0 )
         {
           uiCtxSet++;
 #if CLEANUP_CTXINIT
-#if COEFF_CTXSET_RED
           if(uiNumOne > 3 && eTType==TEXT_LUMA)
-#else
-          if( uiNumOne > 3 )
-#endif
           {
             uiCtxSet++;
           }
 #else
-#if COEFF_CTXSET_RED
           if(eTType==TEXT_LUMA)
           {
-#endif
             if( uiNumOne > 3 )
             {
               uiCtxSet++;
             }
-#if COEFF_CTXSET_RED
           }
-#endif
 #endif
         }
         uiNumOne    >>= 1;
@@ -2337,11 +2321,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         if ( uiMaxAbsLevel > 0 && iLastScanPos < 0 )
         {
           iLastScanPos            = iScanPos;
-#if COEFF_CTXSET_RED
           uiCtxSet                = (iScanPos < SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
-#else
-          uiCtxSet                = iScanPos < SCAN_SET_SIZE ? 0 : 3;
-#endif
           iCGLastScanPos          = iCGScanPos;
         }
 
@@ -2396,35 +2376,23 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
             c1                = 1;
             c2                = 0;
             uiGoRiceParam     = 0;
-#if COEFF_CTXSET_RED
             uiCtxSet          = (iScanPos == SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
-#else
-            uiCtxSet          = iScanPos == SCAN_SET_SIZE ? 0 : 3;
-#endif
             if( uiNumOne > 0 )
             {
               uiCtxSet++;
 #if CLEANUP_CTXINIT
-#if COEFF_CTXSET_RED
               if( uiNumOne > 3 && eTType==TEXT_LUMA)
-#else
-              if( uiNumOne > 3 )
-#endif
               {
                 uiCtxSet++;
               }
 #else
-#if COEFF_CTXSET_RED
               if(eTType==TEXT_LUMA)
               {
-#endif
                 if( uiNumOne > 3 )
                 {
                   uiCtxSet++;
                 }
-#if COEFF_CTXSET_RED
               }
-#endif
 #endif
             }
             uiNumOne    >>= 1;
