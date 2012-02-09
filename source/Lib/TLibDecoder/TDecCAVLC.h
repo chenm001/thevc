@@ -79,11 +79,7 @@ protected:
 
   UInt  xGetBit             ();
   
-#if INTER_RPS_PREDICTION
   void  parseShortTermRefPicSet            (TComPPS* pcPPS, TComReferencePictureSet* pcRPS, Int idx);
-#else
-  Void  parseShortTermRefPicSet            (TComPPS* pcPPS, TComReferencePictureSet* pcRPS);
-#endif
 private:
   TComInputBitstream*   m_pcBitstream;
   UInt                  m_uiCoeffCost;

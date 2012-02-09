@@ -147,14 +147,9 @@ void TDecCavlc::parseSEI(SEImessages& seis)
   } while (0x80 != m_pcBitstream->peekBits(8));
   assert(m_pcBitstream->getNumBitsLeft() == 8); /* rsbp_trailing_bits */
 }
-#if INTER_RPS_PREDICTION
 void TDecCavlc::parseShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet* pcRPS, Int idx )
-#else
-void TDecCavlc::parseShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet* pcRPS )
-#endif
 {
   UInt uiCode;
-#if INTER_RPS_PREDICTION
   UInt uiInterRPSPred;
   READ_FLAG(uiInterRPSPred, "inter_RPS_flag");  pcRPS->setInterRPSPrediction(uiInterRPSPred);
   if (uiInterRPSPred) 
@@ -202,9 +197,6 @@ void TDecCavlc::parseShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet
   }
   else
   {
-#else
-    pcRPS->create(pcPPS->getSPS()->getMaxNumberOfReferencePictures());
-#endif //INTER_RPS_PREDICTION
     READ_UVLC(uiCode, "num_negative_pics");           pcRPS->setNumberOfNegativePictures(uiCode);
     READ_UVLC(uiCode, "num_positive_pics");           pcRPS->setNumberOfPositivePictures(uiCode);
     Int prev = 0;
@@ -227,9 +219,7 @@ void TDecCavlc::parseShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet
       READ_FLAG(uiCode, "used_by_curr_pic_s1_flag");  pcRPS->setUsed(j,uiCode);
     }
     pcRPS->setNumberOfPictures(pcRPS->getNumberOfNegativePictures()+pcRPS->getNumberOfPositivePictures());
-#if INTER_RPS_PREDICTION
   }
-#endif // INTER_RPS_PREDICTION   
 #if PRINT_RPS_INFO
   pcRPS->printDeltaPOC();
 #endif
@@ -275,11 +265,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   for(UInt i=0; i< pcRPSList->getNumberOfReferencePictureSets(); i++)
   {
     pcRPS = pcRPSList->getReferencePictureSet(i);
-#if INTER_RPS_PREDICTION
     parseShortTermRefPicSet(pcPPS,pcRPS,i);
-#else
-    parseShortTermRefPicSet(pcPPS,pcRPS);
-#endif
   }
   READ_FLAG( uiCode, "long_term_ref_pics_present_flag" );          pcPPS->setLongTermRefsPresent(uiCode);
   // entropy_coding_mode_flag
@@ -670,11 +656,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       if(uiCode == 0) // use short-term reference picture set explicitly signalled in slice header
       {
         pcRPS = rpcSlice->getLocalRPS();
-#if INTER_RPS_PREDICTION
         parseShortTermRefPicSet(rpcSlice->getPPS(),pcRPS, rpcSlice->getPPS()->getRPSList()->getNumberOfReferencePictureSets());
-#else
-        parseShortTermRefPicSet(rpcSlice->getPPS(),pcRPS);
-#endif        
         rpcSlice->setRPS(pcRPS);
       }
       else // use reference to short-term reference picture set in PPS

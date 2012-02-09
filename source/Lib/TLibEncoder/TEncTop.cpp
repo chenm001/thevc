@@ -659,9 +659,7 @@ Void TEncTop::xInitRPS()
     GOPEntry pGE = getGOPEntry(i);
     pcRPS = m_cRPSList.getReferencePictureSet(i);
     pcRPS->setNumberOfPictures(pGE.m_iNumRefPics);
-#if INTER_RPS_PREDICTION
     pcRPS->setNumRefIdc(pGE.m_iNumRefIdc);
-#endif
     int iNumNeg = 0;
     int iNumPos = 0;
     for( Int j = 0; j < pGE.m_iNumRefPics; j++)
@@ -675,7 +673,6 @@ Void TEncTop::xInitRPS()
     }
     pcRPS->setNumberOfNegativePictures(iNumNeg);
     pcRPS->setNumberOfPositivePictures(iNumPos);
-#if INTER_RPS_PREDICTION
     pcRPS->setInterRPSPrediction(pGE.m_bInterRPSPrediction);
     if (pGE.m_bInterRPSPrediction)
     {
@@ -710,7 +707,6 @@ Void TEncTop::xInitRPS()
       pcRPS->sortDeltaPOC();
 #endif
     }
-#endif
   }
   
 }

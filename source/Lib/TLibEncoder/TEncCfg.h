@@ -57,13 +57,11 @@ struct GOPEntry
   Int m_iNumRefPics;
   Int m_aiReferencePics[MAX_NUM_REF_PICS];
   Int m_aiUsedByCurrPic[MAX_NUM_REF_PICS];
-#if INTER_RPS_PREDICTION
   Bool m_bInterRPSPrediction;
   Int m_iDeltaRIdxMinus1;
   Int m_iDeltaRPS;
   Int m_iNumRefIdc;
   Int m_aiRefIdc[MAX_NUM_REF_PICS+1];
-#endif
   GOPEntry()
   : m_iPOC(-1)
   , m_iQPOffset()
@@ -73,18 +71,14 @@ struct GOPEntry
   , m_iRefBufSize()
   , m_iSliceType()
   , m_iNumRefPics()
-#if INTER_RPS_PREDICTION
   , m_bInterRPSPrediction()
   , m_iDeltaRIdxMinus1()
   , m_iDeltaRPS()
   , m_iNumRefIdc()
-#endif
   {
     ::memset( m_aiReferencePics, 0, sizeof(m_aiReferencePics) );
     ::memset( m_aiUsedByCurrPic, 0, sizeof(m_aiUsedByCurrPic) );
-#if INTER_RPS_PREDICTION
     ::memset( m_aiRefIdc,        0, sizeof(m_aiRefIdc) );
-#endif
   }
 };
 

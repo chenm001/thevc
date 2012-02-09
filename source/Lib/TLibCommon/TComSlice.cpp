@@ -886,7 +886,6 @@ Void TComSlice::createExplicitReferencePictureSetFromReference( TComList<TComPic
   pcRPS->setNumberOfNegativePictures(nrOfNegativePictures);
   pcRPS->setNumberOfPositivePictures(nrOfPositivePictures);
   pcRPS->setNumberOfPictures(nrOfNegativePictures+nrOfPositivePictures);
-#if INTER_RPS_PREDICTION
   // This is a simplistic inter rps example. A smarter encoder will look for a better reference RPS to do the 
   // inter RPS prediction with.  Here we just use the reference used by pReferencePictureSet.
   // If pReferencePictureSet is not inter_RPS_predicted, then inter_RPS_prediction is for the current RPS also disabled.
@@ -928,7 +927,6 @@ Void TComSlice::createExplicitReferencePictureSetFromReference( TComList<TComPic
     pcRPS->setDeltaRPS(deltaRPS); 
     pcRPS->setDeltaRIdxMinus1(pReferencePictureSet->getDeltaRIdxMinus1() + this->getPPS()->getRPSList()->getNumberOfReferencePictureSets() - this->getRPSidx());
   }
-#endif      
 
   this->setRPS(pcRPS);
   this->setRPSidx(-1);
@@ -1237,19 +1235,15 @@ TComReferencePictureSet::TComReferencePictureSet()
 , m_uiNumberOfNegativePictures (0)
 , m_uiNumberOfPositivePictures (0)
 , m_uiNumberOfLongtermPictures (0)
-#if INTER_RPS_PREDICTION
 , m_bInterRPSPrediction (0) 
 , m_iDeltaRIdxMinus1 (0)   
 , m_iDeltaRPS (0) 
 , m_iNumRefIdc (0) 
-#endif
 {
   ::memset( m_piDeltaPOC, 0, sizeof(m_piDeltaPOC) );
   ::memset( m_piPOC, 0, sizeof(m_piPOC) );
   ::memset( m_pbUsed, 0, sizeof(m_pbUsed) );
-#if INTER_RPS_PREDICTION
   ::memset( m_piRefIdc, 0, sizeof(m_piRefIdc) );
-#endif
 }
 
 TComReferencePictureSet::~TComReferencePictureSet()
@@ -1295,7 +1289,6 @@ Void TComReferencePictureSet::setPOC(UInt uiBufferNum, Int iPOC)
    m_piPOC[uiBufferNum] = iPOC;
 }
 
-#if INTER_RPS_PREDICTION
 /** set the reference idc value at uiBufferNum entry to the value of iRefIdc
  * \param uiBufferNum
  * \param iRefIdc
@@ -1352,7 +1345,6 @@ Void TComReferencePictureSet::sortDeltaPOC()
   }
 }
 
-#endif
 /** Prints the deltaPOC and RefIdc (if available) values in the RPS.
  *  A "*" is added to the deltaPOC value if it is Used bu current.
  * \returns Void
@@ -1364,7 +1356,6 @@ Void TComReferencePictureSet::printDeltaPOC()
   {
     printf("%d%s ", getDeltaPOC(j), (getUsed(j)==1)?"*":"");
   } 
-#if INTER_RPS_PREDICTION
   if (getInterRPSPrediction()) 
   {
     printf("}, RefIdc = { ");
@@ -1373,7 +1364,6 @@ Void TComReferencePictureSet::printDeltaPOC()
       printf("%d ", getRefIdc(j));
     } 
   }
-#endif
   printf("}\n");
 }
 

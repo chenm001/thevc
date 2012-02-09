@@ -237,7 +237,6 @@ Void TEncCavlc::codeShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet*
 #if PRINT_RPS_INFO
   int lastBits = getNumberOfWrittenBits();
 #endif
-#if INTER_RPS_PREDICTION
   WRITE_FLAG( pcRPS->getInterRPSPrediction(), "inter_ref_pic_set_prediction_flag" ); // inter_RPS_prediction_flag
   if (pcRPS->getInterRPSPrediction()) 
   {
@@ -260,7 +259,6 @@ Void TEncCavlc::codeShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet*
   }
   else
   {
-#endif //INTER_RPS_PREDICTION
     WRITE_UVLC( pcRPS->getNumberOfNegativePictures(), "num_negative_pics" );
     WRITE_UVLC( pcRPS->getNumberOfPositivePictures(), "num_positive_pics" );
     Int prev = 0;
@@ -277,16 +275,10 @@ Void TEncCavlc::codeShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet*
       prev = pcRPS->getDeltaPOC(j);
       WRITE_FLAG( pcRPS->getUsed(j), "used_by_curr_pic_s1_flag" ); 
     }
-#if INTER_RPS_PREDICTION
   }
-#endif // INTER_RPS_PREDICTION
 
 #if PRINT_RPS_INFO
-#if INTER_RPS_PREDICTION  
   printf("irps=%d (%2d bits) ", pcRPS->getInterRPSPrediction(), getNumberOfWrittenBits() - lastBits);
-#else
-  printf("(%2d bits) ", getNumberOfWrittenBits() - lastBits);
-#endif
   pcRPS->printDeltaPOC();
 #endif
 }

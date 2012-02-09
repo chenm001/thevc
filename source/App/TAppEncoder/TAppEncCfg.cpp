@@ -105,7 +105,6 @@ std::istringstream &operator>>(std::istringstream &in, GOPEntry &entry)     //in
   {
     in>>entry.m_aiReferencePics[i];
   }
-#if INTER_RPS_PREDICTION
   in>>entry.m_bInterRPSPrediction;
   if (entry.m_bInterRPSPrediction)
   {
@@ -117,7 +116,6 @@ std::istringstream &operator>>(std::istringstream &in, GOPEntry &entry)     //in
       in>>entry.m_aiRefIdc[i];
     }
   }
-#endif
   return in;
 }
 
@@ -636,7 +634,6 @@ Void TAppEncCfg::xCheckParameter()
         }
         m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iNumRefPics=iNewRefs;
         m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iPOC = iCurPOC;
-#if INTER_RPS_PREDICTION
         if (m_iExtraRPSs == 0)
         {
           m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_bInterRPSPrediction = 0;
@@ -675,7 +672,6 @@ Void TAppEncCfg::xCheckParameter()
           m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iDeltaRPS = iRefPOC - m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iPOC; 
           m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iDeltaRIdxMinus1 = 0; 
         }
-#endif        
         iCurGOP=m_iGOPSize+m_iExtraRPSs;
         m_iExtraRPSs++;
       }

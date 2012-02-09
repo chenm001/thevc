@@ -312,13 +312,11 @@ private:
   Int       m_piDeltaPOC[MAX_NUM_REF_PICS];
   Int       m_piPOC[MAX_NUM_REF_PICS];
   Bool      m_pbUsed[MAX_NUM_REF_PICS];
-#if INTER_RPS_PREDICTION
   Bool m_bInterRPSPrediction;
   Int m_iDeltaRIdxMinus1;   
   Int m_iDeltaRPS; 
   Int m_iNumRefIdc; 
   Int m_piRefIdc[MAX_NUM_REF_PICS+1];
-#endif  
 
 public:
   TComReferencePictureSet();
@@ -341,7 +339,6 @@ public:
   Void setNumberOfLongtermPictures(UInt Number) { m_uiNumberOfLongtermPictures = Number; }
   UInt getNumberOfLongtermPictures() { return m_uiNumberOfLongtermPictures; }
 
-#if INTER_RPS_PREDICTION
   Void setInterRPSPrediction(Bool flag) { m_bInterRPSPrediction = flag; }
   Bool getInterRPSPrediction() { return m_bInterRPSPrediction; }
   Void setDeltaRIdxMinus1(Int x) { m_iDeltaRIdxMinus1 = x; }
@@ -355,7 +352,6 @@ public:
   Int  getRefIdc(UInt uiBufferNum);
 
   Void sortDeltaPOC();
-#endif
   Void printDeltaPOC();
 };
 
