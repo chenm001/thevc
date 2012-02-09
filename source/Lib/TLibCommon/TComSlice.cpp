@@ -119,9 +119,7 @@ TComSlice::TComSlice()
   }
   m_bCombineWithReferenceFlag = 0;
   resetWpScaling(m_weightPredTable);
-#if WP_IMPROVED_SYNTAX
   resetWpScalingLC(m_weightPredTableLC);
-#endif
   initWpAcDcParam();
 }
 
@@ -1039,7 +1037,6 @@ Void  TComSlice::initWpScaling(wpScalingParam  wp[2][MAX_NUM_REF][3])
   }
 }
 
-#if WP_IMPROVED_SYNTAX
 /** get WP tables for weighted pred of LC
  * \param iRefIdxLC
  * \param *&wpScalingParam
@@ -1119,7 +1116,6 @@ Void TComSlice::copyWPtable(wpScalingParam *&wp_src, wpScalingParam *&wp_dst)
     wp_dst[iComp].iOffset = wp_src[iComp].iOffset;
   }
 }
-#endif
 
 
 // ------------------------------------------------------------------------------------------------

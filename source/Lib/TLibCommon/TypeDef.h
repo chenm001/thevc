@@ -50,7 +50,6 @@
 #define WEIGHT_PRED_IMP           1 ///< high-precision offset for weighted bipred G065
 #define PLANAR_IS_DEFAULT         1 ///< default to planar if neighbor not available G119
 #define VER_HOR_FILTER            1 ///< F172: intra ver/hor prediction filter
-#define WP_IMPROVED_SYNTAX        1 ///< improved weighted prediction syntax to remove redundancy G441
 
 #define REMOVE_INTRA_LINE_BUFFER  1 ///< G145: intra line buffer removal
 

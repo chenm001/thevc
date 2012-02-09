@@ -813,9 +813,7 @@ private:
 
   wpScalingParam  m_weightPredTable[2][MAX_NUM_REF][3]; // [REF_PIC_LIST_0 or REF_PIC_LIST_1][refIdx][0:Y, 1:U, 2:V]
   wpACDCParam    m_weightACDCParam[3];                 // [0:Y, 1:U, 2:V]
-#if WP_IMPROVED_SYNTAX
   wpScalingParam  m_weightPredTableLC[2*MAX_NUM_REF][3]; // [refIdxLC][0:Y, 1:U, 2:V]
-#endif
 
   UInt        *m_uiTileByteLocation;
   UInt        m_uiTileCount;
@@ -1028,12 +1026,10 @@ public:
   Void  setWpAcDcParam  ( wpACDCParam wp[3] ) { memcpy(m_weightACDCParam, wp, sizeof(wpACDCParam)*3); }
   Void  getWpAcDcParam  ( wpACDCParam *&wp );
   Void  initWpAcDcParam ();
-#if WP_IMPROVED_SYNTAX
   Void  copyWPtable     (wpScalingParam *&wp_src, wpScalingParam *&wp_dst);
   Void  getWpScalingLC  ( Int iRefIdx, wpScalingParam *&wp);
   Void  resetWpScalingLC(wpScalingParam  wp[2*MAX_NUM_REF][3]);
   Void  setWpParamforLC();
-#endif
   Void setTileLocationCount             ( UInt uiCount )      { m_uiTileCount = uiCount;                  }
   UInt getTileLocationCount             ()                    { return m_uiTileCount;                     }
   Void setTileLocation                  ( Int i, UInt uiLOC ) { m_uiTileByteLocation[i] = uiLOC;          }
