@@ -1010,11 +1010,7 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
   UInt uiAbsSum = 0;
   pcCU       ->setTrIdxSubParts ( uiTrDepth, uiAbsPartIdx, uiFullDepth );
 
-#if G509_CHROMA_QP_OFFSET
   m_pcTrQuant->setQPforQuant    ( pcCU->getQP( 0 ), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_LUMA, 0 );
-#else
-  m_pcTrQuant->setQPforQuant    ( pcCU->getQP( 0 ), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_LUMA );
-#endif
 
 #if RDOQ_CHROMA_LAMBDA 
   m_pcTrQuant->selectLambda     (TEXT_LUMA);  
@@ -1187,14 +1183,10 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
     //--- transform and quantization ---
     UInt uiAbsSum = 0;
 
-#if G509_CHROMA_QP_OFFSET
     if(eText == TEXT_CHROMA_U)
       m_pcTrQuant->setQPforQuant     ( pcCU->getQP( 0 ), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_CHROMA, pcCU->getSlice()->getPPS()->getChromaQpOffset() );
     else
       m_pcTrQuant->setQPforQuant     ( pcCU->getQP( 0 ), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_CHROMA, pcCU->getSlice()->getPPS()->getChromaQpOffset2nd() );
-#else
-    m_pcTrQuant->setQPforQuant     ( pcCU->getQP( 0 ), !pcCU->getSlice()->getDepth(), pcCU->getSlice()->getSliceType(), TEXT_CHROMA );
-#endif
 
 #if RDOQ_CHROMA_LAMBDA 
     m_pcTrQuant->selectLambda      (TEXT_CHROMA);  
@@ -4035,11 +4027,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
 #endif
     }
 
-#if G509_CHROMA_QP_OFFSET
     m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_LUMA, 0 );
-#else
-    m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_LUMA );
-#endif
 
 #if RDOQ_CHROMA_LAMBDA 
     m_pcTrQuant->selectLambda(TEXT_LUMA);  
@@ -4077,11 +4065,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
 #endif
       }
 
-#if G509_CHROMA_QP_OFFSET
       m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_CHROMA, pcCU->getSlice()->getPPS()->getChromaQpOffset() );
-#else
-      m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_CHROMA );
-#endif
 
 #if RDOQ_CHROMA_LAMBDA 
       m_pcTrQuant->selectLambda(TEXT_CHROMA); 
@@ -4094,9 +4078,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
                                    pcArlCoeffCurrU, 
 #endif
                                    uiTrWidthC, uiTrHeightC, uiAbsSumU, TEXT_CHROMA_U, uiAbsPartIdx );
-#if G509_CHROMA_QP_OFFSET
       m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_CHROMA, pcCU->getSlice()->getPPS()->getChromaQpOffset2nd() );
-#endif
        m_pcTrQuant->transformNxN( pcCU, pcResi->getCrAddrPix( uiPixelXC, uiPixelYC ), pcResi->getCStride(), pcCoeffCurrV, 
 #if ADAPTIVE_QP_SELECTION
                                   pcArlCoeffCurrV, 
@@ -4110,9 +4092,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
                                  pcArlCoeffCurrU, 
 #endif
                                  1<<uiLog2TrSizeC, 1<<uiLog2TrSizeC, uiAbsSumU, TEXT_CHROMA_U, uiAbsPartIdx );
-#if G509_CHROMA_QP_OFFSET
       m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_CHROMA, pcCU->getSlice()->getPPS()->getChromaQpOffset2nd() );
-#endif
       m_pcTrQuant->transformNxN( pcCU, pcResi->getCrAddr( uiAbsPartIdx ), pcResi->getCStride(), pcCoeffCurrV, 
 #if ADAPTIVE_QP_SELECTION
                                  pcArlCoeffCurrV, 
@@ -4203,11 +4183,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
       else
         pcResiCurrY = m_pcQTTempTComYuv[ uiQTTempAccessLayer ].getLumaAddr( uiAbsPartIdx );
 
-#if G509_CHROMA_QP_OFFSET
       m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_LUMA, 0 );
-#else
-      m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_LUMA );
-#endif
 
 #if SCALING_LIST
       Int scalingListType = 3 + g_eTTable[(Int)TEXT_LUMA];
@@ -4311,11 +4287,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
         else
           pcResiCurrU = m_pcQTTempTComYuv[uiQTTempAccessLayer].getCbAddr( uiAbsPartIdx );
 
-#if G509_CHROMA_QP_OFFSET
         m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_CHROMA, pcCU->getSlice()->getPPS()->getChromaQpOffset() );
-#else
-        m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_CHROMA );
-#endif
 
 #if SCALING_LIST
         Int scalingListType = 3 + g_eTTable[(Int)TEXT_CHROMA_U];
@@ -4424,12 +4396,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
           pcResiCurrV = m_pcQTTempTComYuv[uiQTTempAccessLayer].getCrAddr( uiAbsPartIdx );
         if( !uiAbsSumU )
         {
-
-#if G509_CHROMA_QP_OFFSET
           m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_CHROMA, pcCU->getSlice()->getPPS()->getChromaQpOffset2nd() );
-#else
-          m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), false, pcCU->getSlice()->getSliceType(), TEXT_CHROMA );
-#endif
         }
 #if SCALING_LIST
         Int scalingListType = 3 + g_eTTable[(Int)TEXT_CHROMA_V];

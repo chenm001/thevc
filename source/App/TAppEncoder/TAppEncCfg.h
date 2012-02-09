@@ -92,10 +92,8 @@ protected:
   UInt      m_uiDeltaQpRD;                                    ///< dQP range for multi-pass slice QP optimization
   Int       m_iMaxCuDQPDepth;                                 ///< Max. depth for a minimum CuDQPSize (0:default)
 
-#if G509_CHROMA_QP_OFFSET
   Int       m_iChromaQpOffset;                                 ///< ChromaQpOffset    (0:default) 
   Int       m_iChromaQpOffset2nd;                              ///< ChromaQpOffset2nd (0:default)
-#endif
 
 #if ADAPTIVE_QP_SELECTION
   Bool      m_bUseAdaptQpSelect;

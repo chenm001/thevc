@@ -278,9 +278,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 #endif
   UInt  uiCode;
 
-#if G509_CHROMA_QP_OFFSET
   Int   iCode;
-#endif
 
   TComRPS* pcRPSList = pcPPS->getRPSList();
   READ_UVLC( uiCode, "pic_parameter_set_id");                      pcPPS->setPPSId (uiCode);
@@ -342,13 +340,11 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   }
   pcPPS->setMinCuDQPSize( pcPPS->getSPS()->getMaxCUWidth() >> ( pcPPS->getMaxCuDQPDepth()) );
 
-#if G509_CHROMA_QP_OFFSET
   READ_SVLC( iCode, "chroma_qp_offset");
   pcPPS->setChromaQpOffset(iCode);
 
   READ_SVLC( iCode, "chroma_qp_offset_2nd");
   pcPPS->setChromaQpOffset2nd(iCode);
-#endif
 
   READ_FLAG( uiCode, "weighted_pred_flag" );          // Use of Weighting Prediction (P_SLICE)
   pcPPS->setUseWP( uiCode==1 );
