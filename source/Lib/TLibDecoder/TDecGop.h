@@ -86,9 +86,7 @@ private:
   Double                m_dDecTime;
 
   bool m_pictureDigestEnabled; ///< if true, handle picture_digest SEI messages
-#if G220_PURE_VLC_SAO_ALF
   AlfCUCtrlInfo       m_cAlfCUCtrlOneSlice;
-#endif
 
 public:
   TDecGop();
@@ -109,9 +107,7 @@ public:
   Void  setGopSize( Int i) { m_iGopSize = i; }
 
   void setPictureDigestEnabled(bool enabled) { m_pictureDigestEnabled = enabled; }
-#if G220_PURE_VLC_SAO_ALF
   Void decodeAlfOnOffCtrlParam() { m_pcEntropyDecoder->decodeAlfCtrlParam( m_cAlfCUCtrlOneSlice, m_pcAdaptiveLoopFilter->getNumCUsInPic());}
-#endif
 
 };
 

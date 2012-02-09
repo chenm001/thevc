@@ -223,20 +223,6 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
   //ALF flag
   WRITE_FLAG( pcAPS->getAlfEnabled()?1:0, "aps_adaptive_loop_filter_flag"); 
 
-#if !G220_PURE_VLC_SAO_ALF
-  if(pcAPS->getSaoEnabled() || pcAPS->getAlfEnabled())
-  {
-    //CABAC usage flag
-    WRITE_FLAG(pcAPS->getCABACForAPS()?1:0, "aps_cabac_use_flag"); 
-    if(pcAPS->getCABACForAPS())
-    {
-      //CABAC init IDC
-      WRITE_UVLC(pcAPS->getCABACinitIDC(), "aps_cabac_init_idc" );
-      //CABAC init QP
-      WRITE_SVLC(pcAPS->getCABACinitQP()-26, "aps_cabac_init_qp_minus26" );
-    }
-  }
-#endif
 }
 
 Void TEncCavlc::codeDFFlag(UInt uiCode, const Char *pSymbolName)
@@ -836,18 +822,9 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   WRITE_UVLC(MRG_MAX_NUM_CANDS - pcSlice->getMaxNumMergeCand(), "maxNumMergeCand");
 #endif
 
-#if !G220_PURE_VLC_SAO_ALF
-#if TILES_DECODER
-  if (!bEntropySlice && pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
-  {
-    xWriteFlag  (pcSlice->getTileMarkerFlag() ? 1 : 0 );
-  }
-#endif
-#endif
 }
 
 
-#if G220_PURE_VLC_SAO_ALF
 #if TILES_DECODER
 Void TEncCavlc::codeTileMarkerFlag(TComSlice* pcSlice) 
 {
@@ -861,7 +838,6 @@ Void TEncCavlc::codeTileMarkerFlag(TComSlice* pcSlice)
     xWriteFlag  (pcSlice->getTileMarkerFlag() ? 1 : 0 );
   }
 }
-#endif
 #endif
 
 /**

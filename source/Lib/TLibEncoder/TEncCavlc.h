@@ -165,10 +165,8 @@ public:
   void codeSEI(const SEI&);
   Void  codeSliceHeader         ( TComSlice* pcSlice );
 
-#if G220_PURE_VLC_SAO_ALF
 #if TILES_DECODER
   Void codeTileMarkerFlag(TComSlice* pcSlice);
-#endif
 #endif
 
   Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );

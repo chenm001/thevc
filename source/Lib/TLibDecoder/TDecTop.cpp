@@ -361,7 +361,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       m_apcSlicePilot->setReferenced(nalu.m_RefIDC != NAL_REF_IDC_PRIORITY_LOWEST);
       m_apcSlicePilot->setTLayerInfo(nalu.m_TemporalID);
       m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot);
-#if G220_PURE_VLC_SAO_ALF
       if(m_apcSlicePilot->isNextSlice())
       {
         if(m_cSPS.getUseALF())
@@ -377,8 +376,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         }
       }
       m_cEntropyDecoder.decodeWPPTileInfoToSliceHeader(m_apcSlicePilot);
-
-#endif
 
       {
         Int numBitsForByteAlignment = nalu.m_Bitstream->getNumBitsUntilByteAligned();
@@ -801,9 +798,6 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
  */
 Void TDecTop::decodeAPS(TComInputBitstream* bs, TComAPS& cAPS)
 {
-#if !G220_PURE_VLC_SAO_ALF
-  Int iBitLeft;
-#endif
   m_cEntropyDecoder.decodeAPSInitInfo(cAPS);
 #if SCALING_LIST
   if(cAPS.getScalingListEnabled())
@@ -819,74 +813,12 @@ Void TDecTop::decodeAPS(TComInputBitstream* bs, TComAPS& cAPS)
   if(cAPS.getSaoEnabled())
   {
     cAPS.getSaoParam()->bSaoFlag[0] = true;
-#if !G220_PURE_VLC_SAO_ALF
-    //read SAO bitstream length in byte
-    UInt uiBsLength = bs->read(APS_BITS_FOR_SAO_BYTE_LENGTH);
-    assert(uiBsLength > 0);
-
-    //read byte-alignment bits
-    Int numBitsForByteAlignment = bs->getNumBitsUntilByteAligned();
-    if ( numBitsForByteAlignment > 0 )
-    {
-      UInt bitsForByteAlignment;
-      bs->read( numBitsForByteAlignment, bitsForByteAlignment );
-      assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
-    }
-
-    iBitLeft = bs->getNumBitsLeft();
-
-    if (cAPS.getCABACForAPS())
-    {
-      m_cSbacDecoder.init((TDecBinIf*)(&m_cBinCABAC));
-      m_cEntropyDecoder.setEntropyDecoder(&m_cSbacDecoder);
-      m_cEntropyDecoder.setBitstream(bs);
-      m_cEntropyDecoder.resetEntropy(cAPS.getCABACinitQP(), cAPS.getCABACinitIDC());
-    }
-    else
-    {
-      m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
-      m_cEntropyDecoder.setBitstream(bs);
-    }
-#endif
     m_cEntropyDecoder.decodeSaoParam( cAPS.getSaoParam());
-#if !G220_PURE_VLC_SAO_ALF
-    iBitLeft = bs->getNumBitsLeft() - (iBitLeft - (uiBsLength << 3));
-    assert(iBitLeft >= 0);
-    if(iBitLeft) bs->read(iBitLeft); //garbage bits. 
-    //else  trailing bits
-#endif
   }
 
   if(cAPS.getAlfEnabled())
   {
     cAPS.getAlfParam()->alf_flag = 1;
-#if !G220_PURE_VLC_SAO_ALF
-    //read ALF bitstream length in byte
-    UInt uiBsLength = bs->read(APS_BITS_FOR_ALF_BYTE_LENGTH);
-    assert(uiBsLength > 0);
-
-    //read byte-alignment bits
-    Int numBitsForByteAlignment = bs->getNumBitsUntilByteAligned();
-    if ( numBitsForByteAlignment > 0 )
-    {
-      UInt bitsForByteAlignment;
-      bs->read( numBitsForByteAlignment, bitsForByteAlignment );
-      assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
-    }
-
-    if (cAPS.getCABACForAPS())
-    {
-      m_cSbacDecoder.init((TDecBinIf*)(&m_cBinCABAC));
-      m_cEntropyDecoder.setEntropyDecoder(&m_cSbacDecoder);
-      m_cEntropyDecoder.setBitstream(bs);
-      m_cEntropyDecoder.resetEntropy(cAPS.getCABACinitQP(), cAPS.getCABACinitIDC());
-    }
-    else
-    {
-      m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
-      m_cEntropyDecoder.setBitstream(bs);
-    }
-#endif
     m_cEntropyDecoder.decodeAlfParam( cAPS.getAlfParam());
   }
 

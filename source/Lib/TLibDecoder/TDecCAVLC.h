@@ -156,9 +156,7 @@ public:
   Void  parsePPS            ( TComPPS* pcPPS);
   void parseSEI(SEImessages&);
   Void  parseSliceHeader    ( TComSlice*& rpcSlice );
-#if G220_PURE_VLC_SAO_ALF
   Void parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice);
-#endif
   Void  parseTerminatingBit ( UInt& ruiBit );
   
   Void  parseMVPIdx         ( Int& riMVPIdx );

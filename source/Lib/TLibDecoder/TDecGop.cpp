@@ -203,35 +203,13 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     {
       if(pcSlice->getSPS()->getUseALF())
       {
-#if !G220_PURE_VLC_SAO_ALF
-        AlfCUCtrlInfo cAlfCUCtrlOneSlice;
-#endif
 #if ALF_SAO_SLICE_FLAGS
         if(pcSlice->getAlfEnabledFlag())
 #else
         if(pcSlice->getAPS()->getAlfEnabled())
 #endif
         {
-#if G220_PURE_VLC_SAO_ALF
           vAlfCUCtrlSlices.push_back(m_cAlfCUCtrlOneSlice);
-#else
-          m_pcEntropyDecoder->decodeAlfCtrlParam( cAlfCUCtrlOneSlice, m_pcAdaptiveLoopFilter->getNumCUsInPic());
-          {            
-            Int numBitsForByteAlignment = ppcSubstreams[0]->getNumBitsUntilByteAligned();
-            if ( numBitsForByteAlignment > 0 )
-            {
-              UInt bitsForByteAlignment;
-              ppcSubstreams[0]->read( numBitsForByteAlignment, bitsForByteAlignment );
-              assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
-            }
-            
-            m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinCABAC );
-            m_pcEntropyDecoder->setEntropyDecoder (m_pcSbacDecoder);
-            m_pcEntropyDecoder->setBitstream(ppcSubstreams[0]);
-            m_pcEntropyDecoder->resetEntropy(pcSlice);
-          }
-          vAlfCUCtrlSlices.push_back(cAlfCUCtrlOneSlice);
-#endif
         }
       }
     }

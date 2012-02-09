@@ -873,7 +873,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         pcSlice->setCABACinitIDC(pcSlice->getSliceType());
 #endif
         m_pcEntropyCoder->encodeSliceHeader(pcSlice);
-#if G220_PURE_VLC_SAO_ALF
         if(pcSlice->isNextSlice())
         {
           if (pcSlice->getSPS()->getUseALF())
@@ -898,7 +897,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
 #if TILES_DECODER
         m_pcEntropyCoder->encodeTileMarkerFlag(pcSlice);
-#endif
 #endif
 
 
@@ -967,32 +965,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           // for now, override the TILES_DECODER setting in order to write substreams.
             m_pcEntropyCoder->setBitstream    ( &pcSubstreamsOut[0] );
 
-#if !G220_PURE_VLC_SAO_ALF
-          if (pcSlice->getSPS()->getUseALF())
-          {
-            if(pcSlice->getAPS()->getAlfEnabled())
-            {
-              AlfCUCtrlInfo& cAlfCUCtrlParam = vAlfCUCtrlParam[pcSlice->getSliceIdx()];
-              if(cAlfCUCtrlParam.cu_control_flag)
-              {
-                m_pcEntropyCoder->setAlfCtrl( true );
-                m_pcEntropyCoder->setMaxAlfCtrlDepth(cAlfCUCtrlParam.alf_max_depth);
-              }
-              else
-              {
-                m_pcEntropyCoder->setAlfCtrl(false);
-              }
-              m_pcEntropyCoder->encodeAlfCtrlParam(cAlfCUCtrlParam, m_pcAdaptiveLoopFilter->getNumCUsInPic());
-              {
-                m_pcEntropyCoder->encodeFinish(0);
-                pcSubstreamsOut[0].writeAlignOne();// for now, override the TILES_DECODER setting in order to write substreams (as done above).
-                m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
-                m_pcEntropyCoder->setEntropyCoder ( &pcSbacCoders[0], pcSlice );
-                m_pcEntropyCoder->resetEntropy    ();
-              }
-            }
-          }
-#endif
         }
         pcSlice->setFinalized(true);
 
@@ -1229,23 +1201,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             TComAPS cAPS;
             allocAPS(&cAPS, pcSlice->getSPS());
             // set entropy coder for RD
-#if G220_PURE_VLC_SAO_ALF
             m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
-#else
-            {
-              m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcSlice );
-            }
-#endif
 
             if ( pcSlice->getSPS()->getUseSAO() )
             {
               m_pcEntropyCoder->resetEntropy();
               m_pcEntropyCoder->setBitstream( m_pcBitCounter );
-#if G220_PURE_VLC_SAO_ALF
               m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), NULL);
-#else
-              m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcCfg->getUseSBACRD() ?  m_pcEncTop->getRDGoOnSbacCoder() : NULL);
-#endif
               SAOParam& cSaoParam = *(cAPS.getSaoParam());
 
 #if SAO_CHROMA_LAMBDA 
@@ -1513,9 +1475,6 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
   */
 Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* pcSlice)
 {
-#if !G220_PURE_VLC_SAO_ALF
-  UInt uiAPSbsWrittenBits = 0;
-#endif
   m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice);
   m_pcEntropyCoder->resetEntropy      ();
   m_pcEntropyCoder->setBitstream(&APSbs);
@@ -1534,113 +1493,12 @@ Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* p
 
   if(pcAPS->getSaoEnabled())
   {
-#if !G220_PURE_VLC_SAO_ALF
-    Bool bEndAtSAO   = (!pcAPS->getAlfEnabled());
-    TComOutputBitstream cSAObs;
-    UInt uiSAObsWrittenBits;
-
-    m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
-    if (pcAPS->getCABACForAPS() )
-    {
-      m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice);
-    }
-    else
-    {
-      m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice);
-    }
-
-    m_pcEntropyCoder->resetEntropy    ();
-    m_pcEntropyCoder->setBitstream(&cSAObs);
-#endif
     m_pcEntropyCoder->encodeSaoParam(pcAPS->getSaoParam());
-#if !G220_PURE_VLC_SAO_ALF
-    if (pcAPS->getCABACForAPS() )
-    {
-      m_pcEntropyCoder->encodeFinish(bEndAtSAO);
-    }
-
-    if(bEndAtSAO)
-    {
-      writeRBSPTrailingBits(cSAObs);
-    }
-    else
-    {
-      cSAObs.writeAlignOne();
-    }
-    uiSAObsWrittenBits = cSAObs.getNumberOfWrittenBits();
-
-    assert(uiSAObsWrittenBits % 8 == 0     ); 
-    assert(uiSAObsWrittenBits / 8 <= (1<<APS_BITS_FOR_SAO_BYTE_LENGTH) ); 
-
-    //---- attach SAO bitstream to APS main bitstream ----- //
-    APSbs.write(uiSAObsWrittenBits/8, APS_BITS_FOR_SAO_BYTE_LENGTH);
-    APSbs.writeAlignOne();
-
-    uiAPSbsWrittenBits = APSbs.getNumberOfWrittenBits();
-    assert(uiAPSbsWrittenBits % 8 ==0);
-    APSbs.insertAt(cSAObs, uiAPSbsWrittenBits/8);
-
-    if(bEndAtSAO)
-    {
-      return;
-    }
-#endif
   }
 
   if(pcAPS->getAlfEnabled())
   {
-#if !G220_PURE_VLC_SAO_ALF
-    Bool bEndAtALF = true;
-    TComOutputBitstream cALFbs;
-    UInt uiALFbsWrittenBits;
-
-    m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
-    if ( pcAPS->getCABACForAPS() )
-    {
-      m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice);
-    }
-    else
-    {
-      m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice);
-    }
-
-    m_pcEntropyCoder->resetEntropy    ();
-    m_pcEntropyCoder->setBitstream(&cALFbs);
-#endif
     m_pcEntropyCoder->encodeAlfParam(pcAPS->getAlfParam());
-#if !G220_PURE_VLC_SAO_ALF
-    if (pcAPS->getCABACForAPS() )
-    {
-      m_pcEntropyCoder->encodeFinish(bEndAtALF);
-    }
-
-    if(bEndAtALF)
-    {
-      writeRBSPTrailingBits(cALFbs);
-    }
-    else
-    {
-      cALFbs.writeAlignOne();
-    }
-
-    uiALFbsWrittenBits = cALFbs.getNumberOfWrittenBits();
-    assert(uiALFbsWrittenBits % 8 == 0     ); 
-    assert(uiALFbsWrittenBits / 8 <= (1<<APS_BITS_FOR_ALF_BYTE_LENGTH) );
-
-    //---- attach ALF bitstream to APS main bitstream ----- //
-    APSbs.write(uiALFbsWrittenBits/8, APS_BITS_FOR_ALF_BYTE_LENGTH);
-    APSbs.writeAlignOne();
-
-    // ALF bitstream
-    uiAPSbsWrittenBits = APSbs.getNumberOfWrittenBits();
-    assert(uiAPSbsWrittenBits % 8 ==0);
-    APSbs.insertAt(cALFbs, uiAPSbsWrittenBits/8);
-
-    if(bEndAtALF)
-    {
-      return;
-    }
-#endif
   }
 
   //neither SAO and ALF is enabled
