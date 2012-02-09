@@ -51,7 +51,6 @@
 #define MRG_MAX_NUM_CANDS_SIGNALED         5   //<G091: value of maxNumMergeCand signaled in slice header 
 #endif
 
-#define IT_CLIPPING               1 ///< clipping in inverse transform G782
 #define WEIGHT_PRED_IMP           1 ///< high-precision offset for weighted bipred G065
 #define PLANAR_IS_DEFAULT         1 ///< default to planar if neighbor not available G119
 #define CBF_CODING_SKIP_COND_FIX  1 ///< G444: fixing the condition of skipping cbf_luma coding
