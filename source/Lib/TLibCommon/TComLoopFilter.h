@@ -55,10 +55,8 @@ class TComLoopFilter
 {
 private:
   UInt      m_uiDisableDeblockingFilterIdc; ///< deblocking filter idc
-#if G174_DF_OFFSET
   Int       m_betaOffsetDiv2;
   Int       m_tcOffsetDiv2;
-#endif
 
   UInt      m_uiNumPartitions;
 #if !DEBLK_CLEANUP_CHROMA_BS
@@ -139,11 +137,7 @@ public:
   
   /// set configuration
 #if NONCROSS_TILE_IN_LOOP_FILTERING
-#if G174_DF_OFFSET
   Void setCfg( UInt uiDisableDblkIdc, Int betaOffsetDiv2, Int tcOffsetDiv2, Bool bLFCrossTileBoundary);
-#else
-  Void setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaOffset, Bool bLFCrossTileBoundary);
-#endif
 #else
   Void setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaOffset );
 #endif

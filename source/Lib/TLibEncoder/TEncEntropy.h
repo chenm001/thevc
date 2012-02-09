@@ -153,10 +153,8 @@ public:
   virtual Void codeAPSInitInfo  (TComAPS* pcAPS)= 0;
   virtual Void codeFinish       (Bool bEnd)= 0;
 
-#if G174_DF_OFFSET
   virtual Void codeDFFlag (UInt uiCode, const Char *pSymbolName) = 0;
   virtual Void codeDFSvlc (Int iCode, const Char *pSymbolName)   = 0;
-#endif
 
   virtual ~TEncEntropyIf() {}
 
@@ -252,9 +250,7 @@ public:
 #if SCALING_LIST
   Void encodeScalingList       ( TComScalingList* scalingList );
 #endif
-#if G174_DF_OFFSET
   Void encodeDFParams          (TComAPS* pcAPS);
-#endif
 
 private:
   Void xEncodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 );

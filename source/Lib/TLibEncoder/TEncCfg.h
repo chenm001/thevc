@@ -144,14 +144,9 @@ protected:
   
   //====== Loop/Deblock Filter ========
   Bool      m_bLoopFilterDisable;
-#if G174_DF_OFFSET
   Bool      m_loopFilterOffsetInAPS;
   Int       m_loopFilterBetaOffsetDiv2;
   Int       m_loopFilterTcOffsetDiv2;
-#else
-  Int       m_iLoopFilterAlphaC0Offset;
-  Int       m_iLoopFilterBetaOffset;
-#endif
 
   Bool      m_bUseSAO;
 
@@ -325,14 +320,9 @@ public:
   
   //====== Loop/Deblock Filter ========
   Void      setLoopFilterDisable            ( Bool  b )      { m_bLoopFilterDisable       = b; }
-#if G174_DF_OFFSET
   Void      setLoopFilterOffsetInAPS        ( Bool  b )      { m_loopFilterOffsetInAPS      = b; }
   Void      setLoopFilterBetaOffset         ( Int   i )      { m_loopFilterBetaOffsetDiv2  = i; }
   Void      setLoopFilterTcOffset           ( Int   i )      { m_loopFilterTcOffsetDiv2    = i; }
-#else
-  Void      setLoopFilterAlphaC0Offset      ( Int   i )      { m_iLoopFilterAlphaC0Offset = i; }
-  Void      setLoopFilterBetaOffset         ( Int   i )      { m_iLoopFilterBetaOffset    = i; }
-#endif
 
   //====== Motion search ========
   Void      setFastSearch                   ( Int   i )      { m_iFastSearch = i; }
@@ -388,14 +378,9 @@ public:
   
   //==== Loop/Deblock Filter ========
   Bool      getLoopFilterDisable            ()      { return  m_bLoopFilterDisable;       }
-#if G174_DF_OFFSET
   Bool      getLoopFilterOffsetInAPS        ()      { return m_loopFilterOffsetInAPS; }
   Int       getLoopFilterBetaOffset         ()      { return m_loopFilterBetaOffsetDiv2; }
   Int       getLoopFilterTcOffset           ()      { return m_loopFilterTcOffsetDiv2; }
-#else
-  Int       getLoopFilterAlphaC0Offget      ()      { return  m_iLoopFilterAlphaC0Offset; }
-  Int       getLoopFilterBetaOffget         ()      { return  m_iLoopFilterBetaOffset;    }
-#endif
 
   //==== Motion search ========
   Int       getFastSearch                   ()      { return  m_iFastSearch; }

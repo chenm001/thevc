@@ -1157,7 +1157,6 @@ Void TDecEntropy::decodeSaoParam(SAOParam* pSaoParam)
 
 }
 
-#if G174_DF_OFFSET
 Void TDecEntropy::decodeDFParams(TComAPS *pcAPS)
 {
   UInt uiSymbol;
@@ -1174,6 +1173,5 @@ Void TDecEntropy::decodeDFParams(TComAPS *pcAPS)
     pcAPS->setLoopFilterTcOffset(iSymbol);
   }
 }
-#endif
 
 //! \}

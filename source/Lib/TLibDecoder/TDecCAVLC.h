@@ -206,10 +206,8 @@ public:
   Void  xDecodeDPCMScalingListMatrix   ( TComScalingList *scalingList, Int* data, UInt sizeId, UInt listId);
   Void  xReadScalingListCode           ( TComScalingList *scalingList, Int* buf,  UInt sizeId, UInt listId);
 #endif
-#if G174_DF_OFFSET
   Void parseDFFlag         ( UInt& ruiVal, const Char *pSymbolName );
   Void parseDFSvlc         ( Int&  riVal,  const Char *pSymbolName  );
-#endif
 
 };
 

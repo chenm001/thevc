@@ -138,10 +138,8 @@ public:
 #if SCALING_LIST
   virtual Void parseScalingList   ( TComScalingList* scalingList ) = 0;
 #endif
-#if G174_DF_OFFSET
   virtual Void parseDFFlag(UInt& ruiVal, const Char *pSymbolName) = 0;
   virtual Void parseDFSvlc(Int&  riVal, const Char *pSymbolName) = 0;
-#endif
 
   virtual ~TDecEntropyIf() {}
 };
@@ -243,9 +241,7 @@ public:
 #if SCALING_LIST
   Void decodeScalingList       ( TComScalingList* scalingList ) { m_pcEntropyDecoderIf->parseScalingList(scalingList); }
 #endif
-#if G174_DF_OFFSET
   Void decodeDFParams (TComAPS* pcAPS);
-#endif
 
 };// END CLASS DEFINITION TDecEntropy
 

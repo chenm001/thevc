@@ -396,11 +396,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         return true;
       }
 #if SCALING_LIST
-#if G174_DF_OFFSET
       if(m_cSPS.getUseSAO() || m_cSPS.getUseALF()|| m_cSPS.getScalingListFlag() || m_cSPS.getUseDF())
-#else
-      if(m_cSPS.getUseSAO() || m_cSPS.getUseALF()|| m_cSPS.getScalingListFlag())
-#endif
 #else
       if(m_cSPS.getUseSAO() || m_cSPS.getUseALF())
 #endif
@@ -817,12 +813,10 @@ Void TDecTop::decodeAPS(TComInputBitstream* bs, TComAPS& cAPS)
     m_cEntropyDecoder.decodeScalingList( &m_scalingList );
   }
 #endif
-#if G174_DF_OFFSET
   if(cAPS.getLoopFilterOffsetInAPS())
   {
     m_cEntropyDecoder.decodeDFParams( &cAPS );    
   }
-#endif
 
   if(cAPS.getSaoEnabled())
   {

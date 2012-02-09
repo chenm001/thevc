@@ -53,11 +53,9 @@ TComSlice::TComSlice()
 , m_iSliceQpBase                  ( 0 )
 #endif
 , m_bLoopFilterDisable            ( false )
-#if G174_DF_OFFSET
 , m_inheritDblParamFromAPS       ( true )
 , m_loopFilterBetaOffsetDiv2    ( 0 )
 , m_loopFilterTcOffsetDiv2      ( 0 )
-#endif
 , m_bRefPicListModificationFlagLC ( false )
 , m_bRefPicListCombinationFlag    ( false )
 , m_bCheckLDC                     ( false )
@@ -583,11 +581,9 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_iSliceQpBase         = pSrc->m_iSliceQpBase;
 #endif
   m_bLoopFilterDisable   = pSrc->m_bLoopFilterDisable;
-#if G174_DF_OFFSET
   m_inheritDblParamFromAPS = pSrc->m_inheritDblParamFromAPS;
   m_loopFilterBetaOffsetDiv2 = pSrc->m_loopFilterBetaOffsetDiv2;
   m_loopFilterTcOffsetDiv2 = pSrc->m_loopFilterTcOffsetDiv2;
-#endif
   
   for (i = 0; i < 3; i++)
   {
@@ -1493,12 +1489,10 @@ TComAPS::~TComAPS()
 TComAPS& TComAPS::operator= (const TComAPS& src)
 {
   m_apsID       = src.m_apsID;
-#if G174_DF_OFFSET
   m_loopFilterOffsetInAPS = src.m_loopFilterOffsetInAPS;
   m_loopFilterDisable = src.m_loopFilterDisable;
   m_loopFilterBetaOffsetDiv2 = src.m_loopFilterBetaOffsetDiv2;
   m_loopFilterTcOffsetDiv2 = src.m_loopFilterTcOffsetDiv2;
-#endif
   m_bAlfEnabled = src.m_bAlfEnabled;
   m_bSaoEnabled = src.m_bSaoEnabled;
   m_pSaoParam   = src.m_pSaoParam; 

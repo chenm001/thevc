@@ -262,7 +262,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
   {
     // deblocking filter
 #if NONCROSS_TILE_IN_LOOP_FILTERING
-#if G174_DF_OFFSET
     Bool bLFCrossTileBoundary = (pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)?
                                 (pcSlice->getPPS()->getLFCrossTileBoundaryFlag()):(pcSlice->getPPS()->getSPS()->getLFCrossTileBoundaryFlag());
     if(pcSlice->getSPS()->getUseDF())
@@ -278,11 +277,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       }
     }
     m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), pcSlice->getLoopFilterBetaOffset(), pcSlice->getLoopFilterTcOffset(), bLFCrossTileBoundary);
-#else
-    Bool bLFCrossTileBoundary = (pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)?
-                                (pcSlice->getPPS()->getLFCrossTileBoundaryFlag()):(pcSlice->getPPS()->getSPS()->getLFCrossTileBoundaryFlag());
-    m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0, bLFCrossTileBoundary);
-#endif
 #else
     m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), 0, 0);
 #endif

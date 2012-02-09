@@ -88,11 +88,7 @@ TComLoopFilter::~TComLoopFilter()
 // ====================================================================================================================
 
 #if NONCROSS_TILE_IN_LOOP_FILTERING
-#if G174_DF_OFFSET
 Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc, Int iBetaOffset_div2, Int iTcOffset_div2, Bool bLFCrossTileBoundary)
-#else
-Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaOffset, Bool bLFCrossTileBoundary)
-#endif
 #else
 Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaOffset)
 #endif
@@ -102,11 +98,8 @@ Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaO
   m_bLFCrossTileBoundary = bLFCrossTileBoundary;
 #endif
 
-#if G174_DF_OFFSET
   m_betaOffsetDiv2 = iBetaOffset_div2;
   m_tcOffsetDiv2 = iTcOffset_div2;
-#endif
-
 }
 
 Void TComLoopFilter::create( UInt uiMaxCUDepth )
@@ -796,16 +789,8 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
       iQP = (iQP_P + iQP_Q + 1) >> 1;
     Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
     
-#if G174_DF_OFFSET
     Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, Int(iQP + DEFAULT_INTRA_TC_OFFSET*(uiBs-1) + (m_tcOffsetDiv2 << 1)));
-#else
-    Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, Int(iQP + DEFAULT_INTRA_TC_OFFSET*(uiBs-1)));
-#endif
-#if G174_DF_OFFSET
     Int iIndexB = Clip3(0, MAX_QP, iQP + (m_betaOffsetDiv2 << 1));
-#else
-    Int iIndexB = Clip3(0, MAX_QP, iQP );
-#endif
 
     Int iTc =  tctable_8x8[iIndexTC]*iBitdepthScale;
     Int iBeta = betatable_8x8[iIndexB]*iBitdepthScale;
@@ -970,11 +955,7 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
       iQP = QpUV((iQP_P + iQP_Q + 1) >> 1);
     Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
     
-#if G174_DF_OFFSET
     Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, iQP + DEFAULT_INTRA_TC_OFFSET*(ucBs - 1) + (m_tcOffsetDiv2 << 1));
-#else
-    Int iIndexTC = Clip3(0, MAX_QP+DEFAULT_INTRA_TC_OFFSET, iQP + DEFAULT_INTRA_TC_OFFSET*(ucBs - 1) );
-#endif
     Int iTc =  tctable_8x8[iIndexTC]*iBitdepthScale;
     
       if(bPCMFilter)
