@@ -3358,20 +3358,12 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
 Void TComDataCU::clipMv    (TComMv&  rcMv)
 {
   Int  iMvShift = 2;
-#if INFINITE_PADDING
   Int iOffset = 8;
   Int iHorMax = ( m_pcSlice->getSPS()->getWidth() + iOffset - m_uiCUPelX - 1 ) << iMvShift;
   Int iHorMin = (       -(Int)g_uiMaxCUWidth - iOffset - (Int)m_uiCUPelX + 1 ) << iMvShift;
   
   Int iVerMax = ( m_pcSlice->getSPS()->getHeight() + iOffset - m_uiCUPelY - 1 ) << iMvShift;
   Int iVerMin = (       -(Int)g_uiMaxCUHeight - iOffset - (Int)m_uiCUPelY + 1 ) << iMvShift;
-#else
-  Int iHorMax = (m_pcSlice->getSPS()->getWidth() - m_uiCUPelX - 1 )<<iMvShift;
-  Int iHorMin = (      -(Int)g_uiMaxCUWidth - (Int)m_uiCUPelX + 1 )<<iMvShift;
-  
-  Int iVerMax = (m_pcSlice->getSPS()->getHeight() - m_uiCUPelY - 1 )<<iMvShift;
-  Int iVerMin = (      -(Int)g_uiMaxCUHeight - (Int)m_uiCUPelY + 1 )<<iMvShift;
-#endif
   
   rcMv.setHor( min (iHorMax, max (iHorMin, rcMv.getHor())) );
   rcMv.setVer( min (iVerMax, max (iVerMin, rcMv.getVer())) );

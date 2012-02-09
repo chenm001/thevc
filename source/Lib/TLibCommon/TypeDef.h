@@ -48,7 +48,6 @@
 #define COEFF_CTX_RED             1 ///< G121: reduce max value of c1 and c2
 
 #define REMOVE_AVOID_MERGE        1 //G681/G542/G593: removing avoid merge
-#define INFINITE_PADDING          1 //MV clipping assuming infinite frame extension
 #define SCALING_FACTOR_CLIP_4096  1 //G223: enlarging the effective MV scaling ratio to [-16,16) by setting the limitation of MV scaling factor to +-4096
 #define REMOVE_DEPENDENCY_AMVP    1 //G542 sp2: remove dependency for derivation process of AMVP candidate
 #define REMOVE_LIMIT_ZEROMERGE    1 //G542 sp3: remove the limit of zero merging candidate
