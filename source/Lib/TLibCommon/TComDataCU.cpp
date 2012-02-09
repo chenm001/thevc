@@ -2928,9 +2928,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 #else
     xCheckDuplicateCand(pcMvFieldNeighbours, puhInterDirNeighbours, abCandIsInter, uiArrayAddr);
 #endif
-#if !REMOVE_LIMIT_ZEROMERGE
-    iZeroCount++;
-#endif
   }
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS 
   if (uiArrayAddr > MRG_MAX_NUM_CANDS_SIGNALED)
