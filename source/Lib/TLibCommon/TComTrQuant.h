@@ -172,13 +172,10 @@ public:
                                      Int                             posY,
                                      Int                             blockType,
                                      Int                             width
-#if NSQT_DIAG_SCAN
                                     ,Int                             height
-#endif
                                     ,TextType                        textureType
                                     );
 #if MULTI_LEVEL_SIGNIFICANCE
-#if NSQT_DIAG_SCAN
   static UInt getSigCoeffGroupCtxInc  ( const UInt*                   uiSigCoeffGroupFlag,
                                        const UInt                       uiCGPosX,
                                        const UInt                       uiCGPosY,
@@ -188,17 +185,6 @@ public:
                                     const UInt                       uiCGPosX,
                                     const UInt                       uiCGPosY,
                                     Int width, Int height);
-#else
-  static UInt getSigCoeffGroupCtxInc  ( const UInt*                   uiSigCoeffGroupFlag,
-                                     const UInt                       uiCGPosX,
-                                     const UInt                       uiCGPosY,
-                                     const UInt                       uiLog2BlockSize);
-
-  static Bool bothCGNeighboursOne  ( const UInt*                      uiSigCoeffGroupFlag,
-                                     const UInt                       uiCGPosX,
-                                     const UInt                       uiCGPosY,
-                                     const UInt                       uiLog2BlockSize);
-#endif
 #endif
 #if SCALING_LIST
   Void initScalingList                      ();

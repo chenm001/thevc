@@ -1081,19 +1081,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   DTRACE_CABAC_V(  pcCU->getPredictionMode( uiAbsPartIdx ) )
   DTRACE_CABAC_T( "\n" )
 
-#if !NSQT_DIAG_SCAN
-  Bool bNonSqureFlag = ( uiWidth != uiHeight );
-  UInt uiNonSqureScanTableIdx = 0;
-  if( bNonSqureFlag )
-  {
-    UInt uiWidthBit  =  g_aucConvertToBit[ uiWidth ] + 2;
-    UInt uiHeightBit =  g_aucConvertToBit[ uiHeight ] + 2;
-    uiNonSqureScanTableIdx = ( uiWidth * uiHeight ) == 64 ? 2 * ( uiHeight > uiWidth ) : 2 * ( uiHeight > uiWidth ) + 1;
-    uiWidth  = 1 << ( ( uiWidthBit + uiHeightBit ) >> 1 );
-    uiHeight = uiWidth;
-  }    
-#endif
-
   if( uiWidth > m_pcSlice->getSPS()->getMaxTrSize() )
   {
     uiWidth  = m_pcSlice->getSPS()->getMaxTrSize();
@@ -1103,11 +1090,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   UInt uiNumSig = 0;
   
   // compute number of significant coefficients
-#if NSQT_DIAG_SCAN
   uiNumSig = TEncEntropy::countNonZeroCoeffs(pcCoef, uiWidth * uiHeight);
-#else
-  uiNumSig = TEncEntropy::countNonZeroCoeffs(pcCoef, uiWidth);
-#endif
   
   if ( uiNumSig == 0 )
     return;
@@ -1116,38 +1099,19 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   
   //----- encode significance map -----
   const UInt   uiLog2BlockSize   = g_aucConvertToBit[ uiWidth ] + 2;
-#if !NSQT_DIAG_SCAN
-  const UInt   uiMaxNumCoeff     = uiWidth * uiHeight;
-#endif
   UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
   if (uiScanIdx == SCAN_ZIGZAG)
   {
     // Map zigzag to diagonal scan
     uiScanIdx = SCAN_DIAG;
   }
-#if NSQT_DIAG_SCAN
   Int blockType = uiLog2BlockSize;
   if (uiWidth != uiHeight)
   {
     uiScanIdx = SCAN_DIAG;
     blockType = 4;
   }
-#endif
   
-#if !NSQT_DIAG_SCAN
-  static TCoeff orgCoeff[ 256 ];
-  if( bNonSqureFlag )
-  {
-    for( UInt uiScanPos = 0; uiScanPos < uiMaxNumCoeff; uiScanPos++ )
-    {
-      UInt uiBlkPos = g_auiNonSquareSigLastScan[ uiNonSqureScanTableIdx ][ uiScanPos ];
-      orgCoeff[ g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiScanPos ] ] = pcCoef[ uiBlkPos ];
-    }
-    pcCoef = orgCoeff;
-  }
-#endif
-
-#if NSQT_DIAG_SCAN
   const UInt * scan;
   if (uiWidth == uiHeight)
   {
@@ -1157,16 +1121,12 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   {
     scan = g_sigScanNSQT[ uiLog2BlockSize - 2 ];
   }
-#else
-  const UInt * const scan = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize - 1 ];
-#endif
   
   // Find position of last coefficient
   Int scanPosLast = -1;
   Int posLast;
 
 #if MULTI_LEVEL_SIGNIFICANCE
-#if NSQT_DIAG_SCAN
   const UInt * scanCG;
   if (uiWidth == uiHeight)
   {
@@ -1176,18 +1136,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   {
     scanCG = g_sigCGScanNSQT[ uiLog2BlockSize - 2 ];
   }
-#else
-  const UInt * const scanCG = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize > 3 ? uiLog2BlockSize-2-1 : 0 ];
-#endif
   UInt uiSigCoeffGroupFlag[ MLS_GRP_NUM ];
   static const UInt uiShift = MLS_CG_SIZE >> 1;
   const UInt uiNumBlkSide = uiWidth >> uiShift;
 
-#if NSQT_DIAG_SCAN
   if( blockType > 3 )
-#else
-  if( uiLog2BlockSize > 3 )
-#endif
   {
     ::memset( uiSigCoeffGroupFlag, 0, sizeof(UInt) * MLS_GRP_NUM );
 
@@ -1226,11 +1179,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   // Code position of last coefficient
   Int posLastY = posLast >> uiLog2BlockSize;
   Int posLastX = posLast - ( posLastY << uiLog2BlockSize );
-#if NSQT_DIAG_SCAN
   codeLastSignificantXY(posLastX, posLastY, uiWidth, uiHeight, eTType, uiScanIdx);
-#else
-  codeLastSignificantXY(posLastX, posLastY, uiWidth, uiWidth, eTType, uiScanIdx);
-#endif
   
   //===== code significance flag =====
 #if MULTI_LEVEL_SIGNIFICANCE
@@ -1240,11 +1189,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 
 #if !UNIFIED_SCAN_PASSES
 #if MULTI_LEVEL_SIGNIFICANCE
-#if NSQT_DIAG_SCAN
   if( blockType > 3 )
-#else
-  if( uiLog2BlockSize > 3 )
-#endif
   {
     // encode significant coefficient group flag
     Int iCGLastScanPos = scanPosLast >> MLS_CG_SIZE;
@@ -1263,17 +1208,9 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       }
       else
       {
-#if NSQT_DIAG_SCAN
         if( !TComTrQuant::bothCGNeighboursOne( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiWidth, uiHeight ) && ( iCGScanPos ) )
-#else
-        if( !TComTrQuant::bothCGNeighboursOne( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiLog2BlockSize ) && ( iCGScanPos ) )
-#endif
         {
-#if NSQT_DIAG_SCAN
           UInt uiCtxSig  = TComTrQuant::getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiWidth, uiHeight );
-#else
-          UInt uiCtxSig  = TComTrQuant::getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiLog2BlockSize );
-#endif
           UInt uiSig     = (uiSigCoeffGroupFlag[ iCGBlkPos ] != 0);
           m_pcBinIf->encodeBin( uiSig, baseCoeffGroupCtx[ uiCtxSig ] );
         }
@@ -1302,11 +1239,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           if (iScanPosOffset > 0 || bInferredCGFlag || uiNumNonZeroesInCG )
           {
             uiSig     = (pcCoef[ uiBlkPos ] != 0);
-#if NSQT_DIAG_SCAN
             uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
-#else
-            uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth, eTType );
-#endif
             m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
             
             uiNumNonZeroesInCG += uiSig;
@@ -1325,11 +1258,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     UInt  uiPosY    = uiBlkPos >> uiLog2BlockSize;
     UInt  uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
     UInt  uiSig     = pcCoef[ uiBlkPos ] != 0 ? 1 : 0;
-#if NSQT_DIAG_SCAN
     UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
-#else
-    UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth, eTType );
-#endif
     m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
   }
 
@@ -1363,11 +1292,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     }
 
 #if MULTI_LEVEL_SIGNIFICANCE
-#if NSQT_DIAG_SCAN
     if( blockType > 3 )
-#else
-    if( uiLog2BlockSize > 3 )
-#endif
     {
       // encode significant_coeffgroup_flag
       Int iCGBlkPos = scanCG[ iSubSet ];
@@ -1381,18 +1306,10 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       }
       else
       {
-#if NSQT_DIAG_SCAN
         if( !TComTrQuant::bothCGNeighboursOne( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiWidth, uiHeight ) && ( iSubSet ) )
-#else
-        if( !TComTrQuant::bothCGNeighboursOne( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiLog2BlockSize ) && ( iSubSet ) )
-#endif
         {
           UInt uiSigCoeffGroup   = (uiSigCoeffGroupFlag[ iCGBlkPos ] != 0);
-#if NSQT_DIAG_SCAN
           UInt uiCtxSig  = TComTrQuant::getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiWidth, uiHeight );
-#else
-          UInt uiCtxSig  = TComTrQuant::getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiLog2BlockSize );
-#endif
           m_pcBinIf->encodeBin( uiSigCoeffGroup, baseCoeffGroupCtx[ uiCtxSig ] );
         }
         else
@@ -1415,11 +1332,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 
           if( iScanPosSig > iSubPos || bInferredCGFlag || numNonZero )
           {
-#if NSQT_DIAG_SCAN
             uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
-#else
-            uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth, eTType );
-#endif
             m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
           }
           if( uiSig )
@@ -1452,11 +1365,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
         coeffSigns = 2 * coeffSigns + ( pcCoef[ uiBlkPos ] < 0 );
         numNonZero++;
       }      
-#if NSQT_DIAG_SCAN
       UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
-#else
-      UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, uiLog2BlockSize, uiWidth, eTType );
-#endif
       m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
     }
 
@@ -1670,35 +1579,19 @@ Void TEncSbac::codeSaoSvlc       ( Int iCode )
  *   estimate bit cost for CBP, significant map and significant coefficients
  ****************************************************************************
  */
-#if NSQT_DIAG_SCAN
 Void TEncSbac::estBit( estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType )
-#else
-Void TEncSbac::estBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType )
-#endif
 {
   estCBFBit( pcEstBitsSbac, 0, eTType );
 
 #if MULTI_LEVEL_SIGNIFICANCE
-#if NSQT_DIAG_SCAN
   estSignificantCoeffGroupMapBit( pcEstBitsSbac, 0, eTType );
-#else
-  estSignificantCoeffGroupMapBit( pcEstBitsSbac, uiCTXIdx, eTType );
-#endif
 #endif
   
   // encode significance map
-#if NSQT_DIAG_SCAN
   estSignificantMapBit( pcEstBitsSbac, width, height, eTType );
-#else
-  estSignificantMapBit( pcEstBitsSbac, uiCTXIdx, eTType );
-#endif
   
   // encode significant coefficients
-#if NSQT_DIAG_SCAN
   estSignificantCoefficientsBit( pcEstBitsSbac, 0, eTType );
-#else
-  estSignificantCoefficientsBit( pcEstBitsSbac, uiCTXIdx, eTType );
-#endif
 }
 
 /*!
@@ -1755,13 +1648,8 @@ Void TEncSbac::estSignificantCoeffGroupMapBit( estBitsSbacStruct* pcEstBitsSbac,
  *    estimate SAMBAC bit cost for significant coefficient map
  ****************************************************************************
  */
-#if NSQT_DIAG_SCAN
 Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType )
-#else
-Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType )
-#endif
 {
-#if NSQT_DIAG_SCAN
   Int firstCtx = 0, numCtx = (eTType == TEXT_LUMA) ? 9 : 6;
   if (std::max(width, height) >= 16)
   {
@@ -1773,32 +1661,6 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCT
     firstCtx = (eTType == TEXT_LUMA) ? 9 : 6;
     numCtx = 11;
   }
-#else // NSQT_DIAG_SCAN
-  Int firstCtx, numCtx = (eTType == TEXT_LUMA) ? 9 : 6;
-  switch (uiCTXIdx)
-  {
-    case 2: // 32x32
-    case 3: // 16x16
-    if (eTType == TEXT_LUMA)
-    {
-      firstCtx = 20;
-      numCtx = 7;
-    }
-    else
-    {
-      firstCtx = 17;
-      numCtx = 4;
-    }
-      break;
-    case 4: // 8x8
-    firstCtx = (eTType == TEXT_LUMA) ? 9 : 6;
-    numCtx = 11;
-      break;
-    default: // 4x4 (case 5)
-      firstCtx = 0;
-      break;
-  }
-#endif
   
   if (eTType == TEXT_LUMA )
   {
@@ -1821,7 +1683,6 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCT
     }
   }
   Int iBitsX = 0, iBitsY = 0;
-#if NSQT_DIAG_SCAN
   const UInt *puiCtxIdx;
   Int ctx;
   
@@ -1844,23 +1705,6 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCT
     iBitsY += pCtxY[ ctxOffset ].getEntropyBits( 1 );
   }
   pcEstBitsSbac->lastYBits[ctx] = iBitsY;
-#else // NSQT_DIAG_SCAN
-  const UInt uiWidth       = ( 1 << ( 7 - uiCTXIdx ) );
-  const UInt *puiCtxIdx    = g_uiLastCtx + (g_aucConvertToBit[ uiWidth ]*(g_aucConvertToBit[ uiWidth ]+3));
-  const UInt uiWidthM1     = g_uiGroupIdx[uiWidth-1];
-  ContextModel *pCtxX      = m_cCuCtxLastX.get( 0, eTType );
-  ContextModel *pCtxY      = m_cCuCtxLastY.get( 0, eTType );
-  for ( UInt uiCtx = 0; uiCtx < uiWidthM1; uiCtx++ )
-  {
-    Int ctxOffset = puiCtxIdx[ uiCtx ];
-    pcEstBitsSbac->lastXBits[ uiCtx ] = iBitsX + pCtxX[ ctxOffset ].getEntropyBits( 0 );
-    pcEstBitsSbac->lastYBits[ uiCtx ] = iBitsY + pCtxY[ ctxOffset ].getEntropyBits( 0 );
-    iBitsX += pCtxX[ ctxOffset ].getEntropyBits( 1 );
-    iBitsY += pCtxY[ ctxOffset ].getEntropyBits( 1 );
-  }
-  pcEstBitsSbac->lastXBits[uiWidthM1] = iBitsX;
-  pcEstBitsSbac->lastYBits[uiWidthM1] = iBitsY;
-#endif // NSQT_DIAG_SCAN
 }
 
 /*!

@@ -99,7 +99,6 @@
 ////////////////////////////
 // JCT-VC F start
 ////////////////////////////
-#define NSQT_DIAG_SCAN                      1      ///< G1038: use diagonal and subblock scans for NSQT
 #define NS_HAD                               1
 
   #define APS_BITS_FOR_SAO_BYTE_LENGTH 12           
