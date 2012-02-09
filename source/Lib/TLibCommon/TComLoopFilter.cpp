@@ -821,7 +821,6 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
     
     for (UInt iBlkIdx = 0; iBlkIdx< uiBlocksInPart; iBlkIdx ++)
     {
-#if DEBLK_G590  
         Int dp0 = xCalcDP( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+0), iOffset);
         Int dq0 = xCalcDQ( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+0), iOffset);
         Int dp3 = xCalcDP( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+3), iOffset);
@@ -835,13 +834,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
         Int dq7 = xCalcDQ( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+7), iOffset);
         Int d4 = dp4 + dq4;
         Int d7 = dp7 + dq7;
-#else
-        Int iDP = xCalcDP( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+2), iOffset) + xCalcDP( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+5), iOffset);
-        Int iDQ = xCalcDQ( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+2), iOffset) + xCalcDQ( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+5), iOffset);
-        Int iD = iDP + iDQ;
-#endif //DEBLK_G590
 
-#if DEBLK_G590
         if (bPCMFilter)
         {
           // Check if each of PUs is I_PCM
@@ -873,38 +866,6 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
             xPelFilterLuma( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i), iOffset, d4+d7, iBeta, iTc, sw, bPartPNoFilter, bPartQNoFilter, iThrCut, bFilterP, bFilterQ);
           }
         }
-        
-        
-#else // !DEBLK_G590
-        if (iD < iBeta)
-        {
-          Bool bFilterP = (iDP < iSideThreshold);  
-          Bool bFilterQ = (iDQ < iSideThreshold);
-          if(bPCMFilter)
-          {
-            // Derive current PU index
-            uiPartQIdx = xCalcBsIdx(pcCUQ, uiAbsZorderIdx, iDir, iEdge, (iIdx+(iBlkIdx*DEBLOCK_SMALLEST_BLOCK/uiPelsInPart)));
-
-            // Derive neighboring PU index
-            if (iDir == EDGE_VER)
-            {
-              pcCUP = pcCUQ->getPULeft (uiPartPIdx, uiPartQIdx);
-            }
-            else  // (iDir == EDGE_HOR)
-            {
-              pcCUP = pcCUQ->getPUAbove(uiPartPIdx, uiPartQIdx);
-            }
-
-            // Check if each of PUs is I_PCM
-            bPartPNoFilter = (pcCUP->getIPCMFlag(uiPartPIdx));
-            bPartQNoFilter = (pcCUQ->getIPCMFlag(uiPartQIdx));
-          }
-          for ( UInt i = 0; i < DEBLOCK_SMALLEST_BLOCK; i++)
-          {
-            xPelFilterLuma( piTmpSrc+iSrcStep*(iIdx*uiPelsInPart+iBlkIdx*DEBLOCK_SMALLEST_BLOCK+i), iOffset, iD, iBeta, iTc , bPartPNoFilter, bPartQNoFilter, iThrCut, bFilterP, bFilterQ);
-          }
-        }
-#endif // DEBLK_G590
       }
     }
   }
@@ -1038,8 +999,6 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
   }
 }
 
-
-#if DEBLK_G590
 /**
  - Deblocking for the luminance component with strong or weak filter
  .
@@ -1056,17 +1015,8 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
  \param bFilterSecondQ  decision weak filter/no filter for partQ
 */
 __inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc , Bool sw, Bool bPartPNoFilter, Bool bPartQNoFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ)
-
-#else // !DEBLK_G590
-
-__inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, Int beta, Int tc , Bool bPartPNoFilter, Bool bPartQNoFilter, Int iThrCut, Bool bFilterSecondP, Bool bFilterSecondQ)
-#endif // DEBLK_G590
 {
-#if DEBLK_G590
   Int delta;
-#else  
-  Int d_strong, delta;
-#endif
   
   Pel m4  = piSrc[0];
   Pel m3  = piSrc[-iOffset];
@@ -1077,14 +1027,7 @@ __inline Void TComLoopFilter::xPelFilterLuma( Pel* piSrc, Int iOffset, Int d, In
   Pel m7  = piSrc[ iOffset*3];
   Pel m0  = piSrc[-iOffset*4];
 
-#if DEBLK_G590
   if (sw)
-#else // !DEBLK_G590
-      
-  d_strong = abs(m0-m3) + abs(m7-m4);
-  
-  if ( (d_strong < (beta>>3)) && (d<(beta>>2)) && ( abs(m3-m4) < ((tc*5+1)>>1)) ) //strong filtering
-#endif // DEBLK_G590
   {
     piSrc[-iOffset] = ( m1 + 2*m2 + 2*m3 + 2*m4 + m5 + 4) >> 3;
     piSrc[0] = ( m2 + 2*m3 + 2*m4 + 2*m5 + m6 + 4) >> 3;
@@ -1166,7 +1109,6 @@ __inline Void TComLoopFilter::xPelFilterChroma( Pel* piSrc, Int iOffset, Int tc,
   }
 }
 
-#if DEBLK_G590
 /**
  - Decision between strong and weak filter
  .
@@ -1187,7 +1129,6 @@ __inline Bool TComLoopFilter::xUseStrongFiltering( Int offset, Int d, Int beta, 
 
   return ( (d_strong < (beta>>3)) && (d<(beta>>2)) && ( abs(m3-m4) < ((tc*5+1)>>1)) );
 }
-#endif
 
 __inline Int TComLoopFilter::xCalcDP( Pel* piSrc, Int iOffset)
 {
