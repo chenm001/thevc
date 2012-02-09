@@ -238,27 +238,27 @@ Void TDecTop::xCreateLostPicture(Int iLostPoc)
   cFillPic->getSlice(0)->setPPS( &m_cPPS );
   cFillPic->getSlice(0)->initSlice();
   
-
+  
   TComList<TComPic*>::iterator iterPic = m_cListPic.begin();
   Int closestPoc = 1000000;
   while ( iterPic != m_cListPic.end())
   {
-     TComPic * rpcPic = *(iterPic++);
-     if(abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc)<closestPoc&&abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc)!=0&&rpcPic->getPicSym()->getSlice(0)->getPOC()!=m_apcSlicePilot->getPOC())
-     {
-        closestPoc=abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc);
-     }
+    TComPic * rpcPic = *(iterPic++);
+    if(abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc)<closestPoc&&abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc)!=0&&rpcPic->getPicSym()->getSlice(0)->getPOC()!=m_apcSlicePilot->getPOC())
+    {
+      closestPoc=abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc);
+    }
   }
   iterPic = m_cListPic.begin();
   while ( iterPic != m_cListPic.end())
   {
-     TComPic *rpcPic = *(iterPic++);
-     if(abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc)==closestPoc&&rpcPic->getPicSym()->getSlice(0)->getPOC()!=m_apcSlicePilot->getPOC())
-     {
-       printf("copying picture %d to %d (%d)\n",rpcPic->getPicSym()->getSlice(0)->getPOC() ,iLostPoc,m_apcSlicePilot->getPOC());
-       rpcPic->getPicYuvRec()->copyToPic(cFillPic->getPicYuvRec());
-       break;
-     }
+    TComPic *rpcPic = *(iterPic++);
+    if(abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc)==closestPoc&&rpcPic->getPicSym()->getSlice(0)->getPOC()!=m_apcSlicePilot->getPOC())
+    {
+      printf("copying picture %d to %d (%d)\n",rpcPic->getPicSym()->getSlice(0)->getPOC() ,iLostPoc,m_apcSlicePilot->getPOC());
+      rpcPic->getPicYuvRec()->copyToPic(cFillPic->getPicYuvRec());
+      break;
+    }
   }
   cFillPic->setCurrSliceIdx(0);
   for(Int i=0; i<cFillPic->getNumCUsInFrame(); i++) 
