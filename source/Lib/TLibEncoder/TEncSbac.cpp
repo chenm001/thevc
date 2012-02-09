@@ -1606,24 +1606,12 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       uiNumOne       >>= 1;
 #if COEFF_CTXSET_RED
 #if CLEANUP_CTXINIT
-#if COEFF_CTX_RED
       ContextModel *baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUOneSCModel.get( 0, 0 ) + 4 * uiCtxSet : m_cCUOneSCModel.get( 0, 0 ) + NUM_ONE_FLAG_CTX_LUMA + 4 * uiCtxSet;
 #else
-      ContextModel *baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUOneSCModel.get( 0, 0 ) + 5 * uiCtxSet : m_cCUOneSCModel.get( 0, 0 ) + NUM_ONE_FLAG_CTX_LUMA + 5 * uiCtxSet;
-#endif
-#else
-#if COEFF_CTX_RED
       ContextModel *baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUOneSCModelLuma.get( 0, 0 ) + 4 * uiCtxSet : m_cCUOneSCModelChroma.get( 0, 0 ) + 4 * uiCtxSet;
-#else
-      ContextModel *baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUOneSCModelLuma.get( 0, 0 ) + 5 * uiCtxSet : m_cCUOneSCModelChroma.get( 0, 0 ) + 5 * uiCtxSet;
-#endif 
 #endif  
 #else
-#if COEFF_CTX_RED
       ContextModel *baseCtxMod = m_cCUOneSCModel.get( 0, eTType ) + 4 * uiCtxSet;
-#else
-      ContextModel *baseCtxMod = m_cCUOneSCModel.get( 0, eTType ) + 5 * uiCtxSet;
-#endif
 #endif
       
       for ( Int idx = 0; idx < numNonZero; idx++ )
@@ -1634,11 +1622,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
         {
           c1 = 0;
         }
-#if COEFF_CTX_RED
         else if( (c1 < 3) && (c1 > 0) )
-#else
-        else if( c1 & 3 )
-#endif
         {
           c1++;
         }
@@ -1648,24 +1632,12 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       {
 #if COEFF_CTXSET_RED
 #if CLEANUP_CTXINIT
-#if COEFF_CTX_RED
         baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUAbsSCModel.get( 0, 0 ) + 3 * uiCtxSet : m_cCUAbsSCModel.get( 0, 0 ) + NUM_ABS_FLAG_CTX_LUMA + 3 * uiCtxSet;
 #else
-        baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUAbsSCModel.get( 0, 0 ) + 5 * uiCtxSet : m_cCUAbsSCModel.get( 0, 0 ) + NUM_ABS_FLAG_CTX_LUMA + 5 * uiCtxSet;
-#endif 
-#else
-#if COEFF_CTX_RED
         baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUAbsSCModelLuma.get( 0, 0 ) + 3 * uiCtxSet : m_cCUAbsSCModelChroma.get( 0, 0 ) + 3 * uiCtxSet;
-#else
-        baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUAbsSCModelLuma.get( 0, 0 ) + 5 * uiCtxSet : m_cCUAbsSCModelChroma.get( 0, 0 ) + 5 * uiCtxSet;
-#endif 
 #endif 
 #else
-#if COEFF_CTX_RED
         baseCtxMod = m_cCUAbsSCModel.get( 0, eTType ) + 3 * uiCtxSet;
-#else
-        baseCtxMod = m_cCUAbsSCModel.get( 0, eTType ) + 5 * uiCtxSet;
-#endif
 #endif
         for ( Int idx = 0; idx < numNonZero; idx++ )
         {
@@ -1673,11 +1645,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           {
             UInt symbol = absCoeff[ idx ] > 2;
             m_pcBinIf->encodeBin( symbol, baseCtxMod[c2] );
-#if COEFF_CTX_RED
             c2 += (c2 < 2);
-#else
-            c2 += (c2 < 4); // Increment c2 up to a maximum value of 4
-#endif
             uiNumOne++;
           }
         }

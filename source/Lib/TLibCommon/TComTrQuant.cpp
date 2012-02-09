@@ -2201,13 +2201,8 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     {
       //===== coefficient level estimation =====
       UInt  uiLevel;
-#if COEFF_CTX_RED
       UInt  uiOneCtx         = 4 * uiCtxSet + c1;
       UInt  uiAbsCtx         = 3 * uiCtxSet + c2;
-#else
-      UInt  uiOneCtx         = 5 * uiCtxSet + c1;
-      UInt  uiAbsCtx         = 5 * uiCtxSet + c2;
-#endif
       if( iScanPos == iLastScanPos )
       {
         uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ], lLevelDouble, uiMaxAbsLevel, 0, uiOneCtx, uiAbsCtx, uiGoRiceParam, iQBits, dTemp, 1 );
@@ -2231,22 +2226,14 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       if( uiLevel > 1 )
       {
         c1 = 0; 
-#if COEFF_CTX_RED
         c2 += (c2 < 2);
-#else
-        c2 += (c2 < 4);
-#endif
         uiNumOne++;
         if( uiLevel > 2 )
         {
           uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - 3, 15 ) ];
         }
       }
-#if COEFF_CTX_RED
       else if( (c1 < 3) && (c1 > 0) && uiLevel)
-#else
-      else if( (c1 & 3) && uiLevel )
-#endif
       {
         c1++;
       }
@@ -2362,13 +2349,8 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         {
           //===== coefficient level estimation =====
           UInt  uiLevel;
-#if COEFF_CTX_RED
           UInt  uiOneCtx         = 4 * uiCtxSet + c1;
           UInt  uiAbsCtx         = 3 * uiCtxSet + c2;
-#else
-          UInt  uiOneCtx         = 5 * uiCtxSet + c1;
-          UInt  uiAbsCtx         = 5 * uiCtxSet + c2;
-#endif
           if( iScanPos == iLastScanPos )
           {
             uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ], 
@@ -2396,22 +2378,14 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
           if( uiLevel > 1 )
           {
             c1 = 0; 
-#if COEFF_CTX_RED
             c2 += (c2 < 2);
-#else
-            c2 += (c2 < 4);
-#endif
             uiNumOne++;
             if( uiLevel > 2 )
             {
               uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - 3, 15 ) ];
             }
           }
-#if COEFF_CTX_RED
           else if( (c1 < 3) && (c1 > 0) && uiLevel)
-#else
-          else if( (c1 & 3) && uiLevel )
-#endif
           {
             c1++;
           }

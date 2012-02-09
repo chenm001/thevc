@@ -43,7 +43,6 @@
 //! \{
 
 #define PADDING_INTRA             1 ///< G812: padding from bottom left, copy previous pixel instead of averaging
-#define COEFF_CTX_RED             1 ///< G121: reduce max value of c1 and c2
 
 #define MRG_MAX_NUM_CANDS_SIGNALED         5   //<G091: value of maxNumMergeCand signaled in slice header 
 
