@@ -69,10 +69,6 @@
 
 #define G519_TU_AMP_NSQT_HARMONIZATION  1   ///< G519: Harmonization of implicit TU, AMP and NSQT
 
-////////////////////////////
-// JCT-VC G start
-////////////////////////////
-
 #define UNIFIED_SCAN_PASSES                 1      ///< G320 : Unified scan passes for transform coefficient coding
 #define MULTI_LEVEL_SIGNIFICANCE            1      ///< G644 : Multi-level significance map for large TUs
 #if MULTI_LEVEL_SIGNIFICANCE
@@ -90,21 +86,11 @@
 
 #define G678_LAMBDA_ADJUSTMENT              1      ///< G678: lambda adjustment for rate-constrained test tool
 
-////////////////////////////
-// JCT-VC G end
-////////////////////////////
-
-////////////////////////////
-// JCT-VC F start
-////////////////////////////
 #define NS_HAD                               1
 
-  #define APS_BITS_FOR_SAO_BYTE_LENGTH 12           
-  #define APS_BITS_FOR_ALF_BYTE_LENGTH 8
+#define APS_BITS_FOR_SAO_BYTE_LENGTH 12           
+#define APS_BITS_FOR_ALF_BYTE_LENGTH 8
 
-////////////////////////////
-// JCT-VC F end
-////////////////////////////
 
 #define HHI_RQT_INTRA_SPEEDUP             1           ///< tests one best mode with full rqt
 #define HHI_RQT_INTRA_SPEEDUP_MOD         0           ///< tests two best modes with full rqt
@@ -166,18 +152,12 @@
 
 #define FULL_NBIT 0 ///< When enabled, does not use g_uiBitIncrement anymore to support > 8 bit data
 
-/////////////////////////////////
-// AHG SLICES defines section start
-/////////////////////////////////
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE      1          ///< OPTION IDENTIFIER. mode==1 -> Limit maximum number of largest coding tree blocks in a slice
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE    2          ///< OPTION IDENTIFIER. mode==2 -> Limit maximum number of bins/bits in a slice
 
 // Entropy slice options
 #define SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE            1          ///< OPTION IDENTIFIER. Limit maximum number of largest coding tree blocks in an entropy slice
 #define SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE         2          ///< OPTION IDENTIFIER. Limit maximum number of bins/bits in an entropy slice
-/////////////////////////////////
-// AHG SLICES defines section end
-/////////////////////////////////
 
 #define LOG2_MAX_NUM_COLUMNS_MINUS1        7
 #define LOG2_MAX_NUM_ROWS_MINUS1           7
