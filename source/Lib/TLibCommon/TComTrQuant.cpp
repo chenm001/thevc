@@ -42,7 +42,6 @@
 #include "TComPic.h"
 #include "ContextTables.h"
 
-#if MULTI_LEVEL_SIGNIFICANCE
 typedef struct
 {
   Int    iNNZbeforePos0;
@@ -51,7 +50,6 @@ typedef struct
   Double d64SigCost;
   Double d64SigCost_0;
 } coeffGroupRDStats;
-#endif
 
 //! \ingroup TLibCommon
 //! \{
@@ -2072,7 +2070,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   ::memset( pdCostCoeff, 0, sizeof(Double) *  uiMaxNumCoeff );
   ::memset( pdCostSig,   0, sizeof(Double) *  uiMaxNumCoeff );
 
-#if MULTI_LEVEL_SIGNIFICANCE
   const UInt * scanCG;
   if (uiWidth == uiHeight)
   {
@@ -2087,7 +2084,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   UInt uiSigCoeffGroupFlag[ MLS_GRP_NUM ];
   UInt uiNumBlkSide = uiWidth / MLS_CG_SIZE;
   Int iCGLastScanPos = -1;
-#endif
 
   UInt    uiCtxSet            = 0;
   Int     c1                  = 1;
@@ -2106,10 +2102,8 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     scan = g_sigScanNSQT[ uiLog2BlkSize - 2 ];
   }
   
-#if MULTI_LEVEL_SIGNIFICANCE
   if (blockType < 4)
   {
-#endif
   for( Int iScanPos = (Int) uiMaxNumCoeff-1; iScanPos >= 0; iScanPos-- )
   {
     //===== quantization =====
@@ -2205,7 +2199,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       d64BaseCost    += pdCostCoeff0[ iScanPos ];
     }
   }
-#if MULTI_LEVEL_SIGNIFICANCE
   }
   else //(uiLog2BlkSize > 3), for 16x16 and 32x32 TU
   {      
@@ -2408,7 +2401,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       }
     } //end for (iCGScanPos)
   }
-#endif  // #if MULTI_LEVEL_SIGNIFICANCE 
 
   //===== estimate last position =====
   if ( iLastScanPos < 0 )
@@ -2433,10 +2425,8 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     d64BaseCost += xGetICost( m_pcEstBitsSbac->blockCbpBits[ ui16CtxCbf ][ 1 ] );
   }
 
-#if MULTI_LEVEL_SIGNIFICANCE
   if (blockType < 4)
   {
-#endif
   for( Int iScanPos = iLastScanPos; iScanPos >= 0; iScanPos-- )
   {
     UInt   uiBlkPos     = scan[iScanPos];
@@ -2463,7 +2453,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       d64BaseCost      -= pdCostSig[ iScanPos ];
     }
   }
-#if MULTI_LEVEL_SIGNIFICANCE
   }
   else //if (uiLog2BlkSize < 4)
   {
@@ -2514,7 +2503,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       } // end if (uiSigCoeffGroupFlag[ uiCGBlkPos ])
     } // end for 
   } //if (uiLog2BlkSize < 4)
-#endif
 
   for ( Int scanPos = 0; scanPos < iBestLastIdxP1; scanPos++ )
   {
@@ -2753,13 +2741,11 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
   return xGetICost( iRate );
 }
 
-#if MULTI_LEVEL_SIGNIFICANCE
 __inline Double TComTrQuant::xGetRateSigCoeffGroup  ( UShort                    uiSignificanceCoeffGroup,
                                                 UShort                          ui16CtxNumSig ) const
 {
   return xGetICost( m_pcEstBitsSbac->significantCoeffGroupBits[ ui16CtxNumSig ][ uiSignificanceCoeffGroup ] );
 }
-#endif
 
 /** Calculates the cost of signaling the last significant coefficient in the block
  * \param uiPosX X coordinate of the last significant coefficient
@@ -2817,7 +2803,6 @@ __inline Double TComTrQuant::xGetIEPRate      (                                 
   return 32768;
 }
 
-#if MULTI_LEVEL_SIGNIFICANCE
 /** Context derivation process of coeff_abs_significant_flag
  * \param uiSigCoeffGroupFlag significance map of L1
  * \param uiBlkX column of current scan position
@@ -2869,7 +2854,7 @@ Bool TComTrQuant::bothCGNeighboursOne ( const UInt*                   uiSigCoeff
   
   return (uiRight & uiLower);
 }
-#endif
+
 #if SCALING_LIST
 /** set quantized matrix coefficient for encode
  * \param scalingList quantaized matrix address

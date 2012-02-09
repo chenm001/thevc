@@ -58,9 +58,7 @@
 
 typedef struct
 {
-#if MULTI_LEVEL_SIGNIFICANCE
   Int significantCoeffGroupBits[NUM_SIG_CG_FLAG_CTX][2];
-#endif
   Int significantBits[NUM_SIG_FLAG_CTX][2];
   Int lastXBits[32];
   Int lastYBits[32];
@@ -175,7 +173,6 @@ public:
                                     ,Int                             height
                                     ,TextType                        textureType
                                     );
-#if MULTI_LEVEL_SIGNIFICANCE
   static UInt getSigCoeffGroupCtxInc  ( const UInt*                   uiSigCoeffGroupFlag,
                                        const UInt                       uiCGPosX,
                                        const UInt                       uiCGPosY,
@@ -185,7 +182,6 @@ public:
                                     const UInt                       uiCGPosX,
                                     const UInt                       uiCGPosY,
                                     Int width, Int height);
-#endif
 #if SCALING_LIST
   Void initScalingList                      ();
   Void destroyScalingList                   ();
@@ -296,10 +292,8 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
   __inline Double xGetRateLast     ( const UInt                      uiPosX,
                                      const UInt                      uiPosY,
                                      const UInt                      uiBlkWdth     ) const;
-#if MULTI_LEVEL_SIGNIFICANCE
   __inline Double xGetRateSigCoeffGroup (  UShort                    uiSignificanceCoeffGroup,
                                      UShort                          ui16CtxNumSig ) const;
-#endif
   __inline Double xGetRateSigCoef (  UShort                          uiSignificance,
                                      UShort                          ui16CtxNumSig ) const;
   __inline Double xGetICost        ( Double                          dRate         ) const; 

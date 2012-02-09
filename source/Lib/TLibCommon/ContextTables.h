@@ -72,9 +72,7 @@
 #define NUM_QT_ROOT_CBF_CTX           1       ///< number of context models for QT ROOT CBF
 #define NUM_DELTA_QP_CTX              3       ///< number of context models for dQP
 
-#if MULTI_LEVEL_SIGNIFICANCE
 #define NUM_SIG_CG_FLAG_CTX           2       ///< number of context models for MULTI_LEVEL_SIGNIFICANCE
-#endif
 
 #define NUM_SIG_FLAG_CTX              48      ///< number of context models for sig flag
 
@@ -435,7 +433,6 @@ INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =
   },
 };
 
-#if MULTI_LEVEL_SIGNIFICANCE
 static const UChar
 INIT_SIG_CG_FLAG[3][2 * NUM_SIG_CG_FLAG_CTX] = 
 {
@@ -455,7 +452,6 @@ INIT_SIG_CG_FLAG[3][2 * NUM_SIG_CG_FLAG_CTX] =
     
   },
 };
-#endif
 
 static const UChar
 INIT_SIG_FLAG[3][NUM_SIG_FLAG_CTX] =
@@ -948,7 +944,6 @@ INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY][2] =
   }
 };
 
-#if MULTI_LEVEL_SIGNIFICANCE
 static const Short
 INIT_SIG_CG_FLAG[3][2 * NUM_SIG_CG_FLAG_CTX][2] = 
 {
@@ -974,7 +969,6 @@ INIT_SIG_CG_FLAG[3][2 * NUM_SIG_CG_FLAG_CTX][2] =
     { -23,  80}, {  -8,  83}
   }
 };
-#endif
 
 static const Short
 INIT_SIG_FLAG[3][NUM_SIG_FLAG_CTX][2] =
