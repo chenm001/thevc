@@ -1774,43 +1774,13 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int* uiIntraDirPred
   
   if ( iLeftIntraDir >= g_aucIntraModeNumAng[iIdx] ) 
   {
-#if REMAP_TO_PLANAR
     iLeftIntraDir = PLANAR_IDX;
-#else
-    if ( g_aucIntraModeNumAng[iIdx] == 6 )
-    {
-      iLeftIntraDir = g_aucAngModeMapping[0][g_aucAngIntraModeOrder[iLeftIntraDir]];
-    }
-    else if ( g_aucIntraModeNumAng[iIdx] == 4 )
-    {
-      iLeftIntraDir = g_aucAngModeMapping[3][g_aucAngIntraModeOrder[iLeftIntraDir]];
-    }
-    else
-    {
-      iLeftIntraDir = g_aucAngModeMapping[1][g_aucAngIntraModeOrder[iLeftIntraDir]]; 
-    }
-#endif
   }
   
   
   if ( iAboveIntraDir >= g_aucIntraModeNumAng[iIdx] ) 
   {
-#if REMAP_TO_PLANAR
     iAboveIntraDir = PLANAR_IDX;
-#else
-    if ( g_aucIntraModeNumAng[iIdx] == 6 )
-    {
-      iAboveIntraDir = g_aucAngModeMapping[0][g_aucAngIntraModeOrder[iAboveIntraDir]];
-    }
-    else if ( g_aucIntraModeNumAng[iIdx] == 4 )
-    {
-      iAboveIntraDir = g_aucAngModeMapping[3][g_aucAngIntraModeOrder[iAboveIntraDir]];
-    }
-    else
-    {
-      iAboveIntraDir = g_aucAngModeMapping[1][g_aucAngIntraModeOrder[iAboveIntraDir]]; 
-    }
-#endif
   }
   
   if(iLeftIntraDir == iAboveIntraDir)
