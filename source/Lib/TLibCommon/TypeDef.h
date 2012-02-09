@@ -148,14 +148,11 @@
 ////////////////////////////
 // JCT-VC F start
 ////////////////////////////
-#define NSQT                                 1       // F410 & F412 : Non-Square Quadtree Transform
 #define NSQT_DIAG_SCAN                      1      ///< G1038: use diagonal and subblock scans for NSQT
 #if NSQT_DIAG_SCAN && !(SUBBLOCK_SCAN)
 #error
 #endif
-#if NSQT
 #define NS_HAD                               1
-#endif
 
   #define APS_BITS_FOR_SAO_BYTE_LENGTH 12           
   #define APS_BITS_FOR_ALF_BYTE_LENGTH 8

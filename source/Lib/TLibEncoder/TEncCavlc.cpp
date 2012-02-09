@@ -560,9 +560,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #endif
 
   // Software-only flags
-#if NSQT
   WRITE_FLAG( pcSPS->getUseNSQT(), "enable_nsqt" );
-#endif
   WRITE_FLAG( pcSPS->getUseAMP(), "enable_amp" );
 }
 
@@ -1912,7 +1910,6 @@ Void TEncCavlc::codeBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTyp
 
 Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType )
 {
-#if NSQT
   Bool bNonSqureFlag = ( uiWidth != uiHeight );
   UInt uiNonSqureScanTableIdx = 0;
   if( bNonSqureFlag )
@@ -1923,7 +1920,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
     uiWidth  = 1 << ( ( uiWidthBit + uiHeightBit) >> 1 );
     uiHeight = uiWidth;
   }    
-#endif
 
   if ( uiWidth > m_pcSlice->getSPS()->getMaxTrSize() )
   {
@@ -1993,7 +1989,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
   }
   else if ( uiSize == 8*8 )
   {
-#if NSQT
     if( bNonSqureFlag )  
     {
       for ( uiScanning = 0; uiScanning < 64; uiScanning++ )
@@ -2002,7 +1997,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
       } 
     }
     else  
-#endif
     for (uiScanning=0; uiScanning<64; uiScanning++)
     {
       uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning]; 
@@ -2023,7 +2017,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
     {
       UInt uiBlSizeInBit = g_aucConvertToBit[uiBlSize] + 2;
       UInt uiWidthInBit = g_aucConvertToBit[uiWidth] + 2;
-#if NSQT
       if( bNonSqureFlag ) 
       {
         for (uiScanning=0; uiScanning< uiNoCoeff; uiScanning++)
@@ -2032,7 +2025,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
         }    
       }
       else  
-#endif 
       for (uiScanning=0; uiScanning<uiNoCoeff; uiScanning++)
       {
         uiBlkPos = g_auiSigLastScan[uiScanIdx][uiLog2BlkSize-1][uiScanning]; 
@@ -2065,7 +2057,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
     //#endif
   }
   
-#if NSQT
   if( bNonSqureFlag && !pcCU->isIntra( uiAbsPartIdx ) )
   {
     TCoeff orgCoeff[ 256 ];
@@ -2076,7 +2067,6 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
       pcCoef[ g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiScanPos ] ] = orgCoeff[uiBlkPos]; 
     }  
   }
-#endif
 }
 
 Void TEncCavlc::codeAlfFlag( UInt uiCode )

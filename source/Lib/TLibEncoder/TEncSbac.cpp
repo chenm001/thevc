@@ -1288,7 +1288,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   DTRACE_CABAC_V(  pcCU->getPredictionMode( uiAbsPartIdx ) )
   DTRACE_CABAC_T( "\n" )
 
-#if NSQT && !NSQT_DIAG_SCAN
+#if !NSQT_DIAG_SCAN
   Bool bNonSqureFlag = ( uiWidth != uiHeight );
   UInt uiNonSqureScanTableIdx = 0;
   if( bNonSqureFlag )
@@ -1323,7 +1323,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   
   //----- encode significance map -----
   const UInt   uiLog2BlockSize   = g_aucConvertToBit[ uiWidth ] + 2;
-#if NSQT && !NSQT_DIAG_SCAN
+#if !NSQT_DIAG_SCAN
   const UInt   uiMaxNumCoeff     = uiWidth * uiHeight;
 #endif
   UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, uiWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
@@ -1341,7 +1341,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   }
 #endif
   
-#if NSQT && !NSQT_DIAG_SCAN
+#if !NSQT_DIAG_SCAN
   static TCoeff orgCoeff[ 256 ];
   if( bNonSqureFlag )
   {

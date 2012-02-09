@@ -194,9 +194,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("ListCombination,-lc", m_bUseLComb, true, "combined reference list flag for uni-prediction in B-slices")
   ("LCModification", m_bLCMod, false, "enables signalling of combined reference list derivation")
   ("DisableInter4x4", m_bDisInter4x4, true, "Disable Inter 4x4")
-#if NSQT
   ("NSQT", m_enableNSQT, true, "Enable non-square transforms")
-#endif
   ("AMP", m_enableAMP, true, "Enable asymmetric motion partitions")
   /* motion options */
   ("FastSearch", m_iFastSearch, 1, "0:Full search  1:Diamond  2:PMVFAST")

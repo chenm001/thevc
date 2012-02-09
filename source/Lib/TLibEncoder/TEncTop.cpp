@@ -496,9 +496,7 @@ Void TEncTop::xInitSPS()
   
   m_cSPS.setUseLComb    ( m_bUseLComb           );
   m_cSPS.setLCMod       ( m_bLCMod   );
-#if NSQT
   m_cSPS.setUseNSQT( m_useNSQT );
-#endif
   
   Int i;
 #if HHI_AMVP_OFF

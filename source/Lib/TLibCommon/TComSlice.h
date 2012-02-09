@@ -104,9 +104,7 @@ private:
 
   Bool        m_bUseLComb;
   Bool        m_bLCMod;
-#if NSQT
   Bool        m_useNSQT;
-#endif
   
   // Parameter
   AMVP_MODE   m_aeAMVPMode[MAX_CU_DEPTH];
@@ -236,10 +234,8 @@ public:
   Bool getUseLMChroma ()         { return m_bUseLMChroma;        }
   Void setUseLMChroma ( Bool b ) { m_bUseLMChroma  = b;          }
 
-#if NSQT
   Bool getUseNSQT() { return m_useNSQT; }
   Void setUseNSQT( Bool b ) { m_useNSQT = b; }
-#endif
   
   // AMVP mode (for each depth)
   AMVP_MODE getAMVPMode ( UInt uiDepth ) { assert(uiDepth < g_uiMaxCUDepth);  return m_aeAMVPMode[uiDepth]; }

@@ -269,11 +269,7 @@ protected:
 #endif  
 private:
   // forward Transform
-#if NSQT
   Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Int* plCoeff, Int iWidth, Int iHeight );
-#else
-  Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Int* plCoeff, Int iSize );
-#endif
   
   // quantization
   Void xQuant( TComDataCU* pcCU, 
@@ -338,11 +334,7 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
 #endif
   
   // inverse transform
-#if NSQT
   Void xIT    ( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight );
-#else
-  Void xIT    ( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, Int iSize );
-#endif
   
 };// END CLASS DEFINITION TComTrQuant
 

@@ -97,9 +97,7 @@ Void TAppEncTop::xInitLibCfg()
 
   m_cTEncTop.setDisInter4x4                  ( m_bDisInter4x4);
   
-#if NSQT
   m_cTEncTop.setUseNSQT( m_enableNSQT );
-#endif
   m_cTEncTop.setUseAMP( m_enableAMP );
   
   //===== Slice ========

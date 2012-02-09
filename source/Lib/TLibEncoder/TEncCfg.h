@@ -138,9 +138,7 @@ protected:
   UInt      m_uiQuadtreeTUMaxDepthInter;
   UInt      m_uiQuadtreeTUMaxDepthIntra;
   
-#if NSQT
   Bool      m_useNSQT;
-#endif
   
   //====== Loop/Deblock Filter ========
   Bool      m_bLoopFilterDisable;
@@ -311,9 +309,7 @@ public:
   Void      setQuadtreeTUMaxDepthInter      ( UInt  u )      { m_uiQuadtreeTUMaxDepthInter = u; }
   Void      setQuadtreeTUMaxDepthIntra      ( UInt  u )      { m_uiQuadtreeTUMaxDepthIntra = u; }
   
-#if NSQT
   Void setUseNSQT( Bool b ) { m_useNSQT = b; }
-#endif
   Void setUseAMP( Bool b ) { m_useAMP = b; }
   
   //====== Loop/Deblock Filter ========

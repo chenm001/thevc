@@ -4002,7 +4002,6 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
   return uiScanIdx;
 }
 
-#if NSQT
 Bool TComDataCU::useNonSquareTrans(UInt uiTrMode)
 {
   const UInt uiLog2TrSize = g_aucConvertToBit[ getSlice()->getSPS()->getMaxCUWidth() >> ( m_puhDepth[ 0 ] + uiTrMode ) ] + 2;
@@ -4079,7 +4078,6 @@ Void TComDataCU::getPixOffset(UInt uiTrMode,  UInt ui, UInt uiAbsPartIdx, UInt u
     }
   }
 }
-#endif
 
 UInt TComDataCU::getSCUAddr()
 { 

@@ -136,7 +136,6 @@ Void initROM()
     }
   }
 #else
-#if NSQT
   UInt uiWidth[ 4 ]  = { 16, 32, 4,  8  };
   UInt uiHeight[ 4 ] = { 4,  8,  16, 32 };
   for ( i = 0; i < 4; i++ )
@@ -146,7 +145,6 @@ Void initROM()
     g_auiNonSquareSigLastScan[ i ] = new UInt[ uiW * uiH ];
     initNonSquareSigLastScan( g_auiNonSquareSigLastScan[ i ], uiW, uiH);
   }
-#endif
 #endif
 }
 
@@ -753,9 +751,7 @@ UInt g_sigCGScanNSQT[ 4 ][ 16 ] =
 };
 #endif
 
-#if NSQT
 UInt* g_auiNonSquareSigLastScan[ 4 ];
-#endif
 
 const UInt g_uiMinInGroup[ 10 ] = {0,1,2,3,4,6,8,12,16,24};
 const UInt g_uiGroupIdx[ 32 ]   = {0,1,2,3,4,4,5,5,6,6,6,6,7,7,7,7,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9};
@@ -952,7 +948,6 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int
   }    
 }
 
-#if NSQT
 Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)
 {
 
@@ -1031,7 +1026,7 @@ Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)
     }
   }
 }
-#endif
+
 #if SCALING_LIST
 Int g_quantIntraDefault4x4[16] =
 {

@@ -534,13 +534,10 @@ public:
 
   UInt          getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, Bool bIsIntra);
 
-#if NSQT
   Bool useNonSquareTrans( UInt uiTrMode );
   Bool useNonSquareTrans( UInt uiTrMode, Int absPartIdx );
   Void getNSQTSize(Int trMode, Int absPartIdx, Int &trWidth, Int &trHeight);
   Void getPixOffset( UInt uiTrMode, UInt ui, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiPix_X, UInt& uiPix_Y, TextType eTxt );
-#endif
-
 };
 
 namespace RasterAddress
