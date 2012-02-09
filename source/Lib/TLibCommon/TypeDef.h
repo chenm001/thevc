@@ -47,7 +47,6 @@
 
 #define MRG_MAX_NUM_CANDS_SIGNALED         5   //<G091: value of maxNumMergeCand signaled in slice header 
 
-#define WEIGHT_PRED_IMP           1 ///< high-precision offset for weighted bipred G065
 #define PLANAR_IS_DEFAULT         1 ///< default to planar if neighbor not available G119
 #define VER_HOR_FILTER            1 ///< F172: intra ver/hor prediction filter
 
