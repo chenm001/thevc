@@ -38,7 +38,6 @@
 #ifndef _TYPEDEF__
 #define _TYPEDEF__
 
-#define CLEANUP_CTXINIT           1
 //! \ingroup TLibCommon
 //! \{
 

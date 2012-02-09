@@ -76,31 +76,18 @@
 #define NUM_SIG_CG_FLAG_CTX           2       ///< number of context models for MULTI_LEVEL_SIGNIFICANCE
 #endif
 
-#if CLEANUP_CTXINIT 
 #define NUM_SIG_FLAG_CTX              48      ///< number of context models for sig flag
-#else
-#define NUM_SIG_FLAG_CTX              27      ///< number of context models for sig flag
-#endif
 
 #define NUM_SIG_FLAG_CTX_LUMA         27      ///< number of context models for luma sig flag
 #define NUM_SIG_FLAG_CTX_CHROMA       21      ///< number of context models for chroma sig flag
 #define NUM_CTX_LAST_FLAG_XY          18      ///< number of context models for last coefficient position
 
-#if CLEANUP_CTXINIT
 #define NUM_ONE_FLAG_CTX              32      ///< number of context models for greater than 1 flag
 #define NUM_ONE_FLAG_CTX_LUMA         24      ///< number of context models for greater than 1 flag of luma
 #define NUM_ONE_FLAG_CTX_CHROMA        8      ///< number of context models for greater than 1 flag of chroma
 #define NUM_ABS_FLAG_CTX              24      ///< number of context models for greater than 2 flag
 #define NUM_ABS_FLAG_CTX_LUMA         18      ///< number of context models for greater than 2 flag of luma
 #define NUM_ABS_FLAG_CTX_CHROMA        6      ///< number of context models for greater than 2 flag of chroma
-#else
-#define NUM_ONE_FLAG_CTX              24      ///< number of context models for greater than one
-#define NUM_ABS_FLAG_CTX              18      ///< number of context models for magnitude
-#define NUM_ONE_FLAG_CTX_LUMA         24      ///< number of context models for greater than one of luma
-#define NUM_ONE_FLAG_CTX_CHROMA        8      ///< number of context models for greater than one of chroma
-#define NUM_ABS_FLAG_CTX_LUMA         18      ///< number of context models for magnitude of luma
-#define NUM_ABS_FLAG_CTX_CHROMA        6      ///< number of context models for magnitude of chroma
-#endif
 
 #define NUM_MVP_IDX_CTX               2       ///< number of context models for MVP index
 
@@ -470,7 +457,6 @@ INIT_SIG_CG_FLAG[3][2 * NUM_SIG_CG_FLAG_CTX] =
 };
 #endif
 
-#if CLEANUP_CTXINIT
 static const UChar
 INIT_SIG_FLAG[3][NUM_SIG_FLAG_CTX] =
 {
@@ -487,43 +473,7 @@ INIT_SIG_FLAG[3][NUM_SIG_FLAG_CTX] =
     136, 102,  86,  84,  67, 117, 102, 117, 115,  99, 100, 115,  99, 100,  83, 114, 152, 152, 131, 150, 120,
   },
 };
-#else
-static const UChar
-INIT_SIG_FLAG_LUMA[3][NUM_SIG_FLAG_CTX_LUMA] =
-{
-  {
-    74,  73,  88,  72,  72,  55,  71,  54,  71,  88, 103,  71,  53,  87, 134,  86,  84,  70,  68,  89,  90,  84,  88,  74, 130, 118,  88,
-    
-  },
-  {
-    152, 119, 103, 118,  87,  70,  70,  53, 118, 134, 118, 101,  68,  85, 101, 116, 100,  68,  67, 136, 168, 147, 150, 120, 115, 118, 119,
-    
-  },
-  {
-    152, 119, 103, 118,  87,  70,  70,  53,  71, 103, 118, 101,  68,  85, 101, 116, 116,  68,  67, 152, 168, 147, 150, 120, 115, 118, 119,
-    
-  },
-};
 
-static const UChar
-INIT_SIG_FLAG_CHROMA[3][NUM_SIG_FLAG_CTX_CHROMA] =
-{
-  {
-    120,  87, 149,  70,  52, 118, 133, 116, 114, 129, 132, 162, 115,  51, 115,  66, 120,  74, 115,  87,  89,
-    
-  },
-  {
-    136, 102,  70,  53,  67, 117, 102, 117, 115, 114,  84, 115,  99, 100,  83, 114, 152, 168, 131, 150, 120,
-    
-  },
-  {
-    136, 102,  86,  84,  67, 117, 102, 117, 115,  99, 100, 115,  99, 100,  83, 114, 152, 152, 131, 150, 120,
-    
-  },
-};
-#endif
-
-#if CLEANUP_CTXINIT
 static const UChar
 INIT_ONE_FLAG[3][NUM_ONE_FLAG_CTX] =
 {
@@ -558,76 +508,6 @@ INIT_ABS_FLAG[3][NUM_ABS_FLAG_CTX] =
     84, 118, 120, 117, 150, 120,
   },
 };
-
-#else
-static const UChar
-INIT_ONE_FLAG_LUMA[3][NUM_ONE_FLAG_CTX_LUMA] =
-{
-  {
-    104,  68, 116,  86, 104, 132,  86,  87, 105, 134,  87, 103, 102,  66, 114,  68,  87,  84, 100, 101,  72,  69, 101,  86,
-    
-  },
-  {
-    119, 179, 179, 164, 119,  85, 117, 149, 136, 103, 103, 103, 133,  98, 114, 115, 118,  99, 115, 116,  87, 100,  85, 117,
-    
-  },
-  {
-    119, 179, 148, 164, 119,  85, 117, 149, 136,  87, 103, 103, 133,  98, 114, 115, 118,  99, 115, 100,  87,  84,  85,  85,
-    
-  },
-};
-
-static const UChar
-INIT_ONE_FLAG_CHROMA[3][NUM_ONE_FLAG_CTX_CHROMA] =
-{
-  {
-    104, 130, 147, 149, 104, 196, 100, 165,
-    
-  },
-  {
-    135, 146, 147, 164, 119, 148, 116, 133,
-    
-  },
-  {
-    135, 177, 147, 164, 119, 132, 148, 149,
-    
-  },
-};
-
-static const UChar
-INIT_ABS_FLAG_LUMA[3][NUM_ABS_FLAG_CTX_LUMA] =
-{
-  {
-    86, 103,  73, 102, 103,  73, 103,  88,  89, 115, 117, 103, 117, 118, 103, 102, 103,  72,
-    
-  },
-  {
-    84, 102,  88, 117, 118, 104, 103, 119, 136,  83, 116, 118, 100, 117,  87,  85,  86, 103,
-    
-  },
-  {
-    84, 102,  88, 117, 118, 104,  87, 119, 136,  83, 116, 118,  84, 117,  87,  69,  86,  87,
-    
-  },
-};
-
-static const UChar
-INIT_ABS_FLAG_CHROMA[3][NUM_ABS_FLAG_CTX_CHROMA] =
-{
-  {
-    101, 103, 104, 101, 167, 121,
-    
-  },
-  {
-    84, 118, 120, 117, 150, 120,
-    
-  },
-  {
-    84, 118, 120, 117, 150, 120,
-    
-  },
-};
-#endif
 
 // initial probability for motion vector predictor index
 static const UChar
@@ -1096,7 +976,6 @@ INIT_SIG_CG_FLAG[3][2 * NUM_SIG_CG_FLAG_CTX][2] =
 };
 #endif
 
-#if CLEANUP_CTXINIT
 static const Short
 INIT_SIG_FLAG[3][NUM_SIG_FLAG_CTX][2] =
 {
@@ -1170,91 +1049,7 @@ INIT_SIG_FLAG[3][NUM_SIG_FLAG_CTX][2] =
     { 28, 29 }, { 0,   0 }, { 5,  49 }, { 20, 32 }
   }
 };
-#else
-static const Short
-INIT_SIG_FLAG_LUMA[3][NUM_SIG_FLAG_CTX_LUMA][2] =
-{
-  {
-    // Luma 4x4
-    { -11, 103 }, { -10, 94 }, { -11, 93 }, { -11, 92 },
-    { -9, 87 },   { -14, 89 }, { -13, 91 }, { -19, 94 },
-    { -10, 89 },
-    // Luma 8x8
-    { -8, 90 }, { -4, 72 }, { 0, 58 }, { -6, 54 },
-    { -8, 80 }, { -4, 70 }, { 3, 54 }, { -3, 55 },
-    { -8, 72 }, { -17, 79 }, { -8, 90 },
-    // Luma 16x16 & 32X32
-    { -15, 119 }, { -4,  49 },{ -2,  72 },{ -15, 112 },
-    { -4,  28  }, { -4,  72 },{ -10, 96 }
-  },
-  {
-    // Luma 4x4
-    { -2, 74 }, { -5, 76 }, { -8, 77 }, { -8, 75 },
-    { -6, 72 }, { -19, 89 }, { -10, 73 }, { -20, 88 },
-    { -4, 69 },
-    // Luma 8x8
-    { 2, 61 }, { -1, 56 }, { -2, 51 }, { -15, 67 },
-    { -9, 66 }, { -5, 58 }, { -1, 49 }, { -4, 52 },
-    { -16, 72 }, { -24, 88 }, { 2, 61 },
-    // Luma 16x16 & 32X32
-    {  0,  78 }, {  2, 31 }, { 0,  65 }, { -9, 93 },
-    { -4,  20 }, {  1, 57 }, { -1, 72 }
-  },
-  {
-    // Luma 4x4
-    { -2, 74 }, { -5, 76 }, { -8, 77 }, { -8, 75 },
-    { -6, 72 }, { -19, 89 }, { -10, 73 }, { -20, 88 },
-    { -4, 69 },
-    // Luma 8x8
-    { 2, 61 }, { -1, 56 }, { -2, 51 }, { -15, 67 },
-    { -9, 66 }, { -5, 58 }, { -1, 49 }, { -4, 52 },
-    { -16, 72 }, { -24, 88 }, { 2, 61 },
-    // Luma 16x16 & 32X32
-    {  0, 78 }, { 2, 31 }, {  0, 65 }, { -9, 93 },
-    { -4, 20 }, { 1, 57 }, { -1, 72 }
-  }
-};
 
-static const Short
-INIT_SIG_FLAG_CHROMA[3][NUM_SIG_FLAG_CTX_CHROMA][2] =
-{
-  {
-    // Chroma 4x4
-    { 34, 22 }, { 8, 52 },  { -11, 83 }, { -14, 83 },
-    { -59, 149 }, { 60, -35 },
-    // Chroma 8x8
-    { 14, 48 }, { 6, 50 }, { -30, 103 }, { -35, 74 },
-    { -7, 68 }, { 14, 36 }, { 9, 43 }, { 7, 22 },
-    { -37, 104 }, { -37, 80 }, { 14, 48 },
-    // Chroma 16x16 & 32X32
-    { 15, 59 }, { -9, 38 }, { 7, 49 }, { 13, 47 }
-  },
-  {
-    // Chroma 4x4
-    { 41, 3 }, { 13, 34 }, { 16, 33 }, { -24, 84 },
-    { 4, 43 }, { 6, 52 },
-    // Chroma 8x8
-    { 18, 31 }, { 22, 11 }, { 13, 10 }, { -32, 58 },
-    { 3, 36 }, { 25, -6 }, { 27, -2 }, { 11, 36 },
-    { -30, 81 }, { -56, 143 }, { 18, 31 },
-    // Chroma 16x16 & 32X32
-   { 28,  29 }, {  0,  0  }, {  5,  49 }, { 20,  32 }
-  },
-  {
-    // Chroma 4x4
-    { 41, 3 }, { 13, 34 }, { 16, 33 }, { -24, 84 },
-    { 4, 43 }, { 6, 52 },
-    // Chroma 8x8
-    { 18, 31 }, { 22, 11 }, { 13, 10 }, { -32, 58 },
-    { 3, 36 }, { 25, -6 }, { 27, -2 }, { 11, 36 },
-    { -30, 81 }, { -56, 143 }, { 18, 31 },
-    // Chroma 16x16 & 32X32
-    { 28, 29 }, { 0,   0 }, { 5,  49 }, { 20, 32 }
-  }
-};
-#endif
-
-#if CLEANUP_CTXINIT
 static const Short
 INIT_ONE_FLAG_LUMA[3][NUM_ONE_FLAG_CTX_LUMA][2] =
 {
@@ -1330,97 +1125,6 @@ INIT_ABS_FLAG[3][NUM_ABS_FLAG_CTX][2] =
     { -52, 136 }, { 3, 53 }, { -2, 64 }
   }
 };
-#else
-static const Short
-INIT_ONE_FLAG_LUMA[3][NUM_ONE_FLAG_CTX_LUMA][2] =
-{
-  {
-    { -9, 84 }, { -16, 60 }, { -11, 59 }, { -9, 61 }, 
-    { -5, 79 }, { 0, 47 }, { -5, 66 }, { -7, 70 }, 
-    { -7, 92 }, { -8, 79 }, { -4, 74 }, { -4, 75 }, 
-    { -6, 62 }, { -12, 39 }, { -12, 48 }, { -13, 53 },  
-    { -3, 63 }, { -2, 47 }, { -6, 59 }, { -8, 62 }, 
-    { -5, 78 }, { -12, 85 }, { -11, 79 }, { -9, 75 } 
-  },
-  {
-    { 0, 62 }, { 8, 21 }, { -2, 40 }, { -3, 43 }, 
-    { -1, 68 }, { 3, 39 }, { 1, 47 }, { 4, 41 },  
-    { 2, 72 }, { -2, 63 }, { -2, 66 }, { 2, 59 },
-    { 2, 43 }, { -6, 24 }, { -4, 25 }, { -4, 27 }, 
-    { 1, 54 }, { 7, 27 }, { 7, 31 }, { 9, 27 }, 
-    { -3, 70 }, { 3, 52 }, { 4, 48 }, { 5, 47 }
-  },
-  {
-    { 0, 62 }, { 8, 21 }, { -2, 40 }, { -3, 43 }, 
-    { -1, 68 }, { 3, 39 }, { 1, 47 }, { 4, 41 },
-    { 2, 72 }, { -2, 63 }, { -2, 66 }, { 2, 59 }, 
-    { 2, 43 }, { -6, 24 }, { -4, 25 }, { -4, 27 },
-    { 1, 54 }, { 7, 27 }, { 7, 31 }, { 9, 27 }, 
-    { -3, 70 }, { 3, 52 }, { 4, 48 }, { 5, 47 }
-  }
-};
-static const Short
-INIT_ONE_FLAG_CHROMA[3][NUM_ONE_FLAG_CTX_CHROMA][2] =
-{
-  {
-    { 3, 62 }, { 20, -11 }, { 16, 9 }, { 16, 19 }, 
-    { 4, 64 }, { 2, 44 }, { 1, 53 }, { 3, 51 }
-  },
-  {
-    { 7, 56 }, { 24, -14 }, { 17, 4 }, { 18, 9 }, 
-    { -28, 114 }, { -35, 97 }, { 13, 19 }, { 9, 24 }  
-  },
-  {
-    { 7, 56 }, { 24, -14 }, { 17, 4 }, { 18, 9 }, 
-    { -28, 114 }, { -35, 97 }, { 13, 19 }, { 9, 24 } 
-  }
-};
-
-static const Short
-INIT_ABS_FLAG_LUMA[3][NUM_ABS_FLAG_CTX_LUMA][2] =
-{
-  {
-    { -11, 68 }, { -4, 67 }, { -4, 73 }, 
-    { -6, 66 }, { -4, 68 }, { -5, 74 }, 
-    { -7, 79 }, { -6, 81 }, { -7, 84 }, 
-    { -9, 50 }, { -5, 56 }, { -4, 60 }, 
-    { -2, 52 }, { -1, 54 }, { -1, 58 },
-    { -6, 73 }, { -2, 66 }, { 0, 65 }
-  },
-  {
-    { -18, 71 }, { -7, 66 }, { -3, 68 },
-    { -6, 59 }, { -4, 62 }, { -2, 64 }, 
-    { -2, 63 }, { -3, 68 }, { 0, 64 }, 
-    { -7, 43 }, { -1, 46 }, { -1, 51 }, 
-    { -4, 51 }, { -1, 54 }, { -5, 63 }, 
-    { -2, 58 }, { 4, 52 }, { 2, 57 }
-  },
-  {
-    { -18, 71 }, { -7, 66 }, { -3, 68 },
-    { -6, 59 }, { -4, 62 }, { -2, 64 }, 
-    { -2, 63 }, { -3, 68 }, { 0, 64 }, 
-    { -7, 43 }, { -1, 46 }, { -1, 51 }, 
-    { -4, 51 }, { -1, 54 }, { -5, 63 }, 
-    { -2, 58 }, { 4, 52 }, { 2, 57 }
-  }
-};
-static const Short
-INIT_ABS_FLAG_CHROMA[3][NUM_ABS_FLAG_CTX_CHROMA][2] =
-{
-  {
-    { -5, 53 }, { 1, 58 }, { 4, 61 },
-    { 0, 55 }, { 2, 58 }, { 1, 63 }
-  },
-  {
-    { 6, 31 }, { 2, 56 }, { 4, 63 }, 
-    { -52, 136 }, { 3, 53 }, { -2, 64 }
-  },
-  {
-    { 6, 31 }, { 2, 56 }, { 4, 63 },
-    { -52, 136 }, { 3, 53 }, { -2, 64 }
-  }
-};
-#endif
 
 // initial probability for motion vector predictor index
 static const Short

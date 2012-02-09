@@ -2244,20 +2244,10 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         if( uiNumOne > 0 )
         {
           uiCtxSet++;
-#if CLEANUP_CTXINIT
           if(uiNumOne > 3 && eTType==TEXT_LUMA)
           {
             uiCtxSet++;
           }
-#else
-          if(eTType==TEXT_LUMA)
-          {
-            if( uiNumOne > 3 )
-            {
-              uiCtxSet++;
-            }
-          }
-#endif
         }
         uiNumOne    >>= 1;
       }
@@ -2380,20 +2370,10 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
             if( uiNumOne > 0 )
             {
               uiCtxSet++;
-#if CLEANUP_CTXINIT
               if( uiNumOne > 3 && eTType==TEXT_LUMA)
               {
                 uiCtxSet++;
               }
-#else
-              if(eTType==TEXT_LUMA)
-              {
-                if( uiNumOne > 3 )
-                {
-                  uiCtxSet++;
-                }
-              }
-#endif
             }
             uiNumOne    >>= 1;
           }

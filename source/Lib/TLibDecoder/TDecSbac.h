@@ -193,23 +193,11 @@ private:
 #if MULTI_LEVEL_SIGNIFICANCE
   ContextModel3DBuffer m_cCUSigCoeffGroupSCModel;
 #endif
-#if CLEANUP_CTXINIT
   ContextModel3DBuffer m_cCUSigSCModel;
-#else
-  ContextModel3DBuffer m_cCUSigSCModelLuma;
-  ContextModel3DBuffer m_cCUSigSCModelChroma;
-#endif
   ContextModel3DBuffer m_cCuCtxLastX;
   ContextModel3DBuffer m_cCuCtxLastY;
-#if CLEANUP_CTXINIT
   ContextModel3DBuffer m_cCUOneSCModel;
   ContextModel3DBuffer m_cCUAbsSCModel;
-#else
-  ContextModel3DBuffer m_cCUOneSCModelLuma;
-  ContextModel3DBuffer m_cCUOneSCModelChroma;
-  ContextModel3DBuffer m_cCUAbsSCModelLuma;
-  ContextModel3DBuffer m_cCUAbsSCModelChroma;
-#endif
   
   ContextModel3DBuffer m_cMVPIdxSCModel;
   
