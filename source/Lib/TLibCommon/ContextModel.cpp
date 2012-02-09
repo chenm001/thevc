@@ -47,7 +47,6 @@ using namespace std;
 // Public member functions
 // ====================================================================================================================
 
-#if G633_8BIT_INIT
 /**
  - initialize context model with respect to QP and initialization value
  .
@@ -68,31 +67,6 @@ Void ContextModel::init( Int qp, Int initValue )
   
   m_ucState = (pStateIdx<<1) + valMps;
 }
-#else
-/**
- - initialize context model with respect to QP and initial probability
- .
- \param  iQp         input QP value
- \param  asCtxInit   initial probability table
- */
-Void 
-ContextModel::init( Int iQp, Short asCtxInit[] )
-{
-  Int iInitState  = ( ( asCtxInit[ 0 ] * iQp ) >> 4 ) + asCtxInit[ 1 ];
-  iInitState      = min( max( 1, iInitState ), 126 );
-  if( iInitState >= 64 )
-  {
-    m_ucState     = min( 62, iInitState - 64 );
-    m_ucState    += m_ucState + 1;
-  }
-  else
-  {
-    m_ucState     = min( 62, 63 - iInitState );
-    m_ucState    += m_ucState;
-  }
-}
-#endif
-
 
 const UChar ContextModel::m_aucNextStateMPS[ 128 ] =
 {
@@ -157,10 +131,8 @@ const Int ContextModel::m_entropyBits[128] =
 #endif
 };
 
-#if G633_8BIT_INIT
 const Int ContextModel::m_slopes[16] = { -239, -143, -85, -51, -31, -19, -11, 0, 11, 19, 31, 51, 85, 143, 239, 399 };
 const Int ContextModel::m_segOffset[8]            = {   6,  7,  5,  7, 10, 14, 16,  1 };
 const Int ContextModel::m_accumulatedSegOffset[8] = {  -3,  3, 10, 15, 22, 32, 46, 62 };
-#endif
 
 //! \}
