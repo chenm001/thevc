@@ -51,7 +51,6 @@
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
 #define MRG_MAX_NUM_CANDS_SIGNALED         5   //<G091: value of maxNumMergeCand signaled in slice header 
 #endif
-#define G776_MRG_ENC_FIX          1 //<G776: Merge encoder estimation improvement
 
 #define IT_CLIPPING               1 ///< clipping in inverse transform G782
 #define WEIGHT_PRED_IMP           1 ///< high-precision offset for weighted bipred G065
