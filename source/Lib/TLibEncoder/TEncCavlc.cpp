@@ -580,17 +580,12 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   }
 #endif
 
-#if INC_CABACINITIDC_SLICETYPE
   WRITE_UVLC( pcSlice->getSliceType(),       "slice_type" );
-#endif
   Bool bEntropySlice = (!pcSlice->isNextSlice());
   WRITE_FLAG( bEntropySlice ? 1 : 0, "lightweight_slice_flag" );
   
   if (!bEntropySlice)
   {
-#if !INC_CABACINITIDC_SLICETYPE
-    WRITE_UVLC( pcSlice->getSliceType(),       "slice_type" );
-#endif
     WRITE_UVLC( pcSlice->getPPS()->getPPSId(), "pic_parameter_set_id" );
     if(pcSlice->getNalUnitType()==NAL_UNIT_CODED_SLICE_IDR) 
     {
@@ -711,12 +706,10 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     }
   }
     
-#if INC_CABACINITIDC_SLICETYPE
   if(pcSlice->getPPS()->getEntropyCodingMode() && !pcSlice->isIntra())
   {
     WRITE_UVLC(pcSlice->getCABACinitIDC(),  "cabac_init_idc");
   }
-#endif
 
 #if !SLICEADDR_BEGIN
   // if( nal_ref_idc != 0 )

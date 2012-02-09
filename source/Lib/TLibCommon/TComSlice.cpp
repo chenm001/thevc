@@ -97,9 +97,7 @@ TComSlice::TComSlice()
 , m_uiTileOffstForMultES          ( 0 )
 #endif
 , m_puiSubstreamSizes             ( NULL )
-#if INC_CABACINITIDC_SLICETYPE
 , m_cabacInitIdc                 ( -1 )
-#endif
 {
   m_aiNumRefIdx[0] = m_aiNumRefIdx[1] = m_aiNumRefIdx[2] = 0;
   

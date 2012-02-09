@@ -627,10 +627,8 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   rpcSlice->setEntropySliceCurEndCUAddr(numCUs*maxParts);
 #endif
 
-#if INC_CABACINITIDC_SLICETYPE
   //   slice_type
   READ_UVLC (    uiCode, "slice_type" );            rpcSlice->setSliceType((SliceType)uiCode);
-#endif
   // lightweight_slice_flag
   READ_FLAG( uiCode, "lightweight_slice_flag" );
   Bool bEntropySlice = uiCode ? true : false;
@@ -656,10 +654,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   // if( !lightweight_slice_flag ) {
   if (!bEntropySlice)
   {
-#if !INC_CABACINITIDC_SLICETYPE
-    //   slice_type
-    READ_UVLC (    uiCode, "slice_type" );            rpcSlice->setSliceType((SliceType)uiCode);
-#endif
     READ_UVLC (    uiCode, "pic_parameter_set_id" );  rpcSlice->setPPSId(uiCode);
     if(rpcSlice->getNalUnitType()==NAL_UNIT_CODED_SLICE_IDR) 
     { 
@@ -867,7 +861,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     rpcSlice->setRefPicListCombinationFlag(false);      
   }
   
-#if INC_CABACINITIDC_SLICETYPE
   if(rpcSlice->getPPS()->getEntropyCodingMode() && !rpcSlice->isIntra())
   {
     READ_UVLC(uiCode, "cabac_init_idc");
@@ -877,7 +870,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   {
     rpcSlice->setCABACinitIDC(0);
   }
-#endif
 
 #if !SLICEADDR_BEGIN
   // if( nal_ref_idc != 0 )
