@@ -141,57 +141,53 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       uiILSliceCount++;
     }
 
-    {
-      m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinCABAC );
-      m_pcEntropyDecoder->setEntropyDecoder (m_pcSbacDecoder);
-    }
+    m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinCABAC );
+    m_pcEntropyDecoder->setEntropyDecoder (m_pcSbacDecoder);
     
     UInt uiNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
 
+    //init each couple {EntropyDecoder, Substream}
+    UInt *puiSubstreamSizes = pcSlice->getSubstreamSizes();
+    ppcSubstreams    = new TComInputBitstream*[uiNumSubstreams];
+    m_pcSbacDecoders = new TDecSbac[uiNumSubstreams];
+    m_pcBinCABACs    = new TDecBinCABAC[uiNumSubstreams];
+    UInt uiBitsRead = pcBitstream->getByteLocation()<<3;
+    for ( UInt ui = 0 ; ui < uiNumSubstreams ; ui++ )
     {
-      //init each couple {EntropyDecoder, Substream}
-      UInt *puiSubstreamSizes = pcSlice->getSubstreamSizes();
-      ppcSubstreams    = new TComInputBitstream*[uiNumSubstreams];
-      m_pcSbacDecoders = new TDecSbac[uiNumSubstreams];
-      m_pcBinCABACs    = new TDecBinCABAC[uiNumSubstreams];
-      UInt uiBitsRead = pcBitstream->getByteLocation()<<3;
-      for ( UInt ui = 0 ; ui < uiNumSubstreams ; ui++ )
-      {
-        m_pcSbacDecoders[ui].init(&m_pcBinCABACs[ui]);
-        UInt uiSubstreamSizeBits = (ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
-        ppcSubstreams[ui] = pcBitstream->extractSubstream(ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
-        // update location information from where tile markers were extracted
+      m_pcSbacDecoders[ui].init(&m_pcBinCABACs[ui]);
+      UInt uiSubstreamSizeBits = (ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
+      ppcSubstreams[ui] = pcBitstream->extractSubstream(ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
+      // update location information from where tile markers were extracted
 #if !TILES_LOW_LATENCY_CABAC_INI
-        if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
+      if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
 #endif
-        {
-          UInt uiDestIdx       = 0;
-          for (UInt uiSrcIdx = 0; uiSrcIdx<pcBitstream->getTileMarkerLocationCount(); uiSrcIdx++)
-          {
-            UInt uiLocation = pcBitstream->getTileMarkerLocation(uiSrcIdx);
-            if ((uiBitsRead>>3)<=uiLocation  &&  uiLocation<((uiBitsRead+uiSubstreamSizeBits)>>3))
-            {
-              ppcSubstreams[ui]->setTileMarkerLocation( uiDestIdx, uiLocation - (uiBitsRead>>3) );
-              ppcSubstreams[ui]->setTileMarkerLocationCount( uiDestIdx+1 );
-              uiDestIdx++;
-            }
-          }
-          ppcSubstreams[ui]->setTileMarkerLocationCount( uiDestIdx );
-          uiBitsRead += uiSubstreamSizeBits;
-        }
-      }
-
-      for ( UInt ui = 0 ; ui+1 < uiNumSubstreams; ui++ )
       {
-        m_pcEntropyDecoder->setEntropyDecoder ( &m_pcSbacDecoders[uiNumSubstreams - 1 - ui] );
-        m_pcEntropyDecoder->setBitstream      (  ppcSubstreams   [uiNumSubstreams - 1 - ui] );
-        m_pcEntropyDecoder->resetEntropy      (pcSlice);
+        UInt uiDestIdx       = 0;
+        for (UInt uiSrcIdx = 0; uiSrcIdx<pcBitstream->getTileMarkerLocationCount(); uiSrcIdx++)
+        {
+          UInt uiLocation = pcBitstream->getTileMarkerLocation(uiSrcIdx);
+          if ((uiBitsRead>>3)<=uiLocation  &&  uiLocation<((uiBitsRead+uiSubstreamSizeBits)>>3))
+          {
+            ppcSubstreams[ui]->setTileMarkerLocation( uiDestIdx, uiLocation - (uiBitsRead>>3) );
+            ppcSubstreams[ui]->setTileMarkerLocationCount( uiDestIdx+1 );
+            uiDestIdx++;
+          }
+        }
+        ppcSubstreams[ui]->setTileMarkerLocationCount( uiDestIdx );
+        uiBitsRead += uiSubstreamSizeBits;
       }
+    }
 
-      m_pcEntropyDecoder->setEntropyDecoder ( m_pcSbacDecoder  );
-      m_pcEntropyDecoder->setBitstream      ( ppcSubstreams[0] );
+    for ( UInt ui = 0 ; ui+1 < uiNumSubstreams; ui++ )
+    {
+      m_pcEntropyDecoder->setEntropyDecoder ( &m_pcSbacDecoders[uiNumSubstreams - 1 - ui] );
+      m_pcEntropyDecoder->setBitstream      (  ppcSubstreams   [uiNumSubstreams - 1 - ui] );
       m_pcEntropyDecoder->resetEntropy      (pcSlice);
     }
+
+    m_pcEntropyDecoder->setEntropyDecoder ( m_pcSbacDecoder  );
+    m_pcEntropyDecoder->setBitstream      ( ppcSubstreams[0] );
+    m_pcEntropyDecoder->resetEntropy      (pcSlice);
 
     if(uiSliceStartCuAddr == uiStartCUAddr)
     {
@@ -204,13 +200,9 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       }
     }
 
-    {
-      m_pcSbacDecoders[0].load(m_pcSbacDecoder);
-    }
+    m_pcSbacDecoders[0].load(m_pcSbacDecoder);
     m_pcSliceDecoder->decompressSlice( pcBitstream, ppcSubstreams, rpcPic, m_pcSbacDecoder, m_pcSbacDecoders);
-    {
-      m_pcEntropyDecoder->setBitstream(  ppcSubstreams[uiNumSubstreams-1] );
-    }
+    m_pcEntropyDecoder->setBitstream(  ppcSubstreams[uiNumSubstreams-1] );
     
     if ( pcSlice->getPPS()->getEntropyCodingSynchro() )
     {
@@ -254,28 +246,20 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       rpcPic->createNonDBFilterInfo(puiILSliceStartLCU, uiILSliceCount,sliceGranularity,pcSlice->getSPS()->getLFCrossSliceBoundaryFlag(),rpcPic->getPicSym()->getNumTiles() ,bLFCrossTileBoundary);
     }
 
+    if( pcSlice->getSPS()->getUseSAO() )
     {
-
-      if( pcSlice->getSPS()->getUseSAO() )
+      if(pcSlice->getSaoEnabledFlag())
       {
-        if(pcSlice->getSaoEnabledFlag())
-        {
-
-          m_pcSAO->createPicSaoInfo(rpcPic, uiILSliceCount);
-
+        m_pcSAO->createPicSaoInfo(rpcPic, uiILSliceCount);
         m_pcSAO->SAOProcess(rpcPic, pcSlice->getAPS()->getSaoParam());  
-
         m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
-      m_pcSAO->destroyPicSaoInfo();
+        m_pcSAO->destroyPicSaoInfo();
       }
-    }
-
     }
 
     // adaptive loop filter
     if( pcSlice->getSPS()->getUseALF() )
     {
-
       if(pcSlice->getAlfEnabledFlag())
       {
         m_pcAdaptiveLoopFilter->createPicAlfInfo(rpcPic, uiILSliceCount);
@@ -284,8 +268,8 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
       m_pcAdaptiveLoopFilter->destroyPicAlfInfo();
       }
-
     }
+    
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
     {
       rpcPic->destroyNonDBFilterInfo();

@@ -111,8 +111,10 @@ _byteStreamNALUnit(
    */
   /* NB, (unsigned)x > 2 implies n!=0 && n!=1 */
   while (bs.eofBeforeNBytes(24/8) || bs.peekBytes(24/8) > 1) // since 0x000002 tile marker may exist in the bitstream
+  {
     nalUnit.push_back(bs.readByte());
-
+  }
+  
   /* 5. When the current position in the byte stream is:
    *  - not at the end of the byte stream (as determined by unspecified means)
    *  - and the next bytes in the byte stream do not start with a three-byte

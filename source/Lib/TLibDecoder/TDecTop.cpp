@@ -83,7 +83,6 @@ Void TDecTop::create()
 
 Void TDecTop::destroy()
 {
-
   if(m_vAPS.size() != 0)
   {
     for(Int i=0; i< m_vAPS.size(); i++)
@@ -206,9 +205,11 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
 Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame, Int& iPOCLastDisplay)
 {
   if (!m_pcPic)
+  {
     /* nothing to deblock */
     return;
-
+  }
+  
   TComPic*&   pcPic         = m_pcPic;
 
   // Execute Deblock and ALF only + Cleanup
@@ -368,14 +369,12 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       }
       m_cEntropyDecoder.decodeWPPTileInfoToSliceHeader(m_apcSlicePilot);
 
+      Int numBitsForByteAlignment = nalu.m_Bitstream->getNumBitsUntilByteAligned();
+      if ( numBitsForByteAlignment > 0 )
       {
-        Int numBitsForByteAlignment = nalu.m_Bitstream->getNumBitsUntilByteAligned();
-        if ( numBitsForByteAlignment > 0 )
-        {
-          UInt bitsForByteAlignment;
-          nalu.m_Bitstream->read( numBitsForByteAlignment, bitsForByteAlignment );
-          assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
-        }
+        UInt bitsForByteAlignment;
+        nalu.m_Bitstream->read( numBitsForByteAlignment, bitsForByteAlignment );
+        assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
       }
 
       if (m_apcSlicePilot->isNextSlice() && m_apcSlicePilot->getPOC()!=m_uiPrevPOC && !m_bFirstSliceInSequence)
@@ -388,8 +387,10 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         m_apcSlicePilot->setAPS( popAPS(m_apcSlicePilot->getAPSId())  );
       }
 
-      if (m_apcSlicePilot->isNextSlice()) 
+      if (m_apcSlicePilot->isNextSlice())
+      {
         m_uiPrevPOC = m_apcSlicePilot->getPOC();
+      }
       m_bFirstSliceInSequence = false;
       if (m_apcSlicePilot->isNextSlice())
       {
@@ -842,7 +843,6 @@ Void TDecTop::pushAPS  (TComAPS& cAPS)
 
 }
 
-
 Void TDecTop::allocAPS (TComAPS* pAPS)
 {
   if(m_cSPS.getScalingListFlag())
@@ -860,6 +860,7 @@ Void TDecTop::allocAPS (TComAPS* pAPS)
     m_cAdaptiveLoopFilter.allocALFParam(pAPS->getAlfParam());
   }
 }
+
 Void TDecTop::freeAPS (TComAPS* pAPS)
 {
   if(m_cSPS.getScalingListFlag())

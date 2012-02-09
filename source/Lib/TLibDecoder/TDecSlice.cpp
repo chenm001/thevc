@@ -127,10 +127,14 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
     m_pcBufferSbacDecoders = new TDecSbac    [uiTilesAcross];  
     m_pcBufferBinCABACs    = new TDecBinCABAC[uiTilesAcross];
     for (UInt ui = 0; ui < uiTilesAcross; ui++)
+    {
       m_pcBufferSbacDecoders[ui].init(&m_pcBufferBinCABACs[ui]);
+    }
     //save init. state
     for (UInt ui = 0; ui < uiTilesAcross; ui++)
+    {
       m_pcBufferSbacDecoders[ui].load(pcSbacDecoder);
+    }
   }  
 #if TILES_LOW_LATENCY_CABAC_INI
   if( iSymbolMode )
@@ -195,7 +199,9 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
         UInt uiWidthInCU = rpcPic->getFrameWidthInCU();
         TComDataCU *pcCUTR = NULL;
         if ( pcCUUp && ((iCUAddr%uiWidthInCU+pcSlice->getPPS()->getEntropyCodingSynchro()) < uiWidthInCU)  )
+        {
           pcCUTR = rpcPic->getCU( iCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
+        }
         UInt uiMaxParts = 1<<(pcSlice->getSPS()->getMaxCUDepth()<<1);
 
         if ( (true/*bEnforceSliceRestriction*/ &&
@@ -233,25 +239,22 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
          (iCUAddr!=0) && (iCUAddr!=rpcPic->getPicSym()->getPicSCUAddr(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr())/rpcPic->getNumPartInCU())) // !1st in frame && !1st in slice
 #endif
     {
+      if (pcSlice->getPPS()->getEntropyCodingSynchro())
       {
-        if (pcSlice->getPPS()->getEntropyCodingSynchro())
-        {
-          // We're crossing into another tile, tiles are independent.
-          // When tiles are independent, we have "substreams per tile".  Each substream has already been terminated, and we no longer
-          // have to perform it here.
-          // For TILES_DECODER, there can be a header at the start of the 1st substream in a tile.  These are read when the substreams
-          // are extracted, not here.
-        }
-        else
-        {
-          m_pcEntropyDecoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp() );
-        }
+        // We're crossing into another tile, tiles are independent.
+        // When tiles are independent, we have "substreams per tile".  Each substream has already been terminated, and we no longer
+        // have to perform it here.
+        // For TILES_DECODER, there can be a header at the start of the 1st substream in a tile.  These are read when the substreams
+        // are extracted, not here.
       }
+      else
+      {
+        m_pcEntropyDecoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp() );
+      }
+      
       Bool bTileMarkerFoundFlag = false;
       TComInputBitstream *pcTmpPtr;
-      {
-        pcTmpPtr = ppcSubstreams[uiSubStrm]; // for CABAC
-      }
+      pcTmpPtr = ppcSubstreams[uiSubStrm]; // for CABAC
 
       for (UInt uiIdx=0; uiIdx<pcTmpPtr->getTileMarkerLocationCount(); uiIdx++)
       {

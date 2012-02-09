@@ -1307,7 +1307,10 @@ Void TDecSbac::parseAlfUvlc (UInt& ruiVal)
   while (1)
   {
     m_pcTDecBinIf->decodeBin( uiCode, m_cALFUvlcSCModel.get( 0, 0, 1 ) );
-    if ( uiCode == 0 ) break;
+    if ( uiCode == 0 )
+    {
+      break;
+    }
     i++;
   }
   

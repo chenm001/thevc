@@ -499,23 +499,21 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
 
   
   //===== reconstruction =====
+  Pel* pPred      = piPred;
+  Pel* pResi      = piResi;
+  Pel* pReco      = piReco;
+  Pel* pRecIPred  = piRecIPred;
+  for( UInt uiY = 0; uiY < uiHeight; uiY++ )
   {
-    Pel* pPred      = piPred;
-    Pel* pResi      = piResi;
-    Pel* pReco      = piReco;
-    Pel* pRecIPred  = piRecIPred;
-    for( UInt uiY = 0; uiY < uiHeight; uiY++ )
+    for( UInt uiX = 0; uiX < uiWidth; uiX++ )
     {
-      for( UInt uiX = 0; uiX < uiWidth; uiX++ )
-      {
-        pReco    [ uiX ] = Clip( pPred[ uiX ] + pResi[ uiX ] );
-        pRecIPred[ uiX ] = pReco[ uiX ];
-      }
-      pPred     += uiStride;
-      pResi     += uiStride;
-      pReco     += uiStride;
-      pRecIPred += uiRecIPredStride;
+      pReco    [ uiX ] = Clip( pPred[ uiX ] + pResi[ uiX ] );
+      pRecIPred[ uiX ] = pReco[ uiX ];
     }
+    pPred     += uiStride;
+    pResi     += uiStride;
+    pReco     += uiStride;
+    pRecIPred += uiRecIPredStride;
   }
 }
 
@@ -614,23 +612,21 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   m_pcTrQuant->invtransformNxN( eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
 
   //===== reconstruction =====
+  Pel* pPred      = piPred;
+  Pel* pResi      = piResi;
+  Pel* pReco      = piReco;
+  Pel* pRecIPred  = piRecIPred;
+  for( UInt uiY = 0; uiY < uiHeight; uiY++ )
   {
-    Pel* pPred      = piPred;
-    Pel* pResi      = piResi;
-    Pel* pReco      = piReco;
-    Pel* pRecIPred  = piRecIPred;
-    for( UInt uiY = 0; uiY < uiHeight; uiY++ )
+    for( UInt uiX = 0; uiX < uiWidth; uiX++ )
     {
-      for( UInt uiX = 0; uiX < uiWidth; uiX++ )
-      {
-        pReco    [ uiX ] = Clip( pPred[ uiX ] + pResi[ uiX ] );
-        pRecIPred[ uiX ] = pReco[ uiX ];
-      }
-      pPred     += uiStride;
-      pResi     += uiStride;
-      pReco     += uiStride;
-      pRecIPred += uiRecIPredStride;
+      pReco    [ uiX ] = Clip( pPred[ uiX ] + pResi[ uiX ] );
+      pRecIPred[ uiX ] = pReco[ uiX ];
     }
+    pPred     += uiStride;
+    pResi     += uiStride;
+    pReco     += uiStride;
+    pRecIPred += uiRecIPredStride;
   }
 }
 
