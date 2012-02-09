@@ -760,11 +760,7 @@ TEncSearch::xEncSubdivCbfQT( TComDataCU*  pcCU,
   
   if ( bChroma )
   {
-#if MIN_CHROMA_TU
     if( uiLog2TrafoSize > 2 )
-#else
-    if( uiLog2TrafoSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-#endif
     {
       if( uiTrDepth==0 || pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepth-1 ) )
         m_pcEntropyCoder->encodeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepth );
@@ -816,11 +812,7 @@ TEncSearch::xEncCoeffQT( TComDataCU*  pcCU,
     return;
   }
   
-#if MIN_CHROMA_TU
   if( eTextType != TEXT_LUMA && uiLog2TrafoSize == 2 )
-#else
-  if( eTextType != TEXT_LUMA && uiLog2TrafoSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-#endif
   {
     assert( uiTrDepth > 0 );
     uiTrDepth--;
@@ -1098,11 +1090,7 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
   UInt uiOrgTrDepth = uiTrDepth;
   UInt uiFullDepth  = pcCU->getDepth( 0 ) + uiTrDepth;
   UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiFullDepth ] + 2;
-#if MIN_CHROMA_TU
   if( uiLog2TrSize == 2 )
-#else
-  if( uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-#endif
   {
     assert( uiTrDepth > 0 );
     uiTrDepth--;
@@ -1488,11 +1476,7 @@ TEncSearch::xSetIntraResultQT( TComDataCU* pcCU,
     
     Bool bSkipChroma  = false;
     Bool bChromaSame  = false;
-#if MIN_CHROMA_TU
     if( !bLumaOnly && uiLog2TrSize == 2 )
-#else
-    if( !bLumaOnly && uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-#endif
     {
       assert( uiTrDepth > 0 );
       UInt uiQPDiv = pcCU->getPic()->getNumPartInCU() >> ( ( pcCU->getDepth( 0 ) + uiTrDepth - 1 ) << 1 );
@@ -1601,11 +1585,7 @@ TEncSearch::xSetIntraResultChromaQT( TComDataCU* pcCU,
     UInt uiQTLayer    = pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() - uiLog2TrSize;
     
     Bool bChromaSame  = false;
-#if MIN_CHROMA_TU
     if( uiLog2TrSize == 2 )
-#else
-    if( uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-#endif
     {
       assert( uiTrDepth > 0 );
       UInt uiQPDiv = pcCU->getPic()->getNumPartInCU() >> ( ( pcCU->getDepth( 0 ) + uiTrDepth - 1 ) << 1 );
@@ -1943,11 +1923,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       Bool bSkipChroma  = false;
       Bool bChromaSame  = false;
       UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> ( pcCU->getDepth(0) + uiInitTrDepth ) ] + 2;
-#if MIN_CHROMA_TU
       if( !bLumaOnly && uiLog2TrSize == 2 )
-#else
-      if( !bLumaOnly && uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-#endif
       {
         assert( uiInitTrDepth  > 0 );
         bSkipChroma  = ( uiPU != 0 );
@@ -3968,11 +3944,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
   Bool  bCodeChroma   = true;
   UInt  uiTrModeC     = uiTrMode;
   UInt  uiLog2TrSizeC = uiLog2TrSize-1;
-#if MIN_CHROMA_TU
   if( uiLog2TrSize == 2 )
-#else
-  if( uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-#endif
   {
     uiLog2TrSizeC++;
     uiTrModeC    --;
@@ -4695,11 +4667,7 @@ Void TEncSearch::xEncodeResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, const U
     {
       const Bool bFirstCbfOfCU = uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() || uiCurrTrMode == 0;
 
-#if MIN_CHROMA_TU
       if( bFirstCbfOfCU || uiLog2TrSize > 2 )
-#else
-      if( bFirstCbfOfCU || uiLog2TrSize > pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-#endif
       {
         if( bFirstCbfOfCU || pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiCurrTrMode - 1 ) )
         {
@@ -4710,11 +4678,7 @@ Void TEncSearch::xEncodeResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, const U
           m_pcEntropyCoder->encodeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, uiCurrTrMode );
         }
       }
-#if MIN_CHROMA_TU
       else if( uiLog2TrSize == 2 )
-#else
-      else if( uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-#endif
       {
         assert( pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiCurrTrMode ) == pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiCurrTrMode - 1 ) );
         assert( pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiCurrTrMode ) == pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiCurrTrMode - 1 ) );
@@ -4734,11 +4698,7 @@ Void TEncSearch::xEncodeResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, const U
     Bool  bCodeChroma   = true;
     UInt  uiTrModeC     = uiTrMode;
     UInt  uiLog2TrSizeC = uiLog2TrSize-1;
-#if MIN_CHROMA_TU
     if( uiLog2TrSize == 2 )
-#else
-    if( uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-#endif
     {
       uiLog2TrSizeC++;
       uiTrModeC    --;
@@ -4804,11 +4764,7 @@ Void TEncSearch::xSetResidualQTData( TComDataCU* pcCU, UInt uiQuadrant, UInt uiA
     Bool  bCodeChroma   = true;
     UInt  uiTrModeC     = uiTrMode;
     UInt  uiLog2TrSizeC = uiLog2TrSize-1;
-#if MIN_CHROMA_TU
     if( uiLog2TrSize == 2 )
-#else
-    if( uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-#endif
     {
       uiLog2TrSizeC++;
       uiTrModeC    --;

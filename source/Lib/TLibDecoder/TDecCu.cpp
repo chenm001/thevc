@@ -560,11 +560,7 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   UInt uiFullDepth  = pcCU->getDepth( 0 ) + uiTrDepth;
   UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiFullDepth ] + 2;
 
-#if MIN_CHROMA_TU
   if( uiLog2TrSize == 2 )
-#else
-  if( uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-#endif
   {
     assert( uiTrDepth > 0 );
     uiTrDepth--;

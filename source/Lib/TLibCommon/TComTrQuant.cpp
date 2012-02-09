@@ -1731,11 +1731,7 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
     UInt uiDepth      = pcCU->getDepth( uiAbsPartIdx ) + uiTrMode;
     UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
     UInt uiTrModeC    = uiTrMode;
-#if MIN_CHROMA_TU
     if( eTxt != TEXT_LUMA && uiLog2TrSize == 2 )
-#else
-    if( eTxt != TEXT_LUMA && uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-#endif
     {
       UInt uiQPDiv = pcCU->getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
       if( ( uiAbsPartIdx % uiQPDiv ) != 0 )
