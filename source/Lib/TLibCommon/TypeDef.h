@@ -50,12 +50,7 @@
 
 #define UNI_BI_IDENTICAL_MOTION   1 ///< chaning bi-prediction to uni-prediction for identical motion G415/G438
 
-#define G212_CROSS9x9_VB            1   ///< G212: Cross9x9 filter shape and virtual boundary processing for ALF
-#if G212_CROSS9x9_VB
 #define MIN_SCAN_POS_CROSS          4
-#else
-#define MIN_SCAN_POS_CROSS          5
-#endif
 
 #define SAO_RDO_OFFSET              1   ///< G915: Considering rate-distortion-cost in optimal offset calculation for SAO
 

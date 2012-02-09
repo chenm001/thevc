@@ -128,11 +128,6 @@ private:
   /// miscs. 
   ///
   TEncEntropy* m_pcEntropyCoder;
-#if !G212_CROSS9x9_VB
-  static Int  m_aiFilterPosShape0In11x5Sym[10]; //!< for N-pass encoding- filter shape relative position in 19x5 footprint
-  static Int  m_aiFilterPosShape1In11x5Sym[9]; //!< for N-pass encoding- filter shape relative position in 19x5 footprint
-  static Int* m_iFilterTabIn11x5Sym[NUM_ALF_FILTER_SHAPE];
-#endif
 private:
   // init / uninit internal variables
   Void xInitParam      ();
@@ -157,9 +152,6 @@ private:
   Void xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgOrg, Pel* pImgPad, Int filtNo, Int iWidth, Int iHeight, Int iOrgStride, Int iCmpStride, Bool bSymmCopyBlockMatrix); //!< Calculate correlations for chroma
   Void xCalcCorrelationFuncforChromaRegion(std::vector< AlfLCUInfo* > &vpAlfLCU, Pel* pOrg, Pel* pCmp, Int filtNo, Int iStride, Bool bLastSlice, Int iFormatShift); //!< Calculate autocorrelations and crosscorrelations for one chroma slice
   Void xCalcCorrelationFuncforChromaSlices  (Int ComponentID, Pel* pOrg, Pel* pCmp, Int iTap, Int iOrgStride, Int iCmpStride); //!< Calculate autocorrelations and crosscorrelations for chroma slices
-#if !G212_CROSS9x9_VB
-  Void xretriveBlockMatrix (Int iNumTaps, Int* piTapPosInMaxFilter, Double*** pppdEBase, Double*** pppdETarget, Double** ppdyBase, Double** ppdyTarget ); //!< Retrieve correlations from other correlation matrix
-#endif
   // functions related to filtering
   Void xFilterCoefQuickSort   ( Double *coef_data, Int *coef_num, Int upper, Int lower );
   Void xQuantFilterCoef       ( Double* h, Int* qh, Int tap, int bit_depth );
