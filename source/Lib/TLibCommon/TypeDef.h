@@ -86,7 +86,6 @@
 #define MLS_GRP_NUM                         64     ///< G644 : Max number of coefficient groups, max(16, 64)
 #define MLS_CG_SIZE                         4      ///< G644 : Coefficient group size of 4x4
 #endif
-#define CHROMA_CBF_CTX_REDUCTION            1      ///< G718 : Sharing contexts for cbf_cb and cbf_cr
 
 #define COEFF_CTXSET_RED                    1      ///< G783 : reduce level context set of chroma
 

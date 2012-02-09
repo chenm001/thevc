@@ -424,33 +424,20 @@ INIT_DQP[3][NUM_DELTA_QP_CTX] =
 };
 
 static const UChar
-#if CHROMA_CBF_CTX_REDUCTION
 INIT_QT_CBF[3][2*NUM_QT_CBF_CTX] =
-#else
-INIT_QT_CBF[3][3*NUM_QT_CBF_CTX] =
-#endif
 {
   {
      73,  74, CNU, CNU, CNU,
-#if CHROMA_CBF_CTX_REDUCTION==0
-     54,  70, 117, CNU, CNU,
-#endif
      55,  86, 133, CNU, CNU,
     
   },
   {
     102,  89, CNU, CNU, CNU,
-#if CHROMA_CBF_CTX_REDUCTION==0
-     82,  99, 117, CNU, CNU,
-#endif
     114,  84, 117, CNU, CNU,
     
   },
   {
     102,  89, CNU, CNU, CNU,
-#if CHROMA_CBF_CTX_REDUCTION==0
-     82,  52, 117, CNU, CNU,
-#endif
     114,  68, 117, CNU, CNU,
     
   },
@@ -1363,31 +1350,18 @@ INIT_DQP[3][NUM_DELTA_QP_CTX][2] =
 };
 
 static const Short
-#if CHROMA_CBF_CTX_REDUCTION
 INIT_QT_CBF[3][2*NUM_QT_CBF_CTX][2] =
-#else
-INIT_QT_CBF[3][3*NUM_QT_CBF_CTX][2] =
-#endif
 {
   {
     {  -22,  116 }, {   -5,   75 }, {  -16,  112 }, {  -16,  111 }, {  -32,  165 },
-#if CHROMA_CBF_CTX_REDUCTION==0
-    {  -35,  116 }, {  -12,   61 }, {   -9,   73 }, {  -10,   75 }, {  -14,   96 }, 
-#endif
     {  -29,  104 }, {  -12,   59 }, {   -5,   65 }, {   -6,   67 }, {  -11,   90 }
   },
   {
     {  -18,   98 }, {  -41,  120 }, {  -29,  117 }, {  -23,  108 }, {  -35,  143 },
-#if CHROMA_CBF_CTX_REDUCTION==0
-    {  -46,  114 }, {  -42,  119 }, {  -11,   74 }, {  -19,   90 }, {  -42,  139 }, 
-#endif
     {  -43,  107 }, {  -41,  118 }, {  -17,   86 }, {  -25,  101 }, {  -14,   91 }
   },
   {
     {  -11,   80 }, {  -32,   83 }, {  -19,   89 }, {  -16,   85 }, {  -19,  102 },
-#if CHROMA_CBF_CTX_REDUCTION==0
-    {  -22,   52 }, {  -48,  123 }, {   -7,   68 }, {  -37,  121 }, {  -58,  164 }, 
-#endif
     {  -19,   45 }, {  -48,  123 }, {  -21,   94 }, {   -9,   73 }, {  -42,  138 }
   }
 };
