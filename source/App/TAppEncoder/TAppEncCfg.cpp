@@ -506,9 +506,7 @@ Void TAppEncCfg::xCheckParameter()
   }
   xConfirmPara( m_iSliceGranularity >= m_uiMaxCUDepth, "SliceGranularity must be smaller than maximum cu depth");
   xConfirmPara( m_iSliceGranularity <0 || m_iSliceGranularity > 3, "SliceGranularity exceeds supported range (0 to 3)" );
-#if G507_FGS_ISSUE_FIX
   xConfirmPara( m_iSliceGranularity > m_iMaxCuDQPDepth, "SliceGranularity must be smaller smaller than or equal to maximum dqp depth" );
-#endif
   
   // max CU width and height should be power of 2
   UInt ui = m_uiMaxCUWidth;
