@@ -302,12 +302,10 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   dQP     = m_pdRdPicQp    [0];
   iQP     = m_piRdPicQp    [0];
   
-#if G678_LAMBDA_ADJUSTMENT
   if( rpcSlice->getSliceType( ) != I_SLICE )
   {
     dLambda *= m_pcCfg->getLambdaModifier( iDepth );
   }
-#endif
 
   // store lambda
   m_pcRdCost ->setLambda( dLambda );

@@ -81,12 +81,10 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setExtraRPSs                     ( m_iExtraRPSs );
   m_cTEncTop.setNumReorderFrames             ( m_numReorderFrames );
   m_cTEncTop.setMaxNumberOfReferencePictures ( m_uiMaxNumberOfReferencePictures );
-#if G678_LAMBDA_ADJUSTMENT
   for( UInt uiLoop = 0; uiLoop < MAX_TLAYER; ++uiLoop )
   {
     m_cTEncTop.setLambdaModifier( uiLoop, m_adLambdaModifier[ uiLoop ] );
   }
-#endif
   m_cTEncTop.setQP                           ( m_iQP );
   
   m_cTEncTop.setTemporalLayerQPOffset        ( m_aiTLayerQPOffset );

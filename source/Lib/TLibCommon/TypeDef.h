@@ -65,8 +65,6 @@
 #define LEVEL_RANGE                         30     ///< G382: max coefficient level in statistics collection
 #endif
 
-#define G678_LAMBDA_ADJUSTMENT              1      ///< G678: lambda adjustment for rate-constrained test tool
-
 #define NS_HAD                               1
 
 #define APS_BITS_FOR_SAO_BYTE_LENGTH 12           
