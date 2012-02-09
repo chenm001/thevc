@@ -57,7 +57,6 @@
 #define WEIGHT_PRED_IMP           1 ///< high-precision offset for weighted bipred G065
 #define PLANAR_IS_DEFAULT         1 ///< default to planar if neighbor not available G119
 #define REMAP_TO_PLANAR           1 ///< default to planar if neighbor out of range G119
-#define INTRA_MODES_64X64         1 ///< enable 35 intra modes for 64x64 PUs
 #define CBF_CODING_SKIP_COND_FIX  1 ///< G444: fixing the condition of skipping cbf_luma coding
 #define VER_HOR_FILTER            1 ///< F172: intra ver/hor prediction filter
 #define WP_IMPROVED_SYNTAX        1 ///< improved weighted prediction syntax to remove redundancy G441
