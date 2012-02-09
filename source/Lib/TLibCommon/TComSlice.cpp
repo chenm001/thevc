@@ -1199,10 +1199,8 @@ TComPPS::TComPPS()
 , m_uiBitsForLongTermRefs       (0)
 , m_uiNumTlayerSwitchingFlags   (0)
 , m_iSliceGranularity           (0)
-#if NONCROSS_TILE_IN_LOOP_FILTERING
 , m_iTileBehaviorControlPresentFlag (0)
 , m_bLFCrossTileBoundaryFlag     (true)
-#endif
 , m_iColumnRowInfoPresent        (0)
 , m_iUniformSpacingIdr           (0)
 , m_iTileBoundaryIndependenceIdr (0)

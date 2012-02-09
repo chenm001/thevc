@@ -72,7 +72,6 @@ private:
 
   Bool                  m_usedForTMVP;
   
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   Int*                  m_pSliceSUMap;
   Bool*                 m_pbValidSlice;
   Int                   m_sliceGranularityForNDBFilter;
@@ -80,7 +79,6 @@ private:
   Bool                  m_bIndependentTileBoundaryForNDBFilter;
   TComPicYuv*           m_pNDBFilterYuvTmp;    //!< temporary picture buffer when non-cross slice/tile boundary in-loop filtering is enabled
   std::vector<std::vector<TComDataCU*> > m_vSliceCUDataLink;
-#endif
 
   SEImessages* m_SEIs; ///< Any SEI messages that have been received.  If !NULL we own the object.
 
@@ -147,8 +145,6 @@ public:
   Void          allocateNewSlice()           {m_apcPicSym->allocateNewSlice();         }
   Void          clearSliceBuffer()           {m_apcPicSym->clearSliceBuffer();         }
   
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-
   Void          createNonDBFilterInfo   (UInt* pSliceStartAddress = NULL, Int numSlices = 1, Int sliceGranularityDepth= 0
                                         ,Bool bNDBFilterCrossSliceBoundary = true
                                         ,Int  numTiles = 1
@@ -162,7 +158,6 @@ public:
   Bool          getIndependentTileBoundaryForNDBFilter         ()             {return m_bIndependentTileBoundaryForNDBFilter; }
   TComPicYuv*   getYuvPicBufferForIndependentBoundaryProcessing()             {return m_pNDBFilterYuvTmp;}
   std::vector<TComDataCU*>& getOneSliceCUDataForNDBFilter      (Int sliceID) { return m_vSliceCUDataLink[sliceID];}
-#endif
 
   /** transfer ownership of seis to this picture */
   void setSEIs(SEImessages* seis) { m_SEIs = seis; }

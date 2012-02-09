@@ -170,10 +170,8 @@ protected:
 
   Int       m_iSliceGranularity;///< 0: Slices always end at LCU borders. 1-3: slices may end at a depth of 1-3 below LCU level.
   Bool m_bLFCrossSliceBoundaryFlag;  ///< 0: Cross-slice-boundary in-loop filtering 1: non-cross-slice-boundary in-loop filtering
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   Int  m_iTileBehaviorControlPresentFlag; //!< 1: tile behavior control parameters are in PPS 0: tile behavior control parameters are not in PPS
   Bool m_bLFCrossTileBoundaryFlag;  //!< 1: Cross-tile-boundary in-loop filtering 0: non-cross-tile-boundary in-loop filtering
-#endif
   Int       m_iColumnRowInfoPresent;
   Int       m_iUniformSpacingIdr;
   Int       m_iTileBoundaryIndependenceIdr;

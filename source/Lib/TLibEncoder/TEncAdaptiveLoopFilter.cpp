@@ -84,9 +84,6 @@ TEncAdaptiveLoopFilter::TEncAdaptiveLoopFilter()
   m_ppdAlfCorrCb = NULL;
   m_ppdAlfCorrCr = NULL;
   m_pdDoubleAlfCoeff = NULL;
-#if !NONCROSS_TILE_IN_LOOP_FILTERING
-  m_pcPic = NULL;
-#endif
   m_pcEntropyCoder = NULL;
   m_pcBestAlfParam = NULL;
   m_pcTempAlfParam = NULL;
@@ -170,9 +167,6 @@ Void TEncAdaptiveLoopFilter::destroyAlfGlobalBuffers()
  */
 Void TEncAdaptiveLoopFilter::startALFEnc( TComPic* pcPic, TEncEntropy* pcEntropyCoder )
 {
-#if !NONCROSS_TILE_IN_LOOP_FILTERING
-  m_pcPic = pcPic;
-#endif
   m_pcEntropyCoder = pcEntropyCoder;
   xInitParam();
   xCreateTmpAlfCtrlFlags();
@@ -616,7 +610,6 @@ Void TEncAdaptiveLoopFilter::xCopyTmpAlfCtrlFlagsFrom()
 
 /** Encode ALF CU control flags
  */
-#if NONCROSS_TILE_IN_LOOP_FILTERING
 Void TEncAdaptiveLoopFilter::xEncodeCUAlfCtrlFlags(std::vector<AlfCUCtrlInfo> &vAlfCUCtrlParam)
 {
   for(Int s=0; s< m_uiNumSlicesInPic; s++)
@@ -636,39 +629,6 @@ Void TEncAdaptiveLoopFilter::xEncodeCUAlfCtrlFlags(std::vector<AlfCUCtrlInfo> &v
     }
   }
 }
-#else
-Void TEncAdaptiveLoopFilter::xEncodeCUAlfCtrlFlags()
-{
-  if(m_uiNumSlicesInPic > 1)
-  {
-    for(UInt s=0; s< m_uiNumSlicesInPic; s++)
-    {
-      if(!m_pSlice[s].isValidSlice()) 
-      {
-        continue;
-      }
-
-      for(UInt idx=0; idx< m_pSlice[s].getNumLCUs(); idx++)
-      {
-        CAlfLCU& cAlfLCU = m_pSlice[s][idx];
-
-        for(UInt i=0; i< cAlfLCU.getNumCtrlFlags(); i++)
-        {
-          m_pcEntropyCoder->encodeAlfCtrlFlag(cAlfLCU.getCUCtrlFlag(i));
-        }
-
-      }
-    }
-    return;
-  }
-
-  for( UInt uiCUAddr = 0; uiCUAddr < m_pcPic->getNumCUsInFrame() ; uiCUAddr++ )
-  {
-    TComDataCU* pcCU = m_pcPic->getCU( uiCUAddr );
-    xEncodeCUAlfCtrlFlag(pcCU, 0, 0);
-  }
-}
-#endif
 Void TEncAdaptiveLoopFilter::xEncodeCUAlfCtrlFlag(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth)
 {
   Bool bBoundary = false;
@@ -1241,20 +1201,10 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(ALFParam* pAlfParam, UInt64& ruiRate, U
     {
       for(UInt s=0; s< m_uiNumSlicesInPic; s++)
       {
-#if NONCROSS_TILE_IN_LOOP_FILTERING
         if(!m_pcPic->getValidSlice(s))
         {
           continue;
         }
-#else
-        if(m_uiNumSlicesInPic > 1)
-        {
-          if(!m_pSlice[s].isValidSlice())
-          {
-            continue;
-          }
-        }
-#endif
         m_pcEntropyCoder->resetEntropy();
         m_pcEntropyCoder->resetBits();
         m_pcEntropyCoder->encodeAlfCtrlParam( (*pvAlfCUCtrlParam)[s], m_uiNumCUsInFrame);
@@ -1297,20 +1247,10 @@ Void TEncAdaptiveLoopFilter::xCalcRDCost(TComPicYuv* pcPicOrg, TComPicYuv* pcPic
     {
       for(UInt s=0; s< m_uiNumSlicesInPic; s++)
       {
-#if NONCROSS_TILE_IN_LOOP_FILTERING
         if(! m_pcPic->getValidSlice(s))
         {
           continue;
         }
-#else
-        if(m_uiNumSlicesInPic > 1)
-        {
-          if(!m_pSlice[s].isValidSlice())
-          {
-            continue;
-          }
-        }
-#endif
         m_pcEntropyCoder->resetEntropy();
         m_pcEntropyCoder->resetBits();
         m_pcEntropyCoder->encodeAlfCtrlParam( (*pvAlfCUCtrlParam)[s], m_uiNumCUsInFrame);
@@ -1412,7 +1352,6 @@ Void TEncAdaptiveLoopFilter::xCopyDecToRestCUs(TComPicYuv* pcPicDec, TComPicYuv*
 
   if(m_uiNumSlicesInPic > 1)
   {
-#if NONCROSS_TILE_IN_LOOP_FILTERING
     Pel* pPicDecLuma  = pcPicDec->getLumaAddr();
     Pel* pPicRestLuma = pcPicRest->getLumaAddr();
     Int  stride       = pcPicDec->getStride();
@@ -1462,105 +1401,6 @@ Void TEncAdaptiveLoopFilter::xCopyDecToRestCUs(TComPicYuv* pcPicDec, TComPicYuv*
         }
       }
     }
-
-#else
-    Pel* pPicDecLuma          = pcPicDec->getLumaAddr();
-    Pel* pPicRestLuma         = pcPicRest->getLumaAddr();
-    Int  iStride               = pcPicDec->getStride();
-    UInt uiMaxNumSUInLCU       = m_pcPic->getNumPartInCU();
-    UInt uiMaxNumSUInLCUWidth  = m_pcPic->getNumPartInWidth();
-    UInt uiMAxNumSUInLCUHeight = m_pcPic->getNumPartInHeight();
-    UInt uiSUWidth             = m_pcPic->getMinCUWidth();
-    UInt uiSUHeight            = m_pcPic->getMinCUHeight();
-
-    TComDataCU* pcCU;
-    UInt s, idx, uiPosOffset;
-    UInt uiStartSU, uiEndSU, uiLCUX, uiLCUY, uiCurrSU, uiCtrlNumSU, uiWidth, uiHeight, uiLPelX, uiTPelY;
-    Int iAlfDepth, iCUDepth, iSetDepth;
-    Pel* pDec;
-    Pel* pRest;
-
-    for(s=0; s< m_uiNumSlicesInPic; s++)
-    {
-      if(!m_pSlice[s].isValidSlice())
-      {
-        continue;
-      }
-
-      iAlfDepth = m_pSlice[s].getCUCtrlDepth();
-
-      for(idx = 0; idx < m_pSlice[s].getNumLCUs(); idx++)
-      {
-        CAlfLCU& cAlfLCU = m_pSlice[s][idx];
-
-        pcCU                   = cAlfLCU.getCU();
-        uiStartSU              = cAlfLCU.getStartSU();
-        uiEndSU                = cAlfLCU.getEndSU();
-        uiLCUX                 = pcCU->getCUPelX();
-        uiLCUY                 = pcCU->getCUPelY();
-
-        if(uiStartSU == 0 && uiEndSU == uiMaxNumSUInLCU -1)
-        {
-          uiCurrSU = uiStartSU;
-          while(uiCurrSU < uiMaxNumSUInLCU)
-          {
-            //depth of this CU
-            iCUDepth = pcCU->getDepth(uiCurrSU);
-
-            //choose the min. depth for ALF
-            iSetDepth   = (iAlfDepth < iCUDepth)?(iAlfDepth):(iCUDepth);
-            uiCtrlNumSU = uiMaxNumSUInLCU >> (iSetDepth << 1);
-
-            if(!pcCU->getAlfCtrlFlag(uiCurrSU))
-            {
-              uiWidth = (uiMaxNumSUInLCUWidth  >> iSetDepth)*uiSUWidth  ;
-              uiHeight= (uiMAxNumSUInLCUHeight >> iSetDepth)*uiSUHeight ;
-              uiLPelX = uiLCUX + g_auiRasterToPelX[ g_auiZscanToRaster[uiCurrSU] ];
-              uiTPelY = uiLCUY + g_auiRasterToPelY[ g_auiZscanToRaster[uiCurrSU] ];
-
-              uiPosOffset = uiTPelY*iStride + uiLPelX;
-              pDec = pPicDecLuma + uiPosOffset;
-              pRest= pPicRestLuma+ uiPosOffset;
-
-              for(Int y=0; y< uiHeight; y++)
-              {
-                ::memcpy(pRest, pDec, sizeof(Pel)*uiWidth);
-                pDec += iStride;
-                pRest+= iStride;
-              }
-            }
-            uiCurrSU += uiCtrlNumSU;
-          }
-        }
-        else
-        {
-          for(uiCurrSU= uiStartSU; uiCurrSU<= uiEndSU; uiCurrSU++)
-          {
-            uiLPelX = uiLCUX + g_auiRasterToPelX[ g_auiZscanToRaster[uiCurrSU] ];
-            uiTPelY = uiLCUY + g_auiRasterToPelY[ g_auiZscanToRaster[uiCurrSU] ];
-
-            if( !( uiLPelX < m_img_width )  || !( uiTPelY < m_img_height )  )
-            {
-              continue;
-            }
-
-            if(!pcCU->getAlfCtrlFlag(uiCurrSU))
-            {
-              uiPosOffset = uiTPelY*iStride + uiLPelX;
-              pDec = pPicDecLuma + uiPosOffset;
-              pRest= pPicRestLuma+ uiPosOffset;
-              for(Int y=0; y< uiSUHeight; y++)
-              {
-                ::memcpy(pRest, pDec, sizeof(Pel)*uiSUWidth);
-                pDec += iStride;
-                pRest+= iStride;
-              }
-            }
-          }
-        }
-      }
-    }
-#endif
     return;
   }
 
@@ -2645,7 +2485,6 @@ UInt TEncAdaptiveLoopFilter::xcodeFiltCoeff(Int **filterCoeffSymQuant, Int filte
   return (UInt)coeffBits;
 }
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
 Void TEncAdaptiveLoopFilter::getCtrlFlagsFromCU(AlfLCUInfo* pcAlfLCU, std::vector<UInt> *pvFlags, Int alfDepth, UInt maxNumSUInLCU)
 {
   const UInt startSU               = pcAlfLCU->startSU;
@@ -2746,7 +2585,6 @@ Void TEncAdaptiveLoopFilter::getCtrlFlagsFromCU(AlfLCUInfo* pcAlfLCU, std::vecto
     currSU += ctrlNumSU;
   }
 }
-#endif
 
 
 /** set ALF CU control flags
@@ -2760,7 +2598,6 @@ Void TEncAdaptiveLoopFilter::getCtrlFlagsFromCU(AlfLCUInfo* pcAlfLCU, std::vecto
 Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlags_qc(UInt uiAlfCtrlDepth, TComPicYuv* pcPicOrg, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest, UInt64& ruiDist, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam)
 {
   ruiDist = 0;
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   std::vector<UInt> uiFlags;
 
   //initial
@@ -2812,40 +2649,6 @@ Void TEncAdaptiveLoopFilter::xSetCUAlfCtrlFlags_qc(UInt uiAlfCtrlDepth, TComPicY
       vAlfCUCtrlParam[s].num_alf_cu_flag = (UInt)(vAlfCUCtrlParam[s].alf_cu_flag.size());
     } //s (Slice)
   }
-#else
-
-  if(m_uiNumSlicesInPic ==1)
-  {
-    AlfCUCtrlInfo& cAlfCUCtrlParam = vAlfCUCtrlParam[0];
-
-    cAlfCUCtrlParam.cu_control_flag = 1;
-    cAlfCUCtrlParam.alf_max_depth   = uiAlfCtrlDepth;
-
-    cAlfCUCtrlParam.alf_cu_flag.reserve(m_uiNumCUsInFrame << ((g_uiMaxCUDepth-1)*2));
-    cAlfCUCtrlParam.alf_cu_flag.resize(0);
-
-    for( UInt uiCUAddr = 0; uiCUAddr < m_pcPic->getNumCUsInFrame() ; uiCUAddr++ )
-    {
-      TComDataCU* pcCU = m_pcPic->getCU( uiCUAddr );
-      xSetCUAlfCtrlFlag_qc(pcCU, 0, 0, uiAlfCtrlDepth, pcPicOrg, pcPicDec, pcPicRest, ruiDist, cAlfCUCtrlParam.alf_cu_flag);
-    }
-
-    cAlfCUCtrlParam.num_alf_cu_flag = (UInt)cAlfCUCtrlParam.alf_cu_flag.size();
-  }
-  else
-  {
-    std::vector<UInt> uiFlags;
-
-    for( UInt uiCUAddr = 0; uiCUAddr < m_pcPic->getNumCUsInFrame() ; uiCUAddr++ )
-    {
-      TComDataCU* pcCU = m_pcPic->getCU( uiCUAddr );
-      xSetCUAlfCtrlFlag_qc(pcCU, 0, 0, uiAlfCtrlDepth, pcPicOrg, pcPicDec, pcPicRest, ruiDist, uiFlags);
-    }
-
-    getCtrlFlagsForSlices(true, (Int)uiAlfCtrlDepth);
-    transferCtrlFlagsToAlfParam( vAlfCUCtrlParam );
-  }
-#endif
 }
 
 
@@ -3065,14 +2868,6 @@ Void TEncAdaptiveLoopFilter::xCUAdaptiveControl_qc(TComPicYuv* pcPicOrg, TComPic
     m_pcEntropyCoder->setMaxAlfCtrlDepth(uiBestDepth);
     xCopyTmpAlfCtrlFlagsTo();
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-#else
-    if(m_uiNumSlicesInPic > 1)
-    {
-      getCtrlFlagsForSlices(true, (Int)uiBestDepth);
-    }
-#endif
-
     m_pcPicYuvBest->copyToPicLuma(pcPicRest);//copy m_pcPicYuvBest to pcPicRest
     xCopyDecToRestCUs(pcPicDec, pcPicRest); //pcPicRest = pcPicDec
   }
@@ -3080,12 +2875,6 @@ Void TEncAdaptiveLoopFilter::xCUAdaptiveControl_qc(TComPicYuv* pcPicOrg, TComPic
   {
     m_pcEntropyCoder->setAlfCtrl(false);
     m_pcEntropyCoder->setMaxAlfCtrlDepth(0);
-#if !NONCROSS_TILE_IN_LOOP_FILTERING
-    if(m_uiNumSlicesInPic > 1)
-    {
-      getCtrlFlagsForSlices(false, 0);
-    }
-#endif
   }
   freeALFParam(&cFrmAlfParam);
 
@@ -3743,11 +3532,7 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
       xSetCUAlfCtrlFlags_qc(uiDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist, vAlfCUCtrlParamTemp);
       m_pcEntropyCoder->resetEntropy();
       m_pcEntropyCoder->resetBits();
-#if NONCROSS_TILE_IN_LOOP_FILTERING
       xEncodeCUAlfCtrlFlags(vAlfCUCtrlParamTemp);
-#else
-      xEncodeCUAlfCtrlFlags();
-#endif
       uiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
       dCost  = (Double)(uiRate) * m_dLambdaLuma + (Double)(uiDist);
 
@@ -4292,7 +4077,6 @@ Void TEncAdaptiveLoopFilter::xfilterSlicesEncoder(Pel* ImgDec, Pel* ImgRest, Int
 
   for(UInt s=0; s< m_uiNumSlicesInPic; s++)
   {
-#if NONCROSS_TILE_IN_LOOP_FILTERING
     if(!m_pcPic->getValidSlice(s)) 
     {
       continue;
@@ -4306,52 +4090,8 @@ Void TEncAdaptiveLoopFilter::xfilterSlicesEncoder(Pel* ImgDec, Pel* ImgRest, Int
       extendRegionBorder(vpAlfLCU, pPicSlice, iStride);
       filterLumaRegion(vpAlfLCU, pPicSlice, ImgRest, iStride, filtNo, filterCoeff, mergeTable, varImg);
     }
-
-#else
-    CAlfSlice* pSlice = &(m_pSlice[s]);
-
-    if(!pSlice->isValidSlice()) 
-    {
-      continue;
-    }
-
-    pSlice->copySliceLuma(pPicSlice, pPicSrc, iStride);
-    pSlice->extendSliceBorderLuma(pPicSlice, iStride);
-    xfilterOneSliceEncoder(pSlice, pPicSlice, ImgRest, iStride, filtNo, filterCoeff, mergeTable, varImg);
-#endif
   }
 }
-
-#if !NONCROSS_TILE_IN_LOOP_FILTERING
-/** Filter one slice
- * \param pSlice slice parameters
- * \param ImgDec picture before filtering
- * \param ImgRest picture after filtering
- * \param filtNo  related to filter tap size
- * \param iStride picture buffer stride
- */
-Void TEncAdaptiveLoopFilter::xfilterOneSliceEncoder(CAlfSlice* pSlice, Pel* ImgDec, Pel* ImgRest, Int iStride, Int filtNo, Int** filterCoeff, Int* mergeTable, Pel** varImg)
-{
-  UInt uiNumLCUs = pSlice->getNumLCUs();
-
-  Int iHeight, iWidth;
-  Int ypos, xpos;
-
-  for(UInt i=0; i< uiNumLCUs; i++)
-  {
-    CAlfLCU& cAlfLCU = (*pSlice)[i]; 
-    for(UInt j=0; j< cAlfLCU.getNumSGU(); j++)
-    {
-      ypos    = (Int)(cAlfLCU[j].posY  );
-      xpos    = (Int)(cAlfLCU[j].posX  );
-      iHeight = (Int)(cAlfLCU[j].height);
-      iWidth  = (Int)(cAlfLCU[j].width );
-
-      filterLuma(ImgRest, ImgDec, iStride, ypos, ypos+ iHeight-1, xpos, xpos+ iWidth-1,  filtNo, filterCoeff, mergeTable, varImg);
-    }
-  }
-}
-#endif
 
 /** Calculate block autocorrelations and crosscorrelations for ALF slices
  * \param ImgOrg original picture
@@ -4367,11 +4107,7 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrixforSlices(Pel* ImgOrg, Pel* Im
   UInt iLastValidSliceID =0;
   for(UInt s=0; s< m_uiNumSlicesInPic; s++)
   {
-#if NONCROSS_TILE_IN_LOOP_FILTERING
     if(m_pcPic->getValidSlice(s))
-#else
-    if(m_pSlice[s].isValidSlice())
-#endif
     {
       iLastValidSliceID = s;
     }
@@ -4379,7 +4115,6 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrixforSlices(Pel* ImgOrg, Pel* Im
 
   for(UInt s=0; s<= iLastValidSliceID; s++)
   {
-#if NONCROSS_TILE_IN_LOOP_FILTERING
     if(!m_pcPic->getValidSlice(s))
     {
       continue;
@@ -4393,20 +4128,6 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrixforSlices(Pel* ImgOrg, Pel* Im
       extendRegionBorder(vpAlfLCU, pPicSlice, iStride);
       xstoreInBlockMatrixforRegion(vpAlfLCU, ImgOrg, pPicSlice, tap, iStride, (s==0)&&(t==0), (s== iLastValidSliceID)&&(t==numValidTilesInSlice-1));
     }
-
-#else
-
-    CAlfSlice* pSlice = &(m_pSlice[s]);
-
-    if(!pSlice->isValidSlice())
-    {
-      continue;
-    }
-
-    pSlice->copySliceLuma(pPicSlice, pPicSrc, iStride);
-    pSlice->extendSliceBorderLuma(pPicSlice, iStride);
-    xstoreInBlockMatrixforOneSlice(pSlice, ImgOrg, pPicSlice, tap, iStride, (s==0), (s== iLastValidSliceID));
-#endif
   }
 }
 
@@ -4419,11 +4140,7 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrixforSlices(Pel* ImgOrg, Pel* Im
  * \param bFirstSlice  true for the first processing slice of the picture
  * \param bLastSlice true for the last processing slice of the picture
  */
-#if NONCROSS_TILE_IN_LOOP_FILTERING
 Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrixforRegion(std::vector< AlfLCUInfo* > &vpAlfLCU, 
-#else
-Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrixforOneSlice(CAlfSlice* pSlice, 
-#endif
                                                               Pel* ImgOrg, Pel* ImgDec, 
                                                               Int tap, Int iStride, 
                                                               Bool bFirstSlice, 
@@ -4431,11 +4148,7 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrixforOneSlice(CAlfSlice* pSlice,
                                                               )
 {
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   UInt uiNumLCUs = (UInt)vpAlfLCU.size();
-#else
-  UInt uiNumLCUs = pSlice->getNumLCUs();
-#endif
   Int iHeight, iWidth;
   Int ypos, xpos;
   Bool bFirstLCU, bLastLCU;
@@ -4446,13 +4159,8 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrixforOneSlice(CAlfSlice* pSlice,
   {
     bFirstLCU = (i==0);
     bLastLCU  = (i== uiNumLCUs -1);
-#if NONCROSS_TILE_IN_LOOP_FILTERING
     AlfLCUInfo& cAlfLCU = *(vpAlfLCU[i]); 
     numSGUs = cAlfLCU.numSGU;
-#else
-    CAlfLCU& cAlfLCU = (*pSlice)[i]; 
-    numSGUs = cAlfLCU.getNumSGU();
-#endif
     for(UInt j=0; j< numSGUs; j++)
     {
       bFirstSGU= (j ==0);
@@ -4486,18 +4194,12 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFuncforChromaSlices(Int ComponentID
 
   Pel* pPicSrc   = pCmp;
   Pel* pPicSlice = (ComponentID == ALF_Cb)?(m_pcSliceYuvTmp->getCbAddr()):(m_pcSliceYuvTmp->getCrAddr());
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   Int chromaFormatShift = 1;
-#endif
 
   UInt iLastValidSliceID =0;
   for(UInt s=0; s< m_uiNumSlicesInPic; s++)
   {
-#if NONCROSS_TILE_IN_LOOP_FILTERING
     if(m_pcPic->getValidSlice(s))
-#else
-    if(m_pSlice[s].isValidSlice())
-#endif
     {
       iLastValidSliceID = s;
     }
@@ -4505,7 +4207,6 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFuncforChromaSlices(Int ComponentID
 
   for(UInt s=0; s<= iLastValidSliceID; s++)
   {
-#if NONCROSS_TILE_IN_LOOP_FILTERING
     if(!m_pcPic->getValidSlice(s))
     {
       continue;
@@ -4519,18 +4220,6 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFuncforChromaSlices(Int ComponentID
       extendRegionBorder(vpAlfLCU, pPicSlice, iCmpStride, chromaFormatShift);
       xCalcCorrelationFuncforChromaRegion(vpAlfLCU, pOrg, pPicSlice, iTap, iCmpStride,(s== iLastValidSliceID)&&(t== numValidTilesInSlice-1), chromaFormatShift);
     }
-#else
-    CAlfSlice* pSlice = &(m_pSlice[s]);
-
-    if(!pSlice->isValidSlice()) 
-    {
-      continue;
-    }
-
-    pSlice->copySliceChroma(pPicSlice, pPicSrc, iCmpStride);
-    pSlice->extendSliceBorderChroma(pPicSlice, iCmpStride);
-    xCalcCorrelationFuncforChromaOneSlice(pSlice, pOrg, pPicSlice, iTap, iCmpStride,(s== iLastValidSliceID));
-#endif
   }
 }
 
@@ -4542,17 +4231,9 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFuncforChromaSlices(Int ComponentID
  * \param iStride picture buffer stride
  * \param bLastSlice the last processing slice of picture
  */
-#if NONCROSS_TILE_IN_LOOP_FILTERING
 Void TEncAdaptiveLoopFilter::xCalcCorrelationFuncforChromaRegion(std::vector< AlfLCUInfo* > &vpAlfLCU, Pel* pOrg, Pel* pCmp, Int filtNo, Int iStride, Bool bLastSlice, Int iFormatShift)
-#else
-Void TEncAdaptiveLoopFilter::xCalcCorrelationFuncforChromaOneSlice(CAlfSlice* pSlice, Pel* pOrg, Pel* pCmp, Int iTap, Int iStride, Bool bLastSlice)
-#endif
 {
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   UInt uiNumLCUs = (UInt)vpAlfLCU.size();
-#else
-  UInt uiNumLCUs = pSlice->getNumLCUs();
-#endif
 
   Int iHeight, iWidth;
   Int ypos, xpos;
@@ -4564,7 +4245,6 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFuncforChromaOneSlice(CAlfSlice* pS
   {
     bLastLCU  = (i== uiNumLCUs -1);
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
     AlfLCUInfo& cAlfLCU = *(vpAlfLCU[i]); 
     numSGUs = cAlfLCU.numSGU;
     for(UInt j=0; j< numSGUs; j++)
@@ -4576,119 +4256,8 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFuncforChromaOneSlice(CAlfSlice* pS
       iWidth  = (Int)(cAlfLCU[j].width  >> iFormatShift);
       xCalcCorrelationFunc(ypos, xpos, pOrg, pCmp, filtNo, iWidth, iHeight, iStride, iStride, (bLastSlice && bLastLCU && bLastSGU) );
     }
-#else
-    CAlfLCU& cAlfLCU = (*pSlice)[i]; 
-    numSGUs = cAlfLCU.getNumSGU();
-
-    for(UInt j=0; j< numSGUs; j++)
-    {
-      bLastSGU = (j == numSGUs -1);
-      ypos    = (Int)(cAlfLCU[j].posY   >>1);
-      xpos    = (Int)(cAlfLCU[j].posX   >>1);
-      iHeight = (Int)(cAlfLCU[j].height >>1);
-      iWidth  = (Int)(cAlfLCU[j].width  >>1);
-      xCalcCorrelationFunc(ypos, xpos, pOrg, pCmp, iTap, iWidth, iHeight, iStride, iStride, (bLastSlice && bLastLCU && bLastSGU) );
-    }
-#endif
   }
 }
-#if !NONCROSS_TILE_IN_LOOP_FILTERING
-/** Calculate block autocorrelations and crosscorrelations for one chroma slice
- * \param ComponentID slice parameters
- * \param pcPicDecYuv original picture
- * \param pcPicRestYuv picture before filtering
- * \param qh  filter tap size
- * \param iTap picture buffer stride
- */
-Void TEncAdaptiveLoopFilter::xFilterChromaSlices(Int ComponentID, TComPicYuv* pcPicDecYuv, TComPicYuv* pcPicRestYuv, Int *coeff, Int filtNo, Int iChromaFormatShift)
-{
-  Pel* pPicDec   = (ComponentID == ALF_Cb)?(    pcPicDecYuv->getCbAddr()):(    pcPicDecYuv->getCrAddr());
-  Pel* pPicSlice = (ComponentID == ALF_Cb)?(m_pcSliceYuvTmp->getCbAddr()):(m_pcSliceYuvTmp->getCrAddr());
-  Pel* pRest     = (ComponentID == ALF_Cb)?(   pcPicRestYuv->getCbAddr()):(   pcPicRestYuv->getCrAddr());
-  Int iStride    = pcPicDecYuv->getCStride();
-
-  for(UInt s=0; s< m_uiNumSlicesInPic; s++)
-  {
-    CAlfSlice* pSlice = &(m_pSlice[s]);
-
-    if(!pSlice->isValidSlice()) 
-    {
-      continue;
-    }
-
-    pSlice->copySliceChroma(pPicSlice, pPicDec, iStride);
-    pSlice->extendSliceBorderChroma(pPicSlice, iStride);
-    xFilterOneChromaSlice(pSlice, pPicSlice, pRest, iStride, coeff, filtNo, iChromaFormatShift);
-  }
-}
-
-/** Copy CU control flags from TComCU
- * \param bCUCtrlEnabled true for ALF CU control enabled
- * \param iCUCtrlDepth ALF CU Control depth
- */
-Void TEncAdaptiveLoopFilter::getCtrlFlagsForSlices(Bool bCUCtrlEnabled, Int iCUCtrlDepth)
-{
-  for(UInt s=0; s< m_uiNumSlicesInPic; s++)
-  {
-    CAlfSlice& cSlice = m_pSlice[s];
-
-    if(!cSlice.isValidSlice()) 
-    {
-      continue;
-    }
-
-    cSlice.setCUCtrlEnabled(bCUCtrlEnabled);
-    if(bCUCtrlEnabled)
-    {
-      cSlice.setCUCtrlDepth(iCUCtrlDepth);
-      cSlice.getCtrlFlagsForOneSlice();
-    }
-  }
-}
-#endif
-
-/** Copy CU control flags to ALF parameters
- * \return ruiNumFlags reference to the flag of number of ALF CU control flags
- * \return puiFlags pointer to the buffer of ALF CU control flags
- */
-
-#if !NONCROSS_TILE_IN_LOOP_FILTERING
-
-Void TEncAdaptiveLoopFilter::transferCtrlFlagsToAlfParam(std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam)
-{
-  for(UInt s=0; s< m_uiNumSlicesInPic; s++)
-  {
-    if(! m_pSlice[s].isValidSlice()) 
-    {
-      continue;
-    }
-
-    CAlfSlice&     cSlice            = m_pSlice[s];
-    AlfCUCtrlInfo& cSliceCUCtrlParam = vAlfCUCtrlParam[s];
-
-    cSliceCUCtrlParam.cu_control_flag = cSlice.getCUCtrlEnabled()?1:0;
-
-    cSliceCUCtrlParam.alf_cu_flag.reserve(m_uiNumCUsInFrame << ((g_uiMaxCUDepth-1)*2));
-    cSliceCUCtrlParam.alf_cu_flag.resize(0);
-
-    if(cSliceCUCtrlParam.cu_control_flag ==1)
-    {
-      cSliceCUCtrlParam.alf_max_depth   = cSlice.getCUCtrlDepth();
-
-      for(UInt idx=0; idx < cSlice.getNumLCUs(); idx++)
-      {
-        CAlfLCU& cAlfLCU    = cSlice[idx];
-        UInt     uiNumFlags = cAlfLCU.getNumCtrlFlags();
-        for(UInt i=0; i< uiNumFlags; i++)
-        {
-          cSliceCUCtrlParam.alf_cu_flag.push_back(cAlfLCU.getCUCtrlFlag(i));
-        }
-      }
-    }
-    cSliceCUCtrlParam.num_alf_cu_flag = (UInt)cSliceCUCtrlParam.alf_cu_flag.size();
-  }
-}
-#endif
 
 // ====================================================================================================================
 // Protected member functions
@@ -4967,20 +4536,10 @@ UInt64 TEncAdaptiveLoopFilter::xCalcRateChroma(ALFParam* pAlfParam)
   {
     for(UInt s=0; s< m_uiNumSlicesInPic; s++)
     {
-#if NONCROSS_TILE_IN_LOOP_FILTERING
       if(!m_pcPic->getValidSlice(s))
       {
         continue;
       }
-#else
-      if( m_uiNumSlicesInPic > 1)
-      {
-        if(!m_pSlice[s].isValidSlice())
-        {
-          continue;
-        }
-      }
-#endif
       m_pcEntropyCoder->resetEntropy();
       m_pcEntropyCoder->resetBits();
       m_pcEntropyCoder->encodeAlfCtrlParam( m_vBestAlfCUCtrlParam[s], m_uiNumCUsInFrame);

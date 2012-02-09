@@ -58,10 +58,7 @@ TComPic::TComPic()
   m_bReconstructed    = false;
   m_usedForTMVP      = true;
   m_bNeededForOutput  = false;
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   m_pSliceSUMap      = NULL;
-#endif
-
 }
 
 TComPic::~TComPic()
@@ -119,7 +116,6 @@ Void TComPic::compressMotion()
   } 
 }
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
 /** Create non-deblocked filter information
  * \param pSliceStartAddress array for storing slice start addresses
  * \param numSlices number of slices in picture
@@ -436,8 +432,6 @@ Void TComPic::destroyNonDBFilterInfo()
   }
 
 }
-
-#endif
 
 
 //! \}

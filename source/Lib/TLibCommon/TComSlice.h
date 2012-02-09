@@ -121,9 +121,7 @@ private:
   Bool        m_bLFCrossSliceBoundaryFlag;
   Bool        m_bUseSAO; 
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   Bool     m_bLFCrossTileBoundaryFlag;
-#endif
   Int      m_iUniformSpacingIdr;
   Int      m_iTileBoundaryIndependenceIdr;
   Int      m_iNumColumnsMinus1;
@@ -259,10 +257,8 @@ public:
   Void      setPCMFilterDisableFlag     ( Bool   bValue  )    { m_bPCMFilterDisableFlag = bValue; }
   Bool      getPCMFilterDisableFlag     ()                    { return m_bPCMFilterDisableFlag;   } 
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   Void    setLFCrossTileBoundaryFlag               ( Bool   bValue  )    { m_bLFCrossTileBoundaryFlag = bValue; }
   Bool    getLFCrossTileBoundaryFlag               ()                    { return m_bLFCrossTileBoundaryFlag;   }
-#endif
   Void     setUniformSpacingIdr             ( Int i )           { m_iUniformSpacingIdr = i; }
   Int      getUniformSpacingIdr             ()                  { return m_iUniformSpacingIdr; }
   Void     setTileBoundaryIndependenceIdr   ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
@@ -452,10 +448,8 @@ private:
   Bool        m_bUseWeightPred;           // Use of Weighting Prediction (P_SLICE)
   UInt        m_uiBiPredIdc;              // Use of Weighting Bi-Prediction (B_SLICE)
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   Int      m_iTileBehaviorControlPresentFlag;
   Bool     m_bLFCrossTileBoundaryFlag;
-#endif
   Int      m_iColumnRowInfoPresent;
   Int      m_iUniformSpacingIdr;
   Int      m_iTileBoundaryIndependenceIdr;
@@ -521,12 +515,10 @@ public:
   Void setUseWP                     ( Bool b )  { m_bUseWeightPred = b;     }
   Void setWPBiPredIdc               ( UInt u )  { m_uiBiPredIdc = u;        }
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   Void    setTileBehaviorControlPresentFlag        ( Int i )             { m_iTileBehaviorControlPresentFlag = i;    }
   Int     getTileBehaviorControlPresentFlag        ()                    { return m_iTileBehaviorControlPresentFlag; }
   Void    setLFCrossTileBoundaryFlag               ( Bool   bValue  )    { m_bLFCrossTileBoundaryFlag = bValue; }
   Bool    getLFCrossTileBoundaryFlag               ()                    { return m_bLFCrossTileBoundaryFlag;   }
-#endif
   Void     setColumnRowInfoPresent          ( Int i )           { m_iColumnRowInfoPresent = i; }
   Int      getColumnRowInfoPresent          ()                  { return m_iColumnRowInfoPresent; }
   Void     setUniformSpacingIdr             ( Int i )           { m_iUniformSpacingIdr = i; }

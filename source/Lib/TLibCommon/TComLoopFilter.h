@@ -63,9 +63,7 @@ private:
   Bool*     m_aapbEdgeFilter[2][3];
   LFCUParam m_stLFCUParam;                  ///< status structure
   
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   Bool      m_bLFCrossTileBoundary;
-#endif
 
 protected:
   /// CU-level deblocking function
@@ -112,11 +110,7 @@ public:
   Void  destroy                   ();
   
   /// set configuration
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   Void setCfg( UInt uiDisableDblkIdc, Int betaOffsetDiv2, Int tcOffsetDiv2, Bool bLFCrossTileBoundary);
-#else
-  Void setCfg( UInt uiDisableDblkIdc, Int iAlphaOffset, Int iBetaOffset );
-#endif
   
   /// picture-level deblocking filter
   Void loopFilterPic( TComPic* pcPic );

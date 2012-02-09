@@ -54,8 +54,6 @@
 //! \ingroup TLibCommon
 //! \{
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-
 // ====================================================================================================================
 // Non-deblocking in-loop filter processing block data structure
 // ====================================================================================================================
@@ -92,8 +90,6 @@ struct NDBFBlockInfo
   NDBFBlockInfo():tileID(0), sliceID(0), startSU(0), endSU(0) {} //!< constructor
   const NDBFBlockInfo& operator= (const NDBFBlockInfo& src);  //!< "=" operator
 };
-
-#endif
 
 
 // ====================================================================================================================
@@ -155,9 +151,7 @@ private:
   Pel*          m_pcIPCMSampleCr;     ///< PCM sample buffer (Cr)
 
   Int*          m_piSliceSUMap;       ///< pointer of slice ID map
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   std::vector<NDBFBlockInfo> m_vNDFBlock;
-#endif
 
   // -------------------------------------------------------------------------------------------------------------------
   // neighbour access variables
@@ -399,14 +393,11 @@ public:
   /// set the pointer of slice ID map
   Void          setSliceSUMap         (Int *pi)                 {m_piSliceSUMap = pi;               }
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   std::vector<NDBFBlockInfo>* getNDBFilterBlocks()      {return &m_vNDFBlock;}
   Void setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt numLCUInPicHeight, UInt numSUInLCUWidth, UInt numSUInLCUHeight, UInt picWidth, UInt picHeight
                                           ,Bool bIndependentSliceBoundaryEnabled
                                           ,Bool bTopTileBoundary, Bool bDownTileBoundary, Bool bLeftTileBoundary, Bool bRightTileBoundary
                                           ,Bool bIndependentTileBoundaryEnabled );
-#endif
-
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for accessing partition information
   // -------------------------------------------------------------------------------------------------------------------
@@ -454,18 +445,14 @@ public:
 
 
   TComDataCU*   getPULeft                   ( UInt&  uiLPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true
-#if NONCROSS_TILE_IN_LOOP_FILTERING
                                             , Bool bEnforceTileRestriction=true 
-#endif
                                             );
 
   TComDataCU*   getPUAbove                  ( UInt&  uiAPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false
 #if REMOVE_INTRA_LINE_BUFFER
                                             , Bool planarAtLCUBoundary = false 
 #endif
-#if NONCROSS_TILE_IN_LOOP_FILTERING
                                             , Bool bEnforceTileRestriction=true 
-#endif                                            
                                             );
 
   TComDataCU*   getPUAboveLeft              ( UInt&  uiALPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false );

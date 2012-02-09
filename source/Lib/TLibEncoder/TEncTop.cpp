@@ -556,9 +556,7 @@ Void TEncTop::xInitSPS()
   m_cSPS.setPCMBitDepthChroma (g_uiPCMBitDepthChroma);
   m_cSPS.setPCMFilterDisableFlag  ( m_bPCMFilterDisableFlag );
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   m_cSPS.setLFCrossTileBoundaryFlag( m_bLFCrossTileBoundaryFlag );
-#endif
   m_cSPS.setUniformSpacingIdr( m_iUniformSpacingIdr );
   m_cSPS.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
   m_cSPS.setNumColumnsMinus1( m_iNumColumnsMinus1 );
@@ -761,10 +759,8 @@ Void  TEncTop::xInitPPSforTiles()
       m_cPPS.setColumnWidth( m_puiColumnWidth );
       m_cPPS.setRowHeight( m_puiRowHeight );
     }
-#if NONCROSS_TILE_IN_LOOP_FILTERING
     m_cPPS.setTileBehaviorControlPresentFlag( m_iTileBehaviorControlPresentFlag );
     m_cPPS.setLFCrossTileBoundaryFlag( m_bLFCrossTileBoundaryFlag );
-#endif
 
     // # substreams is "per tile" when tiles are independent.
     if (m_iTileBoundaryIndependenceIdr && m_iWaveFrontSynchro)

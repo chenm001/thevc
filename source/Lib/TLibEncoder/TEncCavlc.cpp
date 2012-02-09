@@ -344,15 +344,10 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   WRITE_CODE( pcPPS->getWPBiPredIdc(), 2, "weighted_bipred_idc" );  // Use of Weighting Bi-Prediction (B_SLICE)
 
   WRITE_FLAG( pcPPS->getColumnRowInfoPresent(),           "tile_info_present_flag" );
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   WRITE_FLAG( pcPPS->getTileBehaviorControlPresentFlag(),  "tile_control_present_flag");
-#endif
   if( pcPPS->getColumnRowInfoPresent() == 1 )
   {
     WRITE_FLAG( pcPPS->getUniformSpacingIdr(),                                   "uniform_spacing_flag" );
-#if !NONCROSS_TILE_IN_LOOP_FILTERING
-    WRITE_FLAG( pcPPS->getTileBoundaryIndependenceIdr(),                         "tile_boundary_independence_flag" );
-#endif
     WRITE_UVLC( pcPPS->getNumColumnsMinus1(),                                    "num_tile_columns_minus1" );
     WRITE_UVLC( pcPPS->getNumRowsMinus1(),                                       "num_tile_rows_minus1" );
     if( pcPPS->getUniformSpacingIdr() == 0 )
@@ -367,7 +362,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
       }
     }
   }
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   if(pcPPS->getTileBehaviorControlPresentFlag() == 1)
   {
     Int iNumColTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumColumnsMinus1()):(pcPPS->getSPS()->getNumColumnsMinus1());
@@ -382,7 +376,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
       }
     }
   }
-#endif
 
   return;
 }
@@ -483,9 +476,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   }
 
   WRITE_FLAG( pcSPS->getUniformSpacingIdr(),                          "uniform_spacing_flag" );
-#if !NONCROSS_TILE_IN_LOOP_FILTERING
-  WRITE_FLAG( pcSPS->getTileBoundaryIndependenceIdr(),                "tile_boundary_independence_flag" );
-#endif
   WRITE_UVLC( pcSPS->getNumColumnsMinus1(),                           "num_tile_columns_minus1" );
   WRITE_UVLC( pcSPS->getNumRowsMinus1(),                              "num_tile_rows_minus1" );
   if( pcSPS->getUniformSpacingIdr()==0 )
@@ -500,7 +490,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
     }
   }
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   if( pcSPS->getNumColumnsMinus1() !=0 || pcSPS->getNumRowsMinus1() != 0)
   {
     WRITE_FLAG( pcSPS->getTileBoundaryIndependenceIdr(),                "tile_boundary_independence_flag" );
@@ -509,7 +498,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
       WRITE_FLAG( pcSPS->getLFCrossTileBoundaryFlag()?1 : 0,            "loop_filter_across_tile_flag");
     }
   }
-#endif
 
   // Software-only flags
   WRITE_FLAG( pcSPS->getUseNSQT(), "enable_nsqt" );

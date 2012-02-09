@@ -402,7 +402,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
     Int  p, j;
     UInt uiEncCUAddr;
     
-#if NONCROSS_TILE_IN_LOOP_FILTERING
     if(pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)
     {
       pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getTileBoundaryIndependenceIdr() );
@@ -412,14 +411,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getSPS()->getTileBoundaryIndependenceIdr() );
 
     }
-#endif
 
     if( pcSlice->getPPS()->getColumnRowInfoPresent() == 1 )    //derive the tile parameters from PPS
     {
-#if !NONCROSS_TILE_IN_LOOP_FILTERING
-      //initialize TileBoundaryIndependenceIdr for the current picture
-      pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getTileBoundaryIndependenceIdr() );
-#endif
       //set NumColumnsMinus1 and NumRowsMinus1
       pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getPPS()->getNumColumnsMinus1() );
       pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getPPS()->getNumRowsMinus1() );
@@ -480,10 +474,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
     }
     else //derive the tile parameters from SPS
     {
-#if !NONCROSS_TILE_IN_LOOP_FILTERING
-      //initialize TileBoundaryIndependenceIdr for the current picture
-      pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getSPS()->getTileBoundaryIndependenceIdr() );
-#endif
       //set NumColumnsMins1 and NumRowsMinus1
       pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getSPS()->getNumColumnsMinus1() );
       pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getSPS()->getNumRowsMinus1() );
@@ -633,55 +623,24 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       
       pcSlice = pcPic->getSlice(0);
       //-- Loop filter
-#if NONCROSS_TILE_IN_LOOP_FILTERING
       Bool bLFCrossTileBoundary = (pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)?
                                   (pcSlice->getPPS()->getLFCrossTileBoundaryFlag()):(pcSlice->getPPS()->getSPS()->getLFCrossTileBoundaryFlag());
       m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), pcSlice->getLoopFilterBetaOffset(), pcSlice->getLoopFilterTcOffset(), bLFCrossTileBoundary);
-#else
-      m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), m_pcCfg->getLoopFilterAlphaC0Offget(), m_pcCfg->getLoopFilterBetaOffget());
-#endif
       m_pcLoopFilter->loopFilterPic( pcPic );
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
       pcSlice = pcPic->getSlice(0);
       if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
       {
         Int sliceGranularity = pcSlice->getPPS()->getSliceGranularity();
         pcPic->createNonDBFilterInfo(m_uiStoredStartCUAddrForEncodingSlice, uiNumSlices, sliceGranularity, pcSlice->getSPS()->getLFCrossSliceBoundaryFlag(),pcPic->getPicSym()->getNumTiles() ,bLFCrossTileBoundary);
       }
-#endif
 
 
       pcSlice = pcPic->getSlice(0);
 
       if(pcSlice->getSPS()->getUseSAO())
       {
-#if NONCROSS_TILE_IN_LOOP_FILTERING
         m_pcSAO->createPicSaoInfo(pcPic, uiNumSlices);
-#else
-        m_pcSAO->setNumSlicesInPic( uiNumSlices );
-        m_pcSAO->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
-        if(uiNumSlices == 1)
-        {
-          m_pcSAO->setUseNIF(false);
-        }
-        else
-        {
-          m_pcSAO->setPic(pcPic);
-          m_pcSAO->setUseNIF(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
-          if (m_pcSAO->getUseNIF())
-          {
-            m_pcSAO->InitIsFineSliceCu();
-            UInt uiStartAddr, uiEndAddr;
-            for(UInt i=0; i< uiNumSlices ; i++)
-            {
-              uiStartAddr = m_uiStoredStartCUAddrForEncodingSlice[i];
-              uiEndAddr   = m_uiStoredStartCUAddrForEncodingSlice[i+1]-1;
-              m_pcSAO->createSliceMap(i, uiStartAddr, uiEndAddr);
-            }
-          }
-        }
-#endif
       }
 
       std::vector<AlfCUCtrlInfo> vAlfCUCtrlParam;
@@ -692,31 +651,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       if(pcSlice->getSPS()->getUseALF())
       {
         vAlfCUCtrlParam.resize(uiNumSlices);
-#if NONCROSS_TILE_IN_LOOP_FILTERING
         m_pcAdaptiveLoopFilter->createPicAlfInfo(pcPic, uiNumSlices);
-#else
-        m_pcAdaptiveLoopFilter->setNumSlicesInPic( uiNumSlices );
-        m_pcAdaptiveLoopFilter->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
-        if(uiNumSlices == 1)
-        {
-          m_pcAdaptiveLoopFilter->setUseNonCrossAlf(false);
-        }
-        else
-        {
-          m_pcAdaptiveLoopFilter->setUseNonCrossAlf(!pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
-          m_pcAdaptiveLoopFilter->createSlice(pcPic);
-
-          UInt uiStartAddr, uiEndAddr;
-
-          for(UInt i=0; i< uiNumSlices ; i++)
-          {
-            uiStartAddr = m_uiStoredStartCUAddrForEncodingSlice[i];
-            uiEndAddr   = m_uiStoredStartCUAddrForEncodingSlice[i+1]-1;
-            (*m_pcAdaptiveLoopFilter)[i].create(i, uiStartAddr, uiEndAddr);
-          }
-
-        }
-#endif
       }
 
       /////////////////////////////////////////////////////////////////////////////////////////////////// File writing
@@ -1235,7 +1170,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       } // end iteration over slices
 
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
       if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
       {
         if(pcSlice->getSPS()->getUseSAO())
@@ -1250,16 +1184,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
         pcPic->destroyNonDBFilterInfo();
       }
-#else
-
-      if(pcSlice->getSPS()->getUseALF())
-      {
-        if(m_pcAdaptiveLoopFilter->getNumSlicesInPic() > 1)
-        {
-          m_pcAdaptiveLoopFilter->destroySlice();
-        }
-      }
-#endif
 
       pcPic->compressMotion(); 
       
@@ -1485,40 +1409,27 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
 {
   TComSlice* pcSlice = pcPic->getSlice(pcPic->getCurrSliceIdx());
   Bool bCalcDist = false;
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), m_pcCfg->getLoopFilterBetaOffset(), m_pcCfg->getLoopFilterTcOffset(), m_pcCfg->getLFCrossTileBoundaryFlag());
-#else
-  m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), m_pcCfg->getLoopFilterAlphaC0Offget(), m_pcCfg->getLoopFilterBetaOffget());
-#endif
   m_pcLoopFilter->loopFilterPic( pcPic );
   
   m_pcEntropyCoder->setEntropyCoder ( m_pcEncTop->getRDGoOnSbacCoder(), pcSlice );
   m_pcEntropyCoder->resetEntropy    ();
   m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   pcSlice = pcPic->getSlice(0);
   if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
   {
     pcPic->createNonDBFilterInfo();
   }
-#endif
   
   // Adaptive Loop filter
   if( pcSlice->getSPS()->getUseALF() )
   {
-#if NONCROSS_TILE_IN_LOOP_FILTERING
     m_pcAdaptiveLoopFilter->createPicAlfInfo(pcPic);
-#endif
     ALFParam cAlfParam;
     m_pcAdaptiveLoopFilter->allocALFParam(&cAlfParam);
     
     m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder);
     
-#if !NONCROSS_TILE_IN_LOOP_FILTERING
-    m_pcAdaptiveLoopFilter->setNumSlicesInPic(1);
-    m_pcAdaptiveLoopFilter->setUseNonCrossAlf(false);
-#endif
-
 #if ALF_CHROMA_LAMBDA  
     m_pcAdaptiveLoopFilter->ALFProcess(&cAlfParam, NULL, pcSlice->getLambdaLuma(), pcSlice->getLambdaChroma(), ruiDist, ruiBits);
 #else
@@ -1533,16 +1444,12 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
     m_pcAdaptiveLoopFilter->freeALFParam(&cAlfParam);
 
     m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
-#if NONCROSS_TILE_IN_LOOP_FILTERING
     m_pcAdaptiveLoopFilter->destroyPicAlfInfo();
-#endif
   }
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   if( pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
   {
     pcPic->destroyNonDBFilterInfo();
   }
-#endif
   
   m_pcEntropyCoder->resetEntropy    ();
   ruiBits += m_pcEntropyCoder->getNumberOfWrittenBits();

@@ -336,18 +336,12 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 
   READ_FLAG ( uiCode, "tile_info_present_flag" );
   pcPPS->setColumnRowInfoPresent(uiCode);
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   READ_FLAG ( uiCode, "tile_control_present_flag" );
   pcPPS->setTileBehaviorControlPresentFlag(uiCode);
-#endif
   if( pcPPS->getColumnRowInfoPresent() == 1 )
   {
     READ_FLAG ( uiCode, "uniform_spacing_flag" );  
     pcPPS->setUniformSpacingIdr( uiCode );
-#if !NONCROSS_TILE_IN_LOOP_FILTERING
-    READ_FLAG ( uiCode, "tile_boundary_independence_flag" );  
-    pcPPS->setTileBoundaryIndependenceIdr( uiCode );
-#endif
 
     READ_UVLC ( uiCode, "num_tile_columns_minus1" );   
     pcPPS->setNumColumnsMinus1( uiCode );  
@@ -376,7 +370,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
     }
   }
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   if(pcPPS->getTileBehaviorControlPresentFlag() == 1)
   {
     Int iNumColTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumColumnsMinus1()):(pcPPS->getSPS()->getNumColumnsMinus1());
@@ -398,7 +391,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 
     }
   }
-#endif
 
   return;
 }
@@ -517,10 +509,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 
   READ_FLAG ( uiCode, "uniform_spacing_flag" ); 
   pcSPS->setUniformSpacingIdr( uiCode );
-#if !NONCROSS_TILE_IN_LOOP_FILTERING
-  READ_FLAG ( uiCode, "tile_boundary_independence_flag" );  
-  pcSPS->setTileBoundaryIndependenceIdr( uiCode );
-#endif 
   READ_UVLC ( uiCode, "num_tile_columns_minus1" );
   pcSPS->setNumColumnsMinus1( uiCode );  
   READ_UVLC ( uiCode, "num_tile_rows_minus1" ); 
@@ -545,7 +533,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     pcSPS->setRowHeight(rowHeight);
     free(rowHeight);  
   }
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   pcSPS->setTileBoundaryIndependenceIdr( 1 ); //default
   pcSPS->setLFCrossTileBoundaryFlag(true); //default
 
@@ -559,7 +546,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
       pcSPS->setLFCrossTileBoundaryFlag( (uiCode==1)?true:false);
     }
   }
-#endif
 
   // Software-only flags
   READ_FLAG( uiCode, "enable_nsqt" );
