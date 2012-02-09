@@ -50,13 +50,7 @@
 #define   EDGE_HOR    1
 #define   QpUV(iQpY)  ( g_aucChromaScale[ max( min( (iQpY), MAX_QP ), MIN_QP ) ] )
 
-
-#define F143 1
-#if F143
 #define DEFAULT_INTRA_TC_OFFSET 2 ///< Default intra TC offset
-#else
-#define DEFAULT_INTRA_TC_OFFSET 4 ///< Default intra TC offset
-#endif
 
 // ====================================================================================================================
 // Tables
