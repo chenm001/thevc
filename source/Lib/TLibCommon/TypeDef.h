@@ -42,7 +42,6 @@
 //! \ingroup TLibCommon
 //! \{
 
-#define SLICEADDR_BEGIN            1 ///<G315: support for moving slice address to beginning of slice
 #define PADDING_INTRA             1 ///< G812: padding from bottom left, copy previous pixel instead of averaging
 #define COEFF_CTX_RED             1 ///< G121: reduce max value of c1 and c2
 
