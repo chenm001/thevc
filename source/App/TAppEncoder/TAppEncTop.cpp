@@ -76,16 +76,6 @@ Void TAppEncTop::xInitLibCfg()
   //====== Coding Structure ========
   m_cTEncTop.setIntraPeriod                  ( m_iIntraPeriod );
   m_cTEncTop.setDecodingRefreshType          ( m_iDecodingRefreshType );
-#if G1002_RPS
-  m_cTEncTop.setGopList                      ( m_pcGOPList );
-  m_cTEncTop.setExtraRPSs                     ( m_iExtraRPSs );
-  m_cTEncTop.setNumReorderFrames             ( m_numReorderFrames );
-  m_cTEncTop.setMaxNumberOfReferencePictures ( m_uiMaxNumberOfReferencePictures );
-#else
-  m_cTEncTop.setNumOfReference               ( m_iNumOfReference );
-  m_cTEncTop.setNumOfReferenceB_L0           ( m_iNumOfReferenceB_L0 );
-  m_cTEncTop.setNumOfReferenceB_L1           ( m_iNumOfReferenceB_L1 );
-#endif
 #if G678_LAMBDA_ADJUSTMENT
   for( UInt uiLoop = 0; uiLoop < MAX_TLAYER; ++uiLoop )
   {

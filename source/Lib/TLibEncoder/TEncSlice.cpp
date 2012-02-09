@@ -173,22 +173,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   // Non-referenced frame marking
   // ------------------------------------------------------------------------------------------------------------------
   
-#if G1002_RPS
-  rpcSlice->setReferenced(m_pcCfg->getGOPEntry(iGOPid).m_bRefPic);
-  if(eSliceType==I_SLICE)
-  {
-    rpcSlice->setReferenced(true);
-  }
-#else
-  if ( m_pcCfg->getUseNRF() )
-  {
-      rpcSlice->setReferenced(true);
-  }
-  else
-  {
-    rpcSlice->setReferenced(true);
-  }
-#endif
+  rpcSlice->setReferenced(true);
   
   // ------------------------------------------------------------------------------------------------------------------
   // QP setting
@@ -198,7 +183,8 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 #if G1002_RPS
   if(eSliceType!=I_SLICE)
   {
-    dQP += m_pcCfg->getGOPEntry(iGOPid).m_iQPOffset;
+    // CHECK_ME: QP for P-slice
+    dQP += 1;
   }
 #else
   if ( iDepth < MAX_TLAYER && m_pcCfg->getTemporalLayerQPOffset(iDepth) != ( MAX_QP + 1 ) )
@@ -240,7 +226,8 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     Double qp_temp = (double) dQP - SHIFT_QP;
     // Case #1: I or P-slices (key-frame)
 #if G1002_RPS
-    Double dQPFactor = m_pcCfg->getGOPEntry(iGOPid).m_iQPFactor;
+    // CHECK_ME: Change late?
+    Double dQPFactor = 0.85;
     if ( eSliceType==I_SLICE )
     {
       dQPFactor=0.57*dLambda_scale;
@@ -333,8 +320,8 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setSliceQp          ( iQP );
   rpcSlice->setSliceQpDelta     ( 0 );
 #if G1002_RPS
-  rpcSlice->setNumRefIdx(REF_PIC_LIST_0,m_pcCfg->getGOPEntry(iGOPid).m_iRefBufSize);
-  rpcSlice->setNumRefIdx(REF_PIC_LIST_1,m_pcCfg->getGOPEntry(iGOPid).m_iRefBufSize);
+  rpcSlice->setNumRefIdx(REF_PIC_LIST_0,1);
+  rpcSlice->setNumRefIdx(REF_PIC_LIST_1,1);
 #else
   rpcSlice->setNumRefIdx        ( REF_PIC_LIST_0, eSliceType == P_SLICE ? m_pcCfg->getNumOfReference() : (eSliceType == B_SLICE ? (m_pcCfg->getNumOfReferenceB_L0()) : 0 ) );
   rpcSlice->setNumRefIdx        ( REF_PIC_LIST_1, eSliceType == B_SLICE ? (m_pcCfg->getNumOfReferenceB_L1()) : 0 );
@@ -343,7 +330,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setDepth            ( iDepth );
   
 #if G1002_RPS
-  pcPic->setTLayer( m_pcCfg->getGOPEntry(iGOPid).m_iTemporalId );
+  pcPic->setTLayer( 0 );
   if(eSliceType==I_SLICE)
   {
     pcPic->setTLayer(0);

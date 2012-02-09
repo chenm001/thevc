@@ -281,7 +281,8 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
   TComSlice::sortPicList(m_cListPic);
   
 #if G1002_RPS
-  if (m_cListPic.size() >= (UInt)(1 + getMaxNumberOfReferencePictures() + 2) )
+  // CHECK_ME
+  if (m_cListPic.size() >= (UInt)(1 + 1 + 2) )
   {
     TComList<TComPic*>::iterator iterPic  = m_cListPic.begin();
     Int iSize = Int( m_cListPic.size() );
@@ -417,11 +418,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setMinTrDepth    ( 0                   );
   m_cSPS.setMaxTrDepth    ( 1                   );
   
-#if G1002_RPS
-  m_cSPS.setMaxNumberOfReferencePictures(m_uiMaxNumberOfReferencePictures);
-  m_cSPS.setNumReorderFrames(m_numReorderFrames);
-#endif
-
   m_cSPS.setQuadtreeTULog2MaxSize( m_uiQuadtreeTULog2MaxSize );
   m_cSPS.setQuadtreeTULog2MinSize( m_uiQuadtreeTULog2MinSize );
   m_cSPS.setQuadtreeTUMaxDepthInter( m_uiQuadtreeTUMaxDepthInter    );
@@ -556,64 +552,14 @@ Void TEncTop::xInitRPS()
   // configured directly from the config file.
   // Here we check what BD is appropriate
   
-  m_cRPSList.create(1+m_iExtraRPSs);
-  for( Int i = 0; i < 1+m_iExtraRPSs; i++) 
+  m_cRPSList.create(1);
   {
-    GOPEntry pGE = getGOPEntry(i);
-    pcRPS = m_cRPSList.getReferencePictureSet(i);
-    pcRPS->setNumberOfPictures(pGE.m_iNumRefPics);
-#if INTER_RPS_PREDICTION
-    pcRPS->setNumRefIdc(pGE.m_iNumRefIdc);
-#endif
-    int iNumNeg = 0;
-    int iNumPos = 0;
-    for( Int j = 0; j < pGE.m_iNumRefPics; j++)
-    {
-      pcRPS->setDeltaPOC(j,pGE.m_aiReferencePics[j]);
-      pcRPS->setUsed(j,pGE.m_aiUsedByCurrPic[j]);
-      if(pGE.m_aiReferencePics[j]>0)
-        iNumPos++;
-      else
-        iNumNeg++;
-    }
-    pcRPS->setNumberOfNegativePictures(iNumNeg);
-    pcRPS->setNumberOfPositivePictures(iNumPos);
-#if INTER_RPS_PREDICTION
-    pcRPS->setInterRPSPrediction(pGE.m_bInterRPSPrediction);
-    if (pGE.m_bInterRPSPrediction)
-    {
-      pcRPS->setDeltaRIdxMinus1(pGE.m_iDeltaRIdxMinus1);
-      pcRPS->setDeltaRPS(pGE.m_iDeltaRPS);
-      pcRPS->setNumRefIdc(pGE.m_iNumRefIdc);
-      for (Int j = 0; j < pGE.m_iNumRefIdc; j++ )
-      {
-        pcRPS->setRefIdc(j, pGE.m_aiRefIdc[j]);
-      }
-#if WRITE_BACK
-      // the folowing code overwrite the deltaPOC and Used by current values read from the config file with the ones
-      // computed from the RefIdc.  This is not necessary if both are identical. Currently there is no check to see if they are identical.
-      iNumNeg = 0;
-      iNumPos = 0;
-      TComReferencePictureSet*     pcRPSRef = m_cRPSList.getReferencePictureSet(i-(pGE.m_iDeltaRIdxMinus1+1));
-      for (Int j = 0; j < pGE.m_iNumRefIdc; j++ )
-      {
-        if (pGE.m_aiRefIdc[j])
-        {
-          int deltaPOC = pGE.m_iDeltaRPS + ((j < pcRPSRef->getNumberOfPictures())? pcRPSRef->getDeltaPOC(j) : 0);
-          pcRPS->setDeltaPOC((iNumNeg+iNumPos),deltaPOC);
-          pcRPS->setUsed((iNumNeg+iNumPos),pGE.m_aiRefIdc[j]==1?1:0);
-          if (deltaPOC<0)
-            iNumNeg++;
-          else
-            iNumPos++;
-        }
-      }
-      pcRPS->setNumberOfNegativePictures(iNumNeg);
-      pcRPS->setNumberOfPositivePictures(iNumPos);
-      pcRPS->sortDeltaPOC();
-#endif
-    }
-#endif
+    pcRPS = m_cRPSList.getReferencePictureSet(0);
+    pcRPS->setNumberOfPictures(1);
+      pcRPS->setDeltaPOC(0,-1);
+      pcRPS->setUsed(0,true);
+    pcRPS->setNumberOfNegativePictures(1);
+    pcRPS->setNumberOfPositivePictures(0);
   }
   
 }
@@ -626,24 +572,6 @@ Void TEncTop::selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, UInt
    // for a specific picture (with POC = uiPOCCurr)
 
   pcSlice->setRPSidx(iGOPid);
-
-  for(Int extraNum=1; extraNum<m_iExtraRPSs+1; extraNum++)
-  {    
-    if(m_uiIntraPeriod > 0)
-    {
-      if(uiPOCCurr%m_uiIntraPeriod==m_pcGOPList[extraNum].m_iPOC)
-      {
-        pcSlice->setRPSidx(extraNum);
-      }
-    }
-    else
-    {
-      if(uiPOCCurr==m_pcGOPList[extraNum].m_iPOC)
-      {
-        pcSlice->setRPSidx(extraNum);
-      }
-    }
-  }
 
   pcSlice->setRPS(getRPSList()->getReferencePictureSet(pcSlice->getRPSidx()));
   pcSlice->getRPS()->setNumberOfPictures(pcSlice->getRPS()->getNumberOfNegativePictures()+pcSlice->getRPS()->getNumberOfPositivePictures());

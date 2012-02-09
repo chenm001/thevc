@@ -76,10 +76,6 @@ private:
   UInt        m_uiMaxCUDepth;
   UInt        m_uiMinTrDepth;
   UInt        m_uiMaxTrDepth;
-#if G1002_RPS
-  UInt        m_uiMaxNumberOfReferencePictures;
-  Int         m_numReorderFrames;
-#endif
   
   // Tool list
   UInt        m_uiQuadtreeTULog2MaxSize;
@@ -170,12 +166,6 @@ public:
   Void setQuadtreeTUMaxDepthIntra( UInt u ) { m_uiQuadtreeTUMaxDepthIntra = u;    }
   UInt getQuadtreeTUMaxDepthInter()         { return m_uiQuadtreeTUMaxDepthInter; }
   UInt getQuadtreeTUMaxDepthIntra()         { return m_uiQuadtreeTUMaxDepthIntra; }
-#if G1002_RPS
-  Void setMaxNumberOfReferencePictures( UInt u ) { m_uiMaxNumberOfReferencePictures = u;    }
-  UInt getMaxNumberOfReferencePictures()         { return m_uiMaxNumberOfReferencePictures; }
-  Void setNumReorderFrames( Int i )              { m_numReorderFrames = i;    }
-  Int  getNumReorderFrames()                     { return m_numReorderFrames; }
-#endif
   
   // physical transform
   Void setMaxTrSize   ( UInt u ) { m_uiMaxTrSize = u;       }
@@ -245,13 +235,6 @@ private:
   Int       m_piDeltaPOC[MAX_NUM_REF_PICS];
   Int       m_piPOC[MAX_NUM_REF_PICS];
   Bool      m_pbUsed[MAX_NUM_REF_PICS];
-#if INTER_RPS_PREDICTION
-  Bool m_bInterRPSPrediction;
-  Int m_iDeltaRIdxMinus1;   
-  Int m_iDeltaRPS; 
-  Int m_iNumRefIdc; 
-  Int m_piRefIdc[MAX_NUM_REF_PICS+1];
-#endif  
 
 public:
   TComReferencePictureSet();
@@ -274,21 +257,6 @@ public:
   Void setNumberOfLongtermPictures(UInt Number) { m_uiNumberOfLongtermPictures = Number; }
   UInt getNumberOfLongtermPictures() { return m_uiNumberOfLongtermPictures; }
 
-#if INTER_RPS_PREDICTION
-  Void setInterRPSPrediction(Bool flag) { m_bInterRPSPrediction = flag; }
-  Bool getInterRPSPrediction() { return m_bInterRPSPrediction; }
-  Void setDeltaRIdxMinus1(Int x) { m_iDeltaRIdxMinus1 = x; }
-  Int getDeltaRIdxMinus1() { return m_iDeltaRIdxMinus1; }
-  Void setDeltaRPS(Int x) { m_iDeltaRPS = x; }
-  Int getDeltaRPS() { return m_iDeltaRPS; }
-  Void setNumRefIdc(Int x) { m_iNumRefIdc = x; }
-  Int getNumRefIdc() { return m_iNumRefIdc; }
-
-  Void setRefIdc(UInt uiBufferNum, Int iRefIdc);
-  Int  getRefIdc(UInt uiBufferNum);
-
-  Void sortDeltaPOC();
-#endif
   Void printDeltaPOC();
 };
 

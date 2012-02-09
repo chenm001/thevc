@@ -45,52 +45,6 @@
 #include "TLibCommon/CommonDef.h"
 #include <assert.h>
 
-#if G1002_RPS
-struct GOPEntry
-{
-  Int m_iPOC;
-  Int m_iQPOffset;
-  Double m_iQPFactor;
-  Int m_iTemporalId;
-  Bool m_bRefPic;
-  Int m_iRefBufSize;
-  Char m_iSliceType;
-  Int m_iNumRefPics;
-  Int m_aiReferencePics[MAX_NUM_REF_PICS];
-  Int m_aiUsedByCurrPic[MAX_NUM_REF_PICS];
-#if INTER_RPS_PREDICTION
-  Bool m_bInterRPSPrediction;
-  Int m_iDeltaRIdxMinus1;
-  Int m_iDeltaRPS;
-  Int m_iNumRefIdc;
-  Int m_aiRefIdc[MAX_NUM_REF_PICS+1];
-#endif
-  GOPEntry()
-  : m_iPOC(-1)
-  , m_iQPOffset()
-  , m_iQPFactor()
-  , m_iTemporalId()
-  , m_bRefPic()
-  , m_iRefBufSize()
-  , m_iSliceType()
-  , m_iNumRefPics()
-#if INTER_RPS_PREDICTION
-  , m_bInterRPSPrediction()
-  , m_iDeltaRIdxMinus1()
-  , m_iDeltaRPS()
-  , m_iNumRefIdc()
-#endif
-  {
-    ::memset( m_aiReferencePics, 0, sizeof(m_aiReferencePics) );
-    ::memset( m_aiUsedByCurrPic, 0, sizeof(m_aiUsedByCurrPic) );
-#if INTER_RPS_PREDICTION
-    ::memset( m_aiRefIdc,        0, sizeof(m_aiRefIdc) );
-#endif
-  }
-};
-
-std::istringstream &operator>>(std::istringstream &in, GOPEntry &entry);     //input
-#endif
 //! \ingroup TLibEncoder
 //! \{
 
@@ -115,16 +69,6 @@ protected:
   //====== Coding Structure ========
   UInt      m_uiIntraPeriod;
   UInt      m_uiDecodingRefreshType;            ///< the type of decoding refresh employed for the random access.
-#if G1002_RPS
-  GOPEntry  m_pcGOPList[MAX_GOP];
-  Int       m_iExtraRPSs;
-  UInt      m_uiMaxNumberOfReferencePictures;
-  Int       m_numReorderFrames;
-#else
-  Int       m_iNumOfReference;
-  Int       m_iNumOfReferenceB_L0;
-  Int       m_iNumOfReferenceB_L1;
-#endif
   
   Int       m_iQP;                              //  if (AdaptiveQP == OFF)
   
@@ -211,17 +155,6 @@ public:
   //====== Coding Structure ========
   Void      setIntraPeriod                  ( Int   i )      { m_uiIntraPeriod = (UInt)i; }
   Void      setDecodingRefreshType          ( Int   i )      { m_uiDecodingRefreshType = (UInt)i; }
-#if G1002_RPS
-  Void      setGopList                      ( GOPEntry*  piGOPList )      {  for ( Int i = 0; i < MAX_GOP; i++ ) m_pcGOPList[i] = piGOPList[i]; }
-  Void      setExtraRPSs                    ( Int   i )      { m_iExtraRPSs = i; }
-  GOPEntry  getGOPEntry                     ( Int   i )      { return m_pcGOPList[i]; }
-  Void      setMaxNumberOfReferencePictures ( UInt u )       { m_uiMaxNumberOfReferencePictures = u;    }
-  Void      setNumReorderFrames             ( Int  i )       { m_numReorderFrames = i;    }
-#else
-  Void      setNumOfReference               ( Int   i )      { m_iNumOfReference = i; }
-  Void      setNumOfReferenceB_L0           ( Int   i )      { m_iNumOfReferenceB_L0 = i; }
-  Void      setNumOfReferenceB_L1           ( Int   i )      { m_iNumOfReferenceB_L1 = i; }
-#endif
   
   Void      setQP                           ( Int   i )      { m_iQP = i; }
   
@@ -274,15 +207,6 @@ public:
   //==== Coding Structure ========
   UInt      getIntraPeriod                  ()      { return  m_uiIntraPeriod; }
   UInt      getDecodingRefreshType          ()      { return  m_uiDecodingRefreshType; }
-#if !G1002_RPS
-  Int       getNumOfReference               ()      { return  m_iNumOfReference; }
-  Int       getNumOfReferenceB_L0           ()      { return  m_iNumOfReferenceB_L0; }
-  Int       getNumOfReferenceB_L1           ()      { return  m_iNumOfReferenceB_L1; }
-  
-#else
-  UInt      getMaxNumberOfReferencePictures ()      { return m_uiMaxNumberOfReferencePictures; }
-  Int       geNumReorderFrames              ()      { return m_numReorderFrames; }
-#endif
   Int       getQP                           ()      { return  m_iQP; }
   
   Int       getTemporalLayerQPOffset        ( Int i )      { assert (i < MAX_TLAYER ); return  m_aiTLayerQPOffset[i]; }

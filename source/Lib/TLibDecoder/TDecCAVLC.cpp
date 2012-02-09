@@ -149,51 +149,7 @@ void TDecCavlc::parseShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet
   UInt uiCode;
 #if INTER_RPS_PREDICTION
   UInt uiInterRPSPred;
-  READ_FLAG(uiInterRPSPred, "inter_RPS_flag");  pcRPS->setInterRPSPrediction(uiInterRPSPred);
-  if (uiInterRPSPred) 
-  {
-    UInt uiBit;
-    READ_UVLC(uiCode, "delta_idx_minus1" ); // delta index of the Reference Picture Set used for prediction minus 1
-    Int rIdx =  idx - 1 - uiCode;
-    assert (rIdx <= idx && rIdx >= 0);
-    TComReferencePictureSet*   pcRPSRef = pcPPS->getRPSList()->getReferencePictureSet(rIdx);
-    Int k = 0, k0 = 0, k1 = 0;
-    READ_CODE(1, uiBit, "delta_rps_sign"); // delta_RPS_sign
-    READ_UVLC(uiCode, "abs_delta_rps_minus1");  // absolute delta RPS minus 1
-    Int deltaRPS = (1 - (uiBit<<1)) * (uiCode + 1); // delta_RPS
-    for(Int j=0 ; j <= pcRPSRef->getNumberOfPictures(); j++)
-    {
-      READ_CODE(1, uiBit, "ref_idc0" ); //first bit is "1" if Idc is 1 
-      Int refIdc = uiBit;
-      if (refIdc == 0) 
-      {
-        READ_CODE(1, uiBit, "ref_idc1" ); //second bit is "1" if Idc is 2, "0" otherwise.
-        refIdc = uiBit<<1; //second bit is "1" if refIdc is 2, "0" if refIdc = 0.
-      }
-      if (refIdc == 1 || refIdc == 2)
-      {
-        Int deltaPOC = deltaRPS + ((j < pcRPSRef->getNumberOfPictures())? pcRPSRef->getDeltaPOC(j) : 0);
-        pcRPS->setDeltaPOC(k, deltaPOC);
-        pcRPS->setUsed(k, (refIdc == 1));
-
-        if (deltaPOC < 0) {
-          k0++;
-        }
-        else 
-        {
-          k1++;
-        }
-        k++;
-      }  
-      pcRPS->setRefIdc(j,refIdc);  
-    }
-    pcRPS->setNumRefIdc(pcRPSRef->getNumberOfPictures()+1);  
-    pcRPS->setNumberOfPictures(k);
-    pcRPS->setNumberOfNegativePictures(k0);
-    pcRPS->setNumberOfPositivePictures(k1);
-    pcRPS->sortDeltaPOC();
-  }
-  else
+  READ_FLAG(uiInterRPSPred, "inter_RPS_flag");  assert( uiInterRPSPred == 0 );
   {
 #else
     pcRPS->create(pcPPS->getSPS()->getMaxNumberOfReferencePictures());
@@ -349,8 +305,8 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 
 #if G1002_RPS
   READ_UVLC( uiCode,    "log2_max_pic_order_cnt_lsb_minus4" );   pcSPS->setBitsForPOC( 4 + uiCode );
-  READ_UVLC( uiCode,    "max_num_ref_pics" );                    pcSPS->setMaxNumberOfReferencePictures(uiCode);
-  READ_UVLC( uiCode,    "num_reorder_frames" );                  pcSPS->setNumReorderFrames(uiCode);
+  READ_UVLC( uiCode,    "max_num_ref_pics" );                    assert( uiCode == 1 );
+  READ_UVLC( uiCode,    "num_reorder_frames" );                  assert( uiCode == 0 );
 #endif
 #if MAX_DPB_AND_LATENCY
   READ_UVLC ( uiCode, "max_dec_frame_buffering");

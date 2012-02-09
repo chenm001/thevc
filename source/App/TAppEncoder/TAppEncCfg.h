@@ -73,14 +73,7 @@ protected:
   Int       m_iIntraPeriod;                                   ///< period of I-slice (random access period)
   Int       m_iDecodingRefreshType;                           ///< random access type
 #if G1002_RPS
-  Int       m_iExtraRPSs;
-  GOPEntry  m_pcGOPList[MAX_GOP];
-  Int       m_numReorderFrames;                               ///< total number of reorder pictures
-  UInt      m_uiMaxNumberOfReferencePictures;                 ///< total number of reference pictures needed for decoding
 #else
-  Int       m_iNumOfReference;                                ///< total number of reference frames in P-slice
-  Int       m_iNumOfReferenceB_L0;                            ///< total number of reference frames for reference list L0 in B-slice
-  Int       m_iNumOfReferenceB_L1;                            ///< total number of reference frames for reference list L1 in B-slice
   Bool      m_bHierarchicalCoding;                            ///< flag for specifying hierarchical B structure
   Bool      m_bUseLDC;                                        ///< flag for using low-delay coding mode
   Bool      m_bUseNRF;                                        ///< flag for using non-referenced frame in hierarchical structure

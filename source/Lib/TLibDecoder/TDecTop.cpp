@@ -117,10 +117,9 @@ Void TDecTop::deletePicBuffer ( )
 Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
 {
 #if G1002_RPS
-  m_iMaxRefPicNum = pcSlice->getSPS()->getMaxNumberOfReferencePictures()+pcSlice->getSPS()->getNumReorderFrames() + 1; // +1 to have space for the picture currently being decoded
+  m_iMaxRefPicNum = 1 + 1; // +1 to have space for the picture currently being decoded
 #else
-  m_iMaxRefPicNum = max(m_iMaxRefPicNum, max(max(2, pcSlice->getNumRefIdx(REF_PIC_LIST_0)+1), 2 + pcSlice->getNumRefIdx(REF_PIC_LIST_0)));
-  
+  m_iMaxRefPicNum = max(1, max(max(2, pcSlice->getNumRefIdx(REF_PIC_LIST_0)+1), 2 + pcSlice->getNumRefIdx(REF_PIC_LIST_0)));
 #endif
   if (m_cListPic.size() < (UInt)m_iMaxRefPicNum)
   {

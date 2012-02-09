@@ -263,7 +263,7 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
     TComPic* pcPic = *(iterPic);
     
 #if G1002_RPS
-    if ( pcPic->getOutputMark() && (not_displayed >  m_cTDecTop.getSPS()->getNumReorderFrames() && pcPic->getPOC() > m_iPOCLastDisplay))
+    if ( pcPic->getOutputMark() && (not_displayed >  0 && pcPic->getPOC() > m_iPOCLastDisplay))
     {
       // write to file
        not_displayed--;
