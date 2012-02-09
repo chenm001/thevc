@@ -76,7 +76,6 @@
 #define ALF_DC_OFFSET_REMOVAL       1   ///< G445: Remove DC offset for ALF
 
 #define SAO_RDO_OFFSET              1   ///< G915: Considering rate-distortion-cost in optimal offset calculation for SAO
-#define G1023_FIX_NPASS_ALF         1   ///< G1023: Improved ALF N-pass encoding
 
 #define FAST_BIT_EST                1   ///< G763: Table-based bit estimation for CABAC
 #define G633_8BIT_INIT              1   ///< G633: Context model initialization method using 8 bit initialization values

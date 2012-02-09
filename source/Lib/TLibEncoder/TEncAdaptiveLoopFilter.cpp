@@ -3842,10 +3842,8 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
 
   //filter frame with the previous time-delayed filters
   Int filtNo;
-#if G1023_FIX_NPASS_ALF
   Int maxDepth = (pcPicOrg->getWidth() < 1000) ?(2):(g_uiMaxCUDepth);
   m_pcEntropyCoder->setAlfCtrl(true);
-#endif
   m_pcTempAlfParam->alf_flag = 1;
   m_pcTempAlfParam->alf_pcr_region_flag = m_uiVarGenMethod;
 
@@ -3868,7 +3866,6 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
       xfilterSlicesEncoder(pDec, pRest, LumaStride, filtNo, pppCoeffSaved[iBufIdx], ppMergeTableSaved[iBufIdx], m_varImg);
     }
 
-#if G1023_FIX_NPASS_ALF
     for (UInt uiDepth = 0; uiDepth < maxDepth; uiDepth++)
     {
       m_pcEntropyCoder->setMaxAlfCtrlDepth(uiDepth);
@@ -3891,73 +3888,11 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
         ::memcpy(bestImgMask[0], m_maskImg[0], sizeof(Pel)*m_img_height* m_img_width);
       }
     }
-#else
-    xCalcRDCost(pcPicOrg, m_pcPicYuvTmp, NULL, uiRate, uiDist, dCost);
-    if (dCost < dMinCost)
-    {
-      dMinCost  = dCost;
-      m_pcPicYuvTmp->copyToPicLuma(m_pcPicYuvBest);
-      copyALFParam(&cAlfParam, m_pcTempAlfParam);
-    }
-#endif
   }
   filtNo = cAlfParam.filter_shape;
 
 
-#if G1023_FIX_NPASS_ALF
   ::memcpy(m_maskImg[0], bestImgMask[0], sizeof(Pel)*m_img_height* m_img_width);
-#else
-  copyALFParam(m_pcTempAlfParam, &cAlfParam);
-  //decided the best CU control depth
-  m_pcPicYuvBest->copyToPicLuma(m_pcPicYuvTmp);
-  m_pcEntropyCoder->setAlfCtrl(true);
-
-  UInt uiCUCtrlFlag = 0;
-
-  if(m_bAlfCUCtrlEnabled)
-  {
-    std::vector<AlfCUCtrlInfo> vAlfCUCtrlParamTemp(m_vBestAlfCUCtrlParam);
-  Int maxDepth = g_uiMaxCUDepth;
-  if (pcPicOrg->getWidth() < 1000) maxDepth = 2;
-  for (UInt uiDepth = 0; uiDepth < maxDepth; uiDepth++)
-  {
-    m_pcEntropyCoder->setMaxAlfCtrlDepth(uiDepth);
-    xSetCUAlfCtrlFlags_qc(uiDepth, pcPicOrg, pcPicDec, m_pcPicYuvTmp, uiDist, vAlfCUCtrlParamTemp);
-    m_pcEntropyCoder->resetEntropy();
-    m_pcEntropyCoder->resetBits();
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-    xEncodeCUAlfCtrlFlags(vAlfCUCtrlParamTemp);
-#else
-    xEncodeCUAlfCtrlFlags();
-#endif
-    uiRate = m_pcEntropyCoder->getNumberOfWrittenBits();
-    dCost  = (Double)(uiRate) * m_dLambdaLuma + (Double)(uiDist);
-
-    if (dCost < dMinCost)
-    {
-      dMinCost    = dCost;
-      uiCUCtrlFlag = 1;
-      ::memcpy(bestImgMask[0], m_maskImg[0], sizeof(Pel)*m_img_height* m_img_width);
-    }
-  }
-  }
-
-  if(uiCUCtrlFlag == 1)
-  {
-    ::memcpy(m_maskImg[0], bestImgMask[0], sizeof(Pel)*m_img_height* m_img_width);
-  }
-  else
-  {
-    for(Int y=0; y< m_img_height; y++)
-    {
-      for(Int x=0; x< m_img_width; x++)
-      {
-        m_maskImg[y][x] = 1;
-      }
-    }
-  }
-#endif
-
 
   m_pcEntropyCoder->setAlfCtrl(false);
   m_pcEntropyCoder->setMaxAlfCtrlDepth(0);
@@ -4135,7 +4070,7 @@ Void  TEncAdaptiveLoopFilter::decideFilterShapeLuma(Pel* ImgOrg, Pel* ImgDec, In
   Double dEstimatedCost, dEstimatedMinCost = MAX_DOUBLE;;
 
   UInt   uiBitShift = (g_uiBitIncrement<<1);
-#if G212_CROSS9x9_VB && G1023_FIX_NPASS_ALF
+#if G212_CROSS9x9_VB
   Int64  iEstimateDistBeforeFilter;
   Int*   coeffNoFilter[NUM_ALF_FILTER_SHAPE][NO_VAR_BINS];
   for(Int filter_shape = 0; filter_shape < NUM_ALF_FILTER_SHAPE; filter_shape++)
@@ -4195,7 +4130,7 @@ Void  TEncAdaptiveLoopFilter::decideFilterShapeLuma(Pel* ImgOrg, Pel* ImgDec, In
     //estimate R-D cost
     uiRate         = xcodeFiltCoeff(m_filterCoeffSymQuant, filtNo, m_varIndTab, filters_per_fr, m_pcTempAlfParam);
     iEstimatedDist = xEstimateFiltDist(filters_per_fr, m_varIndTab, ESym, ySym, m_filterCoeffSym, m_pcTempAlfParam->num_coeff);
-#if G212_CROSS9x9_VB && G1023_FIX_NPASS_ALF
+#if G212_CROSS9x9_VB
     iEstimateDistBeforeFilter = xEstimateFiltDist(filters_per_fr, m_varIndTab, ESym, ySym, coeffNoFilter[filter_shape], m_pcTempAlfParam->num_coeff);
     iEstimatedDist -= iEstimateDistBeforeFilter;
 #endif
@@ -4205,7 +4140,7 @@ Void  TEncAdaptiveLoopFilter::decideFilterShapeLuma(Pel* ImgOrg, Pel* ImgDec, In
     {
       dEstimatedMinCost   = dEstimatedCost;
       copyALFParam(pcAlfSaved, m_pcTempAlfParam); 
-#if G212_CROSS9x9_VB && G1023_FIX_NPASS_ALF
+#if G212_CROSS9x9_VB
       iEstimatedDist += iEstimateDistBeforeFilter;
 #endif
 
@@ -4248,7 +4183,7 @@ Void  TEncAdaptiveLoopFilter::decideFilterShapeLuma(Pel* ImgOrg, Pel* ImgDec, In
       rdCost  += (Double)uiOffRegionDistortion;
     }
   }
-#if G212_CROSS9x9_VB && G1023_FIX_NPASS_ALF
+#if G212_CROSS9x9_VB
   // if ALF_STAR5x5 is selected, the distortion of 2 skipped lines per LCU should be added.
   if(pcAlfSaved->filter_shape == ALF_STAR5x5)
   {
