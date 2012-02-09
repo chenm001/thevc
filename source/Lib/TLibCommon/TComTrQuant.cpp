@@ -3175,7 +3175,6 @@ __inline Double TComTrQuant::xGetRateSigCoeffGroup  ( UShort                    
  * \param uiPosY Y coordinate of the last significant coefficient
  * \returns cost of last significant coefficient
  */
-#if MODIFIED_LAST_XY_CODING
 /*
  * \param uiWidth width of the transform unit (TU)
 */
@@ -3196,42 +3195,6 @@ __inline Double TComTrQuant::xGetRateLast   ( const UInt                      ui
   }
   return xGetICost( uiCost );
 }
-#else
-/*
- * \param uiWidth width of the transform unit (TU)
-*/
-__inline Double TComTrQuant::xGetRateLast   ( const UInt                      uiPosX,
-                                              const UInt                      uiPosY,
-                                              const UInt                      uiBlkWdth     ) const
-{
-  UInt uiCtxX              = uiPosX;
-  UInt uiCtxY              = uiPosY;
-  const UInt uiMinWidth    = min<UInt>( 4, uiBlkWdth );
-  const UInt uiHalfWidth   = uiBlkWdth >> 1;
-  const UInt uiLog2BlkSize = g_aucConvertToBit[ uiHalfWidth ] + 2;
-
-  Double uiCost = 0;
-
-  if( uiHalfWidth >= uiMinWidth )
-  {
-    if( uiPosX >= uiHalfWidth )
-    {
-      uiCost += xGetIEPRate() * uiLog2BlkSize;
-      uiCtxX  = uiHalfWidth;
-    }
-
-    if( uiPosY >= uiHalfWidth )
-    {
-      uiCost += xGetIEPRate() * uiLog2BlkSize;
-      uiCtxY  = uiHalfWidth;
-    }
-  }
-
-  uiCost += m_pcEstBitsSbac->lastXBits[ uiCtxX ] + m_pcEstBitsSbac->lastYBits[ uiCtxY ];
-
-  return xGetICost( uiCost );
-}
-#endif
 
  /** Calculates the cost for specific absolute transform level
  * \param uiAbsLevel scaled quantized level

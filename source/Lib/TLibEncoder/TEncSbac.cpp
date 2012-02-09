@@ -1215,7 +1215,6 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
   }
 
   UInt uiCtxLast;
-#if MODIFIED_LAST_XY_CODING
   ContextModel *pCtxX = m_cCuCtxLastX.get( 0, eTType );
   ContextModel *pCtxY = m_cCuCtxLastY.get( 0, eTType );
   UInt uiGroupIdxX    = g_uiGroupIdx[ uiPosX ];
@@ -1260,64 +1259,6 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
       m_pcBinIf->encodeBinEP( ( uiPosY >> i ) & 1 );
     }
   }
-#else
-  const UInt *puiCtxIdx;
-  UInt uiPosX0 = uiPosX;
-  UInt uiPosY0 = uiPosY;
-  Int minWidth    = min<Int>( 4, width );
-  Int minHeight   = min<Int>( 4, height );
-  Int halfWidth   = width >> 1;
-  Int halfHeight  = height >> 1;
-  Int log2BlkWidth  = g_aucConvertToBit[ halfWidth  ] + 2;
-  Int log2BlkHeight = g_aucConvertToBit[ halfHeight ] + 2;
-  Int maxWidth    = max<Int>( minWidth,  halfWidth  + 1 );
-  Int maxHeight   = max<Int>( minHeight, halfHeight + 1 );
-  ContextModel *pCtxX      = m_cCuCtxLastX.get( 0, eTType );
-  ContextModel *pCtxY      = m_cCuCtxLastY.get( 0, eTType );
-
-  if ( halfWidth >= minWidth )
-  {
-    uiPosX = min<UInt>( uiPosX, halfWidth );
-  }
-  if ( halfHeight >= minHeight )
-  {
-    uiPosY = min<UInt>( uiPosY, halfHeight );
-  }
-
-  // posX
-  puiCtxIdx    = g_uiLastCtx + ( halfWidth >= minWidth ? halfWidth : 0 );
-
-  for( uiCtxLast = 0; uiCtxLast < uiPosX; uiCtxLast++ )
-  {
-    m_pcBinIf->encodeBin( 0, *( pCtxX + puiCtxIdx[ uiCtxLast ] ) );
-  }
-  if( uiPosX < maxWidth - 1 )
-  {
-    m_pcBinIf->encodeBin( 1, *( pCtxX + puiCtxIdx[ uiCtxLast ] ) );
-  }
-
-  // posY
-  puiCtxIdx    = g_uiLastCtx + ( halfHeight >= minHeight ? halfHeight : 0 );
-  
-  for( uiCtxLast = 0; uiCtxLast < uiPosY; uiCtxLast++ )
-  {
-    m_pcBinIf->encodeBin( 0, *( pCtxY + puiCtxIdx[ uiCtxLast ] ) );
-  }
-  if( uiPosY < maxHeight - 1 )
-  {
-    m_pcBinIf->encodeBin( 1, *( pCtxY + puiCtxIdx[ uiCtxLast ] ) );
-  }
-
-  if ( uiPosX0 >= halfWidth && halfWidth >= minWidth )
-  {
-    m_pcBinIf->encodeBinsEP( uiPosX0 - halfWidth, log2BlkWidth );
-  }
-  if ( uiPosY0 >= halfHeight && halfHeight >= minHeight )
-  {
-    m_pcBinIf->encodeBinsEP( uiPosY0 - halfHeight, log2BlkHeight );
-  }
-#endif
-
 }
 
 Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType )
@@ -2248,84 +2189,38 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCT
   const UInt *puiCtxIdx;
   Int ctx;
   
-#if MODIFIED_LAST_XY_CODING
   puiCtxIdx = g_uiLastCtx + (g_aucConvertToBit[ width ]*(g_aucConvertToBit[ width ]+3));
-#else
-  Int minWidth = std::min(4, width);
-  Int halfWidth = width >> 1;
-  puiCtxIdx = g_uiLastCtx + ( halfWidth >= minWidth ? halfWidth : 0 );
-  Int widthMinus1 = std::max( minWidth, halfWidth + 1 ) - 1;
-#endif
   ContextModel *pCtxX      = m_cCuCtxLastX.get( 0, eTType );
-#if MODIFIED_LAST_XY_CODING
   for (ctx = 0; ctx < g_uiGroupIdx[ width - 1 ]; ctx++)
-#else
-  for (ctx = 0; ctx < widthMinus1; ctx++)
-#endif
   {
     Int ctxOffset = puiCtxIdx[ ctx ];
-#if MODIFIED_LAST_XY_CODING
     pcEstBitsSbac->lastXBits[ ctx ] = iBitsX + pCtxX[ ctxOffset ].getEntropyBits( 0 );
     iBitsX += pCtxX[ ctxOffset ].getEntropyBits( 1 );
-#else
-    pcEstBitsSbac->lastXBits[ ctx ] = iBitsX + pCtxX[ ctxOffset ].getEntropyBits( 1 );
-    iBitsX += pCtxX[ ctxOffset ].getEntropyBits( 0 );
-#endif
   }
   pcEstBitsSbac->lastXBits[ctx] = iBitsX;
 
-#if MODIFIED_LAST_XY_CODING
   puiCtxIdx = g_uiLastCtx + (g_aucConvertToBit[ height ]*(g_aucConvertToBit[ height ]+3));
-#else
-  Int minHeight = std::min(4, height);
-  Int halfHeight = height >> 1;
-  puiCtxIdx = g_uiLastCtx + ( halfHeight >= minHeight ? halfHeight : 0 );
-  Int heightMinus1 = std::max( minHeight, halfHeight + 1 ) - 1;
-#endif
   ContextModel *pCtxY      = m_cCuCtxLastY.get( 0, eTType );
-#if MODIFIED_LAST_XY_CODING
   for (ctx = 0; ctx < g_uiGroupIdx[ height - 1 ]; ctx++)
-#else
-  for (ctx = 0; ctx < heightMinus1; ctx++)
-#endif
   {
     Int ctxOffset = puiCtxIdx[ ctx ];
-#if MODIFIED_LAST_XY_CODING
     pcEstBitsSbac->lastYBits[ ctx ] = iBitsY + pCtxY[ ctxOffset ].getEntropyBits( 0 );
     iBitsY += pCtxY[ ctxOffset ].getEntropyBits( 1 );
-#else
-    pcEstBitsSbac->lastYBits[ ctx ] = iBitsY + pCtxY[ ctxOffset ].getEntropyBits( 1 );
-    iBitsY += pCtxY[ ctxOffset ].getEntropyBits( 0 );
-#endif
   }
   pcEstBitsSbac->lastYBits[ctx] = iBitsY;
 #else // NSQT_DIAG_SCAN
   const UInt uiWidth       = ( 1 << ( 7 - uiCTXIdx ) );
-#if MODIFIED_LAST_XY_CODING
   const UInt *puiCtxIdx    = g_uiLastCtx + (g_aucConvertToBit[ uiWidth ]*(g_aucConvertToBit[ uiWidth ]+3));
   const UInt uiWidthM1     = g_uiGroupIdx[uiWidth-1];
-#else
-  const UInt uiMinWidth    = min<UInt>( 4, uiWidth );
-  const UInt uiHalfWidth   = uiWidth >> 1;
-  const UInt *puiCtxIdx    = g_uiLastCtx + ( uiHalfWidth >= uiMinWidth ? uiHalfWidth : 0 );
-  const UInt uiWidthM1     = max<UInt>( uiMinWidth, uiHalfWidth + 1 ) - 1;
-#endif
   ContextModel *pCtxX      = m_cCuCtxLastX.get( 0, eTType );
   ContextModel *pCtxY      = m_cCuCtxLastY.get( 0, eTType );
   for ( UInt uiCtx = 0; uiCtx < uiWidthM1; uiCtx++ )
   {
     Int ctxOffset = puiCtxIdx[ uiCtx ];
-#if MODIFIED_LAST_XY_CODING
     pcEstBitsSbac->lastXBits[ uiCtx ] = iBitsX + pCtxX[ ctxOffset ].getEntropyBits( 0 );
     pcEstBitsSbac->lastYBits[ uiCtx ] = iBitsY + pCtxY[ ctxOffset ].getEntropyBits( 0 );
     iBitsX += pCtxX[ ctxOffset ].getEntropyBits( 1 );
     iBitsY += pCtxY[ ctxOffset ].getEntropyBits( 1 );
-#else
-    pcEstBitsSbac->lastXBits[ uiCtx ] = iBitsX + pCtxX[ ctxOffset ].getEntropyBits( 1 );
-    pcEstBitsSbac->lastYBits[ uiCtx ] = iBitsY + pCtxY[ ctxOffset ].getEntropyBits( 1 );
-    iBitsX += pCtxX[ ctxOffset ].getEntropyBits( 0 );
-    iBitsY += pCtxY[ ctxOffset ].getEntropyBits( 0 );
-#endif
   }
   pcEstBitsSbac->lastXBits[uiWidthM1] = iBitsX;
   pcEstBitsSbac->lastYBits[uiWidthM1] = iBitsY;

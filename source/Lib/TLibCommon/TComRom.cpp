@@ -757,7 +757,6 @@ UInt g_sigCGScanNSQT[ 4 ][ 16 ] =
 UInt* g_auiNonSquareSigLastScan[ 4 ];
 #endif
 
-#if MODIFIED_LAST_XY_CODING
 const UInt g_uiMinInGroup[ 10 ] = {0,1,2,3,4,6,8,12,16,24};
 const UInt g_uiGroupIdx[ 32 ]   = {0,1,2,3,4,4,5,5,6,6,6,6,7,7,7,7,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9};
 const UInt g_uiLastCtx[ 28 ]    = 
@@ -767,15 +766,6 @@ const UInt g_uiLastCtx[ 28 ]    =
   7,   8,  9,  9, 10, 10, 11, 11,         // 16x16  8
   12, 13, 14, 14, 15, 15, 16, 16, 17, 17  // 32x32  10
 };
-#else
-const UInt g_uiLastCtx[ 32 ] =
-{
-  0, 1, 2, 2, // 4x4
-  3, 4, 5, 5, // 8x8
-  6, 7, 8, 9, 10, 10, 11, 11, // 16x16
-  12, 13, 14, 15, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18 // 32x32
-};
-#endif
 
 // scanning order to 8x8 context model mapping table
 UInt  g_auiAntiScan8  [64];

@@ -1270,7 +1270,6 @@ Void TDecSbac::parseQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, 
 Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int width, Int height, TextType eTType, UInt uiScanIdx )
 {
   UInt uiLast;
-#if MODIFIED_LAST_XY_CODING
   ContextModel *pCtxX = m_cCuCtxLastX.get( 0, eTType );
   ContextModel *pCtxY = m_cCuCtxLastY.get( 0, eTType );
 
@@ -1317,61 +1316,6 @@ Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int w
     }
     uiPosLastY = g_uiMinInGroup[ uiPosLastY ] + uiTemp;
   }
-#else
-  const UInt *puiCtxIdx;
-  
-  Int minWidth    = min<Int>( 4, width );
-  Int minHeight   = min<Int>( 4, height );
-  Int halfWidth   = width >> 1;
-  Int halfHeight  = height >> 1;
-  Int log2BlkWidth  = g_aucConvertToBit[ halfWidth  ] + 2;
-  Int log2BlkHeight = g_aucConvertToBit[ halfHeight ] + 2;
-  Int maxWidth    = max<Int>( minWidth,  halfWidth  + 1 );
-  Int maxHeight   = max<Int>( minHeight, halfHeight + 1 );
-  ContextModel *pCtxX      = m_cCuCtxLastX.get( 0, eTType );
-  ContextModel *pCtxY      = m_cCuCtxLastY.get( 0, eTType );
-
-  // posX
-  puiCtxIdx    = g_uiLastCtx + ( halfWidth >= minWidth ? halfWidth : 0 );
-  
-  for( uiPosLastX = 0; uiPosLastX < maxWidth-1; uiPosLastX++ )
-  {
-    m_pcTDecBinIf->decodeBin( uiLast, *( pCtxX + puiCtxIdx[ uiPosLastX ] ) );
-
-    if( uiLast )
-    {
-      break;
-    }
-  }
-
-  Int lastX = uiLast;
-  
-  // posY
-  puiCtxIdx    = g_uiLastCtx + ( halfHeight >= minHeight ? halfHeight : 0 );
-  
-  for( uiPosLastY = 0; uiPosLastY < maxHeight-1; uiPosLastY++ )
-  {
-    m_pcTDecBinIf->decodeBin( uiLast, *( pCtxY + puiCtxIdx[ uiPosLastY ] ) );
-
-    if( uiLast )
-    {
-      break;
-    }
-  }
-
-  if ( !lastX && halfWidth >= minWidth )
-  {
-    UInt temp;
-    m_pcTDecBinIf->decodeBinsEP( temp, log2BlkWidth );
-    uiPosLastX += temp;
-  }
-  if ( !uiLast && halfHeight >= minHeight )
-  {
-    UInt temp;
-    m_pcTDecBinIf->decodeBinsEP( temp, log2BlkHeight );
-    uiPosLastY += temp;
-  }
-#endif
   
   if( uiScanIdx == SCAN_VER )
   {

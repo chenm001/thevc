@@ -133,13 +133,9 @@ extern UInt g_sigCGScanNSQT[ 4 ][ 16 ]; // coarse-grain scan for non-square part
 extern       UInt*  g_auiNonSquareSigLastScan[ 4 ];      // raster index from scanning index (zigzag)
 #endif 
 
-#if MODIFIED_LAST_XY_CODING
 extern const UInt   g_uiGroupIdx[ 32 ];
 extern const UInt   g_uiMinInGroup[ 10 ];
 extern const UInt   g_uiLastCtx[ 28 ];
-#else
-extern const UInt   g_uiLastCtx[32];
-#endif
 
 extern const UInt   g_auiGoRiceRange[4];                  //!< maximum value coded with Rice codes
 extern const UInt   g_auiGoRicePrefixLen[4];              //!< prefix length for each maximum value
