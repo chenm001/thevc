@@ -106,7 +106,6 @@
 #define MLS_CG_SIZE                         4      ///< G644 : Coefficient group size of 4x4
 #endif
 #define CHROMA_CBF_CTX_REDUCTION            1      ///< G718 : Sharing contexts for cbf_cb and cbf_cr
-#define TU_LEVEL_COEFF_INTERLEAVE           1      ///< G112 / G381: TU level luma/chroma coefficient interleaving
 
 #define COEFF_CTXSET_RED                    1      ///< G783 : reduce level context set of chroma
 #define ALF_SAO_SLICE_FLAGS                 1      ///< G566 : Re-insert ALF and SAO flags in the slice header
