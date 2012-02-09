@@ -4095,18 +4095,7 @@ Void TEncAdaptiveLoopFilter::setInitialMask(TComPicYuv* pcPicOrg, TComPicYuv* pc
   Int LumaStride = pcPicOrg->getStride();
   Pel* pDec = pcPicDec->getLumaAddr();
 
-#if G609_NEW_BA_SUB
   calcVar(m_varImg, pDec, LumaStride, m_uiVarGenMethod);
-#else
-  if(!m_bUseNonCrossALF)
-  {
-    calcVar(0, 0, m_varImg, pDec, VAR_SIZE, Height, Width, LumaStride);
-  }
-  else
-  {
-    calcVarforSlices(m_varImg, pDec, VAR_SIZE, LumaStride);
-  }
-#endif
 
   if(!m_iALFEncodePassReduction || !m_iUsePreviousFilter)
   {
@@ -4487,57 +4476,6 @@ Int64 TEncAdaptiveLoopFilter::xEstimateFiltDist(Int filters_per_fr, Int* VarIndT
   return iDist;
 
 }
-#if !G609_NEW_BA_SUB
-/** Calculate ALF grouping indices for ALF slices
- * \param varmap grouping indices buffer
- * \param imgY_Dec picture buffer
- * \param pad_size (max. filter tap)/2
- * \param fl  VAR_SIZE
- * \param img_stride picture buffer stride
- */
-Void TEncAdaptiveLoopFilter::calcVarforSlices(Pel **varmap, Pel *imgY_Dec, Int fl, Int img_stride)
-{
-  if(m_uiVarGenMethod == ALF_RA)
-  {
-    return;
-  }
-
-  Pel* pPicSrc   = (Pel *)imgY_Dec;
-  Pel* pPicSlice = m_pcSliceYuvTmp->getLumaAddr();
-
-  for(UInt s=0; s< m_uiNumSlicesInPic; s++)
-  {
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-    if(!m_pcPic->getValidSlice(s))
-    {
-      continue;
-    }
-    std::vector< std::vector<AlfLCUInfo*> > & vpSliceTileAlfLCU = m_pvpSliceTileAlfLCU[s];
-
-    for(Int t=0; t< (Int)vpSliceTileAlfLCU.size(); t++)
-    {
-      std::vector<AlfLCUInfo*> & vpAlfLCU = vpSliceTileAlfLCU[t];
-      copyRegion(vpAlfLCU, pPicSlice, pPicSrc, img_stride);
-      extendRegionBorder(vpAlfLCU, pPicSlice, img_stride);
-      calcVarforOneSlice(vpAlfLCU, varmap, (Pel*)pPicSlice, fl, img_stride);
-    }
-
-#else
-
-    CAlfSlice* pSlice = &(m_pSlice[s]);
-
-    if(!pSlice->isValidSlice())
-    {
-      continue;
-    }
-
-    pSlice->copySliceLuma(pPicSlice, pPicSrc, img_stride);
-    pSlice->extendSliceBorderLuma(pPicSlice, img_stride);
-    calcVarforOneSlice(pSlice, varmap, (Pel*)pPicSlice, fl, img_stride);
-#endif
-  }
-}
-#endif
 
 /** Calculate ALF grouping indices for ALF slices
  * \param varmap grouping indices buffer

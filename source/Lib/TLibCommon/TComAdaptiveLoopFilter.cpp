@@ -654,15 +654,10 @@ Void TComAdaptiveLoopFilter::xALFLuma(TComPic* pcPic, ALFParam* pcAlfParam, std:
 
   m_uiVarGenMethod = pcAlfParam->alf_pcr_region_flag;
   m_varImg         = m_varImgMethods[m_uiVarGenMethod];
-#if G609_NEW_BA_SUB
   calcVar(m_varImg, pRest, LumaStride, pcAlfParam->alf_pcr_region_flag);
-#endif
 
   if(!m_bUseNonCrossALF)
   {
-#if !G609_NEW_BA_SUB
-    calcVar(0, 0, m_varImg, pDec, VAR_SIZE, m_img_height, m_img_width, LumaStride);
-#endif
     Bool bCUCtrlEnabled = false;
     for(UInt s=0; s< m_uiNumSlicesInPic; s++)
     {
@@ -715,12 +710,6 @@ Void TComAdaptiveLoopFilter::xALFLuma(TComPic* pcPic, ALFParam* pcAlfParam, std:
 
         copyRegion(vpAlfLCU, pTemp, pDec, LumaStride);
         extendRegionBorder(vpAlfLCU, pTemp, LumaStride);
-#if !G609_NEW_BA_SUB
-        if(m_uiVarGenMethod != ALF_RA)
-        {
-          calcVarforOneSlice(vpAlfLCU, m_varImg, pDec, VAR_SIZE, LumaStride);
-        }
-#endif
         if(vAlfCUCtrlParam[s].cu_control_flag == 1)
         {
           xCUAdaptiveRegion(vpAlfLCU, pTemp, pRest, LumaStride, pcAlfParam->filter_shape, m_filterCoeffSym, m_varIndTab, m_varImg);
@@ -740,12 +729,6 @@ Void TComAdaptiveLoopFilter::xALFLuma(TComPic* pcPic, ALFParam* pcAlfParam, std:
 
       pSlice->copySliceLuma((Pel*)pDec, (Pel*)pRest, LumaStride);
       pSlice->extendSliceBorderLuma((Pel*)pDec, LumaStride);
-#if !G609_NEW_BA_SUB
-      if(m_uiVarGenMethod != ALF_RA)
-      {
-        calcVarforOneSlice(pSlice, m_varImg, pDec, VAR_SIZE, LumaStride);
-      }
-#endif
       xFilterOneSlice(pSlice, pDec, pRest, LumaStride, pcAlfParam);
 #endif
     }
@@ -1343,7 +1326,6 @@ static Pel Clip_post(int high, int val)
   return (Pel)(((val > high)? high: val));
 }
 
-#if G609_NEW_BA_SUB
 /** Calculate ALF grouping indices for block-based (BA) mode
  * \param [out] imgYvar grouping indices buffer
  * \param [in] imgYpad picture buffer
@@ -1405,63 +1387,6 @@ Void TComAdaptiveLoopFilter::calcVar(Pel **imgYvar, Pel *imgYpad, Int stride, In
     }
   }
 }
-
-#else
-Void TComAdaptiveLoopFilter::calcVar(int ypos, int xpos, Pel **imgY_var, Pel *imgY_pad, int fl, int img_height, int img_width, int img_stride)
-{
-  if(m_uiVarGenMethod == ALF_RA)
-  {
-    return;
-  }
-  static Int shift_h     = (Int)(log((double)VAR_SIZE_H)/log(2.0));
-  static Int shift_w     = (Int)(log((double)VAR_SIZE_W)/log(2.0));
-
-  Int start_height = ypos;
-  Int start_width  = xpos;
-  Int end_height   = ypos + img_height;
-  Int end_width    = xpos + img_width;
-  Int i, j;
-  Int fl2plusOne= (VAR_SIZE<<1)+1; //3
-  Int var_max= NO_VAR_BINS-1;
-  Int avg_var;
-  Int vertical, horizontal;
-  Int direction;
-  Int step1 = NO_VAR_BINS/3 - 1;
-  Int th[NO_VAR_BINS] = {0, 1, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4}; 
-
-  for(i = 1+start_height+1; i < end_height + fl2plusOne; i=i+4)
-  {
-    Int yoffset = ((i-fl-1) * img_stride) -fl-1;
-    Pel *p_imgY_pad = &imgY_pad[yoffset];
-    Pel *p_imgY_pad_up   = &imgY_pad[yoffset + img_stride];
-    Pel *p_imgY_pad_down = &imgY_pad[yoffset - img_stride];
-    for(j = 1+start_width+1; j < end_width +fl2plusOne; j=j+4)
-    {
-      // Compute at sub-sample by 2
-      vertical = abs((p_imgY_pad[j]<<1) - p_imgY_pad_down[j] - p_imgY_pad_up[j]);
-      horizontal = abs((p_imgY_pad[j]<<1) - p_imgY_pad[j+1] - p_imgY_pad[j-1]);
-
-      vertical += abs((p_imgY_pad[j+2]<<1) - p_imgY_pad_down[j+2] - p_imgY_pad_up[j+2]);
-      horizontal += abs((p_imgY_pad[j+2]<<1) - p_imgY_pad[j+1+2] - p_imgY_pad[j-1+2]);
-
-      vertical += abs((p_imgY_pad[j+2*img_stride]<<1) - p_imgY_pad_down[j+2*img_stride] - p_imgY_pad_up[j+2*img_stride]);
-      horizontal += abs((p_imgY_pad[j+2*img_stride]<<1) - p_imgY_pad[j+1+2*img_stride] - p_imgY_pad[j-1+2*img_stride]);
-
-      vertical += abs((p_imgY_pad[j+2+2*img_stride]<<1) - p_imgY_pad_down[j+2+2*img_stride] - p_imgY_pad_up[j+2+2*img_stride]);
-      horizontal += abs((p_imgY_pad[j+2+2*img_stride]<<1) - p_imgY_pad[j+1+2+2*img_stride] - p_imgY_pad[j-1+2+2*img_stride]);
-
-      direction = 0;
-      if (vertical > 2*horizontal) direction = 1; //vertical
-      if (horizontal > 2*vertical) direction = 2; //horizontal
-      avg_var = (vertical + horizontal)>>2;
-      avg_var = (Pel) Clip_post(var_max, avg_var>>(g_uiBitIncrement+1));
-      avg_var = th[avg_var];
-      avg_var = Clip_post(step1, (Int) avg_var ) + (step1+1)*direction;
-      imgY_var[(i - 1)>>shift_h][(j - 1)>>shift_w] = avg_var;
-    }
-  }
-}
-#endif
 
 Void TComAdaptiveLoopFilter::createRegionIndexMap(Pel **imgYVar, Int imgWidth, Int imgHeight)
 {
@@ -2329,45 +2254,6 @@ Void TComAdaptiveLoopFilter::destroySlice()
   {
     delete[] m_piSliceSUMap;
     m_piSliceSUMap = NULL;
-  }
-}
-#endif
-#if !G609_NEW_BA_SUB
-/** Calculate ALF grouping indices for one slice
- * \param pSlice slice variables
- * \param imgY_var grouping indices buffer
- * \param imgY_pad padded picture buffer
- * \param pad_size (max. filter tap)/2
- * \param fl  VAR_SIZE
- * \param img_stride picture buffer stride
- */
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-Void TComAdaptiveLoopFilter::calcVarforOneSlice(std::vector<AlfLCUInfo*> &vpAlfLCU, Pel **imgY_var, Pel *imgY_pad, Int fl, Int img_stride)
-#else
-Void TComAdaptiveLoopFilter::calcVarforOneSlice(CAlfSlice* pSlice, Pel **imgY_var, Pel *imgY_pad, Int fl, Int img_stride)
-#endif
-{  
-  Int iHeight, iWidth;
-  Int ypos, xpos;
-
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-  for(Int i=0; i< vpAlfLCU.size(); i++)
-  {
-    AlfLCUInfo& cAlfLCU = *(vpAlfLCU[i]);
-    for(Int j=0; j< cAlfLCU.numSGU; j++)
-#else
-  for(Int i=0; i< pSlice->getNumLCUs(); i++)
-  { 
-    CAlfLCU& cAlfLCU = (*pSlice)[i];
-    for(Int j=0; j< cAlfLCU.getNumSGU(); j++)
-#endif
-    {
-      ypos    = (Int)cAlfLCU[j].posY;
-      xpos    = (Int)cAlfLCU[j].posX;
-      iHeight = (Int)cAlfLCU[j].height;
-      iWidth  = (Int)cAlfLCU[j].width;
-      calcVar(ypos, xpos, imgY_var, imgY_pad, fl, iHeight, iWidth, img_stride);
-    }
   }
 }
 #endif
