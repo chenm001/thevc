@@ -1400,9 +1400,7 @@ Void TEncGOP::printOutSummary(UInt uiNumAllPicCoded)
   m_gcAnalyzeB.printSummary('B');
 #endif
 
-#if RVM_VCEGAM10
   printf("\nRVM: %.3lf\n" , xCalculateRVM());
-#endif
 }
 
 Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiBits )
@@ -1694,9 +1692,7 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
   }
 
   unsigned uibits = numRBSPBytes * 8;
-#if RVM_VCEGAM10
   m_vRVM_RP.push_back( uibits );
-#endif
 
   //===== add PSNR =====
   m_gcAnalyzeAll.addResult (dYPSNR, dUPSNR, dVPSNR, (Double)uibits);
@@ -1782,7 +1778,6 @@ NalUnitType TEncGOP::getNalUnitType(UInt uiPOCCurr)
   return NAL_UNIT_CODED_SLICE;
 }
 
-#if RVM_VCEGAM10
 Double TEncGOP::xCalculateRVM()
 {
   Double dRVM = 0;
@@ -1827,7 +1822,6 @@ Double TEncGOP::xCalculateRVM()
   
   return( dRVM );
 }
-#endif
 
 /** Determine the difference between consecutive tile sizes (in bytes) and writes it to  bistream rNalu [slice header]
  * \param rpcBitstreamRedirect contains the bitstream to be concatenated to rNalu. rpcBitstreamRedirect contains slice payload. rpcSlice contains tile location information.

@@ -56,9 +56,7 @@
 
 #include "TEncAnalyze.h"
 
-#if RVM_VCEGAM10
 #include <vector>
-#endif
 
 //! \ingroup TLibEncoder
 //! \{
@@ -108,9 +106,7 @@ private:
   UInt*                   m_uiStoredStartCUAddrForEncodingSlice;
   UInt*                   m_uiStoredStartCUAddrForEncodingEntropySlice;
 
-#if RVM_VCEGAM10
   std::vector<Int> m_vRVM_RP;
-#endif
 
 public:
   TEncGOP();
@@ -148,9 +144,7 @@ protected:
   
   UInt64 xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1);
 
-#if RVM_VCEGAM10
   Double xCalculateRVM();
-#endif
 };// END CLASS DEFINITION TEncGOP
 
 // ====================================================================================================================

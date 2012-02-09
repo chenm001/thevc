@@ -121,10 +121,7 @@
                             // Setting to 0 will slow cabac by an as yet unknown amount.
                             // This is here just to perform timing tests -- OL_FLUSH_ALIGN should be 0 for WPP.
 
-#define RVM_VCEGAM10 1 // RVM model proposed in VCEG-AM10
-#if RVM_VCEGAM10
 #define RVM_VCEGAM10_M 4
-#endif
 
 #define PLANAR_IDX             0
 #define DC_IDX                 3                     // index for intra DC mode
