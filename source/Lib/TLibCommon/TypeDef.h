@@ -68,7 +68,6 @@
 #define MIN_SCAN_POS_CROSS          5
 #endif
 #endif
-#define G214_ALF_CONSTRAINED_COEFF  1   ///< G214: Constrained ALF coefficient value
 #define G215_ALF_NUM_FILTER         1   ///< G215: the number of filters in one picture, encoder only
 #define ALF_DC_OFFSET_REMOVAL       1   ///< G445: Remove DC offset for ALF
 

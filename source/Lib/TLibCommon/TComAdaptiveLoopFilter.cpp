@@ -593,9 +593,7 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam, st
   {
     predictALFCoeffChroma(pcAlfParam);
 
-#if G214_ALF_CONSTRAINED_COEFF
     checkFilterCoeffValue(pcAlfParam->coeff_chroma, pcAlfParam->num_coeff_chroma, true );
-#endif
 
     xALFChroma( pcAlfParam, pcPicYuvExtRec, pcPicYuvRec);
   }
@@ -605,7 +603,6 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam, st
 // Protected member functions
 // ====================================================================================================================
 
-#if G214_ALF_CONSTRAINED_COEFF
 /** 
  \param filter         filter coefficient
  \param filterLength   filter length
@@ -641,8 +638,6 @@ Void TComAdaptiveLoopFilter::checkFilterCoeffValue( Int *filter, Int filterLengt
   filter[filterLength-1] = Clip3(minValueOffset, maxValueOffset, filter[filterLength-1]);
 #endif
 }
-#endif
-
 
 Void TComAdaptiveLoopFilter::xALFLuma(TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam,TComPicYuv* pcPicDec, TComPicYuv* pcPicRest)
 {
@@ -1312,13 +1307,10 @@ Void TComAdaptiveLoopFilter::reconstructFilterCoeffs(ALFParam* pcAlfParam,int **
     }
   }
 
-#if G214_ALF_CONSTRAINED_COEFF
   for(ind = 0; ind < pcAlfParam->filters_per_group; ind++)
   {
     checkFilterCoeffValue(pfilterCoeffSym[ind], pcAlfParam->num_coeff, false );
   }
-#endif
-
 }
 
 static Pel Clip_post(int high, int val)

@@ -1268,14 +1268,11 @@ Void TEncAdaptiveLoopFilter::xQuantFilterCoef(Double* h, Int* qh, Int tap, int b
   qh[N] = max(min_value,min(max_value, qh[N]));
 #endif
 
-#if G214_ALF_CONSTRAINED_COEFF
 #if ALF_DC_OFFSET_REMOVAL
   checkFilterCoeffValue(qh, N, true);
 #else
   checkFilterCoeffValue(qh, N+1, true);
 #endif
-#endif
-
 
   delete[] dh;
   dh = NULL;
@@ -3684,9 +3681,7 @@ Double TEncAdaptiveLoopFilter::QuantizeIntegerFilterPP(Double *filterCoeff, Int 
     }
   }
   
-#if G214_ALF_CONSTRAINED_COEFF
   checkFilterCoeffValue(filterCoeffQuant, sqrFiltLength, false);
-#endif
 
   for (i=0; i<sqrFiltLength; i++)
   {
