@@ -60,7 +60,6 @@
 #else
 #define MIN_SCAN_POS_CROSS          5
 #endif
-#define ALF_DC_OFFSET_REMOVAL       1   ///< G445: Remove DC offset for ALF
 
 #define SAO_RDO_OFFSET              1   ///< G915: Considering rate-distortion-cost in optimal offset calculation for SAO
 

@@ -50,23 +50,13 @@
 
 #if G212_CROSS9x9_VB
 
-#if ALF_DC_OFFSET_REMOVAL
 #define ALF_MAX_NUM_COEF      9                                       //!< maximum number of filter coefficients
 #define MAX_SQR_FILT_LENGTH   41                                      //!< ((max_horizontal_tap * max_vertical_tap) / 2 + 1) = ((11 * 5) / 2 + 1)
-#else
-#define ALF_MAX_NUM_COEF      10                                      //!< maximum number of filter coefficients
-#define MAX_SQR_FILT_LENGTH   42                                      //!< ((max_horizontal_tap * max_vertical_tap) / 2 + 2) = ((11 * 5) / 2 + 2)
-#endif
 
 
 #else
-#if ALF_DC_OFFSET_REMOVAL
 #define ALF_MAX_NUM_COEF      9                                       //!< maximum number of filter coefficients
 #define MAX_SQR_FILT_LENGTH   28                                      //!< ((max_horizontal_tap * max_vertical_tap) / 2 + 1) = ((11 * 5) / 2 + 1)
-#else
-#define ALF_MAX_NUM_COEF      10                                      //!< maximum number of filter coefficients
-#define MAX_SQR_FILT_LENGTH   29                                      //!< ((max_horizontal_tap * max_vertical_tap) / 2 + 2) = ((11 * 5) / 2 + 2)
-#endif
 #endif
 
 #define ALF_NUM_BIT_SHIFT     8                                       ///< bit shift parameter for quantization of ALF param.

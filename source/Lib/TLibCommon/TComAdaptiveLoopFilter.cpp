@@ -118,19 +118,11 @@ Int TComAdaptiveLoopFilter::m_sqrFiltLengthTab[NUM_ALF_FILTER_SHAPE] =
 {
 #if G212_CROSS9x9_VB
 
-#if ALF_DC_OFFSET_REMOVAL
   9, 9
-#else
-  10, 10
-#endif
 
 
 #else
-#if ALF_DC_OFFSET_REMOVAL
    9, 8
-#else
-  10, 9
-#endif
 #endif
 };
 
@@ -516,11 +508,7 @@ Void TComAdaptiveLoopFilter::predictALFCoeffChroma( ALFParam* pAlfParam )
   Int i, sum, pred, N;
   const Int* pFiltMag = NULL;
   pFiltMag = weightsTabShapes[pAlfParam->filter_shape_chroma];
-#if ALF_DC_OFFSET_REMOVAL
   N = pAlfParam->num_coeff_chroma;
-#else
-  N = pAlfParam->num_coeff_chroma - 1;
-#endif
   sum=0;
   for(i=0; i<N;i++)
   {
@@ -616,27 +604,12 @@ Void TComAdaptiveLoopFilter::checkFilterCoeffValue( Int *filter, Int filterLengt
   Int maxValueCenter    = 2 * (1 << ALF_NUM_BIT_SHIFT) - 1;
   Int minValueCenter    = 0 ; 
 
-#if !ALF_DC_OFFSET_REMOVAL
-  Int pelDepth          = g_uiBitIncrement + g_uiBitDepth - (isChroma ? 2 : 0) ;
-  Int maxValueOffset    = ( 1 << (pelDepth + ALF_NUM_BIT_SHIFT))  -1;  
-  Int minValueOffset    = 0 - ( 1 << (pelDepth + ALF_NUM_BIT_SHIFT) ) ;
-#endif
-
-#if ALF_DC_OFFSET_REMOVAL
   for(Int i = 0; i < filterLength-1; i++)
-#else
-  for(Int i = 0; i < filterLength-2; i++)
-#endif
   {
     filter[i] = Clip3(minValueNonCenter, maxValueNonCenter, filter[i]);
   }
 
-#if ALF_DC_OFFSET_REMOVAL
   filter[filterLength-1] = Clip3(minValueCenter, maxValueCenter, filter[filterLength-1]);
-#else
-  filter[filterLength-2] = Clip3(minValueCenter, maxValueCenter, filter[filterLength-2]);
-  filter[filterLength-1] = Clip3(minValueOffset, maxValueOffset, filter[filterLength-1]);
-#endif
 }
 
 Void TComAdaptiveLoopFilter::xALFLuma(TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam,TComPicYuv* pcPicDec, TComPicYuv* pcPicRest)
@@ -860,11 +833,7 @@ Void TComAdaptiveLoopFilter::filterLuma(Pel *pImgRes, Pel *pImgPad, Int stride,
               coef = filterSet[mergeTable[*(pVar++)]];
             }
 
-#if ALF_DC_OFFSET_REMOVAL
             pixelInt  = 0;
-#else
-            pixelInt  = coef[9];
-#endif
 
             pixelInt += coef[0]* (pImgPad3[j+2]+pImgPad4[j-2]);
             pixelInt += coef[1]* (pImgPad3[j  ]+pImgPad4[j  ]);
@@ -893,11 +862,7 @@ Void TComAdaptiveLoopFilter::filterLuma(Pel *pImgRes, Pel *pImgPad, Int stride,
             coef = filterSet[mergeTable[*(pVar++)]];
           }
 
-#if ALF_DC_OFFSET_REMOVAL
           pixelInt  = 0;
-#else
-          pixelInt  = coef[9];
-#endif
 
           pixelInt += coef[0]* (pImgPad3[j+2]+pImgPad4[j-2]);
           pixelInt += coef[1]* (pImgPad3[j  ]+pImgPad4[j  ]);
@@ -981,11 +946,7 @@ Void TComAdaptiveLoopFilter::filterLuma(Pel *pImgRes, Pel *pImgPad, Int stride,
               coef = filterSet[mergeTable[varInd]];
             }
 
-#if ALF_DC_OFFSET_REMOVAL
             pixelInt  = 0;
-#else
-            pixelInt  = coef[9]; 
-#endif
 
             pixelInt += coef[4]* (pImgPad[j+4]+pImgPad[j-4]);
             pixelInt += coef[5]* (pImgPad[j+3]+pImgPad[j-3]);
@@ -1007,11 +968,7 @@ Void TComAdaptiveLoopFilter::filterLuma(Pel *pImgRes, Pel *pImgPad, Int stride,
               coef = filterSet[mergeTable[varInd]];
             }
 
-#if ALF_DC_OFFSET_REMOVAL
             pixelInt  = 0;
-#else
-            pixelInt  = coef[9]; 
-#endif
 
             pixelInt += coef[3]* (pImgPad1[j]+pImgPad2[j]);
 
@@ -1035,11 +992,7 @@ Void TComAdaptiveLoopFilter::filterLuma(Pel *pImgRes, Pel *pImgPad, Int stride,
               coef = filterSet[mergeTable[varInd]];
             }
 
-#if ALF_DC_OFFSET_REMOVAL
             pixelInt  = 0;
-#else
-            pixelInt  = coef[9]; 
-#endif
 
             pixelInt += coef[2]* (pImgPad3[j]+pImgPad4[j]);
 
@@ -1065,11 +1018,7 @@ Void TComAdaptiveLoopFilter::filterLuma(Pel *pImgRes, Pel *pImgPad, Int stride,
               coef = filterSet[mergeTable[varInd]];
             }
 
-#if ALF_DC_OFFSET_REMOVAL
             pixelInt  = 0;
-#else
-            pixelInt  = coef[9]; 
-#endif
 
             pixelInt += coef[1]* (pImgPad5[j]+pImgPad6[j]);
 
@@ -1096,11 +1045,7 @@ Void TComAdaptiveLoopFilter::filterLuma(Pel *pImgRes, Pel *pImgPad, Int stride,
               coef = filterSet[mergeTable[*(pVar++)]];
             }
 
-#if ALF_DC_OFFSET_REMOVAL
             pixelInt  = 0;
-#else
-            pixelInt  = coef[9]; 
-#endif
 
             pixelInt += coef[0]* (pImgPad7[j]+pImgPad8[j]);
 
@@ -1142,11 +1087,7 @@ Void TComAdaptiveLoopFilter::filterLuma(Pel *pImgRes, Pel *pImgPad, Int stride,
             coef = filterSet[mergeTable[*(pVar++)]];
           }
 
-#if ALF_DC_OFFSET_REMOVAL
           pixelInt  = 0;
-#else
-          pixelInt  = coef[8]; 
-#endif
 
           pixelInt += coef[0]* (pImgPad3[j]+pImgPad4[j]);
 
@@ -1237,11 +1178,7 @@ Void TComAdaptiveLoopFilter::predictALFCoeffLuma(ALFParam* pcAlfParam)
   for(ind = 0; ind < pcAlfParam->filters_per_group; ++ind)
   {
     sum = 0;
-#if ALF_DC_OFFSET_REMOVAL
     for(Int i = 0; i < pcAlfParam->num_coeff-2; i++)
-#else
-    for(Int i = 0; i < pcAlfParam->num_coeff-3; i++)
-#endif
     {
       sum +=  pFiltMag[i]*pcAlfParam->coeffmulti[ind][i];
     }
@@ -1255,17 +1192,9 @@ Void TComAdaptiveLoopFilter::predictALFCoeffLuma(ALFParam* pcAlfParam)
       {
         coeffPred = (0-sum) >> 2;
       }
-#if ALF_DC_OFFSET_REMOVAL
       pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-2] = coeffPred + pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-2];
-#else
-      pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-3] = coeffPred + pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-3];
-#endif
     }
-#if ALF_DC_OFFSET_REMOVAL
     sum += pFiltMag[pcAlfParam->num_coeff-2]*pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-2];
-#else
-    sum += pFiltMag[pcAlfParam->num_coeff-3]*pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-3];
-#endif
     if((pcAlfParam->predMethod==0)|(ind==0))
     {
       coeffPred = (1<<ALF_NUM_BIT_SHIFT)-sum;
@@ -1274,11 +1203,7 @@ Void TComAdaptiveLoopFilter::predictALFCoeffLuma(ALFParam* pcAlfParam)
     {
       coeffPred = -sum;
     }
-#if ALF_DC_OFFSET_REMOVAL
     pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-1] = coeffPred + pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-1];
-#else
-    pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-2] = coeffPred + pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-2];
-#endif
   }
 }
 
@@ -1448,9 +1373,6 @@ Void TComAdaptiveLoopFilter::filterChroma(Pel *pImgRes, Pel *pImgPad, Int stride
 {
   static Int numBitsMinus1= (Int)ALF_NUM_BIT_SHIFT;
   static Int offset       = (1<<( (Int)ALF_NUM_BIT_SHIFT-1));
-#if !ALF_DC_OFFSET_REMOVAL
-  Int iShift = g_uiBitDepth + g_uiBitIncrement - 8;
-#endif
 
   Pel *pImgPad1,*pImgPad2,*pImgPad3,*pImgPad4;
   Int i, j, pixelInt;
@@ -1529,11 +1451,7 @@ Void TComAdaptiveLoopFilter::filterChroma(Pel *pImgRes, Pel *pImgPad, Int stride
         {
           for(j= xpos; j<= xposEnd ; j++)
           {
-#if ALF_DC_OFFSET_REMOVAL
             pixelInt  = 0;
-#else
-            pixelInt  = (coef[9] << iShift); 
-#endif
 
             pixelInt += coef[0]* (pImgPad3[j+2]+pImgPad4[j-2]);
             pixelInt += coef[1]* (pImgPad3[j  ]+pImgPad4[j  ]);
@@ -1558,11 +1476,7 @@ Void TComAdaptiveLoopFilter::filterChroma(Pel *pImgRes, Pel *pImgPad, Int stride
 
         for(j= xpos; j<= xposEnd ; j++)
         {
-#if ALF_DC_OFFSET_REMOVAL
           pixelInt  = 0;
-#else
-          pixelInt  = (coef[9] << iShift); 
-#endif
 
           pixelInt += coef[0]* (pImgPad3[j+2]+pImgPad4[j-2]);
           pixelInt += coef[1]* (pImgPad3[j  ]+pImgPad4[j  ]);
@@ -1650,11 +1564,7 @@ Void TComAdaptiveLoopFilter::filterChroma(Pel *pImgRes, Pel *pImgPad, Int stride
         {
           for(j= xpos; j<= xposEnd ; j++)
           {
-#if ALF_DC_OFFSET_REMOVAL
             pixelInt  = 0;
-#else
-            pixelInt  = (coef[9] << iShift); 
-#endif
 
             pixelInt += coef[4]* (pImgPad[j+4]+pImgPad[j-4]);
             pixelInt += coef[5]* (pImgPad[j+3]+pImgPad[j-3]);
@@ -1671,11 +1581,7 @@ Void TComAdaptiveLoopFilter::filterChroma(Pel *pImgRes, Pel *pImgPad, Int stride
         {
           for(j= xpos; j<= xposEnd ; j++)
           {
-#if ALF_DC_OFFSET_REMOVAL
             pixelInt  = 0;
-#else
-            pixelInt  = (coef[9] << iShift); 
-#endif
             
             pixelInt += coef[3]* (pImgPad1[j]+pImgPad2[j]);
 
@@ -1694,11 +1600,7 @@ Void TComAdaptiveLoopFilter::filterChroma(Pel *pImgRes, Pel *pImgPad, Int stride
         {
           for(j= xpos; j<= xposEnd ; j++)
           {
-#if ALF_DC_OFFSET_REMOVAL
             pixelInt  = 0;
-#else
-            pixelInt  = (coef[9] << iShift); 
-#endif
 
             pixelInt += coef[2]* (pImgPad3[j]+pImgPad4[j]);
 
@@ -1719,11 +1621,7 @@ Void TComAdaptiveLoopFilter::filterChroma(Pel *pImgRes, Pel *pImgPad, Int stride
         {
           for(j= xpos; j<= xposEnd ; j++)
           {
-#if ALF_DC_OFFSET_REMOVAL
             pixelInt  = 0;
-#else
-            pixelInt  = (coef[9] << iShift); 
-#endif
 
             pixelInt += coef[1]* (pImgPad5[j]+pImgPad6[j]);
 
@@ -1746,11 +1644,7 @@ Void TComAdaptiveLoopFilter::filterChroma(Pel *pImgRes, Pel *pImgPad, Int stride
         {          
           for(j= xpos; j<= xposEnd ; j++)
           {
-#if ALF_DC_OFFSET_REMOVAL
             pixelInt  = 0;
-#else
-            pixelInt  = (coef[9] << iShift); 
-#endif
 
             pixelInt += coef[0]* (pImgPad7[j]+pImgPad8[j]);
 
@@ -1789,11 +1683,7 @@ Void TComAdaptiveLoopFilter::filterChroma(Pel *pImgRes, Pel *pImgPad, Int stride
 
         for(j= xpos; j<= xposEnd ; j++)
         {
-#if ALF_DC_OFFSET_REMOVAL
           pixelInt  = 0;
-#else
-          pixelInt  = (coef[8] << iShift); 
-#endif
 
           pixelInt += coef[0]* (pImgPad3[j]+pImgPad4[j]);
 
