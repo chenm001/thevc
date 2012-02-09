@@ -2506,63 +2506,6 @@ Bool TComDataCU::hasEqualMotion( UInt uiAbsPartIdx, TComDataCU* pcCandCU, UInt u
   return true;
 }
 
-#if !REMOVE_AVOID_MERGE
-Bool TComDataCU::avoidMergeCandidate( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDepth, TComDataCU* pcCandCU, UInt uiCandAbsPartIdx )
-{
-  // uiAbsPartIdx has to be the first index of the current PU
-
-  if ( !pcCandCU )
-  {
-    return true;
-  }
-
-  PartSize ePartSize = getPartitionSize( uiAbsPartIdx );
-
-  if ( ePartSize != SIZE_NxN && ePartSize != SIZE_2Nx2N )
-  {
-    // we have exactly 2 PUs. Avoid imitating 2Nx2N.
-    if ( uiPUIdx == 1 )
-    {
-      // we would merge the second PU
-      UInt uiPUOffset = ( g_auiPUOffset[UInt( ePartSize )] << ( ( getSlice()->getSPS()->getMaxCUDepth() - uiDepth ) << 1 ) ) >> 4;
-      UInt uiAbsPartIdxOfFirstPU = uiAbsPartIdx - uiPUOffset;
-      if ( hasEqualMotion( uiAbsPartIdxOfFirstPU, pcCandCU, uiCandAbsPartIdx ) )
-      {
-        // don't merge
-        return true;
-      }
-    }
-  }
-  if ( ePartSize == SIZE_NxN )
-  {
-    if ( uiPUIdx == 3 )
-    {
-      UInt uiPUOffset = ( g_auiPUOffset[UInt( ePartSize )] << ( ( getSlice()->getSPS()->getMaxCUDepth() - uiDepth ) << 1 ) ) >> 4;
-      UInt uiPUOffsetIdx0 = uiAbsPartIdx - 3*uiPUOffset;
-      UInt uiPUOffsetIdx1 = uiAbsPartIdx - 2*uiPUOffset;
-      UInt uiPUOffsetIdx2 = uiAbsPartIdx -   uiPUOffset;
-
-      // avoid imitating 2Nx2N and Nx2N partitioning.
-      if ( hasEqualMotion( uiPUOffsetIdx0, this, uiPUOffsetIdx2 ) &&
-           hasEqualMotion( uiPUOffsetIdx1, pcCandCU, uiCandAbsPartIdx ) )
-      {
-        // don't merge
-        return true;
-      }
-
-      // avoid imitating 2NxN partitioning.
-      if ( hasEqualMotion( uiPUOffsetIdx0, this, uiPUOffsetIdx1 ) &&
-           hasEqualMotion( uiPUOffsetIdx2, pcCandCU, uiCandAbsPartIdx ) )
-      {
-        // don't merge
-        return true;
-      }
-    }
-  }
-  return false;
-}
-#endif
-
 /** Constructs a list of merging candidates
  * \param uiAbsPartIdx
  * \param uiPUIdx 
@@ -2591,14 +2534,10 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   UInt uiLeftPartIdx = 0;
   TComDataCU* pcCULeft = 0;
   pcCULeft = getPULeft( uiLeftPartIdx, uiPartIdxLB );
-#if REMOVE_AVOID_MERGE
   PartSize partSize = getPartitionSize( uiAbsPartIdx );
   if (!(uiPUIdx == 1 && (partSize == SIZE_Nx2N || partSize == SIZE_nLx2N || partSize == SIZE_nRx2N)))
   {
   if ( pcCULeft && !pcCULeft->isIntra( uiLeftPartIdx ) )
-#else
-  if ( !avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCULeft, uiLeftPartIdx ) && !pcCULeft->isIntra( uiLeftPartIdx ) )
-#endif
   {
     abCandIsInter[iCount] = true;
     // get Inter Dir
@@ -2611,24 +2550,16 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     }
     iCount ++;
   }
-#if REMOVE_AVOID_MERGE
   }
-#endif
 
   // above
-#if REMOVE_AVOID_MERGE
   partSize = getPartitionSize( uiAbsPartIdx );
   if (!(uiPUIdx == 1 && (partSize == SIZE_2NxN || partSize == SIZE_2NxnU || partSize == SIZE_2NxnD)))
   {
-#endif
   UInt uiAbovePartIdx = 0;
   TComDataCU* pcCUAbove = 0;
   pcCUAbove = getPUAbove( uiAbovePartIdx, uiPartIdxRT, true, true, true );
-#if REMOVE_AVOID_MERGE
   if ( pcCUAbove && !pcCUAbove->isIntra( uiAbovePartIdx ) )
-#else
-  if ( !avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCUAbove, uiAbovePartIdx ) && !pcCUAbove->isIntra( uiAbovePartIdx ) )
-#endif
   {
     abCandIsInter[iCount] = true;
     // get Inter Dir
@@ -2641,19 +2572,13 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     }
     iCount ++;
   }
-#if REMOVE_AVOID_MERGE
   }
-#endif
 
   // above right
   UInt uiAboveRightPartIdx = 0;
   TComDataCU* pcCUAboveRight = 0;
   pcCUAboveRight = getPUAboveRight( uiAboveRightPartIdx, uiPartIdxRT, true, true, true);
-#if REMOVE_AVOID_MERGE
   if ( pcCUAboveRight && !pcCUAboveRight->isIntra( uiAboveRightPartIdx ) )
-#else
-  if ( !avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCUAboveRight, uiAboveRightPartIdx ) && !pcCUAboveRight->isIntra( uiAboveRightPartIdx ) )
-#endif
   {
     abCandIsInter[iCount] = true;
     // get Inter Dir
@@ -2671,11 +2596,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   UInt uiLeftBottomPartIdx = 0;
   TComDataCU* pcCULeftBottom = 0;
   pcCULeftBottom = this->getPUBelowLeft( uiLeftBottomPartIdx, uiPartIdxLB );
-#if REMOVE_AVOID_MERGE
   if ( pcCULeftBottom && !pcCULeftBottom->isIntra( uiLeftBottomPartIdx ) )
-#else
-  if ( !avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCULeftBottom, uiLeftBottomPartIdx ) && !pcCULeftBottom->isIntra( uiLeftBottomPartIdx ) )
-#endif
   {
     abCandIsInter[iCount] = true;
     // get Inter Dir
@@ -2695,11 +2616,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     UInt uiAboveLeftPartIdx = 0;
     TComDataCU* pcCUAboveLeft = 0;
     pcCUAboveLeft = getPUAboveLeft( uiAboveLeftPartIdx, uiAbsPartAddr, true, true, true );
-#if REMOVE_AVOID_MERGE
     if( pcCUAboveLeft && !pcCUAboveLeft->isIntra( uiAboveLeftPartIdx ) )
-#else
-    if( !avoidMergeCandidate( uiAbsPartIdx, uiPUIdx, uiDepth, pcCUAboveLeft, uiAboveLeftPartIdx ) && !pcCUAboveLeft->isIntra( uiAboveLeftPartIdx ) )
-#endif
     {
       abCandIsInter[iCount] = true;
       // get Inter Dir
