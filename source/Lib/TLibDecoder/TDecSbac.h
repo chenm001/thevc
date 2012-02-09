@@ -86,9 +86,7 @@ public:
   void parseSEI(SEImessages&) {}
   Void  parseSliceHeader          ( TComSlice*& rpcSlice   ) {}
 #if G220_PURE_VLC_SAO_ALF
-#if (OL_USE_WPP)
   Void parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice) {printf("Not supported\n");assert(0); exit(1);}
-#endif
 #endif
 
   Void  parseTerminatingBit       ( UInt& ruiBit );
@@ -159,12 +157,8 @@ private:
 #if CLEANUP_CTXINIT
   ContextModel3DBuffer m_cCUSigSCModel;
 #else
-#if SIGMAP_CTX_RED
   ContextModel3DBuffer m_cCUSigSCModelLuma;
   ContextModel3DBuffer m_cCUSigSCModelChroma;
-#else
-  ContextModel3DBuffer m_cCUSigSCModel;
-#endif
 #endif
   ContextModel3DBuffer m_cCuCtxLastX;
   ContextModel3DBuffer m_cCuCtxLastY;
@@ -185,10 +179,8 @@ private:
   
   ContextModel3DBuffer m_cMVPIdxSCModel;
   
-#if AMP
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;
-#endif
 
 };
 

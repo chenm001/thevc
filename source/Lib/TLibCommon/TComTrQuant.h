@@ -159,9 +159,7 @@ public:
 #if NSQT_DIAG_SCAN
                                     ,Int                             height
 #endif
-#if SIGMAP_CTX_RED
                                     ,TextType                        textureType
-#endif
                                     );
 #if MULTI_LEVEL_SIGNIFICANCE
 #if NSQT_DIAG_SCAN
@@ -200,11 +198,7 @@ protected:
 
 private:
   // forward Transform
-#if NSQT
   Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Int* plCoeff, Int iWidth, Int iHeight );
-#else
-  Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Int* plCoeff, Int iSize );
-#endif
   
   // quantization
   Void xQuant( TComDataCU* pcCU, 
@@ -220,11 +214,7 @@ private:
   Void xDeQuant( const TCoeff* pSrc,     Int* pDes,       Int iWidth, Int iHeight );
   
   // inverse transform
-#if NSQT
   Void xIT    ( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight );
-#else
-  Void xIT    ( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, Int iSize );
-#endif
   
 };// END CLASS DEFINITION TComTrQuant
 

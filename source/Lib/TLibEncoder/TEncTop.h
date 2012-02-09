@@ -92,9 +92,7 @@ private:
   // SPS
   TComSPS                 m_cSPS;                         ///< SPS
   TComPPS                 m_cPPS;                         ///< PPS
-#if G1002_RPS
   TComRPS                 m_cRPSList;                         ///< RPS
-#endif
   
   // RD cost computation
   TComBitCounter          m_cBitCounter;                  ///< bit counter for RD optimization
@@ -119,9 +117,7 @@ protected:
   Void  xInitSPS          ();                             ///< initialize SPS from encoder options
   Void  xInitPPS          ();                             ///< initialize PPS from encoder options
   
-#if G1002_RPS
   Void  xInitRPS          ();                             ///< initialize PPS from encoder options
-#endif
 
 public:
   TEncTop();
@@ -155,11 +151,9 @@ public:
   
   TComSPS*                getSPS                () { return  &m_cSPS;                 }
   TComPPS*                getPPS                () { return  &m_cPPS;                 }
-#if G1002_RPS
   TComRPS*                getRPSList                () { return  &m_cRPSList;                 }
   
   Void selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, UInt iGOPid,TComList<TComPic*>& rcListPic );
-#endif
   // -------------------------------------------------------------------------------------------------------------------
   // encoder function
   // -------------------------------------------------------------------------------------------------------------------

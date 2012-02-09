@@ -54,16 +54,10 @@ TComPic::TComPic()
   m_apcPicYuv[1]      = NULL;
   m_pcPicYuvPred      = NULL;
   m_pcPicYuvResi      = NULL;
-#if G1002_RPS
   m_bIsLongTerm       = false;
-#endif
   m_bReconstructed    = false;
-#if NO_TMVP_MARKING
   m_usedForTMVP      = true;
-#endif
-#if G1002_RPS
   m_bNeededForOutput  = false;
-#endif
 }
 
 TComPic::~TComPic()
@@ -81,9 +75,7 @@ Void TComPic::create( Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight
   
   /* there are no SEI messages associated with this picture initially */
   m_SEIs = NULL;
-#if G1002_RPS
   m_bUsedByCurr = false;
-#endif
   return;
 }
 

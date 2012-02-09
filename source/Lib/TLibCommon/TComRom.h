@@ -63,9 +63,7 @@ Void         initROM();
 Void         destroyROM();
 Void         initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int iHeight );
 Void         initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int iWidth, Int iHeight, Int iDepth);
-#if NSQT
 Void         initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight);
-#endif
 // ====================================================================================================================
 // Data structure related table & variable
 // ====================================================================================================================
@@ -92,11 +90,7 @@ extern       UInt g_uiMaxCUHeight;
 extern       UInt g_uiMaxCUDepth;
 extern       UInt g_uiAddCUDepth;
 
-#if AMP
 extern       UInt g_auiPUOffset[8];
-#else
-extern       UInt g_auiPUOffset[4];
-#endif
 
 #define QUANT_IQUANT_SHIFT    20 // Q(QP%6) * IQ(QP%6) = 2^20
 #define QUANT_SHIFT           14 // Q(4) = 2^14
@@ -133,21 +127,11 @@ extern UInt *g_sigScanNSQT[ 4 ]; // scan for non-square partitions
 extern UInt g_sigCGScanNSQT[ 4 ][ 16 ]; // coarse-grain scan for non-square partitions
 #endif
 
-#if NSQT
-#if NSQT_TX_ORDER
 extern       UInt*  g_auiNonSquareSigLastScan[ 4 ];      // raster index from scanning index (zigzag)
-#else
-extern       UInt*  g_auiNonSquareSigLastScan[ 2 ];      // raster index from scanning index (zigzag)
-#endif
-#endif 
 
-#if MODIFIED_LAST_XY_CODING
 extern const UInt   g_uiGroupIdx[ 32 ];
 extern const UInt   g_uiMinInGroup[ 10 ];
 extern const UInt   g_uiLastCtx[ 28 ];
-#else
-extern const UInt   g_uiLastCtx[32];
-#endif
 
 extern const UInt   g_auiGoRiceRange[4];                  //!< maximum value coded with Rice codes
 extern const UInt   g_auiGoRicePrefixLen[4];              //!< prefix length for each maximum value
@@ -215,13 +199,8 @@ extern const UInt    g_auiCbpVlcNum[2][8];
 extern const UInt g_auiComMI1TableE[9];
 extern const UInt g_auiComMI1TableD[9];
 
-#if AMP
 extern const UInt g_auiInterModeTableE[4][11];
 extern const UInt g_auiInterModeTableD[4][11];
-#else
-extern const UInt g_auiInterModeTableE[4][7];
-extern const UInt g_auiInterModeTableD[4][7];
-#endif
 // ====================================================================================================================
 // ADI table
 // ====================================================================================================================
@@ -234,9 +213,6 @@ extern const UChar  g_aucIntraModeNumFast[7];
 
 extern const UChar g_aucIntraModeNumAng[7];
 extern const UChar g_aucIntraModeBitsAng[7];
-#if !REMAP_TO_PLANAR
-extern const UChar g_aucAngModeMapping[4][35];
-#endif
 extern const UChar g_aucAngIntraModeOrder[NUM_INTRA_MODE];
 
 // ====================================================================================================================

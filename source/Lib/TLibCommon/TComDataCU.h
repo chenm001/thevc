@@ -162,9 +162,7 @@ protected:
   Void xDeriveCenterIdx( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxCenter );
   Bool xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRefIdx, TComMv *pcMv );
   
-#if MRG_AMVP_ADD_CAND_F470
   Void xCheckDuplicateCand(TComMvField* pcMvFieldNeighbours, UChar* puhInterDirNeighbours, bool* pbCandIsInter, UInt& ruiArrayAddr);
-#endif
 
   Int           getLastValidPartIdx   ( Int iAbsPartIdx );
 
@@ -368,9 +366,6 @@ public:
   Void          deriveLeftBottomIdxAdi      ( UInt& ruiPartIdxLB, UInt  uiPartOffset, UInt uiPartDepth );
   
   Bool          hasEqualMotion              ( UInt uiAbsPartIdx, TComDataCU* pcCandCU, UInt uiCandAbsPartIdx );
-#if !REMOVE_AVOID_MERGE
-  Bool          avoidMergeCandidate         ( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDepth, TComDataCU* pcCandCU, UInt uiCandAbsPartIdx );
-#endif
   Void          getInterMergeCandidates       ( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDepth, TComMvField* pcMFieldNeighbours, UChar* puhInterDirNeighbours, Int& numValidMergeCand );
   Void          deriveLeftRightTopIdxGeneral  ( PartSize eCUMode, UInt uiAbsPartIdx, UInt uiPartIdx, UInt& ruiPartIdxLT, UInt& ruiPartIdxRT );
   Void          deriveLeftBottomIdxGeneral    ( PartSize eCUMode, UInt uiAbsPartIdx, UInt uiPartIdx, UInt& ruiPartIdxLB );
@@ -416,15 +411,10 @@ public:
 
   UInt          getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, Bool bIsIntra);
 
-#if NSQT
   Bool useNonSquareTrans( UInt uiTrMode );
-#if NSQT_MOD
   Bool useNonSquareTrans( UInt uiTrMode, Int absPartIdx );
   Void getNSQTSize(Int trMode, Int absPartIdx, Int &trWidth, Int &trHeight);
-#endif
   Void getPixOffset( UInt uiTrMode, UInt ui, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiPix_X, UInt& uiPix_Y, TextType eTxt );
-#endif
-
 };
 
 namespace RasterAddress

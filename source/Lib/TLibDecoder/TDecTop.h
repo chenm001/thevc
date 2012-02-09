@@ -76,9 +76,7 @@ private:
   TComSPS                 m_cSPS;
 
   TComPPS                 m_cPPS;               //!< PPS
-#if G1002_RPS
   TComRPS                 m_cRPSList;
-#endif
   TComSlice*              m_apcSlicePilot;
   
   SEImessages *m_SEIs; ///< "all" SEI messages.  If not NULL, we own the object.
@@ -122,9 +120,7 @@ public:
 
 protected:
   Void  xGetNewPicBuffer  (TComSlice* pcSlice, TComPic*& rpcPic);
-#if G1002_RPS
   Void  xCreateLostPicture (Int iLostPOC);
-#endif
 
 };// END CLASS DEFINITION TDecTop
 

@@ -129,42 +129,29 @@ Void TEncSlice::init( TEncTop* pcEncTop )
  \param pSPS          SPS associated with the slice
  \param pPPS          PPS associated with the slice
  */
-#if G1002_RPS
 Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int iNumPicRcvd, Int iGOPid, TComSlice*& rpcSlice, TComSPS* pSPS, TComPPS *pPPS )
-#else
-Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int iNumPicRcvd, Int iTimeOffset, Int iDepth, TComSlice*& rpcSlice, TComSPS* pSPS, TComPPS *pPPS )
-#endif
 {
   Double dQP;
   Double dLambda;
   
   rpcSlice = pcPic->getSlice(0);
+#if TILES_DECODER
+  rpcSlice->setSPS( pSPS );
+  rpcSlice->setPPS( pPPS );
+#endif
   rpcSlice->setSliceBits(0);
   rpcSlice->setPic( pcPic );
   rpcSlice->initSlice();
-#if G1002_RPS
   rpcSlice->setPOC( uiPOCCurr );
   
   // depth computation based on GOP size
   int iDepth;
-#else
-  rpcSlice->setPOC( iPOCLast - iNumPicRcvd + iTimeOffset );
-  
-  // depth re-computation based on rate GOP size
-  if ( 0 )
-#endif
-  {
       iDepth = 0;
-  }
   
   // slice type
   SliceType eSliceType;
   
-#if G1002_RPS
   eSliceType=B_SLICE;
-#else
-  eSliceType = P_SLICE;
-#endif
   eSliceType = (iPOCLast == 0 || uiPOCCurr % m_pcCfg->getIntraPeriod() == 0) ? I_SLICE : eSliceType;
   
   rpcSlice->setSliceType    ( eSliceType );
@@ -180,36 +167,11 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   // ------------------------------------------------------------------------------------------------------------------
   
   dQP = m_pcCfg->getQP();
-#if G1002_RPS
   if(eSliceType!=I_SLICE)
   {
     // CHECK_ME: QP for P-slice
     dQP += 1;
   }
-#else
-  if ( iDepth < MAX_TLAYER && m_pcCfg->getTemporalLayerQPOffset(iDepth) != ( MAX_QP + 1 ) )
-  {
-    dQP += m_pcCfg->getTemporalLayerQPOffset(iDepth);
-  }
-  else
-  {
-    if ( ( iPOCLast != 0 ) && ( ( uiPOCCurr % m_pcCfg->getIntraPeriod() ) != 0 ) ) // P or B-slice
-    {
-      if ( m_pcCfg->getUseLDC() && !m_pcCfg->getUseBQP() )
-      {
-        if ( iDepth == 0 ) dQP += 1.0;
-        else
-        {
-          dQP += iDepth+3;
-        }
-      }
-      else
-      {
-        dQP += iDepth+1;
-      }
-    }
-  }
-#endif
   
   // ------------------------------------------------------------------------------------------------------------------
   // Lambda computation
@@ -225,7 +187,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     Double dLambda_scale = 1.0 - Clip3( 0.0, 0.5, 0.05*(Double)NumberBFrames );
     Double qp_temp = (double) dQP - SHIFT_QP;
     // Case #1: I or P-slices (key-frame)
-#if G1002_RPS
     // CHECK_ME: Change late?
     Double dQPFactor = 0.85;
     if ( eSliceType==I_SLICE )
@@ -239,37 +200,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
         dLambda *= Clip3( 2.00, 4.00, (qp_temp / 6.0) ); // (j == B_SLICE && p_cur_frm->layer != 0 )
     }
     
-#else
-    if ( iDepth == 0 )
-    {
-        if ( NumberBFrames > 0 ) // HB structure or HP structure
-        {
-          dLambda = 0.68 * pow( 2.0, qp_temp/3.0 );
-        }
-        else                     // IPP structure
-        {
-          dLambda = 0.85 * pow( 2.0, qp_temp/3.0 );
-        }
-      dLambda *= dLambda_scale;
-    }
-    else // P or B slices for HB or HP structure
-    {
-      dLambda = 0.68 * pow( 2.0, qp_temp/3.0 );
-      if ( pcPic->getSlice(0)->isInterB () )
-      {
-        dLambda *= Clip3( 2.00, 4.00, (qp_temp / 6.0) ); // (j == B_SLICE && p_cur_frm->layer != 0 )
-        if ( rpcSlice->isReferenced() ) // HB structure and referenced
-        {
-          dLambda *= 0.80;
-          dLambda *= dLambda_scale;
-        }
-      }
-      else
-      {
-        dLambda *= dLambda_scale;
-      }
-    }
-#endif
     // if hadamard is used in ME process
     if ( !m_pcCfg->getUseHADME() )
     {
@@ -306,12 +236,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   
 #if HB_LAMBDA_FOR_LDC
   // restore original slice type
-#if !G1002_RPS
-  if ( m_pcCfg->getUseLDC() )
-  {
-    eSliceType = P_SLICE;
-  }
-#endif
   eSliceType = (iPOCLast == 0 || uiPOCCurr % m_pcCfg->getIntraPeriod() == 0) ? I_SLICE : eSliceType;
   
   rpcSlice->setSliceType        ( eSliceType );
@@ -319,45 +243,24 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   
   rpcSlice->setSliceQp          ( iQP );
   rpcSlice->setSliceQpDelta     ( 0 );
-#if G1002_RPS
   rpcSlice->setNumRefIdx(REF_PIC_LIST_0,1);
   rpcSlice->setNumRefIdx(REF_PIC_LIST_1,1);
-#else
-  rpcSlice->setNumRefIdx        ( REF_PIC_LIST_0, eSliceType == P_SLICE ? m_pcCfg->getNumOfReference() : (eSliceType == B_SLICE ? (m_pcCfg->getNumOfReferenceB_L0()) : 0 ) );
-  rpcSlice->setNumRefIdx        ( REF_PIC_LIST_1, eSliceType == B_SLICE ? (m_pcCfg->getNumOfReferenceB_L1()) : 0 );
-#endif
-  
+
   rpcSlice->setDepth            ( iDepth );
   
-#if G1002_RPS
   pcPic->setTLayer( 0 );
   if(eSliceType==I_SLICE)
   {
     pcPic->setTLayer(0);
   }
-#else
-  if ( pSPS->getMaxTLayers() > 1 )
-  {
-    assert( iDepth < pSPS->getMaxTLayers() );
-    pcPic->setTLayer( iDepth );
-  }
-  else 
-  {
-    pcPic->setTLayer( 0 );
-  }
-#endif
   rpcSlice->setTLayer( pcPic->getTLayer() );
   rpcSlice->setTLayerSwitchingFlag( pPPS->getTLayerSwitchingFlag( pcPic->getTLayer() ) );
 
+#if !TILES_DECODER
   rpcSlice->setSPS( pSPS );
   rpcSlice->setPPS( pPPS );
-
-#if !G1002_RPS
-  // reference picture usage indicator for next frames
-  rpcSlice->setDRBFlag          ( true );
-  rpcSlice->setERBIndex         ( ERB_NONE );
 #endif
-  
+
   assert( m_apcPicYuvPred );
   assert( m_apcPicYuvResi );
   
@@ -376,13 +279,6 @@ Void TEncSlice::setSearchRange( TComSlice* pcSlice )
 {
   Int iCurrPOC = pcSlice->getPOC();
   Int iRefPOC;
-#if G1002_RPS
-  Int iGOPSize = 1;
-  Int iOffset = 0;
-#else
-  Int iRateGOPSize = 1;
-  Int iOffset = 0;
-#endif
   Int iMaxSR = m_pcCfg->getSearchRange();
   Int iNumPredDir = pcSlice->isInterP() ? 1 : 2;
   
@@ -392,7 +288,7 @@ Void TEncSlice::setSearchRange( TComSlice* pcSlice )
     for (Int iRefIdx = 0; iRefIdx < pcSlice->getNumRefIdx(e); iRefIdx++)
     {
       iRefPOC = pcSlice->getRefPic(e, iRefIdx)->getPOC();
-      Int iNewSR = Clip3(8, iMaxSR, (iMaxSR*ADAPT_SR_SCALE*abs(iCurrPOC - iRefPOC)+iOffset));
+      Int iNewSR = Clip3(8, iMaxSR, (iMaxSR*ADAPT_SR_SCALE*abs(iCurrPOC - iRefPOC)));
       m_pcPredSearch->setAdaptiveSearchRange(iDir, iRefIdx, iNewSR);
     }
   }
@@ -432,7 +328,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
   }
   
-  // chen
+  // chen_fix
   TEncTop* pcEncTop = (TEncTop*) m_pcCfg;
   m_pcBitCounter = pcEncTop->getBitCounter();
   

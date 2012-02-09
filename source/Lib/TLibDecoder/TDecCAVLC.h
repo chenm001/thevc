@@ -76,19 +76,11 @@ protected:
 #endif
   
   UInt  xGetBit             ();
-  Int   xReadVlc            ( Int n );
-  Void  xParseCoeff         ( TCoeff* scoeff, Int blockType, Int blSize
-                            , Int isIntra
-                            );
-  Void  xRunLevelIndInv     (LastCoeffStruct *combo, Int maxrun, UInt lrg1Pos, UInt cn);
-  Void  xRunLevelIndInterInv(LastCoeffStruct *combo, Int maxrun, UInt cn, UInt scale);
   
-#if G1002_RPS
 #if INTER_RPS_PREDICTION
   void  parseShortTermRefPicSet            (TComPPS* pcPPS, TComReferencePictureSet* pcRPS, Int idx);
 #else
   Void  parseShortTermRefPicSet            (TComPPS* pcPPS, TComReferencePictureSet* pcRPS);
-#endif
 #endif
 private:
   TComInputBitstream*   m_pcBitstream;
@@ -100,11 +92,7 @@ private:
   
   UInt                      m_uiIntraModeTableD17[17];
   UInt                      m_uiIntraModeTableD34[34];
-#if AMP
   UInt                      m_uiSplitTableD[4][11];
-#else
-  UInt                      m_uiSplitTableD[4][7];
-#endif
   UInt                      m_uiCBP_YUV_TableD[4][8];
   UInt                      m_uiCBP_YS_TableD[2][4];
   UInt                      m_uiCBP_YCS_TableD[2][8];
@@ -151,9 +139,7 @@ public:
   void parseSEI(SEImessages&);
   Void  parseSliceHeader    ( TComSlice*& rpcSlice );
 #if G220_PURE_VLC_SAO_ALF
-#if (OL_USE_WPP)
   Void parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice);
-#endif
 #endif
   Void  parseTerminatingBit ( UInt& ruiBit );
   

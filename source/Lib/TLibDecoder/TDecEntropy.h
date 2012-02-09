@@ -69,9 +69,7 @@ public:
   virtual void parseSEI(SEImessages&) = 0;
   virtual Void  parseSliceHeader          ( TComSlice*& rpcSlice )                                = 0;
 #if G220_PURE_VLC_SAO_ALF
-#if (OL_USE_WPP)
   virtual Void  parseWPPTileInfoToSliceHeader  ( TComSlice*& rpcSlice )                           = 0;
-#endif
 #endif
   virtual Void  parseTerminatingBit       ( UInt& ruilsLast )                                     = 0;
   
@@ -112,10 +110,8 @@ class TDecEntropy
 private:
   TDecEntropyIf*  m_pcEntropyDecoderIf;
   TComPrediction* m_pcPrediction;
-#if TU_LEVEL_COEFF_INTERLEAVE
   UInt    m_uiBakAbsPartIdx;
   UInt    m_uiBakChromaOffset;
-#endif
   
 public:
   Void init (TComPrediction* p) {m_pcPrediction = p;}
@@ -135,9 +131,7 @@ public:
   void decodeSEI(SEImessages& seis) { m_pcEntropyDecoderIf->parseSEI(seis); }
   Void    decodeSliceHeader           ( TComSlice*& rpcSlice )  { m_pcEntropyDecoderIf->parseSliceHeader(rpcSlice);         }
 #if G220_PURE_VLC_SAO_ALF
-#if (OL_USE_WPP)
   Void    decodeWPPTileInfoToSliceHeader  ( TComSlice*& rpcSlice )  { m_pcEntropyDecoderIf->parseWPPTileInfoToSliceHeader(rpcSlice); }
-#endif
 #endif
   Void    decodeTerminatingBit        ( UInt& ruiIsLast )       { m_pcEntropyDecoderIf->parseTerminatingBit(ruiIsLast);     }
   
@@ -161,11 +155,7 @@ public:
 private:
   Void xDecodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 );
   
-#if TU_LEVEL_COEFF_INTERLEAVE
   Void xDecodeCoeff            ( TComDataCU* pcCU, UInt uiLumaOffset, UInt uiChromaOffset, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, UInt uiTrIdx, UInt uiCurrTrIdx );
-#else
-  Void xDecodeCoeff            ( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, UInt uiTrIdx, UInt uiCurrTrIdx, TextType eType );
-#endif
 public:
   Void decodeCoeff             ( TComDataCU* pcCU                 , UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight );
   

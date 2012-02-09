@@ -40,10 +40,8 @@
 
 #include "TLibCommon/CommonDef.h"
 
-#if G1002_RPS
 #include "TLibEncoder/TEncCfg.h"
 #include <sstream>
-#endif
 //! \ingroup TAppEncoder
 //! \{
 
@@ -72,22 +70,11 @@ protected:
   // coding structure
   Int       m_iIntraPeriod;                                   ///< period of I-slice (random access period)
   Int       m_iDecodingRefreshType;                           ///< random access type
-#if G1002_RPS
-#else
-  Bool      m_bHierarchicalCoding;                            ///< flag for specifying hierarchical B structure
-  Bool      m_bUseLDC;                                        ///< flag for using low-delay coding mode
-  Bool      m_bUseNRF;                                        ///< flag for using non-referenced frame in hierarchical structure
-  Bool      m_bUseGPB;                                        ///< flag for using generalized P & B structure
-#endif
   Bool      m_bUseLComb;                                      ///< flag for using combined reference list for uni-prediction in B-slices (JCTVC-D421)
   Bool      m_bLCMod;                                         ///< flag for specifying whether the combined reference list for uni-prediction in B-slices is uploaded explicitly
   Bool      m_bDisInter4x4;
-#if NSQT
   Bool      m_enableNSQT;                                     ///< flag for enabling NSQT
-#endif
-#if AMP
   Bool      m_enableAMP;
-#endif
   // coding quality
   Double    m_fQP;                                            ///< QP value of key-picture (floating point)
   Int       m_iQP;                                            ///< QP value of key-picture (integer)
@@ -114,30 +101,15 @@ protected:
   // coding tools (encoder-only parameters)
   Bool      m_bUseSBACRD;                                     ///< flag for using RD optimization based on SBAC
   Bool      m_bUseHADME;                                      ///< flag for using HAD in sub-pel ME
-#if !G1002_RPS
-  Bool      m_bUseBQP;                                        ///< flag for using B-slice based QP assignment in low-delay hier. structure
-#endif
   Int       m_iFastSearch;                                    ///< ME mode, 0 = full, 1 = diamond, 2 = PMVFAST
   Int       m_iSearchRange;                                   ///< ME search range
   Int       m_bipredSearchRange;                              ///< ME search range for bipred refinement
   Bool      m_bUseFastEnc;                                    ///< flag for using fast encoder setting
-#if EARLY_CU_DETERMINATION
   Bool      m_bUseEarlyCU;                                    ///< flag for using Early CU setting
-#endif  
-#if CBF_FAST_MODE
   Bool      m_bUseCbfFastMode;                              ///< flag for using Cbf Fast PU Mode Decision
-#endif  
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
-#if !G1002_RPS
-#if REF_SETTING_FOR_LD
-  Bool      m_bUseNewRefSetting;
-#endif
-#endif
-
-#if NO_TMVP_MARKING
   Bool      m_enableTMVP;
-#endif
 
   // internal member functions
   Void  xSetGlobal      ();                                   ///< set global variables

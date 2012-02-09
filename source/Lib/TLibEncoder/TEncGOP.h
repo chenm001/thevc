@@ -71,14 +71,9 @@ class TEncGOP
 {
 private:
   //  Data
-#if G1002_RPS
   Bool                    m_bLongtermTestPictureHasBeenCoded;
   Bool                    m_bLongtermTestPictureHasBeenCoded2;
   Int                     m_iLastIDR;
-#endif
-#if !G1002_RPS
-  Int                     m_iHrchDepth;
-#endif
   Int                     m_iNumPicCoded;
   Bool                    m_bFirst;
   
@@ -117,28 +112,17 @@ public:
   Void  init        ( TEncTop* pcTEncTop );
   Void  compressGOP ( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRec, std::list<AccessUnit>& accessUnitsInGOP );
   
-#if !G1002_RPS
-  Int   isHierarchicalB()     { return  m_pcCfg->getHierarchicalCoding();  }
-  Int   getHrchDepth()        { return  m_iHrchDepth; }
-#endif
-  
   TComList<TComPic*>*   getListPic()      { return m_pcListPic; }
   
   Void  printOutSummary      ( UInt uiNumAllPicCoded );
   
   TEncSlice*  getSliceEncoder()   { return m_pcSliceEncoder; }
-#if G1002_RPS
   NalUnitType getNalUnitType( UInt uiPOCCurr );
-#endif
 
 protected:
   Void  xInitGOP          ( Int iPOC, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut );
   Void  xGetBuffer        ( TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, Int iNumPicRcvd, Int iTimeOffset, TComPic*& rpcPic, TComPicYuv*& rpcPicYuvRecOut, UInt uiPOCCurr );
   
-#if !G1002_RPS
-  NalUnitType getNalUnitType( UInt uiPOCCurr );
-#endif
-
   Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, const AccessUnit& );
   
 #if RVM_VCEGAM10

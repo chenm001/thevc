@@ -80,24 +80,15 @@ protected:
   Bool      m_bTLayering;                        ///< indicates whether temporal IDs are set based on the hierarchical coding structure
   Bool      m_abTLayerSwitchingFlag[MAX_TLAYER]; ///< temporal layer switching flags corresponding to temporal layer
   Bool      m_bDisInter4x4;
-#if AMP
   Bool m_useAMP;
-#endif
   //======= Transform =============
   UInt      m_uiQuadtreeTULog2MaxSize;
   UInt      m_uiQuadtreeTULog2MinSize;
   UInt      m_uiQuadtreeTUMaxDepthInter;
   UInt      m_uiQuadtreeTUMaxDepthIntra;
   
-#if NSQT
   Bool      m_useNSQT;
-#endif
-  
-  //====== B Slice ========
-#if !G1002_RPS
-  Bool      m_bHierarchicalCoding;              //  hierarchical-B coding
-#endif
-  
+
   //====== Motion search ========
   Int       m_iFastSearch;                      //  0:Full search  1:Diamond  2:PMVFAST
   Int       m_iSearchRange;                     //  0:Full frame
@@ -107,38 +98,16 @@ protected:
   Bool      m_bUseSBACRD;
 
   Bool      m_bUseHADME;
-#if !G1002_RPS
-  Bool      m_bUseGPB;
-#endif
   Bool      m_bUseLComb;
   Bool      m_bLCMod;
-#if !G1002_RPS
-  Bool      m_bUseLDC;
-#endif
-#if !G1002_RPS
-  Bool      m_bUseNRF;
-  Bool      m_bUseBQP;
-#endif
   Bool      m_bUseFastEnc;
-#if EARLY_CU_DETERMINATION
   Bool      m_bUseEarlyCU;
-#endif
-#if CBF_FAST_MODE
   Bool      m_bUseCbfFastMode;
-#endif
   Bool      m_bUseMRG; // SOPH:
 
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
-#if !G1002_RPS
-#if REF_SETTING_FOR_LD
-  Bool      m_bUseNewRefSetting;
-#endif
-#endif
-
-#if NO_TMVP_MARKING
   Bool      m_bEnableTMVP;
-#endif
 
 public:
   TEncCfg()          {}
@@ -176,18 +145,9 @@ public:
   Void      setQuadtreeTUMaxDepthInter      ( UInt  u )      { m_uiQuadtreeTUMaxDepthInter = u; }
   Void      setQuadtreeTUMaxDepthIntra      ( UInt  u )      { m_uiQuadtreeTUMaxDepthIntra = u; }
   
-#if NSQT
   Void setUseNSQT( Bool b ) { m_useNSQT = b; }
-#endif
-#if AMP
   Void setUseAMP( Bool b ) { m_useAMP = b; }
-#endif
-  
-  //====== b; Slice ========
-#if !G1002_RPS
-  Void      setHierarchicalCoding           ( Bool  b )      { m_bHierarchicalCoding = b; }
-#endif
-  
+
   //====== Motion search ========
   Void      setFastSearch                   ( Int   i )      { m_iFastSearch = i; }
   Void      setSearchRange                  ( Int   i )      { m_iSearchRange = i; }
@@ -217,11 +177,7 @@ public:
   UInt      getQuadtreeTUMaxDepthInter      ()      const { return m_uiQuadtreeTUMaxDepthInter; }
   UInt      getQuadtreeTUMaxDepthIntra      ()      const { return m_uiQuadtreeTUMaxDepthIntra; }
   
-  //==== b; Slice ========
-#if !G1002_RPS
-  Bool      getHierarchicalCoding           ()      { return  m_bHierarchicalCoding; }
-#endif
-  
+
   //==== Motion search ========
   Int       getFastSearch                   ()      { return  m_iFastSearch; }
   Int       getSearchRange                  ()      { return  m_iSearchRange; }
@@ -229,48 +185,20 @@ public:
   //==== Tool list ========
   Void      setUseSBACRD                    ( Bool  b )     { m_bUseSBACRD  = b; }
   Void      setUseHADME                     ( Bool  b )     { m_bUseHADME   = b; }
-#if !G1002_RPS
-  Void      setUseGPB                       ( Bool  b )     { m_bUseGPB     = b; }
-#endif
   Void      setUseLComb                     ( Bool  b )     { m_bUseLComb   = b; }
   Void      setLCMod                        ( Bool  b )     { m_bLCMod   = b;    }
-#if !G1002_RPS
-  Void      setUseLDC                       ( Bool  b )     { m_bUseLDC     = b; }
-#endif
-#if !G1002_RPS
-  Void      setUseNRF                       ( Bool  b )     { m_bUseNRF     = b; }
-  Void      setUseBQP                       ( Bool  b )     { m_bUseBQP     = b; }
-#endif
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
-#if EARLY_CU_DETERMINATION
   Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
-#endif
-#if CBF_FAST_MODE
   Void      setUseCbfFastMode            ( Bool  b )     { m_bUseCbfFastMode = b; }
-#endif
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
   Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
   Bool      getUseHADME                     ()      { return m_bUseHADME;   }
 
-#if !G1002_RPS
-  Bool      getUseGPB                       ()      { return m_bUseGPB;     }
-#endif
   Bool      getUseLComb                     ()      { return m_bUseLComb;   }
   Bool      getLCMod                        ()      { return m_bLCMod; }
-#if !G1002_RPS
-  Bool      getUseLDC                       ()      { return m_bUseLDC;     }
-#endif
-#if !G1002_RPS
-  Bool      getUseNRF                       ()      { return m_bUseNRF;     }
-  Bool      getUseBQP                       ()      { return m_bUseBQP;     }
-#endif
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
-#if EARLY_CU_DETERMINATION
   Bool      getUseEarlyCU                   ()      { return m_bUseEarlyCU; }
-#endif
-#if CBF_FAST_MODE
   Bool      getUseCbfFastMode           ()      { return m_bUseCbfFastMode; }
-#endif
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
 #if NS_HAD
   Bool      getUseNSQT                      ()      { return m_useNSQT; }
@@ -279,17 +207,8 @@ public:
   void setPictureDigestEnabled(bool b) { m_pictureDigestEnabled = b; }
   bool getPictureDigestEnabled() { return m_pictureDigestEnabled; }
 
-#if !G1002_RPS
-#if REF_SETTING_FOR_LD
-  Void      setUseNewRefSetting    ( Bool b ) { m_bUseNewRefSetting = b;    }
-  Bool      getUseNewRefSetting    ()         { return m_bUseNewRefSetting; }
-#endif
-#endif
-
-#if NO_TMVP_MARKING
   Void      setEnableTMVP ( Bool b ) { m_bEnableTMVP = b;    }
   Bool      getEnableTMVP ()         { return m_bEnableTMVP; }
-#endif
 };
 
 //! \}

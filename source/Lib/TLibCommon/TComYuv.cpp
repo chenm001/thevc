@@ -335,7 +335,6 @@ Void TComYuv::copyPartToPartChroma( TComYuv* pcYuvDst, UInt uiPartIdx, UInt iWid
   }
 }
 
-#if NSQT
 Void TComYuv::copyPartToPartLumaMxN  ( TComYuv* pcYuvDst, UInt uiPix_X,UInt uiPix_Y, UInt iWidth, UInt iHeight )
 {
   Pel* pSrc =           getLumaAddrPix( uiPix_X, uiPix_Y );
@@ -382,7 +381,6 @@ Void TComYuv::copyPartToPartChromaMxN( TComYuv* pcYuvDst, UInt uiPix_X,UInt uiPi
     pDstV += iDstStride;
   }
 }
-#endif
 
 Void TComYuv::addClip( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt uiTrUnitIdx, UInt uiPartSize )
 {
@@ -611,7 +609,6 @@ Void TComYuv::removeHighFreq( TComYuv* pcYuvSrc, UInt uiPartIdx, UInt uiWidht, U
   }
 }
 
-#if NSQT
 Pel* TComYuv::getLumaAddrPix( UInt iBlkX, UInt iBlkY )
 {
   return m_apiBufY + iBlkY * getStride() + iBlkX;
@@ -624,5 +621,4 @@ Pel* TComYuv::getCrAddrPix( UInt iBlkX, UInt iBlkY )
 {
   return m_apiBufV + ( iBlkY ) * getCStride() + ( iBlkX );
 }
-#endif
 //! \}

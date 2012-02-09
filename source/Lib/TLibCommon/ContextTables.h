@@ -54,26 +54,12 @@
 #define NUM_MERGE_FLAG_EXT_CTX        1       ///< number of context models for merge flag of merge extended
 #define NUM_MERGE_IDX_EXT_CTX         4       ///< number of context models for merge index of merge extended
 
-#if PREDTYPE_CLEANUP
 #define NUM_PART_SIZE_CTX             4       ///< number of context models for partition size
-#else
-#define NUM_PART_SIZE_CTX             5       ///< number of context models for partition size
-#endif
-#if AMP
 #define NUM_CU_X_POS_CTX              2       ///< number of context models for partition size (AMP)
 #define NUM_CU_Y_POS_CTX              2       ///< number of context models for partition size (AMP)
-#endif
-#if PREDTYPE_CLEANUP
 #define NUM_PRED_MODE_CTX             1       ///< number of context models for prediction mode
-#else
-#define NUM_PRED_MODE_CTX             2       ///< number of context models for prediction mode
-#endif
 
-#if BYPASS_FOR_INTRA_MODE
 #define NUM_ADI_CTX                   1       ///< number of context models for intra prediction
-#else
-#define NUM_ADI_CTX                   3       ///< number of context models for intra prediction
-#endif
 
 #define NUM_CHROMA_PRED_CTX           2       ///< number of context models for intra prediction (chroma)
 #define NUM_INTER_DIR_CTX             4       ///< number of context models for inter prediction direction
@@ -87,22 +73,16 @@
 #if MULTI_LEVEL_SIGNIFICANCE
 #define NUM_SIG_CG_FLAG_CTX           2       ///< number of context models for MULTI_LEVEL_SIGNIFICANCE
 #endif
-#if SIGMAP_CTX_RED
+
 #if CLEANUP_CTXINIT 
 #define NUM_SIG_FLAG_CTX              48      ///< number of context models for sig flag
 #else
 #define NUM_SIG_FLAG_CTX              27      ///< number of context models for sig flag
 #endif
+
 #define NUM_SIG_FLAG_CTX_LUMA         27      ///< number of context models for luma sig flag
 #define NUM_SIG_FLAG_CTX_CHROMA       21      ///< number of context models for chroma sig flag
-#else
-#define NUM_SIG_FLAG_CTX              44      ///< number of context models for sig flag
-#endif
-#if MODIFIED_LAST_XY_CODING
 #define NUM_CTX_LAST_FLAG_XY          18      ///< number of context models for last coefficient position
-#else
-#define NUM_CTX_LAST_FLAG_XY          19      ///< number of context models for PCP last flag
-#endif
 
 #if CLEANUP_CTXINIT
 #if COEFF_CTX_RED
@@ -240,7 +220,6 @@ INIT_MERGE_IDX_EXT[3][NUM_MERGE_IDX_EXT_CTX] =
 static const UChar
 INIT_PART_SIZE[3][NUM_PART_SIZE_CTX] =
 {
-#if PREDTYPE_CLEANUP
   {
     167, CNU, CNU, CNU,
     
@@ -253,23 +232,8 @@ INIT_PART_SIZE[3][NUM_PART_SIZE_CTX] =
     119,  87, CNU, CNU,
     
   },
-#else
-  {
-    152, CNU, CNU, CNU, CNU,
-    
-  },
-  {
-    134,  87,  95, CNU, CNU,
-    
-  },
-  {
-    118, 102, 107,  86, CNU,
-    
-  },
-#endif
 };
 
-#if AMP
 // initial probability for AMP split position (X)
 static const UChar
 INIT_CU_X_POS[3][NUM_CU_X_POS_CTX] =
@@ -305,13 +269,11 @@ INIT_CU_Y_POS[3][NUM_CU_Y_POS_CTX] =
     
   },
 };
-#endif
 
 // initial probability for prediction mode
 static const UChar
 INIT_PRED_MODE[3][NUM_PRED_MODE_CTX] =
 {
-#if PREDTYPE_CLEANUP 
   {
     CNU,
     
@@ -324,27 +286,12 @@ INIT_PRED_MODE[3][NUM_PRED_MODE_CTX] =
     98,
     
   },
-#else
-  {
-    CNU, CNU,
-    
-  },
-  {
-    CNU, 113,
-    
-  },
-  {
-    CNU, CNU,
-    
-  },
-#endif
 };
 
 // initial probability for intra direction of luma
 static const UChar
 INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX] =
 {
-#if BYPASS_FOR_INTRA_MODE
   {
     167,
     
@@ -357,20 +304,6 @@ INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX] =
     150,
     
   },
-#else
-  {
-    136, 134, 119,
-    
-  },
-  {
-    119, 119,  87,
-    
-  },
-  {
-    119, 119,  87,
-    
-  },
-#endif
 };
 
 // initial probability for intra direction of chroma
@@ -495,7 +428,6 @@ INIT_QT_ROOT_CBF[3][NUM_QT_ROOT_CBF_CTX] =
   },
 };
 
-#if MODIFIED_LAST_XY_CODING
 static const UChar
 INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =
 {
@@ -515,27 +447,6 @@ INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =
     
   },
 };
-#else
-static const UChar
-INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =
-{
-  {
-    166, 182, 152, 166, 134, 150, 181, 164, 164, 164, 179, 164, 179, 178, 178, 162, 162, 178, 178,
-    184, 184, 170, 170, 167, 136, 169, 150, 150, 134, 134, 165, CNU, CNU, CNU, CNU, CNU, CNU, CNU,
-    
-  },
-  {
-    181, 151, 167, 166, 181, 182, 119, 165, 181, 181, 165, 134, 120, 119, 165, 165, 180, 163, 163,
-    169, 184, 185, 169, 167, 184, 107, 120, 183, 182, 182, 117, CNU, CNU, CNU, CNU, CNU, CNU, CNU,
-    
-  },
-  {
-    165, 182, 167, 166, 166, 182, 119, 165, 181, 181, 165, 165, 104, 119, 165, 165, 180, 163, 178,
-    184, 184, 185, 153, 183, 168, 106, 120, 167, 182, 182, 117, CNU, CNU, CNU, CNU, CNU, CNU, CNU,
-    
-  },
-};
-#endif
 
 #if MULTI_LEVEL_SIGNIFICANCE
 static const UChar
@@ -559,7 +470,6 @@ INIT_SIG_CG_FLAG[3][2 * NUM_SIG_CG_FLAG_CTX] =
 };
 #endif
 
-#if SIGMAP_CTX_RED
 #if CLEANUP_CTXINIT
 static const UChar
 INIT_SIG_FLAG[3][NUM_SIG_FLAG_CTX] =
@@ -611,223 +521,6 @@ INIT_SIG_FLAG_CHROMA[3][NUM_SIG_FLAG_CTX_CHROMA] =
     
   },
 };
-#endif
-#else
-#if MULTI_LEVEL_SIGNIFICANCE
-static const UChar
-INIT_SIG_FLAG[3][2 * NUM_SIG_FLAG_CTX] =
-{  
-  // I-pic
-  {
-    // Luma 4x4
-    106,  89,  88,  55,
-     73,  88,  72,  55,
-     56,  56,  88,  71,
-     38,  54,  71,
-    // Luma 8x8
-     73, 119, 118,  68,
-    119, 119, 118,  68,
-     86, 102, 118,  84,
-     52,  83,  69,  69,
-    // Luma 16x16 & 32x32, 1st 3 coeffs
-    107,  58,  73,
-    // Luma 16x16
-    CNU, CNU, CNU, CNU, CNU,
-    // Luma 32x32
-    CNU, CNU, CNU, CNU, CNU,
-    // Chroma 4x4
-    154, 105, 119,  52,
-     88, 119, 119,  53,
-     86,  71,  87,  70,
-     51,  36, 118,
-    // Chroma 8x8
-    120, 118, 131, 130,
-     70, 133, 148, 146,
-     52,  84,  70,  68,
-     49, 130,  83, 151,
-    // Chroma 16x16 & 32x32, 1st 3 coeffs
-    122, 103, 119,
-    // Chroma 16x16
-    CNU, CNU, CNU, CNU, CNU,
-    // Chroma 32x32
-    CNU, CNU, CNU, CNU, CNU,
-  },
-  // P-pic
-  {
-    // Luma 4x4
-    169, 120, 103, 102,
-    103, 103, 103,  87,
-    102,  87, 103, 104,
-     53,  70,  87,
-    // Luma 8x8
-    167,  87, 102,  53,
-    117, 102, 102,  85,
-     84, 100,  70,  86,
-     67,  99, 117, 102,
-    // Luma 16x16 & 32x32, 1st 3 coeffs
-    169, 104, 119,
-    // Luma 16x16
-    CNU, CNU, CNU, CNU, CNU,
-    // Luma 32x32
-    CNU, CNU, CNU, CNU, CNU,
-    // Chroma 4x4
-    154, 104,  87,  52,
-     87, 118, 102,  53,
-     69,  85, 135, 183,
-     67,  68, 134,
-    // Chroma 8x8
-    167, 118, 116,  83,
-     68, 132, 116,  99,
-     83, 131, 133,  84,
-    146, 163, 117, 165,
-    // Chroma 16x16 & 32x32, 1st 3 coeffs
-    185, 120, 103,
-    // Chroma 16x16
-    CNU, CNU, CNU, CNU, CNU,
-    // Chroma 32x32
-    CNU, CNU, CNU, CNU, CNU,
-  },
-  // B-pic
-  {
-    // Luma 4x4
-    169, 136, 103, 102,
-    103, 103, 103,  87,
-    102,  87, 104, 104,
-     53,  70,  87,
-    // Luma 8x8
-    120,  87, 102,  68,
-     86, 118, 118,  85,
-     84,  85, 102,  70,
-     67,  68,  70, 102,
-    // Luma 16x16 & 32x32, 1st 3 coeffs
-    169, 120, 119,
-    // Luma 16x16
-    CNU, CNU, CNU, CNU, CNU,
-    // Luma 32x32
-    CNU, CNU, CNU, CNU, CNU,
-    // Chroma 4x4
-    170, 120,  87,  53,
-     87, 118, 118,  53,
-     53,  70, 135, 183,
-     67,  52, 102,
-    // Chroma 8x8
-    120, 118, 116, 131,
-     84,  85,  84,  68,
-     83, 115, 117, 117,
-    114, 115, 149, 117,
-    // Chroma 16x16 & 32x32, 1st 3 
-    170, 120, 103,
-    // Chroma 16x16
-    CNU, CNU, CNU, CNU, CNU,
-    // Chroma 32x32
-    CNU, CNU, CNU, CNU, CNU,
-  }
-};
-#else
-static const UChar
-INIT_SIG_FLAG[3][2 * NUM_SIG_FLAG_CTX] =
-{
-  {
-    // Luma 4x4
-    106,  89,  88,  55,
-     73,  88,  72,  55,
-     56,  56,  88,  71,
-     38,  54,  71,
-    // Luma 8x8
-     73, 119, 118,  68,
-    119, 119, 118,  68,
-     86, 102, 118,  84,
-     52,  83,  69,  69,
-    // Luma 16x16
-    107,  58,  73,  68,
-    119, 104,  89, 122,
-     98, 134, 119, 104,
-     89,
-    // Chroma 4x4
-    154, 105, 119,  52,
-     88, 119, 119,  53,
-     86,  71,  87,  70,
-     51,  36, 118,
-    // Chroma 8x8
-    120, 118, 131, 130,
-     70, 133, 148, 146,
-     52,  84,  70,  68,
-     49, 130,  83, 151,
-    // Chroma 16x16
-    122, 103, 119,  83,
-    119, 103, 136, 153,
-    113, 134, 119, 103,
-    136,
-    
-  },
-  {
-    // Luma 4x4
-    169, 120, 103, 102,
-    103, 103, 103,  87,
-    102,  87, 103, 104,
-     53,  70,  87,
-    // Luma 8x8
-    167,  87, 102,  53,
-    117, 102, 102,  85,
-     84, 100,  70,  86,
-     67,  99, 117, 102,
-    // Luma 16x16
-    169, 104, 119, 162,
-    119, 135, 120, 121,
-    146, 118,  87, 135,
-    120,
-    // Chroma 4x4
-    154, 104,  87,  52,
-     87, 118, 102,  53,
-     69,  85, 135, 183,
-     67,  68, 134,
-    // Chroma 8x8
-    167, 118, 116,  83,
-     68, 132, 116,  99,
-     83, 131, 133,  84,
-    146, 163, 117, 165,
-    // Chroma 16x16
-    185, 120, 103, 132,
-    119, 135, 104, 152,
-    146, 102, 118, 119,
-    135,
-    
-  },
-  {
-    // Luma 4x4
-    169, 136, 103, 102,
-    103, 103, 103,  87,
-    102,  87, 104, 104,
-     53,  70,  87,
-    // Luma 8x8
-    120,  87, 102,  68,
-     86, 118, 118,  85,
-     84,  85, 102,  70,
-     67,  68,  70, 102,
-    // Luma 16x16
-    169, 120, 119, 131,
-    119, 135, 120, 137,
-    146, 118, 119, 135,
-    120,
-    // Chroma 4x4
-    170, 120,  87,  53,
-     87, 118, 118,  53,
-     53,  70, 135, 183,
-     67,  52, 102,
-    // Chroma 8x8
-    120, 118, 116, 131,
-     84,  85,  84,  68,
-     83, 115, 117, 117,
-    114, 115, 149, 117,
-    // Chroma 16x16
-    170, 120, 103, 132,
-    135, 135, 120, 121,
-    146, 118, 134, 119,
-    167,
-    
-  },
-};
-#endif
 #endif
 
 #if COEFF_CTXSET_RED
@@ -1355,7 +1048,6 @@ INIT_MERGE_IDX_EXT[3][NUM_MERGE_IDX_EXT_CTX][2] =
 static const Short
 INIT_PART_SIZE[3][NUM_PART_SIZE_CTX][2] =
 {
-#if PREDTYPE_CLEANUP
   {
     {    0,   73 }, {    0,   64 }, {    0,   64 }, {    0,   64 }
   },
@@ -1365,23 +1057,8 @@ INIT_PART_SIZE[3][NUM_PART_SIZE_CTX][2] =
   {
     {    6,   50 }, {   -1,   56 }, {   13,   53 }, {  -11,   76 }
   }
-#else
-  {
-    {    0,   73 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, 
-    {    0,   64 }
-  },
-  {
-    {   -1,   64 }, {   -3,   63 }, {    6,   78 }, {    0,   64 }, 
-    {    0,   64 }
-  },
-  {
-    {    6,   50 }, {   -1,   56 }, {   13,   53 }, {  -11,   76 }, 
-    {  -11,   70 }
-  }
-#endif
 };
 
-#if AMP
 // initial probability for AMP split position (X)
 static const Short
 INIT_CU_X_POS[3][NUM_CU_X_POS_CTX][2] =
@@ -1411,13 +1088,11 @@ INIT_CU_Y_POS[3][NUM_CU_Y_POS_CTX][2] =
     {   -3,   61 }, {   -3,   66 }
   }
 };
-#endif
 
 // initial probability for prediction mode
 static const Short
 INIT_PRED_MODE[3][NUM_PRED_MODE_CTX][2] =
 {
-#if PREDTYPE_CLEANUP 
   {
     {    0,   64 }
   },
@@ -1427,24 +1102,12 @@ INIT_PRED_MODE[3][NUM_PRED_MODE_CTX][2] =
   {  
     {    0,   64 }
   }
-#else
-  {
-    {    0,   64 }, {    0,   64 }
-  },
-  {
-    {    0,   64 }, {  -25,   89 }
-  },
-  {
-    {    0,   64 }, {    0,   64 }
-  }
-#endif
 };
 
 // initial probability for intra direction of luma
 static const Short
 INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX][2] =
 {
-#if BYPASS_FOR_INTRA_MODE
   {
     {    2,   54 }
   },
@@ -1454,17 +1117,6 @@ INIT_INTRA_PRED_MODE[3][NUM_ADI_CTX][2] =
   {
     {    0,   51 }
   }
-#else
-  {
-    {    2,   54 }, {  -3,   65  }, {   -3,   65 }
-  },
-  {
-    {    0,   50 }, {  -2,   61  }, {   -2,   61 }
-  },
-  {
-    {    0,   51 }, {  1,   55   }, {    1,   55 }
-  }
-#endif
 };
 
 // initial probability for intra direction of chroma
@@ -1570,7 +1222,6 @@ INIT_QT_ROOT_CBF[3][NUM_QT_ROOT_CBF_CTX][2] =
   }
 };
 
-#if MODIFIED_LAST_XY_CODING
 static const Short
 INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY][2] =
 { 
@@ -1608,44 +1259,6 @@ INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY][2] =
     {  0,  64  },    {  0,  64  },    {  0,  64  },    {  0,  64  }
   }
 };
-#else
-static const Short
-INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY][2] =
-{
-  {
-    {   14,   25 }, {   10,   38 }, {   12,   41 },
-    {   22,   25 }, {   10,   37 }, {    9,   40 },
-    {   17,   19 }, {   15,   21 }, {   16,   18 }, {   17,   16 }, {   18,   13 }, {   16,   18 },
-    {   23,   -2 }, {   20,   -2 }, {   24,   -9 }, {   24,   -7 }, {   18,   10 }, {    9,   24 }, {   22,   -7 },
-    {   37,    9 }, {   35,   14 }, {   53,   -5 },
-    {   31,   21 }, {   13,   39 }, {   21,   28 },
-    {   35,    2 }, {   22,   17 }, {   18,   23 }, {    9,   40 }, {   14,   32 }, {    7,   44 },
-    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }
-  },
-  {
-    {   12,   35 }, {   12,   40 }, {   13,   47 },
-    {   21,   16 }, {   24,   10 }, {   23,   15 },
-    {   13,   34 }, {   22,   10 }, {   29,   10 }, {   29,   -8 }, {   27,   -5 }, {   20,    7 },
-    {   25,   13 }, {   30,   -8 }, {   35,  -20 }, {   37,  -29 }, {   42,  -41 }, {   42,  -45 }, {   43,  -46 },
-
-    {   21,   36 }, {   22,   37 }, {   35,   27 },
-    {   11,   53 }, {   22,   27 }, {   27,   18 },
-    {   -3,   83 }, {   14,   35 }, {   23,   18 }, {   27,    3 }, {   32,  -11 }, {   17,   11 },
-    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }
-  },
-  {
-    {   12,   35 }, {   12,   40 }, {   13,   47 },
-    {   21,   16 }, {   24,   10 }, {   23,   15 },
-    {   13,   34 }, {   22,   10 }, {   29,   10 }, {   29,   -8 }, {   27,   -5 }, {   20,    7 },
-    {   25,   13 }, {   30,   -8 }, {   35,  -20 }, {   37,  -29 }, {   42,  -41 }, {   42,  -45 }, {   43,  -46 },
-
-    {   21,   36 }, {   22,   37 }, {   35,   27 },
-    {   11,   53 }, {   22,   27 }, {   27,   18 },
-    {   -3,   83 }, {   14,   35 }, {   23,   18 }, {   27,    3 }, {   32,  -11 }, {   17,   11 },
-    {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, {    0,   64 }
-  }
-};
-#endif
 
 #if MULTI_LEVEL_SIGNIFICANCE
 static const Short
@@ -1675,7 +1288,6 @@ INIT_SIG_CG_FLAG[3][2 * NUM_SIG_CG_FLAG_CTX][2] =
 };
 #endif
 
-#if SIGMAP_CTX_RED
 #if CLEANUP_CTXINIT
 static const Short
 INIT_SIG_FLAG[3][NUM_SIG_FLAG_CTX][2] =
@@ -1832,220 +1444,6 @@ INIT_SIG_FLAG_CHROMA[3][NUM_SIG_FLAG_CTX_CHROMA][2] =
     { 28, 29 }, { 0,   0 }, { 5,  49 }, { 20, 32 }
   }
 };
-#endif
-#else
-#if MULTI_LEVEL_SIGNIFICANCE
-static const Short
-INIT_SIG_FLAG[3][2 * NUM_SIG_FLAG_CTX][2] =
-{  
-  // I-pic
-  {
-    // Luma 4x4
-    { -11, 103 }, { -10, 94 }, { -9, 87 }, { -14, 89 }, 
-    { -11, 93 }, { -11, 92 }, { -11, 91 }, { -17, 97 }, 
-    { -13, 91 }, { -12, 89 }, { -10, 89 }, { -19, 101 }, 
-    { -19, 94 }, { -16, 93 }, { -14, 93 },
-    // Luma 8x8
-    { -8, 90 }, { -4, 72 }, { 0, 58 }, { -6, 54 }, 
-    { -8, 80 }, { -4, 70 }, { 1, 57 }, { -4, 54 }, 
-    { -8, 72 }, { -3, 63 }, { 3, 54 }, { -3, 55 }, 
-    { -17, 79 }, { -5, 59 }, { -1, 56 }, { -1, 53 }, 
-    // Luma 16x16 & 32x32, 1st 3 coeffs
-    { -15, 119 }, { -14, 104 }, { -15, 106 },     
-    // Luma 16x16
-    {  -4,  48}, {  -1,  61}, {  -3,  73}, {  -6,  86}, { -12, 106}, 
-    // Luma 32x32
-    {   5,  24}, {   2,  49}, {  -4,  71}, {  -5,  78}, { -10,  96}, 
-    // Chroma 4x4
-    { 34, 22 }, { 19, 41 }, { -11, 83 }, { -58, 144 }, 
-    { 6, 58 }, { 8, 52 }, { 1, 64 }, { -59, 149 }, 
-    { -14, 83 }, { 19, 30 }, { 60, -35 }, { 1, 56 }, 
-    { -50, 124 }, { -53, 137 }, { 7, 47 },
-    // Chroma 8x8
-    { 14, 48 }, { 6, 50 }, { -30, 103 }, { -35, 74 }, 
-    { -7, 68 }, { 14, 36 }, { 8, 43 }, { -25, 63 }, 
-    { -37, 104 }, { -21, 83 }, { 9, 43 }, { 7, 22 }, 
-    { -37, 80 }, { 2, 24 }, { -36, 103 }, { 1, 57 }, 
-    // Chroma 16x16 & 32x32, 1st 3 coeffs
-    { 15, 59 }, { 7, 56 }, { 5, 57 }, 
-    // Chroma 16x16
-    {  -7,  51}, {   0,  56}, {   1,  64}, {  -1,  74}, {  -3,  85}, 
-    // Chroma 32x32
-    { -11,  52}, {   0,  45}, {   0,  56}, {  -1,  64}, {  -3,  74}, 
-  },
-  // P-pic
-  {
-    // Luma 4x4
-    { -2, 74 }, { -5, 76 }, { -6, 72 }, { -19, 89 }, 
-    { -8, 77 }, { -8, 75 }, { -9, 76 }, { -17, 88 }, 
-    { -10, 73 }, { -10, 75 }, { -4, 69 }, { -22, 100 }, 
-    { -20, 88 }, { -19, 89 }, { -9, 75 },
-    // Luma 8x8
-    { 2, 61 }, { -1, 56 }, { -2, 51 }, { -15, 67 }, 
-    { -9, 66 }, { -5, 58 }, { -1, 49 }, { -8, 55 }, 
-    { -16, 72 }, { -10, 62 }, { -1, 49 }, { -4, 52 }, 
-    { -24, 88 }, { -20, 84 }, { -10, 70 }, { -3, 59 }, 
-    // Luma 16x16 & 32x32, 1st 3 coeffs
-    { 0, 78 }, { 0, 66 }, { -3, 68 }, 
-    // Luma 16x16
-    {  -4,  47}, {   1,  57}, {  -2,  72}, {  -6,  86}, { -15, 113}, 
-    // Luma 32x32
-    {   2,  22}, {   8,  37}, {   0,  62}, {  -5,  77}, { -10,  93}, 
-    // Chroma 4x4
-    { 41, 3 }, { 17, 37 }, { 16, 33 }, { -27, 89 }, 
-    { 0, 57 }, { 13, 34 }, { 75, -70 }, { 4, 43 }, 
-    { -24, 84 }, { -11, 68 }, { 6, 52 }, { 20, 40 }, 
-    { -29, 79 }, { -50, 124 }, { 12, 38 },
-    // Chroma 8x8
-    { 18, 31 }, { 22, 11 }, { 13, 10 }, { -32, 58 }, 
-    { 3, 36 }, { 25, -6 }, { 21, -3 }, { 37, -34 }, 
-    { -30, 81 }, { 36, -36 }, { 27, -2 }, { 11, 36 }, 
-    { -56, 143 }, { 20, 3 }, { 16, 19 }, { 19, 46 }, 
-    // Chroma 16x16 & 32x32, 1st 3 coeffs
-    { 28, 29 }, { 16, 35 }, { 11, 39 }, 
-    // Chroma 16x16
-    {  -8,  51}, {  -7,  66}, {  -2,  65}, {  -6,  78}, {   9,  60}, 
-    // Chroma 32x32
-    {  -9,  50}, {  -4,  54}, {  -3,  62}, {  -2,  66}, {  -3,  73}, 
-  },
-  // B-pic
-  {
-    // Luma 4x4
-    { -2, 74 }, { -5, 76 }, { -6, 72 }, { -19, 89 }, 
-    { -8, 77 }, { -8, 75 }, { -9, 76 }, { -17, 88 }, 
-    { -10, 73 }, { -10, 75 }, { -4, 69 }, { -22, 100 }, 
-    { -20, 88 }, { -19, 89 }, { -9, 75 },
-    // Luma 8x8
-    { 2, 61 }, { -1, 56 }, { -2, 51 }, { -15, 67 }, 
-    { -9, 66 }, { -5, 58 }, { -1, 49 }, { -8, 55 }, 
-    { -16, 72 }, { -10, 62 }, { -1, 49 }, { -4, 52 }, 
-    { -24, 88 }, { -20, 84 }, { -10, 70 }, { -3, 59 }, 
-    // Luma 16x16
-    { 0, 78 }, { 0, 66 }, { -3, 68 }, 
-    // Luma 16x16
-    {  -4,  49}, {  -1,  61}, {  -2,  71}, {  -5,  84}, { -12, 106}, 
-    // Luma 32x32
-    {   4,  26}, {   3,  47}, {  -4,  68}, {  -6,  81}, {  -9,  94}, 
-    // Chroma 4x4
-    { 41, 3 }, { 17, 37 }, { 16, 33 }, { -27, 89 }, 
-    { 0, 57 }, { 13, 34 }, { 75, -70 }, { 4, 43 }, 
-    { -24, 84 }, { -11, 68 }, { 6, 52 }, { 20, 40 }, 
-    { -29, 79 }, { -50, 124 }, { 12, 38 },
-    // Chroma 8x8
-    { 18, 31 }, { 22, 11 }, { 13, 10 }, { -32, 58 }, 
-    { 3, 36 }, { 25, -6 }, { 21, -3 }, { 37, -34 }, 
-    { -30, 81 }, { 36, -36 }, { 27, -2 }, { 11, 36 }, 
-    { -56, 143 }, { 20, 3 }, { 16, 19 }, { 19, 46 }, 
-    // Chroma 16x16 & 32x32, 1st 3 
-    { 28, 29 }, { 16, 35 }, { 11, 39 }, 
-    // Chroma 16x16
-    {  -8,  53}, {  -1,  58}, {   0,  64}, {   1,  70}, {  -2,  82}, 
-    // Chroma 32x32
-    { -11,  52}, {   0,  46}, {  -1,  59}, {   0,  63}, {   0,  69}
-  }
-};
-#else
-static const Short
-INIT_SIG_FLAG[3][2 * NUM_SIG_FLAG_CTX][2] =
-{
-  {
-    // Luma 4x4
-    { -11, 103 }, { -10, 94 }, { -9, 87 }, { -14, 89 }, 
-    { -11, 93 }, { -11, 92 }, { -11, 91 }, { -17, 97 }, 
-    { -13, 91 }, { -12, 89 }, { -10, 89 }, { -19, 101 }, 
-    { -19, 94 }, { -16, 93 }, { -14, 93 },
-    // Luma 8x8
-    { -8, 90 }, { -4, 72 }, { 0, 58 }, { -6, 54 }, 
-    { -8, 80 }, { -4, 70 }, { 1, 57 }, { -4, 54 }, 
-    { -8, 72 }, { -3, 63 }, { 3, 54 }, { -3, 55 }, 
-    { -17, 79 }, { -5, 59 }, { -1, 56 }, { -1, 53 }, 
-    // Luma 16x16
-    { -15, 119 }, { -14, 104 }, { -15, 106 }, { -4, 49 }, 
-    { 0, 62 }, { -2, 72 }, { -7, 88 }, { -15, 112 }, 
-    { -4, 28 }, { 1, 54 }, { -4, 72 }, { -7, 82 }, 
-    { -10, 96 },
-    // Chroma 4x4
-    { 34, 22 }, { 19, 41 }, { -11, 83 }, { -58, 144 }, 
-    { 6, 58 }, { 8, 52 }, { 1, 64 }, { -59, 149 }, 
-    { -14, 83 }, { 19, 30 }, { 60, -35 }, { 1, 56 }, 
-    { -50, 124 }, { -53, 137 }, { 7, 47 },
-    // Chroma 8x8
-    { 14, 48 }, { 6, 50 }, { -30, 103 }, { -35, 74 }, 
-    { -7, 68 }, { 14, 36 }, { 8, 43 }, { -25, 63 }, 
-    { -37, 104 }, { -21, 83 }, { 9, 43 }, { 7, 22 }, 
-    { -37, 80 }, { 2, 24 }, { -36, 103 }, { 1, 57 }, 
-    // Chroma 16x16
-    { 15, 59 }, { 7, 56 }, { 5, 57 }, { 14, 11 }, 
-    { 10, 45 }, { 7, 53 }, { 5, 61 }, { 11, 59 }, 
-    { -9, 38 }, { 5, 46 }, { 7, 49 }, { 10, 48 }, 
-    { 13, 47 } 
-  },
-  {
-    // Luma 4x4
-    { -2, 74 }, { -5, 76 }, { -6, 72 }, { -19, 89 }, 
-    { -8, 77 }, { -8, 75 }, { -9, 76 }, { -17, 88 }, 
-    { -10, 73 }, { -10, 75 }, { -4, 69 }, { -22, 100 }, 
-    { -20, 88 }, { -19, 89 }, { -9, 75 },
-    // Luma 8x8
-    { 2, 61 }, { -1, 56 }, { -2, 51 }, { -15, 67 }, 
-    { -9, 66 }, { -5, 58 }, { -1, 49 }, { -8, 55 }, 
-    { -16, 72 }, { -10, 62 }, { -1, 49 }, { -4, 52 }, 
-    { -24, 88 }, { -20, 84 }, { -10, 70 }, { -3, 59 }, 
-    // Luma 16x16
-    { 0, 78 }, { 0, 66 }, { -3, 68 }, { 2, 31 }, 
-    { 3, 53 }, { 0, 65 }, { -3, 74 }, { -9, 93 }, 
-    { -4, 20 }, { 4, 44 }, { 1, 57 }, { 0, 65 }, 
-    { -1, 72 }, 
-    // Chroma 4x4
-    { 41, 3 }, { 17, 37 }, { 16, 33 }, { -27, 89 }, 
-    { 0, 57 }, { 13, 34 }, { 75, -70 }, { 4, 43 }, 
-    { -24, 84 }, { -11, 68 }, { 6, 52 }, { 20, 40 }, 
-    { -29, 79 }, { -50, 124 }, { 12, 38 },
-    // Chroma 8x8
-    { 18, 31 }, { 22, 11 }, { 13, 10 }, { -32, 58 }, 
-    { 3, 36 }, { 25, -6 }, { 21, -3 }, { 37, -34 }, 
-    { -30, 81 }, { 36, -36 }, { 27, -2 }, { 11, 36 }, 
-    { -56, 143 }, { 20, 3 }, { 16, 19 }, { 19, 46 }, 
-    // Chroma 16x16
-    { 28, 29 }, { 16, 35 }, { 11, 39 }, { 26, -18 }, 
-    { 10, 44 }, { 4, 58 }, { -2, 71 }, { -11, 94 }, 
-    { 0, 0 }, { 5, 45 }, { 5, 49 }, { 9, 45 }, 
-    { 20, 32 }
-  },
-  {
-    // Luma 4x4
-    { -2, 74 }, { -5, 76 }, { -6, 72 }, { -19, 89 }, 
-    { -8, 77 }, { -8, 75 }, { -9, 76 }, { -17, 88 }, 
-    { -10, 73 }, { -10, 75 }, { -4, 69 }, { -22, 100 }, 
-    { -20, 88 }, { -19, 89 }, { -9, 75 },
-    // Luma 8x8
-    { 2, 61 }, { -1, 56 }, { -2, 51 }, { -15, 67 }, 
-    { -9, 66 }, { -5, 58 }, { -1, 49 }, { -8, 55 }, 
-    { -16, 72 }, { -10, 62 }, { -1, 49 }, { -4, 52 }, 
-    { -24, 88 }, { -20, 84 }, { -10, 70 }, { -3, 59 }, 
-    // Luma 16x16
-    { 0, 78 }, { 0, 66 }, { -3, 68 }, { 2, 31 }, 
-    { 3, 53 }, { 0, 65 }, { -3, 74 }, { -9, 93 }, 
-    { -4, 20 }, { 4, 44 }, { 1, 57 }, { 0, 65 }, 
-    { -1, 72 }, 
-    // Chroma 4x4
-    { 41, 3 }, { 17, 37 }, { 16, 33 }, { -27, 89 }, 
-    { 0, 57 }, { 13, 34 }, { 75, -70 }, { 4, 43 }, 
-    { -24, 84 }, { -11, 68 }, { 6, 52 }, { 20, 40 }, 
-    { -29, 79 }, { -50, 124 }, { 12, 38 },
-    // Chroma 8x8
-    { 18, 31 }, { 22, 11 }, { 13, 10 }, { -32, 58 }, 
-    { 3, 36 }, { 25, -6 }, { 21, -3 }, { 37, -34 }, 
-    { -30, 81 }, { 36, -36 }, { 27, -2 }, { 11, 36 }, 
-    { -56, 143 }, { 20, 3 }, { 16, 19 }, { 19, 46 }, 
-    // Chroma 16x16
-    { 28, 29 }, { 16, 35 }, { 11, 39 }, { 26, -18 }, 
-    { 10, 44 }, { 4, 58 }, { -2, 71 }, { -11, 94 }, 
-    { 0, 0 }, { 5, 45 }, { 5, 49 }, { 9, 45 }, 
-    { 20, 32 }
-  }
-};
-#endif
 #endif
 
 #if COEFF_CTXSET_RED

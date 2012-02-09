@@ -91,18 +91,10 @@ Void TAppEncTop::xInitLibCfg()
 
   m_cTEncTop.setDisInter4x4                  ( m_bDisInter4x4);
   
-#if NSQT
   m_cTEncTop.setUseNSQT( m_enableNSQT );
-#endif
-#if AMP
   m_cTEncTop.setUseAMP( m_enableAMP );
-#endif
   
   //===== Slice ========
-#if !G1002_RPS
-  m_cTEncTop.setHierarchicalCoding           ( m_bHierarchicalCoding );
-#endif
-  
   //====== Motion search ========
   m_cTEncTop.setFastSearch                   ( m_iFastSearch  );
   m_cTEncTop.setSearchRange                  ( m_iSearchRange );
@@ -112,41 +104,20 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseSBACRD                    ( m_bUseSBACRD   );
   m_cTEncTop.setUseHADME                     ( m_bUseHADME    );
 
-#if !G1002_RPS
-  m_cTEncTop.setUseGPB                       ( m_bUseGPB      );
-#endif
   m_cTEncTop.setUseLComb                     ( m_bUseLComb    );
   m_cTEncTop.setLCMod                        ( m_bLCMod         );
-#if !G1002_RPS
-  m_cTEncTop.setUseLDC                       ( m_bUseLDC      );
-#endif
   m_cTEncTop.setQuadtreeTULog2MaxSize        ( m_uiQuadtreeTULog2MaxSize );
   m_cTEncTop.setQuadtreeTULog2MinSize        ( m_uiQuadtreeTULog2MinSize );
   m_cTEncTop.setQuadtreeTUMaxDepthInter      ( m_uiQuadtreeTUMaxDepthInter );
   m_cTEncTop.setQuadtreeTUMaxDepthIntra      ( m_uiQuadtreeTUMaxDepthIntra );
-#if !G1002_RPS
-  m_cTEncTop.setUseNRF                       ( m_bUseNRF      );
-  m_cTEncTop.setUseBQP                       ( m_bUseBQP      );
-#endif
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
-#if EARLY_CU_DETERMINATION
   m_cTEncTop.setUseEarlyCU                   ( m_bUseEarlyCU  ); 
-#endif
-#if CBF_FAST_MODE
   m_cTEncTop.setUseCbfFastMode            ( m_bUseCbfFastMode  );
-#endif
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
 
   m_cTEncTop.setPictureDigestEnabled(m_pictureDigestEnabled);
 
-#if !G1002_RPS
-#if REF_SETTING_FOR_LD
-  m_cTEncTop.setUseNewRefSetting( m_bUseNewRefSetting );
-#endif
-#endif
-#if NO_TMVP_MARKING
   m_cTEncTop.setEnableTMVP ( m_enableTMVP );
-#endif
 }
 
 Void TAppEncTop::xCreateLib()

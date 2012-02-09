@@ -321,7 +321,6 @@ void partialButterfly4(short src[4][4],short dst[4][4],int shift)
   }
 }
 
-#if NSQT
 void partialButterfly4(short *src,short *dst,int shift, int line)
 {
   int j;  
@@ -345,7 +344,6 @@ void partialButterfly4(short *src,short *dst,int shift, int line)
     dst ++;
   }
 }
-#endif
 
 // Fast DST Algorithm. Full matrix multiplication for DST and Fast DST algorithm 
 // give identical results
@@ -456,7 +454,6 @@ void partialButterflyInverse4(short src[4][4],short dst[4][4],int shift)
   }
 }
 
-#if NSQT
 void partialButterflyInverse4(short *src,short *dst,int shift, int line)
 {
   int j;    
@@ -488,7 +485,6 @@ void partialButterflyInverse4(short *src,short *dst,int shift, int line)
     dst += 4;
   }
 }
-#endif
 
 /** 4x4 inverse transform (2D)
  *  \param coeff input data (transform coefficients)
@@ -557,7 +553,6 @@ void partialButterfly8(short src[8][8],short dst[8][8],int shift)
   }
 }
 
-#if NSQT
 void partialButterfly8(short *src,short *dst,int shift, int line)
 {
   int j,k;  
@@ -593,7 +588,6 @@ void partialButterfly8(short *src,short *dst,int shift, int line)
     dst ++;
   }
 }
-#endif
 
 /** 8x8 forward transform (2D)
  *  \param block input data (residual)
@@ -652,7 +646,6 @@ void partialButterflyInverse8(short src[8][8],short dst[8][8],int shift)
   }
 }
 
-#if NSQT
 void partialButterflyInverse8(short *src,short *dst,int shift, int line)
 {
   int j,k;    
@@ -692,7 +685,6 @@ void partialButterflyInverse8(short *src,short *dst,int shift, int line)
     dst += 8;
   }
 }
-#endif
 
 /** 8x8 inverse transform (2D)
  *  \param coeff input data (transform coefficients)
@@ -760,7 +752,6 @@ void partialButterfly16(short src[16][16],short dst[16][16],int shift)
   }
 }
 
-#if NSQT
 void partialButterfly16(short *src,short *dst,int shift, int line)
 {
   int j,k;
@@ -810,7 +801,6 @@ void partialButterfly16(short *src,short *dst,int shift, int line)
 
   }
 }
-#endif
 
 /** 16x16 forward transform (2D)
  *  \param block input data (residual)
@@ -880,7 +870,6 @@ void partialButterflyInverse16(short src[16][16],short dst[16][16],int shift)
   }
 }
 
-#if NSQT
 void partialButterflyInverse16(short *src,short *dst,int shift, int line)
 {
   int j,k;  
@@ -931,7 +920,6 @@ void partialButterflyInverse16(short *src,short *dst,int shift, int line)
     dst += 16;
   }
 }
-#endif
 
 /** 16x16 inverse transform (2D)
  *  \param coeff input data (transform coefficients)
@@ -1010,7 +998,6 @@ void partialButterfly32(short src[32][32],short dst[32][32],int shift)
   }
 }
 
-#if NSQT
 void partialButterfly32(short *src,short *dst,int shift, int line)
 {
   int j,k;
@@ -1070,7 +1057,6 @@ void partialButterfly32(short *src,short *dst,int shift, int line)
     dst ++;
   }
 }
-#endif
 
 /** 32x32 forward transform (2D)
  *  \param block input data (residual)
@@ -1152,7 +1138,6 @@ void partialButterflyInverse32(short src[32][32],short dst[32][32],int shift)
   }
 }
 
-#if NSQT
 void partialButterflyInverse32(short *src,short *dst,int shift, int line)
 {
   int j,k;  
@@ -1215,7 +1200,6 @@ void partialButterflyInverse32(short *src,short *dst,int shift, int line)
     dst += 32;
   }
 }
-#endif
 
 /** 32x32 inverse transform (2D)
  *  \param coeff input data (transform coefficients)
@@ -1231,7 +1215,6 @@ void xITr32(short coeff[32][32],short block[32][32])
   partialButterflyInverse32(tmp,block,shift_2nd);
 }
 
-#if NSQT
 /** MxN forward transform (2D)
 *  \param block input data (residual)
 *  \param coeff output data (transform coefficients)
@@ -1255,7 +1238,6 @@ void xTrMxN(short *block,short *coeff, int iWidth, int iHeight)
     partialButterfly32( block, tmp, shift_1st, iHeight );
     partialButterfly8( tmp, coeff, shift_2nd, iWidth );
   }
-#if NSQT_TX_ORDER
   else if( iWidth == 4 && iHeight == 16)
   {
     partialButterfly4( block, tmp, shift_1st, iHeight );
@@ -1266,7 +1248,6 @@ void xTrMxN(short *block,short *coeff, int iWidth, int iHeight)
     partialButterfly8( block, tmp, shift_1st, iHeight );
     partialButterfly32( tmp, coeff, shift_2nd, iWidth );
   }
-#endif
 }
 /** MxN inverse transform (2D)
 *  \param coeff input data (transform coefficients)
@@ -1290,7 +1271,6 @@ void xITrMxN(short *coeff,short *block, int iWidth, int iHeight)
     partialButterflyInverse8(coeff,tmp,shift_1st,iWidth);
     partialButterflyInverse32(tmp,block,shift_2nd,iHeight);
   }
-#if NSQT_TX_ORDER
   else if( iWidth == 4 && iHeight == 16)
   {
     partialButterflyInverse16(coeff,tmp,shift_1st,iWidth);
@@ -1301,9 +1281,7 @@ void xITrMxN(short *coeff,short *block, int iWidth, int iHeight)
     partialButterflyInverse32(coeff,tmp,shift_1st,iWidth);
     partialButterflyInverse8(tmp,block,shift_2nd,iHeight);
   }
-#endif
 }
-#endif
 
 #endif //MATRIX_MULT
 
@@ -1320,7 +1298,6 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
   TCoeff* piQCoef   = pDes;
   Int   iAdd = 0;
   
-#if NSQT 
     Bool bNonSqureFlag = ( iWidth != iHeight );
     if( bNonSqureFlag )
     {
@@ -1329,7 +1306,6 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
       iWidth  = 1 << ( ( uiWidthBit + uiHeightBit) >> 1 );
       iHeight = iWidth;
     }    
-#endif
 
     UInt uiLog2TrSize = g_aucConvertToBit[ iWidth ] + 2;
     UInt uiQ = g_quantScales[m_cQP.rem()];
@@ -1362,7 +1338,6 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
   
   const TCoeff* piQCoef   = pSrc;
   Int*   piCoef    = pDes;
-#if NSQT
   if( iWidth != iHeight )
   {
     UInt uiWidthBit  = g_aucConvertToBit[ iWidth ]  + 2;
@@ -1370,7 +1345,6 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
     iWidth  = 1 << ( ( uiWidthBit + uiHeightBit) >> 1 );
     iHeight = iWidth;
   }    
-#endif
 
   if ( iWidth > (Int)m_uiMaxTrSize )
   {
@@ -1424,11 +1398,7 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
   uiAbsSum = 0;
   assert( (pcCU->getSlice()->getSPS()->getMaxTrSize() >= uiWidth) );
 
-#if NSQT
   xT( uiMode, pcResidual, uiStride, m_plTempCoeff, uiWidth, uiHeight );
-#else
-  xT( uiMode, pcResidual, uiStride, m_plTempCoeff, uiWidth );
-#endif
   xQuant( pcCU, m_plTempCoeff, rpcCoeff,
        uiWidth, uiHeight, uiAbsSum, eTType, uiAbsPartIdx );
 }
@@ -1437,11 +1407,7 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
 Void TComTrQuant::invtransformNxN( TextType eText,UInt uiMode, Pel* rpcResidual, UInt uiStride, TCoeff* pcCoeff, UInt uiWidth, UInt uiHeight )
 {
   xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight);
-#if NSQT
   xIT( uiMode, m_plTempCoeff, rpcResidual, uiStride, uiWidth, uiHeight );
-#else
-  xIT( uiMode, m_plTempCoeff, rpcResidual, uiStride, uiWidth);
-#endif
 }
 
 Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel* rpcResidual, UInt uiAddr, UInt uiStride, UInt uiWidth, UInt uiHeight, UInt uiMaxTrMode, UInt uiTrMode, TCoeff* rpcCoeff )
@@ -1454,9 +1420,7 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
   UInt uiLumaTrMode, uiChromaTrMode;
   pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
   const UInt uiStopTrMode = eTxt == TEXT_LUMA ? uiLumaTrMode : uiChromaTrMode;
-#if NSQT
   PartSize ePartSize = pcCU->getPartitionSize( uiAbsPartIdx );
-#endif
   
   assert(1); // as long as quadtrees are not used for residual transform
   
@@ -1464,14 +1428,8 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
   {
     UInt uiDepth      = pcCU->getDepth( uiAbsPartIdx ) + uiTrMode;
     UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
-#if NSQT
     UInt uiTrModeC    = uiTrMode;
-#endif
-#if MIN_CHROMA_TU
     if( eTxt != TEXT_LUMA && uiLog2TrSize == 2 )
-#else
-    if( eTxt != TEXT_LUMA && uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
-#endif
     {
       UInt uiQPDiv = pcCU->getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
       if( ( uiAbsPartIdx % uiQPDiv ) != 0 )
@@ -1480,21 +1438,13 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
       }
       uiWidth  <<= 1;
       uiHeight <<= 1;
-#if NSQT
       uiTrModeC--;
-#endif
     }
     Pel* pResi = rpcResidual + uiAddr;
-#if NSQT
     if( ( eTxt == TEXT_LUMA && pcCU->useNonSquareTrans( uiTrMode ) ) || ( eTxt != TEXT_LUMA && pcCU->useNonSquareTrans( uiTrModeC ) ) )
     {
-#if AMP
       UInt uiTrWidth  = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N )? uiWidth >> 1 : uiWidth << 1;
       UInt uiTrHeight = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N )? uiHeight << 1 : uiHeight >> 1;
-#else
-      UInt uiTrWidth  = ( ePartSize == SIZE_Nx2N )? uiWidth >> 1 : uiWidth << 1;
-      UInt uiTrHeight = ( ePartSize == SIZE_Nx2N )? uiHeight << 1 : uiHeight >> 1;
-#endif
 
       if( uiWidth == 4 )
       {
@@ -1507,26 +1457,11 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
 #else
       if( uiTrWidth != uiTrHeight )
       {
-#if !NSQT_MOD
-        TCoeff  orgCoeff[ 256 ];
-#if NSQT_TX_ORDER
-        UInt uiNonSqureScanTableIdx = ( uiTrWidth * uiTrHeight ) == 64 ? 2 * ( uiTrHeight > uiTrWidth ) : 2 * ( uiTrHeight > uiTrWidth ) + 1;
-#else
-        UInt uiNonSqureScanTableIdx = ( uiTrWidth * uiTrHeight ) == 64 ? 0 : 1;
-#endif
-        memcpy( &orgCoeff[0], rpcCoeff, uiWidth * uiHeight * sizeof( TCoeff ) ); 
-        for( UInt uiScanPos = 0; uiScanPos < uiWidth * uiHeight; uiScanPos++ )
-        {
-          UInt uiBlkPos = g_auiNonSquareSigLastScan[ uiNonSqureScanTableIdx ][ uiScanPos ];
-          rpcCoeff[ uiBlkPos ] = orgCoeff[ g_auiFrameScanXY[ (int)g_aucConvertToBit[ uiWidth ] + 1 ][ uiScanPos ] ];
-        }
-#endif
         uiWidth  = uiTrWidth;
         uiHeight = uiTrHeight;
       }
 #endif
     }
-#endif
     invtransformNxN( eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight );
   }
   else
@@ -1537,7 +1472,6 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
     UInt uiAddrOffset = uiHeight * uiStride;
     UInt uiCoefOffset = uiWidth * uiHeight;
     UInt uiPartOffset = pcCU->getTotalNumPart() >> (uiTrMode<<1);
-#if NSQT
     if( pcCU->useNonSquareTrans( uiTrMode ) && ! ( ( uiWidth == 4 && uiTrMode == 1 ) || 
       ( eTxt != TEXT_LUMA && uiTrMode > 1 && ( ( 1 << pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() ) >> 2 ) == 4 ) ) )
     {
@@ -1545,11 +1479,7 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
       UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
       if( uiTrMode == 1 || ( uiTrMode == 2 && ( uiWidth == 4 || uiLog2TrSize == ( pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() - 1 ) ) ) )
       {
-#if AMP
         if( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N )
-#else
-        if( ePartSize == SIZE_Nx2N )
-#endif
         {
           uiAddrOffset = ( uiTrMode == 1 || ( uiLog2TrSize == ( pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() - 1 ) && uiTrMode == 2 ) ) ? uiWidth >> 1 : uiAddrOffset;
         }
@@ -1565,13 +1495,8 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
       }
       else
       {
-#if AMP
         UInt uiTrWidth  = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N ) ? uiWidth >> 1 : uiWidth << 1;
         UInt uiTrHeight = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N ) ? uiWidth << 1 : uiWidth >> 1;
-#else
-        UInt uiTrWidth  = ( ePartSize == SIZE_Nx2N ) ? uiWidth >> 1 : uiWidth << 1;
-        UInt uiTrHeight = ( ePartSize == SIZE_Nx2N ) ? uiWidth << 1 : uiWidth >> 1;
-#endif
         invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr                                   , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
         invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiTrWidth                       , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
         invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiTrHeight*uiStride             , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
@@ -1579,7 +1504,6 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
       }
     }
     else
-#endif
     {
       invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr                         , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
       invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiWidth               , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
@@ -1600,66 +1524,36 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
  *  \param iSize transform size (iSize x iSize)
  *  \param uiMode is Intra Prediction mode used in Mode-Dependent DCT/DST only
  */
-#if NSQT
 Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Int* psCoeff, Int iWidth, Int iHeight )
-#else
-Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Int* psCoeff, Int iSize )
-#endif
 {
 #if MATRIX_MULT  
-#if NSQT
   Int iSize = iWidth; 
   if( iWidth != iHeight)
   {
     xTrMxN( piBlkResi, psCoeff, uiStride, (UInt)iWidth, (UInt)iHeight );
     return;
   }
-#endif
   xTr(piBlkResi,psCoeff,uiStride,(UInt)iSize,uiMode);
 #else
   Int j,k;
-#if NSQT
   Int iSize = iWidth; 
   if( iWidth != iHeight)
   {
-#if !NSQT_TX_ORDER
-    Int iMaxSize = max( iWidth , iHeight);
-    Int iMinSize = min( iWidth , iHeight);    
-#endif
     short block[ 64 * 64 ];
     short coeff[ 64 * 64 ];
-#if !NSQT_TX_ORDER
-    if( iWidth > iHeight)
-#endif
     {
       for (j = 0; j < iHeight; j++)
       {    
         memcpy( block + j * iWidth, piBlkResi + j * uiStride, iWidth * sizeof( short ) );      
       }
     }
-#if !NSQT_TX_ORDER
-    else
-    {
-      for ( j = 0; j < iHeight; j ++)
-      {    
-        for ( k = 0; k < iWidth; k ++)
-        {     
-          block[ k * iHeight + j ] =  piBlkResi[ k ];
-        }  
-        piBlkResi += uiStride;
-      } 
-    }
-    xTrMxN( block, coeff, iMaxSize, iMinSize );
-#else
     xTrMxN( block, coeff, iWidth, iHeight );
-#endif
     for ( j = 0; j < iHeight * iWidth; j++ )
     {    
       psCoeff[ j ] = coeff[ j ];
     }
     return ;
   }
-#endif
   if (iSize==4)
   {   
     short block[4][4];   
@@ -1742,66 +1636,36 @@ Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Int* psCoeff, 
  *  \param iSize transform size (iSize x iSize)
  *  \param uiMode is Intra Prediction mode used in Mode-Dependent DCT/DST only
  */
-#if NSQT
 Void TComTrQuant::xIT( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight )
-#else
-Void TComTrQuant::xIT( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, Int iSize )
-#endif
 {
 #if MATRIX_MULT  
-#if NSQT
   Int iSize = iWidth;
   if( iWidth != iHeight )
   {
     xITrMxN( plCoef, pResidual, uiStride, (UInt)iWidth, (UInt)iHeight );
     return;
   }
-#endif
   xITr(plCoef,pResidual,uiStride,(UInt)iSize,uiMode);
 #else
   Int j,k;
-#if NSQT
   Int iSize = iWidth; 
   if( iWidth != iHeight )
   {
-#if !NSQT_TX_ORDER
-    Int iMaxSize = max( iWidth , iHeight);
-    Int iMinSize = min( iWidth , iHeight);
-#endif
     short block[ 64 * 64 ];
     short coeff[ 64 * 64 ];
     for ( j = 0; j < iHeight * iWidth; j++ )
     {    
       coeff[j] = (short)plCoef[j];
     }
-#if NSQT_TX_ORDER
     xITrMxN( coeff, block, iWidth, iHeight );
-#else
-    xITrMxN( coeff, block, iMaxSize, iMinSize );
-    if( iWidth > iHeight )
-#endif
     {
       for ( j = 0; j < iHeight; j++ )
       {    
         memcpy( pResidual + j * uiStride, block + j * iWidth, iWidth * sizeof(short) );      
       }
     }
-#if !NSQT_TX_ORDER
-    else
-    {
-      for ( j = 0; j < iHeight; j++ )
-      {    
-        for ( k = 0; k < iWidth; k++ )
-        {     
-          pResidual[k] = block[k * iHeight + j];
-        }  
-        pResidual += uiStride;
-      } 
-    }
-#endif
     return ;
   }
-#endif
   if (iSize==4)
   {    
     short block[4][4];
@@ -1877,7 +1741,7 @@ Void TComTrQuant::xIT( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, 
   }
 #endif  
 }
- 
+
 /** Context derivation process of coeff_abs_significant_flag
  * \param pcCoeff pointer to prior coded transform coefficients
  * \param posX column of current scan position
@@ -1896,14 +1760,11 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
 #if NSQT_DIAG_SCAN
                                   ,Int                             height
 #endif
-#if SIGMAP_CTX_RED
                                   ,TextType                        textureType
-#endif
                                   )
 {
   if ( blockType == 2 )
   {
-#if SIGMAP_CTX_RED
     //LUMA map
     const Int ctxIndMap4x4Luma[15] =
     {
@@ -1929,14 +1790,10 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
     {
       return ctxIndMap4x4Chroma[ 4 * posY + posX ];
     }
-#else
-    return 4 * posY + posX;
-#endif
   }
   
   if ( blockType == 3 )
   {
-#if SIGMAP_CTX_RED
     const Int map8x8[16] =
     {
       0,  1,  2,  3,
@@ -1952,23 +1809,13 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
       return offset + 10;
     }
     return offset + map8x8[4 * (posY >> 1) + (posX >> 1)];
-#else
-    return 15 + 4 * (posY >> 1) + (posX >> 1);
-#endif
   }
 
-#if SIGMAP_CTX_RED
   Int offset = (textureType == TEXT_LUMA) ? 20 : 17;
   if( posX + posY == 0 )
   {
     return offset;
   }
-#else
-  if( posX + posY < 2 )
-  {
-    return 31 + 2 * posY + posX;
-  }
-#endif
   
 #if NSQT_DIAG_SCAN
   const TCoeff *pData = pcCoeff + posX + posY * width;
@@ -1976,20 +1823,14 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   const TCoeff *pData = pcCoeff + posX + (posY << blockType);
 #endif
   
-#if SIGMAP_CTX_RED
 #if NSQT_DIAG_SCAN
   Int thred = std::max(height, width) >> 2;
 #else
   Int thred = 1 << (blockType-2);
 #endif
-#endif
   
 #if !NSQT_DIAG_SCAN
-#if SIGMAP_CTX_RED
   if(textureType==TEXT_LUMA && posX + posY < thred)
-#else
-  if( posX + posY < 5 )
-#endif
   {
 #if SUBBLOCK_SCAN
     Int cnt = (pData[1] != 0) + (pData[2] != 0) + (pData[2*width] != 0) + (pData[width+1] != 0);
@@ -2000,12 +1841,8 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
 #else
     Int cnt = (pData[1] != 0) + (pData[2] != 0) + (pData[width] != 0) + (pData[2*width] != 0) + (pData[width+1] != 0);
 #endif  
-#if SIGMAP_CTX_RED
     cnt=(cnt+1)>>1;
     return offset + 1 + min( 2, cnt );
-#else
-    return 31 + 3 + min( 4, cnt );
-#endif
   }
   
   Int height = width;
@@ -2040,7 +1877,6 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
     }
   }
 
-#if SIGMAP_CTX_RED
   cnt = ( cnt + 1 ) >> 1;
 #if NSQT_DIAG_SCAN
   return (( textureType == TEXT_LUMA && posX + posY >= thred ) ? 4 : 1) + offset + cnt;
@@ -2053,13 +1889,6 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   {
     return offset + 1 + cnt;
   }
-#endif
-#else
-#if NSQT_DIAG_SCAN
-  return (( posX + posY < 5 ) ? 31 + 3 : 31 + 8) + cnt;
-#else
-  return 31 + 8 + cnt;
-#endif
 #endif
 }
 

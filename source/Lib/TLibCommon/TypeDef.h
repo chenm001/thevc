@@ -46,46 +46,24 @@
 #define SLICEADDR_BEGIN            1 ///<G315: support for moving slice address to beginning of slice
 #define PADDING_INTRA             1 ///< G812: padding from bottom left, copy previous pixel instead of averaging
 #define COEFF_CTX_RED             1 ///< G121: reduce max value of c1 and c2
-#define DBF_DQP                   1    ///< average QP for deblocking filter parameter lookup
-#define BS_DISABLE_INSIDE_8x8     1
 
-#define REMOVE_AVOID_MERGE        1 //G681/G542/G593: removing avoid merge
-#define REMOVE_MV_PRED_CLIP       1 //G134: removing MV clipping
-#define INFINITE_PADDING          1 //MV clipping assuming infinite frame extension
-#define SCALING_FACTOR_CLIP_4096  1 //G223: enlarging the effective MV scaling ratio to [-16,16) by setting the limitation of MV scaling factor to +-4096
-#define REMOVE_DEPENDENCY_AMVP    1 //G542 sp2: remove dependency for derivation process of AMVP candidate
-#define REMOVE_LIMIT_ZEROMERGE    1 //G542 sp3: remove the limit of zero merging candidate
-#define REMOVE_MRG_2ND_PRUNING    1 //G397: remove the 2nd pruning process for merge candidates
-#define G082_MOD_H_TMVP_POS       1 //<G082, modified H TMVP position (configuration 2) for memory bandwidth reduction
 #define G091_SIGNAL_MAX_NUM_MERGE_CANDS    1   //<G091: maxNumMergeCand signaling in slice header
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
 #define MRG_MAX_NUM_CANDS_SIGNALED         5   //<G091: value of maxNumMergeCand signaled in slice header 
 #endif
-#define G776_MRG_ENC_FIX          1 //<G776: Merge encoder estimation improvement
 
-#define CABAC_RICE_FIX            1 ///< G495: fixing an entry in g_auiGoRicePrefixLen table
-#define BYPASS_FOR_LAST_COEFF_MOD 1 ///< grouping of bypass bins for last_significant_coeff_x/y, MSB first
-#define MOD_IF_G778A              1 ///< modified interpolation filter according to set A in G778
 #define IT_CLIPPING               1 ///< clipping in inverse transform G782
-#define NSQT_TX_ORDER             1 ///< modify transform order in NSQT G517
-#define CABAC_RICE_UPDATE_MOD     1 ///< modified Rice parameter update function G700
-#define BYPASS_FOR_INTRA_MODE     1 ///< use bypass bins for intra luma mode coding G707
 #define WEIGHT_PRED_IMP           1 ///< high-precision offset for weighted bipred G065
 #define PLANAR_IS_DEFAULT         1 ///< default to planar if neighbor not available G119
-#define REMAP_TO_PLANAR           1 ///< default to planar if neighbor out of range G119
-#define INTRA_MODES_64X64         1 ///< enable 35 intra modes for 64x64 PUs
 #define CBF_CODING_SKIP_COND_FIX  1 ///< G444: fixing the condition of skipping cbf_luma coding
-#define DISABLE_PARALLEL_DECISIONS 1 ///< disable parallel decisions part of deblocking filter G088
 #define VER_HOR_FILTER            1 ///< F172: intra ver/hor prediction filter
 #define WP_IMPROVED_SYNTAX        1 ///< improved weighted prediction syntax to remove redundancy G441
-#define NO_TMVP_MARKING           1 ///< before decoding a non-TMVP picture with tid=0, mark all pictures in DPB except the current picture unused for TMVP, G398
 
 #define REMOVE_INTRA_LINE_BUFFER  1 ///< G145: intra line buffer removal
 
 #define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO
 #define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ
 
-#define MRG_TMVP_REFIDX_G163 1 ///< G163 : use refIdx of left PU. if not available, use 0.
 #define UNI_BI_IDENTICAL_MOTION   1 ///< chaning bi-prediction to uni-prediction for identical motion G415/G438
 
 #define G609_NEW_BA_SUB             1   ///< G609: Directional feature calculation on subset of pixels
@@ -125,16 +103,9 @@
 #define MLS_GRP_NUM                         64     ///< G644 : Max number of coefficient groups, max(16, 64)
 #define MLS_CG_SIZE                         4      ///< G644 : Coefficient group size of 4x4
 #endif
-#define MODIFIED_LAST_XY_CODING             1      ///< G704 : Last coefficient position coding
 #define CHROMA_CBF_CTX_REDUCTION            1      ///< G718 : Sharing contexts for cbf_cb and cbf_cr
-#define PREDTYPE_CLEANUP                    1      ///< G1042: Harmonization of the prediction and partitioning mode binarization of P and B slices
-#define TU_LEVEL_COEFF_INTERLEAVE           1      ///< G112 / G381: TU level luma/chroma coefficient interleaving
 
-#define LEVEL_LIMIT                         1      ///< G719 : Restriction for limits to 16 bits (signed) diapason
 #define COEFF_CTXSET_RED                    1      ///< G783 : reduce level context set of chroma
-#define SIGMAP_CTX_RED                      1      ///< G1015 : context number reduction for significance map coding
-#define MAX_PCM_SIZE                        1      ///< G112 : SPS control of PCM mode; Maximum PCM size no larger than 32x32
-#define MIN_CHROMA_TU                       1      ///< G112 : Log2_minimum_chroma_transform_size = max (Log2_minimum_luma_transform_size-1, 2)
 #define ALF_SAO_SLICE_FLAGS                 1      ///< G566 : Re-insert ALF and SAO flags in the slice header
 #define PIC_SIZE_VLC                        1      ///< G325: code pic_width_in_luma_samples and pic_heigh_in_luma_samples as ue(v)
 #define MAX_DPB_AND_LATENCY                 1      ///< G546 : Move max_dec_frame_buffering and num_reorder_frames from VUI to SPS
@@ -151,34 +122,14 @@
 ////////////////////////////
 // JCT-VC F start
 ////////////////////////////
-#define MRG_AMVP_ADD_CAND_F470               1       // 1:add new candidates following original ones
-#define NSQT                                 1       // F410 & F412 : Non-Square Quadtree Transform
-#define NSQT_MOD (NSQT && 1) // Modify NSQT such as to always pass proper width/height to coeff coding functions
 #define NSQT_DIAG_SCAN                      1      ///< G1038: use diagonal and subblock scans for NSQT
-#if NSQT_DIAG_SCAN && !(SUBBLOCK_SCAN && NSQT_MOD)
+#if NSQT_DIAG_SCAN && !(SUBBLOCK_SCAN)
 #error
 #endif
-#if NSQT
 #define NS_HAD                               1
-#endif
 
-#define F747_CABAC_FLUSH_SLICE_HEADER        1       // F747 & F399: CABAC Flush after slice header
-
-
-#define WEIGHT_PRED                          1       ///< F265 & F326: enable weighted prediction
 ////////////////////////////
 // JCT-VC F end
-////////////////////////////
-
-
-
-////////////////////////////
-// JCT-VC E start
-////////////////////////////
-
-#define MOT_TUPU_MAXDEPTH1                1           ///< E364, "Implicit TU" derivation when there is no TU tree (i.e., "max depth = 1"), the transform blocks should not cross PU boundaries
-////////////////////////////
-// JCT-VC E end
 ////////////////////////////
 
 #define HHI_RQT_INTRA_SPEEDUP             1           ///< tests one best mode with full rqt
@@ -190,10 +141,6 @@
 
 #define VERBOSE_RATE 0 ///< Print additional rate information in encoder
 
-// COLOCATED PREDICTOR
-// FOR MERGE
-#define MRG_TMVP_REFIDX                   1           ///< (JCTVC-E481 - D274 (2) ) refidx derivation for merge TMVP  
-// FOR AMVP AND MERGE
 #define AMVP_DECIMATION_FACTOR            4
 
 #define SCAN_SET_SIZE                     16
@@ -205,27 +152,20 @@
 
 #define NUM_INTRA_MODE 36
 #define LM_CHROMA_IDX  35
-#define PLANAR_F483 1 ///< Modify samples used for planar prediction as per JCTVC-F483
 
 #define IBDI_DISTORTION                0           ///< enable/disable SSE modification when IBDI is used (JCTVC-D152)
 #define FIXED_ROUNDING_FRAME_MEMORY    0           ///< enable/disable fixed rounding to 8-bitdepth of frame memory when IBDI is used  
 
 #define MS_LCEC_UNI_EXCEPTION_THRES     1           // for GPB case, uni-prediction, > MS_LCEC_UNI_EXCEPTION_THRES is exception
 
-#define  G1002_RPS                           1
-#if  !G1002_RPS
-#define REF_SETTING_FOR_LD              1           // reference frame setting for low delay setting (JCTVC-F701)
-#else
 #define G1002_CRA_CHECK                 1
 #define INTER_RPS_PREDICTION            1           // remove this once tested.
 #define WRITE_BACK                      1           ///< Enable/disable the encoder to replace the deltaPOC and Used by current from the config file with the values derived by the refIdc parameter.
 #define PRINT_RPS_INFO                  0           ///< Enable/disable the printing of bits used to send the RPS.
-#endif
                                                     // using one nearest frame as reference frame, and the other frames are high quality (POC%4==0) frames (1+X)
                                                     // this should be done with encoder only decision
                                                     // but because of the absence of reference frame management, the related code was hard coded currently
 
-#define OL_USE_WPP    1     // Set to 1 to enable Wavefront Parallel Processing, 0 otherwise
 
 #define RVM_VCEGAM10 1 // RVM model proposed in VCEG-AM10
 #if RVM_VCEGAM10
@@ -251,60 +191,34 @@
 // AHG SLICES defines section end
 /////////////////////////////////
 
-#define TILES                              1
 #define LOG2_MAX_NUM_COLUMNS_MINUS1        7
 #define LOG2_MAX_NUM_ROWS_MINUS1           7
 #define LOG2_MAX_COLUMN_WIDTH              13
 #define LOG2_MAX_ROW_HEIGHT                13
 
-#if TILES
 #define TILES_DECODER                       1 // JCTVC-F594 - signalling of tile location
 #define MAX_MARKER_PER_NALU                 1000
 #define TILES_LOW_LATENCY_CABAC_INI         1 // JCTVC-G197 = low latency CABAC initialization for dependent tiles
-#else
-#define TILES_DECODER                       0
-#endif
-
-#define SAO_CROSS_LCU_BOUNDARIES      1
-
-#define DEBLK_CLEANUP_CHROMA_BS         1 // Clean-up of chroma Bs (not used in HEVC deblocking)
-
-#define DEBLK_G590                      1 // Self-contained deblocking of 8x8 blocks
-
 
 #define MATRIX_MULT                             0   // Brute force matrix multiplication instead of partial butterfly
 
 #define REG_DCT 65535
 
-#define E192_SPS_PCM_FILTER_DISABLE_SYNTAX  1 // JCTVC-E192: PCM filter disable flag
-
-#define AMP                                   1           ///< JCTVC-F379: asymmetric motion partition
-#if AMP
 #define AMP_SAD                               1           ///< dedicated SAD functions for AMP
 #define AMP_ENC_SPEEDUP                       1           ///< encoder only speed-up by AMP mode skipping
-#endif
 #if AMP_ENC_SPEEDUP
 #define AMP_MRG                               1           ///< encoder only force merge for AMP partition (no motion search for AMP)
 #endif
 
 
-#define F745_DQP_BINARIZATION          1 //JCTVC-F745: DQP binarization
-
-#define EARLY_CU_DETERMINATION            1 //JCTVC-F092
-
-#define CBF_FAST_MODE                      1 //JCTVC-F045
-
 #define G665_ALF_COEFF_PRED                1 // JCTVC-G665
 
 #define G507_COND_4X4_ENABLE_FLAG      1
-#define G507_QP_ISSUE_FIX              1   // JCTVC-G507 (max_cu_qp_delta_depth, pic_init_qp_minus26, and slice_qp_delta)
-#define G507_FGS_ISSUE_FIX             1   // JCTVC-G507 (slice_granularity <= max_cu_qp_delta_depth)
 #define G509_CHROMA_QP_OFFSET          1   // JCTVC-G509 add chroma_qp_index_offset and second chroma_qp_index_offset
 
 #define SCALING_LIST                  1 //JCTVC-G880/JCTVC-G1016 quantization matrices
 #define SCALING_LIST_OUTPUT_RESULT    0 //JCTVC-G880/JCTVC-G1016 quantization matrices
 
-#define G174_DF_OFFSET                1 //JCTVC-G174 beta and tc offset for deblocking filter
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
@@ -389,12 +303,10 @@ enum PartSize
   SIZE_2NxN,            ///< symmetric motion partition,  2Nx N
   SIZE_Nx2N,            ///< symmetric motion partition,   Nx2N
   SIZE_NxN,             ///< symmetric motion partition,   Nx N
-#if AMP
   SIZE_2NxnU,           ///< asymmetric motion partition, 2Nx( N/2) + 2Nx(3N/2)
   SIZE_2NxnD,           ///< asymmetric motion partition, 2Nx(3N/2) + 2Nx( N/2)
   SIZE_nLx2N,           ///< asymmetric motion partition, ( N/2)x2N + (3N/2)x2N
   SIZE_nRx2N,           ///< asymmetric motion partition, (3N/2)x2N + ( N/2)x2N
-#endif  
   SIZE_NONE = 15
 };
 
@@ -477,15 +389,6 @@ enum DFunc
   DF_SSE_FRAME = 33     ///< Frame-based SSE
 #endif
 };
-
-#if !G1002_RPS
-/// index for reference type
-enum  ERBIndex
-{
-  ERB_NONE    = 0,      ///< normal case
-  ERB_LTR     = 1       ///< long-term reference
-};
-#endif
 
 /// index for SBAC based RD optimization
 enum CI_IDX

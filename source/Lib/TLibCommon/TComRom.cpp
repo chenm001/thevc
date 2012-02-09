@@ -136,23 +136,15 @@ Void initROM()
     }
   }
 #else
-#if NSQT
-#if NSQT_TX_ORDER
   UInt uiWidth[ 4 ]  = { 16, 32, 4,  8  };
   UInt uiHeight[ 4 ] = { 4,  8,  16, 32 };
   for ( i = 0; i < 4; i++ )
-#else
-  UInt uiWidth[ 2 ]  = { 16, 32 };
-  UInt uiHeight[ 2 ] = { 4,  8  };
-  for ( i = 0; i < 2; i++ )
-#endif
   {
     UInt uiW = uiWidth[ i ];
     UInt uiH = uiHeight[ i ];
     g_auiNonSquareSigLastScan[ i ] = new UInt[ uiW * uiH ];
     initNonSquareSigLastScan( g_auiNonSquareSigLastScan[ i ], uiW, uiH);
   }
-#endif
 #endif
 }
 
@@ -193,11 +185,7 @@ UInt g_auiRasterToPelX  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToPelY  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_motionRefer   [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, }; 
 
-#if AMP
 UInt g_auiPUOffset[8] = { 0, 8, 4, 4, 2, 10, 1, 5};
-#else
-UInt g_auiPUOffset[4] = { 0, 8, 4, 4 };
-#endif
 
 Void initZscanToRaster ( Int iMaxDepth, Int iDepth, UInt uiStartVal, UInt*& rpuiCurrIdx )
 {
@@ -490,13 +478,8 @@ const UInt g_auiCBP_4Y_VlcNum[15] =
 const UInt g_auiComMI1TableE[9] = {0,1,2,3,4,5,6,7,8};
 const UInt g_auiComMI1TableD[9] = {0,1,2,3,4,5,6,7,8};
 
-#if AMP
 const UInt g_auiInterModeTableE[4][11] = {{0,1,2,3,4,5,6,7,8,9,10},{0,1,2,3,4,5,6,7,8,9,10},{0,1,2,3,4,5,6,7,8,9,10},{6,0,1,2,3,4,5,7,8,9,10}};
 const UInt g_auiInterModeTableD[4][11] = {{0,1,2,3,4,5,6,7,8,9,10},{0,1,2,3,4,5,6,7,8,9,10},{0,1,2,3,4,5,6,7,8,9,10},{1,2,3,4,5,6,0,7,8,9,10}};
-#else
-const UInt g_auiInterModeTableE[4][7] = {{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{6,0,1,2,3,4,5}};
-const UInt g_auiInterModeTableD[4][7] = {{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{0,1,2,3,4,5,6},{1,2,3,4,5,6,0}};
-#endif
 
 // Below table need to be optimized
 const UInt g_auiMITableVlcNum[15] = 
@@ -690,11 +673,7 @@ const UChar g_aucIntraModeNumAng[7] =
   35,  //   8x8
   35,  //  16x16
   35,  //  32x32
-#if INTRA_MODES_64X64
   35,  //  64x64
-#else
-  4,  //  64x64
-#endif
   6   // 128x128
 };
 
@@ -705,23 +684,9 @@ const UChar g_aucIntraModeBitsAng[7] =
   6,  //   8x8    34   5+esc
   6,  //  16x16   34   5+esc
   6,  //  32x32   34   5+esc
-#if INTRA_MODES_64X64
   6,  //  64x64   34   5+esc
-#else
-  2,  //  64x64    3   1+1
-#endif
   3   // 128x128   5   2+1
 };
-
-#if !REMAP_TO_PLANAR
-const UChar g_aucAngModeMapping[4][35] = // intra mode conversion for most probable
-{
-  {3,  4,  3,  3,  5,  5,  5,  1,  1,  1,  1,  1,  1,  1,  3,  3,  3,  3,  3,  3,  3,  2,  2,  2,  2,  2,  2,  2,  2,  2,  3,  3,  3,  3},        // conversion to 5 modes
-  {3,  4,  4,  3,  5,  5,  5,  3,  1,  1,  1,  3,  6,  6,  6,  3,  7,  7,  4,  3,  8,  8,  8,  3,  2,  2,  2,  3,  9,  9,  9,  3,  3,  3},        // conversion to 9 modes
-  {3,  4,  4,  11, 11, 5,  12, 12, 1,  1,  1,  13, 13, 6,  6,  14, 14, 7,  15, 15, 8,  8,  16, 16, 2,  2,  2,  17, 17, 9,  9,  3,  3,  10},       // conversion to 17 modes
-  {3,  3,  3,  3,  3,  3,  3,  1,  1,  1,  1,  1,  1,  1,  3,  3,  3,  3,  3,  3,  3,  2,  2,  2,  2,  2,  2,  2,  2,  2,  3,  3,  3,  3}         // conversion to 3 modes
-};
-#endif
 
 // ====================================================================================================================
 // Misc.
@@ -756,15 +721,8 @@ UInt g_sigCGScanNSQT[ 4 ][ 16 ] =
 };
 #endif
 
-#if NSQT
-#if NSQT_TX_ORDER
 UInt* g_auiNonSquareSigLastScan[ 4 ];
-#else
-UInt* g_auiNonSquareSigLastScan[ 2 ];
-#endif
-#endif
 
-#if MODIFIED_LAST_XY_CODING
 const UInt g_uiMinInGroup[ 10 ] = {0,1,2,3,4,6,8,12,16,24};
 const UInt g_uiGroupIdx[ 32 ]   = {0,1,2,3,4,4,5,5,6,6,6,6,7,7,7,7,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9};
 const UInt g_uiLastCtx[ 28 ]    = 
@@ -774,15 +732,6 @@ const UInt g_uiLastCtx[ 28 ]    =
   7,   8,  9,  9, 10, 10, 11, 11,         // 16x16  8
   12, 13, 14, 14, 15, 15, 16, 16, 17, 17  // 32x32  10
 };
-#else
-const UInt g_uiLastCtx[ 32 ] =
-{
-  0, 1, 2, 2, // 4x4
-  3, 4, 5, 5, // 8x8
-  6, 7, 8, 9, 10, 10, 11, 11, // 16x16
-  12, 13, 14, 15, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18 // 32x32
-};
-#endif
 
 // scanning order to 8x8 context model mapping table
 UInt  g_auiAntiScan8  [64];
@@ -795,16 +744,11 @@ const UInt g_auiGoRiceRange[4] =
 
 const UInt g_auiGoRicePrefixLen[4] =
 {
-#if CABAC_RICE_FIX
   8, 10, 10, 8
-#else
-  8, 10, 11, 8
-#endif
 };
 
 const UInt g_aauiGoRiceUpdate[4][16] =
 {
-#if CABAC_RICE_UPDATE_MOD
   {
     0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3
   },
@@ -817,20 +761,6 @@ const UInt g_aauiGoRiceUpdate[4][16] =
   {
     3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
   }
-#else
-  {
-    0, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3
-  },
-  {
-    1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3
-  },
-  {
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3
-  },
-  {
-    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
-  }
-#endif
 };
 
 // initialize g_auiFrameScanXY
@@ -973,7 +903,6 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int
   }    
 }
 
-#if NSQT
 Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)
 {
 
@@ -983,9 +912,7 @@ Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)
   pBuffZ[ c++ ] = 0;
 
   // loop
-#if NSQT_TX_ORDER
   if ( uiWidth > uiHeight )
-#endif
   {
     x=0; y=1;
     while (1)
@@ -1019,7 +946,6 @@ Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)
         break;
     }
   }
-#if NSQT_TX_ORDER
   else
   {
     x=1; y=0;
@@ -1054,8 +980,6 @@ Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)
         break;
     }
   }
-#endif
 }
-#endif
 
 //! \}

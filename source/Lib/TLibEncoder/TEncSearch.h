@@ -324,9 +324,6 @@ protected:
                                     TComMvField*    pacMvField,
                                     UInt&           uiMergeIndex,
                                     UInt&           ruiCost
-#if !G776_MRG_ENC_FIX
-                                    ,UInt&           ruiBits
-#endif
                                    );
   // -------------------------------------------------------------------------------------------------------------------
   // motion estimation
@@ -399,11 +396,7 @@ protected:
 #else
   Void xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt uiAbsPartIdx, TComYuv* pcResi, const UInt uiDepth, Double &rdCost, UInt &ruiBits, UInt &ruiDist, UInt *puiZeroDist );
 #endif
-#if NSQT
   Void xSetResidualQTData( TComDataCU* pcCU, UInt uiQuadrant, UInt uiAbsPartIdx, TComYuv* pcResi, UInt uiDepth, Bool bSpatial );
-#else
-  Void xSetResidualQTData( TComDataCU* pcCU, UInt uiAbsPartIdx, TComYuv* pcResi, UInt uiDepth, Bool bSpatial );
-#endif
   
   UInt  xModeBitsIntra ( TComDataCU* pcCU, UInt uiMode, UInt uiPU, UInt uiPartOffset, UInt uiDepth, UInt uiInitTrDepth );
   UInt  xUpdateCandList( UInt uiMode, Double uiCost, UInt uiFastCandNum, UInt * CandModeList, Double * CandCostList );

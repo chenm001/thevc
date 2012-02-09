@@ -83,24 +83,18 @@ private:
   UInt        m_uiQuadtreeTUMaxDepthInter;
   UInt        m_uiQuadtreeTUMaxDepthIntra;
   Bool        m_bDisInter4x4;
-#if AMP
   Bool        m_useAMP;
-#endif
   Bool        m_bUseLDC;
   Bool        m_bUseMRG; // SOPH:
 
   Bool        m_bUseLComb;
   Bool        m_bLCMod;
-#if NSQT
   Bool        m_useNSQT;
-#endif
   
   // Parameter
   AMVP_MODE   m_aeAMVPMode[MAX_CU_DEPTH];
 
-#if G1002_RPS
   UInt        m_uiBitsForPOC;
-#endif
   // Max physical transform size
   UInt        m_uiMaxTrSize;
   
@@ -108,12 +102,6 @@ private:
 
   Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
 
-#if !G1002_RPS
-#if REF_SETTING_FOR_LD
-  Bool        m_bUseNewRefSetting;
-  UInt        m_uiMaxNumRefFrames;
-#endif
-#endif
 #if MAX_DPB_AND_LATENCY // These could be used later when encoder wants to set their values
   UInt        m_uiMaxDecFrameBuffering; 
   UInt        m_uiMaxLatencyIncrease;
@@ -144,16 +132,12 @@ public:
   UInt getMaxCUHeight ()         { return  m_uiMaxCUHeight; }
   Void setMaxCUDepth  ( UInt u ) { m_uiMaxCUDepth = u;      }
   UInt getMaxCUDepth  ()         { return  m_uiMaxCUDepth;  }
-#if G1002_RPS
   Void setBitsForPOC  ( UInt u ) { m_uiBitsForPOC = u;      }
   UInt getBitsForPOC  ()         { return m_uiBitsForPOC;   }
-#endif
   Bool getDisInter4x4()         { return m_bDisInter4x4;        }
   Void setDisInter4x4      ( Bool b ) { m_bDisInter4x4  = b;          }
-#if AMP
   Bool getUseAMP() { return m_useAMP; }
   Void setUseAMP( Bool b ) { m_useAMP = b; }
-#endif
   Void setMinTrDepth  ( UInt u ) { m_uiMinTrDepth = u;      }
   UInt getMinTrDepth  ()         { return  m_uiMinTrDepth;  }
   Void setMaxTrDepth  ( UInt u ) { m_uiMaxTrDepth = u;      }
@@ -172,14 +156,8 @@ public:
   UInt getMaxTrSize   ()         { return  m_uiMaxTrSize;   }
   
   // Tool list
-#if !G507_QP_ISSUE_FIX
-  Bool getUseDQP      ()         { return m_bUseDQP;        }
-#endif
-
-  Bool getUseLDC      ()         { return m_bUseLDC;        }
   Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
   
-  Void setUseLDC      ( Bool b ) { m_bUseLDC   = b;         }
   Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:
   
   Void setUseLComb    (Bool b)   { m_bUseLComb = b;         }
@@ -187,35 +165,22 @@ public:
   Void setLCMod       (Bool b)   { m_bLCMod = b;     }
   Bool getLCMod       ()         { return m_bLCMod;  }
 
-#if NSQT
   Bool getUseNSQT() { return m_useNSQT; }
   Void setUseNSQT( Bool b ) { m_useNSQT = b; }
-#endif
   
   // AMVP mode (for each depth)
   AMVP_MODE getAMVPMode ( UInt uiDepth ) { assert(uiDepth < g_uiMaxCUDepth);  return m_aeAMVPMode[uiDepth]; }
   Void      setAMVPMode ( UInt uiDepth, AMVP_MODE eMode) { assert(uiDepth < g_uiMaxCUDepth);  m_aeAMVPMode[uiDepth] = eMode; }
   
-#if AMP
   // AMP accuracy
   Int       getAMPAcc   ( UInt uiDepth ) { return m_iAMPAcc[uiDepth]; }
   Void      setAMPAcc   ( UInt uiDepth, Int iAccu ) { assert( uiDepth < g_uiMaxCUDepth);  m_iAMPAcc[uiDepth] = iAccu; }
-#endif  
 
   UInt      getMaxTLayers()                           { return m_uiMaxTLayers; }
   Void      setMaxTLayers( UInt uiMaxTLayers )        { assert( uiMaxTLayers <= MAX_TLAYER ); m_uiMaxTLayers = uiMaxTLayers; }
 
   Bool      getTemporalIdNestingFlag()                { return m_bTemporalIdNestingFlag; }
   Void      setTemporalIdNestingFlag( Bool bValue )   { m_bTemporalIdNestingFlag = bValue; }
-
-#if !G1002_RPS
-#if REF_SETTING_FOR_LD
-  Void      setUseNewRefSetting    ( Bool b ) { m_bUseNewRefSetting = b;    }
-  Bool      getUseNewRefSetting    ()         { return m_bUseNewRefSetting; }
-  Void      setMaxNumRefFrames     ( UInt u ) { m_uiMaxNumRefFrames = u;    }
-  UInt      getMaxNumRefFrames     ()         { return m_uiMaxNumRefFrames; }
-#endif
-#endif
 #if MAX_DPB_AND_LATENCY
   UInt getMaxDecFrameBuffering  ()            { return m_uiMaxDecFrameBuffering; }
   Void setMaxDecFrameBuffering  ( UInt ui )   { m_uiMaxDecFrameBuffering = ui;   }
@@ -223,7 +188,7 @@ public:
   Void setMaxLatencyIncrease    ( UInt ui )   { m_uiMaxLatencyIncrease= ui;      }
 #endif
 };
-#if G1002_RPS
+
 /// Reference Picture Set class
 class TComReferencePictureSet
 {
@@ -318,35 +283,26 @@ public:
   UInt       getRefPicSetIdxL1(UInt idx) { return m_RefPicSetIdxL1[idx]; }
 };
 
-#endif
 /// PPS class
 class TComPPS
 {
 private:
   Int         m_PPSId;                    // pic_parameter_set_id
   Int         m_SPSId;                    // seq_parameter_set_id
-#if G507_QP_ISSUE_FIX
   Int         m_picInitQPMinus26;
-#endif
  
   // access channel
   TComSPS*    m_pcSPS;
-#if G1002_RPS
   TComRPS*    m_pcRPSList;
-#endif
 
-#if G1002_RPS
   Bool        m_bLongTermRefsPresent;
   UInt        m_uiBitsForLongTermRefs;
 
   UInt        m_uiBitsForTemporalId;
-#endif
   UInt        m_uiNumTlayerSwitchingFlags;            // num_temporal_layer_switching_point_flags
   Bool        m_abTLayerSwitchingFlag[ MAX_TLAYER ];  // temporal_layer_switching_point_flag
 
-#if NO_TMVP_MARKING
   Bool     m_enableTMVPFlag;
-#endif
 
 public:
   TComPPS();
@@ -357,17 +313,14 @@ public:
   Int       getSPSId ()      { return m_SPSId; }
   Void      setSPSId (Int i) { m_SPSId = i; }
   
-#if G507_QP_ISSUE_FIX
   Int       getPicInitQPMinus26 ()         { return  m_picInitQPMinus26; }
   Void      setPicInitQPMinus26 ( Int i )  { m_picInitQPMinus26 = i;     }
-#endif
 
   UInt      getNumTLayerSwitchingFlags()                                  { return m_uiNumTlayerSwitchingFlags; }
   Void      setNumTLayerSwitchingFlags( UInt uiNumTlayerSwitchingFlags )  { assert( uiNumTlayerSwitchingFlags < MAX_TLAYER ); m_uiNumTlayerSwitchingFlags = uiNumTlayerSwitchingFlags; }
 
   Bool      getTLayerSwitchingFlag( UInt uiTLayer )                       { assert( uiTLayer < MAX_TLAYER ); return m_abTLayerSwitchingFlag[ uiTLayer ]; }
   Void      setTLayerSwitchingFlag( UInt uiTLayer, Bool bValue )          { m_abTLayerSwitchingFlag[ uiTLayer ] = bValue; }
-#if G1002_RPS
   UInt      getBitsForTemporalId()           { return m_uiBitsForTemporalId; }
   Void      setBitsForTemporalId(UInt bits)  { m_uiBitsForTemporalId = bits; }
 
@@ -375,18 +328,13 @@ public:
   Void      setLongTermRefsPresent(Bool b)   { m_bLongTermRefsPresent=b;      }
   UInt      getBitsForLongTermRefs()         { return m_uiBitsForLongTermRefs;}
   Void      setBitsForLongTermRefs(UInt ui)  { m_uiBitsForLongTermRefs=ui;    }
-#endif
   Void      setSPS              ( TComSPS* pcSPS ) { m_pcSPS = pcSPS; }
   TComSPS*  getSPS              ()         { return m_pcSPS;          }
-#if G1002_RPS
   Void      setRPSList              ( TComRPS* pcRPSList ) { m_pcRPSList = pcRPSList; }
   TComRPS*  getRPSList              ()         { return m_pcRPSList;          }
-#endif
 
-#if NO_TMVP_MARKING
   Void     setEnableTMVPFlag( Bool b )  { m_enableTMVPFlag = b;    }
   Bool     getEnableTMVPFlag()          { return m_enableTMVPFlag; }
-#endif
 };
 
 /// slice header class
@@ -398,7 +346,6 @@ private:
   Int         m_iAPSId; //!< APS ID in slice header
   Int         m_iPPSId;               ///< picture parameter set ID
   Int         m_iPOC;
-#if G1002_RPS
   Int         m_iLastIDR;
   static Int  m_iPrevPOC;
   TComReferencePictureSet *m_pcRPS;
@@ -407,15 +354,10 @@ private:
   Int         m_iCombinationBDidx;
   Bool        m_bCombineWithReferenceFlag;
   TComRefPicListModification m_RefPicListModification;
-#endif
   NalUnitType m_eNalUnitType;         ///< Nal unit type for the slice
   SliceType   m_eSliceType;
   Int         m_iSliceQp;
   
-#if !G1002_RPS
-  Bool        m_bDRBFlag;             //  flag for future usage as reference buffer
-  ERBIndex    m_eERBIndex;            //  flag for future usage as reference buffer
-#endif
   Int         m_aiNumRefIdx   [3];    //  for multiple reference of current slice
 
   Int         m_iRefIdxOfLC[2][MAX_NUM_REF_LC];
@@ -430,13 +372,8 @@ private:
 
   //  Data
   Int         m_iSliceQpDelta;
-#if G1002_RPS
   TComPic*    m_apcRefPicList [2][MAX_NUM_REF+1];
   Int         m_aiRefPOCList  [2][MAX_NUM_REF+1];
-#else
-  TComPic*    m_apcRefPicList [2][MAX_NUM_REF];
-  Int         m_aiRefPOCList  [2][MAX_NUM_REF];
-#endif
   Int         m_iDepth;
   
   // referenced slice?
@@ -483,7 +420,6 @@ public:
 
   Void      setPPSId        ( Int PPSId )         { m_iPPSId = PPSId; }
   Int       getPPSId        () { return m_iPPSId; }
-#if G1002_RPS
   Void      setRPS          ( TComReferencePictureSet *pcRPS ) { m_pcRPS = pcRPS; }
   TComReferencePictureSet*  getRPS          () { return m_pcRPS; }
   TComReferencePictureSet*  getLocalRPS     () { return &m_LocalRPS; }
@@ -499,15 +435,10 @@ public:
   TComRefPicListModification* getRefPicListModification() { return &m_RefPicListModification; }
   Void      setLastIDR(Int iIDRPOC)                       { m_iLastIDR = iIDRPOC; }
   Int       getLastIDR()                                  { return m_iLastIDR; }
-#endif
   SliceType getSliceType    ()                          { return  m_eSliceType;         }
   Int       getPOC          ()                          { return  m_iPOC;           }
   Int       getSliceQp      ()                          { return  m_iSliceQp;           }
   Int       getSliceQpDelta ()                          { return  m_iSliceQpDelta;      }
-#if !G1002_RPS
-  Bool      getDRBFlag      ()                          { return  m_bDRBFlag;           }
-  ERBIndex  getERBIndex     ()                          { return  m_eERBIndex;          }
-#endif
 
   Int       getNumRefIdx        ( RefPicList e )                { return  m_aiNumRefIdx[e];             }
   TComPic*  getPic              ()                              { return  m_pcPic;                      }
@@ -533,24 +464,16 @@ public:
   Void      setReferenced(Bool b)                               { m_bRefenced = b; }
   Bool      isReferenced()                                      { return m_bRefenced; }
   
-#if G1002_RPS
   Void      setPOC              ( Int i )                       { m_iPOC              = i; if(getTLayer()==0) m_iPrevPOC=i; }
-#else
-  Void      setPOC              ( Int i )                       { m_iPOC              = i;      }
-#endif
   Void      setNalUnitType      ( NalUnitType e )               { m_eNalUnitType      = e;      }
   NalUnitType getNalUnitType    ()                              { return m_eNalUnitType;        }
-#if G1002_RPS && G1002_CRA_CHECK
+#if G1002_CRA_CHECK
   Void      checkCRA(TComReferencePictureSet *pReferencePictureSet, UInt& pocCRA, TComList<TComPic*>& rcListPic);
 #endif
   Void      decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TComList<TComPic*>& rcListPic);
   Void      setSliceType        ( SliceType e )                 { m_eSliceType        = e;      }
   Void      setSliceQp          ( Int i )                       { m_iSliceQp          = i;      }
   Void      setSliceQpDelta     ( Int i )                       { m_iSliceQpDelta     = i;      }
-#if !G1002_RPS
-  Void      setDRBFlag          ( Bool b )                      { m_bDRBFlag = b;               }
-  Void      setERBIndex         ( ERBIndex e )                  { m_eERBIndex = e;              }
-#endif
   
   Void      setRefPic           ( TComPic* p, RefPicList e, Int iRefIdx ) { m_apcRefPicList[e][iRefIdx] = p; }
   Void      setRefPOC           ( Int i, RefPicList e, Int iRefIdx ) { m_aiRefPOCList[e][iRefIdx] = i; }
@@ -598,22 +521,11 @@ public:
 
   Void setTLayerInfo( UInt uiTLayer );
   Void decodingMarking( TComList<TComPic*>& rcListPic, Int& iMaxRefPicNum ); 
-#if G1002_RPS
   Void      applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pcRPSList);
   Int       checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool outputFlag);
   Void      createExplicitReferencePictureSetFromReference( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet);
-#else
-  Void decodingTLayerSwitchingMarking( TComList<TComPic*>& rcListPic );
 
-#if REF_SETTING_FOR_LD
-  Int getActualRefNumber( TComList<TComPic*>& rcListPic );
-  Void decodingRefMarkingForLD( TComList<TComPic*>& rcListPic, Int iMaxNumRefFrames, Int iCurrentPOC );
-#endif
-#endif
-
-#if NO_TMVP_MARKING
   Void decodingMarkingForNoTMVP( TComList<TComPic*>& rcListPic, Int currentPOC );
-#endif
 
 #if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   UInt m_uiMaxNumMergeCand;
@@ -639,20 +551,10 @@ public:
   Int       getCABACinitIDC()         {return m_cabacInitIdc;    }  //!< get CABAC initial IDC number 
 #endif
 protected:
-#if G1002_RPS
   TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,
                          UInt                uiPOC);
   TComPic*  xGetLongTermRefPic  (TComList<TComPic*>& rcListPic,
                          UInt                uiPOC);
-#else
-  TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,
-                         Bool                bDRBFlag,
-                         ERBIndex            eERBIndex,
-                         UInt                uiPOCCurr,
-                         RefPicList          eRefPicList,
-                         UInt                uiNthRefPic,
-                         UInt                uiTLayer );
-#endif
 };// END CLASS DEFINITION TComSlice
 
 //! \}
