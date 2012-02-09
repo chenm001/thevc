@@ -476,7 +476,6 @@ Void TComSlice::initEqualRef()
   }
 }
 
-#if G1002_CRA_CHECK
 Void TComSlice::checkCRA(TComReferencePictureSet *pReferencePictureSet, UInt& pocCRA, TComList<TComPic*>& rcListPic)
 {
   for(Int i = 0; i < pReferencePictureSet->getNumberOfNegativePictures()+pReferencePictureSet->getNumberOfPositivePictures(); i++)
@@ -498,7 +497,6 @@ Void TComSlice::checkCRA(TComReferencePictureSet *pReferencePictureSet, UInt& po
     pocCRA = getPOC();
   }
 }
-#endif
 
 /** Function for marking the reference pictures when an IDR and CDR is encountered.
  * \param uiPOCCDR POC of the CDR picture

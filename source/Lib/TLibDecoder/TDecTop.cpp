@@ -605,12 +605,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 
       if (bNextSlice)
       {
-#if G1002_CRA_CHECK
         pcSlice->checkCRA(pcSlice->getRPS(), m_uiPOCCDR, m_cListPic); 
-#else
-        // Do decoding refresh marking if any
-        pcSlice->decodingRefreshMarking(m_uiPOCCDR, m_bRefreshPending, m_cListPic);
-#endif
         
         if ( !pcSlice->getPPS()->getEnableTMVPFlag() && pcPic->getTLayer() == 0 )
         {
