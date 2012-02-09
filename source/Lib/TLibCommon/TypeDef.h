@@ -69,7 +69,6 @@
 
 #define G519_TU_AMP_NSQT_HARMONIZATION  1   ///< G519: Harmonization of implicit TU, AMP and NSQT
 
-#define UNIFIED_SCAN_PASSES                 1      ///< G320 : Unified scan passes for transform coefficient coding
 #define MULTI_LEVEL_SIGNIFICANCE            1      ///< G644 : Multi-level significance map for large TUs
 #if MULTI_LEVEL_SIGNIFICANCE
 #define MLS_GRP_NUM                         64     ///< G644 : Max number of coefficient groups, max(16, 64)

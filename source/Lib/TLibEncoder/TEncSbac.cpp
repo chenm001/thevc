@@ -1187,92 +1187,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 #endif
   ContextModel * const baseCtx = (eTType==TEXT_LUMA) ? m_cCUSigSCModel.get( 0, 0 ) : m_cCUSigSCModel.get( 0, 0 ) + NUM_SIG_FLAG_CTX_LUMA;
 
-#if !UNIFIED_SCAN_PASSES
-#if MULTI_LEVEL_SIGNIFICANCE
-  if( blockType > 3 )
-  {
-    // encode significant coefficient group flag
-    Int iCGLastScanPos = scanPosLast >> MLS_CG_SIZE;
-    static const UInt uiCGSize = 1 << MLS_CG_SIZE;
-
-    for( Int iCGScanPos = iCGLastScanPos; iCGScanPos >= 0; iCGScanPos-- )
-    {
-      Int iCGBlkPos = scanCG[ iCGScanPos ];
-      Int iCGPosY   = iCGBlkPos / uiNumBlkSide;
-      Int iCGPosX   = iCGBlkPos - (iCGPosY * uiNumBlkSide);
-      Bool bInferredCGFlag = false;
-      
-      if( iCGScanPos == iCGLastScanPos )
-      {
-        uiSigCoeffGroupFlag[ iCGBlkPos ] = 1;
-      }
-      else
-      {
-        if( !TComTrQuant::bothCGNeighboursOne( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiWidth, uiHeight ) && ( iCGScanPos ) )
-        {
-          UInt uiCtxSig  = TComTrQuant::getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiWidth, uiHeight );
-          UInt uiSig     = (uiSigCoeffGroupFlag[ iCGBlkPos ] != 0);
-          m_pcBinIf->encodeBin( uiSig, baseCoeffGroupCtx[ uiCtxSig ] );
-        }
-        else
-        {
-          uiSigCoeffGroupFlag[ iCGBlkPos ] = 1;
-          bInferredCGFlag = true;
-        }
-      }
-      
-      // encode significant coefficient flag      
-      if( uiSigCoeffGroupFlag[ iCGBlkPos ] )
-      {
-        Int  iScanPos;
-        UInt uiBlkPos, uiPosY, uiPosX, uiSig, uiCtxSig;
-        UInt uiNumNonZeroesInCG = (iCGScanPos == iCGLastScanPos)? 1 : 0;
-
-        for (Int iScanPosOffset = (iCGScanPos == iCGLastScanPos)? scanPosLast - iCGScanPos*uiCGSize - 1 : uiCGSize - 1; 
-           iScanPosOffset >= 0; iScanPosOffset--)
-        {
-          iScanPos  = iCGScanPos*uiCGSize + iScanPosOffset;
-          uiBlkPos  = scan[ iScanPos ];
-          uiPosY    = uiBlkPos >> uiLog2BlockSize;
-          uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
-      
-          if (iScanPosOffset > 0 || bInferredCGFlag || uiNumNonZeroesInCG )
-          {
-            uiSig     = (pcCoef[ uiBlkPos ] != 0);
-            uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
-            m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
-            
-            uiNumNonZeroesInCG += uiSig;
-          }
-        }
-      } // end if ( uiSigCoeffGroupFlag[ iCGBlkPos ] )
-    } // end for( Int iCGScanPos = iCGLastScanPos; iCGScanPos >= 0; iCGScanPos-- )
-  }
-  else
-  {
-#endif
-
-  for( UInt uiScanPos = scanPosLast-1; uiScanPos != -1; uiScanPos-- )
-  {
-    UInt  uiBlkPos  = scan[ uiScanPos ]; 
-    UInt  uiPosY    = uiBlkPos >> uiLog2BlockSize;
-    UInt  uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
-    UInt  uiSig     = pcCoef[ uiBlkPos ] != 0 ? 1 : 0;
-    UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
-    m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
-  }
-
-#if MULTI_LEVEL_SIGNIFICANCE
-  }
-#endif
-#endif
 
   const Int  iLastScanSet      = scanPosLast >> LOG2_SCAN_SET_SIZE;
   UInt uiNumOne                = 0;
   UInt uiGoRiceParam           = 0;
-#if UNIFIED_SCAN_PASSES
   Int  iScanPosSig             = scanPosLast;
-#endif
 
   for( Int iSubSet = iLastScanSet; iSubSet >= 0; iSubSet-- )
   {
@@ -1282,7 +1201,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     Int absCoeff[16];
     UInt coeffSigns = 0;
     
-#if UNIFIED_SCAN_PASSES
     if( iScanPosSig == scanPosLast )
     {
       absCoeff[ 0 ] = abs( pcCoef[ posLast ] );
@@ -1370,19 +1288,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     }
 
 #if MULTI_LEVEL_SIGNIFICANCE
-    }
-#endif
-#else
-    const UInt * const puiSetScan  = scan + iSubPos;
-    for( Int iScanPos = SCAN_SET_SIZE-1; iScanPos >= 0; iScanPos-- )
-    {
-      UInt uiBlkPos = puiSetScan[ iScanPos ];
-      if( pcCoef[ uiBlkPos ] )
-      {
-        absCoeff[ numNonZero ] = abs( pcCoef[ uiBlkPos ] );
-        coeffSigns = 2 * coeffSigns + ( pcCoef[ uiBlkPos ] < 0 );
-        numNonZero++;
-      }
     }
 #endif
     
