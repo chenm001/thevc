@@ -421,11 +421,7 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
     Pel  piAdiLine[5 * MAX_CU_SIZE];
     Pel  *piAdiLineTemp; 
     Bool *pbNeighborFlags;
-#if PADDING_INTRA
     Int  iNext, iCurr;
-#else
-    Int  iPrev, iNext, iCurr;
-#endif
     Pel  piRef = 0;
 
     // Initialize
@@ -488,15 +484,11 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
     }
 
     // Pad reference samples when necessary
-#if !PADDING_INTRA  
-    iPrev = -1;
-#endif
     iCurr = 0;
     iNext = 1;
     piAdiLineTemp = piAdiLine;
     while (iCurr < iTotalUnits)
     {
-#if PADDING_INTRA  
       if (!bNeighborFlags[iCurr])
       {
         if(iCurr == 0)
@@ -533,55 +525,6 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
         piAdiLineTemp += iUnitSize;
         iCurr++;
       }
-#else
-      if (bNeighborFlags[iCurr])
-      {
-        // Move on to next block if current unit is available
-        piAdiLineTemp += iUnitSize;
-        iPrev++;
-        iCurr++;
-        iNext++;
-      }
-      else
-      {
-        // Interpolate from nearest samples if current unit is not available
-        
-        while (iNext < iTotalUnits && !bNeighborFlags[iNext])
-        {
-          iNext++;
-        }
-        
-        if (iPrev >= 0 && iNext < iTotalUnits)
-        {
-          piRef = (piAdiLine[iCurr*iUnitSize-1] + piAdiLine[iNext*iUnitSize] + 1) >> 1;
-        }
-        else if (iPrev >= 0)
-        {
-          piRef = piAdiLine[iCurr*iUnitSize-1];
-        }
-        else if (iNext < iTotalUnits)
-        {
-          piRef = piAdiLine[iNext*iUnitSize];
-        }
-        else
-        {
-          assert( false );
-        }
-
-        // Pad unavailable samples with new value
-        while (iCurr < iNext)
-        {
-          for (i=0; i<iUnitSize; i++)
-          {
-            piAdiLineTemp[i] = piRef;
-          }
-          piAdiLineTemp += iUnitSize;
-          iPrev++;
-          iCurr++;
-        }
-        iNext++;
-      }
-#endif
     }
 
     // Copy processed samples

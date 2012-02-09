@@ -41,8 +41,6 @@
 //! \ingroup TLibCommon
 //! \{
 
-#define PADDING_INTRA             1 ///< G812: padding from bottom left, copy previous pixel instead of averaging
-
 #define MRG_MAX_NUM_CANDS_SIGNALED         5   //<G091: value of maxNumMergeCand signaled in slice header 
 
 #define PLANAR_IS_DEFAULT         1 ///< default to planar if neighbor not available G119
