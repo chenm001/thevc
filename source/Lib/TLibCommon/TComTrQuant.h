@@ -179,9 +179,7 @@ public:
 #if NSQT_DIAG_SCAN
                                     ,Int                             height
 #endif
-#if SIGMAP_CTX_RED
                                     ,TextType                        textureType
-#endif
                                     );
 #if MULTI_LEVEL_SIGNIFICANCE
 #if NSQT_DIAG_SCAN

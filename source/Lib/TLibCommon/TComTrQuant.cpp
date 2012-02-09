@@ -2292,17 +2292,9 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         UInt   uiPosY        = uiBlkPos >> uiLog2BlkSize;
         UInt   uiPosX        = uiBlkPos - ( uiPosY << uiLog2BlkSize );
 #if NSQT_DIAG_SCAN
-#if SIGMAP_CTX_RED
         UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
 #else
-        UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, blockType, uiWidth, uiHeight );
-#endif
-#else
-#if SIGMAP_CTX_RED
         UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth, eTType );
-#else
-        UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth );
-#endif
 #endif
         uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ], lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, iQBits, dTemp, 0 );
       }
@@ -2463,17 +2455,9 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
             UInt   uiPosY        = uiBlkPos >> uiLog2BlkSize;
             UInt   uiPosX        = uiBlkPos - ( uiPosY << uiLog2BlkSize );
 #if NSQT_DIAG_SCAN
-#if SIGMAP_CTX_RED
             UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
 #else
-            UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, blockType, uiWidth, uiHeight );
-#endif
-#else
-#if SIGMAP_CTX_RED
             UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth, eTType );
-#else
-            UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, uiLog2BlkSize, uiWidth );
-#endif
 #endif
             uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ],
                                                    lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, 
@@ -2823,14 +2807,11 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
 #if NSQT_DIAG_SCAN
                                   ,Int                             height
 #endif
-#if SIGMAP_CTX_RED
                                   ,TextType                        textureType
-#endif
                                   )
 {
   if ( blockType == 2 )
   {
-#if SIGMAP_CTX_RED
     //LUMA map
     const Int ctxIndMap4x4Luma[15] =
     {
@@ -2856,14 +2837,10 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
     {
       return ctxIndMap4x4Chroma[ 4 * posY + posX ];
     }
-#else
-    return 4 * posY + posX;
-#endif
   }
   
   if ( blockType == 3 )
   {
-#if SIGMAP_CTX_RED
     const Int map8x8[16] =
     {
       0,  1,  2,  3,
@@ -2879,23 +2856,13 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
       return offset + 10;
     }
     return offset + map8x8[4 * (posY >> 1) + (posX >> 1)];
-#else
-    return 15 + 4 * (posY >> 1) + (posX >> 1);
-#endif
   }
 
-#if SIGMAP_CTX_RED
   Int offset = (textureType == TEXT_LUMA) ? 20 : 17;
   if( posX + posY == 0 )
   {
     return offset;
   }
-#else
-  if( posX + posY < 2 )
-  {
-    return 31 + 2 * posY + posX;
-  }
-#endif
   
 #if NSQT_DIAG_SCAN
   const TCoeff *pData = pcCoeff + posX + posY * width;
@@ -2903,20 +2870,14 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   const TCoeff *pData = pcCoeff + posX + (posY << blockType);
 #endif
   
-#if SIGMAP_CTX_RED
 #if NSQT_DIAG_SCAN
   Int thred = std::max(height, width) >> 2;
 #else
   Int thred = 1 << (blockType-2);
 #endif
-#endif
   
 #if !NSQT_DIAG_SCAN
-#if SIGMAP_CTX_RED
   if(textureType==TEXT_LUMA && posX + posY < thred)
-#else
-  if( posX + posY < 5 )
-#endif
   {
 #if SUBBLOCK_SCAN
     Int cnt = (pData[1] != 0) + (pData[2] != 0) + (pData[2*width] != 0) + (pData[width+1] != 0);
@@ -2927,12 +2888,8 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
 #else
     Int cnt = (pData[1] != 0) + (pData[2] != 0) + (pData[width] != 0) + (pData[2*width] != 0) + (pData[width+1] != 0);
 #endif  
-#if SIGMAP_CTX_RED
     cnt=(cnt+1)>>1;
     return offset + 1 + min( 2, cnt );
-#else
-    return 31 + 3 + min( 4, cnt );
-#endif
   }
   
   Int height = width;
@@ -2967,7 +2924,6 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
     }
   }
 
-#if SIGMAP_CTX_RED
   cnt = ( cnt + 1 ) >> 1;
 #if NSQT_DIAG_SCAN
   return (( textureType == TEXT_LUMA && posX + posY >= thred ) ? 4 : 1) + offset + cnt;
@@ -2980,13 +2936,6 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   {
     return offset + 1 + cnt;
   }
-#endif
-#else
-#if NSQT_DIAG_SCAN
-  return (( posX + posY < 5 ) ? 31 + 3 : 31 + 8) + cnt;
-#else
-  return 31 + 8 + cnt;
-#endif
 #endif
 }
 
