@@ -788,11 +788,7 @@ Void TDecEntropy::decodeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt 
 
 Void TDecEntropy::decodeQP          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if G507_QP_ISSUE_FIX
   if ( pcCU->getSlice()->getPPS()->getUseDQP() )
-#else
-  if ( pcCU->getSlice()->getSPS()->getUseDQP() )
-#endif
   {
     m_pcEntropyDecoderIf->parseDeltaQP( pcCU, uiAbsPartIdx, uiDepth );
   }
@@ -822,11 +818,7 @@ Void TDecEntropy::xDecodeCoeff( TComDataCU* pcCU, UInt uiLumaOffset, UInt uiChro
   if ( uiCbfY || uiCbfU || uiCbfV )
   {
     // dQP: only for LCU
-#if G507_QP_ISSUE_FIX
     if ( pcCU->getSlice()->getPPS()->getUseDQP() )
-#else
-    if ( pcCU->getSlice()->getSPS()->getUseDQP() )
-#endif
     {
       if ( bCodeDQP )
       {

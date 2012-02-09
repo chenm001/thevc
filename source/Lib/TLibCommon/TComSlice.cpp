@@ -1163,9 +1163,6 @@ TComSPS::TComSPS()
 , m_uiPCMLog2MinSize          (  7)
 , m_bDisInter4x4              (  1)
 , m_bUseALF                   (false)
-#if !G507_QP_ISSUE_FIX
-, m_bUseDQP                   (false)
-#endif
 , m_bUsePAD                   (false)
 , m_bUseMRG                   (false)
 , m_bUseLMChroma              (false)
@@ -1210,10 +1207,8 @@ TComSPS::~TComSPS()
 TComPPS::TComPPS()
 : m_PPSId                       (0)
 , m_SPSId                       (0)
-#if G507_QP_ISSUE_FIX
 , m_picInitQPMinus26            (0)
 , m_useDQP                      (false)
-#endif
 , m_bConstrainedIntraPred       (false)
 , m_pcSPS                       (NULL)
 , m_uiMaxCuDQPDepth             (0)

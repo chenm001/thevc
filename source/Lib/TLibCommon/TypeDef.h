@@ -239,7 +239,6 @@
 #define G665_ALF_COEFF_PRED                1 // JCTVC-G665
 
 #define G507_COND_4X4_ENABLE_FLAG      1
-#define G507_QP_ISSUE_FIX              1   // JCTVC-G507 (max_cu_qp_delta_depth, pic_init_qp_minus26, and slice_qp_delta)
 #define G507_FGS_ISSUE_FIX             1   // JCTVC-G507 (slice_granularity <= max_cu_qp_delta_depth)
 #define G509_CHROMA_QP_OFFSET          1   // JCTVC-G509 add chroma_qp_index_offset and second chroma_qp_index_offset
 

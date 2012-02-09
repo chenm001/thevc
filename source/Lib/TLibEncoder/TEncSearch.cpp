@@ -1702,11 +1702,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
   Double  CandCostList[ FAST_UDI_MAX_RDMODE_NUM ];
   
   //===== set QP and clear Cbf =====
-#if G507_QP_ISSUE_FIX
   if ( pcCU->getSlice()->getPPS()->getUseDQP() == true)
-#else
-  if ( pcCU->getSlice()->getSPS()->getUseDQP() == true)
-#endif
   {
     pcCU->setQPSubParts( pcCU->getQP(0), 0, uiDepth );
   }

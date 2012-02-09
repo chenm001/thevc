@@ -479,13 +479,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setQuadtreeTUMaxDepthInter( m_uiQuadtreeTUMaxDepthInter    );
   m_cSPS.setQuadtreeTUMaxDepthIntra( m_uiQuadtreeTUMaxDepthIntra    );
   
-#if !G507_QP_ISSUE_FIX
-#if QP_ADAPTATION
-  m_cSPS.setUseDQP        ( m_iMaxDeltaQP != 0 || m_bUseAdaptiveQP );
-#else
-  m_cSPS.setUseDQP        ( m_iMaxDeltaQP != 0  );
-#endif
-#endif
   m_cSPS.setUsePAD        ( m_bUsePAD           );
   
   m_cSPS.setUseMRG        ( m_bUseMRG           ); // SOPH:
@@ -613,7 +606,6 @@ Void TEncTop::xInitPPS()
   else
      m_cPPS.setBitsForTemporalId(0);
 
-#if G507_QP_ISSUE_FIX
   Bool bUseDQP = (getMaxCuDQPDepth() > 0)? true : false;
 
   if(bUseDQP == false)
@@ -640,18 +632,6 @@ Void TEncTop::xInitPPS()
     m_cPPS.setMaxCuDQPDepth( 0 );
     m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
   }
-#else
-  if( m_cPPS.getSPS()->getUseDQP() )
-  {
-    m_cPPS.setMaxCuDQPDepth( m_iMaxCuDQPDepth );
-    m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
-  }
-  else
-  {
-    m_cPPS.setMaxCuDQPDepth( 0 );
-    m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
-  }
-#endif
 
 #if G509_CHROMA_QP_OFFSET
   m_cPPS.setChromaQpOffset   ( m_iChromaQpOffset    );

@@ -898,11 +898,7 @@ Void TEncEntropy::encodeQP( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
     uiAbsPartIdx = 0;
   }
   
-#if G507_QP_ISSUE_FIX
   if ( pcCU->getSlice()->getPPS()->getUseDQP() )
-#else
-  if ( pcCU->getSlice()->getSPS()->getUseDQP() )
-#endif
   {
     m_pcEntropyCoderIf->codeDeltaQP( pcCU, uiAbsPartIdx );
   }
@@ -935,11 +931,7 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, UInt uiLumaOffset, UInt uiChro
   if ( uiCbfY || uiCbfU || uiCbfV )
   {
     // dQP: only for LCU once
-#if G507_QP_ISSUE_FIX
     if ( pcCU->getSlice()->getPPS()->getUseDQP() )
-#else
-    if ( pcCU->getSlice()->getSPS()->getUseDQP() )
-#endif
     {
       if ( bCodeDQP )
       {
