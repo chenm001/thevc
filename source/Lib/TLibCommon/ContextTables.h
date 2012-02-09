@@ -55,18 +55,10 @@
 #define NUM_MERGE_IDX_EXT_CTX         4       ///< number of context models for merge index of merge extended
 
 #define NUM_ALF_CTRL_FLAG_CTX         1       ///< number of context models for ALF control flag
-#if PREDTYPE_CLEANUP
 #define NUM_PART_SIZE_CTX             4       ///< number of context models for partition size
-#else
-#define NUM_PART_SIZE_CTX             5       ///< number of context models for partition size
-#endif
 #define NUM_CU_X_POS_CTX              2       ///< number of context models for partition size (AMP)
 #define NUM_CU_Y_POS_CTX              2       ///< number of context models for partition size (AMP)
-#if PREDTYPE_CLEANUP
 #define NUM_PRED_MODE_CTX             1       ///< number of context models for prediction mode
-#else
-#define NUM_PRED_MODE_CTX             2       ///< number of context models for prediction mode
-#endif
 
 #define NUM_ADI_CTX                   1       ///< number of context models for intra prediction
 
@@ -255,7 +247,6 @@ INIT_MERGE_IDX_EXT[3][NUM_MERGE_IDX_EXT_CTX] =
 static const UChar
 INIT_PART_SIZE[3][NUM_PART_SIZE_CTX] =
 {
-#if PREDTYPE_CLEANUP
   {
     167, CNU, CNU, CNU,
     
@@ -268,20 +259,6 @@ INIT_PART_SIZE[3][NUM_PART_SIZE_CTX] =
     119,  87, CNU, CNU,
     
   },
-#else
-  {
-    152, CNU, CNU, CNU, CNU,
-    
-  },
-  {
-    134,  87,  95, CNU, CNU,
-    
-  },
-  {
-    118, 102, 107,  86, CNU,
-    
-  },
-#endif
 };
 
 // initial probability for AMP split position (X)
@@ -324,7 +301,6 @@ INIT_CU_Y_POS[3][NUM_CU_Y_POS_CTX] =
 static const UChar
 INIT_PRED_MODE[3][NUM_PRED_MODE_CTX] =
 {
-#if PREDTYPE_CLEANUP 
   {
     CNU,
     
@@ -337,20 +313,6 @@ INIT_PRED_MODE[3][NUM_PRED_MODE_CTX] =
     98,
     
   },
-#else
-  {
-    CNU, CNU,
-    
-  },
-  {
-    CNU, 113,
-    
-  },
-  {
-    CNU, CNU,
-    
-  },
-#endif
 };
 
 // initial probability for intra direction of luma
@@ -1254,7 +1216,6 @@ INIT_MERGE_IDX_EXT[3][NUM_MERGE_IDX_EXT_CTX][2] =
 static const Short
 INIT_PART_SIZE[3][NUM_PART_SIZE_CTX][2] =
 {
-#if PREDTYPE_CLEANUP
   {
     {    0,   73 }, {    0,   64 }, {    0,   64 }, {    0,   64 }
   },
@@ -1264,20 +1225,6 @@ INIT_PART_SIZE[3][NUM_PART_SIZE_CTX][2] =
   {
     {    6,   50 }, {   -1,   56 }, {   13,   53 }, {  -11,   76 }
   }
-#else
-  {
-    {    0,   73 }, {    0,   64 }, {    0,   64 }, {    0,   64 }, 
-    {    0,   64 }
-  },
-  {
-    {   -1,   64 }, {   -3,   63 }, {    6,   78 }, {    0,   64 }, 
-    {    0,   64 }
-  },
-  {
-    {    6,   50 }, {   -1,   56 }, {   13,   53 }, {  -11,   76 }, 
-    {  -11,   70 }
-  }
-#endif
 };
 
 // initial probability for AMP split position (X)
@@ -1314,7 +1261,6 @@ INIT_CU_Y_POS[3][NUM_CU_Y_POS_CTX][2] =
 static const Short
 INIT_PRED_MODE[3][NUM_PRED_MODE_CTX][2] =
 {
-#if PREDTYPE_CLEANUP 
   {
     {    0,   64 }
   },
@@ -1324,17 +1270,6 @@ INIT_PRED_MODE[3][NUM_PRED_MODE_CTX][2] =
   {  
     {    0,   64 }
   }
-#else
-  {
-    {    0,   64 }, {    0,   64 }
-  },
-  {
-    {    0,   64 }, {  -25,   89 }
-  },
-  {
-    {    0,   64 }, {    0,   64 }
-  }
-#endif
 };
 
 // initial probability for intra direction of luma

@@ -770,7 +770,6 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 0) );
     }
     eMode = uiSymbol ? SIZE_2Nx2N : SIZE_NxN;
-#if PREDTYPE_CLEANUP  
     UInt uiTrLevel = 0;    
     UInt uiWidthInBit  = g_aucConvertToBit[pcCU->getWidth(uiAbsPartIdx)]+2;
     UInt uiTrSizeInBit = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxTrSize()]+2;
@@ -783,11 +782,9 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
     {
       pcCU->setTrIdxSubParts( uiTrLevel, uiAbsPartIdx, uiDepth );
     }
-#endif // PREDTYPE_CLEANUP
   }
   else
   {
-#if PREDTYPE_CLEANUP
     UInt uiMaxNumBits = 2;
     if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth && !( pcCU->getSlice()->getSPS()->getDisInter4x4() && (g_uiMaxCUWidth>>uiDepth) == 8 && (g_uiMaxCUHeight>>uiDepth) == 8 ) )
     {
@@ -825,113 +822,8 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
       }
     }
   }
-#else //PREDTYPE_CLEANUP   
-    {
-      UInt uiMaxNumBits = 3;
-      if(pcCU->getSlice()->getSPS()->getDisInter4x4() && ( (g_uiMaxCUWidth>>uiDepth)==8) && ( (g_uiMaxCUHeight>>uiDepth)==8) )
-      {
-        uiMaxNumBits = 2;
-      }
-      for ( UInt ui = 0; ui < uiMaxNumBits; ui++ )
-      {
-        m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, ui) );
-        if ( uiSymbol )
-        {
-          break;
-        }
-        uiMode++;
-      }
-    }
-    eMode = (PartSize) uiMode;
-    if(pcCU->getSlice()->getSPS()->getDisInter4x4() && ( (g_uiMaxCUWidth>>uiDepth)==8) && ( (g_uiMaxCUHeight>>uiDepth)==8) )
-    {
-      if (pcCU->getSlice()->isInterB() && uiMode == 2)
-      {
-        uiSymbol = 0;
-        m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 2) );
-        if (uiSymbol == 0)
-        {
-          pcCU->setPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
-          if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-          {
-            m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 3) );
-          }
-          eMode = SIZE_NxN;
-          if (uiSymbol == 0)
-          {
-            eMode = SIZE_2Nx2N;
-          }
-        }
-      }
-    }
-    else
-    {
-    if (pcCU->getSlice()->isInterB() && uiMode == 3)
-    {
-      uiSymbol = 0;
-      if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-      {
-        m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 3) );
-      }
-      
-      if (uiSymbol == 0)
-      {
-        pcCU->setPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
-        if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
-        {
-          m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 4) );
-        }
-        if (uiSymbol == 0)
-        {
-          eMode = SIZE_2Nx2N;
-        }
-      }
-    }
-    if ( pcCU->getSlice()->getSPS()->getAMPAcc( uiDepth ) )
-    {
-      if (eMode == SIZE_2NxN)
-      {
-        m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUYPosiSCModel.get( 0, 0, 0 ));
-        if (uiSymbol == 0)
-        {
-          m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUYPosiSCModel.get( 0, 0, 1 ));
-          eMode = (uiSymbol == 0? SIZE_2NxnU : SIZE_2NxnD);
-        }
-      }
-      else if (eMode == SIZE_Nx2N)
-      {
-        m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUXPosiSCModel.get( 0, 0, 0 ));
-        if (uiSymbol == 0)
-        {
-          m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUXPosiSCModel.get( 0, 0, 1 ));
-          eMode = (uiSymbol == 0? SIZE_nLx2N : SIZE_nRx2N);
-        }
-      }
-    }
-    }
-  }
-#endif //PREDTYPE_CLEANUP   
   pcCU->setPartSizeSubParts( eMode, uiAbsPartIdx, uiDepth );
   pcCU->setSizeSubParts( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
-#if !PREDTYPE_CLEANUP  
-  UInt uiTrLevel = 0;
-  
-  UInt uiWidthInBit  = g_aucConvertToBit[pcCU->getWidth(uiAbsPartIdx)]+2;
-  UInt uiTrSizeInBit = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxTrSize()]+2;
-  uiTrLevel          = uiWidthInBit >= uiTrSizeInBit ? uiWidthInBit - uiTrSizeInBit : 0;
-  
-  if( pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
-  {
-    if( pcCU->getPartitionSize( uiAbsPartIdx ) == SIZE_NxN )
-    {
-      pcCU->setTrIdxSubParts( 1+uiTrLevel, uiAbsPartIdx, uiDepth );
-    }
-    else
-    {
-      pcCU->setTrIdxSubParts( uiTrLevel, uiAbsPartIdx, uiDepth );
-    }
-  }
-#endif // PREDTYPE_CLEANUP
 }
 
 /** parse prediction mode
@@ -950,16 +842,7 @@ Void TDecSbac::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   
   UInt uiSymbol;
   Int  iPredMode = MODE_INTER;
-#if !PREDTYPE_CLEANUP   
-  if ( pcCU->getSlice()->isInterB() )
-  {
-    pcCU->setPredModeSubParts( (PredMode)iPredMode, uiAbsPartIdx, uiDepth );
-    return;
-  }
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPredModeSCModel.get( 0, 0, 1 ) );
-#else //!PREDTYPE_CLEANUP
   m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPredModeSCModel.get( 0, 0, 0 ) );
-#endif //!PREDTYPE_CLEANUP
   iPredMode += uiSymbol;
   pcCU->setPredModeSubParts( (PredMode)iPredMode, uiAbsPartIdx, uiDepth );
 }
