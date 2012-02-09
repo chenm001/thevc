@@ -2712,7 +2712,6 @@ Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESy
     filters_per_fr--;
   }
 
-#if G216_ALF_MERGE_FLAG_FIX
   if ( (m_uiVarGenMethod == ALF_BA) && ((*filters_per_fr_best) > 1) )
   {
     Int iLastFilter = (*filters_per_fr_best)-1;
@@ -2722,7 +2721,6 @@ Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESy
       (*filters_per_fr_best) = iLastFilter;
     }
   }
-#endif  
 
   findFilterCoeff(ESym, ySym, pixAcc, filterCoeffSym, filterCoeffSymQuant, intervalBest,
     varIndTab, sqrFiltLength, (*filters_per_fr_best), weights, errorForce0CoeffTab);

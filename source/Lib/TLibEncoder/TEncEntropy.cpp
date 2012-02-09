@@ -149,12 +149,8 @@ Void TEncEntropy::codeAux(ALFParam* pAlfParam)
   }
   else if (noFilters == 2)
   {
-#if G216_ALF_MERGE_FLAG_FIX
     Int numMergeFlags = pAlfParam->alf_pcr_region_flag ? 16 : 15;
     for (Int i=1; i<numMergeFlags; i++) 
-#else
-    for (int i=1; i<NO_VAR_BINS; i++)
-#endif
     {
       m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->filterPattern[i]);
     }

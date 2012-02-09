@@ -61,7 +61,6 @@
 
 #define UNI_BI_IDENTICAL_MOTION   1 ///< chaning bi-prediction to uni-prediction for identical motion G415/G438
 
-#define G216_ALF_MERGE_FLAG_FIX     1   ///< G216: bug fixed: removing 15th merge flag for BA mode
 #define G212_CROSS9x9_VB            1   ///< G212: Cross9x9 filter shape and virtual boundary processing for ALF
 #define G610_ALF_K_BIT_FIX          1   ///< G610: bug fixed: removing extra alf_golomb_index_bit for cross-shaped filter
 #if G610_ALF_K_BIT_FIX
