@@ -136,10 +136,8 @@ private:
 #if SCALING_LIST
   Bool        m_scalingListEnabledFlag;
 #endif
-#if MAX_DPB_AND_LATENCY // These could be used later when encoder wants to set their values
   UInt        m_uiMaxDecFrameBuffering; 
   UInt        m_uiMaxLatencyIncrease;
-#endif
 
   Bool        m_useDF;
 
@@ -305,12 +303,10 @@ public:
   Bool getScalingListFlag       ()         { return m_scalingListEnabledFlag;     }
   Void setScalingListFlag       ( Bool b ) { m_scalingListEnabledFlag  = b;       }
 #endif
-#if MAX_DPB_AND_LATENCY
   UInt getMaxDecFrameBuffering  ()            { return m_uiMaxDecFrameBuffering; }
   Void setMaxDecFrameBuffering  ( UInt ui )   { m_uiMaxDecFrameBuffering = ui;   }
   UInt getMaxLatencyIncrease    ()            { return m_uiMaxLatencyIncrease;   }
   Void setMaxLatencyIncrease    ( UInt ui )   { m_uiMaxLatencyIncrease= ui;      }
-#endif
 };
 
 /// Reference Picture Set class

@@ -424,10 +424,8 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_UVLC( pcSPS->getBitsForPOC()-4,                 "log2_max_pic_order_cnt_lsb_minus4" );
   WRITE_UVLC( pcSPS->getMaxNumberOfReferencePictures(), "max_num_ref_pics" ); 
   WRITE_UVLC( pcSPS->getNumReorderFrames(),             "num_reorder_frames" ); 
-#if MAX_DPB_AND_LATENCY
   WRITE_UVLC(pcSPS->getMaxDecFrameBuffering(),          "max_dec_frame_buffering" );
   WRITE_UVLC(pcSPS->getMaxLatencyIncrease(),            "max_latency_increase"    );
-#endif
   assert( pcSPS->getMaxCUWidth() == pcSPS->getMaxCUHeight() );
   
   UInt MinCUSize = pcSPS->getMaxCUWidth() >> ( pcSPS->getMaxCUDepth()-g_uiAddCUDepth );

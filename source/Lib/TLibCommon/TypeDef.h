@@ -108,8 +108,6 @@
 
 #define COEFF_CTXSET_RED                    1      ///< G783 : reduce level context set of chroma
 #define ALF_SAO_SLICE_FLAGS                 1      ///< G566 : Re-insert ALF and SAO flags in the slice header
-#define MAX_DPB_AND_LATENCY                 1      ///< G546 : Move max_dec_frame_buffering and num_reorder_frames from VUI to SPS
-                                                   ///< G779 : Put max_latency_increase in SPS
 
 #define NONCROSS_TILE_IN_LOOP_FILTERING     1      ///< G194 : Non-cross-tiles loop filtering
 

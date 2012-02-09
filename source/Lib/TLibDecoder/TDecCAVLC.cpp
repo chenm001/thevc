@@ -455,12 +455,10 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_UVLC( uiCode,    "log2_max_pic_order_cnt_lsb_minus4" );   pcSPS->setBitsForPOC( 4 + uiCode );
   READ_UVLC( uiCode,    "max_num_ref_pics" );                    pcSPS->setMaxNumberOfReferencePictures(uiCode);
   READ_UVLC( uiCode,    "num_reorder_frames" );                  pcSPS->setNumReorderFrames(uiCode);
-#if MAX_DPB_AND_LATENCY
   READ_UVLC ( uiCode, "max_dec_frame_buffering");
   pcSPS->setMaxDecFrameBuffering( uiCode );
   READ_UVLC ( uiCode, "max_latency_increase");
   pcSPS->setMaxLatencyIncrease( uiCode );
-#endif
   READ_UVLC( uiCode, "log2_min_coding_block_size_minus3" );
   UInt log2MinCUSize = uiCode + 3;
   READ_UVLC( uiCode, "log2_diff_max_min_coding_block_size" );

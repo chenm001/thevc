@@ -1181,10 +1181,8 @@ TComSPS::TComSPS()
 #if SCALING_LIST
 , m_scalingListEnabledFlag    (false)
 #endif
-#if MAX_DPB_AND_LATENCY 
 , m_uiMaxDecFrameBuffering    (  0)
 , m_uiMaxLatencyIncrease      (  0)
-#endif
 {
   // AMVP parameter
   ::memset( m_aeAMVPMode, 0, sizeof( m_aeAMVPMode ) );
