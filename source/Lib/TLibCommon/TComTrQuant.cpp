@@ -2722,15 +2722,11 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
 #if !NSQT_DIAG_SCAN
   if(textureType==TEXT_LUMA && posX + posY < thred)
   {
-#if SUBBLOCK_SCAN
     Int cnt = (pData[1] != 0) + (pData[2] != 0) + (pData[2*width] != 0) + (pData[width+1] != 0);
     if( ( ( posX & 3 ) || ( posY & 3 ) ) && ( ( (posX+1) & 3 ) || ( (posY+2) & 3 ) ) )
     {
       cnt += pData[width] != 0;
     }
-#else
-    Int cnt = (pData[1] != 0) + (pData[2] != 0) + (pData[width] != 0) + (pData[2*width] != 0) + (pData[width+1] != 0);
-#endif  
     cnt=(cnt+1)>>1;
     return offset + 1 + min( 2, cnt );
   }
@@ -2753,14 +2749,10 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   }
   if ( posY < height - 1 )
   {
-#if SUBBLOCK_SCAN
     if( ( ( posX & 3 ) || ( posY & 3 ) ) && ( ( (posX+1) & 3 ) || ( (posY+2) & 3 ) ) )
     {
       cnt += pData[width] != 0;
     }
-#else
-    cnt += pData[width] != 0;
-#endif
     if ( posY < height - 2 && cnt < 4 )
     {
       cnt += pData[2*width] != 0;

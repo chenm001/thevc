@@ -1165,7 +1165,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 
   //===== decode significance flags =====
   UInt uiScanPosLast   = uiBlkPosLast;
-#if SUBBLOCK_SCAN
   if (uiScanIdx == SCAN_ZIGZAG)
   {
     // Map zigzag to diagonal scan
@@ -1192,31 +1191,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       break;
     }
   }
-#else
-  if( uiScanIdx == SCAN_ZIGZAG )
-  {
-    UInt uiD         = uiPosLastY + uiPosLastX;
-    if( uiD < uiWidth )
-    {
-      uiScanPosLast  = uiPosLastX + (( uiD * ( uiD + 1 ) ) >> 1);
-    } 
-    else
-    {
-      UInt uiDI      = ( (uiWidth-1) << 1 ) - uiD;
-      uiScanPosLast  = uiMaxNumCoeffM1 - ( uiDI * ( uiDI + 1 ) >> 1 ) - uiWidth + 1 + uiPosLastX;
-    }
-  }
-  else if( uiScanIdx == SCAN_VER )
-  {
-    uiScanPosLast = uiPosLastY + (uiPosLastX<<uiLog2BlockSize);
-  }
-#endif
-
-#if !SUBBLOCK_SCAN
-  uiScanIdx = ( uiScanIdx == SCAN_ZIGZAG ) ? SCAN_DIAG : uiScanIdx; // Map zigzag to diagonal scan
-  
-  const UInt * const scan = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize-1 ];
-#endif
 
 #if MULTI_LEVEL_SIGNIFICANCE
   ContextModel * const baseCoeffGroupCtx = m_cCUSigCoeffGroupSCModel.get( 0, eTType );

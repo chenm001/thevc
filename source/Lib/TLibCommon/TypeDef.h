@@ -76,10 +76,7 @@
 ////////////////////////////
 
 #define UNIFIED_SCAN_PASSES                 1      ///< G320 : Unified scan passes for transform coefficient coding
-#define SUBBLOCK_SCAN                       1      ///< G323 : 4x4 sub-block based scan for large blocks
-#if SUBBLOCK_SCAN
 #define MULTI_LEVEL_SIGNIFICANCE            1      ///< G644 : Multi-level significance map for large TUs
-#endif
 #if MULTI_LEVEL_SIGNIFICANCE
 #define MLS_GRP_NUM                         64     ///< G644 : Max number of coefficient groups, max(16, 64)
 #define MLS_CG_SIZE                         4      ///< G644 : Coefficient group size of 4x4
@@ -103,9 +100,6 @@
 // JCT-VC F start
 ////////////////////////////
 #define NSQT_DIAG_SCAN                      1      ///< G1038: use diagonal and subblock scans for NSQT
-#if NSQT_DIAG_SCAN && !(SUBBLOCK_SCAN)
-#error
-#endif
 #define NS_HAD                               1
 
   #define APS_BITS_FOR_SAO_BYTE_LENGTH 12           
