@@ -3236,9 +3236,7 @@ UInt TEncSearch::xGetTemplateCost( TComDataCU* pcCU,
   
   TComPicYuv* pcPicYuvRef = pcCU->getSlice()->getRefPic( eRefPicList, iRefIdx )->getPicYuvRec();
   
-#if REMOVE_MV_PRED_CLIP
   pcCU->clipMv( cMvCand );
-#endif
 
   // prediction pattern
   if ( pcCU->getSlice()->getPPS()->getUseWP() && pcCU->getSlice()->getSliceType()==P_SLICE )
@@ -3372,15 +3370,6 @@ Void TEncSearch::xMotionEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPa
 Void TEncSearch::xSetSearchRange ( TComDataCU* pcCU, TComMv& cMvPred, Int iSrchRng, TComMv& rcMvSrchRngLT, TComMv& rcMvSrchRngRB )
 {
   Int  iMvShift = 2;
-#if !REMOVE_MV_PRED_CLIP
-  pcCU->clipMv( cMvPred );
-  
-  rcMvSrchRngLT.setHor( cMvPred.getHor() - (iSrchRng << iMvShift) );
-  rcMvSrchRngLT.setVer( cMvPred.getVer() - (iSrchRng << iMvShift) );
-  
-  rcMvSrchRngRB.setHor( cMvPred.getHor() + (iSrchRng << iMvShift) );
-  rcMvSrchRngRB.setVer( cMvPred.getVer() + (iSrchRng << iMvShift) );
-#else
   TComMv cTmpMvPred = cMvPred;
   pcCU->clipMv( cTmpMvPred );
 
@@ -3389,7 +3378,6 @@ Void TEncSearch::xSetSearchRange ( TComDataCU* pcCU, TComMv& cMvPred, Int iSrchR
   
   rcMvSrchRngRB.setHor( cTmpMvPred.getHor() + (iSrchRng << iMvShift) );
   rcMvSrchRngRB.setVer( cTmpMvPred.getVer() + (iSrchRng << iMvShift) );
-#endif
   pcCU->clipMv        ( rcMvSrchRngLT );
   pcCU->clipMv        ( rcMvSrchRngRB );
   
