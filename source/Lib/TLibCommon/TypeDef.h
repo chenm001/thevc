@@ -230,8 +230,6 @@
 #endif
 
 
-#define G665_ALF_COEFF_PRED                1 // JCTVC-G665
-
 #define SCALING_LIST                  1 //JCTVC-G880/JCTVC-G1016 quantization matrices
 #define SCALING_LIST_OUTPUT_RESULT    0 //JCTVC-G880/JCTVC-G1016 quantization matrices
 
@@ -354,9 +352,7 @@ struct ALFParam
   Int startSecondFilter;
   Int filters_per_group;
   Int predMethod;
-#if G665_ALF_COEFF_PRED
   Int *nbSPred;
-#endif
   Int **coeffmulti;
   Int minKStart;
   Int maxScanVal;

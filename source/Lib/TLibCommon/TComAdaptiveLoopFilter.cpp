@@ -62,12 +62,10 @@ ALFParam::~ALFParam()
     delete[] coeffmulti;
   }
 
-#if G665_ALF_COEFF_PRED
   if (nbSPred != NULL)
   {
     delete[] nbSPred;
   }
-#endif
   if (filterPattern != NULL)
   {
     delete[] filterPattern;
@@ -455,10 +453,8 @@ Void TComAdaptiveLoopFilter::allocALFParam(ALFParam* pAlfParam)
     pAlfParam->coeffmulti[i] = new Int[ALF_MAX_NUM_COEF];
     ::memset(pAlfParam->coeffmulti[i],        0, sizeof(Int)*ALF_MAX_NUM_COEF );
   }
-#if G665_ALF_COEFF_PRED
   pAlfParam->nbSPred = new Int[NO_VAR_BINS];
   ::memset(pAlfParam->nbSPred, 0, sizeof(Int)*NO_VAR_BINS);
-#endif
   pAlfParam->filterPattern = new Int[NO_VAR_BINS];
   ::memset(pAlfParam->filterPattern, 0, sizeof(Int)*NO_VAR_BINS);
   pAlfParam->alf_pcr_region_flag = 0;
@@ -480,10 +476,8 @@ Void TComAdaptiveLoopFilter::freeALFParam(ALFParam* pAlfParam)
   delete[] pAlfParam->coeffmulti;
   pAlfParam->coeffmulti = NULL;
 
-#if G665_ALF_COEFF_PRED
   delete[] pAlfParam->nbSPred;
   pAlfParam->nbSPred = NULL;
-#endif
 
   delete[] pAlfParam->filterPattern;
   pAlfParam->filterPattern = NULL;
@@ -506,9 +500,7 @@ Void TComAdaptiveLoopFilter::copyALFParam(ALFParam* pDesAlfParam, ALFParam* pSrc
   //Coeff send related
   pDesAlfParam->filters_per_group = pSrcAlfParam->filters_per_group; //this can be updated using codedVarBins
   pDesAlfParam->predMethod = pSrcAlfParam->predMethod;
-#if G665_ALF_COEFF_PRED
   ::memcpy(pDesAlfParam->nbSPred, pSrcAlfParam->nbSPred, sizeof(Int)*NO_VAR_BINS);
-#endif
   for (int i=0; i<NO_VAR_BINS; i++)
   {
     ::memcpy(pDesAlfParam->coeffmulti[i], pSrcAlfParam->coeffmulti[i], sizeof(Int)*ALF_MAX_NUM_COEF);
@@ -778,9 +770,7 @@ Void TComAdaptiveLoopFilter::decodeFilterSet(ALFParam* pcAlfParam, Int* varIndTa
       }
     }
   }
-#if G665_ALF_COEFF_PRED
   predictALFCoeffLuma( pcAlfParam);
-#endif
   // reconstruct filter sets
   reconstructFilterCoeffs( pcAlfParam, filterCoeff);
 
@@ -1259,7 +1249,6 @@ Void TComAdaptiveLoopFilter::xSubCUAdaptive(TComDataCU* pcCU, Int filtNo, Pel *i
   }
 }
 
-#if G665_ALF_COEFF_PRED
 /** Predict ALF luma filter coefficients. Centre coefficient is always predicted. Left neighbour is predicted according to flag.
  */
 Void TComAdaptiveLoopFilter::predictALFCoeffLuma(ALFParam* pcAlfParam)
@@ -1314,7 +1303,6 @@ Void TComAdaptiveLoopFilter::predictALFCoeffLuma(ALFParam* pcAlfParam)
 #endif
   }
 }
-#endif
 
 Void TComAdaptiveLoopFilter::reconstructFilterCoeffs(ALFParam* pcAlfParam,int **pfilterCoeffSym)
 {

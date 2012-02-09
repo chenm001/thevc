@@ -397,9 +397,7 @@ protected: //protected methods
   Void xCUAdaptive   (TComPic* pcPic, Int filtNo, Pel *imgYFilt, Pel *imgYRec, Int Stride);
   Void xSubCUAdaptive(TComDataCU* pcCU, Int filtNo, Pel *imgYFilt, Pel *imgYRec, UInt uiAbsPartIdx, UInt uiDepth, Int Stride);
   Void reconstructFilterCoeffs(ALFParam* pcAlfParam,int **pfilterCoeffSym);
-#if G665_ALF_COEFF_PRED
   Void predictALFCoeffLuma  ( ALFParam* pAlfParam );                    //!< prediction of luma ALF coefficients
-#endif
 #if G214_ALF_CONSTRAINED_COEFF
   Void checkFilterCoeffValue( Int *filter, Int filterLength, Bool isChroma );
 #endif

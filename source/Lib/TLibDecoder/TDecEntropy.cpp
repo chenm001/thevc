@@ -210,13 +210,11 @@ Void TDecEntropy::decodeFilt(ALFParam* pAlfParam)
     m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
     pAlfParam->predMethod = uiSymbol;
   }
-#if G665_ALF_COEFF_PRED
   for(Int ind = 0; ind < pAlfParam->filters_per_group; ++ind)
   {
     m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
     pAlfParam->nbSPred[ind] = uiSymbol;
   }
-#endif
   decodeFilterCoeff (pAlfParam);
 }
 

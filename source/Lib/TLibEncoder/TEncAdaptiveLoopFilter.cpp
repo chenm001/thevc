@@ -1715,7 +1715,6 @@ double TEncAdaptiveLoopFilter::xfindBestCoeffCodMethod(int **filterCoeffSymQuant
   return (lagrangian);
 }
 
-#if G665_ALF_COEFF_PRED
 /** Predict ALF luma filter coefficients. Centre coefficient is always predicted. Determines if left neighbour should be predicted.
  */
 Void TEncAdaptiveLoopFilter::predictALFCoeffLumaEnc(ALFParam* pcAlfParam, Int **pfilterCoeffSym, Int filter_shape)
@@ -1778,7 +1777,6 @@ Void TEncAdaptiveLoopFilter::predictALFCoeffLumaEnc(ALFParam* pcAlfParam, Int **
 #endif
   }
 }
-#endif
 
 Int TEncAdaptiveLoopFilter::xsendAllFiltersPPPred(int **FilterCoeffQuant, int fl, int sqrFiltLength, 
                                                   int filters_per_group, int createBistream, ALFParam* ALFp)
@@ -1788,7 +1786,6 @@ Int TEncAdaptiveLoopFilter::xsendAllFiltersPPPred(int **FilterCoeffQuant, int fl
   int force0 = 0;
   Int64 Newbit_ct;
   
-#if G665_ALF_COEFF_PRED
   for(ind = 0; ind < filters_per_group; ind++)
   {
     for(i = 0; i < sqrFiltLength; i++)
@@ -1806,9 +1803,6 @@ Int TEncAdaptiveLoopFilter::xsendAllFiltersPPPred(int **FilterCoeffQuant, int fl
     nbFlagIntra[ind] = ALFp->nbSPred[ind];
   }
   bit_ct0 = xcodeFilterCoeff(m_FilterCoeffQuantTemp, fl, sqrFiltLength, filters_per_group, 0);
-#else
-  bit_ct0 = xcodeFilterCoeff(FilterCoeffQuant, fl, sqrFiltLength, filters_per_group, 0);
-#endif  
   for(ind = 0; ind < filters_per_group; ++ind)
   {
     if(ind == 0)
@@ -1822,10 +1816,8 @@ Int TEncAdaptiveLoopFilter::xsendAllFiltersPPPred(int **FilterCoeffQuant, int fl
         m_diffFilterCoeffQuant[ind][i] = FilterCoeffQuant[ind][i] - FilterCoeffQuant[ind-1][i];
     }
   }
-#if G665_ALF_COEFF_PRED
   ALFp->predMethod = 1;
   predictALFCoeffLumaEnc(ALFp, m_diffFilterCoeffQuant, fl);
-#endif
   
   if(xcodeFilterCoeff(m_diffFilterCoeffQuant, fl, sqrFiltLength, filters_per_group, 0) >= bit_ct0)
   {
@@ -1834,11 +1826,7 @@ Int TEncAdaptiveLoopFilter::xsendAllFiltersPPPred(int **FilterCoeffQuant, int fl
     {
       bit_ct += lengthPredFlags(force0, predMethod, NULL, 0, createBistream);
     }
-#if G665_ALF_COEFF_PRED
     bit_ct += xcodeFilterCoeff(m_FilterCoeffQuantTemp, fl, sqrFiltLength, filters_per_group, createBistream);
-#else
-    bit_ct += xcodeFilterCoeff(FilterCoeffQuant, fl, sqrFiltLength, filters_per_group, createBistream);
-#endif
   }
   else
   {
@@ -1858,21 +1846,15 @@ Int TEncAdaptiveLoopFilter::xsendAllFiltersPPPred(int **FilterCoeffQuant, int fl
     for(i = 0; i < sqrFiltLength; i++)
     {
       if (predMethod) ALFp->coeffmulti[ind][i] = m_diffFilterCoeffQuant[ind][i];
-#if G665_ALF_COEFF_PRED
       else 
       {
         ALFp->coeffmulti[ind][i] = m_FilterCoeffQuantTemp[ind][i];
       }
-#else
-      else ALFp->coeffmulti[ind][i] = FilterCoeffQuant[ind][i];
-#endif
     }
-#if G665_ALF_COEFF_PRED
     if(predMethod==0)
     {
       ALFp->nbSPred[ind] = nbFlagIntra[ind];
     }
-#endif
   }
   m_pcEntropyCoder->codeFiltCountBit(ALFp, &Newbit_ct);
   
