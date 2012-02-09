@@ -43,8 +43,6 @@
 
 #define MRG_MAX_NUM_CANDS_SIGNALED         5   //<G091: value of maxNumMergeCand signaled in slice header 
 
-#define PLANAR_IS_DEFAULT         1 ///< default to planar if neighbor not available G119
-
 #define REMOVE_INTRA_LINE_BUFFER  1 ///< G145: intra line buffer removal
 
 #define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO

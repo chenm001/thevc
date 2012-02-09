@@ -1719,11 +1719,7 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int* uiIntraDirPred
   // Get intra direction of left PU
   pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
   
-#if PLANAR_IS_DEFAULT
   iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : PLANAR_IDX ) : PLANAR_IDX;
-#else
-  iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : DC_IDX ) : DC_IDX;
-#endif
   
   // Get intra direction of above PU
 #if REMOVE_INTRA_LINE_BUFFER
@@ -1732,11 +1728,7 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int* uiIntraDirPred
   pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
 #endif
   
-#if PLANAR_IS_DEFAULT
   iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : PLANAR_IDX ) : PLANAR_IDX;
-#else
-  iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : DC_IDX ) : DC_IDX;
-#endif
   
   Int iIdx  = getIntraSizeIdx(uiAbsPartIdx);
   
