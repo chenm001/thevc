@@ -59,7 +59,6 @@
 #define G776_MRG_ENC_FIX          1 //<G776: Merge encoder estimation improvement
 
 #define IT_CLIPPING               1 ///< clipping in inverse transform G782
-#define CABAC_RICE_UPDATE_MOD     1 ///< modified Rice parameter update function G700
 #define WEIGHT_PRED_IMP           1 ///< high-precision offset for weighted bipred G065
 #define PLANAR_IS_DEFAULT         1 ///< default to planar if neighbor not available G119
 #define REMAP_TO_PLANAR           1 ///< default to planar if neighbor out of range G119
