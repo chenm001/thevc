@@ -360,11 +360,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       {
         if(m_cSPS.getUseALF())
         {
-#if ALF_SAO_SLICE_FLAGS
           if (m_apcSlicePilot->getAlfEnabledFlag())
-#else
-          if(m_vAPS[m_apcSlicePilot->getAPSId()].back().getAlfEnabled())
-#endif
           {
             m_cGopDecoder.decodeAlfOnOffCtrlParam();
           }

@@ -197,11 +197,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     {
       if(pcSlice->getSPS()->getUseALF())
       {
-#if ALF_SAO_SLICE_FLAGS
         if(pcSlice->getAlfEnabledFlag())
-#else
-        if(pcSlice->getAPS()->getAlfEnabled())
-#endif
         {
           vAlfCUCtrlSlices.push_back(m_cAlfCUCtrlOneSlice);
         }
@@ -272,11 +268,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
         m_pcSAO->setNumSlicesInPic( uiILSliceCount );
         m_pcSAO->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
 #endif
-#if ALF_SAO_SLICE_FLAGS
         if(pcSlice->getSaoEnabledFlag())
-#else
-        if(pcSlice->getAPS()->getSaoEnabled())
-#endif
         {
 
 #if NONCROSS_TILE_IN_LOOP_FILTERING
@@ -325,11 +317,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       m_pcAdaptiveLoopFilter->setSliceGranularityDepth(pcSlice->getPPS()->getSliceGranularity());
 #endif
 
-#if ALF_SAO_SLICE_FLAGS
       if(pcSlice->getAlfEnabledFlag())
-#else
-      if(pcSlice->getAPS()->getAlfEnabled())
-#endif
       {
 #if NONCROSS_TILE_IN_LOOP_FILTERING
         m_pcAdaptiveLoopFilter->createPicAlfInfo(rpcPic, uiILSliceCount);

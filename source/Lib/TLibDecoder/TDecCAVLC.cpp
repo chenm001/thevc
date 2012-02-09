@@ -723,7 +723,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     if(rpcSlice->getSPS()->getUseSAO() || rpcSlice->getSPS()->getUseALF())
 #endif
     {
-#if ALF_SAO_SLICE_FLAGS
       if (rpcSlice->getSPS()->getUseALF())
       {
         READ_FLAG(uiCode, "ALF flag in slice header");
@@ -734,7 +733,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
         READ_FLAG(uiCode, "SAO flag in slice header");
         rpcSlice->setSaoEnabledFlag((Bool)uiCode);
       }
-#endif
       READ_UVLC (    uiCode, "aps_id" );  rpcSlice->setAPSId(uiCode);
     }
     if (!rpcSlice->isIntra())

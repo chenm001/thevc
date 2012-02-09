@@ -725,10 +725,8 @@ class TComSlice
 private:
   //  Bitstream writing
   Int         m_iAPSId; //!< APS ID in slice header
-#if ALF_SAO_SLICE_FLAGS
   bool       m_alfEnabledFlag;
   bool       m_saoEnabledFlag;
-#endif
   Int         m_iPPSId;               ///< picture parameter set ID
   Int         m_iPOC;
   Int         m_iLastIDR;
@@ -853,12 +851,10 @@ public:
   TComAPS*  getAPS          ()                 { return m_pcAPS;  } //!< get APS pointer
   Void      setAPSId        ( Int Id)          { m_iAPSId =Id;    } //!< set APS ID
   Int       getAPSId        ()                 { return m_iAPSId; } //!< get APS ID
-#if ALF_SAO_SLICE_FLAGS
   Void      setAlfEnabledFlag(Bool s) {m_alfEnabledFlag =s; }
   Bool      getAlfEnabledFlag() { return m_alfEnabledFlag; }
   Void      setSaoEnabledFlag(Bool s) {m_saoEnabledFlag =s; }
   Bool      getSaoEnabledFlag() { return m_saoEnabledFlag; }
-#endif
   Void      setRPS          ( TComReferencePictureSet *pcRPS ) { m_pcRPS = pcRPS; }
   TComReferencePictureSet*  getRPS          () { return m_pcRPS; }
   TComReferencePictureSet*  getLocalRPS     () { return &m_LocalRPS; }

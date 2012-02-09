@@ -621,7 +621,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
 #endif
     {
-#if ALF_SAO_SLICE_FLAGS
       if (pcSlice->getSPS()->getUseALF())
       {
          if (pcSlice->getAlfEnabledFlag())
@@ -635,7 +634,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
          assert (pcSlice->getSaoEnabledFlag() == pcSlice->getAPS()->getSaoEnabled());
          WRITE_FLAG( pcSlice->getSaoEnabledFlag(), "SAO on/off flag in slice header" );
       }
-#endif
       WRITE_UVLC( pcSlice->getAPS()->getAPSID(), "aps_id");
     }
 

@@ -99,7 +99,6 @@
 #define CHROMA_CBF_CTX_REDUCTION            1      ///< G718 : Sharing contexts for cbf_cb and cbf_cr
 
 #define COEFF_CTXSET_RED                    1      ///< G783 : reduce level context set of chroma
-#define ALF_SAO_SLICE_FLAGS                 1      ///< G566 : Re-insert ALF and SAO flags in the slice header
 
 #define NONCROSS_TILE_IN_LOOP_FILTERING     1      ///< G194 : Non-cross-tiles loop filtering
 
