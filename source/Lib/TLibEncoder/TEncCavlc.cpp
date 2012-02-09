@@ -448,13 +448,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_UVLC( pcSPS->getBitIncrement(),             "bit_depth_chroma_minus8" );
 #endif
 
-#if MAX_PCM_SIZE
   WRITE_FLAG( pcSPS->getUsePCM() ? 1 : 0,                   "pcm_enabled_flag");
-#endif
 
-#if MAX_PCM_SIZE
   if( pcSPS->getUsePCM() )
-#endif
   {
   WRITE_CODE( pcSPS->getPCMBitDepthLuma() - 1, 4,   "pcm_bit_depth_luma_minus1" );
   WRITE_CODE( pcSPS->getPCMBitDepthChroma() - 1, 4, "pcm_bit_depth_chroma_minus1" );
@@ -491,16 +487,12 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   }
 #endif
 
-#if MAX_PCM_SIZE
   if( pcSPS->getUsePCM() )
   {
-#endif
   WRITE_UVLC( pcSPS->getPCMLog2MinSize() - 3,                                        "log2_min_pcm_coding_block_size_minus3" );
 
-#if MAX_PCM_SIZE
   WRITE_UVLC( pcSPS->getPCMLog2MaxSize() - pcSPS->getPCMLog2MinSize(),               "log2_diff_max_min_pcm_coding_block_size" );
   }
-#endif
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthInter() - 1,                               "max_transform_hierarchy_depth_inter" );
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthIntra() - 1,                               "max_transform_hierarchy_depth_intra" );
 #if SCALING_LIST
@@ -512,9 +504,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_FLAG( pcSPS->getUseSAO() ? 1 : 0,                                            "sample_adaptive_offset_enabled_flag");
   WRITE_FLAG( (pcSPS->getUseALF ()) ? 1 : 0,                                         "adaptive_loop_filter_enabled_flag");
 
-#if MAX_PCM_SIZE
   if( pcSPS->getUsePCM() )
-#endif
   {
   WRITE_FLAG( pcSPS->getPCMFilterDisableFlag()?1 : 0,                                "pcm_loop_filter_disable_flag");
   }

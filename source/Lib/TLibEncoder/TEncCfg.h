@@ -198,10 +198,8 @@ protected:
   UInt      m_uiDeltaQpRD;
   
   Bool      m_bUseConstrainedIntraPred;
-#if MAX_PCM_SIZE
   Bool      m_usePCM;
   UInt      m_pcmLog2MaxSize;
-#endif
   UInt      m_uiPCMLog2MinSize;
   //====== Slice ========
   Int       m_iSliceMode;
@@ -410,10 +408,8 @@ public:
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
   Void      setPCMInputBitDepthFlag         ( Bool  b )     { m_bPCMInputBitDepthFlag = b; }
   Void      setPCMFilterDisableFlag         ( Bool  b )     {  m_bPCMFilterDisableFlag = b; }
-#if MAX_PCM_SIZE
   Void      setUsePCM                       ( Bool  b )     {  m_usePCM = b;               }
   Void      setPCMLog2MaxSize               ( UInt u )      { m_pcmLog2MaxSize = u;      }
-#endif
   Void      setPCMLog2MinSize               ( UInt u )     { m_uiPCMLog2MinSize = u;      }
   Void      setdQPs                         ( Int*  p )     { m_aidQP       = p; }
   Void      setDeltaQpRD                    ( UInt  u )     {m_uiDeltaQpRD  = u; }
@@ -443,10 +439,8 @@ public:
 #endif
   Bool      getPCMInputBitDepthFlag         ()      { return m_bPCMInputBitDepthFlag;   } 
   Bool      getPCMFilterDisableFlag         ()      { return m_bPCMFilterDisableFlag;   } 
-#if MAX_PCM_SIZE
   Bool      getUsePCM                       ()      { return m_usePCM;                 }
   UInt      getPCMLog2MaxSize               ()      { return m_pcmLog2MaxSize;  }
-#endif
   UInt      getPCMLog2MinSize               ()      { return  m_uiPCMLog2MinSize;  }
 
   Bool getUseLMChroma                       ()      { return m_bUseLMChroma;        }

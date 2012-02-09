@@ -162,10 +162,8 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );
   m_cTEncTop.setPCMLog2MinSize          ( m_uiPCMLog2MinSize);
-#if MAX_PCM_SIZE
   m_cTEncTop.setUsePCM                       ( m_usePCM );
   m_cTEncTop.setPCMLog2MaxSize               ( m_pcmLog2MaxSize);
-#endif
 
   //====== Weighted Prediction ========
   m_cTEncTop.setUseWP                   ( m_bUseWeightPred      );

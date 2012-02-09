@@ -490,13 +490,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #endif
   READ_UVLC( uiCode,    "bit_depth_chroma_minus8" );
 
-#if MAX_PCM_SIZE
   READ_FLAG( uiCode, "pcm_enabled_flag" ); pcSPS->setUsePCM( uiCode ? true : false );
-#endif
 
-#if MAX_PCM_SIZE
   if( pcSPS->getUsePCM() )
-#endif
   {
     READ_CODE( 4, uiCode, "pcm_bit_depth_luma_minus1" );           pcSPS->setPCMBitDepthLuma   ( 1 + uiCode );
     READ_CODE( 4, uiCode, "pcm_bit_depth_chroma_minus1" );         pcSPS->setPCMBitDepthChroma ( 1 + uiCode );
@@ -531,14 +527,10 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   }
 #endif
 
-#if MAX_PCM_SIZE
   if( pcSPS->getUsePCM() )
-#endif
   {
     READ_UVLC( uiCode, "log2_min_pcm_coding_block_size_minus3" );  pcSPS->setPCMLog2MinSize (uiCode+3); 
-#if MAX_PCM_SIZE
     READ_UVLC( uiCode, "log2_diff_max_min_pcm_coding_block_size" ); pcSPS->setPCMLog2MaxSize ( uiCode+pcSPS->getPCMLog2MinSize() );
-#endif
   }
 
   READ_UVLC( uiCode, "max_transform_hierarchy_depth_inter" );    pcSPS->setQuadtreeTUMaxDepthInter( uiCode+1 );
@@ -558,9 +550,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO ( uiCode ? true : false );  
   READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );      pcSPS->setUseALF ( uiCode ? true : false );
 
-#if MAX_PCM_SIZE
   if( pcSPS->getUsePCM() )
-#endif
   {
     READ_FLAG( uiCode, "pcm_loop_filter_disable_flag" );           pcSPS->setPCMFilterDisableFlag ( uiCode ? true : false );
   }
