@@ -59,11 +59,7 @@ private:
   Int       m_tcOffsetDiv2;
 
   UInt      m_uiNumPartitions;
-#if !DEBLK_CLEANUP_CHROMA_BS
-  UChar*    m_aapucBS[2][3];              ///< Bs for [Ver/Hor][Y/U/V][Blk_Idx]
-#else
   UChar*    m_aapucBS[2];              ///< Bs for [Ver/Hor][Y/U/V][Blk_Idx]
-#endif
   Bool*     m_aapbEdgeFilter[2][3];
   LFCUParam m_stLFCUParam;                  ///< status structure
   

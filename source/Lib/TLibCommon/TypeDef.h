@@ -248,9 +248,6 @@
 #define MAX_MARKER_PER_NALU                 1000
 #define TILES_LOW_LATENCY_CABAC_INI         1 // JCTVC-G197 = low latency CABAC initialization for dependent tiles
 
-#define DEBLK_CLEANUP_CHROMA_BS         1 // Clean-up of chroma Bs (not used in HEVC deblocking)
-
-
 #define MATRIX_MULT                             0   // Brute force matrix multiplication instead of partial butterfly
 
 #define REG_DCT 65535
