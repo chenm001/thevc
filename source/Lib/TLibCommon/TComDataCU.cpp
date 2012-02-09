@@ -3626,11 +3626,7 @@ Bool TComDataCU::xAddMVPCandOrder( AMVPInfo* pInfo, RefPicList eRefPicList, Int 
     TComMv rcMv;
 
     Int iScale = xGetDistScaleFactor( iCurrPOC, iCurrRefPOC, iNeibPOC, iNeibRefPOC );
-#if SCALING_FACTOR_CLIP_4096
     if ( iScale == 4096 )
-#else
-    if ( iScale == 1024 )
-#endif
     {
       rcMv = cMvPred;
     }
@@ -3649,11 +3645,7 @@ Bool TComDataCU::xAddMVPCandOrder( AMVPInfo* pInfo, RefPicList eRefPicList, Int 
     TComMv rcMv;
 
     Int iScale = xGetDistScaleFactor( iCurrPOC, iCurrRefPOC, iNeibPOC, iNeibRefPOC );
-#if SCALING_FACTOR_CLIP_4096
     if ( iScale == 4096 )
-#else
-    if ( iScale == 1024 )
-#endif
     {
       rcMv = cMvPred;
     }
@@ -3722,11 +3714,7 @@ Bool TComDataCU::xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUni
 
   iCurrRefPOC = m_pcSlice->getRefPic(eRefPicList, riRefIdx)->getPOC();
   iScale = xGetDistScaleFactor(iCurrPOC, iCurrRefPOC, iColPOC, iColRefPOC);
-#if SCALING_FACTOR_CLIP_4096
   if ( iScale == 4096 )
-#else
-  if ( iScale == 1024 )
-#endif
   {
     rcMv = cColMv;
   }
@@ -3767,22 +3755,14 @@ Int TComDataCU::xGetDistScaleFactor(Int iCurrPOC, Int iCurrRefPOC, Int iColPOC, 
   
   if( iDiffPocD == iDiffPocB )
   {
-#if SCALING_FACTOR_CLIP_4096
     return 4096;
-#else
-    return 1024;
-#endif
   }
   else
   {
     Int iTDB      = Clip3( -128, 127, iDiffPocB );
     Int iTDD      = Clip3( -128, 127, iDiffPocD );
     Int iX        = (0x4000 + abs(iTDD/2)) / iTDD;
-#if SCALING_FACTOR_CLIP_4096
     Int iScale    = Clip3( -4096, 4095, (iTDB * iX + 32) >> 6 );
-#else
-    Int iScale    = Clip3( -1024, 1023, (iTDB * iX + 32) >> 6 );
-#endif
     return iScale;
   }
 }
@@ -3881,11 +3861,7 @@ Bool TComDataCU::xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRef
   
   Int iCurrRefPOC = m_pcSlice->getRefPic(eRefPicList, iRefIdx)->getPOC();
   Int iScale = xGetDistScaleFactor(iCurrPOC, iCurrRefPOC, iColPOC, iColRefPOC);
-#if SCALING_FACTOR_CLIP_4096
   if ( iScale == 4096 )
-#else
-  if ( iScale == 1024 )
-#endif
   {
     pcMv[0] = cColMv;
   }
