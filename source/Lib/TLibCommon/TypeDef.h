@@ -52,8 +52,6 @@
 
 #define MIN_SCAN_POS_CROSS          4
 
-#define SAO_RDO_OFFSET              1   ///< G915: Considering rate-distortion-cost in optimal offset calculation for SAO
-
 #define FAST_BIT_EST                1   ///< G763: Table-based bit estimation for CABAC
 
 #define G519_TU_AMP_NSQT_HARMONIZATION  1   ///< G519: Harmonization of implicit TU, AMP and NSQT

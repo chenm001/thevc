@@ -146,7 +146,6 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
           m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = (Int64) xRoundIbdi((Double)(m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]<<g_uiBitIncrement) / (Double)(m_iCount [iPartIdx][iTypeIdx][iClassIdx]<<m_uiSaoBitIncrease));
 #endif
           m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = Clip3(-m_iOffsetTh, m_iOffsetTh-1, (Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx]);
-#if SAO_RDO_OFFSET
           {
             Int64 iterOffset, tempOffset;
             Int64 tempDist, tempRate;
@@ -182,7 +181,6 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
               iterOffset = (iterOffset > 0) ? (iterOffset-1):(iterOffset+1);
             }
           }
-#endif
         }
         else
         {
