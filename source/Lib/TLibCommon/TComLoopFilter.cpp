@@ -714,27 +714,15 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
   Pel* piTmpSrc = piSrc;
 
   Int  iStride = pcPicYuvRec->getStride();
-#if DBF_DQP
   Int iQP = 0;
   Int iQP_P = 0;
   Int iQP_Q = 0;
-#else
-  Int  iQP = pcCU->getQP( uiAbsZorderIdx );
-  if(pcCU->getIPCMFlag( uiAbsZorderIdx )) 
-  {
-    iQP = 0; 
-  }
-#endif
   UInt uiNumParts = pcCU->getPic()->getNumPartInWidth()>>uiDepth;
   
   UInt  uiPelsInPart = g_uiMaxCUWidth >> g_uiMaxCUDepth;
   UInt  PartIdxIncr = DEBLOCK_SMALLEST_BLOCK / uiPelsInPart ? DEBLOCK_SMALLEST_BLOCK / uiPelsInPart : 1;
   UInt  uiBlocksInPart = uiPelsInPart / DEBLOCK_SMALLEST_BLOCK ? uiPelsInPart / DEBLOCK_SMALLEST_BLOCK : 1;
-#if DBF_DQP
   UInt  uiBsAbsIdx = 0, uiBs = 0;
-#else
-  UInt  uiBsAbsIdx, uiBs;
-#endif
   Int   iOffset, iSrcStep;
 
 #if MAX_PCM_SIZE
@@ -744,15 +732,9 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
 #endif
   Bool  bPartPNoFilter = false;
   Bool  bPartQNoFilter = false; 
-#if DBF_DQP
   UInt  uiPartPIdx = 0;
   UInt  uiPartQIdx = 0;
   TComDataCU* pcCUP = pcCU; 
-#else
-  UInt  uiPartPIdx;
-  UInt  uiPartQIdx;
-  TComDataCU* pcCUP; 
-#endif
   TComDataCU* pcCUQ = pcCU;
 
   if (iDir == EDGE_VER)
@@ -790,7 +772,6 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
     
     if ( uiBs )
     {
-#if DBF_DQP
       iQP_Q = pcCU->getQP( uiBsAbsIdx );
       uiPartQIdx = uiBsAbsIdx;
       // Derive neighboring PU index
@@ -819,7 +800,6 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
       }
 
       iQP = (iQP_P + iQP_Q + 1) >> 1;
-#endif
     Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
     
 #if G174_DF_OFFSET
@@ -864,20 +844,6 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
 #if DEBLK_G590
         if (bPCMFilter)
         {
-#if !DBF_DQP
-          // Derive current PU index
-          uiPartQIdx = xCalcBsIdx(pcCUQ, uiAbsZorderIdx, iDir, iEdge, (iIdx+(iBlkIdx*DEBLOCK_SMALLEST_BLOCK/uiPelsInPart)));
-
-          // Derive neighboring PU index
-          if (iDir == EDGE_VER)
-          {
-            pcCUP = pcCUQ->getPULeft (uiPartPIdx, uiPartQIdx);
-          }
-          else  // (iDir == EDGE_HOR)
-          {
-            pcCUP = pcCUQ->getPUAbove(uiPartPIdx, uiPartQIdx);
-          }
-#endif
           // Check if each of PUs is I_PCM
           bPartPNoFilter = (pcCUP->getIPCMFlag(uiPartPIdx));
           bPartQNoFilter = (pcCUQ->getIPCMFlag(uiPartQIdx));
@@ -951,17 +917,9 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
   Int         iStride     = pcPicYuvRec->getCStride();
   Pel*        piSrcCb     = pcPicYuvRec->getCbAddr( pcCU->getAddr(), uiAbsZorderIdx );
   Pel*        piSrcCr     = pcPicYuvRec->getCrAddr( pcCU->getAddr(), uiAbsZorderIdx );
-#if DBF_DQP
   Int iQP = 0;
   Int iQP_P = 0;
   Int iQP_Q = 0;
-#else
-  Int   iQP = QpUV((Int) pcCU->getQP( uiAbsZorderIdx ));
-  if(pcCU->getIPCMFlag( uiAbsZorderIdx )) 
-  {
-    iQP = QpUV(0); 
-  }
-#endif
 
   UInt  uiPelsInPartChroma = g_uiMaxCUWidth >> (g_uiMaxCUDepth+1);
   
@@ -1027,7 +985,6 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
     
     if ( ucBs > 1)
     {
-#if DBF_DQP
       iQP_Q = pcCU->getQP( uiBsAbsIdx );
       uiPartQIdx = uiBsAbsIdx;
       // Derive neighboring PU index
@@ -1056,7 +1013,6 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
       }
 
       iQP = QpUV((iQP_P + iQP_Q + 1) >> 1);
-#endif
     Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
     
 #if G174_DF_OFFSET
@@ -1068,20 +1024,6 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
     
       if(bPCMFilter)
       {
-#if !DBF_DQP
-        // Derive current PU index
-        uiPartQIdx = xCalcBsIdx(pcCUQ, uiAbsZorderIdx, iDir, iEdge, iIdx);
-
-        // Derive neighboring PU index
-        if (iDir == EDGE_VER)
-        {
-          pcCUP = pcCUQ->getPULeft (uiPartPIdx, uiPartQIdx);
-        }
-        else  // (iDir == EDGE_HOR)
-        {
-          pcCUP = pcCUQ->getPUAbove(uiPartPIdx, uiPartQIdx);
-        }
-#endif
         // Check if each of PUs is IPCM
         bPartPNoFilter = (pcCUP->getIPCMFlag(uiPartPIdx));
         bPartQNoFilter = (pcCUQ->getIPCMFlag(uiPartQIdx));
