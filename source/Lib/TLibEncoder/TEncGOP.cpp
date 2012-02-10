@@ -92,14 +92,12 @@ Void  TEncGOP::create( Int iWidth, Int iHeight, UInt iMaxCUWidth, UInt iMaxCUHei
   UInt uiWidthInCU       = ( iWidth %iMaxCUWidth  ) ? iWidth /iMaxCUWidth  + 1 : iWidth /iMaxCUWidth;
   UInt uiHeightInCU      = ( iHeight%iMaxCUHeight ) ? iHeight/iMaxCUHeight + 1 : iHeight/iMaxCUHeight;
   UInt uiNumCUsInFrame   = uiWidthInCU * uiHeightInCU;
-  m_uiStoredStartCUAddrForEncodingSlice = new UInt [uiNumCUsInFrame*(1<<(g_uiMaxCUDepth<<1))+1];
   m_bLongtermTestPictureHasBeenCoded = 0;
   m_bLongtermTestPictureHasBeenCoded2 = 0;
 }
 
 Void  TEncGOP::destroy()
 {
-  delete [] m_uiStoredStartCUAddrForEncodingSlice; m_uiStoredStartCUAddrForEncodingSlice = NULL;
 }
 
 Void TEncGOP::init ( TEncTop* pcTEncTop )
@@ -190,12 +188,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       //  Slice data initialization
       pcPic->clearSliceBuffer();
       assert(pcPic->getNumAllocatedSlice() == 1);
-      m_pcSliceEncoder->setSliceIdx(0);
-      pcPic->setCurrSliceIdx(0);
 
       m_pcSliceEncoder->initEncSlice ( pcPic, iPOCLast, uiPOCCurr, iNumPicRcvd, iGOPid, pcSlice, m_pcEncTop->getSPS(), m_pcEncTop->getPPS() );
       pcSlice->setLastIDR(m_iLastIDR);
-      pcSlice->setSliceIdx(0);
 
       m_pcEncTop->getSPS()->setDisInter4x4(m_pcEncTop->getDisInter4x4());
 
@@ -331,26 +326,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       }
       UInt uiRealEndAddress = uiExternalAddress*pcPic->getNumPartInCU()+uiInternalAddress;
 
-      UInt uiStartCUAddrSliceIdx = 0; // used to index "m_uiStoredStartCUAddrForEncodingSlice" containing locations of slice boundaries
-      UInt uiStartCUAddrSlice    = 0; // used to keep track of current slice's starting CU addr.
-      pcSlice->setSliceCurStartCUAddr( 0 ); // Setting "start CU addr" for current slice
-      memset(m_uiStoredStartCUAddrForEncodingSlice, 0, sizeof(UInt) * (pcPic->getPicSym()->getNumberOfCUsInFrame()*pcPic->getNumPartInCU()+1));
-
       UInt uiNextCUAddr = 0;
-      m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx++]                = 0;
 
-      while(uiNextCUAddr<uiRealEndAddress) // determine slice boundaries
       {
         pcSlice->setNextSlice       ( false );
-        assert(pcPic->getNumAllocatedSlice() == uiStartCUAddrSliceIdx);
         m_pcSliceEncoder->compressSlice   ( pcPic );
-
-        Bool bNoBinBitConstraintViolated = (!pcSlice->isNextSlice());
-          uiStartCUAddrSlice                                                            = pcSlice->getSliceCurEndCUAddr();
-
-        uiNextCUAddr = uiStartCUAddrSlice;
+        assert( uiRealEndAddress <= pcSlice->getSliceCurEndCUAddr() );
       }
-      m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx++]                = pcSlice->getSliceCurEndCUAddr();
 
       /////////////////////////////////////////////////////////////////////////////////////////////////// File writing
       // Set entropy coder
@@ -377,40 +359,25 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       /* use the main bitstream buffer for storing the marshalled picture */
       m_pcEntropyCoder->setBitstream(NULL);
 
-      uiStartCUAddrSliceIdx = 0;
-      uiStartCUAddrSlice    = 0; 
-
       uiNextCUAddr                 = 0;
-      pcSlice = pcPic->getSlice(0);
+      pcSlice = pcPic->getSlice();
 
       static Int iCurrAPSIdx = 0;
       Int iCodedAPSIdx = 0;
       TComSlice* pcSliceForAPS = NULL;
 
       bool skippedSlice=false;
-      while (uiNextCUAddr < uiRealEndAddress) // Iterate over all slices
+      // Iterate over all slices
       {
-        pcSlice->setNextSlice       ( false );
-        if (uiNextCUAddr == m_uiStoredStartCUAddrForEncodingSlice[0])
         {
-          pcSlice = pcPic->getSlice(0);
-          pcPic->setCurrSliceIdx(0);
-          m_pcSliceEncoder->setSliceIdx(0);
-          assert(0 == pcSlice->getSliceIdx());
-          // Reconstruction slice
-          pcSlice->setSliceCurStartCUAddr( uiNextCUAddr );  // to be used in encodeSlice() + context restriction
-          pcSlice->setSliceCurEndCUAddr  ( m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx+1 ] );
-
+          pcSlice = pcPic->getSlice();
           pcSlice->setNextSlice       ( true );
-
-          uiStartCUAddrSliceIdx++;
         } 
 
-      pcSlice->setRPS(pcPic->getSlice(0)->getRPS());
-      pcSlice->setRPSidx(pcPic->getSlice(0)->getRPSidx());
-        UInt uiDummyStartCUAddr;
+      pcSlice->setRPS(pcPic->getSlice()->getRPS());
+      pcSlice->setRPSidx(pcPic->getSlice()->getRPSidx());
         UInt uiDummyBoundingCUAddr;
-        m_pcSliceEncoder->xDetermineStartAndBoundingCUAddr(uiDummyStartCUAddr,uiDummyBoundingCUAddr,pcPic,true);
+        m_pcSliceEncoder->xDetermineStartAndBoundingCUAddr(uiDummyBoundingCUAddr,pcPic,true);
 
         uiInternalAddress = (pcSlice->getSliceCurEndCUAddr()-1) % pcPic->getNumPartInCU();
         uiExternalAddress = (pcSlice->getSliceCurEndCUAddr()-1) / pcPic->getNumPartInCU();
@@ -431,18 +398,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           uiExternalAddress++;
         }
         UInt uiEndAddress = uiExternalAddress*pcPic->getNumPartInCU()+uiInternalAddress;
-        if(uiEndAddress<=pcSlice->getSliceCurStartCUAddr()) {
-            // CHECK_ME
-            assert(0);
-          UInt uiBoundingAddrSlice;
-          uiBoundingAddrSlice        = m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx];          
-          uiNextCUAddr               = uiBoundingAddrSlice;
-          if(pcSlice->isNextSlice())
-          {
-            skippedSlice=true;
-          }
-          continue;
-        }
         if(skippedSlice) 
         {
           pcSlice->setNextSlice       ( true );
@@ -491,9 +446,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         writeRBSPTrailingBits(nalu.m_Bitstream);
         accessUnit.push_back(new NALUnitEBSP(nalu));
 
-        UInt uiBoundingAddrSlice;
-        uiBoundingAddrSlice        = m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx];          
-        uiNextCUAddr               = uiBoundingAddrSlice;
+        uiNextCUAddr               = pcSlice->getSliceCurEndCUAddr();
       } // end iteration over slices
 
       pcPic->compressMotion(); 
@@ -616,7 +569,6 @@ Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
   while (iterPic != rcListPic.end())
   {
     rpcPic = *(iterPic);
-    rpcPic->setCurrSliceIdx(0);
     if (rpcPic->getPOC() == (Int)uiPOCCurr)
     {
       break;
@@ -739,7 +691,7 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
 
   //===== add PSNR =====
   m_gcAnalyzeAll.addResult (dYPSNR, dUPSNR, dVPSNR, (Double)uibits);
-  TComSlice*  pcSlice = pcPic->getSlice(0);
+  TComSlice*  pcSlice = pcPic->getSlice();
   if (pcSlice->isIntra())
   {
     m_gcAnalyzeI.addResult (dYPSNR, dUPSNR, dVPSNR, (Double)uibits);

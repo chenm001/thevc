@@ -367,9 +367,7 @@ private:
   Bool        m_bNoBackPredFlag;
   Bool        m_bRefIdxCombineCoding;
 
-  UInt        m_uiSliceCurStartCUAddr;
   UInt        m_uiSliceCurEndCUAddr;
-  UInt        m_uiSliceIdx;
   Bool        m_bNextSlice;
   UInt        m_uiSliceBits;
   Bool        m_bFinalized;
@@ -492,12 +490,8 @@ public:
   Void setMaxNumMergeCand               (UInt maxNumMergeCand ) { m_uiMaxNumMergeCand = maxNumMergeCand;  }
   UInt getMaxNumMergeCand               ()                  {return m_uiMaxNumMergeCand;                  }
 
-  Void setSliceCurStartCUAddr           ( UInt uiAddr )     { m_uiSliceCurStartCUAddr = uiAddr;           }
-  UInt getSliceCurStartCUAddr           ()                  { return m_uiSliceCurStartCUAddr;             }
   Void setSliceCurEndCUAddr             ( UInt uiAddr )     { m_uiSliceCurEndCUAddr = uiAddr;             }
   UInt getSliceCurEndCUAddr             ()                  { return m_uiSliceCurEndCUAddr;               }
-  Void setSliceIdx                      ( UInt i)           { m_uiSliceIdx = i;                           }
-  UInt getSliceIdx                      ()                  { return  m_uiSliceIdx;                       }
   Void copySliceInfo                    (TComSlice *pcSliceSrc);
   Void setNextSlice                     ( Bool b )          { m_bNextSlice = b;                           }
   Bool isNextSlice                      ()                  { return m_bNextSlice;                        }

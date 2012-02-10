@@ -94,8 +94,6 @@ private:
 
   Bool isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay);
   TComPic*                m_pcPic;
-  UInt                    m_uiSliceIdx;
-  UInt                    m_uiLastSliceIdx;
   UInt                    m_uiPrevPOC;
   Bool                    m_bFirstSliceInPicture;
   Bool                    m_bFirstSliceInSequence;

@@ -67,7 +67,6 @@ private:
   TComPicYuv*           m_pcPicYuvResi;           //  Residual
   Bool                  m_bReconstructed;
   Bool                  m_bNeededForOutput;
-  UInt                  m_uiCurrSliceIdx;         // Index of current slice
 
   Bool                  m_usedForTMVP;
   
@@ -86,8 +85,8 @@ public:
   Void          setIsLongTerm( Bool lt ) { m_bIsLongTerm = lt; }
 
   TComPicSym*   getPicSym()           { return  m_apcPicSym;    }
-  TComSlice*    getSlice(Int i)       { return  m_apcPicSym->getSlice(i);  }
-  Int           getPOC()              { return  m_apcPicSym->getSlice(m_uiCurrSliceIdx)->getPOC();  }
+  TComSlice*    getSlice()            { return  m_apcPicSym->getSlice();  }
+  Int           getPOC()              { return  m_apcPicSym->getSlice()->getPOC();  }
   TComDataCU*&  getCU( UInt uiCUAddr )  { return  m_apcPicSym->getCU( uiCUAddr ); }
   
   TComPicYuv*   getPicYuvOrg()        { return  m_apcPicYuv[0]; }
@@ -123,8 +122,6 @@ public:
   Bool          getOutputMark ()       { return m_bNeededForOutput;  }
  
   Void          compressMotion(); 
-  UInt          getCurrSliceIdx()            { return m_uiCurrSliceIdx;                }
-  Void          setCurrSliceIdx(UInt i)      { m_uiCurrSliceIdx = i;                   }
   UInt          getNumAllocatedSlice()       {return m_apcPicSym->getNumAllocatedSlice();}
   Void          allocateNewSlice()           {m_apcPicSym->allocateNewSlice();         }
   Void          clearSliceBuffer()           {m_apcPicSym->clearSliceBuffer();         }

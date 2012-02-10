@@ -89,7 +89,6 @@ private:
   UInt64                  m_uiPicTotalBits;                     ///< total bits for the picture
   UInt64                  m_uiPicDist;                          ///< total distortion for the picture
   Double                  m_dPicRdCost;                         ///< picture-level RD cost
-  UInt                    m_uiSliceIdx;
 public:
   TEncSlice();
   virtual ~TEncSlice();
@@ -111,9 +110,7 @@ public:
   UInt64  getTotalBits        ()  { return m_uiPicTotalBits; }
   
   TEncCu*        getCUEncoder() { return m_pcCuEncoder; }                        ///< CU encoder
-  Void    xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& uiBoundingCUAddr, TComPic*& rpcPic, Bool bEncodeSlice );
-  UInt    getSliceIdx()         { return m_uiSliceIdx;                    }
-  Void    setSliceIdx(UInt i)   { m_uiSliceIdx = i;                       }
+  Void    xDetermineStartAndBoundingCUAddr( UInt& uiBoundingCUAddr, TComPic*& rpcPic, Bool bEncodeSlice );
 };
 
 //! \}

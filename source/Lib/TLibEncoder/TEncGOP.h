@@ -94,7 +94,6 @@ private:
   // clean decoding refresh
   Bool                    m_bRefreshPending;
   UInt                    m_uiPOCCDR;
-  UInt*                   m_uiStoredStartCUAddrForEncodingSlice;
 
   std::vector<Int> m_vRVM_RP;
 

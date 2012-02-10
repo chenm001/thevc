@@ -351,7 +351,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   //   slice_address
   Int numCUs = ((rpcSlice->getSPS()->getWidth()+rpcSlice->getSPS()->getMaxCUWidth()-1)/rpcSlice->getSPS()->getMaxCUWidth())*((rpcSlice->getSPS()->getHeight()+rpcSlice->getSPS()->getMaxCUHeight()-1)/rpcSlice->getSPS()->getMaxCUHeight());
   Int maxParts = (1<<(rpcSlice->getSPS()->getMaxCUDepth()<<1));
-  UInt lCUAddress = 0;
   Int reqBitsOuter = 0;
   while(numCUs>(1<<reqBitsOuter))
   {
@@ -369,8 +368,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   {
     rpcSlice->setNextSlice        ( true  );
     
-    uiCode=(maxParts*lCUAddress);
-    rpcSlice->setSliceCurStartCUAddr(uiCode);
     rpcSlice->setSliceCurEndCUAddr(numCUs*maxParts);
   }
   

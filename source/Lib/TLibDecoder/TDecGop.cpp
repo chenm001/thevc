@@ -99,25 +99,15 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
 
 Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf)
 {
-  TComSlice*  pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
+  TComSlice*  pcSlice = rpcPic->getSlice();
 
   static Bool  bFirst = true;
-  static UInt  uiILSliceCount;
-  static UInt* puiILSliceStartLCU;
 
   if (!bExecuteDeblockAndAlf)
   {
     if(bFirst)
     {
-      uiILSliceCount = 0;
-      puiILSliceStartLCU = new UInt[(rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU()) +1];
       bFirst = false;
-    }
-
-    UInt uiSliceStartCuAddr = pcSlice->getSliceCurStartCUAddr();
-    {
-      puiILSliceStartLCU[uiILSliceCount] = uiSliceStartCuAddr;
-      uiILSliceCount++;
     }
 
       m_pcSbacDecoder->init( (TDecBinIf*)m_pcBinCABAC );
@@ -172,8 +162,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     rpcPic->setReconMark(true);
 
     rpcPic->setUsedForTMVP( true );
-
-    uiILSliceCount = 0;
   }
 }
 

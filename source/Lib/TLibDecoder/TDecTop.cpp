@@ -71,7 +71,6 @@ Void TDecTop::create()
 {
   m_cGopDecoder.create();
   m_apcSlicePilot = new TComSlice;
-  m_uiSliceIdx = m_uiLastSliceIdx = 0;
 }
 
 Void TDecTop::destroy()
@@ -137,7 +136,7 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
       break;
     }
 
-    if ( rpcPic->getSlice( 0 )->isReferenced() == false  && rpcPic->getOutputMark() == false)
+    if ( rpcPic->getSlice()->isReferenced() == false  && rpcPic->getOutputMark() == false)
     {
       rpcPic->setOutputMark(false);
       rpcPic->setReconMark( false );
@@ -175,7 +174,7 @@ Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic
   m_cGopDecoder.decompressGop(NULL, pcPic, true);
 
   TComSlice::sortPicList( m_cListPic ); // sorting for application output
-  ruiPOC              = pcPic->getSlice(m_uiSliceIdx-1)->getPOC();
+  ruiPOC              = pcPic->getSlice()->getPOC();
   rpcListPic          = &m_cListPic;  
   m_cCuDecoder.destroy();        
   m_bFirstSliceInPicture  = true;
@@ -192,9 +191,9 @@ Void TDecTop::xCreateLostPicture(Int iLostPoc)
   cFillSlice.initSlice();
   TComPic *cFillPic;
   xGetNewPicBuffer(&cFillSlice,cFillPic);
-  cFillPic->getSlice(0)->setSPS( &m_cSPS );
-  cFillPic->getSlice(0)->setPPS( &m_cPPS );
-  cFillPic->getSlice(0)->initSlice();
+  cFillPic->getSlice()->setSPS( &m_cSPS );
+  cFillPic->getSlice()->setPPS( &m_cPPS );
+  cFillPic->getSlice()->initSlice();
   
   
   TComList<TComPic*>::iterator iterPic = m_cListPic.begin();
@@ -202,29 +201,28 @@ Void TDecTop::xCreateLostPicture(Int iLostPoc)
   while ( iterPic != m_cListPic.end())
   {
     TComPic * rpcPic = *(iterPic++);
-    if(abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc)<closestPoc&&abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc)!=0&&rpcPic->getPicSym()->getSlice(0)->getPOC()!=m_apcSlicePilot->getPOC())
+    if(abs(rpcPic->getPicSym()->getSlice()->getPOC() -iLostPoc)<closestPoc&&abs(rpcPic->getPicSym()->getSlice()->getPOC() -iLostPoc)!=0&&rpcPic->getPicSym()->getSlice()->getPOC()!=m_apcSlicePilot->getPOC())
     {
-      closestPoc=abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc);
+      closestPoc=abs(rpcPic->getPicSym()->getSlice()->getPOC() -iLostPoc);
     }
   }
   iterPic = m_cListPic.begin();
   while ( iterPic != m_cListPic.end())
   {
     TComPic *rpcPic = *(iterPic++);
-    if(abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc)==closestPoc&&rpcPic->getPicSym()->getSlice(0)->getPOC()!=m_apcSlicePilot->getPOC())
+    if(abs(rpcPic->getPicSym()->getSlice()->getPOC() -iLostPoc)==closestPoc&&rpcPic->getPicSym()->getSlice()->getPOC()!=m_apcSlicePilot->getPOC())
     {
-      printf("copying picture %d to %d (%d)\n",rpcPic->getPicSym()->getSlice(0)->getPOC() ,iLostPoc,m_apcSlicePilot->getPOC());
+      printf("copying picture %d to %d (%d)\n",rpcPic->getPicSym()->getSlice()->getPOC() ,iLostPoc,m_apcSlicePilot->getPOC());
       rpcPic->getPicYuvRec()->copyToPic(cFillPic->getPicYuvRec());
       break;
     }
   }
-  cFillPic->setCurrSliceIdx(0);
   for(Int i=0; i<cFillPic->getNumCUsInFrame(); i++) 
   {
     cFillPic->getCU(i)->initCU(cFillPic,i);
   }
-  cFillPic->getSlice(0)->setReferenced(true);
-  cFillPic->getSlice(0)->setPOC(iLostPoc);
+  cFillPic->getSlice()->setReferenced(true);
+  cFillPic->getSlice()->setPOC(iLostPoc);
   cFillPic->setReconMark(true);
   cFillPic->setOutputMark(true);
   if(m_uiPOCRA == MAX_UINT)
@@ -285,21 +283,14 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       assert( 3 == m_uiValidPS );
       m_apcSlicePilot->setSPS(&m_cSPS);
       m_apcSlicePilot->initSlice();
-      if (m_bFirstSliceInPicture)
-      {
-        m_uiSliceIdx     = 0;
-        m_uiLastSliceIdx = 0;
-      }
-      m_apcSlicePilot->setSliceIdx(m_uiSliceIdx);
 
       //  Read slice header
       m_apcSlicePilot->setSPS( &m_cSPS );
 
       m_apcSlicePilot->setPPS( &m_cPPS );
-      m_apcSlicePilot->setSliceIdx(m_uiSliceIdx);
       if (!m_bFirstSliceInPicture)
       {
-        memcpy(m_apcSlicePilot, pcPic->getPicSym()->getSlice(m_uiSliceIdx-1), sizeof(TComSlice));
+        memcpy(m_apcSlicePilot, pcPic->getPicSym()->getSlice(), sizeof(TComSlice));
       }
 
       m_apcSlicePilot->setNalUnitType(nalu.m_UnitType);
@@ -375,9 +366,9 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       {
         pcPic->allocateNewSlice();
       }
-      assert(pcPic->getNumAllocatedSlice() == (m_uiSliceIdx + 1));
-      m_apcSlicePilot = pcPic->getPicSym()->getSlice(m_uiSliceIdx); 
-      pcPic->getPicSym()->setSlice(pcSlice, m_uiSliceIdx);
+      assert(pcPic->getNumAllocatedSlice() == 1);
+      m_apcSlicePilot = pcPic->getPicSym()->getSlice();
+      pcPic->getPicSym()->setSlice(pcSlice);
 
       if (bNextSlice)
       {
@@ -454,13 +445,10 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         }
       }
       
-      pcPic->setCurrSliceIdx(m_uiSliceIdx);
-
       //  Decode a picture
       m_cGopDecoder.decompressGop(nalu.m_Bitstream, pcPic, false);
 
       m_bFirstSliceInPicture = false;
-      m_uiSliceIdx++;
     }
       break;
     default:

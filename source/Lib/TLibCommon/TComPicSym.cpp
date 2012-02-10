@@ -68,20 +68,14 @@ Void TComPicSym::create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt 
   
   if (m_uiNumAllocatedSlice>0)
   {
-    for ( i=0; i<m_uiNumAllocatedSlice ; i++ )
-    {
-      delete m_apcTComSlice[i];
-    }
-    delete [] m_apcTComSlice;
+      delete m_pcTComSlice;
   }
-  m_apcTComSlice      = new TComSlice*[m_uiNumCUsInFrame*m_uiNumPartitions];  
-  m_apcTComSlice[0]   = new TComSlice;
+  m_pcTComSlice = new TComSlice;
   m_uiNumAllocatedSlice = 1;
   for ( i=0; i<m_uiNumCUsInFrame ; i++ )
   {
     m_apcTComDataCU[i] = new TComDataCU;
-    m_apcTComDataCU[i]->create( m_uiNumPartitions, m_uiMaxCUWidth, m_uiMaxCUHeight, false, m_uiMaxCUWidth >> m_uhTotalDepth
-      );
+    m_apcTComDataCU[i]->create( m_uiNumPartitions, m_uiMaxCUWidth, m_uiMaxCUHeight, false, m_uiMaxCUWidth >> m_uhTotalDepth );
   }
 }
 
@@ -91,13 +85,9 @@ Void TComPicSym::destroy()
   
   if (m_uiNumAllocatedSlice>0)
   {
-    for ( i=0; i<m_uiNumAllocatedSlice ; i++ )
-    {
-      delete m_apcTComSlice[i];
-    }
-    delete [] m_apcTComSlice;
+    delete m_pcTComSlice;
   }
-  m_apcTComSlice = NULL;
+  m_pcTComSlice = NULL;
   
   for (i = 0; i < m_uiNumCUsInFrame; i++)
   {
@@ -111,16 +101,12 @@ Void TComPicSym::destroy()
 
 Void TComPicSym::allocateNewSlice()
 {
-  m_apcTComSlice[m_uiNumAllocatedSlice ++] = new TComSlice;
+  m_uiNumAllocatedSlice++;
+  m_pcTComSlice = new TComSlice;
 }
 
 Void TComPicSym::clearSliceBuffer()
 {
-  UInt i;
-  for (i = 1; i < m_uiNumAllocatedSlice; i++)
-  {
-    delete m_apcTComSlice[i];
-  }
   m_uiNumAllocatedSlice = 1;
 }
 

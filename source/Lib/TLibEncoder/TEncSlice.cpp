@@ -134,7 +134,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   Double dQP;
   Double dLambda;
   
-  rpcSlice = pcPic->getSlice(0);
+  rpcSlice = pcPic->getSlice();
   rpcSlice->setSPS( pSPS );
   rpcSlice->setPPS( pPPS );
   rpcSlice->setSliceBits(0);
@@ -275,11 +275,10 @@ Void TEncSlice::setSearchRange( TComSlice* pcSlice )
 Void TEncSlice::compressSlice( TComPic*& rpcPic )
 {
   UInt  uiCUAddr;
-  UInt   uiStartCUAddr;
   UInt   uiBoundingCUAddr;
   TEncBinCABAC* pppcRDSbacCoder = NULL;
-  TComSlice* pcSlice            = rpcPic->getSlice(getSliceIdx());
-  xDetermineStartAndBoundingCUAddr ( uiStartCUAddr, uiBoundingCUAddr, rpcPic, false );
+  TComSlice* pcSlice            = rpcPic->getSlice();
+  xDetermineStartAndBoundingCUAddr ( uiBoundingCUAddr, rpcPic, false );
   
   // initialize cost values
   m_uiPicTotalBits  = 0;
@@ -308,7 +307,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   m_pcBitCounter = pcEncTop->getBitCounter();
   
   // for every CU in slice
-  for(  uiCUAddr = uiStartCUAddr/rpcPic->getNumPartInCU(); uiCUAddr < (uiBoundingCUAddr+(rpcPic->getNumPartInCU()-1))/rpcPic->getNumPartInCU(); uiCUAddr++  )
+  for(  uiCUAddr = 0; uiCUAddr < (uiBoundingCUAddr+(rpcPic->getNumPartInCU()-1))/rpcPic->getNumPartInCU(); uiCUAddr++  )
   {
     // initialize CU encoder
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );
@@ -359,11 +358,9 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
 Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstream )
 {
   UInt       uiCUAddr;
-  UInt       uiStartCUAddr;
   UInt       uiBoundingCUAddr;
-  TComSlice* pcSlice = rpcPic->getSlice(getSliceIdx());
+  TComSlice* pcSlice = rpcPic->getSlice();
 
-  uiStartCUAddr=pcSlice->getSliceCurStartCUAddr();
   uiBoundingCUAddr=pcSlice->getSliceCurEndCUAddr();
   // choose entropy coder
     m_pcSbacCoder->init( (TEncBinIf*)m_pcBinCABAC );
@@ -386,7 +383,7 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
   g_bJustDoIt = g_bEncDecTraceDisable;
 #endif
 
-  for(  uiCUAddr = uiStartCUAddr/rpcPic->getNumPartInCU(); uiCUAddr<(uiBoundingCUAddr+rpcPic->getNumPartInCU()-1)/rpcPic->getNumPartInCU(); uiCUAddr++  )
+  for(  uiCUAddr = 0; uiCUAddr<(uiBoundingCUAddr+rpcPic->getNumPartInCU()-1)/rpcPic->getNumPartInCU(); uiCUAddr++  )
   {
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );    
 #if ENC_DEC_TRACE
@@ -402,45 +399,19 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
 
 /** Determines the starting and bounding LCU address of current slice / entropy slice
  * \param bEncodeSlice Identifies if the calling function is compressSlice() [false] or encodeSlice() [true]
- * \returns Updates uiStartCUAddr, uiBoundingCUAddr with appropriate LCU address
+ * \returns Updates uiBoundingCUAddr with appropriate LCU address
  */
-Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& uiBoundingCUAddr, TComPic*& rpcPic, Bool bEncodeSlice )
+Void TEncSlice::xDetermineStartAndBoundingCUAddr( UInt& uiBoundingCUAddr, TComPic*& rpcPic, Bool bEncodeSlice )
 {
-  TComSlice* pcSlice = rpcPic->getSlice(getSliceIdx());
-  UInt uiStartCUAddrSlice, uiBoundingCUAddrSlice;
-  uiStartCUAddrSlice        = pcSlice->getSliceCurStartCUAddr();
+  TComSlice* pcSlice = rpcPic->getSlice();
+  UInt uiBoundingCUAddrSlice;
   UInt uiNumberOfCUsInFrame = rpcPic->getNumCUsInFrame();
   uiBoundingCUAddrSlice     = uiNumberOfCUsInFrame;
       uiBoundingCUAddrSlice    = uiNumberOfCUsInFrame*rpcPic->getNumPartInCU();
     pcSlice->setSliceCurEndCUAddr( uiBoundingCUAddrSlice );
-
-  //calculate real slice start address
-  UInt uiInternalAddress = (pcSlice->getSliceCurStartCUAddr()) % rpcPic->getNumPartInCU();
-  UInt uiExternalAddress = (pcSlice->getSliceCurStartCUAddr()) / rpcPic->getNumPartInCU();
-  UInt uiPosX = ( uiExternalAddress % rpcPic->getFrameWidthInCU() ) * g_uiMaxCUWidth+ g_auiRasterToPelX[ g_auiZscanToRaster[uiInternalAddress] ];
-  UInt uiPosY = ( uiExternalAddress / rpcPic->getFrameWidthInCU() ) * g_uiMaxCUHeight+ g_auiRasterToPelY[ g_auiZscanToRaster[uiInternalAddress] ];
-  UInt uiWidth = pcSlice->getSPS()->getWidth();
-  UInt uiHeight = pcSlice->getSPS()->getHeight();
-  while((uiPosX>=uiWidth||uiPosY>=uiHeight)&&!(uiPosX>=uiWidth&&uiPosY>=uiHeight))
-  {
-    uiInternalAddress++;
-    if(uiInternalAddress>=rpcPic->getNumPartInCU())
-    {
-      uiInternalAddress=0;
-      uiExternalAddress++;
-    }
-    uiPosX = ( uiExternalAddress % rpcPic->getFrameWidthInCU() ) * g_uiMaxCUWidth+ g_auiRasterToPelX[ g_auiZscanToRaster[uiInternalAddress] ];
-    uiPosY = ( uiExternalAddress / rpcPic->getFrameWidthInCU() ) * g_uiMaxCUHeight+ g_auiRasterToPelY[ g_auiZscanToRaster[uiInternalAddress] ];
-  }
-  UInt uiRealStartAddress = uiExternalAddress*rpcPic->getNumPartInCU()+uiInternalAddress;
-  
-  pcSlice->setSliceCurStartCUAddr(uiRealStartAddress);
-  uiStartCUAddrSlice=uiRealStartAddress;
   
   // Make a joint decision based on reconstruction and entropy slice bounds
-  uiStartCUAddr    = uiStartCUAddrSlice;
   uiBoundingCUAddr = uiBoundingCUAddrSlice;
-
 
   if (!bEncodeSlice)
   {

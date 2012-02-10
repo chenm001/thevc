@@ -235,7 +235,7 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
       m_iPOCLastDisplay = pcPic->getPOC();
       
       // erase non-referenced picture in the reference picture list after display
-      if ( !pcPic->getSlice(0)->isReferenced() && pcPic->getReconMark() == true )
+      if ( !pcPic->getSlice()->isReferenced() && pcPic->getReconMark() == true )
       {
 #if !DYN_REF_FREE
         pcPic->setReconMark(false);
@@ -286,7 +286,7 @@ Void TAppDecTop::xFlushOutput( TComList<TComPic*>* pcListPic )
       m_iPOCLastDisplay = pcPic->getPOC();
       
       // erase non-referenced picture in the reference picture list after display
-      if ( !pcPic->getSlice(0)->isReferenced() && pcPic->getReconMark() == true )
+      if ( !pcPic->getSlice()->isReferenced() && pcPic->getReconMark() == true )
       {
 #if !DYN_REF_FREE
         pcPic->setReconMark(false);
