@@ -76,33 +76,7 @@ protected:
   Bool          m_bAlfCtrl;
   UInt          m_uiMaxAlfCtrlDepth;
   Int           m_iSliceGranularity;  //!< slice granularity
-  UInt          m_uiLPTableE4[3][32];
-  UInt          m_uiLPTableD4[3][32];
-  UInt          m_uiLastPosVlcIndex[10];
   
-  UInt          m_uiIntraModeTableD17[17];
-  UInt          m_uiIntraModeTableE17[17];
-
-  UInt          m_uiIntraModeTableD34[34];
-  UInt          m_uiIntraModeTableE34[34];
-  
-  UInt          m_uiCBP_YUV_TableE[4][8];
-  UInt          m_uiCBP_YUV_TableD[4][8];
-  UInt          m_uiCBP_YS_TableE[2][4];
-  UInt          m_uiCBP_YCS_TableE[2][8];
-  UInt          m_uiCBP_4Y_TableE[2][15];
-  UInt          m_uiCBP_4Y_TableD[2][15];
-  UInt          m_uiCBP_4Y_VlcIdx;
-
-  UInt          m_uiMI1TableE[9];
-  UInt          m_uiMI1TableD[9];
-  UInt          m_uiMI2TableE[15];
-  UInt          m_uiMI2TableD[15];
-  
-  UInt          m_uiMITableVlcIdx;
-  UInt          m_uiSplitTableE[4][11];
-  UInt          m_uiSplitTableD[4][11];
-
   UChar         m_ucCBP_YUV_TableCounter[4][4];
   UChar         m_ucCBP_4Y_TableCounter[2][2];
   UChar         m_ucCBP_YS_TableCounter[2][3];

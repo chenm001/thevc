@@ -212,66 +212,6 @@ extern UInt64 g_nSymbolCounter;
 
 #endif
 
-/** Function for codeword adaptation
- * \param uiCodeIdx codeword index of the syntax element being coded
- * \param pucTableCounter pointer to counter array
- * \param rucTableCounterSum sum counter
- * \param puiTableD pointer to table mapping codeword index to syntax element value
- * \param puiTableE pointer to table mapping syntax element value to codeword index
- * \param uiCounterNum number of counters
- * \returns
- * This function performs codeword adaptation.
-*/
-__inline Void adaptCodeword( UInt uiCodeIdx, UChar * pucTableCounter, UChar & rucTableCounterSum, UInt * puiTableD, UInt * puiTableE, UInt uiCounterNum )
-{
-  Bool bSwapping  = false;
-  UInt uiCodeword = puiTableD [uiCodeIdx];
-
-  UInt uiPrevCodeIdx   = (uiCodeIdx >= 1)? uiCodeIdx - 1 : 0;
-  UInt uiPrevCodeword  = puiTableD[uiPrevCodeIdx];
-
-  if ( uiCodeIdx < uiCounterNum ) 
-  {
-    pucTableCounter [uiCodeIdx] ++;
-
-    if (pucTableCounter[uiCodeIdx] >= pucTableCounter[uiPrevCodeIdx])
-    {
-      bSwapping = true;
-      UChar ucTempCounter             = pucTableCounter[uiCodeIdx];
-      pucTableCounter[uiCodeIdx]      = pucTableCounter[uiPrevCodeIdx];
-      pucTableCounter[uiPrevCodeIdx]  = ucTempCounter;
-    }
-
-    if ( rucTableCounterSum >= 15 )
-    {
-      rucTableCounterSum = 0;
-      for (UInt uiIdx = 0; uiIdx < uiCounterNum; uiIdx++)
-      {
-        pucTableCounter[uiIdx] >>= 1;
-      }
-    }
-    else
-    {
-      rucTableCounterSum ++;
-    }
-  }
-  else
-  {
-    bSwapping = true;
-  }
-
-  if ( bSwapping )
-  {
-    puiTableD[uiPrevCodeIdx] = uiCodeword;
-    puiTableD[uiCodeIdx    ] = uiPrevCodeword;
-
-    if  (puiTableE != NULL)
-    {
-      puiTableE[uiCodeword]     = uiPrevCodeIdx;
-      puiTableE[uiPrevCodeword] = uiCodeIdx;
-    }
-  }
-}
 
 #define SCALING_LIST_NUM 6                         ///< list number for quantization matrix
 #define SCALING_LIST_NUM_32x32 2                   ///< list number for quantization matrix 32x32

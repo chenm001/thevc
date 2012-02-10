@@ -143,10 +143,6 @@ Void TEncCavlc::resetEntropy()
   m_bRunLengthCoding = ! m_pcSlice->isIntra();
   m_uiRun = 0;
   
-  m_uiCBP_4Y_VlcIdx = 0;
-
-  m_uiMITableVlcIdx = 0;  
-
   ::memset(m_ucCBP_YUV_TableCounter,   0,        4*4*sizeof(UChar));
   ::memset(m_ucCBP_4Y_TableCounter,    0,        2*2*sizeof(UChar));
   ::memset(m_ucCBP_YCS_TableCounter,   0,        2*4*sizeof(UChar));
