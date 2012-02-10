@@ -48,8 +48,6 @@
 #define ALF_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for ALF
 #define SAO_CHROMA_LAMBDA           1   ///< F386: weighting of chroma for SAO
 
-#define UNI_BI_IDENTICAL_MOTION   1 ///< chaning bi-prediction to uni-prediction for identical motion G415/G438
-
 #define MIN_SCAN_POS_CROSS          4
 
 #define FAST_BIT_EST                1   ///< G763: Table-based bit estimation for CABAC

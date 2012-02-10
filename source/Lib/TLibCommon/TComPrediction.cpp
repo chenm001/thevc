@@ -375,7 +375,6 @@ Void TComPrediction::predIntraChromaAng( TComPattern* pcTComPattern, Int* piSrc,
   }
 }
 
-#if UNI_BI_IDENTICAL_MOTION
 /** Function for checking identical motion.
  * \param TComDataCU* pcCU
  * \param UInt PartAddr
@@ -396,7 +395,6 @@ Bool TComPrediction::xCheckIdenticalMotion ( TComDataCU* pcCU, UInt PartAddr )
   }
   return false;
 }
-#endif
 
 
 Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, RefPicList eRefPicList, Int iPartIdx )
@@ -425,7 +423,6 @@ Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, 
     }
     else
     {
-#if UNI_BI_IDENTICAL_MOTION
       if ( xCheckIdenticalMotion( pcCU, uiPartAddr ) )
       {
         xPredInterUni (pcCU, uiPartAddr, iWidth, iHeight, REF_PIC_LIST_0, pcYuvPred, iPartIdx );
@@ -434,9 +431,6 @@ Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, 
       {
         xPredInterBi  (pcCU, uiPartAddr, iWidth, iHeight, pcYuvPred, iPartIdx );
       }
-#else
-      xPredInterBi  (pcCU, uiPartAddr, iWidth, iHeight, pcYuvPred, iPartIdx );
-#endif
     }
     return;
   }
@@ -463,7 +457,6 @@ Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, 
     }
     else
     {
-#if UNI_BI_IDENTICAL_MOTION
       if ( xCheckIdenticalMotion( pcCU, uiPartAddr ) )
       {
         xPredInterUni (pcCU, uiPartAddr, iWidth, iHeight, REF_PIC_LIST_0, pcYuvPred, iPartIdx );
@@ -472,9 +465,6 @@ Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, 
       {
         xPredInterBi  (pcCU, uiPartAddr, iWidth, iHeight, pcYuvPred, iPartIdx );
       }
-#else
-      xPredInterBi  (pcCU, uiPartAddr, iWidth, iHeight, pcYuvPred, iPartIdx );
-#endif
     }
   }
   return;
