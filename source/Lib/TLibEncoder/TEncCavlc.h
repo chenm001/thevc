@@ -134,12 +134,8 @@ protected:
   Void  xWriteEpExGolomb      ( UInt uiSymbol, UInt uiCount );
   Void  xWriteExGolombLevel    ( UInt uiSymbol );
   Void  xWriteUnaryMaxSymbol  ( UInt uiSymbol, UInt uiMaxSymbol );
-  Void  xWriteVlc             ( UInt uiTableNumber, UInt uiCodeNumber );
 
   Void codeShortTermRefPicSet              ( TComPPS* pcPPS, TComReferencePictureSet* pcRPS );
-  Void  xCodeCoeff             ( TCoeff* scoeff, Int blockType, Int blSize
-                               , Int isIntra
-                               );
   
   UInt  xConvertToUInt        ( Int iValue ) {  return ( iValue <= 0) ? -iValue<<1 : (iValue<<1)-1; }
   
