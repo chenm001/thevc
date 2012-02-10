@@ -135,9 +135,8 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     if (!pcSlice->isReferenced()) c += 32;
     
     //-- For time output for each slice
-    printf("\nPOC %4d TId: %1d ( %c-SLICE, QP%3d ) ",
+    printf("\nPOC %4d ( %c-SLICE, QP%3d ) ",
           pcSlice->getPOC(),
-          pcSlice->getTLayer(),
           c,
           pcSlice->getSliceQp() );
 

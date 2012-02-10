@@ -208,7 +208,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       // Do decoding refresh marking if any 
       pcSlice->decodingRefreshMarking(m_uiPOCCDR, m_bRefreshPending, rcListPic);
 
-      if ( !pcSlice->getPPS()->getEnableTMVPFlag() && pcPic->getTLayer() == 0 )
+      if ( !pcSlice->getPPS()->getEnableTMVPFlag() )
       {
         pcSlice->decodingMarkingForNoTMVP( rcListPic, pcSlice->getPOC() );
       }
@@ -452,7 +452,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
           m_pcEntropyCoder->resetEntropy      ();
         /* start slice NALunit */
-        OutputNALUnit nalu(pcSlice->getNalUnitType(), pcSlice->isReferenced() ? NAL_REF_IDC_PRIORITY_HIGHEST: NAL_REF_IDC_PRIORITY_LOWEST, pcSlice->getTLayer(), true);
+        OutputNALUnit nalu(pcSlice->getNalUnitType(), pcSlice->isReferenced() ? NAL_REF_IDC_PRIORITY_HIGHEST: NAL_REF_IDC_PRIORITY_LOWEST, true);
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         pcSlice->setCABACinitIDC(pcSlice->getSliceType());
         m_pcEntropyCoder->encodeSliceHeader(pcSlice);
@@ -756,9 +756,8 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
   Char c = (pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B');
   if (!pcSlice->isReferenced()) c += 32;
 
-  printf("POC %4d TId: %1d ( %c-SLICE, QP %d ) %10d bits",
+  printf("POC %4d ( %c-SLICE, QP %d ) %10d bits",
          pcSlice->getPOC(),
-         pcSlice->getTLayer(),
          c,
          pcSlice->getSliceQp(),
          uibits );

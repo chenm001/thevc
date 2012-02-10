@@ -337,61 +337,10 @@ Void TEncTop::xInitSPS()
   {
     m_cSPS.setAMPAcc(i, 0);
   }
-
-  if ( m_bTLayering )
-  {
-    Int iMaxTLayers = 1;
-  
-    m_cSPS.setMaxTLayers( (UInt)iMaxTLayers );
-
-    Bool bTemporalIdNestingFlag = true;
-    for ( i = 0; i < m_cSPS.getMaxTLayers()-1; i++ )
-    {
-      if ( !m_abTLayerSwitchingFlag[i] )
-      {
-        bTemporalIdNestingFlag = false;
-        break;
-      }
-    }
-
-    m_cSPS.setTemporalIdNestingFlag( bTemporalIdNestingFlag );
-  }
-  else
-  {
-    m_cSPS.setMaxTLayers( 1 );
-    m_cSPS.setTemporalIdNestingFlag( false );
-  }
-
 }
 
 Void TEncTop::xInitPPS()
 {
-  if ( m_cSPS.getTemporalIdNestingFlag() ) 
-  {
-    m_cPPS.setNumTLayerSwitchingFlags( 0 );
-    for ( UInt i = 0; i < m_cSPS.getMaxTLayers() - 1; i++ )
-    {
-      m_cPPS.setTLayerSwitchingFlag( i, true );
-    }
-  }
-  else
-  {
-    m_cPPS.setNumTLayerSwitchingFlags( m_cSPS.getMaxTLayers() - 1 );
-    for ( UInt i = 0; i < m_cPPS.getNumTLayerSwitchingFlags(); i++ )
-    {
-      m_cPPS.setTLayerSwitchingFlag( i, m_abTLayerSwitchingFlag[i] );
-    }
-  }   
-  Int max_temporal_layers = m_cPPS.getSPS()->getMaxTLayers();
-  if(max_temporal_layers > 4)
-     m_cPPS.setBitsForTemporalId(3);
-  else if(max_temporal_layers > 2)
-     m_cPPS.setBitsForTemporalId(2);
-  else if(max_temporal_layers > 1)
-     m_cPPS.setBitsForTemporalId(1);
-  else
-     m_cPPS.setBitsForTemporalId(0);
-
   m_cPPS.setEnableTMVPFlag( m_bEnableTMVP );
 }
 

@@ -106,10 +106,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("InputFile,i",     cfg_InputFile,     string(""), "original YUV input file name")
   ("BitstreamFile,b", cfg_BitstreamFile, string(""), "bitstream output file name")
   ("ReconFile,o",     cfg_ReconFile,     string(""), "reconstructed YUV output file name")
-  ("LambdaModifier0,-LM0", m_adLambdaModifier[ 0 ], ( double )1.0, "Lambda modifier for temporal layer 0")
-  ("LambdaModifier1,-LM1", m_adLambdaModifier[ 1 ], ( double )1.0, "Lambda modifier for temporal layer 1")
-  ("LambdaModifier2,-LM2", m_adLambdaModifier[ 2 ], ( double )1.0, "Lambda modifier for temporal layer 2")
-  ("LambdaModifier3,-LM3", m_adLambdaModifier[ 3 ], ( double )1.0, "Lambda modifier for temporal layer 3")
   ("SourceWidth,-wdt",      m_iSourceWidth,  0, "Source picture width")
   ("SourceHeight,-hgt",     m_iSourceHeight, 0, "Source picture height")
   ("FrameRate,-fr",         m_iFrameRate,        0, "Frame rate")
@@ -149,17 +145,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("QP,q",          m_fQP,             30.0, "Qp value, if value is float, QP is switched once during encoding")
 
   ("dQPFile,m",     cfg_dQPFile, string(""), "dQP file name")
-  ("TemporalLayerQPOffset_L0,-tq0", m_aiTLayerQPOffset[0], MAX_QP + 1, "QP offset of temporal layer 0")
-  ("TemporalLayerQPOffset_L1,-tq1", m_aiTLayerQPOffset[1], MAX_QP + 1, "QP offset of temporal layer 1")
-  ("TemporalLayerQPOffset_L2,-tq2", m_aiTLayerQPOffset[2], MAX_QP + 1, "QP offset of temporal layer 2")
-  ("TemporalLayerQPOffset_L3,-tq3", m_aiTLayerQPOffset[3], MAX_QP + 1, "QP offset of temporal layer 3")
-  
-  ("TLayeringBasedOnCodingStruct,-tl", m_bTLayering, false, "Temporal ID is set based on the hierarchical coding structure")
-  
-  ("TLayerSwitchingFlag_L0,-ts0", m_abTLayerSwitchingFlag[0], false, "Switching flag for temporal layer 0")
-  ("TLayerSwitchingFlag_L1,-ts1", m_abTLayerSwitchingFlag[1], false, "Switching flag for temporal layer 1")
-  ("TLayerSwitchingFlag_L2,-ts2", m_abTLayerSwitchingFlag[2], false, "Switching flag for temporal layer 2")
-  ("TLayerSwitchingFlag_L3,-ts3", m_abTLayerSwitchingFlag[3], false, "Switching flag for temporal layer 3")
 
   /* Entropy coding parameters */
   ("SBACRD", m_bUseSBACRD, true, "SBAC based RD estimation")

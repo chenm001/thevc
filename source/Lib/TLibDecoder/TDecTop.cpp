@@ -304,7 +304,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 
       m_apcSlicePilot->setNalUnitType(nalu.m_UnitType);
       m_apcSlicePilot->setReferenced(nalu.m_RefIDC != NAL_REF_IDC_PRIORITY_LOWEST);
-      m_apcSlicePilot->setTLayerInfo(nalu.m_TemporalID);
       m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot);
 
       m_cEntropyDecoder.decodeWPPTileInfoToSliceHeader(m_apcSlicePilot);
@@ -380,13 +379,11 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       m_apcSlicePilot = pcPic->getPicSym()->getSlice(m_uiSliceIdx); 
       pcPic->getPicSym()->setSlice(pcSlice, m_uiSliceIdx);
 
-      pcPic->setTLayer(nalu.m_TemporalID);
-
       if (bNextSlice)
       {
         pcSlice->checkCRA(pcSlice->getRPS(), m_uiPOCCDR, m_cListPic); 
         
-        if ( !pcSlice->getPPS()->getEnableTMVPFlag() && pcPic->getTLayer() == 0 )
+        if ( !pcSlice->getPPS()->getEnableTMVPFlag() )
         {
           pcSlice->decodingMarkingForNoTMVP( m_cListPic, pcSlice->getPOC() );
         }

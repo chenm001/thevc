@@ -205,11 +205,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
     READ_UVLC( uiCode, "entropy_coding_synchro" );                 assert( uiCode == 0 );
     READ_FLAG( uiCode, "cabac_istate_reset" );                     assert( uiCode == 0 );
   }
-  READ_UVLC( uiCode, "num_temporal_layer_switching_point_flags" ); pcPPS->setNumTLayerSwitchingFlags( uiCode );
-  for ( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ )
-  {
-    READ_FLAG( uiCode, "temporal_layer_switching_point_flag" );    pcPPS->setTLayerSwitchingFlag( i, uiCode > 0 ? true : false );
-  }
+  READ_UVLC( uiCode, "num_temporal_layer_switching_point_flags" ); assert( uiCode == 0 );
   
   // num_ref_idx_l0_default_active_minus1
   // num_ref_idx_l1_default_active_minus1
@@ -257,7 +253,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_CODE( 8,  uiCode, "level_idc" );                          pcSPS->setLevelIdc( uiCode );
   READ_UVLC(     uiCode, "seq_parameter_set_id" );               pcSPS->setSPSId( uiCode );
   READ_UVLC(     uiCode, "chroma_format_idc" );                  pcSPS->setChromaFormatIdc( uiCode );
-  READ_CODE( 3,  uiCode, "max_temporal_layers_minus1" );         pcSPS->setMaxTLayers( uiCode+1 );
+  READ_CODE( 3,  uiCode, "max_temporal_layers_minus1" );         assert( uiCode == 0 );
   READ_UVLC (    uiCode, "pic_width_in_luma_samples" );          pcSPS->setWidth       ( uiCode    );
   READ_UVLC (    uiCode, "pic_height_in_luma_samples" );         pcSPS->setHeight      ( uiCode    );
 
@@ -306,7 +302,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    assert( uiCode == 0 );
   READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );      assert( uiCode == 0 );
 
-  READ_FLAG( uiCode, "temporal_id_nesting_flag" );               pcSPS->setTemporalIdNestingFlag ( uiCode > 0 ? true : false );
+  READ_FLAG( uiCode, "temporal_id_nesting_flag" );               assert( uiCode == 0 );
 
   // !!!KS: Syntax not in WD !!!
 

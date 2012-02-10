@@ -214,11 +214,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
     WRITE_UVLC( 0,                                           "entropy_coding_synchro" );
     WRITE_FLAG( 0,                                           "cabac_istate_reset" );
   }
-  WRITE_UVLC( pcPPS->getNumTLayerSwitchingFlags(),           "num_temporal_layer_switching_point_flags" );
-  for( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ ) 
-  {
-    WRITE_FLAG( pcPPS->getTLayerSwitchingFlag( i ) ? 1 : 0 , "temporal_layer_switching_point_flag" ); 
-  }
+  WRITE_UVLC( 0,                                             "num_temporal_layer_switching_point_flags" );
   //   num_ref_idx_l0_default_active_minus1
   //   num_ref_idx_l1_default_active_minus1
   WRITE_SVLC( pcPPS->getPicInitQPMinus26(),                  "pic_init_qp_minus26");
@@ -248,7 +244,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_CODE( pcSPS->getLevelIdc (),       8,       "level_idc" );
   WRITE_UVLC( pcSPS->getSPSId (),                   "seq_parameter_set_id" );
   WRITE_UVLC( pcSPS->getChromaFormatIdc (),         "chroma_format_idc" );
-  WRITE_CODE( pcSPS->getMaxTLayers() - 1,  3,       "max_temporal_layers_minus1" );
+  WRITE_CODE( 0,  3,                                "max_temporal_layers_minus1" );
   WRITE_UVLC( pcSPS->getWidth (),                   "pic_width_in_luma_samples" );
   WRITE_UVLC( pcSPS->getHeight(),                   "pic_height_in_luma_samples" );
 
@@ -290,10 +286,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_FLAG( 1,                                                                     "loop_filter_across_slice_flag");
   WRITE_FLAG( 0,                                                                     "sample_adaptive_offset_enabled_flag");
   WRITE_FLAG( 0,                                                                     "adaptive_loop_filter_enabled_flag");
-
-  assert( pcSPS->getMaxTLayers() > 0 );         
-
-  WRITE_FLAG( pcSPS->getTemporalIdNestingFlag() ? 1 : 0,                             "temporal_id_nesting_flag" );
+  WRITE_FLAG( 0,                                                                     "temporal_id_nesting_flag" );
 
   // !!!KS: Syntax not in WD !!!
   

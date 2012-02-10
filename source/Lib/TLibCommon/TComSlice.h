@@ -66,8 +66,6 @@ private:
   Int         m_LevelIdc;
   Int         m_chromaFormatIdc;
 
-  UInt        m_uiMaxTLayers;           // maximum number of temporal layers
-
   // Structure
   UInt        m_uiWidth;
   UInt        m_uiHeight;
@@ -99,8 +97,6 @@ private:
   UInt        m_uiMaxTrSize;
   
   Int m_iAMPAcc[MAX_CU_DEPTH];
-
-  Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
 
   UInt        m_uiMaxDecFrameBuffering; 
   UInt        m_uiMaxLatencyIncrease;
@@ -174,11 +170,6 @@ public:
   Int       getAMPAcc   ( UInt uiDepth ) { return m_iAMPAcc[uiDepth]; }
   Void      setAMPAcc   ( UInt uiDepth, Int iAccu ) { assert( uiDepth < g_uiMaxCUDepth);  m_iAMPAcc[uiDepth] = iAccu; }
 
-  UInt      getMaxTLayers()                           { return m_uiMaxTLayers; }
-  Void      setMaxTLayers( UInt uiMaxTLayers )        { assert( uiMaxTLayers <= MAX_TLAYER ); m_uiMaxTLayers = uiMaxTLayers; }
-
-  Bool      getTemporalIdNestingFlag()                { return m_bTemporalIdNestingFlag; }
-  Void      setTemporalIdNestingFlag( Bool bValue )   { m_bTemporalIdNestingFlag = bValue; }
   UInt getMaxDecFrameBuffering  ()            { return m_uiMaxDecFrameBuffering; }
   Void setMaxDecFrameBuffering  ( UInt ui )   { m_uiMaxDecFrameBuffering = ui;   }
   UInt getMaxLatencyIncrease    ()            { return m_uiMaxLatencyIncrease;   }
@@ -294,10 +285,6 @@ private:
   Bool        m_bLongTermRefsPresent;
   UInt        m_uiBitsForLongTermRefs;
 
-  UInt        m_uiBitsForTemporalId;
-  UInt        m_uiNumTlayerSwitchingFlags;            // num_temporal_layer_switching_point_flags
-  Bool        m_abTLayerSwitchingFlag[ MAX_TLAYER ];  // temporal_layer_switching_point_flag
-
   Bool     m_enableTMVPFlag;
 
 public:
@@ -311,14 +298,6 @@ public:
   
   Int       getPicInitQPMinus26 ()         { return  m_picInitQPMinus26; }
   Void      setPicInitQPMinus26 ( Int i )  { m_picInitQPMinus26 = i;     }
-
-  UInt      getNumTLayerSwitchingFlags()                                  { return m_uiNumTlayerSwitchingFlags; }
-  Void      setNumTLayerSwitchingFlags( UInt uiNumTlayerSwitchingFlags )  { assert( uiNumTlayerSwitchingFlags < MAX_TLAYER ); m_uiNumTlayerSwitchingFlags = uiNumTlayerSwitchingFlags; }
-
-  Bool      getTLayerSwitchingFlag( UInt uiTLayer )                       { assert( uiTLayer < MAX_TLAYER ); return m_abTLayerSwitchingFlag[ uiTLayer ]; }
-  Void      setTLayerSwitchingFlag( UInt uiTLayer, Bool bValue )          { m_abTLayerSwitchingFlag[ uiTLayer ] = bValue; }
-  UInt      getBitsForTemporalId()           { return m_uiBitsForTemporalId; }
-  Void      setBitsForTemporalId(UInt bits)  { m_uiBitsForTemporalId = bits; }
 
   Bool      getLongTermRefsPresent()         { return m_bLongTermRefsPresent; }
   Void      setLongTermRefsPresent(Bool b)   { m_bLongTermRefsPresent=b;      }
@@ -388,9 +367,6 @@ private:
   Bool        m_bNoBackPredFlag;
   Bool        m_bRefIdxCombineCoding;
 
-  UInt        m_uiTLayer;
-  Bool        m_bTLayerSwitchingFlag;
-
   UInt        m_uiSliceCurStartCUAddr;
   UInt        m_uiSliceCurEndCUAddr;
   UInt        m_uiSliceIdx;
@@ -458,7 +434,7 @@ public:
   Void      setReferenced(Bool b)                               { m_bRefenced = b; }
   Bool      isReferenced()                                      { return m_bRefenced; }
   
-  Void      setPOC              ( Int i )                       { m_iPOC              = i; if(getTLayer()==0) m_iPrevPOC=i; }
+  Void      setPOC              ( Int i )                       { m_iPOC              = i; m_iPrevPOC=i; }
   Void      setNalUnitType      ( NalUnitType e )               { m_eNalUnitType      = e;      }
   NalUnitType getNalUnitType    ()                              { return m_eNalUnitType;        }
   Void      checkCRA(TComReferencePictureSet *pReferencePictureSet, UInt& pocCRA, TComList<TComPic*>& rcListPic);
@@ -505,13 +481,6 @@ public:
   Void setRefIdxCombineCoding( Bool b ) { m_bRefIdxCombineCoding = b; }
   Void generateCombinedList       ();
 
-  UInt getTLayer             ()                            { return m_uiTLayer;                      }
-  Void setTLayer             ( UInt uiTLayer )             { m_uiTLayer = uiTLayer;                  }
-
-  Bool getTLayerSwitchingFlag()                            { return m_bTLayerSwitchingFlag;          }
-  Void setTLayerSwitchingFlag( Bool bValue )               { m_bTLayerSwitchingFlag = bValue;        }
-
-  Void setTLayerInfo( UInt uiTLayer );
   Void decodingMarking( TComList<TComPic*>& rcListPic, Int& iMaxRefPicNum ); 
   Void      applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pcRPSList);
   Int       checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool outputFlag);

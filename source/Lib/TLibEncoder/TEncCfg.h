@@ -62,7 +62,6 @@ protected:
   Int       m_iSourceWidth;
   Int       m_iSourceHeight;
   Int       m_iFrameToBeEncoded;
-  Double    m_adLambdaModifier[ MAX_TLAYER ];
 
   //====== Coding Structure ========
   UInt      m_uiIntraPeriod;
@@ -70,13 +69,9 @@ protected:
   
   Int       m_iQP;                              //  if (AdaptiveQP == OFF)
   
-  Int       m_aiTLayerQPOffset[MAX_TLAYER];
-
   Int       m_iMaxRefPicNum;                     ///< this is used to mimic the sliding mechanism used by the decoder
                                                  // TODO: We need to have a common sliding mechanism used by both the encoder and decoder
 
-  Bool      m_bTLayering;                        ///< indicates whether temporal IDs are set based on the hierarchical coding structure
-  Bool      m_abTLayerSwitchingFlag[MAX_TLAYER]; ///< temporal layer switching flags corresponding to temporal layer
   Bool      m_bDisInter4x4;
   Bool m_useAMP;
   //======= Transform =============
@@ -125,15 +120,8 @@ public:
   
   Void      setQP                           ( Int   i )      { m_iQP = i; }
   
-  Void      setTemporalLayerQPOffset        ( Int*  piTemporalLayerQPOffset )      { for ( Int i = 0; i < MAX_TLAYER; i++ ) m_aiTLayerQPOffset[i] = piTemporalLayerQPOffset[i]; }
-  
   Int       getMaxRefPicNum                 ()                              { return m_iMaxRefPicNum;           }
   Void      setMaxRefPicNum                 ( Int iMaxRefPicNum )           { m_iMaxRefPicNum = iMaxRefPicNum;  }
-
-  Bool      getTLayering                    ()                              { return m_bTLayering;              } 
-  Void      setTLayering                    ( Bool bTLayering )             { m_bTLayering = bTLayering;        }
-  Bool      getTLayerSwitchingFlag          ( UInt uiTLayer )               { assert (uiTLayer < MAX_TLAYER ); return  m_abTLayerSwitchingFlag[uiTLayer];                   }
-  Void      setTLayerSwitchingFlag          ( Bool* pbTLayerSwitchingFlag ) { for ( Int i = 0; i < MAX_TLAYER; i++ ) m_abTLayerSwitchingFlag[i] = pbTLayerSwitchingFlag[i]; }
 
   Bool      getDisInter4x4                  ()              { return m_bDisInter4x4;        }
   Void      setDisInter4x4                  ( Bool b )      { m_bDisInter4x4  = b;          }
@@ -157,15 +145,11 @@ public:
   Int       getSourceWidth                  ()      { return  m_iSourceWidth; }
   Int       getSourceHeight                 ()      { return  m_iSourceHeight; }
   Int       getFrameToBeEncoded             ()      { return  m_iFrameToBeEncoded; }
-  void setLambdaModifier                    ( UInt uiIndex, Double dValue ) { m_adLambdaModifier[ uiIndex ] = dValue; }
-  Double getLambdaModifier                  ( UInt uiIndex ) const { return m_adLambdaModifier[ uiIndex ]; }
 
   //==== Coding Structure ========
   UInt      getIntraPeriod                  ()      { return  m_uiIntraPeriod; }
   UInt      getDecodingRefreshType          ()      { return  m_uiDecodingRefreshType; }
   Int       getQP                           ()      { return  m_iQP; }
-  
-  Int       getTemporalLayerQPOffset        ( Int i )      { assert (i < MAX_TLAYER ); return  m_aiTLayerQPOffset[i]; }
   
   //======== Transform =============
   UInt      getQuadtreeTULog2MaxSize        ()      const { return m_uiQuadtreeTULog2MaxSize; }

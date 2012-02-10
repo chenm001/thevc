@@ -57,7 +57,6 @@ protected:
   char*     m_pchInputFile;                                   ///< source file name
   char*     m_pchBitstreamFile;                               ///< output bitstream file
   char*     m_pchReconFile;                                   ///< output reconstruction file
-  Double    m_adLambdaModifier[ MAX_TLAYER ];                 ///< Lambda modifier array for each temporal layer
   // source specification
   Int       m_iFrameRate;                                     ///< source frame-rates (Hz)
   unsigned int m_FrameSkip;                                   ///< number of skipped frames from the beginning
@@ -76,10 +75,6 @@ protected:
   // coding quality
   Double    m_fQP;                                            ///< QP value of key-picture (floating point)
   Int       m_iQP;                                            ///< QP value of key-picture (integer)
-  Int       m_aiTLayerQPOffset[MAX_TLAYER];                   ///< QP offset corresponding to temporal layer depth
-
-  Bool      m_bTLayering;                                     ///< indicates whether temporal IDs are set based on the hierarchical coding structure
-  Bool      m_abTLayerSwitchingFlag[MAX_TLAYER];              ///< temporal layer switching flags corresponding to each temporal layer
 
   // coding unit (CU) definition
   UInt      m_uiMaxCUWidth;                                   ///< max. CU width in pixel

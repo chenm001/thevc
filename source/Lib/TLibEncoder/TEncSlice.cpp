@@ -207,11 +207,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     iQP = max( MIN_QP, min( MAX_QP, (Int)floor( dQP + 0.5 ) ) );
   }
   
-  if( rpcSlice->getSliceType( ) != I_SLICE )
-  {
-    dLambda *= m_pcCfg->getLambdaModifier( iDepth );
-  }
-
   // store lambda
   m_pcRdCost ->setLambda( dLambda );
 #if WEIGHTED_CHROMA_DISTORTION
@@ -244,14 +239,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 
   rpcSlice->setDepth            ( iDepth );
   
-  pcPic->setTLayer( 0 );
-  if(eSliceType==I_SLICE)
-  {
-    pcPic->setTLayer(0);
-  }
-  rpcSlice->setTLayer( pcPic->getTLayer() );
-  rpcSlice->setTLayerSwitchingFlag( pPPS->getTLayerSwitchingFlag( pcPic->getTLayer() ) );
-
   assert( m_apcPicYuvPred );
   assert( m_apcPicYuvResi );
   

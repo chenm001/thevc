@@ -62,8 +62,6 @@ TComSlice::TComSlice()
 , m_dLambda                       ( 0.0 )
 , m_bNoBackPredFlag               ( false )
 , m_bRefIdxCombineCoding          ( false )
-, m_uiTLayer                      ( 0 )
-, m_bTLayerSwitchingFlag          ( false )
 , m_uiSliceCurStartCUAddr         ( 0 )
 , m_uiSliceCurEndCUAddr           ( 0 )
 , m_uiSliceIdx                    ( 0 )
@@ -571,9 +569,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_bNoBackPredFlag      = pSrc->m_bNoBackPredFlag;
   m_bRefIdxCombineCoding = pSrc->m_bRefIdxCombineCoding;
 
-  m_uiTLayer                      = pSrc->m_uiTLayer;
-  m_bTLayerSwitchingFlag          = pSrc->m_bTLayerSwitchingFlag;
-
   m_uiSliceCurStartCUAddr         = pSrc->m_uiSliceCurStartCUAddr;
   m_uiSliceCurEndCUAddr           = pSrc->m_uiSliceCurEndCUAddr;
   m_uiSliceIdx                    = pSrc->m_uiSliceIdx;
@@ -581,34 +576,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
 }
 
 int TComSlice::m_iPrevPOC = 0;
-/** Function for setting the slice's temporal layer ID and corresponding temporal_layer_switching_point_flag.
- * \param uiTLayer Temporal layer ID of the current slice
- * The decoder calls this function to set temporal_layer_switching_point_flag for each temporal layer based on 
- * the SPS's temporal_id_nesting_flag and the parsed PPS.  Then, current slice's temporal layer ID and 
- * temporal_layer_switching_point_flag is set accordingly.
- */
-Void TComSlice::setTLayerInfo( UInt uiTLayer )
-{
-  // If temporal_id_nesting_flag == 1, then num_temporal_layer_switching_point_flags shall be inferred to be 0 and temporal_layer_switching_point_flag shall be inferred to be 1 for all temporal layers
-  if ( m_pcSPS->getTemporalIdNestingFlag() ) 
-  {
-    m_pcPPS->setNumTLayerSwitchingFlags( 0 );
-    for ( UInt i = 0; i < MAX_TLAYER; i++ )
-    {
-      m_pcPPS->setTLayerSwitchingFlag( i, true );
-    }
-  }
-  else 
-  {
-    for ( UInt i = m_pcPPS->getNumTLayerSwitchingFlags(); i < MAX_TLAYER; i++ )
-    {
-      m_pcPPS->setTLayerSwitchingFlag( i, false );
-    }
-  }
-
-  m_uiTLayer = uiTLayer;
-  m_bTLayerSwitchingFlag = m_pcPPS->getTLayerSwitchingFlag( uiTLayer );
-}
 
 /** Function for applying picture marking based on the Reference Picture Set in pReferencePictureSet.
 */
@@ -832,7 +799,6 @@ TComSPS::TComSPS()
 , m_ProfileIdc                (  0)
 , m_LevelIdc                  (  0)
 , m_chromaFormatIdc           (CHROMA_420)
-, m_uiMaxTLayers              (  1)
 // Structure
 , m_uiWidth                   (352)
 , m_uiHeight                  (288)
@@ -852,7 +818,6 @@ TComSPS::TComSPS()
 , m_bLCMod                    (false)
 , m_uiBitsForPOC              (  8)
 , m_uiMaxTrSize               ( 32)
-, m_bTemporalIdNestingFlag    (false)
 , m_uiMaxDecFrameBuffering    (  0)
 , m_uiMaxLatencyIncrease      (  0)
 {
@@ -871,12 +836,7 @@ TComPPS::TComPPS()
 , m_pcSPS                       (NULL)
 , m_bLongTermRefsPresent        (false)
 , m_uiBitsForLongTermRefs       (0)
-, m_uiNumTlayerSwitchingFlags   (0)
 {
-  for ( UInt i = 0; i < MAX_TLAYER; i++ )
-  {
-    m_abTLayerSwitchingFlag[i] = false;
-  }
 }
 
 TComPPS::~TComPPS()

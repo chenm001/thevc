@@ -126,20 +126,6 @@ Void TAppDecTop::decode()
     else
     {
       read(nalu, nalUnit);
-      if(m_iMaxTemporalLayer >= 0 && nalu.m_TemporalID > m_iMaxTemporalLayer)
-      {
-        if(bPreviousPictureDecoded)
-        {
-          bNewPicture = true;
-          bPreviousPictureDecoded = false;
-        }
-        else
-        {
-          bNewPicture = false;
-        }
-      }
-      else
-      {
         bNewPicture = m_cTDecTop.decode(nalu, m_iSkipFrame, m_iPOCLastDisplay);
         if (bNewPicture)
         {
@@ -152,7 +138,6 @@ Void TAppDecTop::decode()
           bytestream.reset();
         }
         bPreviousPictureDecoded = true; 
-      }
     }
     if (bNewPicture || !bitstreamFile)
     {

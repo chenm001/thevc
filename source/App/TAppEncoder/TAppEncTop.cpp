@@ -76,17 +76,8 @@ Void TAppEncTop::xInitLibCfg()
   //====== Coding Structure ========
   m_cTEncTop.setIntraPeriod                  ( m_iIntraPeriod );
   m_cTEncTop.setDecodingRefreshType          ( m_iDecodingRefreshType );
-  for( UInt uiLoop = 0; uiLoop < MAX_TLAYER; ++uiLoop )
-  {
-    m_cTEncTop.setLambdaModifier( uiLoop, m_adLambdaModifier[ uiLoop ] );
-  }
   m_cTEncTop.setQP                           ( m_iQP );
   
-  m_cTEncTop.setTemporalLayerQPOffset        ( m_aiTLayerQPOffset );
-    
-  m_cTEncTop.setTLayering                    ( m_bTLayering );
-  m_cTEncTop.setTLayerSwitchingFlag          ( m_abTLayerSwitchingFlag );
-
   m_cTEncTop.setDisInter4x4                  ( m_bDisInter4x4);
   
   m_cTEncTop.setUseNSQT( m_enableNSQT );
