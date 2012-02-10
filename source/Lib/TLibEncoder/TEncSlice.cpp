@@ -538,7 +538,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   }
   else
   {
-    m_pcCavlcCoder  ->setAdaptFlag    ( false );
     m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
     m_pcEntropyCoder->resetEntropy      ();
     m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
@@ -814,7 +813,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     else
     {
       m_pcCuEncoder->compressCU( pcCU );
-      m_pcCavlcCoder ->setAdaptFlag(true);
       m_pcCuEncoder->encodeCU( pcCU );
       if (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE && ( ( pcSlice->getSliceBits()+ m_pcEntropyCoder->getNumberOfWrittenBits() ) ) > m_pcCfg->getSliceArgument()<<3)
       {
@@ -826,7 +824,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         pcSlice->setNextEntropySlice( true );
         break;
       }
-      m_pcCavlcCoder ->setAdaptFlag(false);
     }
     
     m_uiPicTotalBits += pcCU->getTotalBits();

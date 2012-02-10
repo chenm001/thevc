@@ -125,7 +125,6 @@ TEncCavlc::TEncCavlc()
   m_bAlfCtrl = false;
   m_uiMaxAlfCtrlDepth = 0;
   
-  m_bAdaptFlag        = true;    // adaptive VLC table
   m_iSliceGranularity = 0;
 }
 

@@ -59,10 +59,6 @@ class TEncTop;
 /// CAVLC encoder class
 class TEncCavlc : public TEncEntropyIf
 {
-private:
-  Bool m_bAdaptFlag;
-  
-  
 public:
   TEncCavlc();
   virtual ~TEncCavlc();
@@ -188,8 +184,6 @@ public:
   
   Void estBit               (estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType);
   
-  Bool getAdaptFlag      ()          { return m_bAdaptFlag; }
-  Void setAdaptFlag      ( Bool b )  { m_bAdaptFlag = b;     }
   Void xCodePredWeightTable          ( TComSlice* pcSlice );
   Void updateContextTables           ( SliceType eSliceType, Int iQp, Bool bExecuteFinish=true ) { return;   }
   Void updateContextTables           ( SliceType eSliceType, Int iQp  )                          { return;   }
