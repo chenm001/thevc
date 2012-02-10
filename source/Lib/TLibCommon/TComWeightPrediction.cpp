@@ -380,10 +380,7 @@ Void TComWeightPrediction::xWeightedPredictionBi( TComDataCU* pcCU, TComYuv* pcY
   wpScalingParam  *pwp0, *pwp1;
   TComPPS         *pps = pcCU->getSlice()->getPPS();
 
-  if ( !pps->getWPBiPredIdc() ) {
-    printf("TComWeightPrediction::xWeightedPredictionBi():\tassert failed: getWPBiPredIdc is false.\n");
-    exit(0);
-  }
+  assert( pps->getWPBiPredIdc() != 0 );
 
   Int ibdi = (g_uiBitDepth+g_uiBitIncrement);
   getWpScaling(pcCU, iRefIdx0, iRefIdx1, pwp0, pwp1, ibdi);
