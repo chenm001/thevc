@@ -96,10 +96,8 @@ private:
   Int*                    m_piRdPicQp;                          ///< array of picture QP candidates (int-type)
   TEncBinCABAC*           m_pcBufferBinCoderCABACs;       ///< line of bin coder CABAC
   TEncSbac*               m_pcBufferSbacCoders;                 ///< line to store temporary contexts
-#if TILES_LOW_LATENCY_CABAC_INI
   TEncBinCABAC*           m_pcBufferLowLatBinCoderCABACs;       ///< dependent tiles: line of bin coder CABAC
   TEncSbac*               m_pcBufferLowLatSbacCoders;           ///< dependent tiles: line to store temporary contexts
-#endif
   
   UInt                    m_uiSliceIdx;
 public:

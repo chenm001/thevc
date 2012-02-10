@@ -885,9 +885,6 @@ Void TDecCavlc::parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice)
   rpcSlice->setTileMarkerFlag ( 0 ); // default
   if (!bEntropySlice)
   {
-#if !TILES_LOW_LATENCY_CABAC_INI
-    if (rpcSlice->getSPS()->getTileBoundaryIndependenceIdr())
-#endif
     {   
       xReadCode(1, uiCode); // read flag indicating if tile markers transmitted
       rpcSlice->setTileMarkerFlag( uiCode );
@@ -930,9 +927,6 @@ Void TDecCavlc::parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice)
   if (!bEntropySlice)
   {
     // Reading location information
-#if !TILES_LOW_LATENCY_CABAC_INI
-    if (rpcSlice->getSPS()->getTileBoundaryIndependenceIdr())
-#endif
     {   
       xReadCode(1, uiCode); // read flag indicating if location information signaled in slice header
       Bool bTileLocationInformationInSliceHeaderFlag = (uiCode)? true : false;

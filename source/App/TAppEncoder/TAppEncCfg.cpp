@@ -272,13 +272,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("ColumnWidthArray",            cfg_ColumnWidth,                 string(""), "Array containing ColumnWidth values in units of LCU")
     ("NumTileRowsMinus1",           m_iNumRowsMinus1,                0,          "Number of rows in a picture minus 1")
     ("RowHeightArray",              cfg_RowHeight,                   string(""), "Array containing RowHeight values in units of LCU")
-#if TILES_LOW_LATENCY_CABAC_INI
     ("TileLocationInSliceHeaderFlag", m_iTileLocationInSliceHeaderFlag, 0,       "0: Disable transmission of tile location in slice header. 1: Transmit tile locations in slice header.")
     ("TileMarkerFlag",                m_iTileMarkerFlag,                0,       "0: Disable transmission of lightweight tile marker. 1: Transmit light weight tile marker.")
-#else
-    ("TileLocationInSliceHeaderFlag", m_iTileLocationInSliceHeaderFlag, 0,       "If TileBoundaryIndependenceIdc==1, 0: Disable transmission of tile location in slice header. 1: Transmit tile locations in slice header.")
-    ("TileMarkerFlag",              m_iTileMarkerFlag,              0,       "If TileBoundaryIndependenceIdc==1, 0: Disable transmission of lightweight tile marker. 1: Transmit light weight tile marker.")
-#endif
     ("MaxTileMarkerEntryPoints",    m_iMaxTileMarkerEntryPoints,    4,       "Maximum number of uniformly-spaced tile entry points (using light weigh tile markers). Default=4. If number of tiles < MaxTileMarkerEntryPoints then all tiles have entry points.")
     ("TileControlPresentFlag",       m_iTileBehaviorControlPresentFlag,         1,          "0: tiles behavior control parameters are NOT present in the PPS. 1: tiles behavior control parameters are present in the PPS")
     ("LFCrossTileBoundaryFlag",      m_bLFCrossTileBoundaryFlag,             true,          "1: cross-tile-boundary loop filtering. 0:non-cross-tile-boundary loop filtering")
@@ -838,7 +833,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("WPP:%d ", (Int)m_bUseWeightPred);
   printf("WPB:%d ", m_uiBiPredIdc);
   printf("TileBoundaryIndependence:%d ", m_iTileBoundaryIndependenceIdr ); 
-#if TILES_LOW_LATENCY_CABAC_INI
   printf("TileLocationInSliceHdr:%d ", m_iTileLocationInSliceHeaderFlag);
   printf("TileMarker:%d", m_iTileMarkerFlag);
   if (m_iTileMarkerFlag)
@@ -849,41 +843,6 @@ Void TAppEncCfg::xPrintParameter()
   {
     printf(" ");
   }
-#else
-  if (m_iTileBoundaryIndependenceIdr)
-  {
-    printf("TileLocationInSliceHdr:%d ", m_iTileLocationInSliceHeaderFlag);
-  }
-  else
-  {
-    if (m_iTileLocationInSliceHeaderFlag)
-    {
-      printf("\nWarning! TileLocationInSliceHeaderFlag set to 1 when TileBoundaryIndependence set to 0. The TileLocationInSliceHeaderFlag will be over-ridden and set to 0.");
-      m_iTileLocationInSliceHeaderFlag = 0;
-    }
-  }
-
-  if (m_iTileBoundaryIndependenceIdr)
-  {
-    printf("TileMarker:%d", m_iTileMarkerFlag);
-    if (m_iTileMarkerFlag)
-    {
-      printf("[%d] ", m_iMaxTileMarkerEntryPoints);
-    }
-    else
-    {
-      printf(" ");
-    }
-  }
-  else
-  {
-    if (m_iTileMarkerFlag)
-    {
-      printf("\nWarning! TileMarker set to 1 when TileBoundaryIndependence set to 0. TileMarker will be over-ridden and set to 0.");
-      m_iTileMarkerFlag = 0;
-    }
-  }
-#endif
   printf(" WaveFrontSynchro:%d WaveFrontFlush:%d WaveFrontSubstreams:%d",
           m_iWaveFrontSynchro, m_iWaveFrontFlush, m_iWaveFrontSubstreams);
   printf(" ScalingList:%d ", m_useScalingListId );

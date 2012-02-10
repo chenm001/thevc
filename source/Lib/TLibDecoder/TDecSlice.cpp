@@ -48,10 +48,8 @@ TDecSlice::TDecSlice()
 {
   m_pcBufferSbacDecoders = NULL;
   m_pcBufferBinCABACs    = NULL;
-#if TILES_LOW_LATENCY_CABAC_INI
   m_pcBufferLowLatSbacDecoders = NULL;
   m_pcBufferLowLatBinCABACs    = NULL;
-#endif
 }
 
 TDecSlice::~TDecSlice()
@@ -74,7 +72,6 @@ Void TDecSlice::destroy()
     delete[] m_pcBufferBinCABACs;
     m_pcBufferBinCABACs = NULL;
   }
-#if TILES_LOW_LATENCY_CABAC_INI
   if ( m_pcBufferLowLatSbacDecoders )
   {
     delete[] m_pcBufferLowLatSbacDecoders;
@@ -85,7 +82,6 @@ Void TDecSlice::destroy()
     delete[] m_pcBufferLowLatBinCABACs;
     m_pcBufferLowLatBinCABACs = NULL;
   }
-#endif
 }
 
 Void TDecSlice::init(TDecEntropy* pcEntropyDecoder, TDecCu* pcCuDecoder)
@@ -136,7 +132,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
       m_pcBufferSbacDecoders[ui].load(pcSbacDecoder);
     }
   }  
-#if TILES_LOW_LATENCY_CABAC_INI
   if( iSymbolMode )
   {
     m_pcBufferLowLatSbacDecoders = new TDecSbac    [uiTilesAcross];  
@@ -147,7 +142,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
     for (UInt ui = 0; ui < uiTilesAcross; ui++)
       m_pcBufferLowLatSbacDecoders[ui].load(pcSbacDecoder);
   }
-#endif
 
   UInt uiWidthInLCUs  = rpcPic->getPicSym()->getFrameWidthInCU();
   //UInt uiHeightInLCUs = rpcPic->getPicSym()->getFrameHeightInCU();
@@ -233,11 +227,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
     }
 
     if ( (iCUAddr == rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getFirstCUAddr()) && // 1st in tile.
-#if !TILES_LOW_LATENCY_CABAC_INI
-         (iCUAddr!=0) && (iCUAddr!=rpcPic->getPicSym()->getPicSCUAddr(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr())/rpcPic->getNumPartInCU()) && rpcPic->getPicSym()->getTileBoundaryIndependenceIdr()) // !1st in frame && !1st in slice && tile-independant
-#else
          (iCUAddr!=0) && (iCUAddr!=rpcPic->getPicSym()->getPicSCUAddr(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr())/rpcPic->getNumPartInCU())) // !1st in frame && !1st in slice
-#endif
     {
       if (pcSlice->getPPS()->getEntropyCodingSynchro())
       {
@@ -273,7 +263,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
       }
     }
 
-#if TILES_LOW_LATENCY_CABAC_INI
     if ( (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr()==0) && (rpcPic->getPicSym()->getNumColumnsMinus1()!=0) )
     {    
       // Synchronize cabac probabilities with LCU among Tiles
@@ -305,7 +294,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
         }
       }
     }
-#endif
 
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceEnable;
@@ -339,7 +327,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
       }
 
     }
-#if TILES_LOW_LATENCY_CABAC_INI
     if ( (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr()==0) && (rpcPic->getPicSym()->getNumColumnsMinus1()!=0) )
     {
       pcSbacDecoders[uiSubStrm].load(pcSbacDecoder);
@@ -350,7 +337,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
         m_pcBufferLowLatSbacDecoders[uiTileCol].loadContexts( &pcSbacDecoders[uiSubStrm] );
       }
     }
-#endif
   }
 
 }

@@ -139,7 +139,6 @@
 #define LOG2_MAX_ROW_HEIGHT                13
 
 #define MAX_MARKER_PER_NALU                 1000
-#define TILES_LOW_LATENCY_CABAC_INI         1 // JCTVC-G197 = low latency CABAC initialization for dependent tiles
 
 #define MATRIX_MULT                             0   // Brute force matrix multiplication instead of partial butterfly
 
