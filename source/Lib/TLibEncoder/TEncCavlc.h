@@ -89,9 +89,7 @@ protected:
   UInt          m_uiCBP_YUV_TableE[4][8];
   UInt          m_uiCBP_YUV_TableD[4][8];
   UInt          m_uiCBP_YS_TableE[2][4];
-  UInt          m_uiCBP_YS_TableD[2][4];
   UInt          m_uiCBP_YCS_TableE[2][8];
-  UInt          m_uiCBP_YCS_TableD[2][8];
   UInt          m_uiCBP_4Y_TableE[2][15];
   UInt          m_uiCBP_4Y_TableD[2][15];
   UInt          m_uiCBP_4Y_VlcIdx;

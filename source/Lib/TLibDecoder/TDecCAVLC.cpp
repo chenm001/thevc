@@ -978,18 +978,8 @@ Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
   m_bRunLengthCoding = ! pcSlice->isIntra();
   m_uiRun = 0;
   
-
-  ::memcpy(m_uiCBP_YUV_TableD, g_auiCBP_YUV_TableD, 4*8*sizeof(UInt));
-  ::memcpy(m_uiCBP_YS_TableD,  g_auiCBP_YS_TableD,  2*4*sizeof(UInt));
-  ::memcpy(m_uiCBP_YCS_TableD, g_auiCBP_YCS_TableD, 2*8*sizeof(UInt));
-  ::memcpy(m_uiCBP_4Y_TableD,  g_auiCBP_4Y_TableD,  2*15*sizeof(UInt));
   m_uiCBP_4Y_VlcIdx = 0;
 
-  ::memcpy(m_uiMI1TableD, g_auiComMI1TableD, 9*sizeof(UInt));
-  
-  ::memcpy(m_uiIntraModeTableD17, g_auiIntraModeTableD17, 17*sizeof(UInt));
-  ::memcpy(m_uiIntraModeTableD34, g_auiIntraModeTableD34, 34*sizeof(UInt));
-  ::memcpy(m_uiSplitTableD, g_auiInterModeTableD, 4*11*sizeof(UInt));
   m_uiMITableVlcIdx = 0;
 
   ::memset(m_ucCBP_YUV_TableCounter, 0, 4*4*sizeof(UChar));

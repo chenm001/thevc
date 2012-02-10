@@ -95,8 +95,6 @@ private:
   UInt                      m_uiIntraModeTableD34[34];
   UInt                      m_uiSplitTableD[4][11];
   UInt                      m_uiCBP_YUV_TableD[4][8];
-  UInt                      m_uiCBP_YS_TableD[2][4];
-  UInt                      m_uiCBP_YCS_TableD[2][8];
   UInt                      m_uiCBP_4Y_TableD[2][15];
   UInt                      m_uiCBP_4Y_VlcIdx;
 

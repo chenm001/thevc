@@ -136,52 +136,6 @@ extern const UInt   g_auiGoRicePrefixLen[4];              //!< prefix length for
 extern const UInt   g_aauiGoRiceUpdate[4][16];            //!< parameter update rules for Rice codes
 
 // ====================================================================================================================
-// CAVLC table
-// ====================================================================================================================
-
-extern const UInt    g_auiIntraModeTableD17[17];
-extern const UInt    g_auiIntraModeTableE17[17];
-extern const UInt    g_auiIntraModeTableD34[34];
-extern const UInt    g_auiIntraModeTableE34[34];
-
-extern const UInt    g_auiVlcTable8x8Inter[29];
-extern const UInt    g_auiVlcTable8x8Intra[29];
-
-extern const UInt    g_acstructLumaRun8x8[28][29];
-
-extern const UInt   g_auiVlcTable16x16Intra[29];
-extern const UInt   g_auiVlcTable16x16Inter[29];
-
-extern const UInt huff17_2[18];
-extern const UInt lengthHuff17_2[18];
-extern const UInt huff34_2[35];
-extern const UInt lengthHuff34_2[35];
-
-extern const UInt   *g_pLumaRunTr14x4[5]; 
-extern const UInt   *g_pLumaRunTr116x16[2];
-extern const UInt   *g_pLumaRunTr18x8[2]; 
-
-extern const UInt    g_auiCBP_YUV_TableE[4][8];
-extern const UInt    g_auiCBP_YUV_TableD[4][8];
-extern const UInt    g_auiCBP_YS_TableE[2][4];
-extern const UInt    g_auiCBP_YS_TableD[2][4];
-extern const UInt    g_auiCBP_YCS_TableE[2][8];
-extern const UInt    g_auiCBP_YCS_TableD[2][8];
-extern const UInt    g_auiCBP_YCS_Table[2][8];
-extern const UInt    g_auiCBP_YCS_TableLen[2][8];
-extern const UInt    g_auiCBP_YC_TableE[2][4];
-extern const UInt    g_auiCBP_YC_TableD[2][4];
-extern const UInt    g_auiCBP_4Y_TableE[2][15];
-extern const UInt    g_auiCBP_4Y_TableD[2][15];
-extern const UInt    g_auiCBP_4Y_VlcNum[15];
-extern const UInt    g_auiCbpVlcNum[2][8];
-
-extern const UInt g_auiComMI1TableE[9];
-extern const UInt g_auiComMI1TableD[9];
-
-extern const UInt g_auiInterModeTableE[4][11];
-extern const UInt g_auiInterModeTableD[4][11];
-// ====================================================================================================================
 // ADI table
 // ====================================================================================================================
 
