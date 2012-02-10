@@ -301,14 +301,9 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
       }
       else
       {
-#if CBF_CODING_SKIP_COND_FIX
         const UInt uiLog2CUSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth()] + 2 - pcCU->getDepth( uiAbsPartIdx );
         if ( pcCU->getPredictionMode( uiAbsPartIdx ) != MODE_INTRA && uiInnerQuadIdx == 3 && uiYCbfFront3 == 0 && uiUCbfFront3 == 0 && uiVCbfFront3 == 0
             && ( uiLog2CUSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() + 1 || uiLog2TrafoSize < pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() ) )
-#else
-        if ( pcCU->getPredictionMode( uiAbsPartIdx ) != MODE_INTRA && uiInnerQuadIdx == 3 && uiYCbfFront3 == 0 && uiUCbfFront3 == 0 && uiVCbfFront3 == 0
-            && uiLog2TrafoSize < pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() && pcCU->getCbf( uiAbsPartIdx, TEXT_LUMA, uiLumaTrMode ) )
-#endif
         {      
           uiYCbfFront3++;
         }    
@@ -705,45 +700,18 @@ Void TEncEntropy::encodeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsP
   m_pcEntropyCoderIf->codeCoeffNxN( pcCU, pcCoeff, uiAbsPartIdx, uiTrWidth, uiTrHeight, uiDepth, eType );
 }
 
-#if NSQT_DIAG_SCAN
 Void TEncEntropy::estimateBit (estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType)
-#else
-Void TEncEntropy::estimateBit (estBitsSbacStruct* pcEstBitsSbac, UInt uiWidth, TextType eTType)
-#endif
-{
-#if !NSQT_DIAG_SCAN
-  UInt uiCTXIdx;
-  
-  switch(uiWidth)
-  {
-    case  2: uiCTXIdx = 6; break;
-    case  4: uiCTXIdx = 5; break;
-    case  8: uiCTXIdx = 4; break;
-    case 16: uiCTXIdx = 3; break;
-    case 32: uiCTXIdx = 2; break;
-    case 64: uiCTXIdx = 1; break;
-    default: uiCTXIdx = 0; break;
-  }
-#endif
-  
+{  
   eTType = eTType == TEXT_LUMA ? TEXT_LUMA : TEXT_CHROMA;
   
-#if NSQT_DIAG_SCAN
   m_pcEntropyCoderIf->estBit ( pcEstBitsSbac, width, height, eTType );
-#else
-  m_pcEntropyCoderIf->estBit ( pcEstBitsSbac, uiCTXIdx, eTType );
-#endif
 }
 
 Int TEncEntropy::countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize )
 {
   Int count = 0;
   
-#if NSQT_DIAG_SCAN
   for ( Int i = 0; i < uiSize; i++ )
-#else
-  for ( Int i = 0; i < uiSize * uiSize; i++ )
-#endif
   {
     count += pcCoef[i] != 0;
   }

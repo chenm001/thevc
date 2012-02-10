@@ -454,16 +454,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         /* start slice NALunit */
         OutputNALUnit nalu(pcSlice->getNalUnitType(), pcSlice->isReferenced() ? NAL_REF_IDC_PRIORITY_HIGHEST: NAL_REF_IDC_PRIORITY_LOWEST, pcSlice->getTLayer(), true);
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
-#if INC_CABACINITIDC_SLICETYPE
         pcSlice->setCABACinitIDC(pcSlice->getSliceType());
-#endif
         m_pcEntropyCoder->encodeSliceHeader(pcSlice);
 
-#if TILES_DECODER
         // CHECK_ME: for bitstream check only
         nalu.m_Bitstream.write(0, 1); //xWriteFlag( 0 ); // encodeTileMarkerFlag
         nalu.m_Bitstream.write(0, 1); // iTransmitTileLocationInSliceHeader
-#endif
+
         // is it needed?
         {
           nalu.m_Bitstream.writeAlignOne(); // Byte-alignment before CABAC data
@@ -581,9 +578,7 @@ Void TEncGOP::printOutSummary(UInt uiNumAllPicCoded)
   m_gcAnalyzeB.printSummary('B');
 #endif
 
-#if RVM_VCEGAM10
   printf("\nRVM: %.3lf\n" , xCalculateRVM());
-#endif
 }
 
 // ====================================================================================================================
@@ -740,9 +735,7 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
   }
 
   unsigned uibits = numRBSPBytes * 8;
-#if RVM_VCEGAM10
   m_vRVM_RP.push_back( uibits );
-#endif
 
   //===== add PSNR =====
   m_gcAnalyzeAll.addResult (dYPSNR, dUPSNR, dVPSNR, (Double)uibits);
@@ -817,7 +810,6 @@ NalUnitType TEncGOP::getNalUnitType(UInt uiPOCCurr)
   return NAL_UNIT_CODED_SLICE;
 }
 
-#if RVM_VCEGAM10
 Double TEncGOP::xCalculateRVM()
 {
   Double dRVM = 0;
@@ -862,6 +854,6 @@ Double TEncGOP::xCalculateRVM()
   
   return( dRVM );
 }
-#endif
+
 
 //! \}

@@ -102,10 +102,8 @@ private:
 
   Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
 
-#if MAX_DPB_AND_LATENCY // These could be used later when encoder wants to set their values
   UInt        m_uiMaxDecFrameBuffering; 
   UInt        m_uiMaxLatencyIncrease;
-#endif
 
 public:
   TComSPS();
@@ -181,12 +179,10 @@ public:
 
   Bool      getTemporalIdNestingFlag()                { return m_bTemporalIdNestingFlag; }
   Void      setTemporalIdNestingFlag( Bool bValue )   { m_bTemporalIdNestingFlag = bValue; }
-#if MAX_DPB_AND_LATENCY
   UInt getMaxDecFrameBuffering  ()            { return m_uiMaxDecFrameBuffering; }
   Void setMaxDecFrameBuffering  ( UInt ui )   { m_uiMaxDecFrameBuffering = ui;   }
   UInt getMaxLatencyIncrease    ()            { return m_uiMaxLatencyIncrease;   }
   Void setMaxLatencyIncrease    ( UInt ui )   { m_uiMaxLatencyIncrease= ui;      }
-#endif
 };
 
 /// Reference Picture Set class
@@ -402,9 +398,7 @@ private:
   UInt        m_uiSliceBits;
   Bool        m_bFinalized;
 
-#if INC_CABACINITIDC_SLICETYPE
   Int         m_cabacInitIdc; 
-#endif
 
 public:
   TComSlice();
@@ -467,9 +461,7 @@ public:
   Void      setPOC              ( Int i )                       { m_iPOC              = i; if(getTLayer()==0) m_iPrevPOC=i; }
   Void      setNalUnitType      ( NalUnitType e )               { m_eNalUnitType      = e;      }
   NalUnitType getNalUnitType    ()                              { return m_eNalUnitType;        }
-#if G1002_CRA_CHECK
   Void      checkCRA(TComReferencePictureSet *pReferencePictureSet, UInt& pocCRA, TComList<TComPic*>& rcListPic);
-#endif
   Void      decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TComList<TComPic*>& rcListPic);
   Void      setSliceType        ( SliceType e )                 { m_eSliceType        = e;      }
   Void      setSliceQp          ( Int i )                       { m_iSliceQp          = i;      }
@@ -527,11 +519,9 @@ public:
 
   Void decodingMarkingForNoTMVP( TComList<TComPic*>& rcListPic, Int currentPOC );
 
-#if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   UInt m_uiMaxNumMergeCand;
   Void setMaxNumMergeCand               (UInt maxNumMergeCand ) { m_uiMaxNumMergeCand = maxNumMergeCand;  }
   UInt getMaxNumMergeCand               ()                  {return m_uiMaxNumMergeCand;                  }
-#endif
 
   Void setSliceCurStartCUAddr           ( UInt uiAddr )     { m_uiSliceCurStartCUAddr = uiAddr;           }
   UInt getSliceCurStartCUAddr           ()                  { return m_uiSliceCurStartCUAddr;             }
@@ -546,10 +536,8 @@ public:
   UInt getSliceBits                     ()                  { return m_uiSliceBits;                       }  
   Void setFinalized                     ( Bool uiVal )      { m_bFinalized = uiVal;                       }
   Bool getFinalized                     ()                  { return m_bFinalized;                        }
-#if INC_CABACINITIDC_SLICETYPE
   Void      setCABACinitIDC(Int iVal) {m_cabacInitIdc = iVal;    }  //!< set CABAC initial IDC number 
   Int       getCABACinitIDC()         {return m_cabacInitIdc;    }  //!< get CABAC initial IDC number 
-#endif
 protected:
   TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,
                          UInt                uiPOC);

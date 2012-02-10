@@ -37,9 +37,7 @@
 
 #include "TLibCommon/CommonDef.h"
 #include "TEncTop.h"
-#if QP_ADAPTATION
 #include "TEncPic.h"
-#endif
 #if FAST_BIT_EST
 #include "TLibCommon/ContextModel.h"
 #endif
@@ -179,8 +177,6 @@ Void TEncTop::init()
   
   // initialize transform & quantization class
   m_pcCavlcCoder = getCavlcCoder();
-  aTable4 = m_pcCavlcCoder->GetLP4Table();
-  aTableLastPosVlcIndex=m_pcCavlcCoder->GetLastPosVlcIndexTable();
   
   m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize,
                   aTable4, aTable8, 
@@ -231,14 +227,6 @@ Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>&
   xGetNewPicBuffer( pcPicCurr );
   pcPicYuvOrg->copyToPic( pcPicCurr->getPicYuvOrg() );
   
-#if QP_ADAPTATION
-  // compute image characteristics
-  if ( getUseAdaptiveQP() )
-  {
-    m_cPreanalyzer.xPreanalyze( dynamic_cast<TEncPic*>( pcPicCurr ) );
-  }
-#endif
-  
   if ( m_iPOCLast != 0 && ( m_iNumPicRcvd != 1 ) && !bEos )
   {
     iNumEncoded = 0;
@@ -287,22 +275,8 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
   }
   else
   {
-#if QP_ADAPTATION
-        if ( getUseAdaptiveQP() )
-        {
-          TEncPic* pcEPic = new TEncPic;
-          pcEPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, m_cPPS.getMaxCuDQPDepth()+1 );
-          rpcPic = pcEPic;
-        }
-        else
-        {
           rpcPic = new TComPic;
           rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-        }
-#else
-        rpcPic = new TComPic;
-        rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-#endif
     m_cListPic.pushBack( rpcPic );
   }
   rpcPic->setReconMark (false);
@@ -417,7 +391,6 @@ Void TEncTop::xInitPPS()
      m_cPPS.setBitsForTemporalId(1);
   else
      m_cPPS.setBitsForTemporalId(0);
-
 
   m_cPPS.setEnableTMVPFlag( m_bEnableTMVP );
 }

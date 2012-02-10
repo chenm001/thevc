@@ -130,12 +130,8 @@ protected:
   Void  xWriteEpExGolomb      ( UInt uiSymbol, UInt uiCount );
   Void  xWriteExGolombLevel    ( UInt uiSymbol );
   Void  xWriteUnaryMaxSymbol  ( UInt uiSymbol, UInt uiMaxSymbol );
-  Void  xWriteVlc             ( UInt uiTableNumber, UInt uiCodeNumber );
 
   Void codeShortTermRefPicSet              ( TComPPS* pcPPS, TComReferencePictureSet* pcRPS );
-  Void  xCodeCoeff             ( TCoeff* scoeff, Int blockType, Int blSize
-                               , Int isIntra
-                               );
   
   UInt  xConvertToUInt        ( Int iValue ) {  return ( iValue <= 0) ? -iValue<<1 : (iValue<<1)-1; }
   
@@ -143,8 +139,6 @@ public:
   
   Void  resetEntropy          ();
 
-  UInt* GetLP4Table();
-  UInt* GetLastPosVlcIndexTable();
   Void  setBitstream          ( TComBitIf* p )  { m_pcBitIf = p;  }
   Void  setSlice              ( TComSlice* p )  { m_pcSlice = p;  }
   Void  resetBits             ()                { m_pcBitIf->resetBits(); }
@@ -189,11 +183,7 @@ public:
   
   Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
-#if NSQT_DIAG_SCAN
   Void estBit               (estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType);
-#else
-  Void estBit            ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType);
-#endif
   
   Bool getAdaptFlag      ()          { return m_bAdaptFlag; }
   Void setAdaptFlag      ( Bool b )  { m_bAdaptFlag = b;     }

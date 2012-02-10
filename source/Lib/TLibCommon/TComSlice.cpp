@@ -70,9 +70,7 @@ TComSlice::TComSlice()
 , m_bNextSlice                    ( false )
 , m_uiSliceBits                   ( 0 )
 , m_bFinalized                    ( false )
-#if INC_CABACINITIDC_SLICETYPE
 , m_cabacInitIdc                 ( -1 )
-#endif
 {
   m_aiNumRefIdx[0] = m_aiNumRefIdx[1] = m_aiNumRefIdx[2] = 0;
   
@@ -118,9 +116,7 @@ Void TComSlice::initSlice()
 
   m_aiNumRefIdx[REF_PIC_LIST_C]      = 0;
 
-#if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   m_uiMaxNumMergeCand = MRG_MAX_NUM_CANDS_SIGNALED;
-#endif
 
   m_bFinalized=false;
 
@@ -426,7 +422,6 @@ Void TComSlice::initEqualRef()
   }
 }
 
-#if G1002_CRA_CHECK
 Void TComSlice::checkCRA(TComReferencePictureSet *pReferencePictureSet, UInt& pocCRA, TComList<TComPic*>& rcListPic)
 {
   for(Int i = 0; i < pReferencePictureSet->getNumberOfNegativePictures()+pReferencePictureSet->getNumberOfPositivePictures(); i++)
@@ -448,7 +443,6 @@ Void TComSlice::checkCRA(TComReferencePictureSet *pReferencePictureSet, UInt& po
     pocCRA = getPOC();
   }
 }
-#endif
 
 /** Function for marking the reference pictures when an IDR and CDR is encountered.
  * \param uiPOCCDR POC of the CDR picture
@@ -859,10 +853,8 @@ TComSPS::TComSPS()
 , m_uiBitsForPOC              (  8)
 , m_uiMaxTrSize               ( 32)
 , m_bTemporalIdNestingFlag    (false)
-#if MAX_DPB_AND_LATENCY 
 , m_uiMaxDecFrameBuffering    (  0)
 , m_uiMaxLatencyIncrease      (  0)
-#endif
 {
   // AMVP parameter
   ::memset( m_aeAMVPMode, 0, sizeof( m_aeAMVPMode ) );

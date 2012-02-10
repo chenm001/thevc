@@ -246,4 +246,14 @@ void TComOutputBitstream::insertAt(const TComOutputBitstream& src, unsigned pos)
   this->m_fifo->insert(at, src.m_fifo->begin(), src.m_fifo->end());
 }
 
+Void TComInputBitstream::readOutTrailingBits ()
+{
+  UInt uiBits = 0;
+
+  while ( ( getNumBitsLeft() > 0 ) && (getNumBitsUntilByteAligned()!=0) )
+  {
+    read ( 1, uiBits );
+  }
+}
+
 //! \}

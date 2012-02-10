@@ -106,12 +106,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("InputFile,i",     cfg_InputFile,     string(""), "original YUV input file name")
   ("BitstreamFile,b", cfg_BitstreamFile, string(""), "bitstream output file name")
   ("ReconFile,o",     cfg_ReconFile,     string(""), "reconstructed YUV output file name")
-#if G678_LAMBDA_ADJUSTMENT
   ("LambdaModifier0,-LM0", m_adLambdaModifier[ 0 ], ( double )1.0, "Lambda modifier for temporal layer 0")
   ("LambdaModifier1,-LM1", m_adLambdaModifier[ 1 ], ( double )1.0, "Lambda modifier for temporal layer 1")
   ("LambdaModifier2,-LM2", m_adLambdaModifier[ 2 ], ( double )1.0, "Lambda modifier for temporal layer 2")
   ("LambdaModifier3,-LM3", m_adLambdaModifier[ 3 ], ( double )1.0, "Lambda modifier for temporal layer 3")
-#endif
   ("SourceWidth,-wdt",      m_iSourceWidth,  0, "Source picture width")
   ("SourceHeight,-hgt",     m_iSourceHeight, 0, "Source picture height")
   ("FrameRate,-fr",         m_iFrameRate,        0, "Frame rate")
@@ -244,9 +242,6 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iSearchRange < 0 ,                                                        "Search Range must be more than 0" );
   xConfirmPara( m_bipredSearchRange < 0 ,                                                   "Search Range must be more than 0" );
 
-#if QP_ADAPTATION
-  xConfirmPara( m_iQPAdaptationRange <= 0,                                                  "QP Adaptation Range must be more than 0" );
-#endif
   xConfirmPara( m_iFrameToBeEncoded == 0,                                                   "Total Number of Frames to be encoded must be at least 2 * GOP size for the current Reference Picture Set settings");
   if (m_iDecodingRefreshType == 2)
   {
@@ -331,9 +326,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("Decoding refresh type        : %d\n", m_iDecodingRefreshType );
   printf("QP                           : %5.2f\n", m_fQP );
 
-#if G507_COND_4X4_ENABLE_FLAG
   if((m_uiMaxCUWidth >> m_uiMaxCUDepth) == 4)
-#endif
   {
     printf("DisableInter4x4              : %d\n", m_bDisInter4x4);  
   }

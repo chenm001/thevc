@@ -135,10 +135,8 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   Double dLambda;
   
   rpcSlice = pcPic->getSlice(0);
-#if TILES_DECODER
   rpcSlice->setSPS( pSPS );
   rpcSlice->setPPS( pPPS );
-#endif
   rpcSlice->setSliceBits(0);
   rpcSlice->setPic( pcPic );
   rpcSlice->initSlice();
@@ -209,12 +207,10 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     iQP = max( MIN_QP, min( MAX_QP, (Int)floor( dQP + 0.5 ) ) );
   }
   
-#if G678_LAMBDA_ADJUSTMENT
   if( rpcSlice->getSliceType( ) != I_SLICE )
   {
     dLambda *= m_pcCfg->getLambdaModifier( iDepth );
   }
-#endif
 
   // store lambda
   m_pcRdCost ->setLambda( dLambda );
@@ -256,19 +252,12 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setTLayer( pcPic->getTLayer() );
   rpcSlice->setTLayerSwitchingFlag( pPPS->getTLayerSwitchingFlag( pcPic->getTLayer() ) );
 
-#if !TILES_DECODER
-  rpcSlice->setSPS( pSPS );
-  rpcSlice->setPPS( pPPS );
-#endif
-
   assert( m_apcPicYuvPred );
   assert( m_apcPicYuvResi );
   
   pcPic->setPicYuvPred( m_apcPicYuvPred );
   pcPic->setPicYuvResi( m_apcPicYuvResi );
-#if G091_SIGNAL_MAX_NUM_MERGE_CANDS
   rpcSlice->setMaxNumMergeCand      (MRG_MAX_NUM_CANDS_SIGNALED);
-#endif
 }
 
 // ====================================================================================================================

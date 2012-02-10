@@ -77,11 +77,7 @@ protected:
   
   UInt  xGetBit             ();
   
-#if INTER_RPS_PREDICTION
   void  parseShortTermRefPicSet            (TComPPS* pcPPS, TComReferencePictureSet* pcRPS, Int idx);
-#else
-  Void  parseShortTermRefPicSet            (TComPPS* pcPPS, TComReferencePictureSet* pcRPS);
-#endif
 private:
   TComInputBitstream*   m_pcBitstream;
   UInt                  m_uiCoeffCost;
@@ -138,9 +134,7 @@ public:
   Void  parsePPS            ( TComPPS* pcPPS);
   void parseSEI(SEImessages&);
   Void  parseSliceHeader    ( TComSlice*& rpcSlice );
-#if G220_PURE_VLC_SAO_ALF
   Void parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice);
-#endif
   Void  parseTerminatingBit ( UInt& ruiBit );
   
   Void  parseMVPIdx         ( Int& riMVPIdx );

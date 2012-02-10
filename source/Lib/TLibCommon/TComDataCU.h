@@ -347,9 +347,7 @@ public:
                                             );
 
   TComDataCU*   getPUAbove                  ( UInt&  uiAPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool MotionDataCompresssion = false
-#if REMOVE_INTRA_LINE_BUFFER
                                             , Bool planarAtLCUBoundary = false 
-#endif
                                             );
 
   TComDataCU*   getPUAboveLeft              ( UInt&  uiALPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool MotionDataCompresssion = false );

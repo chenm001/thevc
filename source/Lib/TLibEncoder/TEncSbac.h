@@ -147,20 +147,10 @@ public:
   // for RD-optimizatioon
   // -------------------------------------------------------------------------------------------------------------------
   
-#if NSQT_DIAG_SCAN
   Void estBit               (estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType);
-#else
-  Void estBit                        ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
-#endif
   Void estCBFBit                     ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
-#if MULTI_LEVEL_SIGNIFICANCE
   Void estSignificantCoeffGroupMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
-#endif
-#if NSQT_DIAG_SCAN
   Void estSignificantMapBit          ( estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType );
-#else
-  Void estSignificantMapBit          ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
-#endif
   Void estSignificantCoefficientsBit ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
   
   TEncBinIf* getEncBinIf()  { return m_pcBinIf; }
@@ -184,31 +174,12 @@ private:
   ContextModel3DBuffer m_cCUTransSubdivFlagSCModel;
   ContextModel3DBuffer m_cCUQtRootCbfSCModel;
   
-#if MULTI_LEVEL_SIGNIFICANCE
   ContextModel3DBuffer m_cCUSigCoeffGroupSCModel;
-#endif
-#if CLEANUP_CTXINIT
   ContextModel3DBuffer m_cCUSigSCModel;
-#else
-  ContextModel3DBuffer m_cCUSigSCModelLuma;
-  ContextModel3DBuffer m_cCUSigSCModelChroma;
-#endif
   ContextModel3DBuffer m_cCuCtxLastX;
   ContextModel3DBuffer m_cCuCtxLastY;
-#if CLEANUP_CTXINIT
   ContextModel3DBuffer m_cCUOneSCModel;
   ContextModel3DBuffer m_cCUAbsSCModel;
-#else
-#if COEFF_CTXSET_RED
-  ContextModel3DBuffer m_cCUOneSCModelLuma;
-  ContextModel3DBuffer m_cCUOneSCModelChroma;
-  ContextModel3DBuffer m_cCUAbsSCModelLuma;
-  ContextModel3DBuffer m_cCUAbsSCModelChroma;
-#else
-  ContextModel3DBuffer m_cCUOneSCModel;
-  ContextModel3DBuffer m_cCUAbsSCModel;
-#endif
-#endif
   
   ContextModel3DBuffer m_cMVPIdxSCModel;
   

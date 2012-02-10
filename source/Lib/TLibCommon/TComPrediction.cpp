@@ -178,11 +178,7 @@ Pel TComPrediction::predIntraGetPredValDC( Int* pSrc, Int iSrcStride, UInt iWidt
  * the predicted value for the pixel is linearly interpolated from the reference samples. All reference samples are taken
  * from the extended main reference.
  */
-#if VER_HOR_FILTER
 Void TComPrediction::xPredIntraAng( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, UInt dirMode, Bool blkAboveAvailable, Bool blkLeftAvailable, Bool bFilter )
-#else
-Void TComPrediction::xPredIntraAng( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, UInt dirMode, Bool blkAboveAvailable, Bool blkLeftAvailable )
-#endif
 {
   Int k,l;
   Int blkSize        = width;
@@ -258,9 +254,7 @@ Void TComPrediction::xPredIntraAng( Int* pSrc, Int srcStride, Pel*& rpDst, Int d
         refLeft[k] = pSrc[(k-1)*srcStride-1];
       }
       refMain = modeVer ? refAbove : refLeft;
-#if VER_HOR_FILTER
       refSide = modeVer ? refLeft  : refAbove;
-#endif
     }
 
     if (intraPredAngle == 0)
@@ -273,7 +267,6 @@ Void TComPrediction::xPredIntraAng( Int* pSrc, Int srcStride, Pel*& rpDst, Int d
         }
       }
 
-#if VER_HOR_FILTER
       if ( bFilter )
       {
         for (k=0;k<blkSize;k++)
@@ -281,7 +274,6 @@ Void TComPrediction::xPredIntraAng( Int* pSrc, Int srcStride, Pel*& rpDst, Int d
           pDst[k*dstStride] = Clip ( pDst[k*dstStride] + ( refSide[k+1] - refSide[0] ) / 2 );
         }
       }
-#endif
     }
     else
     {
@@ -354,11 +346,7 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
   }
   else
   {
-#if VER_HOR_FILTER
     xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, g_aucAngIntraModeOrder[ uiDirMode ], bAbove, bLeft, true );
-#else
-    xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, g_aucAngIntraModeOrder[ uiDirMode ], bAbove, bLeft );
-#endif
 
     if( (uiDirMode == DC_IDX ) && bAbove && bLeft )
     {
@@ -383,15 +371,10 @@ Void TComPrediction::predIntraChromaAng( TComPattern* pcTComPattern, Int* piSrc,
   else
   {
     // Create the prediction
-#if VER_HOR_FILTER
     xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, g_aucAngIntraModeOrder[ uiDirMode ], bAbove, bLeft, false );
-#else
-    xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, g_aucAngIntraModeOrder[ uiDirMode ], bAbove, bLeft );
-#endif
   }
 }
 
-#if UNI_BI_IDENTICAL_MOTION
 /** Function for checking identical motion.
  * \param TComDataCU* pcCU
  * \param UInt PartAddr
@@ -412,7 +395,6 @@ Bool TComPrediction::xCheckIdenticalMotion ( TComDataCU* pcCU, UInt PartAddr )
   }
   return false;
 }
-#endif
 
 
 Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, RefPicList eRefPicList, Int iPartIdx )
@@ -430,7 +412,6 @@ Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, 
     }
     else
     {
-#if UNI_BI_IDENTICAL_MOTION
       if ( xCheckIdenticalMotion( pcCU, uiPartAddr ) )
       {
         xPredInterUni (pcCU, uiPartAddr, iWidth, iHeight, REF_PIC_LIST_0, pcYuvPred, iPartIdx );
@@ -439,9 +420,6 @@ Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, 
       {
         xPredInterBi  (pcCU, uiPartAddr, iWidth, iHeight, pcYuvPred, iPartIdx );
       }
-#else
-      xPredInterBi  (pcCU, uiPartAddr, iWidth, iHeight, pcYuvPred, iPartIdx );
-#endif
     }
     return;
   }
@@ -456,7 +434,6 @@ Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, 
     }
     else
     {
-#if UNI_BI_IDENTICAL_MOTION
       if ( xCheckIdenticalMotion( pcCU, uiPartAddr ) )
       {
         xPredInterUni (pcCU, uiPartAddr, iWidth, iHeight, REF_PIC_LIST_0, pcYuvPred, iPartIdx );
@@ -465,9 +442,6 @@ Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, 
       {
         xPredInterBi  (pcCU, uiPartAddr, iWidth, iHeight, pcYuvPred, iPartIdx );
       }
-#else
-      xPredInterBi  (pcCU, uiPartAddr, iWidth, iHeight, pcYuvPred, iPartIdx );
-#endif
     }
   }
   return;

@@ -40,11 +40,9 @@
 #include "TEncCu.h"
 #include "TEncAnalyze.h"
 
-#if QP_ADAPTATION
 #include <cmath>
 #include <algorithm>
 using namespace std;
-#endif
 
 //! \ingroup TLibEncoder
 //! \{
@@ -373,11 +371,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   UInt uiTPelY   = rpcBestCU->getCUPelY();
   UInt uiBPelY   = uiTPelY + rpcBestCU->getHeight(0) - 1;
 
-#if QP_ADAPTATION
   Int iBaseQP = xComputeQP( rpcBestCU, uiDepth );
-#else
-  Int iBaseQP = rpcBestCU->getSlice()->getSliceQp();
-#endif
 
   // If slice start or slice end is within this cu...
   TComSlice * pcSlice = rpcTempCU->getPic()->getSlice(rpcTempCU->getPic()->getCurrSliceIdx());
@@ -821,7 +815,6 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   }
 }
 
-#if QP_ADAPTATION
 /** Compute QP for each CU
  * \param pcCU Target CU
  * \param uiDepth CU depth
@@ -831,26 +824,8 @@ Int TEncCu::xComputeQP( TComDataCU* pcCU, UInt uiDepth )
 {
   Int iBaseQp = pcCU->getSlice()->getSliceQp();
   Int iQpOffset = 0;
-  if ( m_pcEncCfg->getUseAdaptiveQP() )
-  {
-    TEncPic* pcEPic = dynamic_cast<TEncPic*>( pcCU->getPic() );
-    UInt uiAQDepth = min( uiDepth, pcEPic->getMaxAQDepth()-1 );
-    TEncPicQPAdaptationLayer* pcAQLayer = pcEPic->getAQLayer( uiAQDepth );
-    UInt uiAQUPosX = pcCU->getCUPelX() / pcAQLayer->getAQPartWidth();
-    UInt uiAQUPosY = pcCU->getCUPelY() / pcAQLayer->getAQPartHeight();
-    UInt uiAQUStride = pcAQLayer->getAQPartStride();
-    TEncQPAdaptationUnit* acAQU = pcAQLayer->getQPAdaptationUnit();
-
-    Double dMaxQScale = pow(2.0, m_pcEncCfg->getQPAdaptationRange()/6.0);
-    Double dAvgAct = pcAQLayer->getAvgActivity();
-    Double dCUAct = acAQU[uiAQUPosY * uiAQUStride + uiAQUPosX].getActivity();
-    Double dNormAct = (dMaxQScale*dCUAct + dAvgAct) / (dCUAct + dMaxQScale*dAvgAct);
-    Double dQpOffset = log(dNormAct) / log(2.0) * 6.0;
-    iQpOffset = Int(floor( dQpOffset + 0.49999 ));
-  }
   return Clip3( MIN_QP, MAX_QP, iBaseQp+iQpOffset );
 }
-#endif
 
 /** encode a CU block recursively
  * \param pcCU

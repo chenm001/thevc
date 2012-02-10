@@ -58,9 +58,7 @@
 
 typedef struct
 {
-#if MULTI_LEVEL_SIGNIFICANCE
   Int significantCoeffGroupBits[NUM_SIG_CG_FLAG_CTX][2];
-#endif
   Int significantBits[NUM_SIG_FLAG_CTX][2];
   Int lastXBits[32];
   Int lastYBits[32];
@@ -156,13 +154,9 @@ public:
                                      Int                             posY,
                                      Int                             blockType,
                                      Int                             width
-#if NSQT_DIAG_SCAN
                                     ,Int                             height
-#endif
                                     ,TextType                        textureType
                                     );
-#if MULTI_LEVEL_SIGNIFICANCE
-#if NSQT_DIAG_SCAN
   static UInt getSigCoeffGroupCtxInc  ( const UInt*                   uiSigCoeffGroupFlag,
                                        const UInt                       uiCGPosX,
                                        const UInt                       uiCGPosY,
@@ -172,18 +166,6 @@ public:
                                     const UInt                       uiCGPosX,
                                     const UInt                       uiCGPosY,
                                     Int width, Int height);
-#else
-  static UInt getSigCoeffGroupCtxInc  ( const UInt*                   uiSigCoeffGroupFlag,
-                                     const UInt                       uiCGPosX,
-                                     const UInt                       uiCGPosY,
-                                     const UInt                       uiLog2BlockSize);
-
-  static Bool bothCGNeighboursOne  ( const UInt*                      uiSigCoeffGroupFlag,
-                                     const UInt                       uiCGPosX,
-                                     const UInt                       uiCGPosY,
-                                     const UInt                       uiLog2BlockSize);
-#endif
-#endif
 protected:
   Int*    m_plTempCoeff;
   

@@ -163,9 +163,11 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
 Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame, Int& iPOCLastDisplay)
 {
   if (!m_pcPic)
+  {
     /* nothing to deblock */
     return;
-
+  }
+  
   TComPic*&   pcPic         = m_pcPic;
 
   // Execute Deblock and ALF only + Cleanup
@@ -194,27 +196,27 @@ Void TDecTop::xCreateLostPicture(Int iLostPoc)
   cFillPic->getSlice(0)->setPPS( &m_cPPS );
   cFillPic->getSlice(0)->initSlice();
   
-
+  
   TComList<TComPic*>::iterator iterPic = m_cListPic.begin();
   Int closestPoc = 1000000;
   while ( iterPic != m_cListPic.end())
   {
-     TComPic * rpcPic = *(iterPic++);
-     if(abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc)<closestPoc&&abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc)!=0&&rpcPic->getPicSym()->getSlice(0)->getPOC()!=m_apcSlicePilot->getPOC())
-     {
-        closestPoc=abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc);
-     }
+    TComPic * rpcPic = *(iterPic++);
+    if(abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc)<closestPoc&&abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc)!=0&&rpcPic->getPicSym()->getSlice(0)->getPOC()!=m_apcSlicePilot->getPOC())
+    {
+      closestPoc=abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc);
+    }
   }
   iterPic = m_cListPic.begin();
   while ( iterPic != m_cListPic.end())
   {
-     TComPic *rpcPic = *(iterPic++);
-     if(abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc)==closestPoc&&rpcPic->getPicSym()->getSlice(0)->getPOC()!=m_apcSlicePilot->getPOC())
-     {
-       printf("copying picture %d to %d (%d)\n",rpcPic->getPicSym()->getSlice(0)->getPOC() ,iLostPoc,m_apcSlicePilot->getPOC());
-       rpcPic->getPicYuvRec()->copyToPic(cFillPic->getPicYuvRec());
-       break;
-     }
+    TComPic *rpcPic = *(iterPic++);
+    if(abs(rpcPic->getPicSym()->getSlice(0)->getPOC() -iLostPoc)==closestPoc&&rpcPic->getPicSym()->getSlice(0)->getPOC()!=m_apcSlicePilot->getPOC())
+    {
+      printf("copying picture %d to %d (%d)\n",rpcPic->getPicSym()->getSlice(0)->getPOC() ,iLostPoc,m_apcSlicePilot->getPOC());
+      rpcPic->getPicYuvRec()->copyToPic(cFillPic->getPicYuvRec());
+      break;
+    }
   }
   cFillPic->setCurrSliceIdx(0);
   for(Int i=0; i<cFillPic->getNumCUsInFrame(); i++) 
@@ -281,9 +283,10 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
     {
       // make sure we already received both parameter sets
       assert( 3 == m_uiValidPS );
+      m_apcSlicePilot->setSPS(&m_cSPS);
+      m_apcSlicePilot->initSlice();
       if (m_bFirstSliceInPicture)
       {
-        m_apcSlicePilot->initSlice();
         m_uiSliceIdx     = 0;
         m_uiLastSliceIdx = 0;
       }
@@ -303,17 +306,16 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       m_apcSlicePilot->setReferenced(nalu.m_RefIDC != NAL_REF_IDC_PRIORITY_LOWEST);
       m_apcSlicePilot->setTLayerInfo(nalu.m_TemporalID);
       m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot);
-#if G220_PURE_VLC_SAO_ALF
-      m_cEntropyDecoder.decodeWPPTileInfoToSliceHeader(m_apcSlicePilot);
-#endif
 
-        Int numBitsForByteAlignment = nalu.m_Bitstream->getNumBitsUntilByteAligned();
-        if ( numBitsForByteAlignment > 0 )
-        {
-          UInt bitsForByteAlignment;
-          nalu.m_Bitstream->read( numBitsForByteAlignment, bitsForByteAlignment );
-          assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
-        }
+      m_cEntropyDecoder.decodeWPPTileInfoToSliceHeader(m_apcSlicePilot);
+
+      Int numBitsForByteAlignment = nalu.m_Bitstream->getNumBitsUntilByteAligned();
+      if ( numBitsForByteAlignment > 0 )
+      {
+        UInt bitsForByteAlignment;
+        nalu.m_Bitstream->read( numBitsForByteAlignment, bitsForByteAlignment );
+        assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
+      }
 
       if (m_apcSlicePilot->isNextSlice() && m_apcSlicePilot->getPOC()!=m_uiPrevPOC && !m_bFirstSliceInSequence)
       {
@@ -321,8 +323,10 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         return true;
       }
 
-      if (m_apcSlicePilot->isNextSlice()) 
+      if (m_apcSlicePilot->isNextSlice())
+      {
         m_uiPrevPOC = m_apcSlicePilot->getPOC();
+      }
       m_bFirstSliceInSequence = false;
       if (m_apcSlicePilot->isNextSlice())
       {
@@ -380,12 +384,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 
       if (bNextSlice)
       {
-#if G1002_CRA_CHECK
         pcSlice->checkCRA(pcSlice->getRPS(), m_uiPOCCDR, m_cListPic); 
-#else
-        // Do decoding refresh marking if any
-        pcSlice->decodingRefreshMarking(m_uiPOCCDR, m_bRefreshPending, m_cListPic);
-#endif
         
         if ( !pcSlice->getPPS()->getEnableTMVPFlag() && pcPic->getTLayer() == 0 )
         {

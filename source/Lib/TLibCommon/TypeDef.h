@@ -38,99 +38,31 @@
 #ifndef _TYPEDEF__
 #define _TYPEDEF__
 
-#define CLEANUP_CTXINIT           1
 //! \ingroup TLibCommon
 //! \{
 
-#define INC_CABACINITIDC_SLICETYPE 1 ///<G315: support for making presence of cabac_init_idc syntax element not dependent on slice type, and slice_type in slice header and entropy slice header
-#define SLICEADDR_BEGIN            1 ///<G315: support for moving slice address to beginning of slice
-#define PADDING_INTRA             1 ///< G812: padding from bottom left, copy previous pixel instead of averaging
-#define COEFF_CTX_RED             1 ///< G121: reduce max value of c1 and c2
-
-#define G091_SIGNAL_MAX_NUM_MERGE_CANDS    1   //<G091: maxNumMergeCand signaling in slice header
-#if G091_SIGNAL_MAX_NUM_MERGE_CANDS
 #define MRG_MAX_NUM_CANDS_SIGNALED         5   //<G091: value of maxNumMergeCand signaled in slice header 
-#endif
-
-#define IT_CLIPPING               1 ///< clipping in inverse transform G782
-#define WEIGHT_PRED_IMP           1 ///< high-precision offset for weighted bipred G065
-#define PLANAR_IS_DEFAULT         1 ///< default to planar if neighbor not available G119
-#define CBF_CODING_SKIP_COND_FIX  1 ///< G444: fixing the condition of skipping cbf_luma coding
-#define VER_HOR_FILTER            1 ///< F172: intra ver/hor prediction filter
-#define WP_IMPROVED_SYNTAX        1 ///< improved weighted prediction syntax to remove redundancy G441
-
-#define REMOVE_INTRA_LINE_BUFFER  1 ///< G145: intra line buffer removal
 
 #define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO
 #define RDOQ_CHROMA_LAMBDA          1   ///< F386: weighting of chroma for RDOQ
 
-#define UNI_BI_IDENTICAL_MOTION   1 ///< chaning bi-prediction to uni-prediction for identical motion G415/G438
-
-#define G609_NEW_BA_SUB             1   ///< G609: Directional feature calculation on subset of pixels
-#define G216_ALF_MERGE_FLAG_FIX     1   ///< G216: bug fixed: removing 15th merge flag for BA mode
-#define G212_CROSS9x9_VB            1   ///< G212: Cross9x9 filter shape and virtual boundary processing for ALF
-#define G610_ALF_K_BIT_FIX          1   ///< G610: bug fixed: removing extra alf_golomb_index_bit for cross-shaped filter
-#if G610_ALF_K_BIT_FIX
-#if G212_CROSS9x9_VB
 #define MIN_SCAN_POS_CROSS          4
-#else
-#define MIN_SCAN_POS_CROSS          5
-#endif
-#endif
-#define G214_ALF_CONSTRAINED_COEFF  1   ///< G214: Constrained ALF coefficient value
-#define G215_ALF_NUM_FILTER         1   ///< G215: the number of filters in one picture, encoder only
-#define ALF_DC_OFFSET_REMOVAL       1   ///< G445: Remove DC offset for ALF
-
-#define SAO_RDO_OFFSET              1   ///< G915: Considering rate-distortion-cost in optimal offset calculation for SAO
-#define G220_PURE_VLC_SAO_ALF       1   ///< G220: Pure VLC for SAO and ALF parameters
-#define G1023_FIX_NPASS_ALF         1   ///< G1023: Improved ALF N-pass encoding
 
 #define FAST_BIT_EST                1   ///< G763: Table-based bit estimation for CABAC
-#define G633_8BIT_INIT              1   ///< G633: Context model initialization method using 8 bit initialization values
 
 #define G519_TU_AMP_NSQT_HARMONIZATION  1   ///< G519: Harmonization of implicit TU, AMP and NSQT
 
-////////////////////////////
-// JCT-VC G start
-////////////////////////////
-
-#define UNIFIED_SCAN_PASSES                 1      ///< G320 : Unified scan passes for transform coefficient coding
-#define SUBBLOCK_SCAN                       1      ///< G323 : 4x4 sub-block based scan for large blocks
-#if SUBBLOCK_SCAN
-#define MULTI_LEVEL_SIGNIFICANCE            1      ///< G644 : Multi-level significance map for large TUs
-#endif
-#if MULTI_LEVEL_SIGNIFICANCE
 #define MLS_GRP_NUM                         64     ///< G644 : Max number of coefficient groups, max(16, 64)
 #define MLS_CG_SIZE                         4      ///< G644 : Coefficient group size of 4x4
+
+#define ADAPTIVE_QP_SELECTION               1      ///< G382: Adaptive reconstruction levels, non-normative part for adaptive QP selection
+#if ADAPTIVE_QP_SELECTION
+#define ARL_C_PRECISION                     7      ///< G382: 7-bit arithmetic precision
+#define LEVEL_RANGE                         30     ///< G382: max coefficient level in statistics collection
 #endif
-#define CHROMA_CBF_CTX_REDUCTION            1      ///< G718 : Sharing contexts for cbf_cb and cbf_cr
 
-#define COEFF_CTXSET_RED                    1      ///< G783 : reduce level context set of chroma
-#define ALF_SAO_SLICE_FLAGS                 1      ///< G566 : Re-insert ALF and SAO flags in the slice header
-#define PIC_SIZE_VLC                        1      ///< G325: code pic_width_in_luma_samples and pic_heigh_in_luma_samples as ue(v)
-#define MAX_DPB_AND_LATENCY                 1      ///< G546 : Move max_dec_frame_buffering and num_reorder_frames from VUI to SPS
-                                                   ///< G779 : Put max_latency_increase in SPS
-
-#define NONCROSS_TILE_IN_LOOP_FILTERING     1      ///< G194 : Non-cross-tiles loop filtering
-
-#define G678_LAMBDA_ADJUSTMENT              1      ///< G678: lambda adjustment for rate-constrained test tool
-
-////////////////////////////
-// JCT-VC G end
-////////////////////////////
-
-////////////////////////////
-// JCT-VC F start
-////////////////////////////
-#define NSQT_DIAG_SCAN                      1      ///< G1038: use diagonal and subblock scans for NSQT
-#if NSQT_DIAG_SCAN && !(SUBBLOCK_SCAN)
-#error
-#endif
 #define NS_HAD                               1
 
-////////////////////////////
-// JCT-VC F end
-////////////////////////////
 
 #define HHI_RQT_INTRA_SPEEDUP             1           ///< tests one best mode with full rqt
 #define HHI_RQT_INTRA_SPEEDUP_MOD         0           ///< tests two best modes with full rqt
@@ -158,8 +90,6 @@
 
 #define MS_LCEC_UNI_EXCEPTION_THRES     1           // for GPB case, uni-prediction, > MS_LCEC_UNI_EXCEPTION_THRES is exception
 
-#define G1002_CRA_CHECK                 1
-#define INTER_RPS_PREDICTION            1           // remove this once tested.
 #define WRITE_BACK                      1           ///< Enable/disable the encoder to replace the deltaPOC and Used by current from the config file with the values derived by the refIdc parameter.
 #define PRINT_RPS_INFO                  0           ///< Enable/disable the printing of bits used to send the RPS.
                                                     // using one nearest frame as reference frame, and the other frames are high quality (POC%4==0) frames (1+X)
@@ -167,10 +97,7 @@
                                                     // but because of the absence of reference frame management, the related code was hard coded currently
 
 
-#define RVM_VCEGAM10 1 // RVM model proposed in VCEG-AM10
-#if RVM_VCEGAM10
 #define RVM_VCEGAM10_M 4
-#endif
 
 #define PLANAR_IDX             0
 #define DC_IDX                 3                     // index for intra DC mode
@@ -180,10 +107,7 @@
 
 #define FAST_UDI_USE_MPM 1
 
-#define QP_ADAPTATION                     0           ///< Enable TM5Step3-like QP adaptation in encoder (JCTVC-D308/E215)
-#if QP_ADAPTATION
 #define RDO_WITHOUT_DQP_BITS              0           ///< Disable counting dQP bits in RDO-based mode decision
-#endif
 
 #define FULL_NBIT 0 ///< When enabled, does not use g_uiBitIncrement anymore to support > 8 bit data
 
@@ -191,14 +115,7 @@
 // AHG SLICES defines section end
 /////////////////////////////////
 
-#define LOG2_MAX_NUM_COLUMNS_MINUS1        7
-#define LOG2_MAX_NUM_ROWS_MINUS1           7
-#define LOG2_MAX_COLUMN_WIDTH              13
-#define LOG2_MAX_ROW_HEIGHT                13
-
-#define TILES_DECODER                       1 // JCTVC-F594 - signalling of tile location
 #define MAX_MARKER_PER_NALU                 1000
-#define TILES_LOW_LATENCY_CABAC_INI         1 // JCTVC-G197 = low latency CABAC initialization for dependent tiles
 
 #define MATRIX_MULT                             0   // Brute force matrix multiplication instead of partial butterfly
 
@@ -210,13 +127,6 @@
 #define AMP_MRG                               1           ///< encoder only force merge for AMP partition (no motion search for AMP)
 #endif
 
-
-#define G665_ALF_COEFF_PRED                1 // JCTVC-G665
-
-#define G507_COND_4X4_ENABLE_FLAG      1
-#define G509_CHROMA_QP_OFFSET          1   // JCTVC-G509 add chroma_qp_index_offset and second chroma_qp_index_offset
-
-#define SCALING_LIST                  1 //JCTVC-G880/JCTVC-G1016 quantization matrices
 #define SCALING_LIST_OUTPUT_RESULT    0 //JCTVC-G880/JCTVC-G1016 quantization matrices
 
 // ====================================================================================================================

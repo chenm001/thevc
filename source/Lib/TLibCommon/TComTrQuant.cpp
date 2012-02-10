@@ -42,7 +42,6 @@
 #include "TComPic.h"
 #include "ContextTables.h"
 
-#if MULTI_LEVEL_SIGNIFICANCE
 typedef struct
 {
   Int    iNNZbeforePos0;
@@ -51,7 +50,6 @@ typedef struct
   Double d64SigCost;
   Double d64SigCost_0;
 } coeffGroupRDStats;
-#endif
 
 //! \ingroup TLibCommon
 //! \{
@@ -254,11 +252,7 @@ void xITr(Int *coeff, Pel *block, UInt uiStride, UInt uiTrSize, UInt uiMode)
       {        
         iSum += iT[k*uiTrSize+i]*coeff[k*uiTrSize+j]; 
       }
-#if IT_CLIPPING
       tmp[i*uiTrSize+j] = Clip3(-32768, 32767, (iSum + add_1st)>>shift_1st); // Clipping is normative
-#else
-      tmp[i*uiTrSize+j] = (iSum + add_1st)>>shift_1st;
-#endif
     }
   }   
   
@@ -284,11 +278,7 @@ void xITr(Int *coeff, Pel *block, UInt uiStride, UInt uiTrSize, UInt uiMode)
       {        
         iSum += iT[k*uiTrSize+j]*tmp[i*uiTrSize+k];
       }
-#if IT_CLIPPING
       block[i*uiStride+j] = Clip3(-32768, 32767, (iSum + add_2nd)>>shift_2nd); // Clipping is non-normative
-#else
-      block[i*uiStride+j] = (iSum + add_2nd)>>shift_2nd;
-#endif
     }
   }
 }
@@ -378,17 +368,10 @@ void fastInverseDst(short tmp[4][4],short block[4][4],int shift)  // input tmp, 
     c[2] = tmp[0][i] - tmp[3][i];
     c[3] = 74* tmp[1][i];
 
-#if IT_CLIPPING
     block[i][0] = Clip3( -32768, 32767, ( 29 * c[0] + 55 * c[1]     + c[3]               + rnd_factor ) >> shift );
     block[i][1] = Clip3( -32768, 32767, ( 55 * c[2] - 29 * c[1]     + c[3]               + rnd_factor ) >> shift );
     block[i][2] = Clip3( -32768, 32767, ( 74 * (tmp[0][i] - tmp[2][i]  + tmp[3][i])      + rnd_factor ) >> shift );
     block[i][3] = Clip3( -32768, 32767, ( 55 * c[0] + 29 * c[2]     - c[3]               + rnd_factor ) >> shift );
-#else
-    block[i][0] =  ( 29 * c[0] + 55 * c[1]     + c[3]               + rnd_factor ) >> shift;
-    block[i][1] =  ( 55 * c[2] - 29 * c[1]     + c[3]               + rnd_factor ) >> shift;
-    block[i][2] =  ( 74 * (tmp[0][i] - tmp[2][i]  + tmp[3][i])      + rnd_factor ) >> shift;
-    block[i][3] =  ( 55 * c[0] + 29 * c[2]     - c[3]               + rnd_factor ) >> shift;
-#endif
   }
 }
 /** 4x4 forward transform (2D)
@@ -440,17 +423,10 @@ void partialButterflyInverse4(short src[4][4],short dst[4][4],int shift)
     E[1] = g_aiT4[0][1]*src[0][j] + g_aiT4[2][1]*src[2][j];
     
     /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */
-#if IT_CLIPPING
     dst[j][0] = Clip3( -32768, 32767, (E[0] + O[0] + add)>>shift );
     dst[j][1] = Clip3( -32768, 32767, (E[1] + O[1] + add)>>shift );
     dst[j][2] = Clip3( -32768, 32767, (E[1] - O[1] + add)>>shift );
     dst[j][3] = Clip3( -32768, 32767, (E[0] - O[0] + add)>>shift );
-#else
-    dst[j][0] = (E[0] + O[0] + add)>>shift;
-    dst[j][1] = (E[1] + O[1] + add)>>shift;
-    dst[j][2] = (E[1] - O[1] + add)>>shift;
-    dst[j][3] = (E[0] - O[0] + add)>>shift;
-#endif
   }
 }
 
@@ -469,17 +445,10 @@ void partialButterflyInverse4(short *src,short *dst,int shift, int line)
     E[1] = g_aiT4[0][1]*src[0] + g_aiT4[2][1]*src[2*line];
 
     /* Combining even and odd terms at each hierarchy levels to calculate the final spatial domain vector */
-#if IT_CLIPPING
     dst[0] = Clip3( -32768, 32767, (E[0] + O[0] + add)>>shift );
     dst[1] = Clip3( -32768, 32767, (E[1] + O[1] + add)>>shift );
     dst[2] = Clip3( -32768, 32767, (E[1] - O[1] + add)>>shift );
     dst[3] = Clip3( -32768, 32767, (E[0] - O[0] + add)>>shift );
-#else
-    dst[0] = (E[0] + O[0] + add)>>shift;
-    dst[1] = (E[1] + O[1] + add)>>shift;
-    dst[2] = (E[1] - O[1] + add)>>shift;
-    dst[3] = (E[0] - O[0] + add)>>shift;
-#endif
             
     src   ++;
     dst += 4;
@@ -635,13 +604,8 @@ void partialButterflyInverse8(short src[8][8],short dst[8][8],int shift)
     E[2] = EE[1] - EO[1];
     for (k=0;k<4;k++)
     {
-#if IT_CLIPPING
       dst[j][k]   = Clip3( -32768, 32767, (E[k] + O[k] + add)>>shift );
       dst[j][k+4] = Clip3( -32768, 32767, (E[3-k] - O[3-k] + add)>>shift );
-#else
-      dst[j][k] = (E[k] + O[k] + add)>>shift;
-      dst[j][k+4] = (E[3-k] - O[3-k] + add)>>shift;
-#endif
     }        
   }
 }
@@ -673,13 +637,8 @@ void partialButterflyInverse8(short *src,short *dst,int shift, int line)
     E[2] = EE[1] - EO[1];
     for (k=0;k<4;k++)
     {
-#if IT_CLIPPING
       dst[ k   ] = Clip3( -32768, 32767, (E[k] + O[k] + add)>>shift );
       dst[ k+4 ] = Clip3( -32768, 32767, (E[3-k] - O[3-k] + add)>>shift );
-#else
-      dst[ k   ] = (E[k] + O[k] + add)>>shift;
-      dst[ k+4 ] = (E[3-k] - O[3-k] + add)>>shift;
-#endif
     }   
     src ++;
     dst += 8;
@@ -859,13 +818,8 @@ void partialButterflyInverse16(short src[16][16],short dst[16][16],int shift)
     }    
     for (k=0;k<8;k++)
     {
-#if IT_CLIPPING
       dst[j][k]   = Clip3( -32768, 32767, (E[k] + O[k] + add)>>shift );
       dst[j][k+8] = Clip3( -32768, 32767, (E[7-k] - O[7-k] + add)>>shift );
-#else
-      dst[j][k] = (E[k] + O[k] + add)>>shift;
-      dst[j][k+8] = (E[7-k] - O[7-k] + add)>>shift;
-#endif
     }        
   }
 }
@@ -908,13 +862,8 @@ void partialButterflyInverse16(short *src,short *dst,int shift, int line)
     }    
     for (k=0;k<8;k++)
     {
-#if IT_CLIPPING
       dst[k]   = Clip3( -32768, 32767, (E[k] + O[k] + add)>>shift );
       dst[k+8] = Clip3( -32768, 32767, (E[7-k] - O[7-k] + add)>>shift );
-#else
-      dst[k] = (E[k] + O[k] + add)>>shift;
-      dst[k+8] = (E[7-k] - O[7-k] + add)>>shift;
-#endif
     }   
     src ++; 
     dst += 16;
@@ -1127,13 +1076,8 @@ void partialButterflyInverse32(short src[32][32],short dst[32][32],int shift)
     }    
     for (k=0;k<16;k++)
     {
-#if IT_CLIPPING
       dst[j][k]    = Clip3( -32768, 32767, (E[k] + O[k] + add)>>shift );
       dst[j][k+16] = Clip3( -32768, 32767, (E[15-k] - O[15-k] + add)>>shift );
-#else
-      dst[j][k] = (E[k] + O[k] + add)>>shift;
-      dst[j][k+16] = (E[15-k] - O[15-k] + add)>>shift;
-#endif
     }        
   }
 }
@@ -1188,13 +1132,8 @@ void partialButterflyInverse32(short *src,short *dst,int shift, int line)
     }    
     for (k=0;k<16;k++)
     {
-#if IT_CLIPPING
       dst[k]    = Clip3( -32768, 32767, (E[k] + O[k] + add)>>shift );
       dst[k+16] = Clip3( -32768, 32767, (E[15-k] - O[15-k] + add)>>shift );
-#else
-      dst[ k    ] = (E[k] + O[k] + add)>>shift;
-      dst[ k+16 ] = (E[15-k] - O[15-k] + add)>>shift;
-#endif
     }
     src ++;
     dst += 32;
@@ -1327,9 +1266,7 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
       uiAcSum += iLevel;
       iLevel *= iSign;        
       piQCoef[uiBlockPos] = iLevel;
-#if LEVEL_LIMIT
       piQCoef[uiBlockPos] = Clip3(-32768,32767,piQCoef[uiBlockPos]);
-#endif
     } // for n
 }
 
@@ -1451,16 +1388,8 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
         uiTrWidth = uiTrHeight = 4;
       }
 
-#if NSQT_DIAG_SCAN
       uiWidth = uiTrWidth;
       uiHeight = uiTrHeight;
-#else
-      if( uiTrWidth != uiTrHeight )
-      {
-        uiWidth  = uiTrWidth;
-        uiHeight = uiTrHeight;
-      }
-#endif
     }
     invtransformNxN( eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight );
   }
@@ -1757,9 +1686,7 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
                                    Int                             posY,
                                    Int                             blockType,
                                    Int                             width
-#if NSQT_DIAG_SCAN
                                   ,Int                             height
-#endif
                                   ,TextType                        textureType
                                   )
 {
@@ -1817,36 +1744,9 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
     return offset;
   }
   
-#if NSQT_DIAG_SCAN
   const TCoeff *pData = pcCoeff + posX + posY * width;
-#else
-  const TCoeff *pData = pcCoeff + posX + (posY << blockType);
-#endif
   
-#if NSQT_DIAG_SCAN
   Int thred = std::max(height, width) >> 2;
-#else
-  Int thred = 1 << (blockType-2);
-#endif
-  
-#if !NSQT_DIAG_SCAN
-  if(textureType==TEXT_LUMA && posX + posY < thred)
-  {
-#if SUBBLOCK_SCAN
-    Int cnt = (pData[1] != 0) + (pData[2] != 0) + (pData[2*width] != 0) + (pData[width+1] != 0);
-    if( ( ( posX & 3 ) || ( posY & 3 ) ) && ( ( (posX+1) & 3 ) || ( (posY+2) & 3 ) ) )
-    {
-      cnt += pData[width] != 0;
-    }
-#else
-    Int cnt = (pData[1] != 0) + (pData[2] != 0) + (pData[width] != 0) + (pData[2*width] != 0) + (pData[width+1] != 0);
-#endif  
-    cnt=(cnt+1)>>1;
-    return offset + 1 + min( 2, cnt );
-  }
-  
-  Int height = width;
-#endif
   
   Int cnt = 0;
   if( posX < width - 1 )
@@ -1863,14 +1763,10 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   }
   if ( posY < height - 1 )
   {
-#if SUBBLOCK_SCAN
     if( ( ( posX & 3 ) || ( posY & 3 ) ) && ( ( (posX+1) & 3 ) || ( (posY+2) & 3 ) ) )
     {
       cnt += pData[width] != 0;
     }
-#else
-    cnt += pData[width] != 0;
-#endif
     if ( posY < height - 2 && cnt < 4 )
     {
       cnt += pData[2*width] != 0;
@@ -1878,21 +1774,9 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   }
 
   cnt = ( cnt + 1 ) >> 1;
-#if NSQT_DIAG_SCAN
   return (( textureType == TEXT_LUMA && posX + posY >= thred ) ? 4 : 1) + offset + cnt;
-#else
-  if(textureType==TEXT_LUMA)
-  {
-    return offset + 4 + cnt;
-  }
-  else
-  {
-    return offset + 1 + cnt;
-  }
-#endif
 }
 
-#if MULTI_LEVEL_SIGNIFICANCE
 /** Context derivation process of coeff_abs_significant_flag
  * \param uiSigCoeffGroupFlag significance map of L1
  * \param uiBlkX column of current scan position
@@ -1900,22 +1784,14 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
  * \param uiLog2BlkSize log2 value of block size
  * \returns ctxInc for current scan position
  */
-#if NSQT_DIAG_SCAN
 UInt TComTrQuant::getSigCoeffGroupCtxInc  ( const UInt*               uiSigCoeffGroupFlag,
                                            const UInt                      uiCGPosX,
                                            const UInt                      uiCGPosY,
                                            Int width, Int height)
-#else
-UInt TComTrQuant::getSigCoeffGroupCtxInc  ( const UInt*               uiSigCoeffGroupFlag,
-                                      const UInt                      uiCGPosX,
-                                      const UInt                      uiCGPosY,
-                                      const UInt                      uiLog2BlockSize)
-#endif
 {
   UInt uiRight = 0;
   UInt uiLower = 0;
 
-#if NSQT_DIAG_SCAN
   width >>= 2;
   height >>= 2;
   if( uiCGPosX < width - 1 )
@@ -1926,51 +1802,19 @@ UInt TComTrQuant::getSigCoeffGroupCtxInc  ( const UInt*               uiSigCoeff
   {
     uiLower = (uiSigCoeffGroupFlag[ (uiCGPosY  + 1 ) * width + uiCGPosX ] != 0);
   }
-#else
-  if( uiLog2BlockSize == 4 )
-  {
-    if( uiCGPosX < 3 )
-    {
-      uiRight = (uiSigCoeffGroupFlag[ (uiCGPosY << 2) + uiCGPosX + 1 ] != 0);
-    }
-    if (uiCGPosY < 3 )
-    {
-      uiLower = (uiSigCoeffGroupFlag[ ((uiCGPosY  + 1 ) << 2) + uiCGPosX ] != 0);
-    }
-  }
-  else
-  {
-    if( uiCGPosX < 7 )
-    {
-      uiRight = (uiSigCoeffGroupFlag[ (uiCGPosY << 3) + uiCGPosX + 1 ] != 0);
-    }
-    if (uiCGPosY < 7 )
-    {
-      uiLower = (uiSigCoeffGroupFlag[ ((uiCGPosY  + 1 ) << 3) + uiCGPosX ] != 0);
-     }
-  }
-#endif
   return uiRight + uiLower;
 
 }
 
 // return 1 if both right neighbour and lower neighour are 1's
-#if NSQT_DIAG_SCAN
 Bool TComTrQuant::bothCGNeighboursOne ( const UInt*                   uiSigCoeffGroupFlag,
                                        const UInt                      uiCGPosX,
                                        const UInt                      uiCGPosY, 
                                        Int width, Int height)
-#else
-Bool TComTrQuant::bothCGNeighboursOne ( const UInt*                   uiSigCoeffGroupFlag,
-                                      const UInt                      uiCGPosX,
-                                      const UInt                      uiCGPosY, 
-                                      const UInt                      uiLog2BlockSize)
-#endif
 {
   UInt uiRight = 0;
   UInt uiLower = 0;
 
-#if NSQT_DIAG_SCAN
   width >>= 2;
   height >>= 2;
   if( uiCGPosX < width - 1 )
@@ -1981,33 +1825,8 @@ Bool TComTrQuant::bothCGNeighboursOne ( const UInt*                   uiSigCoeff
   {
     uiLower = (uiSigCoeffGroupFlag[ (uiCGPosY  + 1 ) * width + uiCGPosX ] != 0);
   }
-#else
-  if( uiLog2BlockSize == 4 )
-  {
-    if( uiCGPosX < 3 )
-    {
-      uiRight = (uiSigCoeffGroupFlag[ (uiCGPosY << 2) + uiCGPosX + 1 ] != 0);
-    }
-    if (uiCGPosY < 3 )
-    {
-      uiLower = (uiSigCoeffGroupFlag[ ((uiCGPosY  + 1 ) << 2) + uiCGPosX ] != 0);
-    }
-  }
-  else
-  {
-    if( uiCGPosX < 7 )
-    {
-      uiRight = (uiSigCoeffGroupFlag[ (uiCGPosY << 3) + uiCGPosX + 1 ] != 0);
-    }
-    if (uiCGPosY < 7 )
-    {
-      uiLower = (uiSigCoeffGroupFlag[ ((uiCGPosY  + 1 ) << 3) + uiCGPosX ] != 0);
-    }
-  }
-#endif
   
   return (uiRight & uiLower);
 }
-#endif
 
 //! \}

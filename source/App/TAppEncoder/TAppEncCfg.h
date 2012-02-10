@@ -57,9 +57,7 @@ protected:
   char*     m_pchInputFile;                                   ///< source file name
   char*     m_pchBitstreamFile;                               ///< output bitstream file
   char*     m_pchReconFile;                                   ///< output reconstruction file
-#if G678_LAMBDA_ADJUSTMENT  
   Double    m_adLambdaModifier[ MAX_TLAYER ];                 ///< Lambda modifier array for each temporal layer
-#endif
   // source specification
   Int       m_iFrameRate;                                     ///< source frame-rates (Hz)
   unsigned int m_FrameSkip;                                   ///< number of skipped frames from the beginning

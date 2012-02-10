@@ -78,7 +78,6 @@ Void initROM()
     c <<= 1;
   }  
 
-#if NSQT_DIAG_SCAN
   g_sigScanNSQT[0] = new UInt[ 64 ];  // 4x16
   g_sigScanNSQT[1] = new UInt[ 256 ]; // 8x32
   g_sigScanNSQT[2] = new UInt[ 64 ];  // 16x4
@@ -135,17 +134,6 @@ Void initROM()
       g_sigScanNSQT[ 3 ][ 16 * i + j ] = 128 * y + 4 * x + 32 * diagScanY[ j ] + diagScanX[ j ];
     }
   }
-#else
-  UInt uiWidth[ 4 ]  = { 16, 32, 4,  8  };
-  UInt uiHeight[ 4 ] = { 4,  8,  16, 32 };
-  for ( i = 0; i < 4; i++ )
-  {
-    UInt uiW = uiWidth[ i ];
-    UInt uiH = uiHeight[ i ];
-    g_auiNonSquareSigLastScan[ i ] = new UInt[ uiW * uiH ];
-    initNonSquareSigLastScan( g_auiNonSquareSigLastScan[ i ], uiW, uiH);
-  }
-#endif
 }
 
 Void destroyROM()
@@ -162,12 +150,10 @@ Void destroyROM()
     delete[] g_auiSigLastScan[2][i];
     delete[] g_auiSigLastScan[3][i];
   }
-#if NSQT_DIAG_SCAN
   for (i = 0; i < 4; i++)
   {
     delete[] g_sigScanNSQT[ i ];    
   }
-#endif
 }
 
 // ====================================================================================================================
@@ -388,7 +374,6 @@ const UChar g_aucChromaScale[52]=
 
 #define M1 MAX_UINT
 
-const Int atable[5] = {3,7,15,31,0xfffffff};
 // Below table need to be optimized
 const UInt g_auiCbpVlcNum[2][8] =
 {
@@ -487,41 +472,11 @@ const UInt g_auiMITableVlcNum[15] =
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-
-const UInt g_auiLPTableE4[3][32] =
-{
-  {0,1,2,3,5,4,7,6,9,11,14,8,16,15,10,13,12,17,18,19,25,23,20,22,28,26,29,24,30,31,27,21},  //4x4I
-  {0,1,2,7,5,3,6,4,11,8,12,10,9,14,13,15,16,17,21,27,26,18,19,23,29,20,25,28,22,30,24,31},  //4x4P
-  {0,1,2,7,5,3,6,4,11,8,12,10,9,14,13,15,16,17,21,27,26,18,19,23,29,20,25,28,22,30,24,31}   //4x4B
-};
-
-const UInt g_auiLPTableD4[3][32] =
-{
-  {0,1,2,3,5,4,7,6,11,8,14,9,16,15,10,13,12,17,18,19,22,31,23,21,27,20,25,30,24,26,28,29},  //4x4I
-  {0,1,2,5,7,4,6,3,9,12,11,8,10,14,13,15,16,17,21,22,25,18,28,23,30,26,20,19,27,24,29,31},  //4x4P
-  {0,1,2,5,7,4,6,3,9,12,11,8,10,14,13,15,16,17,21,22,25,18,28,23,30,26,20,19,27,24,29,31}   //4x4B
-};
-
 const UInt  g_auiIntraModeTableD17[17] = { 0, 3, 2, 15, 8, 11, 1, 10, 7, 4, 14, 9, 6, 5, 13, 12, 0 };
 const UInt  g_auiIntraModeTableE17[17] = { 0, 6, 2, 1, 9, 13, 12, 8, 4, 11, 7, 5, 15, 14, 10, 3, 0 };
 const UInt  g_auiIntraModeTableD34[34] = { 0, 2, 3, 29, 1, 8, 30, 21, 28, 16, 7, 15, 20, 31, 9, 11, 6, 4, 5, 12, 10, 14, 22, 19, 17, 27, 13, 18, 23, 26, 32, 24, 25, 0 };
 const UInt  g_auiIntraModeTableE34[34] = { 0, 4, 1, 2, 17, 18, 16, 10, 5, 14, 20, 15, 19, 26, 21, 11, 9, 24, 27, 23, 12, 7, 22, 28, 31, 32, 29, 25, 8, 3, 6, 13, 30, 0 };
 
-const UInt g_auiLastPosVlcIndex[10] = {0,0,0,0,0,0,0,0,0,0};
-
-const UInt g_auiLastPosVlcNum[10][17] =
-{
-  {10,10,10,10, 2,2,2,7,9,9,9,9,9,4,4,4,4},
-  {10,10,10,10,10,2,9,9,9,9,9,9,9,4,4,4,4},
-  { 2, 2, 2, 2, 2, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4,13},
-  { 2, 2, 2, 2, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,13},
-  { 2, 2, 2, 2, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,13},
-  {10,10,10, 4, 4, 4, 4,12,12,12,12,12,12,12,12,12,12},
-  {10,10,10,10, 4, 4,12,12,12,12,12,12,12,12,12,12,12},
-  {10,10,10,10, 4, 4,12,12,12,12,12,12,12,12,12,12,12},
-  { 2, 2, 2, 2, 7,7,7,7,7,7,7,7,7,7,7,7,4},
-  { 2, 2, 2, 2, 7,7,7,7,7,7,7,7,7,7,7,7,4}
-};
 
 const UInt g_auiLumaRunTr14x4[5][15]=
 {
@@ -710,7 +665,6 @@ UInt* g_auiFrameScanXY[ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanX [ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanY [ MAX_CU_DEPTH  ];
 UInt* g_auiSigLastScan[4][ MAX_CU_DEPTH ];
-#if NSQT_DIAG_SCAN
 UInt *g_sigScanNSQT[ 4 ]; // scan for non-square partitions
 UInt g_sigCGScanNSQT[ 4 ][ 16 ] =
 {
@@ -719,7 +673,6 @@ UInt g_sigCGScanNSQT[ 4 ][ 16 ] =
   { 0, 1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
   { 0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15 }
 };
-#endif
 
 UInt* g_auiNonSquareSigLastScan[ 4 ];
 
@@ -822,10 +775,8 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int
   const UInt  uiNumScanPos  = UInt( iWidth * iWidth );
   UInt        uiNextScanPos = 0;
 
-#if SUBBLOCK_SCAN
   if( iWidth < 16 )
   {
-#endif
   for( UInt uiScanLine = 0; uiNextScanPos < uiNumScanPos; uiScanLine++ )
   {
     int    iPrimDim  = int( uiScanLine );
@@ -843,7 +794,6 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int
       iPrimDim--;
     }
   }
-#if SUBBLOCK_SCAN
   }
   else
   {
@@ -878,7 +828,6 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int
       }
     }
   }
-#endif
   
   memcpy(pBuffZ, g_auiFrameScanXY[iDepth], sizeof(UInt)*iWidth*iHeight);
 

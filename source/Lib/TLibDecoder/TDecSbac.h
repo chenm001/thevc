@@ -69,15 +69,9 @@ public:
   Void  init                      ( TDecBinIf* p )    { m_pcTDecBinIf = p; }
   Void  uninit                    (              )    { m_pcTDecBinIf = 0; }
   
-#if INC_CABACINITIDC_SLICETYPE
   Void  resetEntropywithQPandInitIDC ( Int  iQp, Int iID);
   Void  resetEntropy                 ( Int  iQp, Int iID      ) { resetEntropywithQPandInitIDC(iQp, iID);                                      }
   Void  resetEntropy                 ( TComSlice* pcSlice     ) { resetEntropywithQPandInitIDC(pcSlice->getSliceQp(), pcSlice->getCABACinitIDC());}
-#else
-  Void  resetEntropywithQPandInitIDC ( Int  iQp, Int iID);
-  Void  resetEntropy                 ( Int  iQp, Int iID      ) { resetEntropywithQPandInitIDC(iQp, iID);                                      }
-  Void  resetEntropy                 ( TComSlice* pcSlice     ) { resetEntropywithQPandInitIDC(pcSlice->getSliceQp(), pcSlice->getSliceType());}
-#endif
 
   Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
   
@@ -85,9 +79,7 @@ public:
   Void  parsePPS                  ( TComPPS* pcPPS         ) {}
   void parseSEI(SEImessages&) {}
   Void  parseSliceHeader          ( TComSlice*& rpcSlice   ) {}
-#if G220_PURE_VLC_SAO_ALF
   Void parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice) {printf("Not supported\n");assert(0); exit(1);}
-#endif
 
   Void  parseTerminatingBit       ( UInt& ruiBit );
   Void  parseMVPIdx               ( Int& riMVPIdx          );
@@ -151,31 +143,12 @@ private:
   ContextModel3DBuffer m_cCUTransSubdivFlagSCModel;
   ContextModel3DBuffer m_cCUQtRootCbfSCModel;
   
-#if MULTI_LEVEL_SIGNIFICANCE
   ContextModel3DBuffer m_cCUSigCoeffGroupSCModel;
-#endif
-#if CLEANUP_CTXINIT
   ContextModel3DBuffer m_cCUSigSCModel;
-#else
-  ContextModel3DBuffer m_cCUSigSCModelLuma;
-  ContextModel3DBuffer m_cCUSigSCModelChroma;
-#endif
   ContextModel3DBuffer m_cCuCtxLastX;
   ContextModel3DBuffer m_cCuCtxLastY;
-#if CLEANUP_CTXINIT
   ContextModel3DBuffer m_cCUOneSCModel;
   ContextModel3DBuffer m_cCUAbsSCModel;
-#else
-#if COEFF_CTXSET_RED
-  ContextModel3DBuffer m_cCUOneSCModelLuma;
-  ContextModel3DBuffer m_cCUOneSCModelChroma;
-  ContextModel3DBuffer m_cCUAbsSCModelLuma;
-  ContextModel3DBuffer m_cCUAbsSCModelChroma;
-#else
-  ContextModel3DBuffer m_cCUOneSCModel;
-  ContextModel3DBuffer m_cCUAbsSCModel;
-#endif
-#endif
   
   ContextModel3DBuffer m_cMVPIdxSCModel;
   

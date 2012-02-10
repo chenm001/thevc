@@ -180,6 +180,7 @@ public:
     ruiBits = (*m_fifo)[m_fifo_idx++];
   }
 
+  Void        readOutTrailingBits ();
   // Peek at bits in word-storage. Used in determining if we have completed reading of current bitstream and therefore slice in LCEC.
   UInt        peekBits (UInt uiBits) { unsigned tmp; pseudoRead(uiBits, tmp); return tmp; }
 

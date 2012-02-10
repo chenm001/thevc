@@ -53,9 +53,7 @@
 #include "TEncCavlc.h"
 #include "TEncSbac.h"
 #include "TEncSearch.h"
-#if QP_ADAPTATION
 #include "TEncPreanalyzer.h"
-#endif
 
 //! \ingroup TLibEncoder
 //! \{
@@ -107,10 +105,8 @@ private:
   TEncBinCABAC            m_cRDGoOnBinCoderCABAC;         ///< going on bin coder CABAC for RD stage
 #endif
 
-#if QP_ADAPTATION
   // quality control
   TEncPreanalyzer         m_cPreanalyzer;                 ///< image characteristics analyzer for TM5-step3-like adaptive QP
-#endif
 
 protected:
   Void  xGetNewPicBuffer  ( TComPic*& rpcPic );           ///< get picture buffer which will be processed

@@ -837,9 +837,7 @@ TComDataCU* TComDataCU::getPULeft( UInt& uiLPartUnitIdx, UInt uiCurrPartUnitIdx,
 
 
 TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool MotionDataCompresssion
-#if REMOVE_INTRA_LINE_BUFFER
                                   , Bool planarAtLCUBoundary 
-#endif
                                   )
 {
   UInt uiAbsPartIdx       = g_auiZscanToRaster[uiCurrPartUnitIdx];
@@ -869,12 +867,10 @@ TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx
     }
   }
 
-#if REMOVE_INTRA_LINE_BUFFER
   if(planarAtLCUBoundary)
   {
     return NULL;
   }
-#endif
   
   uiAPartUnitIdx = g_auiRasterToZscan[ uiAbsPartIdx + m_pcPic->getNumPartInCU() - uiNumPartInCUWidth ];
   if(MotionDataCompresssion)
@@ -1249,24 +1245,12 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int* uiIntraDirPred
   // Get intra direction of left PU
   pcTempCU = getPULeft( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
   
-#if PLANAR_IS_DEFAULT
   iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : PLANAR_IDX ) : PLANAR_IDX;
-#else
-  iLeftIntraDir  = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : DC_IDX ) : DC_IDX;
-#endif
   
   // Get intra direction of above PU
-#if REMOVE_INTRA_LINE_BUFFER
   pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx, true, false, true );
-#else
-  pcTempCU = getPUAbove( uiTempPartIdx, m_uiAbsIdxInLCU + uiAbsPartIdx );
-#endif
   
-#if PLANAR_IS_DEFAULT
   iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : PLANAR_IDX ) : PLANAR_IDX;
-#else
-  iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : DC_IDX ) : DC_IDX;
-#endif
   
   Int iIdx  = getIntraSizeIdx(uiAbsPartIdx);
   
@@ -2330,12 +2314,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   }
 
   Int iNumRefIdx = (getSlice()->isInterB()) ? min(m_pcSlice->getNumRefIdx(REF_PIC_LIST_0), m_pcSlice->getNumRefIdx(REF_PIC_LIST_1)) : m_pcSlice->getNumRefIdx(REF_PIC_LIST_0);
-#if REMOVE_LIMIT_ZEROMERGE
   for (int r=0; r<iNumRefIdx && uiArrayAddr!=MRG_MAX_NUM_CANDS; r++)
-#else
-  Int iZeroCount = 0;
-  for (int r=0; r<iNumRefIdx && uiArrayAddr!=MRG_MAX_NUM_CANDS && iZeroCount<2; r++)
-#endif
   {
     abCandIsInter[uiArrayAddr] = true;
     puhInterDirNeighbours[uiArrayAddr] = 1;
@@ -2348,12 +2327,10 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     }
     uiArrayAddr++;
   }
-#if G091_SIGNAL_MAX_NUM_MERGE_CANDS 
   if (uiArrayAddr > MRG_MAX_NUM_CANDS_SIGNALED)
   {
     uiArrayAddr = MRG_MAX_NUM_CANDS_SIGNALED;
   }
-#endif
   numValidMergeCand = uiArrayAddr;
 }
 
