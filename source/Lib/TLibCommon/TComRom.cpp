@@ -547,9 +547,6 @@ const UInt g_uiLastCtx[ 28 ]    =
   12, 13, 14, 14, 15, 15, 16, 16, 17, 17  // 32x32  10
 };
 
-// scanning order to 8x8 context model mapping table
-UInt  g_auiAntiScan8  [64];
-
 // Rice parameters for absolute transform levels
 const UInt g_auiGoRiceRange[4] =
 {
@@ -619,16 +616,7 @@ Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int i
     
     // termination condition
     if ( c >= iWidth*iHeight ) break;
-  }
-  
-  // LTR_2D_CONTEXT_MAPPING
-  if (iWidth == 8 && iHeight == 8)
-  {
-    for( c = 0; c < iWidth*iHeight; c++)
-    {
-      g_auiAntiScan8[pBuff[c]] = c;
-    }
-  }
+  }  
 }
 
 Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int iWidth, Int iHeight, Int iDepth)
