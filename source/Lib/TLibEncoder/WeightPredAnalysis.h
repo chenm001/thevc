@@ -41,8 +41,8 @@
 #include "../TLibCommon/TComSlice.h"
 #include "TEncCavlc.h"
 
-class  WeightPredAnalysis {
-
+class  WeightPredAnalysis
+{
   Bool m_weighted_pred_flag;
   Int  m_weighted_bipred_idc;
   wpScalingParam  m_wp[2][MAX_NUM_REF][3];
