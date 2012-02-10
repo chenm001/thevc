@@ -311,7 +311,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   }
   else
   {
-    m_pcCavlcCoder  ->setAdaptFlag    ( false );
     m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
     m_pcEntropyCoder->resetEntropy      ();
     m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
@@ -353,9 +352,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     else
     {
       m_pcCuEncoder->compressCU( pcCU );
-      m_pcCavlcCoder ->setAdaptFlag(true);
       m_pcCuEncoder->encodeCU( pcCU );
-      m_pcCavlcCoder ->setAdaptFlag(false);
     }
     
     m_uiPicTotalBits += pcCU->getTotalBits();

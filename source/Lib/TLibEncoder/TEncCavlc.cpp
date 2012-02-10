@@ -117,8 +117,6 @@ TEncCavlc::TEncCavlc()
   m_pcBitIf           = NULL;
   m_bRunLengthCoding  = false;   //  m_bRunLengthCoding  = !rcSliceHeader.isIntra();
   m_uiCoeffCost       = 0;
-  
-  m_bAdaptFlag        = true;    // adaptive VLC table
 }
 
 TEncCavlc::~TEncCavlc()
@@ -135,29 +133,6 @@ Void TEncCavlc::resetEntropy()
   m_bRunLengthCoding = ! m_pcSlice->isIntra();
   m_uiRun = 0;
   
-  ::memcpy( m_uiIntraModeTableD17, g_auiIntraModeTableD17, 17*sizeof(UInt) );
-  ::memcpy( m_uiIntraModeTableE17, g_auiIntraModeTableE17, 17*sizeof(UInt) );
-  ::memcpy( m_uiIntraModeTableD34, g_auiIntraModeTableD34, 34*sizeof(UInt) );
-  ::memcpy( m_uiIntraModeTableE34, g_auiIntraModeTableE34, 34*sizeof(UInt) );
-  
-  ::memcpy(m_uiCBP_YUV_TableE, g_auiCBP_YUV_TableE, 4*8*sizeof(UInt));
-  ::memcpy(m_uiCBP_YUV_TableD, g_auiCBP_YUV_TableD, 4*8*sizeof(UInt));
-  ::memcpy(m_uiCBP_YS_TableE,  g_auiCBP_YS_TableE,  2*4*sizeof(UInt));
-  ::memcpy(m_uiCBP_YS_TableD,  g_auiCBP_YS_TableD,  2*4*sizeof(UInt));
-  ::memcpy(m_uiCBP_YCS_TableE, g_auiCBP_YCS_TableE, 2*8*sizeof(UInt));
-  ::memcpy(m_uiCBP_YCS_TableD, g_auiCBP_YCS_TableD, 2*8*sizeof(UInt));
-  ::memcpy(m_uiCBP_4Y_TableE,  g_auiCBP_4Y_TableE,  2*15*sizeof(UInt));
-  ::memcpy(m_uiCBP_4Y_TableD,  g_auiCBP_4Y_TableD,  2*15*sizeof(UInt));
-  m_uiCBP_4Y_VlcIdx = 0;
-
-  ::memcpy(m_uiMI1TableE, g_auiComMI1TableE, 9*sizeof(UInt));
-  ::memcpy(m_uiMI1TableD, g_auiComMI1TableD, 9*sizeof(UInt));
-
-  ::memcpy(m_uiSplitTableE, g_auiInterModeTableE, 4*11*sizeof(UInt));
-  ::memcpy(m_uiSplitTableD, g_auiInterModeTableD, 4*11*sizeof(UInt));
-  
-  m_uiMITableVlcIdx = 0;  
-
   ::memset(m_ucCBP_YUV_TableCounter,   0,        4*4*sizeof(UChar));
   ::memset(m_ucCBP_4Y_TableCounter,    0,        2*2*sizeof(UChar));
   ::memset(m_ucCBP_YCS_TableCounter,   0,        2*4*sizeof(UChar));
