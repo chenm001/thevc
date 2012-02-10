@@ -210,10 +210,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("AdaptiveQpSelection,-aqps",   m_bUseAdaptQpSelect,           false, "AdaptiveQpSelection")
 #endif
 
-#if QP_ADAPTATION
   ("AdaptiveQP,-aq", m_bUseAdaptiveQP, false, "QP adaptation based on a psycho-visual model")
   ("MaxQPAdaptationRange,-aqr", m_iQPAdaptationRange, 6, "QP adaptation range")
-#endif
   ("dQPFile,m",     cfg_dQPFile, string(""), "dQP file name")
   ("RDOQ",          m_bUseRDOQ, true)
   ("TemporalLayerQPOffset_L0,-tq0", m_aiTLayerQPOffset[0], MAX_QP + 1, "QP offset of temporal layer 0")
@@ -430,9 +428,7 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iChromaQpOffset2nd < -12,   "Min. Chroma Qp Offset 2nd is -12" );
   xConfirmPara( m_iChromaQpOffset2nd >  12,   "Max. Chroma Qp Offset 2nd is  12" );
 
-#if QP_ADAPTATION
   xConfirmPara( m_iQPAdaptationRange <= 0,                                                  "QP Adaptation Range must be more than 0" );
-#endif
   xConfirmPara( m_iFrameToBeEncoded != 1 && m_iFrameToBeEncoded < 2*m_iGOPSize,              "Total Number of Frames to be encoded must be at least 2 * GOP size for the current Reference Picture Set settings");
   if (m_iDecodingRefreshType == 2)
   {
@@ -788,9 +784,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("Chroma Qp Offset             : %d\n", m_iChromaQpOffset   );
   printf("Chroma Qp Offset 2nd         : %d\n", m_iChromaQpOffset2nd);
 
-#if QP_ADAPTATION
   printf("QP adaptation                : %d (range=%d)\n", m_bUseAdaptiveQP, (m_bUseAdaptiveQP ? m_iQPAdaptationRange : 0) );
-#endif
   printf("GOP size                     : %d\n", m_iGOPSize );
   printf("Internal bit depth           : %d\n", m_uiInternalBitDepth );
   printf("PCM sample bit depth         : %d\n", m_uiPCMBitDepthLuma );

@@ -156,10 +156,8 @@ protected:
   Bool      m_bUseAdaptQpSelect;
 #endif
 
-#if QP_ADAPTATION
   Bool      m_bUseAdaptiveQP;
   Int       m_iQPAdaptationRange;
-#endif
   
   //====== Tool list ========
   Bool      m_bUseSBACRD;
@@ -313,10 +311,8 @@ public:
   Bool      getUseAdaptQpSelect             ()           { return   m_bUseAdaptQpSelect; }
 #endif
 
-#if QP_ADAPTATION
   Void      setUseAdaptiveQP                ( Bool  b )      { m_bUseAdaptiveQP = b; }
   Void      setQPAdaptationRange            ( Int   i )      { m_iQPAdaptationRange = i; }
-#endif
   
   //====== Sequence ========
   Int       getFrameRate                    ()      { return  m_iFrameRate; }
@@ -357,10 +353,8 @@ public:
   //==== Quality control ========
   Int       getMaxDeltaQP                   ()      { return  m_iMaxDeltaQP; }
   Int       getMaxCuDQPDepth                ()      { return  m_iMaxCuDQPDepth; }
-#if QP_ADAPTATION
   Bool      getUseAdaptiveQP                ()      { return  m_bUseAdaptiveQP; }
   Int       getQPAdaptationRange            ()      { return  m_iQPAdaptationRange; }
-#endif
   
   //==== Tool list ========
   Void      setUseSBACRD                    ( Bool  b )     { m_bUseSBACRD  = b; }

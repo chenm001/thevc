@@ -125,9 +125,7 @@ protected:
 #endif
   Void  xEncodeCU           ( TComDataCU*  pcCU, UInt uiAbsPartIdx,           UInt uiDepth        );
   
-#if QP_ADAPTATION
   Int   xComputeQP          ( TComDataCU* pcCU, UInt uiDepth );
-#endif
   Void  xCheckBestMode      ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth        );
 
   Void  xCheckRDCostAMVPSkip( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU                      );

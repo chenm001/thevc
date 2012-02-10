@@ -119,10 +119,7 @@
 
 #define FAST_UDI_USE_MPM 1
 
-#define QP_ADAPTATION                     1           ///< Enable TM5Step3-like QP adaptation in encoder (JCTVC-D308/E215)
-#if QP_ADAPTATION
 #define RDO_WITHOUT_DQP_BITS              0           ///< Disable counting dQP bits in RDO-based mode decision
-#endif
 
 #define FULL_NBIT 0 ///< When enabled, does not use g_uiBitIncrement anymore to support > 8 bit data
 

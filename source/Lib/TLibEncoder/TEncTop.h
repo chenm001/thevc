@@ -55,9 +55,7 @@
 #include "TEncSearch.h"
 #include "TEncAdaptiveLoopFilter.h"
 #include "TEncSampleAdaptiveOffset.h"
-#if QP_ADAPTATION
 #include "TEncPreanalyzer.h"
-#endif
 
 //! \ingroup TLibEncoder
 //! \{
@@ -122,10 +120,8 @@ private:
   TEncBinCABAC****        m_ppppcBinCodersCABAC;           ///< temporal CABAC state storage for RD computation per substream
   TEncBinCABAC*           m_pcRDGoOnBinCodersCABAC;        ///< going on bin coder CABAC for RD stage per substream
 
-#if QP_ADAPTATION
   // quality control
   TEncPreanalyzer         m_cPreanalyzer;                 ///< image characteristics analyzer for TM5-step3-like adaptive QP
-#endif
 
   TComScalingList         m_scalingList;                 ///< quantization matrix information
 protected:

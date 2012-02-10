@@ -40,11 +40,9 @@
 #include "TEncCu.h"
 #include "TEncAnalyze.h"
 
-#if QP_ADAPTATION
 #include <cmath>
 #include <algorithm>
 using namespace std;
-#endif
 
 //! \ingroup TLibEncoder
 //! \{
@@ -414,11 +412,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   UInt uiTPelY   = rpcBestCU->getCUPelY();
   UInt uiBPelY   = uiTPelY + rpcBestCU->getHeight(0) - 1;
 
-#if QP_ADAPTATION
   Int iBaseQP = xComputeQP( rpcBestCU, uiDepth );
-#else
-  Int iBaseQP = rpcBestCU->getSlice()->getSliceQp();
-#endif
   Int iMinQP;
   Int iMaxQP;
 
@@ -1032,7 +1026,6 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   }
 }
 
-#if QP_ADAPTATION
 /** Compute QP for each CU
  * \param pcCU Target CU
  * \param uiDepth CU depth
@@ -1061,7 +1054,6 @@ Int TEncCu::xComputeQP( TComDataCU* pcCU, UInt uiDepth )
   }
   return Clip3( MIN_QP, MAX_QP, iBaseQp+iQpOffset );
 }
-#endif
 
 /** encode a CU block recursively
  * \param pcCU
