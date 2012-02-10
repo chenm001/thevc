@@ -143,8 +143,6 @@ public:
   
   Void  resetEntropy          ();
 
-  UInt* GetLP4Table();
-  UInt* GetLastPosVlcIndexTable();
   Void  setBitstream          ( TComBitIf* p )  { m_pcBitIf = p;  }
   Void  setSlice              ( TComSlice* p )  { m_pcSlice = p;  }
   Bool getAlfCtrl() {return m_bAlfCtrl;}

@@ -306,8 +306,6 @@ Void TEncTop::init()
   
   // initialize transform & quantization class
   m_pcCavlcCoder = getCavlcCoder();
-  aTable4 = m_pcCavlcCoder->GetLP4Table();
-  aTableLastPosVlcIndex=m_pcCavlcCoder->GetLastPosVlcIndexTable();
   
   m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize,
                   0,

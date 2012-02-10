@@ -142,9 +142,6 @@ Void TEncCavlc::resetEntropy()
 {
   m_bRunLengthCoding = ! m_pcSlice->isIntra();
   m_uiRun = 0;
-  ::memcpy(m_uiLPTableE4, g_auiLPTableE4, 3*32*sizeof(UInt));
-  ::memcpy(m_uiLPTableD4, g_auiLPTableD4, 3*32*sizeof(UInt));
-  ::memcpy(m_uiLastPosVlcIndex, g_auiLastPosVlcIndex, 10*sizeof(UInt));
   
   ::memcpy( m_uiIntraModeTableD17, g_auiIntraModeTableD17, 17*sizeof(UInt) );
   ::memcpy( m_uiIntraModeTableE17, g_auiIntraModeTableE17, 17*sizeof(UInt) );
@@ -183,16 +180,6 @@ Void TEncCavlc::resetEntropy()
   m_ucCBP_YS_TableCounterSum[0] = m_ucCBP_YS_TableCounterSum[1] = 0;
   m_ucSplitTableCounterSum[0] = m_ucSplitTableCounterSum[1] = m_ucSplitTableCounterSum[2]= m_ucSplitTableCounterSum[3] = 0;
   m_ucMI1TableCounterSum = 0;
-}
-
-UInt* TEncCavlc::GetLP4Table()
-{   
-  return &m_uiLPTableE4[0][0];
-}
-
-UInt* TEncCavlc::GetLastPosVlcIndexTable()
-{   
-  return &m_uiLastPosVlcIndex[0];
 }
 
 /**
