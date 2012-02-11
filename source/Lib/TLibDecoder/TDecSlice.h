@@ -82,6 +82,29 @@ public:
   Void  decompressSlice   ( TComInputBitstream* pcBitstream, TComInputBitstream** ppcSubstreams,   TComPic*& rpcPic, TDecSbac* pcSbacDecoder, TDecSbac* pcSbacDecoders );
 };
 
+
+class ParameterSetManagerDecoder:public ParameterSetManager
+{
+public:
+  ParameterSetManagerDecoder();
+  virtual ~ParameterSetManagerDecoder();
+
+  Void     storePrefetchedSPS(TComSPS *sps)  { m_spsBuffer.storePS( sps->getSPSId(), sps); };
+  TComSPS* getPrefetchedSPS  (Int spsId);
+  Void     storePrefetchedPPS(TComPPS *pps)  { m_ppsBuffer.storePS( pps->getPPSId(), pps); };
+  TComPPS* getPrefetchedPPS  (Int ppsId);
+  Void     storePrefetchedAPS(TComAPS *aps)  { m_apsBuffer.storePS( aps->getAPSID(), aps); };
+  TComAPS* getPrefetchedAPS  (Int apsId);
+
+  Void     applyPrefetchedPS();
+
+private:
+  ParameterSetMap<TComSPS> m_spsBuffer; 
+  ParameterSetMap<TComPPS> m_ppsBuffer; 
+  ParameterSetMap<TComAPS> m_apsBuffer; 
+};
+
+
 //! \}
 
 #endif

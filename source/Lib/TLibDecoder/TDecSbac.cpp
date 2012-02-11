@@ -48,8 +48,10 @@ TDecSbac::TDecSbac()
 // new structure here
 : m_pcBitstream               ( 0 )
 , m_pcTDecBinIf               ( NULL )
+#if !PARAMSET_VLC_CLEANUP
 , m_bAlfCtrl                  ( false )
 , m_uiMaxAlfCtrlDepth         ( 0 )
+#endif
 , m_numContextModels          ( 0 )
 , m_cCUSplitFlagSCModel       ( 1,             1,               NUM_SPLIT_FLAG_CTX            , m_contextModels + m_numContextModels, m_numContextModels )
 , m_cCUSkipFlagSCModel        ( 1,             1,               NUM_SKIP_FLAG_CTX             , m_contextModels + m_numContextModels, m_numContextModels)
@@ -419,13 +421,14 @@ Void TDecSbac::parseIPCMInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   }
 }
 
+#if !PARAMSET_VLC_CLEANUP
 Void TDecSbac::parseAlfCtrlDepth( UInt& ruiAlfCtrlDepth )
 {
   UInt uiSymbol;
   xReadUnaryMaxSymbol( uiSymbol, m_cALFUvlcSCModel.get( 0 ), 1, g_uiMaxCUDepth - 1 );
   ruiAlfCtrlDepth = uiSymbol;
 }
-
+#endif
 
 /** parse skip flag
  * \param pcCU
@@ -1275,6 +1278,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   return;
 }
 
+#if !PARAMSET_VLC_CLEANUP
 Void TDecSbac::parseAlfFlag (UInt& ruiVal)
 {
   UInt uiSymbol;
@@ -1423,6 +1427,7 @@ Void TDecSbac::parseSaoSvlc (Int&  riVal)
 
   riVal = i*iSign;
 }
+#endif
 
 /**
  - Initialize our contexts from the nominated source.

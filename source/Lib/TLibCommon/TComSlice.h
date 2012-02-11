@@ -39,6 +39,7 @@
 #define __TCOMSLICE__
 
 #include <cstring>
+#include <map>
 #include "CommonDef.h"
 #include "TComRom.h"
 #include "TComList.h"
@@ -647,12 +648,15 @@ public:
   Void      setLoopFilterTcOffset(Int val)      {m_loopFilterTcOffsetDiv2 = val; }      //!< set tc offset for deblocking filter
   Int       getLoopFilterTcOffset()             {return m_loopFilterTcOffsetDiv2; }     //!< get tc offset for deblocking filter
 
+#if !PARAMSET_VLC_CLEANUP
   Void      setCABACForAPS(Bool bVal) {m_bCABACForAPS = bVal;    }  //!< set CABAC enabled/disabled in APS
   Bool      getCABACForAPS()          {return m_bCABACForAPS;    }  //!< get CABAC enabled/disabled in APS
   Void      setCABACinitIDC(Int iVal) {m_CABACinitIDC = iVal;    }  //!< set CABAC initial IDC number for APS coding
   Int       getCABACinitIDC()         {return m_CABACinitIDC;    }  //!< get CABAC initial IDC number for APS coding
   Void      setCABACinitQP(Int iVal)  {m_CABACinitQP = iVal;     }  //!< set CABAC initial QP value for APS coding
   Int       getCABACinitQP()          {return m_CABACinitQP;     }  //!< get CABAC initial QP value for APS coding
+#endif
+
   Void      createScalingList();
   Void      destroyScalingList();
   Void      setScalingListEnabled (Bool bVal) { m_scalingListEnabled = bVal; }  //!< set ScalingList enabled/disabled in APS
@@ -669,9 +673,11 @@ private:
   Bool        m_loopFilterDisable;           //< Deblocking filter enabled/disabled in APS
   Int         m_loopFilterBetaOffsetDiv2;    //< beta offset for deblocking filter
   Int         m_loopFilterTcOffsetDiv2;      //< tc offset for deblocking filter
+#if !PARAMSET_VLC_CLEANUP
   Bool        m_bCABACForAPS; //!< CABAC coding enabled/disabled for APS (true for enabling CABAC)
   Int         m_CABACinitIDC; //!< CABAC initial IDC number for APS coding
   Int         m_CABACinitQP;  //!< CABAC initial QP value for APS coding
+#endif
   Bool        m_scalingListEnabled;     //!< ScalingList enabled/disabled in APS (true for enabled)
   TComScalingList*     m_scalingList;   //!< ScalingList class pointer
 
@@ -807,6 +813,10 @@ public:
   virtual ~TComSlice();
   
   Void      initSlice       ();
+#if PARAMSET_VLC_CLEANUP
+  Void      initTiles();
+#endif
+
   
   Void      setSPS          ( TComSPS* pcSPS ) { m_pcSPS = pcSPS; }
   TComSPS*  getSPS          () { return m_pcSPS; }
@@ -1026,6 +1036,90 @@ protected:
   TComPic*  xGetLongTermRefPic  (TComList<TComPic*>& rcListPic,
                          UInt                uiPOC);
 };// END CLASS DEFINITION TComSlice
+
+
+#if PARAMSET_VLC_CLEANUP
+
+template <class T> class ParameterSetMap
+{
+public:
+  ParameterSetMap(Int maxId)
+  :m_maxId (maxId)
+  {}
+
+  ~ParameterSetMap()
+  {
+    for (std::map<Int,T *>::iterator i = m_paramsetMap.begin(); i!= m_paramsetMap.end(); i++)
+    {
+      delete (*i).second;
+    }
+  }
+
+  Void storePS(Int psId, T *ps)
+  {
+    assert ( psId < m_maxId );
+    if ( m_paramsetMap.find(psId) != m_paramsetMap.end() )
+    {
+      delete m_paramsetMap[psId];
+    }
+    m_paramsetMap[psId] = ps; 
+  }
+
+  Void mergePSList(ParameterSetMap<T> &rPsList)
+  {
+    for (std::map<Int,T *>::iterator i = rPsList.m_paramsetMap.begin(); i!= rPsList.m_paramsetMap.end(); i++)
+    {
+      storePS(i->first, i->second);
+    }
+    rPsList.m_paramsetMap.clear();
+  }
+
+
+  T* getPS(Int psId)
+  {
+    return ( m_paramsetMap.find(psId) == m_paramsetMap.end() ) ? NULL : m_paramsetMap[psId];
+  }
+
+  T* getFirstPS()
+  {
+    return (m_paramsetMap.begin() == m_paramsetMap.end() ) ? NULL : m_paramsetMap.begin()->second;
+  }
+
+private:
+  std::map<Int,T *> m_paramsetMap;
+  Int               m_maxId;
+};
+
+class ParameterSetManager
+{
+public:
+  ParameterSetManager();
+  virtual ~ParameterSetManager();
+
+  //! store sequence parameter set and take ownership of it 
+  Void storeSPS(TComSPS *sps) { m_spsMap.storePS( sps->getSPSId(), sps); };
+  //! get pointer to existing sequence parameter set  
+  TComSPS* getSPS(Int spsId)  { return m_spsMap.getPS(spsId); };
+  TComSPS* getFirstSPS()      { return m_spsMap.getFirstPS(); };
+
+  //! store picture parameter set and take ownership of it 
+  Void storePPS(TComPPS *pps) { m_ppsMap.storePS( pps->getPPSId(), pps); };
+  //! get pointer to existing picture parameter set  
+  TComPPS* getPPS(Int ppsId)  { return m_ppsMap.getPS(ppsId); };
+  TComPPS* getFirstPPS()      { return m_ppsMap.getFirstPS(); };
+
+  //! store adaptation parameter set and take ownership of it 
+  Void storeAPS(TComAPS *aps) { m_apsMap.storePS( aps->getAPSID(), aps); };
+  //! getPointer to existing adaptation parameter set  
+  TComAPS* getAPS(Int apsId)  { return m_apsMap.getPS(apsId); };
+
+protected:
+  ParameterSetMap<TComSPS> m_spsMap; 
+  ParameterSetMap<TComPPS> m_ppsMap; 
+  ParameterSetMap<TComAPS> m_apsMap; 
+};
+
+#endif
 
 //! \}
 

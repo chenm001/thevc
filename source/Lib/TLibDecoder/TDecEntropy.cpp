@@ -48,6 +48,7 @@ Void TDecEntropy::setEntropyDecoder         ( TDecEntropyIf* p )
 #include "TLibCommon/TComAdaptiveLoopFilter.h"
 #include "TLibCommon/TComSampleAdaptiveOffset.h"
 
+#if !PARAMSET_VLC_CLEANUP
 Void TDecEntropy::decodeAux(ALFParam* pAlfParam)
 {
   UInt uiSymbol;
@@ -85,7 +86,9 @@ Void TDecEntropy::decodeAux(ALFParam* pAlfParam)
     }
   }
 }
+#endif
 
+#if !PARAMSET_VLC_CLEANUP
 Void TDecEntropy::readFilterCodingParams(ALFParam* pAlfParam)
 {
   UInt uiSymbol;
@@ -263,6 +266,7 @@ Void TDecEntropy::decodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic)
     m_pcEntropyDecoderIf->parseAlfCtrlFlag( cAlfParam.alf_cu_flag[i] );
   }
 }
+#endif
 
 Void TDecEntropy::decodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
@@ -919,6 +923,7 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   xDecodeCoeff( pcCU, uiLumaOffset, uiChromaOffset, uiAbsPartIdx, uiDepth, uiWidth, uiHeight, 0, uiLumaTrMode, bCodeDQP );
 }
 
+#if !PARAMSET_VLC_CLEANUP
 /** Decode SAO for one partition
  * \param  pSaoParam, iPartIdx
  */
@@ -1048,4 +1053,5 @@ Void TDecEntropy::decodeDFParams(TComAPS *pcAPS)
   }
 }
 
+#endif
 //! \}

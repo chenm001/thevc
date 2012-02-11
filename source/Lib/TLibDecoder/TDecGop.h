@@ -107,8 +107,11 @@ public:
   Void  setGopSize( Int i) { m_iGopSize = i; }
 
   void setPictureDigestEnabled(bool enabled) { m_pictureDigestEnabled = enabled; }
+#if !PARAMSET_VLC_CLEANUP
   Void decodeAlfOnOffCtrlParam() { m_pcEntropyDecoder->decodeAlfCtrlParam( m_cAlfCUCtrlOneSlice, m_pcAdaptiveLoopFilter->getNumCUsInPic());}
-
+#else
+  AlfCUCtrlInfo& getAlfCuCtrlParam() { return m_cAlfCUCtrlOneSlice; }
+#endif
 };
 
 //! \}

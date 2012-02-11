@@ -240,7 +240,11 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
   {
     TComPic* pcPic = *(iterPic);
     
+#if PARAMSET_VLC_CLEANUP
+    if ( pcPic->getOutputMark() && (not_displayed >  pcPic->getSlice(0)->getSPS()->getNumReorderFrames() && pcPic->getPOC() > m_iPOCLastDisplay))
+#else
     if ( pcPic->getOutputMark() && (not_displayed >  m_cTDecTop.getSPS()->getNumReorderFrames() && pcPic->getPOC() > m_iPOCLastDisplay))
+#endif
     {
       // write to file
        not_displayed--;

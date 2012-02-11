@@ -155,6 +155,7 @@ Void TComSlice::initSlice()
 
   m_bFinalized=false;
 
+#if !PARAMSET_VLC_CLEANUP
   Int iWidth             = m_pcSPS->getWidth();
   Int iHeight            = m_pcSPS->getHeight();
   UInt uiWidthInCU       = ( iWidth %g_uiMaxCUWidth  ) ? iWidth /g_uiMaxCUWidth  + 1 : iWidth /g_uiMaxCUWidth;
@@ -163,7 +164,24 @@ Void TComSlice::initSlice()
 
   m_uiTileCount          = 0;
   if (m_uiTileByteLocation==NULL) m_uiTileByteLocation   = new UInt[uiNumCUsInFrame];
+#else
+  m_uiTileCount          = 0;
+#endif
 }
+
+#if PARAMSET_VLC_CLEANUP
+Void TComSlice::initTiles()
+{
+  Int iWidth             = m_pcSPS->getWidth();
+  Int iHeight            = m_pcSPS->getHeight();
+  UInt uiWidthInCU       = ( iWidth %g_uiMaxCUWidth  ) ? iWidth /g_uiMaxCUWidth  + 1 : iWidth /g_uiMaxCUWidth;
+  UInt uiHeightInCU      = ( iHeight%g_uiMaxCUHeight ) ? iHeight/g_uiMaxCUHeight + 1 : iHeight/g_uiMaxCUHeight;
+  UInt uiNumCUsInFrame   = uiWidthInCU * uiHeightInCU;
+
+  if (m_uiTileByteLocation==NULL) m_uiTileByteLocation   = new UInt[uiNumCUsInFrame];
+}
+#endif
+
 
 /**
  - allocate table to contain substream sizes to be written to the slice header.
@@ -1426,9 +1444,11 @@ TComAPS::TComAPS()
   m_bSaoEnabled = false;
   m_pSaoParam = NULL;
   m_pAlfParam = NULL;
+#if !PARAMSET_VLC_CLEANUP
   m_bCABACForAPS = false;
   m_CABACinitIDC = -1;
   m_CABACinitQP = -1;
+#endif
   m_scalingList = NULL;
   m_scalingListEnabled = false;
 }
@@ -1449,9 +1469,11 @@ TComAPS& TComAPS::operator= (const TComAPS& src)
   m_bSaoEnabled = src.m_bSaoEnabled;
   m_pSaoParam   = src.m_pSaoParam; 
   m_pAlfParam   = src.m_pAlfParam; 
+#if !PARAMSET_VLC_CLEANUP
   m_bCABACForAPS= src.m_bCABACForAPS;
   m_CABACinitIDC= src.m_CABACinitIDC;
   m_CABACinitQP = src.m_CABACinitQP;
+#endif
   m_scalingList = src.m_scalingList;
   m_scalingListEnabled = src.m_scalingListEnabled;
 
@@ -1955,5 +1977,21 @@ Void TComScalingList::destroy()
     if(m_scalingList32x32_Org[listId]) delete [] m_scalingList32x32_Org[listId];
   }
 }
+
+#if PARAMSET_VLC_CLEANUP
+
+ParameterSetManager::ParameterSetManager()
+: m_spsMap(MAX_NUM_SPS)
+, m_ppsMap(MAX_NUM_PPS)
+, m_apsMap(MAX_NUM_APS)
+{
+}
+
+
+ParameterSetManager::~ParameterSetManager()
+{
+}
+
+#endif
 
 //! \}

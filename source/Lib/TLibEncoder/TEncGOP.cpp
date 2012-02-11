@@ -1288,6 +1288,7 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
   cAPS.setLoopFilterBetaOffset(m_pcCfg->getLoopFilterBetaOffset());
   cAPS.setLoopFilterTcOffset(m_pcCfg->getLoopFilterTcOffset());
 
+#if !PARAMSET_VLC_CLEANUP
   if(cAPS.getSaoEnabled() || cAPS.getAlfEnabled())
   {
     cAPS.setCABACForAPS( true );
@@ -1297,6 +1298,8 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
       cAPS.setCABACinitQP(pcSlice->getSliceQp());
     }
   }
+#endif
+
   //assign new APS into APS container
   Int apsBufSize= (Int)vAPS.size();
 

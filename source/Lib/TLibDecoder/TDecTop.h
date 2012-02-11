@@ -75,10 +75,14 @@ private:
 
   UInt                    m_uiValidPS;
   TComList<TComPic*>      m_cListPic;         //  Dynamic buffer
+#if PARAMSET_VLC_CLEANUP
+  ParameterSetManagerDecoder m_parameterSetManagerDecoder;  // storage for parameter sets 
+#else
   TComSPS                 m_cSPS;
 
   TComPPS                 m_cPPS;               //!< PPS
   std::vector<std::vector<TComAPS> >   m_vAPS;  //!< APS container
+#endif
   TComRPS                 m_cRPSList;
   TComSlice*              m_apcSlicePilot;
   
@@ -119,7 +123,9 @@ public:
   Void  init();
   Bool  decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay);
   
+#if !PARAMSET_VLC_CLEANUP
   TComSPS *getSPS() { return (m_uiValidPS & 1) ? &m_cSPS : NULL; }
+#endif
   
   Void  deletePicBuffer();
 
@@ -130,12 +136,24 @@ protected:
   Void  xUpdateGopSize    (TComSlice* pcSlice);
   Void  xCreateLostPicture (Int iLostPOC);
 
+#if PARAMSET_VLC_CLEANUP
+  Void      decodeAPS( TComAPS* cAPS) { m_cEntropyDecoder.decodeAPS(cAPS); };
+  Void      xActivateParameterSets();
+  Bool      xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDisplay);
+  Void      xDecodeSPS();
+  Void      xDecodePPS();
+  Void      xDecodeAPS();
+  Void      xDecodeSEI();
+
+#else
   Void      decodeAPS(TComInputBitstream* bs, TComAPS& cAPS); //!< decode process for APS
   TComAPS*  popAPS   (UInt apsID);  //!< pop APS parameter object pointer with APS ID equal to apsID
   Void      pushAPS  (TComAPS& cAPS); //!< push APS object into APS container
+#endif
   Void      allocAPS (TComAPS* pAPS); //!< memory allocation for APS
+#if !PARAMSET_VLC_CLEANUP
   Void      freeAPS  (TComAPS* pAPS); //!< memory deallocation for APS
-
+#endif
 };// END CLASS DEFINITION TDecTop
 
 

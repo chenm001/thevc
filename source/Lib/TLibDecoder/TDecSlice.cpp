@@ -340,4 +340,61 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
   }
 
 }
+
+ParameterSetManagerDecoder::ParameterSetManagerDecoder()
+: m_spsBuffer(256)
+, m_ppsBuffer(16)
+, m_apsBuffer(64)
+{
+
+}
+
+ParameterSetManagerDecoder::~ParameterSetManagerDecoder()
+{
+
+}
+
+TComSPS* ParameterSetManagerDecoder::getPrefetchedSPS  (Int spsId)
+{
+  if (m_spsBuffer.getPS(spsId) != NULL )
+  {
+    return m_spsBuffer.getPS(spsId);
+  }
+  else
+  {
+    return getSPS(spsId);
+  }
+}
+
+TComPPS* ParameterSetManagerDecoder::getPrefetchedPPS  (Int ppsId)
+{
+  if (m_ppsBuffer.getPS(ppsId) != NULL )
+  {
+    return m_ppsBuffer.getPS(ppsId);
+  }
+  else
+  {
+    return getPPS(ppsId);
+  }
+}
+
+TComAPS* ParameterSetManagerDecoder::getPrefetchedAPS  (Int apsId)
+{
+  if (m_apsBuffer.getPS(apsId) != NULL )
+  {
+    return m_apsBuffer.getPS(apsId);
+  }
+  else
+  {
+    return getAPS(apsId);
+  }
+}
+
+Void     ParameterSetManagerDecoder::applyPrefetchedPS()
+{
+  m_apsMap.mergePSList(m_apsBuffer);
+  m_ppsMap.mergePSList(m_ppsBuffer);
+  m_spsMap.mergePSList(m_spsBuffer);
+}
+
 //! \}

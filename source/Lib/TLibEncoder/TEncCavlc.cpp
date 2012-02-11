@@ -416,7 +416,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 
   WRITE_FLAG( pcSPS->getTemporalIdNestingFlag() ? 1 : 0,                             "temporal_id_nesting_flag" );
 
-  // !!!KS: Syntax not in WD !!!
+  //!!!KS: Syntax not in WD !!!
   
   xWriteUvlc  ( pcSPS->getPad (0) );
   xWriteUvlc  ( pcSPS->getPad (1) );
@@ -808,7 +808,11 @@ Void TEncCavlc::codeAlfCtrlDepth()
   
   UInt uiDepth = m_uiMaxAlfCtrlDepth;
   
+#if !PARAMSET_VLC_CLEANUP
   xWriteUnaryMaxSymbol(uiDepth, g_uiMaxCUDepth-1);
+#else
+  xWriteUvlc(uiDepth);
+#endif
 }
 
 Void TEncCavlc::codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiEncMode )
