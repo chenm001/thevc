@@ -151,9 +151,6 @@ template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min
 // Coding tool configuration
 // ====================================================================================================================
 
-// modified LCEC coefficient coding
-#define MAX_TR1                           4
-
 // AMVP: advanced motion vector prediction
 #define AMVP_MAX_NUM_CANDS          2           ///< max number of final candidates
 #define AMVP_MAX_NUM_CANDS_MEM      3           ///< max number of candidates
