@@ -99,8 +99,6 @@
 #define IBDI_DISTORTION                0           ///< enable/disable SSE modification when IBDI is used (JCTVC-D152)
 #define FIXED_ROUNDING_FRAME_MEMORY    0           ///< enable/disable fixed rounding to 8-bitdepth of frame memory when IBDI is used  
 
-#define MS_LCEC_UNI_EXCEPTION_THRES     1           // for GPB case, uni-prediction, > MS_LCEC_UNI_EXCEPTION_THRES is exception
-
 #define WRITE_BACK                      1           ///< Enable/disable the encoder to replace the deltaPOC and Used by current from the config file with the values derived by the refIdc parameter.
 #define PRINT_RPS_INFO                  0           ///< Enable/disable the printing of bits used to send the RPS.
                                                     // using one nearest frame as reference frame, and the other frames are high quality (POC%4==0) frames (1+X)
@@ -200,12 +198,10 @@ typedef       Int             TCoeff;     ///< transform coefficient
 class TComPicSym;
 
 #define NUM_DOWN_PART 4
-#define NUM_MAX_OFFSET  32
 
 enum SAOTypeLen
 {
   SAO_EO_LEN    = 4, 
-  SAO_EO_LEN_2D = 6, 
   SAO_BO_LEN    = 16
 };
 
@@ -290,13 +286,6 @@ typedef struct _LFCUParam
   Bool bLeftEdge;                         ///< indicates left edge
   Bool bTopEdge;                          ///< indicates top edge
 } LFCUParam;
-
-/// parapeters for TENTM coefficient VLC
-typedef struct _LastCoeffStruct
-{
-  int level;
-  int last_pos;
-} LastCoeffStruct;
 
 // ====================================================================================================================
 // Enumeration
