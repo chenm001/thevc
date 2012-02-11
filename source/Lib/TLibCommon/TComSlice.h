@@ -1049,7 +1049,7 @@ public:
 
   ~ParameterSetMap()
   {
-    for (std::map<Int,T *>::iterator i = m_paramsetMap.begin(); i!= m_paramsetMap.end(); i++)
+    for (typename std::map<Int,T *>::iterator i = m_paramsetMap.begin(); i!= m_paramsetMap.end(); i++)
     {
       delete (*i).second;
     }
@@ -1067,7 +1067,7 @@ public:
 
   Void mergePSList(ParameterSetMap<T> &rPsList)
   {
-    for (std::map<Int,T *>::iterator i = rPsList.m_paramsetMap.begin(); i!= rPsList.m_paramsetMap.end(); i++)
+    for (typename std::map<Int,T *>::iterator i = rPsList.m_paramsetMap.begin(); i!= rPsList.m_paramsetMap.end(); i++)
     {
       storePS(i->first, i->second);
     }

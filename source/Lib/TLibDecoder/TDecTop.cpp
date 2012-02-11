@@ -749,7 +749,6 @@ Void TDecTop::xDecodeSEI()
 
 Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 {
-  TComPic*&   pcPic         = m_pcPic;
   // Initialize entropy decoder
   m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
   m_cEntropyDecoder.setBitstream      (nalu.m_Bitstream);

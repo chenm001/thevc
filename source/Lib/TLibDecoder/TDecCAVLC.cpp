@@ -477,8 +477,6 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
   {
     READ_UVLC (uiSymbol, "alf_length_chroma_minus_5_div2");
 
-    Int sqrFiltLengthTab[2] = { 9, 9};
-
     pAlfParam->filter_shape_chroma = uiSymbol;
     pAlfParam->num_coeff_chroma = sqrFiltLengthTab[pAlfParam->filter_shape_chroma];
     // filter coefficients for chroma
