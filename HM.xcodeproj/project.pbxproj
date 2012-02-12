@@ -51,8 +51,6 @@
 		676795DD11AD61FC00421804 /* TComPicSym.h in Headers */ = {isa = PBXBuildFile; fileRef = 676795B211AD61FC00421804 /* TComPicSym.h */; };
 		676795DE11AD61FC00421804 /* TComPicYuv.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676795B311AD61FC00421804 /* TComPicYuv.cpp */; };
 		676795DF11AD61FC00421804 /* TComPicYuv.h in Headers */ = {isa = PBXBuildFile; fileRef = 676795B411AD61FC00421804 /* TComPicYuv.h */; };
-		676795E011AD61FC00421804 /* TComPredFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676795B511AD61FC00421804 /* TComPredFilter.cpp */; };
-		676795E111AD61FC00421804 /* TComPredFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = 676795B611AD61FC00421804 /* TComPredFilter.h */; };
 		676795E211AD61FC00421804 /* TComPrediction.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676795B711AD61FC00421804 /* TComPrediction.cpp */; };
 		676795E311AD61FC00421804 /* TComPrediction.h in Headers */ = {isa = PBXBuildFile; fileRef = 676795B811AD61FC00421804 /* TComPrediction.h */; };
 		676795E411AD61FC00421804 /* TComRdCost.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 676795B911AD61FC00421804 /* TComRdCost.cpp */; };
@@ -253,8 +251,6 @@
 		676795B211AD61FC00421804 /* TComPicSym.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComPicSym.h; path = source/Lib/TLibCommon/TComPicSym.h; sourceTree = "<group>"; };
 		676795B311AD61FC00421804 /* TComPicYuv.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComPicYuv.cpp; path = source/Lib/TLibCommon/TComPicYuv.cpp; sourceTree = "<group>"; };
 		676795B411AD61FC00421804 /* TComPicYuv.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComPicYuv.h; path = source/Lib/TLibCommon/TComPicYuv.h; sourceTree = "<group>"; };
-		676795B511AD61FC00421804 /* TComPredFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComPredFilter.cpp; path = source/Lib/TLibCommon/TComPredFilter.cpp; sourceTree = "<group>"; };
-		676795B611AD61FC00421804 /* TComPredFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComPredFilter.h; path = source/Lib/TLibCommon/TComPredFilter.h; sourceTree = "<group>"; };
 		676795B711AD61FC00421804 /* TComPrediction.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComPrediction.cpp; path = source/Lib/TLibCommon/TComPrediction.cpp; sourceTree = "<group>"; };
 		676795B811AD61FC00421804 /* TComPrediction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComPrediction.h; path = source/Lib/TLibCommon/TComPrediction.h; sourceTree = "<group>"; };
 		676795B911AD61FC00421804 /* TComRdCost.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComRdCost.cpp; path = source/Lib/TLibCommon/TComRdCost.cpp; sourceTree = "<group>"; };
@@ -491,8 +487,6 @@
 				676795B211AD61FC00421804 /* TComPicSym.h */,
 				676795B311AD61FC00421804 /* TComPicYuv.cpp */,
 				676795B411AD61FC00421804 /* TComPicYuv.h */,
-				676795B511AD61FC00421804 /* TComPredFilter.cpp */,
-				676795B611AD61FC00421804 /* TComPredFilter.h */,
 				676795B711AD61FC00421804 /* TComPrediction.cpp */,
 				676795B811AD61FC00421804 /* TComPrediction.h */,
 				676795B911AD61FC00421804 /* TComRdCost.cpp */,
@@ -661,7 +655,6 @@
 				676795DB11AD61FC00421804 /* TComPic.h in Headers */,
 				676795DD11AD61FC00421804 /* TComPicSym.h in Headers */,
 				676795DF11AD61FC00421804 /* TComPicYuv.h in Headers */,
-				676795E111AD61FC00421804 /* TComPredFilter.h in Headers */,
 				676795E311AD61FC00421804 /* TComPrediction.h in Headers */,
 				676795E511AD61FC00421804 /* TComRdCost.h in Headers */,
 				676795E711AD61FC00421804 /* TComRom.h in Headers */,
@@ -924,7 +917,6 @@
 				676795DA11AD61FC00421804 /* TComPic.cpp in Sources */,
 				676795DC11AD61FC00421804 /* TComPicSym.cpp in Sources */,
 				676795DE11AD61FC00421804 /* TComPicYuv.cpp in Sources */,
-				676795E011AD61FC00421804 /* TComPredFilter.cpp in Sources */,
 				676795E211AD61FC00421804 /* TComPrediction.cpp in Sources */,
 				676795E411AD61FC00421804 /* TComRdCost.cpp in Sources */,
 				676795E611AD61FC00421804 /* TComRom.cpp in Sources */,

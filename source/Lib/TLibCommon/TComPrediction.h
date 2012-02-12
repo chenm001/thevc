@@ -45,9 +45,7 @@
 #include "TComPattern.h"
 #include "TComTrQuant.h"
 #include "TComInterpolationFilter.h"
-#if WEIGHT_PRED
-  #include "TComWeightPrediction.h"
-#endif
+#include "TComWeightPrediction.h"
 
 //! \ingroup TLibCommon
 //! \{
@@ -57,11 +55,7 @@
 // ====================================================================================================================
 
 /// prediction class
-#if WEIGHT_PRED
 class TComPrediction : public TComWeightPrediction
-#else
-class TComPrediction
-#endif
 {
 protected:
   Int*      m_piYuvExt;
@@ -79,11 +73,7 @@ protected:
   Int    m_iLumaRecStride;       ///< stride of #m_pLumaRecBuffer array
   UInt   m_uiaShift[ 63 ];       // Table for multiplication to substitue of division operation
 
-#if VER_HOR_FILTER
   Void xPredIntraAng            ( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, UInt dirMode, Bool blkAboveAvailable, Bool blkLeftAvailable, Bool bFilter );
-#else
-  Void xPredIntraAng            ( Int* pSrc, Int srcStride, Pel*& rpDst, Int dstStride, UInt width, UInt height, UInt dirMode, Bool blkAboveAvailable, Bool blkLeftAvailable );
-#endif
   Void xPredIntraPlanar         ( Int* pSrc, Int srcStride, Pel* rpDst, Int dstStride, UInt width, UInt height );
   
   // motion compensation functions
@@ -96,9 +86,7 @@ protected:
   Void xGetLLSPrediction ( TComPattern* pcPattern, Int* pSrc0, Int iSrcStride, Pel* pDst0, Int iDstStride, UInt uiWidth, UInt uiHeight, UInt uiExt0 );
 
   Void xDCPredFiltering( Int* pSrc, Int iSrcStride, Pel*& rpDst, Int iDstStride, Int iWidth, Int iHeight );
-#if UNI_BI_IDENTICAL_MOTION
   Bool xCheckIdenticalMotion    ( TComDataCU* pcCU, UInt PartAddr);
-#endif
 
 public:
   TComPrediction();

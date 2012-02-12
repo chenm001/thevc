@@ -54,18 +54,14 @@ TComOutputBitstream::TComOutputBitstream()
 {
   m_fifo = new vector<uint8_t>;
   clear();
-#if TILES_DECODER
   m_puiTileMarkerLocation     = new UInt[MAX_MARKER_PER_NALU];
   m_uiTileMarkerLocationCount = 0;
-#endif
 }
 
 TComOutputBitstream::~TComOutputBitstream()
 {
   delete m_fifo;
-#if TILES_DECODER
   delete [] m_puiTileMarkerLocation;
-#endif
 }
 
 TComInputBitstream::TComInputBitstream(std::vector<uint8_t>* buf)
@@ -74,18 +70,14 @@ TComInputBitstream::TComInputBitstream(std::vector<uint8_t>* buf)
   m_fifo_idx = 0;
   m_held_bits = 0;
   m_num_held_bits = 0;
-#if TILES_DECODER
   m_puiTileMarkerLocation     = new UInt[MAX_MARKER_PER_NALU];
   m_uiTileMarkerLocationCount = 0;
-#endif
 }
 
-#if TILES_DECODER
 TComInputBitstream::~TComInputBitstream()
 {
   delete [] m_puiTileMarkerLocation;
 }
-#endif
 
 // ====================================================================================================================
 // Public member functions
@@ -106,9 +98,7 @@ void TComOutputBitstream::clear()
   m_fifo->clear();
   m_held_bits = 0;
   m_num_held_bits = 0;
-#if TILES_DECODER
   m_uiTileMarkerLocationCount = 0;
-#endif
 }
 
 Void TComOutputBitstream::write   ( UInt uiBits, UInt uiNumberOfBits )
@@ -170,7 +160,6 @@ Void TComOutputBitstream::writeAlignZero()
   m_num_held_bits = 0;
 }
 
-#if OL_USE_WPP
 /**
  - add substream to the end of the current bitstream
  .
@@ -190,7 +179,6 @@ Void   TComOutputBitstream::addSubstream( TComOutputBitstream* pcSubstream )
     write(pcSubstream->getHeldBits()>>(8-(uiNumBits&0x7)), uiNumBits&0x7);
   }
 }
-#endif
 
 /**
  * read #uiNumberOfBits# from bitstream without updating the bitstream
@@ -288,7 +276,7 @@ void TComOutputBitstream::insertAt(const TComOutputBitstream& src, unsigned pos)
   vector<uint8_t>::iterator at = this->m_fifo->begin() + pos;
   this->m_fifo->insert(at, src.m_fifo->begin(), src.m_fifo->end());
 }
-#if TILES
+
 Void TComInputBitstream::readOutTrailingBits ()
 {
   UInt uiBits = 0;
@@ -298,7 +286,7 @@ Void TComInputBitstream::readOutTrailingBits ()
     read ( 1, uiBits );
   }
 }
-#if TILES_DECODER
+
 TComOutputBitstream& TComOutputBitstream::operator= (const TComOutputBitstream& src)
 {
   vector<uint8_t>::iterator at = this->m_fifo->begin();
@@ -314,10 +302,7 @@ TComOutputBitstream& TComOutputBitstream::operator= (const TComOutputBitstream& 
 
   return *this;
 }
-#endif
-#endif
 
-#if OL_USE_WPP
 /**
  - extract substream from the current bitstream
  .
@@ -355,6 +340,5 @@ Void TComInputBitstream::deleteFifo()
   delete m_fifo;
   m_fifo = NULL;
 }
-#endif
 
 //! \}

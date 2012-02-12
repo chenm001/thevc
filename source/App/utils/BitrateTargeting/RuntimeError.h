@@ -38,14 +38,17 @@
 #include <stdexcept>
 
 /// This class serves the same purpose as std::runtime_error, but it can be more convenient to use
-class RuntimeError: public std::runtime_error {
+class RuntimeError: public std::runtime_error
+{
   public:
     RuntimeError( ): std::runtime_error( "" ), m_firstWhat( true ) { }
     virtual ~RuntimeError( ) throw ( ) { }
     
     /// Implementation of the std::exception::what method
-    const char * what( ) const throw( ) {
-      if( m_firstWhat ) {
+    const char * what( ) const throw( )
+    {
+      if( m_firstWhat )
+      {
         std::ostringstream o;
         outputWhat( o );
         m_what = o.str( );
@@ -65,7 +68,8 @@ class RuntimeError: public std::runtime_error {
 };
 
 /// Convenient formatted output operator that just outputs the what string
-inline std::ostream& operator<<( std::ostream& left, const RuntimeError& right ) {
+inline std::ostream& operator<<( std::ostream& left, const RuntimeError& right )
+{
   return left << right.what( );
 }
 

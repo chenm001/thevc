@@ -125,11 +125,7 @@ Void TComCUMvField::copyTo( TComCUMvField* pcCUMvFieldDst, Int iPartAddrDst, UIn
 // --------------------------------------------------------------------------------------------------------------------
 
 template <typename T>
-#if AMP
 Void TComCUMvField::setAll( T *p, T const & val, PartSize eCUMode, Int iPartAddr, UInt uiDepth, Int iPartIdx  )
-#else
-Void TComCUMvField::setAll( T *p, T const & val, PartSize eCUMode, Int iPartAddr, UInt uiDepth )
-#endif
 {
   Int i;
   p += iPartAddr;
@@ -168,7 +164,6 @@ Void TComCUMvField::setAll( T *p, T const & val, PartSize eCUMode, Int iPartAddr
         p[ i ] = val;
       }
       break;
-#if AMP
     case SIZE_2NxnU:
     {
       Int iCurrPartNumQ = numElements>>2;
@@ -301,14 +296,12 @@ Void TComCUMvField::setAll( T *p, T const & val, PartSize eCUMode, Int iPartAddr
       }
       break;
     }
-#endif         
     default:
       assert(0);
       break;
   }
 }
 
-#if AMP
 Void TComCUMvField::setAllMv( TComMv const & mv, PartSize eCUMode, Int iPartAddr, UInt uiDepth, Int iPartIdx )
 {
   setAll(m_pcMv, mv, eCUMode, iPartAddr, uiDepth, iPartIdx);
@@ -329,30 +322,7 @@ Void TComCUMvField::setAllMvField( TComMvField const & mvField, PartSize eCUMode
   setAllMv    ( mvField.getMv(),     eCUMode, iPartAddr, uiDepth, iPartIdx );
   setAllRefIdx( mvField.getRefIdx(), eCUMode, iPartAddr, uiDepth, iPartIdx );
 }
-#else
-Void TComCUMvField::setAllMv( TComMv const & mv, PartSize eCUMode, Int iPartAddr, UInt uiDepth )
-{
-  setAll(m_pcMv, mv, eCUMode, iPartAddr, uiDepth);
-}
 
-Void TComCUMvField::setAllMvd( TComMv const & mvd, PartSize eCUMode, Int iPartAddr, UInt uiDepth )
-{
-  setAll(m_pcMvd, mvd, eCUMode, iPartAddr, uiDepth);
-}
-
-Void TComCUMvField::setAllRefIdx ( Int iRefIdx, PartSize eCUMode, Int iPartAddr, UInt uiDepth )
-{
-  setAll(m_piRefIdx, static_cast<Char>(iRefIdx), eCUMode, iPartAddr, uiDepth);
-}
-
-Void TComCUMvField::setAllMvField( TComMvField const & mvField, PartSize eCUMode, Int iPartAddr, UInt uiDepth )
-{
-  setAllMv    ( mvField.getMv(),     eCUMode, iPartAddr, uiDepth );
-  setAllRefIdx( mvField.getRefIdx(), eCUMode, iPartAddr, uiDepth );
-}
-#endif
-
-#if AMVP_BUFFERCOMPRESS
 /**Subsampling of the stored prediction mode, reference index and motion vector
  * \param pePredMode Pointer to prediction modes
  * \param scale      Factor by which to subsample motion information
@@ -379,5 +349,4 @@ Void TComCUMvField::compress(Char* pePredMode, Int scale)
     }
   }
 } 
-#endif 
 //! \}

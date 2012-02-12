@@ -41,8 +41,6 @@
 #include "../TLibCommon/TComPicYuv.h"
 #include "WeightPredAnalysis.h"
 
-#if WEIGHT_PRED
-
 #define ABS(a)    ((a) < 0 ? - (a) : (a))
 #define DTHRESH (0.99)
 
@@ -441,6 +439,4 @@ Int64 WeightPredAnalysis::xCalcSADvalueWP(Pel *pOrgPel, Pel *pRefPel, Int iWidth
   return (iSAD/iSize);
 }
 
-
-#endif // WEIGHT_PRED
 

@@ -47,10 +47,8 @@
 #include "TLibCommon/TComPic.h"
 #include "TDecEntropy.h"
 #include "TDecCu.h"
-#if OL_USE_WPP
 #include "TDecSbac.h"
 #include "TDecBinCoderCABAC.h"
-#endif
 
 //! \ingroup TLibDecoder
 //! \{
@@ -68,14 +66,10 @@ private:
   TDecCu*         m_pcCuDecoder;
   UInt            m_uiCurrSliceIdx;
 
-#if OL_USE_WPP
   TDecSbac*       m_pcBufferSbacDecoders;   ///< line to store temporary contexts, one per column of tiles.
   TDecBinCABAC*   m_pcBufferBinCABACs;
-#endif
-#if TILES_LOW_LATENCY_CABAC_INI
   TDecSbac*       m_pcBufferLowLatSbacDecoders;   ///< dependent tiles: line to store temporary contexts, one per column of tiles.
   TDecBinCABAC*   m_pcBufferLowLatBinCABACs;
-#endif
   
 public:
   TDecSlice();
@@ -85,12 +79,31 @@ public:
   Void  create            ( TComSlice* pcSlice, Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth );
   Void  destroy           ();
   
-#if OL_USE_WPP
   Void  decompressSlice   ( TComInputBitstream* pcBitstream, TComInputBitstream** ppcSubstreams,   TComPic*& rpcPic, TDecSbac* pcSbacDecoder, TDecSbac* pcSbacDecoders );
-#else
-  Void  decompressSlice   ( TComInputBitstream* pcBitstream, TComPic*& rpcPic, TDecSbac* pcSbacDecoder );
-#endif
 };
+
+
+class ParameterSetManagerDecoder:public ParameterSetManager
+{
+public:
+  ParameterSetManagerDecoder();
+  virtual ~ParameterSetManagerDecoder();
+
+  Void     storePrefetchedSPS(TComSPS *sps)  { m_spsBuffer.storePS( sps->getSPSId(), sps); };
+  TComSPS* getPrefetchedSPS  (Int spsId);
+  Void     storePrefetchedPPS(TComPPS *pps)  { m_ppsBuffer.storePS( pps->getPPSId(), pps); };
+  TComPPS* getPrefetchedPPS  (Int ppsId);
+  Void     storePrefetchedAPS(TComAPS *aps)  { m_apsBuffer.storePS( aps->getAPSID(), aps); };
+  TComAPS* getPrefetchedAPS  (Int apsId);
+
+  Void     applyPrefetchedPS();
+
+private:
+  ParameterSetMap<TComSPS> m_spsBuffer; 
+  ParameterSetMap<TComPPS> m_ppsBuffer; 
+  ParameterSetMap<TComAPS> m_apsBuffer; 
+};
+
 
 //! \}
 

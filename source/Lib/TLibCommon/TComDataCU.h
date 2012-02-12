@@ -54,8 +54,6 @@
 //! \ingroup TLibCommon
 //! \{
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-
 // ====================================================================================================================
 // Non-deblocking in-loop filter processing block data structure
 // ====================================================================================================================
@@ -77,9 +75,7 @@ enum NDBFBlockBorderTag
 /// Non-deblocking filter processing block information
 struct NDBFBlockInfo
 {
-#if TILES
   Int   tileID;   //!< tile ID
-#endif
   Int   sliceID;  //!< slice ID
   UInt  startSU;  //!< starting SU z-scan address in LCU
   UInt  endSU;    //!< ending SU z-scan address in LCU
@@ -91,15 +87,9 @@ struct NDBFBlockInfo
   UInt  height;   //!< number of pixels in height
   Bool  isBorderAvailable[NUM_SGU_BORDER];  //!< the border availabilities
 
-#if TILES
   NDBFBlockInfo():tileID(0), sliceID(0), startSU(0), endSU(0) {} //!< constructor
-#else
-  NDBFBlockInfo():sliceID(0), startSU(0), endSU(0) {} //!< constructor
-#endif
   const NDBFBlockInfo& operator= (const NDBFBlockInfo& src);  //!< "=" operator
 };
-
-#endif
 
 
 // ====================================================================================================================
@@ -161,9 +151,7 @@ private:
   Pel*          m_pcIPCMSampleCr;     ///< PCM sample buffer (Cr)
 
   Int*          m_piSliceSUMap;       ///< pointer of slice ID map
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   std::vector<NDBFBlockInfo> m_vNDFBlock;
-#endif
 
   // -------------------------------------------------------------------------------------------------------------------
   // neighbour access variables
@@ -206,14 +194,9 @@ private:
   Double        m_dTotalCost;         ///< sum of partition RD costs
   UInt          m_uiTotalDistortion;  ///< sum of partition distortion
   UInt          m_uiTotalBits;        ///< sum of partition bits
-#if FINE_GRANULARITY_SLICES
   UInt          m_uiTotalBins;       ///< sum of partition bins
   UInt*         m_uiSliceStartCU;    ///< Start CU address of current slice
   UInt*         m_uiEntropySliceStartCU; ///< Start CU address of current slice
-#else
-  UInt          m_uiSliceStartCU;    ///< Start CU address of current slice
-  UInt          m_uiEntropySliceStartCU; ///< Start CU address of current slice
-#endif
   
 protected:
   
@@ -238,9 +221,7 @@ protected:
   Void xDeriveCenterIdx( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxCenter );
   Bool xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRefIdx, TComMv *pcMv );
   
-#if MRG_AMVP_ADD_CAND_F470
   Void xCheckDuplicateCand(TComMvField* pcMvFieldNeighbours, UChar* puhInterDirNeighbours, bool* pbCandIsInter, UInt& ruiArrayAddr);
-#endif
 
   Int           getLastValidPartIdx   ( Int iAbsPartIdx );
 
@@ -279,13 +260,7 @@ public:
   TComSlice*    getSlice              ()                        { return m_pcSlice;         }
   UInt&         getAddr               ()                        { return m_uiCUAddr;        }
   UInt&         getZorderIdxInCU      ()                        { return m_uiAbsIdxInLCU; }
-#if FINE_GRANULARITY_SLICES
-#if TILES
   UInt          getSCUAddr            ();
-#else
-  UInt          getSCUAddr            ()                        { return m_uiCUAddr*(1<<(m_pcSlice->getSPS()->getMaxCUDepth()<<1))+m_uiAbsIdxInLCU;}
-#endif
-#endif
   UInt          getCUPelX             ()                        { return m_uiCUPelX;        }
   UInt          getCUPelY             ()                        { return m_uiCUPelY;        }
   TComPattern*  getPattern            ()                        { return m_pcPattern;       }
@@ -418,14 +393,11 @@ public:
   /// set the pointer of slice ID map
   Void          setSliceSUMap         (Int *pi)                 {m_piSliceSUMap = pi;               }
 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   std::vector<NDBFBlockInfo>* getNDBFilterBlocks()      {return &m_vNDFBlock;}
-  Void setNDBFilterBlockBorderAvailability(UInt uiNumLCUInPicWidth, UInt uiNumLCUInPicHeight, UInt uiNumSUInLCUWidth, UInt uiNumSUInLCUHeight, UInt uiPicWidth, UInt uiPicHeight
+  Void setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt numLCUInPicHeight, UInt numSUInLCUWidth, UInt numSUInLCUHeight, UInt picWidth, UInt picHeight
                                           ,Bool bIndependentSliceBoundaryEnabled
                                           ,Bool bTopTileBoundary, Bool bDownTileBoundary, Bool bLeftTileBoundary, Bool bRightTileBoundary
                                           ,Bool bIndependentTileBoundaryEnabled );
-#endif
-
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for accessing partition information
   // -------------------------------------------------------------------------------------------------------------------
@@ -459,9 +431,7 @@ public:
   Void          getMvPredAbove        ( TComMv&     rcMvPred )   { rcMvPred = m_cMvFieldB.getMv(); }
   Void          getMvPredAboveRight   ( TComMv&     rcMvPred )   { rcMvPred = m_cMvFieldC.getMv(); }
   
-#if AMVP_BUFFERCOMPRESS
   Void          compressMV            ();
-#endif 
   
   // -------------------------------------------------------------------------------------------------------------------
   // utility functions for neighbouring information
@@ -475,18 +445,12 @@ public:
 
 
   TComDataCU*   getPULeft                   ( UInt&  uiLPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true
-#if NONCROSS_TILE_IN_LOOP_FILTERING
                                             , Bool bEnforceTileRestriction=true 
-#endif
                                             );
 
   TComDataCU*   getPUAbove                  ( UInt&  uiAPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false
-#if REMOVE_INTRA_LINE_BUFFER
                                             , Bool planarAtLCUBoundary = false 
-#endif
-#if NONCROSS_TILE_IN_LOOP_FILTERING
                                             , Bool bEnforceTileRestriction=true 
-#endif                                            
                                             );
 
   TComDataCU*   getPUAboveLeft              ( UInt&  uiALPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false );
@@ -506,9 +470,6 @@ public:
   Void          deriveLeftBottomIdxAdi      ( UInt& ruiPartIdxLB, UInt  uiPartOffset, UInt uiPartDepth );
   
   Bool          hasEqualMotion              ( UInt uiAbsPartIdx, TComDataCU* pcCandCU, UInt uiCandAbsPartIdx );
-#if !REMOVE_AVOID_MERGE
-  Bool          avoidMergeCandidate         ( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDepth, TComDataCU* pcCandCU, UInt uiCandAbsPartIdx );
-#endif
   Void          getInterMergeCandidates       ( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDepth, TComMvField* pcMFieldNeighbours, UChar* puhInterDirNeighbours, Int& numValidMergeCand );
   Void          deriveLeftRightTopIdxGeneral  ( PartSize eCUMode, UInt uiAbsPartIdx, UInt uiPartIdx, UInt& ruiPartIdxLT, UInt& ruiPartIdxRT );
   Void          deriveLeftBottomIdxGeneral    ( PartSize eCUMode, UInt uiAbsPartIdx, UInt uiPartIdx, UInt& ruiPartIdxLB );
@@ -541,16 +502,9 @@ public:
   UInt          getCtxSkipFlag                  ( UInt   uiAbsPartIdx                                 );
   UInt          getCtxInterDir                  ( UInt   uiAbsPartIdx                                 );
   
-#if FINE_GRANULARITY_SLICES
   UInt          getSliceStartCU         ( UInt pos )                  { return m_uiSliceStartCU[pos-m_uiAbsIdxInLCU];                                                                                          }
   UInt          getEntropySliceStartCU  ( UInt pos )                  { return m_uiEntropySliceStartCU[pos-m_uiAbsIdxInLCU];                                                                                   }
   UInt&         getTotalBins            ()                            { return m_uiTotalBins;                                                                                                  }
-#else
-  Void          setSliceStartCU  ( UInt uiStartCU )    { m_uiSliceStartCU = uiStartCU;    }  
-  UInt          getSliceStartCU  ()                    { return m_uiSliceStartCU;         }
-  Void          setEntropySliceStartCU ( UInt uiStartCU ) { m_uiEntropySliceStartCU = uiStartCU;     }  
-  UInt          getEntropySliceStartCU ()                 { return m_uiEntropySliceStartCU;          }
-#endif
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for RD cost storage
   // -------------------------------------------------------------------------------------------------------------------
@@ -562,15 +516,10 @@ public:
 
   UInt          getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, Bool bIsIntra);
 
-#if NSQT
   Bool useNonSquareTrans( UInt uiTrMode );
-#if NSQT_MOD
   Bool useNonSquareTrans( UInt uiTrMode, Int absPartIdx );
   Void getNSQTSize(Int trMode, Int absPartIdx, Int &trWidth, Int &trHeight);
-#endif
   Void getPixOffset( UInt uiTrMode, UInt ui, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiPix_X, UInt& uiPix_Y, TextType eTxt );
-#endif
-
 };
 
 namespace RasterAddress

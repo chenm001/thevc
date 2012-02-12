@@ -48,14 +48,10 @@
 // Constants
 // ====================================================================================================================
 
-#if SAO
-
 #define SAO_MAX_DEPTH                 4
 #define SAO_BO_BITS                   5
 #define LUMA_GROUP_NUM                (1<<SAO_BO_BITS)
 #define MAX_NUM_SAO_CLASS             32
-#define SAO_RDCO                      0
-#define SAO_FGS_NIF                   SAO && FINE_GRANULARITY_SLICES
 
 // ====================================================================================================================
 // Class definition
@@ -101,19 +97,11 @@ protected:
   Int   *m_iUpBuff2;
   Int   *m_iUpBufft;
   Int   *ipSwap;
-#if SAO_FGS_NIF
   Bool  m_bUseNIF;       //!< true for performing non-cross slice boundary ALF
   UInt  m_uiNumSlicesInPic;      //!< number of slices in picture
   Int   m_iSGDepth;              //!< slice granularity depth
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   TComPicYuv* m_pcYuvTmp;    //!< temporary picture buffer pointer when non-across slice/tile boundary SAO is enabled
-#else
-  Bool  *m_bIsFineSliceCu;
-  TComPicYuv* m_pcPicYuvMap;
-#endif
 
-#endif
-#if SAO_CROSS_LCU_BOUNDARIES
   Pel* m_pTmpU1;
   Pel* m_pTmpU2;
   Pel* m_pTmpL1;
@@ -124,7 +112,6 @@ protected:
   Void xSaoQt2Lcu(SAOQTPart *psQTPart,UInt uiPartIdx);
   Void convertSaoQt2Lcu(SAOQTPart *psQTPart,UInt uiPartIdx);
   Void xSaoAllPart(SAOQTPart *psQTPart, Int iYCbCr);
-#endif
 
 public:
   TComSampleAdaptiveOffset         ();
@@ -145,35 +132,14 @@ public:
   Void processSaoCu(Int iAddr, Int iSaoType, Int iYCbCr);
   Void processSaoOnePart(SAOQTPart *psQTPart, UInt uiPartIdx, Int iYCbCr);
   Void processSaoQuadTree(SAOQTPart *psQTPart, UInt uiPartIdx, Int iYCbCr);
-#if NONCROSS_TILE_IN_LOOP_FILTERING
   Pel* getPicYuvAddr(TComPicYuv* pcPicYuv, Int iYCbCr,Int iAddr = 0);
-#else
-  Pel* getPicYuvAddr(TComPicYuv* pcPicYuv, Int iYCbCr,Int iAddr);
-#endif
 
-#if SAO_FGS_NIF
   Void processSaoCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process without slice granularity 
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-  Void createPicSaoInfo(TComPic* pcPic, Int uiNumSlicesInPic = 1);
+  Void createPicSaoInfo(TComPic* pcPic, Int numSlicesInPic = 1);
   Void destroyPicSaoInfo();
-  Void processSaoBlock(Pel* pDec, Pel* pRest, Int iStride, Int iSaoType, UInt uiXPos, UInt uiYPos, UInt uiWidth, UInt uiHeight, Bool* pbBorderAvail);
-#else
-  Void processSaoCuMap(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process with slice granularity
-  Void setNumSlicesInPic(UInt uiNum) {m_uiNumSlicesInPic = uiNum;}  //!< set num of slices in picture
-  UInt getNumSlicesInPic()           {return m_uiNumSlicesInPic;}   //!< get num of slices in picture
-  Void setUseNIF(Bool bVal)  {m_bUseNIF = bVal;}    //!< set use non-cross-slice-boundaries in-loop filter (NIF)
-  Bool getUseNIF()           {return m_bUseNIF;}    //!< get use non-cross-slice-boundaries in-loop filter (NIF)
-  Void setSliceGranularityDepth(Int iDepth) { m_iSGDepth = iDepth; }//!< set slice granularity depth
-  Int  getSliceGranularityDepth()           { return m_iSGDepth;   }//!< get slice granularity depth
-  Void createSliceMap(UInt iSliceIdx, UInt uiStartAddr, UInt uiEndAddr);//!< create slice map
-  Void InitIsFineSliceCu(){memset(m_bIsFineSliceCu,0, sizeof(Bool)*m_iNumCuInWidth*m_iNumCuInHeight);} //!< Init is fine slice LCU
-  Void setPic(TComPic* pcPic){m_pcPic = pcPic;} //!< set pic
-#endif
-#endif
-
+  Void processSaoBlock(Pel* pDec, Pel* pRest, Int stride, Int iSaoType, UInt xPos, UInt yPos, UInt width, UInt height, Bool* pbBorderAvail);
 };
-#endif
 
 //! \}
-
 #endif
+

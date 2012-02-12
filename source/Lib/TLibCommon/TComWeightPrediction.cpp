@@ -40,8 +40,6 @@
 #include "TComWeightPrediction.h"
 #include "TComInterpolationFilter.h"
 
-#if WEIGHT_PRED
-
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -332,11 +330,7 @@ Void TComWeightPrediction::getWpScaling( TComDataCU* pcCU, Int iRefIdx0, Int iRe
       wp0[yuv].o      = wp0[yuv].iOffset * (1 << (m_ibdi-8));
       wp1[yuv].w      = wp1[yuv].iWeight;
       wp1[yuv].o      = wp1[yuv].iOffset * (1 << (m_ibdi-8));
-#if WEIGHT_PRED_IMP
       wp0[yuv].offset = wp0[yuv].o + wp1[yuv].o;
-#else
-      wp0[yuv].offset = ( ( wp0[yuv].o + wp1[yuv].o + 1 ) >> 1 );
-#endif
       wp0[yuv].shift  = wp0[yuv].uiLog2WeightDenom + 1;
       wp0[yuv].round  = (1 << wp0[yuv].uiLog2WeightDenom);
       wp1[yuv].offset = wp0[yuv].offset;
@@ -386,10 +380,7 @@ Void TComWeightPrediction::xWeightedPredictionBi( TComDataCU* pcCU, TComYuv* pcY
   wpScalingParam  *pwp0, *pwp1;
   TComPPS         *pps = pcCU->getSlice()->getPPS();
 
-  if ( !pps->getWPBiPredIdc() ) {
-    printf("TComWeightPrediction::xWeightedPredictionBi():\tassert failed: getWPBiPredIdc is false.\n");
-    exit(0);
-  }
+  assert( pps->getWPBiPredIdc() != 0 );
 
   Int ibdi = (g_uiBitDepth+g_uiBitIncrement);
   getWpScaling(pcCU, iRefIdx0, iRefIdx1, pwp0, pwp1, ibdi);
@@ -446,5 +437,4 @@ Void TComWeightPrediction::xWeightedPredictionUni( TComDataCU* pcCU, TComYuv* pc
   addWeightUni( pcYuvSrc, uiPartAddr, iWidth, iHeight, pwp, rpcYuvPred );
 }
 
-#endif  // WEIGHT_PRED
 

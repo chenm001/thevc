@@ -38,7 +38,8 @@
 #include <vector>
 
 /// An error occured while parsing a POC line from within a log file
-class POCParseException: public RuntimeError {
+class POCParseException: public RuntimeError
+{
   public:
     POCParseException( const std::string& pocLine ): m_pocLine( pocLine ) { }
     virtual ~POCParseException( ) throw ( ) { }
@@ -51,7 +52,8 @@ class POCParseException: public RuntimeError {
 };
 
 /// The QP set from the log file was not contiguous.  The QP set must be contiguous to be able to convert the results into a vector.
-class NonContiguousQPSetException: public RuntimeError {
+class NonContiguousQPSetException: public RuntimeError
+{
   public:
     virtual ~NonContiguousQPSetException( ) throw( ) { }
   

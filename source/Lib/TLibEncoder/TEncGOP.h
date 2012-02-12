@@ -56,9 +56,7 @@
 
 #include "TEncAnalyze.h"
 
-#if RVM_VCEGAM10
 #include <vector>
-#endif
 
 //! \ingroup TLibEncoder
 //! \{
@@ -74,20 +72,10 @@ class TEncGOP
 {
 private:
   //  Data
-#if G1002_RPS
   Bool                    m_bLongtermTestPictureHasBeenCoded;
   Bool                    m_bLongtermTestPictureHasBeenCoded2;
-#if G1002_IDR_POC_ZERO_BUGFIX
   Int                     m_iLastIDR;
-#endif
-#endif
-#if !G1002_RPS
-  Int                     m_iHrchDepth;
-#endif
   Int                     m_iGopSize;
-#if !G1002_RPS
-  Int                     m_iRateGopSize;
-#endif
   Int                     m_iNumPicCoded;
   Bool                    m_bFirst;
   
@@ -106,9 +94,7 @@ private:
   // Adaptive Loop filter
   TEncAdaptiveLoopFilter* m_pcAdaptiveLoopFilter;
   //--Adaptive Loop filter
-#if SAO
   TEncSampleAdaptiveOffset*  m_pcSAO;
-#endif
   TComBitCounter*         m_pcBitCounter;
   
   // indicate sequence first
@@ -120,9 +106,7 @@ private:
   UInt*                   m_uiStoredStartCUAddrForEncodingSlice;
   UInt*                   m_uiStoredStartCUAddrForEncodingEntropySlice;
 
-#if RVM_VCEGAM10
   std::vector<Int> m_vRVM_RP;
-#endif
 
 public:
   TEncGOP();
@@ -133,17 +117,10 @@ public:
   
   Void  init        ( TEncTop* pcTEncTop );
   Void  compressGOP ( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRec, std::list<AccessUnit>& accessUnitsInGOP );
-#if TILES_DECODER
   Void xWriteTileLocationToSliceHeader (OutputNALUnit& rNalu, TComOutputBitstream*& rpcBitstreamRedirect, TComSlice*& rpcSlice);
-#endif
 
   
   Int   getGOPSize()          { return  m_iGopSize;  }
-#if !G1002_RPS
-  Int   getRateGOPSize()      { return  m_iRateGopSize;  }
-  Int   isHierarchicalB()     { return  m_pcCfg->getHierarchicalCoding();  }
-  Int   getHrchDepth()        { return  m_iHrchDepth; }
-#endif
   
   TComList<TComPic*>*   getListPic()      { return m_pcListPic; }
   
@@ -151,33 +128,23 @@ public:
   Void  preLoopFilterPicAll  ( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiBits );
   
   TEncSlice*  getSliceEncoder()   { return m_pcSliceEncoder; }
-#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
   NalUnitType getNalUnitType( UInt uiPOCCurr );
-#endif
-#if F747_APS
   Void freeAPS     (TComAPS* pAPS, TComSPS* pSPS);
   Void allocAPS    (TComAPS* pAPS, TComSPS* pSPS);
 protected:
   Void encodeAPS   (TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* pcSlice);            //!< encode APS syntax elements
   Void assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS, TComSlice* pcSlice);  //!< Assign APS object into APS container
-#endif
   
 
 protected:
   Void  xInitGOP          ( Int iPOC, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut );
   Void  xGetBuffer        ( TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, Int iNumPicRcvd, Int iTimeOffset, TComPic*& rpcPic, TComPicYuv*& rpcPicYuvRecOut, UInt uiPOCCurr );
   
-#if !G1002_RPS || !G1002_IDR_POC_ZERO_BUGFIX
-  NalUnitType getNalUnitType( UInt uiPOCCurr );
-#endif
-
   Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, const AccessUnit&, Double dEncTime );
   
   UInt64 xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1);
 
-#if RVM_VCEGAM10
   Double xCalculateRVM();
-#endif
 };// END CLASS DEFINITION TEncGOP
 
 // ====================================================================================================================
@@ -186,23 +153,16 @@ protected:
 enum PROCESSING_STATE
 {
   EXECUTE_INLOOPFILTER,
-#if F747_APS
   ENCODE_APS,
-#else
-  ENCODE_PPS,
-#endif
   ENCODE_SLICE
 };
 
-
-#if SCALING_LIST
 enum SCALING_LIST_PARAMETER
 {
   SCALING_LIST_OFF,
   SCALING_LIST_DEFAULT,
   SCALING_LIST_FILE_READ
 };
-#endif
 
 //! \}
 

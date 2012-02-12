@@ -65,25 +65,13 @@ ContextModel3DBuffer::ContextModel3DBuffer( UInt uiSizeZ, UInt uiSizeY, UInt uiS
  * \param  iQp             input QP value
  * \param  psCtxModel      given probability table
  */
-#if G633_8BIT_INIT
 Void ContextModel3DBuffer::initBuffer( SliceType eSliceType, Int iQp, UChar* ctxModel )
-#else
-Void ContextModel3DBuffer::initBuffer( SliceType eSliceType, Int iQp, Short* psCtxModel )
-#endif
 {
-#if G633_8BIT_INIT
   ctxModel += eSliceType * m_sizeXYZ;
-#else
-  psCtxModel += 2 * eSliceType * m_sizeXYZ;
-#endif
   
   for ( Int n = 0; n < m_sizeXYZ; n++ )
   {
-#if G633_8BIT_INIT
     m_contextModel[ n ].init( iQp, ctxModel[ n ] );
-#else
-    m_contextModel[ n ].init( iQp, psCtxModel + 2 * n );
-#endif
   }
 }
 

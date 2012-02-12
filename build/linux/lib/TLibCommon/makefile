@@ -46,7 +46,6 @@ OBJS          	= \
 			$(OBJ_DIR)/TComPicSym.o \
 			$(OBJ_DIR)/TComPicYuv.o \
 			$(OBJ_DIR)/TComPicYuvMD5.o \
-			$(OBJ_DIR)/TComPredFilter.o \
 			$(OBJ_DIR)/TComPrediction.o \
 			$(OBJ_DIR)/TComRdCost.o \
 			$(OBJ_DIR)/TComRom.o \

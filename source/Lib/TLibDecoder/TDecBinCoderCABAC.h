@@ -68,12 +68,10 @@ public:
   Void  decodePCMAlignBits();
   Void  xReadPCMCode      (UInt uiLength, UInt& ruiCode);
   
-#if OL_USE_WPP
   Void  copyState         ( TDecBinIf* pcTDecBinIf );
   TDecBinCABAC* getTDecBinCABAC()  { return this; }
 #if !OL_FLUSH_ALIGN
   Int   getBitsReadAhead() { return -m_bitsNeeded; }
-#endif
 #endif
 
 private:

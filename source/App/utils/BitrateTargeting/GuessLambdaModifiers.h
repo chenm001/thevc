@@ -42,7 +42,8 @@
 #include <limits>
 
 /// Thrown if there is an error parsing the initial adjustment parameter
-class InitialAdjustmentParameterParseException: public RuntimeError {
+class InitialAdjustmentParameterParseException: public RuntimeError
+{
   public:
     virtual ~InitialAdjustmentParameterParseException( ) throw( ) { }
   protected:
@@ -50,7 +51,8 @@ class InitialAdjustmentParameterParseException: public RuntimeError {
 };
 
 /// Thrown if there is an error parsing the targets
-class TargetsParseException: public RuntimeError {
+class TargetsParseException: public RuntimeError
+{
   public:
     virtual ~TargetsParseException( ) throw( ) { }
   protected:
@@ -58,7 +60,8 @@ class TargetsParseException: public RuntimeError {
 };
 
 /// Thrown if there is an error parsing the meta-log
-class MetaLogParseException: public RuntimeError {
+class MetaLogParseException: public RuntimeError
+{
   public:
     virtual ~MetaLogParseException( ) throw( ) { }
   protected:
@@ -66,7 +69,8 @@ class MetaLogParseException: public RuntimeError {
 };
 
 /// Thrown if there is a mismatch in the vector sizes or the Lambda-modifier indexes
-class MismatchedIndexesException: public RuntimeError {
+class MismatchedIndexesException: public RuntimeError
+{
   public:
     virtual ~MismatchedIndexesException( ) throw( ) { }
   protected:
@@ -75,13 +79,15 @@ class MismatchedIndexesException: public RuntimeError {
 
 /// Full meta-log entry
 template< typename TLambdaModifier >
-struct MetaLogEntry {
+struct MetaLogEntry
+{
   TLambdaModifier lambdaModifiers;
   std::vector< double > bitrateVector;
 };
 
 /// Contains a Lambda-modifier and bitrate for only a single index
-struct Point {
+struct Point
+{
   double lambdaModifier;
   double bitrate;
 };

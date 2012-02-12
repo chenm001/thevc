@@ -74,31 +74,19 @@ private:
   TDecEntropy*          m_pcEntropyDecoder;
   TDecSbac*             m_pcSbacDecoder;
   TDecBinCABAC*         m_pcBinCABAC;
-#if OL_USE_WPP
   TDecSbac*             m_pcSbacDecoders; // independant CABAC decoders
   TDecBinCABAC*         m_pcBinCABACs;
-#endif
   TDecCavlc*            m_pcCavlcDecoder;
   TDecSlice*            m_pcSliceDecoder;
   TComLoopFilter*       m_pcLoopFilter;
   
   // Adaptive Loop filter
   TComAdaptiveLoopFilter*       m_pcAdaptiveLoopFilter;
-#if SAO
   TComSampleAdaptiveOffset*     m_pcSAO;
-#if !F747_APS
-  SAOParam              m_cSaoParam;
-#endif
-#endif
-#if !F747_APS
-  ALFParam              m_cAlfParam;
-#endif
   Double                m_dDecTime;
 
   bool m_pictureDigestEnabled; ///< if true, handle picture_digest SEI messages
-#if G220_PURE_VLC_SAO_ALF
   AlfCUCtrlInfo       m_cAlfCUCtrlOneSlice;
-#endif
 
 public:
   TDecGop();
@@ -111,34 +99,19 @@ public:
                  TDecSlice*              pcSliceDecoder, 
                  TComLoopFilter*         pcLoopFilter, 
                  TComAdaptiveLoopFilter* pcAdaptiveLoopFilter
-#if SAO
                  ,TComSampleAdaptiveOffset* pcSAO
-#endif
                  );
   Void  create  ();
   Void  destroy ();
-#if G1002_RPS
   Void  decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf );
-#else
-#if REF_SETTING_FOR_LD
-  Void  decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf, TComList<TComPic*>& rcListPic );
-#else
-  Void  decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf );
-#endif
-#endif
   Void  setGopSize( Int i) { m_iGopSize = i; }
 
   void setPictureDigestEnabled(bool enabled) { m_pictureDigestEnabled = enabled; }
-#if G220_PURE_VLC_SAO_ALF
+#if !PARAMSET_VLC_CLEANUP
   Void decodeAlfOnOffCtrlParam() { m_pcEntropyDecoder->decodeAlfCtrlParam( m_cAlfCUCtrlOneSlice, m_pcAdaptiveLoopFilter->getNumCUsInPic());}
+#else
+  AlfCUCtrlInfo& getAlfCuCtrlParam() { return m_cAlfCUCtrlOneSlice; }
 #endif
-
-#if !F747_APS
-private:
-  /// copy shared ALF parameters from PPS
-  Void copySharedAlfParamFromPPS(ALFParam* pAlfDst, ALFParam* pAlfSrc);
-#endif
-
 };
 
 //! \}
