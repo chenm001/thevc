@@ -1394,24 +1394,6 @@ Void TDecCavlc::xParseAlfCuControlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInP
 
 Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
 {
-  m_bRunLengthCoding = ! pcSlice->isIntra();
-  m_uiRun = 0;
-  
-  ::memset(m_ucCBP_YUV_TableCounter, 0, 4*4*sizeof(UChar));
-  ::memset(m_ucCBP_4Y_TableCounter,  0, 2*2*sizeof(UChar));
-  ::memset(m_ucCBP_YCS_TableCounter, 0, 2*4*sizeof(UChar));
-  ::memset(m_ucCBP_YS_TableCounter,  0, 2*3*sizeof(UChar));
-
-  ::memset(m_ucMI1TableCounter,        0,          4*sizeof(UChar));
-  ::memset(m_ucSplitTableCounter,      0,        4*4*sizeof(UChar));
-
-  m_ucCBP_YUV_TableCounterSum[0] = m_ucCBP_YUV_TableCounterSum[1] = m_ucCBP_YUV_TableCounterSum[2] = m_ucCBP_YUV_TableCounterSum[3] = 0;
-  m_ucCBP_4Y_TableCounterSum[0] = m_ucCBP_4Y_TableCounterSum[1] = 0;
-  m_ucCBP_YCS_TableCounterSum[0] = m_ucCBP_YCS_TableCounterSum[1] = 0;
-  m_ucCBP_YS_TableCounterSum[0] = m_ucCBP_YS_TableCounterSum[1] = 0;
-
-  m_ucSplitTableCounterSum[0] = m_ucSplitTableCounterSum[1] = m_ucSplitTableCounterSum[2]= m_ucSplitTableCounterSum[3] = 0;
-  m_ucMI1TableCounterSum = 0;
 }
 
 Void TDecCavlc::parseTerminatingBit( UInt& ruiBit )

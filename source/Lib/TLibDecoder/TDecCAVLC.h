@@ -82,34 +82,11 @@ protected:
   void  parseShortTermRefPicSet            (TComPPS* pcPPS, TComReferencePictureSet* pcRPS, Int idx);
 private:
   TComInputBitstream*   m_pcBitstream;
-  UInt                  m_uiCoeffCost;
-  Bool                  m_bRunLengthCoding;
-  UInt                  m_uiRun;
 #if !PARAMSET_VLC_CLEANUP
   Bool m_bAlfCtrl;
   UInt m_uiMaxAlfCtrlDepth;
 #endif
   Int           m_iSliceGranularity; //!< slice granularity
-  
-  Int                   m_iRefFrame0[1000];
-  Int                   m_iRefFrame1[1000];
-  Bool                  m_bMVres0[1000];
-  Bool                  m_bMVres1[1000];
-
-  UChar         m_ucCBP_YUV_TableCounter[4][4];
-  UChar         m_ucCBP_4Y_TableCounter[2][2];
-  UChar         m_ucCBP_YS_TableCounter[2][3];
-  UChar         m_ucCBP_YCS_TableCounter[2][4];
-  UChar         m_ucCBP_YUV_TableCounterSum[4];
-  UChar         m_ucCBP_4Y_TableCounterSum[2];
-  UChar         m_ucCBP_YS_TableCounterSum[2];
-  UChar         m_ucCBP_YCS_TableCounterSum[2];
-
-  UChar         m_ucMI1TableCounter[4];
-  UChar         m_ucSplitTableCounter[4][4];
-  UChar         m_ucSplitTableCounterSum[4];
-  UChar         m_ucMI1TableCounterSum;
-
   
 public:
 

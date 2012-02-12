@@ -67,26 +67,10 @@ protected:
   TComBitIf*    m_pcBitIf;
   TComSlice*    m_pcSlice;
   UInt          m_uiCoeffCost;
-  Bool          m_bRunLengthCoding;
-  UInt          m_uiRun;
   Bool          m_bAlfCtrl;
   UInt          m_uiMaxAlfCtrlDepth;
   Int           m_iSliceGranularity;  //!< slice granularity
   
-  UChar         m_ucCBP_YUV_TableCounter[4][4];
-  UChar         m_ucCBP_4Y_TableCounter[2][2];
-  UChar         m_ucCBP_YS_TableCounter[2][3];
-  UChar         m_ucCBP_YCS_TableCounter[2][4];
-  UChar         m_ucCBP_YUV_TableCounterSum[4];
-  UChar         m_ucCBP_4Y_TableCounterSum[2];
-  UChar         m_ucCBP_YS_TableCounterSum[2];
-  UChar         m_ucCBP_YCS_TableCounterSum[2];
-  UChar         m_ucMI1TableCounter       [4];
-  UChar         m_ucSplitTableCounter  [4][4];
-
-  UChar         m_ucSplitTableCounterSum[4];
-  UChar         m_ucMI1TableCounterSum;
-
   Void  xWriteCode            ( UInt uiCode, UInt uiLength );
   Void  xWriteUvlc            ( UInt uiCode );
   Void  xWriteSvlc            ( Int  iCode   );
