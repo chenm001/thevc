@@ -39,7 +39,8 @@
 /// \pre toFind must have a size of 2
 /// \pre The first character in toFind muts be 'e'
 /// \pre out must contain toFind
-void replaceWithE( std::string &out, const std::string& toFind ) {
+void replaceWithE( std::string &out, const std::string& toFind )
+{
   assert( 2 == toFind.size( ) );
   assert( 'e' == toFind[ 0 ] );
   
@@ -49,7 +50,8 @@ void replaceWithE( std::string &out, const std::string& toFind ) {
 }
 
 /// Formatted output for a double with appropriate formatting applied (correct number of digits, etc.)
-void outputDouble( std::ostream& left, double right ) {
+void outputDouble( std::ostream& left, double right )
+{
   std::ostringstream oss;
   oss.precision( 6 );
   oss << std::scientific << right;
@@ -61,19 +63,26 @@ void outputDouble( std::ostream& left, double right ) {
   left << s;
 }
 
-int main( int, char** ) {
-  try {
+int main( int, char** )
+{
+  try
+  {
     std::vector< double > result( extractBitratesForTemporalLayers( std::cin ) );  // Extract the bitrate vector
     
     // Output the bitrate vector
-    if( 0 < result.size( ) ) {
+    if( 0 < result.size( ) )
+    {
       std::vector< double >::const_iterator iter( result.begin( ) );
       outputDouble( std::cout, *iter );
-      for( ; ; ) {
+      for( ; ; )
+      {
         ++iter;
-        if( result.end( ) == iter ) {
+        if( result.end( ) == iter )
+        {
           break;
-        } else {
+        }
+        else
+        {
           std::cout << " ";
           outputDouble( std::cout, *iter );
         }
@@ -81,8 +90,9 @@ int main( int, char** ) {
     }
     
     return 0;
-  
-  } catch( std::exception& e ) {
+  }
+  catch( std::exception& e )
+  {
     std::cerr << e.what( ) << std::endl;
     return 1;
   }

@@ -151,9 +151,6 @@ template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min
 // Coding tool configuration
 // ====================================================================================================================
 
-// modified LCEC coefficient coding
-#define MAX_TR1                           4
-
 // AMVP: advanced motion vector prediction
 #define AMVP_MAX_NUM_CANDS          2           ///< max number of final candidates
 #define AMVP_MAX_NUM_CANDS_MEM      3           ///< max number of candidates
@@ -187,9 +184,8 @@ template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min
 // Early-skip threshold (encoder)
 #define EARLY_SKIP_THRES            1.50        ///< if RD < thres*avg[BestSkipRD]
 
-#if  G1002_RPS
 #define MAX_NUM_REF_PICS 16
-#endif
+
 enum NalRefIdc
 {
   NAL_REF_IDC_PRIORITY_LOWEST = 0,
@@ -213,11 +209,7 @@ enum NalUnitType
   NAL_UNIT_END_OF_SEQUENCE,
   NAL_UNIT_END_OF_STREAM,
   NAL_UNIT_FILLER_DATA,
-#if F747_APS
   NAL_UNIT_APS,
-#else
-  NAL_UNIT_RESERVED_13,
-#endif
   NAL_UNIT_RESERVED_14,
   NAL_UNIT_RESERVED_15,
   NAL_UNIT_RESERVED_16,
@@ -238,11 +230,6 @@ enum NalUnitType
   NAL_UNIT_UNSPECIFIED_31,
   NAL_UNIT_INVALID,
 };
-
-typedef _AlfParam    ALFParam;
-#if SAO
-typedef _SaoParam    SAOParam;
-#endif
 
 //! \}
 

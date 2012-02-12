@@ -43,9 +43,7 @@
 #include "TComPattern.h"
 #include "TComMv.h"
 #include "TComRdCost.h"
-#if WEIGHT_PRED
-  #include "TComSlice.h"
-#endif
+#include "TComSlice.h"
 
 class DistParam;
 class TComPattern;

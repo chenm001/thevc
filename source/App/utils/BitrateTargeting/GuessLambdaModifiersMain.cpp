@@ -36,15 +36,18 @@
 #include "GuessLambdaModifiers.h"
 #include <iostream>
 
-class WrongNumberOfArgumentsException: public RuntimeError {
+class WrongNumberOfArgumentsException: public RuntimeError
+{
   public:
     virtual ~WrongNumberOfArgumentsException( ) throw( ) { }
   protected:
     void outputWhat( std::ostream& o ) const { o << "Wrong number of arguments"; }
 };
 
-int main( int argc, char** ppArgv ) {
-  try {
+int main( int argc, char** ppArgv )
+{
+  try
+  {
     if( argc != 3 ) throw WrongNumberOfArgumentsException( );
     
     std::string initialAdjustmentParameterString( ppArgv[ 1 ] );
@@ -56,9 +59,13 @@ int main( int argc, char** ppArgv ) {
     guessLambdaModifiers( std::cout, initialAdjustmentParameterIstream, targetBitratesIstream, std::cin );
     return 0;
   
-  } catch( std::exception& e ) {
+  }
+  catch( std::exception& e )
+  {
     std::cerr << e.what( ) << std::endl;
-  } catch( ... ) {
+  }
+  catch( ... )
+  {
     std::cerr << "Unknown exception" << std::endl;
   }
   return 1;

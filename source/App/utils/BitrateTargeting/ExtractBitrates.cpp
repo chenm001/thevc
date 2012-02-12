@@ -38,10 +38,11 @@
 #include <limits>
 #include <map>
 
-namespace {
-  
+namespace
+{
   /// Maintains a sum and a sample-count for calculating averages
-  class Tally {
+  class Tally
+  {
     public:
       
       /// Contructs a new zeroed tally
@@ -63,7 +64,8 @@ namespace {
   /// \param iLine The active input stream
   /// \param character The character to ignore up to
   /// \throw POCParseException if the stream goes bad before character is encountered or just after character is encountered
-  void ignoreUpTo( const std::string& line, std::istream& iLine, char character ) {
+  void ignoreUpTo( const std::string& line, std::istream& iLine, char character )
+  {
     while( iLine.good( ) && character != iLine.get( ) )
       ;
     if( !iLine.good( ) ) throw POCParseException( line );
@@ -73,11 +75,12 @@ namespace {
   /// \param i The input stream that represents the log
   /// \return A map that countains the average bitrates for each temporal layer.  Each pair contains the QP value in first and the average bitrate in second.
   /// \throw POCParseException if an error occured while parsing a POC line
-  std::map< unsigned char, double > extractBitratesForQPs( std::istream& i ) {
+  std::map< unsigned char, double > extractBitratesForQPs( std::istream& i )
+  {
     std::map< unsigned char, Tally > tallyMap;
     
-    while( i.good( ) ) {
-      
+    while( i.good( ) )
+    {
       // Initialize variables for this line
       std::string line;
       std::getline( i, line );
@@ -120,7 +123,8 @@ namespace {
       
       // Find the tally that corresponds to our QP.  If there is no such tally yet, then add a new one to the map.
       std::map< unsigned char, Tally >::iterator iter( tallyMap.find( qpIndex ) );
-      if( tallyMap.end( ) == iter ) {
+      if( tallyMap.end( ) == iter )
+      {
         tallyMap[ qpIndex ] = Tally( );
         iter = tallyMap.find( qpIndex );
       }
@@ -131,21 +135,25 @@ namespace {
     
     // Populate and return the result based on all of the tallies
     std::map< unsigned char, double > result;
-    for( std::map< unsigned char, Tally >::const_iterator iter( tallyMap.begin( ) ); iter != tallyMap.end( ); ++iter ) {
+    for( std::map< unsigned char, Tally >::const_iterator iter( tallyMap.begin( ) ); iter != tallyMap.end( ); ++iter )
+    {
       result[ iter->first ] = iter->second.average( );
     }
     return result;
   }
 }
 
-std::vector< double > extractBitratesForTemporalLayers( std::istream& i ) {
+std::vector< double > extractBitratesForTemporalLayers( std::istream& i )
+{
   std::vector< double > result;
   
   std::map< unsigned char, double > bitratesForQPsMap( extractBitratesForQPs( i ) );
-  if( !bitratesForQPsMap.empty( ) ) {
+  if( !bitratesForQPsMap.empty( ) )
+  {
     unsigned char expectedNextQPIndex( bitratesForQPsMap.begin( )->first );
     
-    for( std::map< unsigned char, double >::const_iterator i( bitratesForQPsMap.begin( ) ); i != bitratesForQPsMap.end( ); ++i ) {
+    for( std::map< unsigned char, double >::const_iterator i( bitratesForQPsMap.begin( ) ); i != bitratesForQPsMap.end( ); ++i )
+    {
       if( i->first != expectedNextQPIndex ) throw NonContiguousQPSetException( );
       ++expectedNextQPIndex;
       result.push_back( i->second );

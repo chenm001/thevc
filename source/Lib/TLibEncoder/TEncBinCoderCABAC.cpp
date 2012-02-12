@@ -165,12 +165,10 @@ Void TEncBinCABAC::resetBits()
   m_bitsLeft         = 23;
   m_numBufferedBytes = 0;
   m_bufferedByte     = 0xff;
-#if FINE_GRANULARITY_SLICES
   if ( m_binCountIncrement )
   {
     m_uiBinsCoded = 0;
   }
-#endif
 #if FAST_BIT_EST
   m_fracBits &= 32767;
 #endif
@@ -363,7 +361,6 @@ Void TEncBinCABAC::writeOut()
   }    
 }
 
-#if F747_APS 
 /** flush bits when CABAC termination
   * \param [in] bEnd true means this flushing happens at the end of RBSP. No need to encode stop bit
   */
@@ -383,8 +380,5 @@ Void TEncBinCABAC::encodeFlush(Bool bEnd)
     m_pcTComBitIf->write( 1, 1 ); // stop bit
   }
 }
-#endif
-
-
 
 //! \}

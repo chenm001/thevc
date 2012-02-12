@@ -89,9 +89,7 @@ public:
   Void  load                   ( TEncSbac* pScr  );
   Void  loadIntraDirModeLuma   ( TEncSbac* pScr  );
   Void  store                  ( TEncSbac* pDest );
-#if OL_USE_WPP
   Void  loadContexts           ( TEncSbac* pScr  );
-#endif
   Void  resetBits              ()                { m_pcBinIf->resetBits(); m_pcBitIf->resetBits(); }
   UInt  getNumberOfWrittenBits ()                { return m_pcBinIf->getNumWrittenBits(); }
   //--SBAC RD
@@ -100,14 +98,8 @@ public:
   Void  codePPS                 ( TComPPS* pcPPS     );
   void codeSEI(const SEI&);
   Void  codeSliceHeader         ( TComSlice* pcSlice );
-#if G220_PURE_VLC_SAO_ALF
-#if TILES_DECODER
   Void codeTileMarkerFlag(TComSlice* pcSlice) {printf("Not supported\n"); assert(0); exit(1);}
-#endif
-#endif
-#if OL_USE_WPP
   Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );
-#endif
   Void  codeTerminatingBit      ( UInt uilsLast      );
   Void  codeSliceFinish         ();
 #if OL_FLUSH
@@ -121,14 +113,10 @@ public:
   Void  codeAlfCtrlDepth  ();
 
   Void codeAlfCtrlFlag       ( UInt uiSymbol );
-#if SAO
   Void  codeSaoFlag       ( UInt uiCode );
   Void  codeSaoUvlc       ( UInt uiCode );
   Void  codeSaoSvlc       ( Int  uiCode );
-#endif
-#if SCALING_LIST
   Void  codeScalingList      ( TComScalingList* scalingList     ){ assert (0);  return;};
-#endif
 
 private:
   Void  xWriteUnarySymbol    ( UInt uiSymbol, ContextModel* pcSCModel, Int iOffset );
@@ -138,18 +126,12 @@ private:
   Void  xWriteTerminatingBit ( UInt uiBit );
   
   Void  xCopyFrom            ( TEncSbac* pSrc );
-#if OL_USE_WPP
   Void  xCopyContextsFrom    ( TEncSbac* pSrc );  
-#endif
   
-#if F747_APS
   Void codeAPSInitInfo(TComAPS* pcAPS) {printf("Not supported in codeAPSInitInfo()\n"); assert(0); exit(1);}
   Void codeFinish     (Bool bEnd)      { m_pcBinIf->encodeFlush(bEnd); }  //<! flush bits when CABAC termination
-#endif
-#if G174_DF_OFFSET
   Void codeDFFlag( UInt uiCode, const Char *pSymbolName )       {printf("Not supported in codeDFFlag()\n"); assert(0); exit(1);};
   Void codeDFSvlc( Int iCode, const Char *pSymbolName )         {printf("Not supported in codeDFSvlc()\n"); assert(0); exit(1);};
-#endif
 
 protected:
   TComBitIf*    m_pcBitIf;
@@ -162,20 +144,16 @@ protected:
   
   // Adaptive loop filter
   UInt          m_uiMaxAlfCtrlDepth;
-#if FINE_GRANULARITY_SLICES
   Int           m_iSliceGranularity; //!< slice granularity
-#endif
   //--Adaptive loop filter
   
 public:
 
-#if FINE_GRANULARITY_SLICES
   /// set slice granularity
   Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
 
   /// get slice granularity
   Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
-#endif
   Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
@@ -198,11 +176,7 @@ public:
   Void codeMvd                 ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
   
   Void codeDeltaQP             ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  Void codeCbf                 ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth ) {}
-  Void codeBlockCbf            ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiQPartNum, Bool bRD = false ) {}
   
-  Void codeCbfTrdiv      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) {}
-  UInt xGetFlagPattern   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) { return 0; }
   Void codeLastSignificantXY ( UInt uiPosX, UInt uiPosY, Int width, Int height, TextType eTType, UInt uiScanIdx );
   Void codeCoeffNxN            ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   
@@ -210,30 +184,15 @@ public:
   // for RD-optimizatioon
   // -------------------------------------------------------------------------------------------------------------------
   
-#if NSQT_DIAG_SCAN
   Void estBit               (estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType);
-#else
-  Void estBit                        ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
-#endif
   Void estCBFBit                     ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
-#if MULTI_LEVEL_SIGNIFICANCE
   Void estSignificantCoeffGroupMapBit( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
-#endif
-#if NSQT_DIAG_SCAN
   Void estSignificantMapBit          ( estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType );
-#else
-  Void estSignificantMapBit          ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
-#endif
   Void estSignificantCoefficientsBit ( estBitsSbacStruct* pcEstBitsSbac, UInt uiCTXIdx, TextType eTType );
   
-
-#if TILES
   Void updateContextTables           ( SliceType eSliceType, Int iQp, Bool bExecuteFinish=true  );
   Void updateContextTables           ( SliceType eSliceType, Int iQp  ) { this->updateContextTables( eSliceType, iQp, true); };
-#if TILES_DECODER
   Void writeTileMarker               ( UInt uiTileIdx, UInt uiBitsUsed );
-#endif
-#endif
 
   
   TEncBinIf* getEncBinIf()  { return m_pcBinIf; }
@@ -259,41 +218,23 @@ private:
   ContextModel3DBuffer m_cCUTransSubdivFlagSCModel;
   ContextModel3DBuffer m_cCUQtRootCbfSCModel;
   
-#if MULTI_LEVEL_SIGNIFICANCE
   ContextModel3DBuffer m_cCUSigCoeffGroupSCModel;
-#endif
-#if SIGMAP_CTX_RED
-  ContextModel3DBuffer m_cCUSigSCModelLuma;
-  ContextModel3DBuffer m_cCUSigSCModelChroma;
-#else
   ContextModel3DBuffer m_cCUSigSCModel;
-#endif
   ContextModel3DBuffer m_cCuCtxLastX;
   ContextModel3DBuffer m_cCuCtxLastY;
-#if COEFF_CTXSET_RED
-  ContextModel3DBuffer m_cCUOneSCModelLuma;
-  ContextModel3DBuffer m_cCUOneSCModelChroma;
-  ContextModel3DBuffer m_cCUAbsSCModelLuma;
-  ContextModel3DBuffer m_cCUAbsSCModelChroma;
-#else
   ContextModel3DBuffer m_cCUOneSCModel;
   ContextModel3DBuffer m_cCUAbsSCModel;
-#endif
   
   ContextModel3DBuffer m_cMVPIdxSCModel;
   
   ContextModel3DBuffer m_cALFFlagSCModel;
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;
-#if AMP
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;
-#endif
-#if SAO
   ContextModel3DBuffer m_cSaoFlagSCModel;
   ContextModel3DBuffer m_cSaoUvlcSCModel;
   ContextModel3DBuffer m_cSaoSvlcSCModel;
-#endif
 
 };
 

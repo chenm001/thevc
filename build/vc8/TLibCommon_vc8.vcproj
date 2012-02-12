@@ -340,10 +340,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComPredFilter.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComPrediction.cpp"
 				>
 			</File>
@@ -471,10 +467,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComPicYuv.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComPredFilter.h"
 				>
 			</File>
 			<File

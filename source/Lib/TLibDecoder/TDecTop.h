@@ -55,14 +55,7 @@ struct InputNALUnit;
 //! \ingroup TLibDecoder
 //! \{
 
-#if F747_APS
-
 #define APS_RESERVED_BUFFER_SIZE 2 //!< must be equal to or larger than 2 to handle bitstream parsing
-
-#else
-#define MAX_NUM_PPS 1
-#define MAX_NUM_PPS_BUFFER (MAX_NUM_PPS +1)
-#endif
 
 // ====================================================================================================================
 // Class definition
@@ -82,20 +75,15 @@ private:
 
   UInt                    m_uiValidPS;
   TComList<TComPic*>      m_cListPic;         //  Dynamic buffer
+#if PARAMSET_VLC_CLEANUP
+  ParameterSetManagerDecoder m_parameterSetManagerDecoder;  // storage for parameter sets 
+#else
   TComSPS                 m_cSPS;
 
-#if F747_APS
   TComPPS                 m_cPPS;               //!< PPS
   std::vector<std::vector<TComAPS> >   m_vAPS;  //!< APS container
-#else
-  TComPPS*                m_pcPPS;       //!< PPS
-  TComPPS*                m_pcPPSBuffer; //!< PPS buffer
-  Bool*                   m_pbHasNewPPS; //!< Availability for each PPS in PPS buffer
-  Int                     m_iPPSCounter; //!< PPS counter
 #endif
-#if G1002_RPS
   TComRPS                 m_cRPSList;
-#endif
   TComSlice*              m_apcSlicePilot;
   
   SEImessages *m_SEIs; ///< "all" SEI messages.  If not NULL, we own the object.
@@ -112,9 +100,7 @@ private:
   TDecBinCABAC            m_cBinCABAC;
   TComLoopFilter          m_cLoopFilter;
   TComAdaptiveLoopFilter  m_cAdaptiveLoopFilter;
-#if SAO
   TComSampleAdaptiveOffset m_cSAO;
-#endif
 
   Bool isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay);
   TComPic*                m_pcPic;
@@ -124,9 +110,7 @@ private:
   Bool                    m_bFirstSliceInPicture;
   Bool                    m_bFirstSliceInSequence;
 
-#if SCALING_LIST
   TComScalingList         m_scalingList;        ///< quantization matrix information
-#endif
 public:
   TDecTop();
   virtual ~TDecTop();
@@ -139,7 +123,9 @@ public:
   Void  init();
   Bool  decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay);
   
+#if !PARAMSET_VLC_CLEANUP
   TComSPS *getSPS() { return (m_uiValidPS & 1) ? &m_cSPS : NULL; }
+#endif
   
   Void  deletePicBuffer();
 
@@ -148,33 +134,26 @@ public:
 protected:
   Void  xGetNewPicBuffer  (TComSlice* pcSlice, TComPic*& rpcPic);
   Void  xUpdateGopSize    (TComSlice* pcSlice);
-#if G1002_RPS
   Void  xCreateLostPicture (Int iLostPOC);
-#endif
 
-#if F747_APS
+#if PARAMSET_VLC_CLEANUP
+  Void      decodeAPS( TComAPS* cAPS) { m_cEntropyDecoder.decodeAPS(cAPS); };
+  Void      xActivateParameterSets();
+  Bool      xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDisplay);
+  Void      xDecodeSPS();
+  Void      xDecodePPS();
+  Void      xDecodeAPS();
+  Void      xDecodeSEI();
+
+#else
   Void      decodeAPS(TComInputBitstream* bs, TComAPS& cAPS); //!< decode process for APS
   TComAPS*  popAPS   (UInt apsID);  //!< pop APS parameter object pointer with APS ID equal to apsID
   Void      pushAPS  (TComAPS& cAPS); //!< push APS object into APS container
-  Void      allocAPS (TComAPS* pAPS); //!< memory allocation for APS
-  Void      freeAPS  (TComAPS* pAPS); //!< memory deallocation for APS
-#else
-  /// create PPS buffer
-  Void     createPPSBuffer      ();
-  /// destroy PPS buffer
-  Void     destroyPPSBuffer     ();
-  /// signal the PPS availability
-  Void     signalNewPPSAvailable();
-  /// update PPS buffer counter
-  Void     updatePPSBuffer      ();
-  /// get new PPS buffer for the coming PPS
-  TComPPS* getNewPPSBuffer      ();
-  /// get PPS pointer
-  TComPPS* getPPS               ()   {return m_pcPPS;}
-  /// signal if the PPS is available
-  Bool     hasNewPPS            ()   {return m_pbHasNewPPS[m_iPPSCounter];}
 #endif
-
+  Void      allocAPS (TComAPS* pAPS); //!< memory allocation for APS
+#if !PARAMSET_VLC_CLEANUP
+  Void      freeAPS  (TComAPS* pAPS); //!< memory deallocation for APS
+#endif
 };// END CLASS DEFINITION TDecTop
 
 

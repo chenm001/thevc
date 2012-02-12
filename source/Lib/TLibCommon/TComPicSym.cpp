@@ -74,11 +74,7 @@ Void TComPicSym::create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt 
     }
     delete [] m_apcTComSlice;
   }
-#if !FINE_GRANULARITY_SLICES
-  m_apcTComSlice      = new TComSlice*[m_uiNumCUsInFrame];  
-#else
   m_apcTComSlice      = new TComSlice*[m_uiNumCUsInFrame*m_uiNumPartitions];  
-#endif
   m_apcTComSlice[0]   = new TComSlice;
   m_uiNumAllocatedSlice = 1;
   for ( i=0; i<m_uiNumCUsInFrame ; i++ )
@@ -91,7 +87,6 @@ Void TComPicSym::create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt 
       );
   }
 
-#if TILES
   m_puiCUOrderMap = new UInt[m_uiNumCUsInFrame+1];
   m_puiTileIdxMap = new UInt[m_uiNumCUsInFrame];
   m_puiInverseCUOrderMap = new UInt[m_uiNumCUsInFrame+1];
@@ -101,7 +96,6 @@ Void TComPicSym::create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt 
     m_puiCUOrderMap[i] = i;
     m_puiInverseCUOrderMap[i] = i;
   }
-#endif
 }
 
 Void TComPicSym::destroy()
@@ -127,13 +121,6 @@ Void TComPicSym::destroy()
   delete [] m_apcTComDataCU;
   m_apcTComDataCU = NULL;
 
-#if TILES
-  for (i = 0; i < (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1); i++)
-  {
-#if !G1002_RPS
-    delete m_apcTComTile[i];
-#endif
-  }
   delete [] m_apcTComTile;
   m_apcTComTile = NULL;
 
@@ -145,22 +132,20 @@ Void TComPicSym::destroy()
 
   delete [] m_puiInverseCUOrderMap;
   m_puiInverseCUOrderMap = NULL;
-#endif
 }
 
 Void TComPicSym::allocateNewSlice()
 {
-#if !FINE_GRANULARITY_SLICES
-  assert(m_uiNumCUsInFrame >= m_uiNumAllocatedSlice);
-#endif
   m_apcTComSlice[m_uiNumAllocatedSlice ++] = new TComSlice;
-#if TILES_DECODER
   if (m_uiNumAllocatedSlice>=2)
   {
     m_apcTComSlice[m_uiNumAllocatedSlice-1]->copySliceInfo( m_apcTComSlice[m_uiNumAllocatedSlice-2] );
     m_apcTComSlice[m_uiNumAllocatedSlice-1]->initSlice();
-  }
+#if PARAMSET_VLC_CLEANUP
+    m_apcTComSlice[m_uiNumAllocatedSlice-1]->initTiles();
 #endif
+
+  }
 }
 
 Void TComPicSym::clearSliceBuffer()
@@ -173,7 +158,6 @@ Void TComPicSym::clearSliceBuffer()
   m_uiNumAllocatedSlice = 1;
 }
 
-#if TILES
 UInt TComPicSym::getPicSCUEncOrder( UInt SCUAddr )
 { 
   return getInverseCUOrderMap(SCUAddr/m_uiNumPartitions)*m_uiNumPartitions + SCUAddr%m_uiNumPartitions; 
@@ -251,7 +235,6 @@ Void TComPicSym::xInitTiles()
     m_puiTileIdxMap[i] = uiRowIdx * (m_iNumColumnsMinus1 + 1) + uiColumnIdx;
   }
 
-#if TILES_DECODER
   // Determine bits required for tile index
   Int uiTilesCount = (m_iNumRowsMinus1+1) * (m_iNumColumnsMinus1+1);
   m_uiBitsUsedByTileIdx = 0;
@@ -260,7 +243,6 @@ Void TComPicSym::xInitTiles()
     m_uiBitsUsedByTileIdx++;
     uiTilesCount >>= 1;
   }
-#endif
 }
 
 UInt TComPicSym::xCalculateNxtCUAddr( UInt uiCurrCUAddr )
@@ -306,5 +288,4 @@ TComTile::TComTile()
 TComTile::~TComTile()
 {
 }
-#endif
 //! \}

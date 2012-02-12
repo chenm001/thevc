@@ -36,31 +36,39 @@
 #include <cassert>
 #include <cmath>
 
-namespace {
-  
+namespace
+{
   /// Formatted input for a bitrate vector
   /// \param left The input stream that contains the bitrate vector
   /// \param right The vector to be written to
   /// \pre right must be empty
-  void parseBitrateVector( std::istream& left, std::vector< double >& right ) {
+  void parseBitrateVector( std::istream& left, std::vector< double >& right )
+  {
     assert( right.empty( ) );
     
-    for( ; ; ) {
+    for( ; ; )
+    {
       assert( left.good( ) );
       
       double bitrate;
       left >> bitrate;
       if( left.fail( ) ) break;
-      if( bitrate <= ( double )0.0 ) {
+      if( bitrate <= ( double )0.0 )
+      {
         left.setstate( std::istream::failbit );
-      } else {
+      }
+      else
+      {
         right.push_back( bitrate );
       }
       if( !left.good( ) ) break;
       
-      if( left.peek( ) == ' ' ) {
+      if( left.peek( ) == ' ' )
+      {
         left.ignore( );
-      } else {
+      }
+      else
+      {
         break;
       }
     }
@@ -75,7 +83,8 @@ namespace {
   double incrementLambdaModifier(
       double initialAdjustmentParameter,
       double targetBitrate,
-      const Point& previousPoint ) {
+      const Point& previousPoint )
+  {
     assert( ( double )0.0 < previousPoint.lambdaModifier );
     assert( ( double )0.0 < previousPoint.bitrate );
     
@@ -84,7 +93,8 @@ namespace {
   }
 }
 
-double polateLambdaModifier( double targetBitrate, const Point& point1, const Point& point2 ) {
+double polateLambdaModifier( double targetBitrate, const Point& point1, const Point& point2 )
+{
   assert( 0.0 < point1.lambdaModifier );
   assert( 0.0 < point2.lambdaModifier );
   assert( 0.0 < point1.bitrate );
@@ -103,30 +113,32 @@ double guessLambdaModifier(
     double initialAdjustmentParameter,
     double targetBitrate,
     const std::list< Point >& pointList,
-    double interDampeningFactor ) {
+    double interDampeningFactor )
+{
   assert( ( double )0.0 < interDampeningFactor );
   assert( interDampeningFactor <= ( double )1.0 );
   assert( !pointList.empty( ) );
   
   double preliminaryResult;
   
-  // If there is only one prevous point, then we cannot interpolate, so we call incrementLambdaModifier
-  if( 1 == pointList.size( ) ) {
+  if( 1 == pointList.size( ) )  // If there is only one prevous point, then we cannot interpolate, so we call incrementLambdaModifier
+  {
     preliminaryResult = incrementLambdaModifier( initialAdjustmentParameter, targetBitrate, pointList.back( ) );
-  
-  // If there are at least two previous points, then we may be able to interpolate
-  } else {
+  }
+  else  // If there are at least two previous points, then we may be able to interpolate
+  {
     std::list< Point >::const_reverse_iterator i( pointList.rbegin( ) );
     Point point1 = *i;
     ++i;
     Point point2 = *i;
     
     // If the slope is either horizontal or vertical, we cannot interpolate
-    if( point1.lambdaModifier == point2.lambdaModifier || point1.bitrate == point2.bitrate ) {
+    if( point1.lambdaModifier == point2.lambdaModifier || point1.bitrate == point2.bitrate )
+    {
       preliminaryResult = incrementLambdaModifier( initialAdjustmentParameter, targetBitrate, pointList.back( ) );
-    
-    // If the slope is not horizontal and not vertical, we can interpolate
-    } else {
+    }
+    else  // If the slope is not horizontal and not vertical, we can interpolate
+    {
       preliminaryResult = polateLambdaModifier( targetBitrate, point1, point2 );
     }
   }
@@ -137,26 +149,31 @@ double guessLambdaModifier(
   {
     double intermediate( std::log( ( double )1.0 + std::abs( preliminaryResult - previousResult ) / previousResult ) );
     assert( ( double )0.0 <= intermediate );
-    if( ( preliminaryResult - previousResult ) < 0.0 ) {
+    if( ( preliminaryResult - previousResult ) < 0.0 )
+    {
       preliminaryResult = previousResult * ( ( double )1.0 - intermediate );
-    } else {
+    }
+    else
+    {
       preliminaryResult = previousResult * ( ( double )1.0 + intermediate );
     }
   }
   
   // Apply "inter dampening factor".  If necessary, reduce the factor until a positive result is acheived.
   double result;
-  do {
+  do
+  {
     result = previousResult + interDampeningFactor * ( preliminaryResult - previousResult );
     interDampeningFactor /= ( double )2.0;
   } while( result <= ( double )0.0 );
   return result;
 }
 
-namespace {
-  
+namespace
+{
   /// Extracts a single point at the given index from a full meta-log entry
-  Point pointFromFullMetaLogEntry( unsigned char index, const MetaLogEntry< std::vector< double > >& fullEntry ) {
+  Point pointFromFullMetaLogEntry( unsigned char index, const MetaLogEntry< std::vector< double > >& fullEntry )
+  {
     Point result;
     result.lambdaModifier = fullEntry.lambdaModifiers[ index ];
     result.bitrate = fullEntry.bitrateVector[ index ];
@@ -169,7 +186,8 @@ namespace {
   /// \return The calculated inter dampening factor
   /// \pre cumulativeDelta must be non-negative
   /// \pre parameter must be non-negative
-  double interDampeningFactor( double parameter, double cumulativeDelta ) {
+  double interDampeningFactor( double parameter, double cumulativeDelta )
+  {
     assert( 0.0 <= cumulativeDelta );
     assert( 0.0 <= parameter );
     return ( double )1.0 / ( parameter * cumulativeDelta + ( double )1.0 );
@@ -179,14 +197,15 @@ namespace {
 std::vector< double > guessLambdaModifiers(
     double initialAdjustmentParameter,
     const std::vector< double > &targetBitrateVector,
-    const std::list< MetaLogEntry< std::vector< double > > >& metaLogEntryList ) {
+    const std::list< MetaLogEntry< std::vector< double > > >& metaLogEntryList )
+{
   assert( !targetBitrateVector.empty( ) );
   assert( !metaLogEntryList.empty( ) );
   
   double cumulativeDelta( 0.0 );
   std::vector< double > resultVector;
-  for( unsigned char i( 0 ); i < targetBitrateVector.size( ); ++i ) {
-    
+  for( unsigned char i( 0 ); i < targetBitrateVector.size( ); ++i )
+  {
     // Populate pointList with up to two of the previous points
     std::list< Point > pointList;
     std::list< MetaLogEntry< std::vector< double > > >::const_reverse_iterator j( metaLogEntryList.rbegin( ) );
@@ -210,12 +229,14 @@ std::vector< double > guessLambdaModifiers(
   return resultVector;
 }
 
-namespace {
+namespace
+{
   /// Ignores all of the the characters up to and including a given character
   /// \param i The active input stream
   /// \param character The character to ignore up to
   /// \throw MetaLogParseException if the stream goes bad before character is encountered or just after character is encountered
-  void ignoreUpTo( std::istream& i, char character ) {
+  void ignoreUpTo( std::istream& i, char character )
+  {
     while( i.good( ) && character != i.get( ) )
       ;
     if( !i.good( ) ) throw MetaLogParseException( );
@@ -223,8 +244,10 @@ namespace {
   
   /// Parses a Lambda-modifier map
   /// \param right The map to write the output to
-  void parseLambdaModifierMap( std::istream& left, std::map< unsigned char, double >& right ) {
-    for( ; ; ) {
+  void parseLambdaModifierMap( std::istream& left, std::map< unsigned char, double >& right )
+  {
+    for( ; ; )
+    {
       assert( left.good( ) );
       
       // Ignore the "-LM"
@@ -250,17 +273,23 @@ namespace {
       // Parse the Lambda-modifier
       double lambdaModifier;
       left >> lambdaModifier;
-      if( lambdaModifier <= ( double )0.0 || ( !right.empty( ) && ( right.count( index ) != 0 || index <= right.rbegin( )->first ) ) ) {
+      if( lambdaModifier <= ( double )0.0 || ( !right.empty( ) && ( right.count( index ) != 0 || index <= right.rbegin( )->first ) ) )
+      {
         left.setstate( std::istream::failbit );
-      } else {
+      }
+      else
+      {
         right[ index ] = lambdaModifier;
       }
       if( !left.good( ) ) break;
       
       // If we peek and see a space, then there should be more Lambda-modifiers to parse.  Otherwise, we are finished.
-      if( left.peek( ) == ' ' ) {
+      if( left.peek( ) == ' ' )
+      {
         left.ignore( );
-      } else {
+      }
+      else
+      {
         break;
       }
     }
@@ -268,9 +297,11 @@ namespace {
   
   /// Extracts the indexes from the given maps
   /// \return The set of indexes
-  std::set< unsigned char > indexSetFromMap( const std::map< unsigned char, double >& in ) {
+  std::set< unsigned char > indexSetFromMap( const std::map< unsigned char, double >& in )
+  {
     std::set< unsigned char > result;
-    for( typename std::map< unsigned char, double >::const_iterator i( in.begin( ) ); i != in.end( ); ++i ) {
+    for( typename std::map< unsigned char, double >::const_iterator i( in.begin( ) ); i != in.end( ); ++i )
+    {
       result.insert( i->first );
     }
     return result;
@@ -281,12 +312,13 @@ void guessLambdaModifiers(
     std::ostream& o,
     std::istream& initialAdjustmentParameterIstream,
     std::istream& targetsIstream,
-    std::istream& metaLogIstream ) {
-  
+    std::istream& metaLogIstream )
+{
   // Parse the initialAdjustmentParameter
   double initialAdjustmentParameter;
   initialAdjustmentParameterIstream >> initialAdjustmentParameter;
-  if( initialAdjustmentParameterIstream.fail( ) || initialAdjustmentParameterIstream.good( ) ) {
+  if( initialAdjustmentParameterIstream.fail( ) || initialAdjustmentParameterIstream.good( ) )
+  {
     throw InitialAdjustmentParameterParseException( );
   }
   
@@ -297,8 +329,8 @@ void guessLambdaModifiers(
   
   // Parse the metalog
   std::list< MetaLogEntry< std::map< unsigned char, double > > > metaLogEntryList;
-  do {
-    
+  do
+  {
     // Parse the Lambda-modifiers
     MetaLogEntry< std::map< unsigned char, double > > entry;
     parseLambdaModifierMap( metaLogIstream, entry.lambdaModifiers );
@@ -324,7 +356,8 @@ void guessLambdaModifiers(
   if( firstIndexSet.size( ) != targetVector.size( ) ) throw MismatchedIndexesException( );
   for( std::list< MetaLogEntry< std::map< unsigned char, double > > >::const_iterator i( metaLogEntryList.begin( ) );
       i != metaLogEntryList.end( );
-      ++i ) {
+      ++i )
+  {
     if( indexSetFromMap( i->lambdaModifiers ) != firstIndexSet ) throw MismatchedIndexesException( );
     if( i->bitrateVector.size( ) != targetVector.size( ) ) throw MismatchedIndexesException( );
   }
@@ -333,9 +366,11 @@ void guessLambdaModifiers(
   std::list< MetaLogEntry< std::vector< double > > > simplifiedMetaLogEntryList;
   for( std::list< MetaLogEntry< std::map< unsigned char, double > > >::const_iterator i( metaLogEntryList.begin( ) );
       i != metaLogEntryList.end( );
-      ++i ) {
+      ++i )
+  {
     simplifiedMetaLogEntryList.push_back( MetaLogEntry< std::vector< double > >( ) );
-    for( std::map< unsigned char, double >::const_iterator j( i->lambdaModifiers.begin( ) ); j != i->lambdaModifiers.end( ); ++j ) {
+    for( std::map< unsigned char, double >::const_iterator j( i->lambdaModifiers.begin( ) ); j != i->lambdaModifiers.end( ); ++j )
+    {
       simplifiedMetaLogEntryList.back( ).lambdaModifiers.push_back( j->second );
     }
     simplifiedMetaLogEntryList.back( ).bitrateVector = i->bitrateVector;
@@ -347,7 +382,8 @@ void guessLambdaModifiers(
   // Output the results
   std::set< unsigned char >::const_iterator indexIter( firstIndexSet.begin( ) );
   std::vector< double >::const_iterator resultIter( resultVector.begin( ) );
-  do {
+  do
+  {
     if( indexIter != firstIndexSet.begin( ) ) o << " ";
     o << "-LM" << ( long )( *indexIter ) << " ";
     o.setf( std::ostream::fixed, std::ostream::floatfield );

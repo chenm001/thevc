@@ -58,10 +58,8 @@ class TComPic
 {
 private:
   UInt                  m_uiTLayer;               //  Temporal layer
-#if G1002_RPS
   Bool                  m_bUsedByCurr;            //  Used by current picture
   Bool                  m_bIsLongTerm;            //  IS long term picture
-#endif
   TComPicSym*           m_apcPicSym;              //  Symbol
   
   TComPicYuv*           m_apcPicYuv[2];           //  Texture,  0:org / 1:rec
@@ -69,24 +67,18 @@ private:
   TComPicYuv*           m_pcPicYuvPred;           //  Prediction
   TComPicYuv*           m_pcPicYuvResi;           //  Residual
   Bool                  m_bReconstructed;
-#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
   Bool                  m_bNeededForOutput;
-#endif
   UInt                  m_uiCurrSliceIdx;         // Index of current slice
 
-#if NO_TMVP_MARKING
   Bool                  m_usedForTMVP;
-#endif
   
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-  Int*                  m_piSliceSUMap;
+  Int*                  m_pSliceSUMap;
   Bool*                 m_pbValidSlice;
-  Int                   m_iSliceGranularityForNDBFilter;
+  Int                   m_sliceGranularityForNDBFilter;
   Bool                  m_bIndependentSliceBoundaryForNDBFilter;
   Bool                  m_bIndependentTileBoundaryForNDBFilter;
-  TComPicYuv*           m_pcNDBFilterYuvTmp;    //!< temporary picture buffer when non-cross slice/tile boundary in-loop filtering is enabled
+  TComPicYuv*           m_pNDBFilterYuvTmp;    //!< temporary picture buffer when non-cross slice/tile boundary in-loop filtering is enabled
   std::vector<std::vector<TComDataCU*> > m_vSliceCUDataLink;
-#endif
 
   SEImessages* m_SEIs; ///< Any SEI messages that have been received.  If !NULL we own the object.
 
@@ -95,27 +87,19 @@ public:
   virtual ~TComPic();
   
   Void          create( Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth, Bool bIsVirtual = false );
-#if QP_ADAPTATION
   virtual Void  destroy();
-#else
-  Void          destroy();
-#endif
   
   UInt          getTLayer()                { return m_uiTLayer;   }
   Void          setTLayer( UInt uiTLayer ) { m_uiTLayer = uiTLayer; }
 
-#if G1002_RPS
   Bool          getUsedByCurr()             { return m_bUsedByCurr; }
   Void          setUsedByCurr( Bool bUsed ) { m_bUsedByCurr = bUsed; }
   Bool          getIsLongTerm()             { return m_bIsLongTerm; }
   Void          setIsLongTerm( Bool lt ) { m_bIsLongTerm = lt; }
-#endif
 
   TComPicSym*   getPicSym()           { return  m_apcPicSym;    }
   TComSlice*    getSlice(Int i)       { return  m_apcPicSym->getSlice(i);  }
   Int           getPOC()              { return  m_apcPicSym->getSlice(m_uiCurrSliceIdx)->getPOC();  }
-  Bool          getDRBFlag()          { return  m_apcPicSym->getSlice(m_uiCurrSliceIdx)->getDRBFlag();  }
-  Int           getERBIndex()         { return  m_apcPicSym->getSlice(m_uiCurrSliceIdx)->getERBIndex();  }
   TComDataCU*&  getCU( UInt uiCUAddr )  { return  m_apcPicSym->getCU( uiCUAddr ); }
   
   TComPicYuv*   getPicYuvOrg()        { return  m_apcPicYuv[0]; }
@@ -144,45 +128,32 @@ public:
   Void          setReconMark (Bool b) { m_bReconstructed = b;     }
   Bool          getReconMark ()       { return m_bReconstructed;  }
 
-#if NO_TMVP_MARKING
   Void          setUsedForTMVP( Bool b ) { m_usedForTMVP = b;    }
   Bool          getUsedForTMVP()         { return m_usedForTMVP; }
-#endif
 
-#if G1002_RPS && G1002_IDR_POC_ZERO_BUGFIX
   Void          setOutputMark (Bool b) { m_bNeededForOutput = b;     }
   Bool          getOutputMark ()       { return m_bNeededForOutput;  }
-#endif
  
-#if AMVP_BUFFERCOMPRESS
   Void          compressMotion(); 
-#endif 
   UInt          getCurrSliceIdx()            { return m_uiCurrSliceIdx;                }
   Void          setCurrSliceIdx(UInt i)      { m_uiCurrSliceIdx = i;                   }
   UInt          getNumAllocatedSlice()       {return m_apcPicSym->getNumAllocatedSlice();}
   Void          allocateNewSlice()           {m_apcPicSym->allocateNewSlice();         }
   Void          clearSliceBuffer()           {m_apcPicSym->clearSliceBuffer();         }
   
-#if NONCROSS_TILE_IN_LOOP_FILTERING
-
-  Void          createNonDBFilterInfo   (UInt* puiSliceStartAddress = NULL, Int iNumSlices = 1, Int iSliceGranularityDepth= 0
+  Void          createNonDBFilterInfo   (UInt* pSliceStartAddress = NULL, Int numSlices = 1, Int sliceGranularityDepth= 0
                                         ,Bool bNDBFilterCrossSliceBoundary = true
-                                        ,Int iNumTiles = 1
+                                        ,Int  numTiles = 1
                                         ,Bool bNDBFilterCrossTileBoundary = true);
-#if TILES
-  Void          createNonDBFilterInfoLCU(Int iTileID, Int iSliceID, TComDataCU* pcCU, UInt uiStartSU, UInt uiEndSU, Int iSliceGranularyDepth, UInt uiPicWidth, UInt uiPicHeight);
-#else
-  Void          createNonDBFilterInfoLCU(Int iSliceID, TComDataCU* pcCU, UInt uiStartSU, UInt uiEndSU, Int iSliceGranularyDepth, UInt uiPicWidth, UInt uiPicHeight);
-#endif
+  Void          createNonDBFilterInfoLCU(Int tileID, Int sliceID, TComDataCU* pcCU, UInt startSU, UInt endSU, Int sliceGranularyDepth, UInt picWidth, UInt picHeight);
   Void          destroyNonDBFilterInfo();
 
-  Bool          getValidSlice                                  (Int iSliceID) {return m_pbValidSlice[iSliceID];}
-  Int           getSliceGranularityForNDBFilter                ()             {return m_iSliceGranularityForNDBFilter;}
+  Bool          getValidSlice                                  (Int sliceID)  {return m_pbValidSlice[sliceID];}
+  Int           getSliceGranularityForNDBFilter                ()             {return m_sliceGranularityForNDBFilter;}
   Bool          getIndependentSliceBoundaryForNDBFilter        ()             {return m_bIndependentSliceBoundaryForNDBFilter;}
   Bool          getIndependentTileBoundaryForNDBFilter         ()             {return m_bIndependentTileBoundaryForNDBFilter; }
-  TComPicYuv*   getYuvPicBufferForIndependentBoundaryProcessing()             {return m_pcNDBFilterYuvTmp;}
-  std::vector<TComDataCU*>& getOneSliceCUDataForNDBFilter      (Int iSliceID) { return m_vSliceCUDataLink[iSliceID];}
-#endif
+  TComPicYuv*   getYuvPicBufferForIndependentBoundaryProcessing()             {return m_pNDBFilterYuvTmp;}
+  std::vector<TComDataCU*>& getOneSliceCUDataForNDBFilter      (Int sliceID) { return m_vSliceCUDataLink[sliceID];}
 
   /** transfer ownership of seis to this picture */
   void setSEIs(SEImessages* seis) { m_SEIs = seis; }
