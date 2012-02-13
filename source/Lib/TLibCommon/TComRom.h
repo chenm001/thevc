@@ -120,7 +120,6 @@ extern const UChar  g_aucChromaScale      [52];
 extern       UInt*  g_auiFrameScanXY[ MAX_CU_DEPTH  ];    // raster index     from scanning index
 extern       UInt*  g_auiFrameScanX [ MAX_CU_DEPTH  ];    // raster index (x) from scanning index
 extern       UInt*  g_auiFrameScanY [ MAX_CU_DEPTH  ];    // raster index (y) from scanning index
-extern       UInt   g_auiAntiScan8[64];                   // 2D context mapping for coefficients
 extern       UInt*  g_auiSigLastScan[4][ MAX_CU_DEPTH ];  // raster index from scanning index (zigzag, hor, ver, diag)
 extern UInt *g_sigScanNSQT[ 4 ]; // scan for non-square partitions
 extern UInt g_sigCGScanNSQT[ 4 ][ 16 ]; // coarse-grain scan for non-square partitions

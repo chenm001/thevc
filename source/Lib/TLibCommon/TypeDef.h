@@ -41,6 +41,11 @@
 //! \ingroup TLibCommon
 //! \{
 
+#define PARAMSET_VLC_CLEANUP               0      ///< followup to G220: Simplify parameter set code
+
+#define MAX_NUM_SPS                32
+#define MAX_NUM_PPS                256
+
 #define MRG_MAX_NUM_CANDS_SIGNALED         5   //<G091: value of maxNumMergeCand signaled in slice header 
 
 #define WEIGHTED_CHROMA_DISTORTION  1   ///< F386: weighting of chroma for RDO
@@ -87,8 +92,6 @@
 
 #define IBDI_DISTORTION                0           ///< enable/disable SSE modification when IBDI is used (JCTVC-D152)
 #define FIXED_ROUNDING_FRAME_MEMORY    0           ///< enable/disable fixed rounding to 8-bitdepth of frame memory when IBDI is used  
-
-#define MS_LCEC_UNI_EXCEPTION_THRES     1           // for GPB case, uni-prediction, > MS_LCEC_UNI_EXCEPTION_THRES is exception
 
 #define WRITE_BACK                      1           ///< Enable/disable the encoder to replace the deltaPOC and Used by current from the config file with the values derived by the refIdc parameter.
 #define PRINT_RPS_INFO                  0           ///< Enable/disable the printing of bits used to send the RPS.
@@ -176,14 +179,6 @@ typedef       Int             TCoeff;     ///< transform coefficient
 class TComPicSym;
 
 #define NUM_DOWN_PART 4
-#define NUM_MAX_OFFSET  32
-
-/// parapeters for TENTM coefficient VLC
-typedef struct _LastCoeffStruct
-{
-  int level;
-  int last_pos;
-} LastCoeffStruct;
 
 // ====================================================================================================================
 // Enumeration

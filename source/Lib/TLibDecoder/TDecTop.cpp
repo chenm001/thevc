@@ -81,7 +81,9 @@ Void TDecTop::destroy()
   m_apcSlicePilot = NULL;
   
   m_cSliceDecoder.destroy();
+#if !PARAMSET_VLC_CLEANUP
   m_cRPSList.destroy();
+#endif
 }
 
 Void TDecTop::init()
@@ -186,13 +188,23 @@ Void TDecTop::xCreateLostPicture(Int iLostPoc)
 {
   printf("\ninserting lost poc : %d\n",iLostPoc);
   TComSlice cFillSlice;
+#if PARAMSET_VLC_CLEANUP
+  cFillSlice.setSPS( m_parameterSetManagerDecoder.getFirstSPS() );
+  cFillSlice.setPPS( m_parameterSetManagerDecoder.getFirstPPS() );
+#else
   cFillSlice.setSPS( &m_cSPS );
   cFillSlice.setPPS( &m_cPPS );
+#endif
   cFillSlice.initSlice();
   TComPic *cFillPic;
   xGetNewPicBuffer(&cFillSlice,cFillPic);
+#if PARAMSET_VLC_CLEANUP
+  cFillPic->getSlice()->setSPS( m_parameterSetManagerDecoder.getFirstSPS() );
+  cFillPic->getSlice()->setPPS( m_parameterSetManagerDecoder.getFirstPPS() );
+#else
   cFillPic->getSlice()->setSPS( &m_cSPS );
   cFillPic->getSlice()->setPPS( &m_cPPS );
+#endif
   cFillPic->getSlice()->initSlice();
   
   
@@ -231,6 +243,244 @@ Void TDecTop::xCreateLostPicture(Int iLostPoc)
   }
 }
 
+
+#if PARAMSET_VLC_CLEANUP
+Void TDecTop::xActivateParameterSets()
+{
+  m_parameterSetManagerDecoder.applyPrefetchedPS();
+
+  TComPPS *pps = m_parameterSetManagerDecoder.getPPS(m_apcSlicePilot->getPPSId());
+  assert (pps != 0);
+
+  TComSPS *sps = m_parameterSetManagerDecoder.getSPS(pps->getSPSId());
+  assert (sps != 0);
+
+  m_apcSlicePilot->setPPS(pps);
+  m_apcSlicePilot->setSPS(sps);
+  pps->setSPS(sps);
+
+  for (Int i = 0; i < sps->getMaxCUDepth() - 1; i++)
+  {
+    sps->setAMPAcc( i, sps->getUseAMP() );
+  }
+
+  for (Int i = sps->getMaxCUDepth() - 1; i < sps->getMaxCUDepth(); i++)
+  {
+    sps->setAMPAcc( i, 0 );
+  }
+}
+
+Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDisplay )
+{
+  TComPic*&   pcPic         = m_pcPic;
+  m_apcSlicePilot->initSlice();
+
+  //!!!KS: DIRTY HACK
+  m_apcSlicePilot->setPPSId(0);
+  m_apcSlicePilot->setPPS(m_parameterSetManagerDecoder.getPrefetchedPPS(0));
+  m_apcSlicePilot->setSPS(m_parameterSetManagerDecoder.getPrefetchedSPS(0));
+
+  if (!m_bFirstSliceInPicture)
+  {
+    m_apcSlicePilot->copySliceInfo( pcPic->getPicSym()->getSlice() );
+  }
+
+  m_apcSlicePilot->setNalUnitType(nalu.m_UnitType);
+  m_apcSlicePilot->setReferenced(nalu.m_RefIDC != NAL_REF_IDC_PRIORITY_LOWEST);
+
+  // ALF CU parameters should be part of the slice header -> needs to be fixed 
+  m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot, &m_parameterSetManagerDecoder );
+
+  // byte align
+  {
+    Int numBitsForByteAlignment = nalu.m_Bitstream->getNumBitsUntilByteAligned();
+    if ( numBitsForByteAlignment > 0 )
+    {
+      UInt bitsForByteAlignment;
+      nalu.m_Bitstream->read( numBitsForByteAlignment, bitsForByteAlignment );
+      assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
+    }
+  }
+
+  // exit when a new picture is found
+  if (m_apcSlicePilot->isNextSlice() && m_apcSlicePilot->getPOC()!=m_uiPrevPOC && !m_bFirstSliceInSequence)
+  {
+    m_uiPrevPOC = m_apcSlicePilot->getPOC();
+    return true;
+  }
+  // actual decoding starts here
+  xActivateParameterSets();
+
+  if (m_apcSlicePilot->isNextSlice()) 
+  {
+    m_uiPrevPOC = m_apcSlicePilot->getPOC();
+  }
+  m_bFirstSliceInSequence = false;
+  if (m_apcSlicePilot->isNextSlice())
+  {
+    // Skip pictures due to random access
+    if (isRandomAccessSkipPicture(iSkipFrame, iPOCLastDisplay))
+    {
+      return false;
+    }
+  }
+  //detect lost reference picture and insert copy of earlier frame.
+  while(m_apcSlicePilot->checkThatAllRefPicsAreAvailable(m_cListPic, m_apcSlicePilot->getRPS(), true) > 0)
+  {
+    xCreateLostPicture(m_apcSlicePilot->checkThatAllRefPicsAreAvailable(m_cListPic, m_apcSlicePilot->getRPS(), false)-1);
+  }
+  if (m_bFirstSliceInPicture)
+  {
+    // Buffer initialize for prediction.
+    m_cPrediction.initTempBuff();
+    m_apcSlicePilot->applyReferencePictureSet(m_cListPic, m_apcSlicePilot->getRPS());
+    //  Get a new picture buffer
+    xGetNewPicBuffer (m_apcSlicePilot, pcPic);
+
+    /* transfer any SEI messages that have been received to the picture */
+    pcPic->setSEIs(m_SEIs);
+    m_SEIs = NULL;
+
+    // Recursive structure
+    m_cCuDecoder.create ( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
+    m_cCuDecoder.init   ( &m_cEntropyDecoder, &m_cTrQuant, &m_cPrediction );
+    m_cTrQuant.init     ( g_uiMaxCUWidth, g_uiMaxCUHeight, m_apcSlicePilot->getSPS()->getMaxTrSize());
+
+    m_cSliceDecoder.create( m_apcSlicePilot, m_apcSlicePilot->getSPS()->getWidth(), m_apcSlicePilot->getSPS()->getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+  }
+
+  //  Set picture slice pointer
+  TComSlice*  pcSlice = m_apcSlicePilot;
+  Bool bNextSlice     = pcSlice->isNextSlice();
+
+  UInt i;
+
+  if (m_bFirstSliceInPicture) 
+  {
+    if(pcPic->getNumAllocatedSlice() != 1)
+    {
+      pcPic->clearSliceBuffer();
+    }
+  }
+  else
+  {
+    pcPic->allocateNewSlice();
+  }
+  assert(pcPic->getNumAllocatedSlice() == 1);
+  m_apcSlicePilot = pcPic->getPicSym()->getSlice(); 
+  pcPic->getPicSym()->setSlice(pcSlice);
+
+  if (bNextSlice)
+  {
+    pcSlice->checkCRA(pcSlice->getRPS(), m_uiPOCCDR, m_cListPic); 
+
+    if ( !pcSlice->getPPS()->getEnableTMVPFlag() )
+    {
+      pcSlice->decodingMarkingForNoTMVP( m_cListPic, pcSlice->getPOC() );
+    }
+
+    // Set reference list
+    pcSlice->setRefPicList( m_cListPic );
+
+    // For generalized B
+    // note: maybe not existed case (always L0 is copied to L1 if L1 is empty)
+    if (pcSlice->isInterB() && pcSlice->getNumRefIdx(REF_PIC_LIST_1) == 0)
+    {
+      Int iNumRefIdx = pcSlice->getNumRefIdx(REF_PIC_LIST_0);
+      pcSlice->setNumRefIdx        ( REF_PIC_LIST_1, iNumRefIdx );
+
+      for (Int iRefIdx = 0; iRefIdx < iNumRefIdx; iRefIdx++)
+      {
+        pcSlice->setRefPic(pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx), REF_PIC_LIST_1, iRefIdx);
+      }
+    }
+    if (pcSlice->isInterB())
+    {
+      Bool bLowDelay = true;
+      Int  iCurrPOC  = pcSlice->getPOC();
+      Int iRefIdx = 0;
+
+      for (iRefIdx = 0; iRefIdx < pcSlice->getNumRefIdx(REF_PIC_LIST_0) && bLowDelay; iRefIdx++)
+      {
+        if ( pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx)->getPOC() > iCurrPOC )
+        {
+          bLowDelay = false;
+        }
+      }
+      for (iRefIdx = 0; iRefIdx < pcSlice->getNumRefIdx(REF_PIC_LIST_1) && bLowDelay; iRefIdx++)
+      {
+        if ( pcSlice->getRefPic(REF_PIC_LIST_1, iRefIdx)->getPOC() > iCurrPOC )
+        {
+          bLowDelay = false;
+        }
+      }
+
+      pcSlice->setCheckLDC(bLowDelay);            
+    }
+
+    //---------------
+    pcSlice->setRefPOCList();
+
+    if(!pcSlice->getRefPicListModificationFlagLC())
+    {
+      pcSlice->generateCombinedList();
+    }
+
+    pcSlice->setNoBackPredFlag( false );
+    if ( pcSlice->getSliceType() == B_SLICE && !pcSlice->getRefPicListCombinationFlag())
+    {
+      if ( pcSlice->getNumRefIdx(RefPicList( 0 ) ) == pcSlice->getNumRefIdx(RefPicList( 1 ) ) )
+      {
+        pcSlice->setNoBackPredFlag( true );
+        for ( i=0; i < pcSlice->getNumRefIdx(RefPicList( 1 ) ); i++ )
+        {
+          if ( pcSlice->getRefPOC(RefPicList(1), i) != pcSlice->getRefPOC(RefPicList(0), i) ) 
+          {
+            pcSlice->setNoBackPredFlag( false );
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  //  Decode a picture
+  m_cGopDecoder.decompressGop(nalu.m_Bitstream, pcPic, false);
+
+  m_bFirstSliceInPicture = false;
+
+  return false;
+}
+
+
+Void TDecTop::xDecodeSPS()
+{
+  TComSPS* sps = new TComSPS();
+  m_cEntropyDecoder.decodeSPS( sps );
+  m_parameterSetManagerDecoder.storePrefetchedSPS(sps);
+}
+
+Void TDecTop::xDecodePPS()
+{
+  TComRPS* rps = new TComRPS();
+  TComPPS* pps = new TComPPS();
+  pps->setRPSList(rps);
+  m_cEntropyDecoder.decodePPS( pps );
+  m_parameterSetManagerDecoder.storePrefetchedPPS( pps );
+
+  //!!!KS: Activate parameter sets for parsing APS (unless dependency is resolved)
+  m_apcSlicePilot->setPPSId(pps->getPPSId());
+  xActivateParameterSets();
+}
+
+Void TDecTop::xDecodeSEI()
+{
+  m_SEIs = new SEImessages;
+  m_cEntropyDecoder.decodeSEI(*m_SEIs);
+}
+
+#endif 
+
 Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 {
   TComPic*&   pcPic         = m_pcPic;
@@ -241,6 +491,10 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
   switch (nalu.m_UnitType)
   {
     case NAL_UNIT_SPS:
+#if PARAMSET_VLC_CLEANUP
+      xDecodeSPS();
+      return false;
+#else
       m_cEntropyDecoder.decodeSPS( &m_cSPS );
 
       for (Int i = 0; i < m_cSPS.getMaxCUDepth() - 1; i++)
@@ -255,30 +509,41 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       }
 
       m_uiValidPS |= 1;
-      
       return false;
+#endif
 
     case NAL_UNIT_PPS:
+#if PARAMSET_VLC_CLEANUP
+      xDecodePPS();
+      return false;
+#else
       m_cPPS.setRPSList(&m_cRPSList);
       m_cPPS.setSPS(&m_cSPS);
       m_cEntropyDecoder.decodePPS( &m_cPPS );
 
       m_uiValidPS |= 2;
       return false;
-
+#endif
     case NAL_UNIT_APS:
         assert(0);
       return false;
 
     case NAL_UNIT_SEI:
+#if PARAMSET_VLC_CLEANUP
+      xDecodeSEI();
+#else
       m_SEIs = new SEImessages;
       m_cEntropyDecoder.decodeSEI(*m_SEIs);
+#endif
       return false;
 
     case NAL_UNIT_CODED_SLICE:
     case NAL_UNIT_CODED_SLICE_IDR:
     case NAL_UNIT_CODED_SLICE_CDR:
-    {
+#if PARAMSET_VLC_CLEANUP
+      return xDecodeSlice(nalu, iSkipFrame, iPOCLastDisplay);
+#else
+      {
       // make sure we already received both parameter sets
       assert( 3 == m_uiValidPS );
       m_apcSlicePilot->setSPS(&m_cSPS);
@@ -450,6 +715,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 
       m_bFirstSliceInPicture = false;
     }
+#endif
       break;
     default:
       assert (0);

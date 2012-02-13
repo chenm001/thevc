@@ -47,6 +47,9 @@
 class TDecSbac;
 class TDecCavlc;
 class SEImessages;
+#if PARAMSET_VLC_CLEANUP
+class ParameterSetManagerDecoder;
+#endif
 
 //! \ingroup TLibDecoder
 //! \{
@@ -60,15 +63,21 @@ class TDecEntropyIf
 {
 public:
   //  Virtual list for SBAC/CAVLC
+#if !PARAMSET_VLC_CLEANUP
   virtual Void  resetEntropy          (Int  iQp, Int iID) = 0;
+#endif
   virtual Void  resetEntropy          (TComSlice* pcSlice)                = 0;
   virtual Void  setBitstream          ( TComInputBitstream* p )  = 0;
 
   virtual Void  parseSPS                  ( TComSPS* pcSPS )                                      = 0;
   virtual Void  parsePPS                  ( TComPPS* pcPPS )                                      = 0;
   virtual void parseSEI(SEImessages&) = 0;
-  virtual Void  parseSliceHeader          ( TComSlice*& rpcSlice )                                = 0;
+#if PARAMSET_VLC_CLEANUP
+  virtual Void parseSliceHeader          ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager )                                = 0;
+#else
+  virtual Void parseSliceHeader          ( TComSlice*& rpcSlice )                                = 0;
   virtual Void  parseWPPTileInfoToSliceHeader  ( TComSlice*& rpcSlice )                           = 0;
+#endif
   virtual Void  parseTerminatingBit       ( UInt& ruilsLast )                                     = 0;
   
   virtual Void parseMVPIdx        ( Int& riMVPIdx ) = 0;
@@ -93,12 +102,8 @@ public:
   virtual Void parseQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth ) = 0;
   virtual Void parseQtRootCbf     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf ) = 0;
   
-  virtual Void parseCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth ) = 0;
-  virtual Void parseBlockCbf      ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth, UInt uiQPartNum ) = 0;
-  virtual Void parseCbfTrdiv      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiTrDepth, UInt uiDepth, UInt& uiSubdiv ) = 0;
-  
   virtual Void parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType ) = 0;
-  
+
   virtual ~TDecEntropyIf() {}
 };
 
@@ -121,14 +126,20 @@ public:
   
   Void    setEntropyDecoder           ( TDecEntropyIf* p );
   Void    setBitstream                ( TComInputBitstream* p ) { m_pcEntropyDecoderIf->setBitstream(p);                    }
+#if !PARAMSET_VLC_CLEANUP
   Void    resetEntropy                (Int  iQp, Int iID) { m_pcEntropyDecoderIf->resetEntropy(iQp, iID);                    }
+#endif
   Void    resetEntropy                ( TComSlice* p)           { m_pcEntropyDecoderIf->resetEntropy(p);                    }
 
   Void    decodeSPS                   ( TComSPS* pcSPS     )    { m_pcEntropyDecoderIf->parseSPS(pcSPS);                    }
   Void    decodePPS                   ( TComPPS* pcPPS     )    { m_pcEntropyDecoderIf->parsePPS(pcPPS);                    }
   void decodeSEI(SEImessages& seis) { m_pcEntropyDecoderIf->parseSEI(seis); }
+#if PARAMSET_VLC_CLEANUP
+  Void    decodeSliceHeader           ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager )  { m_pcEntropyDecoderIf->parseSliceHeader(rpcSlice, parameterSetManager);         }
+#else
   Void    decodeSliceHeader           ( TComSlice*& rpcSlice )  { m_pcEntropyDecoderIf->parseSliceHeader(rpcSlice);         }
   Void    decodeWPPTileInfoToSliceHeader  ( TComSlice*& rpcSlice )  { m_pcEntropyDecoderIf->parseWPPTileInfoToSliceHeader(rpcSlice); }
+#endif
   Void    decodeTerminatingBit        ( UInt& ruiIsLast )       { m_pcEntropyDecoderIf->parseTerminatingBit(ruiIsLast);     }
   
   TDecEntropyIf* getEntropyDecoder() { return m_pcEntropyDecoderIf; }

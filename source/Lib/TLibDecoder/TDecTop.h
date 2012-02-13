@@ -73,9 +73,13 @@ private:
 
   UInt                    m_uiValidPS;
   TComList<TComPic*>      m_cListPic;         //  Dynamic buffer
+#if PARAMSET_VLC_CLEANUP
+  ParameterSetManagerDecoder m_parameterSetManagerDecoder;  // storage for parameter sets 
+#else
   TComSPS                 m_cSPS;
 
   TComPPS                 m_cPPS;               //!< PPS
+#endif
   TComRPS                 m_cRPSList;
   TComSlice*              m_apcSlicePilot;
   
@@ -110,7 +114,9 @@ public:
   Void  init();
   Bool  decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay);
   
+#if !PARAMSET_VLC_CLEANUP
   TComSPS *getSPS() { return (m_uiValidPS & 1) ? &m_cSPS : NULL; }
+#endif
   
   Void  deletePicBuffer();
 
@@ -120,6 +126,15 @@ protected:
   Void  xGetNewPicBuffer  (TComSlice* pcSlice, TComPic*& rpcPic);
   Void  xCreateLostPicture (Int iLostPOC);
 
+#if PARAMSET_VLC_CLEANUP
+  Void      xActivateParameterSets();
+  Bool      xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDisplay);
+  Void      xDecodeSPS();
+  Void      xDecodePPS();
+  Void      xDecodeSEI();
+
+#else
+#endif
 };// END CLASS DEFINITION TDecTop
 
 

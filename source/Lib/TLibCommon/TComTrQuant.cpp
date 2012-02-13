@@ -97,7 +97,7 @@ TComTrQuant::~TComTrQuant()
 /// Including Chroma QP Parameter setting
 Void TComTrQuant::setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, TextType eTxtType)
 {
-  iQP = max( min( iQP, 51 ), 0 );
+  iQP = Clip3( MIN_QP, MAX_QP, iQP );
   
   if(eTxtType != TEXT_LUMA) //Chroma
   {
@@ -170,7 +170,8 @@ void xTr(Pel *block, Int *coeff, UInt uiStride, UInt uiTrSize, UInt uiMode)
       tmp[i*uiTrSize+j] = (iSum + add_1st)>>shift_1st;
     }
   }
-/* Vertical transform */
+  
+  /* Vertical transform */
   if (uiTrSize==4)
   {
     if (uiMode != REG_DCT && g_aucDCTDSTMode_Vert[uiMode])
@@ -1265,8 +1266,7 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
       iLevel = (abs(iLevel) * uiQ + iAdd ) >> iQBits;
       uiAcSum += iLevel;
       iLevel *= iSign;        
-      piQCoef[uiBlockPos] = iLevel;
-      piQCoef[uiBlockPos] = Clip3(-32768,32767,piQCoef[uiBlockPos]);
+      piQCoef[uiBlockPos] = Clip3( -32768, 32767, iLevel );
     } // for n
 }
 

@@ -106,4 +106,49 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPi
   }
 
 }
+
+#if PARAMSET_VLC_CLEANUP
+ParameterSetManagerDecoder::ParameterSetManagerDecoder()
+: m_spsBuffer(256)
+, m_ppsBuffer(16)
+{
+
+}
+
+ParameterSetManagerDecoder::~ParameterSetManagerDecoder()
+{
+
+}
+
+TComSPS* ParameterSetManagerDecoder::getPrefetchedSPS  (Int spsId)
+{
+  if (m_spsBuffer.getPS(spsId) != NULL )
+  {
+    return m_spsBuffer.getPS(spsId);
+  }
+  else
+  {
+    return getSPS(spsId);
+  }
+}
+
+TComPPS* ParameterSetManagerDecoder::getPrefetchedPPS  (Int ppsId)
+{
+  if (m_ppsBuffer.getPS(ppsId) != NULL )
+  {
+    return m_ppsBuffer.getPS(ppsId);
+  }
+  else
+  {
+    return getPPS(ppsId);
+  }
+}
+
+Void     ParameterSetManagerDecoder::applyPrefetchedPS()
+{
+  m_ppsMap.mergePSList(m_ppsBuffer);
+  m_spsMap.mergePSList(m_spsBuffer);
+}
+#endif
+
 //! \}

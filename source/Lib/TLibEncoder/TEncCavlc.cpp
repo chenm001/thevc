@@ -115,7 +115,6 @@ Void  TEncCavlc::xWriteFlagTr(UInt value, const Char *pSymbolName)
 TEncCavlc::TEncCavlc()
 {
   m_pcBitIf           = NULL;
-  m_bRunLengthCoding  = false;   //  m_bRunLengthCoding  = !rcSliceHeader.isIntra();
   m_uiCoeffCost       = 0;
 }
 
@@ -130,23 +129,6 @@ TEncCavlc::~TEncCavlc()
 
 Void TEncCavlc::resetEntropy()
 {
-  m_bRunLengthCoding = ! m_pcSlice->isIntra();
-  m_uiRun = 0;
-  
-  ::memset(m_ucCBP_YUV_TableCounter,   0,        4*4*sizeof(UChar));
-  ::memset(m_ucCBP_4Y_TableCounter,    0,        2*2*sizeof(UChar));
-  ::memset(m_ucCBP_YCS_TableCounter,   0,        2*4*sizeof(UChar));
-  ::memset(m_ucCBP_YS_TableCounter,    0,        2*3*sizeof(UChar));
-
-  ::memset(m_ucMI1TableCounter,        0,          4*sizeof(UChar));
-  ::memset(m_ucSplitTableCounter,      0,        4*4*sizeof(UChar));
-
-  m_ucCBP_YUV_TableCounterSum[0] = m_ucCBP_YUV_TableCounterSum[1] = m_ucCBP_YUV_TableCounterSum[2] = m_ucCBP_YUV_TableCounterSum[3] = 0;
-  m_ucCBP_4Y_TableCounterSum[0] = m_ucCBP_4Y_TableCounterSum[1] = 0;
-  m_ucCBP_YCS_TableCounterSum[0] = m_ucCBP_YCS_TableCounterSum[1] = 0;
-  m_ucCBP_YS_TableCounterSum[0] = m_ucCBP_YS_TableCounterSum[1] = 0;
-  m_ucSplitTableCounterSum[0] = m_ucSplitTableCounterSum[1] = m_ucSplitTableCounterSum[2]= m_ucSplitTableCounterSum[3] = 0;
-  m_ucMI1TableCounterSum = 0;
 }
 
 /**
@@ -288,7 +270,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_FLAG( 0,                                                                     "adaptive_loop_filter_enabled_flag");
   WRITE_FLAG( 0,                                                                     "temporal_id_nesting_flag" );
 
-  // !!!KS: Syntax not in WD !!!
+  //!!!KS: Syntax not in WD !!!
   
   xWriteUvlc  ( 0 );
   xWriteUvlc  ( 0 );
@@ -480,10 +462,6 @@ Void TEncCavlc::codeTerminatingBit      ( UInt uilsLast )
 
 Void TEncCavlc::codeSliceFinish ()
 {
-  if ( m_bRunLengthCoding && m_uiRun)
-  {
-    xWriteUvlc(m_uiRun);
-  }
 }
 
 Void TEncCavlc::codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
@@ -562,27 +540,6 @@ Void TEncCavlc::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList e
 }
 
 Void TEncCavlc::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
-{
-  assert(0);
-}
-
-Void TEncCavlc::codeCbfTrdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  assert(0);
-}
-
-UInt TEncCavlc::xGetFlagPattern( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  assert(0);
-  return 0;
-}
-
-Void TEncCavlc::codeCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
-{
-  assert(0);
-}
-
-Void TEncCavlc::codeBlockCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiQPartNum, Bool bRD )
 {
   assert(0);
 }

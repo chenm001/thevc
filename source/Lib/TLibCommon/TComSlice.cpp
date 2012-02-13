@@ -115,7 +115,6 @@ Void TComSlice::initSlice()
   m_uiMaxNumMergeCand = MRG_MAX_NUM_CANDS_SIGNALED;
 
   m_bFinalized=false;
-
 }
 
 Void  TComSlice::sortPicList        (TComList<TComPic*>& rcListPic)
@@ -957,5 +956,20 @@ TComRefPicListModification::TComRefPicListModification()
 TComRefPicListModification::~TComRefPicListModification()
 {
 }
+
+#if PARAMSET_VLC_CLEANUP
+
+ParameterSetManager::ParameterSetManager()
+: m_spsMap(MAX_NUM_SPS)
+, m_ppsMap(MAX_NUM_PPS)
+{
+}
+
+
+ParameterSetManager::~ParameterSetManager()
+{
+}
+
+#endif
 
 //! \}

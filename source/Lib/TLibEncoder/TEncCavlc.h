@@ -67,22 +67,7 @@ protected:
   TComBitIf*    m_pcBitIf;
   TComSlice*    m_pcSlice;
   UInt          m_uiCoeffCost;
-  Bool          m_bRunLengthCoding;
-  UInt          m_uiRun;
-  UChar         m_ucCBP_YUV_TableCounter[4][4];
-  UChar         m_ucCBP_4Y_TableCounter[2][2];
-  UChar         m_ucCBP_YS_TableCounter[2][3];
-  UChar         m_ucCBP_YCS_TableCounter[2][4];
-  UChar         m_ucCBP_YUV_TableCounterSum[4];
-  UChar         m_ucCBP_4Y_TableCounterSum[2];
-  UChar         m_ucCBP_YS_TableCounterSum[2];
-  UChar         m_ucCBP_YCS_TableCounterSum[2];
-  UChar         m_ucMI1TableCounter       [4];
-  UChar         m_ucSplitTableCounter  [4][4];
-
-  UChar         m_ucSplitTableCounterSum[4];
-  UChar         m_ucMI1TableCounterSum;
-
+  
   Void  xWriteCode            ( UInt uiCode, UInt uiLength );
   Void  xWriteUvlc            ( UInt uiCode );
   Void  xWriteSvlc            ( Int  iCode   );
@@ -142,11 +127,6 @@ public:
   Void codeInterDir      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeRefFrmIdx     ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
   Void codeMvd           ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-  
-  Void codeCbfTrdiv      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  UInt xGetFlagPattern   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-  Void codeCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
-  Void codeBlockCbf      ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiQPartNum, Bool bRD = false);
   
   Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   

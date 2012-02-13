@@ -74,6 +74,26 @@ public:
   Void  decompressSlice   ( TComInputBitstream* pcBitstream, TComPic*& rpcPic, TDecSbac* pcSbacDecoder );
 };
 
+#if PARAMSET_VLC_CLEANUP
+class ParameterSetManagerDecoder:public ParameterSetManager
+{
+public:
+  ParameterSetManagerDecoder();
+  virtual ~ParameterSetManagerDecoder();
+
+  Void     storePrefetchedSPS(TComSPS *sps)  { m_spsBuffer.storePS( sps->getSPSId(), sps); };
+  TComSPS* getPrefetchedSPS  (Int spsId);
+  Void     storePrefetchedPPS(TComPPS *pps)  { m_ppsBuffer.storePS( pps->getPPSId(), pps); };
+  TComPPS* getPrefetchedPPS  (Int ppsId);
+
+  Void     applyPrefetchedPS();
+
+private:
+  ParameterSetMap<TComSPS> m_spsBuffer; 
+  ParameterSetMap<TComPPS> m_ppsBuffer; 
+};
+#endif
+
 //! \}
 
 #endif

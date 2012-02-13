@@ -90,7 +90,6 @@ public:
   Void  decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf );
 
   void setPictureDigestEnabled(bool enabled) { m_pictureDigestEnabled = enabled; }
-
 };
 
 //! \}
