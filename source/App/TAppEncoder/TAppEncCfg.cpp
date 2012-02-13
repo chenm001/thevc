@@ -342,7 +342,6 @@ Void TAppEncCfg::xPrintUsage()
   printf( "                   GPB - generalized B instead of P in low-delay mode\n");
   printf( "                   HAD - hadamard ME for fractional-pel\n");
   printf( "                   SRD - SBAC based RD estimation\n");
-  printf( "                   LDC - low-delay mode\n");
   printf( "                   NRF - non-reference frame marking in last layer\n");
   printf( "                   BQP - hier-P style QP assignment in low-delay mode\n");
   printf( "                   FEN - fast encoder setting\n");  
@@ -355,7 +354,7 @@ Void TAppEncCfg::xPrintUsage()
   printf( "\n" );
   printf( "  Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4\n");
   printf("              -> QP 32, hierarchical-B GOP 8, 9 frames, 64x64-8x8 CU (~4x4 PU)\n\n");
-  printf( "  Example 2) TAppEncoder.exe -c test.cfg -q 32 -g 4 -f 9 -s 64 -h 4 -1 LDC\n");
+  printf( "  Example 2) TAppEncoder.exe -c test.cfg -q 32 -g 4 -f 9 -s 64 -h 4\n");
   printf("              -> QP 32, hierarchical-P GOP 4, 9 frames, 64x64-8x8 CU (~4x4 PU)\n\n");
 }
 
@@ -374,11 +373,7 @@ void translateOldStyleCmdline(const char* value, po::Options& opts, const std::s
 {
   const char* argv[] = {arg.c_str(), value};
   /* replace some short names with their long name varients */
-  if (arg == "LDC")
-  {
-    argv[0] = "LowDelayCoding";
-  }
-  else if (arg == "HAD")
+  if (arg == "HAD")
   {
     argv[0] = "HadamardME";
   }

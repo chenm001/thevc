@@ -83,7 +83,6 @@ private:
   UInt        m_uiQuadtreeTUMaxDepthIntra;
   Bool        m_bDisInter4x4;
   Bool        m_useAMP;
-  Bool        m_bUseLDC;
   Bool        m_bUseMRG; // SOPH:
 
   Bool        m_bUseLComb;
@@ -344,8 +343,6 @@ private:
   Bool        m_bRefPicListModificationFlagLC;
   Bool        m_bRefPicListCombinationFlag;
 
-  Bool        m_bCheckLDC;
-
   //  Data
   Int         m_iSliceQpDelta;
   TComPic*    m_apcRefPicList [2][MAX_NUM_REF+1];
@@ -415,7 +412,6 @@ public:
   Int       getRefPOC           ( RefPicList e, Int iRefIdx)    { return  m_aiRefPOCList[e][iRefIdx];   }
   Int       getDepth            ()                              { return  m_iDepth;                     }
   UInt      getColDir           ()                              { return  m_uiColDir;                   }
-  Bool      getCheckLDC     ()                                  { return m_bCheckLDC; }
 
   Int       getRefIdxOfLC       (RefPicList e, Int iRefIdx)     { return m_iRefIdxOfLC[e][iRefIdx];           }
   Int       getListIdFromIdxOfLC(Int iRefIdx)                   { return m_eListIdFromIdxOfLC[iRefIdx];       }
@@ -451,7 +447,6 @@ public:
   Void      setRefPicList       ( TComList<TComPic*>& rcListPic );
   Void      setRefPOCList       ();
   Void      setColDir           ( UInt uiDir ) { m_uiColDir = uiDir; }
-  Void      setCheckLDC         ( Bool b )                      { m_bCheckLDC = b; }
   
   Bool      isIntra         ()                          { return  m_eSliceType == I_SLICE;  }
   Bool      isInterB        ()                          { return  m_eSliceType == B_SLICE;  }

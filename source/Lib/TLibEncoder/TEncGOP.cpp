@@ -269,8 +269,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             bLowDelay = false;
           }
         }
-
-        pcSlice->setCheckLDC(bLowDelay);  
+        assert( bLowDelay == false );
       }
       
       uiColDir = 1-uiColDir;
