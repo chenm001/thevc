@@ -123,7 +123,6 @@ public:
  
   Void          compressMotion(); 
   UInt          getNumAllocatedSlice()       {return m_apcPicSym->getNumAllocatedSlice();}
-  Void          allocateNewSlice()           {m_apcPicSym->allocateNewSlice();         }
   Void          clearSliceBuffer()           {m_apcPicSym->clearSliceBuffer();         }
   
   /** transfer ownership of seis to this picture */

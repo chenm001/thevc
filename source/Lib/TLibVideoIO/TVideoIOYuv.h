@@ -69,7 +69,6 @@ public:
   bool  write ( TComPicYuv*   pPicYuv );     ///< write one YUV frame
   
   bool  isEof ();                                           ///< check for end-of-file
-  bool  isFail();                                           ///< check for failure
   
 };
 

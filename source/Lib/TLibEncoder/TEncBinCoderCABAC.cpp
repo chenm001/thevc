@@ -104,14 +104,6 @@ Void TEncBinCABAC::finish()
   m_pcTComBitIf->write( m_uiLow >> 8, 24 - m_bitsLeft );
 }
 
-/** Reset BAC register and counter values.
- * \returns Void
- */
-Void TEncBinCABAC::resetBac()
-{
-  start();
-}
-
 Void TEncBinCABAC::copyState( TEncBinIf* pcTEncBinIf )
 {
   TEncBinCABAC* pcTEncBinCABAC = pcTEncBinIf->getTEncBinCABAC();
@@ -325,26 +317,6 @@ Void TEncBinCABAC::writeOut()
       m_bufferedByte = leadByte;
     }      
   }    
-}
-
-/** flush bits when CABAC termination
-  * \param [in] bEnd true means this flushing happens at the end of RBSP. No need to encode stop bit
-  */
-Void TEncBinCABAC::encodeFlush(Bool bEnd)
-{
-  m_uiRange = 2;
-
-  m_uiLow  += 2;
-  m_uiLow <<= 7;
-  m_uiRange = 2 << 7;
-  m_bitsLeft -= 7;
-  testAndWriteOut();
-  finish();
-
-  if(!bEnd)
-  {
-    m_pcTComBitIf->write( 1, 1 ); // stop bit
-  }
 }
 
 //! \}

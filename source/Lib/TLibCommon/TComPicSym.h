@@ -88,7 +88,6 @@ public:
   
   Void        setSlice(TComSlice* p)    { m_pcTComSlice = p;                    }
   UInt        getNumAllocatedSlice()    { return m_uiNumAllocatedSlice;         }
-  Void        allocateNewSlice();
   Void        clearSliceBuffer();
   UInt        getNumPartition()         { return m_uiNumPartitions;             }
   UInt        getNumPartInWidth()       { return m_uiNumPartInWidth;            }

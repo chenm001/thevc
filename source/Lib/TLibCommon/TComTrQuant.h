@@ -137,8 +137,6 @@ public:
                      TextType    eTType, 
                      UInt        uiAbsPartIdx );
   Void invtransformNxN      (TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight);
-  Void invRecurTransformNxN ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel* rpcResidual, UInt uiAddr,   UInt uiStride, UInt uiWidth, UInt uiHeight,
-                             UInt uiMaxTrMode,  UInt uiTrMode, TCoeff* rpcCoeff );
   
   // Misc functions
   Void setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, TextType eTxtType);

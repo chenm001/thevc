@@ -100,11 +100,6 @@ Bool TVideoIOYuv::isEof()
   return m_cHandle.eof();
 }
 
-Bool TVideoIOYuv::isFail()
-{
-  return m_cHandle.fail();
-}
-
 /**
  * Skip numFrames in input.
  *

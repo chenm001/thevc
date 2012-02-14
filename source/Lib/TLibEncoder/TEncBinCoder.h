@@ -56,10 +56,6 @@ public:
   virtual Void  finish            ()                                          = 0;
   virtual Void  copyState         ( TEncBinIf* pcTEncBinIf )                  = 0;
 
-  virtual Void  encodeFlush     (Bool bEnd) = 0;
-
-  virtual Void  resetBac          ()                                          = 0;
-
   virtual Void  resetBits         ()                                          = 0;
   virtual UInt  getNumWrittenBits ()                                          = 0;
 

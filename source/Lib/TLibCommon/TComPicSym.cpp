@@ -99,12 +99,6 @@ Void TComPicSym::destroy()
   m_apcTComDataCU = NULL;
 }
 
-Void TComPicSym::allocateNewSlice()
-{
-  m_uiNumAllocatedSlice++;
-  m_pcTComSlice = new TComSlice;
-}
-
 Void TComPicSym::clearSliceBuffer()
 {
   m_uiNumAllocatedSlice = 1;

@@ -137,8 +137,6 @@ public:
    */
   unsigned getNumberOfWrittenBits() const { return unsigned(m_fifo->size()) * 8 + m_num_held_bits; }
 
-  void insertAt(const TComOutputBitstream& src, unsigned pos);
-
   /**
    * Return a reference to the internal fifo
    */
@@ -147,48 +145,6 @@ public:
   /** Return a reference to the internal fifo */
   const std::vector<uint8_t>& getFIFO() const { return *m_fifo; }
 
-};
-
-/**
- * Model of an input bitstream that extracts bits from a predefined
- * bytestream.
- */
-class TComInputBitstream
-{
-  std::vector<uint8_t> *m_fifo; /// FIFO for storage of complete bytes
-
-protected:
-  unsigned int m_fifo_idx; /// Read index into m_fifo
-
-  unsigned int m_num_held_bits;
-  unsigned char m_held_bits;
-
-public:
-  /**
-   * Create a new bitstream reader object that reads from #buf#.  Ownership
-   * of #buf# remains with the callee, although the constructed object
-   * will hold a reference to #buf#
-   */
-  TComInputBitstream(std::vector<uint8_t>* buf);
-
-  // interface for decoding
-  Void        pseudoRead      ( UInt uiNumberOfBits, UInt& ruiBits );
-  Void        read            ( UInt uiNumberOfBits, UInt& ruiBits );
-  Void        readByte        ( UInt &ruiBits )
-  {
-    assert(m_fifo_idx < m_fifo->size());
-    ruiBits = (*m_fifo)[m_fifo_idx++];
-  }
-
-  Void        readOutTrailingBits ();
-  // Peek at bits in word-storage. Used in determining if we have completed reading of current bitstream and therefore slice in LCEC.
-  UInt        peekBits (UInt uiBits) { unsigned tmp; pseudoRead(uiBits, tmp); return tmp; }
-
-  // utility functions
-  unsigned read(unsigned numberOfBits) { UInt tmp; read(numberOfBits, tmp); return tmp; }
-  UInt     readByte() { UInt tmp; readByte( tmp ); return tmp; }
-  unsigned getNumBitsUntilByteAligned() { return m_num_held_bits & (0x7); }
-  unsigned getNumBitsLeft() { return 8*((unsigned)m_fifo->size() - m_fifo_idx) + m_num_held_bits; }
 };
 
 //! \}

@@ -120,11 +120,6 @@ public:
   Void    copyToPartLuma        ( TComYuv*    pcYuvDst,    UInt uiDstPartIdx );
   Void    copyToPartChroma      ( TComYuv*    pcYuvDst,    UInt uiDstPartIdx );
   
-  //  Copy the part of Big YUV buffer to other Small YUV buffer
-  Void    copyPartToYuv         ( TComYuv*    pcYuvDst,    UInt uiSrcPartIdx );
-  Void    copyPartToLuma        ( TComYuv*    pcYuvDst,    UInt uiSrcPartIdx );
-  Void    copyPartToChroma      ( TComYuv*    pcYuvDst,    UInt uiSrcPartIdx );
-  
   //  Copy YUV partition buffer to other YUV partition buffer
   Void    copyPartToPartYuv     ( TComYuv*    pcYuvDst, UInt uiPartIdx, UInt uiWidth, UInt uiHeight );
   Void    copyPartToPartLuma    ( TComYuv*    pcYuvDst, UInt uiPartIdx, UInt uiWidth, UInt uiHeight );
@@ -151,9 +146,6 @@ public:
   //  (pcYuvSrc0 + pcYuvSrc1)/2 for YUV partition
   Void    addAvg            ( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt iPartUnitIdx, UInt iWidth, UInt iHeight );
 
-  //   Remove High frequency
-  Void    removeHighFreq    ( TComYuv* pcYuvSrc, UInt uiPartIdx, UInt uiWidht, UInt uiHeight );
-  
   // ------------------------------------------------------------------------------------------------------------------
   //  Access function for YUV buffer
   // ------------------------------------------------------------------------------------------------------------------

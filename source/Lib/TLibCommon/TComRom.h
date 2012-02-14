@@ -63,7 +63,6 @@ Void         initROM();
 Void         destroyROM();
 Void         initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int iHeight );
 Void         initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int iWidth, Int iHeight, Int iDepth);
-Void         initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight);
 // ====================================================================================================================
 // Data structure related table & variable
 // ====================================================================================================================

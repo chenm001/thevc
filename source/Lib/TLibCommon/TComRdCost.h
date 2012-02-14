@@ -143,7 +143,6 @@ public:
   virtual ~TComRdCost();
   
   Double  calcRdCost  ( UInt   uiBits, UInt   uiDistortion, Bool bFlag = false, DFunc eDFunc = DF_DEFAULT );
-  Double  calcRdCost64( UInt64 uiBits, UInt64 uiDistortion, Bool bFlag = false, DFunc eDFunc = DF_DEFAULT );
   
 #if WEIGHTED_CHROMA_DISTORTION
   Void    setChromaDistortionWeight      ( Double chromaDistortionWeight) { m_chromaDistortionWeight = chromaDistortionWeight; };

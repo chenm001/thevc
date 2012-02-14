@@ -316,7 +316,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("\n");
   
   printf("TOOL CFG: ");
-  printf("IBD:%d ", !!0);
   printf("HAD:%d ", m_bUseHADME           );
   printf("SRD:%d ", m_bUseSBACRD          );
   printf("LComb:%d ", m_bUseLComb         );
@@ -336,8 +335,7 @@ Void TAppEncCfg::xPrintParameter()
 
 Void TAppEncCfg::xPrintUsage()
 {
-  printf( "          <name> = IBD - bit-depth increasement\n");
-  printf( "                   GPB - generalized B instead of P in low-delay mode\n");
+  printf( "          <name> = GPB - generalized B instead of P in low-delay mode\n");
   printf( "                   HAD - hadamard ME for fractional-pel\n");
   printf( "                   SRD - SBAC based RD estimation\n");
   printf( "                   NRF - non-reference frame marking in last layer\n");
@@ -393,11 +391,6 @@ void translateOldStyleCmdline(const char* value, po::Options& opts, const std::s
 
 void doOldStyleCmdlineOn(po::Options& opts, const std::string& arg)
 {
-  if (arg == "IBD")
-  {
-    translateOldStyleCmdline("4", opts, arg);
-    return;
-  }
   translateOldStyleCmdline("1", opts, arg);
 }
 

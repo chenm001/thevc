@@ -135,56 +135,6 @@ Void TComPicYuv::destroy()
   delete[] m_buOffsetC;
 }
 
-Void TComPicYuv::createLuma( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth )
-{
-  m_iPicWidth       = iPicWidth;
-  m_iPicHeight      = iPicHeight;
-  
-  // --> After config finished!
-  m_iCuWidth        = uiMaxCUWidth;
-  m_iCuHeight       = uiMaxCUHeight;
-  
-  Int numCuInWidth  = m_iPicWidth  / m_iCuWidth  + (m_iPicWidth  % m_iCuWidth  != 0);
-  Int numCuInHeight = m_iPicHeight / m_iCuHeight + (m_iPicHeight % m_iCuHeight != 0);
-  
-  m_iLumaMarginX    = g_uiMaxCUWidth  + 16; // for 16-byte alignment
-  m_iLumaMarginY    = g_uiMaxCUHeight + 16;  // margin for 8-tap filter and infinite padding
-  
-  m_apiPicBufY      = (Pel*)xMalloc( Pel, ( m_iPicWidth       + (m_iLumaMarginX  <<1)) * ( m_iPicHeight       + (m_iLumaMarginY  <<1)));
-  m_piPicOrgY       = m_apiPicBufY + m_iLumaMarginY   * getStride()  + m_iLumaMarginX;
-  
-  m_cuOffsetY = new Int[numCuInWidth * numCuInHeight];
-  m_cuOffsetC = NULL;
-  for (Int cuRow = 0; cuRow < numCuInHeight; cuRow++)
-  {
-    for (Int cuCol = 0; cuCol < numCuInWidth; cuCol++)
-    {
-      m_cuOffsetY[cuRow * numCuInWidth + cuCol] = getStride() * cuRow * m_iCuHeight + cuCol * m_iCuWidth;
-    }
-  }
-  
-  m_buOffsetY = new Int[(size_t)1 << (2 * uiMaxCUDepth)];
-  m_buOffsetC = NULL;
-  for (Int buRow = 0; buRow < (1 << uiMaxCUDepth); buRow++)
-  {
-    for (Int buCol = 0; buCol < (1 << uiMaxCUDepth); buCol++)
-    {
-      m_buOffsetY[(buRow << uiMaxCUDepth) + buCol] = getStride() * buRow * (uiMaxCUHeight >> uiMaxCUDepth) + buCol * (uiMaxCUWidth  >> uiMaxCUDepth);
-    }
-  }
-  return;
-}
-
-Void TComPicYuv::destroyLuma()
-{
-  m_piPicOrgY       = NULL;
-  
-  if( m_apiPicBufY ){ xFree( m_apiPicBufY );    m_apiPicBufY = NULL; }
-  
-  delete[] m_cuOffsetY;
-  delete[] m_buOffsetY;
-}
-
 Void  TComPicYuv::copyToPic (TComPicYuv*  pcPicYuvDst)
 {
   assert( m_iPicWidth  == pcPicYuvDst->getWidth()  );
@@ -203,46 +153,6 @@ Void  TComPicYuv::copyToPicLuma (TComPicYuv*  pcPicYuvDst)
   
   ::memcpy ( pcPicYuvDst->getBufY(), m_apiPicBufY, sizeof (Pel) * ( m_iPicWidth       + (m_iLumaMarginX   << 1)) * ( m_iPicHeight       + (m_iLumaMarginY   << 1)) );
   return;
-}
-
-Void  TComPicYuv::copyToPicCb (TComPicYuv*  pcPicYuvDst)
-{
-  assert( m_iPicWidth  == pcPicYuvDst->getWidth()  );
-  assert( m_iPicHeight == pcPicYuvDst->getHeight() );
-  
-  ::memcpy ( pcPicYuvDst->getBufU(), m_apiPicBufU, sizeof (Pel) * ((m_iPicWidth >> 1) + (m_iChromaMarginX << 1)) * ((m_iPicHeight >> 1) + (m_iChromaMarginY << 1)) );
-  return;
-}
-
-Void  TComPicYuv::copyToPicCr (TComPicYuv*  pcPicYuvDst)
-{
-  assert( m_iPicWidth  == pcPicYuvDst->getWidth()  );
-  assert( m_iPicHeight == pcPicYuvDst->getHeight() );
-  
-  ::memcpy ( pcPicYuvDst->getBufV(), m_apiPicBufV, sizeof (Pel) * ((m_iPicWidth >> 1) + (m_iChromaMarginX << 1)) * ((m_iPicHeight >> 1) + (m_iChromaMarginY << 1)) );
-  return;
-}
-
-
-Void TComPicYuv::getLumaMinMax( Int *pMin, Int *pMax )
-{
-  Pel*  piY   = getLumaAddr();
-  Int   iMin  = (1<<8)-1;
-  Int   iMax  = 0;
-  Int   x, y;
-  
-  for ( y = 0; y < m_iPicHeight; y++ )
-  {
-    for ( x = 0; x < m_iPicWidth; x++ )
-    {
-      if ( piY[x] < iMin ) iMin = piY[x];
-      if ( piY[x] > iMax ) iMax = piY[x];
-    }
-    piY += getStride();
-  }
-  
-  *pMin = iMin;
-  *pMax = iMax;
 }
 
 Void TComPicYuv::extendPicBorder ()

@@ -432,7 +432,6 @@ public:
   Void      setPOC              ( Int i )                       { m_iPOC              = i; m_iPrevPOC=i; }
   Void      setNalUnitType      ( NalUnitType e )               { m_eNalUnitType      = e;      }
   NalUnitType getNalUnitType    ()                              { return m_eNalUnitType;        }
-  Void      checkCRA(TComReferencePictureSet *pReferencePictureSet, UInt& pocCRA, TComList<TComPic*>& rcListPic);
   Void      decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TComList<TComPic*>& rcListPic);
   Void      setSliceType        ( SliceType e )                 { m_eSliceType        = e;      }
   Void      setSliceQp          ( Int i )                       { m_iSliceQp          = i;      }
@@ -487,7 +486,6 @@ public:
 
   Void setSliceCurEndCUAddr             ( UInt uiAddr )     { m_uiSliceCurEndCUAddr = uiAddr;             }
   UInt getSliceCurEndCUAddr             ()                  { return m_uiSliceCurEndCUAddr;               }
-  Void copySliceInfo                    (TComSlice *pcSliceSrc);
   Void setNextSlice                     ( Bool b )          { m_bNextSlice = b;                           }
   Bool isNextSlice                      ()                  { return m_bNextSlice;                        }
   Void setSliceBits                     ( UInt uiVal )      { m_uiSliceBits = uiVal;                      }

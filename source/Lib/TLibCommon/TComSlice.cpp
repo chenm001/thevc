@@ -391,28 +391,6 @@ Void TComSlice::initEqualRef()
   }
 }
 
-Void TComSlice::checkCRA(TComReferencePictureSet *pReferencePictureSet, UInt& pocCRA, TComList<TComPic*>& rcListPic)
-{
-  for(Int i = 0; i < pReferencePictureSet->getNumberOfNegativePictures()+pReferencePictureSet->getNumberOfPositivePictures(); i++)
-  {
-    if(pocCRA < MAX_UINT && getPOC() > pocCRA)
-    {
-      assert(getPOC()+pReferencePictureSet->getDeltaPOC(i) >= pocCRA);
-    }
-  }
-  for(Int i = pReferencePictureSet->getNumberOfNegativePictures()+pReferencePictureSet->getNumberOfPositivePictures(); i < pReferencePictureSet->getNumberOfPictures(); i++)
-  {
-    if(pocCRA < MAX_UINT && getPOC() > pocCRA)
-    {
-      assert(pReferencePictureSet->getPOC(i) >= pocCRA);
-    }
-  }
-  if (getNalUnitType() == NAL_UNIT_CODED_SLICE_CDR) // CDR picture found
-  {
-    pocCRA = getPOC();
-  }
-}
-
 /** Function for marking the reference pictures when an IDR and CDR is encountered.
  * \param uiPOCCDR POC of the CDR picture
  * \param bRefreshPending flag indicating if a deferred decoding refresh is pending
@@ -465,81 +443,6 @@ Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TC
       uiPOCCDR = uiPOCCurr;
     }
   }
-}
-
-Void TComSlice::copySliceInfo(TComSlice *pSrc)
-{
-  assert( pSrc != NULL );
-
-  Int i, j, k;
-
-  m_iPOC                 = pSrc->m_iPOC;
-  m_eNalUnitType         = pSrc->m_eNalUnitType;
-  m_eSliceType           = pSrc->m_eSliceType;
-  m_iSliceQp             = pSrc->m_iSliceQp;
-  
-  for (i = 0; i < 3; i++)
-  {
-    m_aiNumRefIdx[i]     = pSrc->m_aiNumRefIdx[i];
-  }
-
-  for (i = 0; i < 2; i++)
-  {
-    for (j = 0; j < MAX_NUM_REF_LC; j++)
-    {
-       m_iRefIdxOfLC[i][j]  = pSrc->m_iRefIdxOfLC[i][j];
-    }
-  }
-  for (i = 0; i < MAX_NUM_REF_LC; i++)
-  {
-    m_eListIdFromIdxOfLC[i] = pSrc->m_eListIdFromIdxOfLC[i];
-    m_iRefIdxFromIdxOfLC[i] = pSrc->m_iRefIdxFromIdxOfLC[i];
-    m_iRefIdxOfL1FromRefIdxOfL0[i] = pSrc->m_iRefIdxOfL1FromRefIdxOfL0[i];
-    m_iRefIdxOfL0FromRefIdxOfL1[i] = pSrc->m_iRefIdxOfL0FromRefIdxOfL1[i];
-  }
-  m_bRefPicListModificationFlagLC = pSrc->m_bRefPicListModificationFlagLC;
-  m_bRefPicListCombinationFlag    = pSrc->m_bRefPicListCombinationFlag;
-  m_iSliceQpDelta        = pSrc->m_iSliceQpDelta;
-  for (i = 0; i < 2; i++)
-  {
-    for (j = 0; j < MAX_NUM_REF; j++)
-    {
-      m_apcRefPicList[i][j]  = pSrc->m_apcRefPicList[i][j];
-      m_aiRefPOCList[i][j]   = pSrc->m_aiRefPOCList[i][j];
-    }
-  }  
-  m_iDepth               = pSrc->m_iDepth;
-
-  // referenced slice
-  m_bRefenced            = pSrc->m_bRefenced;
-
-  // access channel
-  m_pcSPS                = pSrc->m_pcSPS;
-  m_pcPPS                = pSrc->m_pcPPS;
-  m_pcRPS                = pSrc->m_pcRPS;
-  m_iLastIDR             = pSrc->m_iLastIDR;
-
-  m_pcPic                = pSrc->m_pcPic;
-  m_iAPSId               = pSrc->m_iAPSId;
-
-  m_uiColDir             = pSrc->m_uiColDir;
-  m_dLambda              = pSrc->m_dLambda;
-  for (i = 0; i < 2; i++)
-  {
-    for (j = 0; j < MAX_NUM_REF; j++)
-    {
-      for (k =0; k < MAX_NUM_REF; k++)
-      {
-        m_abEqualRef[i][j][k] = pSrc->m_abEqualRef[i][j][k];
-      }
-    }
-  }
-
-  m_bNoBackPredFlag      = pSrc->m_bNoBackPredFlag;
-  m_bRefIdxCombineCoding = pSrc->m_bRefIdxCombineCoding;
-
-  m_uiSliceCurEndCUAddr           = pSrc->m_uiSliceCurEndCUAddr;
-  m_bNextSlice                    = pSrc->m_bNextSlice;
 }
 
 int TComSlice::m_iPrevPOC = 0;

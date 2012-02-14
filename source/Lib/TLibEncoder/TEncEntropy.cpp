@@ -510,11 +510,6 @@ Void TEncEntropy::encodeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx )
   m_pcEntropyCoderIf->codeTransformSubdivFlag( uiSymbol, uiCtx );
 }
 
-Void TEncEntropy::encodeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  m_pcEntropyCoderIf->codeQtRootCbf( pcCU, uiAbsPartIdx );
-}
-
 // texture
 Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, UInt uiLumaOffset, UInt uiChromaOffset, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, UInt uiTrIdx, UInt uiCurrTrIdx )
 {
@@ -686,13 +681,6 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 Void TEncEntropy::encodeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPartIdx, UInt uiTrWidth, UInt uiTrHeight, UInt uiDepth, TextType eType )
 { // This is for Transform unit processing. This may be used at mode selection stage for Inter.
   m_pcEntropyCoderIf->codeCoeffNxN( pcCU, pcCoeff, uiAbsPartIdx, uiTrWidth, uiTrHeight, uiDepth, eType );
-}
-
-Void TEncEntropy::estimateBit (estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType)
-{  
-  eTType = eTType == TEXT_LUMA ? TEXT_LUMA : TEXT_CHROMA;
-  
-  m_pcEntropyCoderIf->estBit ( pcEstBitsSbac, width, height, eTType );
 }
 
 Int TEncEntropy::countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize )

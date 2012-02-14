@@ -61,14 +61,6 @@ TComOutputBitstream::~TComOutputBitstream()
   delete m_fifo;
 }
 
-TComInputBitstream::TComInputBitstream(std::vector<uint8_t>* buf)
-{
-  m_fifo = buf;
-  m_fifo_idx = 0;
-  m_held_bits = 0;
-  m_num_held_bits = 0;
-}
-
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
@@ -147,113 +139,6 @@ Void TComOutputBitstream::writeAlignZero()
   m_fifo->push_back(m_held_bits);
   m_held_bits = 0;
   m_num_held_bits = 0;
-}
-
-/**
- * read #uiNumberOfBits# from bitstream without updating the bitstream
- * state, storing the result in #ruiBits#.
- *
- * If reading #uiNumberOfBits# would overrun the bitstream buffer,
- * the bitsream is effectively padded with sufficient zero-bits to
- * avoid the overrun.
- */
-Void TComInputBitstream::pseudoRead ( UInt uiNumberOfBits, UInt& ruiBits )
-{
-  unsigned int saved_num_held_bits = m_num_held_bits;
-  unsigned char saved_held_bits = m_held_bits;
-  unsigned int saved_fifo_idx = m_fifo_idx;
-
-  unsigned num_bits_to_read = min(uiNumberOfBits, getNumBitsLeft());
-  read(num_bits_to_read, ruiBits);
-  ruiBits <<= (uiNumberOfBits - num_bits_to_read);
-
-  m_fifo_idx = saved_fifo_idx;
-  m_held_bits = saved_held_bits;
-  m_num_held_bits = saved_num_held_bits;
-}
-
-
-Void TComInputBitstream::read (UInt uiNumberOfBits, UInt& ruiBits)
-{
-  assert( uiNumberOfBits <= 32 );
-  
-  /* NB, bits are extracted from the MSB of each byte. */
-  unsigned retval = 0;
-  if (uiNumberOfBits <= m_num_held_bits)
-  {
-    /* n=1, len(H)=7:   -VHH HHHH, shift_down=6, mask=0xfe
-     * n=3, len(H)=7:   -VVV HHHH, shift_down=4, mask=0xf8
-     */
-    retval = m_held_bits >> (m_num_held_bits - uiNumberOfBits);
-    retval &= ~(0xff << uiNumberOfBits);
-    m_num_held_bits -= uiNumberOfBits;
-    ruiBits = retval;
-    return;
-  }
-
-  /* all num_held_bits will go into retval
-   *   => need to mask leftover bits from previous extractions
-   *   => align retval with top of extracted word */
-  /* n=5, len(H)=3: ---- -VVV, mask=0x07, shift_up=5-3=2,
-   * n=9, len(H)=3: ---- -VVV, mask=0x07, shift_up=9-3=6 */
-  uiNumberOfBits -= m_num_held_bits;
-  retval = m_held_bits & ~(0xff << m_num_held_bits);
-  retval <<= uiNumberOfBits;
-
-  /* number of whole bytes that need to be loaded to form retval */
-  /* n=32, len(H)=0, load 4bytes, shift_down=0
-   * n=32, len(H)=1, load 4bytes, shift_down=1
-   * n=31, len(H)=1, load 4bytes, shift_down=1+1
-   * n=8,  len(H)=0, load 1byte,  shift_down=0
-   * n=8,  len(H)=3, load 1byte,  shift_down=3
-   * n=5,  len(H)=1, load 1byte,  shift_down=1+3
-   */
-  unsigned aligned_word = 0;
-  unsigned num_bytes_to_load = (uiNumberOfBits - 1) >> 3;
-  assert(m_fifo_idx + num_bytes_to_load < m_fifo->size());
-
-  switch (num_bytes_to_load)
-  {
-  case 3: aligned_word  = (*m_fifo)[m_fifo_idx++] << 24;
-  case 2: aligned_word |= (*m_fifo)[m_fifo_idx++] << 16;
-  case 1: aligned_word |= (*m_fifo)[m_fifo_idx++] <<  8;
-  case 0: aligned_word |= (*m_fifo)[m_fifo_idx++];
-  }
-
-  /* resolve remainder bits */
-  unsigned next_num_held_bits = (32 - uiNumberOfBits) % 8;
-
-  /* copy required part of aligned_word into retval */
-  retval |= aligned_word >> next_num_held_bits;
-
-  /* store held bits */
-  m_num_held_bits = next_num_held_bits;
-  m_held_bits = aligned_word;
-
-  ruiBits = retval;
-}
-
-/**
- * insert the contents of the bytealigned (and flushed) bitstream src
- * into this at byte position pos.
- */
-void TComOutputBitstream::insertAt(const TComOutputBitstream& src, unsigned pos)
-{
-  unsigned src_bits = src.getNumberOfWrittenBits();
-  assert(0 == src_bits % 8);
-
-  vector<uint8_t>::iterator at = this->m_fifo->begin() + pos;
-  this->m_fifo->insert(at, src.m_fifo->begin(), src.m_fifo->end());
-}
-
-Void TComInputBitstream::readOutTrailingBits ()
-{
-  UInt uiBits = 0;
-
-  while ( ( getNumBitsLeft() > 0 ) && (getNumBitsUntilByteAligned()!=0) )
-  {
-    read ( 1, uiBits );
-  }
 }
 
 //! \}

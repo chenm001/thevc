@@ -101,9 +101,6 @@ public:
   Void  create      ( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth );
   Void  destroy     ();
   
-  Void  createLuma  ( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uhMaxCUDepth );
-  Void  destroyLuma ();
-  
   // ------------------------------------------------------------------------------------------------
   //  Get information of picture
   // ------------------------------------------------------------------------------------------------
@@ -116,8 +113,6 @@ public:
   
   Int   getLumaMargin   () { return m_iLumaMarginX;  }
   Int   getChromaMargin () { return m_iChromaMarginX;}
-  
-  Void  getLumaMinMax( Int* pMin, Int* pMax );
   
   // ------------------------------------------------------------------------------------------------
   //  Access function for picture buffer
@@ -148,8 +143,6 @@ public:
   //  Copy function to picture
   Void  copyToPic       ( TComPicYuv*  pcPicYuvDst );
   Void  copyToPicLuma   ( TComPicYuv*  pcPicYuvDst );
-  Void  copyToPicCb     ( TComPicYuv*  pcPicYuvDst );
-  Void  copyToPicCr     ( TComPicYuv*  pcPicYuvDst );
   
   //  Extend function of picture buffer
   Void  extendPicBorder      ();

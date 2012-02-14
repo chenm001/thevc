@@ -57,10 +57,6 @@ public:
   Void  finish            ();
   Void  copyState         ( TEncBinIf* pcTEncBinIf );
 
-  Void  resetBac          ();
-  
-  Void encodeFlush(Bool bEnd);  //!< flush bits when CABAC termination
-
   Void  resetBits         ();
   UInt  getNumWrittenBits ();
   
