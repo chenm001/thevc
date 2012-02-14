@@ -254,7 +254,7 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU )
 */
 #if AMP_ENC_SPEEDUP
 #if AMP_MRG
-Void TEncCu::deriveTestModeAMP (TComDataCU *&rpcBestCU, PartSize eParentPartSize, Bool &bTestAMP_Hor, Bool &bTestAMP_Ver, Bool &bTestMergeAMP_Hor, Bool &bTestMergeAMP_Ver)
+Void TEncCu::deriveTestModeAMP (TComDataCU *&rpcBestCU, PartSize eParentPartSize, Bool &bTestAMP_Hor, Bool &bTestAMP_Ver, Bool &bTestMergeAMP_Hor, Bool &bTestMergeAMP_Ver, Bool bUseMRG)
 #else
 Void TEncCu::deriveTestModeAMP (TComDataCU *&rpcBestCU, PartSize eParentPartSize, Bool &bTestAMP_Hor, Bool &bTestAMP_Ver)
 #endif
@@ -274,6 +274,8 @@ Void TEncCu::deriveTestModeAMP (TComDataCU *&rpcBestCU, PartSize eParentPartSize
   }
 
 #if AMP_MRG
+  if ( bUseMRG )
+  {
   //! Utilizing the partition size of parent PU    
   if ( eParentPartSize >= SIZE_2NxnU && eParentPartSize <= SIZE_nRx2N )
   { 
@@ -304,7 +306,9 @@ Void TEncCu::deriveTestModeAMP (TComDataCU *&rpcBestCU, PartSize eParentPartSize
     bTestAMP_Hor = false;
     bTestAMP_Ver = false;
   }    
-#else
+  }
+  else
+  {
   //! Utilizing the partition size of parent PU        
   if ( eParentPartSize >= SIZE_2NxnU && eParentPartSize <= SIZE_nRx2N )
   { 
@@ -317,7 +321,11 @@ Void TEncCu::deriveTestModeAMP (TComDataCU *&rpcBestCU, PartSize eParentPartSize
     bTestAMP_Hor = false;
     bTestAMP_Ver = false;
   }      
+  }
+#else
+#error chen_fix MRG bug depends on AMP_MRG, please check code again
 #endif
+
 }
 #endif
 
@@ -373,6 +381,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 
   Int iBaseQP = xComputeQP( rpcBestCU, uiDepth );
 
+  Bool bUseMRG = pcPic->getSlice()->getSPS()->getUseMRG();
   // If slice start or slice end is within this cu...
   TComSlice * pcSlice = rpcTempCU->getPic()->getSlice();
   Bool bSliceStart = false;
@@ -394,7 +403,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       {
         // SKIP
 
-        if( pcPic->getSlice()->getSPS()->getUseMRG() )
+        if( bUseMRG )
         {
           xCheckRDCostMerge2Nx2N( rpcBestCU, rpcTempCU );
           rpcTempCU->initEstData( uiDepth, iBaseQP );
@@ -481,7 +490,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #if AMP_MRG
           Bool bTestMergeAMP_Hor = false, bTestMergeAMP_Ver = false;
 
-          deriveTestModeAMP (rpcBestCU, eParentPartSize, bTestAMP_Hor, bTestAMP_Ver, bTestMergeAMP_Hor, bTestMergeAMP_Ver);
+          deriveTestModeAMP (rpcBestCU, eParentPartSize, bTestAMP_Hor, bTestAMP_Ver, bTestMergeAMP_Hor, bTestMergeAMP_Ver, bUseMRG);
 #else
           deriveTestModeAMP (rpcBestCU, eParentPartSize, bTestAMP_Hor, bTestAMP_Ver);
 #endif
