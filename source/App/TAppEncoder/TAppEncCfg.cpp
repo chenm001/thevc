@@ -138,7 +138,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   /* motion options */
   ("FastSearch", m_iFastSearch, 1, "0:Full search  1:Diamond  2:PMVFAST")
   ("SearchRange,-sr",m_iSearchRange, 96, "motion search range")
-  ("BipredSearchRange", m_bipredSearchRange, 4, "motion search range for bipred refinement")
   ("HadamardME", m_bUseHADME, true, "hadamard ME for fractional-pel")
   
   /* Quantization parameters */
@@ -225,7 +224,6 @@ Void TAppEncCfg::xCheckParameter()
 
   xConfirmPara( m_iFastSearch < 0 || m_iFastSearch > 2,                                     "Fast Search Mode is not supported value (0:Full search  1:Diamond  2:PMVFAST)" );
   xConfirmPara( m_iSearchRange < 0 ,                                                        "Search Range must be more than 0" );
-  xConfirmPara( m_bipredSearchRange < 0 ,                                                   "Search Range must be more than 0" );
 
   xConfirmPara( m_iFrameToBeEncoded == 0,                                                   "Total Number of Frames to be encoded must be at least 2 * GOP size for the current Reference Picture Set settings");
   if (m_iDecodingRefreshType == 2)

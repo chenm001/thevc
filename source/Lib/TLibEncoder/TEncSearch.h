@@ -84,7 +84,6 @@ protected:
   
   // ME parameters
   Int             m_iSearchRange;
-  Int             m_bipredSearchRange; // Search range for bi-prediction
   Int             m_iFastSearch;
   Int             m_aaiAdaptSR[2][33];
   TComMv          m_cSrchRngLT;
@@ -112,7 +111,6 @@ public:
   Void init(  TEncCfg*      pcEncCfg,
             TComTrQuant*  pcTrQuant,
             Int           iSearchRange,
-            Int           bipredSearchRange,
             Int           iFastSearch,
             TEncEntropy*  pcEntropyCoder,
             TComRdCost*   pcRdCost,
@@ -147,16 +145,12 @@ protected:
   Void xGetInterPredictionError( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPartIdx, UInt& ruiSAD, Bool Hadamard );
 
 public:
-  Void  preestChromaPredMode    ( TComDataCU* pcCU, 
-                                  TComYuv*    pcOrgYuv, 
-                                  TComYuv*    pcPredYuv );
   Void  estIntraPredQT          ( TComDataCU* pcCU, 
                                   TComYuv*    pcOrgYuv, 
                                   TComYuv*    pcPredYuv, 
                                   TComYuv*    pcResiYuv, 
                                   TComYuv*    pcRecoYuv,
-                                  UInt&       ruiDistC,
-                                  Bool        bLumaOnly );
+                                  UInt&       ruiDistC );
   Void  estIntraPredChromaQT    ( TComDataCU* pcCU, 
                                   TComYuv*    pcOrgYuv, 
                                   TComYuv*    pcPredYuv, 
@@ -242,7 +236,6 @@ protected:
   Void  xRecurIntraCodingQT       ( TComDataCU*  pcCU, 
                                     UInt         uiTrDepth,
                                     UInt         uiAbsPartIdx, 
-                                    Bool         bLumaOnly,
                                     TComYuv*     pcOrgYuv, 
                                     TComYuv*     pcPredYuv, 
                                     TComYuv*     pcResiYuv, 
@@ -337,8 +330,7 @@ protected:
                                     Int           iRefIdxPred,
                                     TComMv&       rcMv,
                                     UInt&         ruiBits,
-                                    UInt&         ruiCost,
-                                    Bool          bBi = false  );
+                                    UInt&         ruiCost );
   
   Void xTZSearch                  ( TComDataCU*   pcCU,
                                     TComPattern*  pcPatternKey,
@@ -380,11 +372,10 @@ protected:
                                     TComMv&       rcMvHalf,
                                     TComMv&       rcMvQter,
                                     UInt&         ruiCost 
-                                   ,Bool biPred
                                    );
   
-  Void xExtDIFUpSamplingH( TComPattern* pcPattern, Bool biPred  );
-  Void xExtDIFUpSamplingQ( TComPattern* pcPatternKey, TComMv halfPelRef, Bool biPred );
+  Void xExtDIFUpSamplingH( TComPattern* pcPattern  );
+  Void xExtDIFUpSamplingQ( TComPattern* pcPatternKey, TComMv halfPelRef );
   
   // -------------------------------------------------------------------------------------------------------------------
   // T & Q & Q-1 & T-1

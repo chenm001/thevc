@@ -85,7 +85,6 @@ protected:
   //====== Motion search ========
   Int       m_iFastSearch;                      //  0:Full search  1:Diamond  2:PMVFAST
   Int       m_iSearchRange;                     //  0:Full frame
-  Int       m_bipredSearchRange;
 
   //====== Tool list ========
   Bool      m_bUseSBACRD;
@@ -137,7 +136,6 @@ public:
   //====== Motion search ========
   Void      setFastSearch                   ( Int   i )      { m_iFastSearch = i; }
   Void      setSearchRange                  ( Int   i )      { m_iSearchRange = i; }
-  Void      setBipredSearchRange            ( Int   i )      { m_bipredSearchRange = i; }
 
   //====== Sequence ========
   Int       getFrameRate                    ()      { return  m_iFrameRate; }
