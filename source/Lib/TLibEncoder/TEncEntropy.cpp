@@ -419,7 +419,6 @@ Void TEncEntropy::encodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
     }
     else
     {
-      encodeInterDirPU( pcCU, uiSubPartIdx );
       for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
       {
         if ( pcCU->getSlice()->getNumRefIdx( RefPicList( uiRefListIdx ) ) > 0 )
@@ -432,17 +431,6 @@ Void TEncEntropy::encodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
     }
   }
 
-  return;
-}
-
-Void TEncEntropy::encodeInterDirPU( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  if ( !pcCU->getSlice()->isInterB() )
-  {
-    return;
-  }
-
-  m_pcEntropyCoderIf->codeInterDir( pcCU, uiAbsPartIdx );
   return;
 }
 

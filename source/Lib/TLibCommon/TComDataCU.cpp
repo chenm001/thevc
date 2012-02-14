@@ -1882,10 +1882,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     puhInterDirNeighbours[iCount] = pcCULeft->getInterDir( uiLeftPartIdx );
     // get Mv from Left
     pcCULeft->getMvField( pcCULeft, uiLeftPartIdx, REF_PIC_LIST_0, pcMvFieldNeighbours[iCount<<1] );
-    if ( getSlice()->isInterB() )
-    {
-      pcCULeft->getMvField( pcCULeft, uiLeftPartIdx, REF_PIC_LIST_1, pcMvFieldNeighbours[(iCount<<1)+1] );
-    }
     iCount ++;
   }
   }
@@ -1904,10 +1900,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     puhInterDirNeighbours[iCount] = pcCUAbove->getInterDir( uiAbovePartIdx );
     // get Mv from Left
     pcCUAbove->getMvField( pcCUAbove, uiAbovePartIdx, REF_PIC_LIST_0, pcMvFieldNeighbours[iCount<<1] );
-    if ( getSlice()->isInterB() )
-    {
-      pcCUAbove->getMvField( pcCUAbove, uiAbovePartIdx, REF_PIC_LIST_1, pcMvFieldNeighbours[(iCount<<1)+1] );
-    }
     iCount ++;
   }
   }
@@ -1923,10 +1915,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     puhInterDirNeighbours[iCount] = pcCUAboveRight->getInterDir( uiAboveRightPartIdx );
     // get Mv from Left
     pcCUAboveRight->getMvField( pcCUAboveRight, uiAboveRightPartIdx, REF_PIC_LIST_0, pcMvFieldNeighbours[iCount<<1] );
-    if ( getSlice()->isInterB() )
-    {
-      pcCUAboveRight->getMvField( pcCUAboveRight, uiAboveRightPartIdx, REF_PIC_LIST_1, pcMvFieldNeighbours[(iCount<<1)+1] );
-    }
     iCount ++;
   }
 
@@ -1941,10 +1929,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     puhInterDirNeighbours[iCount] = pcCULeftBottom->getInterDir( uiLeftBottomPartIdx );
     // get Mv from Left
     pcCULeftBottom->getMvField( pcCULeftBottom, uiLeftBottomPartIdx, REF_PIC_LIST_0, pcMvFieldNeighbours[iCount<<1] );
-    if ( getSlice()->isInterB() )
-    {
-      pcCULeftBottom->getMvField( pcCULeftBottom, uiLeftBottomPartIdx, REF_PIC_LIST_1, pcMvFieldNeighbours[(iCount<<1)+1] );
-    }
     iCount ++;
   }
 
@@ -1961,10 +1945,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
       puhInterDirNeighbours[iCount] = pcCUAboveLeft->getInterDir( uiAboveLeftPartIdx );
       // get Mv from Left
       pcCUAboveLeft->getMvField( pcCUAboveLeft, uiAboveLeftPartIdx, REF_PIC_LIST_0, pcMvFieldNeighbours[iCount<<1] );
-      if ( getSlice()->isInterB() )
-      {
-        pcCUAboveLeft->getMvField( pcCUAboveLeft, uiAboveLeftPartIdx, REF_PIC_LIST_1, pcMvFieldNeighbours[(iCount<<1)+1] );
-      }
       iCount ++;
     }
   }
@@ -2041,28 +2021,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
       abCandIsInter[uiArrayAddr] = true;
       pcMvFieldNeighbours[uiArrayAddr << 1].setMvField( cColMv, iRefIdx );
 
-      if ( getSlice()->isInterB() )
-      {       
-        iRefIdx = iRefIdxSkip[1];
-        bExistMV = uiLCUIdx >= 0 && xGetColMVP( REF_PIC_LIST_1, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx);
-        if( bExistMV == false )
-        {
-          bExistMV = xGetColMVP( REF_PIC_LIST_1, uiCurLCUIdx, uiPartIdxCenter,  cColMv, iRefIdx );
-        }
-        if( bExistMV )
-        {
-          pcMvFieldNeighbours[ ( uiArrayAddr << 1 ) + 1 ].setMvField( cColMv, iRefIdx );
-          puhInterDirNeighbours[uiArrayAddr] = 3;
-        }
-        else
-        {
-          puhInterDirNeighbours[uiArrayAddr] = 1;
-        }
-      }
-      else
-      {
         puhInterDirNeighbours[uiArrayAddr] = 1;
-      }
     }
     uiIdx++;
 
@@ -2076,45 +2035,12 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
       {
         UInt uiMvFieldNeighIdxCurr = uiOuter << 1;
         UInt uiMvFieldNeighIdxComp = uiIter << 1;
-        if( getSlice()->isInterB() )
-        {
-          if( puhInterDirNeighbours[ uiOuter ] == 3 )
-          {
-            if( pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getRefIdx() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getRefIdx() && pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr + 1 ].getRefIdx() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp + 1 ].getRefIdx() &&
-              pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getMv() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getMv() && pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr + 1 ].getMv() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp + 1 ].getMv() &&
-              puhInterDirNeighbours[ uiOuter ] == puhInterDirNeighbours[ uiIter ] )
-            {
-              abCandIsInter[ uiIter ] = false;
-            }
-          }
-          else if( puhInterDirNeighbours[ uiOuter ] == 2 )
-          {
-            if( pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr + 1 ].getRefIdx() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp + 1 ].getRefIdx() &&
-              pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr + 1 ].getMv() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp + 1 ].getMv() &&
-              puhInterDirNeighbours[ uiOuter ] == puhInterDirNeighbours[ uiIter ] )
-            {
-              abCandIsInter[ uiIter ] = false;
-            }
-          }
-          else
-          {
-            if( pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getRefIdx() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getRefIdx() &&
-              pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getMv() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getMv() &&
-              puhInterDirNeighbours[ uiOuter ] == puhInterDirNeighbours[ uiIter ] )
-            {
-              abCandIsInter[ uiIter ] = false;
-            }
-          }
-        }
-        else
-        {
           if( pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getRefIdx() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getRefIdx() && 
               pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getMv() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getMv() )
           {
             assert( puhInterDirNeighbours[ uiOuter ] == puhInterDirNeighbours[ uiIter ] );
             abCandIsInter[ uiIter ] = false;
           }
-        }
       }
     }
   }
@@ -2143,103 +2069,21 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 
   for (int i=uiArrayAddr; i<MRG_MAX_NUM_CANDS; i++)
   {
-    puhInterDirNeighbours[i] = (getSlice()->isInterB()) ? 3 : 1;
+    puhInterDirNeighbours[i] = 1;
     abCandIsInter[i] = false;
     TComMv tmpMv;
     tmpMv.set(0,0);
+    // OPT_ME
     pcMvFieldNeighbours[i<<1].setMvField(tmpMv, 0);
-    if ( getSlice()->isInterB() )
-    {
-      pcMvFieldNeighbours[(i<<1)+1].setMvField(tmpMv, 0);
-    }
   }
 
-  UInt uiCutoff = uiArrayAddr;
-    
-  if ( getSlice()->isInterB() )
-  {
-    Int iCombinedCount = 0;
-    UInt uiPriorityList0[12] = {0 , 1, 0, 2, 1, 2, 0, 3, 1, 3, 2, 3};
-    UInt uiPriorityList1[12] = {1 , 0, 2, 0, 2, 1, 3, 0, 3, 1, 3, 2};
-
-    for (Int idx=0; idx<uiCutoff*(uiCutoff-1) && uiArrayAddr!=MRG_MAX_NUM_CANDS && iCombinedCount<5; idx++)
-    {
-      Int i = uiPriorityList0[idx]; Int j = uiPriorityList1[idx];
-      if (abCandIsInter[i] && abCandIsInter[j]&& (puhInterDirNeighbours[i]&0x1)&&(puhInterDirNeighbours[j]&0x2))
-      {
-        abCandIsInter[uiArrayAddr] = true;
-        puhInterDirNeighbours[uiArrayAddr] = 3;
-
-        // get Mv from cand[i] and cand[j]
-        pcMvFieldNeighbours[uiArrayAddr << 1].setMvField(pcMvFieldNeighbours[i<<1].getMv(), pcMvFieldNeighbours[i<<1].getRefIdx());
-        pcMvFieldNeighbours[( uiArrayAddr << 1 ) + 1].setMvField(pcMvFieldNeighbours[(j<<1)+1].getMv(), pcMvFieldNeighbours[(j<<1)+1].getRefIdx());
-
-        Int iRefPOCL0 = m_pcSlice->getRefPOC( REF_PIC_LIST_0, pcMvFieldNeighbours[(uiArrayAddr<<1)].getRefIdx() );
-        Int iRefPOCL1 = m_pcSlice->getRefPOC( REF_PIC_LIST_1, pcMvFieldNeighbours[(uiArrayAddr<<1)+1].getRefIdx() );
-        if (iRefPOCL0 == iRefPOCL1 && pcMvFieldNeighbours[(uiArrayAddr<<1)].getMv() == pcMvFieldNeighbours[(uiArrayAddr<<1)+1].getMv())
-        {
-          abCandIsInter[uiArrayAddr] = false;
-        }
-        else
-        {
-          uiArrayAddr++;
-          iCombinedCount++;
-        }
-      }
-    }
-  
-    Int iScaledCount = 0;
-    for (int i=0; i<uiCutoff && uiArrayAddr!=MRG_MAX_NUM_CANDS && iScaledCount<1; i++)
-    {
-      for (int j=0; j<2 && uiArrayAddr!=MRG_MAX_NUM_CANDS && iScaledCount<1; j++)
-      {
-        if (abCandIsInter[i] && pcMvFieldNeighbours[(i<<1)+j].getRefIdx()>=0 && pcMvFieldNeighbours[(i<<1)+j].getRefIdx() < m_pcSlice->getNumRefIdx((j==0)?REF_PIC_LIST_1:REF_PIC_LIST_0))
-        {
-          Int iCurrPOC = m_pcSlice->getPOC();
-          Int iCurrRefPOC1 = m_pcSlice->getRefPOC( (j==0)?REF_PIC_LIST_1:REF_PIC_LIST_0, pcMvFieldNeighbours[(i<<1)+j].getRefIdx() );
-          Int iCurrRefPOC2 = m_pcSlice->getRefPOC( (j==0)?REF_PIC_LIST_0:REF_PIC_LIST_1, pcMvFieldNeighbours[(i<<1)+j].getRefIdx() );
-
-          if (iCurrRefPOC1 != iCurrRefPOC2 && abs(iCurrPOC-iCurrRefPOC1) == abs(iCurrPOC-iCurrRefPOC2))
-          {
-            abCandIsInter[uiArrayAddr] = true;
-            puhInterDirNeighbours[uiArrayAddr] = 3;
-            
-            TComMv cMvPred = pcMvFieldNeighbours[(i<<1)+j].getMv();
-            TComMv rcMv;
-
-            rcMv.set(-1*cMvPred.getHor(), -1*cMvPred.getVer());
-
-            if (j==0)
-            {
-              pcMvFieldNeighbours[uiArrayAddr << 1].setMvField(pcMvFieldNeighbours[(i<<1)].getMv(), pcMvFieldNeighbours[(i<<1)].getRefIdx());
-              pcMvFieldNeighbours[( uiArrayAddr << 1 ) + 1].setMvField(rcMv, pcMvFieldNeighbours[(i<<1)].getRefIdx());
-            }
-            else
-            {
-              pcMvFieldNeighbours[uiArrayAddr << 1].setMvField(rcMv, pcMvFieldNeighbours[(i<<1)+1].getRefIdx());
-              pcMvFieldNeighbours[( uiArrayAddr << 1 ) + 1].setMvField(pcMvFieldNeighbours[(i<<1)+1].getMv(), pcMvFieldNeighbours[(i<<1)+1].getRefIdx());
-            }
-
-            uiArrayAddr++;
-            iScaledCount++;
-          }
-        }
-      }
-    }
-  }
-
-  Int iNumRefIdx = (getSlice()->isInterB()) ? min(m_pcSlice->getNumRefIdx(REF_PIC_LIST_0), m_pcSlice->getNumRefIdx(REF_PIC_LIST_1)) : m_pcSlice->getNumRefIdx(REF_PIC_LIST_0);
+  Int iNumRefIdx = m_pcSlice->getNumRefIdx(REF_PIC_LIST_0);
   for (int r=0; r<iNumRefIdx && uiArrayAddr!=MRG_MAX_NUM_CANDS; r++)
   {
     abCandIsInter[uiArrayAddr] = true;
     puhInterDirNeighbours[uiArrayAddr] = 1;
     pcMvFieldNeighbours[uiArrayAddr << 1].setMvField( TComMv(0, 0), r);
 
-    if ( getSlice()->isInterB() )
-    {
-      puhInterDirNeighbours[uiArrayAddr] = 3;
-      pcMvFieldNeighbours[(uiArrayAddr << 1) + 1].setMvField(TComMv(0, 0), r);
-    }
     uiArrayAddr++;
   }
   if (uiArrayAddr > MRG_MAX_NUM_CANDS_SIGNALED)
@@ -2258,30 +2102,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
  */
 Void TComDataCU::xCheckDuplicateCand(TComMvField* pcMvFieldNeighbours, UChar* puhInterDirNeighbours, bool* pbCandIsInter, UInt& ruiArrayAddr)
 {
-  if (getSlice()->isInterB())
-  {
-    UInt uiMvFieldNeighIdxCurr = ruiArrayAddr << 1;
-    Int iRefIdxL0 = pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getRefIdx();
-    Int iRefIdxL1 = pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr + 1 ].getRefIdx();
-    TComMv MvL0 = pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getMv();
-    TComMv MvL1 = pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr + 1 ].getMv();
-
-    for (int k=0; k<ruiArrayAddr; k++)
-    {
-      UInt uiMvFieldNeighIdxComp = k << 1;
-      if (iRefIdxL0 == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getRefIdx() && 
-          iRefIdxL1 == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp + 1 ].getRefIdx() &&
-          MvL0 == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getMv() && 
-          MvL1 == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp + 1 ].getMv() &&
-          puhInterDirNeighbours[ ruiArrayAddr ] == puhInterDirNeighbours[ k ] )
-      {
-        pbCandIsInter[ruiArrayAddr] = false;
-        break;
-      }
-    }
-  }
-  else
-  {
     UInt uiMvFieldNeighIdxCurr = ruiArrayAddr << 1;
     Int iRefIdxL0 = pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getRefIdx();
     TComMv MvL0 = pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getMv();
@@ -2297,7 +2117,6 @@ Void TComDataCU::xCheckDuplicateCand(TComMvField* pcMvFieldNeighbours, UChar* pu
         break;
       }
     }
-  }
 
   if (pbCandIsInter[ruiArrayAddr])
   {
@@ -2307,36 +2126,13 @@ Void TComDataCU::xCheckDuplicateCand(TComMvField* pcMvFieldNeighbours, UChar* pu
 
 Void TComDataCU::xCheckCornerCand( TComDataCU* pcCorner, UInt uiCornerPUIdx, UInt uiIter, Bool& rbValidCand )
 {
+  // OPT_ME
   if( uiIter == 0 )
   {
     if( pcCorner && !pcCorner->isIntra( uiCornerPUIdx ) )
     {
       rbValidCand = true;
-      if( getSlice()->isInterB() )
-      {
-        if ( pcCorner->getInterDir( uiCornerPUIdx ) == 1 )
-        {
-          if( pcCorner->getCUMvField(REF_PIC_LIST_0)->getRefIdx( uiCornerPUIdx ) != 0 )
-          {
-            rbValidCand = false;
-          }
-        }
-        else if ( pcCorner->getInterDir( uiCornerPUIdx ) == 2 )
-        {
-          if( pcCorner->getCUMvField(REF_PIC_LIST_1)->getRefIdx( uiCornerPUIdx ) != 0 )
-          {
-            rbValidCand = false;
-          }
-        }
-        else
-        {
-          if( pcCorner->getCUMvField(REF_PIC_LIST_0)->getRefIdx( uiCornerPUIdx ) != 0 || pcCorner->getCUMvField(REF_PIC_LIST_1)->getRefIdx( uiCornerPUIdx ) != 0 )
-          {
-            rbValidCand = false;
-          }
-        }
-      }
-      else if( pcCorner->getCUMvField(REF_PIC_LIST_0)->getRefIdx( uiCornerPUIdx ) != 0 )
+      if( pcCorner->getCUMvField(REF_PIC_LIST_0)->getRefIdx( uiCornerPUIdx ) != 0 )
       {
         rbValidCand = false;
       }
@@ -2347,31 +2143,7 @@ Void TComDataCU::xCheckCornerCand( TComDataCU* pcCorner, UInt uiCornerPUIdx, UIn
     if( pcCorner && !pcCorner->isIntra( uiCornerPUIdx ) )
     {
       rbValidCand = true;
-      if( getSlice()->isInterB() )
-      {
-        if ( pcCorner->getInterDir( uiCornerPUIdx ) == 1 )
-        {
-          if( pcCorner->getCUMvField(REF_PIC_LIST_0)->getRefIdx( uiCornerPUIdx ) < 0 )
-          {
-            rbValidCand = false;
-          }
-        }
-        else if ( pcCorner->getInterDir( uiCornerPUIdx ) == 2 )
-        {
-          if( pcCorner->getCUMvField(REF_PIC_LIST_1)->getRefIdx( uiCornerPUIdx ) < 0 )
-          {
-            rbValidCand = false;
-          }
-        }
-        else
-        {
-          if( pcCorner->getCUMvField(REF_PIC_LIST_0)->getRefIdx( uiCornerPUIdx ) < 0 || pcCorner->getCUMvField(REF_PIC_LIST_1)->getRefIdx( uiCornerPUIdx ) < 0 )
-          {
-            rbValidCand = false;
-          }
-        }
-      }
-      else if( pcCorner->getCUMvField(REF_PIC_LIST_0)->getRefIdx( uiCornerPUIdx ) < 0 )
+      if( pcCorner->getCUMvField(REF_PIC_LIST_0)->getRefIdx( uiCornerPUIdx ) < 0 )
       {
         rbValidCand = false;
       }
@@ -2875,7 +2647,7 @@ Bool TComDataCU::xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUni
   iCurrRefPOC = m_pcSlice->getRefPic(eRefPicList, riRefIdx)->getPOC();
 
   // use coldir.
-  TComPic *pColPic = getSlice()->getRefPic( RefPicList(getSlice()->isInterB() ? getSlice()->getColDir() : 0), 0);
+  TComPic *pColPic = getSlice()->getRefPic( REF_PIC_LIST_0, 0);
   TComDataCU *pColCU = pColPic->getCU( uiCUAddr );
   iColPOC = pColCU->getSlice()->getPOC();  
 
@@ -2996,7 +2768,7 @@ Bool TComDataCU::xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRef
   Int iCurrPOC = m_pcSlice->getPOC();
   
   // use coldir.
-  TComPic *pColPic = getSlice()->getRefPic( RefPicList(getSlice()->isInterB() ? getSlice()->getColDir() : 0), 0);
+  TComPic *pColPic = getSlice()->getRefPic( REF_PIC_LIST_0, 0);
   TComDataCU *pColCU = pColPic->getCU( m_uiCUAddr );
   
   Int iColPOC = pColCU->getSlice()->getPOC();

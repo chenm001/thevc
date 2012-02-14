@@ -194,10 +194,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
       m_pcEncTop->getSPS()->setDisInter4x4(m_pcEncTop->getDisInter4x4());
 
-      if(pcSlice->getSliceType()==B_SLICE)
-      {
-        pcSlice->setSliceType(P_SLICE);
-      }
       // Set the nal unit type
       pcSlice->setNalUnitType(getNalUnitType(uiPOCCurr));
       // Do decoding refresh marking if any 
@@ -229,48 +225,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       //  Set reference list
       pcSlice->setRefPicList ( rcListPic );
       
-      //  Slice info. refinement
-      if ( (pcSlice->getSliceType() == B_SLICE) && (pcSlice->getNumRefIdx(REF_PIC_LIST_1) == 0) )
-      {
-        pcSlice->setSliceType ( P_SLICE );
-      }
-      
-      if (pcSlice->getSliceType() != B_SLICE || !pcSlice->getSPS()->getUseLComb())
-      {
         pcSlice->setNumRefIdx(REF_PIC_LIST_C, 0);
         pcSlice->setRefPicListCombinationFlag(false);
         pcSlice->setRefPicListModificationFlagLC(false);
-      }
-      else
-      {
-        pcSlice->setRefPicListCombinationFlag(pcSlice->getSPS()->getUseLComb());
-        pcSlice->setRefPicListModificationFlagLC(pcSlice->getSPS()->getLCMod());
-        pcSlice->setNumRefIdx(REF_PIC_LIST_C, pcSlice->getNumRefIdx(REF_PIC_LIST_0));
-      }
-      
-      if (pcSlice->getSliceType() == B_SLICE)
-      {
-        pcSlice->setColDir(uiColDir);
-        Bool bLowDelay = true;
-        Int  iCurrPOC  = pcSlice->getPOC();
-        Int iRefIdx = 0;
-
-        for (iRefIdx = 0; iRefIdx < pcSlice->getNumRefIdx(REF_PIC_LIST_0) && bLowDelay; iRefIdx++)
-        {
-          if ( pcSlice->getRefPic(REF_PIC_LIST_0, iRefIdx)->getPOC() > iCurrPOC )
-          {
-            bLowDelay = false;
-          }
-        }
-        for (iRefIdx = 0; iRefIdx < pcSlice->getNumRefIdx(REF_PIC_LIST_1) && bLowDelay; iRefIdx++)
-        {
-          if ( pcSlice->getRefPic(REF_PIC_LIST_1, iRefIdx)->getPOC() > iCurrPOC )
-          {
-            bLowDelay = false;
-          }
-        }
-        assert( bLowDelay == false );
-      }
       
       uiColDir = 1-uiColDir;
       
@@ -278,22 +235,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcSlice->setRefPOCList();
       
       pcSlice->setNoBackPredFlag( false );
-      if ( pcSlice->getSliceType() == B_SLICE && !pcSlice->getRefPicListCombinationFlag())
-      {
-        if ( pcSlice->getNumRefIdx(RefPicList( 0 ) ) == pcSlice->getNumRefIdx(RefPicList( 1 ) ) )
-        {
-          pcSlice->setNoBackPredFlag( true );
-          int i;
-          for ( i=0; i < pcSlice->getNumRefIdx(RefPicList( 1 ) ); i++ )
-          {
-            if ( pcSlice->getRefPOC(RefPicList(1), i) != pcSlice->getRefPOC(RefPicList(0), i) ) 
-            {
-              pcSlice->setNoBackPredFlag( false );
-              break;
-            }
-          }
-        }
-      }
 
       if(pcSlice->getNoBackPredFlag())
       {
@@ -506,7 +447,6 @@ Void TEncGOP::printOutSummary(UInt uiNumAllPicCoded)
   m_gcAnalyzeAll.setFrmRate( m_pcCfg->getFrameRate() );
   m_gcAnalyzeI.setFrmRate( m_pcCfg->getFrameRate() );
   m_gcAnalyzeP.setFrmRate( m_pcCfg->getFrameRate() );
-  m_gcAnalyzeB.setFrmRate( m_pcCfg->getFrameRate() );
   
   //-- all
   printf( "\n\nSUMMARY --------------------------------------------------------\n" );
@@ -518,16 +458,12 @@ Void TEncGOP::printOutSummary(UInt uiNumAllPicCoded)
   printf( "\n\nP Slices--------------------------------------------------------\n" );
   m_gcAnalyzeP.printOut('p');
   
-  printf( "\n\nB Slices--------------------------------------------------------\n" );
-  m_gcAnalyzeB.printOut('b');
-  
 #if _SUMMARY_OUT_
   m_gcAnalyzeAll.printSummaryOut();
 #endif
 #if _SUMMARY_PIC_
   m_gcAnalyzeI.printSummary('I');
   m_gcAnalyzeP.printSummary('P');
-  m_gcAnalyzeB.printSummary('B');
 #endif
 
   printf("\nRVM: %.3lf\n" , xCalculateRVM());
@@ -698,10 +634,6 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
   if (pcSlice->isInterP())
   {
     m_gcAnalyzeP.addResult (dYPSNR, dUPSNR, dVPSNR, (Double)uibits);
-  }
-  if (pcSlice->isInterB())
-  {
-    m_gcAnalyzeB.addResult (dYPSNR, dUPSNR, dVPSNR, (Double)uibits);
   }
 
   Char c = (pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B');

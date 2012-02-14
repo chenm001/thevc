@@ -149,8 +149,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   // slice type
   SliceType eSliceType;
   
-  eSliceType=B_SLICE;
-  eSliceType = (iPOCLast == 0 || uiPOCCurr % m_pcCfg->getIntraPeriod() == 0) ? I_SLICE : eSliceType;
+  eSliceType = (iPOCLast == 0 || uiPOCCurr % m_pcCfg->getIntraPeriod() == 0) ? I_SLICE : P_SLICE;
   
   rpcSlice->setSliceType    ( eSliceType );
   

@@ -449,7 +449,6 @@ public:
   Void      setColDir           ( UInt uiDir ) { m_uiColDir = uiDir; }
   
   Bool      isIntra         ()                          { return  m_eSliceType == I_SLICE;  }
-  Bool      isInterB        ()                          { return  m_eSliceType == B_SLICE;  }
   Bool      isInterP        ()                          { return  m_eSliceType == P_SLICE;  }
   
   Void      setLambda( Double d ) { m_dLambda = d; }

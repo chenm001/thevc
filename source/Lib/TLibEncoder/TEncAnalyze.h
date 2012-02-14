@@ -152,7 +152,6 @@ public:
 extern TEncAnalyze             m_gcAnalyzeAll;
 extern TEncAnalyze             m_gcAnalyzeI;
 extern TEncAnalyze             m_gcAnalyzeP;
-extern TEncAnalyze             m_gcAnalyzeB;
 
 //! \}
 

@@ -1163,13 +1163,6 @@ Void TEncCu::xCheckRDCostAMVPSkip           ( TComDataCU*& rpcBestCU, TComDataCU
     {
       rpcTempCU->fillMvpCand(0, 0, REF_PIC_LIST_0, 0, &cAMVPInfo0);
     }
-    else if ( rpcTempCU->getSlice()->isInterB() &&
-             rpcTempCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 &&
-             rpcTempCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0  )
-    {
-      rpcTempCU->fillMvpCand(0, 0, REF_PIC_LIST_0, 0, &cAMVPInfo0);
-      rpcTempCU->fillMvpCand(0, 0, REF_PIC_LIST_1, 0, &cAMVPInfo1);
-    }
     else
     {
       assert( 0 );
@@ -1186,9 +1179,6 @@ Void TEncCu::xCheckRDCostAMVPSkip           ( TComDataCU*& rpcBestCU, TComDataCU
     {
       rpcTempCU->setPredModeSubParts( MODE_SKIP, 0, uhDepth );
       rpcTempCU->setPartSizeSubParts( SIZE_2Nx2N,  0, uhDepth );
-
-      if (rpcTempCU->getSlice()->isInterB())
-        rpcTempCU->setInterDirSubParts( 3, 0, 0, uhDepth );
 
       rpcTempCU->setMVPIdxSubParts( iMVP0, REF_PIC_LIST_0, 0, 0, uhDepth );
       rpcTempCU->setMVPIdxSubParts( iMVP1, REF_PIC_LIST_1, 0, 0, uhDepth );

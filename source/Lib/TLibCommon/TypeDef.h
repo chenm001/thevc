@@ -189,7 +189,6 @@ enum SliceType
 {
   I_SLICE,
   P_SLICE,
-  B_SLICE
 };
 
 /// chroma formats (according to semantics of chroma_format_idc)

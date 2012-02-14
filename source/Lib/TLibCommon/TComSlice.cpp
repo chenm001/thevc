@@ -375,28 +375,6 @@ Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic )
       }
     }
   }
-  
-  //ref_pic_list_modification_l1
-  if(m_eSliceType == B_SLICE && m_RefPicListModification.getRefPicListModificationFlagL1())
-  {
-    for( i = 0; i < m_RefPicListModification.getNumberOfRefPicListModificationsL1(); i++)
-    {
-      for( cIdx = num_ref_idx_l1_active_minus1 + 1; cIdx > i; cIdx-- )
-        m_apcRefPicList[1][ cIdx ] = m_apcRefPicList[1][ cIdx - 1];
-      if(m_RefPicListModification.getListIdcL1(i) == 0)
-        m_apcRefPicList[1][ i ] =  RefPicSetStCurr1[ m_RefPicListModification.getRefPicSetIdxL1(i) ];
-      else if(m_RefPicListModification.getListIdcL1(i) == 1)
-        m_apcRefPicList[1][ i ] =  RefPicSetStCurr0[ m_RefPicListModification.getRefPicSetIdxL1(i) ];
-      else if(m_RefPicListModification.getListIdcL1(i) == 2)
-        m_apcRefPicList[1][ i ] =  RefPicSetLtCurr[ m_RefPicListModification.getRefPicSetIdxL1(i) ];
-      UInt nIdx = i+1;
-      for( cIdx = i+1; cIdx <= num_ref_idx_l1_active_minus1 + 1; cIdx++ )
-      {
-        if( m_apcRefPicList[1][ cIdx ] != m_apcRefPicList[1][ i ] )
-          m_apcRefPicList[1][ nIdx++ ] = m_apcRefPicList[1][ cIdx ];
-      }
-    }
-  }
 }
 
 Void TComSlice::initEqualRef()

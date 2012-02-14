@@ -567,16 +567,6 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   return;
 }
 
-Void TEncSbac::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  const UInt uiInterDir = pcCU->getInterDir( uiAbsPartIdx ) - 1;
-  const UInt uiCtx      = pcCU->getCtxInterDir( uiAbsPartIdx );
-  ContextModel *pCtx    = m_cCUInterDirSCModel.get( 0 );
-  m_pcBinIf->encodeBin( uiInterDir == 2 ? 1 : 0, *( pCtx + uiCtx ) );
-
-  return;
-}
-
 Void TEncSbac::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
 {
   if ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getInterDir( uiAbsPartIdx ) != 3)

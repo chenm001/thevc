@@ -360,14 +360,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     {
       pcSlice->setNumRefIdx(REF_PIC_LIST_0, 0);
     }
-    if (pcSlice->isInterB())
-    {
-      WRITE_CODE( pcSlice->getNumRefIdx( REF_PIC_LIST_1 ) - 1, 3, "num_ref_idx_l1_active_minus1" );
-    }
-    else
-    {
       pcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
-    }
     TComRefPicListModification* refPicListModification = pcSlice->getRefPicListModification();
     if(!pcSlice->isIntra())
     {
@@ -380,38 +373,9 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       if(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0())
         WRITE_UVLC( 3, "ref_pic_list_modification_idc");
     }
-    if(pcSlice->isInterB())
-    {    
-      WRITE_FLAG(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL1() ? 1 : 0,       "ref_pic_list_modification_flag" );
-      for(Int i = 0; i < refPicListModification->getNumberOfRefPicListModificationsL1(); i++)
-      {
-        WRITE_UVLC( refPicListModification->getListIdcL1(i), "ref_pic_list_modification_idc");
-        WRITE_UVLC( refPicListModification->getRefPicSetIdxL1(i), "ref_pic_set_idx");
-      }
-      if(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL1())
-        WRITE_UVLC( 3, "ref_pic_list_modification_idc");
-    }
   }
   // ref_pic_list_combination( )
   // maybe move to own function?
-  if (pcSlice->isInterB())
-  {
-    WRITE_FLAG(pcSlice->getRefPicListCombinationFlag() ? 1 : 0,       "ref_pic_list_combination_flag" );
-    if(pcSlice->getRefPicListCombinationFlag())
-    {
-      WRITE_UVLC( pcSlice->getNumRefIdx(REF_PIC_LIST_C) - 1,          "num_ref_idx lc_active_minus1");
-      
-      WRITE_FLAG( pcSlice->getRefPicListModificationFlagLC() ? 1 : 0, "ref_pic_list_modification_flag_lc" );
-      if(pcSlice->getRefPicListModificationFlagLC())
-      {
-        for (UInt i=0;i<pcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
-        {
-          WRITE_FLAG( pcSlice->getListIdFromIdxOfLC(i),               "pic_from_list_0_flag" );
-          WRITE_UVLC( pcSlice->getRefIdxFromIdxOfLC(i),               "ref_idx_list_curr" );
-        }
-      }
-    }
-  }
     
   if(!pcSlice->isIntra())
   {
@@ -435,10 +399,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   //   }
   //   if( slice_type = = B )
   //   collocated_from_l0_flag
-    if ( pcSlice->getSliceType() == B_SLICE )
-    {
-      WRITE_FLAG( pcSlice->getColDir(), "collocated_from_l0_flag" );
-    }
     //   if( adaptive_loop_filter_enabled_flag ) {
   //     if( !shared_pps_info_enabled_flag )
   //       alf_param( )
@@ -525,11 +485,6 @@ Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 }
 
 Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  assert(0);
-}
-
-Void TEncCavlc::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   assert(0);
 }
