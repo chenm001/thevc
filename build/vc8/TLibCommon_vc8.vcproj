@@ -292,10 +292,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComAdaptiveLoopFilter.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComBitStream.cpp"
 				>
 			</File>
@@ -309,10 +305,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComInterpolationFilter.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComLoopFilter.cpp"
 				>
 			</File>
 			<File
@@ -348,15 +340,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComRdCostWeightPrediction.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComRom.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComSampleAdaptiveOffset.cpp"
 				>
 			</File>
 			<File
@@ -365,10 +349,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComTrQuant.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComWeightPrediction.cpp"
 				>
 			</File>
 			<File
@@ -414,10 +394,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComAdaptiveLoopFilter.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComBitCounter.h"
 				>
 			</File>
@@ -439,10 +415,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComList.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComLoopFilter.h"
 				>
 			</File>
 			<File
@@ -478,15 +450,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComRdCostWeightPrediction.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComRom.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComSampleAdaptiveOffset.h"
 				>
 			</File>
 			<File
@@ -495,10 +459,6 @@
 			</File>
 			<File
 				RelativePath="..\..\source\Lib\TLibCommon\TComTrQuant.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\source\Lib\TLibCommon\TComWeightPrediction.h"
 				>
 			</File>
 			<File
