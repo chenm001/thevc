@@ -127,47 +127,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
   
   m_iNumPicCoded = 0;
 
-  for ( Int iGOPid=0; iGOPid < 1; iGOPid++ )
     {
-      UInt uiColDir = 1;
-      
-      //select uiColDir
-      Int iCloseLeft=1, iCloseRight=-1;
-      {
-        Int iRef = -1;
-        if(iRef>iCloseLeft||iCloseLeft==1)
-        {
-          iCloseLeft=iRef;
-        }
-      }
-      if(iCloseRight>-1)
-      {
-        iCloseRight=iCloseRight;
-      }
-      if(iCloseLeft<1) 
-      {
-        iCloseLeft=iCloseLeft;
-        while(iCloseLeft<0)
-        {
-          iCloseLeft+=1;
-        }
-      }
-      int iLeftQP=0, iRightQP=0;
-      {
-          iLeftQP= 1;
-          iRightQP=1;
-      }
-      if(iCloseRight>-1&&iRightQP<iLeftQP)
-      {
-        uiColDir=0;
-      }
-
       /////////////////////////////////////////////////////////////////////////////////////////////////// Initial to start encoding
       UInt uiPOCCurr = iPOCLast -iNumPicRcvd+ 1;
       Int iTimeOffset = 1;
       if(uiPOCCurr>=m_pcCfg->getFrameToBeEncoded())
       {
-        continue;
+        return;
       }
       if(iPOCLast == 0)
       {
@@ -189,7 +155,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcPic->clearSliceBuffer();
       assert(pcPic->getNumAllocatedSlice() == 1);
 
-      m_pcSliceEncoder->initEncSlice ( pcPic, iPOCLast, uiPOCCurr, iNumPicRcvd, iGOPid, pcSlice, m_pcEncTop->getSPS(), m_pcEncTop->getPPS() );
+      m_pcSliceEncoder->initEncSlice ( pcPic, iPOCLast, uiPOCCurr, iNumPicRcvd, pcSlice, m_pcEncTop->getSPS(), m_pcEncTop->getPPS() );
       pcSlice->setLastIDR(m_iLastIDR);
 
       m_pcEncTop->getSPS()->setDisInter4x4(m_pcEncTop->getDisInter4x4());
@@ -204,7 +170,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         pcSlice->decodingMarkingForNoTMVP( rcListPic, pcSlice->getPOC() );
       }
 
-      m_pcEncTop->selectReferencePictureSet(pcSlice, uiPOCCurr, iGOPid,rcListPic);
+      m_pcEncTop->selectReferencePictureSet(pcSlice, uiPOCCurr, rcListPic);
 
       pcSlice->applyReferencePictureSet(rcListPic, pcSlice->getRPS());
 
@@ -212,8 +178,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
       //  Set reference list
       pcSlice->setRefPicList ( rcListPic );
-      
-      uiColDir = 1-uiColDir;
       
       //-------------------------------------------------------------
       pcSlice->setRefPOCList();
@@ -293,7 +257,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         } 
 
       pcSlice->setRPS(pcPic->getSlice()->getRPS());
-      pcSlice->setRPSidx(pcPic->getSlice()->getRPSidx());
         UInt uiDummyBoundingCUAddr;
         m_pcSliceEncoder->xDetermineStartAndBoundingCUAddr(uiDummyBoundingCUAddr,pcPic,true);
 

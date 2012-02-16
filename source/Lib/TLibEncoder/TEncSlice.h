@@ -99,7 +99,7 @@ public:
   
   /// preparation of slice encoding (reference marking, QP and lambda)
   Void    initEncSlice        ( TComPic*  pcPic, Int iPOCLast, UInt uiPOCCurr, Int iNumPicRcvd,
-                                Int iGOPid,   TComSlice*& rpcSlice, TComSPS* pSPS, TComPPS *pPPS );
+                                TComSlice*& rpcSlice, TComSPS* pSPS, TComPPS *pPPS );
 
   // compress and encode slice
   Void    compressSlice       ( TComPic*& rpcPic                                );      ///< analysis stage of slice

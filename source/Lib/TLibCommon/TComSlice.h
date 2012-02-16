@@ -200,18 +200,13 @@ public:
 class TComRPS
 {
 private:
-  UInt      m_uiNumberOfReferencePictureSets;
-  TComReferencePictureSet*      m_pReferencePictureSet;
+  TComReferencePictureSet       m_ReferencePictureSet;
   
 public:
   TComRPS();
   virtual ~TComRPS();
   
-  Void  create                    (UInt uiNumberOfEntries);
-  Void  destroy                   ();
-
-
-  TComReferencePictureSet* getReferencePictureSet(UInt uiReferencePictureSetNum);
+  TComReferencePictureSet* getReferencePictureSet();
   UInt getNumberOfReferencePictureSets();
   Void setNumberOfReferencePictureSets(UInt uiNumberOfReferencePictureSets);
 };
@@ -268,7 +263,6 @@ private:
   static Int  m_iPrevPOC;
   TComReferencePictureSet *m_pcRPS;
   TComReferencePictureSet m_LocalRPS;
-  Int         m_iBDidx; 
   NalUnitType m_eNalUnitType;         ///< Nal unit type for the slice
   SliceType   m_eSliceType;
   Int         m_iSliceQp;
@@ -322,8 +316,6 @@ public:
   TComReferencePictureSet*  getRPS          () { return m_pcRPS; }
   TComReferencePictureSet*  getLocalRPS     () { return &m_LocalRPS; }
 
-  Void      setRPSidx          ( Int iBDidx ) { m_iBDidx = iBDidx; }
-  Int       getRPSidx          () { return m_iBDidx; }
   Int       getPrevPOC      ()                          { return  m_iPrevPOC;       }
 
   Void      setLastIDR(Int iIDRPOC)                       { m_iLastIDR = iIDRPOC; }
@@ -388,7 +380,6 @@ public:
 
   Void decodingMarking( TComList<TComPic*>& rcListPic, Int& iMaxRefPicNum ); 
   Void      applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pcRPSList);
-  Void      createExplicitReferencePictureSetFromReference( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet);
 
   Void decodingMarkingForNoTMVP( TComList<TComPic*>& rcListPic, Int currentPOC );
 

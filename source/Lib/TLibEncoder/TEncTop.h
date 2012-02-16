@@ -145,7 +145,7 @@ public:
   TComPPS*                getPPS                () { return  &m_cPPS;                 }
   TComRPS*                getRPSList                () { return  &m_cRPSList;                 }
   
-  Void selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, UInt iGOPid,TComList<TComPic*>& rcListPic );
+  Void selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, TComList<TComPic*>& rcListPic );
   // -------------------------------------------------------------------------------------------------------------------
   // encoder function
   // -------------------------------------------------------------------------------------------------------------------

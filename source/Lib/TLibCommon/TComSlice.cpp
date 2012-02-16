@@ -293,34 +293,6 @@ Void TComSlice::applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComRef
   }  
 }
 
-/** Function for constructing an explicit Reference Picture Set out of the available pictures in a referenced Reference Picture Set
-*/
-Void TComSlice::createExplicitReferencePictureSetFromReference( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet)
-{
-  TComPic* rpcPic;
-  TComReferencePictureSet* pcRPS = this->getLocalRPS();
-
-  // loop through all pictures in the Reference Picture Set
-  {
-    // loop through all pictures in the reference picture buffer
-    TComList<TComPic*>::iterator iterPic = rcListPic.begin();
-    while ( iterPic != rcListPic.end())
-    {
-      rpcPic = *(iterPic++);
-
-      if(rpcPic->getPicSym()->getSlice()->getPOC() == this->getPOC() - 1 && rpcPic->getSlice()->isReferenced())
-      {
-        // This picture exists as a reference picture
-        // and should be added to the explicit Reference Picture Set
-        pcRPS->setUsed(0, pReferencePictureSet->getUsed(0));
-      }
-    }
-  }
-
-  this->setRPS(pcRPS);
-  this->setRPSidx(-1);
-}
-
 Void TComSlice::decodingMarkingForNoTMVP( TComList<TComPic*>& rcListPic, Int currentPOC )
 {
   TComList<TComPic*>::iterator it;
@@ -433,34 +405,10 @@ TComRPS::~TComRPS()
 {
 }
 
-Void TComRPS::create( UInt uiNumberOfReferencePictureSets)
+
+TComReferencePictureSet* TComRPS::getReferencePictureSet()
 {
-  m_uiNumberOfReferencePictureSets = uiNumberOfReferencePictureSets;
-  m_pReferencePictureSet = new TComReferencePictureSet[uiNumberOfReferencePictureSets];
-}
-
-Void TComRPS::destroy()
-{
-  delete [] m_pReferencePictureSet;     
-  m_uiNumberOfReferencePictureSets = 0;
-  m_pReferencePictureSet = NULL;
-}
-
-
-
-TComReferencePictureSet* TComRPS::getReferencePictureSet(UInt uiReferencePictureSetNum)
-{
-   return &m_pReferencePictureSet[uiReferencePictureSetNum];
-}
-
-UInt TComRPS::getNumberOfReferencePictureSets()
-{
-   return m_uiNumberOfReferencePictureSets;
-}
-
-Void TComRPS::setNumberOfReferencePictureSets(UInt uiNumberOfReferencePictureSets)
-{
-   m_uiNumberOfReferencePictureSets = uiNumberOfReferencePictureSets;
+   return &m_ReferencePictureSet;
 }
 
 #if PARAMSET_VLC_CLEANUP

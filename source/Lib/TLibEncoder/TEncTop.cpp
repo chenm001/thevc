@@ -126,7 +126,6 @@ Void TEncTop::destroy ()
   m_cGOPEncoder.        destroy();
   m_cSliceEncoder.      destroy();
   m_cCuEncoder.         destroy();
-  m_cRPSList.               destroy();
   
   // SBAC RD
   if( m_bUseSBACRD )
@@ -358,24 +357,21 @@ Void TEncTop::xInitRPS()
   // configured directly from the config file.
   // Here we check what BD is appropriate
   
-  m_cRPSList.create(1);
   {
-    pcRPS = m_cRPSList.getReferencePictureSet(0);
+    pcRPS = m_cRPSList.getReferencePictureSet();
       pcRPS->setUsed(0,true);
   }
   
 }
 
-Void TEncTop::selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, UInt iGOPid,TComList<TComPic*>& rcListPic )
+Void TEncTop::selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, TComList<TComPic*>& rcListPic )
 {
 
    // This is a function that 
    // decides what Reference Picture Set to use 
    // for a specific picture (with POC = uiPOCCurr)
 
-  pcSlice->setRPSidx(iGOPid);
-
-  pcSlice->setRPS(getRPSList()->getReferencePictureSet(iGOPid));
+  pcSlice->setRPS(getRPSList()->getReferencePictureSet());
 
 }
 

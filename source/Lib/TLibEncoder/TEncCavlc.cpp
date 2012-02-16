@@ -170,10 +170,9 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   // since entropy_coding_mode_flag will probably be removed from the WD
   TComReferencePictureSet*      pcRPS;
 
-  WRITE_UVLC(pcRPSList->getNumberOfReferencePictureSets(), "num_short_term_ref_pic_sets" );
-  for(UInt i=0; i < pcRPSList->getNumberOfReferencePictureSets(); i++)
+  WRITE_UVLC(1, "num_short_term_ref_pic_sets" );
   {
-    pcRPS = pcRPSList->getReferencePictureSet(i);
+    pcRPS = pcRPSList->getReferencePictureSet();
     codeShortTermRefPicSet(pcPPS,pcRPS);
   }    
   WRITE_FLAG( 0,                                             "long_term_ref_pics_present_flag" );
@@ -313,17 +312,8 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     else
     {
       WRITE_CODE( (pcSlice->getPOC()-pcSlice->getLastIDR()+(1<<pcSlice->getSPS()->getBitsForPOC()))%(1<<pcSlice->getSPS()->getBitsForPOC()), pcSlice->getSPS()->getBitsForPOC(), "pic_order_cnt_lsb");
-      TComReferencePictureSet* pcRPS = pcSlice->getRPS();
-      if(pcSlice->getRPSidx() < 0)
-      {
-        WRITE_FLAG( 0, "short_term_ref_pic_set_pps_flag");
-        codeShortTermRefPicSet(pcSlice->getPPS(), pcRPS);
-      }
-      else
-      {
         WRITE_FLAG( 1, "short_term_ref_pic_set_pps_flag");
-        WRITE_UVLC( pcSlice->getRPSidx(), "short_term_ref_pic_set_idx" );
-      }
+        WRITE_UVLC( 0, "short_term_ref_pic_set_idx" );
     }
 
     // we always set num_ref_idx_active_override_flag equal to one. this might be done in a more intelligent way 
