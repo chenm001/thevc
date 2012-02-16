@@ -151,6 +151,8 @@
 
 #define SCALING_LIST_OUTPUT_RESULT    0 //JCTVC-G880/JCTVC-G1016 quantization matrices
 
+#define DBL_H0473_PART_1          1   //Deblocking filtering simplification
+
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
