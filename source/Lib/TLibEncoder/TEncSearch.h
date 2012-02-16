@@ -308,7 +308,7 @@ protected:
                                     TComYuv*        pcYuvOrg,
                                     Int             iPartIdx,
                                     UInt&           uiInterDir,
-                                    TComMvField*    pacMvField,
+                                    TComMvField&    pacMvField,
                                     UInt&           uiMergeIndex,
                                     UInt&           ruiCost
                                    );
