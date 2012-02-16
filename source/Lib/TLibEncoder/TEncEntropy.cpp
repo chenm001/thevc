@@ -419,15 +419,12 @@ Void TEncEntropy::encodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
     }
     else
     {
-      for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
-      {
-        if ( pcCU->getSlice()->getNumRefIdx( RefPicList( uiRefListIdx ) ) > 0 )
+        if ( pcCU->getSlice()->getNumRefIdx() > 0 )
         {
-          encodeRefFrmIdxPU ( pcCU, uiSubPartIdx, RefPicList( uiRefListIdx ) );
-          encodeMvdPU       ( pcCU, uiSubPartIdx, RefPicList( uiRefListIdx ) );
-          encodeMVPIdxPU    ( pcCU, uiSubPartIdx, RefPicList( uiRefListIdx ) );
+          encodeRefFrmIdxPU ( pcCU, uiSubPartIdx );
+          encodeMvdPU       ( pcCU, uiSubPartIdx );
+          encodeMVPIdxPU    ( pcCU, uiSubPartIdx );
         }
-      }
     }
   }
 
@@ -440,35 +437,19 @@ Void TEncEntropy::encodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
  * \param eRefList
  * \returns Void
  */
-Void TEncEntropy::encodeRefFrmIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
+Void TEncEntropy::encodeRefFrmIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   assert( !pcCU->isIntra( uiAbsPartIdx ) );
 
-  if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C)>0 && pcCU->getInterDir( uiAbsPartIdx ) != 3)
-  {
-    if ((eRefList== REF_PIC_LIST_1) || ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_C ) == 1 ) )
+    if ( ( pcCU->getSlice()->getNumRefIdx() == 1 ) )
     {
       return;
     }
 
-    if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_C ) > 1 )
+    if ( pcCU->getInterDir( uiAbsPartIdx ) & 1 )
     {
-      m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, RefPicList(pcCU->getInterDir( uiAbsPartIdx )-1) );
+      m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx );
     }
-
-  }
-  else
-  {
-    if ( ( pcCU->getSlice()->getNumRefIdx( eRefList ) == 1 ) )
-    {
-      return;
-    }
-
-    if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
-    {
-      m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, eRefList );
-    }
-  }
 
   return;
 }
@@ -479,22 +460,22 @@ Void TEncEntropy::encodeRefFrmIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPic
  * \param eRefList
  * \returns Void
  */
-Void TEncEntropy::encodeMvdPU( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
+Void TEncEntropy::encodeMvdPU( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   assert( !pcCU->isIntra( uiAbsPartIdx ) );
 
-  if ( pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList ) )
+  if ( pcCU->getInterDir( uiAbsPartIdx ) & 1 )
   {
-    m_pcEntropyCoderIf->codeMvd( pcCU, uiAbsPartIdx, eRefList );
+    m_pcEntropyCoderIf->codeMvd( pcCU, uiAbsPartIdx );
   }
   return;
 }
 
-Void TEncEntropy::encodeMVPIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
+Void TEncEntropy::encodeMVPIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-  if ( (pcCU->getInterDir( uiAbsPartIdx ) & ( 1 << eRefList )) && (pcCU->getAMVPMode(uiAbsPartIdx) == AM_EXPL) )
+  if ( (pcCU->getInterDir( uiAbsPartIdx ) &  1) && (pcCU->getAMVPMode(uiAbsPartIdx) == AM_EXPL) )
   {
-    m_pcEntropyCoderIf->codeMVPIdx( pcCU, uiAbsPartIdx, eRefList );
+    m_pcEntropyCoderIf->codeMVPIdx( pcCU, uiAbsPartIdx );
   }
 
   return;

@@ -205,29 +205,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       }
 
       m_pcEncTop->selectReferencePictureSet(pcSlice, uiPOCCurr, iGOPid,rcListPic);
-      pcSlice->getRPS()->setNumberOfLongtermPictures(0);
 
-      if(pcSlice->checkThatAllRefPicsAreAvailable(rcListPic, pcSlice->getRPS(), false) != 0)
-      {
-         pcSlice->createExplicitReferencePictureSetFromReference(rcListPic, pcSlice->getRPS());
-      }
       pcSlice->applyReferencePictureSet(rcListPic, pcSlice->getRPS());
 
-      TComRefPicListModification* refPicListModification = pcSlice->getRefPicListModification();
-      refPicListModification->setRefPicListModificationFlagL0(0);
-      refPicListModification->setNumberOfRefPicListModificationsL0(0);
-      refPicListModification->setRefPicListModificationFlagL1(0);
-      refPicListModification->setNumberOfRefPicListModificationsL1(0);
-
-      pcSlice->setNumRefIdx(REF_PIC_LIST_0,min((UInt)1,pcSlice->getRPS()->getNumberOfPictures()));
-      pcSlice->setNumRefIdx(REF_PIC_LIST_1,min((UInt)1,pcSlice->getRPS()->getNumberOfPictures()));
+      pcSlice->setNumRefIdx(1);
 
       //  Set reference list
       pcSlice->setRefPicList ( rcListPic );
-      
-        pcSlice->setNumRefIdx(REF_PIC_LIST_C, 0);
-        pcSlice->setRefPicListCombinationFlag(false);
-        pcSlice->setRefPicListModificationFlagLC(false);
       
       uiColDir = 1-uiColDir;
       
@@ -236,12 +220,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       
       pcSlice->setNoBackPredFlag( false );
 
-      if(pcSlice->getNoBackPredFlag())
-      {
-        pcSlice->setNumRefIdx(REF_PIC_LIST_C, 0);
-      }
-      pcSlice->generateCombinedList();
-      
       /////////////////////////////////////////////////////////////////////////////////////////////////// Compress a slice
       //  Slice compression
       UInt uiNumSlices = 1;
@@ -647,21 +625,11 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
 
   printf(" [Y %6.4lf dB    U %6.4lf dB    V %6.4lf dB]", dYPSNR, dUPSNR, dVPSNR );
   
-  for (Int iRefList = 0; iRefList < 2; iRefList++)
   {
-    printf(" [L%d ", iRefList);
-    for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(RefPicList(iRefList)); iRefIndex++)
+    printf(" [L%d ", 0);
+    for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(); iRefIndex++)
     {
-      printf ("%d ", pcSlice->getRefPOC(RefPicList(iRefList), iRefIndex)-pcSlice->getLastIDR());
-    }
-    printf("]");
-  }
-  if(pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0 && !pcSlice->getNoBackPredFlag())
-  {
-    printf(" [LC ");
-    for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(REF_PIC_LIST_C); iRefIndex++)
-    {
-      printf ("%d ", pcSlice->getRefPOC((RefPicList)pcSlice->getListIdFromIdxOfLC(iRefIndex), pcSlice->getRefIdxFromIdxOfLC(iRefIndex))-pcSlice->getLastIDR());
+      printf ("%d ", pcSlice->getRefPOC()-pcSlice->getLastIDR());
     }
     printf("]");
   }

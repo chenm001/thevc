@@ -145,22 +145,10 @@ Void TEncCavlc::codeShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet*
   int lastBits = getNumberOfWrittenBits();
 #endif
   WRITE_FLAG( 0, "inter_ref_pic_set_prediction_flag" ); // inter_RPS_prediction_flag
-    WRITE_UVLC( pcRPS->getNumberOfNegativePictures(), "num_negative_pics" );
-    WRITE_UVLC( pcRPS->getNumberOfPositivePictures(), "num_positive_pics" );
-    Int prev = 0;
-    for(Int j=0 ; j < pcRPS->getNumberOfNegativePictures(); j++)
-    {
-      WRITE_UVLC( prev-pcRPS->getDeltaPOC(j)-1, "delta_poc_s0_minus1" );
-      prev = pcRPS->getDeltaPOC(j);
-      WRITE_FLAG( pcRPS->getUsed(j), "used_by_curr_pic_s0_flag"); 
-    }
-    prev = 0;
-    for(Int j=pcRPS->getNumberOfNegativePictures(); j < pcRPS->getNumberOfNegativePictures()+pcRPS->getNumberOfPositivePictures(); j++)
-    {
-      WRITE_UVLC( pcRPS->getDeltaPOC(j)-prev-1, "delta_poc_s1_minus1" );
-      prev = pcRPS->getDeltaPOC(j);
-      WRITE_FLAG( pcRPS->getUsed(j), "used_by_curr_pic_s1_flag" ); 
-    }
+    WRITE_UVLC( 1, "num_negative_pics" );
+    WRITE_UVLC( 0, "num_positive_pics" );
+      WRITE_UVLC( 0, "delta_poc_s0_minus1" );
+      WRITE_FLAG( pcRPS->getUsed(0), "used_by_curr_pic_s0_flag"); 
 
 #if PRINT_RPS_INFO
   printf("irps=%d (%2d bits) ", 0, getNumberOfWrittenBits() - lastBits);
@@ -188,7 +176,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
     pcRPS = pcRPSList->getReferencePictureSet(i);
     codeShortTermRefPicSet(pcPPS,pcRPS);
   }    
-  WRITE_FLAG( pcPPS->getLongTermRefsPresent() ? 1 : 0,         "long_term_ref_pics_present_flag" );
+  WRITE_FLAG( 0,                                             "long_term_ref_pics_present_flag" );
   // entropy_coding_mode_flag
   // We code the entropy_coding_mode_flag, it's needed for tests.
   WRITE_FLAG( 1,                                             "entropy_coding_mode_flag" );
@@ -336,42 +324,21 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
         WRITE_FLAG( 1, "short_term_ref_pic_set_pps_flag");
         WRITE_UVLC( pcSlice->getRPSidx(), "short_term_ref_pic_set_idx" );
       }
-      if(pcSlice->getPPS()->getLongTermRefsPresent())
-      {
-        WRITE_UVLC( pcRPS->getNumberOfLongtermPictures(), "num_long_term_pics");
-        Int maxPocLsb = 1<<pcSlice->getSPS()->getBitsForPOC();
-        Int prev = 0;
-        for(Int i=pcRPS->getNumberOfPictures()-1 ; i > pcRPS->getNumberOfPictures()-pcRPS->getNumberOfLongtermPictures()-1; i--)
-        {
-          WRITE_UVLC((maxPocLsb-pcRPS->getDeltaPOC(i)+prev-1)%maxPocLsb, "delta_poc_lsb_lt_minus1");
-          prev = pcRPS->getDeltaPOC(i);
-          WRITE_FLAG( pcRPS->getUsed(i), "used_by_curr_pic_lt_flag"); 
-        }
-      }
     }
 
     // we always set num_ref_idx_active_override_flag equal to one. this might be done in a more intelligent way 
     if (!pcSlice->isIntra())
     {
       WRITE_FLAG( 1 ,                                             "num_ref_idx_active_override_flag");
-      WRITE_CODE( pcSlice->getNumRefIdx( REF_PIC_LIST_0 ) - 1, 3, "num_ref_idx_l0_active_minus1" );
+      WRITE_CODE( pcSlice->getNumRefIdx() - 1, 3,                 "num_ref_idx_l0_active_minus1" );
     }
     else
     {
-      pcSlice->setNumRefIdx(REF_PIC_LIST_0, 0);
+      pcSlice->setNumRefIdx(0);
     }
-      pcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
-    TComRefPicListModification* refPicListModification = pcSlice->getRefPicListModification();
     if(!pcSlice->isIntra())
     {
-      WRITE_FLAG(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0() ? 1 : 0,       "ref_pic_list_modification_flag" );    
-      for(Int i = 0; i < refPicListModification->getNumberOfRefPicListModificationsL0(); i++)
-      {
-        WRITE_UVLC( refPicListModification->getListIdcL0(i), "ref_pic_list_modification_idc");
-        WRITE_UVLC( refPicListModification->getRefPicSetIdxL0(i), "ref_pic_set_idx");
-      }
-      if(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0())
-        WRITE_UVLC( 3, "ref_pic_list_modification_idc");
+      WRITE_FLAG(0,       "ref_pic_list_modification_flag" );    
     }
   }
   // ref_pic_list_combination( )
@@ -424,7 +391,7 @@ Void TEncCavlc::codeSliceFinish ()
 {
 }
 
-Void TEncCavlc::codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
+Void TEncCavlc::codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   assert(0);
 }
@@ -489,12 +456,12 @@ Void TEncCavlc::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   assert(0);
 }
 
-Void TEncCavlc::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
+Void TEncCavlc::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   assert(0);
 }
 
-Void TEncCavlc::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
+Void TEncCavlc::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   assert(0);
 }

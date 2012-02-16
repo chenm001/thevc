@@ -52,7 +52,6 @@ TComPic::TComPic()
   m_apcPicYuv[1]      = NULL;
   m_pcPicYuvPred      = NULL;
   m_pcPicYuvResi      = NULL;
-  m_bIsLongTerm       = false;
   m_bReconstructed    = false;
   m_usedForTMVP      = true;
   m_bNeededForOutput  = false;

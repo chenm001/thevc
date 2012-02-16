@@ -107,7 +107,7 @@ private:
   TComDataCU*   m_pcCUAboveRight;     ///< pointer of above-right CU
   TComDataCU*   m_pcCUAbove;          ///< pointer of above CU
   TComDataCU*   m_pcCULeft;           ///< pointer of left CU
-  TComDataCU*   m_apcCUColocated[2];  ///< pointer of temporally colocated CU's for both directions
+  TComDataCU*   m_pcCUColocated;      ///< pointer of temporally colocated CU's for both directions
   TComMvField   m_cMvFieldA;          ///< motion vector of position A
   TComMvField   m_cMvFieldB;          ///< motion vector of position B
   TComMvField   m_cMvFieldC;          ///< motion vector of position C
@@ -125,8 +125,8 @@ private:
   UChar*        m_puhLumaIntraDir;    ///< array of intra directions (luma)
   UChar*        m_puhChromaIntraDir;  ///< array of intra directions (chroma)
   UChar*        m_puhInterDir;        ///< array of inter directions
-  Char*         m_apiMVPIdx[2];       ///< array of motion vector predictor candidates
-  Char*         m_apiMVPNum[2];       ///< array of number of possible motion vectors predictors
+  Char*         m_piMVPIdx;           ///< array of motion vector predictor candidates
+  Char*         m_piMVPNum;           ///< array of number of possible motion vectors predictors
   
   // -------------------------------------------------------------------------------------------------------------------
   // misc. variables
@@ -141,11 +141,11 @@ private:
 protected:
   
   /// add possible motion vector predictor candidates
-  Bool          xAddMVPCand           ( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefIdx, UInt uiPartUnitIdx, MVP_DIR eDir );
-  Bool          xAddMVPCandOrder      ( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefIdx, UInt uiPartUnitIdx, MVP_DIR eDir );
+  Bool          xAddMVPCand           ( AMVPInfo* pInfo, UInt uiPartUnitIdx, MVP_DIR eDir );
+  Bool          xAddMVPCandOrder      ( AMVPInfo* pInfo, UInt uiPartUnitIdx, MVP_DIR eDir );
 
   Void          deriveRightBottomIdx        ( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxRB );
-  Bool          xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUnitIdx, TComMv& rcMv, Int& riRefIdx );
+  Bool          xGetColMVP( Int uiCUAddr, Int uiPartUnitIdx, TComMv& rcMv );
   
   /// remove redundant candidates
   Void          xUniqueMVPCand        ( AMVPInfo* pInfo );
@@ -299,18 +299,18 @@ public:
   Void          getMvField            ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefPicList, TComMvField& rcMvField );
   
   AMVP_MODE     getAMVPMode           ( UInt uiIdx );
-  Void          fillMvpCand           ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefPicList, Int iRefIdx, AMVPInfo* pInfo );
+  Void          fillMvpCand           ( UInt uiPartIdx, UInt uiPartAddr, AMVPInfo* pInfo );
 
-  Void          setMVPIdx             ( RefPicList eRefPicList, UInt uiIdx, Int iMVPIdx)  { m_apiMVPIdx[eRefPicList][uiIdx] = iMVPIdx;  }
-  Int           getMVPIdx             ( RefPicList eRefPicList, UInt uiIdx)               { return m_apiMVPIdx[eRefPicList][uiIdx];     }
-  Char*         getMVPIdx             ( RefPicList eRefPicList )                          { return m_apiMVPIdx[eRefPicList];            }
+  Void          setMVPIdx             ( UInt uiIdx, Int iMVPIdx)    { m_piMVPIdx[uiIdx] = iMVPIdx;  }
+  Int           getMVPIdx             ( UInt uiIdx)                 { return m_piMVPIdx[uiIdx];     }
+  Char*         getMVPIdx             ()                            { return m_piMVPIdx;            }
 
-  Void          setMVPNum             ( RefPicList eRefPicList, UInt uiIdx, Int iMVPNum ) { m_apiMVPNum[eRefPicList][uiIdx] = iMVPNum;  }
-  Int           getMVPNum             ( RefPicList eRefPicList, UInt uiIdx )              { return m_apiMVPNum[eRefPicList][uiIdx];     }
-  Char*         getMVPNum             ( RefPicList eRefPicList )                          { return m_apiMVPNum[eRefPicList];            }
+  Void          setMVPNum             ( UInt uiIdx, Int iMVPNum )   { m_piMVPNum[uiIdx] = iMVPNum;  }
+  Int           getMVPNum             ( UInt uiIdx )                { return m_piMVPNum[uiIdx];     }
+  Char*         getMVPNum             ()                            { return m_piMVPNum;            }
   
-  Void          setMVPIdxSubParts     ( Int iMVPIdx, RefPicList eRefPicList, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
-  Void          setMVPNumSubParts     ( Int iMVPNum, RefPicList eRefPicList, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
+  Void          setMVPIdxSubParts     ( Int iMVPIdx, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
+  Void          setMVPNumSubParts     ( Int iMVPNum, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
   
   Void          clipMv                ( TComMv&     rcMv     );
   Void          getMvPredLeft         ( TComMv&     rcMvPred )   { rcMvPred = m_cMvFieldA.getMv(); }
@@ -327,7 +327,7 @@ public:
   TComDataCU*   getCUAbove                  () { return m_pcCUAbove;      }
   TComDataCU*   getCUAboveLeft              () { return m_pcCUAboveLeft;  }
   TComDataCU*   getCUAboveRight             () { return m_pcCUAboveRight; }
-  TComDataCU*   getCUColocated              ( RefPicList eRefPicList ) { return m_apcCUColocated[eRefPicList]; }
+  TComDataCU*   getCUColocated              () { return m_pcCUColocated; }
 
 
   TComDataCU*   getPULeft                   ( UInt&  uiLPartUnitIdx , UInt uiCurrPartUnitIdx );

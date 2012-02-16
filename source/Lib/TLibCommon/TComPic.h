@@ -58,7 +58,6 @@ class TComPic
 {
 private:
   Bool                  m_bUsedByCurr;            //  Used by current picture
-  Bool                  m_bIsLongTerm;            //  IS long term picture
   TComPicSym*           m_apcPicSym;              //  Symbol
   
   TComPicYuv*           m_apcPicYuv[2];           //  Texture,  0:org / 1:rec
@@ -81,8 +80,6 @@ public:
   
   Bool          getUsedByCurr()             { return m_bUsedByCurr; }
   Void          setUsedByCurr( Bool bUsed ) { m_bUsedByCurr = bUsed; }
-  Bool          getIsLongTerm()             { return m_bIsLongTerm; }
-  Void          setIsLongTerm( Bool lt ) { m_bIsLongTerm = lt; }
 
   TComPicSym*   getPicSym()           { return  m_apcPicSym;    }
   TComSlice*    getSlice()            { return  m_apcPicSym->getSlice();  }

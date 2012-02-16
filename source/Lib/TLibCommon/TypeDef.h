@@ -239,7 +239,6 @@ enum RefPicList
 {
   REF_PIC_LIST_0 = 0,   ///< reference list 0
   REF_PIC_LIST_1 = 1,   ///< reference list 1
-  REF_PIC_LIST_C = 2,   ///< combined reference list for uni-prediction in B-Slices
   REF_PIC_LIST_X = 100  ///< special mark
 };
 

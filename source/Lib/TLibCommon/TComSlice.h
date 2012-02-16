@@ -180,11 +180,6 @@ public:
 class TComReferencePictureSet
 {
 private:
-  UInt      m_uiNumberOfPictures;
-  UInt      m_uiNumberOfNegativePictures;
-  UInt      m_uiNumberOfPositivePictures;
-  UInt      m_uiNumberOfLongtermPictures;
-  Int       m_piDeltaPOC[MAX_NUM_REF_PICS];
   Int       m_piPOC[MAX_NUM_REF_PICS];
   Bool      m_pbUsed[MAX_NUM_REF_PICS];
 
@@ -193,21 +188,10 @@ public:
   virtual ~TComReferencePictureSet();
 
   Void setUsed(UInt uiBufferNum, Bool bUsed);
-  Void setDeltaPOC(UInt uiBufferNum, Int iDeltaPOC);
   Void setPOC(UInt uiBufferNum, Int iDeltaPOC);
-  Void setNumberOfPictures(UInt NumberOfPictures);
 
   UInt getUsed(UInt uiBufferNum);
-  Int  getDeltaPOC(UInt uiBufferNum);
   Int  getPOC(UInt uiBufferNum);
-  UInt getNumberOfPictures();
-
-  Void setNumberOfNegativePictures(UInt Number) { m_uiNumberOfNegativePictures = Number; }
-  UInt getNumberOfNegativePictures() { return m_uiNumberOfNegativePictures; }
-  Void setNumberOfPositivePictures(UInt Number) { m_uiNumberOfPositivePictures = Number; }
-  UInt getNumberOfPositivePictures() { return m_uiNumberOfPositivePictures; }
-  Void setNumberOfLongtermPictures(UInt Number) { m_uiNumberOfLongtermPictures = Number; }
-  UInt getNumberOfLongtermPictures() { return m_uiNumberOfLongtermPictures; }
 
   Void printDeltaPOC();
 };
@@ -232,44 +216,6 @@ public:
   Void setNumberOfReferencePictureSets(UInt uiNumberOfReferencePictureSets);
 };
 
-/// Reference Picture Lists class
-class TComRefPicListModification
-{
-private:
-  UInt      m_bRefPicListModificationFlagL0;  
-  UInt      m_bRefPicListModificationFlagL1;  
-  UInt      m_uiNumberOfRefPicListModificationsL0;
-  UInt      m_uiNumberOfRefPicListModificationsL1;
-  UInt      m_ListIdcL0[32];
-  UInt      m_RefPicSetIdxL0[32];
-  UInt      m_ListIdcL1[32];
-  UInt      m_RefPicSetIdxL1[32];
-    
-public:
-  TComRefPicListModification();
-  virtual ~TComRefPicListModification();
-  
-  Void  create                    ();
-  Void  destroy                   ();
-
-  Bool       getRefPicListModificationFlagL0() { return m_bRefPicListModificationFlagL0; }
-  Void       setRefPicListModificationFlagL0(Bool flag) { m_bRefPicListModificationFlagL0 = flag; }
-  Bool       getRefPicListModificationFlagL1() { return m_bRefPicListModificationFlagL1; }
-  Void       setRefPicListModificationFlagL1(Bool flag) { m_bRefPicListModificationFlagL1 = flag; }
-  UInt       getNumberOfRefPicListModificationsL0() { return m_uiNumberOfRefPicListModificationsL0; }
-  Void       setNumberOfRefPicListModificationsL0(UInt nr) { m_uiNumberOfRefPicListModificationsL0 = nr; }
-  UInt       getNumberOfRefPicListModificationsL1() { return m_uiNumberOfRefPicListModificationsL1; }
-  Void       setNumberOfRefPicListModificationsL1(UInt nr) { m_uiNumberOfRefPicListModificationsL1 = nr; }
-  Void       setListIdcL0(UInt idx, UInt idc) { m_ListIdcL0[idx] = idc; }
-  UInt       getListIdcL0(UInt idx) { return m_ListIdcL0[idx]; }
-  Void       setRefPicSetIdxL0(UInt idx, UInt refPicSetIdx) { m_RefPicSetIdxL0[idx] = refPicSetIdx; }
-  UInt       getRefPicSetIdxL0(UInt idx) { return m_RefPicSetIdxL0[idx]; }
-  Void       setListIdcL1(UInt idx, UInt idc) { m_ListIdcL1[idx] = idc; }
-  UInt       getListIdcL1(UInt idx) { return m_ListIdcL1[idx]; }
-  Void       setRefPicSetIdxL1(UInt idx, UInt refPicSetIdx) { m_RefPicSetIdxL1[idx] = refPicSetIdx; }
-  UInt       getRefPicSetIdxL1(UInt idx) { return m_RefPicSetIdxL1[idx]; }
-};
-
 /// PPS class
 class TComPPS
 {
@@ -282,7 +228,6 @@ private:
   TComSPS*    m_pcSPS;
   TComRPS*    m_pcRPSList;
 
-  Bool        m_bLongTermRefsPresent;
   UInt        m_uiBitsForLongTermRefs;
 
   Bool     m_enableTMVPFlag;
@@ -299,8 +244,6 @@ public:
   Int       getPicInitQPMinus26 ()         { return  m_picInitQPMinus26; }
   Void      setPicInitQPMinus26 ( Int i )  { m_picInitQPMinus26 = i;     }
 
-  Bool      getLongTermRefsPresent()         { return m_bLongTermRefsPresent; }
-  Void      setLongTermRefsPresent(Bool b)   { m_bLongTermRefsPresent=b;      }
   UInt      getBitsForLongTermRefs()         { return m_uiBitsForLongTermRefs;}
   Void      setBitsForLongTermRefs(UInt ui)  { m_uiBitsForLongTermRefs=ui;    }
   Void      setSPS              ( TComSPS* pcSPS ) { m_pcSPS = pcSPS; }
@@ -326,27 +269,16 @@ private:
   TComReferencePictureSet *m_pcRPS;
   TComReferencePictureSet m_LocalRPS;
   Int         m_iBDidx; 
-  Int         m_iCombinationBDidx;
-  Bool        m_bCombineWithReferenceFlag;
-  TComRefPicListModification m_RefPicListModification;
   NalUnitType m_eNalUnitType;         ///< Nal unit type for the slice
   SliceType   m_eSliceType;
   Int         m_iSliceQp;
   
-  Int         m_aiNumRefIdx   [3];    //  for multiple reference of current slice
-
-  Int         m_iRefIdxOfLC[2][MAX_NUM_REF_LC];
-  Int         m_eListIdFromIdxOfLC[MAX_NUM_REF_LC];
-  Int         m_iRefIdxFromIdxOfLC[MAX_NUM_REF_LC];
-  Int         m_iRefIdxOfL1FromRefIdxOfL0[MAX_NUM_REF_LC];
-  Int         m_iRefIdxOfL0FromRefIdxOfL1[MAX_NUM_REF_LC];
-  Bool        m_bRefPicListModificationFlagLC;
-  Bool        m_bRefPicListCombinationFlag;
+  Int         m_iNumRefIdx;    //  for multiple reference of current slice
 
   //  Data
   Int         m_iSliceQpDelta;
-  TComPic*    m_apcRefPicList [2][MAX_NUM_REF+1];
-  Int         m_aiRefPOCList  [2][MAX_NUM_REF+1];
+  TComPic*    m_pcRefPicList;
+  Int         m_iRefPOCList;
   Int         m_iDepth;
   
   // referenced slice?
@@ -392,13 +324,8 @@ public:
 
   Void      setRPSidx          ( Int iBDidx ) { m_iBDidx = iBDidx; }
   Int       getRPSidx          () { return m_iBDidx; }
-  Void      setCombinationBDidx          ( Int iCombinationBDidx ) { m_iCombinationBDidx = iCombinationBDidx; }
-  Int       getCombinationBDidx          () { return m_iCombinationBDidx; }
-  Void      setCombineWithReferenceFlag          ( Bool bCombineWithReferenceFlag ) { m_bCombineWithReferenceFlag = bCombineWithReferenceFlag; }
-  Bool      getCombineWithReferenceFlag          () { return m_bCombineWithReferenceFlag; }
   Int       getPrevPOC      ()                          { return  m_iPrevPOC;       }
 
-  TComRefPicListModification* getRefPicListModification() { return &m_RefPicListModification; }
   Void      setLastIDR(Int iIDRPOC)                       { m_iLastIDR = iIDRPOC; }
   Int       getLastIDR()                                  { return m_iLastIDR; }
   SliceType getSliceType    ()                          { return  m_eSliceType;         }
@@ -406,25 +333,12 @@ public:
   Int       getSliceQp      ()                          { return  m_iSliceQp;           }
   Int       getSliceQpDelta ()                          { return  m_iSliceQpDelta;      }
 
-  Int       getNumRefIdx        ( RefPicList e )                { return  m_aiNumRefIdx[e];             }
+  Int       getNumRefIdx        ()                              { return  m_iNumRefIdx;                 }
   TComPic*  getPic              ()                              { return  m_pcPic;                      }
-  TComPic*  getRefPic           ( RefPicList e, Int iRefIdx)    { return  m_apcRefPicList[e][iRefIdx];  }
-  Int       getRefPOC           ( RefPicList e, Int iRefIdx)    { return  m_aiRefPOCList[e][iRefIdx];   }
+  TComPic*  getRefPic           ()                              { return  m_pcRefPicList;  }
+  Int       getRefPOC           ()                              { return  m_iRefPOCList;   }
   Int       getDepth            ()                              { return  m_iDepth;                     }
   UInt      getColDir           ()                              { return  m_uiColDir;                   }
-
-  Int       getRefIdxOfLC       (RefPicList e, Int iRefIdx)     { return m_iRefIdxOfLC[e][iRefIdx];           }
-  Int       getListIdFromIdxOfLC(Int iRefIdx)                   { return m_eListIdFromIdxOfLC[iRefIdx];       }
-  Int       getRefIdxFromIdxOfLC(Int iRefIdx)                   { return m_iRefIdxFromIdxOfLC[iRefIdx];       }
-  Int       getRefIdxOfL0FromRefIdxOfL1(Int iRefIdx)            { return m_iRefIdxOfL0FromRefIdxOfL1[iRefIdx];}
-  Int       getRefIdxOfL1FromRefIdxOfL0(Int iRefIdx)            { return m_iRefIdxOfL1FromRefIdxOfL0[iRefIdx];}
-  Bool      getRefPicListModificationFlagLC()                   {return m_bRefPicListModificationFlagLC;}
-  Void      setRefPicListModificationFlagLC(Bool bflag)         {m_bRefPicListModificationFlagLC=bflag;}     
-  Bool      getRefPicListCombinationFlag()                      {return m_bRefPicListCombinationFlag;}
-  Void      setRefPicListCombinationFlag(Bool bflag)            {m_bRefPicListCombinationFlag=bflag;}     
-  Void      setListIdFromIdxOfLC(Int  iRefIdx, UInt uiVal)      { m_eListIdFromIdxOfLC[iRefIdx]=uiVal; }
-  Void      setRefIdxFromIdxOfLC(Int  iRefIdx, UInt uiVal)      { m_iRefIdxFromIdxOfLC[iRefIdx]=uiVal; }
-  Void      setRefIdxOfLC       (RefPicList e, Int iRefIdx, Int RefIdxLC)     { m_iRefIdxOfLC[e][iRefIdx]=RefIdxLC;}
 
   Void      setReferenced(Bool b)                               { m_bRefenced = b; }
   Bool      isReferenced()                                      { return m_bRefenced; }
@@ -437,9 +351,9 @@ public:
   Void      setSliceQp          ( Int i )                       { m_iSliceQp          = i;      }
   Void      setSliceQpDelta     ( Int i )                       { m_iSliceQpDelta     = i;      }
   
-  Void      setRefPic           ( TComPic* p, RefPicList e, Int iRefIdx ) { m_apcRefPicList[e][iRefIdx] = p; }
-  Void      setRefPOC           ( Int i, RefPicList e, Int iRefIdx ) { m_aiRefPOCList[e][iRefIdx] = i; }
-  Void      setNumRefIdx        ( RefPicList e, Int i )         { m_aiNumRefIdx[e]    = i;      }
+  Void      setRefPic           ( TComPic* p )                  { m_pcRefPicList = p;           }
+  Void      setRefPOC           ( Int i )                       { m_iRefPOCList = i;            }
+  Void      setNumRefIdx        ( Int i )                       { m_iNumRefIdx        = i;      }
   Void      setPic              ( TComPic* p )                  { m_pcPic             = p;      }
   Void      setDepth            ( Int iDepth )                  { m_iDepth            = iDepth; }
   
@@ -471,11 +385,9 @@ public:
   Void setNoBackPredFlag( Bool b ) { m_bNoBackPredFlag = b; }
   Bool getRefIdxCombineCoding() { return m_bRefIdxCombineCoding; }
   Void setRefIdxCombineCoding( Bool b ) { m_bRefIdxCombineCoding = b; }
-  Void generateCombinedList       ();
 
   Void decodingMarking( TComList<TComPic*>& rcListPic, Int& iMaxRefPicNum ); 
   Void      applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pcRPSList);
-  Int       checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool outputFlag);
   Void      createExplicitReferencePictureSetFromReference( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet);
 
   Void decodingMarkingForNoTMVP( TComList<TComPic*>& rcListPic, Int currentPOC );

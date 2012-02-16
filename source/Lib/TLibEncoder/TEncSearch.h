@@ -85,7 +85,7 @@ protected:
   // ME parameters
   Int             m_iSearchRange;
   Int             m_iFastSearch;
-  Int             m_aaiAdaptSR[2][33];
+  Int             m_iAdaptSR;
   TComMv          m_cSrchRngLT;
   TComMv          m_cSrchRngRB;
   TComMv          m_acMvPredictors[3];
@@ -98,7 +98,6 @@ protected:
   
   // Misc.
   Pel*            m_pTempPel;
-  UInt*           m_puiDFilter;
   
   // AMVP cost computation
   // UInt            m_auiMVPIdxCost[AMVP_MAX_NUM_CANDS+1][AMVP_MAX_NUM_CANDS];
@@ -188,7 +187,7 @@ public:
                                   Bool        bSkipRes );
   
   /// set ME search range
-  Void setAdaptiveSearchRange   ( Int iDir, Int iRefIdx, Int iSearchRange) { m_aaiAdaptSR[iDir][iRefIdx] = iSearchRange; }
+  Void setAdaptiveSearchRange   ( Int iSearchRange) { m_iAdaptSR = iSearchRange; }
   
 protected:
   
@@ -271,8 +270,6 @@ protected:
   Void xEstimateMvPredAMVP        ( TComDataCU* pcCU,
                                     TComYuv*    pcOrgYuv,
                                     UInt        uiPartIdx,
-                                    RefPicList  eRefPicList,
-                                    Int         iRefIdx,
                                     TComMv&     rcMvPred,
                                     Bool        bFilled = false
                                   #if ZERO_MVD_EST
@@ -281,7 +278,6 @@ protected:
                                      );
   
   Void xCheckBestMVP              ( TComDataCU* pcCU,
-                                    RefPicList  eRefPicList,
                                     TComMv      cMv,
                                     TComMv&     rcMvPred,
                                     Int&        riMVPIdx,
@@ -296,8 +292,6 @@ protected:
                                     TComMv      cMvCand,
                                     Int         iMVPIdx,
                                     Int         iMVPNum,
-                                    RefPicList  eRefPicList,
-                                    Int         iRefIdx,
                                     Int         iSizeX,
                                     Int         iSizeY
                                   #if ZERO_MVD_EST
@@ -325,9 +319,7 @@ protected:
   Void xMotionEstimation          ( TComDataCU*   pcCU,
                                     TComYuv*      pcYuvOrg,
                                     Int           iPartIdx,
-                                    RefPicList    eRefPicList,
                                     TComMv*       pcMvPred,
-                                    Int           iRefIdxPred,
                                     TComMv&       rcMv,
                                     UInt&         ruiBits,
                                     UInt&         ruiCost );

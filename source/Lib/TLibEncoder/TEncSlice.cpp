@@ -233,8 +233,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   
   rpcSlice->setSliceQp          ( iQP );
   rpcSlice->setSliceQpDelta     ( 0 );
-  rpcSlice->setNumRefIdx(REF_PIC_LIST_0,1);
-  rpcSlice->setNumRefIdx(REF_PIC_LIST_1,1);
+  rpcSlice->setNumRefIdx(1);
 
   rpcSlice->setDepth            ( iDepth );
   
@@ -255,18 +254,14 @@ Void TEncSlice::setSearchRange( TComSlice* pcSlice )
   Int iCurrPOC = pcSlice->getPOC();
   Int iRefPOC;
   Int iMaxSR = m_pcCfg->getSearchRange();
-  Int iNumPredDir = pcSlice->isInterP() ? 1 : 2;
   
-  for (Int iDir = 0; iDir <= iNumPredDir; iDir++)
-  {
-    RefPicList e = (RefPicList)iDir;
-    for (Int iRefIdx = 0; iRefIdx < pcSlice->getNumRefIdx(e); iRefIdx++)
+  // CHECK_ME
+    if ( pcSlice->isInterP() )
     {
-      iRefPOC = pcSlice->getRefPic(e, iRefIdx)->getPOC();
+      iRefPOC = pcSlice->getRefPic()->getPOC();
       Int iNewSR = Clip3(8, iMaxSR, (iMaxSR*ADAPT_SR_SCALE*abs(iCurrPOC - iRefPOC)));
-      m_pcPredSearch->setAdaptiveSearchRange(iDir, iRefIdx, iNewSR);
+      m_pcPredSearch->setAdaptiveSearchRange(iNewSR);
     }
-  }
 }
 
 /** \param rpcPic   picture class

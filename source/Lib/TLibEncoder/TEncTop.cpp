@@ -361,11 +361,7 @@ Void TEncTop::xInitRPS()
   m_cRPSList.create(1);
   {
     pcRPS = m_cRPSList.getReferencePictureSet(0);
-    pcRPS->setNumberOfPictures(1);
-      pcRPS->setDeltaPOC(0,-1);
       pcRPS->setUsed(0,true);
-    pcRPS->setNumberOfNegativePictures(1);
-    pcRPS->setNumberOfPositivePictures(0);
   }
   
 }
@@ -379,8 +375,7 @@ Void TEncTop::selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, UInt
 
   pcSlice->setRPSidx(iGOPid);
 
-  pcSlice->setRPS(getRPSList()->getReferencePictureSet(pcSlice->getRPSidx()));
-  pcSlice->getRPS()->setNumberOfPictures(pcSlice->getRPS()->getNumberOfNegativePictures()+pcSlice->getRPS()->getNumberOfPositivePictures());
+  pcSlice->setRPS(getRPSList()->getReferencePictureSet(iGOPid));
 
 }
 
