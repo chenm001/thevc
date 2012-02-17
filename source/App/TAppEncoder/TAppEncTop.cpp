@@ -92,8 +92,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseSBACRD                    ( m_bUseSBACRD   );
   m_cTEncTop.setUseHADME                     ( m_bUseHADME    );
 
-  m_cTEncTop.setUseLComb                     ( m_bUseLComb    );
-  m_cTEncTop.setLCMod                        ( m_bLCMod         );
   m_cTEncTop.setQuadtreeTULog2MaxSize        ( m_uiQuadtreeTULog2MaxSize );
   m_cTEncTop.setQuadtreeTULog2MinSize        ( m_uiQuadtreeTULog2MinSize );
   m_cTEncTop.setQuadtreeTUMaxDepthInter      ( m_uiQuadtreeTUMaxDepthInter );

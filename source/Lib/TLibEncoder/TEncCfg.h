@@ -90,8 +90,6 @@ protected:
   Bool      m_bUseSBACRD;
 
   Bool      m_bUseHADME;
-  Bool      m_bUseLComb;
-  Bool      m_bLCMod;
   Bool      m_bUseFastEnc;
   Bool      m_bUseEarlyCU;
   Bool      m_bUseCbfFastMode;
@@ -163,8 +161,6 @@ public:
   //==== Tool list ========
   Void      setUseSBACRD                    ( Bool  b )     { m_bUseSBACRD  = b; }
   Void      setUseHADME                     ( Bool  b )     { m_bUseHADME   = b; }
-  Void      setUseLComb                     ( Bool  b )     { m_bUseLComb   = b; }
-  Void      setLCMod                        ( Bool  b )     { m_bLCMod   = b;    }
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
   Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
   Void      setUseCbfFastMode            ( Bool  b )     { m_bUseCbfFastMode = b; }
@@ -172,8 +168,6 @@ public:
   Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
   Bool      getUseHADME                     ()      { return m_bUseHADME;   }
 
-  Bool      getUseLComb                     ()      { return m_bUseLComb;   }
-  Bool      getLCMod                        ()      { return m_bLCMod; }
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
   Bool      getUseEarlyCU                   ()      { return m_bUseEarlyCU; }
   Bool      getUseCbfFastMode           ()      { return m_bUseCbfFastMode; }

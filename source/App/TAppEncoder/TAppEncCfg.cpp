@@ -130,8 +130,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   /* Coding structure paramters */
   ("IntraPeriod,-ip",m_iIntraPeriod, -1, "intra period in frames, (-1: only first frame)")
   ("DecodingRefreshType,-dr",m_iDecodingRefreshType, 0, "intra refresh, (0:none 1:CDR 2:IDR)")
-  ("ListCombination,-lc", m_bUseLComb, true, "combined reference list flag for uni-prediction in B-slices")
-  ("LCModification", m_bLCMod, false, "enables signalling of combined reference list derivation")
   ("DisableInter4x4", m_bDisInter4x4, true, "Disable Inter 4x4")
   ("NSQT", m_enableNSQT, true, "Enable non-square transforms")
   ("AMP", m_enableAMP, true, "Enable asymmetric motion partitions")
@@ -318,8 +316,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("TOOL CFG: ");
   printf("HAD:%d ", m_bUseHADME           );
   printf("SRD:%d ", m_bUseSBACRD          );
-  printf("LComb:%d ", m_bUseLComb         );
-  printf("LCMod:%d ", m_bLCMod         );
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("ECU:%d ", m_bUseEarlyCU         );
   printf("CFM:%d ", m_bUseCbfFastMode         );

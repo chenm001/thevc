@@ -67,8 +67,6 @@ protected:
   // coding structure
   Int       m_iIntraPeriod;                                   ///< period of I-slice (random access period)
   Int       m_iDecodingRefreshType;                           ///< random access type
-  Bool      m_bUseLComb;                                      ///< flag for using combined reference list for uni-prediction in B-slices (JCTVC-D421)
-  Bool      m_bLCMod;                                         ///< flag for specifying whether the combined reference list for uni-prediction in B-slices is uploaded explicitly
   Bool      m_bDisInter4x4;
   Bool      m_enableNSQT;                                     ///< flag for enabling NSQT
   Bool      m_enableAMP;

@@ -308,8 +308,6 @@ TComSPS::TComSPS()
 // Tool list
 , m_bDisInter4x4              (  1)
 , m_bUseMRG                   (false)
-, m_bUseLComb                 (false)
-, m_bLCMod                    (false)
 , m_uiBitsForPOC              (  8)
 , m_uiMaxTrSize               ( 32)
 , m_uiMaxDecFrameBuffering    (  0)

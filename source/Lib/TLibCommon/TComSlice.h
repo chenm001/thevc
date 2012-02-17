@@ -85,8 +85,6 @@ private:
   Bool        m_useAMP;
   Bool        m_bUseMRG; // SOPH:
 
-  Bool        m_bUseLComb;
-  Bool        m_bLCMod;
   Bool        m_useNSQT;
   
   // Parameter
@@ -154,11 +152,6 @@ public:
   
   Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:
   
-  Void setUseLComb    (Bool b)   { m_bUseLComb = b;         }
-  Bool getUseLComb    ()         { return m_bUseLComb;      }
-  Void setLCMod       (Bool b)   { m_bLCMod = b;     }
-  Bool getLCMod       ()         { return m_bLCMod;  }
-
   Bool getUseNSQT() { return m_useNSQT; }
   Void setUseNSQT( Bool b ) { m_useNSQT = b; }
   
