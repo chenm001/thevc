@@ -234,14 +234,6 @@ enum TextType
   TEXT_NONE = 15
 };
 
-/// reference list index
-enum RefPicList
-{
-  REF_PIC_LIST_0 = 0,   ///< reference list 0
-  REF_PIC_LIST_1 = 1,   ///< reference list 1
-  REF_PIC_LIST_X = 100  ///< special mark
-};
-
 /// distortion function index
 enum DFunc
 {

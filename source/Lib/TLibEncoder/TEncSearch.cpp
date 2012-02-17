@@ -2020,7 +2020,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       {        
         uiLastMode = 0;
 
-        pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvField( cAMVPInfo.m_acMvCand[iZeroMvdMvpIdx], iZeroMvdRefIdx, ePartSize, uiPartAddr, iPartIdx, 0 );
+        pcCU->getCUMvField()->setAllMvField( cAMVPInfo.m_acMvCand[iZeroMvdMvpIdx], iZeroMvdRefIdx, ePartSize, uiPartAddr, iPartIdx, 0 );
 
         pcCU->setInterDirSubParts( 1, uiPartAddr, iPartIdx, pcCU->getDepth(0) );
         
