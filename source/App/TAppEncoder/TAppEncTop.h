@@ -62,8 +62,6 @@ private:
   TVideoIOYuv                m_cTVideoIOYuvInputFile;       ///< input YUV file
   TVideoIOYuv                m_cTVideoIOYuvReconFile;       ///< output reconstruction file
   
-  TComList<TComPicYuv*>      m_cListPicYuvRec;              ///< list of reconstruction YUV files
-  
   Int                        m_iFrameRcvd;                  ///< number of received frames
   
   unsigned m_essentialBytes;
@@ -76,14 +74,8 @@ protected:
   Void  xInitLib          ();                               ///< initialize encoder class
   Void  xDestroyLib       ();                               ///< destroy encoder class
   
-  /// obtain required buffers
-  Void xGetBuffer(TComPicYuv*& rpcPicYuvRec);
-  
-  /// delete allocated buffers
-  Void  xDeleteBuffer     ();
-  
   // file I/O
-  Void xWriteOutput(std::ostream& bitstreamFile, Int iNumEncoded, const std::list<AccessUnit>& accessUnits); ///< write bitstream to file
+  Void xWriteOutput(TComPicYuv* pcPicYuvRec, std::ostream& bitstreamFile, const std::list<AccessUnit>& accessUnits); ///< write bitstream to file
   void rateStatsAccum(const AccessUnit& au, const std::vector<unsigned>& stats);
   void printRateSummary();
   

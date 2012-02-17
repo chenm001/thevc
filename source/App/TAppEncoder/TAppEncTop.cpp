@@ -156,27 +156,24 @@ Void TAppEncTop::encode()
   }
 
   TComPicYuv*       pcPicYuvOrg = new TComPicYuv;
-  TComPicYuv*       pcPicYuvRec = NULL;
-  
+  TComPicYuv*       pcPicYuvRec = new TComPicYuv;
+    
   // initialize internal class & member variables
   xInitLibCfg();
   xCreateLib();
   xInitLib();
   
   // main encoder loop
-  Int   iNumEncoded = 0;
   Bool  bEos = false;
   
   list<AccessUnit> outputAccessUnits; ///< list of access units to write out.  is populated by the encoding process
 
   // allocate original YUV buffer
   pcPicYuvOrg->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
-  
+  pcPicYuvRec->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
+
   while ( !bEos )
   {
-    // get buffers
-    xGetBuffer(pcPicYuvRec);
-
     // read input YUV file
     m_cTVideoIOYuvInputFile.read( pcPicYuvOrg );
     
@@ -188,25 +185,24 @@ Void TAppEncTop::encode()
     bEos = ( m_iFrameRcvd == m_iFrameToBeEncoded ?    true : bEos   );
     
     // call encoding function for one frame
-    m_cTEncTop.encode( bEos, pcPicYuvOrg, m_cListPicYuvRec, outputAccessUnits, iNumEncoded );
+    m_cTEncTop.encode( bEos, pcPicYuvOrg, pcPicYuvRec, outputAccessUnits );
     
     // write bistream to file if necessary
-    if ( iNumEncoded > 0 )
-    {
-      xWriteOutput(bitstreamFile, iNumEncoded, outputAccessUnits);
-      outputAccessUnits.clear();
-    }
+    xWriteOutput(pcPicYuvRec, bitstreamFile, outputAccessUnits);
+    outputAccessUnits.clear();
   }
   // delete original YUV buffer
   pcPicYuvOrg->destroy();
+  pcPicYuvRec->destroy();
   delete pcPicYuvOrg;
+  delete pcPicYuvRec;
   pcPicYuvOrg = NULL;
+  pcPicYuvRec = NULL;
   
   // delete used buffers in encoder class
   m_cTEncTop.deletePicBuffer();
   
   // delete buffers & classes
-  xDeleteBuffer();
   xDestroyLib();
   
   printRateSummary();
@@ -218,69 +214,18 @@ Void TAppEncTop::encode()
 // Protected member functions
 // ====================================================================================================================
 
-/**
- - application has picture buffer list with size of GOP
- - picture buffer list acts as ring buffer
- - end of the list has the latest picture
- .
- */
-Void TAppEncTop::xGetBuffer( TComPicYuv*& rpcPicYuvRec)
-{
-  // org. buffer
-  if ( m_cListPicYuvRec.size() == 1 )
-  {
-    rpcPicYuvRec = m_cListPicYuvRec.popFront();
-
-  }
-  else
-  {
-    rpcPicYuvRec = new TComPicYuv;
-    
-    rpcPicYuvRec->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
-
-  }
-  m_cListPicYuvRec.pushBack( rpcPicYuvRec );
-}
-
-Void TAppEncTop::xDeleteBuffer( )
-{
-  TComList<TComPicYuv*>::iterator iterPicYuvRec  = m_cListPicYuvRec.begin();
-  
-  Int iSize = Int( m_cListPicYuvRec.size() );
-  
-  for ( Int i = 0; i < iSize; i++ )
-  {
-    TComPicYuv*  pcPicYuvRec  = *(iterPicYuvRec++);
-    pcPicYuvRec->destroy();
-    delete pcPicYuvRec; pcPicYuvRec = NULL;
-  }
-  
-}
-
 /** \param iNumEncoded  number of encoded frames
  */
-Void TAppEncTop::xWriteOutput(std::ostream& bitstreamFile, Int iNumEncoded, const std::list<AccessUnit>& accessUnits)
+Void TAppEncTop::xWriteOutput(TComPicYuv* pcPicYuvRec, std::ostream& bitstreamFile, const std::list<AccessUnit>& accessUnits)
 {
-  Int i;
-  
-  TComList<TComPicYuv*>::iterator iterPicYuvRec = m_cListPicYuvRec.end();
   list<AccessUnit>::const_iterator iterBitstream = accessUnits.begin();
   
-  for ( i = 0; i < iNumEncoded; i++ )
-  {
-    --iterPicYuvRec;
-  }
-  
-  for ( i = 0; i < iNumEncoded; i++ )
-  {
-    TComPicYuv*  pcPicYuvRec  = *(iterPicYuvRec++);
     if (m_pchReconFile)
       m_cTVideoIOYuvReconFile.write( pcPicYuvRec );
 
-    const AccessUnit& au = *(iterBitstream++);
+    const AccessUnit& au = *iterBitstream;
     const vector<unsigned>& stats = writeAnnexB(bitstreamFile, au);
     rateStatsAccum(au, stats);
-  }
 }
 
 /**

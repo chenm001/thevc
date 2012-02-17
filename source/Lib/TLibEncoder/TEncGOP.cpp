@@ -116,10 +116,9 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
-Void TEncGOP::compressGOP( Int iPOCLast, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, std::list<AccessUnit>& accessUnitsInGOP)
+Void TEncGOP::compressGOP( Int iPOCLast, TComList<TComPic*>& rcListPic, TComPicYuv* pcPicYuvRecOut, std::list<AccessUnit>& accessUnitsInGOP)
 {
   TComPic*        pcPic;
-  TComPicYuv*     pcPicYuvRecOut;
   TComSlice*      pcSlice;
 
     {
@@ -137,7 +136,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, TComList<TComPic*>& rcListPic, TComList
        * access units */
       accessUnitsInGOP.push_back(AccessUnit());
       AccessUnit& accessUnit = accessUnitsInGOP.back();
-      xGetBuffer( rcListPic, rcListPicYuvRecOut, pcPic, pcPicYuvRecOut, uiPOCCurr );
+      xGetBuffer( rcListPic, pcPic, uiPOCCurr );
       
       //  Slice data initialization
       pcPic->clearSliceBuffer();
@@ -400,17 +399,9 @@ Void TEncGOP::printOutSummary(UInt uiNumAllPicCoded)
 // ====================================================================================================================
 
 Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
-                         TComList<TComPicYuv*>&    rcListPicYuvRecOut,
                          TComPic*&                 rpcPic,
-                         TComPicYuv*&              rpcPicYuvRecOut,
                          UInt                      uiPOCCurr )
 {
-  //  Rec. output
-  TComList<TComPicYuv*>::iterator     iterPicYuvRec = rcListPicYuvRecOut.end();
-    iterPicYuvRec--;
-  
-  rpcPicYuvRecOut = *(iterPicYuvRec);
-  
   //  Current pic.
   TComList<TComPic*>::iterator        iterPic       = rcListPic.begin();
   while (iterPic != rcListPic.end())

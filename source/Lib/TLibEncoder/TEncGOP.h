@@ -104,7 +104,7 @@ public:
   Void  destroy     ();
   
   Void  init        ( TEncTop* pcTEncTop );
-  Void  compressGOP ( Int iPOCLast, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRec, std::list<AccessUnit>& accessUnitsInGOP );
+  Void  compressGOP ( Int iPOCLast, TComList<TComPic*>& rcListPic, TComPicYuv* pcPicYuvRecOut, std::list<AccessUnit>& accessUnitsInGOP );
   
   TComList<TComPic*>*   getListPic()      { return m_pcListPic; }
   
@@ -114,7 +114,7 @@ public:
   NalUnitType getNalUnitType( UInt uiPOCCurr );
 
 protected:
-  Void  xGetBuffer        ( TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, TComPic*& rpcPic, TComPicYuv*& rpcPicYuvRecOut, UInt uiPOCCurr );
+  Void  xGetBuffer        ( TComList<TComPic*>& rcListPic, TComPic*& rpcPic, UInt uiPOCCurr );
   
   Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, const AccessUnit& );
   
