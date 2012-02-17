@@ -973,7 +973,7 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
       rpcTempCU->setMergeFlagSubParts( true, 0, 0, uhDepth ); // interprets depth relative to LCU level
       rpcTempCU->setMergeIndexSubParts( uiMergeCand, 0, 0, uhDepth ); // interprets depth relative to LCU level
       rpcTempCU->setInterDirSubParts( uhInterDirNeighbours[uiMergeCand], 0, 0, uhDepth ); // interprets depth relative to LCU level
-      rpcTempCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMvFieldNeighbours[uiMergeCand], SIZE_2Nx2N, 0, 0 ); // interprets depth relative to rpcTempCU level
+      rpcTempCU->getCUMvField()->setAllMvField( cMvFieldNeighbours[uiMergeCand], SIZE_2Nx2N, 0, 0 ); // interprets depth relative to rpcTempCU level
 
       // do MC
       if ( uiNoResidual == 0 )
@@ -1152,9 +1152,6 @@ Void TEncCu::xCheckRDCostAMVPSkip           ( TComDataCU*& rpcBestCU, TComDataCU
   AMVPInfo cAMVPInfo0;
   cAMVPInfo0.iN = 0;
   
-  AMVPInfo cAMVPInfo1;
-  cAMVPInfo1.iN = 0;
-  
   if (rpcTempCU->getAMVPMode(0) == AM_EXPL)
   {
     rpcTempCU->setPredModeSubParts( MODE_SKIP, 0, uhDepth );
@@ -1179,8 +1176,7 @@ Void TEncCu::xCheckRDCostAMVPSkip           ( TComDataCU*& rpcBestCU, TComDataCU
 
       rpcTempCU->setMVPNumSubParts( 0, 0, 0, uhDepth );
 
-      xCopyAMVPInfo(&cAMVPInfo0, rpcTempCU->getCUMvField(REF_PIC_LIST_0)->getAMVPInfo());
-      xCopyAMVPInfo(&cAMVPInfo1, rpcTempCU->getCUMvField(REF_PIC_LIST_1)->getAMVPInfo());
+      xCopyAMVPInfo(&cAMVPInfo0, rpcTempCU->getCUMvField()->getAMVPInfo());
       xCheckRDCostSkip ( rpcBestCU, rpcTempCU, true );      
       rpcTempCU->initEstData( uhDepth, uiOrgQP );
 }

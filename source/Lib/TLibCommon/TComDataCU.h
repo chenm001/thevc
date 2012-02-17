@@ -94,7 +94,7 @@ private:
   UChar*        m_phQP;               ///< array of QP values
   UChar*        m_puhTrIdx;           ///< array of transform indices
   UChar*        m_puhCbf[3];          ///< array of coded block flags (CBF)
-  TComCUMvField m_acCUMvField[2];     ///< array of motion vectors
+  TComCUMvField m_cCUMvField;         ///< array of motion vectors
   TCoeff*       m_pcTrCoeffY;         ///< transformed coefficient buffer (Y)
   TCoeff*       m_pcTrCoeffCb;        ///< transformed coefficient buffer (Cb)
   TCoeff*       m_pcTrCoeffCr;        ///< transformed coefficient buffer (Cr)
@@ -233,7 +233,7 @@ public:
   
   UInt          getQuadtreeTULog2MinSizeInCU( UInt uiIdx );
   
-  TComCUMvField* getCUMvField         ( RefPicList e )          { return  &m_acCUMvField[e];  }
+  TComCUMvField* getCUMvField         ()                        { return  &m_cCUMvField;      }
   
   TCoeff*&      getCoeffY             ()                        { return m_pcTrCoeffY;        }
   TCoeff*&      getCoeffCb            ()                        { return m_pcTrCoeffCb;       }
@@ -296,7 +296,7 @@ public:
   // member functions for motion vector
   // -------------------------------------------------------------------------------------------------------------------
   
-  Void          getMvField            ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefPicList, TComMvField& rcMvField );
+  Void          getMvField            ( TComDataCU* pcCU, UInt uiAbsPartIdx, TComMvField& rcMvField );
   
   AMVP_MODE     getAMVPMode           ( UInt uiIdx );
   Void          fillMvpCand           ( UInt uiPartIdx, UInt uiPartAddr, AMVPInfo* pInfo );

@@ -1827,7 +1827,7 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
       
       PartSize ePartSize = pcCU->getPartitionSize( 0 );
 
-      pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvField( cMvFieldNeighbours[uiMergeCand], ePartSize, uiAbsPartIdx, 0, iPUIdx );
+      pcCU->getCUMvField()->setAllMvField( cMvFieldNeighbours[uiMergeCand], ePartSize, uiAbsPartIdx, 0, iPUIdx );
 
       xGetInterPredictionError( pcCU, pcYuvOrg, iPUIdx, uiCostCand, m_pcEncCfg->getUseHADME() );
       uiBitsCand = uiMergeCand + 1;
@@ -1979,7 +1979,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
 #endif
         
         xMotionEstimation ( pcCU, pcOrgYuv, iPartIdx, &cMvPred[0][0], cMvTemp[0][0], uiBitsTemp, uiCostTemp );
-        xCopyAMVPInfo(pcCU->getCUMvField(REF_PIC_LIST_0)->getAMVPInfo(), &aacAMVPInfo[0][0]); // must always be done ( also when AMVP_MODE = AM_NONE )
+        xCopyAMVPInfo(pcCU->getCUMvField()->getAMVPInfo(), &aacAMVPInfo[0][0]); // must always be done ( also when AMVP_MODE = AM_NONE )
         if ( pcCU->getAMVPMode(uiPartAddr) == AM_EXPL )
         {          
           xCheckBestMVP(pcCU, cMvTemp[0][0], cMvPred[0][0], aaiMvpIdx[0][0], uiBitsTemp, uiCostTemp);
@@ -1993,8 +1993,8 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
             // set motion
             cMv[0]     = cMvTemp[0][0];
             iRefIdx[0] = 0;
-            pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMv( cMv[0], ePartSize, uiPartAddr, 0, iPartIdx );
-            pcCU->getCUMvField(REF_PIC_LIST_0)->setAllRefIdx( iRefIdx[0], ePartSize, uiPartAddr, 0, iPartIdx );
+            pcCU->getCUMvField()->setAllMv( cMv[0], ePartSize, uiPartAddr, 0, iPartIdx );
+            pcCU->getCUMvField()->setAllRefIdx( iRefIdx[0], ePartSize, uiPartAddr, 0, iPartIdx );
 
             if ( pcCU->getSlice()->getNoBackPredFlag() )
             {
@@ -2008,8 +2008,8 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     } //end if bTestNormalMC
 #endif
     //  Clear Motion Field
-    pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvField( TComMvField(), ePartSize, uiPartAddr, 0, iPartIdx );
-    pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvd    ( cMvZero,       ePartSize, uiPartAddr, 0, iPartIdx );
+    pcCU->getCUMvField()->setAllMvField( TComMvField(), ePartSize, uiPartAddr, 0, iPartIdx );
+    pcCU->getCUMvField()->setAllMvd    ( cMvZero,       ePartSize, uiPartAddr, 0, iPartIdx );
 
     pcCU->setMVPIdxSubParts( -1, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
     pcCU->setMVPNumSubParts( -1, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
@@ -2043,12 +2043,10 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
 #endif
     {
       uiLastMode = 0;
-          pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMv( cMv[0], ePartSize, uiPartAddr, 0, iPartIdx );
-          pcCU->getCUMvField(REF_PIC_LIST_0)->setAllRefIdx( iRefIdx[0], ePartSize, uiPartAddr, 0, iPartIdx );
-      {
-        TempMv = cMv[0] - cMvPred[0][iRefIdx[0]];
-            pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvd    ( TempMv,                 ePartSize, uiPartAddr, 0, iPartIdx );
-      }
+      pcCU->getCUMvField()->setAllMv( cMv[0], ePartSize, uiPartAddr, 0, iPartIdx );
+      pcCU->getCUMvField()->setAllRefIdx( iRefIdx[0], ePartSize, uiPartAddr, 0, iPartIdx );
+      TempMv = cMv[0] - cMvPred[0][iRefIdx[0]];
+      pcCU->getCUMvField()->setAllMvd( TempMv,ePartSize, uiPartAddr, 0, iPartIdx );
       pcCU->setInterDirSubParts( 1, uiPartAddr, iPartIdx, pcCU->getDepth(0) );
       
       pcCU->setMVPIdxSubParts( aaiMvpIdx[0][iRefIdx[0]], uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
@@ -2088,7 +2086,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
 #endif 
       // save ME result.
       uiMEInterDir = pcCU->getInterDir( uiPartAddr );
-      pcCU->getMvField( pcCU, uiPartAddr, REF_PIC_LIST_0, cMEMvField );
+      pcCU->getMvField( pcCU, uiPartAddr, cMEMvField );
 
       // find Merge result
       UInt uiMRGCost = MAX_UINT;
@@ -2099,9 +2097,9 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
         pcCU->setMergeFlagSubParts ( true,          uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
         pcCU->setMergeIndexSubParts( uiMRGIndex,    uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
         pcCU->setInterDirSubParts  ( uiMRGInterDir, uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
-          pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMRGMvField, ePartSize, uiPartAddr, 0, iPartIdx );
+        pcCU->getCUMvField()->setAllMvField( cMRGMvField, ePartSize, uiPartAddr, 0, iPartIdx );
 
-        pcCU->getCUMvField(REF_PIC_LIST_0)->setAllMvd    ( cMvZero,            ePartSize, uiPartAddr, 0, iPartIdx );
+        pcCU->getCUMvField()->setAllMvd    ( cMvZero,            ePartSize, uiPartAddr, 0, iPartIdx );
 
         pcCU->setMVPIdxSubParts( -1, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
         pcCU->setMVPNumSubParts( -1, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
@@ -2111,7 +2109,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
         // set ME result
         pcCU->setMergeFlagSubParts( false,        uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
         pcCU->setInterDirSubParts ( uiMEInterDir, uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
-          pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMEMvField, ePartSize, uiPartAddr, 0, iPartIdx );
+        pcCU->getCUMvField()->setAllMvField( cMEMvField, ePartSize, uiPartAddr, 0, iPartIdx );
       }
     }
 
@@ -2130,7 +2128,7 @@ Void TEncSearch::xEstimateMvPredAMVP( TComDataCU* pcCU, TComYuv* pcOrgYuv, UInt 
 Void TEncSearch::xEstimateMvPredAMVP( TComDataCU* pcCU, TComYuv* pcOrgYuv, UInt uiPartIdx, TComMv& rcMvPred, Bool bFilled )
 #endif
 {
-  AMVPInfo* pcAMVPInfo = pcCU->getCUMvField(REF_PIC_LIST_0)->getAMVPInfo();
+  AMVPInfo* pcAMVPInfo = pcCU->getCUMvField()->getAMVPInfo();
   
   TComMv  cBestMv;
   Int     iBestIdx = 0;
@@ -2290,7 +2288,7 @@ Void TEncSearch::xCopyAMVPInfo (AMVPInfo* pSrc, AMVPInfo* pDst)
 
 Void TEncSearch::xCheckBestMVP ( TComDataCU* pcCU, TComMv cMv, TComMv& rcMvPred, Int& riMVPIdx, UInt& ruiBits, UInt& ruiCost )
 {
-  AMVPInfo* pcAMVPInfo = pcCU->getCUMvField(REF_PIC_LIST_0)->getAMVPInfo();
+  AMVPInfo* pcAMVPInfo = pcCU->getCUMvField()->getAMVPInfo();
   
   assert(pcAMVPInfo->m_acMvCand[riMVPIdx] == rcMvPred);
   
@@ -2774,9 +2772,9 @@ Void TEncSearch::predInterSkipSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComY
     TComMv cZeroMv;
     
     mvData.setRefIdx( 0 );
-    xEstimateMvPredAMVP( pcCU, pcOrgYuv, 0, mvData.getMv(), (pcCU->getCUMvField( REF_PIC_LIST_0 )->getAMVPInfo()->iN > 0?  true:false) );
-    pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( mvData,        SIZE_2Nx2N, 0, 0 );
-    pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvd    ( cZeroMv,       SIZE_2Nx2N, 0, 0 );  //unnecessary
+    xEstimateMvPredAMVP( pcCU, pcOrgYuv, 0, mvData.getMv(), (pcCU->getCUMvField()->getAMVPInfo()->iN > 0?  true:false) );
+    pcCU->getCUMvField()->setAllMvField( mvData,        SIZE_2Nx2N, 0, 0 );
+    pcCU->getCUMvField()->setAllMvd    ( cZeroMv,       SIZE_2Nx2N, 0, 0 );  //unnecessary
 
     //  Motion compensation
     motionCompensation ( pcCU, rpcPredYuv, REF_PIC_LIST_0 );

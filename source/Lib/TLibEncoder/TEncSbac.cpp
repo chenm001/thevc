@@ -564,7 +564,7 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
 Void TEncSbac::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-    Int iRefFrame = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiAbsPartIdx );
+    Int iRefFrame = pcCU->getCUMvField()->getRefIdx( uiAbsPartIdx );
     ContextModel *pCtx = m_cCURefPicSCModel.get( 0 );
     m_pcBinIf->encodeBin( ( iRefFrame == 0 ? 0 : 1 ), *pCtx );
     
@@ -577,7 +577,7 @@ Void TEncSbac::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx )
 
 Void TEncSbac::codeMvd( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-  const TComCUMvField* pcCUMvField = pcCU->getCUMvField( REF_PIC_LIST_0 );
+  const TComCUMvField* pcCUMvField = pcCU->getCUMvField();
   const Int iHor = pcCUMvField->getMvd( uiAbsPartIdx ).getHor();
   const Int iVer = pcCUMvField->getMvd( uiAbsPartIdx ).getVer();
   ContextModel* pCtx = m_cCUMvdSCModel.get( 0 );

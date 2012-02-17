@@ -386,7 +386,7 @@ Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, 
     pcCU->getPartIndexAndSize( iPartIdx, uiPartAddr, iWidth, iHeight );
     if ( eRefPicList != REF_PIC_LIST_X )
     {
-      xPredInterUni (pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx );
+      xPredInterUni (pcCU, uiPartAddr, iWidth, iHeight, pcYuvPred, iPartIdx );
     }
     else
     {
@@ -401,7 +401,7 @@ Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, 
 
     if ( eRefPicList != REF_PIC_LIST_X )
     {
-      xPredInterUni (pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcYuvPred, iPartIdx );
+      xPredInterUni (pcCU, uiPartAddr, iWidth, iHeight, pcYuvPred, iPartIdx );
     }
     else
     {
@@ -411,10 +411,10 @@ Void TComPrediction::motionCompensation ( TComDataCU* pcCU, TComYuv* pcYuvPred, 
   return;
 }
 
-Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidth, Int iHeight, RefPicList eRefPicList, TComYuv*& rpcYuvPred, Int iPartIdx, Bool bi )
+Void TComPrediction::xPredInterUni ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidth, Int iHeight, TComYuv*& rpcYuvPred, Int iPartIdx, Bool bi )
 {
-  Int         iRefIdx     = pcCU->getCUMvField( eRefPicList )->getRefIdx( uiPartAddr );           assert (iRefIdx >= 0);
-  TComMv      cMv         = pcCU->getCUMvField( eRefPicList )->getMv( uiPartAddr );
+  Int         iRefIdx     = pcCU->getCUMvField()->getRefIdx( uiPartAddr );           assert (iRefIdx >= 0);
+  TComMv      cMv         = pcCU->getCUMvField()->getMv( uiPartAddr );
   pcCU->clipMv(cMv);
   xPredInterLumaBlk  ( pcCU, pcCU->getSlice()->getRefPic()->getPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred, bi );
   xPredInterChromaBlk( pcCU, pcCU->getSlice()->getRefPic()->getPicYuvRec(), uiPartAddr, &cMv, iWidth, iHeight, rpcYuvPred, bi );
@@ -425,14 +425,14 @@ Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidt
   TComYuv* pcMbYuv;
   Int      iRefIdx[2] = {-1, -1};
 
-    iRefIdx[0] = pcCU->getCUMvField( REF_PIC_LIST_0 )->getRefIdx( uiPartAddr );
+    iRefIdx[0] = pcCU->getCUMvField()->getRefIdx( uiPartAddr );
 
     assert( iRefIdx[0] >= 0 );
 
     assert( iRefIdx[0] < pcCU->getSlice()->getNumRefIdx() );
 
     pcMbYuv = &m_acYuvPred[0];
-      xPredInterUni ( pcCU, uiPartAddr, iWidth, iHeight, REF_PIC_LIST_0, pcMbYuv, iPartIdx );
+      xPredInterUni ( pcCU, uiPartAddr, iWidth, iHeight, pcMbYuv, iPartIdx );
 
     xWeightedAverage( pcCU, &m_acYuvPred[0], &m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, iWidth, iHeight, rpcYuvPred );
 }
