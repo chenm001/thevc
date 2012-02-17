@@ -60,7 +60,6 @@ using namespace std;
 TEncGOP::TEncGOP()
 {
   m_iLastIDR            = 0;
-  m_iNumPicCoded        = 0; //Niko
   m_bFirst              = true;
   
   m_pcCfg               = NULL;
@@ -117,30 +116,19 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
-Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, std::list<AccessUnit>& accessUnitsInGOP)
+Void TEncGOP::compressGOP( Int iPOCLast, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut, std::list<AccessUnit>& accessUnitsInGOP)
 {
   TComPic*        pcPic;
   TComPicYuv*     pcPicYuvRecOut;
   TComSlice*      pcSlice;
 
-  xInitGOP( iPOCLast, iNumPicRcvd, rcListPic, rcListPicYuvRecOut );
-  
-  m_iNumPicCoded = 0;
-
     {
       /////////////////////////////////////////////////////////////////////////////////////////////////// Initial to start encoding
-      UInt uiPOCCurr = iPOCLast -iNumPicRcvd+ 1;
-      Int iTimeOffset = 1;
+      UInt uiPOCCurr = iPOCLast;
       if(uiPOCCurr>=m_pcCfg->getFrameToBeEncoded())
       {
         return;
       }
-      if(iPOCLast == 0)
-      {
-        uiPOCCurr=0;
-        iTimeOffset = 1;
-      }
-        
       if(getNalUnitType(uiPOCCurr) == NAL_UNIT_CODED_SLICE_IDR)
       {
         m_iLastIDR = uiPOCCurr;
@@ -149,13 +137,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
        * access units */
       accessUnitsInGOP.push_back(AccessUnit());
       AccessUnit& accessUnit = accessUnitsInGOP.back();
-      xGetBuffer( rcListPic, rcListPicYuvRecOut, iNumPicRcvd, iTimeOffset, pcPic, pcPicYuvRecOut, uiPOCCurr );
+      xGetBuffer( rcListPic, rcListPicYuvRecOut, pcPic, pcPicYuvRecOut, uiPOCCurr );
       
       //  Slice data initialization
       pcPic->clearSliceBuffer();
       assert(pcPic->getNumAllocatedSlice() == 1);
 
-      m_pcSliceEncoder->initEncSlice ( pcPic, iPOCLast, uiPOCCurr, iNumPicRcvd, pcSlice, m_pcEncTop->getSPS(), m_pcEncTop->getPPS() );
+      m_pcSliceEncoder->initEncSlice ( pcPic, iPOCLast, uiPOCCurr, pcSlice, m_pcEncTop->getSPS(), m_pcEncTop->getPPS() );
       pcSlice->setLastIDR(m_iLastIDR);
 
       m_pcEncTop->getSPS()->setDisInter4x4(m_pcEncTop->getDisInter4x4());
@@ -369,14 +357,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcPic->setUsedForTMVP ( true );
 
       m_bFirst = false;
-      m_iNumPicCoded++;
 
       /* logging: insert a newline at end of picture period */
       printf("\n");
       fflush(stdout);
   }
-  
-  assert ( m_iNumPicCoded == iNumPicRcvd );
 }
 
 Void TEncGOP::printOutSummary(UInt uiNumAllPicCoded)
@@ -414,29 +399,15 @@ Void TEncGOP::printOutSummary(UInt uiNumAllPicCoded)
 // Protected member functions
 // ====================================================================================================================
 
-Void TEncGOP::xInitGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut )
-{
-  assert( iNumPicRcvd > 0 );
-  //  Exception for the first frame
-  
-  return;
-}
-
 Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
                          TComList<TComPicYuv*>&    rcListPicYuvRecOut,
-                         Int                       iNumPicRcvd,
-                         Int                       iTimeOffset,
                          TComPic*&                 rpcPic,
                          TComPicYuv*&              rpcPicYuvRecOut,
                          UInt                      uiPOCCurr )
 {
-  Int i;
   //  Rec. output
   TComList<TComPicYuv*>::iterator     iterPicYuvRec = rcListPicYuvRecOut.end();
-  for ( i = 0; i < iNumPicRcvd - iTimeOffset + 1; i++ )
-  {
     iterPicYuvRec--;
-  }
   
   rpcPicYuvRecOut = *(iterPicYuvRec);
   

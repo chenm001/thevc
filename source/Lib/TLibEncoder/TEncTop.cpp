@@ -226,17 +226,10 @@ Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>&
   xGetNewPicBuffer( pcPicCurr );
   pcPicYuvOrg->copyToPic( pcPicCurr->getPicYuvOrg() );
   
-  if ( m_iPOCLast != 0 && ( m_iNumPicRcvd != 1 ) && !bEos )
-  {
-    iNumEncoded = 0;
-    return;
-  }
-  
   // compress GOP
-  m_cGOPEncoder.compressGOP(m_iPOCLast, m_iNumPicRcvd, m_cListPic, rcListPicYuvRecOut, accessUnitsOut);
+  m_cGOPEncoder.compressGOP(m_iPOCLast, m_cListPic, rcListPicYuvRecOut, accessUnitsOut);
   
-  iNumEncoded         = m_iNumPicRcvd;
-  m_iNumPicRcvd       = 0;
+  iNumEncoded         = 1;
   m_uiNumAllPicCoded += iNumEncoded;
   
   if (bEos)

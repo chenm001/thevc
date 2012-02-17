@@ -98,7 +98,7 @@ public:
   Void    init                ( TEncTop* pcEncTop );
   
   /// preparation of slice encoding (reference marking, QP and lambda)
-  Void    initEncSlice        ( TComPic*  pcPic, Int iPOCLast, UInt uiPOCCurr, Int iNumPicRcvd,
+  Void    initEncSlice        ( TComPic*  pcPic, Int iPOCLast, UInt uiPOCCurr,
                                 TComSlice*& rpcSlice, TComSPS* pSPS, TComPPS *pPPS );
 
   // compress and encode slice
