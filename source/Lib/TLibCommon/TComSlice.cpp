@@ -55,16 +55,12 @@ TComSlice::TComSlice()
 , m_pcPPS                         ( NULL )
 , m_pcPic                         ( NULL )
 , m_dLambda                       ( 0.0 )
-, m_bNoBackPredFlag               ( false )
-, m_bRefIdxCombineCoding          ( false )
 , m_uiSliceCurEndCUAddr           ( 0 )
 , m_bNextSlice                    ( false )
 , m_uiSliceBits                   ( 0 )
 , m_bFinalized                    ( false )
 , m_cabacInitIdc                 ( -1 )
 {
-  m_iNumRefIdx = 0;
-  
   m_pcRefPicList = NULL;
   m_iRefPOCList = 0;
 }
@@ -76,11 +72,6 @@ TComSlice::~TComSlice()
 
 Void TComSlice::initSlice()
 {
-  m_iNumRefIdx = 0;
-  
-  m_bNoBackPredFlag = false;
-  m_bRefIdxCombineCoding = false;
-
   m_uiMaxNumMergeCand = MRG_MAX_NUM_CANDS_SIGNALED;
 
   m_bFinalized=false;
@@ -159,7 +150,7 @@ TComPic* TComSlice::xGetLongTermRefPic (TComList<TComPic*>& rcListPic,
 
 Void TComSlice::setRefPOCList       ()
 {
-    if ( m_iNumRefIdx > 0 )
+    if ( !isIntra() )
       m_iRefPOCList = m_pcRefPicList->getPOC();
 }
 
@@ -168,7 +159,6 @@ Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic )
   if (m_eSliceType == I_SLICE)
   {
     m_pcRefPicList = NULL;
-    m_iNumRefIdx = 0;
 
     return;
   }

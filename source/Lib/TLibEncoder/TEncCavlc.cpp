@@ -319,11 +319,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     if (!pcSlice->isIntra())
     {
       WRITE_FLAG( 1 ,                                             "num_ref_idx_active_override_flag");
-      WRITE_CODE( pcSlice->getNumRefIdx() - 1, 3,                 "num_ref_idx_l0_active_minus1" );
-    }
-    else
-    {
-      pcSlice->setNumRefIdx(0);
+      WRITE_CODE( 0 , 3,                                          "num_ref_idx_l0_active_minus1" );
     }
     if(!pcSlice->isIntra())
     {

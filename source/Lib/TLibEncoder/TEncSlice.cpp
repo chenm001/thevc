@@ -232,7 +232,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, TCom
 #endif
   
   rpcSlice->setSliceQp          ( iQP );
-  rpcSlice->setNumRefIdx(1);
 
   rpcSlice->setDepth            ( iDepth );
   

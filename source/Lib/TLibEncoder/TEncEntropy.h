@@ -129,7 +129,6 @@ public:
   Void encodeSplitFlag         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD = false );
   Void encodeSkipFlag          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   Void encodePUWise       ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
-  Void encodeRefFrmIdxPU  ( TComDataCU* pcSubCU, UInt uiAbsPartIdx );
   Void encodeMvdPU        ( TComDataCU* pcSubCU, UInt uiAbsPartIdx );
   Void encodeMVPIdxPU     ( TComDataCU* pcSubCU, UInt uiAbsPartIdx );
   Void encodeMergeFlag    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPUIdx );

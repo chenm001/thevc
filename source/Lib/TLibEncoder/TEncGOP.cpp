@@ -160,16 +160,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, TComList<TComPic*>& rcListPic, TComPicY
 
       pcSlice->applyReferencePictureSet(rcListPic, pcSlice->getRPS());
 
-      pcSlice->setNumRefIdx(1);
-
       //  Set reference list
       pcSlice->setRefPicList ( rcListPic );
       
       //-------------------------------------------------------------
       pcSlice->setRefPOCList();
       
-      pcSlice->setNoBackPredFlag( false );
-
       /////////////////////////////////////////////////////////////////////////////////////////////////// Compress a slice
       //  Slice compression
       UInt uiNumSlices = 1;
@@ -550,7 +546,7 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
   
   {
     printf(" [L%d ", 0);
-    for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(); iRefIndex++)
+    if ( !pcSlice->isIntra() )
     {
       printf ("%d ", pcSlice->getRefPOC()-pcSlice->getLastIDR());
     }

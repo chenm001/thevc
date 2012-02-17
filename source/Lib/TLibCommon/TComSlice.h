@@ -244,8 +244,6 @@ private:
   SliceType   m_eSliceType;
   Int         m_iSliceQp;
   
-  Int         m_iNumRefIdx;    //  for multiple reference of current slice
-
   //  Data
   TComPic*    m_pcRefPicList;
   Int         m_iRefPOCList;
@@ -260,9 +258,6 @@ private:
   TComPic*    m_pcPic;
   
   Double      m_dLambda;
-
-  Bool        m_bNoBackPredFlag;
-  Bool        m_bRefIdxCombineCoding;
 
   UInt        m_uiSliceCurEndCUAddr;
   Bool        m_bNextSlice;
@@ -297,7 +292,6 @@ public:
   Int       getPOC          ()                          { return  m_iPOC;           }
   Int       getSliceQp      ()                          { return  m_iSliceQp;           }
 
-  Int       getNumRefIdx        ()                              { return  m_iNumRefIdx;                 }
   TComPic*  getPic              ()                              { return  m_pcPic;                      }
   TComPic*  getRefPic           ()                              { return  m_pcRefPicList;  }
   Int       getRefPOC           ()                              { return  m_iRefPOCList;   }
@@ -315,7 +309,6 @@ public:
   
   Void      setRefPic           ( TComPic* p )                  { m_pcRefPicList = p;           }
   Void      setRefPOC           ( Int i )                       { m_iRefPOCList = i;            }
-  Void      setNumRefIdx        ( Int i )                       { m_iNumRefIdx        = i;      }
   Void      setPic              ( TComPic* p )                  { m_pcPic             = p;      }
   Void      setDepth            ( Int iDepth )                  { m_iDepth            = iDepth; }
   
@@ -337,11 +330,6 @@ public:
 
   static Void      sortPicList         ( TComList<TComPic*>& rcListPic );
   
-  Bool getNoBackPredFlag() { return m_bNoBackPredFlag; }
-  Void setNoBackPredFlag( Bool b ) { m_bNoBackPredFlag = b; }
-  Bool getRefIdxCombineCoding() { return m_bRefIdxCombineCoding; }
-  Void setRefIdxCombineCoding( Bool b ) { m_bRefIdxCombineCoding = b; }
-
   Void decodingMarking( TComList<TComPic*>& rcListPic, Int& iMaxRefPicNum ); 
   Void      applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pcRPSList);
 

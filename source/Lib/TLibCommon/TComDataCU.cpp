@@ -280,7 +280,7 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
     m_pcCUAboveRight = pcPic->getCU( m_uiCUAddr - uiWidthInCU + 1 );
   }
 
-  if ( getSlice()->getNumRefIdx() > 0 )
+  if ( !getSlice()->isIntra() )
   {
     m_pcCUColocated = getSlice()->getRefPic()->getCU( m_uiCUAddr );
   }
@@ -1867,12 +1867,12 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     pcMvFieldNeighbours[i].setMvField(tmpMv, 0);
   }
 
-  Int iNumRefIdx = m_pcSlice->getNumRefIdx();
-  for (int r=0; r<iNumRefIdx && uiArrayAddr!=MRG_MAX_NUM_CANDS; r++)
+  assert( !m_pcSlice->isIntra() );
+  if ( uiArrayAddr!=MRG_MAX_NUM_CANDS )
   {
     abCandIsInter[uiArrayAddr] = true;
     puhInterDirNeighbours[uiArrayAddr] = 1;
-    pcMvFieldNeighbours[uiArrayAddr].setMvField( TComMv(0, 0), r);
+    pcMvFieldNeighbours[uiArrayAddr].setMvField( TComMv(0, 0), 0);
 
     uiArrayAddr++;
   }

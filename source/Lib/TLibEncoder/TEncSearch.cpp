@@ -1942,7 +1942,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
 #endif
 
     //  Uni-directional prediction
-      assert( pcCU->getSlice()->getNumRefIdx() == 1 );
       {
         uiBitsTemp = uiMbBits[0];
 #if ZERO_MVD_EST
@@ -1989,12 +1988,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
             cMv     = cMvTemp;
             pcCU->getCUMvField()->setAllMv( cMv, ePartSize, uiPartAddr, 0, iPartIdx );
             pcCU->getCUMvField()->setAllRefIdx( 0, ePartSize, uiPartAddr, 0, iPartIdx );
-
-            if ( pcCU->getSlice()->getNoBackPredFlag() )
-            {
-              TComYuv*  pcYuvPred = &m_acYuvPred[0];
-              motionCompensation ( pcCU, pcYuvPred, iPartIdx );
-            }
           }
       }
 
@@ -2758,7 +2751,7 @@ Void TEncSearch::predInterSkipSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComY
   if ( eSliceType == I_SLICE )
     return;
   
-  if ( eSliceType == P_SLICE && pcCU->getSlice()->getNumRefIdx() > 0 )
+  assert( eSliceType == P_SLICE );
   {
     pcCU->setInterDirSubParts( 1, 0, 0, pcCU->getDepth( 0 ) );
     
@@ -2772,11 +2765,6 @@ Void TEncSearch::predInterSkipSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComY
 
     //  Motion compensation
     motionCompensation ( pcCU, rpcPredYuv );
-    
-  }
-  else
-  {
-    assert( 0 );
   }
   
   return;
@@ -2835,7 +2823,7 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     } 
     else
     {
-        if ( pcCU->getSlice()->getNumRefIdx() > 0 )
+        if ( !pcCU->getSlice()->isIntra() )
         {
           m_pcEntropyCoder->encodeMVPIdxPU( pcCU, 0 );
         }
@@ -3910,7 +3898,7 @@ Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMod
     } 
     else
     {
-        if ( pcCU->getSlice()->getNumRefIdx() > 0 )
+        if ( !pcCU->getSlice()->isIntra() )
         {
           m_pcEntropyCoder->encodeMVPIdxPU( pcCU, 0 );
         }

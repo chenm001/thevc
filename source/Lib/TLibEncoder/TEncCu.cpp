@@ -895,7 +895,7 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     } 
     else
     {
-        if ( pcCU->getSlice()->getNumRefIdx() > 0 )
+        if ( !pcCU->getSlice()->isIntra() )
         {
           m_pcEntropyCoder->encodeMVPIdxPU( pcCU, uiAbsPartIdx);
         }
@@ -1157,7 +1157,7 @@ Void TEncCu::xCheckRDCostAMVPSkip           ( TComDataCU*& rpcBestCU, TComDataCU
     rpcTempCU->setPredModeSubParts( MODE_SKIP, 0, uhDepth );
     rpcTempCU->setPartSizeSubParts( SIZE_2Nx2N,  0, uhDepth );
     
-    if ( rpcTempCU->getSlice()->isInterP() && rpcTempCU->getSlice()->getNumRefIdx() > 0 )
+    if ( !rpcTempCU->getSlice()->isIntra() )
     {
       rpcTempCU->fillMvpCand(0, 0, &cAMVPInfo0);
     }

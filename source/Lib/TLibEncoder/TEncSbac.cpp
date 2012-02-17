@@ -570,7 +570,7 @@ Void TEncSbac::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx )
     
     if( iRefFrame > 0 )
     {
-        xWriteUnaryMaxSymbol( iRefFrame - 1, pCtx + 1, 1, pcCU->getSlice()->getNumRefIdx() -2 );
+        xWriteUnaryMaxSymbol( iRefFrame - 1, pCtx + 1, 1, 1-2 );
     }
   return;
 }

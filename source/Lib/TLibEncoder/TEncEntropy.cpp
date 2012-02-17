@@ -419,37 +419,13 @@ Void TEncEntropy::encodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
     }
     else
     {
-        if ( pcCU->getSlice()->getNumRefIdx() > 0 )
+        if ( !pcCU->getSlice()->isIntra() )
         {
-          encodeRefFrmIdxPU ( pcCU, uiSubPartIdx );
           encodeMvdPU       ( pcCU, uiSubPartIdx );
           encodeMVPIdxPU    ( pcCU, uiSubPartIdx );
         }
     }
   }
-
-  return;
-}
-
-/** encode reference frame index for a PU block
- * \param pcCU
- * \param uiAbsPartIdx
- * \param eRefList
- * \returns Void
- */
-Void TEncEntropy::encodeRefFrmIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  assert( !pcCU->isIntra( uiAbsPartIdx ) );
-
-    if ( ( pcCU->getSlice()->getNumRefIdx() == 1 ) )
-    {
-      return;
-    }
-
-    if ( pcCU->getInterDir( uiAbsPartIdx ) & 1 )
-    {
-      m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx );
-    }
 
   return;
 }
