@@ -2507,6 +2507,13 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   {
     return offset;
   }
+#if SIGMAP_CONST_AT_HIGH_FREQUENCY
+  Int thredHighFreq = 3*(std::max(width, height)>>4);
+  if ((posX>>2) + (posY>>2) >= thredHighFreq)
+  {
+    return (textureType == TEXT_LUMA) ? 24 : 18;
+  }
+#endif
   
   const TCoeff *pData = pcCoeff + posX + posY * width;
   
