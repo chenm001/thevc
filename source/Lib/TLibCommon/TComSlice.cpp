@@ -67,8 +67,6 @@ TComSlice::TComSlice()
 {
   m_iNumRefIdx = 0;
   
-  initEqualRef();
-  
   m_pcRefPicList = NULL;
   m_iRefPOCList = 0;
 }
@@ -84,7 +82,6 @@ Void TComSlice::initSlice()
   
   m_uiColDir = 0;
   
-  initEqualRef();
   m_bNoBackPredFlag = false;
   m_bRefIdxCombineCoding = false;
 
@@ -189,20 +186,6 @@ Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic )
       // ref_pic_list_init
       m_pcRefPicList = pcRefPic;
     }
-}
-
-Void TComSlice::initEqualRef()
-{
-  for (Int iDir = 0; iDir < 2; iDir++)
-  {
-    for (Int iRefIdx1 = 0; iRefIdx1 < MAX_NUM_REF; iRefIdx1++)
-    {
-      for (Int iRefIdx2 = iRefIdx1; iRefIdx2 < MAX_NUM_REF; iRefIdx2++)
-      {
-        m_abEqualRef[iDir][iRefIdx1][iRefIdx2] = m_abEqualRef[iDir][iRefIdx2][iRefIdx1] = (iRefIdx1 == iRefIdx2? true : false);
-      }
-    }
-  }
 }
 
 /** Function for marking the reference pictures when an IDR and CDR is encountered.

@@ -2169,7 +2169,7 @@ Bool TComDataCU::xAddMVPCand( AMVPInfo* pInfo, UInt uiPartUnitIdx, MVP_DIR eDir 
     }
   }
  
-  if ( pcTmpCU != NULL && m_pcSlice->isEqualRef(REF_PIC_LIST_0, pcTmpCU->getCUMvField()->getRefIdx(uiIdx), 0) )
+  if ( pcTmpCU != NULL && m_pcSlice->isEqualRef(pcTmpCU->getCUMvField()->getRefIdx(uiIdx), 0) )
   {
     TComMv cMvPred = pcTmpCU->getCUMvField()->getMv(uiIdx);
     

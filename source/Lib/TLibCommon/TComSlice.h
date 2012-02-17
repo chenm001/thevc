@@ -286,8 +286,6 @@ private:
   
   Double      m_dLambda;
 
-  Bool        m_abEqualRef  [2][MAX_NUM_REF][MAX_NUM_REF];
-  
   Bool        m_bNoBackPredFlag;
   Bool        m_bRefIdxCombineCoding;
 
@@ -359,18 +357,13 @@ public:
   Void      setLambda( Double d ) { m_dLambda = d; }
   Double    getLambda() { return m_dLambda;        }
   
-  Void      initEqualRef();
-  Bool      isEqualRef  ( RefPicList e, Int iRefIdx1, Int iRefIdx2 )
+  Bool      isEqualRef  ( Int iRefIdx1, Int iRefIdx2 )
   {
     if (iRefIdx1 < 0 || iRefIdx2 < 0) return false;
-    return m_abEqualRef[e][iRefIdx1][iRefIdx2];
+    return ( iRefIdx1 == iRefIdx2 );
   }
   
-  Void setEqualRef( RefPicList e, Int iRefIdx1, Int iRefIdx2, Bool b)
-  {
-    m_abEqualRef[e][iRefIdx1][iRefIdx2] = m_abEqualRef[e][iRefIdx2][iRefIdx1] = b;
-  }
-  
+
   static Void      sortPicList         ( TComList<TComPic*>& rcListPic );
   
   Bool getNoBackPredFlag() { return m_bNoBackPredFlag; }
