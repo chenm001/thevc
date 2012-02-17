@@ -282,7 +282,6 @@ private:
   TComSPS*    m_pcSPS;
   TComPPS*    m_pcPPS;
   TComPic*    m_pcPic;
-  UInt        m_uiColDir;  // direction to get colocated CUs
   
   Double      m_dLambda;
 
@@ -328,7 +327,6 @@ public:
   TComPic*  getRefPic           ()                              { return  m_pcRefPicList;  }
   Int       getRefPOC           ()                              { return  m_iRefPOCList;   }
   Int       getDepth            ()                              { return  m_iDepth;                     }
-  UInt      getColDir           ()                              { return  m_uiColDir;                   }
 
   Void      setReferenced(Bool b)                               { m_bRefenced = b; }
   Bool      isReferenced()                                      { return m_bRefenced; }
@@ -349,7 +347,6 @@ public:
   
   Void      setRefPicList       ( TComList<TComPic*>& rcListPic );
   Void      setRefPOCList       ();
-  Void      setColDir           ( UInt uiDir ) { m_uiColDir = uiDir; }
   
   Bool      isIntra         ()                          { return  m_eSliceType == I_SLICE;  }
   Bool      isInterP        ()                          { return  m_eSliceType == P_SLICE;  }

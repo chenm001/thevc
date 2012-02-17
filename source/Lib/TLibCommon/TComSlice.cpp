@@ -55,7 +55,6 @@ TComSlice::TComSlice()
 , m_pcSPS                         ( NULL )
 , m_pcPPS                         ( NULL )
 , m_pcPic                         ( NULL )
-, m_uiColDir                      ( 0 )
 , m_dLambda                       ( 0.0 )
 , m_bNoBackPredFlag               ( false )
 , m_bRefIdxCombineCoding          ( false )
@@ -79,8 +78,6 @@ TComSlice::~TComSlice()
 Void TComSlice::initSlice()
 {
   m_iNumRefIdx = 0;
-  
-  m_uiColDir = 0;
   
   m_bNoBackPredFlag = false;
   m_bRefIdxCombineCoding = false;
