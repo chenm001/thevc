@@ -165,7 +165,7 @@ Void TEncTop::init()
   
   // initialize PPS
   m_cPPS.setSPS(&m_cSPS);
-  m_cPPS.setRPSList(&m_cRPSList);
+  m_cPPS.m_pReferencePictureSet = &m_ReferencePictureSet;
   xInitPPS();
   xInitRPS();
 
@@ -345,7 +345,6 @@ Void TEncTop::xInitPPS()
 
 Void TEncTop::xInitRPS()
 {
-  TComReferencePictureSet*      pcRPS;
   // In this function 
   // a number of Reference Picture Sets
   // are defined for different coding structures.
@@ -357,21 +356,17 @@ Void TEncTop::xInitRPS()
   // configured directly from the config file.
   // Here we check what BD is appropriate
   
-  {
-    pcRPS = m_cRPSList.getReferencePictureSet();
-      pcRPS->setUsed(0,true);
-  }
-  
+    m_ReferencePictureSet.setUsed(0, true);
 }
 
-Void TEncTop::selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, TComList<TComPic*>& rcListPic )
+Void TEncTop::selectReferencePictureSet(TComSlice* pcSlice )
 {
 
    // This is a function that 
    // decides what Reference Picture Set to use 
    // for a specific picture (with POC = uiPOCCurr)
 
-  pcSlice->setRPS(getRPSList()->getReferencePictureSet());
+  pcSlice->setRPS(&m_ReferencePictureSet);
 
 }
 

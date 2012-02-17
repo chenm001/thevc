@@ -89,8 +89,10 @@ private:
   // SPS
   TComSPS                 m_cSPS;                         ///< SPS
   TComPPS                 m_cPPS;                         ///< PPS
-  TComRPS                 m_cRPSList;                         ///< RPS
+public:
+  TComReferencePictureSet m_ReferencePictureSet;          ///< RPS
   
+private:
   // RD cost computation
   TComBitCounter          m_cBitCounter;                  ///< bit counter for RD optimization
   TComRdCost              m_cRdCost;                      ///< RD cost computation class
@@ -143,9 +145,8 @@ public:
   
   TComSPS*                getSPS                () { return  &m_cSPS;                 }
   TComPPS*                getPPS                () { return  &m_cPPS;                 }
-  TComRPS*                getRPSList                () { return  &m_cRPSList;                 }
   
-  Void selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, TComList<TComPic*>& rcListPic );
+  Void selectReferencePictureSet(TComSlice* pcSlice );
   // -------------------------------------------------------------------------------------------------------------------
   // encoder function
   // -------------------------------------------------------------------------------------------------------------------

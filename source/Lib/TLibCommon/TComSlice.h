@@ -196,21 +196,6 @@ public:
   Void printDeltaPOC();
 };
 
-/// Reference Picture Set set class
-class TComRPS
-{
-private:
-  TComReferencePictureSet       m_ReferencePictureSet;
-  
-public:
-  TComRPS();
-  virtual ~TComRPS();
-  
-  TComReferencePictureSet* getReferencePictureSet();
-  UInt getNumberOfReferencePictureSets();
-  Void setNumberOfReferencePictureSets(UInt uiNumberOfReferencePictureSets);
-};
-
 /// PPS class
 class TComPPS
 {
@@ -221,13 +206,14 @@ private:
  
   // access channel
   TComSPS*    m_pcSPS;
-  TComRPS*    m_pcRPSList;
 
   UInt        m_uiBitsForLongTermRefs;
 
   Bool     m_enableTMVPFlag;
 
 public:
+  TComReferencePictureSet* m_pReferencePictureSet;
+
   TComPPS();
   virtual ~TComPPS();
   
@@ -243,8 +229,6 @@ public:
   Void      setBitsForLongTermRefs(UInt ui)  { m_uiBitsForLongTermRefs=ui;    }
   Void      setSPS              ( TComSPS* pcSPS ) { m_pcSPS = pcSPS; }
   TComSPS*  getSPS              ()         { return m_pcSPS;          }
-  Void      setRPSList              ( TComRPS* pcRPSList ) { m_pcRPSList = pcRPSList; }
-  TComRPS*  getRPSList              ()         { return m_pcRPSList;          }
 
   Void     setEnableTMVPFlag( Bool b )  { m_enableTMVPFlag = b;    }
   Bool     getEnableTMVPFlag()          { return m_enableTMVPFlag; }

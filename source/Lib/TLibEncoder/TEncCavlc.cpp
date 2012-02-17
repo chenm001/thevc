@@ -139,7 +139,7 @@ void TEncCavlc::codeSEI(const SEI& sei)
   writeSEImessage(*m_pcBitIf, sei);
 }
 
-Void TEncCavlc::codeShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet* pcRPS )
+Void TEncCavlc::codeShortTermRefPicSet( TComReferencePictureSet* pcRPS )
 {
 #if PRINT_RPS_INFO
   int lastBits = getNumberOfWrittenBits();
@@ -162,7 +162,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #if ENC_DEC_TRACE  
   xTracePPSHeader (pcPPS);
 #endif
-   TComRPS* pcRPSList = pcPPS->getRPSList();
   
   WRITE_UVLC( pcPPS->getPPSId(),                             "pic_parameter_set_id" );
   WRITE_UVLC( pcPPS->getSPSId(),                             "seq_parameter_set_id" );
@@ -172,8 +171,8 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 
   WRITE_UVLC(1, "num_short_term_ref_pic_sets" );
   {
-    pcRPS = pcRPSList->getReferencePictureSet();
-    codeShortTermRefPicSet(pcPPS,pcRPS);
+    pcRPS = pcPPS->m_pReferencePictureSet;
+    codeShortTermRefPicSet(pcRPS);
   }    
   WRITE_FLAG( 0,                                             "long_term_ref_pics_present_flag" );
   // entropy_coding_mode_flag

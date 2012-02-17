@@ -170,7 +170,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         pcSlice->decodingMarkingForNoTMVP( rcListPic, pcSlice->getPOC() );
       }
 
-      m_pcEncTop->selectReferencePictureSet(pcSlice, uiPOCCurr, rcListPic);
+      pcSlice->setRPS(&m_pcEncTop->m_ReferencePictureSet);
 
       pcSlice->applyReferencePictureSet(rcListPic, pcSlice->getRPS());
 

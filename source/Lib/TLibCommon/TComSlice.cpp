@@ -376,20 +376,6 @@ Void TComReferencePictureSet::printDeltaPOC()
   printf("}\n");
 }
 
-TComRPS::TComRPS()
-{
-}
-
-TComRPS::~TComRPS()
-{
-}
-
-
-TComReferencePictureSet* TComRPS::getReferencePictureSet()
-{
-   return &m_ReferencePictureSet;
-}
-
 #if PARAMSET_VLC_CLEANUP
 
 ParameterSetManager::ParameterSetManager()
