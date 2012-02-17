@@ -1169,16 +1169,19 @@ Void TEncCu::xCheckRDCostAMVPSkip           ( TComDataCU*& rpcBestCU, TComDataCU
   
   UInt uiOrgQP = rpcTempCU->getQP( 0 );
 
+  for (Int iMVP0 = (cAMVPInfo0.iN > 0? 0:-1); iMVP0 < cAMVPInfo0.iN; iMVP0++)
+  {
       rpcTempCU->setPredModeSubParts( MODE_SKIP, 0, uhDepth );
       rpcTempCU->setPartSizeSubParts( SIZE_2Nx2N,  0, uhDepth );
 
-      rpcTempCU->setMVPIdxSubParts( -1, 0, 0, uhDepth );
+      rpcTempCU->setMVPIdxSubParts( iMVP0, 0, 0, uhDepth );
 
-      rpcTempCU->setMVPNumSubParts( 0, 0, 0, uhDepth );
+      rpcTempCU->setMVPNumSubParts( cAMVPInfo0.iN, 0, 0, uhDepth );
 
       xCopyAMVPInfo(&cAMVPInfo0, rpcTempCU->getCUMvField()->getAMVPInfo());
       xCheckRDCostSkip ( rpcBestCU, rpcTempCU, true );      
       rpcTempCU->initEstData( uhDepth, uiOrgQP );
+  }
 }
 
 Void TEncCu::xCopyAMVPInfo (AMVPInfo* pSrc, AMVPInfo* pDst)
