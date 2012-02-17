@@ -41,8 +41,6 @@
 //! \ingroup TLibCommon
 //! \{
 
-#define PARAMSET_VLC_CLEANUP               0      ///< followup to G220: Simplify parameter set code
-
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
 

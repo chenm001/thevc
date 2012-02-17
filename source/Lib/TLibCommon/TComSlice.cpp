@@ -376,19 +376,4 @@ Void TComReferencePictureSet::printDeltaPOC()
   printf("}\n");
 }
 
-#if PARAMSET_VLC_CLEANUP
-
-ParameterSetManager::ParameterSetManager()
-: m_spsMap(MAX_NUM_SPS)
-, m_ppsMap(MAX_NUM_PPS)
-{
-}
-
-
-ParameterSetManager::~ParameterSetManager()
-{
-}
-
-#endif
-
 //! \}
