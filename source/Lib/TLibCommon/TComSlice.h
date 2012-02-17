@@ -270,7 +270,6 @@ private:
   Int         m_iNumRefIdx;    //  for multiple reference of current slice
 
   //  Data
-  Int         m_iSliceQpDelta;
   TComPic*    m_pcRefPicList;
   Int         m_iRefPOCList;
   Int         m_iDepth;
@@ -320,7 +319,6 @@ public:
   SliceType getSliceType    ()                          { return  m_eSliceType;         }
   Int       getPOC          ()                          { return  m_iPOC;           }
   Int       getSliceQp      ()                          { return  m_iSliceQp;           }
-  Int       getSliceQpDelta ()                          { return  m_iSliceQpDelta;      }
 
   Int       getNumRefIdx        ()                              { return  m_iNumRefIdx;                 }
   TComPic*  getPic              ()                              { return  m_pcPic;                      }
@@ -337,7 +335,6 @@ public:
   Void      decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TComList<TComPic*>& rcListPic);
   Void      setSliceType        ( SliceType e )                 { m_eSliceType        = e;      }
   Void      setSliceQp          ( Int i )                       { m_iSliceQp          = i;      }
-  Void      setSliceQpDelta     ( Int i )                       { m_iSliceQpDelta     = i;      }
   
   Void      setRefPic           ( TComPic* p )                  { m_pcRefPicList = p;           }
   Void      setRefPOC           ( Int i )                       { m_iRefPOCList = i;            }
