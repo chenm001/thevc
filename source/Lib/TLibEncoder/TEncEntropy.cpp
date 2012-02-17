@@ -440,16 +440,12 @@ Void TEncEntropy::encodeMvdPU( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   assert( !pcCU->isIntra( uiAbsPartIdx ) );
 
-  if ( pcCU->getInterDir( uiAbsPartIdx ) & 1 )
-  {
     m_pcEntropyCoderIf->codeMvd( pcCU, uiAbsPartIdx );
-  }
-  return;
 }
 
 Void TEncEntropy::encodeMVPIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
-  if ( (pcCU->getInterDir( uiAbsPartIdx ) &  1) && (pcCU->getAMVPMode(uiAbsPartIdx) == AM_EXPL) )
+  if ( pcCU->getAMVPMode(uiAbsPartIdx) == AM_EXPL )
   {
     m_pcEntropyCoderIf->codeMVPIdx( pcCU, uiAbsPartIdx );
   }

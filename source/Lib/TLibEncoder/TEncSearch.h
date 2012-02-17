@@ -307,7 +307,6 @@ protected:
   Void xMergeEstimation           ( TComDataCU*     pcCU,
                                     TComYuv*        pcYuvOrg,
                                     Int             iPartIdx,
-                                    UInt&           uiInterDir,
                                     TComMvField&    pacMvField,
                                     UInt&           uiMergeIndex,
                                     UInt&           ruiCost

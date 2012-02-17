@@ -61,7 +61,6 @@ TComDataCU::TComDataCU()
   m_puhMergeIndex      = NULL;
   m_puhLumaIntraDir    = NULL;
   m_puhChromaIntraDir  = NULL;
-  m_puhInterDir        = NULL;
   m_puhTrIdx           = NULL;
   m_puhCbf[0]          = NULL;
   m_puhCbf[1]          = NULL;
@@ -112,7 +111,6 @@ Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool b
     m_puhMergeIndex      = (UChar* )xMalloc(UChar,  uiNumPartition);
     m_puhLumaIntraDir    = (UChar* )xMalloc(UChar,  uiNumPartition);
     m_puhChromaIntraDir  = (UChar* )xMalloc(UChar,  uiNumPartition);
-    m_puhInterDir        = (UChar* )xMalloc(UChar,  uiNumPartition);
     
     m_puhTrIdx           = (UChar* )xMalloc(UChar,  uiNumPartition);
     
@@ -171,7 +169,6 @@ Void TComDataCU::destroy()
     if ( m_puhCbf[0]          ) { xFree(m_puhCbf[0]);           m_puhCbf[0]         = NULL; }
     if ( m_puhCbf[1]          ) { xFree(m_puhCbf[1]);           m_puhCbf[1]         = NULL; }
     if ( m_puhCbf[2]          ) { xFree(m_puhCbf[2]);           m_puhCbf[2]         = NULL; }
-    if ( m_puhInterDir        ) { xFree(m_puhInterDir);         m_puhInterDir       = NULL; }
     if ( m_pbMergeFlag        ) { xFree(m_pbMergeFlag);         m_pbMergeFlag       = NULL; }
     if ( m_puhMergeIndex      ) { xFree(m_puhMergeIndex);       m_puhMergeIndex     = NULL; }
     if ( m_puhLumaIntraDir    ) { xFree(m_puhLumaIntraDir);     m_puhLumaIntraDir   = NULL; }
@@ -239,7 +236,6 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
     memset( m_puhMergeIndex    , 0,                        m_uiNumPartition * sizeof( *m_puhMergeIndex ) );
     memset( m_puhLumaIntraDir  , 2,                        m_uiNumPartition * sizeof( *m_puhLumaIntraDir ) );
     memset( m_puhChromaIntraDir, 0,                        m_uiNumPartition * sizeof( *m_puhChromaIntraDir ) );
-    memset( m_puhInterDir      , 0,                        m_uiNumPartition * sizeof( *m_puhInterDir ) );
     memset( m_puhCbf[0]        , 0,                        m_uiNumPartition * sizeof( *m_puhCbf[0] ) );
     memset( m_puhCbf[1]        , 0,                        m_uiNumPartition * sizeof( *m_puhCbf[1] ) );
     memset( m_puhCbf[2]        , 0,                        m_uiNumPartition * sizeof( *m_puhCbf[2] ) );
@@ -318,7 +314,6 @@ Void TComDataCU::initEstData( UInt uiDepth, UInt uiQP )
       m_puhMergeIndex[ui] = 0;
       m_puhLumaIntraDir[ui] = 2;
       m_puhChromaIntraDir[ui] = 0;
-      m_puhInterDir[ui] = 0;
       m_puhCbf[0][ui] = 0;
       m_puhCbf[1][ui] = 0;
       m_puhCbf[2][ui] = 0;
@@ -367,7 +362,6 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, 
   memset( m_puhMergeIndex,      0, iSizeInUchar );
   memset( m_puhLumaIntraDir,    2, iSizeInUchar );
   memset( m_puhChromaIntraDir,  0, iSizeInUchar );
-  memset( m_puhInterDir,        0, iSizeInUchar );
   memset( m_puhTrIdx,           0, iSizeInUchar );
   memset( m_puhCbf[0],          0, iSizeInUchar );
   memset( m_puhCbf[1],          0, iSizeInUchar );
@@ -428,7 +422,6 @@ Void TComDataCU::copyPartFrom( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDept
   memcpy( m_puhMergeIndex       + uiOffset, pcCU->getMergeIndex(),        iSizeInUchar );
   memcpy( m_puhLumaIntraDir     + uiOffset, pcCU->getLumaIntraDir(),      iSizeInUchar );
   memcpy( m_puhChromaIntraDir   + uiOffset, pcCU->getChromaIntraDir(),    iSizeInUchar );
-  memcpy( m_puhInterDir         + uiOffset, pcCU->getInterDir(),          iSizeInUchar );
   memcpy( m_puhTrIdx            + uiOffset, pcCU->getTransformIdx(),      iSizeInUchar );
   
   memcpy( m_puhCbf[0] + uiOffset, pcCU->getCbf(TEXT_LUMA)    , iSizeInUchar );
@@ -483,7 +476,6 @@ Void TComDataCU::copyToPic( UChar uhDepth )
   memcpy( rpcCU->getMergeIndex()        + m_uiAbsIdxInLCU, m_puhMergeIndex,       iSizeInUchar );
   memcpy( rpcCU->getLumaIntraDir()      + m_uiAbsIdxInLCU, m_puhLumaIntraDir,     iSizeInUchar );
   memcpy( rpcCU->getChromaIntraDir()    + m_uiAbsIdxInLCU, m_puhChromaIntraDir,   iSizeInUchar );
-  memcpy( rpcCU->getInterDir()          + m_uiAbsIdxInLCU, m_puhInterDir,         iSizeInUchar );
   memcpy( rpcCU->getTransformIdx()      + m_uiAbsIdxInLCU, m_puhTrIdx,            iSizeInUchar );
   
   memcpy( rpcCU->getCbf(TEXT_LUMA)     + m_uiAbsIdxInLCU, m_puhCbf[0], iSizeInUchar );
@@ -533,7 +525,6 @@ Void TComDataCU::copyToPic( UChar uhDepth, UInt uiPartIdx, UInt uiPartDepth )
   memcpy( rpcCU->getMergeIndex()        + uiPartOffset, m_puhMergeIndex,       iSizeInUchar );
   memcpy( rpcCU->getLumaIntraDir()      + uiPartOffset, m_puhLumaIntraDir,     iSizeInUchar );
   memcpy( rpcCU->getChromaIntraDir()    + uiPartOffset, m_puhChromaIntraDir,   iSizeInUchar );
-  memcpy( rpcCU->getInterDir()          + uiPartOffset, m_puhInterDir,         iSizeInUchar );
   memcpy( rpcCU->getTransformIdx()      + uiPartOffset, m_puhTrIdx,            iSizeInUchar );
   
   memcpy( rpcCU->getCbf(TEXT_LUMA)     + uiPartOffset, m_puhCbf[0], iSizeInUchar );
@@ -1302,11 +1293,6 @@ Void TComDataCU::setChromIntraDirSubParts( UInt uiDir, UInt uiAbsPartIdx, UInt u
   memset( m_puhChromaIntraDir + uiAbsPartIdx, uiDir, sizeof(UChar)*uiCurrPartNumb );
 }
 
-Void TComDataCU::setInterDirSubParts( UInt uiDir, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth )
-{
-  setSubPart<UChar>( uiDir, m_puhInterDir, uiAbsPartIdx, uiDepth, uiPartIdx );
-}
-
 Void TComDataCU::setMVPIdxSubParts( Int iMVPIdx, UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth )
 {
   setSubPart<Char>( iMVPIdx, m_piMVPIdx, uiAbsPartIdx, uiDepth, uiPartIdx );
@@ -1644,10 +1630,9 @@ Void TComDataCU::deriveLeftBottomIdxAdi( UInt& ruiPartIdxLB, UInt uiPartOffset, 
  * \param uiPUIdx 
  * \param uiDepth
  * \param pcMvFieldNeighbours
- * \param puhInterDirNeighbours
  * \param numValidMergeCand
  */
-Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDepth, TComMvField* pcMvFieldNeighbours, UChar* puhInterDirNeighbours, Int& numValidMergeCand )
+Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDepth, TComMvField* pcMvFieldNeighbours, Int& numValidMergeCand )
 {
   UInt uiAbsPartAddr = m_uiAbsIdxInLCU + uiAbsPartIdx;
   UInt uiIdx = 1;
@@ -1673,8 +1658,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   if ( pcCULeft && !pcCULeft->isIntra( uiLeftPartIdx ) )
   {
     abCandIsInter[iCount] = true;
-    // get Inter Dir
-    puhInterDirNeighbours[iCount] = pcCULeft->getInterDir( uiLeftPartIdx );
     // get Mv from Left
     pcCULeft->getMvField( pcCULeft, uiLeftPartIdx, pcMvFieldNeighbours[iCount] );
     iCount ++;
@@ -1691,8 +1674,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   if ( pcCUAbove && !pcCUAbove->isIntra( uiAbovePartIdx ) )
   {
     abCandIsInter[iCount] = true;
-    // get Inter Dir
-    puhInterDirNeighbours[iCount] = pcCUAbove->getInterDir( uiAbovePartIdx );
     // get Mv from Left
     pcCUAbove->getMvField( pcCUAbove, uiAbovePartIdx, pcMvFieldNeighbours[iCount] );
     iCount ++;
@@ -1706,8 +1687,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   if ( pcCUAboveRight && !pcCUAboveRight->isIntra( uiAboveRightPartIdx ) )
   {
     abCandIsInter[iCount] = true;
-    // get Inter Dir
-    puhInterDirNeighbours[iCount] = pcCUAboveRight->getInterDir( uiAboveRightPartIdx );
     // get Mv from Left
     pcCUAboveRight->getMvField( pcCUAboveRight, uiAboveRightPartIdx, pcMvFieldNeighbours[iCount] );
     iCount ++;
@@ -1720,8 +1699,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   if ( pcCULeftBottom && !pcCULeftBottom->isIntra( uiLeftBottomPartIdx ) )
   {
     abCandIsInter[iCount] = true;
-    // get Inter Dir
-    puhInterDirNeighbours[iCount] = pcCULeftBottom->getInterDir( uiLeftBottomPartIdx );
     // get Mv from Left
     pcCULeftBottom->getMvField( pcCULeftBottom, uiLeftBottomPartIdx, pcMvFieldNeighbours[iCount] );
     iCount ++;
@@ -1736,8 +1713,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     if( pcCUAboveLeft && !pcCUAboveLeft->isIntra( uiAboveLeftPartIdx ) )
     {
       abCandIsInter[iCount] = true;
-      // get Inter Dir
-      puhInterDirNeighbours[iCount] = pcCUAboveLeft->getInterDir( uiAboveLeftPartIdx );
       // get Mv from Left
       pcCUAboveLeft->getMvField( pcCUAboveLeft, uiAboveLeftPartIdx, pcMvFieldNeighbours[iCount] );
       iCount ++;
@@ -1811,8 +1786,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
       UInt uiArrayAddr = iCount;
       abCandIsInter[uiArrayAddr] = true;
       pcMvFieldNeighbours[uiArrayAddr].setMvField( cColMv, iRefIdx );
-
-        puhInterDirNeighbours[uiArrayAddr] = 1;
     }
     uiIdx++;
 
@@ -1829,7 +1802,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
           if( pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getRefIdx() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getRefIdx() && 
               pcMvFieldNeighbours[ uiMvFieldNeighIdxCurr ].getMv() == pcMvFieldNeighbours[ uiMvFieldNeighIdxComp ].getMv() )
           {
-            assert( puhInterDirNeighbours[ uiOuter ] == puhInterDirNeighbours[ uiIter ] );
             abCandIsInter[ uiIter ] = false;
           }
       }
@@ -1851,7 +1823,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     if (abCandIsInterFlag[i])
     {
       abCandIsInter[uiArrayAddr] = true;
-      puhInterDirNeighbours[uiArrayAddr] = puhInterDirNeighbours[i];
       pcMvFieldNeighbours[uiArrayAddr].setMvField(pcMvFieldNeighbours[i].getMv(), pcMvFieldNeighbours[i].getRefIdx());
       ++uiArrayAddr;
     }
@@ -1859,7 +1830,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 
   for (int i=uiArrayAddr; i<MRG_MAX_NUM_CANDS; i++)
   {
-    puhInterDirNeighbours[i] = 1;
     abCandIsInter[i] = false;
     TComMv tmpMv;
     tmpMv.set(0,0);
@@ -1871,7 +1841,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   if ( uiArrayAddr!=MRG_MAX_NUM_CANDS )
   {
     abCandIsInter[uiArrayAddr] = true;
-    puhInterDirNeighbours[uiArrayAddr] = 1;
     pcMvFieldNeighbours[uiArrayAddr].setMvField( TComMv(0, 0), 0);
 
     uiArrayAddr++;

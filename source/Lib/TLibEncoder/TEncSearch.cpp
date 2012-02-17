@@ -1799,16 +1799,10 @@ Void TEncSearch::xGetInterPredictionError( TComDataCU* pcCU, TComYuv* pcYuvOrg, 
  * \param bValid 
  * \returns Void
  */
-Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUIdx, UInt& uiInterDir, TComMvField &pacMvField, UInt& uiMergeIndex, UInt& ruiCost )
+Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUIdx, TComMvField &pacMvField, UInt& uiMergeIndex, UInt& ruiCost )
 {
   TComMvField  cMvFieldNeighbours[MRG_MAX_NUM_CANDS]; // double length for mv of both lists
-  UChar uhInterDirNeighbours[MRG_MAX_NUM_CANDS];
   Int numValidMergeCand = 0;
-
-  for( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ++ui )
-  {
-    uhInterDirNeighbours[ui] = 0;
-  }
 
   UInt uiAbsPartIdx = 0;
   Int iWidth = 0;
@@ -1816,7 +1810,7 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
 
   pcCU->getPartIndexAndSize( iPUIdx, uiAbsPartIdx, iWidth, iHeight );
   UInt uiDepth = pcCU->getDepth( uiAbsPartIdx );
-  pcCU->getInterMergeCandidates( uiAbsPartIdx, iPUIdx, uiDepth, cMvFieldNeighbours,uhInterDirNeighbours, numValidMergeCand );
+  pcCU->getInterMergeCandidates( uiAbsPartIdx, iPUIdx, uiDepth, cMvFieldNeighbours, numValidMergeCand );
 
   ruiCost = MAX_UINT;
   for( UInt uiMergeCand = 0; uiMergeCand < numValidMergeCand; ++uiMergeCand )
@@ -1840,7 +1834,6 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
       {
         ruiCost = uiCostCand;
         pacMvField = cMvFieldNeighbours[uiMergeCand];
-        uiInterDir = uhInterDirNeighbours[uiMergeCand];
         uiMergeIndex = uiMergeCand;
       }
     }
@@ -2034,7 +2027,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       pcCU->getCUMvField()->setAllRefIdx( 0, ePartSize, uiPartAddr, 0, iPartIdx );
       TempMv = cMv - cMvPred;
       pcCU->getCUMvField()->setAllMvd( TempMv,ePartSize, uiPartAddr, 0, iPartIdx );
-      pcCU->setInterDirSubParts( 1, uiPartAddr, iPartIdx, pcCU->getDepth(0) );
       
       pcCU->setMVPIdxSubParts( iMvpIdx, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
       pcCU->setMVPNumSubParts( iMvpNum, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
@@ -2047,11 +2039,9 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
 
     if ( pcCU->getSlice()->getSPS()->getUseMRG() && pcCU->getPartitionSize( uiPartAddr ) != SIZE_2Nx2N )
     {
-      UInt uiMRGInterDir = 0;     
       TComMvField cMRGMvField;
       UInt uiMRGIndex = 0;
 
-      UInt uiMEInterDir = 0;
       TComMvField cMEMvField;
 
       m_pcRdCost->getMotionCost( 1, 0 );
@@ -2072,18 +2062,16 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       UInt uiMECost = uiMEError + m_pcRdCost->getCost( uiMEBits );
 #endif 
       // save ME result.
-      uiMEInterDir = pcCU->getInterDir( uiPartAddr );
       pcCU->getMvField( pcCU, uiPartAddr, cMEMvField );
 
       // find Merge result
       UInt uiMRGCost = MAX_UINT;
-      xMergeEstimation( pcCU, pcOrgYuv, iPartIdx, uiMRGInterDir, cMRGMvField, uiMRGIndex, uiMRGCost );
+      xMergeEstimation( pcCU, pcOrgYuv, iPartIdx, cMRGMvField, uiMRGIndex, uiMRGCost );
       if ( uiMRGCost < uiMECost )
       {
         // set Merge result
         pcCU->setMergeFlagSubParts ( true,          uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
         pcCU->setMergeIndexSubParts( uiMRGIndex,    uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
-        pcCU->setInterDirSubParts  ( uiMRGInterDir, uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
         pcCU->getCUMvField()->setAllMvField( cMRGMvField, ePartSize, uiPartAddr, 0, iPartIdx );
 
         pcCU->getCUMvField()->setAllMvd    ( cMvZero,            ePartSize, uiPartAddr, 0, iPartIdx );
@@ -2095,7 +2083,6 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       {
         // set ME result
         pcCU->setMergeFlagSubParts( false,        uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
-        pcCU->setInterDirSubParts ( uiMEInterDir, uiPartAddr, iPartIdx, pcCU->getDepth( uiPartAddr ) );
         pcCU->getCUMvField()->setAllMvField( cMEMvField, ePartSize, uiPartAddr, 0, iPartIdx );
       }
     }
@@ -2753,8 +2740,6 @@ Void TEncSearch::predInterSkipSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComY
   
   assert( eSliceType == P_SLICE );
   {
-    pcCU->setInterDirSubParts( 1, 0, 0, pcCU->getDepth( 0 ) );
-    
     TComMvField mvData;
     TComMv cZeroMv;
     
