@@ -2117,14 +2117,7 @@ Bool TComDataCU::isSkipped( UInt uiPartIdx )
   }
   else
   {
-    if ( m_pcSlice->isInterP() )
-    {
       return ( ( m_pePredMode[ uiPartIdx ] == MODE_SKIP ) && ( ( m_puhCbf[0][uiPartIdx] & 0x1 ) + ( m_puhCbf[1][uiPartIdx] & 0x1 ) + ( m_puhCbf[2][uiPartIdx] & 0x1 ) == 0) );
-    }
-    else //if ( m_pcSlice->isInterB()  )
-    {
-      return ( ( m_pePredMode[ uiPartIdx ] == MODE_SKIP ) && ( ( m_puhCbf[0][uiPartIdx] & 0x1 ) + ( m_puhCbf[1][uiPartIdx] & 0x1 ) + ( m_puhCbf[2][uiPartIdx] & 0x1 ) == 0) && (m_puhInterDir[uiPartIdx] == 3) );
-    }
   }
 }
 

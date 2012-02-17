@@ -286,7 +286,6 @@ public:
   Void      setRefPOCList       ();
   
   Bool      isIntra         ()                          { return  m_eSliceType == I_SLICE;  }
-  Bool      isInterP        ()                          { return  m_eSliceType == P_SLICE;  }
   
   Void      setLambda( Double d ) { m_dLambda = d; }
   Double    getLambda() { return m_dLambda;        }

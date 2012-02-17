@@ -255,7 +255,7 @@ Void TEncSlice::setSearchRange( TComSlice* pcSlice )
   Int iMaxSR = m_pcCfg->getSearchRange();
   
   // CHECK_ME
-    if ( pcSlice->isInterP() )
+    if ( !pcSlice->isIntra() )
     {
       iRefPOC = pcSlice->getRefPic()->getPOC();
       Int iNewSR = Clip3(8, iMaxSR, (iMaxSR*ADAPT_SR_SCALE*abs(iCurrPOC - iRefPOC)));

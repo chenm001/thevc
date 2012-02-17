@@ -505,12 +505,12 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
   {
     m_gcAnalyzeI.addResult (dYPSNR, dUPSNR, dVPSNR, (Double)uibits);
   }
-  if (pcSlice->isInterP())
+  else
   {
     m_gcAnalyzeP.addResult (dYPSNR, dUPSNR, dVPSNR, (Double)uibits);
   }
 
-  Char c = (pcSlice->isIntra() ? 'I' : pcSlice->isInterP() ? 'P' : 'B');
+  Char c = ( pcSlice->isIntra() ? 'I' : 'P' );
   if (!pcSlice->isReferenced()) c += 32;
 
   printf("POC %4d ( %c-SLICE, QP %d ) %10d bits",

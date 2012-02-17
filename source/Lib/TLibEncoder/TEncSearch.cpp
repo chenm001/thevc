@@ -1925,7 +1925,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     UInt          uiCostTempL0[MAX_NUM_REF];
     for (Int iNumRef=0; iNumRef < MAX_NUM_REF; iNumRef++) uiCostTempL0[iNumRef] = MAX_UINT;
 
-    xGetBlkBits( ePartSize, pcCU->getSlice()->isInterP(), iPartIdx, uiLastMode, uiMbBits);
+    xGetBlkBits( ePartSize, !pcCU->getSlice()->isIntra(), iPartIdx, uiLastMode, uiMbBits);
     
     pcCU->getPartIndexAndSize( iPartIdx, uiPartAddr, iRoiWidth, iRoiHeight );
     
