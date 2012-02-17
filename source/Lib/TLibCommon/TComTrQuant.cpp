@@ -2510,7 +2510,9 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   
   const TCoeff *pData = pcCoeff + posX + posY * width;
   
+#if !SIGMAP_CTX_SUBBLOCK
   Int thred = std::max(height, width) >> 2;
+#endif
   
   Int cnt = 0;
   if( posX < width - 1 )
@@ -2538,7 +2540,11 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   }
 
   cnt = ( cnt + 1 ) >> 1;
+#if SIGMAP_CTX_SUBBLOCK
+  return (( textureType == TEXT_LUMA && ((posX>>2) + (posY>>2)) > 0 ) ? 4 : 1) + offset + cnt;
+#else
   return (( textureType == TEXT_LUMA && posX + posY >= thred ) ? 4 : 1) + offset + cnt;
+#endif
 }
 
 /** Get the best level in RD sense
