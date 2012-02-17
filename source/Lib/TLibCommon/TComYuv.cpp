@@ -228,12 +228,6 @@ Void TComYuv::copyToPartChroma( TComYuv* pcYuvDst, UInt uiDstPartIdx )
   }
 }
 
-Void TComYuv::copyPartToPartYuv   ( TComYuv* pcYuvDst, UInt uiPartIdx, UInt iWidth, UInt iHeight )
-{
-  copyPartToPartLuma   (pcYuvDst, uiPartIdx, iWidth, iHeight );
-  copyPartToPartChroma (pcYuvDst, uiPartIdx, iWidth>>1, iHeight>>1 );
-}
-
 Void TComYuv::copyPartToPartLuma  ( TComYuv* pcYuvDst, UInt uiPartIdx, UInt iWidth, UInt iHeight )
 {
   Pel* pSrc =           getLumaAddr(uiPartIdx);

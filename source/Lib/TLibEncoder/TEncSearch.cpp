@@ -1766,7 +1766,7 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
 
 Void TEncSearch::xGetInterPredictionError( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPartIdx, UInt& ruiErr, Bool bHadamard )
 {
-  motionCompensation( pcCU, &m_tmpYuvPred, REF_PIC_LIST_X, iPartIdx );
+  motionCompensation( pcCU, &m_tmpYuvPred, iPartIdx );
 
   UInt uiAbsPartIdx = 0;
   Int iWidth = 0;
@@ -1999,7 +1999,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
             if ( pcCU->getSlice()->getNoBackPredFlag() )
             {
               TComYuv*  pcYuvPred = &m_acYuvPred[0];
-              motionCompensation ( pcCU, pcYuvPred, REF_PIC_LIST_0, iPartIdx );
+              motionCompensation ( pcCU, pcYuvPred, iPartIdx );
             }
           }
       }
@@ -2114,7 +2114,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     }
 
     //  MC
-    motionCompensation ( pcCU, rpcPredYuv, REF_PIC_LIST_X, iPartIdx );
+    motionCompensation ( pcCU, rpcPredYuv, iPartIdx );
     
   } //  end of for ( Int iPartIdx = 0; iPartIdx < iNumPart; iPartIdx++ )
 
@@ -2777,7 +2777,7 @@ Void TEncSearch::predInterSkipSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComY
     pcCU->getCUMvField()->setAllMvd    ( cZeroMv,       SIZE_2Nx2N, 0, 0 );  //unnecessary
 
     //  Motion compensation
-    motionCompensation ( pcCU, rpcPredYuv, REF_PIC_LIST_0 );
+    motionCompensation ( pcCU, rpcPredYuv );
     
   }
   else

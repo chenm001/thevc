@@ -121,7 +121,6 @@ public:
   Void    copyToPartChroma      ( TComYuv*    pcYuvDst,    UInt uiDstPartIdx );
   
   //  Copy YUV partition buffer to other YUV partition buffer
-  Void    copyPartToPartYuv     ( TComYuv*    pcYuvDst, UInt uiPartIdx, UInt uiWidth, UInt uiHeight );
   Void    copyPartToPartLuma    ( TComYuv*    pcYuvDst, UInt uiPartIdx, UInt uiWidth, UInt uiHeight );
   Void    copyPartToPartChroma  ( TComYuv*    pcYuvDst, UInt uiPartIdx, UInt uiWidth, UInt uiHeight );
   
