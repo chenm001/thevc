@@ -66,7 +66,6 @@ struct NALUnit
   bool isSlice()
   {
     return m_UnitType == NAL_UNIT_CODED_SLICE_IDR
-        || m_UnitType == NAL_UNIT_CODED_SLICE_CDR
         || m_UnitType == NAL_UNIT_CODED_SLICE;
   }
 };

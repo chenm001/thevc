@@ -62,7 +62,6 @@ void write(ostream& out, const OutputNALUnit& nalu)
   {
   case NAL_UNIT_CODED_SLICE:
   case NAL_UNIT_CODED_SLICE_IDR:
-  case NAL_UNIT_CODED_SLICE_CDR:
     bsNALUHeader.write(0, 3); // temporal_id
     bsNALUHeader.write(nalu.m_OutputFlag, 1); // output_flag
     bsNALUHeader.write(1, 4); // reserved_one_4bits

@@ -73,7 +73,6 @@ TEncGOP::TEncGOP()
   
   m_bSeqFirst           = true;
   
-  m_bRefreshPending     = 0;
   m_uiPOCCDR            = 0;
 
   return;
@@ -150,7 +149,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, TComList<TComPic*>& rcListPic, TComPicY
       // Set the nal unit type
       pcSlice->setNalUnitType(getNalUnitType(uiPOCCurr));
       // Do decoding refresh marking if any 
-      pcSlice->decodingRefreshMarking(m_uiPOCCDR, m_bRefreshPending, rcListPic);
+      pcSlice->decodingRefreshMarking(m_uiPOCCDR, rcListPic);
 
       if ( !pcSlice->getPPS()->getEnableTMVPFlag() )
       {
@@ -398,7 +397,7 @@ Void TEncGOP::printOutSummary(UInt uiNumAllPicCoded)
 // Protected member functions
 // ====================================================================================================================
 
-Void TEncGOP::xGetBuffer( TComList<TComPic*>&       rcListPic,
+Void TEncGOP::xGetBuffer( TComList<TComPic*>       rcListPic,
                          TComPic*&                 rpcPic,
                          UInt                      uiPOCCurr )
 {
@@ -425,7 +424,6 @@ static const char* nalUnitTypeToString(NalUnitType type)
   switch (type)
   {
   case NAL_UNIT_CODED_SLICE: return "SLICE";
-  case NAL_UNIT_CODED_SLICE_CDR: return "CDR";
   case NAL_UNIT_CODED_SLICE_IDR: return "IDR";
   case NAL_UNIT_SEI: return "SEI";
   case NAL_UNIT_SPS: return "SPS";
@@ -573,11 +571,7 @@ NalUnitType TEncGOP::getNalUnitType(UInt uiPOCCurr)
   }
   if (uiPOCCurr % m_pcCfg->getIntraPeriod() == 0)
   {
-    if (m_pcCfg->getDecodingRefreshType() == 1)
-    {
-      return NAL_UNIT_CODED_SLICE_CDR;
-    }
-    else if (m_pcCfg->getDecodingRefreshType() == 2)
+    if (m_pcCfg->getDecodingRefreshType() == 2)
     {
       return NAL_UNIT_CODED_SLICE_IDR;
     }

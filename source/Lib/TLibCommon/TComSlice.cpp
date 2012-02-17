@@ -201,7 +201,7 @@ Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic )
  * Note that the current picture is already placed in the reference list and its marking is not changed.
  * If the current picture has a nal_ref_idc that is not 0, it will remain marked as "used for reference".
  */
-Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TComList<TComPic*>& rcListPic)
+Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, TComList<TComPic*>& rcListPic)
 {
   TComPic*                 rpcPic;
   UInt uiPOCCurr = getPOC(); 
@@ -215,25 +215,6 @@ Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TC
       rpcPic = *(iterPic);
       if (rpcPic->getPOC() != uiPOCCurr) rpcPic->getSlice()->setReferenced(false);
       iterPic++;
-    }
-  }
-  else // CDR or No DR
-  {
-    if (bRefreshPending==true && uiPOCCurr > uiPOCCDR) // CDR reference marking pending 
-    {
-      TComList<TComPic*>::iterator        iterPic       = rcListPic.begin();
-      while (iterPic != rcListPic.end())
-      {
-        rpcPic = *(iterPic);
-        if (rpcPic->getPOC() != uiPOCCurr && rpcPic->getPOC() != uiPOCCDR) rpcPic->getSlice()->setReferenced(false);
-        iterPic++;
-      }
-      bRefreshPending = false; 
-    }
-    if (getNalUnitType() == NAL_UNIT_CODED_SLICE_CDR) // CDR picture found
-    {
-      bRefreshPending = true; 
-      uiPOCCDR = uiPOCCurr;
     }
   }
 }

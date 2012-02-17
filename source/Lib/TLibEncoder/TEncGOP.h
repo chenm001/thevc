@@ -91,7 +91,6 @@ private:
   Bool                    m_bSeqFirst;
   
   // clean decoding refresh
-  Bool                    m_bRefreshPending;
   UInt                    m_uiPOCCDR;
 
   std::vector<Int> m_vRVM_RP;
@@ -114,7 +113,7 @@ public:
   NalUnitType getNalUnitType( UInt uiPOCCurr );
 
 protected:
-  Void  xGetBuffer        ( TComList<TComPic*>& rcListPic, TComPic*& rpcPic, UInt uiPOCCurr );
+  Void  xGetBuffer        ( TComList<TComPic*> rcListPic, TComPic*& rpcPic, UInt uiPOCCurr );
   
   Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, const AccessUnit& );
   
