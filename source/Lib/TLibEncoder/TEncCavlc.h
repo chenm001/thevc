@@ -83,7 +83,7 @@ protected:
   Void  xWriteExGolombLevel    ( UInt uiSymbol );
   Void  xWriteUnaryMaxSymbol  ( UInt uiSymbol, UInt uiMaxSymbol );
 
-  Void codeShortTermRefPicSet              ( TComReferencePictureSet* pcRPS );
+  Void codeShortTermRefPicSet ();
   
   UInt  xConvertToUInt        ( Int iValue ) {  return ( iValue <= 0) ? -iValue<<1 : (iValue<<1)-1; }
   

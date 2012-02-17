@@ -139,7 +139,7 @@ void TEncCavlc::codeSEI(const SEI& sei)
   writeSEImessage(*m_pcBitIf, sei);
 }
 
-Void TEncCavlc::codeShortTermRefPicSet( TComReferencePictureSet* pcRPS )
+Void TEncCavlc::codeShortTermRefPicSet()
 {
 #if PRINT_RPS_INFO
   int lastBits = getNumberOfWrittenBits();
@@ -148,11 +148,10 @@ Void TEncCavlc::codeShortTermRefPicSet( TComReferencePictureSet* pcRPS )
     WRITE_UVLC( 1, "num_negative_pics" );
     WRITE_UVLC( 0, "num_positive_pics" );
       WRITE_UVLC( 0, "delta_poc_s0_minus1" );
-      WRITE_FLAG( pcRPS->getUsed(0), "used_by_curr_pic_s0_flag"); 
+  WRITE_FLAG( 1, "used_by_curr_pic_s0_flag"); 
 
 #if PRINT_RPS_INFO
   printf("irps=%d (%2d bits) ", 0, getNumberOfWrittenBits() - lastBits);
-  pcRPS->printDeltaPOC();
 #endif
 }
 
@@ -165,15 +164,9 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   
   WRITE_UVLC( pcPPS->getPPSId(),                             "pic_parameter_set_id" );
   WRITE_UVLC( pcPPS->getSPSId(),                             "seq_parameter_set_id" );
-  // RPS is put before entropy_coding_mode_flag
-  // since entropy_coding_mode_flag will probably be removed from the WD
-  TComReferencePictureSet*      pcRPS;
 
   WRITE_UVLC(1, "num_short_term_ref_pic_sets" );
-  {
-    pcRPS = pcPPS->m_pReferencePictureSet;
-    codeShortTermRefPicSet(pcRPS);
-  }    
+    codeShortTermRefPicSet();
   WRITE_FLAG( 0,                                             "long_term_ref_pics_present_flag" );
   // entropy_coding_mode_flag
   // We code the entropy_coding_mode_flag, it's needed for tests.

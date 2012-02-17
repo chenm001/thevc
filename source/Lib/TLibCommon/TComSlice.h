@@ -169,26 +169,6 @@ public:
   Void setMaxLatencyIncrease    ( UInt ui )   { m_uiMaxLatencyIncrease= ui;      }
 };
 
-/// Reference Picture Set class
-class TComReferencePictureSet
-{
-private:
-  Int       m_piPOC[MAX_NUM_REF_PICS];
-  Bool      m_pbUsed[MAX_NUM_REF_PICS];
-
-public:
-  TComReferencePictureSet();
-  virtual ~TComReferencePictureSet();
-
-  Void setUsed(UInt uiBufferNum, Bool bUsed);
-  Void setPOC(UInt uiBufferNum, Int iDeltaPOC);
-
-  UInt getUsed(UInt uiBufferNum);
-  Int  getPOC(UInt uiBufferNum);
-
-  Void printDeltaPOC();
-};
-
 /// PPS class
 class TComPPS
 {
@@ -200,12 +180,9 @@ private:
   // access channel
   TComSPS*    m_pcSPS;
 
-  UInt        m_uiBitsForLongTermRefs;
-
   Bool     m_enableTMVPFlag;
 
 public:
-  TComReferencePictureSet* m_pReferencePictureSet;
 
   TComPPS();
   virtual ~TComPPS();
@@ -218,8 +195,6 @@ public:
   Int       getPicInitQPMinus26 ()         { return  m_picInitQPMinus26; }
   Void      setPicInitQPMinus26 ( Int i )  { m_picInitQPMinus26 = i;     }
 
-  UInt      getBitsForLongTermRefs()         { return m_uiBitsForLongTermRefs;}
-  Void      setBitsForLongTermRefs(UInt ui)  { m_uiBitsForLongTermRefs=ui;    }
   Void      setSPS              ( TComSPS* pcSPS ) { m_pcSPS = pcSPS; }
   TComSPS*  getSPS              ()         { return m_pcSPS;          }
 
@@ -238,8 +213,6 @@ private:
   Int         m_iPOC;
   Int         m_iLastIDR;
   static Int  m_iPrevPOC;
-  TComReferencePictureSet *m_pcRPS;
-  TComReferencePictureSet m_LocalRPS;
   NalUnitType m_eNalUnitType;         ///< Nal unit type for the slice
   SliceType   m_eSliceType;
   Int         m_iSliceQp;
@@ -280,9 +253,6 @@ public:
 
   Void      setPPSId        ( Int PPSId )         { m_iPPSId = PPSId; }
   Int       getPPSId        () { return m_iPPSId; }
-  Void      setRPS          ( TComReferencePictureSet *pcRPS ) { m_pcRPS = pcRPS; }
-  TComReferencePictureSet*  getRPS          () { return m_pcRPS; }
-  TComReferencePictureSet*  getLocalRPS     () { return &m_LocalRPS; }
 
   Int       getPrevPOC      ()                          { return  m_iPrevPOC;       }
 
@@ -345,10 +315,6 @@ public:
   Void      setCABACinitIDC(Int iVal) {m_cabacInitIdc = iVal;    }  //!< set CABAC initial IDC number 
   Int       getCABACinitIDC()         {return m_cabacInitIdc;    }  //!< get CABAC initial IDC number 
 protected:
-  TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,
-                         UInt                uiPOC);
-  TComPic*  xGetLongTermRefPic  (TComList<TComPic*>& rcListPic,
-                         UInt                uiPOC);
 };// END CLASS DEFINITION TComSlice
 
 

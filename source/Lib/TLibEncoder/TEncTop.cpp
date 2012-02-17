@@ -165,9 +165,7 @@ Void TEncTop::init()
   
   // initialize PPS
   m_cPPS.setSPS(&m_cSPS);
-  m_cPPS.m_pReferencePictureSet = &m_ReferencePictureSet;
   xInitPPS();
-  xInitRPS();
 
   // initialize processing unit classes
   m_cGOPEncoder.  init( this );
@@ -304,33 +302,6 @@ Void TEncTop::xInitSPS()
 Void TEncTop::xInitPPS()
 {
   m_cPPS.setEnableTMVPFlag( m_bEnableTMVP );
-}
-
-Void TEncTop::xInitRPS()
-{
-  // In this function 
-  // a number of Reference Picture Sets
-  // are defined for different coding structures.
-  // This is the place 
-  // where you need to do changes in
-  // order to try different Reference Picture Sets.
-  // In a future implementation the 
-  // Reference Picture Sets will be 
-  // configured directly from the config file.
-  // Here we check what BD is appropriate
-  
-    m_ReferencePictureSet.setUsed(0, true);
-}
-
-Void TEncTop::selectReferencePictureSet(TComSlice* pcSlice )
-{
-
-   // This is a function that 
-   // decides what Reference Picture Set to use 
-   // for a specific picture (with POC = uiPOCCurr)
-
-  pcSlice->setRPS(&m_ReferencePictureSet);
-
 }
 
 //! \}

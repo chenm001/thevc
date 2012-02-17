@@ -77,42 +77,6 @@ Void TComSlice::initSlice()
   m_bFinalized=false;
 }
 
-TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
-                                UInt                uiPOC)
-{
-  TComList<TComPic*>::iterator  iterPic = rcListPic.begin();  
-  TComPic*                      pcPic = *(iterPic);
-  while ( iterPic != rcListPic.end() )
-  {
-    if(pcPic->getPOC() == uiPOC)
-      break;
-    iterPic++;
-    pcPic = *(iterPic);
-  }
-  return  pcPic;
-}
-
-
-TComPic* TComSlice::xGetLongTermRefPic (TComList<TComPic*>& rcListPic,
-                                UInt                uiPOC)
-{
-  TComList<TComPic*>::iterator  iterPic = rcListPic.begin();  
-  TComPic*                      pcPic = *(iterPic);
-  TComPic*                      pcStPic = pcPic;
-  while ( iterPic != rcListPic.end() )
-  {
-    pcPic = *(iterPic);
-    if(pcPic && (pcPic->getPOC()%(1<<getSPS()->getBitsForPOC())) == (uiPOC%(1<<getSPS()->getBitsForPOC())))
-    {
-        pcStPic = pcPic;
-      break;
-    }
-
-    iterPic++;
-  }
-  return  pcStPic;
-}
-
 Void TComSlice::setRefPOCList       ()
 {
     if ( !isIntra() )
@@ -130,15 +94,10 @@ Void TComSlice::setRefPicList( TComPic* pcListPic[2] )
 
   TComPic*  pcRefPic;
 
-    if(m_pcRPS->getUsed(0))
-    {
-      // CHECK_ME
-      //pcRefPic = xGetRefPic(rcListPic, getPOC()-1);
       pcRefPic = pcListPic[0];
       pcRefPic->getPicYuvRec()->extendPicBorder();
       // ref_pic_list_init
       m_pcRefPicList = pcRefPic;
-    }
 }
 
 /** Function for marking the reference pictures when an IDR and CDR is encountered.
@@ -214,52 +173,11 @@ TComPPS::TComPPS()
 , m_SPSId                       (0)
 , m_picInitQPMinus26            (0)
 , m_pcSPS                       (NULL)
-, m_uiBitsForLongTermRefs       (0)
 {
 }
 
 TComPPS::~TComPPS()
 {
-}
-
-TComReferencePictureSet::TComReferencePictureSet()
-{
-  ::memset( m_piPOC, 0, sizeof(m_piPOC) );
-  ::memset( m_pbUsed, 0, sizeof(m_pbUsed) );
-}
-
-TComReferencePictureSet::~TComReferencePictureSet()
-{
-}
-
-Void TComReferencePictureSet::setUsed(UInt uiBufferNum, Bool bUsed)
-{
-   m_pbUsed[uiBufferNum] = bUsed;
-}
-
-UInt TComReferencePictureSet::getUsed(UInt uiBufferNum)
-{
-   return (UInt)m_pbUsed[uiBufferNum];
-}
-
-Int TComReferencePictureSet::getPOC(UInt uiBufferNum)
-{
-   return m_piPOC[uiBufferNum];
-}
-Void TComReferencePictureSet::setPOC(UInt uiBufferNum, Int iPOC)
-{
-   m_piPOC[uiBufferNum] = iPOC;
-}
-
-/** Prints the deltaPOC and RefIdc (if available) values in the RPS.
- *  A "*" is added to the deltaPOC value if it is Used bu current.
- * \returns Void
- */
-Void TComReferencePictureSet::printDeltaPOC()
-{
-  printf("DeltaPOC = { ");
-    printf("%d%s ", -1, (getUsed(0)==1)?"*":"");
-  printf("}\n");
 }
 
 //! \}

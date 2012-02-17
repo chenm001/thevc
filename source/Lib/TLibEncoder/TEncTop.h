@@ -90,7 +90,6 @@ private:
   TComPPS                 m_cPPS;                         ///< PPS
 public:
   TComPic*                m_pcListPic[2];                 ///< dynamic list of pictures
-  TComReferencePictureSet m_ReferencePictureSet;          ///< RPS
   
 private:
   // RD cost computation
@@ -111,8 +110,6 @@ protected:
   Void  xInitSPS          ();                             ///< initialize SPS from encoder options
   Void  xInitPPS          ();                             ///< initialize PPS from encoder options
   
-  Void  xInitRPS          ();                             ///< initialize PPS from encoder options
-
 public:
   TEncTop();
   virtual ~TEncTop();
@@ -144,7 +141,6 @@ public:
   TComSPS*                getSPS                () { return  &m_cSPS;                 }
   TComPPS*                getPPS                () { return  &m_cPPS;                 }
   
-  Void selectReferencePictureSet(TComSlice* pcSlice );
   // -------------------------------------------------------------------------------------------------------------------
   // encoder function
   // -------------------------------------------------------------------------------------------------------------------

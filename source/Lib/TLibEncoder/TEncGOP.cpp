@@ -159,8 +159,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, TComPic* pcListPic[2], TComPicYuv* pcPi
           pcListPic[0]->setUsedForTMVP( false );
       }
 
-      pcSlice->setRPS(&m_pcEncTop->m_ReferencePictureSet);
-
       //  Set reference list
       pcSlice->setRefPicList ( pcListPic );
       
@@ -239,7 +237,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, TComPic* pcListPic[2], TComPicYuv* pcPi
           pcSlice->setNextSlice       ( true );
         } 
 
-      pcSlice->setRPS(pcPic->getSlice()->getRPS());
         UInt uiDummyBoundingCUAddr;
         m_pcSliceEncoder->xDetermineStartAndBoundingCUAddr(uiDummyBoundingCUAddr,pcPic,true);
 
@@ -353,19 +350,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, TComPic* pcListPic[2], TComPicYuv* pcPi
 
       m_bFirst = false;
 
-      // CHECK_ME
-//       // chen: Clean reference
-//       {
-//         // loop through all pictures in the reference picture buffer
-//         TComList<TComPic*>::iterator iterPic = rcListPic.begin();
-//         while ( iterPic != rcListPic.end())
-//         {
-//             TComPic* rpcPic = *(iterPic++);
-//             if ( rpcPic->getPOC() != uiPOCCurr )
-//                 rpcPic->getSlice()->setReferenced( false );
-//         }
-// 
-//       }
       /* logging: insert a newline at end of picture period */
       printf("\n");
       fflush(stdout);
