@@ -57,7 +57,6 @@ class SEImessages;
 class TComPic
 {
 private:
-  Bool                  m_bUsedByCurr;            //  Used by current picture
   TComPicSym*           m_apcPicSym;              //  Symbol
   
   TComPicYuv*           m_apcPicYuv[2];           //  Texture,  0:org / 1:rec
@@ -78,9 +77,6 @@ public:
   Void          create( Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth, Bool bIsVirtual = false );
   virtual Void  destroy();
   
-  Bool          getUsedByCurr()             { return m_bUsedByCurr; }
-  Void          setUsedByCurr( Bool bUsed ) { m_bUsedByCurr = bUsed; }
-
   TComPicSym*   getPicSym()           { return  m_apcPicSym;    }
   TComSlice*    getSlice()            { return  m_apcPicSym->getSlice();  }
   Int           getPOC()              { return  m_apcPicSym->getSlice()->getPOC();  }

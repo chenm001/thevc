@@ -171,6 +171,10 @@ Void TAppEncTop::encode()
   // allocate original YUV buffer
   pcPicYuvOrg->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
   pcPicYuvRec->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
+  m_cTEncTop.m_pcListPic[0] = new TComPic;
+  m_cTEncTop.m_pcListPic[1] = new TComPic;
+  m_cTEncTop.m_pcListPic[0]->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+  m_cTEncTop.m_pcListPic[1]->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
 
   while ( !bEos )
   {
@@ -200,7 +204,12 @@ Void TAppEncTop::encode()
   pcPicYuvRec = NULL;
   
   // delete used buffers in encoder class
-  m_cTEncTop.deletePicBuffer();
+  m_cTEncTop.m_pcListPic[0]->destroy();
+  m_cTEncTop.m_pcListPic[1]->destroy();
+  delete m_cTEncTop.m_pcListPic[0];
+  delete m_cTEncTop.m_pcListPic[1];
+  m_cTEncTop.m_pcListPic[0] = NULL;
+  m_cTEncTop.m_pcListPic[1] = NULL;
   
   // delete buffers & classes
   xDestroyLib();

@@ -64,7 +64,8 @@ TEncGOP::TEncGOP()
   
   m_pcCfg               = NULL;
   m_pcSliceEncoder      = NULL;
-  m_pcListPic           = NULL;
+  m_pcListPic[0]        = NULL;
+  m_pcListPic[1]        = NULL;
   
   m_pcEntropyCoder      = NULL;
   m_pcCavlcCoder        = NULL;
@@ -103,7 +104,8 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
   m_pcEncTop     = pcTEncTop;
   m_pcCfg                = pcTEncTop;
   m_pcSliceEncoder       = pcTEncTop->getSliceEncoder();
-  m_pcListPic            = pcTEncTop->getListPic();
+  m_pcListPic[0]         = pcTEncTop->m_pcListPic[0];
+  m_pcListPic[1]         = pcTEncTop->m_pcListPic[1];
   
   m_pcEntropyCoder       = pcTEncTop->getEntropyCoder();
   m_pcCavlcCoder         = pcTEncTop->getCavlcCoder();
@@ -115,7 +117,7 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
-Void TEncGOP::compressGOP( Int iPOCLast, TComList<TComPic*>& rcListPic, TComPicYuv* pcPicYuvRecOut, std::list<AccessUnit>& accessUnitsInGOP)
+Void TEncGOP::compressGOP( Int iPOCLast, TComPic* pcListPic[2], TComPicYuv* pcPicYuvRecOut, std::list<AccessUnit>& accessUnitsInGOP)
 {
   TComPic*        pcPic;
   TComSlice*      pcSlice;
@@ -135,7 +137,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, TComList<TComPic*>& rcListPic, TComPicY
        * access units */
       accessUnitsInGOP.push_back(AccessUnit());
       AccessUnit& accessUnit = accessUnitsInGOP.back();
-      xGetBuffer( rcListPic, pcPic, uiPOCCurr );
+      pcPic = pcListPic[1];
+      assert( pcPic->getPOC() == (Int)uiPOCCurr );
       
       //  Slice data initialization
       pcPic->clearSliceBuffer();
@@ -149,19 +152,17 @@ Void TEncGOP::compressGOP( Int iPOCLast, TComList<TComPic*>& rcListPic, TComPicY
       // Set the nal unit type
       pcSlice->setNalUnitType(getNalUnitType(uiPOCCurr));
       // Do decoding refresh marking if any 
-      pcSlice->decodingRefreshMarking(m_uiPOCCDR, rcListPic);
+      pcSlice->decodingRefreshMarking(pcListPic);
 
       if ( !pcSlice->getPPS()->getEnableTMVPFlag() )
       {
-        pcSlice->decodingMarkingForNoTMVP( rcListPic, pcSlice->getPOC() );
+          pcListPic[0]->setUsedForTMVP( false );
       }
 
       pcSlice->setRPS(&m_pcEncTop->m_ReferencePictureSet);
 
-      pcSlice->applyReferencePictureSet(rcListPic, pcSlice->getRPS());
-
       //  Set reference list
-      pcSlice->setRefPicList ( rcListPic );
+      pcSlice->setRefPicList ( pcListPic );
       
       //-------------------------------------------------------------
       pcSlice->setRefPOCList();
@@ -352,6 +353,19 @@ Void TEncGOP::compressGOP( Int iPOCLast, TComList<TComPic*>& rcListPic, TComPicY
 
       m_bFirst = false;
 
+      // CHECK_ME
+//       // chen: Clean reference
+//       {
+//         // loop through all pictures in the reference picture buffer
+//         TComList<TComPic*>::iterator iterPic = rcListPic.begin();
+//         while ( iterPic != rcListPic.end())
+//         {
+//             TComPic* rpcPic = *(iterPic++);
+//             if ( rpcPic->getPOC() != uiPOCCurr )
+//                 rpcPic->getSlice()->setReferenced( false );
+//         }
+// 
+//       }
       /* logging: insert a newline at end of picture period */
       printf("\n");
       fflush(stdout);
@@ -392,27 +406,6 @@ Void TEncGOP::printOutSummary(UInt uiNumAllPicCoded)
 // ====================================================================================================================
 // Protected member functions
 // ====================================================================================================================
-
-Void TEncGOP::xGetBuffer( TComList<TComPic*>       rcListPic,
-                         TComPic*&                 rpcPic,
-                         UInt                      uiPOCCurr )
-{
-  //  Current pic.
-  TComList<TComPic*>::iterator        iterPic       = rcListPic.begin();
-  while (iterPic != rcListPic.end())
-  {
-    rpcPic = *(iterPic);
-    if (rpcPic->getPOC() == (Int)uiPOCCurr)
-    {
-      break;
-    }
-    iterPic++;
-  }
-  
-  assert (rpcPic->getPOC() == (Int)uiPOCCurr);
-  
-  return;
-}
 
 #if VERBOSE_RATE
 static const char* nalUnitTypeToString(NalUnitType type)

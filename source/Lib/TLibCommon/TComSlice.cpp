@@ -77,41 +77,6 @@ Void TComSlice::initSlice()
   m_bFinalized=false;
 }
 
-Void  TComSlice::sortPicList        (TComList<TComPic*>& rcListPic)
-{
-  TComPic*    pcPicExtract;
-  TComPic*    pcPicInsert;
-  
-  TComList<TComPic*>::iterator    iterPicExtract;
-  TComList<TComPic*>::iterator    iterPicExtract_1;
-  TComList<TComPic*>::iterator    iterPicInsert;
-  
-  for (Int i = 1; i < (Int)(rcListPic.size()); i++)
-  {
-    iterPicExtract = rcListPic.begin();
-    for (Int j = 0; j < i; j++) iterPicExtract++;
-    pcPicExtract = *(iterPicExtract);
-    
-    iterPicInsert = rcListPic.begin();
-    while (iterPicInsert != iterPicExtract)
-    {
-      pcPicInsert = *(iterPicInsert);
-      if (pcPicInsert->getPOC() >= pcPicExtract->getPOC())
-      {
-        break;
-      }
-      
-      iterPicInsert++;
-    }
-    
-    iterPicExtract_1 = iterPicExtract;    iterPicExtract_1++;
-    
-    //  swap iterPicExtract and iterPicInsert, iterPicExtract = curr. / iterPicInsert = insertion position
-    rcListPic.insert (iterPicInsert, iterPicExtract, iterPicExtract_1);
-    rcListPic.erase  (iterPicExtract);
-  }
-}
-
 TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
                                 UInt                uiPOC)
 {
@@ -154,7 +119,7 @@ Void TComSlice::setRefPOCList       ()
       m_iRefPOCList = m_pcRefPicList->getPOC();
 }
 
-Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic )
+Void TComSlice::setRefPicList( TComPic* pcListPic[2] )
 {
   if (m_eSliceType == I_SLICE)
   {
@@ -167,7 +132,9 @@ Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic )
 
     if(m_pcRPS->getUsed(0))
     {
-      pcRefPic = xGetRefPic(rcListPic, getPOC()-1);
+      // CHECK_ME
+      //pcRefPic = xGetRefPic(rcListPic, getPOC()-1);
+      pcRefPic = pcListPic[0];
       pcRefPic->getPicYuvRec()->extendPicBorder();
       // ref_pic_list_init
       m_pcRefPicList = pcRefPic;
@@ -191,69 +158,19 @@ Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic )
  * Note that the current picture is already placed in the reference list and its marking is not changed.
  * If the current picture has a nal_ref_idc that is not 0, it will remain marked as "used for reference".
  */
-Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, TComList<TComPic*>& rcListPic)
+Void TComSlice::decodingRefreshMarking(TComPic* pcListPic[2])
 {
-  TComPic*                 rpcPic;
   UInt uiPOCCurr = getPOC(); 
 
   if (getNalUnitType() == NAL_UNIT_CODED_SLICE_IDR)  // IDR
   {
-    // mark all pictures as not used for reference
-    TComList<TComPic*>::iterator        iterPic       = rcListPic.begin();
-    while (iterPic != rcListPic.end())
-    {
-      rpcPic = *(iterPic);
-      if (rpcPic->getPOC() != uiPOCCurr) rpcPic->getSlice()->setReferenced(false);
-      iterPic++;
-    }
+    TComPic* pcPic = pcListPic[0];
+    pcPic->getSlice()->setReferenced(false);
+    //assert( pcPic->getPOC() != uiPOCCurr );
   }
 }
 
 int TComSlice::m_iPrevPOC = 0;
-
-/** Function for applying picture marking based on the Reference Picture Set in pReferencePictureSet.
-*/
-Void TComSlice::applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet)
-{
-  TComPic* rpcPic;
-  Int isReference;
-
-  Int j = 0;
-  // loop through all pictures in the reference picture buffer
-  TComList<TComPic*>::iterator iterPic = rcListPic.begin();
-  while ( iterPic != rcListPic.end())
-  {
-    j++;
-    rpcPic = *(iterPic++);
-
-    isReference = 0;
-    // loop through all pictures in the Reference Picture Set
-    // to see if the picture should be kept as reference picture
-      if(rpcPic->getPicSym()->getSlice()->getPOC() == this->getPOC() - 1)
-      {
-        isReference = 1;
-        rpcPic->setUsedByCurr(pReferencePictureSet->getUsed(0));
-      }
-    // mark the picture as "unused for reference" if it is not in
-    // the Reference Picture Set
-    if(rpcPic->getPicSym()->getSlice()->getPOC() != this->getPOC() && isReference == 0)    
-    {            
-      rpcPic->getSlice()->setReferenced( false );   
-    }
-  }  
-}
-
-Void TComSlice::decodingMarkingForNoTMVP( TComList<TComPic*>& rcListPic, Int currentPOC )
-{
-  TComList<TComPic*>::iterator it;
-  for ( it = rcListPic.begin(); it != rcListPic.end(); it++ )
-  {
-    if ( (*it)->getSlice()->getPOC() != currentPOC )
-    {
-      (*it)->setUsedForTMVP( false );
-    }
-  }
-}
 
 // ------------------------------------------------------------------------------------------------
 // Sequence parameter set (SPS)

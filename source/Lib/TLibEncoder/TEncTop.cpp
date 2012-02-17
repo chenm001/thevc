@@ -192,21 +192,6 @@ Void TEncTop::init()
 // Public member functions
 // ====================================================================================================================
 
-Void TEncTop::deletePicBuffer()
-{
-  TComList<TComPic*>::iterator iterPic = m_cListPic.begin();
-  Int iSize = Int( m_cListPic.size() );
-  
-  for ( Int i = 0; i < iSize; i++ )
-  {
-    TComPic* pcPic = *(iterPic++);
-    
-    pcPic->destroy();
-    delete pcPic;
-    pcPic = NULL;
-  }
-}
-
 /**
  - Application has picture buffer list with size of GOP + 1
  - Picture buffer list acts like as ring buffer
@@ -227,7 +212,7 @@ Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComPicYuv* pcPicYuvRe
   pcPicYuvOrg->copyToPic( pcPicCurr->getPicYuvOrg() );
   
   // compress GOP
-  m_cGOPEncoder.compressGOP(m_iPOCLast, m_cListPic, pcPicYuvRec, accessUnitsOut);
+  m_cGOPEncoder.compressGOP(m_iPOCLast, m_pcListPic, pcPicYuvRec, accessUnitsOut);
   
   m_uiNumAllPicCoded ++;
   
@@ -250,26 +235,14 @@ Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComPicYuv* pcPicYuvRe
  */
 Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
 {
-  TComSlice::sortPicList(m_cListPic);
-  
-  // CHECK_ME
-  if (m_cListPic.size() >= (UInt)(1 + 1 + 2) )
-  {
-    TComList<TComPic*>::iterator iterPic  = m_cListPic.begin();
-    Int iSize = Int( m_cListPic.size() );
-    for ( Int i = 0; i < iSize; i++ )
-    {
-      rpcPic = *(++iterPic);
-      if(rpcPic->getSlice()->isReferenced() == false)
-         break;
-    }
-  }
-  else
-  {
-          rpcPic = new TComPic;
-          rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-    m_cListPic.pushBack( rpcPic );
-  }
+  // CHEN: sortPicList -> [0] for Reference, [1] for Current
+  TComPic *temp = m_pcListPic[0];
+  m_pcListPic[0] = m_pcListPic[1];
+  m_pcListPic[1] = temp;
+
+  rpcPic = m_pcListPic[1];
+  rpcPic->getSlice()->setReferenced(false);
+
   rpcPic->setReconMark (false);
   
   m_iPOCLast++;

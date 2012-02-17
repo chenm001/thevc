@@ -63,7 +63,7 @@ private:
   TEncCfg*                m_pcCfg;                              ///< encoder configuration class
   
   // pictures
-  TComList<TComPic*>*     m_pcListPic;                          ///< list of pictures
+  TComPic*                m_pcListPic[2];                       ///< list of pictures
   TComPicYuv*             m_apcPicYuvPred;                      ///< prediction picture buffer
   TComPicYuv*             m_apcPicYuvResi;                      ///< residual picture buffer
   

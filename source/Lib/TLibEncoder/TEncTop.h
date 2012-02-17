@@ -69,7 +69,6 @@ private:
   Int                     m_iPOCLast;                     ///< time index (POC)
   Int                     m_iNumPicRcvd;                  ///< number of received pictures
   UInt                    m_uiNumAllPicCoded;             ///< number of coded pictures
-  TComList<TComPic*>      m_cListPic;                     ///< dynamic list of pictures
   
   // encoder search
   TEncSearch              m_cSearch;                      ///< encoder search class
@@ -90,6 +89,7 @@ private:
   TComSPS                 m_cSPS;                         ///< SPS
   TComPPS                 m_cPPS;                         ///< PPS
 public:
+  TComPic*                m_pcListPic[2];                 ///< dynamic list of pictures
   TComReferencePictureSet m_ReferencePictureSet;          ///< RPS
   
 private:
@@ -120,13 +120,11 @@ public:
   Void      create          ();
   Void      destroy         ();
   Void      init            ();
-  Void      deletePicBuffer ();
 
   // -------------------------------------------------------------------------------------------------------------------
   // member access functions
   // -------------------------------------------------------------------------------------------------------------------
   
-  TComList<TComPic*>*     getListPic            () { return  &m_cListPic;             }
   TEncSearch*             getPredSearch         () { return  &m_cSearch;              }
   
   TComTrQuant*            getTrQuant            () { return  &m_cTrQuant;             }

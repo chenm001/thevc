@@ -95,7 +95,8 @@ Void TEncSlice::destroy()
 Void TEncSlice::init( TEncTop* pcEncTop )
 {
   m_pcCfg             = pcEncTop;
-  m_pcListPic         = pcEncTop->getListPic();
+  m_pcListPic[0]      = pcEncTop->m_pcListPic[0];
+  m_pcListPic[1]      = pcEncTop->m_pcListPic[1];
   
   m_pcGOPEncoder      = pcEncTop->getGOPEncoder();
   m_pcCuEncoder       = pcEncTop->getCuEncoder();

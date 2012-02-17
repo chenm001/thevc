@@ -303,7 +303,7 @@ public:
   Void      setPOC              ( Int i )                       { m_iPOC              = i; m_iPrevPOC=i; }
   Void      setNalUnitType      ( NalUnitType e )               { m_eNalUnitType      = e;      }
   NalUnitType getNalUnitType    ()                              { return m_eNalUnitType;        }
-  Void      decodingRefreshMarking(UInt& uiPOCCDR, TComList<TComPic*>& rcListPic);
+  Void      decodingRefreshMarking(TComPic* pcListPic[2]);
   Void      setSliceType        ( SliceType e )                 { m_eSliceType        = e;      }
   Void      setSliceQp          ( Int i )                       { m_iSliceQp          = i;      }
   
@@ -312,7 +312,7 @@ public:
   Void      setPic              ( TComPic* p )                  { m_pcPic             = p;      }
   Void      setDepth            ( Int iDepth )                  { m_iDepth            = iDepth; }
   
-  Void      setRefPicList       ( TComList<TComPic*>& rcListPic );
+  Void      setRefPicList       ( TComPic* pcListPic[2] );
   Void      setRefPOCList       ();
   
   Bool      isIntra         ()                          { return  m_eSliceType == I_SLICE;  }
@@ -328,12 +328,7 @@ public:
   }
   
 
-  static Void      sortPicList         ( TComList<TComPic*>& rcListPic );
-  
   Void decodingMarking( TComList<TComPic*>& rcListPic, Int& iMaxRefPicNum ); 
-  Void      applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pcRPSList);
-
-  Void decodingMarkingForNoTMVP( TComList<TComPic*>& rcListPic, Int currentPOC );
 
   UInt m_uiMaxNumMergeCand;
   Void setMaxNumMergeCand               (UInt maxNumMergeCand ) { m_uiMaxNumMergeCand = maxNumMergeCand;  }

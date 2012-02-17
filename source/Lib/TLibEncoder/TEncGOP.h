@@ -78,7 +78,6 @@ private:
   TEncTop*                m_pcEncTop;
   TEncCfg*                m_pcCfg;
   TEncSlice*              m_pcSliceEncoder;
-  TComList<TComPic*>*     m_pcListPic;
   
   TEncEntropy*            m_pcEntropyCoder;
   TEncCavlc*              m_pcCavlcCoder;
@@ -96,6 +95,9 @@ private:
   std::vector<Int> m_vRVM_RP;
 
 public:
+  TComPic*                m_pcListPic[2];
+
+public:
   TEncGOP();
   virtual ~TEncGOP();
   
@@ -103,9 +105,7 @@ public:
   Void  destroy     ();
   
   Void  init        ( TEncTop* pcTEncTop );
-  Void  compressGOP ( Int iPOCLast, TComList<TComPic*>& rcListPic, TComPicYuv* pcPicYuvRecOut, std::list<AccessUnit>& accessUnitsInGOP );
-  
-  TComList<TComPic*>*   getListPic()      { return m_pcListPic; }
+  Void  compressGOP ( Int iPOCLast, TComPic* pcListPic[2], TComPicYuv* pcPicYuvRecOut, std::list<AccessUnit>& accessUnitsInGOP );
   
   Void  printOutSummary      ( UInt uiNumAllPicCoded );
   
@@ -113,8 +113,6 @@ public:
   NalUnitType getNalUnitType( UInt uiPOCCurr );
 
 protected:
-  Void  xGetBuffer        ( TComList<TComPic*> rcListPic, TComPic*& rpcPic, UInt uiPOCCurr );
-  
   Void  xCalculateAddPSNR ( TComPic* pcPic, TComPicYuv* pcPicD, const AccessUnit& );
   
   Double xCalculateRVM();
