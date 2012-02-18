@@ -1648,10 +1648,19 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   {
     return offset;
   }
+#if SIGMAP_CONST_AT_HIGH_FREQUENCY
+  Int thredHighFreq = 3*(std::max(width, height)>>4);
+  if ((posX>>2) + (posY>>2) >= thredHighFreq)
+  {
+    return (textureType == TEXT_LUMA) ? 24 : 18;
+  }
+#endif
   
   const TCoeff *pData = pcCoeff + posX + posY * width;
   
+#if !SIGMAP_CTX_SUBBLOCK
   Int thred = std::max(height, width) >> 2;
+#endif
   
   Int cnt = 0;
   if( posX < width - 1 )
@@ -1679,7 +1688,11 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
   }
 
   cnt = ( cnt + 1 ) >> 1;
+#if SIGMAP_CTX_SUBBLOCK
+  return (( textureType == TEXT_LUMA && ((posX>>2) + (posY>>2)) > 0 ) ? 4 : 1) + offset + cnt;
+#else
   return (( textureType == TEXT_LUMA && posX + posY >= thred ) ? 4 : 1) + offset + cnt;
+#endif
 }
 
 /** Context derivation process of coeff_abs_significant_flag

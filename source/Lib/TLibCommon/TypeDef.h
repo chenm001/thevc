@@ -41,6 +41,12 @@
 //! \ingroup TLibCommon
 //! \{
 
+#define SIGMAP_CTX_SUBBLOCK       1 ///< H0290: 4x4 sub-block based region for significant_flag context selection
+
+#define SIGMAP_CONST_AT_HIGH_FREQUENCY      1      ///< H0095 method2.1: const significance map at high freaquency
+
+#define PARAMSET_VLC_CLEANUP               1      ///< followup to G220: Simplify parameter set code
+
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
 
