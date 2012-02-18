@@ -346,6 +346,10 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setNumRefIdx(REF_PIC_LIST_1,m_pcCfg->getGOPEntry(iGOPid).m_iRefBufSize);
   
   rpcSlice->setLoopFilterOffsetInAPS( m_pcCfg->getLoopFilterOffsetInAPS() );
+#if DBL_CONTROL
+ if (rpcSlice->getPPS()->getDeblockingFilterControlPresent())
+ {
+#endif
   rpcSlice->setInheritDblParamFromAPS( m_pcCfg->getLoopFilterOffsetInAPS() ? 1 : 0 );
   rpcSlice->setLoopFilterDisable( m_pcCfg->getLoopFilterDisable() );
   if ( !rpcSlice->getLoopFilterDisable())
@@ -353,6 +357,9 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     rpcSlice->setLoopFilterBetaOffset( m_pcCfg->getLoopFilterBetaOffset() );
     rpcSlice->setLoopFilterTcOffset( m_pcCfg->getLoopFilterTcOffset() );
   }
+#if DBL_CONTROL
+ }
+#endif
 
   rpcSlice->setDepth            ( iDepth );
   

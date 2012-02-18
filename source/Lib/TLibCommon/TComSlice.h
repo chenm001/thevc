@@ -462,6 +462,10 @@ private:
 
   Bool     m_enableTMVPFlag;
 
+#if DBL_CONTROL
+  Bool     m_DeblockingFilterControlPresent;
+#endif
+
 public:
   TComPPS();
   virtual ~TComPPS();
@@ -563,6 +567,11 @@ public:
 
   Void     setEnableTMVPFlag( Bool b )  { m_enableTMVPFlag = b;    }
   Bool     getEnableTMVPFlag()          { return m_enableTMVPFlag; }
+
+#if DBL_CONTROL
+  Void setDeblockingFilterControlPresent    ( Bool bValue )       { m_DeblockingFilterControlPresent = bValue; }
+  Bool getDeblockingFilterControlPresent    ()                    { return m_DeblockingFilterControlPresent; }
+#endif
 };
 typedef struct
 {

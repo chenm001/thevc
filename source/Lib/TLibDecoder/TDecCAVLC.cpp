@@ -265,7 +265,12 @@ Void TDecCavlc::parseAPS(TComAPS* aps)
   {
     parseScalingList( aps->getScalingList() );
   }
-
+#if DBL_CONTROL
+  if(aps->getLoopFilterOffsetInAPS())
+  {
+    xParseDblParam( aps );    
+  }
+#endif
   if(aps->getSaoEnabled())
   {
     aps->getSaoParam()->bSaoFlag[0] = true;
@@ -279,6 +284,24 @@ Void TDecCavlc::parseAPS(TComAPS* aps)
   }
 }
 
+#if DBL_CONTROL
+Void  TDecCavlc::xParseDblParam       ( TComAPS* aps )
+{
+  UInt uiSymbol;
+  Int iSymbol;
+
+  parseDFFlag(uiSymbol, "loop_filter_disable");
+  aps->setLoopFilterDisable(uiSymbol?true:false);
+
+  if (!aps->getLoopFilterDisable())
+  {
+    parseDFSvlc(iSymbol, "beta_offset_div2");
+    aps->setLoopFilterBetaOffset(iSymbol);
+    parseDFSvlc(iSymbol, "tc_offset_div2");
+    aps->setLoopFilterTcOffset(iSymbol);
+  }
+}
+#endif
 
 Void TDecCavlc::xParseSaoParam(SAOParam* pSaoParam)
 {
@@ -658,6 +681,11 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 
     }
   }
+
+#if DBL_CONTROL
+  READ_FLAG( uiCode, "deblocking_filter_control_present_flag" ); 
+  pcPPS->setDeblockingFilterControlPresent( uiCode ? true : false);
+#endif
 
   return;
 }
@@ -1128,8 +1156,19 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
   {
     READ_SVLC( iCode, "slice_qp_delta" ); 
     rpcSlice->setSliceQp (26 + pps->getPicInitQPMinus26() + iCode);
-
+#if DBL_CONTROL
+   if (rpcSlice->getPPS()->getDeblockingFilterControlPresent())
+   {
+    if ( rpcSlice->getSPS()->getUseDF() )
+    {
+      READ_FLAG ( uiCode, "inherit_dbl_param_from_APS_flag" ); rpcSlice->setInheritDblParamFromAPS(uiCode ? 1 : 0);
+    } else
+    {
+      rpcSlice->setInheritDblParamFromAPS(0);
+    }
+#else
     READ_FLAG ( uiCode, "inherit_dbl_param_from_APS_flag" ); rpcSlice->setInheritDblParamFromAPS(uiCode ? 1 : 0);
+#endif
     if(!rpcSlice->getInheritDblParamFromAPS())
     {
       READ_FLAG ( uiCode, "disable_deblocking_filter_flag" );  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
@@ -1139,7 +1178,9 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
         READ_SVLC( iCode, "tc_offset_div2" ); rpcSlice->setLoopFilterTcOffset(iCode);
       }
     }
-
+#if DBL_CONTROL
+   }
+#endif
     if ( rpcSlice->getSliceType() == B_SLICE )
     {
       READ_FLAG( uiCode, "collocated_from_l0_flag" );

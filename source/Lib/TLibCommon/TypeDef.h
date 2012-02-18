@@ -152,6 +152,7 @@
 #define SCALING_LIST_OUTPUT_RESULT    0 //JCTVC-G880/JCTVC-G1016 quantization matrices
 
 #define DBL_H0473_PART_1          1   //Deblocking filtering simplification
+#define DBL_CONTROL               1   //PPS deblocking_filter_control_present_flag (JCTVC-H0398); condition for inherit params flag in SH (JCTVC-H0424)
 
 // ====================================================================================================================
 // Basic type redefinition

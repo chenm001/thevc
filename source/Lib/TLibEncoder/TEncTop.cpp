@@ -622,6 +622,9 @@ Void TEncTop::xInitPPS()
   m_cPPS.setUseWP( m_bUseWeightPred );
   m_cPPS.setWPBiPredIdc( m_uiBiPredIdc );
   m_cPPS.setEnableTMVPFlag( m_bEnableTMVP );
+#if DBL_CONTROL
+  m_cPPS.setDeblockingFilterControlPresent (m_DeblockingFilterControlPresent );
+#endif
 }
 
 Void TEncTop::xInitRPS()

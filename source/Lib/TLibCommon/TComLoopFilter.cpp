@@ -84,14 +84,33 @@ TComLoopFilter::~TComLoopFilter()
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
-
+#if DBL_CONTROL
+Void TComLoopFilter::setCfg( Bool DeblockingFilterControlPresent, UInt uiDisableDblkIdc, Int iBetaOffset_div2, Int iTcOffset_div2, Bool bLFCrossTileBoundary)
+#else
 Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc, Int iBetaOffset_div2, Int iTcOffset_div2, Bool bLFCrossTileBoundary)
+#endif
 {
+#if !DBL_CONTROL
   m_uiDisableDeblockingFilterIdc  = uiDisableDblkIdc;
+#endif
   m_bLFCrossTileBoundary = bLFCrossTileBoundary;
 
+#if DBL_CONTROL
+  if (DeblockingFilterControlPresent)
+  {
+    m_uiDisableDeblockingFilterIdc  = uiDisableDblkIdc;
+    m_betaOffsetDiv2 = iBetaOffset_div2;
+    m_tcOffsetDiv2 = iTcOffset_div2;
+  } else // use default values
+  {
+    m_uiDisableDeblockingFilterIdc = 0;
+    m_betaOffsetDiv2 = 0;
+    m_tcOffsetDiv2 = 0;
+  }
+#else
   m_betaOffsetDiv2 = iBetaOffset_div2;
   m_tcOffsetDiv2 = iTcOffset_div2;
+#endif
 }
 
 Void TComLoopFilter::create( UInt uiMaxCUDepth )

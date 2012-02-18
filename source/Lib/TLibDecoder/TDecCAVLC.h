@@ -171,6 +171,9 @@ public:
   Void parseDFSvlc         ( Int&  riVal,  const Char *pSymbolName  );
 #if PARAMSET_VLC_CLEANUP
 protected:
+#if DBL_CONTROL
+  Void  xParseDblParam       ( TComAPS* aps );
+#endif
   Void  xParseSaoParam       ( SAOParam* pSaoParam );
   Void  xParseSaoSplitParam  ( SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr );
   Void  xParseSaoOffsetParam ( SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr );

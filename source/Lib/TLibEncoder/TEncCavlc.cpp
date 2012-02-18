@@ -313,7 +313,9 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
       }
     }
   }
-
+#if DBL_CONTROL
+  WRITE_FLAG( pcPPS->getDeblockingFilterControlPresent()?1 : 0, "deblocking_filter_control_present_flag");
+#endif
   return;
 }
 
@@ -631,7 +633,16 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   //     sao_param()
   //   if( deblocking_filter_control_present_flag ) {
   //     disable_deblocking_filter_idc
+#if DBL_CONTROL
+   if (pcSlice->getPPS()->getDeblockingFilterControlPresent())
+   {
+    if ( pcSlice->getSPS()->getUseDF() )
+    {
+      WRITE_FLAG(pcSlice->getInheritDblParamFromAPS(), "inherit_dbl_param_from_APS_flag");
+    }
+#else
     WRITE_FLAG(pcSlice->getInheritDblParamFromAPS(), "inherit_dbl_param_from_APS_flag");
+#endif
     if (!pcSlice->getInheritDblParamFromAPS())
     {
       WRITE_FLAG(pcSlice->getLoopFilterDisable(), "loop_filter_disable");  // should be an IDC
@@ -641,6 +652,9 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
         WRITE_SVLC (pcSlice->getLoopFilterTcOffset(), "tc_offset_div2");
       }
     }
+#if DBL_CONTROL
+   }
+#endif
   //     if( disable_deblocking_filter_idc  !=  1 ) {
   //       slice_alpha_c0_offset_div2
   //       slice_beta_offset_div2
