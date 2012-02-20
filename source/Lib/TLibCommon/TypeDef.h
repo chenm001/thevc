@@ -41,6 +41,8 @@
 //! \ingroup TLibCommon
 //! \{
 
+#define CLIPSCALEDMVP               1  ///< H0216: Clipping scaled MV to 16 bit
+
 #define SIGMAP_CTX_SUBBLOCK       1 ///< H0290: 4x4 sub-block based region for significant_flag context selection
 
 #define SIGMAP_CONST_AT_HIGH_FREQUENCY      1      ///< H0095 method2.1: const significance map at high freaquency
