@@ -105,7 +105,7 @@ public:
   Void  destroy     ();
   
   Void  init        ( TEncTop* pcTEncTop );
-  Void  compressGOP ( Int iPOCLast, TComPic* pcListPic[2], TComPicYuv* pcPicYuvRecOut, std::list<AccessUnit>& accessUnitsInGOP );
+  Void  compressGOP ( Int iPOCLast, TComPic* pcListPic[2], std::list<AccessUnit>& accessUnitsInGOP );
   
   Void  printOutSummary      ( UInt uiNumAllPicCoded );
   

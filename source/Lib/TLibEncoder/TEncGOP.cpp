@@ -117,7 +117,7 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
-Void TEncGOP::compressGOP( Int iPOCLast, TComPic* pcListPic[2], TComPicYuv* pcPicYuvRecOut, std::list<AccessUnit>& accessUnitsInGOP)
+Void TEncGOP::compressGOP( Int iPOCLast, TComPic* pcListPic[2], std::list<AccessUnit>& accessUnitsInGOP)
 {
   TComPic*        pcPic;
   TComSlice*      pcSlice;
@@ -342,7 +342,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, TComPic* pcListPic[2], TComPicYuv* pcPi
       /* TODO: this should happen after copyToPic(pcPicYuvRecOut) */
       pcPic->getPicYuvRec()->xFixedRoundingPic();
 #endif
-      pcPic->getPicYuvRec()->copyToPic(pcPicYuvRecOut);
+      //pcPic->getPicYuvRec()->copyToPic(pcPicYuvRecOut);
       
       pcPic->setReconMark   ( true );
 

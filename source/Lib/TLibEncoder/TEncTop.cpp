@@ -201,16 +201,16 @@ Void TEncTop::init()
  \retval  rcListBitstreamOut  list of output bitstreams
  \retval  iNumEncoded         number of encoded pictures
  */
-Void TEncTop::encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComPicYuv* pcPicYuvRec, std::list<AccessUnit>& accessUnitsOut )
+Void TEncTop::encode( bool bEos, std::list<AccessUnit>& accessUnitsOut )
 {
   TComPic* pcPicCurr = NULL;
   
   // get original YUV
   xGetNewPicBuffer( pcPicCurr );
-  pcPicYuvOrg->copyToPic( pcPicCurr->getPicYuvOrg() );
+  //pcPicYuvOrg->copyToPic( pcPicCurr->getPicYuvOrg() );
   
   // compress GOP
-  m_cGOPEncoder.compressGOP(m_iPOCLast, m_pcListPic, pcPicYuvRec, accessUnitsOut);
+  m_cGOPEncoder.compressGOP(m_iPOCLast, m_pcListPic, accessUnitsOut);
   
   m_uiNumAllPicCoded ++;
   

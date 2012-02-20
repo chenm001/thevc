@@ -155,9 +155,6 @@ Void TAppEncTop::encode()
     exit(EXIT_FAILURE);
   }
 
-  TComPicYuv*       pcPicYuvOrg = new TComPicYuv;
-  TComPicYuv*       pcPicYuvRec = new TComPicYuv;
-    
   // initialize internal class & member variables
   xInitLibCfg();
   xCreateLib();
@@ -168,9 +165,7 @@ Void TAppEncTop::encode()
   
   list<AccessUnit> outputAccessUnits; ///< list of access units to write out.  is populated by the encoding process
 
-  // allocate original YUV buffer
-  pcPicYuvOrg->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
-  pcPicYuvRec->create( m_iSourceWidth, m_iSourceHeight, m_uiMaxCUWidth, m_uiMaxCUHeight, m_uiMaxCUDepth );
+  // allocate YUV buffer
   m_cTEncTop.m_pcListPic[0] = new TComPic;
   m_cTEncTop.m_pcListPic[1] = new TComPic;
   m_cTEncTop.m_pcListPic[0]->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
@@ -178,6 +173,10 @@ Void TAppEncTop::encode()
 
   while ( !bEos )
   {
+    // CHEN: sortPicList -> [0] for Current, [1] for Reference
+    TComPicYuv* pcPicYuvOrg = m_cTEncTop.m_pcListPic[0]->getPicYuvOrg();
+    TComPicYuv* pcPicYuvRec = m_cTEncTop.m_pcListPic[1]->getPicYuvRec();
+
     // read input YUV file
     m_cTVideoIOYuvInputFile.read( pcPicYuvOrg );
     
@@ -189,20 +188,12 @@ Void TAppEncTop::encode()
     bEos = ( m_iFrameRcvd == m_iFrameToBeEncoded ?    true : bEos   );
     
     // call encoding function for one frame
-    m_cTEncTop.encode( bEos, pcPicYuvOrg, pcPicYuvRec, outputAccessUnits );
+    m_cTEncTop.encode( bEos, outputAccessUnits );
     
     // write bistream to file if necessary
     xWriteOutput(pcPicYuvRec, bitstreamFile, outputAccessUnits);
     outputAccessUnits.clear();
   }
-  // delete original YUV buffer
-  pcPicYuvOrg->destroy();
-  pcPicYuvRec->destroy();
-  delete pcPicYuvOrg;
-  delete pcPicYuvRec;
-  pcPicYuvOrg = NULL;
-  pcPicYuvRec = NULL;
-  
   // delete used buffers in encoder class
   m_cTEncTop.m_pcListPic[0]->destroy();
   m_cTEncTop.m_pcListPic[1]->destroy();

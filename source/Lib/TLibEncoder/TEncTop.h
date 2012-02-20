@@ -146,8 +146,7 @@ public:
   // -------------------------------------------------------------------------------------------------------------------
 
   /// encode several number of pictures until end-of-sequence
-  Void encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComPicYuv* pcPicYuvRec,
-              std::list<AccessUnit>& accessUnitsOut );
+  Void encode( bool bEos, std::list<AccessUnit>& accessUnitsOut );
 };
 
 //! \}
