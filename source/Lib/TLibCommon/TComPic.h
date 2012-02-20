@@ -74,7 +74,7 @@ public:
   TComPic();
   virtual ~TComPic();
   
-  Void          create( Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth, Bool bIsVirtual = false );
+  Void          create( Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth );
   virtual Void  destroy();
   
   TComPicSym*   getPicSym()           { return  m_apcPicSym;    }

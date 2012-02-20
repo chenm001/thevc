@@ -125,9 +125,9 @@ TEncPic::~TEncPic()
  * \param bIsVirtual
  * \return Void
  */
-Void TEncPic::create( Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth, UInt uiMaxAQDepth, Bool bIsVirtual )
+Void TEncPic::create( Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth, UInt uiMaxAQDepth )
 {
-  TComPic::create( iWidth, iHeight, uiMaxWidth, uiMaxHeight, uiMaxDepth, bIsVirtual );
+  TComPic::create( iWidth, iHeight, uiMaxWidth, uiMaxHeight, uiMaxDepth );
   m_uiMaxAQDepth = uiMaxAQDepth;
   if ( uiMaxAQDepth > 0 )
   {

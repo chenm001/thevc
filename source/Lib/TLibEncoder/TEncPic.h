@@ -102,7 +102,7 @@ public:
   TEncPic();
   virtual ~TEncPic();
 
-  Void          create( Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth, UInt uiMaxAQDepth, Bool bIsVirtual = false );
+  Void          create( Int iWidth, Int iHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth, UInt uiMaxAQDepth );
   virtual Void  destroy();
 
   TEncPicQPAdaptationLayer* getAQLayer( UInt uiDepth )  { return &m_acAQLayer[uiDepth]; }
