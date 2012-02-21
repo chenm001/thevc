@@ -375,6 +375,35 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcSliceEncoder->setSearchRange(pcSlice);
       }
 
+#if H0111_MVD_L1_ZERO
+      Bool bGPBcheck=false;
+      if ( pcSlice->getSliceType() == B_SLICE)
+      {
+        if ( pcSlice->getNumRefIdx(RefPicList( 0 ) ) == pcSlice->getNumRefIdx(RefPicList( 1 ) ) )
+        {
+          bGPBcheck=true;
+          int i;
+          for ( i=0; i < pcSlice->getNumRefIdx(RefPicList( 1 ) ); i++ )
+          {
+            if ( pcSlice->getRefPOC(RefPicList(1), i) != pcSlice->getRefPOC(RefPicList(0), i) ) 
+            {
+              bGPBcheck=false;
+              break;
+            }
+          }
+        }
+      }
+      if(bGPBcheck)
+      {
+        pcSlice->setMvdL1ZeroFlag(true);
+      }
+      else
+      {
+        pcSlice->setMvdL1ZeroFlag(false);
+      }
+      pcPic->getSlice(pcSlice->getSliceIdx())->setMvdL1ZeroFlag(pcSlice->getMvdL1ZeroFlag());
+#endif
+
       UInt uiNumSlices = 1;
 
       UInt uiInternalAddress = pcPic->getNumPartInCU()-4;

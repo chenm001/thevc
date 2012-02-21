@@ -843,46 +843,60 @@ Void TDecSbac::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UI
   UInt uiVerSign = 0;
   ContextModel *pCtx = m_cCUMvdSCModel.get( 0 );
 
-  m_pcTDecBinIf->decodeBin( uiHorAbs, *pCtx );
-  m_pcTDecBinIf->decodeBin( uiVerAbs, *pCtx );
-
-  const Bool bHorAbsGr0 = uiHorAbs != 0;
-  const Bool bVerAbsGr0 = uiVerAbs != 0;
-  pCtx++;
-
-  if( bHorAbsGr0 )
+#if H0111_MVD_L1_ZERO
+  if(pcCU->getSlice()->getMvdL1ZeroFlag() && eRefList == REF_PIC_LIST_1 && pcCU->getInterDir(uiAbsPartIdx)==3)
   {
-    m_pcTDecBinIf->decodeBin( uiSymbol, *pCtx );
-    uiHorAbs += uiSymbol;
+    uiHorAbs=0;
+    uiVerAbs=0;
   }
-
-  if( bVerAbsGr0 )
+  else
   {
-    m_pcTDecBinIf->decodeBin( uiSymbol, *pCtx );
-    uiVerAbs += uiSymbol;
-  }
+#endif
 
-  if( bHorAbsGr0 )
-  {
-    if( 2 == uiHorAbs )
+    m_pcTDecBinIf->decodeBin( uiHorAbs, *pCtx );
+    m_pcTDecBinIf->decodeBin( uiVerAbs, *pCtx );
+
+    const Bool bHorAbsGr0 = uiHorAbs != 0;
+    const Bool bVerAbsGr0 = uiVerAbs != 0;
+    pCtx++;
+
+    if( bHorAbsGr0 )
     {
-      xReadEpExGolomb( uiSymbol, 1 );
+      m_pcTDecBinIf->decodeBin( uiSymbol, *pCtx );
       uiHorAbs += uiSymbol;
     }
 
-    m_pcTDecBinIf->decodeBinEP( uiHorSign );
-  }
-
-  if( bVerAbsGr0 )
-  {
-    if( 2 == uiVerAbs )
+    if( bVerAbsGr0 )
     {
-      xReadEpExGolomb( uiSymbol, 1 );
+      m_pcTDecBinIf->decodeBin( uiSymbol, *pCtx );
       uiVerAbs += uiSymbol;
     }
 
-    m_pcTDecBinIf->decodeBinEP( uiVerSign );
+    if( bHorAbsGr0 )
+    {
+      if( 2 == uiHorAbs )
+      {
+        xReadEpExGolomb( uiSymbol, 1 );
+        uiHorAbs += uiSymbol;
+      }
+
+      m_pcTDecBinIf->decodeBinEP( uiHorSign );
+    }
+
+    if( bVerAbsGr0 )
+    {
+      if( 2 == uiVerAbs )
+      {
+        xReadEpExGolomb( uiSymbol, 1 );
+        uiVerAbs += uiSymbol;
+      }
+
+      m_pcTDecBinIf->decodeBinEP( uiVerSign );
+    }
+
+#if H0111_MVD_L1_ZERO
   }
+#endif
 
   const TComMv cMv( uiHorSign ? -Int( uiHorAbs ): uiHorAbs, uiVerSign ? -Int( uiVerAbs ) : uiVerAbs );
   pcCU->getCUMvField( eRefList )->setAllMvd( cMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiDepth, uiPartIdx );

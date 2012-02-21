@@ -808,6 +808,10 @@ private:
   TComScalingList*     m_scalingList;                 //!< pointer of quantization matrix
   Int         m_cabacInitIdc; 
 
+#if H0111_MVD_L1_ZERO
+  Bool       m_bLMvdL1Zero;
+#endif
+
 public:
   TComSlice();
   virtual ~TComSlice();
@@ -874,6 +878,9 @@ public:
   Int       getDepth            ()                              { return  m_iDepth;                     }
   UInt      getColDir           ()                              { return  m_uiColDir;                   }
   Bool      getCheckLDC     ()                                  { return m_bCheckLDC; }
+#if H0111_MVD_L1_ZERO
+  Bool      getMvdL1ZeroFlag ()                                  { return m_bLMvdL1Zero;    }
+#endif
 
   Int       getRefIdxOfLC       (RefPicList e, Int iRefIdx)     { return m_iRefIdxOfLC[e][iRefIdx];           }
   Int       getListIdFromIdxOfLC(Int iRefIdx)                   { return m_eListIdFromIdxOfLC[iRefIdx];       }
@@ -918,7 +925,10 @@ public:
   Void      setRefPOCList       ();
   Void      setColDir           ( UInt uiDir ) { m_uiColDir = uiDir; }
   Void      setCheckLDC         ( Bool b )                      { m_bCheckLDC = b; }
-  
+#if H0111_MVD_L1_ZERO
+  Void      setMvdL1ZeroFlag     ( Bool b)                       { m_bLMvdL1Zero = b; }
+#endif  
+
   Bool      isIntra         ()                          { return  m_eSliceType == I_SLICE;  }
   Bool      isInterB        ()                          { return  m_eSliceType == B_SLICE;  }
   Bool      isInterP        ()                          { return  m_eSliceType == P_SLICE;  }

@@ -617,6 +617,13 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     }
   }
     
+#if H0111_MVD_L1_ZERO
+  if (pcSlice->isInterB())
+  {
+    WRITE_FLAG( pcSlice->getMvdL1ZeroFlag() ? 1 : 0,   "mvd_l1_zero_flag");
+  }
+#endif
+
   if(pcSlice->getPPS()->getEntropyCodingMode() && !pcSlice->isIntra())
   {
     WRITE_UVLC(pcSlice->getCABACinitIDC(),  "cabac_init_idc");
