@@ -111,6 +111,15 @@ Void TEncEntropy::encodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
   {
     uiAbsPartIdx = 0;
   }
+#if BURST_IPCM
+  if( !bRD )
+  {
+    if( pcCU->getLastCUSucIPCMFlag() && pcCU->getIPCMFlag(uiAbsPartIdx) )
+    {
+      return;
+    }
+  }
+#endif
   m_pcEntropyCoderIf->codeSkipFlag( pcCU, uiAbsPartIdx );
 }
 
@@ -454,12 +463,21 @@ Void TEncEntropy::encodePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
   {
     uiAbsPartIdx = 0;
   }
-  
+#if BURST_IPCM
+  if( !bRD )
+  {
+    if( pcCU->getLastCUSucIPCMFlag() && pcCU->getIPCMFlag(uiAbsPartIdx) )
+    {
+      return;
+    }
+  }
+#endif
+
   if ( pcCU->getSlice()->isIntra() )
   {
     return;
   }
- 
+
   m_pcEntropyCoderIf->codePredMode( pcCU, uiAbsPartIdx );
 }
 
@@ -470,7 +488,16 @@ Void TEncEntropy::encodeSplitFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
   {
     uiAbsPartIdx = 0;
   }
-  
+#if BURST_IPCM
+  if( !bRD )
+  {
+    if( pcCU->getLastCUSucIPCMFlag() && pcCU->getIPCMFlag(uiAbsPartIdx) )
+    {
+      return;
+    }
+  }
+#endif
+
   m_pcEntropyCoderIf->codeSplitFlag( pcCU, uiAbsPartIdx, uiDepth );
 }
 
@@ -487,7 +514,15 @@ Void TEncEntropy::encodePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
   {
     uiAbsPartIdx = 0;
   }
-  
+#if BURST_IPCM
+  if( !bRD )
+  {
+    if( pcCU->getLastCUSucIPCMFlag() && pcCU->getIPCMFlag(uiAbsPartIdx) )
+    {
+      return;
+    }
+  }
+#endif  
   m_pcEntropyCoderIf->codePartSize( pcCU, uiAbsPartIdx, uiDepth );
 }
 
@@ -511,7 +546,26 @@ Void TEncEntropy::encodeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
     uiAbsPartIdx = 0;
   }
   
+#if BURST_IPCM
+  Int numIPCM = 0;
+  Bool firstIPCMFlag = false;
+
+  if( pcCU->getIPCMFlag(uiAbsPartIdx) )
+  {
+    numIPCM = 1;
+    firstIPCMFlag = true;
+
+    if( !bRD )
+    {
+      numIPCM = pcCU->getNumSucIPCM();
+      firstIPCMFlag = !pcCU->getLastCUSucIPCMFlag();
+    }
+  }
+  m_pcEntropyCoderIf->codeIPCMInfo ( pcCU, uiAbsPartIdx, numIPCM, firstIPCMFlag);
+#else
   m_pcEntropyCoderIf->codeIPCMInfo ( pcCU, uiAbsPartIdx );
+#endif
+
 }
 
 Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 )

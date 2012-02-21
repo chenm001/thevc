@@ -186,6 +186,11 @@ private:
   
   Bool*         m_pbIPCMFlag;         ///< array of intra_pcm flags
 
+#if BURST_IPCM
+  Int           m_numSucIPCM;         ///< the number of succesive IPCM blocks associated with the current log2CUSize
+  Bool          m_lastCUSucIPCMFlag;  ///< True indicates that the last CU is IPCM and shares the same root as the current CU.  
+#endif
+
   // -------------------------------------------------------------------------------------------------------------------
   // misc. variables
   // -------------------------------------------------------------------------------------------------------------------
@@ -223,7 +228,9 @@ protected:
   
   Void xCheckDuplicateCand(TComMvField* pcMvFieldNeighbours, UChar* puhInterDirNeighbours, bool* pbCandIsInter, UInt& ruiArrayAddr);
 
+#if !BURST_IPCM
   Int           getLastValidPartIdx   ( Int iAbsPartIdx );
+#endif
 
 public:
   TComDataCU();
@@ -299,6 +306,9 @@ public:
   UChar         getQP                 ( UInt uiIdx )            { return m_phQP[uiIdx];       }
   Void          setQP                 ( UInt uiIdx, UChar  uh ) { m_phQP[uiIdx] = uh;         }
   Void          setQPSubParts         ( UInt uiQP,   UInt uiAbsPartIdx, UInt uiDepth );
+#if BURST_IPCM
+  Int           getLastValidPartIdx   ( Int iAbsPartIdx );
+#endif
   UChar         getLastCodedQP        ( UInt uiAbsPartIdx );
   
   UChar*        getTransformIdx       ()                        { return m_puhTrIdx;          }
@@ -379,10 +389,17 @@ public:
   Void          copyAlfCtrlFlagToTmp  ();
   Void          copyAlfCtrlFlagFromTmp();
   
-  Bool*         getIPCMFlag          ()                        { return m_pbIPCMFlag;               }
-  Bool          getIPCMFlag          (UInt uiIdx )             { return m_pbIPCMFlag[uiIdx];        }
-  Void          setIPCMFlag          (UInt uiIdx, Bool b )     { m_pbIPCMFlag[uiIdx] = b;           }
-  Void          setIPCMFlagSubParts  (Bool bIpcmFlag, UInt uiAbsPartIdx, UInt uiDepth);
+  Bool*         getIPCMFlag           ()                        { return m_pbIPCMFlag;               }
+  Bool          getIPCMFlag           (UInt uiIdx )             { return m_pbIPCMFlag[uiIdx];        }
+  Void          setIPCMFlag           (UInt uiIdx, Bool b )     { m_pbIPCMFlag[uiIdx] = b;           }
+  Void          setIPCMFlagSubParts   (Bool bIpcmFlag, UInt uiAbsPartIdx, UInt uiDepth);
+
+#if BURST_IPCM
+  Int           getNumSucIPCM         ()                        { return m_numSucIPCM;             }
+  Void          setNumSucIPCM         ( Int num )               { m_numSucIPCM = num;              }
+  Bool          getLastCUSucIPCMFlag  ()                        { return m_lastCUSucIPCMFlag;        }
+  Void          setLastCUSucIPCMFlag  ( Bool flg )              { m_lastCUSucIPCMFlag = flg;         }
+#endif
 
   /// get slice ID for SU
   Int           getSUSliceID          (UInt uiIdx)              {return m_piSliceSUMap[uiIdx];      } 

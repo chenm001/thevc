@@ -823,6 +823,19 @@ Void TEncCavlc::codeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
   assert(0);
 }
 
+#if BURST_IPCM
+/** Code I_PCM information. 
+ * \param pcCU pointer to CU
+ * \param uiAbsPartIdx CU index
+ * \param numIPCM the number of succesive IPCM blocks with the same size 
+ * \param firstIPCMFlag 
+ * \returns Void
+ */
+Void TEncCavlc::codeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Int numIPCM, Bool firstIPCMFlag)
+{
+  assert(0);
+}
+#else
 /** Code I_PCM information. 
  * \param pcCU pointer to CU
  * \param uiAbsPartIdx CU index
@@ -899,6 +912,7 @@ Void TEncCavlc::codeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx)
     }
   }
 }
+#endif
 
 Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {

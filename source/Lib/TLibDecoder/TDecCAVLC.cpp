@@ -1454,6 +1454,9 @@ Void TDecCavlc::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
  */
 Void TDecCavlc::parseIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
+#if BURST_IPCM
+  assert(0);
+#else
   UInt uiSymbol;
 
   xReadFlag( uiSymbol );
@@ -1527,6 +1530,7 @@ Void TDecCavlc::parseIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
       piPCMSample += uiWidth;
     }
   }
+#endif
 }
 
 Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )

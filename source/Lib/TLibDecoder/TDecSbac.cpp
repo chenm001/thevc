@@ -346,14 +346,41 @@ Void TDecSbac::xReadGoRiceExGolomb( UInt &ruiSymbol, UInt &ruiGoRiceParam )
 Void TDecSbac::parseIPCMInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;
+#if BURST_IPCM
+  Int numSubseqIPCM = 0;
+  Bool readPCMSampleFlag = false;
 
+  if(pcCU->getNumSucIPCM() > 0) 
+  {
+    readPCMSampleFlag = true;
+  }
+  else
+  {
+    m_pcTDecBinIf->decodeBinTrm(uiSymbol);
+
+    if (uiSymbol)
+    {
+      readPCMSampleFlag = true;
+      m_pcTDecBinIf->decodeNumSubseqIPCM(numSubseqIPCM);
+      pcCU->setNumSucIPCM(numSubseqIPCM + 1);
+      m_pcTDecBinIf->decodePCMAlignBits();
+    }
+  }
+#else
   m_pcTDecBinIf->decodeBinTrm(uiSymbol);
+#endif
 
+#if BURST_IPCM
+  if (readPCMSampleFlag == true)
+#else
   if (uiSymbol)
+#endif
   {
     Bool bIpcmFlag = true;
 
+#if !BURST_IPCM
     m_pcTDecBinIf->decodePCMAlignBits();
+#endif
 
     pcCU->setPartSizeSubParts  ( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
     pcCU->setSizeSubParts      ( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
@@ -417,7 +444,15 @@ Void TDecSbac::parseIPCMInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
       piPCMSample += uiWidth;
     }
 
+#if BURST_IPCM
+    pcCU->setNumSucIPCM( pcCU->getNumSucIPCM() - 1);
+    if(pcCU->getNumSucIPCM() == 0)
+    {
+      m_pcTDecBinIf->resetBac();
+    }
+#else
     m_pcTDecBinIf->resetBac();
+#endif
   }
 }
 

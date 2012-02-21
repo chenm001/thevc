@@ -94,6 +94,9 @@ Void TEncCu::create(UChar uhTotalDepth, UInt uiMaxWidth, UInt uiMaxHeight)
   }
   
   m_bEncodeDQP = false;
+#if BURST_IPCM
+  m_checkBurstIPCMFlag = false;
+#endif
 
   // initialize partition order.
   UInt* piTmp = &g_auiZscanToRaster[0];
@@ -250,6 +253,17 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
   {
     setdQPFlag(true);
   }
+
+#if BURST_IPCM
+  TComPic* pcPic = pcCU->getPic();
+  Bool checkBurstIPCMFlag = (pcPic->getSlice(0)->getSPS()->getUsePCM())? true : false;
+
+  setCheckBurstIPCMFlag( checkBurstIPCMFlag );
+
+  pcCU->setNumSucIPCM(0);
+  pcCU->setLastCUSucIPCMFlag(false);
+#endif
+
   // Encode CU data
   xEncodeCU( pcCU, 0, 0 );
   
@@ -960,7 +974,12 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   uiPosY = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
   Bool granularityBoundary=((uiPosX+pcCU->getWidth(uiAbsPartIdx))%uiGranularityWidth==0||(uiPosX+pcCU->getWidth(uiAbsPartIdx)==uiWidth))
     &&((uiPosY+pcCU->getHeight(uiAbsPartIdx))%uiGranularityWidth==0||(uiPosY+pcCU->getHeight(uiAbsPartIdx)==uiHeight));
+  
+#if BURST_IPCM
+  if(granularityBoundary && (!(pcCU->getIPCMFlag(uiAbsPartIdx) && ( pcCU->getNumSucIPCM() > 1 ))))
+#else
   if(granularityBoundary)
+#endif
   {
     // The 1-terminating bit is added to all streams, so don't add it here when it's 1.
     if (!bTerminateSlice)
@@ -1071,6 +1090,14 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiBPelY   = uiTPelY + (g_uiMaxCUHeight>>uiDepth) - 1;
   
+#if BURST_IPCM
+  if( getCheckBurstIPCMFlag() )
+  {
+    pcCU->setLastCUSucIPCMFlag( checkLastCUSucIPCM( pcCU, uiAbsPartIdx ));
+    pcCU->setNumSucIPCM( countNumSucIPCM ( pcCU, uiAbsPartIdx ) );
+  }
+#endif
+
   TComSlice * pcSlice = pcCU->getPic()->getSlice(pcCU->getPic()->getCurrSliceIdx());
   // If slice start is within this cu...
   Bool bSliceStart = pcSlice->getEntropySliceCurStartCUAddr() > pcPic->getPicSym()->getInverseCUOrderMap(pcCU->getAddr())*pcCU->getPic()->getNumPartInCU()+uiAbsPartIdx && 
@@ -1092,6 +1119,10 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     {
       setdQPFlag(true);
     }
+#if BURST_IPCM
+    pcCU->setNumSucIPCM(0);
+    pcCU->setLastCUSucIPCMFlag(false);
+#endif
     for ( UInt uiPartUnitIdx = 0; uiPartUnitIdx < 4; uiPartUnitIdx++, uiAbsPartIdx+=uiQNumParts )
     {
       uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
@@ -1465,6 +1496,100 @@ Void TEncCu::xCheckDQP( TComDataCU* pcCU )
     }
   }
 }
+
+#if BURST_IPCM
+/** Check whether the last CU shares the same root as the current CU and is IPCM or not.  
+ * \param pcCU
+ * \param uiCurAbsPartIdx
+ * \returns Bool
+ */
+Bool TEncCu::checkLastCUSucIPCM( TComDataCU* pcCU, UInt uiCurAbsPartIdx )
+{
+  Bool lastCUSucIPCMFlag = false;
+
+  UInt curDepth = pcCU->getDepth(uiCurAbsPartIdx);
+  UInt shift = ((pcCU->getPic()->getSlice(pcCU->getPic()->getCurrSliceIdx())->getSPS()->getMaxCUDepth() - curDepth)<<1);
+  UInt startPartUnitIdx = ((uiCurAbsPartIdx&(0x03<<shift))>>shift);
+
+  TComSlice * pcSlice = pcCU->getPic()->getSlice(pcCU->getPic()->getCurrSliceIdx());
+  if( pcSlice->getEntropySliceCurStartCUAddr() == ( pcCU->getSCUAddr() + uiCurAbsPartIdx ) )
+  {
+    return false;
+  }
+
+  if(curDepth > 0 && startPartUnitIdx > 0)
+  {
+    Int lastValidPartIdx = pcCU->getLastValidPartIdx((Int) uiCurAbsPartIdx );
+
+    if( lastValidPartIdx >= 0 )
+    {
+      if(( pcCU->getSliceStartCU( uiCurAbsPartIdx ) == pcCU->getSliceStartCU( (UInt) lastValidPartIdx ))
+        && 
+        ( pcCU->getDepth( uiCurAbsPartIdx ) == pcCU->getDepth( (UInt) lastValidPartIdx )) 
+        && 
+        pcCU->getIPCMFlag( (UInt) lastValidPartIdx ) )
+      {
+        lastCUSucIPCMFlag = true;
+      }
+    }
+  }
+
+  return  lastCUSucIPCMFlag;
+}
+
+/** Count the number of successive IPCM CUs sharing the same root.
+ * \param pcCU
+ * \param uiCurAbsPartIdx
+ * \returns Int
+ */
+Int TEncCu::countNumSucIPCM ( TComDataCU* pcCU, UInt uiCurAbsPartIdx )
+{
+  Int numSucIPCM = 0;
+  UInt CurDepth = pcCU->getDepth(uiCurAbsPartIdx);
+
+  if( pcCU->getIPCMFlag(uiCurAbsPartIdx) )
+  {
+    if(CurDepth == 0)
+    {
+       numSucIPCM = 1;
+    }
+    else 
+    {
+      TComPic* pcPic = pcCU->getPic();
+      TComSlice * pcSlice = pcCU->getPic()->getSlice(pcCU->getPic()->getCurrSliceIdx());
+      UInt qNumParts = ( pcPic->getNumPartInCU() >> ((CurDepth-1)<<1) )>>2;
+
+      Bool continueFlag = true;
+      UInt absPartIdx = uiCurAbsPartIdx;
+      UInt shift = ((pcSlice->getSPS()->getMaxCUDepth() - CurDepth)<<1);
+      UInt startPartUnitIdx = ((uiCurAbsPartIdx&(0x03<<shift))>>shift);
+
+      for ( UInt partUnitIdx = startPartUnitIdx; partUnitIdx < 4 && continueFlag; partUnitIdx++, absPartIdx+=qNumParts )
+      {
+        UInt lPelX = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[absPartIdx] ];
+        UInt tPelY = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[absPartIdx] ];
+        Bool inSliceFlag = ( pcCU->getSCUAddr()+absPartIdx+qNumParts>pcSlice->getEntropySliceCurStartCUAddr() ) && ( pcCU->getSCUAddr()+absPartIdx < pcSlice->getEntropySliceCurEndCUAddr());
+
+        if( inSliceFlag && ( lPelX < pcSlice->getSPS()->getWidth() ) && ( tPelY < pcSlice->getSPS()->getHeight() ) )
+        {
+          UInt uiDepth = pcCU->getDepth(absPartIdx);
+
+          if( ( CurDepth == uiDepth) && pcCU->getIPCMFlag( absPartIdx ) )
+          {
+            numSucIPCM++;
+          }
+          else
+          {
+            continueFlag = false;
+          }
+        }
+      }
+    }
+  }
+
+  return numSucIPCM;
+}
+#endif
 
 Void TEncCu::xCheckRDCostAMVPSkip           ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
 {

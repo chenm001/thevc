@@ -329,7 +329,11 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
   m_uiTotalBits        = 0;
   m_uiTotalBins        = 0;
   m_uiNumPartition     = pcPic->getNumPartInCU();
-  
+#if BURST_IPCM
+  m_numSucIPCM       = 0;
+  m_lastCUSucIPCMFlag   = false;
+#endif
+
   for(int i=0; i<pcPic->getNumPartInCU(); i++) 
   {
     if(pcPic->getPicSym()->getInverseCUOrderMap(iCUAddr)*pcPic->getNumPartInCU()+i>=getSlice()->getSliceCurStartCUAddr())
@@ -589,6 +593,11 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, 
   m_uiTotalBits        = 0;
   m_uiTotalBins        = 0;
   m_uiNumPartition     = pcCU->getTotalNumPart() >> 2;
+
+#if BURST_IPCM
+  m_numSucIPCM       = 0;
+  m_lastCUSucIPCMFlag   = false;
+#endif
 
   Int iSizeInUchar = sizeof( UChar  ) * m_uiNumPartition;
   Int iSizeInBool  = sizeof( Bool   ) * m_uiNumPartition;

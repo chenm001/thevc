@@ -126,6 +126,11 @@ Void TDecCu::decodeCU( TComDataCU* pcCU, UInt& ruiIsLast )
   {
     setdQPFlag(true);
   }
+
+#if BURST_IPCM
+  pcCU->setNumSucIPCM(0);
+#endif
+
   // start from the top level CU
   xDecodeCU( pcCU, 0, 0, ruiIsLast);
 }
@@ -207,7 +212,18 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt&
   Bool bStartInCU = pcCU->getSCUAddr()+uiAbsPartIdx+uiCurNumParts>pcSlice->getEntropySliceCurStartCUAddr()&&pcCU->getSCUAddr()+uiAbsPartIdx<pcSlice->getEntropySliceCurStartCUAddr();
   if((!bStartInCU) && ( uiRPelX < pcSlice->getSPS()->getWidth() ) && ( uiBPelY < pcSlice->getSPS()->getHeight() ) )
   {
+#if BURST_IPCM
+    if(pcCU->getNumSucIPCM() == 0)
+    {
+      m_pcEntropyDecoder->decodeSplitFlag( pcCU, uiAbsPartIdx, uiDepth );
+    }
+    else
+    {
+      pcCU->setDepthSubParts( uiDepth, uiAbsPartIdx );
+    }
+#else
     m_pcEntropyDecoder->decodeSplitFlag( pcCU, uiAbsPartIdx, uiDepth );
+#endif
   }
   else
   {
@@ -222,6 +238,7 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt&
       setdQPFlag(true);
       pcCU->setQPSubParts( pcCU->getRefQP(uiAbsPartIdx), uiAbsPartIdx, uiDepth ); // set QP to default QP
     }
+
     for ( UInt uiPartUnitIdx = 0; uiPartUnitIdx < 4; uiPartUnitIdx++ )
     {
       uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiIdx] ];
@@ -272,7 +289,11 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt&
   }
 
   // decode CU mode and the partition size
+#if BURST_IPCM
+  if( !pcCU->getSlice()->isIntra() && pcCU->getNumSucIPCM() == 0 )
+#else
   if( !pcCU->getSlice()->isIntra() )
+#endif
   {
     m_pcEntropyDecoder->decodeSkipFlag( pcCU, uiAbsPartIdx, uiDepth );
   }
@@ -333,9 +354,25 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt&
     xFinishDecodeCU( pcCU, uiAbsPartIdx, uiDepth, ruiIsLast );
     return;
   }
+
+#if BURST_IPCM
+  if( pcCU->getNumSucIPCM() == 0 ) 
+  {
+    m_pcEntropyDecoder->decodePredMode( pcCU, uiAbsPartIdx, uiDepth );
+    m_pcEntropyDecoder->decodePartSize( pcCU, uiAbsPartIdx, uiDepth );
+  }
+  else
+  {
+    pcCU->setPredModeSubParts( MODE_INTRA, uiAbsPartIdx, uiDepth );
+    pcCU->setPartSizeSubParts( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
+    pcCU->setSizeSubParts( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth ); 
+    pcCU->setTrIdxSubParts( 0, uiAbsPartIdx, uiDepth );
+  }
+#else
   m_pcEntropyDecoder->decodePredMode( pcCU, uiAbsPartIdx, uiDepth );
   m_pcEntropyDecoder->decodePartSize( pcCU, uiAbsPartIdx, uiDepth );
-  
+#endif
+
   if (pcCU->isIntra( uiAbsPartIdx ) && pcCU->getPartitionSize( uiAbsPartIdx ) == SIZE_2Nx2N )
   {
     m_pcEntropyDecoder->decodeIPCMInfo( pcCU, uiAbsPartIdx, uiDepth );
@@ -369,6 +406,15 @@ Void TDecCu::xFinishDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth,
       pcCU->setQPSubParts( pcCU->getRefQP(uiAbsPartIdx), uiAbsPartIdx, uiDepth ); // set QP to default QP
     }
   }
+
+#if BURST_IPCM
+  if( pcCU->getNumSucIPCM() > 0 )
+  {
+    ruiIsLast = 0;
+    return;
+  }
+#endif
+
   ruiIsLast = xDecodeSliceEnd( pcCU, uiAbsPartIdx, uiDepth);
 }
 

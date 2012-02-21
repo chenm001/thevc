@@ -145,7 +145,11 @@ public:
   Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void codePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   
+#if BURST_IPCM
+  Void codeIPCMInfo      ( TComDataCU* pcCU, UInt uiAbsPartIdx, Int numIPCM, Bool firstIPCMFlag);
+#else
   Void codeIPCMInfo      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+#endif
 
   Void codeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx );
   Void codeQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
