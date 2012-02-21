@@ -193,6 +193,10 @@ protected:
   UInt      m_uiBiPredIdc;                                    ///< Use of Bi-Directional Weighting Prediction (B_SLICE): explicit(1) or implicit(2)
 
   Bool      m_enableTMVP;
+#if MULTIBITS_DATA_HIDING
+  Int       m_iSignHideFlag;
+  Int       m_iSignHidingThreshold;
+#endif
 
   Int       m_useScalingListId;                               ///< using quantization matrix
   char*     m_scalingListFile;                                ///< quantization matrix file name

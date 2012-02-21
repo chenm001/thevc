@@ -41,6 +41,7 @@
 //! \ingroup TLibCommon
 //! \{
 
+#define MULTIBITS_DATA_HIDING     1  ///< H0481: multiple sign bit hiding
 
 #define H0111_MVD_L1_ZERO         1  ///< H0111: modification of bi-prediction
 

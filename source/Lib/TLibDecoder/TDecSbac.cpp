@@ -1142,6 +1142,12 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   UInt uiNumOne                = 0;
   UInt uiGoRiceParam           = 0;
 
+#if MULTIBITS_DATA_HIDING
+  UInt const TSIG = pcCU->getSlice()->getPPS()->getTSIG();
+  Bool bValid = pcCU->getSlice()->getPPS()->getSignHideFlag() > 0;
+  UInt uiAbsSum = 0;
+#endif  // MULTIBITS_DATA_HIDING
+
   UInt uiSigCoeffGroupFlag[ MLS_GRP_NUM ];
   ::memset( uiSigCoeffGroupFlag, 0, sizeof(UInt) * MLS_GRP_NUM );
   const UInt uiNumBlkSide = uiWidth >> (MLS_CG_SIZE >> 1);
@@ -1161,9 +1167,17 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     uiGoRiceParam    = 0;
     Int numNonZero = 0;
     
+#if MULTIBITS_DATA_HIDING
+    Int iLastNZPosInCG = -1, iFirstNZPosInCG = SCAN_SET_SIZE;
+#endif
+
     Int pos[SCAN_SET_SIZE];
     if( iScanPosSig == (Int) uiScanPosLast )
     {
+#if MULTIBITS_DATA_HIDING
+      iLastNZPosInCG  = iScanPosSig;
+      iFirstNZPosInCG = iScanPosSig;
+#endif
       iScanPosSig--;
       pos[ numNonZero ] = uiBlkPosLast;
       numNonZero = 1;
@@ -1223,6 +1237,13 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
         {
           pos[ numNonZero ] = uiBlkPos;
           numNonZero ++;
+#if MULTIBITS_DATA_HIDING
+          if( iLastNZPosInCG == -1 )
+          {
+            iLastNZPosInCG = iScanPosSig;
+          }
+          iFirstNZPosInCG = iScanPosSig;
+#endif
         }
       }
     }
@@ -1241,12 +1262,24 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
         {
           pos[ numNonZero ] = uiBlkPos;
           numNonZero ++;
+#if MULTIBITS_DATA_HIDING
+          if( iLastNZPosInCG == -1 )
+          {
+            iLastNZPosInCG = iScanPosSig;
+          }
+          iFirstNZPosInCG = iScanPosSig;
+#endif
         }
       }
     }
     
     if( numNonZero )
     {
+#if MULTIBITS_DATA_HIDING
+      Bool bSignHidden = ( iLastNZPosInCG - iFirstNZPosInCG >= (Int)TSIG );
+      uiAbsSum = 0;
+#endif  // MULTIBITS_DATA_HIDING
+
       UInt c1 = 1;
       UInt c2 = 0;
       UInt uiCtxSet    = (iSubSet > 0 && eTType==TEXT_LUMA) ? 3 : 0;
@@ -1292,10 +1325,24 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
           }
         }
       }
-      
+
+#if MULTIBITS_DATA_HIDING
+      UInt coeffSigns;
+      if ( bSignHidden && bValid )
+      {
+        m_pcTDecBinIf->decodeBinsEP( coeffSigns, numNonZero-1 );
+        coeffSigns <<= 32 - (numNonZero-1);
+      }
+      else
+      {
+        m_pcTDecBinIf->decodeBinsEP( coeffSigns, numNonZero );
+        coeffSigns <<= 32 - numNonZero;
+      }
+#else
       UInt coeffSigns;
       m_pcTDecBinIf->decodeBinsEP( coeffSigns, numNonZero );
       coeffSigns <<= 32 - numNonZero;
+#endif
       
       if (c1 == 0)
       {
@@ -1309,13 +1356,32 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
           }
         }
       }
-      
+
       for( Int idx = 0; idx < numNonZero; idx++ )
       {
         Int blkPos = pos[ idx ];
+#if MULTIBITS_DATA_HIDING
+        // Signs applied later.
+        pcCoef[ blkPos ] = absCoeff[ idx ];
+        uiAbsSum += absCoeff[ idx ];
+
+        if ( idx == numNonZero-1 && bSignHidden && bValid )
+        {
+          // Infer sign of 1st element.
+          if (uiAbsSum&0x1)
+            pcCoef[ blkPos ] = -pcCoef[ blkPos ];
+        }
+        else
+        {
+          Int sign = static_cast<Int>( coeffSigns ) >> 31;
+          pcCoef[ blkPos ] = ( pcCoef[ blkPos ] ^ sign ) - sign;
+          coeffSigns <<= 1;
+        }
+#else
         Int sign = static_cast<Int>( coeffSigns ) >> 31;
         pcCoef[ blkPos ] = ( absCoeff[ idx ] ^ sign ) - sign;
         coeffSigns <<= 1;
+#endif
       }
     }
     else

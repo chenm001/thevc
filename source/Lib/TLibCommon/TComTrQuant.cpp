@@ -1357,6 +1357,129 @@ void xITrMxN(short *coeff,short *block, int iWidth, int iHeight)
 
 #endif //MATRIX_MULT
 
+#if MULTIBITS_DATA_HIDING
+// To minimize the distortion only. No rate is considered. 
+Void TComTrQuant::SignBitHidingHDQ( TComDataCU* pcCU, TCoeff* piQCoef, TCoeff* piCoef, UInt const *scan, Int* deltaU,  UInt uiAbsPartIdx, Int iWidth, Int iHeight, TextType eTType )
+{
+  Int TSIG = pcCU->getSlice()->getPPS()->getTSIG() ;
+  Int bLastCG = -1;
+  Int iAbsSum = 0 ;
+  Int iN ;
+
+  for( Int iSubSet = (iWidth*iHeight-1) >> LOG2_SCAN_SET_SIZE; iSubSet >= 0; iSubSet-- )
+  {
+    Int  iSubPos     = iSubSet << LOG2_SCAN_SET_SIZE;
+    Int  iFirstNZPosInCG=SCAN_SET_SIZE , iLastNZPosInCG=-1 ;
+    iAbsSum = 0 ;
+
+    for(iN = SCAN_SET_SIZE-1; iN >= 0; --iN )
+    {
+      if( piQCoef[ scan[ iN + iSubPos ]] )
+      {
+        iLastNZPosInCG = iN;
+        break;
+      }
+    }
+
+    for(iN = 0; iN <SCAN_SET_SIZE; iN++ )
+    {
+      if( piQCoef[ scan[ iN + iSubPos ]] )
+      {
+        iFirstNZPosInCG = iN;
+        break;
+      }
+    }
+
+    for(iN = iFirstNZPosInCG; iN <=iLastNZPosInCG; iN++ )
+    {
+      iAbsSum += piQCoef[ scan[ iN + iSubPos ]];
+    }
+
+    if(iLastNZPosInCG>=0 && bLastCG==-1) bLastCG = 1 ; 
+    
+    if( iLastNZPosInCG-iFirstNZPosInCG>=TSIG )
+    {
+      UInt signbit = (piQCoef[scan[iSubPos+iFirstNZPosInCG]]>0?0:1) ;
+      if( signbit!=(iAbsSum&0x1) )  //compare signbit with sum_parity
+      {
+        Int minCostInc = MAX_INT,  minPos =-1, finalChange=0, curcost=MAX_INT, curChange=0;
+        
+        for( iN = (bLastCG==1?iLastNZPosInCG:SCAN_SET_SIZE-1) ; iN >= 0; --iN )
+        {
+          UInt uiBlkPos   = scan[ iN+iSubPos ];
+          if(piQCoef[ uiBlkPos ] != 0 )
+          {
+            if(deltaU[uiBlkPos]>0)
+            {
+              curcost = - deltaU[uiBlkPos]; 
+              curChange=1 ;
+            }
+            else 
+            {
+              //curChange =-1;
+              if(iN==iFirstNZPosInCG && abs(piQCoef[uiBlkPos])==1)
+              {
+                curcost=MAX_INT ; 
+              }
+              else
+              {
+                curcost = deltaU[uiBlkPos]; 
+                curChange =-1;
+              }
+            }
+          }
+          else
+          {
+            if(iN<iFirstNZPosInCG)
+            {
+              UInt thissignbit = (piCoef[uiBlkPos]>=0?0:1);
+              if(thissignbit != signbit )
+              {
+                curcost = MAX_INT;
+              }
+              else
+              { 
+                curcost = - (deltaU[uiBlkPos])  ;
+                curChange = 1 ;
+              }
+            }
+            else
+            {
+              curcost = - (deltaU[uiBlkPos])  ;
+              curChange = 1 ;
+            }
+          }
+
+          if( curcost<minCostInc)
+          {
+            minCostInc = curcost ;
+            finalChange = curChange ;
+            minPos = uiBlkPos ;
+          }
+        } //CG loop
+
+        if(piQCoef[minPos] == 32767 || piQCoef[minPos] == -32768)
+        {
+          finalChange = -1;
+        }
+
+        if(piCoef[minPos]>=0)
+        {
+          piQCoef[minPos] += finalChange ; 
+        }
+        else 
+        { 
+          piQCoef[minPos] -= finalChange ;
+        }  
+      } // Hide
+    }
+    if(bLastCG==1) bLastCG=0 ;    
+  } // TU loop
+
+  return;
+}
+
+#endif
 
 Void TComTrQuant::xQuant( TComDataCU* pcCU, 
                           Int*        pSrc, 
@@ -1387,6 +1510,29 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
   }
   else
   {
+#if MULTIBITS_DATA_HIDING
+    const UInt   uiLog2BlockSize   = g_aucConvertToBit[ iWidth ] + 2;
+
+    UInt uiScanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, iWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
+    uiScanIdx = ( uiScanIdx == SCAN_ZIGZAG ) ? SCAN_DIAG : uiScanIdx; // Map zigzag to diagonal scan
+    if (iWidth != iHeight)
+    {
+      uiScanIdx = SCAN_DIAG;
+    }
+
+    const UInt * scan;
+    if (iWidth == iHeight)
+    {
+      scan = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize - 1 ];
+    }
+    else
+    {
+      scan = g_sigScanNSQT[ uiLog2BlockSize - 2 ];
+    }
+
+    Int deltaU[32*32] ;
+#endif
+
 #if ADAPTIVE_QP_SELECTION
     QpParam cQpBase;
     Int iQpBase = pcCU->getSlice()->getSliceQpBase();
@@ -1432,6 +1578,9 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
     Int iAddC   = 1 << (iQBitsC-1);
 #endif
 
+#if MULTIBITS_DATA_HIDING
+    Int iQBits8 = iQBits-8;
+#endif
     for( Int n = 0; n < iWidth*iHeight; n++ )
     {
       Int iLevel;
@@ -1447,13 +1596,28 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
         piArlCCoef[uiBlockPos] = (Int)((tmpLevel + iAddC ) >> iQBitsC);
       }
       iLevel = (Int)((tmpLevel + iAdd ) >> iQBits);
+#if MULTIBITS_DATA_HIDING
+      deltaU[uiBlockPos] = (Int)((tmpLevel - (iLevel<<iQBits) )>> (iQBits8));
+#endif
 #else
       iLevel = ((Int64)abs(iLevel) * piQuantCoeff[uiBlockPos] + iAdd ) >> iQBits;
+#if MULTIBITS_DATA_HIDING
+      deltaU[uiBlockPos] = (Int)( ((Int64)abs(iLevel) * piQuantCoeff[uiBlockPos] - (iLevel<<iQBits) )>> (iQBits8) );
+#endif
 #endif
       uiAcSum += iLevel;
       iLevel *= iSign;        
       piQCoef[uiBlockPos] = Clip3( -32768, 32767, iLevel );
     } // for n
+#if MULTIBITS_DATA_HIDING
+    if( pcCU->getSlice()->getPPS()->getSignHideFlag() )
+    {
+      if(uiAcSum>=2)
+      {
+        SignBitHidingHDQ( pcCU, piQCoef, piCoef, scan, deltaU,  uiAbsPartIdx, iWidth, iHeight, eTType ) ;
+      }
+    }
+#endif
   } //if RDOQ
   //return;
 
@@ -1997,6 +2161,16 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   Double pdCostCoeff0[ 32 * 32 ];
   ::memset( pdCostCoeff, 0, sizeof(Double) *  uiMaxNumCoeff );
   ::memset( pdCostSig,   0, sizeof(Double) *  uiMaxNumCoeff );
+#if MULTIBITS_DATA_HIDING
+  Int RateIncUp   [ 32 * 32 ];
+  Int RateIncDown [ 32 * 32 ];
+  Int SigRateDelta[ 32 * 32 ];
+  Int deltaU      [ 32 * 32 ];
+  ::memset( RateIncUp,    0, sizeof(Int) *  uiMaxNumCoeff );
+  ::memset( RateIncDown,  0, sizeof(Int) *  uiMaxNumCoeff );
+  ::memset( SigRateDelta, 0, sizeof(Int) *  uiMaxNumCoeff );
+  ::memset( deltaU,       0, sizeof(Int) *  uiMaxNumCoeff );
+#endif
 
   const UInt * scanCG;
   if (uiWidth == uiHeight)
@@ -2077,8 +2251,23 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         UInt   uiPosX        = uiBlkPos - ( uiPosY << uiLog2BlkSize );
         UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
         uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ], lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, iQBits, dTemp, 0 );
+#if MULTIBITS_DATA_HIDING
+        SigRateDelta[ uiBlkPos ] = m_pcEstBitsSbac->significantBits[ uiCtxSig ][ 1 ] - m_pcEstBitsSbac->significantBits[ uiCtxSig ][ 0 ];
+#endif
       }
-
+#if MULTIBITS_DATA_HIDING
+      deltaU[ uiBlkPos ]        = (lLevelDouble - ((Int)uiLevel << iQBits)) >> (iQBits-8);
+      if( uiLevel > 0 )
+      {
+        Int iRateNow = xGetICRate( uiLevel, uiOneCtx, uiAbsCtx, uiGoRiceParam );
+        RateIncUp   [ uiBlkPos ] = xGetICRate( uiLevel+1, uiOneCtx, uiAbsCtx, uiGoRiceParam ) - iRateNow;
+        RateIncDown [ uiBlkPos ] = xGetICRate( uiLevel-1, uiOneCtx, uiAbsCtx, uiGoRiceParam ) - iRateNow;
+      }
+      else // uiLevel == 0
+      {
+        RateIncUp   [ uiBlkPos ] = m_pcEstBitsSbac->m_greaterOneBits[ uiOneCtx ][ 0 ];
+      }
+#endif
       piDstCoeff[ uiBlkPos ] = uiLevel;
       d64BaseCost           += pdCostCoeff [ iScanPos ];
 
@@ -2188,8 +2377,23 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
             uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ],
                                                    lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, 
                                                    iQBits, dTemp, 0 );
+#if MULTIBITS_DATA_HIDING
+            SigRateDelta[ uiBlkPos ] = m_pcEstBitsSbac->significantBits[ uiCtxSig ][ 1 ] - m_pcEstBitsSbac->significantBits[ uiCtxSig ][ 0 ];
+#endif
           }
-
+#if MULTIBITS_DATA_HIDING
+          deltaU[ uiBlkPos ]        = (lLevelDouble - ((Int)uiLevel << iQBits)) >> (iQBits-8);
+          if( uiLevel > 0 )
+          {
+            Int iRateNow = xGetICRate( uiLevel, uiOneCtx, uiAbsCtx, uiGoRiceParam );
+            RateIncUp   [ uiBlkPos ] = xGetICRate( uiLevel+1, uiOneCtx, uiAbsCtx, uiGoRiceParam ) - iRateNow;
+            RateIncDown [ uiBlkPos ] = xGetICRate( uiLevel-1, uiOneCtx, uiAbsCtx, uiGoRiceParam ) - iRateNow;
+          }
+          else // uiLevel == 0
+          {
+            RateIncUp   [ uiBlkPos ] = m_pcEstBitsSbac->m_greaterOneBits[ uiOneCtx ][ 0 ];
+          }
+#endif
           piDstCoeff[ uiBlkPos ] = uiLevel;
           d64BaseCost           += pdCostCoeff [ iScanPos ];
 
@@ -2433,6 +2637,117 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   {
     piDstCoeff[ scan[ scanPos ] ] = 0;
   }
+
+#if MULTIBITS_DATA_HIDING
+  if( pcCU->getSlice()->getPPS()->getSignHideFlag() && uiAbsSum>=2)
+  {
+ 
+    Int iFactor = (Int)((Double)(g_invQuantScales[m_cQP.rem()]*g_invQuantScales[m_cQP.rem()]<<(2*m_cQP.m_iPer))/m_dLambda/16 + 0.5) ;
+
+    Int TSIG = pcCU->getSlice()->getPPS()->getTSIG() ;
+
+    Int bLastCG = -1;
+    Int AbsSum = 0 ;
+    Int iN ;
+
+    for( Int iSubSet = (uiWidth*uiHeight-1) >> LOG2_SCAN_SET_SIZE; iSubSet >= 0; iSubSet-- )
+    {
+      Int  iSubPos     = iSubSet << LOG2_SCAN_SET_SIZE;
+      Int  iFirstNZPosInCG=SCAN_SET_SIZE , iLastNZPosInCG=-1 ;
+      AbsSum = 0 ;
+
+      for(iN = SCAN_SET_SIZE-1; iN >= 0; --iN )
+      {
+        if( piDstCoeff[ scan[ iN + iSubPos ]] )
+        {
+          iLastNZPosInCG = iN;
+          break;
+        }
+      }
+
+      for(iN = 0; iN <SCAN_SET_SIZE; iN++ )
+      {
+        if( piDstCoeff[ scan[ iN + iSubPos ]] )
+        {
+          iFirstNZPosInCG = iN;
+          break;
+        }
+      }
+
+      for(iN = iFirstNZPosInCG; iN <=iLastNZPosInCG; iN++ )
+      {
+        AbsSum += piDstCoeff[ scan[ iN + iSubPos ]];
+      }
+
+      if(iLastNZPosInCG>=0 && bLastCG==-1) bLastCG =1 ; 
+      
+      if( iLastNZPosInCG-iFirstNZPosInCG>=TSIG )
+      {
+        UInt signbit = (piDstCoeff[scan[iSubPos+iFirstNZPosInCG]]>0?0:1);
+        if( signbit!=(AbsSum&0x1) )  // hide but need tune
+        {
+          // calculate the cost 
+          Int minCostInc = MAX_INT,  minPos =-1, finalChange=0, curcost=MAX_INT, curChange=0;
+
+          for( iN = (bLastCG==1?iLastNZPosInCG:SCAN_SET_SIZE-1) ; iN >= 0; --iN )
+          {
+            UInt uiBlkPos   = scan[ iN + iSubPos ];
+            if(piDstCoeff[ uiBlkPos ] != 0 )
+            {
+              Int costup   = iFactor * ( - deltaU[uiBlkPos] ) + RateIncUp[uiBlkPos] ;
+              Int costdown = iFactor * (   deltaU[uiBlkPos] ) + RateIncDown[uiBlkPos] 
+                -   ( abs(piDstCoeff[uiBlkPos])==1?((1<<15)+SigRateDelta[uiBlkPos]):0 );
+
+              if(bLastCG==1 && iLastNZPosInCG==iN && abs(piDstCoeff[uiBlkPos])==1)  costdown -= (4<<15) ;
+
+              if(costup<costdown){  curcost = costup   ; curChange =  1 ;}
+              else               
+              {
+                curChange = -1 ;
+                if(iN==iFirstNZPosInCG && abs(piDstCoeff[uiBlkPos])==1) curcost = MAX_INT ;
+                else curcost = costdown ; 
+              }
+            }
+            else
+            {
+              curcost = iFactor * ( - (abs(deltaU[uiBlkPos])) ) + (1<<15) + RateIncUp[uiBlkPos] + SigRateDelta[uiBlkPos] ; 
+              curChange = 1 ;
+
+              if(iN<iFirstNZPosInCG)
+              {
+                UInt thissignbit = (plSrcCoeff[uiBlkPos]>=0?0:1);
+                if(thissignbit != signbit )  curcost = MAX_INT;
+              }
+            }
+
+            if( curcost<minCostInc)
+            {
+              minCostInc = curcost ;
+              finalChange = curChange ;
+              minPos = uiBlkPos ;
+            }
+          }
+
+          if(piQCoef[minPos] == 32767 || piQCoef[minPos] == -32768)
+          {
+            finalChange = -1;
+          }
+
+          if(plSrcCoeff[minPos]>=0)
+          {
+            piDstCoeff[minPos] += finalChange ;
+          }
+          else
+          {
+            piDstCoeff[minPos] -= finalChange ; 
+          }          
+        }
+      }
+
+      if(bLastCG==1) bLastCG=0 ;  
+    }
+  }
+#endif
 }
 
 /** Context derivation process of coeff_abs_significant_flag
@@ -2669,6 +2984,52 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
   }
   return xGetICost( iRate );
 }
+
+#if MULTIBITS_DATA_HIDING
+__inline Int TComTrQuant::xGetICRate  ( UInt                            uiAbsLevel,
+                                        UShort                          ui16CtxNumOne,
+                                        UShort                          ui16CtxNumAbs,
+                                        UShort                          ui16AbsGoRice
+                                       ) const
+{
+  Int iRate = 0;
+  if( uiAbsLevel == 0 )
+  {
+    return 0;
+  }
+  else if( uiAbsLevel == 1 )
+  {
+    iRate += m_pcEstBitsSbac->m_greaterOneBits[ ui16CtxNumOne ][ 0 ];
+  }
+  else if( uiAbsLevel == 2 )
+  {
+    iRate += m_pcEstBitsSbac->m_greaterOneBits[ ui16CtxNumOne ][ 1 ];
+    iRate += m_pcEstBitsSbac->m_levelAbsBits[ ui16CtxNumAbs ][ 0 ];
+  }
+  else
+  {
+    UInt uiSymbol     = uiAbsLevel - 3;
+    UInt uiMaxVlc     = g_auiGoRiceRange[ ui16AbsGoRice ];
+    Bool bExpGolomb   = ( uiSymbol > uiMaxVlc );
+
+    if( bExpGolomb )
+    {
+      uiAbsLevel  = uiSymbol - uiMaxVlc;
+      int iEGS    = 1;  for( UInt uiMax = 2; uiAbsLevel >= uiMax; uiMax <<= 1, iEGS += 2 );
+      iRate      += iEGS << 15;
+      uiSymbol    = min<UInt>( uiSymbol, ( uiMaxVlc + 1 ) );
+    }
+
+    UShort ui16PrefLen = UShort( uiSymbol >> ui16AbsGoRice ) + 1;
+    UShort ui16NumBins = min<UInt>( ui16PrefLen, g_auiGoRicePrefixLen[ ui16AbsGoRice ] ) + ui16AbsGoRice;
+
+    iRate += ui16NumBins << 15;
+    iRate += m_pcEstBitsSbac->m_greaterOneBits[ ui16CtxNumOne ][ 1 ];
+    iRate += m_pcEstBitsSbac->m_levelAbsBits[ ui16CtxNumAbs ][ 1 ];
+  }
+  return iRate;
+}
+#endif
 
 __inline Double TComTrQuant::xGetRateSigCoeffGroup  ( UShort                    uiSignificanceCoeffGroup,
                                                 UShort                          ui16CtxNumSig ) const

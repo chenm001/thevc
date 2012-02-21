@@ -280,6 +280,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("WaveFrontSubstreams",         m_iWaveFrontSubstreams,          1,          "# coded substreams wanted; per tile if TileBoundaryIndependenceIdc is 1, otherwise per frame")
     ("ScalingList",                 m_useScalingListId,              0,          "0: no scaling list, 1: default scaling lists, 2: scaling lists specified in ScalingListFile")
     ("ScalingListFile",             cfg_ScalingListFile,             string(""), "Scaling list file name")
+#if MULTIBITS_DATA_HIDING
+    ("SignHideFlag,-SBH",           m_iSignHideFlag, 1)
+    ("SignHideTSIG,-TSIG",          m_iSignHidingThreshold,         5)
+#endif
   /* Misc. */
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
                                               "\t1: use MD5\n"
@@ -851,6 +855,9 @@ Void TAppEncCfg::xPrintParameter()
   printf("AQpS:%d", m_bUseAdaptQpSelect   );
 #endif
 
+#if MULTIBITS_DATA_HIDING
+  printf(" SignBitHiding:%d TSIG:%d", m_iSignHideFlag, m_iSignHidingThreshold);
+#endif
   printf("\n\n");
   
   fflush(stdout);

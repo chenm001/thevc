@@ -226,6 +226,10 @@ protected:
   char*     m_scalingListFile;          ///< quantization matrix file name
 
   Bool      m_bEnableTMVP;
+#if MULTIBITS_DATA_HIDING
+  Int       m_iSignHideFlag;
+  Int       m_iSignHidingThreshold;
+#endif
 
 public:
   TEncCfg()          {}
@@ -533,6 +537,12 @@ public:
 
   Void      setEnableTMVP ( Bool b ) { m_bEnableTMVP = b;    }
   Bool      getEnableTMVP ()         { return m_bEnableTMVP; }
+#if MULTIBITS_DATA_HIDING
+  Void      setSignHideFlag( Int iSignHideFlag ) { m_iSignHideFlag = iSignHideFlag; }
+  Void      setTSIG( Int iTSIG )                 { m_iSignHidingThreshold = iTSIG; }
+  Int       getSignHideFlag()                    { return m_iSignHideFlag; }
+  Int       getTSIG()                            { return m_iSignHidingThreshold; }
+#endif
 };
 
 //! \}

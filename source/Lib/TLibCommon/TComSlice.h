@@ -437,6 +437,7 @@ private:
   UInt        m_uiBitsForLongTermRefs;
 
   UInt        m_uiBitsForTemporalId;
+
   UInt        m_uiNumTlayerSwitchingFlags;            // num_temporal_layer_switching_point_flags
   Bool        m_abTLayerSwitchingFlag[ MAX_TLAYER ];  // temporal_layer_switching_point_flag
 
@@ -461,6 +462,11 @@ private:
   Int      m_iNumSubstreams;
 
   Bool     m_enableTMVPFlag;
+
+#if MULTIBITS_DATA_HIDING
+  Int      m_iSignHideFlag;
+  Int      m_iSignHidingThreshold;
+#endif
 
 public:
   TComPPS();
@@ -560,6 +566,13 @@ public:
   Bool     getCabacIstateReset()                              { return m_bCabacIstateReset; }
   Void     setNumSubstreams(Int iNumSubstreams)               { m_iNumSubstreams = iNumSubstreams; }
   Int      getNumSubstreams()                                 { return m_iNumSubstreams; }
+
+#if MULTIBITS_DATA_HIDING
+  Void      setSignHideFlag( Int iSignHideFlag ) { m_iSignHideFlag = iSignHideFlag; }
+  Void      setTSIG( Int iTSIG )                 { m_iSignHidingThreshold = iTSIG; }
+  Int       getSignHideFlag()                    { return m_iSignHideFlag; }
+  Int       getTSIG()                            { return m_iSignHidingThreshold; }
+#endif
 
   Void     setEnableTMVPFlag( Bool b )  { m_enableTMVPFlag = b;    }
   Bool     getEnableTMVPFlag()          { return m_enableTMVPFlag; }

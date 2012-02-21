@@ -534,6 +534,15 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   TComRPS* pcRPSList = pcPPS->getRPSList();
   READ_UVLC( uiCode, "pic_parameter_set_id");                      pcPPS->setPPSId (uiCode);
   READ_UVLC( uiCode, "seq_parameter_set_id");                      pcPPS->setSPSId (uiCode);
+
+#if MULTIBITS_DATA_HIDING
+  READ_FLAG ( uiCode, "sign_data_hiding_flag" ); pcPPS->setSignHideFlag( uiCode );
+  if( pcPPS->getSignHideFlag() )
+  {
+    READ_CODE( 4, uiCode, "sign_hiding_threshold"); pcPPS->setTSIG(uiCode);
+  }
+#endif
+
   // RPS is put before entropy_coding_mode_flag
   // since entropy_coding_mode_flag will probably be removed from the WD
   TComReferencePictureSet*      pcRPS;

@@ -622,6 +622,10 @@ Void TEncTop::xInitPPS()
   m_cPPS.setUseWP( m_bUseWeightPred );
   m_cPPS.setWPBiPredIdc( m_uiBiPredIdc );
   m_cPPS.setEnableTMVPFlag( m_bEnableTMVP );
+#if MULTIBITS_DATA_HIDING
+  m_cPPS.setSignHideFlag(getSignHideFlag());
+  m_cPPS.setTSIG(getTSIG());
+#endif
 }
 
 Void TEncTop::xInitRPS()

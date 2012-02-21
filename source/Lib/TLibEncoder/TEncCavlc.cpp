@@ -238,6 +238,15 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   
   WRITE_UVLC( pcPPS->getPPSId(),                             "pic_parameter_set_id" );
   WRITE_UVLC( pcPPS->getSPSId(),                             "seq_parameter_set_id" );
+
+#if MULTIBITS_DATA_HIDING
+  WRITE_FLAG( pcPPS->getSignHideFlag(), "sign_data_hiding_flag" );
+  if( pcPPS->getSignHideFlag() )
+  {
+    WRITE_CODE(pcPPS->getTSIG(), 4, "sign_hiding_threshold");
+  }
+#endif
+
   // RPS is put before entropy_coding_mode_flag
   // since entropy_coding_mode_flag will probably be removed from the WD
   TComReferencePictureSet*      pcRPS;
@@ -299,6 +308,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
       }
     }
   }
+
   if(pcPPS->getTileBehaviorControlPresentFlag() == 1)
   {
     Int iNumColTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumColumnsMinus1()):(pcPPS->getSPS()->getNumColumnsMinus1());
