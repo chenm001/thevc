@@ -153,6 +153,7 @@
 
 #define DBL_H0473_PART_1          1   //Deblocking filtering simplification
 #define DBL_CONTROL               1   //PPS deblocking_filter_control_present_flag (JCTVC-H0398); condition for inherit params flag in SH (JCTVC-H0424)
+#define DBL_STRONG_FILTER_CLIP    1   //Introduction of strong filter clipping in deblocking filter (JCTVC-H0275)
 
 // ====================================================================================================================
 // Basic type redefinition
