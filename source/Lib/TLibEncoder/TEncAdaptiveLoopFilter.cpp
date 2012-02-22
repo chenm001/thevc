@@ -749,12 +749,13 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
     }
     break;
   case ALF_CROSS9x9:
-#else
-  case ALF_CROSS9x7_SQUARE3x3:
-#endif
     {
       Pel *pImgPad5, *pImgPad6, *pImgPad7, *pImgPad8;
-
+#else
+  case ALF_CROSS9x7_SQUARE3x3:
+    {
+      Pel *pImgPad5, *pImgPad6;
+#endif
       for (i= ypos; i<= yposEnd; i++)
       {
         yLineInLCU = i % m_lcuHeightChroma;
@@ -768,8 +769,10 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
           pImgPad4 = pImgPad - 2*iCmpStride;
           pImgPad5 = (paddingline < 3) ? pImgPad : pImgPad + 3*iCmpStride;
           pImgPad6 = (paddingline < 3) ? pImgPad : pImgPad - min(paddingline, 3)*iCmpStride;;
+#if !ALF_SINGLE_FILTER_SHAPE
           pImgPad7 = (paddingline < 4) ? pImgPad : pImgPad + 4*iCmpStride;
           pImgPad8 = (paddingline < 4) ? pImgPad : pImgPad - min(paddingline, 4)*iCmpStride;;      
+#endif
         }
         else if (yLineInLCU < m_lineIdxPadBotChroma || i-yLineInLCU+m_lcuHeightChroma >= imgHeightChroma )
         {
@@ -779,8 +782,10 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
           pImgPad4 = pImgPad - 2*iCmpStride;
           pImgPad5 = pImgPad + 3*iCmpStride;
           pImgPad6 = pImgPad - 3*iCmpStride;
+#if !ALF_SINGLE_FILTER_SHAPE
           pImgPad7 = pImgPad + 4*iCmpStride;
           pImgPad8 = pImgPad - 4*iCmpStride;
+#endif
         }
         else if (yLineInLCU < m_lineIdxPadTopChroma)
         {
@@ -791,8 +796,10 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
           pImgPad4 = (paddingline < 2) ? pImgPad : pImgPad - 2*iCmpStride;
           pImgPad5 = (paddingline < 3) ? pImgPad : pImgPad + min(paddingline, 3)*iCmpStride;
           pImgPad6 = (paddingline < 3) ? pImgPad : pImgPad - 3*iCmpStride;
+#if !ALF_SINGLE_FILTER_SHAPE
           pImgPad7 = (paddingline < 4) ? pImgPad : pImgPad + min(paddingline, 4)*iCmpStride;
           pImgPad8 = (paddingline < 4) ? pImgPad : pImgPad - 4*iCmpStride;
+#endif
         }
         else
         {
@@ -803,8 +810,10 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
           pImgPad4 = (paddingline < 2) ? pImgPad : pImgPad - min(paddingline, 2)*iCmpStride;
           pImgPad5 = (paddingline < 3) ? pImgPad : pImgPad + 3*iCmpStride;
           pImgPad6 = (paddingline < 3) ? pImgPad : pImgPad - min(paddingline, 3)*iCmpStride;
+#if !ALF_SINGLE_FILTER_SHAPE
           pImgPad7 = (paddingline < 4) ? pImgPad : pImgPad + 4*iCmpStride;
           pImgPad8 = (paddingline < 4) ? pImgPad : pImgPad - min(paddingline, 4)*iCmpStride;
+#endif
         }
 
         for (j= xpos; j<= xposEnd; j++)
@@ -2068,12 +2077,13 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
     }
     break;
   case ALF_CROSS9x9: 
-#else
-  case ALF_CROSS9x7_SQUARE3x3:
-#endif
     {
       Pel *pImgPad5, *pImgPad6, *pImgPad7, *pImgPad8;
-
+#else
+  case ALF_CROSS9x7_SQUARE3x3:
+    {
+      Pel *pImgPad5, *pImgPad6;
+#endif
       for (i= ypos; i<= yposEnd; i++)
       {
         yLineInLCU = i % m_lcuHeight;
@@ -2086,8 +2096,10 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
           pImgPad4 = pImgPad - 2*stride;
           pImgPad5 = pImgPad + 3*stride;
           pImgPad6 = pImgPad - 3*stride;
+#if !ALF_SINGLE_FILTER_SHAPE
           pImgPad7 = pImgPad + 4*stride;
           pImgPad8 = pImgPad - 4*stride;
+#endif
         }
         else if (yLineInLCU<m_lineIdxPadTop)
         {
@@ -2098,8 +2110,10 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
           pImgPad4 = (paddingLine < 2) ? pImgPad : pImgPad - 2*stride;
           pImgPad5 = (paddingLine < 3) ? pImgPad : pImgPad + min(paddingLine, 3)*stride;
           pImgPad6 = (paddingLine < 3) ? pImgPad : pImgPad - 3*stride;
+#if !ALF_SINGLE_FILTER_SHAPE
           pImgPad7 = (paddingLine < 4) ? pImgPad : pImgPad + min(paddingLine, 4)*stride;
           pImgPad8 = (paddingLine < 4) ? pImgPad : pImgPad - 4*stride;
+#endif
         }
         else
         {
@@ -2110,8 +2124,10 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
           pImgPad4 = (paddingLine < 2) ? pImgPad : pImgPad - min(paddingLine, 2)*stride;
           pImgPad5 = (paddingLine < 3) ? pImgPad : pImgPad + 3*stride;
           pImgPad6 = (paddingLine < 3) ? pImgPad : pImgPad - min(paddingLine, 3)*stride;
+#if !ALF_SINGLE_FILTER_SHAPE
           pImgPad7 = (paddingLine < 4) ? pImgPad : pImgPad + 4*stride;
           pImgPad8 = (paddingLine < 4) ? pImgPad : pImgPad - min(paddingLine, 4)*stride;
+#endif
         }         
 
         for (j= xpos; j<= xposEnd; j++)

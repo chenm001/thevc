@@ -717,7 +717,9 @@ Void TComAdaptiveLoopFilter::filterLuma(Pel *pImgRes, Pel *pImgPad, Int stride,
 
   Int yLineInLCU;
   Int paddingLine;
+#if !ALF_SINGLE_FILTER_SHAPE
   Int varInd = 0;
+#endif
   Int newCenterCoeff[4][NO_VAR_BINS];
 
   for(i=0; i< 4; i++)
@@ -852,12 +854,13 @@ Void TComAdaptiveLoopFilter::filterLuma(Pel *pImgRes, Pel *pImgPad, Int stride,
     }
     break;
   case ALF_CROSS9x9:
-#else
-  case ALF_CROSS9x7_SQUARE3x3:
-#endif
     {
       Pel *pImgPad5, *pImgPad6, *pImgPad7, *pImgPad8;
-
+#else
+  case ALF_CROSS9x7_SQUARE3x3:
+    {
+      Pel *pImgPad5, *pImgPad6;
+#endif
       for(i= ypos; i<= yposEnd; i++)
       {
         yLineInLCU = i % m_lcuHeight;   
@@ -870,8 +873,10 @@ Void TComAdaptiveLoopFilter::filterLuma(Pel *pImgRes, Pel *pImgPad, Int stride,
           pImgPad4 = pImgPad - 2*stride;
           pImgPad5 = pImgPad + 3*stride;
           pImgPad6 = pImgPad - 3*stride;
+#if !ALF_SINGLE_FILTER_SHAPE
           pImgPad7 = pImgPad + 4*stride;
           pImgPad8 = pImgPad - 4*stride;
+#endif
         }
         else if (yLineInLCU<m_lineIdxPadTop)
         {
@@ -883,8 +888,6 @@ Void TComAdaptiveLoopFilter::filterLuma(Pel *pImgRes, Pel *pImgPad, Int stride,
           pImgPad4 = (paddingLine < 2) ? pImgPad : pImgPad - 2*stride;
           pImgPad5 = (paddingLine < 3) ? pImgPad : pImgPad + min(paddingLine, 3)*stride;
           pImgPad6 = (paddingLine < 3) ? pImgPad : pImgPad - 3*stride;
-          pImgPad7 = (paddingLine < 4) ? pImgPad : pImgPad + min(paddingLine, 4)*stride;
-          pImgPad8 = (paddingLine < 4) ? pImgPad : pImgPad - 4*stride;
 #else
           pImgPad1 = pImgPad + min(paddingLine, 1)*stride;
           pImgPad2 = pImgPad -   stride;
@@ -906,8 +909,6 @@ Void TComAdaptiveLoopFilter::filterLuma(Pel *pImgRes, Pel *pImgPad, Int stride,
           pImgPad4 = (paddingLine < 2) ? pImgPad : pImgPad - min(paddingLine, 2)*stride;
           pImgPad5 = (paddingLine < 3) ? pImgPad : pImgPad + 3*stride;
           pImgPad6 = (paddingLine < 3) ? pImgPad : pImgPad - min(paddingLine, 3)*stride;
-          pImgPad7 = (paddingLine < 4) ? pImgPad : pImgPad + 4*stride;
-          pImgPad8 = (paddingLine < 4) ? pImgPad : pImgPad - min(paddingLine, 4)*stride;
 #else
           pImgPad1 = pImgPad + stride;
           pImgPad2 = pImgPad - min(paddingLine, 1)*stride;
@@ -1470,12 +1471,13 @@ Void TComAdaptiveLoopFilter::filterChroma(Pel *pImgRes, Pel *pImgPad, Int stride
     }
     break;
   case ALF_CROSS9x9:
-#else
-  case ALF_CROSS9x7_SQUARE3x3:
-#endif
     {
       Pel *pImgPad5, *pImgPad6, *pImgPad7, *pImgPad8;
-
+#else
+  case ALF_CROSS9x7_SQUARE3x3:
+    {
+      Pel *pImgPad5, *pImgPad6;
+#endif
       for(i= ypos; i<= yposEnd; i++)
       {
         yLineInLCU = i % m_lcuHeightChroma;
@@ -1492,9 +1494,7 @@ Void TComAdaptiveLoopFilter::filterChroma(Pel *pImgRes, Pel *pImgPad, Int stride
           pImgPad4 = pImgPad - 2*stride;
 #if ALF_SINGLE_FILTER_SHAPE
           pImgPad5 = (paddingline < 3) ? pImgPad : pImgPad + 3*stride;
-          pImgPad6 = (paddingline < 3) ? pImgPad : pImgPad - min(paddingline, 3)*stride;;
-          pImgPad7 = (paddingline < 4) ? pImgPad : pImgPad + 4*stride;
-          pImgPad8 = (paddingline < 4) ? pImgPad : pImgPad - min(paddingline, 4)*stride;;  
+          pImgPad6 = (paddingline < 3) ? pImgPad : pImgPad - min(paddingline, 3)*stride; 
 #else
           pImgPad5 = pImgPad + 3*stride;
           pImgPad6 = pImgPad - min(paddingline, 3)*stride;
@@ -1510,8 +1510,10 @@ Void TComAdaptiveLoopFilter::filterChroma(Pel *pImgRes, Pel *pImgPad, Int stride
           pImgPad4 = pImgPad - 2*stride;
           pImgPad5 = pImgPad + 3*stride;
           pImgPad6 = pImgPad - 3*stride;
+#if !ALF_SINGLE_FILTER_SHAPE
           pImgPad7 = pImgPad + 4*stride;
           pImgPad8 = pImgPad - 4*stride;
+#endif
         }
         else if (yLineInLCU < m_lineIdxPadTopChroma)
         {
@@ -1523,8 +1525,6 @@ Void TComAdaptiveLoopFilter::filterChroma(Pel *pImgRes, Pel *pImgPad, Int stride
           pImgPad4 = (paddingline < 2) ? pImgPad : pImgPad - 2*stride;
           pImgPad5 = (paddingline < 3) ? pImgPad : pImgPad + min(paddingline, 3)*stride;
           pImgPad6 = (paddingline < 3) ? pImgPad : pImgPad - 3*stride;
-          pImgPad7 = (paddingline < 4) ? pImgPad : pImgPad + min(paddingline, 4)*stride;
-          pImgPad8 = (paddingline < 4) ? pImgPad : pImgPad - 4*stride;
 #else
           pImgPad1 = pImgPad + min(paddingline, 1)*stride;
           pImgPad2 = pImgPad - stride;
@@ -1546,8 +1546,6 @@ Void TComAdaptiveLoopFilter::filterChroma(Pel *pImgRes, Pel *pImgPad, Int stride
           pImgPad4 = (paddingline < 2) ? pImgPad : pImgPad - min(paddingline, 2)*stride;
           pImgPad5 = (paddingline < 3) ? pImgPad : pImgPad + 3*stride;
           pImgPad6 = (paddingline < 3) ? pImgPad : pImgPad - min(paddingline, 3)*stride;
-          pImgPad7 = (paddingline < 4) ? pImgPad : pImgPad + 4*stride;
-          pImgPad8 = (paddingline < 4) ? pImgPad : pImgPad - min(paddingline, 4)*stride;
 #else
           pImgPad1 = pImgPad + stride;
           pImgPad2 = pImgPad - min(paddingline, 1)*stride;
