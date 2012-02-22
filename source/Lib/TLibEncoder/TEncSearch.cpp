@@ -2368,9 +2368,9 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
   PartSize      ePartSize = pcCU->getPartitionSize( 0 );
 
 #if H0111_MVD_L1_ZERO
-  Int           iBestBiPRefIdxL1=0;
-  Int           iBestBiPMvpL1=0;
-  UInt          uiBiPDistTemp;
+  Int           bestBiPRefIdxL1=0;
+  Int           bestBiPMvpL1=0;
+  UInt          biPDistTemp;
 #endif
 
 #if ZERO_MVD_EST
@@ -2395,7 +2395,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     UInt          auiZeroMvdBits[3];
 #endif
 #if H0111_MVD_L1_ZERO
-    UInt          uiBestBiPDist=MAX_INT;
+    UInt          bestBiPDist=MAX_INT;
 #endif
 
     UInt          uiCostTempL0[MAX_NUM_REF];
@@ -2433,9 +2433,9 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
         }
 #if H0111_MVD_L1_ZERO
 #if ZERO_MVD_EST
-        xEstimateMvPredAMVP( pcCU, pcOrgYuv, iPartIdx, eRefPicList, iRefIdxTemp, cMvPred[iRefList][iRefIdxTemp], false, &uiBiPDistTemp, &uiZeroMvdDistTemp);
+        xEstimateMvPredAMVP( pcCU, pcOrgYuv, iPartIdx, eRefPicList, iRefIdxTemp, cMvPred[iRefList][iRefIdxTemp], false, &biPDistTemp, &uiZeroMvdDistTemp);
 #else
-        xEstimateMvPredAMVP( pcCU, pcOrgYuv, iPartIdx, eRefPicList, iRefIdxTemp, cMvPred[iRefList][iRefIdxTemp], false, &uiBiPDistTemp);
+        xEstimateMvPredAMVP( pcCU, pcOrgYuv, iPartIdx, eRefPicList, iRefIdxTemp, cMvPred[iRefList][iRefIdxTemp], false, &biPDistTemp);
 #endif
 #else
 #if ZERO_MVD_EST
@@ -2448,11 +2448,11 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
         aaiMvpNum[iRefList][iRefIdxTemp] = pcCU->getMVPNum(eRefPicList, uiPartAddr);
         
 #if H0111_MVD_L1_ZERO
-        if(pcCU->getSlice()->getMvdL1ZeroFlag() && iRefList==1 && uiBiPDistTemp < uiBestBiPDist)
+        if(pcCU->getSlice()->getMvdL1ZeroFlag() && iRefList==1 && biPDistTemp < bestBiPDist)
         {
-          uiBestBiPDist = uiBiPDistTemp;
-          iBestBiPMvpL1 = aaiMvpIdx[iRefList][iRefIdxTemp];
-          iBestBiPRefIdxL1 = iRefIdxTemp;
+          bestBiPDist = biPDistTemp;
+          bestBiPMvpL1 = aaiMvpIdx[iRefList][iRefIdxTemp];
+          bestBiPRefIdxL1 = iRefIdxTemp;
         }
 #endif
 
@@ -2599,13 +2599,13 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
 
       if(pcCU->getSlice()->getMvdL1ZeroFlag())
       {
-        xCopyAMVPInfo(&aacAMVPInfo[1][iBestBiPRefIdxL1], pcCU->getCUMvField(REF_PIC_LIST_1)->getAMVPInfo());
-        pcCU->setMVPIdxSubParts( iBestBiPMvpL1, REF_PIC_LIST_1, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
-        aaiMvpIdxBi[1][iBestBiPRefIdxL1] = iBestBiPMvpL1;
-        cMvPredBi[1][iBestBiPRefIdxL1]   = pcCU->getCUMvField(REF_PIC_LIST_1)->getAMVPInfo()->m_acMvCand[iBestBiPMvpL1];
+        xCopyAMVPInfo(&aacAMVPInfo[1][bestBiPRefIdxL1], pcCU->getCUMvField(REF_PIC_LIST_1)->getAMVPInfo());
+        pcCU->setMVPIdxSubParts( bestBiPMvpL1, REF_PIC_LIST_1, uiPartAddr, iPartIdx, pcCU->getDepth(uiPartAddr));
+        aaiMvpIdxBi[1][bestBiPRefIdxL1] = bestBiPMvpL1;
+        cMvPredBi[1][bestBiPRefIdxL1]   = pcCU->getCUMvField(REF_PIC_LIST_1)->getAMVPInfo()->m_acMvCand[bestBiPMvpL1];
 
-        cMvBi[1] = cMvPredBi[1][iBestBiPRefIdxL1];
-        iRefIdxBi[1] = iBestBiPRefIdxL1;
+        cMvBi[1] = cMvPredBi[1][bestBiPRefIdxL1];
+        iRefIdxBi[1] = bestBiPRefIdxL1;
         pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMv( cMvBi[1], ePartSize, uiPartAddr, 0, iPartIdx );
         pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllRefIdx( iRefIdxBi[1], ePartSize, uiPartAddr, 0, iPartIdx );
         TComYuv* pcYuvPred = &m_acYuvPred[1];
@@ -2616,15 +2616,15 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
 
         if ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_1) > 1 )
         {
-          uiMotBits[1] += iBestBiPRefIdxL1+1;
-          if ( iBestBiPRefIdxL1 == pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_1)-1 ) uiMotBits[1]--;
+          uiMotBits[1] += bestBiPRefIdxL1+1;
+          if ( bestBiPRefIdxL1 == pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_1)-1 ) uiMotBits[1]--;
         }
 
-        uiMotBits[1] += m_auiMVPIdxCost[aaiMvpIdxBi[1][iBestBiPRefIdxL1]][AMVP_MAX_NUM_CANDS];
+        uiMotBits[1] += m_auiMVPIdxCost[aaiMvpIdxBi[1][bestBiPRefIdxL1]][AMVP_MAX_NUM_CANDS];
 
         uiBits[2] = uiMbBits[2] + uiMotBits[0] + uiMotBits[1];
 
-        cMvTemp[1][iBestBiPRefIdxL1] = cMvBi[1];
+        cMvTemp[1][bestBiPRefIdxL1] = cMvBi[1];
       }
       else
       {

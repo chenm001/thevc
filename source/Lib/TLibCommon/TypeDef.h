@@ -44,6 +44,7 @@
 #define MULTIBITS_DATA_HIDING     1  ///< H0481: multiple sign bit hiding
 
 #define H0111_MVD_L1_ZERO         1  ///< H0111: modification of bi-prediction
+#define DISABLING_CLIP_FOR_BIPREDME         1  ///< Ticket #175
 
 #define CLIPSCALEDMVP               1  ///< H0216: Clipping scaled MV to 16 bit
 
