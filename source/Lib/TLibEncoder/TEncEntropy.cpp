@@ -139,7 +139,9 @@ Void TEncEntropy::codeAux(ALFParam* pAlfParam)
   //  m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->realfiltNo); 
 
   m_pcEntropyCoderIf->codeAlfFlag(pAlfParam->alf_pcr_region_flag);
+#if !ALF_SINGLE_FILTER_SHAPE
   m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->filter_shape); 
+#endif
   Int noFilters = min(pAlfParam->filters_per_group-1, 2);
   m_pcEntropyCoderIf->codeAlfUvlc(noFilters);
 
@@ -181,7 +183,11 @@ Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
   
   pDepthInt = pDepthIntTabShapes[ALFp->filter_shape];
   maxScanVal = 0;
+#if ALF_SINGLE_FILTER_SHAPE
+  int minScanVal = MIN_SCAN_POS_CROSS;
+#else
   int minScanVal = ( ALFp->filter_shape==ALF_STAR5x5 ) ? 0 : MIN_SCAN_POS_CROSS;
+#endif
 
   for(i = 0; i < sqrFiltLength; i++)
   {
@@ -389,7 +395,9 @@ Void TEncEntropy::encodeAlfParam(ALFParam* pAlfParam)
   m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->chroma_idc);
   if(pAlfParam->chroma_idc)
   {
+#if !ALF_SINGLE_FILTER_SHAPE
     m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->filter_shape_chroma);
+#endif
     // filter coefficients for chroma
     for(pos=0; pos<pAlfParam->num_coeff_chroma; pos++)
     {

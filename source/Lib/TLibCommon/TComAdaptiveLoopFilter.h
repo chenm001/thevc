@@ -48,7 +48,12 @@
 // Constants
 // ====================================================================================================================
 
+#if ALF_SINGLE_FILTER_SHAPE
+#define ALF_FILTER_LEN       10
+#define ALF_MAX_NUM_COEF     ALF_FILTER_LEN    //!< maximum number of filter coefficients
+#else
 #define ALF_MAX_NUM_COEF      9                                       //!< maximum number of filter coefficients
+#endif
 #define MAX_SQR_FILT_LENGTH   41                                      //!< ((max_horizontal_tap * max_vertical_tap) / 2 + 1) = ((11 * 5) / 2 + 1)
 
 #define ALF_NUM_BIT_SHIFT     8                                       ///< bit shift parameter for quantization of ALF param.
@@ -84,13 +89,22 @@ enum ALFClassficationMethod
 ///
 enum ALFFilterShape
 {
+#if ALF_SINGLE_FILTER_SHAPE
+  ALF_CROSS9x7_SQUARE3x3 = 0,
+#else
   ALF_STAR5x5 = 0,
   ALF_CROSS9x9,
+#endif
   NUM_ALF_FILTER_SHAPE
 };
 
+
+#if ALF_SINGLE_FILTER_SHAPE
+extern Int depthIntShape1Sym[ALF_MAX_NUM_COEF+1];
+#else
 extern Int depthIntShape0Sym[10];
 extern Int depthIntShape1Sym[10];
+#endif
 extern Int *pDepthIntTabShapes[NUM_ALF_FILTER_SHAPE];
 
 // ====================================================================================================================
@@ -139,8 +153,12 @@ class TComAdaptiveLoopFilter
 protected: //protected member variables
 
   // filter shape information
+#if ALF_SINGLE_FILTER_SHAPE
+  static Int weightsShape1Sym[ALF_MAX_NUM_COEF+1];
+#else
   static Int weightsShape0Sym[10];
   static Int weightsShape1Sym[10];
+#endif
   static Int *weightsTabShapes[NUM_ALF_FILTER_SHAPE];
   static Int m_sqrFiltLengthTab[NUM_ALF_FILTER_SHAPE];
 

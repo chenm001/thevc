@@ -414,7 +414,11 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
 {
   UInt uiSymbol;
   Int iSymbol;
+#if ALF_SINGLE_FILTER_SHAPE
+  Int sqrFiltLengthTab[NUM_ALF_FILTER_SHAPE] = {ALF_FILTER_LEN}; 
+#else
   Int sqrFiltLengthTab[2] = { 9, 9}; 
+#endif
 
   pAlfParam->filters_per_group = 0;
   memset (pAlfParam->filterPattern, 0 , sizeof(Int)*NO_VAR_BINS);
@@ -422,8 +426,12 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
   READ_FLAG (uiSymbol, "alf_region_adaptation_flag");
   pAlfParam->alf_pcr_region_flag = uiSymbol;  
 
+#if ALF_SINGLE_FILTER_SHAPE  
+  pAlfParam->filter_shape = 0;
+#else
   READ_UVLC (uiSymbol, "alf_length_luma_minus_5_div2");
   pAlfParam->filter_shape = uiSymbol;
+#endif
   pAlfParam->num_coeff = sqrFiltLengthTab[pAlfParam->filter_shape];
 
   // filters_per_fr
@@ -459,7 +467,11 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
     pAlfParam->nbSPred[idx] = uiSymbol;
   }
 
+#if ALF_SINGLE_FILTER_SHAPE
+  Int minScanVal = MIN_SCAN_POS_CROSS;
+#else
   Int minScanVal = (pAlfParam->filter_shape == ALF_STAR5x5) ? 0: MIN_SCAN_POS_CROSS;
+#endif
 
   // Determine maxScanVal
   Int maxScanVal = 0;
@@ -498,9 +510,14 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
 
   if(pAlfParam->chroma_idc)
   {
+
+#if ALF_SINGLE_FILTER_SHAPE 
+    pAlfParam->filter_shape_chroma  = 0;
+#else
     READ_UVLC (uiSymbol, "alf_length_chroma_minus_5_div2");
 
     pAlfParam->filter_shape_chroma = uiSymbol;
+#endif
     pAlfParam->num_coeff_chroma = sqrFiltLengthTab[pAlfParam->filter_shape_chroma];
     // filter coefficients for chroma
     for(Int pos=0; pos<pAlfParam->num_coeff_chroma; pos++)
