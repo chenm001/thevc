@@ -88,6 +88,15 @@ public:
 public:
   Int m_iBits;
     
+#if H0736_AVC_STYLE_QP_RANGE
+  Void setQpParam( Int qpScaled, Bool bLowpass, SliceType eSliceType )
+  {
+    m_iQP   = qpScaled;
+    m_iPer  = qpScaled / 6;
+    m_iRem  = qpScaled % 6;
+    m_iBits = QP_BITS + m_iPer;
+  }
+#else
   Void setQpParam( Int iQP, Bool bLowpass, SliceType eSliceType )
   {
     assert ( iQP >= MIN_QP && iQP <= MAX_QP );
@@ -101,6 +110,7 @@ public:
     
     m_iBits = QP_BITS + m_iPer;
   }
+#endif
   
   Void clear()
   {
@@ -150,7 +160,12 @@ public:
                              UInt uiMaxTrMode,  UInt uiTrMode, TCoeff* rpcCoeff );
   
   // Misc functions
+#if H0736_AVC_STYLE_QP_RANGE
+  Void setQPforQuant( Int qpy, Bool bLowpass, SliceType eSliceType, TextType eTxtType, Int qpBdOffset, Int chromaQPOffset);
+#else
   Void setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, TextType eTxtType, Int Shift);
+#endif
+
 #if RDOQ_CHROMA_LAMBDA 
   Void setLambda(Double dLambdaLuma, Double dLambdaChroma) { m_dLambdaLuma = dLambdaLuma; m_dLambdaChroma = dLambdaChroma; }
   Void selectLambda(TextType eTType) { m_dLambda = (eTType == TEXT_LUMA) ? m_dLambdaLuma : m_dLambdaChroma; }

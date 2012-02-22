@@ -1168,6 +1168,10 @@ TComSPS::TComSPS()
 , m_bLCMod                    (false)
 , m_uiBitDepth                (  8)
 , m_uiBitIncrement            (  0)
+#if H0736_AVC_STYLE_QP_RANGE
+, m_qpBDOffsetY               (  0)
+, m_qpBDOffsetC               (  0)
+#endif
 , m_uiPCMBitDepthLuma         (  8)
 , m_uiPCMBitDepthChroma       (  8)
 , m_bPCMFilterDisableFlag     (false)

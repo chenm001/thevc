@@ -108,6 +108,10 @@ private:
   AMVP_MODE   m_aeAMVPMode[MAX_CU_DEPTH];
   UInt        m_uiBitDepth;
   UInt        m_uiBitIncrement;
+#if H0736_AVC_STYLE_QP_RANGE
+  Int         m_qpBDOffsetY;
+  Int         m_qpBDOffsetC;
+#endif
 
   UInt        m_uiPCMBitDepthLuma;
   UInt        m_uiPCMBitDepthChroma;
@@ -236,6 +240,12 @@ public:
   Void      setBitDepth     ( UInt u ) { m_uiBitDepth = u;        }
   UInt      getBitIncrement ()         { return m_uiBitIncrement; }
   Void      setBitIncrement ( UInt u ) { m_uiBitIncrement = u;    }
+#if H0736_AVC_STYLE_QP_RANGE
+  Int       getQpBDOffsetY  ()             { return m_qpBDOffsetY;   }
+  Void      setQpBDOffsetY  ( Int value  ) { m_qpBDOffsetY = value;  }
+  Int       getQpBDOffsetC  ()             { return m_qpBDOffsetC;   }
+  Void      setQpBDOffsetC  ( Int value  ) { m_qpBDOffsetC = value;  }
+#endif
 
   Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
   Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   } 

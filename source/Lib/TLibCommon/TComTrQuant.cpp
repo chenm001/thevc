@@ -178,6 +178,42 @@ Void TComTrQuant::clearSliceARLCnt()
 }
 #endif
 
+
+#if H0736_AVC_STYLE_QP_RANGE
+/** Set qP for Quantization.
+ * \param qpy QPy
+ * \param bLowpass
+ * \param eSliceType
+ * \param eTxtType
+ * \param qpBdOffset
+ * \param chromaQPOffset
+ *
+ * return void  
+ */
+Void TComTrQuant::setQPforQuant( Int qpy, Bool bLowpass, SliceType eSliceType, TextType eTxtType, Int qpBdOffset, Int chromaQPOffset)
+{
+  Int qpScaled;
+
+  if(eTxtType == TEXT_LUMA)
+  {
+    qpScaled = qpy + qpBdOffset;
+  }
+  else
+  {
+    qpScaled = Clip3( -qpBdOffset, 51, qpy + chromaQPOffset );
+
+    if(qpScaled < 0)
+    {
+      qpScaled = qpScaled + qpBdOffset;
+    }
+    else
+    {
+      qpScaled = g_aucChromaScale[ Clip3(0, 51, qpScaled) ] + qpBdOffset;
+    }
+  }
+  m_cQP.setQpParam( qpScaled, bLowpass, eSliceType );
+}
+#else
 /// Including Chroma QP Parameter setting
 Void TComTrQuant::setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, TextType eTxtType, Int Shift)
 {
@@ -190,6 +226,7 @@ Void TComTrQuant::setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, T
   
   m_cQP.setQpParam( iQP, bLowpass, eSliceType );
 }
+#endif
 
 #if MATRIX_MULT
 /** NxN forward transform (2D) using brute force matrix multiplication (3 nested loops)
@@ -1536,11 +1573,36 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
 #if ADAPTIVE_QP_SELECTION
     QpParam cQpBase;
     Int iQpBase = pcCU->getSlice()->getSliceQpBase();
+
+#if H0736_AVC_STYLE_QP_RANGE
+    Int qpScaled;
+    Int qpBDOffset = (eTType == TEXT_LUMA)? pcCU->getSlice()->getSPS()->getQpBDOffsetY() : pcCU->getSlice()->getSPS()->getQpBDOffsetC();
+
+    if(eTType == TEXT_LUMA)
+    {
+      qpScaled = iQpBase + qpBDOffset;
+    }
+    else
+    {
+      qpScaled = Clip3( -qpBDOffset, 51, iQpBase);
+
+      if(qpScaled < 0)
+      {
+        qpScaled = qpScaled +  qpBDOffset;
+      }
+      else
+      {
+        qpScaled = g_aucChromaScale[ Clip3(0, 51, qpScaled) ] + qpBDOffset;
+      }
+    }
+    cQpBase.setQpParam(qpScaled, false, pcCU->getSlice()->getSliceType());
+#else
     if(eTType != TEXT_LUMA)
     {
       iQpBase = g_aucChromaScale[iQpBase];
     }
     cQpBase.setQpParam(iQpBase, false, pcCU->getSlice()->getSliceType());
+#endif
 #endif
 
     Bool bNonSqureFlag = ( iWidth != iHeight );
@@ -1654,6 +1716,7 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
 #endif
   UInt iTransformShift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize; 
   iShift = QUANT_IQUANT_SHIFT - QUANT_SHIFT - iTransformShift;
+
   if(getUseScalingList())
   {
     iShift += 4;

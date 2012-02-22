@@ -936,6 +936,9 @@ Void TDecSbac::parseQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 
 Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
+#if H0736_AVC_STYLE_QP_RANGE
+  Int qp;
+#endif
   UInt uiDQp;
   Int  iDQp;
   
@@ -943,15 +946,27 @@ Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   
   if ( uiDQp == 0 )
   {
+#if H0736_AVC_STYLE_QP_RANGE
+    qp = pcCU->getRefQP(uiAbsPartIdx);
+#else
     uiDQp = pcCU->getRefQP(uiAbsPartIdx);
+#endif
   }
   else
   {
     UInt uiSign;
+#if H0736_AVC_STYLE_QP_RANGE
+    Int qpBdOffsetY = pcCU->getSlice()->getSPS()->getQpBDOffsetY();
+#else
     UInt uiQpBdOffsetY = 6*(g_uiBitIncrement + g_uiBitDepth - 8);
+#endif
     m_pcTDecBinIf->decodeBinEP(uiSign);
 
+#if H0736_AVC_STYLE_QP_RANGE
+    UInt uiMaxAbsDQpMinus1 = 24 + (qpBdOffsetY/2) + (uiSign);
+#else
     UInt uiMaxAbsDQpMinus1 = 24 + (uiQpBdOffsetY/2) + (uiSign);
+#endif
     UInt uiAbsDQpMinus1;
     xReadUnaryMaxSymbol (uiAbsDQpMinus1,  &m_cCUDeltaQpSCModel.get( 0, 0, 1 ), 1, uiMaxAbsDQpMinus1);
 
@@ -961,13 +976,21 @@ Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     {
       iDQp = -iDQp;
     }
-    uiDQp = pcCU->getRefQP(uiAbsPartIdx) + iDQp;
 
+#if H0736_AVC_STYLE_QP_RANGE
+    qp = (((Int) pcCU->getRefQP( uiAbsPartIdx ) + iDQp + 52 + 2*qpBdOffsetY )%(52+qpBdOffsetY)) - qpBdOffsetY;
+#else
+    uiDQp = pcCU->getRefQP(uiAbsPartIdx) + iDQp;
+#endif
   }
   
   UInt uiAbsQpCUPartIdx = (uiAbsPartIdx>>(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)) ;
   UInt uiQpCUDepth =   min(uiDepth,pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()) ;
+#if H0736_AVC_STYLE_QP_RANGE
+  pcCU->setQPSubParts( qp, uiAbsQpCUPartIdx, uiQpCUDepth );
+#else
   pcCU->setQPSubParts( uiDQp, uiAbsQpCUPartIdx, uiQpCUDepth );
+#endif
 }
 
 Void TDecSbac::parseQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth )
