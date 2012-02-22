@@ -1111,6 +1111,12 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   if (uiWidth == uiHeight)
   {
     scanCG = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize > 3 ? uiLog2BlockSize-2-1 : 0 ];
+#if MULTILEVEL_SIGMAP_EXT
+    if( uiLog2BlockSize == 3 )
+    {
+      scanCG = g_sigLastScan8x8[ uiScanIdx ];
+    }
+#endif
   }
   else
   {
@@ -1120,8 +1126,10 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   static const UInt uiShift = MLS_CG_SIZE >> 1;
   const UInt uiNumBlkSide = uiWidth >> uiShift;
 
+#if !MULTILEVEL_SIGMAP_EXT
   if( blockType > 3 )
   {
+#endif
     ::memset( uiSigCoeffGroupFlag, 0, sizeof(UInt) * MLS_GRP_NUM );
 
     do
@@ -1132,6 +1140,19 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       UInt uiPosY    = posLast >> uiLog2BlockSize;
       UInt uiPosX    = posLast - ( uiPosY << uiLog2BlockSize );
       UInt uiBlkIdx  = uiNumBlkSide * (uiPosY >> uiShift) + (uiPosX >> uiShift);
+#if MULTILEVEL_SIGMAP_EXT
+      if( uiWidth == 8 && uiHeight == 8 && (uiScanIdx == SCAN_HOR || uiScanIdx == SCAN_VER) )
+      {
+        if( uiScanIdx == SCAN_HOR )
+        {
+          uiBlkIdx = uiPosY >> 1;
+        }
+        else if( uiScanIdx == SCAN_VER )
+        {
+          uiBlkIdx = uiPosX >> 1;
+        }
+      }
+#endif
       if( pcCoef[ posLast ] )
       {
         uiSigCoeffGroupFlag[ uiBlkIdx ] = 1;
@@ -1140,6 +1161,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       uiNumSig -= ( pcCoef[ posLast ] != 0 );
     }
     while ( uiNumSig > 0 );
+#if !MULTILEVEL_SIGMAP_EXT
   }
   else
   {
@@ -1152,6 +1174,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   while ( uiNumSig > 0 );
 
   }
+#endif
 
   // Code position of last coefficient
   Int posLastY = posLast >> uiLog2BlockSize;
@@ -1192,12 +1215,21 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       iScanPosSig--;
     }
 
+#if !MULTILEVEL_SIGMAP_EXT
     if( blockType > 3 )
     {
+#endif
       // encode significant_coeffgroup_flag
       Int iCGBlkPos = scanCG[ iSubSet ];
       Int iCGPosY   = iCGBlkPos / uiNumBlkSide;
       Int iCGPosX   = iCGBlkPos - (iCGPosY * uiNumBlkSide);
+#if MULTILEVEL_SIGMAP_EXT
+      if( uiWidth == 8 && uiHeight == 8 && (uiScanIdx == SCAN_HOR || uiScanIdx == SCAN_VER) )
+      {
+        iCGPosY = (uiScanIdx == SCAN_HOR ? iCGBlkPos : 0);
+        iCGPosX = (uiScanIdx == SCAN_VER ? iCGBlkPos : 0);
+      }
+#endif
       Bool bInferredCGFlag = false;
       
       if( iSubSet == iLastScanSet )
@@ -1206,10 +1238,18 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       }
       else
       {
+#if MULTILEVEL_SIGMAP_EXT
+        if( !TComTrQuant::bothCGNeighboursOne( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiScanIdx, uiWidth, uiHeight ) && ( iSubSet ) )
+#else
         if( !TComTrQuant::bothCGNeighboursOne( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiWidth, uiHeight ) && ( iSubSet ) )
+#endif
         {
           UInt uiSigCoeffGroup   = (uiSigCoeffGroupFlag[ iCGBlkPos ] != 0);
+#if MULTILEVEL_SIGMAP_EXT
+          UInt uiCtxSig  = TComTrQuant::getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiScanIdx, uiWidth, uiHeight );
+#else
           UInt uiCtxSig  = TComTrQuant::getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiWidth, uiHeight );
+#endif
           m_pcBinIf->encodeBin( uiSigCoeffGroup, baseCoeffGroupCtx[ uiCtxSig ] );
         }
         else
@@ -1254,6 +1294,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       {
         iScanPosSig = iSubPos - 1;
       }
+#if !MULTILEVEL_SIGMAP_EXT
     } 
     else
     {
@@ -1283,6 +1324,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     }
 
     }
+#endif
 
     if( numNonZero > 0 )
     {

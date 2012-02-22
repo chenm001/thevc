@@ -535,6 +535,16 @@ UInt g_sigCGScanNSQT[ 4 ][ 16 ] =
   { 0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15 }
 };
 
+#if MULTILEVEL_SIGMAP_EXT
+const UInt g_sigLastScan8x8[ 4 ][ 4 ] =
+{
+  {0, 1, 2, 3},
+  {0, 1, 2, 3},
+  {0, 1, 2, 3},
+  {0, 2, 1, 3}
+};
+#endif
+
 UInt* g_auiNonSquareSigLastScan[ 4 ];
 
 const UInt g_uiMinInGroup[ 10 ] = {0,1,2,3,4,6,8,12,16,24};
@@ -624,7 +634,11 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int
   const UInt  uiNumScanPos  = UInt( iWidth * iWidth );
   UInt        uiNextScanPos = 0;
 
+#if MULTILEVEL_SIGMAP_EXT
+  if( iWidth < 8 )
+#else
   if( iWidth < 16 )
+#endif
   {
   for( UInt uiScanLine = 0; uiNextScanPos < uiNumScanPos; uiScanLine++ )
   {

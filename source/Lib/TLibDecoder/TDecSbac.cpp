@@ -1178,6 +1178,12 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   if (uiWidth == uiHeight)
   {
     scanCG = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize > 3 ? uiLog2BlockSize-2-1 : 0  ];    
+#if MULTILEVEL_SIGMAP_EXT
+    if( uiLog2BlockSize == 3 )
+    {
+      scanCG = g_sigLastScan8x8[ uiScanIdx ];
+    }
+#endif
   }
   else
   {
@@ -1206,12 +1212,21 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       numNonZero = 1;
     }
 
+#if !MULTILEVEL_SIGMAP_EXT
     if( blockType > 3 )
     {
+#endif
       // decode significant_coeffgroup_flag
       Int iCGBlkPos = scanCG[ iSubSet ];
       Int iCGPosY   = iCGBlkPos / uiNumBlkSide;
       Int iCGPosX   = iCGBlkPos - (iCGPosY * uiNumBlkSide);
+#if MULTILEVEL_SIGMAP_EXT
+      if( uiWidth == 8 && uiHeight == 8 && (uiScanIdx == SCAN_HOR || uiScanIdx == SCAN_VER) )
+      {
+        iCGPosY = (uiScanIdx == SCAN_HOR ? iCGBlkPos : 0);
+        iCGPosX = (uiScanIdx == SCAN_VER ? iCGBlkPos : 0);
+      }
+#endif
       Bool bInferredCGFlag = false;
 
       if( iSubSet == iLastScanSet ) 
@@ -1220,10 +1235,18 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       }
       else
       {
+#if MULTILEVEL_SIGMAP_EXT
+        if( !TComTrQuant::bothCGNeighboursOne( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiScanIdx, uiWidth, uiHeight) && ( iSubSet ) )
+#else
         if( !TComTrQuant::bothCGNeighboursOne( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiWidth, uiHeight) && ( iSubSet ) )
+#endif
         {
           UInt uiSigCoeffGroup;
+#if MULTILEVEL_SIGMAP_EXT
+          UInt uiCtxSig  = TComTrQuant::getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiScanIdx, uiWidth, uiHeight );
+#else
           UInt uiCtxSig  = TComTrQuant::getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiWidth, uiHeight );
+#endif
           m_pcTDecBinIf->decodeBin( uiSigCoeffGroup, baseCoeffGroupCtx[ uiCtxSig ] );
           uiSigCoeffGroupFlag[ iCGBlkPos ] = uiSigCoeffGroup;
         }
@@ -1269,6 +1292,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 #endif
         }
       }
+#if !MULTILEVEL_SIGMAP_EXT
     }
     else
     {
@@ -1295,6 +1319,8 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
         }
       }
     }
+#endif
+
     
     if( numNonZero )
     {

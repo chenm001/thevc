@@ -187,11 +187,17 @@ public:
   static UInt getSigCoeffGroupCtxInc  ( const UInt*                   uiSigCoeffGroupFlag,
                                        const UInt                       uiCGPosX,
                                        const UInt                       uiCGPosY,
+#if MULTILEVEL_SIGMAP_EXT
+                                       const UInt                     scanIdx,
+#endif
                                        Int width, Int height);
   
   static Bool bothCGNeighboursOne  ( const UInt*                      uiSigCoeffGroupFlag,
                                     const UInt                       uiCGPosX,
                                     const UInt                       uiCGPosY,
+#if MULTILEVEL_SIGMAP_EXT
+                                    const UInt                       scanIdx,
+#endif
                                     Int width, Int height);
   Void initScalingList                      ();
   Void destroyScalingList                   ();
