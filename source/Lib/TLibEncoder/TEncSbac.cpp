@@ -1099,8 +1099,8 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   }
   
 #if MULTIBITS_DATA_HIDING
-  UInt const TSIG = pcCU->getSlice()->getPPS()->getTSIG();
-  Bool bValid = pcCU->getSlice()->getPPS()->getSignHideFlag() > 0;
+  UInt const tsig = pcCU->getSlice()->getPPS()->getTSIG();
+  Bool beValid = pcCU->getSlice()->getPPS()->getSignHideFlag() > 0;
 #endif
 
   // Find position of last coefficient
@@ -1177,7 +1177,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     UInt coeffSigns = 0;
 
 #if MULTIBITS_DATA_HIDING
-    Int iLastNZPosInCG = -1, iFirstNZPosInCG = SCAN_SET_SIZE;
+    Int lastNZPosInCG = -1, firstNZPosInCG = SCAN_SET_SIZE;
 #endif
 
     if( iScanPosSig == scanPosLast )
@@ -1186,8 +1186,8 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       coeffSigns    = ( pcCoef[ posLast ] < 0 );
       numNonZero    = 1;
 #if MULTIBITS_DATA_HIDING
-      iLastNZPosInCG  = iScanPosSig;
-      iFirstNZPosInCG = iScanPosSig;
+      lastNZPosInCG  = iScanPosSig;
+      firstNZPosInCG = iScanPosSig;
 #endif
       iScanPosSig--;
     }
@@ -1241,11 +1241,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
             coeffSigns = 2 * coeffSigns + ( pcCoef[ uiBlkPos ] < 0 );
             numNonZero++;
 #if MULTIBITS_DATA_HIDING
-            if( iLastNZPosInCG == -1 )
+            if( lastNZPosInCG == -1 )
             {
-              iLastNZPosInCG = iScanPosSig;
+              lastNZPosInCG = iScanPosSig;
             }
-            iFirstNZPosInCG = iScanPosSig;
+            firstNZPosInCG = iScanPosSig;
 #endif
           }
         }
@@ -1271,11 +1271,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
         coeffSigns = 2 * coeffSigns + ( pcCoef[ uiBlkPos ] < 0 );
         numNonZero++;
 #if MULTIBITS_DATA_HIDING
-        if( iLastNZPosInCG == -1 )
+        if( lastNZPosInCG == -1 )
         {
-          iLastNZPosInCG = iScanPosSig;
+          lastNZPosInCG = iScanPosSig;
         }
-        iFirstNZPosInCG = iScanPosSig;
+        firstNZPosInCG = iScanPosSig;
 #endif
       }      
       UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
@@ -1287,7 +1287,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     if( numNonZero > 0 )
     {
 #if MULTIBITS_DATA_HIDING
-      Bool bSignHidden = ( iLastNZPosInCG - iFirstNZPosInCG >= (Int)TSIG );
+      Bool signHidden = ( lastNZPosInCG - firstNZPosInCG >= (Int)tsig );
 #endif  // MULTIBITS_DATA_HIDING
 
       UInt c1 = 1;
@@ -1336,7 +1336,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       }
       
 #if MULTIBITS_DATA_HIDING
-      if( bValid && bSignHidden )
+      if( beValid && signHidden )
       {
         m_pcBinIf->encodeBinsEP( (coeffSigns >> 1), numNonZero-1 );
       }

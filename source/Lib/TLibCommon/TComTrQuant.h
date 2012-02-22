@@ -255,7 +255,7 @@ private:
   Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Int* plCoeff, Int iWidth, Int iHeight );
   
 #if MULTIBITS_DATA_HIDING
-  Void SignBitHidingHDQ( TComDataCU* pcCU, TCoeff* piQCoef, TCoeff* piCoef, UInt const *scan, Int* deltaU,  UInt uiAbsPartIdx, Int uiWidth, Int uiHeight, TextType eTType ) ;
+  Void signBitHidingHDQ( TComDataCU* pcCU, TCoeff* pQCoef, TCoeff* pCoef, UInt const *scan, Int* deltaU, Int width, Int height );
 #endif
 
   // quantization

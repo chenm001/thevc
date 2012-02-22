@@ -194,8 +194,8 @@ protected:
 
   Bool      m_enableTMVP;
 #if MULTIBITS_DATA_HIDING
-  Int       m_iSignHideFlag;
-  Int       m_iSignHidingThreshold;
+  Int       m_signHideFlag;
+  Int       m_signHidingThreshold;
 #endif
 
   Int       m_useScalingListId;                               ///< using quantization matrix

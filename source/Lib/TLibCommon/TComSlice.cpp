@@ -1230,8 +1230,8 @@ TComPPS::TComPPS()
 ,  m_bCabacIstateReset          (false)
 ,  m_iNumSubstreams             (1)
 #if MULTIBITS_DATA_HIDING
-, m_iSignHideFlag(0)
-, m_iSignHidingThreshold(0)
+, m_signHideFlag(0)
+, m_signHidingThreshold(0)
 #endif
 {
   for ( UInt i = 0; i < MAX_TLAYER; i++ )
