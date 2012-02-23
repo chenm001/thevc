@@ -493,7 +493,8 @@ Void TComAdaptiveLoopFilter::createPicAlfInfo(TComPic* pcPic, Int numSlicesInPic
 
     //create Alf LCU info
     m_ppSliceAlfLCUs[s] = new AlfLCUInfo[numLCU];
-    for(Int i=0; i< numLCU; i++)
+    Int i;
+    for(i=0; i< numLCU; i++)
     {
       TComDataCU* pcCU       = vSliceLCUPointers[i];
       if(pcCU->getPic()==0)
@@ -513,7 +514,7 @@ Void TComAdaptiveLoopFilter::createPicAlfInfo(TComPic* pcPic, Int numSlicesInPic
     Int prevTileID = -1;
     Int numValidTilesInSlice = 0;
 
-    for(Int i=0; i< numLCU; i++)
+    for(i=0; i< numLCU; i++)
     {
       AlfLCUInfo* pcAlfLCU = &(m_ppSliceAlfLCUs[s][i]);
 

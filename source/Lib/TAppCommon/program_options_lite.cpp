@@ -143,7 +143,8 @@ namespace df
       const unsigned pad_short = 3;
       /* first pass: work out the longest option name */
       unsigned max_width = 0;
-      for(Options::NamesPtrList::iterator it = opts.opt_list.begin(); it != opts.opt_list.end(); it++)
+      Options::NamesPtrList::iterator it;
+      for(it = opts.opt_list.begin(); it != opts.opt_list.end(); it++)
       {
         ostringstream line(ios_base::out);
         doHelpOpt(line, **it, pad_short);
@@ -158,7 +159,7 @@ namespace df
        *  - if the option text is longer than opt_width, place the help
        *    text at opt_width on the next line.
        */
-      for(Options::NamesPtrList::iterator it = opts.opt_list.begin(); it != opts.opt_list.end(); it++)
+      for(it = opts.opt_list.begin(); it != opts.opt_list.end(); it++)
       {
         ostringstream line(ios_base::out);
         line << "  ";

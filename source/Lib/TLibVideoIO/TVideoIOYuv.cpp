@@ -245,7 +245,8 @@ static bool readPlane(Pel* dst, istream& fd, bool is16bit,
 {
   int read_len = width * (is16bit ? 2 : 1);
   unsigned char *buf = new unsigned char[read_len];
-  for (int y = 0; y < height; y++)
+  int x, y;
+  for (y = 0; y < height; y++)
   {
     fd.read(reinterpret_cast<char*>(buf), read_len);
     if (fd.eof() || fd.fail() )
@@ -256,28 +257,28 @@ static bool readPlane(Pel* dst, istream& fd, bool is16bit,
 
     if (!is16bit)
     {
-      for (int x = 0; x < width; x++)
+      for (x = 0; x < width; x++)
       {
         dst[x] = buf[x];
       }
     }
     else
     {
-      for (int x = 0; x < width; x++)
+      for (x = 0; x < width; x++)
       {
         dst[x] = (buf[2*x+1] << 8) | buf[2*x];
       }
     }
 
-    for (int x = width; x < width + pad_x; x++)
+    for (x = width; x < width + pad_x; x++)
     {
       dst[x] = dst[width - 1];
     }
     dst += stride;
   }
-  for (int y = height; y < height + pad_y; y++)
+  for (y = height; y < height + pad_y; y++)
   {
-    for (int x = 0; x < width + pad_x; x++)
+    for (x = 0; x < width + pad_x; x++)
     {
       dst[x] = (dst - stride)[x];
     }

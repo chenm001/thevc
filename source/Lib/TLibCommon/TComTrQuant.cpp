@@ -2115,7 +2115,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   }
   
   Bool bFoundLast = false;
-  for (Int iCGScanPos = iCGLastScanPos; iCGScanPos >= 0; iCGScanPos--)
+  for (iCGScanPos = iCGLastScanPos; iCGScanPos >= 0; iCGScanPos--)
   {
     UInt uiCGBlkPos = scanCG[ iCGScanPos ];
     
@@ -2170,7 +2170,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   }
   
   //===== clean uncoded coefficients =====
-  for ( Int scanPos = iBestLastIdxP1; scanPos <= iLastScanPos; scanPos++ )
+  for ( scanPos = iBestLastIdxP1; scanPos <= iLastScanPos; scanPos++ )
   {
     piDstCoeff[ scan[ scanPos ] ] = 0;
   }

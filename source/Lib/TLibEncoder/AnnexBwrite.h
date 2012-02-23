@@ -75,8 +75,11 @@ static std::vector<unsigned> writeAnnexB(std::ostream& out, const AccessUnit& au
       out.write(start_code_prefix+1, 3);
       size += 3;
     }
-    out << nalu.m_nalUnitData.str();
-    size += unsigned(nalu.m_nalUnitData.str().size());
+    //out << nalu.m_nalUnitData.str();
+    //size += unsigned(nalu.m_nalUnitData.str().size());
+    string &P = nalu.m_nalUnitData.str();
+    out.write(P.c_str(), P.size());
+    size += unsigned(P.size());
 
     annexBsizes.push_back(size);
   }

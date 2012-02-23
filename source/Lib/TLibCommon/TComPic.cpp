@@ -164,7 +164,8 @@ Void TComPic::createNonDBFilterInfo(std::vector<Int> sliceStartAddress, Int slic
   m_bIndependentTileBoundaryForNDBFilter  = (bNDBFilterCrossTileBoundary)?(false) :((numTiles > 1)?(true):(false));
 
   m_pbValidSlice = new Bool[numSlices];
-  for(Int s=0; s< numSlices; s++)
+  Int s;
+  for(s=0; s< numSlices; s++)
   {
     m_pbValidSlice[s] = true;
   }
@@ -190,7 +191,7 @@ Void TComPic::createNonDBFilterInfo(std::vector<Int> sliceStartAddress, Int slic
   UInt currSU;
   UInt startSU, endSU;
 
-  for(Int s=0; s< numSlices; s++)
+  for(s=0; s< numSlices; s++)
   {
     //1st step: decide the real start address
     startAddr = sliceStartAddress[s];
@@ -276,7 +277,7 @@ Void TComPic::createNonDBFilterInfo(std::vector<Int> sliceStartAddress, Int slic
   }
 
   //step 3: border availability
-  for(Int s=0; s< numSlices; s++)
+  for(s=0; s< numSlices; s++)
   {
     if(!m_pbValidSlice[s])
     {

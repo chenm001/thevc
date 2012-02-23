@@ -1,0 +1,89 @@
+Microsoft Developer Studio Workspace File, Format Version 6.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "TAppCommon"=".\vc6\TAppCommon_vc6.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "TAppEncoder"=".\vc6\TAppEncoder_vc6.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name TAppCommon
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name TLibCommon
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name TLibEncoder
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name TLibVideoIO
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "TLibCommon"=".\vc6\TLibCommon_vc6.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "TLibEncoder"=".\vc6\TLibEncoder_vc6.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "TLibVideoIO"=".\vc6\TLibVideoIO_vc6.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+

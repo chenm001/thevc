@@ -158,7 +158,8 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
   }
   
   // Horizontal filtering
-  for ( UInt uiCUAddr = 0; uiCUAddr < pcPic->getNumCUsInFrame(); uiCUAddr++ )
+  UInt uiCUAddr;
+  for ( uiCUAddr = 0; uiCUAddr < pcPic->getNumCUsInFrame(); uiCUAddr++ )
   {
     TComDataCU* pcCU = pcPic->getCU( uiCUAddr );
 
@@ -173,7 +174,7 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
   }
 
   // Vertical filtering
-  for ( UInt uiCUAddr = 0; uiCUAddr < pcPic->getNumCUsInFrame(); uiCUAddr++ )
+  for ( uiCUAddr = 0; uiCUAddr < pcPic->getNumCUsInFrame(); uiCUAddr++ )
   {
     TComDataCU* pcCU = pcPic->getCU( uiCUAddr );
 

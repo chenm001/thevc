@@ -225,8 +225,9 @@ Void initMotionReferIdx ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth
 
   Int  numPartInWidth  = (Int)uiMaxCUWidth  / (Int)minSUWidth;
   Int  numPartInHeight = (Int)uiMaxCUHeight / (Int)minSUHeight;
+  int i, j;
 
-  for ( Int i = 0; i < numPartInWidth*numPartInHeight; i++ )
+  for ( i = 0; i < numPartInWidth*numPartInHeight; i++ )
   {
     g_motionRefer[i] = i;
   }
@@ -241,17 +242,17 @@ Void initMotionReferIdx ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth
   
   Int compressionNum = 2;
 
-  for ( Int i = numPartInWidth*(numPartInHeight-1); i < numPartInWidth*numPartInHeight; i += compressionNum*2)
+  for ( i = numPartInWidth*(numPartInHeight-1); i < numPartInWidth*numPartInHeight; i += compressionNum*2)
   {
-    for ( Int j = 1; j < compressionNum; j++ )
+    for ( j = 1; j < compressionNum; j++ )
     {
       g_motionRefer[g_auiRasterToZscan[i+j]] = g_auiRasterToZscan[i];
     }
   }
 
-  for ( Int i = numPartInWidth*(numPartInHeight-1)+compressionNum*2-1; i < numPartInWidth*numPartInHeight; i += compressionNum*2)
+  for ( i = numPartInWidth*(numPartInHeight-1)+compressionNum*2-1; i < numPartInWidth*numPartInHeight; i += compressionNum*2)
   {
-    for ( Int j = 1; j < compressionNum; j++ )
+    for ( j = 1; j < compressionNum; j++ )
     {
       g_motionRefer[g_auiRasterToZscan[i-j]] = g_auiRasterToZscan[i];
     }

@@ -158,7 +158,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       
       //select uiColDir
       Int iCloseLeft=1, iCloseRight=-1;
-      for(Int i = 0; i<m_pcCfg->getGOPEntry(iGOPid).m_numRefPics; i++) 
+      Int i;
+      for(i = 0; i<m_pcCfg->getGOPEntry(iGOPid).m_numRefPics; i++) 
       {
         Int iRef = m_pcCfg->getGOPEntry(iGOPid).m_referencePics[i];
         if(iRef>0&&(iRef<iCloseRight||iCloseRight==-1))
@@ -183,7 +184,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
       }
       Int iLeftQP=0, iRightQP=0;
-      for(Int i=0; i<m_iGopSize; i++)
+      for(i=0; i<m_iGopSize; i++)
       {
         if(m_pcCfg->getGOPEntry(i).m_POC==(iCloseLeft%m_iGopSize)+1)
         {
@@ -910,7 +911,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           {
             uiNumSubstreamsPerTile /= pcPic->getPicSym()->getNumTiles();
           }
-          for ( UInt ui = 0 ; ui < iNumSubstreams; ui++ )
+          UInt ui;
+          for ( ui = 0 ; ui < iNumSubstreams; ui++ )
           {
             // Flush all substreams -- this includes empty ones.
             // Terminating bit and flush.
@@ -967,7 +969,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             }
           }
 #endif
-          for ( UInt ui = 0 ; ui < pcSlice->getPPS()->getNumSubstreams(); ui++ )
+          for ( ui = 0 ; ui < pcSlice->getPPS()->getNumSubstreams(); ui++ )
           {
             pcOut->addSubstream(&pcSubstreamsOut[ui]);
           }
@@ -1376,6 +1378,7 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
     pcPic->createNonDBFilterInfo(sliceStartAddress, 0, &LFCrossSliceBoundaryFlag);
   }
   
+  Int compIdx;
 #if !REMOVE_ALF
   // Adaptive Loop filter
   if( pcSlice->getSPS()->getUseALF() )
@@ -1383,7 +1386,7 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
     m_pcAdaptiveLoopFilter->createPicAlfInfo(pcPic);
 
     ALFParam* alfPicParam[3];
-    for(Int compIdx=0; compIdx < 3; compIdx++)
+    for(compIdx=0; compIdx < 3; compIdx++)
     {
       alfPicParam[compIdx] = new ALFParam(compIdx);
     }
@@ -1397,7 +1400,7 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
     m_pcAdaptiveLoopFilter->ALFProcess(alfPicParam, pcPic->getSlice(0)->getLambda());
 #endif
 #endif
-    for(Int compIdx=0; compIdx < 3; compIdx++)
+    for(compIdx=0; compIdx < 3; compIdx++)
     {
       delete alfPicParam[compIdx]; alfPicParam[compIdx] = NULL;
     }

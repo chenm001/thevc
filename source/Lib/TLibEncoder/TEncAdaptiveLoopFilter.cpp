@@ -280,7 +280,8 @@ Void TEncAdaptiveLoopFilter::createAlfGlobalBuffers()
     }
   }
   m_E_temp = new Double*[numCoef];
-  for(Int i=0; i< numCoef; i++)
+  Int i;
+  for(i=0; i< numCoef; i++)
   {
     m_E_temp[i] = new Double[numCoef];
   }
@@ -298,7 +299,7 @@ Void TEncAdaptiveLoopFilter::createAlfGlobalBuffers()
   }
 
   // identity filter to estimate ALF off distortion
-  for(Int i=0; i< (Int)NO_VAR_BINS; i++)
+  for(i=0; i< (Int)NO_VAR_BINS; i++)
   {
     m_coeffNoFilter[i] = new Int[numCoef];
     ::memset(&(m_coeffNoFilter[i][0]), 0, sizeof(Int)*numCoef);
@@ -340,7 +341,8 @@ Void TEncAdaptiveLoopFilter::destroyAlfGlobalBuffers()
     }
     delete[] m_E_merged[g];            m_E_merged[g] = NULL;
   }
-  for(Int i=0; i< numCoef; i++)
+  Int i;
+  for(i=0; i< numCoef; i++)
   {
     delete[] m_E_temp[i];
   }
@@ -358,7 +360,7 @@ Void TEncAdaptiveLoopFilter::destroyAlfGlobalBuffers()
   delete[] m_alfPictureParam; m_alfPictureParam = NULL;
   //const Int numCoef = (Int)ALF_MAX_NUM_COEF;
 
-  for(Int i=0; i< (Int)NO_VAR_BINS; i++)
+  for(i=0; i< (Int)NO_VAR_BINS; i++)
   {
     delete[] m_coeffNoFilter[i];
   }
@@ -1646,7 +1648,8 @@ double TEncAdaptiveLoopFilter::xfindBestCoeffCodMethod(int **filterCoeffSymQuant
     isFirst = false;
   }
 
-  for(Int g=0; g< filters_per_fr; g++)
+  Int g;
+  for(g=0; g< filters_per_fr; g++)
   {
     for(i=0; i< sqrFiltLength; i++)
     {
@@ -1656,7 +1659,7 @@ double TEncAdaptiveLoopFilter::xfindBestCoeffCodMethod(int **filterCoeffSymQuant
   predictALFCoeff(coeffmulti, sqrFiltLength, filters_per_fr);
   //golomb encode bitrate estimation
   coeffBits = 0;
-  for(Int g=0; g< filters_per_fr; g++)
+  for(g=0; g< filters_per_fr; g++)
   {
     coeffBits += filterCoeffBitrateEstimate(ALF_Y, coeffmulti[g]);
   }

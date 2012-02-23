@@ -112,7 +112,8 @@ TComSlice::TComSlice()
   
   initEqualRef();
   
-  for(Int iNumCount = 0; iNumCount < MAX_NUM_REF_LC; iNumCount++)
+  Int iNumCount;
+  for(iNumCount = 0; iNumCount < MAX_NUM_REF_LC; iNumCount++)
   {
     m_iRefIdxOfLC[REF_PIC_LIST_0][iNumCount]=-1;
     m_iRefIdxOfLC[REF_PIC_LIST_1][iNumCount]=-1;
@@ -121,7 +122,7 @@ TComSlice::TComSlice()
     m_iRefIdxOfL0FromRefIdxOfL1[iNumCount] = -1;
     m_iRefIdxOfL1FromRefIdxOfL0[iNumCount] = -1;
   }    
-  for(Int iNumCount = 0; iNumCount < MAX_NUM_REF; iNumCount++)
+  for(iNumCount = 0; iNumCount < MAX_NUM_REF; iNumCount++)
   {
     m_apcRefPicList [0][iNumCount] = NULL;
     m_apcRefPicList [1][iNumCount] = NULL;
@@ -147,14 +148,14 @@ TComSlice::~TComSlice()
   delete[] m_puiSubstreamSizes;
   m_puiSubstreamSizes = NULL;
 #if DEPENDENT_SLICES
-  for (std::vector<TEncSbac*>::iterator i = CTXMem_enc.begin(); i != CTXMem_enc.end(); i++)
+  for (std::vector<TEncSbac*>::iterator i0 = CTXMem_enc.begin(); i0 != CTXMem_enc.end(); i0++)
   {
-    delete (*i);
+    delete (*i0);
   }
   CTXMem_enc.clear();
-  for (std::vector<TDecSbac*>::iterator i = CTXMem_dec.begin(); i != CTXMem_dec.end(); i++)
+  for (std::vector<TDecSbac*>::iterator i1 = CTXMem_dec.begin(); i1 != CTXMem_dec.end(); i1++)
   {
-    delete (*i);
+    delete (*i1);
   }
   CTXMem_dec.clear();
 #endif
@@ -593,14 +594,15 @@ Void TComSlice::checkColRefIdx(UInt curSliceIdx, TComPic* pic)
 
 Void TComSlice::checkCRA(TComReferencePictureSet *pReferencePictureSet, Int& pocCRA, Bool& prevRAPisBLA, TComList<TComPic*>& rcListPic)
 {
-  for(Int i = 0; i < pReferencePictureSet->getNumberOfNegativePictures()+pReferencePictureSet->getNumberOfPositivePictures(); i++)
+  Int i;
+  for(i = 0; i < pReferencePictureSet->getNumberOfNegativePictures()+pReferencePictureSet->getNumberOfPositivePictures(); i++)
   {
     if(pocCRA < MAX_UINT && getPOC() > pocCRA)
     {
       assert(getPOC()+pReferencePictureSet->getDeltaPOC(i) >= pocCRA);
     }
   }
-  for(Int i = pReferencePictureSet->getNumberOfNegativePictures()+pReferencePictureSet->getNumberOfPositivePictures(); i < pReferencePictureSet->getNumberOfPictures(); i++)
+  for(i = pReferencePictureSet->getNumberOfNegativePictures()+pReferencePictureSet->getNumberOfPositivePictures(); i < pReferencePictureSet->getNumberOfPictures(); i++)
   {
     if(pocCRA < MAX_UINT && getPOC() > pocCRA)
     {
@@ -1497,11 +1499,12 @@ Int  TComReferencePictureSet::getRefIdc(Int bufferNum)
 Void TComReferencePictureSet::sortDeltaPOC()
 {
   // sort in increasing order (smallest first)
-  for(Int j=1; j < getNumberOfPictures(); j++)
+  Int j, k;
+  for(j=1; j < getNumberOfPictures(); j++)
   { 
     Int deltaPOC = getDeltaPOC(j);
     Bool used = getUsed(j);
-    for (Int k=j-1; k >= 0; k--)
+    for (k=j-1; k >= 0; k--)
     {
       Int temp = getDeltaPOC(k);
       if (deltaPOC < temp)
@@ -1515,7 +1518,7 @@ Void TComReferencePictureSet::sortDeltaPOC()
   }
   // flip the negative values to largest first
   Int numNegPics = getNumberOfNegativePictures();
-  for(Int j=0, k=numNegPics-1; j < numNegPics>>1; j++, k--)
+  for(j=0, k=numNegPics-1; j < numNegPics>>1; j++, k--)
   { 
     Int deltaPOC = getDeltaPOC(j);
     Bool used = getUsed(j);

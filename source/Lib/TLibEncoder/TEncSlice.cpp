@@ -726,6 +726,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   TComBitCounter* pcBitCounters     = pcEncTop->getBitCounters();
   Int  iNumSubstreams = 1;
   UInt uiTilesAcross  = 0;
+  int ui;
 
   if( m_pcCfg->getUseSBACRD() )
   {
@@ -735,16 +736,16 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     delete[] m_pcBufferBinCoderCABACs;
     m_pcBufferSbacCoders     = new TEncSbac    [uiTilesAcross];
     m_pcBufferBinCoderCABACs = new TEncBinCABAC[uiTilesAcross];
-    for (int ui = 0; ui < uiTilesAcross; ui++)
+    for (ui = 0; ui < uiTilesAcross; ui++)
     {
       m_pcBufferSbacCoders[ui].init( &m_pcBufferBinCoderCABACs[ui] );
     }
-    for (UInt ui = 0; ui < uiTilesAcross; ui++)
+    for (ui = 0; ui < uiTilesAcross; ui++)
     {
       m_pcBufferSbacCoders[ui].load(m_pppcRDSbacCoder[0][CI_CURR_BEST]);  //init. state
     }
 
-    for ( UInt ui = 0 ; ui < iNumSubstreams ; ui++ ) //init all sbac coders for RD optimization
+    for ( ui = 0 ; ui < iNumSubstreams ; ui++ ) //init all sbac coders for RD optimization
     {
       ppppcRDSbacCoders[ui][0][CI_CURR_BEST]->load(m_pppcRDSbacCoder[0][CI_CURR_BEST]);
     }
@@ -755,11 +756,11 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     delete[] m_pcBufferLowLatBinCoderCABACs;
     m_pcBufferLowLatSbacCoders     = new TEncSbac    [uiTilesAcross];
     m_pcBufferLowLatBinCoderCABACs = new TEncBinCABAC[uiTilesAcross];
-    for (int ui = 0; ui < uiTilesAcross; ui++)
+    for (ui = 0; ui < uiTilesAcross; ui++)
     {
       m_pcBufferLowLatSbacCoders[ui].init( &m_pcBufferLowLatBinCoderCABACs[ui] );
     }
-    for (UInt ui = 0; ui < uiTilesAcross; ui++)
+    for (ui = 0; ui < uiTilesAcross; ui++)
       m_pcBufferLowLatSbacCoders[ui].load(m_pppcRDSbacCoder[0][CI_CURR_BEST]);  //init. state
   }
   UInt uiWidthInLCUs  = rpcPic->getPicSym()->getFrameWidthInCU();
@@ -1031,7 +1032,8 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
   UInt uiBitsOriginallyInSubstreams = 0;
   {
     UInt uiTilesAcross = rpcPic->getPicSym()->getNumColumnsMinus1()+1;
-    for (UInt ui = 0; ui < uiTilesAcross; ui++)
+    int ui;
+    for (ui = 0; ui < uiTilesAcross; ui++)
     {
       m_pcBufferSbacCoders[ui].load(m_pcSbacCoder); //init. state
     }
@@ -1041,7 +1043,7 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
       uiBitsOriginallyInSubstreams += pcSubstreams[iSubstrmIdx].getNumberOfWrittenBits();
     }
 
-    for (UInt ui = 0; ui < uiTilesAcross; ui++)
+    for (ui = 0; ui < uiTilesAcross; ui++)
     {
       m_pcBufferLowLatSbacCoders[ui].load(m_pcSbacCoder);  //init. state
     }

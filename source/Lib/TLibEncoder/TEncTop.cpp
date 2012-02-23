@@ -618,11 +618,12 @@ Void TEncTop::xInitPPS()
   m_cPPS.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
 #endif
   Int histogram[8];
-  for(Int i=0; i<8; i++)
+  Int i;
+  for(i=0; i<8; i++)
   {
     histogram[i]=0;
   }
-  for( Int i = 0; i < getGOPSize(); i++) 
+  for( i = 0; i < getGOPSize(); i++) 
   {
     if(getGOPEntry(i).m_numRefPicsActive<8)
     {
@@ -631,7 +632,7 @@ Void TEncTop::xInitPPS()
   }
   Int maxHist=-1;
   Int bestPos=0;
-  for(Int i=0; i<8; i++)
+  for(i=0; i<8; i++)
   {
     if(histogram[i]>maxHist)
     {
@@ -655,6 +656,7 @@ Void TEncTop::xInitPPS()
 Void TEncTop::xInitRPS()
 {
   TComReferencePictureSet*      rps;
+  Int j;
   
   m_cSPS.createRPSList(getGOPSize()+m_extraRPSs);
   TComRPSList* rpsList = m_cSPS.getRPSList();
@@ -667,7 +669,7 @@ Void TEncTop::xInitRPS()
     rps->setNumRefIdc(ge.m_numRefIdc);
     Int numNeg = 0;
     Int numPos = 0;
-    for( Int j = 0; j < ge.m_numRefPics; j++)
+    for( j = 0; j < ge.m_numRefPics; j++)
     {
       rps->setDeltaPOC(j,ge.m_referencePics[j]);
       rps->setUsed(j,ge.m_usedByCurrPic[j]);
@@ -706,7 +708,7 @@ Void TEncTop::xInitRPS()
       rps->setDeltaRPS(deltaRPS);           // set delta RPS
       rps->setNumRefIdc(numRefDeltaPOC+1);  // set the numRefIdc to the number of pictures in the reference RPS + 1.
       Int count=0;
-      for (Int j = 0; j <= numRefDeltaPOC; j++ ) // cycle through pics in reference RPS.
+      for (j = 0; j <= numRefDeltaPOC; j++ ) // cycle through pics in reference RPS.
       {
         Int RefDeltaPOC = (j<numRefDeltaPOC)? RPSRef->getDeltaPOC(j): 0;  // if it is the last decoded picture, set RefDeltaPOC = 0
         rps->setRefIdc(j, 0);
@@ -730,7 +732,7 @@ Void TEncTop::xInitRPS()
     {
       rps->setDeltaRPS(ge.m_deltaRPS);
       rps->setNumRefIdc(ge.m_numRefIdc);
-      for (Int j = 0; j < ge.m_numRefIdc; j++ )
+      for (j = 0; j < ge.m_numRefIdc; j++ )
       {
         rps->setRefIdc(j, ge.m_refIdc[j]);
       }
@@ -741,7 +743,7 @@ Void TEncTop::xInitRPS()
       numPos = 0;
       TComReferencePictureSet      RPSTemp;  // temporary variable
 
-      for (Int j = 0; j < ge.m_numRefIdc; j++ )
+      for (j = 0; j < ge.m_numRefIdc; j++ )
       {
         if (ge.m_refIdc[j])
         {

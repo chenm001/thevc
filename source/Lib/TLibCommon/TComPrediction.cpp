@@ -773,6 +773,7 @@ Void TComPrediction::getLumaRecPixels( TComPattern* pcPattern, UInt uiCWidth, UI
   // initial pointers
   Pel* pDst = pDst0 - 1 - iDstStride;  
   Int* piSrc = ptrSrc;
+  int i,j;
 
   // top left corner downsampled from ADI buffer
   // don't need this point
@@ -780,7 +781,7 @@ Void TComPrediction::getLumaRecPixels( TComPattern* pcPattern, UInt uiCWidth, UI
   // top row downsampled from ADI buffer
   pDst++;     
   piSrc ++;
-  for (Int i = 0; i < uiCWidth; i++)
+  for (i = 0; i < uiCWidth; i++)
   {
     pDst[i] = ((piSrc[2*i] * 2 ) + piSrc[2*i - 1] + piSrc[2*i + 1] + 2) >> 2;
   }
@@ -788,7 +789,7 @@ Void TComPrediction::getLumaRecPixels( TComPattern* pcPattern, UInt uiCWidth, UI
   // left column downsampled from ADI buffer
   pDst = pDst0 - 1; 
   piSrc = ptrSrc + iSrcStride;
-  for (Int j = 0; j < uiCHeight; j++)
+  for (j = 0; j < uiCHeight; j++)
   {
     pDst[0] = ( piSrc[0] + piSrc[iSrcStride] ) >> 1;
     piSrc += iSrcStride << 1; 
@@ -796,9 +797,9 @@ Void TComPrediction::getLumaRecPixels( TComPattern* pcPattern, UInt uiCWidth, UI
   }
 
   // inner part from reconstructed picture buffer
-  for( Int j = 0; j < uiCHeight; j++ )
+  for( j = 0; j < uiCHeight; j++ )
   {
-    for (Int i = 0; i < uiCWidth; i++)
+    for (i = 0; i < uiCWidth; i++)
     {
       pDst0[i] = (pRecSrc[2*i] + pRecSrc[2*i + iRecSrcStride]) >> 1;
     }

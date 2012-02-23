@@ -115,8 +115,9 @@ Void TComPicSym::destroy()
     delete [] m_apcTComSlice;
   }
   m_apcTComSlice = NULL;
-  
-  for (Int i = 0; i < m_uiNumCUsInFrame; i++)
+
+  Int i;
+  for (i = 0; i < m_uiNumCUsInFrame; i++)
   {
     m_apcTComDataCU[i]->destroy();
     delete m_apcTComDataCU[i];
@@ -125,7 +126,7 @@ Void TComPicSym::destroy()
   delete [] m_apcTComDataCU;
   m_apcTComDataCU = NULL;
 
-  for(Int i = 0; i < (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1); i++ )
+  for(i = 0; i < (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1); i++ )
   {
     delete m_apcTComTile[i];
   }
