@@ -564,7 +564,9 @@ Void TDecSbac::parseMergeFlag ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
 Void TDecSbac::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiNumCand = MRG_MAX_NUM_CANDS;
+#if !MRG_IDX_CTX_RED  
   UInt auiCtx[4] = { 0, 1, 2, 3 };
+#endif
   UInt uiUnaryIdx = 0;
   uiNumCand = pcCU->getSlice()->getMaxNumMergeCand();
   if ( uiNumCand > 1 )
@@ -572,7 +574,18 @@ Void TDecSbac::parseMergeIndex ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiA
     for( ; uiUnaryIdx < uiNumCand - 1; ++uiUnaryIdx )
     {
       UInt uiSymbol = 0;
+#if MRG_IDX_CTX_RED
+      if ( uiUnaryIdx==0 )
+      {
+        m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUMergeIdxExtSCModel.get( 0, 0, 0 ) );
+      }
+      else
+      {
+        m_pcTDecBinIf->decodeBinEP( uiSymbol );
+      }
+#else
       m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUMergeIdxExtSCModel.get( 0, 0, auiCtx[uiUnaryIdx] ) );
+#endif
       if( uiSymbol == 0 )
       {
         break;

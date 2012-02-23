@@ -43,7 +43,8 @@
 #define MULTILEVEL_SIGMAP_EXT     1  ///< H0526: multi-level significance map extended to smaller TUs
 #define MULTIBITS_DATA_HIDING     1  ///< H0481: multiple sign bit hiding
 
-#define SIMP_MRG_PRUN               1 ///< H0252: simplification of merge pruning process
+#define MRG_IDX_CTX_RED           1 ///< H0251: Merge index context reduction
+#define SIMP_MRG_PRUN             1 ///< H0252: simplification of merge pruning process
 
 #define H0111_MVD_L1_ZERO         1  ///< H0111: modification of bi-prediction
 #define DISABLING_CLIP_FOR_BIPREDME         1  ///< Ticket #175
