@@ -48,6 +48,8 @@
 
 #define CLIPSCALEDMVP               1  ///< H0216: Clipping scaled MV to 16 bit
 
+#define UNIFIED_TRANSFORM_TREE      1   ///< H0123: unified tree structure for TU
+
 #define SIGMAP_CTX_SUBBLOCK       1 ///< H0290: 4x4 sub-block based region for significant_flag context selection
 
 #define SIGMAP_CONST_AT_HIGH_FREQUENCY      1      ///< H0095 method2.1: const significance map at high freaquency
