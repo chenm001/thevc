@@ -58,6 +58,8 @@
 
 #define SIGMAP_CONST_AT_HIGH_FREQUENCY      1      ///< H0095 method2.1: const significance map at high freaquency
 
+#define AMP_CTX                   1 ///<H0545: context reduction for asymmetric partition
+
 #define PARAMSET_VLC_CLEANUP               1      ///< followup to G220: Simplify parameter set code
 
 #define MAX_NUM_SPS                32

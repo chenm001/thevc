@@ -60,8 +60,12 @@
 
 #define NUM_ALF_CTRL_FLAG_CTX         1       ///< number of context models for ALF control flag
 #define NUM_PART_SIZE_CTX             4       ///< number of context models for partition size
+#if AMP_CTX
+#define NUM_CU_AMP_CTX                1       ///< number of context models for partition size (AMP)
+#else
 #define NUM_CU_X_POS_CTX              2       ///< number of context models for partition size (AMP)
 #define NUM_CU_Y_POS_CTX              2       ///< number of context models for partition size (AMP)
+#endif
 #define NUM_PRED_MODE_CTX             1       ///< number of context models for prediction mode
 
 #define NUM_ADI_CTX                   1       ///< number of context models for intra prediction
@@ -227,7 +231,21 @@ INIT_PART_SIZE[3][NUM_PART_SIZE_CTX] =
     
   },
 };
-
+#if AMP_CTX
+static const UChar
+INIT_CU_AMP_POS[3][NUM_CU_AMP_CTX] =
+{
+  {
+    CNU, 
+  },
+  {
+    119, 
+  },
+  {
+    119, 
+  },
+};
+#else
 // initial probability for AMP split position (X)
 static const UChar
 INIT_CU_X_POS[3][NUM_CU_X_POS_CTX] =
@@ -263,7 +281,7 @@ INIT_CU_Y_POS[3][NUM_CU_Y_POS_CTX] =
     
   },
 };
-
+#endif
 // initial probability for prediction mode
 static const UChar
 INIT_PRED_MODE[3][NUM_PRED_MODE_CTX] =
