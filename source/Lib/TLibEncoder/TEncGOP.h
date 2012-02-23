@@ -145,6 +145,7 @@ protected:
   UInt64 xFindDistortionFrame (TComPicYuv* pcPic0, TComPicYuv* pcPic1);
 
   Double xCalculateRVM();
+  Void   processScalingList (TComSlice* pcSlice);
 };// END CLASS DEFINITION TEncGOP
 
 // ====================================================================================================================

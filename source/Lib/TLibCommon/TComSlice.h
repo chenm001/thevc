@@ -136,7 +136,7 @@ private:
   
   Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
 
-  Bool        m_scalingListEnabledFlag;
+  Bool        m_scalingListEnabledFlag; //scaling list enable flag
   UInt        m_uiMaxDecFrameBuffering; 
   UInt        m_uiMaxLatencyIncrease;
 
@@ -304,8 +304,8 @@ public:
     }
   }
   UInt     getRowHeight           (UInt rowIdx)    { return *( m_puiRowHeight + rowIdx ); }
-  Bool getScalingListFlag       ()         { return m_scalingListEnabledFlag;     }
-  Void setScalingListFlag       ( Bool b ) { m_scalingListEnabledFlag  = b;       }
+  Bool getScalingListFlag       ()         { return m_scalingListEnabledFlag;    } //!< get scaling list enable flag
+  Void setScalingListFlag       ( Bool b ) { m_scalingListEnabledFlag  = b;      } //!< set scaling list enable flag
   UInt getMaxDecFrameBuffering  ()            { return m_uiMaxDecFrameBuffering; }
   Void setMaxDecFrameBuffering  ( UInt ui )   { m_uiMaxDecFrameBuffering = ui;   }
   UInt getMaxLatencyIncrease    ()            { return m_uiMaxLatencyIncrease;   }
@@ -587,11 +587,6 @@ public:
   Void     setEnableTMVPFlag( Bool b )  { m_enableTMVPFlag = b;    }
   Bool     getEnableTMVPFlag()          { return m_enableTMVPFlag; }
 };
-typedef struct
-{
-  Bool predMode;        //!< prediction mode
-  Int  predListIdx;     //!< list index for prediction
-} estScalingListStruct;
 
 /// SCALING_LIST class
 class TComScalingList
@@ -599,44 +594,33 @@ class TComScalingList
 public:
   TComScalingList();
   virtual ~TComScalingList();
-  Void     setUseDefaultOnlyFlag    (Bool b)                                  { m_useDefaultOnlyFlag = b;    }
-  Bool     getUseDefaultOnlyFlag    ()                                        { return m_useDefaultOnlyFlag; }
-  Void     setPredMode              (UInt sizeIdc, UInt listId, UInt u)       { m_predMode[sizeIdc][listId] = u;    }
-  Bool     getPredMode              (UInt sizeIdc, UInt listId)               { return m_predMode[sizeIdc][listId]; }
-  Void     setPredMatrixId          (UInt sizeIdc, UInt listId, UInt u)       { m_predMatrixId[sizeIdc][listId] = u;    }
-  UInt     getPredMatrixId          (UInt sizeIdc, UInt listId)               { return m_predMatrixId[sizeIdc][listId]; }
-  Int*     getScalingListAddress    (UInt sizeIdc, UInt listId);
-  Int*     getScalingListOrgAddress (UInt sizeIdc, UInt listId);
+  Void     setScalingListPresentFlag      (Bool b)                             { m_scalingListPresentFlag = b;    }          //!< set present flag
+  Bool     getScalingListPresentFlag      ()                                   { return m_scalingListPresentFlag; }          //!< get present flag
+  Void     setRefMatrixId                 (UInt sizeId, UInt listId, UInt u)   { m_refMatrixId[sizeId][listId] = u;    }     //!< set reference matrix ID
+  UInt     getRefMatrixId                 (UInt sizeId, UInt listId)           { return m_refMatrixId[sizeId][listId]; }     //!< get reference matrix ID
+  Int*     getScalingListAddress          (UInt sizeId, UInt listId)           { return m_scalingListCoef[sizeId][listId]; } //!< get matrix coefficient
+  Int*     getScalingListDefaultAddress   (UInt sizeId, UInt listId);                                                        //!< get default matrix coefficient
+  Void     setScalingListDC               (UInt sizeId, UInt listId, UInt u)   { m_scalingListDC[sizeId][listId] = u; }      //!< set DC value
+  Int      getScalingListDC               (UInt sizeId, UInt listId)           { return m_scalingListDC[sizeId][listId]; }   //!< get DC value
 
-  Void     xPredScalingListMatrix    ( TComScalingList* pcScalingListsrc, Int* dst, UInt dstSizeId, UInt dstListId, UInt srcSizeIdc, UInt srcMatrixId);
-  Void     xScalingListMatrixModeDecision ();
-  Void     xCalcBestBitCopyMode( Int *org, Int *recon, Int *bestRecon, Int sizeIdc, Int listIdc, UInt size, UInt *bestBit);
-  Void     xCalcBestBitDPCMMode( Int *org, Int *recon, Int *bestRecon, Int sizeIdc, Int listIdc, UInt size, UInt *bestBit);
-  UInt     xCalcResidual       ( Int *org, Int *recon, Int *residual, UInt sizeIdc, estScalingListStruct *pestScalingList);
+  Void     processDefaultMarix            (UInt sizeId, UInt listId);
+  Void     processRefMatrix               (UInt sizeId, UInt listId , UInt refListId );
+  Void     checkDcOfMatrix                ();
+  Bool     checkPredMode                  (UInt sizeId, UInt listId);
 
-  UInt     xPredDPCMScalingListMatrix (Int* dst, Int* org, UInt sizeId, estScalingListStruct *pestScalingList);
-  Bool     xParseScalingList          (char* pchFile);
-  UInt     xMakeResidual    (Int *org, Int *recon, Int *residual, UInt sizeIdc);
-  Void     xMakeDPCM        (Int *src, Int *dst, Int* dpcm, UInt sizeId);
-  Void     xInvZigZag       (Int *src, Int *dst, UInt sizeIdc);
-  Void     xInvDPCM         (Int *src, Int *dst, UInt sizeIdc, Int startValue);
-  Void     xUpdateCondition (UInt sizeIdc, UInt listIdc, estScalingListStruct *pestScalingList);
+  Bool     readScalingListFromFile        (char* pchFile);
+  
+  Void     setUseDefaultScalingMatrixFlag (UInt sizeId, UInt listId, Bool b)  { m_useDefaultScalingMatrixFlag[sizeId][listId] = b;    } //!< set default matrix enabled/disabled in each matrix
+  Bool     getUseDefaultScalingMatrixFlag (UInt sizeId, UInt listId)          { return m_useDefaultScalingMatrixFlag[sizeId][listId]; } //!< get default matrix enabled/disabled in each matrix
 
 private:
-  Void     init                    ();
-  Void     destroy                 ();
-  Bool     m_useDefaultOnlyFlag;                        //!< flag for using default matrix
-  Bool     m_predMode              [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM];     //!< pridction mode
-  UInt     m_predSizeIdc           [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM];     //!< reference size index
-  UInt     m_predMatrixId          [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM];     //!< reference list index
-  Int      *m_scalingList4x4       [SCALING_LIST_NUM];  //!< quantization matrix 4x4
-  Int      *m_scalingList8x8       [SCALING_LIST_NUM];  //!< quantization matrix 8x8
-  Int      *m_scalingList16x16     [SCALING_LIST_NUM];  //!< quantization matrix 16x16
-  Int      *m_scalingList32x32     [SCALING_LIST_NUM];  //!< quantization matrix 32x32
-  Int      *m_scalingList4x4_Org   [SCALING_LIST_NUM];  //!< default quantization matrix 4x4
-  Int      *m_scalingList8x8_Org   [SCALING_LIST_NUM];  //!< default quantization matrix 8x8
-  Int      *m_scalingList16x16_Org [SCALING_LIST_NUM];  //!< default quantization matrix 16x16
-  Int      *m_scalingList32x32_Org [SCALING_LIST_NUM];  //!< default quantization matrix 32x32
+  Void     init                           ();
+  Void     destroy                        ();
+  Bool     m_scalingListPresentFlag;                                                //!< flag scaling_list_present_flag
+  UInt     m_refMatrixId                 [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< RefMatrixID
+  Int      *m_scalingListCoef            [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< quantization matrix 4x4
+  Int      m_scalingListDC               [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< the DC value of the matrix coefficient for 16x16
+  Bool     m_useDefaultScalingMatrixFlag [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< UseDefaultScalingMatrixFlag
 };
 
 /// APS class
@@ -1057,10 +1041,10 @@ public:
   UInt getTileOffstForMultES            ()                    { return m_uiTileOffstForMultES;            }
   Void allocSubstreamSizes              ( UInt uiNumSubstreams );
   UInt* getSubstreamSizes               ()                  { return m_puiSubstreamSizes; }
-  Void  setScalingList              ( TComScalingList* scalingList ) { m_scalingList = scalingList; }
-  TComScalingList*   getScalingList ()                               { return m_scalingList; }
-  Void  setDefaultScalingList       ();
-  Bool  checkDefaultScalingList     ();
+  Void  setScalingList                  ( TComScalingList* scalingList ) { m_scalingList = scalingList; }
+  TComScalingList*   getScalingList     ()                               { return m_scalingList; }
+  Void  setDefaultScalingList           ();
+  Bool  checkDefaultScalingList         ();
   Void      setCABACinitIDC(Int iVal) {m_cabacInitIdc = iVal;    }  //!< set CABAC initial IDC number 
   Int       getCABACinitIDC()         {return m_cabacInitIdc;    }  //!< get CABAC initial IDC number 
 protected:

@@ -176,8 +176,7 @@ public:
   Void  codeAPSInitInfo(TComAPS* pcAPS);  //!< code APS flags before encoding SAO and ALF parameters
   Void  codeFinish(Bool bEnd) { /*do nothing*/}
   Void  codeScalingList            ( TComScalingList* scalingList );
-  Void  xCodeDPCMScalingListMatrix ( TComScalingList* scalingList, Int* data, UInt sizeId);
-  Void  xWriteResidualCode         ( UInt size, Int *data);
+  Void  xCodeScalingList           ( TComScalingList* scalingList, UInt sizeId, UInt listId);
   Void codeDFFlag       ( UInt uiCode, const Char *pSymbolName );
   Void codeDFSvlc       ( Int   iCode, const Char *pSymbolName );
 
