@@ -775,7 +775,11 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
     else
     {
       UInt uiIPredMode;
+#if CHROMA_MODE_CODING
+      m_pcTDecBinIf->decodeBinsEP( uiIPredMode, 2 );
+#else
       xReadUnaryMaxSymbol( uiIPredMode, m_cCUChromaPredSCModel.get( 0, 0 ) + 1, 0, 3 );
+#endif
       UInt uiAllowedChromaDir[ NUM_CHROMA_MODE ];
       pcCU->getAllowedChromaDir( uiAbsPartIdx, uiAllowedChromaDir );
       uiSymbol = uiAllowedChromaDir[ uiIPredMode ];

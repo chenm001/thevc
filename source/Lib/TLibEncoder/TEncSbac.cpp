@@ -675,7 +675,11 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     {
       m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, 1 ));
     }
+#if  CHROMA_MODE_CODING
+    m_pcBinIf->encodeBinsEP( uiIntraDirChroma, 2 );
+#else
     xWriteUnaryMaxSymbol( uiIntraDirChroma, m_cCUChromaPredSCModel.get( 0, 0 ) + 1, 0, 3 );
+#endif
   }
   return;
 }

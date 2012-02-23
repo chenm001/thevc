@@ -80,6 +80,9 @@
 #define LEVEL_RANGE                         30     ///< G382: max coefficient level in statistics collection
 #endif
 
+
+#define CHROMA_MODE_CODING                   1     //H0326/H0475 : 2-length fixed, bypass coding for chroma intra prediction mode
+
 #define NS_HAD                               1
 
 #define APS_BITS_FOR_SAO_BYTE_LENGTH 12           
