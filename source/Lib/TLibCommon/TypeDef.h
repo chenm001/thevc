@@ -43,6 +43,7 @@
 #define MULTILEVEL_SIGMAP_EXT     1  ///< H0526: multi-level significance map extended to smaller TUs
 #define MULTIBITS_DATA_HIDING     1  ///< H0481: multiple sign bit hiding
 
+#define REMOVE_NON_SCALED         1 ///< H0164/H0250: Removal of non-scaled merge candidate
 #define MRG_IDX_CTX_RED           1 ///< H0251: Merge index context reduction
 #define SIMP_MRG_PRUN             1 ///< H0252: simplification of merge pruning process
 
