@@ -116,7 +116,7 @@ public:
   Void  codeSaoFlag       ( UInt uiCode );
   Void  codeSaoUvlc       ( UInt uiCode );
   Void  codeSaoSvlc       ( Int  uiCode );
-  Void  codeScalingList   ( TComScalingList* scalingList     ){ assert (0);  return;};
+  Void  codeScalingList      ( TComScalingList* scalingList     ){ assert (0);  return;};
 
 private:
   Void  xWriteUnarySymbol    ( UInt uiSymbol, ContextModel* pcSCModel, Int iOffset );

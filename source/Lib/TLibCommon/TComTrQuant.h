@@ -199,22 +199,20 @@ public:
                                     const UInt                       scanIdx,
 #endif
                                     Int width, Int height);
-  Void initScalingList     ();
-  Void destroyScalingList  ();
+  Void initScalingList                      ();
+  Void destroyScalingList                   ();
   Void setErrScaleCoeff    ( UInt list, UInt size, UInt qp, UInt dir);
-  double* getErrScaleCoeff ( UInt list, UInt size, UInt qp, UInt dir) {return m_errScale[size][list][qp][dir];};    //!< get Error Scale Coefficent
-  Int* getQuantCoeff       ( UInt list, UInt qp, UInt size, UInt dir) {return m_quantCoef[size][list][qp][dir];};   //!< get Quant Coefficent
-  Int* getDequantCoeff     ( UInt list, UInt qp, UInt size, UInt dir) {return m_dequantCoef[size][list][qp][dir];}; //!< get DeQuant Coefficent
-  Void setScalingListEnabledFlag   ( Bool b){ m_scalingListEnabledFlag = b; };                                      //!< set scaling list enabled/disabled
-  Bool getScalingListEnabledFlag   (){ return m_scalingListEnabledFlag; };                                          //!< get scaling list enabled/disabled
-  Void processFlatScalingList  ();
+  double* getErrScaleCoeff ( UInt list, UInt size, UInt qp, UInt dir);
+  Int* getQuantCoeff       ( UInt list, UInt qp, UInt size, UInt dir);
+  Int* getDequantCoeff     ( UInt list, UInt qp, UInt size, UInt dir);
+  Void setUseScalingList   ( Bool bUseScalingList){ m_scalingListEnabledFlag = bUseScalingList; };
+  Bool getUseScalingList   (){ return m_scalingListEnabledFlag; };
+  Void setFlatScalingList  ();
   Void xsetFlatScalingList ( UInt list, UInt size, UInt qp);
-  Void xSetScalingListEnc  ( TComScalingList *scalingList, UInt list, UInt size, UInt qp);
-  Void xSetScalingListDec  ( TComScalingList *scalingList, UInt list, UInt size, UInt qp);
+  Void xSetScalingListEnc  ( Int *scalingList, UInt list, UInt size, UInt qp);
+  Void xSetScalingListDec  ( Int *scalingList, UInt list, UInt size, UInt qp);
   Void setScalingList      ( TComScalingList *scalingList);
   Void setScalingListDec   ( TComScalingList *scalingList);
-  Void processScalingListEnc( Int *coeff, Int *quantcoeff, Int quantScales, UInt height, UInt width, UInt ratio, Int sizuNum, UInt dc);
-  Void processScalingListDec( Int *coeff, Int *dequantcoeff, Int invQuantScales, UInt height, UInt width, UInt ratio, Int sizuNum, UInt dc);
 #if ADAPTIVE_QP_SELECTION
   Void    initSliceQpDelta() ;
   Void    storeSliceQpNext(TComSlice* pcSlice);
@@ -245,10 +243,19 @@ protected:
   Bool     m_bUseAdaptQpSelect;
 #endif
 
-  Bool     m_scalingListEnabledFlag;                                                                                ///< flag scaling_list_present_flag
-  Int      *m_quantCoef      [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of quantization matrix coefficient 4x4
-  Int      *m_dequantCoef    [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of dequantization matrix coefficient 4x4
-  double   *m_errScale       [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of quantization matrix coefficient 4x4
+  Bool     m_scalingListEnabledFlag;
+  Int      *m_quantCoef      [SCALING_LIST_NUM][SCALING_LIST_REM_NUM];             ///< array of quantization matrix coefficient 4x4
+  Int      *m_dequantCoef    [SCALING_LIST_NUM][SCALING_LIST_REM_NUM];             ///< array of dequantization matrix coefficient 4x4
+  Int      *m_quantCoef64    [SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of quantization matrix coefficient 8x8
+  Int      *m_dequantCoef64  [SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of dequantization matrix coefficient 8x8
+  Int      *m_quantCoef256   [SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of quantization matrix coefficient 16x16
+  Int      *m_dequantCoef256 [SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of dequantization matrix coefficient 16x16
+  Int      *m_quantCoef1024  [SCALING_LIST_NUM][SCALING_LIST_REM_NUM];             ///< array of quantization matrix coefficient 32x32
+  Int      *m_dequantCoef1024[SCALING_LIST_NUM][SCALING_LIST_REM_NUM];             ///< array of dequantization matrix coefficient 32x32
+  double   *m_errScale       [SCALING_LIST_NUM][SCALING_LIST_REM_NUM];             ///< array of quantization matrix coefficient 4x4
+  double   *m_errScale64     [SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of quantization matrix coefficient 8x8
+  double   *m_errScale256    [SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of quantization matrix coefficient 16x16
+  double   *m_errScale1024   [SCALING_LIST_NUM][SCALING_LIST_REM_NUM];             ///< array of quantization matrix coefficient 32x32
 private:
   // forward Transform
   Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Int* plCoeff, Int iWidth, Int iHeight );

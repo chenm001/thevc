@@ -530,10 +530,10 @@ public:
   Void      setWPBiPredIdc         ( UInt u )    { m_uiBiPredIdc       = u;    }
   Bool      getUseWP               ()            { return m_bUseWeightPred;    }
   UInt      getWPBiPredIdc         ()            { return m_uiBiPredIdc;       }
-  Void      setUseScalingListId    ( Int  u )    { m_useScalingListId       = u; } //!< set listID
-  Int       getUseScalingListId    ()            { return m_useScalingListId;    } //!< get listID
-  Void      setScalingListFile     ( char*  pch ){ m_scalingListFile     = pch;  } //!< set file 
-  char*     getScalingListFile     ()            { return m_scalingListFile;     } //!< get file 
+  Void      setUseScalingListId    ( Int  u )    { m_useScalingListId       = u;   }
+  Int       getUseScalingListId    ()            { return m_useScalingListId;      }
+  Void      setScalingListFile     ( char*  pch ){ m_scalingListFile     = pch; }
+  char*     getScalingListFile     ()            { return m_scalingListFile;    }
 
   Void      setEnableTMVP ( Bool b ) { m_bEnableTMVP = b;    }
   Bool      getEnableTMVP ()         { return m_bEnableTMVP; }

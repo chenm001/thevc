@@ -1537,56 +1537,110 @@ TComScalingList::~TComScalingList()
 */
 Void TComSlice::setDefaultScalingList()
 {
-  for(UInt sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
+  UInt i;
+  Int *dst=0;
+  Int *src=0;
+
+  //4x4
+  for(i=0;i<SCALING_LIST_NUM;i++)
   {
-    for(UInt listId=0;listId<g_scalingListNum[sizeId];listId++)
-    {
-      getScalingList()->processDefaultMarix(sizeId, listId);
-    }
+    src = (i<3) ? g_quantIntraDefault4x4 : g_quantInterDefault4x4;
+    dst = getScalingList()->getScalingListOrgAddress(SCALING_LIST_4x4,i);
+    ::memcpy(dst,src,sizeof(UInt)*16);
+    dst = getScalingList()->getScalingListAddress(SCALING_LIST_4x4,i);
+    ::memcpy(dst,src,sizeof(UInt)*16);
+  }
+  //8x8
+  for(i=0;i<SCALING_LIST_NUM;i++)
+  {
+    src = (i<3) ? g_quantIntraDefault8x8 : g_quantInterDefault8x8;
+    dst = getScalingList()->getScalingListOrgAddress(SCALING_LIST_8x8,i);
+    ::memcpy(dst,src,sizeof(UInt)*64);
+    dst = getScalingList()->getScalingListAddress(SCALING_LIST_8x8,i);
+    ::memcpy(dst,src,sizeof(UInt)*64);
+  }
+  //16x16
+  for(i=0;i<SCALING_LIST_NUM;i++)
+  {
+    src = (i<3) ? g_quantIntraDefault16x16 : g_quantInterDefault16x16;
+    dst = getScalingList()->getScalingListOrgAddress(SCALING_LIST_16x16,i);
+    ::memcpy(dst,src,sizeof(UInt)*256);
+    dst = getScalingList()->getScalingListAddress(SCALING_LIST_16x16,i);
+    ::memcpy(dst,src,sizeof(UInt)*256);
+  }
+  //32x32
+  for(i=0;i<SCALING_LIST_NUM_32x32;i++)
+  {
+    src = (i<1) ? g_quantIntraDefault32x32 : g_quantInterDefault32x32;
+    dst = getScalingList()->getScalingListOrgAddress(SCALING_LIST_32x32,i);
+    ::memcpy(dst,src,sizeof(UInt)*1024);
+    dst = getScalingList()->getScalingListAddress(SCALING_LIST_32x32,i);
+    ::memcpy(dst,src,sizeof(UInt)*1024);
   }
 }
-
 /** check if use default quantization matrix
  * \returns true if use default quantization matrix in all size
 */
 Bool TComSlice::checkDefaultScalingList()
 {
+  UInt i;
+  Int *dst=0;
+  Int *src=0;
   UInt defaultCounter=0;
 
-  for(UInt sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
+  //4x4
+  for(i=0;i<SCALING_LIST_NUM;i++)
   {
-    for(UInt listId=0;listId<g_scalingListNum[sizeId];listId++)
-    {
-      if(getScalingList()->getUseDefaultScalingMatrixFlag(sizeId,listId))
-      {
-        defaultCounter++;
-      }
-    }
+    src = (i<3) ? g_quantIntraDefault4x4 : g_quantInterDefault4x4;
+    dst = getScalingList()->getScalingListAddress(SCALING_LIST_4x4,i);
+    if(::memcmp(dst,src,sizeof(UInt)*16) == 0) defaultCounter++;
+  }
+
+  //8x8
+  for(i=0;i<SCALING_LIST_NUM;i++)
+  {
+    src = (i<3) ? g_quantIntraDefault8x8 : g_quantInterDefault8x8;
+    dst = getScalingList()->getScalingListAddress(SCALING_LIST_8x8,i);
+    if(::memcmp(dst,src,sizeof(UInt)*64) == 0) defaultCounter++;
+  }
+  //16x16
+  for(i=0;i<SCALING_LIST_NUM;i++)
+  {
+    src = (i<3) ? g_quantIntraDefault16x16 : g_quantInterDefault16x16;
+    dst = getScalingList()->getScalingListAddress(SCALING_LIST_16x16,i);
+    if(::memcmp(dst,src,sizeof(UInt)*256) == 0) defaultCounter++;
+  }
+  //32x32
+  for(i=0;i<SCALING_LIST_NUM_32x32;i++)
+  {
+    src = (i<1) ? g_quantIntraDefault32x32 : g_quantInterDefault32x32;
+    dst = getScalingList()->getScalingListAddress(SCALING_LIST_32x32,i*3);
+    if(::memcmp(dst,src,sizeof(UInt)*1024) == 0) defaultCounter++;
   }
   return (defaultCounter == (SCALING_LIST_NUM * SCALING_LIST_SIZE_NUM - 4)) ? true : false; // -4 for 32x32
 }
 
-/** get default address of quantization matrix 
- * \param sizeId size index
+/** get address of quantization matrix 
+ * \param sizeIdc side index
  * \param listId list index
  * \returns pointer of quantization matrix
  */
-Int* TComScalingList::getScalingListDefaultAddress(UInt sizeId, UInt listId)
+Int* TComScalingList::getScalingListAddress(UInt sizeIdc, UInt listId)
 {
   Int *src = 0;
-  switch(sizeId)
+  switch(sizeIdc)
   {
     case SCALING_LIST_4x4:
-      src = (listId<3) ? g_quantIntraDefault4x4 : g_quantInterDefault4x4;
+      src = m_scalingList4x4[listId];
       break;
     case SCALING_LIST_8x8:
-      src = (listId<3) ? g_quantIntraDefault8x8 : g_quantInterDefault8x8;
+      src = m_scalingList8x8[listId];
       break;
     case SCALING_LIST_16x16:
-      src = (listId<3) ? g_quantIntraDefault8x8 : g_quantInterDefault8x8;
+      src = m_scalingList16x16[listId];
       break;
     case SCALING_LIST_32x32:
-      src = (listId<1) ? g_quantIntraDefault8x8 : g_quantInterDefault8x8;
+      src = m_scalingList32x32[listId];
       break;
     default:
       assert(0);
@@ -1595,51 +1649,246 @@ Int* TComScalingList::getScalingListDefaultAddress(UInt sizeId, UInt listId)
   }
   return src;
 }
-/** get scaling matrix from RefMatrixID
- * \param sizeId size index
- * \param Index of input matrix
- * \param Index of reference matrix
+/** get address of default quantization matrix 
+ * \param sizeIdc size index
+ * \param listId list index
+ * \returns pointer of default quantization matrix
  */
-Void TComScalingList::processRefMatrix( UInt sizeId, UInt listId , UInt refListId )
+Int* TComScalingList::getScalingListOrgAddress( UInt sizeIdc, UInt listId)
 {
-  ::memcpy(getScalingListAddress(sizeId, listId),getScalingListAddress(sizeId, refListId),sizeof(Int)*min(MAX_MATRIX_COEF_NUM,g_scalingListSize[sizeId]));
-}
-/** process of default matrix
- * \param sizeId size index
- * \param Index of input matrix
- */
-Void TComScalingList::processDefaultMarix(UInt sizeId, UInt listId)
-{
-  ::memcpy(getScalingListAddress(sizeId, listId),getScalingListDefaultAddress(sizeId,listId),sizeof(Int)*min(MAX_MATRIX_COEF_NUM,g_scalingListSize[sizeId]));
-  setUseDefaultScalingMatrixFlag(sizeId,listId,true);
-  setScalingListDC(sizeId,listId,SCALING_LIST_DC);
-}
-/** check DC value of matrix for default matrix signaling
- */
-Void TComScalingList::checkDcOfMatrix()
-{
-  for(UInt sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
+  Int *src = 0;
+  switch(sizeIdc)
   {
-    for(UInt listId = 0; listId < g_scalingListNum[sizeId]; listId++)
+    case SCALING_LIST_4x4:
+      src = m_scalingList4x4_Org[listId];
+      break;
+    case SCALING_LIST_8x8:
+      src = m_scalingList8x8_Org[listId];
+      break;
+    case SCALING_LIST_16x16:
+      src = m_scalingList16x16_Org[listId];
+      break;
+    case SCALING_LIST_32x32:
+      src = m_scalingList32x32_Org[listId];
+      break;
+    default:
+      assert(0);
+      src = NULL;
+      break;
+  }
+  return src;
+}
+/** generate reference matrix for prediction
+ * \param pcScalingListsrc parameter set of original matrix 
+ * \param piDst reference matrix
+ * \param uiDstSizeId size index of reference matrix
+ * \param uiDstListId list index of reference matrix
+ * \param uiSrcSizeIdc size index of original matrix
+ * \param uiSrcMatrixId list index of original matrix
+ */
+Void TComScalingList::xPredScalingListMatrix( TComScalingList* scalingListsrc, Int* dst, UInt dstSizeId, UInt dstListId, UInt srcSizeIdc, UInt srcMatrixId)
+{
+  Int *src=0;
+  UInt srcSize = g_scalingListSizeX[srcSizeIdc];
+
+  src = scalingListsrc->getScalingListAddress(srcSizeIdc, srcMatrixId);
+
+  ::memcpy(dst,src,sizeof(Int)*srcSize*srcSize);
+}
+/** mode decision of quantization matrix prediction
+ */
+Void TComScalingList::xScalingListMatrixModeDecision()
+{
+  Int sizeIdc,listIdc;
+  Int *org = 0;
+  Int *recon = 0;
+  Int *bestRecon = new Int[1024];
+  UInt bestBit;
+
+  for(sizeIdc = 0; sizeIdc < SCALING_LIST_SIZE_NUM; sizeIdc++)
+  {
+    for(listIdc = 0; listIdc < g_auiScalingListNum[sizeIdc]; listIdc++)
     {
-      setUseDefaultScalingMatrixFlag(sizeId,listId,false);
-      //check default matrix?
-      if(getScalingListDC(sizeId,listId) == 0)
-      {
-        processDefaultMarix(sizeId, listId);
-      }
+      org   = getScalingListOrgAddress(sizeIdc,listIdc );
+      recon = getScalingListAddress(sizeIdc, listIdc);
+      bestBit = MAX_UINT;
+      xCalcBestBitCopyMode( org, recon, bestRecon, sizeIdc, listIdc, g_scalingListSize[sizeIdc], &bestBit);
+      xCalcBestBitDPCMMode( org, recon, bestRecon, sizeIdc, listIdc, g_scalingListSize[sizeIdc], &bestBit);
+      ::memcpy(recon,bestRecon,sizeof(Int)*g_scalingListSize[sizeIdc]);
     }
   }
+  delete [] bestRecon;
 }
+/** calculate residual coefficients between original matrix and reconstructed matrix, and sad
+ * \param piOrg pointer of original matrix
+ * \param piRecon pointer of reconstructed matrix
+ * \param piResidual pointer of residual coefficients between original matrix and reconstructed matrix
+ * \param sizeIdc size index
+ * \returns sad between original matirix and reconstructed matrix
+ */
+UInt TComScalingList::xMakeResidual(Int *piOrg,Int *recon, Int *residual, UInt sizeIdc)
+{
+  UInt i,size = g_scalingListSize[sizeIdc];
+  UInt* scan  = g_auiFrameScanXY [ sizeIdc + 1 ];
+  UInt uiSAD = 0;
+  for(i=0;i<size;i++)
+  {
+    residual[scan[i]] = piOrg[scan[i]] - recon[scan[i]];
+    uiSAD += abs(residual[scan[i]]);
+  }
+  return uiSAD;
+}
+/** change zigzag scan array into raster scan array
+ * \param piSrc  zigzag scan array
+ * \param piDist raster scan array
+ * \param sizeIdc size index
+ */
+Void TComScalingList::xInvZigZag(Int *src,Int *dist, UInt sizeIdc)
+{
+  UInt i,size = g_scalingListSize[sizeIdc];
+  UInt* scan  = g_auiFrameScanXY [ sizeIdc + 1 ];
+  Int pcmCounter = 0;
+  for(i=0;i<size;i++)
+  {
+    dist[scan[i]]  = src[pcmCounter];
+    pcmCounter++;
+  }
+}
+/** apply inverse DPCM to input matrix coefficient
+ * \param piSrc  input matrix
+ * \param piDist output matrix
+ * \param sizeIdc size index
+ * \param iStartValue start value of DPCM
+ */
+Void TComScalingList::xInvDPCM(Int *src,Int *dist, UInt sizeIdc, Int startValue)
+{
+  UInt i,size = g_scalingListSize[sizeIdc];
+  Int  lastScale = startValue;
+  for(i=0;i<size;i++)
+  {
+    dist[i] = (lastScale + src[i] + 256 ) % 256;
+    lastScale = dist[i];
+  }
+}
+/** calculate sum of syntax bits for matrix by applying copy mode and update best bit
+ * \param piOrg original matrix
+ * \param piRecon reconstructed matrix
+ * \param piBestRecon best reconstructed matrix
+ * \param iSizeIdc size index
+ * \param iListIdc list index
+ * \param uiSize number of matrix coefficients
+ * \param uiBestBit best of sum of syntax bits for matrix
+ */
+
+Void TComScalingList::xCalcBestBitCopyMode( Int *org, Int *recon, Int * bestRecon, Int sizeIdc, Int listIdc, UInt uiSize, UInt *bestBit)
+{
+  Int *residual = new Int[1024];
+  UInt sad=0;
+  estScalingListStruct estScalingList;
+  estScalingList.predMode = SCALING_LIST_PRED_COPY;
+  for(estScalingList.predListIdx = listIdc -1 ; estScalingList.predListIdx >= 0; estScalingList.predListIdx--)
+  {
+    xPredScalingListMatrix(this, recon, sizeIdc, listIdc, sizeIdc, estScalingList.predListIdx);
+    sad = xCalcResidual(org, recon, residual, sizeIdc, &estScalingList);
+    if(sad == 0 && *bestBit != 0)
+    {
+      *bestBit = 0;
+      xUpdateCondition(sizeIdc, listIdc, &estScalingList);
+      ::memcpy(bestRecon,recon,sizeof(Int)*uiSize);
+    }
+  }
+  delete [] residual;
+}
+/** calculate sum of syntax bits for matrix by applying DPCM mode and update best bit
+ * \param piOrg original matrix
+ * \param piRecon reconstructed matrix
+ * \param piBestRecon best reconstructed matrix
+ * \param iSizeIdc size index
+ * \param iListIdc list index
+ * \param uiSize number of matrix coefficients
+ * \param uiBestBit best of sum of syntax bits for matrix
+ */
+Void TComScalingList::xCalcBestBitDPCMMode( Int *org, Int * recon, Int * bestRecon, Int sizeIdc, Int listIdc, UInt size, UInt *bestBit)
+{
+  UInt targetBit=0;
+  estScalingListStruct estScalingList;
+
+  estScalingList.predMode = SCALING_LIST_PRED_DPCM;
+  targetBit = xPredDPCMScalingListMatrix(recon, org, sizeIdc, &estScalingList);
+
+  if(targetBit < *bestBit)
+  {
+    *bestBit = targetBit;
+    xUpdateCondition(sizeIdc, listIdc, &estScalingList);
+    ::memcpy(bestRecon,recon,sizeof(Int)*size);
+  }
+}
+/** calculate residual coefficients between original matrix and reconstructed matrix and decide coding mode of residual coefficients
+ * \param piOrg original matrix
+ * \param piRecon reconstructed matrix
+ * \param piResidual residual matrix
+ * \param sizeIdc size index
+ * \param pestScalingList pointer of parameter sets of best coding mode
+ * \returns best of sum of syntax bits
+ */
+UInt TComScalingList::xCalcResidual(Int *org, Int *recon, Int *residual, UInt sizeIdc, estScalingListStruct *pestScalingList)
+{
+  UInt sad = MAX_UINT;
+  sad = xMakeResidual(org,recon,residual,sizeIdc);
+  return sad;
+}
+
+/** apply DPCM to input matrix coefficient with quantization
+ * \param piSrc input matrix
+ * \param piDist output matrix
+ * \param dpcm result of DPCM
+ * \param sizeIdc size index
+ */
+Void TComScalingList::xMakeDPCM(Int* src, Int* dst, Int* dpcm, UInt sizeId)
+{
+  Int startValue = SCALING_LIST_START_VALUE;
+  UInt i,size = g_scalingListSize[sizeId];
+  UInt* scan    = g_auiFrameScanXY [ sizeId + 1 ];
+  Int  lastScale = startValue;
+  UInt dataCounter = 0;
+
+  for(i=0;i<size;i++)
+  {
+    dpcm[dataCounter] = src[scan[i]] - lastScale;
+    dst[scan[i]] = lastScale + dpcm[dataCounter];
+    lastScale = dst[scan[i]];
+    if(dpcm[dataCounter] > 127)
+      dpcm[dataCounter]=dpcm[dataCounter]-256;
+    if(dpcm[dataCounter] < -128)
+      dpcm[dataCounter]=dpcm[dataCounter]+256;
+
+    dataCounter++;
+  }
+}
+/** estimate DPCM with ScalingListMatrix
+ * \param piDst quantized matrix
+ * \param piOrg original matrix
+ * \param uiSizeId size index
+ * \param pestScalingList pointer of parameter sets of best coding mode
+ * \returns sum of syntax bits for matrix
+ */
+UInt TComScalingList::xPredDPCMScalingListMatrix(Int* dst, Int* org, UInt sizeId, estScalingListStruct *pestScalingList)
+{
+  Int dpcm[1024];
+
+  xMakeDPCM(org, dst, dpcm, sizeId);
+  return 1;
+}
+
 /** parse syntax infomation 
  *  \param pchFile syntax infomation
  *  \returns false if successful
  */
-Bool TComScalingList::readScalingListFromFile(char* pchFile)
+Bool TComScalingList::xParseScalingList(char* pchFile)
 {
   FILE *fp;
   Char line[1024];
-  UInt sizeId,listId;
+  UInt sizeIdc,listIdc;
   UInt i,size = 0;
   Int *src=0,data;
   Char *ret;
@@ -1651,24 +1900,24 @@ Bool TComScalingList::readScalingListFromFile(char* pchFile)
     return true;
   }
 
-  for(sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
+  for(sizeIdc = 0; sizeIdc < SCALING_LIST_SIZE_NUM; sizeIdc++)
   {
-    size = min(MAX_MATRIX_COEF_NUM,g_scalingListSize[sizeId]);
-    for(listId = 0; listId < g_scalingListNum[sizeId]; listId++)
+    size = g_scalingListSize[sizeIdc];
+    for(listIdc = 0; listIdc < g_auiScalingListNum[sizeIdc]; listIdc++)
     {
-      src = getScalingListAddress(sizeId, listId);
+      src = getScalingListOrgAddress(sizeIdc, listIdc);
 
       fseek(fp,0,0);
       do 
       {
         ret = fgets(line, 1024, fp);
-        if ((ret==NULL)||(strstr(line, MatrixType[sizeId][listId])==NULL && feof(fp)))
+        if ((ret==NULL)||(strstr(line, MatrixType[sizeIdc][listIdc])==NULL && feof(fp)))
         {
           printf("Error: can't read Matrix :: set Default Matrix\n");
           return true;
         }
       }
-      while (strstr(line, MatrixType[sizeId][listId]) == NULL);
+      while (strstr(line, MatrixType[sizeIdc][listIdc]) == NULL);
       for (i=0; i<size; i++)
       {
         retval = fscanf(fp, "%d,", &data);
@@ -1679,78 +1928,62 @@ Bool TComScalingList::readScalingListFromFile(char* pchFile)
         }
         src[i] = data;
       }
-      //set DC value for default matrix check
-      setScalingListDC(sizeId,listId,src[0]);
-
-      if(sizeId > SCALING_LIST_8x8)
-      {
-        fseek(fp,0,0);
-        do 
-        {
-          ret = fgets(line, 1024, fp);
-          if ((ret==NULL)||(strstr(line, MatrixType_DC[sizeId][listId])==NULL && feof(fp)))
-          {
-            printf("Error: can't read DC :: set Default Matrix\n");
-            return true;
-          }
-        }
-        while (strstr(line, MatrixType_DC[sizeId][listId]) == NULL);
-          retval = fscanf(fp, "%d,", &data);
-          if (retval!=1)
-          {
-            printf("Error: can't read Matrix :: set Default Matrix\n");
-            return true;
-          }
-          //overwrite DC value when size of matrix is larger than 16x16
-          setScalingListDC(sizeId,listId,data);
-      }
     }
   }
   fclose(fp);
   return false;
 }
+
+/** update condition
+ * \param iSizeIdc size index
+ * \param iListIdc list index
+ * \param pestScalingList quantization matrix infomation
+ */
+Void TComScalingList::xUpdateCondition(UInt sizeIdc, UInt listIdc, estScalingListStruct *pestScalingList)
+{
+  setPredMatrixId(sizeIdc, listIdc, pestScalingList->predListIdx);
+  setPredMode    (sizeIdc, listIdc, pestScalingList->predMode);
+}
 /** initialization process of quantization matrix array
  */
 Void TComScalingList::init()
 {
-  for(UInt sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
+  for(UInt listId = 0; listId < SCALING_LIST_NUM; listId++)
   {
-    for(UInt listId = 0; listId < g_scalingListNum[sizeId]; listId++)
-    {
-      m_scalingListCoef[sizeId][listId] = new Int [min(MAX_MATRIX_COEF_NUM,g_scalingListSize[sizeId])];
-    }
+    m_scalingList4x4      [listId] = new Int [16];
+    m_scalingList4x4_Org  [listId] = new Int [16];
+    m_scalingList8x8      [listId] = new Int [64];
+    m_scalingList8x8_Org  [listId] = new Int [64];
+    m_scalingList16x16    [listId] = new Int [256];
+    m_scalingList16x16_Org[listId] = new Int [256];
   }
-  m_scalingListCoef[SCALING_LIST_32x32][3] = m_scalingListCoef[SCALING_LIST_32x32][1]; // copy address for 32x32
+  for(UInt listId = 0; listId < SCALING_LIST_NUM_32x32; listId++)
+  {
+    m_scalingList32x32    [listId] = new Int [1024];
+    m_scalingList32x32_Org[listId] = new Int [1024];
+  }
+  m_scalingList32x32    [3] = m_scalingList32x32    [1]; // copy address for 32x32
+  m_scalingList32x32_Org[3] = m_scalingList32x32_Org[1]; // copy address for 32x32 
 
 }
 /** destroy quantization matrix array
  */
 Void TComScalingList::destroy()
 {
-  for(UInt sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
+  for(UInt listId = 0; listId < SCALING_LIST_NUM; listId++)
   {
-    for(UInt listId = 0; listId < g_scalingListNum[sizeId]; listId++)
-    {
-      if(m_scalingListCoef[sizeId][listId]) delete [] m_scalingListCoef[sizeId][listId];
-    }
+    if(m_scalingList4x4      [listId]) delete [] m_scalingList4x4      [listId];
+    if(m_scalingList4x4_Org  [listId]) delete [] m_scalingList4x4_Org  [listId];
+    if(m_scalingList8x8      [listId]) delete [] m_scalingList8x8      [listId];
+    if(m_scalingList8x8_Org  [listId]) delete [] m_scalingList8x8_Org  [listId];
+    if(m_scalingList16x16    [listId]) delete [] m_scalingList16x16    [listId];
+    if(m_scalingList16x16_Org[listId]) delete [] m_scalingList16x16_Org[listId];
   }
-}
-/** check matrix value for scaling_list_pred_mode_flag
- * \param sizeId size index
- * \param listId list index
- */
-Bool TComScalingList::checkPredMode(UInt sizeId, UInt listId)
-{
-  for(Int predListIdx = (Int)listId -1 ; predListIdx >= 0; predListIdx--)
+  for(UInt listId = 0; listId < SCALING_LIST_NUM_32x32; listId++)
   {
-    if( !memcmp(getScalingListAddress(sizeId,listId),getScalingListAddress(sizeId, predListIdx),sizeof(Int)*min(MAX_MATRIX_COEF_NUM,g_scalingListSize[sizeId])) // check value of matrix
-     && ((sizeId < SCALING_LIST_16x16) || (getScalingListDC(sizeId,listId) == getScalingListDC(sizeId,predListIdx)))) // check DC value
-    {
-      setRefMatrixId(sizeId, listId, predListIdx);
-      return false;
-    }
+    if(m_scalingList32x32    [listId]) delete [] m_scalingList32x32    [listId];
+    if(m_scalingList32x32_Org[listId]) delete [] m_scalingList32x32_Org[listId];
   }
-  return true;
 }
 
 #if PARAMSET_VLC_CLEANUP

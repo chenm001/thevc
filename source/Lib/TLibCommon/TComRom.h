@@ -216,13 +216,9 @@ extern UInt64 g_nSymbolCounter;
 #endif
 
 
-#define SCALING_LIST_NUM 6         ///< list number for quantization matrix
-#define SCALING_LIST_NUM_32x32 2   ///< list number for quantization matrix 32x32
-#define SCALING_LIST_REM_NUM 6     ///< remainder of QP/6
-#define MAX_MATRIX_COEF_NUM 64     ///< max coefficient number for quantization matrix
-#define MAX_MATRIX_SIZE_NUM 8      ///< max size number for quantization matrix
-#define SCALING_LIST_START_VALUE 8 ///< start value for dpcm mode
-#define SCALING_LIST_DC 16         ///< default DC value
+#define SCALING_LIST_NUM 6                         ///< list number for quantization matrix
+#define SCALING_LIST_NUM_32x32 2                   ///< list number for quantization matrix 32x32
+#define SCALING_LIST_REM_NUM 6
 enum ScalingListDIR
 {
   SCALING_LIST_SQT = 0,
@@ -237,6 +233,12 @@ enum ScalingListSize
   SCALING_LIST_16x16,
   SCALING_LIST_32x32,
   SCALING_LIST_SIZE_NUM
+};
+enum ScalingListPredMode
+{
+  SCALING_LIST_PRED_COPY = 0,
+  SCALING_LIST_PRED_DPCM,
+  SCALING_LIST_PRED_NUM
 };
 static const char MatrixType[4][6][20] =
 {
@@ -262,41 +264,26 @@ static const char MatrixType[4][6][20] =
   "INTRA16X16_CHROMAV", 
   "INTER16X16_LUMA",
   "INTER16X16_CHROMAU", 
-  "INTER16X16_CHROMAV"
+  "INTER16X16_CHROMAV"  
   },
   {
   "INTRA32X32_LUMA",
   "INTER32X32_LUMA",
   },
 };
-static const char MatrixType_DC[4][12][22] =
-{
-  {
-  },
-  {
-  },
-  {
-  "INTRA16X16_LUMA_DC",
-  "INTRA16X16_CHROMAU_DC", 
-  "INTRA16X16_CHROMAV_DC", 
-  "INTER16X16_LUMA_DC",
-  "INTER16X16_CHROMAU_DC", 
-  "INTER16X16_CHROMAV_DC"  
-  },
-  {
-  "INTRA32X32_LUMA_DC",
-  "INTER32X32_LUMA_DC",
-  },
-};
-
+#define SCALING_LIST_START_VALUE 8                      ///< start value for dpcm mode
 extern Int g_quantIntraDefault4x4[16];
 extern Int g_quantIntraDefault8x8[64];
+extern Int g_quantIntraDefault16x16[256];
+extern Int g_quantIntraDefault32x32[1024];
 extern Int g_quantInterDefault4x4[16];
 extern Int g_quantInterDefault8x8[64];
-extern Int g_scalingListNum  [SCALING_LIST_SIZE_NUM];
-extern Int g_scalingListSize [SCALING_LIST_SIZE_NUM];
-extern Int g_scalingListSizeX [SCALING_LIST_SIZE_NUM];
-extern Int g_eTTable[4];
+extern Int g_quantInterDefault16x16[256];
+extern Int g_quantInterDefault32x32[1024];
+extern UInt g_scalingListSize [SCALING_LIST_SIZE_NUM];
+extern UInt g_scalingListSizeX[SCALING_LIST_SIZE_NUM];
+extern UInt g_auiScalingListNum  [SCALING_LIST_SIZE_NUM];
+extern Int  g_eTTable[4];
 //! \}
 
 #endif  //__TCOMROM__

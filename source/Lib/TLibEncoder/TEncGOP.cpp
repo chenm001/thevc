@@ -227,8 +227,35 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcSlice->setSliceIdx(0);
 
       m_pcEncTop->getSPS()->setDisInter4x4(m_pcEncTop->getDisInter4x4());
-      //set scaling list
-      processScalingList(pcSlice);
+      pcSlice->setScalingList ( m_pcEncTop->getScalingList()  );
+      if(m_pcEncTop->getUseScalingListId() == SCALING_LIST_OFF)
+      {
+        m_pcEncTop->getTrQuant()->setFlatScalingList();
+        m_pcEncTop->getTrQuant()->setUseScalingList(false);
+      }
+      else if(m_pcEncTop->getUseScalingListId() == SCALING_LIST_DEFAULT)
+      {
+        pcSlice->setDefaultScalingList ();
+        pcSlice->getScalingList()->setUseDefaultOnlyFlag(true);
+        m_pcEncTop->getTrQuant()->setScalingList(pcSlice->getScalingList());
+        m_pcEncTop->getTrQuant()->setUseScalingList(true);
+      }
+      else if(m_pcEncTop->getUseScalingListId() == SCALING_LIST_FILE_READ)
+      {
+        if(pcSlice->getScalingList()->xParseScalingList(m_pcCfg->getScalingListFile()))
+        {
+          pcSlice->setDefaultScalingList ();
+        }
+        pcSlice->getScalingList()->xScalingListMatrixModeDecision();
+        pcSlice->getScalingList()->setUseDefaultOnlyFlag(pcSlice->checkDefaultScalingList());
+        m_pcEncTop->getTrQuant()->setScalingList(pcSlice->getScalingList());
+        m_pcEncTop->getTrQuant()->setUseScalingList(true);
+      }
+      else
+      {
+        printf("error : ScalingList == %d no support\n",m_pcEncTop->getUseScalingListId());
+        assert(0);
+      }
 
       if(pcSlice->getSliceType()==B_SLICE&&m_pcCfg->getGOPEntry(iGOPid).m_iSliceType=='P')
       {
@@ -1953,38 +1980,4 @@ Void TEncGOP::xWriteTileLocationToSliceHeader (OutputNALUnit& rNalu, TComOutputB
   delete rpcBitstreamRedirect;
   rpcBitstreamRedirect = new TComOutputBitstream;
 }
-
-Void TEncGOP::processScalingList (TComSlice* pcSlice)
-{
-  pcSlice->setScalingList ( m_pcEncTop->getScalingList()  );
-  if(m_pcEncTop->getUseScalingListId() == SCALING_LIST_OFF) //use flat matrix
-  {
-    m_pcEncTop->getTrQuant()->processFlatScalingList();
-    m_pcEncTop->getTrQuant()->setScalingListEnabledFlag(false);
-  }
-  else if(m_pcEncTop->getUseScalingListId() == SCALING_LIST_DEFAULT) //use default matrix
-  {
-    pcSlice->setDefaultScalingList ();
-    pcSlice->getScalingList()->setScalingListPresentFlag(true);
-    m_pcEncTop->getTrQuant()->setScalingList(pcSlice->getScalingList());
-    m_pcEncTop->getTrQuant()->setScalingListEnabledFlag(true);
-  }
-  else if(m_pcEncTop->getUseScalingListId() == SCALING_LIST_FILE_READ) //read file
-  {
-    if(pcSlice->getScalingList()->readScalingListFromFile(m_pcCfg->getScalingListFile()))
-    {
-      pcSlice->setDefaultScalingList ();
-    }
-    pcSlice->getScalingList()->checkDcOfMatrix();
-    pcSlice->getScalingList()->setScalingListPresentFlag(pcSlice->checkDefaultScalingList());
-    m_pcEncTop->getTrQuant()->setScalingList(pcSlice->getScalingList());
-    m_pcEncTop->getTrQuant()->setScalingListEnabledFlag(true);
-  }
-  else
-  {
-    printf("error : ScalingList == %d no support\n",m_pcEncTop->getUseScalingListId());
-    assert(0);
-  }
-}
-
 //! \}

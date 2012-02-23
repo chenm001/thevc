@@ -2048,87 +2048,69 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
  */
 Void TDecCavlc::parseScalingList(TComScalingList* scalingList)
 {
-  UInt code, sizeId, listId;
-  Bool scalingListPredModeFlag;
-  Int  *dst=0;
-  READ_FLAG( code, "scaling_list_present_flag" );
-  scalingList->setScalingListPresentFlag  ( (code==1)?true:false );
-  if(scalingList->getScalingListPresentFlag() == false)
+  UInt  code, sizeId, listId;
+  Int *dst=0;
+  READ_FLAG( code, "use_default_scaling_list_flag" );
+  scalingList->setUseDefaultOnlyFlag  ( code    );
+  if(scalingList->getUseDefaultOnlyFlag() == false)
   {
       //for each size
     for(sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
     {
-      for(listId = 0; listId <  g_scalingListNum[sizeId]; listId++)
+      for(listId = 0; listId <  g_auiScalingListNum[sizeId]; listId++)
       {
         dst = scalingList->getScalingListAddress(sizeId, listId);
-        READ_FLAG( code, "scaling_list_pred_mode_flag");
-        scalingListPredModeFlag = (code) ? true : false;
-        if(!scalingListPredModeFlag)
+        READ_FLAG( code, "pred_mode_flag");
+        scalingList->setPredMode (sizeId,listId,code);
+        if(scalingList->getPredMode (sizeId,listId) == SCALING_LIST_PRED_COPY) // Matrix_Copy_Mode
         {
-          READ_UVLC( code, "scaling_list_pred_matrix_id_delta");
-          scalingList->setRefMatrixId (sizeId,listId,(UInt)((Int)(listId)-(code+1)));
-          if( sizeId > SCALING_LIST_8x8 )
-          {
-            scalingList->setScalingListDC(sizeId,listId,scalingList->getScalingListDC(sizeId, scalingList->getRefMatrixId (sizeId,listId)));
-          }
-          scalingList->processRefMatrix( sizeId, listId, scalingList->getRefMatrixId (sizeId,listId));
+          READ_UVLC( code, "pred_matrix_id_delta");
+          scalingList->setPredMatrixId (sizeId,listId,(UInt)((Int)(listId)-(code+1)));
+          scalingList->xPredScalingListMatrix( scalingList, dst, sizeId, listId,sizeId, scalingList->getPredMatrixId (sizeId,listId));
         }
-        else
+        else if(scalingList->getPredMode (sizeId,listId) == SCALING_LIST_PRED_DPCM)//DPCM mode
         {
-          xDecodeScalingList(scalingList, sizeId, listId);
+          xDecodeDPCMScalingListMatrix(scalingList, dst, sizeId, listId);
         }
       }
     }
   }
+
   return;
 }
-/** decode DPCM
+/** read Code
  * \param scalingList  quantization matrix information
- * \param sizeId size index
+ * \param piBuf buffer of decoding data
+ * \param uiSizeId size index
  * \param listId list index
  */
-Void TDecCavlc::xDecodeScalingList(TComScalingList *scalingList, UInt sizeId, UInt listId)
+Void TDecCavlc::xReadScalingListCode(TComScalingList *scalingList, Int* buf, UInt sizeId, UInt listId)
 {
-  Int i,coefNum = min(MAX_MATRIX_COEF_NUM,g_scalingListSize[sizeId]);
-  Int data;
-  Int scalingListDcCoefMinus8 = 0;
-  Int nextCoef = SCALING_LIST_START_VALUE;
-  UInt* scan  = g_auiFrameScanXY [ (sizeId == 0)? 1 : 2 ];
-  Bool stopNow = false;
-  Int *dst = scalingList->getScalingListAddress(sizeId, listId);
-
-  scalingList->setUseDefaultScalingMatrixFlag(sizeId,listId,false);
-
-  if( sizeId > SCALING_LIST_8x8 )
+  UInt i,size = g_scalingListSize[sizeId];
+  UInt dataCounter = 0;
+  for(i=0;i<size;i++)
   {
-    READ_SVLC( scalingListDcCoefMinus8, "scaling_list_dc_coef_minus8");
-    scalingList->setScalingListDC(sizeId,listId,scalingListDcCoefMinus8 + 8);
-    if(scalingListDcCoefMinus8 == -8)
-    {
-      scalingList->processDefaultMarix(sizeId,listId);
-    }
+    READ_SVLC( buf[dataCounter], "delta_coef");
+    dataCounter++;
   }
+}
+/** decode DPCM with quantization matrix
+ * \param scalingList  quantization matrix information
+ * \param piData decoded data
+ * \param uiSizeId size index
+ * \param listId list index
+ */
+Void TDecCavlc::xDecodeDPCMScalingListMatrix(TComScalingList *scalingList, Int* data, UInt sizeId, UInt listId)
+{
+  Int  buf[1024];
+  Int  pcm[1024];
+  Int  startValue   = SCALING_LIST_START_VALUE;
 
-  if( !scalingList->getUseDefaultScalingMatrixFlag(sizeId,listId))
-  {
-    for(i = 0; i < coefNum && !stopNow ; i++)
-    {
-      READ_SVLC( data, "scaling_list_delta_coef");
-      nextCoef = (nextCoef + data + 256 ) % 256;
-      if(sizeId < SCALING_LIST_16x16)
-      {
-        if( i == 0 && nextCoef == 0 )
-        {
-          scalingList->processDefaultMarix(sizeId,listId);
-          stopNow = true;
-        }
-      }
-      if(!stopNow)
-      {
-        dst[scan[i]] = nextCoef;
-      }
-    }
-  }
+  xReadScalingListCode(scalingList, buf, sizeId, listId);
+  //Inverse DPCM
+  scalingList->xInvDPCM(buf, pcm, sizeId, startValue);
+  //Inverse ZigZag scan
+  scalingList->xInvZigZag(pcm, data, sizeId);
 }
 
 Void TDecCavlc::parseDFFlag(UInt& ruiVal, const Char *pSymbolName)

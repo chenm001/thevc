@@ -172,7 +172,7 @@ public:
 #if !PARAMSET_VLC_CLEANUP
   Void parseAPSInitInfo(TComAPS& cAPS) {printf("Not supported in parseAPSInitInfo()\n");assert(0);exit(1);}
 #endif
-  Void parseScalingList ( TComScalingList* scalingList ) {}
+  Void  parseScalingList ( TComScalingList* scalingList ) {}
 
 private:
   UInt m_uiLastDQpNonZero;

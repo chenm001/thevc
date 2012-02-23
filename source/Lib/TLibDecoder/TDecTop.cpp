@@ -685,19 +685,19 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDispl
   {
     if(pcSlice->getAPS()->getScalingListEnabled())
     {
-      pcSlice->setScalingList ( pcSlice->getAPS()->getScalingList()  );
-      if(pcSlice->getAPS()->getScalingList()->getScalingListPresentFlag())
+      pcSlice->setScalingList ( &m_scalingList  );
+      if(pcSlice->getScalingList()->getUseDefaultOnlyFlag())
       {
         pcSlice->setDefaultScalingList();
       }
       m_cTrQuant.setScalingListDec(pcSlice->getScalingList());
     }
-    m_cTrQuant.setScalingListEnabledFlag(true);
+    m_cTrQuant.setUseScalingList(true);
   }
   else
   {
-    m_cTrQuant.processFlatScalingList();
-    m_cTrQuant.setScalingListEnabledFlag(false);
+    m_cTrQuant.setFlatScalingList();
+    m_cTrQuant.setUseScalingList(false);
   }
 
   //  Decode a picture
