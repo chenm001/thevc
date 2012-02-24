@@ -825,7 +825,12 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 
     case NAL_UNIT_CODED_SLICE:
     case NAL_UNIT_CODED_SLICE_IDR:
+#if H0566_TLA
+    case NAL_UNIT_CODED_SLICE_CRA:
+    case NAL_UNIT_CODED_SLICE_TLA:
+#else
     case NAL_UNIT_CODED_SLICE_CDR:
+#endif
 #if PARAMSET_VLC_CLEANUP
       return xDecodeSlice(nalu, iSkipFrame, iPOCLastDisplay);
 #else
@@ -1236,7 +1241,11 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
   }
   else if (m_uiPOCRA == MAX_UINT) // start of random access point, m_uiPOCRA has not been set yet.
   {
+#if H0566_TLA
+    if (m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_CRA)
+#else
     if (m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_CDR)
+#endif
     {
       m_uiPOCRA = m_apcSlicePilot->getPOC(); // set the POC random access since we need to skip the reordered pictures in CDR.
     }

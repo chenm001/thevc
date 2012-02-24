@@ -100,8 +100,12 @@ protected:
   Bool      m_bUseAdaptiveQP;                                 ///< Flag for enabling QP adaptation based on a psycho-visual model
   Int       m_iQPAdaptationRange;                             ///< dQP range by QP adaptation
   
+#if H0566_TLA
+  Int       m_maxTempLayer;                                  ///< Max temporal layer
+#else
   Bool      m_bTLayering;                                     ///< indicates whether temporal IDs are set based on the hierarchical coding structure
   Bool      m_abTLayerSwitchingFlag[MAX_TLAYER];              ///< temporal layer switching flags corresponding to each temporal layer
+#endif
 
   // coding unit (CU) definition
   UInt      m_uiMaxCUWidth;                                   ///< max. CU width in pixel

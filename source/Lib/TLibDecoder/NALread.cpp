@@ -130,12 +130,27 @@ void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
   {
   case NAL_UNIT_CODED_SLICE:
   case NAL_UNIT_CODED_SLICE_IDR:
+#if H0566_TLA
+  case NAL_UNIT_CODED_SLICE_CRA:
+  case NAL_UNIT_CODED_SLICE_TLA:
+#else
   case NAL_UNIT_CODED_SLICE_CDR:
+#endif
     {
       nalu.m_TemporalID = bs.read(3);
       nalu.m_OutputFlag = bs.read(1);
       unsigned reserved_one_4bits = bs.read(4);
       assert(reserved_one_4bits == 1);
+#if H0566_TLA
+      if (nalu.m_TemporalID == 0)
+      {
+        assert(nalu.m_UnitType == NAL_UNIT_CODED_SLICE || nalu.m_UnitType == NAL_UNIT_CODED_SLICE_CRA || nalu.m_UnitType == NAL_UNIT_CODED_SLICE_IDR);
+      }
+      else
+      {
+        assert(nalu.m_UnitType == NAL_UNIT_CODED_SLICE || nalu.m_UnitType == NAL_UNIT_CODED_SLICE_TLA);
+      }
+#endif
     }
     break;
   default:

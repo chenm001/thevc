@@ -580,11 +580,13 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
       READ_UVLC( uiCode, "num_substreams_minus1" );                pcPPS->setNumSubstreams(uiCode+1);
     }
   }
+#if !H0566_TLA
   READ_UVLC( uiCode, "num_temporal_layer_switching_point_flags" ); pcPPS->setNumTLayerSwitchingFlags( uiCode );
   for ( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ )
   {
     READ_FLAG( uiCode, "temporal_layer_switching_point_flag" );    pcPPS->setTLayerSwitchingFlag( i, uiCode > 0 ? true : false );
   }
+#endif
   
   // num_ref_idx_l0_default_active_minus1
   // num_ref_idx_l1_default_active_minus1

@@ -539,8 +539,10 @@ private:
 
   UInt        m_uiBitsForTemporalId;
 
+#if !H0566_TLA
   UInt        m_uiNumTlayerSwitchingFlags;            // num_temporal_layer_switching_point_flags
   Bool        m_abTLayerSwitchingFlag[ MAX_TLAYER ];  // temporal_layer_switching_point_flag
+#endif
 
   Int         m_iSliceGranularity;
 
@@ -587,11 +589,13 @@ public:
   Bool      getConstrainedIntraPred ()         { return  m_bConstrainedIntraPred; }
   Void      setConstrainedIntraPred ( Bool b ) { m_bConstrainedIntraPred = b;     }
 
+#if !H0566_TLA
   UInt      getNumTLayerSwitchingFlags()                                  { return m_uiNumTlayerSwitchingFlags; }
   Void      setNumTLayerSwitchingFlags( UInt uiNumTlayerSwitchingFlags )  { assert( uiNumTlayerSwitchingFlags < MAX_TLAYER ); m_uiNumTlayerSwitchingFlags = uiNumTlayerSwitchingFlags; }
 
   Bool      getTLayerSwitchingFlag( UInt uiTLayer )                       { assert( uiTLayer < MAX_TLAYER ); return m_abTLayerSwitchingFlag[ uiTLayer ]; }
   Void      setTLayerSwitchingFlag( UInt uiTLayer, Bool bValue )          { m_abTLayerSwitchingFlag[ uiTLayer ] = bValue; }
+#endif
   UInt      getBitsForTemporalId()           { return m_uiBitsForTemporalId; }
   Void      setBitsForTemporalId(UInt bits)  { m_uiBitsForTemporalId = bits; }
 
@@ -1083,8 +1087,10 @@ public:
   UInt getTLayer             ()                            { return m_uiTLayer;                      }
   Void setTLayer             ( UInt uiTLayer )             { m_uiTLayer = uiTLayer;                  }
 
+#if !H0566_TLA
   Bool getTLayerSwitchingFlag()                            { return m_bTLayerSwitchingFlag;          }
   Void setTLayerSwitchingFlag( Bool bValue )               { m_bTLayerSwitchingFlag = bValue;        }
+#endif
 
   Void setTLayerInfo( UInt uiTLayer );
   Void decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, Int& iMaxRefPicNum ); 

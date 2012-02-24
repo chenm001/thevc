@@ -278,11 +278,13 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
       WRITE_UVLC( pcPPS->getNumSubstreams()-1,               "num_substreams_minus1" );
     }
   }
+#if !H0566_TLA
   WRITE_UVLC( pcPPS->getNumTLayerSwitchingFlags(),           "num_temporal_layer_switching_point_flags" );
   for( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ ) 
   {
     WRITE_FLAG( pcPPS->getTLayerSwitchingFlag( i ) ? 1 : 0 , "temporal_layer_switching_point_flag" ); 
   }
+#endif
   //   num_ref_idx_l0_default_active_minus1
   //   num_ref_idx_l1_default_active_minus1
   WRITE_SVLC( pcPPS->getPicInitQPMinus26(),                  "pic_init_qp_minus26");

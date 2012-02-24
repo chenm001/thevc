@@ -69,7 +69,12 @@ struct NALUnit
   bool isSlice()
   {
     return m_UnitType == NAL_UNIT_CODED_SLICE_IDR
+#if H0566_TLA
+        || m_UnitType == NAL_UNIT_CODED_SLICE_CRA
+        || m_UnitType == NAL_UNIT_CODED_SLICE_TLA
+#else
         || m_UnitType == NAL_UNIT_CODED_SLICE_CDR
+#endif
         || m_UnitType == NAL_UNIT_CODED_SLICE;
   }
 };

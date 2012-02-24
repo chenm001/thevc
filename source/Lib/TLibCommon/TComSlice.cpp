@@ -510,7 +510,11 @@ Void TComSlice::checkCRA(TComReferencePictureSet *pReferencePictureSet, UInt& po
       assert(pReferencePictureSet->getPOC(i) >= pocCRA);
     }
   }
+#if H0566_TLA
+  if (getNalUnitType() == NAL_UNIT_CODED_SLICE_CRA) // CRA picture found
+#else
   if (getNalUnitType() == NAL_UNIT_CODED_SLICE_CDR) // CDR picture found
+#endif
   {
     pocCRA = getPOC();
   }
@@ -563,7 +567,11 @@ Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TC
       }
       bRefreshPending = false; 
     }
+#if H0566_TLA
+    if (getNalUnitType() == NAL_UNIT_CODED_SLICE_CRA) // CRA picture found
+#else
     if (getNalUnitType() == NAL_UNIT_CODED_SLICE_CDR) // CDR picture found
+#endif
     {
       bRefreshPending = true; 
       uiPOCCDR = uiPOCCurr;
@@ -685,6 +693,7 @@ int TComSlice::m_iPrevPOC = 0;
  */
 Void TComSlice::setTLayerInfo( UInt uiTLayer )
 {
+#if !H0566_TLA
   // If temporal_id_nesting_flag == 1, then num_temporal_layer_switching_point_flags shall be inferred to be 0 and temporal_layer_switching_point_flag shall be inferred to be 1 for all temporal layers
   if ( m_pcSPS->getTemporalIdNestingFlag() ) 
   {
@@ -701,9 +710,12 @@ Void TComSlice::setTLayerInfo( UInt uiTLayer )
       m_pcPPS->setTLayerSwitchingFlag( i, false );
     }
   }
+#endif
 
   m_uiTLayer = uiTLayer;
+#if !H0566_TLA
   m_bTLayerSwitchingFlag = m_pcPPS->getTLayerSwitchingFlag( uiTLayer );
+#endif
 }
 
 /** Function for applying picture marking based on the Reference Picture Set in pReferencePictureSet.
@@ -1228,7 +1240,9 @@ TComPPS::TComPPS()
 , m_bLongTermRefsPresent        (false)
 #endif
 , m_uiBitsForLongTermRefs       (0)
+#if !H0566_TLA
 , m_uiNumTlayerSwitchingFlags   (0)
+#endif
 , m_iSliceGranularity           (0)
 , m_iTileBehaviorControlPresentFlag (0)
 , m_bLFCrossTileBoundaryFlag     (true)
@@ -1247,10 +1261,12 @@ TComPPS::TComPPS()
 , m_signHidingThreshold(0)
 #endif
 {
+#if !H0566_TLA
   for ( UInt i = 0; i < MAX_TLAYER; i++ )
   {
     m_abTLayerSwitchingFlag[i] = false;
   }
+#endif
 }
 
 TComPPS::~TComPPS()

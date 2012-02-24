@@ -1602,7 +1602,12 @@ static const char* nalUnitTypeToString(NalUnitType type)
   switch (type)
   {
   case NAL_UNIT_CODED_SLICE: return "SLICE";
+#if H0566_TLA
+  case NAL_UNIT_CODED_SLICE_CRA: return "CRA";
+  case NAL_UNIT_CODED_SLICE_TLA: return "TLA";
+#else
   case NAL_UNIT_CODED_SLICE_CDR: return "CDR";
+#endif
   case NAL_UNIT_CODED_SLICE_IDR: return "IDR";
   case NAL_UNIT_SEI: return "SEI";
   case NAL_UNIT_SPS: return "SPS";
@@ -1778,7 +1783,11 @@ NalUnitType TEncGOP::getNalUnitType(UInt uiPOCCurr)
   {
     if (m_pcCfg->getDecodingRefreshType() == 1)
     {
+#if H0566_TLA
+      return NAL_UNIT_CODED_SLICE_CRA;
+#else
       return NAL_UNIT_CODED_SLICE_CDR;
+#endif
     }
     else if (m_pcCfg->getDecodingRefreshType() == 2)
     {
