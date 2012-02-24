@@ -713,15 +713,23 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDispl
 Void TDecTop::xDecodeSPS()
 {
   TComSPS* sps = new TComSPS();
+#if RPS_IN_SPS
+  TComRPS* rps = new TComRPS();
+  sps->setRPSList(rps);
+#endif
   m_cEntropyDecoder.decodeSPS( sps );
   m_parameterSetManagerDecoder.storePrefetchedSPS(sps);
 }
 
 Void TDecTop::xDecodePPS()
 {
+#if !RPS_IN_SPS
   TComRPS* rps = new TComRPS();
+#endif
   TComPPS* pps = new TComPPS();
+#if !RPS_IN_SPS
   pps->setRPSList(rps);
+#endif
   m_cEntropyDecoder.decodePPS( pps );
   m_parameterSetManagerDecoder.storePrefetchedPPS( pps );
 

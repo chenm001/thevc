@@ -61,6 +61,81 @@ class TComTrQuant;
 // Class definition
 // ====================================================================================================================
 
+#if RPS_IN_SPS
+/// Reference Picture Set class
+class TComReferencePictureSet
+{
+private:
+  UInt      m_uiNumberOfPictures;
+  UInt      m_uiNumberOfNegativePictures;
+  UInt      m_uiNumberOfPositivePictures;
+  UInt      m_uiNumberOfLongtermPictures;
+  Int       m_piDeltaPOC[MAX_NUM_REF_PICS];
+  Int       m_piPOC[MAX_NUM_REF_PICS];
+  Bool      m_pbUsed[MAX_NUM_REF_PICS];
+  Bool m_bInterRPSPrediction;
+  Int m_iDeltaRIdxMinus1;   
+  Int m_iDeltaRPS; 
+  Int m_iNumRefIdc; 
+  Int m_piRefIdc[MAX_NUM_REF_PICS+1];
+
+public:
+  TComReferencePictureSet();
+  virtual ~TComReferencePictureSet();
+
+  Void setUsed(UInt uiBufferNum, Bool bUsed);
+  Void setDeltaPOC(UInt uiBufferNum, Int iDeltaPOC);
+  Void setPOC(UInt uiBufferNum, Int iDeltaPOC);
+  Void setNumberOfPictures(UInt NumberOfPictures);
+
+  UInt getUsed(UInt uiBufferNum);
+  Int  getDeltaPOC(UInt uiBufferNum);
+  Int  getPOC(UInt uiBufferNum);
+  UInt getNumberOfPictures();
+
+  Void setNumberOfNegativePictures(UInt Number) { m_uiNumberOfNegativePictures = Number; }
+  UInt getNumberOfNegativePictures() { return m_uiNumberOfNegativePictures; }
+  Void setNumberOfPositivePictures(UInt Number) { m_uiNumberOfPositivePictures = Number; }
+  UInt getNumberOfPositivePictures() { return m_uiNumberOfPositivePictures; }
+  Void setNumberOfLongtermPictures(UInt Number) { m_uiNumberOfLongtermPictures = Number; }
+  UInt getNumberOfLongtermPictures() { return m_uiNumberOfLongtermPictures; }
+
+  Void setInterRPSPrediction(Bool flag) { m_bInterRPSPrediction = flag; }
+  Bool getInterRPSPrediction() { return m_bInterRPSPrediction; }
+  Void setDeltaRIdxMinus1(Int x) { m_iDeltaRIdxMinus1 = x; }
+  Int getDeltaRIdxMinus1() { return m_iDeltaRIdxMinus1; }
+  Void setDeltaRPS(Int x) { m_iDeltaRPS = x; }
+  Int getDeltaRPS() { return m_iDeltaRPS; }
+  Void setNumRefIdc(Int x) { m_iNumRefIdc = x; }
+  Int getNumRefIdc() { return m_iNumRefIdc; }
+
+  Void setRefIdc(UInt uiBufferNum, Int iRefIdc);
+  Int  getRefIdc(UInt uiBufferNum);
+
+  Void sortDeltaPOC();
+  Void printDeltaPOC();
+};
+
+/// Reference Picture Set set class
+class TComRPS
+{
+private:
+  UInt      m_uiNumberOfReferencePictureSets;
+  TComReferencePictureSet*      m_pReferencePictureSet;
+  
+public:
+  TComRPS();
+  virtual ~TComRPS();
+  
+  Void  create                    (UInt uiNumberOfEntries);
+  Void  destroy                   ();
+
+
+  TComReferencePictureSet* getReferencePictureSet(UInt uiReferencePictureSetNum);
+  UInt getNumberOfReferencePictureSets();
+  Void setNumberOfReferencePictureSets(UInt uiNumberOfReferencePictureSets);
+};
+#endif
 /// SPS class
 class TComSPS
 {
@@ -81,6 +156,10 @@ private:
   UInt        m_uiMaxCUDepth;
   UInt        m_uiMinTrDepth;
   UInt        m_uiMaxTrDepth;
+#if RPS_IN_SPS
+  TComRPS*    m_pcRPSList;
+  Bool        m_bLongTermRefsPresent;
+#endif
   UInt        m_uiMaxNumberOfReferencePictures;
   Int         m_numReorderFrames;
   
@@ -196,6 +275,12 @@ public:
   UInt getMaxNumberOfReferencePictures()         { return m_uiMaxNumberOfReferencePictures; }
   Void setNumReorderFrames( Int i )              { m_numReorderFrames = i;    }
   Int  getNumReorderFrames()                     { return m_numReorderFrames; }
+#if RPS_IN_SPS
+  Void      setRPSList              ( TComRPS* pcRPSList ) { m_pcRPSList = pcRPSList; }
+  TComRPS*  getRPSList              ()         { return m_pcRPSList;          }
+  Bool      getLongTermRefsPresent()         { return m_bLongTermRefsPresent; }
+  Void      setLongTermRefsPresent(Bool b)   { m_bLongTermRefsPresent=b;      }
+#endif
   Void setPadX        ( Int  u ) { m_aiPad[0] = u; }
   Void setPadY        ( Int  u ) { m_aiPad[1] = u; }
   Int  getPad         ( Int  u ) { assert(u < 2); return m_aiPad[u];}
@@ -312,6 +397,7 @@ public:
   Void setMaxLatencyIncrease    ( UInt ui )   { m_uiMaxLatencyIncrease= ui;      }
 };
 
+#if !RPS_IN_SPS
 /// Reference Picture Set class
 class TComReferencePictureSet
 {
@@ -385,6 +471,7 @@ public:
   UInt getNumberOfReferencePictureSets();
   Void setNumberOfReferencePictureSets(UInt uiNumberOfReferencePictureSets);
 };
+#endif
 
 /// Reference Picture Lists class
 class TComRefPicListModification
@@ -436,14 +523,18 @@ private:
  
   // access channel
   TComSPS*    m_pcSPS;
+#if !RPS_IN_SPS
   TComRPS*    m_pcRPSList;
+#endif
   UInt        m_uiMaxCuDQPDepth;
   UInt        m_uiMinCuDQPSize;
 
   Int        m_iChromaQpOffset;
   Int        m_iChromaQpOffset2nd;
 
+#if !RPS_IN_SPS
   Bool        m_bLongTermRefsPresent;
+#endif
   UInt        m_uiBitsForLongTermRefs;
 
   UInt        m_uiBitsForTemporalId;
@@ -504,14 +595,18 @@ public:
   UInt      getBitsForTemporalId()           { return m_uiBitsForTemporalId; }
   Void      setBitsForTemporalId(UInt bits)  { m_uiBitsForTemporalId = bits; }
 
+#if !RPS_IN_SPS
   Bool      getLongTermRefsPresent()         { return m_bLongTermRefsPresent; }
   Void      setLongTermRefsPresent(Bool b)   { m_bLongTermRefsPresent=b;      }
+#endif
   UInt      getBitsForLongTermRefs()         { return m_uiBitsForLongTermRefs;}
   Void      setBitsForLongTermRefs(UInt ui)  { m_uiBitsForLongTermRefs=ui;    }
   Void      setSPS              ( TComSPS* pcSPS ) { m_pcSPS = pcSPS; }
   TComSPS*  getSPS              ()         { return m_pcSPS;          }
+#if !RPS_IN_SPS
   Void      setRPSList              ( TComRPS* pcRPSList ) { m_pcRPSList = pcRPSList; }
   TComRPS*  getRPSList              ()         { return m_pcRPSList;          }
+#endif
   Void      setMaxCuDQPDepth    ( UInt u ) { m_uiMaxCuDQPDepth = u;   }
   UInt      getMaxCuDQPDepth    ()         { return m_uiMaxCuDQPDepth;}
   Void      setMinCuDQPSize     ( UInt u ) { m_uiMinCuDQPSize = u;    }
