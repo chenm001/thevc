@@ -2272,6 +2272,13 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   Double  d64BaseCost         = 0;
   Int     iLastScanPos        = -1;
   dTemp                       = dErrScale;
+
+#if RESTRICT_GR1GR2FLAG_NUMBER
+  UInt    uiCoeff1Scanned     = 0;
+  UInt    uiCoeff2Scanned     = 0;
+  Int     iBaseLevel;
+#endif
+
   const UInt * scan;
   if (uiWidth == uiHeight)
   {
@@ -2322,14 +2329,22 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       UInt  uiAbsCtx         = 3 * uiCtxSet + c2;
       if( iScanPos == iLastScanPos )
       {
+#if RESTRICT_GR1GR2FLAG_NUMBER
+        uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ], lLevelDouble, uiMaxAbsLevel, 0, uiOneCtx, uiAbsCtx, uiGoRiceParam, uiCoeff1Scanned, uiCoeff2Scanned, iQBits, dTemp, 1 );
+#else
         uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ], lLevelDouble, uiMaxAbsLevel, 0, uiOneCtx, uiAbsCtx, uiGoRiceParam, iQBits, dTemp, 1 );
+#endif
       }
       else
       {
         UInt   uiPosY        = uiBlkPos >> uiLog2BlkSize;
         UInt   uiPosX        = uiBlkPos - ( uiPosY << uiLog2BlkSize );
         UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
+#if RESTRICT_GR1GR2FLAG_NUMBER
+        uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ], lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, uiCoeff1Scanned, uiCoeff2Scanned, iQBits, dTemp, 0 );
+#else
         uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ], lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, iQBits, dTemp, 0 );
+#endif
 #if MULTIBITS_DATA_HIDING
         sigRateDelta[ uiBlkPos ] = m_pcEstBitsSbac->significantBits[ uiCtxSig ][ 1 ] - m_pcEstBitsSbac->significantBits[ uiCtxSig ][ 0 ];
 #endif
@@ -2338,9 +2353,15 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       deltaU[ uiBlkPos ]        = (lLevelDouble - ((Int)uiLevel << iQBits)) >> (iQBits-8);
       if( uiLevel > 0 )
       {
+#if RESTRICT_GR1GR2FLAG_NUMBER   
+        Int rateNow = xGetICRate( uiLevel, uiOneCtx, uiAbsCtx, uiGoRiceParam, uiCoeff1Scanned, uiCoeff2Scanned );
+        rateIncUp   [ uiBlkPos ] = xGetICRate( uiLevel+1, uiOneCtx, uiAbsCtx, uiGoRiceParam, uiCoeff1Scanned, uiCoeff2Scanned ) - rateNow;
+        rateIncDown [ uiBlkPos ] = xGetICRate( uiLevel-1, uiOneCtx, uiAbsCtx, uiGoRiceParam, uiCoeff1Scanned, uiCoeff2Scanned ) - rateNow;
+#else  
         Int rateNow = xGetICRate( uiLevel, uiOneCtx, uiAbsCtx, uiGoRiceParam );
         rateIncUp   [ uiBlkPos ] = xGetICRate( uiLevel+1, uiOneCtx, uiAbsCtx, uiGoRiceParam ) - rateNow;
         rateIncDown [ uiBlkPos ] = xGetICRate( uiLevel-1, uiOneCtx, uiAbsCtx, uiGoRiceParam ) - rateNow;
+#endif
       }
       else // uiLevel == 0
       {
@@ -2350,16 +2371,32 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       piDstCoeff[ uiBlkPos ] = uiLevel;
       d64BaseCost           += pdCostCoeff [ iScanPos ];
 
+#if RESTRICT_GR1GR2FLAG_NUMBER
+      iBaseLevel = (uiCoeff1Scanned < C1FLAG_NUMBER) ? (2 + (uiCoeff2Scanned < C2FLAG_NUMBER)) : 1;
+      if( uiLevel >= iBaseLevel )
+      {
+        uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - iBaseLevel, 15 ) ];
+      }
+      if ( uiLevel >= 1)
+      {
+        uiCoeff1Scanned ++;
+      }
+#endif
+
       //===== update bin model =====
       if( uiLevel > 1 )
       {
         c1 = 0; 
         c2 += (c2 < 2);
         uiNumOne++;
+#if RESTRICT_GR1GR2FLAG_NUMBER
+        uiCoeff2Scanned ++;
+#else
         if( uiLevel > 2 )
         {
           uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - 3, 15 ) ];
         }
+#endif
       }
       else if( (c1 < 3) && (c1 > 0) && uiLevel)
       {
@@ -2372,6 +2409,11 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         c1                = 1;
         c2                = 0;
         uiGoRiceParam     = 0;
+
+#if RESTRICT_GR1GR2FLAG_NUMBER
+        uiCoeff1Scanned   = 0;
+        uiCoeff2Scanned   = 0; 
+#endif
         uiCtxSet          = (iScanPos == SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
         if( uiNumOne > 0 )
         {
@@ -2452,18 +2494,30 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
           UInt  uiAbsCtx         = 3 * uiCtxSet + c2;
           if( iScanPos == iLastScanPos )
           {
+#if RESTRICT_GR1GR2FLAG_NUMBER  
+            uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ], 
+                                                   lLevelDouble, uiMaxAbsLevel, 0, uiOneCtx, uiAbsCtx, uiGoRiceParam, 
+                                                   uiCoeff1Scanned, uiCoeff2Scanned, iQBits, dTemp, 1 );
+#else
             uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ], 
                                                    lLevelDouble, uiMaxAbsLevel, 0, uiOneCtx, uiAbsCtx, uiGoRiceParam, 
                                                    iQBits, dTemp, 1 );
+#endif
           }
           else
           {
             UInt   uiPosY        = uiBlkPos >> uiLog2BlkSize;
             UInt   uiPosX        = uiBlkPos - ( uiPosY << uiLog2BlkSize );
             UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
+#if RESTRICT_GR1GR2FLAG_NUMBER
+            uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ],
+                                                   lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, 
+                                                   uiCoeff1Scanned, uiCoeff2Scanned, iQBits, dTemp, 0 );
+#else
             uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ],
                                                    lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, 
                                                    iQBits, dTemp, 0 );
+#endif
 #if MULTIBITS_DATA_HIDING
             sigRateDelta[ uiBlkPos ] = m_pcEstBitsSbac->significantBits[ uiCtxSig ][ 1 ] - m_pcEstBitsSbac->significantBits[ uiCtxSig ][ 0 ];
 #endif
@@ -2472,9 +2526,15 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
           deltaU[ uiBlkPos ]        = (lLevelDouble - ((Int)uiLevel << iQBits)) >> (iQBits-8);
           if( uiLevel > 0 )
           {
+#if RESTRICT_GR1GR2FLAG_NUMBER   
+            Int rateNow = xGetICRate( uiLevel, uiOneCtx, uiAbsCtx, uiGoRiceParam, uiCoeff1Scanned, uiCoeff2Scanned );
+            rateIncUp   [ uiBlkPos ] = xGetICRate( uiLevel+1, uiOneCtx, uiAbsCtx, uiGoRiceParam, uiCoeff1Scanned, uiCoeff2Scanned ) - rateNow;
+            rateIncDown [ uiBlkPos ] = xGetICRate( uiLevel-1, uiOneCtx, uiAbsCtx, uiGoRiceParam, uiCoeff1Scanned, uiCoeff2Scanned ) - rateNow;
+#else
             Int rateNow = xGetICRate( uiLevel, uiOneCtx, uiAbsCtx, uiGoRiceParam );
             rateIncUp   [ uiBlkPos ] = xGetICRate( uiLevel+1, uiOneCtx, uiAbsCtx, uiGoRiceParam ) - rateNow;
             rateIncDown [ uiBlkPos ] = xGetICRate( uiLevel-1, uiOneCtx, uiAbsCtx, uiGoRiceParam ) - rateNow;
+#endif
           }
           else // uiLevel == 0
           {
@@ -2484,16 +2544,33 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
           piDstCoeff[ uiBlkPos ] = uiLevel;
           d64BaseCost           += pdCostCoeff [ iScanPos ];
 
+
+#if RESTRICT_GR1GR2FLAG_NUMBER
+          iBaseLevel = (uiCoeff1Scanned < C1FLAG_NUMBER) ? (2 + (uiCoeff2Scanned < C2FLAG_NUMBER)) : 1;
+          if( uiLevel >= iBaseLevel )
+          {
+            uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - iBaseLevel, 15 ) ];
+          }
+          if ( uiLevel >= 1)
+          {
+            uiCoeff1Scanned ++;
+          }
+#endif
+
           //===== update bin model =====
           if( uiLevel > 1 )
           {
             c1 = 0; 
             c2 += (c2 < 2);
             uiNumOne++;
+#if RESTRICT_GR1GR2FLAG_NUMBER
+            uiCoeff2Scanned ++;
+#else
             if( uiLevel > 2 )
             {
               uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - 3, 15 ) ];
             }
+#endif
           }
           else if( (c1 < 3) && (c1 > 0) && uiLevel)
           {
@@ -2506,7 +2583,12 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
             c1                = 1;
             c2                = 0;
             uiGoRiceParam     = 0;
-            uiCtxSet          = (iScanPos == SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
+
+#if RESTRICT_GR1GR2FLAG_NUMBER
+        uiCoeff1Scanned   = 0;
+        uiCoeff2Scanned   = 0; 
+#endif
+        uiCtxSet          = (iScanPos == SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
             if( uiNumOne > 0 )
             {
               uiCtxSet++;
@@ -3021,6 +3103,10 @@ __inline UInt TComTrQuant::xGetCodedLevel ( Double&                         rd64
                                             UShort                          ui16CtxNumOne,
                                             UShort                          ui16CtxNumAbs,
                                             UShort                          ui16AbsGoRice,
+#if RESTRICT_GR1GR2FLAG_NUMBER
+                                            UInt                            uiCoeff1Scanned,
+                                            UInt                            uiCoeff2Scanned,
+#endif
                                             Int                             iQBits,
                                             Double                          dTemp,
                                             Bool                            bLast        ) const
@@ -3051,7 +3137,11 @@ __inline UInt TComTrQuant::xGetCodedLevel ( Double&                         rd64
   for( Int uiAbsLevel  = uiMaxAbsLevel; uiAbsLevel >= uiMinAbsLevel ; uiAbsLevel-- )
   {
     Double dErr         = Double( lLevelDouble  - ( uiAbsLevel << iQBits ) );
+#if RESTRICT_GR1GR2FLAG_NUMBER
+    Double dCurrCost    = dErr * dErr * dTemp + xGetICRateCost( uiAbsLevel, ui16CtxNumOne, ui16CtxNumAbs, ui16AbsGoRice, uiCoeff1Scanned, uiCoeff2Scanned );
+#else
     Double dCurrCost    = dErr * dErr * dTemp + xGetICRateCost( uiAbsLevel, ui16CtxNumOne, ui16CtxNumAbs, ui16AbsGoRice );
+#endif
     dCurrCost          += dCurrCostSig;
 
     if( dCurrCost < rd64CodedCost )
@@ -3076,9 +3166,47 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
                                                UShort                          ui16CtxNumOne,
                                                UShort                          ui16CtxNumAbs,
                                                UShort                          ui16AbsGoRice
-                                              ) const
+#if RESTRICT_GR1GR2FLAG_NUMBER
+                                            ,  UInt                            uiCoeff1Scanned,
+                                               UInt                            uiCoeff2Scanned
+#endif
+                                               ) const
 {
   Double iRate = xGetIEPRate();
+#if RESTRICT_GR1GR2FLAG_NUMBER
+  UInt uibaseLevel  =  (uiCoeff1Scanned < C1FLAG_NUMBER)? (2 + (uiCoeff2Scanned < C2FLAG_NUMBER)) : 1;
+
+  if ( uiAbsLevel >= uibaseLevel )
+  {
+    UInt uiSymbol     = uiAbsLevel - uibaseLevel;
+    UInt uiMaxVlc     = g_auiGoRiceRange[ ui16AbsGoRice ];
+    Bool bExpGolomb   = ( uiSymbol > uiMaxVlc );
+
+    if( bExpGolomb )
+    {
+      uiAbsLevel  = uiSymbol - uiMaxVlc;
+      int iEGS    = 1;  for( UInt uiMax = 2; uiAbsLevel >= uiMax; uiMax <<= 1, iEGS += 2 );
+      iRate      += iEGS << 15;
+      uiSymbol    = min<UInt>( uiSymbol, ( uiMaxVlc + 1 ) );
+    }
+
+    UShort ui16PrefLen = UShort( uiSymbol >> ui16AbsGoRice ) + 1;
+    UShort ui16NumBins = min<UInt>( ui16PrefLen, g_auiGoRicePrefixLen[ ui16AbsGoRice ] ) + ui16AbsGoRice;
+
+    iRate += ui16NumBins << 15;
+
+    if (uiCoeff1Scanned < C1FLAG_NUMBER)
+    {
+      iRate += m_pcEstBitsSbac->m_greaterOneBits[ ui16CtxNumOne ][ 1 ];
+
+      if (uiCoeff2Scanned < C2FLAG_NUMBER)
+      {
+        iRate += m_pcEstBitsSbac->m_levelAbsBits[ ui16CtxNumAbs ][ 1 ];
+      }
+    }
+  }
+  else
+#endif
   if( uiAbsLevel == 1 )
   {
     iRate += m_pcEstBitsSbac->m_greaterOneBits[ ui16CtxNumOne ][ 0 ];
@@ -3090,6 +3218,9 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
   }
   else
   {
+#if RESTRICT_GR1GR2FLAG_NUMBER
+    assert (0);
+#endif
     UInt uiSymbol     = uiAbsLevel - 3;
     UInt uiMaxVlc     = g_auiGoRiceRange[ ui16AbsGoRice ];
     Bool bExpGolomb   = ( uiSymbol > uiMaxVlc );
@@ -3114,12 +3245,50 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
 
 #if MULTIBITS_DATA_HIDING
 __inline Int TComTrQuant::xGetICRate  ( UInt                            uiAbsLevel,
-                                        UShort                          ui16CtxNumOne,
-                                        UShort                          ui16CtxNumAbs,
-                                        UShort                          ui16AbsGoRice
+                                       UShort                          ui16CtxNumOne,
+                                       UShort                          ui16CtxNumAbs,
+                                       UShort                          ui16AbsGoRice
+#if RESTRICT_GR1GR2FLAG_NUMBER
+                                     , UInt                            uiCoeff1Scanned,
+                                       UInt                            uiCoeff2Scanned
+#endif
                                        ) const
 {
   Int iRate = 0;
+#if RESTRICT_GR1GR2FLAG_NUMBER
+  UInt uibaseLevel  =  (uiCoeff1Scanned < C1FLAG_NUMBER)? (2 + (uiCoeff2Scanned < C2FLAG_NUMBER)) : 1;
+
+  if ( uiAbsLevel >= uibaseLevel )
+  {
+    UInt uiSymbol     = uiAbsLevel - uibaseLevel;
+    UInt uiMaxVlc     = g_auiGoRiceRange[ ui16AbsGoRice ];
+    Bool bExpGolomb   = ( uiSymbol > uiMaxVlc );
+
+    if( bExpGolomb )
+    {
+      uiAbsLevel  = uiSymbol - uiMaxVlc;
+      int iEGS    = 1;  for( UInt uiMax = 2; uiAbsLevel >= uiMax; uiMax <<= 1, iEGS += 2 );
+      iRate      += iEGS << 15;
+      uiSymbol    = min<UInt>( uiSymbol, ( uiMaxVlc + 1 ) );
+    }
+
+    UShort ui16PrefLen = UShort( uiSymbol >> ui16AbsGoRice ) + 1;
+    UShort ui16NumBins = min<UInt>( ui16PrefLen, g_auiGoRicePrefixLen[ ui16AbsGoRice ] ) + ui16AbsGoRice;
+
+    iRate += ui16NumBins << 15;
+
+    if (uiCoeff1Scanned < C1FLAG_NUMBER)
+    {
+      iRate += m_pcEstBitsSbac->m_greaterOneBits[ ui16CtxNumOne ][ 1 ];
+
+      if (uiCoeff2Scanned < C2FLAG_NUMBER)
+      {
+        iRate += m_pcEstBitsSbac->m_levelAbsBits[ ui16CtxNumAbs ][ 1 ];
+      }
+    }
+  }
+  else
+#endif
   if( uiAbsLevel == 0 )
   {
     return 0;

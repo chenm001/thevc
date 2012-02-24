@@ -299,18 +299,31 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
                                              UShort                          ui16CtxNumOne,
                                              UShort                          ui16CtxNumAbs,
                                              UShort                          ui16AbsGoRice,
+#if RESTRICT_GR1GR2FLAG_NUMBER
+                                             UInt                            uiCoeff1Scanned,  
+                                             UInt                            uiCoeff2Scanned,  
+#endif
                                              Int                             iQBits,
                                              Double                          dTemp,
                                              Bool                            bLast        ) const;
   __inline Double xGetICRateCost   ( UInt                            uiAbsLevel,
                                      UShort                          ui16CtxNumOne,
                                      UShort                          ui16CtxNumAbs,
-                                     UShort                          ui16AbsGoRice ) const;
+                                     UShort                          ui16AbsGoRice 
+#if RESTRICT_GR1GR2FLAG_NUMBER
+                                   , UInt                            uiCoeff1Scanned,
+                                     UInt                            uiCoeff2Scanned
+#endif
+                                     ) const;
 #if MULTIBITS_DATA_HIDING
 __inline Int xGetICRate  ( UInt                            uiAbsLevel,
                            UShort                          ui16CtxNumOne,
                            UShort                          ui16CtxNumAbs,
                            UShort                          ui16AbsGoRice
+#if RESTRICT_GR1GR2FLAG_NUMBER
+                         , UInt                            uiCoeff1Scanned,
+                           UInt                            uiCoeff2Scanned
+#endif
                          ) const;
 #endif
   __inline Double xGetRateLast     ( const UInt                      uiPosX,

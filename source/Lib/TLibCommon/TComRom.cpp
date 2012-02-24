@@ -580,6 +580,20 @@ const UInt g_auiGoRicePrefixLen[4] =
 
 const UInt g_aauiGoRiceUpdate[4][16] =
 {
+#if RESTRICT_GR1GR2FLAG_NUMBER
+  {
+    0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3,
+  },
+  { 
+    1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3,
+  },
+  { 
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3,
+  },
+  { 
+    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 
+  }
+#else  
   {
     0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3
   },
@@ -592,6 +606,7 @@ const UInt g_aauiGoRiceUpdate[4][16] =
   {
     3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
   }
+#endif
 };
 
 // initialize g_auiFrameScanXY
