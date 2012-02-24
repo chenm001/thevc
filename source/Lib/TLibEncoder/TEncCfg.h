@@ -108,8 +108,13 @@ protected:
   Int       m_iGOPSize;
   GOPEntry  m_pcGOPList[MAX_GOP];
   Int       m_iExtraRPSs;
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  UInt      m_uiMaxDecPicBuffering;
+  Int       m_numReorderPics;
+#else
   UInt      m_uiMaxNumberOfReferencePictures;
   Int       m_numReorderFrames;
+#endif
   
   Int       m_iQP;                              //  if (AdaptiveQP == OFF)
   
@@ -269,8 +274,13 @@ public:
   Void      setGopList                      ( GOPEntry*  piGOPList )      {  for ( Int i = 0; i < MAX_GOP; i++ ) m_pcGOPList[i] = piGOPList[i]; }
   Void      setExtraRPSs                    ( Int   i )      { m_iExtraRPSs = i; }
   GOPEntry  getGOPEntry                     ( Int   i )      { return m_pcGOPList[i]; }
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  Void      setMaxDecPicBuffering           ( UInt u )       { m_uiMaxDecPicBuffering = u;    }
+  Void      setNumReorderPics               ( Int  i )       { m_numReorderPics = i;    }
+#else
   Void      setMaxNumberOfReferencePictures ( UInt u )       { m_uiMaxNumberOfReferencePictures = u;    }
   Void      setNumReorderFrames             ( Int  i )       { m_numReorderFrames = i;    }
+#endif
   
   Void      setQP                           ( Int   i )      { m_iQP = i; }
   
@@ -340,8 +350,13 @@ public:
   UInt      getIntraPeriod                  ()      { return  m_uiIntraPeriod; }
   UInt      getDecodingRefreshType          ()      { return  m_uiDecodingRefreshType; }
   Int       getGOPSize                      ()      { return  m_iGOPSize; }
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  UInt      getMaxDecPicBuffering           ()      { return m_uiMaxDecPicBuffering; }
+  Int       geNumReorderPics                ()      { return m_numReorderPics; }
+#else
   UInt      getMaxNumberOfReferencePictures ()      { return m_uiMaxNumberOfReferencePictures; }
   Int       geNumReorderFrames              ()      { return m_numReorderFrames; }
+#endif
   Int       getQP                           ()      { return  m_iQP; }
   
   Int       getTemporalLayerQPOffset        ( Int i )      { assert (i < MAX_TLAYER ); return  m_aiTLayerQPOffset[i]; }

@@ -410,7 +410,11 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
 {
   TComSlice::sortPicList(m_cListPic);
   
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  if (m_cListPic.size() >= (UInt)(m_iGOPSize + getMaxDecPicBuffering() + 2) )
+#else
   if (m_cListPic.size() >= (UInt)(m_iGOPSize + getMaxNumberOfReferencePictures() + 2) )
+#endif
   {
     TComList<TComPic*>::iterator iterPic  = m_cListPic.begin();
     Int iSize = Int( m_cListPic.size() );
@@ -457,8 +461,10 @@ Void TEncTop::xInitSPS()
   m_cSPS.setMinTrDepth    ( 0                   );
   m_cSPS.setMaxTrDepth    ( 1                   );
   
+#if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   m_cSPS.setMaxNumberOfReferencePictures(m_uiMaxNumberOfReferencePictures);
   m_cSPS.setNumReorderFrames(m_numReorderFrames);
+#endif
   m_cSPS.setPCMLog2MinSize (m_uiPCMLog2MinSize);
   m_cSPS.setUsePCM        ( m_usePCM           );
   m_cSPS.setPCMLog2MaxSize( m_pcmLog2MaxSize  );
@@ -553,6 +559,13 @@ Void TEncTop::xInitSPS()
 #else
   m_cSPS.setMaxTLayers( m_maxTempLayer );
   m_cSPS.setTemporalIdNestingFlag( false );
+#endif
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  for ( i = 0; i < m_cSPS.getMaxTLayers(); i++ )
+  {
+    m_cSPS.setMaxDecPicBuffering(m_uiMaxDecPicBuffering, i);
+    m_cSPS.setNumReorderPics(m_numReorderPics, i);
+  }
 #endif
   m_cSPS.setPCMBitDepthLuma (g_uiPCMBitDepthLuma);
   m_cSPS.setPCMBitDepthChroma (g_uiPCMBitDepthChroma);

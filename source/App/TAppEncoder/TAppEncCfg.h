@@ -73,8 +73,13 @@ protected:
   Int       m_iGOPSize;                                       ///< GOP size of hierarchical structure
   Int       m_iExtraRPSs;
   GOPEntry  m_pcGOPList[MAX_GOP];
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  Int       m_numReorderPics;                               ///< total number of reorder pictures
+  UInt      m_uiMaxDecPicBuffering;                         ///< total number of reference pictures needed for decoding
+#else
   Int       m_numReorderFrames;                               ///< total number of reorder pictures
   UInt      m_uiMaxNumberOfReferencePictures;                 ///< total number of reference pictures needed for decoding
+#endif
   Bool      m_bUseLComb;                                      ///< flag for using combined reference list for uni-prediction in B-slices (JCTVC-D421)
   Bool      m_bLCMod;                                         ///< flag for specifying whether the combined reference list for uni-prediction in B-slices is uploaded explicitly
   Bool      m_bDisInter4x4;

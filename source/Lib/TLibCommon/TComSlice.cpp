@@ -1173,7 +1173,9 @@ TComSPS::TComSPS()
 #if RPS_IN_SPS
 , m_bLongTermRefsPresent      (false)
 #endif
+#if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
 , m_numReorderFrames          (  0)
+#endif
 , m_uiQuadtreeTULog2MaxSize   (  0)
 , m_uiQuadtreeTULog2MinSize   (  0)
 , m_uiQuadtreeTUMaxDepthInter (  0)
@@ -1204,8 +1206,10 @@ TComSPS::TComSPS()
 , m_bUseSAO                   (false) 
 , m_bTemporalIdNestingFlag    (false)
 , m_scalingListEnabledFlag    (false)
+#if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
 , m_uiMaxDecFrameBuffering    (  0)
 , m_uiMaxLatencyIncrease      (  0)
+#endif
 {
   // AMVP parameter
   ::memset( m_aeAMVPMode, 0, sizeof( m_aeAMVPMode ) );
@@ -1223,6 +1227,14 @@ TComSPS::~TComSPS()
     delete [] m_puiRowHeight;
     m_puiRowHeight = NULL;
   }
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  for ( UInt i = 0; i < MAX_TLAYER; i++ )
+  {
+    m_uiMaxLatencyIncrease[i] = 0;
+    m_uiMaxDecPicBuffering[i] = 0;
+    m_numReorderPics[i]       = 0;
+  }
+#endif
 }
 
 TComPPS::TComPPS()

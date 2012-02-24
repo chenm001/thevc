@@ -160,8 +160,12 @@ private:
   TComRPS*    m_pcRPSList;
   Bool        m_bLongTermRefsPresent;
 #endif
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  Int         m_numReorderPics[MAX_TLAYER];
+#else
   UInt        m_uiMaxNumberOfReferencePictures;
   Int         m_numReorderFrames;
+#endif
   
   // Tool list
   UInt        m_uiQuadtreeTULog2MaxSize;
@@ -216,8 +220,13 @@ private:
   Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
 
   Bool        m_scalingListEnabledFlag;
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  UInt        m_uiMaxDecPicBuffering[MAX_TLAYER]; 
+  UInt        m_uiMaxLatencyIncrease[MAX_TLAYER];
+#else
   UInt        m_uiMaxDecFrameBuffering; 
   UInt        m_uiMaxLatencyIncrease;
+#endif
 
   Bool        m_useDF;
 
@@ -271,10 +280,15 @@ public:
   UInt getQuadtreeTUMaxDepthInter()         { return m_uiQuadtreeTUMaxDepthInter; }
   UInt getQuadtreeTUMaxDepthIntra()         { return m_uiQuadtreeTUMaxDepthIntra; }
   Void setPad         (Int iPad[2]) { m_aiPad[0] = iPad[0]; m_aiPad[1] = iPad[1]; }
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  Void setNumReorderPics(Int i, UInt tlayer)              { m_numReorderPics[tlayer] = i;    }
+  Int  getNumReorderPics(UInt tlayer)                     { return m_numReorderPics[tlayer]; }
+#else
   Void setMaxNumberOfReferencePictures( UInt u ) { m_uiMaxNumberOfReferencePictures = u;    }
   UInt getMaxNumberOfReferencePictures()         { return m_uiMaxNumberOfReferencePictures; }
   Void setNumReorderFrames( Int i )              { m_numReorderFrames = i;    }
   Int  getNumReorderFrames()                     { return m_numReorderFrames; }
+#endif
 #if RPS_IN_SPS
   Void      setRPSList              ( TComRPS* pcRPSList ) { m_pcRPSList = pcRPSList; }
   TComRPS*  getRPSList              ()         { return m_pcRPSList;          }
@@ -391,10 +405,17 @@ public:
   UInt     getRowHeight           (UInt rowIdx)    { return *( m_puiRowHeight + rowIdx ); }
   Bool getScalingListFlag       ()         { return m_scalingListEnabledFlag;     }
   Void setScalingListFlag       ( Bool b ) { m_scalingListEnabledFlag  = b;       }
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  UInt getMaxDecPicBuffering  (UInt tlayer)            { return m_uiMaxDecPicBuffering[tlayer]; }
+  Void setMaxDecPicBuffering  ( UInt ui, UInt tlayer ) { m_uiMaxDecPicBuffering[tlayer] = ui;   }
+  UInt getMaxLatencyIncrease  (UInt tlayer)            { return m_uiMaxLatencyIncrease[tlayer];   }
+  Void setMaxLatencyIncrease  ( UInt ui , UInt tlayer) { m_uiMaxLatencyIncrease[tlayer] = ui;      }
+#else
   UInt getMaxDecFrameBuffering  ()            { return m_uiMaxDecFrameBuffering; }
   Void setMaxDecFrameBuffering  ( UInt ui )   { m_uiMaxDecFrameBuffering = ui;   }
   UInt getMaxLatencyIncrease    ()            { return m_uiMaxLatencyIncrease;   }
   Void setMaxLatencyIncrease    ( UInt ui )   { m_uiMaxLatencyIncrease= ui;      }
+#endif
 };
 
 #if !RPS_IN_SPS

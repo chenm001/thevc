@@ -370,10 +370,19 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_CODE( pcSPS->getPCMBitDepthChroma() - 1, 4, "pcm_bit_depth_chroma_minus1" );
   }
   WRITE_UVLC( pcSPS->getBitsForPOC()-4,                 "log2_max_pic_order_cnt_lsb_minus4" );
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  for(UInt i=0; i <= pcSPS->getMaxTLayers()-1; i++)
+  {
+    WRITE_UVLC( pcSPS->getMaxDecPicBuffering(i),           "max_dec_pic_buffering[i]" );
+    WRITE_UVLC( pcSPS->getNumReorderPics(i),               "num_reorder_pics[i]" );
+    WRITE_UVLC( pcSPS->getMaxLatencyIncrease(i),           "max_latency_increase[i]" );
+  }
+#else
   WRITE_UVLC( pcSPS->getMaxNumberOfReferencePictures(), "max_num_ref_pics" ); 
   WRITE_UVLC( pcSPS->getNumReorderFrames(),             "num_reorder_frames" ); 
   WRITE_UVLC(pcSPS->getMaxDecFrameBuffering(),          "max_dec_frame_buffering" );
   WRITE_UVLC(pcSPS->getMaxLatencyIncrease(),            "max_latency_increase"    );
+#endif
   assert( pcSPS->getMaxCUWidth() == pcSPS->getMaxCUHeight() );
   
   UInt MinCUSize = pcSPS->getMaxCUWidth() >> ( pcSPS->getMaxCUDepth()-g_uiAddCUDepth );
