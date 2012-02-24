@@ -495,6 +495,9 @@ public:
   TComDataCU*   getPUBelowLeft              ( UInt& uiBLPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
 
   TComDataCU*   getQpMinCuLeft              ( UInt&  uiLPartUnitIdx , UInt uiCurrAbsIdxInLCU, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
+#if H0204_QP_PREDICTION
+  TComDataCU*   getQpMinCuAbove             ( UInt&  aPartUnitIdx , UInt currAbsIdxInLCU, Bool enforceSliceRestriction=true, Bool enforceEntropySliceRestriction=true );
+#endif
 #if H0736_AVC_STYLE_QP_RANGE
   Char          getRefQP                    ( UInt   uiCurrAbsIdxInLCU                       );
 #else

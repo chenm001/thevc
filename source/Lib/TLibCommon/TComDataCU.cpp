@@ -1659,8 +1659,73 @@ TComDataCU* TComDataCU::getQpMinCuLeft( UInt& uiLPartUnitIdx, UInt uiCurrAbsIdxI
     return NULL;
   }
 
+#if H0204_QP_PREDICTION
+  if ( m_pcCULeft && m_pcCULeft->getAddr() != getAddr() )
+  {
+    return NULL;
+  }
+#endif
+
   return m_pcCULeft;
 }
+
+#if H0204_QP_PREDICTION
+/** Get Above QpMinCu
+*\param   aPartUnitIdx
+*\param   currAbsIdxInLCU
+*\param   enforceSliceRestriction
+*\param   enforceEntropySliceRestriction
+*\returns TComDataCU*   point of TComDataCU of above QpMinCu
+*/
+TComDataCU* TComDataCU::getQpMinCuAbove( UInt& aPartUnitIdx, UInt currAbsIdxInLCU, Bool enforceSliceRestriction, Bool enforceEntropySliceRestriction )
+{
+  UInt numPartInCUWidth = m_pcPic->getNumPartInWidth();
+
+  UInt absRorderQpMinCUIdx   = g_auiZscanToRaster[(currAbsIdxInLCU>>(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1))];
+ 
+  UInt absZorderQpMinCUIdx   = (currAbsIdxInLCU>>(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(getSlice()->getPPS()->getMaxCuDQPDepth()<<1));
+  if( (currAbsIdxInLCU != absZorderQpMinCUIdx) && 
+     ((enforceSliceRestriction        && (m_pcPic->getCU( getAddr() )->getSliceStartCU(currAbsIdxInLCU) != m_pcPic->getCU( getAddr() )->getSliceStartCU (absZorderQpMinCUIdx)))
+    ||(enforceEntropySliceRestriction && (m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(currAbsIdxInLCU) != m_pcPic->getCU( getAddr() )->getEntropySliceStartCU (absZorderQpMinCUIdx)) )) )
+  {
+    return NULL;
+  }
+
+  if ( !RasterAddress::isZeroRow( absRorderQpMinCUIdx, numPartInCUWidth ) )
+  {
+    aPartUnitIdx = g_auiRasterToZscan[ absRorderQpMinCUIdx - numPartInCUWidth ];
+    TComDataCU* pcTempReconCU = m_pcPic->getCU( getAddr() );
+    if ((enforceSliceRestriction        && (pcTempReconCU==NULL || pcTempReconCU->getSlice() == NULL || pcTempReconCU->getSCUAddr()+aPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (absZorderQpMinCUIdx)))
+      ||(enforceEntropySliceRestriction && (pcTempReconCU==NULL || pcTempReconCU->getSlice() == NULL || pcTempReconCU->getSCUAddr()+aPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(absZorderQpMinCUIdx))))
+    {
+      return NULL;
+    }
+    return m_pcPic->getCU( getAddr() );
+  }
+  
+  aPartUnitIdx = g_auiRasterToZscan[ absRorderQpMinCUIdx + m_pcPic->getNumPartInCU() - numPartInCUWidth ];
+
+  if ( (enforceSliceRestriction && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || 
+       m_pcCUAbove->getSCUAddr()+aPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(absZorderQpMinCUIdx)||
+       (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
+       ))||
+       (enforceEntropySliceRestriction && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || 
+       m_pcCUAbove->getSCUAddr()+aPartUnitIdx < m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(absZorderQpMinCUIdx)||
+       (m_pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
+       ))
+     )
+  {
+    return NULL;
+  }
+
+  if ( m_pcCUAbove && m_pcCUAbove->getAddr() != getAddr() )
+  {
+    return NULL;
+  }
+
+  return m_pcCUAbove;
+}
+#endif
 
 #if H0736_AVC_STYLE_QP_RANGE
 /** Get reference QP from left QpMinCu or latest coded QP
@@ -1676,6 +1741,12 @@ Char TComDataCU::getRefQP( UInt uiCurrAbsIdxInLCU )
 UChar TComDataCU::getRefQP( UInt uiCurrAbsIdxInLCU )
 #endif
 {
+#if H0204_QP_PREDICTION
+  UInt        lPartIdx, aPartIdx;
+  TComDataCU* cULeft  = getQpMinCuLeft ( lPartIdx, m_uiAbsIdxInLCU + uiCurrAbsIdxInLCU );
+  TComDataCU* cUAbove = getQpMinCuAbove( aPartIdx, m_uiAbsIdxInLCU + uiCurrAbsIdxInLCU );
+  return (((cULeft? cULeft->getQP( lPartIdx ): getLastCodedQP( uiCurrAbsIdxInLCU )) + (cUAbove? cUAbove->getQP( aPartIdx ): getLastCodedQP( uiCurrAbsIdxInLCU )) + 1) >> 1);
+#else
   // Left CU
   TComDataCU* pcCULeft;
   UInt        uiLPartIdx;
@@ -1686,6 +1757,7 @@ UChar TComDataCU::getRefQP( UInt uiCurrAbsIdxInLCU )
   }
   // Last QP
   return getLastCodedQP( uiCurrAbsIdxInLCU );
+#endif
 }
 
 Int TComDataCU::getLastValidPartIdx( Int iAbsPartIdx )
