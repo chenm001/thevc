@@ -49,7 +49,7 @@
 
 #define H0111_MVD_L1_ZERO         1  ///< H0111: modification of bi-prediction
 #define DISABLING_CLIP_FOR_BIPREDME         1  ///< Ticket #175
-
+  
 #define CLIPSCALEDMVP               1  ///< H0216: Clipping scaled MV to 16 bit
 
 #define UNIFIED_TRANSFORM_TREE      1   ///< H0123: unified tree structure for TU
@@ -62,11 +62,13 @@
 
 #define AMP_CTX                   1 ///<H0545: context reduction for asymmetric partition
 
-#define RESTRICT_GR1GR2FLAG_NUMBER    1 // H0554: Throughput improvement of CABAC coefficients level coding
+#define RESTRICT_GR1GR2FLAG_NUMBER    1 ///< H0554: Throughput improvement of CABAC coefficients level coding
 #if RESTRICT_GR1GR2FLAG_NUMBER    // 
 #define C1FLAG_NUMBER               8 // maximum number of largerThan1 flag coded in one chunk :  16 in HM5
 #define C2FLAG_NUMBER               1 // maximum number of largerThan2 flag coded in one chunk:  16 in HM5 
 #endif 
+
+#define MMI_NEW_RICE_UPDATE_TABLE   1 ///< H0498 : 8 bits rice codes
 
 #define PARAMSET_VLC_CLEANUP               1      ///< followup to G220: Simplify parameter set code
 

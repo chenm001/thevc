@@ -568,6 +568,17 @@ const UInt g_uiLastCtx[ 28 ]    =
 #endif
 
 // Rice parameters for absolute transform levels
+#if MMI_NEW_RICE_UPDATE_TABLE
+const UInt g_auiGoRiceRange[5] =
+{
+  7, 14, 26, 46, 78
+};
+
+const UInt g_auiGoRicePrefixLen[5] =
+{
+  8, 7, 6, 5, 4
+};
+#else
 const UInt g_auiGoRiceRange[4] =
 {
   7, 20, 42, 70
@@ -577,7 +588,46 @@ const UInt g_auiGoRicePrefixLen[4] =
 {
   8, 10, 10, 8
 };
+#endif
 
+#if MMI_NEW_RICE_UPDATE_TABLE
+const UInt g_aauiGoRiceUpdate[5][24] =
+{
+#if RESTRICT_GR1GR2FLAG_NUMBER
+  {
+    0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4
+  },
+  {
+    1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4
+  },
+  {
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4
+  },
+  {
+    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4
+  },
+  {
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
+  }
+#else
+  {
+    0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4
+  },
+  {
+    1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4
+  },
+  {
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4
+  },
+  {
+    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4
+  },
+  {
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
+  }
+#endif
+};
+#else
 const UInt g_aauiGoRiceUpdate[4][16] =
 {
 #if RESTRICT_GR1GR2FLAG_NUMBER
@@ -608,6 +658,7 @@ const UInt g_aauiGoRiceUpdate[4][16] =
   }
 #endif
 };
+#endif
 
 // initialize g_auiFrameScanXY
 Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int iHeight )
