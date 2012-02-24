@@ -58,6 +58,8 @@
 
 #define SIGMAP_CONST_AT_HIGH_FREQUENCY      1      ///< H0095 method2.1: const significance map at high freaquency
 
+#define LAST_CTX_REDUCTION        1  ///< H0537/H514: contexts reduction for last position coding
+
 #define AMP_CTX                   1 ///<H0545: context reduction for asymmetric partition
 
 #define PARAMSET_VLC_CLEANUP               1      ///< followup to G220: Simplify parameter set code

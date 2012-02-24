@@ -549,6 +549,15 @@ UInt* g_auiNonSquareSigLastScan[ 4 ];
 
 const UInt g_uiMinInGroup[ 10 ] = {0,1,2,3,4,6,8,12,16,24};
 const UInt g_uiGroupIdx[ 32 ]   = {0,1,2,3,4,4,5,5,6,6,6,6,7,7,7,7,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9};
+#if LAST_CTX_REDUCTION
+const UInt g_uiLastCtx[ 28 ]    = 
+{
+  0,   1,  2,  2,                         // 4x4    4
+  3,   4,  5,  5, 2,  2,                  // 8x8    6  
+  6,   7,  8,  8, 9,  9, 2, 2,            // 16x16  8
+  10, 11, 12, 12, 13, 13, 14, 14, 2, 2    // 32x32  10
+};
+#else
 const UInt g_uiLastCtx[ 28 ]    = 
 {
   0,   1,  2,  2,                         // 4x4    4
@@ -556,6 +565,7 @@ const UInt g_uiLastCtx[ 28 ]    =
   7,   8,  9,  9, 10, 10, 11, 11,         // 16x16  8
   12, 13, 14, 14, 15, 15, 16, 16, 17, 17  // 32x32  10
 };
+#endif
 
 // Rice parameters for absolute transform levels
 const UInt g_auiGoRiceRange[4] =

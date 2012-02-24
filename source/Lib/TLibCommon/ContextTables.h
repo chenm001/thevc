@@ -86,7 +86,11 @@
 
 #define NUM_SIG_FLAG_CTX_LUMA         27      ///< number of context models for luma sig flag
 #define NUM_SIG_FLAG_CTX_CHROMA       21      ///< number of context models for chroma sig flag
+#if LAST_CTX_REDUCTION
+#define NUM_CTX_LAST_FLAG_XY          15      ///< number of context models for last coefficient position
+#else
 #define NUM_CTX_LAST_FLAG_XY          18      ///< number of context models for last coefficient position
+#endif
 
 #define NUM_ONE_FLAG_CTX              32      ///< number of context models for greater than 1 flag
 #define NUM_ONE_FLAG_CTX_LUMA         24      ///< number of context models for greater than 1 flag of luma
@@ -445,6 +449,24 @@ INIT_QT_ROOT_CBF[3][NUM_QT_ROOT_CBF_CTX] =
   },
 };
 
+#if LAST_CTX_REDUCTION
+static const UChar
+INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =
+{
+  {
+    72,  72,  71,  72, 104,  89,  88,  89,  59,  73,  89, 106,  60,  59,  43,   
+    54,  70,  53,  CNU, CNU, CNU,  CNU, CNU, CNU,  CNU, CNU, CNU, CNU, CNU, CNU,
+  },
+  {
+    57,  72,  55,  72,  57,  72,   88,  73,  73,  72,  103,  73,  89,  73,  57,  
+    54,  70,  54,  CNU, CNU, CNU,  CNU, CNU, CNU,  CNU, CNU, CNU, CNU, CNU, CNU,
+    },
+    {
+    88,  72,  71,  72,  57,  72,  88,  73,  73,  72,   103,  73,  89,  73,  57,   
+    54,  70,  69,   CNU, CNU, CNU,  CNU, CNU, CNU,  CNU, CNU, CNU, CNU, CNU, CNU,
+    },
+};
+#else
 static const UChar
 INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =
 {
@@ -464,6 +486,7 @@ INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =
     
   },
 };
+#endif
 
 static const UChar
 INIT_SIG_CG_FLAG[3][2 * NUM_SIG_CG_FLAG_CTX] = 
