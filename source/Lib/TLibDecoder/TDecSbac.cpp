@@ -1087,7 +1087,7 @@ Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int w
 #if LAST_CTX_REDUCTION
     if ( eTType  )
     {
-      m_pcTDecBinIf->decodeBin( uiLast, *( pCtxX + puiCtxIdxX[ uiPosLastX>>g_aucConvertToBit[ width ]]  ) );
+      m_pcTDecBinIf->decodeBin( uiLast, *( pCtxX + (uiPosLastX>>g_aucConvertToBit[ width ])  ) );
     }
     else
     {
@@ -1114,7 +1114,7 @@ Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int w
 #if LAST_CTX_REDUCTION
     if (eTType)
     {
-      m_pcTDecBinIf->decodeBin( uiLast, *( pCtxY + puiCtxIdxY[ uiPosLastY>>g_aucConvertToBit[ height ]] ) );
+      m_pcTDecBinIf->decodeBin( uiLast, *( pCtxY + (uiPosLastY>>g_aucConvertToBit[ height ]) ) );
     }
     else
     {

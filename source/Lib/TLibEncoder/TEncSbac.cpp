@@ -1048,7 +1048,7 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
 #if LAST_CTX_REDUCTION
     if (eTType)
     {
-      m_pcBinIf->encodeBin( 1, *( pCtxX + puiCtxIdxX[ uiCtxLast>>g_aucConvertToBit[ width ]] ) );
+      m_pcBinIf->encodeBin( 1, *( pCtxX + (uiCtxLast>>g_aucConvertToBit[ width ]) ) );
     }
     else
     {
@@ -1063,7 +1063,7 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
 #if LAST_CTX_REDUCTION
     if ( eTType )
     {
-      m_pcBinIf->encodeBin( 0, *( pCtxX + puiCtxIdxX[ uiCtxLast>>g_aucConvertToBit[ width ] ] ) );
+      m_pcBinIf->encodeBin( 0, *( pCtxX + (uiCtxLast>>g_aucConvertToBit[ width ]) ) );
     }
     else
     {
@@ -1086,7 +1086,7 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
 #if LAST_CTX_REDUCTION
     if (eTType)
     {
-      m_pcBinIf->encodeBin( 1, *( pCtxY + puiCtxIdxY[  uiCtxLast>>g_aucConvertToBit[ height ]]));
+      m_pcBinIf->encodeBin( 1, *( pCtxY + (uiCtxLast>>g_aucConvertToBit[ height ])));
     }
     else
     {
@@ -1101,7 +1101,7 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
 #if LAST_CTX_REDUCTION
     if (eTType)
     {
-      m_pcBinIf->encodeBin( 0, *( pCtxY + puiCtxIdxY[ uiCtxLast>>g_aucConvertToBit[ height ] ] ) );
+      m_pcBinIf->encodeBin( 0, *( pCtxY + (uiCtxLast>>g_aucConvertToBit[ height ]) ) );
     }
     else
     {
@@ -1751,7 +1751,7 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, Int width
 #if LAST_CTX_REDUCTION
     if (eTType)
     {
-      Int ctxOffsetC =  ctxOffset>>g_aucConvertToBit[ width ];
+      Int ctxOffsetC =  ctx>>g_aucConvertToBit[ width ];
       pcEstBitsSbac->lastXBits[ ctx ] = iBitsX + pCtxX[ ctxOffsetC ].getEntropyBits( 0 );
       iBitsX += pCtxX[ ctxOffsetC].getEntropyBits( 1 );
     }
@@ -1779,7 +1779,7 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, Int width
 #if LAST_CTX_REDUCTION
     if (eTType)
     {
-      Int ctxOffsetC =  ctxOffset>>g_aucConvertToBit[ height ];
+      Int ctxOffsetC =  ctx>>g_aucConvertToBit[ height ];
       pcEstBitsSbac->lastYBits[ ctx ] = iBitsY + pCtxY[ ctxOffsetC ].getEntropyBits( 0 );
       iBitsY += pCtxY[ctxOffsetC].getEntropyBits( 1 );
     }
