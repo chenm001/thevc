@@ -514,6 +514,7 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
 *- set last-coded qp value according to input last-coded qp 
 */
 Void TComDataCU::initEstData( UInt uiDepth, Int qp )
+#else
 /** initialize prediction data with enabling sub-LCU-level delta QP
 *\param  uiDepth  depth of the current CU
 *\param  uiQP     QP for the current CU
@@ -521,7 +522,6 @@ Void TComDataCU::initEstData( UInt uiDepth, Int qp )
 *- set QP value according to input QP 
 *- set last-coded QP value according to input last-coded QP 
 */
-#else
 Void TComDataCU::initEstData( UInt uiDepth, UInt uiQP )
 #endif
 {
