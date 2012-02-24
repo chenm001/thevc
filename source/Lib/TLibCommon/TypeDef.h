@@ -68,7 +68,7 @@
 #define C2FLAG_NUMBER               1 // maximum number of largerThan2 flag coded in one chunk:  16 in HM5 
 #endif 
 
-#define MMI_NEW_RICE_UPDATE_TABLE   1 ///< H0498 : 8 bits rice codes
+#define EIGHT_BITS_RICE_CODE        1 ///< H0498 : 8 bits rice codes
 
 #define PARAMSET_VLC_CLEANUP               1      ///< followup to G220: Simplify parameter set code
 

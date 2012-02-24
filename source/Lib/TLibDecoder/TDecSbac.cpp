@@ -341,7 +341,7 @@ Void TDecSbac::xReadGoRiceExGolomb( UInt &ruiSymbol, UInt &ruiGoRiceParam )
     ruiSymbol += uiCodeWord;
   }
 
-#if MMI_NEW_RICE_UPDATE_TABLE
+#if EIGHT_BITS_RICE_CODE
   ruiGoRiceParam = g_aauiGoRiceUpdate[ ruiGoRiceParam ][ min<UInt>( ruiSymbol, 23 ) ];
 #else
   ruiGoRiceParam = g_aauiGoRiceUpdate[ ruiGoRiceParam ][ min<UInt>( ruiSymbol, 15 ) ];

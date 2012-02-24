@@ -130,7 +130,7 @@ extern const UInt   g_uiGroupIdx[ 32 ];
 extern const UInt   g_uiMinInGroup[ 10 ];
 extern const UInt   g_uiLastCtx[ 28 ];
 
-#if MMI_NEW_RICE_UPDATE_TABLE
+#if EIGHT_BITS_RICE_CODE
 extern const UInt   g_auiGoRiceRange[5];                  //!< maximum value coded with Rice codes
 extern const UInt   g_auiGoRicePrefixLen[5];              //!< prefix length for each maximum value
 extern const UInt   g_aauiGoRiceUpdate[5][24];            //!< parameter update rules for Rice codes

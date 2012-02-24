@@ -568,7 +568,7 @@ const UInt g_uiLastCtx[ 28 ]    =
 #endif
 
 // Rice parameters for absolute transform levels
-#if MMI_NEW_RICE_UPDATE_TABLE
+#if EIGHT_BITS_RICE_CODE
 const UInt g_auiGoRiceRange[5] =
 {
   7, 14, 26, 46, 78
@@ -590,7 +590,7 @@ const UInt g_auiGoRicePrefixLen[4] =
 };
 #endif
 
-#if MMI_NEW_RICE_UPDATE_TABLE
+#if EIGHT_BITS_RICE_CODE
 const UInt g_aauiGoRiceUpdate[5][24] =
 {
 #if RESTRICT_GR1GR2FLAG_NUMBER

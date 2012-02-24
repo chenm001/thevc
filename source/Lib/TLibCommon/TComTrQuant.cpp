@@ -2375,7 +2375,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       iBaseLevel = (uiCoeff1Scanned < C1FLAG_NUMBER) ? (2 + (uiCoeff2Scanned < C2FLAG_NUMBER)) : 1;
       if( uiLevel >= iBaseLevel )
       {
-#if MMI_NEW_RICE_UPDATE_TABLE
+#if EIGHT_BITS_RICE_CODE
         uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - iBaseLevel, 23 ) ];
 #else
         uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - iBaseLevel, 15 ) ];
@@ -2398,7 +2398,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 #else
         if( uiLevel > 2 )
         {
-#if MMI_NEW_RICE_UPDATE_TABLE
+#if EIGHT_BITS_RICE_CODE
           uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - 3, 23 ) ];
 #else
           uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - 3, 15 ) ];
@@ -2557,7 +2557,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
           iBaseLevel = (uiCoeff1Scanned < C1FLAG_NUMBER) ? (2 + (uiCoeff2Scanned < C2FLAG_NUMBER)) : 1;
           if( uiLevel >= iBaseLevel )
           {
-#if MMI_NEW_RICE_UPDATE_TABLE
+#if EIGHT_BITS_RICE_CODE
             uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - iBaseLevel , 23 ) ];
 #else
             uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - iBaseLevel, 15 ) ];
@@ -2580,7 +2580,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 #else
             if( uiLevel > 2 )
             {
-#if MMI_NEW_RICE_UPDATE_TABLE
+#if EIGHT_BITS_RICE_CODE
               uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - 3, 23 ) ];
 #else
               uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - 3, 15 ) ];
