@@ -522,7 +522,11 @@ Void TEncEntropy::encodeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
   m_pcEntropyCoderIf->codeIPCMInfo ( pcCU, uiAbsPartIdx );
 }
 
+#if NSQT_LFFIX
+Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiNSAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 )
+#else
 Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 )
+#endif
 {
   const UInt uiSubdiv = pcCU->getTransformIdx( uiAbsPartIdx ) + pcCU->getDepth( uiAbsPartIdx ) > uiDepth;
   const UInt uiLog2TrafoSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth()]+2 - uiDepth;
@@ -612,6 +616,23 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
       UInt uiCurrentCbfU = 0;
       UInt uiCurrentCbfV = 0;
       
+#if NSQT_LFFIX
+      UInt uiNSAddr = 0;
+      uiNSAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, uiNSAbsPartIdx, 0, uiDepth - pcCU->getDepth( uiAbsPartIdx ) );
+      xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiNSAddr, uiDepth, 0, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
+
+      uiAbsPartIdx += uiQPartNum;
+      uiNSAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, uiNSAbsPartIdx, 1, uiDepth - pcCU->getDepth( uiAbsPartIdx ) );
+      xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiNSAddr, uiDepth, 1, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
+
+      uiAbsPartIdx += uiQPartNum;
+      uiNSAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, uiNSAbsPartIdx, 2, uiDepth - pcCU->getDepth( uiAbsPartIdx ) );
+      xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiNSAddr, uiDepth, 2, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
+
+      uiAbsPartIdx += uiQPartNum;
+      uiNSAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, uiNSAbsPartIdx, 3, uiDepth - pcCU->getDepth( uiAbsPartIdx ) );
+      xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiNSAddr, uiDepth, 3, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
+#else
       xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
       uiAbsPartIdx += uiQPartNum;
       xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 1, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
@@ -619,6 +640,7 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
       xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 2, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
       uiAbsPartIdx += uiQPartNum;
       xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 3, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
+#endif
       
       uiYCbfFront3 += uiCurrentCbfY;
       uiUCbfFront3 += uiCurrentCbfU;
@@ -638,6 +660,12 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
       }
       UInt uiLumaTrMode, uiChromaTrMode;
       pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
+#if NSQT_LFFIX
+      if(pcCU->getPredictionMode( uiAbsPartIdx ) == MODE_INTER && pcCU->useNonSquarePU( uiAbsPartIdx ) )
+      {
+        pcCU->setNSQTIdxSubParts( uiLog2TrafoSize, uiAbsPartIdx, uiNSAbsPartIdx, uiLumaTrMode );
+      }
+#endif
       if( pcCU->getPredictionMode(uiAbsPartIdx) != MODE_INTRA && uiDepth == pcCU->getDepth( uiAbsPartIdx ) && !pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, 0 ) && !pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, 0 ) )
       {
         assert( pcCU->getCbf( uiAbsPartIdx, TEXT_LUMA, 0 ) );
@@ -678,7 +706,11 @@ Void TEncEntropy::encodeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt 
   UInt temp = 0;
   UInt temp1 = 0;
   UInt temp2 = 0;
+#if NSQT_LFFIX
+  xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiAbsPartIdx, uiDepth, 0, temp, temp1, temp2 );
+#else
   xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0, temp, temp1, temp2 );
+#endif
 }
 
 // Intra direction for Luma
@@ -1043,7 +1075,11 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     UInt temp = 0;
     UInt temp1 = 0;
     UInt temp2 = 0;
+#if NSQT_LFFIX
+    xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiAbsPartIdx, uiDepth, 0, temp, temp1, temp2 );
+#else
     xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0, temp, temp1, temp2 );
+#endif
     
   }
   else
@@ -1055,6 +1091,9 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
       }
       if ( !pcCU->getQtRootCbf( uiAbsPartIdx ) )
       {
+#if NSQT_LFFIX
+        pcCU->setNSQTIdxSubParts( uiAbsPartIdx, uiDepth );
+#endif
         return;
       }
     }

@@ -241,7 +241,11 @@ Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiD
   }
 }
 
+#if NSQT_LFFIX
+Void TComLoopFilter::xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiScanIdx, UInt uiDepth, Int iDir, Int iEdgeIdx, Bool bValue,UInt uiWidthInBaseUnits, UInt uiHeightInBaseUnits, Bool bNonSquare )
+#else
 Void TComLoopFilter::xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiScanIdx, UInt uiDepth, Int iDir, Int iEdgeIdx, Bool bValue,UInt uiWidthInBaseUnits, UInt uiHeightInBaseUnits)
+#endif
 {  
   if ( uiWidthInBaseUnits == 0 )
   {
@@ -258,7 +262,11 @@ Void TComLoopFilter::xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiScanIdx, U
   for( UInt ui = 0; ui < uiNumElem; ui++ )
   {
     UInt uiBsIdx;
+#if NSQT_LFFIX
+    if( !bNonSquare)
+#else
     if ( uiWidthInBaseUnits == uiHeightInBaseUnits )
+#endif
     {
       uiBsIdx = xCalcBsIdx( pcCU, uiScanIdx, iDir, iEdgeIdx, ui, true );
     }
@@ -290,11 +298,27 @@ Void TComLoopFilter::xSetEdgefilterTU( TComDataCU* pcCU, UInt uiRasterIdx, UInt 
       TComPic* const pcPic = pcCU->getPic();
       const UInt uiLCUWidthInBaseUnits = pcPic->getNumPartInWidth();
 
+#if NSQT_LFFIX
+      if( ( ( 1 << uiLog2TrSize ) < pcCU->getSlice()->getSPS()->getMaxTrSize() && pcCU->getDepth( uiAbsZorderIdx ) == uiDepth ) ||
+        ( 1 << uiLog2TrSize ) == ( pcCU->getSlice()->getSPS()->getMaxTrSize() >> 1 ) || ( uiLog2TrSize == 2 ) ) 
+      {
+        const UInt iBaseUnitIdx = ( uiLog2TrSize == 2 ) ? 1 :uiLCUWidthInBaseUnits >> ( uiDepth + 2 );
+        UInt offset;
+        if( uiLog2TrSize == 2 )
+        {
+          offset = ( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nLx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nRx2N ) ? iBaseUnitIdx * uiLCUWidthInBaseUnits : iBaseUnitIdx;
+        }
+        else
+        {
+          offset = ( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nLx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nRx2N ) ? iBaseUnitIdx : iBaseUnitIdx * uiLCUWidthInBaseUnits;
+        }
+#else
       if( ( ( 1 << uiLog2TrSize ) < ( pcCU->getSlice()->getSPS()->getMaxTrSize() >> 1 ) && pcCU->getDepth( uiAbsZorderIdx ) == uiDepth ) ||
         ( 1 << uiLog2TrSize ) == ( pcCU->getSlice()->getSPS()->getMaxTrSize() >> 1 ) ) 
       {
         const UInt iBaseUnitIdx = uiLCUWidthInBaseUnits >> ( uiDepth + 2 );
         UInt offset = ( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nLx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nRx2N ) ? iBaseUnitIdx : iBaseUnitIdx * uiLCUWidthInBaseUnits;
+#endif      
         for ( UInt uiPartIdx = 0; uiPartIdx < 4; uiPartIdx++, uiAbsZorderIdx += uiQNumParts )
         {
           xSetEdgefilterTU( pcCU, uiRasterIdx+uiPartIdx * offset, uiAbsZorderIdx, uiDepth+1 );
@@ -302,10 +326,12 @@ Void TComLoopFilter::xSetEdgefilterTU( TComDataCU* pcCU, UInt uiRasterIdx, UInt 
       }
       else
       {
+#if !NSQT_LFFIX
         if( ( 1 << uiLog2TrSize ) < DEBLOCK_SMALLEST_BLOCK )
         {
           return;
         }
+#endif
         UInt uiTrWidth  = ( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nLx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nRx2N ) ? 1 << ( uiLog2TrSize - 4 + 1) : 1 << ( uiLog2TrSize - 2 + 1 );
         UInt uiTrHeight = ( pcCU->getPartitionSize( uiAbsZorderIdx  )== SIZE_Nx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nLx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nRx2N ) ? 1 << ( uiLog2TrSize - 2 + 1) : 1 << ( uiLog2TrSize - 4 + 1 );
         xSetEdgefilterTU( pcCU, uiRasterIdx,                                                  uiAbsZorderIdx, uiDepth + 1 ); uiAbsZorderIdx += uiQNumParts;
@@ -318,7 +344,11 @@ Void TComLoopFilter::xSetEdgefilterTU( TComDataCU* pcCU, UInt uiRasterIdx, UInt 
     {
       for ( UInt uiPartIdx = 0; uiPartIdx < 4; uiPartIdx++, uiAbsZorderIdx+=uiQNumParts )
       {
+#if NSQT_LFFIX
+        xSetEdgefilterTU( pcCU,g_auiZscanToRaster[ uiAbsZorderIdx ], uiAbsZorderIdx, uiDepth + 1 );
+#else
         xSetEdgefilterTU( pcCU,uiRasterIdx, uiAbsZorderIdx, uiDepth + 1 );
+#endif
       }      
     }
     return;
@@ -329,14 +359,20 @@ Void TComLoopFilter::xSetEdgefilterTU( TComDataCU* pcCU, UInt uiRasterIdx, UInt 
     ( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_2NxN || 
     ( pcCU->getPartitionSize( uiAbsZorderIdx ) >= SIZE_2NxnU && pcCU->getPartitionSize( uiAbsZorderIdx ) <= SIZE_nRx2N ) ) )
   {
+#if !NSQT_LFFIX
     if( ( 1 << uiLog2TrSize ) < DEBLOCK_SMALLEST_BLOCK )
     {
       return;
     }
+#endif
     
     UInt uiWidthInBaseUnits  = pcCU->getPic()->getNumPartInWidth () >> uiDepth;
     UInt uiHeightInBaseUnits = pcCU->getPic()->getNumPartInWidth () >> uiDepth;
 
+#if NSQT_LFFIX
+    if( uiLog2TrSize!=2 )
+    {
+#endif
     if( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nLx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nRx2N )
     {
       uiWidthInBaseUnits  >>= 1;
@@ -347,8 +383,14 @@ Void TComLoopFilter::xSetEdgefilterTU( TComDataCU* pcCU, UInt uiRasterIdx, UInt 
       uiWidthInBaseUnits  <<= 1;
       uiHeightInBaseUnits >>= 1;
     }
+#if NSQT_LFFIX
+    }
+    xSetEdgefilterMultiple( pcCU, uiRasterIdx, uiDepth, EDGE_VER, 0, m_stLFCUParam.bInternalEdge, uiWidthInBaseUnits, uiHeightInBaseUnits, true);
+    xSetEdgefilterMultiple( pcCU, uiRasterIdx, uiDepth, EDGE_HOR, 0, m_stLFCUParam.bInternalEdge, uiWidthInBaseUnits, uiHeightInBaseUnits, true);
+#else
     xSetEdgefilterMultiple( pcCU, uiRasterIdx, uiDepth, EDGE_VER, 0, m_stLFCUParam.bInternalEdge, uiWidthInBaseUnits, uiHeightInBaseUnits );
     xSetEdgefilterMultiple( pcCU, uiRasterIdx, uiDepth, EDGE_HOR, 0, m_stLFCUParam.bInternalEdge, uiWidthInBaseUnits, uiHeightInBaseUnits );
+#endif
   }
   else
   {
@@ -504,7 +546,22 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
   //-- Set BS for not Intra MB : BS = 2 or 1 or 0
   if ( !pcCUP->isIntra(uiPartP) && !pcCUQ->isIntra(uiPartQ) )
   {
+#if NSQT_LFFIX
+    UInt uiNSPartQ = uiPartQ;
+    UInt uiNSPartP = uiPartP;
+    if(pcCUQ->getPredictionMode(uiPartQ) == MODE_INTER && pcCUQ->useNonSquarePU(uiPartQ))
+    {
+      uiNSPartQ = pcCUQ->getNSQTPartIdx( uiAbsPartIdx );
+    }
+    if(pcCUP->getPredictionMode(uiPartP) == MODE_INTER && pcCUP->useNonSquarePU(uiPartP))
+    {
+      uiNSPartP = pcCUP->getNSQTPartIdx( uiPartP );
+    }
+
+    if ( m_aapucBS[iDir][uiAbsPartIdx] && (pcCUQ->getCbf( uiNSPartQ, TEXT_LUMA, pcCUQ->getTransformIdx(uiNSPartQ)) != 0 || pcCUP->getCbf( uiNSPartP, TEXT_LUMA, pcCUP->getTransformIdx(uiNSPartP) ) != 0) )
+#else
     if ( m_aapucBS[iDir][uiAbsPartIdx] && (pcCUQ->getCbf( uiPartQ, TEXT_LUMA, pcCUQ->getTransformIdx(uiPartQ)) != 0 || pcCUP->getCbf( uiPartP, TEXT_LUMA, pcCUP->getTransformIdx(uiPartP) ) != 0) )
+#endif
     {
       uiBs = 1;
     }

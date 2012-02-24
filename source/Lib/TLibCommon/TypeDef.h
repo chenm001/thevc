@@ -71,6 +71,7 @@
 #define LEVEL_RANGE                         30     ///< G382: max coefficient level in statistics collection
 #endif
 
+#define NSQT_LFFIX                           1     ///< Bug fix related to NSQT and deblocking filter
 #define NS_HAD                               1
 
 #define APS_BITS_FOR_SAO_BYTE_LENGTH 12           

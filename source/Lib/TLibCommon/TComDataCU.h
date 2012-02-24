@@ -131,6 +131,9 @@ private:
   Char*         m_pePredMode;         ///< array of prediction modes
   UChar*        m_phQP;               ///< array of QP values
   UChar*        m_puhTrIdx;           ///< array of transform indices
+#if NSQT_LFFIX
+  UChar*        m_puhNSQTPartIdx;     ///< array of absPartIdx mapping table, map zigzag to NSQT
+#endif
   UChar*        m_puhCbf[3];          ///< array of coded block flags (CBF)
   TComCUMvField m_acCUMvField[2];     ///< array of motion vectors
   TCoeff*       m_pcTrCoeffY;         ///< transformed coefficient buffer (Y)
@@ -300,6 +303,13 @@ public:
   Void          setQP                 ( UInt uiIdx, UChar  uh ) { m_phQP[uiIdx] = uh;         }
   Void          setQPSubParts         ( UInt uiQP,   UInt uiAbsPartIdx, UInt uiDepth );
   UChar         getLastCodedQP        ( UInt uiAbsPartIdx );
+
+#if NSQT_LFFIX
+  UChar*        getNSQTPartIdx        ()                        { return m_puhNSQTPartIdx;          }
+  UChar         getNSQTPartIdx        ( UInt uiIdx )            { return m_puhNSQTPartIdx[uiIdx];   }
+  Void          setNSQTIdxSubParts    ( UInt uiAbsPartIdx, UInt uidepth );
+  Void          setNSQTIdxSubParts    ( UInt uiLog2TrafoSize, UInt uiAbsPartIdx, UInt uiNSAbsPartIdx, UInt uiTrMode );
+#endif
   
   UChar*        getTransformIdx       ()                        { return m_puhTrIdx;          }
   UChar         getTransformIdx       ( UInt uiIdx )            { return m_puhTrIdx[uiIdx];   }
@@ -519,6 +529,12 @@ public:
   Bool useNonSquareTrans( UInt uiTrMode );
   Bool useNonSquareTrans( UInt uiTrMode, Int absPartIdx );
   Void getNSQTSize(Int trMode, Int absPartIdx, Int &trWidth, Int &trHeight);
+#if NSQT_LFFIX
+  Bool          useNonSquarePU   ( UInt uiAbsPartIdx);
+  UInt          getInterTUSplitDirection ( Int iWidth, Int iHeight, Int trLastWidth, Int trLastHeight );
+  UInt          getNSAbsPartIdx  ( UInt uiLog2TrafoSize, UInt uiAbsPartIdx, UInt uiNSAbsPartIdx, UInt uiInnerQuadIdx, UInt uiTrMode );
+  Void          setZorderIdxInCU ( UInt uiAbsPartIdx )  { m_uiAbsIdxInLCU = uiAbsPartIdx; }
+#endif
   Void getPixOffset( UInt uiTrMode, UInt ui, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiPix_X, UInt& uiPix_Y, TextType eTxt );
 };
 
