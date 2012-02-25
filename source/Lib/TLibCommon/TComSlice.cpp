@@ -171,8 +171,6 @@ TComSPS::TComSPS()
 , m_bUseLMChroma              (false)
 , m_uiBitsForPOC              (  8)
 , m_uiMaxTrSize               ( 32)
-, m_uiMaxDecFrameBuffering    (  0)
-, m_uiMaxLatencyIncrease      (  0)
 {
   // AMVP parameter
   ::memset( m_aeAMVPMode, 0, sizeof( m_aeAMVPMode ) );

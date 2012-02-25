@@ -258,12 +258,12 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   WRITE_UVLC( 1,                                    "max_dec_pic_buffering[i]" );
   WRITE_UVLC( 0,                                    "num_reorder_pics[i]" );
-  WRITE_UVLC( pcSPS->getMaxLatencyIncrease(),       "max_latency_increase[i]" );
+  WRITE_UVLC( 0,                                    "max_latency_increase[i]" );
 #else
   WRITE_UVLC( 1,                                    "max_num_ref_pics" ); 
   WRITE_UVLC( 0,                                    "num_reorder_frames" ); 
-  WRITE_UVLC(pcSPS->getMaxDecFrameBuffering(),      "max_dec_frame_buffering" );
-  WRITE_UVLC(pcSPS->getMaxLatencyIncrease(),        "max_latency_increase"    );
+  WRITE_UVLC( 1,                                    "max_dec_frame_buffering" );
+  WRITE_UVLC( 0,                                    "max_latency_increase"    );
 #endif
   assert( pcSPS->getMaxCUWidth() == pcSPS->getMaxCUHeight() );
   

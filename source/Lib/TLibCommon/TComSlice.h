@@ -104,9 +104,6 @@ private:
   
   Int m_iAMPAcc[MAX_CU_DEPTH];
 
-  UInt        m_uiMaxDecFrameBuffering; 
-  UInt        m_uiMaxLatencyIncrease;
-
 public:
   TComSPS();
   virtual ~TComSPS();
@@ -184,11 +181,6 @@ public:
   // AMP accuracy
   Int       getAMPAcc   ( UInt uiDepth ) { return m_iAMPAcc[uiDepth]; }
   Void      setAMPAcc   ( UInt uiDepth, Int iAccu ) { assert( uiDepth < g_uiMaxCUDepth);  m_iAMPAcc[uiDepth] = iAccu; }
-
-  UInt getMaxDecFrameBuffering  ()            { return m_uiMaxDecFrameBuffering; }
-  Void setMaxDecFrameBuffering  ( UInt ui )   { m_uiMaxDecFrameBuffering = ui;   }
-  UInt getMaxLatencyIncrease    ()            { return m_uiMaxLatencyIncrease;   }
-  Void setMaxLatencyIncrease    ( UInt ui )   { m_uiMaxLatencyIncrease= ui;      }
 };
 
 /// PPS class
