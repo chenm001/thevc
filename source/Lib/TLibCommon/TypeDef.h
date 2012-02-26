@@ -40,6 +40,8 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define SET_MERGE_TMVP_REFIDX     1  ///< H0278/H0199: Setting the merge TMVP refidx to 0 for the non-first partition
+
 #define MULTILEVEL_SIGMAP_EXT     1  ///< H0526: multi-level significance map extended to smaller TUs
 #define MULTIBITS_DATA_HIDING     1  ///< H0481: multiple sign bit hiding
 

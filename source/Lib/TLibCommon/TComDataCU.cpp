@@ -2771,7 +2771,19 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     for (Int i=0; i<2; i++)
     {
       RefPicList  eRefPicList = ( i==1 ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
+#if SET_MERGE_TMVP_REFIDX
+      Int iRefIdxTmp;
+      if ( uiPUIdx != 0 )
+      {
+        iRefIdxTmp = 0;
+      }
+      else
+      {    
+        iRefIdxTmp = (pcCULeft != NULL) ? pcCULeft->getCUMvField(eRefPicList)->getRefIdx(uiLeftPartIdx) : -1;
+      }
+#else      
       Int iRefIdxTmp = (pcCULeft != NULL) ? pcCULeft->getCUMvField(eRefPicList)->getRefIdx(uiLeftPartIdx) : -1;
+#endif
       iRefIdxSkip[i] = (iRefIdxTmp != -1) ? iRefIdxTmp : 0;
     }
     //>> MTK colocated-RightBottom
