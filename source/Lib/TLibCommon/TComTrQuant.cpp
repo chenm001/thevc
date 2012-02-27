@@ -1726,6 +1726,12 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
   UInt iTransformShift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize; 
   iShift = QUANT_IQUANT_SHIFT - QUANT_SHIFT - iTransformShift;
 
+#if DEQUAN_CLIPPING
+  TCoeff iClipQCoef;
+  const Int iBitRange = min( 15, ( Int )( 12 + uiLog2TrSize + uiBitDepth - m_cQP.m_iPer) );
+  const Int iLevelLimit = 1 << iBitRange;
+#endif
+
   if(getUseScalingList())
   {
     iShift += 4;
@@ -1743,7 +1749,12 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
     {
       for( Int n = 0; n < iWidth*iHeight; n++ )
       {
+#if DEQUAN_CLIPPING
+        iClipQCoef = Clip3( -32768, 32767, piQCoef[n] );
+        iCoeffQ = ((iClipQCoef * piDequantCoef[n]) + iAdd ) >> (iShift -  m_cQP.m_iPer);
+#else
         iCoeffQ = ((piQCoef[n] * piDequantCoef[n]) + iAdd ) >> (iShift -  m_cQP.m_iPer);
+#endif
         piCoef[n] = Clip3(-32768,32767,iCoeffQ);
       }
     }
@@ -1751,7 +1762,12 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
     {
       for( Int n = 0; n < iWidth*iHeight; n++ )
       {
+#if DEQUAN_CLIPPING
+        iClipQCoef = Clip3( -iLevelLimit, iLevelLimit - 1, piQCoef[n] );
+        iCoeffQ = (iClipQCoef * piDequantCoef[n]) << (m_cQP.m_iPer - iShift);
+#else
         iCoeffQ = (piQCoef[n] * piDequantCoef[n]) << (m_cQP.m_iPer - iShift);
+#endif
         piCoef[n] = Clip3(-32768,32767,iCoeffQ);
       }
     }
@@ -1763,7 +1779,12 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
 
     for( Int n = 0; n < iWidth*iHeight; n++ )
     {
+#if DEQUAN_CLIPPING
+      iClipQCoef = Clip3( -32768, 32767, piQCoef[n] );
+      iCoeffQ = ( iClipQCoef * scale + iAdd ) >> iShift;
+#else
       iCoeffQ = ( piQCoef[n] * scale + iAdd ) >> iShift;
+#endif
       piCoef[n] = Clip3(-32768,32767,iCoeffQ);
     }
   }
