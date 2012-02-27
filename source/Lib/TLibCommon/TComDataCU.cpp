@@ -3291,7 +3291,17 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     pInfo->iN = 1;
     return;
   }
-  
+
+#if AMVP_PRUNING_SIMPLIFICATION
+  if ( pInfo->iN == 2 )
+  {
+    if ( pInfo->m_acMvCand[ 0 ] == pInfo->m_acMvCand[ 1 ] )
+    {
+      pInfo->iN = 1;
+    }
+  }
+#endif
+
   if ( getSlice()->getPPS()->getEnableTMVPFlag() )
   {
     // Get Temporal Motion Predictor
@@ -3357,7 +3367,9 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   }
 
   // Check No MV Candidate
+#if !AMVP_PRUNING_SIMPLIFICATION
   xUniqueMVPCand( pInfo );
+#endif
 
   if (pInfo->iN > AMVP_MAX_NUM_CANDS)
   {
@@ -3547,6 +3559,7 @@ Bool TComDataCU::xAddMVPCand( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefI
   return false;
 }
 
+#if !AMVP_PRUNING_SIMPLIFICATION
 /**
  * Reduce list of motion vector predictors to a set of unique predictors
  * \param pInfo list of motion vector predictors
@@ -3579,6 +3592,7 @@ Void TComDataCU::xUniqueMVPCand(AMVPInfo* pInfo)
   }
   pInfo->iN = n;
 }
+#endif
 
 /** 
  * \param pInfo

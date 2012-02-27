@@ -54,6 +54,8 @@
 #define MRG_IDX_CTX_RED           1 ///< H0251: Merge index context reduction
 #define SIMP_MRG_PRUN             1 ///< H0252: simplification of merge pruning process
 
+#define AMVP_PRUNING_SIMPLIFICATION         1     ///H0316: simplify the pruning process of AMVP by exempting the temporal candidate
+
 #define H0111_MVD_L1_ZERO         1  ///< H0111: modification of bi-prediction
 #define DISABLING_CLIP_FOR_BIPREDME         1  ///< Ticket #175
   
