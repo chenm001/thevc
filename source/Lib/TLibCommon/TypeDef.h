@@ -40,6 +40,8 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define REMOVE_DIV_OPERATION      1 ///< H0238: Simplified intra horizontal and vertical filtering
+
 #define LEVEL_CTX_LUMA_RED        1  ///<H0130: Luma level context reduction
 #define REMOVE_INFER_SIGGRP       1  ///<H0131: Remove inferred significant_coeff_group_flag
 
