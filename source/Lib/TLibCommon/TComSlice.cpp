@@ -1213,6 +1213,14 @@ TComSPS::TComSPS()
 {
   // AMVP parameter
   ::memset( m_aeAMVPMode, 0, sizeof( m_aeAMVPMode ) );
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  for ( Int i = 0; i < MAX_TLAYER; i++ )
+  {
+    m_uiMaxLatencyIncrease[i] = 0;
+    m_uiMaxDecPicBuffering[i] = 0;
+    m_numReorderPics[i]       = 0;
+  }
+#endif
 }
 
 TComSPS::~TComSPS()
@@ -1227,14 +1235,6 @@ TComSPS::~TComSPS()
     delete [] m_puiRowHeight;
     m_puiRowHeight = NULL;
   }
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  for ( UInt i = 0; i < MAX_TLAYER; i++ )
-  {
-    m_uiMaxLatencyIncrease[i] = 0;
-    m_uiMaxDecPicBuffering[i] = 0;
-    m_numReorderPics[i]       = 0;
-  }
-#endif
 }
 
 TComPPS::TComPPS()
