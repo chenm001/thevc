@@ -142,6 +142,7 @@ extern const UInt   g_aauiGoRiceUpdate[4][16];            //!< parameter update 
   
 #if MULTILEVEL_SIGMAP_EXT
 extern const UInt   g_sigLastScan8x8[ 4 ][ 4 ];           //!< coefficient group scan order for 8x8 TUs
+extern       UInt   g_sigLastScanCG32x32[ 64 ];
 #endif
 
 // ====================================================================================================================

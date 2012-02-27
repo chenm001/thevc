@@ -2274,6 +2274,10 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     {
       scanCG = g_sigLastScan8x8[ uiScanIdx ];
     }
+    else if( uiLog2BlkSize == 5 )
+    {
+      scanCG = g_sigLastScanCG32x32;
+    }
 #endif
   }
   else

@@ -1264,6 +1264,10 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     {
       scanCG = g_sigLastScan8x8[ uiScanIdx ];
     }
+    else if( uiLog2BlockSize == 5 )
+    {
+      scanCG = g_sigLastScanCG32x32;
+    }
 #endif
   }
   else

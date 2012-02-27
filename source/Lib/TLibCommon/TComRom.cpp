@@ -543,6 +543,7 @@ const UInt g_sigLastScan8x8[ 4 ][ 4 ] =
   {0, 1, 2, 3},
   {0, 2, 1, 3}
 };
+UInt g_sigLastScanCG32x32[ 64 ];
 #endif
 
 UInt* g_auiNonSquareSigLastScan[ 4 ];
@@ -710,12 +711,15 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int
   const UInt  uiNumScanPos  = UInt( iWidth * iWidth );
   UInt        uiNextScanPos = 0;
 
-#if MULTILEVEL_SIGMAP_EXT
-  if( iWidth < 8 )
-#else
   if( iWidth < 16 )
-#endif
   {
+#if MULTILEVEL_SIGMAP_EXT
+  UInt* pBuffTemp = pBuffD;
+  if( iWidth == 8 )
+  {
+    pBuffTemp = g_sigLastScanCG32x32;
+  }
+#endif
   for( UInt uiScanLine = 0; uiNextScanPos < uiNumScanPos; uiScanLine++ )
   {
     int    iPrimDim  = int( uiScanLine );
@@ -727,14 +731,22 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int
     }
     while( iPrimDim >= 0 && iScndDim < iWidth )
     {
+#if MULTILEVEL_SIGMAP_EXT
+      pBuffTemp[ uiNextScanPos ] = iPrimDim * iWidth + iScndDim ;
+#else
       pBuffD[ uiNextScanPos ] = iPrimDim * iWidth + iScndDim ;
+#endif
       uiNextScanPos++;
       iScndDim++;
       iPrimDim--;
     }
   }
   }
+#if MULTILEVEL_SIGMAP_EXT
+  if( iWidth > 4 )
+#else
   else
+#endif
   {
     UInt uiNumBlkSide = iWidth >> 2;
     UInt uiNumBlks    = uiNumBlkSide * uiNumBlkSide;
@@ -744,6 +756,12 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int
     {
       uiNextScanPos   = 0;
       UInt initBlkPos = g_auiSigLastScan[ SCAN_DIAG ][ log2Blk ][ uiBlk ];
+#if MULTILEVEL_SIGMAP_EXT
+      if( iWidth == 32 )
+      {
+        initBlkPos = g_sigLastScanCG32x32[ uiBlk ];
+      }
+#endif
       UInt offsetY    = initBlkPos / uiNumBlkSide;
       UInt offsetX    = initBlkPos - offsetY * uiNumBlkSide;
       UInt offsetD    = 4 * ( offsetX + offsetY * iWidth );
