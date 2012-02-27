@@ -40,6 +40,9 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define LEVEL_CTX_LUMA_RED        1  ///<H0130: Luma level context reduction
+#define REMOVE_INFER_SIGGRP       1  ///<H0131: Remove inferred significant_coeff_group_flag
+
 #define SET_MERGE_TMVP_REFIDX     1  ///< H0278/H0199: Setting the merge TMVP refidx to 0 for the non-first partition
 
 #define MULTILEVEL_SIGMAP_EXT     1  ///< H0526: multi-level significance map extended to smaller TUs

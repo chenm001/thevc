@@ -1335,20 +1335,27 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
         iCGPosX = (uiScanIdx == SCAN_VER ? iCGBlkPos : 0);
       }
 #endif
+#if !REMOVE_INFER_SIGGRP
       Bool bInferredCGFlag = false;
-      
+#endif
+#if REMOVE_INFER_SIGGRP
+      if( iSubSet == iLastScanSet || iSubSet == 0)
+#else      
       if( iSubSet == iLastScanSet )
+#endif
       {
         uiSigCoeffGroupFlag[ iCGBlkPos ] = 1;
       }
       else
       {
+#if !REMOVE_INFER_SIGGRP
 #if MULTILEVEL_SIGMAP_EXT
         if( !TComTrQuant::bothCGNeighboursOne( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiScanIdx, uiWidth, uiHeight ) && ( iSubSet ) )
 #else
         if( !TComTrQuant::bothCGNeighboursOne( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiWidth, uiHeight ) && ( iSubSet ) )
 #endif
         {
+#endif
           UInt uiSigCoeffGroup   = (uiSigCoeffGroupFlag[ iCGBlkPos ] != 0);
 #if MULTILEVEL_SIGMAP_EXT
           UInt uiCtxSig  = TComTrQuant::getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiScanIdx, uiWidth, uiHeight );
@@ -1356,12 +1363,14 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           UInt uiCtxSig  = TComTrQuant::getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiWidth, uiHeight );
 #endif
           m_pcBinIf->encodeBin( uiSigCoeffGroup, baseCoeffGroupCtx[ uiCtxSig ] );
+#if !REMOVE_INFER_SIGGRP
         }
         else
         {
           uiSigCoeffGroupFlag[ iCGBlkPos ] = 1;
           bInferredCGFlag = true;
         }
+#endif
       }
       
       // encode significant_coeff_flag
@@ -1374,8 +1383,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           uiPosY    = uiBlkPos >> uiLog2BlockSize;
           uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
           uiSig     = (pcCoef[ uiBlkPos ] != 0);
-
+#if REMOVE_INFER_SIGGRP
+          if( iScanPosSig > iSubPos || iSubSet == 0 || numNonZero )
+#else
           if( iScanPosSig > iSubPos || bInferredCGFlag || numNonZero )
+#endif
           {
             uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
             m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
@@ -1441,16 +1453,21 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 #if !RESTRICT_GR1GR2FLAG_NUMBER
       UInt c2 = 0;
 #endif
-
+#if LEVEL_CTX_LUMA_RED
+      UInt uiCtxSet = (iSubSet > 0 && eTType==TEXT_LUMA) ? 2 : 0;
+#else
       UInt uiCtxSet = (iSubSet > 0 && eTType==TEXT_LUMA) ? 3 : 0;
+#endif
       
       if( uiNumOne > 0 )
       {
         uiCtxSet++;
+#if !LEVEL_CTX_LUMA_RED
         if( uiNumOne > 3 && eTType==TEXT_LUMA)
         {
           uiCtxSet++;
         }
+#endif
       }
       
       uiNumOne       >>= 1;
@@ -1484,6 +1501,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       if (c1 == 0)
       {
         baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUAbsSCModel.get( 0, 0 ) + 3 * uiCtxSet : m_cCUAbsSCModel.get( 0, 0 ) + NUM_ABS_FLAG_CTX_LUMA + 3 * uiCtxSet;
+
 #if RESTRICT_GR1GR2FLAG_NUMBER
         if ( firstC2FlagIdx != -1)
         {

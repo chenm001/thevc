@@ -2317,8 +2317,12 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     if ( uiMaxAbsLevel > 0 && iLastScanPos < 0 )
     {
       iLastScanPos            = iScanPos;
+#if LEVEL_CTX_LUMA_RED
+      uiCtxSet                = (iScanPos < SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 2;
+#else
       uiCtxSet                = iScanPos < SCAN_SET_SIZE ? 0 : 3;
       uiCtxSet                = (iScanPos < SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
+#endif
     }    
 
     if ( iLastScanPos >= 0 )
@@ -2327,6 +2331,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       UInt  uiLevel;
       UInt  uiOneCtx         = 4 * uiCtxSet + c1;
       UInt  uiAbsCtx         = 3 * uiCtxSet + c2;
+
       if( iScanPos == iLastScanPos )
       {
 #if RESTRICT_GR1GR2FLAG_NUMBER
@@ -2422,14 +2427,20 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         uiCoeff1Scanned   = 0;
         uiCoeff2Scanned   = 0; 
 #endif
+#if LEVEL_CTX_LUMA_RED
+        uiCtxSet          = (iScanPos == SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 2;
+#else
         uiCtxSet          = (iScanPos == SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
+#endif
         if( uiNumOne > 0 )
         {
           uiCtxSet++;
+#if !LEVEL_CTX_LUMA_RED
           if(uiNumOne > 3 && eTType==TEXT_LUMA)
           {
             uiCtxSet++;
           }
+#endif
         }
         uiNumOne    >>= 1;
       }
@@ -2490,7 +2501,11 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         if ( uiMaxAbsLevel > 0 && iLastScanPos < 0 )
         {
           iLastScanPos            = iScanPos;
+#if LEVEL_CTX_LUMA_RED
+          uiCtxSet                = (iScanPos < SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 2;
+#else
           uiCtxSet                = (iScanPos < SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
+#endif
           iCGLastScanPos          = iCGScanPos;
         }
 
@@ -2500,6 +2515,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
           UInt  uiLevel;
           UInt  uiOneCtx         = 4 * uiCtxSet + c1;
           UInt  uiAbsCtx         = 3 * uiCtxSet + c2;
+
           if( iScanPos == iLastScanPos )
           {
 #if RESTRICT_GR1GR2FLAG_NUMBER  
@@ -2604,14 +2620,20 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         uiCoeff1Scanned   = 0;
         uiCoeff2Scanned   = 0; 
 #endif
+#if LEVEL_CTX_LUMA_RED
+        uiCtxSet          = (iScanPos == SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 2;
+#else
         uiCtxSet          = (iScanPos == SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
+#endif
             if( uiNumOne > 0 )
             {
               uiCtxSet++;
+#if !LEVEL_CTX_LUMA_RED
               if( uiNumOne > 3 && eTType==TEXT_LUMA)
               {
                 uiCtxSet++;
               }
+#endif
             }
             uiNumOne    >>= 1;
           }
@@ -2639,10 +2661,14 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
       if (iCGLastScanPos >= 0) 
       {
+#if REMOVE_INFER_SIGGRP
+        if( iCGScanPos )
+#else
 #if MULTILEVEL_SIGMAP_EXT
         if ( !bothCGNeighboursOne( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY, uiScanIdx, uiWidth, uiHeight ) && (iCGScanPos != 0) )
 #else
         if ( !bothCGNeighboursOne( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY, uiWidth, uiHeight ) && (iCGScanPos != 0) )
+#endif
 #endif
         {
           if (uiSigCoeffGroupFlag[ uiCGBlkPos ] == 0)
@@ -2711,10 +2737,17 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
             }
           } // end if if (uiSigCoeffGroupFlag[ uiCGBlkPos ] == 0)
         }
+#if REMOVE_INFER_SIGGRP
+        else
+        {
+          uiSigCoeffGroupFlag[ uiCGBlkPos ] = 1;
+        }
+#else
         else // if ( !bothCGNeighboursOne( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY ) && (uiCGScanPos != 0) && (uiSigCoeffGroupFlag[ uiCGBlkPos ] != 0) )
         {
           uiSigCoeffGroupFlag[ uiCGBlkPos ] = 1;
         } // end if ( !bothCGNeighboursOne( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY ) && (uiCGScanPos != 0) && (uiSigCoeffGroupFlag[ uiCGBlkPos ] != 0) )
+#endif 
       }
     } //end for (iCGScanPos)
 #if !MULTILEVEL_SIGMAP_EXT
@@ -3448,10 +3481,14 @@ UInt TComTrQuant::getSigCoeffGroupCtxInc  ( const UInt*               uiSigCoeff
   {
     uiLower = (uiSigCoeffGroupFlag[ (uiCGPosY  + 1 ) * width + uiCGPosX ] != 0);
   }
+#if REMOVE_INFER_SIGGRP
+  return (uiRight || uiLower);
+#else
   return uiRight + uiLower;
+#endif
 
 }
-
+#if !REMOVE_INFER_SIGGRP
 // return 1 if both right neighbour and lower neighour are 1's
 Bool TComTrQuant::bothCGNeighboursOne ( const UInt*                   uiSigCoeffGroupFlag,
                                        const UInt                      uiCGPosX,
@@ -3492,7 +3529,7 @@ Bool TComTrQuant::bothCGNeighboursOne ( const UInt*                   uiSigCoeff
   
   return (uiRight & uiLower);
 }
-
+#endif
 /** set quantized matrix coefficient for encode
  * \param scalingList quantaized matrix address
  */

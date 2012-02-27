@@ -191,7 +191,7 @@ public:
                                        const UInt                     scanIdx,
 #endif
                                        Int width, Int height);
-  
+#if !REMOVE_INFER_SIGGRP  
   static Bool bothCGNeighboursOne  ( const UInt*                      uiSigCoeffGroupFlag,
                                     const UInt                       uiCGPosX,
                                     const UInt                       uiCGPosY,
@@ -199,6 +199,7 @@ public:
                                     const UInt                       scanIdx,
 #endif
                                     Int width, Int height);
+#endif
   Void initScalingList                      ();
   Void destroyScalingList                   ();
   Void setErrScaleCoeff    ( UInt list, UInt size, UInt qp, UInt dir);
