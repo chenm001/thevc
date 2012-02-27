@@ -203,6 +203,8 @@
 
 #define RPS_IN_SPS                    1 // Adopted during discussion of JCTVC-H0423
 
+#define H0412_REF_PIC_LIST_RESTRICTION 1
+
 #define H0566_TLA                     1
 
 #define H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER 1
