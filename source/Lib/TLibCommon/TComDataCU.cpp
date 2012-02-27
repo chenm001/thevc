@@ -3377,6 +3377,7 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   }
   else if (pInfo->iN < AMVP_MAX_NUM_CANDS)
   {
+#if !AMVP_ZERO_CHECKING_REMOVAL
     int j;
     for (j=0; j<pInfo->iN; j++)
     {
@@ -3387,9 +3388,12 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     }
     if (j == pInfo->iN)
     {
+#endif
       pInfo->m_acMvCand[pInfo->iN].set(0,0);
       pInfo->iN++;
+#if !AMVP_ZERO_CHECKING_REMOVAL
     }
+#endif
   }
   return ;
 }
@@ -3569,8 +3573,12 @@ Void TComDataCU::xUniqueMVPCand(AMVPInfo* pInfo)
   Int n = 1;
   if ( pInfo->iN == 0 )
   {
+#if AMVP_ZERO_CHECKING_REMOVAL
+    return;
+#else
     // Add a zero candidate is none is available
     pInfo->m_acMvCand[ 0 ].setZero();
+#endif
   }
   else
   {
