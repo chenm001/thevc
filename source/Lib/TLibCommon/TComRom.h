@@ -142,7 +142,6 @@ extern const UInt   g_aauiGoRiceUpdate[4][16];            //!< parameter update 
   
 #if MULTILEVEL_SIGMAP_EXT
 extern const UInt   g_sigLastScan8x8[ 4 ][ 4 ];           //!< coefficient group scan order for 8x8 TUs
-extern       UInt   g_sigLastScanCG32x32[ 64 ];
 #endif
 
 // ====================================================================================================================
@@ -179,8 +178,10 @@ extern const UChar g_aucConvertTxtTypeToIdx[4];
 // ==========================================
 // Mode-Dependent DST Matrices
 extern const short g_as_DST_MAT_4 [4][4];
+#if !LOG_INTA_NAME_3MPM
 extern const UChar g_aucDCTDSTMode_Vert[NUM_INTRA_MODE];
 extern const UChar g_aucDCTDSTMode_Hor[NUM_INTRA_MODE];
+#endif
 // ==========================================
 
 // ====================================================================================================================

@@ -92,21 +92,12 @@
 #define NUM_CTX_LAST_FLAG_XY          18      ///< number of context models for last coefficient position
 #endif
 
-#if LEVEL_CTX_LUMA_RED
-#define NUM_ONE_FLAG_CTX              24      ///< number of context models for greater than 1 flag
-#define NUM_ONE_FLAG_CTX_LUMA         16      ///< number of context models for greater than 1 flag of luma
-#define NUM_ONE_FLAG_CTX_CHROMA        8      ///< number of context models for greater than 1 flag of chroma
-#define NUM_ABS_FLAG_CTX              18      ///< number of context models for greater than 2 flag
-#define NUM_ABS_FLAG_CTX_LUMA         12      ///< number of context models for greater than 2 flag of luma
-#define NUM_ABS_FLAG_CTX_CHROMA        6      ///< number of context models for greater than 2 flag of chroma
-#else
 #define NUM_ONE_FLAG_CTX              32      ///< number of context models for greater than 1 flag
 #define NUM_ONE_FLAG_CTX_LUMA         24      ///< number of context models for greater than 1 flag of luma
 #define NUM_ONE_FLAG_CTX_CHROMA        8      ///< number of context models for greater than 1 flag of chroma
 #define NUM_ABS_FLAG_CTX              24      ///< number of context models for greater than 2 flag
 #define NUM_ABS_FLAG_CTX_LUMA         18      ///< number of context models for greater than 2 flag of luma
 #define NUM_ABS_FLAG_CTX_CHROMA        6      ///< number of context models for greater than 2 flag of chroma
-#endif
 
 #define NUM_MVP_IDX_CTX               2       ///< number of context models for MVP index
 
@@ -534,41 +525,6 @@ INIT_SIG_FLAG[3][NUM_SIG_FLAG_CTX] =
   },
 };
 
-#if LEVEL_CTX_LUMA_RED
-static const UChar
-INIT_ONE_FLAG[3][NUM_ONE_FLAG_CTX] =
-{
-  {
-    104,  68, 116,  86, 104, 132,  86,  87, 102,  66, 114,  68,  87,  84, 100, 101, 
-      104, 130, 147, 149, 104, 196, 100, 165,
-  },
-  {
-    119, 179, 179, 164, 119,  85, 117, 149, 133,  98, 114, 115, 118,  99, 115, 116,
-      135, 146, 147, 164, 119, 148, 116, 133,
-  },
-  {
-    119, 179, 148, 164, 119,  85, 117, 149, 133,  98, 114, 115, 118,  99, 115, 100,
-      135, 177, 147, 164, 119, 132, 148, 149,
-  },
-};
-
-static const UChar
-INIT_ABS_FLAG[3][NUM_ABS_FLAG_CTX] =
-{
-  {
-    86, 103,  73, 102, 103,  73, 115, 117, 103, 117, 118, 103,
-      101, 103, 104, 101, 167, 121,
-  },
-  {
-    84, 102,  88, 117, 118, 104, 83, 116, 118, 100, 117,  87,
-      84, 118, 120, 117, 150, 120,
-    },
-    {
-      84, 102,  88, 117, 118, 104, 83, 116, 118,  84, 117,  87,
-        84, 118, 120, 117, 150, 120,
-    },
-};
-#else
 static const UChar
 INIT_ONE_FLAG[3][NUM_ONE_FLAG_CTX] =
 {
@@ -603,7 +559,7 @@ INIT_ABS_FLAG[3][NUM_ABS_FLAG_CTX] =
     84, 118, 120, 117, 150, 120,
   },
 };
-#endif
+
 // initial probability for motion vector predictor index
 static const UChar
 INIT_MVP_IDX[3][NUM_MVP_IDX_CTX] =

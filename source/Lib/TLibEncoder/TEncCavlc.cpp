@@ -393,13 +393,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
     log2MinCUSize++;
   }
 
-#if H0412_REF_PIC_LIST_RESTRICTION
-  WRITE_FLAG( pcSPS->getRestrictedRefPicListsFlag(),                                 "restricted_ref_pic_lists_flag" );
-  if( pcSPS->getRestrictedRefPicListsFlag() )
-  {
-    WRITE_FLAG( pcSPS->getListsModificationPresentFlag(),                            "lists_modification_present_flag" );
-  }
-#endif
   WRITE_UVLC( log2MinCUSize - 3,                                                     "log2_min_coding_block_size_minus3" );
   WRITE_UVLC( pcSPS->getMaxCUDepth()-g_uiAddCUDepth,                                 "log2_diff_max_min_coding_block_size" );
   WRITE_UVLC( pcSPS->getQuadtreeTULog2MinSize() - 2,                                 "log2_min_transform_block_size_minus2" );
@@ -628,37 +621,30 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     {
       pcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
     }
-#if H0412_REF_PIC_LIST_RESTRICTION
-    if( pcSlice->getSPS()->getListsModificationPresentFlag() )
+    TComRefPicListModification* refPicListModification = pcSlice->getRefPicListModification();
+    if(!pcSlice->isIntra())
     {
-#endif
-      TComRefPicListModification* refPicListModification = pcSlice->getRefPicListModification();
-      if(!pcSlice->isIntra())
+      WRITE_FLAG(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0() ? 1 : 0,       "ref_pic_list_modification_flag" );    
+      for(Int i = 0; i < refPicListModification->getNumberOfRefPicListModificationsL0(); i++)
       {
-        WRITE_FLAG(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0() ? 1 : 0,       "ref_pic_list_modification_flag" );    
-        for(Int i = 0; i < refPicListModification->getNumberOfRefPicListModificationsL0(); i++)
-        {
-          WRITE_UVLC( refPicListModification->getListIdcL0(i), "ref_pic_list_modification_idc");
-          WRITE_UVLC( refPicListModification->getRefPicSetIdxL0(i), "ref_pic_set_idx");
-        }
-        if(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0())
-          WRITE_UVLC( 3, "ref_pic_list_modification_idc");
+        WRITE_UVLC( refPicListModification->getListIdcL0(i), "ref_pic_list_modification_idc");
+        WRITE_UVLC( refPicListModification->getRefPicSetIdxL0(i), "ref_pic_set_idx");
       }
-      if(pcSlice->isInterB())
-      {    
-        WRITE_FLAG(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL1() ? 1 : 0,       "ref_pic_list_modification_flag" );
-        for(Int i = 0; i < refPicListModification->getNumberOfRefPicListModificationsL1(); i++)
-        {
-          WRITE_UVLC( refPicListModification->getListIdcL1(i), "ref_pic_list_modification_idc");
-          WRITE_UVLC( refPicListModification->getRefPicSetIdxL1(i), "ref_pic_set_idx");
-        }
-        if(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL1())
-          WRITE_UVLC( 3, "ref_pic_list_modification_idc");
-      }
+      if(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0())
+        WRITE_UVLC( 3, "ref_pic_list_modification_idc");
     }
-#if H0412_REF_PIC_LIST_RESTRICTION
+    if(pcSlice->isInterB())
+    {    
+      WRITE_FLAG(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL1() ? 1 : 0,       "ref_pic_list_modification_flag" );
+      for(Int i = 0; i < refPicListModification->getNumberOfRefPicListModificationsL1(); i++)
+      {
+        WRITE_UVLC( refPicListModification->getListIdcL1(i), "ref_pic_list_modification_idc");
+        WRITE_UVLC( refPicListModification->getRefPicSetIdxL1(i), "ref_pic_set_idx");
+      }
+      if(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL1())
+        WRITE_UVLC( 3, "ref_pic_list_modification_idc");
+    }
   }
-#endif
   // ref_pic_list_combination( )
   // maybe move to own function?
   if (pcSlice->isInterB())
@@ -668,22 +654,15 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     {
       WRITE_UVLC( pcSlice->getNumRefIdx(REF_PIC_LIST_C) - 1,          "num_ref_idx lc_active_minus1");
       
-#if H0412_REF_PIC_LIST_RESTRICTION
-      if( pcSlice->getSPS()->getListsModificationPresentFlag() )
+      WRITE_FLAG( pcSlice->getRefPicListModificationFlagLC() ? 1 : 0, "ref_pic_list_modification_flag_lc" );
+      if(pcSlice->getRefPicListModificationFlagLC())
       {
-#endif
-        WRITE_FLAG( pcSlice->getRefPicListModificationFlagLC() ? 1 : 0, "ref_pic_list_modification_flag_lc" );
-        if(pcSlice->getRefPicListModificationFlagLC())
+        for (UInt i=0;i<pcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
         {
-          for (UInt i=0;i<pcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
-          {
-            WRITE_FLAG( pcSlice->getListIdFromIdxOfLC(i),               "pic_from_list_0_flag" );
-            WRITE_UVLC( pcSlice->getRefIdxFromIdxOfLC(i),               "ref_idx_list_curr" );
-          }
+          WRITE_FLAG( pcSlice->getListIdFromIdxOfLC(i),               "pic_from_list_0_flag" );
+          WRITE_UVLC( pcSlice->getRefIdxFromIdxOfLC(i),               "ref_idx_list_curr" );
         }
-#if H0412_REF_PIC_LIST_RESTRICTION
       }
-#endif
     }
   }
     

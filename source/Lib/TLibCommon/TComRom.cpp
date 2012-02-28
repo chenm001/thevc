@@ -378,6 +378,8 @@ const short g_as_DST_MAT_4 [4][4]=
   {84,  -29,   -74,   55},
   {55,  -84,    74,  -29},
 };
+
+#if !LOGI_INTRA_NAME_3MPM
 // Mapping each Unified Directional Intra prediction direction to DCT/DST transform 
 // 0 implies use DCT, 1 implies DST
 const UChar g_aucDCTDSTMode_Vert[NUM_INTRA_MODE] =
@@ -388,7 +390,7 @@ const UChar g_aucDCTDSTMode_Hor[NUM_INTRA_MODE] =
 { //0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33
   1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0
 };
-
+#endif
 
 
 // ====================================================================================================================
@@ -423,6 +425,7 @@ const UChar g_aucIntraModeNumFast[7] =
 
 const UChar g_aucConvertTxtTypeToIdx[4] = { 0, 1, 1, 2 };
 
+#if !LOGI_INTRA_NAME_3MPM
 // ====================================================================================================================
 // Angular Intra prediction
 // ====================================================================================================================
@@ -491,7 +494,7 @@ const UChar g_aucIntraModeBitsAng[7] =
   6,  //  64x64   34   5+esc
   3   // 128x128   5   2+1
 };
-
+#endif
 // ====================================================================================================================
 // Bit-depth
 // ====================================================================================================================
@@ -543,7 +546,6 @@ const UInt g_sigLastScan8x8[ 4 ][ 4 ] =
   {0, 1, 2, 3},
   {0, 2, 1, 3}
 };
-UInt g_sigLastScanCG32x32[ 64 ];
 #endif
 
 UInt* g_auiNonSquareSigLastScan[ 4 ];
@@ -711,15 +713,12 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int
   const UInt  uiNumScanPos  = UInt( iWidth * iWidth );
   UInt        uiNextScanPos = 0;
 
-  if( iWidth < 16 )
-  {
 #if MULTILEVEL_SIGMAP_EXT
-  UInt* pBuffTemp = pBuffD;
-  if( iWidth == 8 )
-  {
-    pBuffTemp = g_sigLastScanCG32x32;
-  }
+  if( iWidth < 8 )
+#else
+  if( iWidth < 16 )
 #endif
+  {
   for( UInt uiScanLine = 0; uiNextScanPos < uiNumScanPos; uiScanLine++ )
   {
     int    iPrimDim  = int( uiScanLine );
@@ -731,22 +730,14 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int
     }
     while( iPrimDim >= 0 && iScndDim < iWidth )
     {
-#if MULTILEVEL_SIGMAP_EXT
-      pBuffTemp[ uiNextScanPos ] = iPrimDim * iWidth + iScndDim ;
-#else
       pBuffD[ uiNextScanPos ] = iPrimDim * iWidth + iScndDim ;
-#endif
       uiNextScanPos++;
       iScndDim++;
       iPrimDim--;
     }
   }
   }
-#if MULTILEVEL_SIGMAP_EXT
-  if( iWidth > 4 )
-#else
   else
-#endif
   {
     UInt uiNumBlkSide = iWidth >> 2;
     UInt uiNumBlks    = uiNumBlkSide * uiNumBlkSide;
@@ -756,12 +747,6 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int
     {
       uiNextScanPos   = 0;
       UInt initBlkPos = g_auiSigLastScan[ SCAN_DIAG ][ log2Blk ][ uiBlk ];
-#if MULTILEVEL_SIGMAP_EXT
-      if( iWidth == 32 )
-      {
-        initBlkPos = g_sigLastScanCG32x32[ uiBlk ];
-      }
-#endif
       UInt offsetY    = initBlkPos / uiNumBlkSide;
       UInt offsetX    = initBlkPos - offsetY * uiNumBlkSide;
       UInt offsetD    = 4 * ( offsetX + offsetY * iWidth );

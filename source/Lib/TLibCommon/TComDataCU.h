@@ -217,9 +217,7 @@ protected:
   Bool          xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUnitIdx, TComMv& rcMv, Int& riRefIdx );
   
   /// remove redundant candidates
-#if !AMVP_PRUNING_SIMPLIFICATION
   Void          xUniqueMVPCand        ( AMVPInfo* pInfo );
-#endif
 
   Void xCheckCornerCand( TComDataCU* pcCorner, UInt uiCornerIdx, UInt uiIter, Bool& rbValidCand );
   /// compute required bits to encode MVD (used in AMVP)

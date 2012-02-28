@@ -1191,10 +1191,6 @@ TComSPS::TComSPS()
 , m_bUseLMChroma              (false)
 , m_bUseLComb                 (false)
 , m_bLCMod                    (false)
-#if H0412_REF_PIC_LIST_RESTRICTION
-, m_restrictedRefPicListsFlag   (  1)
-, m_listsModificationPresentFlag(  0)
-#endif
 , m_uiBitDepth                (  8)
 , m_uiBitIncrement            (  0)
 #if H0736_AVC_STYLE_QP_RANGE
@@ -1217,14 +1213,6 @@ TComSPS::TComSPS()
 {
   // AMVP parameter
   ::memset( m_aeAMVPMode, 0, sizeof( m_aeAMVPMode ) );
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  for ( Int i = 0; i < MAX_TLAYER; i++ )
-  {
-    m_uiMaxLatencyIncrease[i] = 0;
-    m_uiMaxDecPicBuffering[i] = 0;
-    m_numReorderPics[i]       = 0;
-  }
-#endif
 }
 
 TComSPS::~TComSPS()
@@ -1239,6 +1227,14 @@ TComSPS::~TComSPS()
     delete [] m_puiRowHeight;
     m_puiRowHeight = NULL;
   }
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  for ( UInt i = 0; i < MAX_TLAYER; i++ )
+  {
+    m_uiMaxLatencyIncrease[i] = 0;
+    m_uiMaxDecPicBuffering[i] = 0;
+    m_numReorderPics[i]       = 0;
+  }
+#endif
 }
 
 TComPPS::TComPPS()
