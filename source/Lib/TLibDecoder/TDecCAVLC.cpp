@@ -1427,27 +1427,27 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     READ_SVLC( iCode, "slice_qp_delta" ); 
     rpcSlice->setSliceQp (26 + pps->getPicInitQPMinus26() + iCode);
 #if DBL_CONTROL
-   if (rpcSlice->getPPS()->getDeblockingFilterControlPresent())
-   {
-    if ( rpcSlice->getSPS()->getUseDF() )
+    if (rpcSlice->getPPS()->getDeblockingFilterControlPresent())
     {
-      READ_FLAG ( uiCode, "inherit_dbl_param_from_APS_flag" ); rpcSlice->setInheritDblParamFromAPS(uiCode ? 1 : 0);
-    } else
-    {
-      rpcSlice->setInheritDblParamFromAPS(0);
-    }
+      if ( rpcSlice->getSPS()->getUseDF() )
+      {
+        READ_FLAG ( uiCode, "inherit_dbl_param_from_APS_flag" ); rpcSlice->setInheritDblParamFromAPS(uiCode ? 1 : 0);
+      } else
+      {
+        rpcSlice->setInheritDblParamFromAPS(0);
+      }
 #else
     READ_FLAG ( uiCode, "inherit_dbl_param_from_APS_flag" ); rpcSlice->setInheritDblParamFromAPS(uiCode ? 1 : 0);
 #endif
-    if(!rpcSlice->getInheritDblParamFromAPS())
-    {
-      READ_FLAG ( uiCode, "disable_deblocking_filter_flag" );  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
-      if(!rpcSlice->getLoopFilterDisable())
+      if(!rpcSlice->getInheritDblParamFromAPS())
       {
-        READ_SVLC( iCode, "beta_offset_div2" ); rpcSlice->setLoopFilterBetaOffset(iCode);
-        READ_SVLC( iCode, "tc_offset_div2" ); rpcSlice->setLoopFilterTcOffset(iCode);
+        READ_FLAG ( uiCode, "disable_deblocking_filter_flag" );  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
+        if(!rpcSlice->getLoopFilterDisable())
+        {
+          READ_SVLC( iCode, "beta_offset_div2" ); rpcSlice->setLoopFilterBetaOffset(iCode);
+          READ_SVLC( iCode, "tc_offset_div2" ); rpcSlice->setLoopFilterTcOffset(iCode);
+        }
       }
-    }
 #if DBL_CONTROL
    }
 #endif

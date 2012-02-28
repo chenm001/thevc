@@ -347,18 +347,18 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   
   rpcSlice->setLoopFilterOffsetInAPS( m_pcCfg->getLoopFilterOffsetInAPS() );
 #if DBL_CONTROL
- if (rpcSlice->getPPS()->getDeblockingFilterControlPresent())
- {
-#endif
-  rpcSlice->setInheritDblParamFromAPS( m_pcCfg->getLoopFilterOffsetInAPS() ? 1 : 0 );
-  rpcSlice->setLoopFilterDisable( m_pcCfg->getLoopFilterDisable() );
-  if ( !rpcSlice->getLoopFilterDisable())
+  if (rpcSlice->getPPS()->getDeblockingFilterControlPresent())
   {
-    rpcSlice->setLoopFilterBetaOffset( m_pcCfg->getLoopFilterBetaOffset() );
-    rpcSlice->setLoopFilterTcOffset( m_pcCfg->getLoopFilterTcOffset() );
-  }
+#endif
+    rpcSlice->setInheritDblParamFromAPS( m_pcCfg->getLoopFilterOffsetInAPS() ? 1 : 0 );
+    rpcSlice->setLoopFilterDisable( m_pcCfg->getLoopFilterDisable() );
+    if ( !rpcSlice->getLoopFilterDisable())
+    {
+      rpcSlice->setLoopFilterBetaOffset( m_pcCfg->getLoopFilterBetaOffset() );
+      rpcSlice->setLoopFilterTcOffset( m_pcCfg->getLoopFilterTcOffset() );
+    }
 #if DBL_CONTROL
- }
+  }
 #endif
 
   rpcSlice->setDepth            ( iDepth );

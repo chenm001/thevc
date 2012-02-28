@@ -101,7 +101,8 @@ Void TComLoopFilter::setCfg( UInt uiDisableDblkIdc, Int iBetaOffset_div2, Int iT
     m_uiDisableDeblockingFilterIdc  = uiDisableDblkIdc;
     m_betaOffsetDiv2 = iBetaOffset_div2;
     m_tcOffsetDiv2 = iTcOffset_div2;
-  } else // use default values
+  } 
+  else // use default values
   {
     m_uiDisableDeblockingFilterIdc = 0;
     m_betaOffsetDiv2 = 0;

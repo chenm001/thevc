@@ -221,24 +221,24 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     Bool bLFCrossTileBoundary = (pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)?
                                 (pcSlice->getPPS()->getLFCrossTileBoundaryFlag()):(pcSlice->getPPS()->getSPS()->getLFCrossTileBoundaryFlag());
 #if DBL_CONTROL
-   if (pcSlice->getPPS()->getDeblockingFilterControlPresent())
-   {
-#endif
-    if(pcSlice->getSPS()->getUseDF())
+    if (pcSlice->getPPS()->getDeblockingFilterControlPresent())
     {
-      if(pcSlice->getInheritDblParamFromAPS())
+#endif
+      if(pcSlice->getSPS()->getUseDF())
       {
-        pcSlice->setLoopFilterDisable(pcSlice->getAPS()->getLoopFilterDisable());
-        if (!pcSlice->getLoopFilterDisable())
+        if(pcSlice->getInheritDblParamFromAPS())
         {
-          pcSlice->setLoopFilterBetaOffset(pcSlice->getAPS()->getLoopFilterBetaOffset());
-          pcSlice->setLoopFilterTcOffset(pcSlice->getAPS()->getLoopFilterTcOffset());
+          pcSlice->setLoopFilterDisable(pcSlice->getAPS()->getLoopFilterDisable());
+          if (!pcSlice->getLoopFilterDisable())
+          {
+            pcSlice->setLoopFilterBetaOffset(pcSlice->getAPS()->getLoopFilterBetaOffset());
+            pcSlice->setLoopFilterTcOffset(pcSlice->getAPS()->getLoopFilterTcOffset());
+          }
         }
       }
-    }
 #if DBL_CONTROL
-   }
-   m_pcLoopFilter->setCfg(pcSlice->getPPS()->getDeblockingFilterControlPresent(), pcSlice->getLoopFilterDisable(), pcSlice->getLoopFilterBetaOffset(), pcSlice->getLoopFilterTcOffset(), bLFCrossTileBoundary);
+    }
+    m_pcLoopFilter->setCfg(pcSlice->getPPS()->getDeblockingFilterControlPresent(), pcSlice->getLoopFilterDisable(), pcSlice->getLoopFilterBetaOffset(), pcSlice->getLoopFilterTcOffset(), bLFCrossTileBoundary);
 #else
     m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), pcSlice->getLoopFilterBetaOffset(), pcSlice->getLoopFilterTcOffset(), bLFCrossTileBoundary);
 #endif

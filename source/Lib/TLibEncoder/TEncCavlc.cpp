@@ -640,49 +640,32 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   {
     Int iCode = pcSlice->getSliceQp() - ( pcSlice->getPPS()->getPicInitQPMinus26() + 26 );
     WRITE_SVLC( iCode, "slice_qp_delta" ); 
-  //   if( sample_adaptive_offset_enabled_flag )
-  //     sao_param()
-  //   if( deblocking_filter_control_present_flag ) {
-  //     disable_deblocking_filter_idc
 #if DBL_CONTROL
-   if (pcSlice->getPPS()->getDeblockingFilterControlPresent())
-   {
-    if ( pcSlice->getSPS()->getUseDF() )
+    if (pcSlice->getPPS()->getDeblockingFilterControlPresent())
     {
-      WRITE_FLAG(pcSlice->getInheritDblParamFromAPS(), "inherit_dbl_param_from_APS_flag");
-    }
+      if ( pcSlice->getSPS()->getUseDF() )
+      {
+        WRITE_FLAG(pcSlice->getInheritDblParamFromAPS(), "inherit_dbl_param_from_APS_flag");
+      }
 #else
     WRITE_FLAG(pcSlice->getInheritDblParamFromAPS(), "inherit_dbl_param_from_APS_flag");
 #endif
-    if (!pcSlice->getInheritDblParamFromAPS())
-    {
-      WRITE_FLAG(pcSlice->getLoopFilterDisable(), "loop_filter_disable");  // should be an IDC
-      if(!pcSlice->getLoopFilterDisable())
+      if (!pcSlice->getInheritDblParamFromAPS())
       {
-        WRITE_SVLC (pcSlice->getLoopFilterBetaOffset(), "beta_offset_div2");
-        WRITE_SVLC (pcSlice->getLoopFilterTcOffset(), "tc_offset_div2");
+        WRITE_FLAG(pcSlice->getLoopFilterDisable(), "loop_filter_disable");  // should be an IDC
+        if(!pcSlice->getLoopFilterDisable())
+        {
+          WRITE_SVLC (pcSlice->getLoopFilterBetaOffset(), "beta_offset_div2");
+          WRITE_SVLC (pcSlice->getLoopFilterTcOffset(), "tc_offset_div2");
+        }
       }
-    }
 #if DBL_CONTROL
-   }
+    }
 #endif
-  //     if( disable_deblocking_filter_idc  !=  1 ) {
-  //       slice_alpha_c0_offset_div2
-  //       slice_beta_offset_div2
-  //     }
-  //   }
-  //   if( slice_type = = B )
-  //   collocated_from_l0_flag
     if ( pcSlice->getSliceType() == B_SLICE )
     {
       WRITE_FLAG( pcSlice->getColDir(), "collocated_from_l0_flag" );
     }
-    //   if( adaptive_loop_filter_enabled_flag ) {
-  //     if( !shared_pps_info_enabled_flag )
-  //       alf_param( )
-  //     alf_cu_control_param( )
-  //   }
-  // }
   
     if ( (pcSlice->getPPS()->getUseWP() && pcSlice->getSliceType()==P_SLICE) || (pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getSliceType()==B_SLICE) )
     {
