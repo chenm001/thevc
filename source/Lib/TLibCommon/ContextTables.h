@@ -96,16 +96,28 @@
 #define NUM_ONE_FLAG_CTX              24      ///< number of context models for greater than 1 flag
 #define NUM_ONE_FLAG_CTX_LUMA         16      ///< number of context models for greater than 1 flag of luma
 #define NUM_ONE_FLAG_CTX_CHROMA        8      ///< number of context models for greater than 1 flag of chroma
+#if RESTRICT_GR1GR2FLAG_NUMBER
+#define NUM_ABS_FLAG_CTX               6      ///< number of context models for greater than 2 flag
+#define NUM_ABS_FLAG_CTX_LUMA          4      ///< number of context models for greater than 2 flag of luma
+#define NUM_ABS_FLAG_CTX_CHROMA        2      ///< number of context models for greater than 2 flag of chroma
+#else
 #define NUM_ABS_FLAG_CTX              18      ///< number of context models for greater than 2 flag
 #define NUM_ABS_FLAG_CTX_LUMA         12      ///< number of context models for greater than 2 flag of luma
 #define NUM_ABS_FLAG_CTX_CHROMA        6      ///< number of context models for greater than 2 flag of chroma
+#endif
 #else
 #define NUM_ONE_FLAG_CTX              32      ///< number of context models for greater than 1 flag
 #define NUM_ONE_FLAG_CTX_LUMA         24      ///< number of context models for greater than 1 flag of luma
 #define NUM_ONE_FLAG_CTX_CHROMA        8      ///< number of context models for greater than 1 flag of chroma
+#if RESTRICT_GR1GR2FLAG_NUMBER
+#define NUM_ABS_FLAG_CTX               8      ///< number of context models for greater than 2 flag
+#define NUM_ABS_FLAG_CTX_LUMA          6      ///< number of context models for greater than 2 flag of luma
+#define NUM_ABS_FLAG_CTX_CHROMA        2      ///< number of context models for greater than 2 flag of chroma
+#else
 #define NUM_ABS_FLAG_CTX              24      ///< number of context models for greater than 2 flag
 #define NUM_ABS_FLAG_CTX_LUMA         18      ///< number of context models for greater than 2 flag of luma
 #define NUM_ABS_FLAG_CTX_CHROMA        6      ///< number of context models for greater than 2 flag of chroma
+#endif
 #endif
 
 #define NUM_MVP_IDX_CTX               2       ///< number of context models for MVP index
@@ -552,6 +564,21 @@ INIT_ONE_FLAG[3][NUM_ONE_FLAG_CTX] =
   },
 };
 
+#if RESTRICT_GR1GR2FLAG_NUMBER
+static const UChar
+INIT_ABS_FLAG[3][NUM_ABS_FLAG_CTX] =
+{
+  {
+    86, 102, 115, 117, 101, 101,
+  },
+  {
+    84, 117, 83, 100, 84, 117,
+  },
+  {
+    84, 117, 83,  84, 84, 117,
+  },
+};
+#else
 static const UChar
 INIT_ABS_FLAG[3][NUM_ABS_FLAG_CTX] =
 {
@@ -568,6 +595,7 @@ INIT_ABS_FLAG[3][NUM_ABS_FLAG_CTX] =
         84, 118, 120, 117, 150, 120,
     },
 };
+#endif
 #else
 static const UChar
 INIT_ONE_FLAG[3][NUM_ONE_FLAG_CTX] =
@@ -586,7 +614,21 @@ INIT_ONE_FLAG[3][NUM_ONE_FLAG_CTX] =
   },
 };
 
-
+#if RESTRICT_GR1GR2FLAG_NUMBER
+static const UChar
+INIT_ABS_FLAG[3][NUM_ABS_FLAG_CTX] =
+{
+  {
+    86, 102, 103, 115, 117, 102, 101, 101,
+  },
+  {
+    84, 117, 103, 83, 100, 85, 84, 117, 
+  },
+  {
+    84, 117, 87, 83, 84, 69, 84, 117,
+  },
+};
+#else
 static const UChar
 INIT_ABS_FLAG[3][NUM_ABS_FLAG_CTX] =
 {
@@ -603,6 +645,7 @@ INIT_ABS_FLAG[3][NUM_ABS_FLAG_CTX] =
     84, 118, 120, 117, 150, 120,
   },
 };
+#endif
 #endif
 // initial probability for motion vector predictor index
 static const UChar

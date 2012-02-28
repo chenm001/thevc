@@ -310,8 +310,8 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
                                              UShort                          ui16CtxNumAbs,
                                              UShort                          ui16AbsGoRice,
 #if RESTRICT_GR1GR2FLAG_NUMBER
-                                             UInt                            uiCoeff1Scanned,  
-                                             UInt                            uiCoeff2Scanned,  
+                                             UInt                            c1Idx,  
+                                             UInt                            c2Idx,  
 #endif
                                              Int                             iQBits,
                                              Double                          dTemp,
@@ -321,8 +321,8 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
                                      UShort                          ui16CtxNumAbs,
                                      UShort                          ui16AbsGoRice 
 #if RESTRICT_GR1GR2FLAG_NUMBER
-                                   , UInt                            uiCoeff1Scanned,
-                                     UInt                            uiCoeff2Scanned
+                                   , UInt                            c1Idx,
+                                     UInt                            c2Idx
 #endif
                                      ) const;
 #if MULTIBITS_DATA_HIDING
@@ -331,8 +331,8 @@ __inline Int xGetICRate  ( UInt                            uiAbsLevel,
                            UShort                          ui16CtxNumAbs,
                            UShort                          ui16AbsGoRice
 #if RESTRICT_GR1GR2FLAG_NUMBER
-                         , UInt                            uiCoeff1Scanned,
-                           UInt                            uiCoeff2Scanned
+                         , UInt                            c1Idx,
+                           UInt                            c2Idx
 #endif
                          ) const;
 #endif

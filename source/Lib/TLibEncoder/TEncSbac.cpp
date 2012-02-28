@@ -1533,7 +1533,9 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 
 #if RESTRICT_GR1GR2FLAG_NUMBER
           if (firstC2FlagIdx == -1)
+          {
             firstC2FlagIdx = idx;
+          }
 #endif
         }
         else if( (c1 < 3) && (c1 > 0) )
@@ -1544,15 +1546,16 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       
       if (c1 == 0)
       {
-        baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUAbsSCModel.get( 0, 0 ) + 3 * uiCtxSet : m_cCUAbsSCModel.get( 0, 0 ) + NUM_ABS_FLAG_CTX_LUMA + 3 * uiCtxSet;
 
 #if RESTRICT_GR1GR2FLAG_NUMBER
+        baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUAbsSCModel.get( 0, 0 ) + uiCtxSet : m_cCUAbsSCModel.get( 0, 0 ) + NUM_ABS_FLAG_CTX_LUMA + uiCtxSet;
         if ( firstC2FlagIdx != -1)
         {
           UInt symbol = absCoeff[ firstC2FlagIdx ] > 2;
           m_pcBinIf->encodeBin( symbol, baseCtxMod[0] );
         }
 #else    
+        baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUAbsSCModel.get( 0, 0 ) + 3 * uiCtxSet : m_cCUAbsSCModel.get( 0, 0 ) + NUM_ABS_FLAG_CTX_LUMA + 3 * uiCtxSet;
         for ( Int idx = 0; idx < numNonZero; idx++ )
         {
           if( absCoeff[ idx ] > 1 )
@@ -1589,11 +1592,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
         for ( Int idx = 0; idx < numNonZero; idx++ )
         {
 #if RESTRICT_GR1GR2FLAG_NUMBER
-          UInt iBaseRiceLevel  = (idx < C1FLAG_NUMBER)? (2 + iFirstCoeff2 ) : 1;
+          UInt baseLevel  = (idx < C1FLAG_NUMBER)? (2 + iFirstCoeff2 ) : 1;
 
-          if( absCoeff[ idx ] >= iBaseRiceLevel)
+          if( absCoeff[ idx ] >= baseLevel)
           {
-            xWriteGoRiceExGolomb( absCoeff[ idx ] - iBaseRiceLevel, uiGoRiceParam ); 
+            xWriteGoRiceExGolomb( absCoeff[ idx ] - baseLevel, uiGoRiceParam ); 
           }
           if(absCoeff[ idx ] >= 2)  
           {
