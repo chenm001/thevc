@@ -1252,7 +1252,7 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
   rpcTempCU->getInterMergeCandidates( 0, 0, uhDepth, cMvFieldNeighbours,uhInterDirNeighbours, numValidMergeCand );
 
 #if FAST_DECISION_FOR_MRG_RD_COST
-  Bool bBestIsSkip = false;
+  Bool bestIsSkip = false;
 #endif
   
   for( UInt uiMergeCand = 0; uiMergeCand < numValidMergeCand; ++uiMergeCand )
@@ -1262,7 +1262,7 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
       for( UInt uiNoResidual = 0; uiNoResidual < 2; ++uiNoResidual )
       {
 #if FAST_DECISION_FOR_MRG_RD_COST
-        if( !(bBestIsSkip && uiNoResidual == 0) )
+        if( !(bestIsSkip && uiNoResidual == 0) )
         {
 #endif
           // set MC parameters
@@ -1285,7 +1285,7 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
           else
           {
 #if FAST_DECISION_FOR_MRG_RD_COST
-            if( bBestIsSkip)
+            if( bestIsSkip)
             {
               m_pcPredSearch->motionCompensation ( rpcTempCU, m_ppcPredYuvTemp[uhDepth] );
               // save pred adress
@@ -1326,9 +1326,9 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
 #endif
 
 #if FAST_DECISION_FOR_MRG_RD_COST
-          if( m_pcEncCfg->getUseFastDecisionForMerge() && !bBestIsSkip )
+          if( m_pcEncCfg->getUseFastDecisionForMerge() && !bestIsSkip )
           {
-            bBestIsSkip = rpcBestCU->getQtRootCbf(0) == 0;
+            bestIsSkip = rpcBestCU->getQtRootCbf(0) == 0;
           }
 #endif
 

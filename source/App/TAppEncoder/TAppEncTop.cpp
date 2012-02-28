@@ -156,7 +156,7 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
   m_cTEncTop.setUseEarlyCU                   ( m_bUseEarlyCU  ); 
 #if FAST_DECISION_FOR_MRG_RD_COST
-  m_cTEncTop.setUseFastDecisionForMerge      ( m_bUseFastDecisionForMerge  );
+  m_cTEncTop.setUseFastDecisionForMerge      ( m_useFastDecisionForMerge  );
 #endif
   m_cTEncTop.setUseCbfFastMode            ( m_bUseCbfFastMode  );
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:

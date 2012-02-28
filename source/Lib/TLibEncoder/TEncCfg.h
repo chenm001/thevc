@@ -184,7 +184,7 @@ protected:
   Bool      m_bUseFastEnc;
   Bool      m_bUseEarlyCU;
 #if FAST_DECISION_FOR_MRG_RD_COST
-  Bool      m_bUseFastDecisionForMerge;
+  Bool      m_useFastDecisionForMerge;
 #endif
   Bool      m_bUseCbfFastMode;
   Bool      m_bUseMRG; // SOPH:
@@ -399,7 +399,7 @@ public:
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
   Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
 #if FAST_DECISION_FOR_MRG_RD_COST
-  Void      setUseFastDecisionForMerge      ( Bool  b )     { m_bUseFastDecisionForMerge = b; }
+  Void      setUseFastDecisionForMerge      ( Bool  b )     { m_useFastDecisionForMerge = b; }
 #endif
   Void      setUseCbfFastMode            ( Bool  b )     { m_bUseCbfFastMode = b; }
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
@@ -428,7 +428,7 @@ public:
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
   Bool      getUseEarlyCU                   ()      { return m_bUseEarlyCU; }
 #if FAST_DECISION_FOR_MRG_RD_COST
-  Bool      getUseFastDecisionForMerge      ()      { return m_bUseFastDecisionForMerge; }
+  Bool      getUseFastDecisionForMerge      ()      { return m_useFastDecisionForMerge; }
 #endif
   Bool      getUseCbfFastMode           ()      { return m_bUseCbfFastMode; }
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:

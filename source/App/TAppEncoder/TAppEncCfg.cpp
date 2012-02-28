@@ -301,7 +301,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("FEN", m_bUseFastEnc, false, "fast encoder setting")
   ("ECU", m_bUseEarlyCU, false, "Early CU setting") 
 #if FAST_DECISION_FOR_MRG_RD_COST
-  ("FDM", m_bUseFastDecisionForMerge, true, "Fast decision for Merge RD Cost") 
+  ("FDM", m_useFastDecisionForMerge, true, "Fast decision for Merge RD Cost") 
 #endif
   ("CFM", m_bUseCbfFastMode, false, "Cbf fast mode setting")
   /* Compatability with old style -1 FOO or -0 FOO options. */
@@ -872,7 +872,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("ECU:%d ", m_bUseEarlyCU         );
 #if FAST_DECISION_FOR_MRG_RD_COST
-  printf("FDM:%d ", m_bUseFastDecisionForMerge );
+  printf("FDM:%d ", m_useFastDecisionForMerge );
 #endif
   printf("CFM:%d ", m_bUseCbfFastMode         );
   printf("RQT:%d ", 1     );
