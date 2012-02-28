@@ -1133,7 +1133,7 @@ Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int w
     else
     {
 #endif
-    m_pcTDecBinIf->decodeBin( uiLast, *( pCtxX + puiCtxIdxX[ uiPosLastX ] ) );
+      m_pcTDecBinIf->decodeBin( uiLast, *( pCtxX + puiCtxIdxX[ uiPosLastX ] ) );
 #if LAST_CTX_REDUCTION
     }
 #endif
@@ -1160,7 +1160,7 @@ Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int w
     else
     {
 #endif
-    m_pcTDecBinIf->decodeBin( uiLast, *( pCtxY + puiCtxIdxY[ uiPosLastY ] ) );
+      m_pcTDecBinIf->decodeBin( uiLast, *( pCtxY + puiCtxIdxY[ uiPosLastY ] ) );
 #if LAST_CTX_REDUCTION
     }
 #endif

@@ -1112,7 +1112,7 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
     else
     {
 #endif
-    m_pcBinIf->encodeBin( 0, *( pCtxX + puiCtxIdxX[ uiCtxLast ] ) );
+      m_pcBinIf->encodeBin( 0, *( pCtxX + puiCtxIdxX[ uiCtxLast ] ) );
 #if LAST_CTX_REDUCTION
     }
 #endif
@@ -1135,7 +1135,7 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
     else
     {
 #endif
-    m_pcBinIf->encodeBin( 1, *( pCtxY + puiCtxIdxY[ uiCtxLast ] ) );
+      m_pcBinIf->encodeBin( 1, *( pCtxY + puiCtxIdxY[ uiCtxLast ] ) );
 #if LAST_CTX_REDUCTION
     }
 #endif
@@ -1150,7 +1150,7 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
     else
     {
 #endif
-    m_pcBinIf->encodeBin( 0, *( pCtxY + puiCtxIdxY[ uiCtxLast ] ) );
+      m_pcBinIf->encodeBin( 0, *( pCtxY + puiCtxIdxY[ uiCtxLast ] ) );
 #if LAST_CTX_REDUCTION
     }
 #endif
@@ -1865,8 +1865,8 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, Int width
     else
     {
 #endif
-    pcEstBitsSbac->lastXBits[ ctx ] = iBitsX + pCtxX[ ctxOffset ].getEntropyBits( 0 );
-    iBitsX += pCtxX[ ctxOffset ].getEntropyBits( 1 );
+      pcEstBitsSbac->lastXBits[ ctx ] = iBitsX + pCtxX[ ctxOffset ].getEntropyBits( 0 );
+      iBitsX += pCtxX[ ctxOffset ].getEntropyBits( 1 );
 #if LAST_CTX_REDUCTION
     }
 #endif
@@ -1893,8 +1893,8 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, Int width
     else
     {
 #endif
-    pcEstBitsSbac->lastYBits[ ctx ] = iBitsY + pCtxY[ ctxOffset ].getEntropyBits( 0 );
-    iBitsY += pCtxY[ ctxOffset ].getEntropyBits( 1 );
+      pcEstBitsSbac->lastYBits[ ctx ] = iBitsY + pCtxY[ ctxOffset ].getEntropyBits( 0 );
+      iBitsY += pCtxY[ ctxOffset ].getEntropyBits( 1 );
 #if LAST_CTX_REDUCTION
     }
 #endif

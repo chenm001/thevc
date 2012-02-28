@@ -469,11 +469,11 @@ INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =
   {
     57,  72,  55,  72,  57,  72,   88,  73,  73,  72,  103,  73,  89,  73,  57,  
     54,  70,  54,  CNU, CNU, CNU,  CNU, CNU, CNU,  CNU, CNU, CNU, CNU, CNU, CNU,
-    },
-    {
+  },
+  {
     88,  72,  71,  72,  57,  72,  88,  73,  73,  72,   103,  73,  89,  73,  57,   
     54,  70,  69,   CNU, CNU, CNU,  CNU, CNU, CNU,  CNU, CNU, CNU, CNU, CNU, CNU,
-    },
+  },
 };
 #else
 static const UChar
