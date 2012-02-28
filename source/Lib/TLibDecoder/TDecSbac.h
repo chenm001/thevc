@@ -115,6 +115,16 @@ public:
   Void parseDFFlag                (UInt& ruiVal, const Char *pSymbolName) {printf("Not supported\n");assert(0);exit(1);};
   Void parseDFSvlc                (Int&  riVal, const Char *pSymbolName)  {printf("Not supported\n");assert(0);exit(1);};
 #endif
+#if SAO_UNIT_INTERLEAVING
+  Void  parseSaoUvlc              ( UInt& ruiVal           );
+  Void  parseSaoSvlc              ( Int&  riVal            );
+  Void  parseSaoMergeLeft         ( UInt&  ruiVal, UInt uiCompIdx   );
+  Void  parseSaoMergeUp           ( UInt&  ruiVal  );
+  Void  parseSaoTypeIdx           ( UInt&  ruiVal  );
+  Void  parseSaoUflc              ( UInt& ruiVal           );
+  Void  parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, TComDataCU* pcCU, Int iCUAddrInSlice, Int iCUAddrUpInSlice, Bool bLFCrossSliceBoundaryFlag);
+  Void  parseSaoOffset            (SaoLcuParam* psSaoLcuParam);
+#endif
 private:
   Void  xReadUnarySymbol    ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset );
   Void  xReadUnaryMaxSymbol ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );
@@ -214,6 +224,11 @@ private:
   ContextModel3DBuffer m_cSaoFlagSCModel;
   ContextModel3DBuffer m_cSaoUvlcSCModel;
   ContextModel3DBuffer m_cSaoSvlcSCModel;
+#if SAO_UNIT_INTERLEAVING
+  ContextModel3DBuffer m_cSaoMergeLeftSCModel;
+  ContextModel3DBuffer m_cSaoMergeUpSCModel;
+  ContextModel3DBuffer m_cSaoTypeIdxSCModel;
+#endif
 
 };
 

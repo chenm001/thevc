@@ -364,7 +364,6 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDispl
 
   // ALF CU parameters should be part of the slice header -> needs to be fixed 
   m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot, &m_parameterSetManagerDecoder, m_cGopDecoder.getAlfCuCtrlParam() );
-
   // byte align
   {
     Int numBitsForByteAlignment = nalu.m_Bitstream->getNumBitsUntilByteAligned();

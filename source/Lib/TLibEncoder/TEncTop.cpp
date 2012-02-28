@@ -97,6 +97,10 @@ Void TEncTop::create ()
   m_cCuEncoder.         create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
   if (m_bUseSAO)
   {
+#if SAO_UNIT_INTERLEAVING
+    m_cEncSAO.setSaoInterleavingFlag(getSaoInterleavingFlag());
+    m_cEncSAO.setMaxNumOffsetsPerPic(getMaxNumOffsetsPerPic());
+#endif
     m_cEncSAO.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
     m_cEncSAO.createEncBuffer();
   }

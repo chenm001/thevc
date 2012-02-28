@@ -256,6 +256,17 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     {
       if(pcSlice->getSaoEnabledFlag())
       {
+#if SAO_UNIT_INTERLEAVING
+        if (pcSlice->getSaoInterleavingFlag())
+        {
+          pcSlice->getAPS()->setSaoInterleavingFlag(pcSlice->getSaoInterleavingFlag());
+          pcSlice->getAPS()->setSaoEnabled(pcSlice->getSaoEnabledFlag());
+          pcSlice->getAPS()->getSaoParam()->bSaoFlag[0] = pcSlice->getSaoEnabledFlag();
+          pcSlice->getAPS()->getSaoParam()->bSaoFlag[1] = pcSlice->getSaoEnabledFlagCb();
+          pcSlice->getAPS()->getSaoParam()->bSaoFlag[2] = pcSlice->getSaoEnabledFlagCr();
+        }
+        m_pcSAO->setSaoInterleavingFlag(pcSlice->getAPS()->getSaoInterleavingFlag());
+#endif
         m_pcSAO->createPicSaoInfo(rpcPic, uiILSliceCount);
         m_pcSAO->SAOProcess(rpcPic, pcSlice->getAPS()->getSaoParam());  
         m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);

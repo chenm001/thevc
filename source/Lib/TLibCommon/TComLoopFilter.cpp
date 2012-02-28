@@ -525,7 +525,7 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
   
   UInt uiPartP;
   TComDataCU* pcCUP;
-  UInt uiBs;
+  UInt uiBs = 0;
   
   //-- Calculate Block Index
   if (iDir == EDGE_VER)

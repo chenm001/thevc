@@ -671,6 +671,11 @@ public:
   Void      setScalingListEnabled (Bool bVal) { m_scalingListEnabled = bVal; }  //!< set ScalingList enabled/disabled in APS
   Bool      getScalingListEnabled ()          { return m_scalingListEnabled; }  //!< get ScalingList enabled/disabled in APS
   TComScalingList* getScalingList ()          { return m_scalingList; }         //!< get ScalingList class pointer in APS
+#if SAO_UNIT_INTERLEAVING
+  Bool     m_bSaoInterleavingFlag;
+  Bool     getSaoInterleavingFlag() {return m_bSaoInterleavingFlag;}
+  Void     setSaoInterleavingFlag(Bool bVal) {m_bSaoInterleavingFlag = bVal;}
+#endif
 
 private:
   Int         m_apsID;        //!< APS ID
@@ -720,6 +725,11 @@ private:
   Int         m_iAPSId; //!< APS ID in slice header
   bool       m_alfEnabledFlag;
   bool       m_saoEnabledFlag;
+#if SAO_UNIT_INTERLEAVING
+  bool       m_saoInterleavingFlag;
+  bool       m_saoEnabledFlagCb;
+  bool       m_saoEnabledFlagCr;
+#endif
   Int         m_iPPSId;               ///< picture parameter set ID
   Int         m_iPOC;
   Int         m_iLastIDR;
@@ -848,6 +858,14 @@ public:
   Bool      getAlfEnabledFlag() { return m_alfEnabledFlag; }
   Void      setSaoEnabledFlag(Bool s) {m_saoEnabledFlag =s; }
   Bool      getSaoEnabledFlag() { return m_saoEnabledFlag; }
+#if SAO_UNIT_INTERLEAVING
+  Void      setSaoInterleavingFlag(Bool s) {m_saoInterleavingFlag =s; }
+  Bool      getSaoInterleavingFlag() { return m_saoInterleavingFlag;  }
+  Void      setSaoEnabledFlagCb(Bool s) {m_saoEnabledFlagCb =s; }
+  Bool      getSaoEnabledFlagCb() { return m_saoEnabledFlagCb; }
+  Void      setSaoEnabledFlagCr(Bool s) {m_saoEnabledFlagCr =s; }
+  Bool      getSaoEnabledFlagCr() { return m_saoEnabledFlagCr; }
+#endif
   Void      setRPS          ( TComReferencePictureSet *pcRPS ) { m_pcRPS = pcRPS; }
   TComReferencePictureSet*  getRPS          () { return m_pcRPS; }
   TComReferencePictureSet*  getLocalRPS     () { return &m_LocalRPS; }
@@ -1039,6 +1057,7 @@ public:
   Bool  checkDefaultScalingList     ();
   Void      setCABACinitIDC(Int iVal) {m_cabacInitIdc = iVal;    }  //!< set CABAC initial IDC number 
   Int       getCABACinitIDC()         {return m_cabacInitIdc;    }  //!< get CABAC initial IDC number 
+
 protected:
   TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,
                          UInt                uiPOC);

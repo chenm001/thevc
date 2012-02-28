@@ -1063,6 +1063,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           {
             TComAPS cAPS;
             allocAPS(&cAPS, pcSlice->getSPS());
+#if SAO_UNIT_INTERLEAVING
+            cAPS.setSaoInterleavingFlag(m_pcCfg->getSaoInterleavingFlag());
+#endif
             // set entropy coder for RD
             m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
 
@@ -1337,12 +1340,14 @@ Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* p
   {
     m_pcEntropyCoder->encodeDFParams(pcAPS);
   }
-
+#if SAO_UNIT_INTERLEAVING
+  m_pcEntropyCoder->encodeSaoParam(pcAPS);
+#else
   if(pcAPS->getSaoEnabled())
   {
     m_pcEntropyCoder->encodeSaoParam(pcAPS->getSaoParam());
   }
-
+#endif
   if(pcAPS->getAlfEnabled())
   {
     m_pcEntropyCoder->encodeAlfParam(pcAPS->getAlfParam());

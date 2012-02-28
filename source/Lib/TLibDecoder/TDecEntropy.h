@@ -139,6 +139,14 @@ public:
   virtual Void parseSaoUvlc       ( UInt& ruiVal           ) = 0;
   virtual Void parseSaoSvlc       ( Int&  riVal            ) = 0;
 #endif
+#if SAO_UNIT_INTERLEAVING
+  virtual Void parseSaoUvlc       ( UInt& ruiVal           ) = 0;
+  virtual Void parseSaoSvlc       ( Int&  riVal            ) = 0;
+  virtual Void parseSaoMergeLeft  (UInt&  ruiVal, UInt uiCompIdx ) = 0;
+  virtual Void parseSaoMergeUp     (UInt&  ruiVal) = 0;
+  virtual Void parseSaoTypeIdx     (UInt&  ruiVal) = 0;
+  virtual Void parseSaoUflc       ( UInt& ruiVal           ) = 0;
+#endif
   virtual Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed ) = 0;
   virtual Void updateContextTables( SliceType eSliceType, Int iQp ) = 0;
   
@@ -252,6 +260,12 @@ public:
   Void decodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
   Void decodeSaoParam         (SAOParam* pSaoParam);
 #endif
+#if SAO_UNIT_INTERLEAVING
+  Void decodeSaoParam         (SAOParam* pSaoParam);
+  void decodeSaoLcu(Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam, Bool &bRepeatedRow );
+  Void decodeSaoOneLcu(SaoLcuParam* psSaoLcuParam);
+#endif
+
 #if OL_FLUSH
   Void decodeFlush() { m_pcEntropyDecoderIf->decodeFlush(); }
 #endif

@@ -114,11 +114,20 @@ public:
   Void  parseSaoUvlc        ( UInt& ruiVal );
   Void  parseSaoSvlc        ( Int&  riVal  );
 #endif  
+#if SAO_UNIT_INTERLEAVING
+  Void  parseSaoUvlc        ( UInt& ruiVal ){;}
+  Void  parseSaoSvlc        ( Int&  riVal  ){;}
+  Void  parseSaoMergeLeft   ( UInt& ruiVal, UInt uiCompIdx   ){;}
+  Void  parseSaoMergeUp     ( UInt& ruiVal ){;}
+  Void  parseSaoTypeIdx     ( UInt& ruiVal ){;}
+  Void  parseSaoUflc        ( UInt& ruiVal ){;}
+#endif
+
   Void  parseSPS            ( TComSPS* pcSPS );
   Void  parsePPS            ( TComPPS* pcPPS);
   Void  parseSEI(SEImessages&);
 #if PARAMSET_VLC_CLEANUP
-  Void  parseAPS             ( TComAPS* pAPS );
+  Void  parseAPS            ( TComAPS* pAPS );
   Void  parseSliceHeader    ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl );
 #else
   Void  parseSliceHeader    ( TComSlice*& rpcSlice );
@@ -175,8 +184,13 @@ protected:
   Void  xParseDblParam       ( TComAPS* aps );
 #endif
   Void  xParseSaoParam       ( SAOParam* pSaoParam );
+#if SAO_UNIT_INTERLEAVING
+  Void  xParseSaoOffset      (SaoLcuParam* psSaoLcuParam);
+  Void  xParseSaoUnit        (Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam, Bool& bRepeatedRow );
+#else
   Void  xParseSaoSplitParam  ( SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr );
   Void  xParseSaoOffsetParam ( SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr );
+#endif
   Void  xParseAlfParam       ( ALFParam* pAlfParam );
   Void  xParseAlfCuControlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
   Int   xGolombDecode        ( Int k );

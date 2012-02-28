@@ -245,6 +245,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 
   ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
   ("SAO", m_bUseSAO, true, "SAO")   
+#if SAO_UNIT_INTERLEAVING
+  ("MaxNumOffsetsPerPic", m_iMaxNumOffsetsPerPic, 2048, "2048: default")   
+  ("SAOInterleaving", m_bSaoInterleavingFlag, false, "0: SAO Picture Mode, 1: SAO Interleaving ")   
+#endif
 
   ("ALFEncodePassReduction", m_iALFEncodePassReduction, 0, "0:Original 16-pass, 1: 1-pass, 2: 2-pass encoding")
 
@@ -826,6 +830,10 @@ Void TAppEncCfg::xPrintParameter()
   }
   printf("CIP:%d ", m_bUseConstrainedIntraPred);
   printf("SAO:%d ", (m_bUseSAO)?(1):(0));
+#if SAO_UNIT_INTERLEAVING
+  printf("SAOInterleaving:%d ", (m_bSaoInterleavingFlag)?(1):(0));
+#endif
+
   printf("PCM:%d ", ((1<<m_uiPCMLog2MinSize) <= m_uiMaxCUWidth)? 1 : 0);
   printf("WPP:%d ", (Int)m_bUseWeightPred);
   printf("WPB:%d ", m_uiBiPredIdc);

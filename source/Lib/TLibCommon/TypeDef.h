@@ -41,6 +41,8 @@
 //! \ingroup TLibCommon
 //! \{
 
+#define SAO_UNIT_INTERLEAVING      1   ///< H0273
+
 #define ALF_SINGLE_FILTER_SHAPE    1     //< !!! H0068: Single filter type : 9x7 cross + 3x3 square
 
 #define PARAMSET_VLC_CLEANUP               1      ///< followup to G220: Simplify parameter set code
@@ -209,7 +211,12 @@ class TComPicSym;
 enum SAOTypeLen
 {
   SAO_EO_LEN    = 4, 
+#if SAO_UNIT_INTERLEAVING
+  SAO_BO_LEN    = 4,
+  SAO_MAX_BO_CLASSES = 32
+#else
   SAO_BO_LEN    = 16
+#endif
 };
 
 enum SAOType
@@ -218,18 +225,28 @@ enum SAOType
   SAO_EO_1,
   SAO_EO_2, 
   SAO_EO_3,
+#if SAO_UNIT_INTERLEAVING
+  SAO_BO,
+#else
   SAO_BO_0,
   SAO_BO_1,
+#endif
   MAX_NUM_SAO_TYPE
 };
 
 typedef struct _SaoQTPart
 {
+#if !SAO_UNIT_INTERLEAVING
   Bool        bEnableFlag;
+#endif
   Int         iBestType;
   Int         iLength;
+#if SAO_UNIT_INTERLEAVING
+  Int         bandPosition ;
+  Int         iOffset[4];
+#else
   Int         iOffset[32];
-
+#endif
   Int         StartCUX;
   Int         StartCUY;
   Int         EndCUX;
@@ -253,12 +270,34 @@ typedef struct _SaoQTPart
   //---- encoder only end -----//
 } SAOQTPart;
 
+#if SAO_UNIT_INTERLEAVING
+typedef struct _SaoLcuParam
+{
+  Bool       mergeUpFlag;
+  Bool       mergeLeftFlag;
+  Int        typeIdx;
+  Int        bandPosition;
+  Int        iOffset[4];
+  Int        runDiff;
+  Int        run;
+  Int        iPartIdx;
+  Int        iPartIdxTmp;
+  Int        iLength;
+} SaoLcuParam;
+#endif
+
 struct SAOParam
 {
   Bool       bSaoFlag[3];
   SAOQTPart* psSaoPart[3];
   Int        iMaxSplitLevel;
   Int        iNumClass[MAX_NUM_SAO_TYPE];
+#if SAO_UNIT_INTERLEAVING
+  Bool         oneUnitFlag[3];
+  SaoLcuParam* psSaoLcuParam[3];
+  Int          iNumCuInHeight;
+  Int          iNumCuInWidth;
+#endif
   ~SAOParam();
 };
 
