@@ -755,13 +755,18 @@ Void TDecSbac::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   
 Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-  
+#if !LOGI_INTRA_NAME_3MPM
   Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
- 
+#endif
+  
   UInt uiSymbol;
   Int  intraPredMode;
 
+#if LOGI_INTRA_NAME_3MPM
+  Int uiPreds[3] = {-1, -1, -1};
+#else
   Int uiPreds[2] = {-1, -1};
+#endif
   Int uiPredNum = pcCU->getIntraDirLumaPredictor(uiAbsPartIdx, uiPreds);  
  
   m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 0) );
@@ -769,12 +774,44 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
   if ( uiSymbol )
   {
     m_pcTDecBinIf->decodeBinEP( uiSymbol );
+#if LOGI_INTRA_NAME_3MPM
+    if (uiSymbol)
+    {
+      m_pcTDecBinIf->decodeBinEP( uiSymbol );
+      uiSymbol++;
+    }
+#endif
     intraPredMode = uiPreds[uiSymbol];
   }
   else
   {
     intraPredMode = 0;
     
+#if LOGI_INTRA_NAME_3MPM
+    Int temp;
+    
+    m_pcTDecBinIf->decodeBinsEP( uiSymbol, 5 );
+    intraPredMode = uiSymbol;
+    
+    if (uiPreds[0] > uiPreds[1])
+    {
+      temp = uiPreds[0];
+      uiPreds[0] = uiPreds[1];
+      uiPreds[1] = temp;
+    } //postponed sorting of MPMs (only in remaining branch)
+    if (uiPreds[0] > uiPreds[2])
+    {
+      temp = uiPreds[0];
+      uiPreds[0] = uiPreds[2];
+      uiPreds[2] = temp;
+    }
+    if (uiPreds[1] > uiPreds[2])
+    {
+      temp = uiPreds[1];
+      uiPreds[1] = uiPreds[2];
+      uiPreds[2] = temp;
+    }
+#else
     m_pcTDecBinIf->decodeBinsEP( uiSymbol, g_aucIntraModeBitsAng[iIntraIdx] - 1 );
     intraPredMode = uiSymbol;
     
@@ -783,7 +820,7 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
       m_pcTDecBinIf->decodeBinEP( uiSymbol );
       intraPredMode += uiSymbol;      
     }
-    
+#endif
     for ( Int i = 0; i < uiPredNum; i++ )
     {
       intraPredMode += ( intraPredMode >= uiPreds[i] );

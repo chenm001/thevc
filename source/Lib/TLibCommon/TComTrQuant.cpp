@@ -518,7 +518,11 @@ void xTr4(short block[4][4],short coeff[4][4],UInt uiMode)
 #endif
   int shift_2nd = 8;                    // log2(4) + 6
   short tmp[4][4]; 
+#if LOGI_INTRA_NAME_3MPM
+  if (uiMode != REG_DCT && (!uiMode || (uiMode>=2 && uiMode <= 25)))    // Check for DCT or DST
+#else
   if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode])// Check for DCT or DST
+#endif
   {
     fastForwardDst(block,tmp,shift_1st); // Forward DST BY FAST ALGORITHM, block input, tmp output
   }
@@ -527,7 +531,11 @@ void xTr4(short block[4][4],short coeff[4][4],UInt uiMode)
     partialButterfly4(block,tmp,shift_1st);
   }
 
+#if LOGI_INTRA_NAME_3MPM
+  if (uiMode != REG_DCT && (!uiMode || (uiMode>=11 && uiMode <= 34)))    // Check for DCT or DST
+#else
   if (uiMode != REG_DCT && g_aucDCTDSTMode_Vert[uiMode] )   // Check for DCT or DST
+#endif
   {
     fastForwardDst(tmp,coeff,shift_2nd); // Forward DST BY FAST ALGORITHM, tmp input, coeff output
   }
@@ -604,7 +612,11 @@ void xITr4(short coeff[4][4],short block[4][4], UInt uiMode)
 #endif
   short tmp[4][4];
   
+#if LOGI_INTRA_NAME_3MPM
+  if (uiMode != REG_DCT && (!uiMode || (uiMode>=11 && uiMode <= 34)))    // Check for DCT or DST
+#else
   if (uiMode != REG_DCT && g_aucDCTDSTMode_Vert[uiMode] )    // Check for DCT or DST
+#endif
   {
     fastInverseDst(coeff,tmp,shift_1st);    // Inverse DST by FAST Algorithm, coeff input, tmp output
   }
@@ -612,7 +624,11 @@ void xITr4(short coeff[4][4],short block[4][4], UInt uiMode)
   {
     partialButterflyInverse4(coeff,tmp,shift_1st);    
   } 
+#if LOGI_INTRA_NAME_3MPM
+  if (uiMode != REG_DCT && (!uiMode || (uiMode>=2 && uiMode <= 25)))    // Check for DCT or DST
+#else
   if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode] )    // Check for DCT or DST
+#endif
   {
     fastInverseDst(tmp,block,shift_2nd); // Inverse DST by FAST Algorithm, tmp input, coeff output
   }

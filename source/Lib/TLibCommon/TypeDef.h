@@ -41,6 +41,7 @@
 //! \ingroup TLibCommon
 //! \{
 #define REMOVE_DIV_OPERATION      1 ///< H0238: Simplified intra horizontal and vertical filtering
+#define LOGI_INTRA_NAME_3MPM      1  ///< H0407: logical Intra mode naming (sequential angular mode numbering) and 3 MPM mode coding
 
 #define LEVEL_CTX_LUMA_RED        1  ///<H0130: Luma level context reduction
 #define REMOVE_INFER_SIGGRP       1  ///<H0131: Remove inferred significant_coeff_group_flag
@@ -162,7 +163,13 @@
 #define RVM_VCEGAM10_M 4
 
 #define PLANAR_IDX             0
+#if LOGI_INTRA_NAME_3MPM
+#define VER_IDX                26                    // index for intra VERTICAL   mode
+#define HOR_IDX                10                    // index for intra HORIZONTAL mode
+#define DC_IDX                 1                     // index for intra DC mode
+#else
 #define DC_IDX                 3                     // index for intra DC mode
+#endif
 #define NUM_CHROMA_MODE        6                     // total number of chroma modes
 #define DM_CHROMA_IDX          36                    // chroma mode index for derived from luma intra mode
 

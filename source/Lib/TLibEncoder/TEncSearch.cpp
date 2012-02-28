@@ -1713,7 +1713,11 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     pcCU->getPattern()->initAdiPattern( pcCU, uiPartOffset, uiInitTrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail );
     
     //===== determine set of modes to be tested (using prediction signal only) =====
+#if LOGI_INTRA_NAME_3MPM
+    Int numModesAvailable     = 35; //total number of Intra modes
+#else
     Int numModesAvailable     = g_aucIntraModeNumAng[uiWidthBit];
+#endif
     Pel* piOrg         = pcOrgYuv ->getLumaAddr( uiPU, uiWidth );
     Pel* piPred        = pcPredYuv->getLumaAddr( uiPU, uiWidth );
     UInt uiStride      = pcPredYuv->getStride();
@@ -1747,15 +1751,26 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       }
     
 #if FAST_UDI_USE_MPM
+#if LOGI_INTRA_NAME_3MPM
+      Int uiPreds[3] = {-1, -1, -1};
+#else
       Int uiPreds[2] = {-1, -1};
+#endif
       Int iMode = -1;
       Int numCand = pcCU->getIntraDirLumaPredictor( uiPartOffset, uiPreds, &iMode );
+#if LOGI_INTRA_NAME_3MPM
+      if( iMode >= 0 )
+      {
+        numCand = iMode;
+      }
+#else
       if( iMode >= 0 )
       {
         numCand = 1;
         uiPreds[0] = iMode;
       }
-
+#endif
+      
       for( Int j=0; j < numCand; j++)
 
       {
