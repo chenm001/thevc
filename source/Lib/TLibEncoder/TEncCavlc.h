@@ -180,7 +180,11 @@ public:
   Void  codeAPSInitInfo(TComAPS* pcAPS);  //!< code APS flags before encoding SAO and ALF parameters
   Void  codeFinish(Bool bEnd) { /*do nothing*/}
   Void  codeScalingList            ( TComScalingList* scalingList );
+#if SCALING_LIST
+  Void  xCodeScalingList           ( TComScalingList* scalingList, UInt sizeId, UInt listId);
+#else
   Void  xCodeDPCMScalingListMatrix ( TComScalingList* scalingList, Int* data, UInt sizeId);
+#endif
   Void  xWriteResidualCode         ( UInt size, Int *data);
   Void codeDFFlag       ( UInt uiCode, const Char *pSymbolName );
   Void codeDFSvlc       ( Int   iCode, const Char *pSymbolName );

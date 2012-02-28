@@ -740,10 +740,14 @@ public:
   Int*     getScalingListAddress    (UInt sizeIdc, UInt listId);
   Int*     getScalingListOrgAddress (UInt sizeIdc, UInt listId);
 #if SCALING_LIST
+  Int*     getScalingListDefaultAddress   (UInt sizeId, UInt listId);                                                        //!< get default matrix coefficient
   Void     setScalingListDC               (UInt sizeId, UInt listId, UInt u)   { m_scalingListDC[sizeId][listId] = u; }      //!< set DC value
   Int      getScalingListDC               (UInt sizeId, UInt listId)           { return m_scalingListDC[sizeId][listId]; }   //!< get DC value
+  Void     processDefaultMarix            (UInt sizeId, UInt listId);
+  Void     checkDcOfMatrix                ();
+  Void     setUseDefaultScalingMatrixFlag (UInt sizeId, UInt listId, Bool b)  { m_useDefaultScalingMatrixFlag[sizeId][listId] = b;    } //!< set default matrix enabled/disabled in each matrix
+  Bool     getUseDefaultScalingMatrixFlag (UInt sizeId, UInt listId)          { return m_useDefaultScalingMatrixFlag[sizeId][listId]; } //!< get default matrix enabled/disabled in each matrix
 #endif
-
   Void     xPredScalingListMatrix    ( TComScalingList* pcScalingListsrc, Int* dst, UInt dstSizeId, UInt dstListId, UInt srcSizeIdc, UInt srcMatrixId);
   Void     xScalingListMatrixModeDecision ();
   Void     xCalcBestBitCopyMode( Int *org, Int *recon, Int *bestRecon, Int sizeIdc, Int listIdc, UInt size, UInt *bestBit);
@@ -763,6 +767,7 @@ private:
   Void     destroy                 ();
 #if SCALING_LIST
   Int      m_scalingListDC               [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< the DC value of the matrix coefficient for 16x16
+  Bool     m_useDefaultScalingMatrixFlag [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< UseDefaultScalingMatrixFlag
 #endif
   Bool     m_useDefaultOnlyFlag;                        //!< flag for using default matrix
   Bool     m_predMode              [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM];     //!< pridction mode

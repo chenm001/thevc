@@ -1338,7 +1338,7 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
     //for each size
     for(sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
     {
-      for(listId = 0; listId < g_auiScalingListNum[sizeId]; listId++)
+      for(listId = 0; listId < g_scalingListNum[sizeId]; listId++)
       {
         dst = scalingList->getScalingListAddress(sizeId,listId);
 #if SCALING_LIST_OUTPUT_RESULT
@@ -1362,12 +1362,10 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
         else if(scalingList->getPredMode (sizeId,listId) == SCALING_LIST_PRED_DPCM)//DPCM Mode
         {
 #if SCALING_LIST
-          if( sizeId > SCALING_LIST_8x8 )
-          {
-            WRITE_SVLC( scalingList->getScalingListDC(sizeId,listId) - 8, "scaling_list_dc_coef_minus8");
-          }
-#endif
+          xCodeScalingList(scalingList, sizeId, listId);
+#else
           xCodeDPCMScalingListMatrix(scalingList, dst,sizeId);
+#endif
         }
 #if SCALING_LIST_OUTPUT_RESULT
         printf("Matrix [%d][%d] Bit %d\n",sizeId,listId,m_pcBitIf->getNumberOfWrittenBits() - startBit);
@@ -1386,6 +1384,52 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
 #endif
   return;
 }
+#if SCALING_LIST
+/** code DPCM
+ * \param scalingList quantization matrix information
+ * \param sizeIdc size index
+ * \param listIdc list index
+ */
+Void TEncCavlc::xCodeScalingList(TComScalingList* scalingList, UInt sizeId, UInt listId)
+{
+  Int coefNum = min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId]);
+  Int nextCoef = SCALING_LIST_START_VALUE;
+  UInt* scan    = g_auiFrameScanXY [ (sizeId == 0)? 1 : 2];
+  Int data;
+  Int *src = scalingList->getScalingListAddress(sizeId, listId);
+
+  if(sizeId > SCALING_LIST_8x8 && scalingList->getUseDefaultScalingMatrixFlag(sizeId,listId))
+  {
+    WRITE_SVLC( -8, "scaling_list_dc_coef_minus8");
+  }
+  else if(sizeId < SCALING_LIST_16x16 && scalingList->getUseDefaultScalingMatrixFlag(sizeId,listId))
+  {
+    WRITE_SVLC( -8, "scaling_list_delta_coef");
+  }
+  else
+  {
+    if( sizeId > SCALING_LIST_8x8 )
+    {
+      WRITE_SVLC( scalingList->getScalingListDC(sizeId,listId) - 8, "scaling_list_dc_coef_minus8");
+    }
+    for(Int i=0;i<coefNum;i++)
+    {
+      data = src[scan[i]] - nextCoef;
+      nextCoef = src[scan[i]];
+      if(data > 127)
+      {
+        data = data - 256;
+      }
+      if(data < -128)
+      {
+        data = data + 256;
+      }
+
+      WRITE_SVLC( data,  "delta_coef");
+    }
+  }
+}
+#else
 /** code DPCM with quantization matrix
  * \param scalingList quantization matrix information
  * \param piData matrix data
@@ -1404,6 +1448,7 @@ Void TEncCavlc::xCodeDPCMScalingListMatrix(TComScalingList* scalingList, Int* pi
   scalingList->xMakeDPCM(piData, piData, dpcm, uiSizeId);
   xWriteResidualCode(uiDataCounter,dpcm);
 }
+#endif
 /** write resiidual code
  * \param uiSize side index
  * \param data residual coefficient

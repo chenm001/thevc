@@ -315,7 +315,7 @@ extern Int g_quantInterDefault16x16[256];
 extern Int g_quantInterDefault32x32[1024];
 extern UInt g_scalingListSize [SCALING_LIST_SIZE_NUM];
 extern UInt g_scalingListSizeX[SCALING_LIST_SIZE_NUM];
-extern UInt g_auiScalingListNum  [SCALING_LIST_SIZE_NUM];
+extern UInt g_scalingListNum  [SCALING_LIST_SIZE_NUM];
 extern Int  g_eTTable[4];
 //! \}
 

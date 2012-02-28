@@ -1085,7 +1085,7 @@ Int g_quantInterDefault32x32[1024] =
 #endif
 UInt g_scalingListSize   [4] = {16,64,256,1024}; 
 UInt g_scalingListSizeX  [4] = { 4, 8, 16,  32};
-UInt g_auiScalingListNum[SCALING_LIST_SIZE_NUM]={6,6,6,2};
+UInt g_scalingListNum[SCALING_LIST_SIZE_NUM]={6,6,6,2};
 Int  g_eTTable[4] = {0,3,1,2};
 
 //! \}

@@ -3584,7 +3584,7 @@ Void TComTrQuant::setScalingList(TComScalingList *scalingList)
 
   for(size=0;size<SCALING_LIST_SIZE_NUM;size++)
   {
-    for(list = 0; list < g_auiScalingListNum[size]; list++)
+    for(list = 0; list < g_scalingListNum[size]; list++)
     {
 #if !SCALING_LIST
       scalingListAddress = scalingList->getScalingListAddress(size,list);
@@ -3621,7 +3621,7 @@ Void TComTrQuant::setScalingListDec(TComScalingList *scalingList)
 
   for(size=0;size<SCALING_LIST_SIZE_NUM;size++)
   {
-    for(list = 0; list < g_auiScalingListNum[size]; list++)
+    for(list = 0; list < g_scalingListNum[size]; list++)
     {
 #if !SCALING_LIST
       scalingListAddress = scalingList->getScalingListAddress(size,list);
@@ -3700,8 +3700,8 @@ Void TComTrQuant::setErrScaleCoeff(UInt list,UInt size, UInt qp, UInt dir)
 
 /** set quantized matrix coefficient for encode
  * \param scalingList quantaized matrix address
- * \param list List index
- * \param uiScalingListSize SCALING_LIST size
+ * \param listId List index
+ * \param sizeId size index
  * \param uiQP Quantization parameter
  */
 #if SCALING_LIST
@@ -3776,7 +3776,7 @@ Void TComTrQuant::xSetScalingListEnc(Int *scalingList, UInt list, UInt size, UIn
 /** set quantized matrix coefficient for decode
  * \param scalingList quantaized matrix address
  * \param list List index
- * \param uiSize SCALING_LIST size
+ * \param size size index
  * \param uiQP Quantization parameter
  */
 #if SCALING_LIST
@@ -3922,7 +3922,7 @@ Void TComTrQuant::setFlatScalingList()
 
   for(size=0;size<SCALING_LIST_SIZE_NUM;size++)
   {
-    for(list = 0; list <  g_auiScalingListNum[size]; list++)
+    for(list = 0; list <  g_scalingListNum[size]; list++)
     {
       for(qp=0;qp<SCALING_LIST_REM_NUM;qp++)
       {

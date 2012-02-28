@@ -205,7 +205,7 @@
 #endif
 
 #define SCALING_LIST_OUTPUT_RESULT    0 //JCTVC-G880/JCTVC-G1016 quantization matrices
-#define SCALING_LIST                  1 //JCTVC-H0230/H0461
+#define SCALING_LIST                  1 //JCTVC-H0230/H0461/H0237
 
 #define DEFAULT_DC                    1 // JCTVC-H0242
 

@@ -246,6 +246,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         {
           pcSlice->setDefaultScalingList ();
         }
+#if SCALING_LIST
+        pcSlice->getScalingList()->checkDcOfMatrix();
+#endif
         pcSlice->getScalingList()->xScalingListMatrixModeDecision();
         pcSlice->getScalingList()->setUseDefaultOnlyFlag(pcSlice->checkDefaultScalingList());
         m_pcEncTop->getTrQuant()->setScalingList(pcSlice->getScalingList());

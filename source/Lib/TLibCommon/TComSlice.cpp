@@ -1582,6 +1582,15 @@ TComScalingList::~TComScalingList()
 */
 Void TComSlice::setDefaultScalingList()
 {
+#if SCALING_LIST
+  for(UInt sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
+  {
+    for(UInt listId=0;listId<g_scalingListNum[sizeId];listId++)
+    {
+      getScalingList()->processDefaultMarix(sizeId, listId);
+    }
+  }
+#else
   UInt i;
   Int *dst=0;
   Int *src=0;
@@ -1654,6 +1663,7 @@ Void TComSlice::setDefaultScalingList()
     dst = getScalingList()->getScalingListAddress(SCALING_LIST_32x32,i);
     ::memcpy(dst,src,sizeof(UInt)*1024);
   }
+#endif
 #endif
 }
 /** check if use default quantization matrix
@@ -1785,7 +1795,7 @@ Void TComScalingList::xPredScalingListMatrix( TComScalingList* scalingListsrc, I
 {
   Int *src=0;
 #if SCALING_LIST
-  UInt srcSize = min(8,(Int)g_scalingListSizeX[srcSizeIdc]);
+  UInt srcSize = min(MAX_MATRIX_SIZE_NUM,(Int)g_scalingListSizeX[srcSizeIdc]);
 #else
   UInt srcSize = g_scalingListSizeX[srcSizeIdc];
 #endif
@@ -1806,7 +1816,7 @@ Void TComScalingList::xScalingListMatrixModeDecision()
 
   for(sizeIdc = 0; sizeIdc < SCALING_LIST_SIZE_NUM; sizeIdc++)
   {
-    for(listIdc = 0; listIdc < g_auiScalingListNum[sizeIdc]; listIdc++)
+    for(listIdc = 0; listIdc < g_scalingListNum[sizeIdc]; listIdc++)
     {
       org   = getScalingListOrgAddress(sizeIdc,listIdc );
       recon = getScalingListAddress(sizeIdc, listIdc);
@@ -1834,7 +1844,7 @@ Void TComScalingList::xScalingListMatrixModeDecision()
 UInt TComScalingList::xMakeResidual(Int *piOrg,Int *recon, Int *residual, UInt sizeIdc)
 {
 #if SCALING_LIST
-  UInt i,size = min(64,(Int)g_scalingListSize[sizeIdc]);
+  UInt i,size = min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeIdc]);
   UInt* scan    = g_auiFrameScanXY [ (sizeIdc == 0)? 1 : 2];
 #else
   UInt i,size = g_scalingListSize[sizeIdc];
@@ -1904,10 +1914,12 @@ Void TComScalingList::xCalcBestBitCopyMode( Int *org, Int *recon, Int * bestReco
   {
     xPredScalingListMatrix(this, recon, sizeIdc, listIdc, sizeIdc, estScalingList.predListIdx);
     sad = xCalcResidual(org, recon, residual, sizeIdc, &estScalingList);
+#if SCALING_LIST
     if(sizeIdc > SCALING_LIST_8x8)
     {
       sad += abs(getScalingListDC(sizeIdc, listIdc) - getScalingListDC(sizeIdc, estScalingList.predListIdx));
     }
+#endif
     if(sad == 0 && *bestBit != 0)
     {
       *bestBit = 0;
@@ -2030,11 +2042,11 @@ Bool TComScalingList::xParseScalingList(char* pchFile)
   for(sizeIdc = 0; sizeIdc < SCALING_LIST_SIZE_NUM; sizeIdc++)
   {
 #if SCALING_LIST
-    size = min(64,(Int)g_scalingListSize[sizeIdc]);
+    size = min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeIdc]);
 #else
     size = g_scalingListSize[sizeIdc];
 #endif
-    for(listIdc = 0; listIdc < g_auiScalingListNum[sizeIdc]; listIdc++)
+    for(listIdc = 0; listIdc < g_scalingListNum[sizeIdc]; listIdc++)
     {
       src = getScalingListOrgAddress(sizeIdc, listIdc);
 
@@ -2153,7 +2165,65 @@ Void TComScalingList::destroy()
     if(m_scalingList32x32_Org[listId]) delete [] m_scalingList32x32_Org[listId];
   }
 }
-
+#if SCALING_LIST
+/** get default address of quantization matrix 
+ * \param sizeId size index
+ * \param listId list index
+ * \returns pointer of quantization matrix
+ */
+Int* TComScalingList::getScalingListDefaultAddress(UInt sizeId, UInt listId)
+{
+  Int *src = 0;
+  switch(sizeId)
+  {
+    case SCALING_LIST_4x4:
+      src = (listId<3) ? g_quantIntraDefault4x4 : g_quantInterDefault4x4;
+      break;
+    case SCALING_LIST_8x8:
+      src = (listId<3) ? g_quantIntraDefault8x8 : g_quantInterDefault8x8;
+      break;
+    case SCALING_LIST_16x16:
+      src = (listId<3) ? g_quantIntraDefault8x8 : g_quantInterDefault8x8;
+      break;
+    case SCALING_LIST_32x32:
+      src = (listId<1) ? g_quantIntraDefault8x8 : g_quantInterDefault8x8;
+      break;
+    default:
+      assert(0);
+      src = NULL;
+      break;
+  }
+  return src;
+}
+/** process of default matrix
+ * \param sizeId size index
+ * \param Index of input matrix
+ */
+Void TComScalingList::processDefaultMarix(UInt sizeId, UInt listId)
+{
+  ::memcpy(getScalingListAddress(sizeId, listId),getScalingListDefaultAddress(sizeId,listId),sizeof(Int)*min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId]));
+  ::memcpy(getScalingListOrgAddress(sizeId, listId),getScalingListDefaultAddress(sizeId,listId),sizeof(Int)*min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId]));
+  setUseDefaultScalingMatrixFlag(sizeId,listId,true);
+  setScalingListDC(sizeId,listId,SCALING_LIST_DC);
+}
+/** check DC value of matrix for default matrix signaling
+ */
+Void TComScalingList::checkDcOfMatrix()
+{
+  for(UInt sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
+  {
+    for(UInt listId = 0; listId < g_scalingListNum[sizeId]; listId++)
+    {
+      setUseDefaultScalingMatrixFlag(sizeId,listId,false);
+      //check default matrix?
+      if(getScalingListDC(sizeId,listId) == 0)
+      {
+        processDefaultMarix(sizeId, listId);
+      }
+    }
+  }
+}
+#endif
 #if PARAMSET_VLC_CLEANUP
 
 ParameterSetManager::ParameterSetManager()
