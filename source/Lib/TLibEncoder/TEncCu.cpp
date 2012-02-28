@@ -1250,6 +1250,10 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
   UChar uhDepth = rpcTempCU->getDepth( 0 );
   rpcTempCU->setPartSizeSubParts( SIZE_2Nx2N, 0, uhDepth ); // interprets depth relative to LCU level
   rpcTempCU->getInterMergeCandidates( 0, 0, uhDepth, cMvFieldNeighbours,uhInterDirNeighbours, numValidMergeCand );
+
+#if FAST_DECISION_FOR_MRG_RD_COST
+  Bool bBestIsSkip = false;
+#endif
   
   for( UInt uiMergeCand = 0; uiMergeCand < numValidMergeCand; ++uiMergeCand )
   {
@@ -1257,55 +1261,82 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
       TComYuv* pcPredYuvTemp = NULL;
       for( UInt uiNoResidual = 0; uiNoResidual < 2; ++uiNoResidual )
       {
-      // set MC parameters
-      rpcTempCU->setPredModeSubParts( MODE_SKIP, 0, uhDepth ); // interprets depth relative to LCU level
-      rpcTempCU->setPartSizeSubParts( SIZE_2Nx2N, 0, uhDepth ); // interprets depth relative to LCU level
-      rpcTempCU->setMergeFlagSubParts( true, 0, 0, uhDepth ); // interprets depth relative to LCU level
-      rpcTempCU->setMergeIndexSubParts( uiMergeCand, 0, 0, uhDepth ); // interprets depth relative to LCU level
-      rpcTempCU->setInterDirSubParts( uhInterDirNeighbours[uiMergeCand], 0, 0, uhDepth ); // interprets depth relative to LCU level
-      rpcTempCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMvFieldNeighbours[0 + 2*uiMergeCand], SIZE_2Nx2N, 0, 0 ); // interprets depth relative to rpcTempCU level
-      rpcTempCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMvFieldNeighbours[1 + 2*uiMergeCand], SIZE_2Nx2N, 0, 0 ); // interprets depth relative to rpcTempCU level
-
-      // do MC
-      if ( uiNoResidual == 0 )
-      {
-        m_pcPredSearch->motionCompensation ( rpcTempCU, m_ppcPredYuvTemp[uhDepth] );
-        // save pred adress
-        pcPredYuvTemp = m_ppcPredYuvTemp[uhDepth];
-        
-      }
-      else
-      {
-        if ( pcPredYuvTemp != m_ppcPredYuvTemp[uhDepth])
+#if FAST_DECISION_FOR_MRG_RD_COST
+        if( !(bBestIsSkip && uiNoResidual == 0) )
         {
-          //adress changes take best (old temp)
-          pcPredYuvTemp = m_ppcPredYuvBest[uhDepth];
-        }
-      }
-      // estimate residual and encode everything
-      m_pcPredSearch->encodeResAndCalcRdInterCU( rpcTempCU,
-                                                m_ppcOrigYuv    [uhDepth],
-                                                pcPredYuvTemp,
-                                                m_ppcResiYuvTemp[uhDepth],
-                                                m_ppcResiYuvBest[uhDepth],
-                                                m_ppcRecoYuvTemp[uhDepth],
-                                                (uiNoResidual? true:false) );     
-      Bool bQtRootCbf = rpcTempCU->getQtRootCbf(0) == 1;
+#endif
+          // set MC parameters
+          rpcTempCU->setPredModeSubParts( MODE_SKIP, 0, uhDepth ); // interprets depth relative to LCU level
+          rpcTempCU->setPartSizeSubParts( SIZE_2Nx2N, 0, uhDepth ); // interprets depth relative to LCU level
+          rpcTempCU->setMergeFlagSubParts( true, 0, 0, uhDepth ); // interprets depth relative to LCU level
+          rpcTempCU->setMergeIndexSubParts( uiMergeCand, 0, 0, uhDepth ); // interprets depth relative to LCU level
+          rpcTempCU->setInterDirSubParts( uhInterDirNeighbours[uiMergeCand], 0, 0, uhDepth ); // interprets depth relative to LCU level
+          rpcTempCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMvFieldNeighbours[0 + 2*uiMergeCand], SIZE_2Nx2N, 0, 0 ); // interprets depth relative to rpcTempCU level
+          rpcTempCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMvFieldNeighbours[1 + 2*uiMergeCand], SIZE_2Nx2N, 0, 0 ); // interprets depth relative to rpcTempCU level
+
+          // do MC
+          if ( uiNoResidual == 0 )
+          {
+            m_pcPredSearch->motionCompensation ( rpcTempCU, m_ppcPredYuvTemp[uhDepth] );
+            // save pred adress
+            pcPredYuvTemp = m_ppcPredYuvTemp[uhDepth];
+
+          }
+          else
+          {
+#if FAST_DECISION_FOR_MRG_RD_COST
+            if( bBestIsSkip)
+            {
+              m_pcPredSearch->motionCompensation ( rpcTempCU, m_ppcPredYuvTemp[uhDepth] );
+              // save pred adress
+              pcPredYuvTemp = m_ppcPredYuvTemp[uhDepth];
+            }
+            else
+            {
+#endif
+              if ( pcPredYuvTemp != m_ppcPredYuvTemp[uhDepth])
+              {
+                //adress changes take best (old temp)
+                pcPredYuvTemp = m_ppcPredYuvBest[uhDepth];
+              }
+#if FAST_DECISION_FOR_MRG_RD_COST
+            }
+#endif
+          }
+          // estimate residual and encode everything
+          m_pcPredSearch->encodeResAndCalcRdInterCU( rpcTempCU,
+            m_ppcOrigYuv    [uhDepth],
+            pcPredYuvTemp,
+            m_ppcResiYuvTemp[uhDepth],
+            m_ppcResiYuvBest[uhDepth],
+            m_ppcRecoYuvTemp[uhDepth],
+            (uiNoResidual? true:false) );     
+          Bool bQtRootCbf = rpcTempCU->getQtRootCbf(0) == 1;
 
 #if H0736_AVC_STYLE_QP_RANGE
-      Int orgQP = rpcTempCU->getQP( 0 );
-      xCheckDQP( rpcTempCU );
-      xCheckBestMode(rpcBestCU, rpcTempCU, uhDepth);
-      rpcTempCU->initEstData( uhDepth, orgQP );
+          Int orgQP = rpcTempCU->getQP( 0 );
+          xCheckDQP( rpcTempCU );
+          xCheckBestMode(rpcBestCU, rpcTempCU, uhDepth);
+          rpcTempCU->initEstData( uhDepth, orgQP );
 #else
-      UInt uiOrgQP = rpcTempCU->getQP( 0 );
-      xCheckDQP( rpcTempCU );
-      xCheckBestMode(rpcBestCU, rpcTempCU, uhDepth);
-      rpcTempCU->initEstData( uhDepth, uiOrgQP );
+          UInt uiOrgQP = rpcTempCU->getQP( 0 );
+          xCheckDQP( rpcTempCU );
+          xCheckBestMode(rpcBestCU, rpcTempCU, uhDepth);
+          rpcTempCU->initEstData( uhDepth, uiOrgQP );
 #endif
 
-      if (!bQtRootCbf)
-        break;
+#if FAST_DECISION_FOR_MRG_RD_COST
+          if( m_pcEncCfg->getUseFastDecisionForMerge() && !bBestIsSkip )
+          {
+            bBestIsSkip = rpcBestCU->getQtRootCbf(0) == 0;
+          }
+#endif
+
+          if (!bQtRootCbf)
+            break;
+#if FAST_DECISION_FOR_MRG_RD_COST
+        }
+#endif
       }
     }
   }

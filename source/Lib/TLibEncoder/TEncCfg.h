@@ -183,6 +183,9 @@ protected:
   Bool      m_bUsePAD;
   Bool      m_bUseFastEnc;
   Bool      m_bUseEarlyCU;
+#if FAST_DECISION_FOR_MRG_RD_COST
+  Bool      m_bUseFastDecisionForMerge;
+#endif
   Bool      m_bUseCbfFastMode;
   Bool      m_bUseMRG; // SOPH:
   Bool      m_bUseLMChroma; 
@@ -395,6 +398,9 @@ public:
   Void      setUsePAD                       ( Bool  b )     { m_bUsePAD     = b; }
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
   Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
+#if FAST_DECISION_FOR_MRG_RD_COST
+  Void      setUseFastDecisionForMerge      ( Bool  b )     { m_bUseFastDecisionForMerge = b; }
+#endif
   Void      setUseCbfFastMode            ( Bool  b )     { m_bUseCbfFastMode = b; }
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
@@ -421,6 +427,9 @@ public:
   Bool      getUsePAD                       ()      { return m_bUsePAD;     }
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
   Bool      getUseEarlyCU                   ()      { return m_bUseEarlyCU; }
+#if FAST_DECISION_FOR_MRG_RD_COST
+  Bool      getUseFastDecisionForMerge      ()      { return m_bUseFastDecisionForMerge; }
+#endif
   Bool      getUseCbfFastMode           ()      { return m_bUseCbfFastMode; }
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
