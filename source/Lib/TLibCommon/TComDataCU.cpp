@@ -1816,13 +1816,8 @@ UChar TComDataCU::getLastCodedQP( UInt uiAbsPartIdx )
 Void TComDataCU::getAllowedChromaDir( UInt uiAbsPartIdx, UInt* uiModeList )
 {
   uiModeList[0] = PLANAR_IDX;
-#if LOGI_INTRA_NAME_3MPM
-  uiModeList[1] = VER_IDX;
-  uiModeList[2] = HOR_IDX;
-#else
   uiModeList[1] = 1;
   uiModeList[2] = 2;
-#endif
   uiModeList[3] = DC_IDX;
   uiModeList[4] = LM_CHROMA_IDX;
   uiModeList[5] = DM_CHROMA_IDX;
@@ -1833,11 +1828,7 @@ Void TComDataCU::getAllowedChromaDir( UInt uiAbsPartIdx, UInt* uiModeList )
   {
     if( uiLumaMode == uiModeList[i] )
     {
-#if LOGI_INTRA_NAME_3MPM
-      uiModeList[i] = 34; // VER+8 mode
-#else
       uiModeList[i] = 7; // VER+8 mode
-#endif
       break;
     }
   }
@@ -1873,49 +1864,9 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int* uiIntraDirPred
 #else
   iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : PLANAR_IDX ) : PLANAR_IDX;
 #endif
-
-#if LOGI_INTRA_NAME_3MPM
- uiPredNum = 3;
- if(iLeftIntraDir == iAboveIntraDir)
- {
-   if( piMode )
-   {
-    *piMode = 1;
-   }
-   
-   if (iLeftIntraDir > 1) // angular modes
-   {
-       uiIntraDirPred[0] = iLeftIntraDir;
-       uiIntraDirPred[1] = ((iLeftIntraDir + 29) % 32) + 2;
-       uiIntraDirPred[2] = ((iLeftIntraDir - 1 ) % 32) + 2;
-   }
-   else //non-angular
-   {
-        uiIntraDirPred[0] = PLANAR_IDX;
-        uiIntraDirPred[1] = DC_IDX;
-        uiIntraDirPred[2] = VER_IDX; 
-   }
- }
- else
- {
-     if( piMode )
-     {
-         *piMode = 2;
-     }
-     uiIntraDirPred[0] = iLeftIntraDir;
-     uiIntraDirPred[1] = iAboveIntraDir;
-
-     if (iLeftIntraDir && iAboveIntraDir ) //both modes are non-planar
-     {
-         uiIntraDirPred[2] = PLANAR_IDX;
-     }
-     else
-     {
-         uiIntraDirPred[2] =  (iLeftIntraDir+iAboveIntraDir)<2? VER_IDX : DC_IDX;
-     }
- }
-#else
+  
   Int iIdx  = getIntraSizeIdx(uiAbsPartIdx);
+  
   
   if ( iLeftIntraDir >= g_aucIntraModeNumAng[iIdx] ) 
   {
@@ -1950,7 +1901,7 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int* uiIntraDirPred
     uiIntraDirPred[0] = min(iLeftIntraDir, iAboveIntraDir);
     uiIntraDirPred[1] = max(iLeftIntraDir, iAboveIntraDir);
   }
-#endif
+  
   
   return uiPredNum;
 }
@@ -2820,7 +2771,19 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     for (Int i=0; i<2; i++)
     {
       RefPicList  eRefPicList = ( i==1 ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
+#if SET_MERGE_TMVP_REFIDX
+      Int iRefIdxTmp;
+      if ( uiPUIdx != 0 )
+      {
+        iRefIdxTmp = 0;
+      }
+      else
+      {    
+        iRefIdxTmp = (pcCULeft != NULL) ? pcCULeft->getCUMvField(eRefPicList)->getRefIdx(uiLeftPartIdx) : -1;
+      }
+#else      
       Int iRefIdxTmp = (pcCULeft != NULL) ? pcCULeft->getCUMvField(eRefPicList)->getRefIdx(uiLeftPartIdx) : -1;
+#endif
       iRefIdxSkip[i] = (iRefIdxTmp != -1) ? iRefIdxTmp : 0;
     }
     //>> MTK colocated-RightBottom
@@ -3328,7 +3291,17 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     pInfo->iN = 1;
     return;
   }
-  
+
+#if AMVP_PRUNING_SIMPLIFICATION
+  if ( pInfo->iN == 2 )
+  {
+    if ( pInfo->m_acMvCand[ 0 ] == pInfo->m_acMvCand[ 1 ] )
+    {
+      pInfo->iN = 1;
+    }
+  }
+#endif
+
   if ( getSlice()->getPPS()->getEnableTMVPFlag() )
   {
     // Get Temporal Motion Predictor
@@ -3394,7 +3367,9 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   }
 
   // Check No MV Candidate
+#if !AMVP_PRUNING_SIMPLIFICATION
   xUniqueMVPCand( pInfo );
+#endif
 
   if (pInfo->iN > AMVP_MAX_NUM_CANDS)
   {
@@ -3402,6 +3377,7 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   }
   else if (pInfo->iN < AMVP_MAX_NUM_CANDS)
   {
+#if !AMVP_ZERO_CHECKING_REMOVAL
     int j;
     for (j=0; j<pInfo->iN; j++)
     {
@@ -3412,9 +3388,12 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     }
     if (j == pInfo->iN)
     {
+#endif
       pInfo->m_acMvCand[pInfo->iN].set(0,0);
       pInfo->iN++;
+#if !AMVP_ZERO_CHECKING_REMOVAL
     }
+#endif
   }
   return ;
 }
@@ -3584,6 +3563,7 @@ Bool TComDataCU::xAddMVPCand( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefI
   return false;
 }
 
+#if !AMVP_PRUNING_SIMPLIFICATION
 /**
  * Reduce list of motion vector predictors to a set of unique predictors
  * \param pInfo list of motion vector predictors
@@ -3593,8 +3573,12 @@ Void TComDataCU::xUniqueMVPCand(AMVPInfo* pInfo)
   Int n = 1;
   if ( pInfo->iN == 0 )
   {
+#if AMVP_ZERO_CHECKING_REMOVAL
+    return;
+#else
     // Add a zero candidate is none is available
     pInfo->m_acMvCand[ 0 ].setZero();
+#endif
   }
   else
   {
@@ -3616,6 +3600,7 @@ Void TComDataCU::xUniqueMVPCand(AMVPInfo* pInfo)
   }
   pInfo->iN = n;
 }
+#endif
 
 /** 
  * \param pInfo
@@ -3942,7 +3927,6 @@ Void TComDataCU::compressMV()
 
 UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, Bool bIsIntra)
 {
-#if !LOGI_INTRA_NAME_3MPM
   static const UChar aucIntraDirToScanIdx[MAX_CU_DEPTH][NUM_INTRA_MODE] =
   {
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -3960,7 +3944,7 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     },
   };
-#endif
+  
   UInt uiCTXIdx;
   UInt uiScanIdx;
   UInt uiDirMode;
@@ -3985,15 +3969,7 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
   if ( bIsLuma )
   {
     uiDirMode = getLumaIntraDir(uiAbsPartIdx);
-#if LOGI_INTRA_NAME_3MPM
-    uiScanIdx = SCAN_ZIGZAG;
-    if (uiCTXIdx >3 && uiCTXIdx < 6) //if multiple scans supported for PU size
-    {
-        uiScanIdx = abs((Int) uiDirMode - VER_IDX) < 5 ? 1 : (abs((Int)uiDirMode - HOR_IDX) < 5 ? 2 : 0);
-    }
-#else
     uiScanIdx = aucIntraDirToScanIdx[uiCTXIdx][uiDirMode];
-#endif
   }
   else
   {
@@ -4002,15 +3978,7 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
     {
       uiDirMode = getLumaIntraDir(uiAbsPartIdx);
     }
-#if LOGI_INTRA_NAME_3MPM
-    uiScanIdx = SCAN_ZIGZAG;
-    if (uiCTXIdx >4 && uiCTXIdx < 7) //if multiple scans supported for PU size
-    {
-        uiScanIdx = abs((Int) uiDirMode - VER_IDX) < 5 ? 1 : (abs((Int)uiDirMode - HOR_IDX) < 5 ? 2 : 0);
-    }
-#else
     uiScanIdx = aucIntraDirToScanIdx[max<Int>(uiCTXIdx-1,0)][uiDirMode];
-#endif
   }
 
   return uiScanIdx;

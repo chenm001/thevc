@@ -757,6 +757,20 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_UVLC ( uiCode, "max_latency_increase");
   pcSPS->setMaxLatencyIncrease( uiCode );
 #endif
+
+#if H0412_REF_PIC_LIST_RESTRICTION
+  READ_FLAG( uiCode, "restricted_ref_pic_lists_flag" );
+  pcSPS->setRestrictedRefPicListsFlag( uiCode );
+  if( pcSPS->getRestrictedRefPicListsFlag() )
+  {
+    READ_FLAG( uiCode, "lists_modification_present_flag" );
+    pcSPS->setListsModificationPresentFlag(uiCode);
+  }
+  else 
+  {
+    pcSPS->setListsModificationPresentFlag(true);
+  }
+#endif
   READ_UVLC( uiCode, "log2_min_coding_block_size_minus3" );
   UInt log2MinCUSize = uiCode + 3;
   READ_UVLC( uiCode, "log2_diff_max_min_coding_block_size" );
@@ -1082,7 +1096,18 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     TComRefPicListModification* refPicListModification = rpcSlice->getRefPicListModification();
     if(!rpcSlice->isIntra())
     {
+#if H0412_REF_PIC_LIST_RESTRICTION
+      if( !rpcSlice->getSPS()->getListsModificationPresentFlag() )
+      {
+        refPicListModification->setRefPicListModificationFlagL0( 0 );
+      }
+      else
+      {
+#endif
       READ_FLAG( uiCode, "ref_pic_list_modification_flag_l0" ); refPicListModification->setRefPicListModificationFlagL0( uiCode ? 1 : 0 );
+#if H0412_REF_PIC_LIST_RESTRICTION
+      }
+#endif
       
       if(refPicListModification->getRefPicListModificationFlagL0())
       {
@@ -1113,7 +1138,18 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     }
     if(rpcSlice->isInterB())
     {
+#if H0412_REF_PIC_LIST_RESTRICTION
+      if( !rpcSlice->getSPS()->getListsModificationPresentFlag() )
+      {
+        refPicListModification->setRefPicListModificationFlagL1( 0 );
+      }
+      else
+      {
+#endif
       READ_FLAG( uiCode, "ref_pic_list_modification_flag_l1" ); refPicListModification->setRefPicListModificationFlagL1( uiCode ? 1 : 0 );
+#if H0412_REF_PIC_LIST_RESTRICTION
+      }
+#endif
       if(refPicListModification->getRefPicListModificationFlagL1())
       {
         uiCode = 0;
@@ -1157,18 +1193,29 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     {
       READ_UVLC( uiCode, "num_ref_idx_lc_active_minus1" );      rpcSlice->setNumRefIdx( REF_PIC_LIST_C, uiCode + 1 );
       
-      READ_FLAG( uiCode, "ref_pic_list_modification_flag_lc" ); rpcSlice->setRefPicListModificationFlagLC( uiCode ? 1 : 0 );
-      if(uiCode)
+#if H0412_REF_PIC_LIST_RESTRICTION
+      if(rpcSlice->getSPS()->getListsModificationPresentFlag() )
       {
-        for (UInt i=0;i<rpcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
+#endif
+        READ_FLAG( uiCode, "ref_pic_list_modification_flag_lc" ); rpcSlice->setRefPicListModificationFlagLC( uiCode ? 1 : 0 );
+        if(uiCode)
         {
-          READ_FLAG( uiCode, "pic_from_list_0_flag" );
-          rpcSlice->setListIdFromIdxOfLC(i, uiCode);
-          READ_UVLC( uiCode, "ref_idx_list_curr" );
-          rpcSlice->setRefIdxFromIdxOfLC(i, uiCode);
-          rpcSlice->setRefIdxOfLC((RefPicList)rpcSlice->getListIdFromIdxOfLC(i), rpcSlice->getRefIdxFromIdxOfLC(i), i);
+          for (UInt i=0;i<rpcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
+          {
+            READ_FLAG( uiCode, "pic_from_list_0_flag" );
+            rpcSlice->setListIdFromIdxOfLC(i, uiCode);
+            READ_UVLC( uiCode, "ref_idx_list_curr" );
+            rpcSlice->setRefIdxFromIdxOfLC(i, uiCode);
+            rpcSlice->setRefIdxOfLC((RefPicList)rpcSlice->getListIdFromIdxOfLC(i), rpcSlice->getRefIdxFromIdxOfLC(i), i);
+          }
         }
+#if H0412_REF_PIC_LIST_RESTRICTION
       }
+      else
+      {
+        rpcSlice->setRefPicListModificationFlagLC(false);
+      }
+#endif
     }
     else
     {

@@ -760,11 +760,8 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
  
   UInt uiSymbol;
   Int  intraPredMode;
-#if LOGI_INTRA_NAME_3MPM
-  Int uiPreds[3] = {-1, -1, -1};
-#else
+
   Int uiPreds[2] = {-1, -1};
-#endif
   Int uiPredNum = pcCU->getIntraDirLumaPredictor(uiAbsPartIdx, uiPreds);  
  
   m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 0) );
@@ -772,27 +769,12 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
   if ( uiSymbol )
   {
     m_pcTDecBinIf->decodeBinEP( uiSymbol );
-#if LOGI_INTRA_NAME_3MPM
-    if (uiSymbol){
-         m_pcTDecBinIf->decodeBinEP( uiSymbol ); uiSymbol++;
-    }
-#endif
     intraPredMode = uiPreds[uiSymbol];
   }
   else
   {
     intraPredMode = 0;
-
-#if LOGI_INTRA_NAME_3MPM
-    Int iTemp;
-
-    m_pcTDecBinIf->decodeBinsEP( uiSymbol, 5 );
-    intraPredMode = uiSymbol;
     
-    if (uiPreds[0] > uiPreds[1])   {iTemp = uiPreds[0]; uiPreds[0] = uiPreds[1]; uiPreds[1] = iTemp;} //postponed sorting of MPMs (only in remaining branch)
-    if (uiPreds[0] > uiPreds[2])   {iTemp = uiPreds[0]; uiPreds[0] = uiPreds[2]; uiPreds[2] = iTemp;}
-    if (uiPreds[1] > uiPreds[2])   {iTemp = uiPreds[1]; uiPreds[1] = uiPreds[2]; uiPreds[2] = iTemp;}
-#else
     m_pcTDecBinIf->decodeBinsEP( uiSymbol, g_aucIntraModeBitsAng[iIntraIdx] - 1 );
     intraPredMode = uiSymbol;
     
@@ -801,7 +783,7 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
       m_pcTDecBinIf->decodeBinEP( uiSymbol );
       intraPredMode += uiSymbol;      
     }
-#endif    
+    
     for ( Int i = 0; i < uiPredNum; i++ )
     {
       intraPredMode += ( intraPredMode >= uiPreds[i] );
@@ -1282,6 +1264,10 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     {
       scanCG = g_sigLastScan8x8[ uiScanIdx ];
     }
+    else if( uiLog2BlockSize == 5 )
+    {
+      scanCG = g_sigLastScanCG32x32;
+    }
 #endif
   }
   else
@@ -1326,20 +1312,27 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
         iCGPosX = (uiScanIdx == SCAN_VER ? iCGBlkPos : 0);
       }
 #endif
+#if !REMOVE_INFER_SIGGRP
       Bool bInferredCGFlag = false;
-
+#endif
+#if REMOVE_INFER_SIGGRP
+      if( iSubSet == iLastScanSet || iSubSet == 0)
+#else
       if( iSubSet == iLastScanSet ) 
+#endif
       {
         uiSigCoeffGroupFlag[ iCGBlkPos ] = 1;
       }
       else
       {
+#if !REMOVE_INFER_SIGGRP
 #if MULTILEVEL_SIGMAP_EXT
         if( !TComTrQuant::bothCGNeighboursOne( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiScanIdx, uiWidth, uiHeight) && ( iSubSet ) )
 #else
         if( !TComTrQuant::bothCGNeighboursOne( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiWidth, uiHeight) && ( iSubSet ) )
 #endif
         {
+#endif
           UInt uiSigCoeffGroup;
 #if MULTILEVEL_SIGMAP_EXT
           UInt uiCtxSig  = TComTrQuant::getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiScanIdx, uiWidth, uiHeight );
@@ -1348,12 +1341,14 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 #endif
           m_pcTDecBinIf->decodeBin( uiSigCoeffGroup, baseCoeffGroupCtx[ uiCtxSig ] );
           uiSigCoeffGroupFlag[ iCGBlkPos ] = uiSigCoeffGroup;
+#if !REMOVE_INFER_SIGGRP
         }
         else
         {
           uiSigCoeffGroupFlag[ iCGBlkPos ] = 1;
           bInferredCGFlag = true;
         }
+#endif
       }
 
       // decode significant_coeff_flag
@@ -1367,7 +1362,11 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
         
         if( uiSigCoeffGroupFlag[ iCGBlkPos ] )
         {
+#if REMOVE_INFER_SIGGRP
+          if( iScanPosSig > iSubPos || iSubSet == 0  || numNonZero )
+#else
           if( iScanPosSig > iSubPos || bInferredCGFlag || numNonZero )
+#endif
           {
             uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
             m_pcTDecBinIf->decodeBin( uiSig, baseCtx[ uiCtxSig ] );
@@ -1432,17 +1431,22 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 #if !RESTRICT_GR1GR2FLAG_NUMBER
       UInt c2 = 0;
 #endif
-
+#if LEVEL_CTX_LUMA_RED
+      UInt uiCtxSet    = (iSubSet > 0 && eTType==TEXT_LUMA) ? 2 : 0;
+#else
       UInt uiCtxSet    = (iSubSet > 0 && eTType==TEXT_LUMA) ? 3 : 0;
+#endif
       UInt uiBin;
       
       if( uiNumOne > 0 )
       {
         uiCtxSet++;
+#if !LEVEL_CTX_LUMA_RED
         if(eTType==TEXT_LUMA && uiNumOne > 3)
         {
           uiCtxSet++;
         }
+#endif
       }
       
       uiNumOne       >>= 1;
@@ -1478,6 +1482,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       if (c1 == 0)
       {
         baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUAbsSCModel.get( 0, 0 ) + 3 * uiCtxSet : m_cCUAbsSCModel.get( 0, 0 ) + NUM_ABS_FLAG_CTX_LUMA + 3 * uiCtxSet;
+
 #if RESTRICT_GR1GR2FLAG_NUMBER
         if ( firstC2FlagIdx != -1)
         {

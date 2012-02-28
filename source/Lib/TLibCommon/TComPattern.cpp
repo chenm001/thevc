@@ -45,21 +45,7 @@
 // ====================================================================================================================
 // Tables
 // ====================================================================================================================
-#if LOGI_INTRA_NAME_3MPM
-const UChar TComPattern::m_aucIntraFilter[5] =
-{
-  {10
-  }, //4x4
-  {7
-  }, //8x8
-  {1
-  }, //16x16
-  {0
-  }, //32x32
-  {10
-  }, //64x64
-};
-#else
+
 const UChar TComPattern::m_aucIntraFilter[5][NUM_INTRA_MODE] =
 {
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -73,7 +59,7 @@ const UChar TComPattern::m_aucIntraFilter[5][NUM_INTRA_MODE] =
   {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
   }, //64x64
 };
-#endif
+
 // ====================================================================================================================
 // Public member functions (TComPatternParam)
 // ====================================================================================================================
@@ -597,14 +583,7 @@ Int* TComPattern::getPredictorPtr( UInt uiDirMode, UInt log2BlkSize, Int* piAdiB
 {
   Int* piSrc;
   assert(log2BlkSize >= 2 && log2BlkSize < 7);
-
-#if LOGI_INTRA_NAME_3MPM
-  UInt  uiDiff = min<Int>(abs((Int) uiDirMode - HOR_IDX), abs((Int)uiDirMode - VER_IDX));
-  UChar ucFiltIdx = uiDiff > m_aucIntraFilter[log2BlkSize - 2] ? 1 : 0;
-  if (uiDirMode == DC_IDX || uiDirMode == LM_CHROMA_IDX) ucFiltIdx = 0; //no smoothing for DC or LM chroma
-#else
   UChar ucFiltIdx = m_aucIntraFilter[log2BlkSize - 2][uiDirMode];
-#endif
 
   assert( ucFiltIdx <= 1 );
 
