@@ -1361,6 +1361,12 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
         }
         else if(scalingList->getPredMode (sizeId,listId) == SCALING_LIST_PRED_DPCM)//DPCM Mode
         {
+#if SCALING_LIST
+          if( sizeId > SCALING_LIST_8x8 )
+          {
+            WRITE_SVLC( scalingList->getScalingListDC(sizeId,listId) - 8, "scaling_list_dc_coef_minus8");
+          }
+#endif
           xCodeDPCMScalingListMatrix(scalingList, dst,sizeId);
         }
 #if SCALING_LIST_OUTPUT_RESULT
@@ -1387,9 +1393,13 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
  */
 Void TEncCavlc::xCodeDPCMScalingListMatrix(TComScalingList* scalingList, Int* piData, UInt uiSizeId)
 {
+#if SCALING_LIST
+  Int dpcm[64];
+  UInt uiDataCounter = min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[uiSizeId]);
+#else
   Int dpcm[1024];
   UInt uiDataCounter = g_scalingListSize[uiSizeId];
-
+#endif
   //make DPCM
   scalingList->xMakeDPCM(piData, piData, dpcm, uiSizeId);
   xWriteResidualCode(uiDataCounter,dpcm);

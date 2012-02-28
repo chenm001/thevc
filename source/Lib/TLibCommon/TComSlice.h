@@ -739,6 +739,10 @@ public:
   UInt     getPredMatrixId          (UInt sizeIdc, UInt listId)               { return m_predMatrixId[sizeIdc][listId]; }
   Int*     getScalingListAddress    (UInt sizeIdc, UInt listId);
   Int*     getScalingListOrgAddress (UInt sizeIdc, UInt listId);
+#if SCALING_LIST
+  Void     setScalingListDC               (UInt sizeId, UInt listId, UInt u)   { m_scalingListDC[sizeId][listId] = u; }      //!< set DC value
+  Int      getScalingListDC               (UInt sizeId, UInt listId)           { return m_scalingListDC[sizeId][listId]; }   //!< get DC value
+#endif
 
   Void     xPredScalingListMatrix    ( TComScalingList* pcScalingListsrc, Int* dst, UInt dstSizeId, UInt dstListId, UInt srcSizeIdc, UInt srcMatrixId);
   Void     xScalingListMatrixModeDecision ();
@@ -757,6 +761,9 @@ public:
 private:
   Void     init                    ();
   Void     destroy                 ();
+#if SCALING_LIST
+  Int      m_scalingListDC               [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< the DC value of the matrix coefficient for 16x16
+#endif
   Bool     m_useDefaultOnlyFlag;                        //!< flag for using default matrix
   Bool     m_predMode              [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM];     //!< pridction mode
   UInt     m_predSizeIdc           [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM];     //!< reference size index

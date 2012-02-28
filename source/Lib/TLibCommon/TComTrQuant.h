@@ -210,10 +210,19 @@ public:
   Bool getUseScalingList   (){ return m_scalingListEnabledFlag; };
   Void setFlatScalingList  ();
   Void xsetFlatScalingList ( UInt list, UInt size, UInt qp);
+#if SCALING_LIST
+  Void xSetScalingListEnc  ( TComScalingList *scalingList, UInt list, UInt size, UInt qp);
+  Void xSetScalingListDec  ( TComScalingList *scalingList, UInt list, UInt size, UInt qp);
+#else
   Void xSetScalingListEnc  ( Int *scalingList, UInt list, UInt size, UInt qp);
   Void xSetScalingListDec  ( Int *scalingList, UInt list, UInt size, UInt qp);
+#endif
   Void setScalingList      ( TComScalingList *scalingList);
   Void setScalingListDec   ( TComScalingList *scalingList);
+#if SCALING_LIST
+  Void processScalingListEnc( Int *coeff, Int *quantcoeff, Int quantScales, UInt height, UInt width, UInt ratio, Int sizuNum, UInt dc);
+  Void processScalingListDec( Int *coeff, Int *dequantcoeff, Int invQuantScales, UInt height, UInt width, UInt ratio, Int sizuNum, UInt dc);
+#endif
 #if ADAPTIVE_QP_SELECTION
   Void    initSliceQpDelta() ;
   Void    storeSliceQpNext(TComSlice* pcSlice);

@@ -2165,11 +2165,21 @@ Void TDecCavlc::parseScalingList(TComScalingList* scalingList)
         {
           READ_UVLC( code, "pred_matrix_id_delta");
           scalingList->setPredMatrixId (sizeId,listId,(UInt)((Int)(listId)-(code+1)));
+#if SCALING_LIST
+          if( sizeId > SCALING_LIST_8x8 )
+          {
+            scalingList->setScalingListDC(sizeId,listId,scalingList->getScalingListDC(sizeId, scalingList->getPredMatrixId (sizeId,listId)));
+          }
+#endif
           scalingList->xPredScalingListMatrix( scalingList, dst, sizeId, listId,sizeId, scalingList->getPredMatrixId (sizeId,listId));
         }
         else if(scalingList->getPredMode (sizeId,listId) == SCALING_LIST_PRED_DPCM)//DPCM mode
         {
+#if SCALING_LIST
+          xDecodeScalingList(scalingList, sizeId, listId);
+#else
           xDecodeDPCMScalingListMatrix(scalingList, dst, sizeId, listId);
+#endif
         }
       }
     }
@@ -2177,6 +2187,34 @@ Void TDecCavlc::parseScalingList(TComScalingList* scalingList)
 
   return;
 }
+#if SCALING_LIST
+/** decode DPCM
+ * \param scalingList  quantization matrix information
+ * \param sizeId size index
+ * \param listId list index
+ */
+Void TDecCavlc::xDecodeScalingList(TComScalingList *scalingList, UInt sizeId, UInt listId)
+{
+  Int i,coefNum = min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId]);
+  Int data;
+  Int scalingListDcCoefMinus8 = 0;
+  Int nextCoef = SCALING_LIST_START_VALUE;
+  UInt* scan  = g_auiFrameScanXY [ (sizeId == 0)? 1 : 2 ];
+  Int *dst = scalingList->getScalingListAddress(sizeId, listId);
+
+  if( sizeId > SCALING_LIST_8x8 )
+  {
+    READ_SVLC( scalingListDcCoefMinus8, "scaling_list_dc_coef_minus8");
+    scalingList->setScalingListDC(sizeId,listId,scalingListDcCoefMinus8 + 8);
+  }
+  for(i = 0; i < coefNum; i++)
+  {
+    READ_SVLC( data, "scaling_list_delta_coef");
+    nextCoef = (nextCoef + data + 256 ) % 256;
+    dst[scan[i]] = nextCoef;
+  }
+}
+#else
 /** read Code
  * \param scalingList  quantization matrix information
  * \param piBuf buffer of decoding data
@@ -2211,6 +2249,7 @@ Void TDecCavlc::xDecodeDPCMScalingListMatrix(TComScalingList *scalingList, Int* 
   //Inverse ZigZag scan
   scalingList->xInvZigZag(pcm, data, sizeId);
 }
+#endif
 
 Void TDecCavlc::parseDFFlag(UInt& ruiVal, const Char *pSymbolName)
 {

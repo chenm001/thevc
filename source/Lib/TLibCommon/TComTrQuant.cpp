@@ -3560,7 +3560,9 @@ Bool TComTrQuant::bothCGNeighboursOne ( const UInt*                   uiSigCoeff
  */
 Void TComTrQuant::setScalingList(TComScalingList *scalingList)
 {
+#if !SCALING_LIST
   Int *scalingListAddress=0;
+#endif
   UInt size,list;
   UInt qp;
 
@@ -3568,11 +3570,18 @@ Void TComTrQuant::setScalingList(TComScalingList *scalingList)
   {
     for(list = 0; list < g_auiScalingListNum[size]; list++)
     {
+#if !SCALING_LIST
       scalingListAddress = scalingList->getScalingListAddress(size,list);
+#endif
       for(qp=0;qp<SCALING_LIST_REM_NUM;qp++)
       {
+#if SCALING_LIST
+        xSetScalingListEnc(scalingList,list,size,qp);
+        xSetScalingListDec(scalingList,list,size,qp);
+#else
         xSetScalingListEnc(scalingListAddress,list,size,qp);
         xSetScalingListDec(scalingListAddress,list,size,qp);
+#endif
         setErrScaleCoeff(list,size,qp,SCALING_LIST_SQT);
         if(size == SCALING_LIST_32x32 || size == SCALING_LIST_16x16)
         {
@@ -3588,7 +3597,9 @@ Void TComTrQuant::setScalingList(TComScalingList *scalingList)
  */
 Void TComTrQuant::setScalingListDec(TComScalingList *scalingList)
 {
+#if !SCALING_LIST
   Int *scalingListAddress=0;
+#endif
   UInt size,list;
   UInt qp;
 
@@ -3596,10 +3607,16 @@ Void TComTrQuant::setScalingListDec(TComScalingList *scalingList)
   {
     for(list = 0; list < g_auiScalingListNum[size]; list++)
     {
+#if !SCALING_LIST
       scalingListAddress = scalingList->getScalingListAddress(size,list);
+#endif
       for(qp=0;qp<SCALING_LIST_REM_NUM;qp++)
       {
+#if SCALING_LIST
+        xSetScalingListDec(scalingList,list,size,qp);
+#else
         xSetScalingListDec(scalingListAddress,list,size,qp);
+#endif
       }
     }
   }
@@ -3671,8 +3688,20 @@ Void TComTrQuant::setErrScaleCoeff(UInt list,UInt size, UInt qp, UInt dir)
  * \param uiScalingListSize SCALING_LIST size
  * \param uiQP Quantization parameter
  */
+#if SCALING_LIST
+Void TComTrQuant::xSetScalingListEnc(TComScalingList *scalingList, UInt listId, UInt sizeId, UInt qp)
+#else
 Void TComTrQuant::xSetScalingListEnc(Int *scalingList, UInt list, UInt size, UInt qp)
+#endif
 {
+#if SCALING_LIST
+  UInt width = g_scalingListSizeX[sizeId];
+  UInt height = g_scalingListSizeX[sizeId];
+  UInt ratio = g_scalingListSizeX[sizeId]/min(MAX_MATRIX_SIZE_NUM,(Int)g_scalingListSizeX[sizeId]);
+  Int *quantcoeff;
+  Int *coeff = scalingList->getScalingListAddress(sizeId,listId);
+  quantcoeff   = getQuantCoeff(listId, qp, g_scalingListSize[sizeId], SCALING_LIST_SQT);
+#else
   UInt i,num = g_scalingListSize[size];
   UInt width = g_scalingListSizeX[size];
   UInt widthCounter;
@@ -3681,14 +3710,28 @@ Void TComTrQuant::xSetScalingListEnc(Int *scalingList, UInt list, UInt size, UIn
   Int *scalingListtop = scalingList;
   Int quantScales = g_quantScales[qp]<<4;
   UInt widthx3 = width*3;
+  quantcoeff   = getQuantCoeff(list, qp, g_scalingListSize[size], SCALING_LIST_SQT);
+#endif
 
-  quantcoeff   = getQuantCoeff(list, qp, g_scalingListSize[size],SCALING_LIST_SQT);
+#if SCALING_LIST
+  processScalingListEnc(coeff,quantcoeff,g_quantScales[qp]<<4,height,width,ratio,min(MAX_MATRIX_SIZE_NUM,(Int)g_scalingListSizeX[sizeId]),scalingList->getScalingListDC(sizeId,listId));
+#else
   for(i=0;i<num;i++)
   {
     *quantcoeff++ = quantScales / (*scalingList);
     scalingList++;
   }
+#endif
 
+#if SCALING_LIST
+  if(sizeId == SCALING_LIST_32x32 || sizeId == SCALING_LIST_16x16) //for NSQT
+  {
+    quantcoeff   = getQuantCoeff(listId, qp, g_scalingListSize[sizeId-1],SCALING_LIST_VER); //Vertical
+    processScalingListEnc(coeff,quantcoeff,g_quantScales[qp]<<4,height,width>>2,ratio,min(MAX_MATRIX_SIZE_NUM,(Int)g_scalingListSizeX[sizeId]),scalingList->getScalingListDC(sizeId,listId));
+
+    quantcoeff   = getQuantCoeff(listId, qp, g_scalingListSize[sizeId-1],SCALING_LIST_HOR); //Horizontal
+    processScalingListEnc(coeff,quantcoeff,g_quantScales[qp]<<4,height>>2,width,ratio,min(MAX_MATRIX_SIZE_NUM,(Int)g_scalingListSizeX[sizeId]),scalingList->getScalingListDC(sizeId,listId));
+#else
   if(size == SCALING_LIST_32x32 || size == SCALING_LIST_16x16)
   {
     scalingList = scalingListtop;
@@ -3711,6 +3754,7 @@ Void TComTrQuant::xSetScalingListEnc(Int *scalingList, UInt list, UInt size, UIn
         widthCounter++;
       }
     }
+#endif
   }
 }
 /** set quantized matrix coefficient for decode
@@ -3719,8 +3763,21 @@ Void TComTrQuant::xSetScalingListEnc(Int *scalingList, UInt list, UInt size, UIn
  * \param uiSize SCALING_LIST size
  * \param uiQP Quantization parameter
  */
+#if SCALING_LIST
+Void TComTrQuant::xSetScalingListDec(TComScalingList *scalingList, UInt listId, UInt sizeId, UInt qp)
+#else
 Void TComTrQuant::xSetScalingListDec(Int *scalingList, UInt list, UInt size, UInt qp)
+#endif
 {
+#if SCALING_LIST
+  UInt width = g_scalingListSizeX[sizeId];
+  UInt height = g_scalingListSizeX[sizeId];
+  UInt ratio = g_scalingListSizeX[sizeId]/min(MAX_MATRIX_SIZE_NUM,(Int)g_scalingListSizeX[sizeId]);
+  Int *dequantcoeff;
+  Int *coeff = scalingList->getScalingListAddress(sizeId,listId);
+
+  dequantcoeff = getDequantCoeff(listId, qp, g_scalingListSize[sizeId],SCALING_LIST_SQT);
+#else
   UInt i,num = g_scalingListSize [size];
   UInt width = g_scalingListSizeX[size];
   UInt widthCounter;
@@ -3731,12 +3788,26 @@ Void TComTrQuant::xSetScalingListDec(Int *scalingList, UInt list, UInt size, UIn
   UInt widthx3 = width*3;
 
   dequantcoeff = getDequantCoeff(list, qp, g_scalingListSize[size],SCALING_LIST_SQT);
+#endif
+#if SCALING_LIST
+  processScalingListDec(coeff,dequantcoeff,g_invQuantScales[qp],height,width,ratio,min(MAX_MATRIX_SIZE_NUM,(Int)g_scalingListSizeX[sizeId]),scalingList->getScalingListDC(sizeId,listId));
+#else
   for(i=0;i<num;i++)
   {
     *dequantcoeff++ = invQuantScales * (*scalingList);
     scalingList++;
   }
+#endif
 
+#if SCALING_LIST
+  if(sizeId == SCALING_LIST_32x32 || sizeId == SCALING_LIST_16x16)
+  {
+    dequantcoeff   = getDequantCoeff(listId, qp, g_scalingListSize[sizeId-1],SCALING_LIST_VER);
+    processScalingListDec(coeff,dequantcoeff,g_invQuantScales[qp],height,width>>2,ratio,min(MAX_MATRIX_SIZE_NUM,(Int)g_scalingListSizeX[sizeId]),scalingList->getScalingListDC(sizeId,listId));
+
+    dequantcoeff   = getDequantCoeff(listId, qp, g_scalingListSize[sizeId-1],SCALING_LIST_HOR);
+    processScalingListDec(coeff,dequantcoeff,g_invQuantScales[qp],height>>2,width,ratio,min(MAX_MATRIX_SIZE_NUM,(Int)g_scalingListSizeX[sizeId]),scalingList->getScalingListDC(sizeId,listId));
+#else
   if(size == SCALING_LIST_32x32 || size == SCALING_LIST_16x16)
   {
     scalingList = scalingListtop;
@@ -3760,6 +3831,7 @@ Void TComTrQuant::xSetScalingListDec(Int *scalingList, UInt list, UInt size, UIn
       }
       widthCounter++;
     }
+#endif
   }
 }
 
@@ -3893,6 +3965,61 @@ Void TComTrQuant::xsetFlatScalingList(UInt list, UInt size, UInt qp)
     }
   }
 }
+
+#if SCALING_LIST
+/** set quantized matrix coefficient for encode
+ * \param coeff quantaized matrix address
+ * \param quantcoeff quantaized matrix address
+ * \param quantScales Q(QP%6)
+ * \param height height
+ * \param width width
+ * \param ratio ratio for upscale
+ * \param sizuNum matrix size
+ * \param dc dc parameter
+ */
+Void TComTrQuant::processScalingListEnc( Int *coeff, Int *quantcoeff, Int quantScales, UInt height, UInt width, UInt ratio, Int sizuNum, UInt dc)
+{
+  Int nsqth = (height < width) ? 4: 1; //height ratio for NSQT
+  Int nsqtw  = (width < height) ? 4: 1; //width ratio for NSQT
+  for(UInt j=0;j<height;j++)
+  {
+    for(UInt i=0;i<width;i++)
+    {
+      quantcoeff[j*width + i] = quantScales / coeff[sizuNum * (j * nsqth / ratio) + i * nsqtw /ratio];
+    }
+  }
+  if(ratio > 1)
+  {
+    quantcoeff[0] = quantScales / dc;
+  }
+}
+/** set quantized matrix coefficient for decode
+ * \param coeff quantaized matrix address
+ * \param dequantcoeff quantaized matrix address
+ * \param invQuantScales IQ(QP%6))
+ * \param height height
+ * \param width width
+ * \param ratio ratio for upscale
+ * \param sizuNum matrix size
+ * \param dc dc parameter
+ */
+Void TComTrQuant::processScalingListDec( Int *coeff, Int *dequantcoeff, Int invQuantScales, UInt height, UInt width, UInt ratio, Int sizuNum, UInt dc)
+{
+  Int nsqth = (height < width) ? 4: 1; //height ratio for NSQT
+  Int nsqtw  = (width < height) ? 4: 1; //width ratio for NSQT
+  for(UInt j=0;j<height;j++)
+  {
+    for(UInt i=0;i<width;i++)
+    {
+      dequantcoeff[j*width + i] = invQuantScales * coeff[sizuNum * (j * nsqth / ratio) + i * nsqtw /ratio];
+    }
+  }
+  if(ratio > 1)
+  {
+    dequantcoeff[0] = invQuantScales * dc;
+  }
+}
+#endif
 
 /** initialization process of scaling list array
  */

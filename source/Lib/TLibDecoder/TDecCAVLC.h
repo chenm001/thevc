@@ -169,8 +169,12 @@ public:
 
   Void xParsePredWeightTable ( TComSlice* pcSlice );
   Void  parseScalingList               ( TComScalingList* scalingList );
+#if SCALING_LIST
+  Void xDecodeScalingList    ( TComScalingList *scalingList, UInt sizeId, UInt listId);
+#else
   Void  xDecodeDPCMScalingListMatrix   ( TComScalingList *scalingList, Int* data, UInt sizeId, UInt listId);
   Void  xReadScalingListCode           ( TComScalingList *scalingList, Int* buf,  UInt sizeId, UInt listId);
+#endif
   Void parseDFFlag         ( UInt& ruiVal, const Char *pSymbolName );
   Void parseDFSvlc         ( Int&  riVal,  const Char *pSymbolName  );
 #if PARAMSET_VLC_CLEANUP

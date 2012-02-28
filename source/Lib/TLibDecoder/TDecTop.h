@@ -110,7 +110,9 @@ private:
   Bool                    m_bFirstSliceInPicture;
   Bool                    m_bFirstSliceInSequence;
 
+#if !PARAMSET_VLC_CLEANUP
   TComScalingList         m_scalingList;        ///< quantization matrix information
+#endif
 public:
   TDecTop();
   virtual ~TDecTop();
