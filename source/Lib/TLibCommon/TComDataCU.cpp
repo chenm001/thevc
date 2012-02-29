@@ -4036,7 +4036,12 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
     uiDirMode = getChromaIntraDir(uiAbsPartIdx);
     if( uiDirMode == DM_CHROMA_IDX )
     {
-      uiDirMode = getLumaIntraDir(uiAbsPartIdx);
+      // get number of partitions in current CU
+      UInt depth = getDepth(uiAbsPartIdx);
+      UInt numParts = getPic()->getNumPartInCU() >> (2 * depth);
+      
+      // get luma mode from upper-left corner of current CU
+      uiDirMode = getLumaIntraDir((uiAbsPartIdx/numParts)*numParts);
     }
 #if LOGI_INTRA_NAME_3MPM
     uiScanIdx = SCAN_ZIGZAG;
