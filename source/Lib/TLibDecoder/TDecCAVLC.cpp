@@ -1104,7 +1104,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       else
       {
 #endif
-      READ_FLAG( uiCode, "ref_pic_list_modification_flag_l0" ); refPicListModification->setRefPicListModificationFlagL0( uiCode ? 1 : 0 );
+        READ_FLAG( uiCode, "ref_pic_list_modification_flag_l0" ); refPicListModification->setRefPicListModificationFlagL0( uiCode ? 1 : 0 );
 #if H0412_REF_PIC_LIST_RESTRICTION
       }
 #endif
@@ -1146,7 +1146,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       else
       {
 #endif
-      READ_FLAG( uiCode, "ref_pic_list_modification_flag_l1" ); refPicListModification->setRefPicListModificationFlagL1( uiCode ? 1 : 0 );
+        READ_FLAG( uiCode, "ref_pic_list_modification_flag_l1" ); refPicListModification->setRefPicListModificationFlagL1( uiCode ? 1 : 0 );
 #if H0412_REF_PIC_LIST_RESTRICTION
       }
 #endif
