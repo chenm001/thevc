@@ -39,6 +39,7 @@
 #include "TEncSbac.h"
 
 #include <map>
+#include <algorithm>
 
 //! \ingroup TLibEncoder
 //! \{
@@ -688,14 +689,17 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
     m_pcBinIf->encodeBin( 0, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
   
 #if LOGI_INTRA_NAME_3MPM
-    if (uiPreds[0] > uiPreds[1]){ 
-      Swap<Int>(uiPreds[0], uiPreds[1]); 
+    if (uiPreds[0] > uiPreds[1])
+    { 
+      std::swap(uiPreds[0], uiPreds[1]); 
     }
-    if (uiPreds[0] > uiPreds[2]){
-      Swap<Int>(uiPreds[0], uiPreds[2]);
+    if (uiPreds[0] > uiPreds[2])
+    {
+      std::swap(uiPreds[0], uiPreds[2]);
     }
-    if (uiPreds[1] > uiPreds[2]){
-      Swap<Int>(uiPreds[1], uiPreds[2]);
+    if (uiPreds[1] > uiPreds[2])
+    {
+      std::swap(uiPreds[1], uiPreds[2]);
     }
 #endif
 

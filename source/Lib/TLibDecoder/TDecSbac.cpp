@@ -793,14 +793,17 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
     intraPredMode = uiSymbol;
     
    //postponed sorting of MPMs (only in remaining branch)
-    if (uiPreds[0] > uiPreds[1]){ 
-      Swap<Int>(uiPreds[0], uiPreds[1]); 
+    if (uiPreds[0] > uiPreds[1])
+    { 
+      std::swap(uiPreds[0], uiPreds[1]); 
     }
-    if (uiPreds[0] > uiPreds[2]){
-      Swap<Int>(uiPreds[0], uiPreds[2]);
+    if (uiPreds[0] > uiPreds[2])
+    {
+      std::swap(uiPreds[0], uiPreds[2]);
     }
-    if (uiPreds[1] > uiPreds[2]){
-      Swap<Int>(uiPreds[1], uiPreds[2]);
+    if (uiPreds[1] > uiPreds[2])
+    {
+      std::swap(uiPreds[1], uiPreds[2]);
     }
 #else
     m_pcTDecBinIf->decodeBinsEP( uiSymbol, g_aucIntraModeBitsAng[iIntraIdx] - 1 );
