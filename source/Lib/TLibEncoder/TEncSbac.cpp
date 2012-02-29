@@ -688,24 +688,14 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
     m_pcBinIf->encodeBin( 0, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
   
 #if LOGI_INTRA_NAME_3MPM
-    Int temp;
-    if (uiPreds[0] > uiPreds[1])
-    {
-      temp = uiPreds[0];
-      uiPreds[0] = uiPreds[1];
-      uiPreds[1] = temp;
-    } //postponed sorting of MPMs (only in remaining branch)
-    if (uiPreds[0] > uiPreds[2])
-    {
-      temp = uiPreds[0];
-      uiPreds[0] = uiPreds[2];
-      uiPreds[2] = temp;
+    if (uiPreds[0] > uiPreds[1]){ 
+      Swap<Int>(uiPreds[0], uiPreds[1]); 
     }
-    if (uiPreds[1] > uiPreds[2])
-    {
-      temp = uiPreds[1];
-      uiPreds[1] = uiPreds[2];
-      uiPreds[2] = temp;
+    if (uiPreds[0] > uiPreds[2]){
+      Swap<Int>(uiPreds[0], uiPreds[2]);
+    }
+    if (uiPreds[1] > uiPreds[2]){
+      Swap<Int>(uiPreds[1], uiPreds[2]);
     }
 #endif
 
