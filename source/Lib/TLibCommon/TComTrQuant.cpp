@@ -3317,7 +3317,7 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
   {
 #if RESTRICT_GR1GR2FLAG_NUMBER
     assert (0);
-#endif
+#else
     UInt uiSymbol     = uiAbsLevel - 3;
     UInt uiMaxVlc     = g_auiGoRiceRange[ ui16AbsGoRice ];
     Bool bExpGolomb   = ( uiSymbol > uiMaxVlc );
@@ -3336,6 +3336,7 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
     iRate += ui16NumBins << 15;
     iRate += m_pcEstBitsSbac->m_greaterOneBits[ ui16CtxNumOne ][ 1 ];
     iRate += m_pcEstBitsSbac->m_levelAbsBits[ ui16CtxNumAbs ][ 1 ];
+#endif
   }
   return xGetICost( iRate );
 }
@@ -3401,6 +3402,9 @@ __inline Int TComTrQuant::xGetICRate  ( UInt                            uiAbsLev
   }
   else
   {
+#if RESTRICT_GR1GR2FLAG_NUMBER
+    assert(0);
+#else
     UInt uiSymbol     = uiAbsLevel - 3;
     UInt uiMaxVlc     = g_auiGoRiceRange[ ui16AbsGoRice ];
     Bool bExpGolomb   = ( uiSymbol > uiMaxVlc );
@@ -3419,6 +3423,7 @@ __inline Int TComTrQuant::xGetICRate  ( UInt                            uiAbsLev
     iRate += ui16NumBins << 15;
     iRate += m_pcEstBitsSbac->m_greaterOneBits[ ui16CtxNumOne ][ 1 ];
     iRate += m_pcEstBitsSbac->m_levelAbsBits[ ui16CtxNumAbs ][ 1 ];
+#endif
   }
   return iRate;
 }
