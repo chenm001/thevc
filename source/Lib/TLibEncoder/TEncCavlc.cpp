@@ -1317,20 +1317,18 @@ Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
 Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
 {
   UInt listId,sizeId;
-  Int *dst=0;
+  Bool scalingListPredModeFlag;
+
 #if SCALING_LIST_OUTPUT_RESULT
-  Int *org=0;
-  Int avg_error = 0;
-  Int max_error = 0;
   Int startBit;
   Int startTotalBit;
   startBit = m_pcBitIf->getNumberOfWrittenBits();
   startTotalBit = m_pcBitIf->getNumberOfWrittenBits();
 #endif
 
-  WRITE_FLAG( scalingList->getUseDefaultOnlyFlag (), "use_default_scaling_list_flag" );
+  WRITE_FLAG( scalingList->getScalingListPresentFlag (), "use_default_scaling_list_flag" );
 
-  if(scalingList->getUseDefaultOnlyFlag () == false)
+  if(scalingList->getScalingListPresentFlag () == false)
   {
 #if SCALING_LIST_OUTPUT_RESULT
     printf("Header Bit %d\n",m_pcBitIf->getNumberOfWrittenBits()-startBit);
@@ -1340,32 +1338,18 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
     {
       for(listId = 0; listId < g_scalingListNum[sizeId]; listId++)
       {
-        dst = scalingList->getScalingListAddress(sizeId,listId);
 #if SCALING_LIST_OUTPUT_RESULT
-        org = scalingList->getScalingListOrgAddress(sizeId,listId);
-        for(int i=0;i<g_scalingListSize[sizeId];i++)
-        {
-          avg_error += abs(dst[i] - org[i]);
-          if(abs(max_error) < abs(dst[i] - org[i]))
-          {
-            max_error = dst[i] - org[i];
-          }
-        }
         startBit = m_pcBitIf->getNumberOfWrittenBits();
 #endif
-        WRITE_FLAG( scalingList->getPredMode (sizeId,listId), "pred_mode_flag" );
-        if(scalingList->getPredMode (sizeId,listId) == SCALING_LIST_PRED_COPY)//Copy Mode
+        scalingListPredModeFlag = scalingList->checkPredMode( sizeId, listId );
+        WRITE_FLAG( scalingListPredModeFlag, "scaling_list_pred_mode_flag" );
+        if(!scalingListPredModeFlag)
         {
-          WRITE_UVLC( (Int)listId - (Int)scalingList->getPredMatrixId (sizeId,listId) - 1, "pred_matrix_id_delta");
-          scalingList->xPredScalingListMatrix( scalingList, dst, sizeId, listId,sizeId, scalingList->getPredMatrixId (sizeId,listId));       
+          WRITE_UVLC( (Int)listId - (Int)scalingList->getRefMatrixId (sizeId,listId) - 1, "scaling_list_pred_matrix_id_delta");
         }
-        else if(scalingList->getPredMode (sizeId,listId) == SCALING_LIST_PRED_DPCM)//DPCM Mode
+        else//DPCM Mode
         {
-#if SCALING_LIST
           xCodeScalingList(scalingList, sizeId, listId);
-#else
-          xCodeDPCMScalingListMatrix(scalingList, dst,sizeId);
-#endif
         }
 #if SCALING_LIST_OUTPUT_RESULT
         printf("Matrix [%d][%d] Bit %d\n",sizeId,listId,m_pcBitIf->getNumberOfWrittenBits() - startBit);
@@ -1379,12 +1363,9 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
     printf("Header Bit %d\n",m_pcBitIf->getNumberOfWrittenBits()-startTotalBit);
   }
   printf("Total Bit %d\n",m_pcBitIf->getNumberOfWrittenBits()-startTotalBit);
-  printf("MaxError %d\n",abs(max_error));
-  printf("AvgError %lf\n",(double)avg_error/(double)((16+64+256)*6+(1024*2)));
 #endif
   return;
 }
-#if SCALING_LIST
 /** code DPCM
  * \param scalingList quantization matrix information
  * \param sizeIdc size index
@@ -1392,12 +1373,17 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
  */
 Void TEncCavlc::xCodeScalingList(TComScalingList* scalingList, UInt sizeId, UInt listId)
 {
+#if SCALING_LIST
   Int coefNum = min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId]);
-  Int nextCoef = SCALING_LIST_START_VALUE;
   UInt* scan    = g_auiFrameScanXY [ (sizeId == 0)? 1 : 2];
+#else
+  Int coefNum = (Int)g_scalingListSize[sizeId];
+  UInt* scan    = g_auiFrameScanXY [ sizeId + 1];
+#endif
+  Int nextCoef = SCALING_LIST_START_VALUE;
   Int data;
   Int *src = scalingList->getScalingListAddress(sizeId, listId);
-
+#if SCALING_LIST
   if(sizeId > SCALING_LIST_8x8 && scalingList->getUseDefaultScalingMatrixFlag(sizeId,listId))
   {
     WRITE_SVLC( -8, "scaling_list_dc_coef_minus8");
@@ -1425,30 +1411,27 @@ Void TEncCavlc::xCodeScalingList(TComScalingList* scalingList, UInt sizeId, UInt
         data = data + 256;
       }
 
-      WRITE_SVLC( data,  "delta_coef");
+      WRITE_SVLC( data,  "scaling_list_delta_coef");
     }
   }
-}
 #else
-/** code DPCM with quantization matrix
- * \param scalingList quantization matrix information
- * \param piData matrix data
- * \param uiSizeId size index
- */
-Void TEncCavlc::xCodeDPCMScalingListMatrix(TComScalingList* scalingList, Int* piData, UInt uiSizeId)
-{
-#if SCALING_LIST
-  Int dpcm[64];
-  UInt uiDataCounter = min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[uiSizeId]);
-#else
-  Int dpcm[1024];
-  UInt uiDataCounter = g_scalingListSize[uiSizeId];
+  for(Int i=0;i<coefNum;i++)
+  {
+    data = src[scan[i]] - nextCoef;
+    nextCoef = src[scan[i]];
+    if(data > 127)
+    {
+      data = data - 256;
+    }
+    if(data < -128)
+    {
+      data = data + 256;
+    }
+
+    WRITE_SVLC( data,  "delta_coef");
+  }
 #endif
-  //make DPCM
-  scalingList->xMakeDPCM(piData, piData, dpcm, uiSizeId);
-  xWriteResidualCode(uiDataCounter,dpcm);
 }
-#endif
 /** write resiidual code
  * \param uiSize side index
  * \param data residual coefficient
@@ -1460,5 +1443,21 @@ Void TEncCavlc::xWriteResidualCode(UInt uiSize, Int *data)
     WRITE_SVLC( data[i],  "delta_coef");
   }
 }
-
+Bool TComScalingList::checkPredMode(UInt sizeId, UInt listId)
+{
+  for(Int predListIdx = (Int)listId -1 ; predListIdx >= 0; predListIdx--)
+  {
+#if SCALING_LIST
+    if( !memcmp(getScalingListAddress(sizeId,listId),getScalingListAddress(sizeId, predListIdx),sizeof(Int)*min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId])) // check value of matrix
+     && ((sizeId < SCALING_LIST_16x16) || (getScalingListDC(sizeId,listId) == getScalingListDC(sizeId,predListIdx)))) // check DC value
+#else
+    if( !memcmp(getScalingListAddress(sizeId,listId),getScalingListAddress(sizeId, predListIdx),sizeof(Int)*(Int)g_scalingListSize[sizeId])) // check value of matrix
+#endif
+    {
+      setRefMatrixId(sizeId, listId, predListIdx);
+      return false;
+    }
+  }
+  return true;
+}
 //! \}

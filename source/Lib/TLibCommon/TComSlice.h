@@ -731,36 +731,23 @@ class TComScalingList
 public:
   TComScalingList();
   virtual ~TComScalingList();
-  Void     setUseDefaultOnlyFlag    (Bool b)                                  { m_useDefaultOnlyFlag = b;    }
-  Bool     getUseDefaultOnlyFlag    ()                                        { return m_useDefaultOnlyFlag; }
-  Void     setPredMode              (UInt sizeIdc, UInt listId, UInt u)       { m_predMode[sizeIdc][listId] = u;    }
-  Bool     getPredMode              (UInt sizeIdc, UInt listId)               { return m_predMode[sizeIdc][listId]; }
-  Void     setPredMatrixId          (UInt sizeIdc, UInt listId, UInt u)       { m_predMatrixId[sizeIdc][listId] = u;    }
-  UInt     getPredMatrixId          (UInt sizeIdc, UInt listId)               { return m_predMatrixId[sizeIdc][listId]; }
-  Int*     getScalingListAddress    (UInt sizeIdc, UInt listId);
-  Int*     getScalingListOrgAddress (UInt sizeIdc, UInt listId);
-#if SCALING_LIST
+  Void     setScalingListPresentFlag    (Bool b)                               { m_scalingListPresentFlag = b;    }
+  Bool     getScalingListPresentFlag    ()                                     { return m_scalingListPresentFlag; }
+  Int*     getScalingListAddress          (UInt sizeId, UInt listId)           { return m_scalingListCoef[sizeId][listId]; } //!< get matrix coefficient
+  Bool     checkPredMode                  (UInt sizeId, UInt listId);
+  Void     setRefMatrixId                 (UInt sizeId, UInt listId, UInt u)   { m_refMatrixId[sizeId][listId] = u;    }     //!< set reference matrix ID
+  UInt     getRefMatrixId                 (UInt sizeId, UInt listId)           { return m_refMatrixId[sizeId][listId]; }     //!< get reference matrix ID
   Int*     getScalingListDefaultAddress   (UInt sizeId, UInt listId);                                                        //!< get default matrix coefficient
+  Void     processDefaultMarix            (UInt sizeId, UInt listId);
+#if SCALING_LIST
   Void     setScalingListDC               (UInt sizeId, UInt listId, UInt u)   { m_scalingListDC[sizeId][listId] = u; }      //!< set DC value
   Int      getScalingListDC               (UInt sizeId, UInt listId)           { return m_scalingListDC[sizeId][listId]; }   //!< get DC value
-  Void     processDefaultMarix            (UInt sizeId, UInt listId);
   Void     checkDcOfMatrix                ();
-  Void     setUseDefaultScalingMatrixFlag (UInt sizeId, UInt listId, Bool b)  { m_useDefaultScalingMatrixFlag[sizeId][listId] = b;    } //!< set default matrix enabled/disabled in each matrix
-  Bool     getUseDefaultScalingMatrixFlag (UInt sizeId, UInt listId)          { return m_useDefaultScalingMatrixFlag[sizeId][listId]; } //!< get default matrix enabled/disabled in each matrix
+  Void     setUseDefaultScalingMatrixFlag (UInt sizeId, UInt listId, Bool b)   { m_useDefaultScalingMatrixFlag[sizeId][listId] = b;    } //!< set default matrix enabled/disabled in each matrix
+  Bool     getUseDefaultScalingMatrixFlag (UInt sizeId, UInt listId)           { return m_useDefaultScalingMatrixFlag[sizeId][listId]; } //!< get default matrix enabled/disabled in each matrix
 #endif
-  Void     xPredScalingListMatrix    ( TComScalingList* pcScalingListsrc, Int* dst, UInt dstSizeId, UInt dstListId, UInt srcSizeIdc, UInt srcMatrixId);
-  Void     xScalingListMatrixModeDecision ();
-  Void     xCalcBestBitCopyMode( Int *org, Int *recon, Int *bestRecon, Int sizeIdc, Int listIdc, UInt size, UInt *bestBit);
-  Void     xCalcBestBitDPCMMode( Int *org, Int *recon, Int *bestRecon, Int sizeIdc, Int listIdc, UInt size, UInt *bestBit);
-  UInt     xCalcResidual       ( Int *org, Int *recon, Int *residual, UInt sizeIdc, estScalingListStruct *pestScalingList);
-
-  UInt     xPredDPCMScalingListMatrix (Int* dst, Int* org, UInt sizeId, estScalingListStruct *pestScalingList);
-  Bool     xParseScalingList          (char* pchFile);
-  UInt     xMakeResidual    (Int *org, Int *recon, Int *residual, UInt sizeIdc);
-  Void     xMakeDPCM        (Int *src, Int *dst, Int* dpcm, UInt sizeId);
-  Void     xInvZigZag       (Int *src, Int *dst, UInt sizeIdc);
-  Void     xInvDPCM         (Int *src, Int *dst, UInt sizeIdc, Int startValue);
-  Void     xUpdateCondition (UInt sizeIdc, UInt listIdc, estScalingListStruct *pestScalingList);
+  Void     processRefMatrix               (UInt sizeId, UInt listId , UInt refListId );
+  Bool     xParseScalingList              (char* pchFile);
 
 private:
   Void     init                    ();
@@ -769,18 +756,10 @@ private:
   Int      m_scalingListDC               [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< the DC value of the matrix coefficient for 16x16
   Bool     m_useDefaultScalingMatrixFlag [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< UseDefaultScalingMatrixFlag
 #endif
-  Bool     m_useDefaultOnlyFlag;                        //!< flag for using default matrix
-  Bool     m_predMode              [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM];     //!< pridction mode
-  UInt     m_predSizeIdc           [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM];     //!< reference size index
-  UInt     m_predMatrixId          [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM];     //!< reference list index
-  Int      *m_scalingList4x4       [SCALING_LIST_NUM];  //!< quantization matrix 4x4
-  Int      *m_scalingList8x8       [SCALING_LIST_NUM];  //!< quantization matrix 8x8
-  Int      *m_scalingList16x16     [SCALING_LIST_NUM];  //!< quantization matrix 16x16
-  Int      *m_scalingList32x32     [SCALING_LIST_NUM];  //!< quantization matrix 32x32
-  Int      *m_scalingList4x4_Org   [SCALING_LIST_NUM];  //!< default quantization matrix 4x4
-  Int      *m_scalingList8x8_Org   [SCALING_LIST_NUM];  //!< default quantization matrix 8x8
-  Int      *m_scalingList16x16_Org [SCALING_LIST_NUM];  //!< default quantization matrix 16x16
-  Int      *m_scalingList32x32_Org [SCALING_LIST_NUM];  //!< default quantization matrix 32x32
+  UInt     m_refMatrixId                 [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< RefMatrixID
+  Bool     m_scalingListPresentFlag;                                                //!< flag for using default matrix
+  UInt     m_predMatrixId                [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< reference list index
+  Int      *m_scalingListCoef            [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< quantization matrix
 };
 
 /// APS class

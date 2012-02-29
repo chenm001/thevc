@@ -227,9 +227,9 @@ extern UInt64 g_nSymbolCounter;
 #define SCALING_LIST_NUM_32x32 2   ///< list number for quantization matrix 32x32
 #define SCALING_LIST_REM_NUM 6     ///< remainder of QP/6
 #define SCALING_LIST_START_VALUE 8 ///< start value for dpcm mode
-#if SCALING_LIST
 #define MAX_MATRIX_COEF_NUM 64     ///< max coefficient number for quantization matrix
 #define MAX_MATRIX_SIZE_NUM 8      ///< max size number for quantization matrix
+#if SCALING_LIST
 #define SCALING_LIST_DC 16         ///< default DC value
 #endif
 enum ScalingListDIR

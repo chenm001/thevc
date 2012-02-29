@@ -690,7 +690,7 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDispl
     if(pcSlice->getAPS()->getScalingListEnabled())
     {
       pcSlice->setScalingList ( pcSlice->getAPS()->getScalingList()  );
-      if(pcSlice->getScalingList()->getUseDefaultOnlyFlag())
+      if(pcSlice->getScalingList()->getScalingListPresentFlag())
       {
         pcSlice->setDefaultScalingList();
       }
@@ -1194,7 +1194,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         if(pcSlice->getAPS()->getScalingListEnabled())
         {
           pcSlice->setScalingList ( &m_scalingList  );
-          if(pcSlice->getScalingList()->getUseDefaultOnlyFlag())
+          if(pcSlice->getScalingList()->getScalingListPresentFlag())
           {
             pcSlice->setDefaultScalingList();
           }

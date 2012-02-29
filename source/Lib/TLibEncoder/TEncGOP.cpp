@@ -236,7 +236,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       else if(m_pcEncTop->getUseScalingListId() == SCALING_LIST_DEFAULT)
       {
         pcSlice->setDefaultScalingList ();
-        pcSlice->getScalingList()->setUseDefaultOnlyFlag(true);
+        pcSlice->getScalingList()->setScalingListPresentFlag(true);
         m_pcEncTop->getTrQuant()->setScalingList(pcSlice->getScalingList());
         m_pcEncTop->getTrQuant()->setUseScalingList(true);
       }
@@ -249,8 +249,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if SCALING_LIST
         pcSlice->getScalingList()->checkDcOfMatrix();
 #endif
-        pcSlice->getScalingList()->xScalingListMatrixModeDecision();
-        pcSlice->getScalingList()->setUseDefaultOnlyFlag(pcSlice->checkDefaultScalingList());
+        pcSlice->getScalingList()->setScalingListPresentFlag(pcSlice->checkDefaultScalingList());
         m_pcEncTop->getTrQuant()->setScalingList(pcSlice->getScalingList());
         m_pcEncTop->getTrQuant()->setUseScalingList(true);
       }
