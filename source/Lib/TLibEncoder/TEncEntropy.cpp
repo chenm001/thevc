@@ -1698,7 +1698,6 @@ Void TEncEntropy::encodeSaoUnit(Int rx, Int ry, Int iCompIdx, SAOParam* pSaoPara
   int iAddr, iAddrUp, iAddrLeft; 
   int iNumCuInWidth  = pSaoParam->iNumCuInWidth;
   SaoLcuParam* psSaoOneLcu;
-  SaoLcuParam* psSaoOneLcuUp;
   Int iRunLeft;
 
   iAddr      =  rx + ry*iNumCuInWidth;
@@ -1718,7 +1717,6 @@ Void TEncEntropy::encodeSaoUnit(Int rx, Int ry, Int iCompIdx, SAOParam* pSaoPara
       }
       else 
       {
-        psSaoOneLcuUp = &(pSaoParam->psSaoLcuParam[iCompIdx][iAddrUp]);
         m_pcEntropyCoderIf->codeSaoSvlc(psSaoOneLcu->runDiff); 
         m_pcEntropyCoderIf->codeSaoFlag(psSaoOneLcu->mergeUpFlag);  
       }

@@ -1400,7 +1400,7 @@ Void TEncAdaptiveLoopFilter::reDesignQT(AlfPicQTPart *alfPicQTPart, Int partIdx,
 
 Void TEncAdaptiveLoopFilter::decideBlockControl(Pel* imgOrg, Pel* imgDec, Pel* imgRest, Int stride, AlfPicQTPart* alfPicQTPart, AlfParamSet* & alfParamSet, Int64 &minRate, Int64 &minDist, Double &minCost)
 {
-  Int    rate, ctrlDepth, bestCtrlDepth;
+  Int    rate, ctrlDepth;
   Double cost;
   UInt64 dist;
   Bool isChanged = false;
@@ -1457,7 +1457,6 @@ Void TEncAdaptiveLoopFilter::decideBlockControl(Pel* imgOrg, Pel* imgDec, Pel* i
       if (cost < minCost)
       {
         isChanged     = true;
-        bestCtrlDepth = ctrlDepth;
         minCost       = cost;
         minDist       = (Int64) dist;
         minRate       = rate;
@@ -1775,8 +1774,8 @@ Void TEncAdaptiveLoopFilter::decideLCUALFUnitParam(Int compIdx, AlfUnitParam* al
   Int    budgetNumFilters = (Int)(maxNumFilter/numSliceDataInCurrLCU);
   Int    numStoredFilters = (Int)storedFilters.size();
   Double cost, minCost = MAX_DOUBLE;
-  Int64  dist, minDist = MAX_INT;
-  Int    rate, minRate = MAX_INT;
+  Int64  dist;
+  Int    rate;
 
   AlfUnitParam& alfUnitParamCurr = alfUnitParams[lcuIdx];
 
@@ -1794,8 +1793,6 @@ Void TEncAdaptiveLoopFilter::decideLCUALFUnitParam(Int compIdx, AlfUnitParam* al
   if(cost < minCost)
   {
     minCost = cost;
-    minDist = dist;
-    minRate = rate;
     alfUnitParamCurr = alfUnitParamTemp;
 
     alfUnitParamCurr.alfFiltParam->alf_flag = 1;
@@ -1830,8 +1827,6 @@ Void TEncAdaptiveLoopFilter::decideLCUALFUnitParam(Int compIdx, AlfUnitParam* al
         if(cost < minCost)
         {
           minCost = cost;
-          minDist = dist;
-          minRate = rate;
           alfUnitParamCurr = alfUnitParamTemp;
         }
       }
@@ -1856,8 +1851,6 @@ Void TEncAdaptiveLoopFilter::decideLCUALFUnitParam(Int compIdx, AlfUnitParam* al
         if(cost < minCost)
         {
           minCost = cost;
-          minDist = dist;
-          minRate = rate;
 
           alfUnitParamCurr = alfUnitParamTemp;
         }
@@ -1886,8 +1879,6 @@ Void TEncAdaptiveLoopFilter::decideLCUALFUnitParam(Int compIdx, AlfUnitParam* al
         if(cost < minCost)
         {
           minCost = cost;
-          minDist = dist;
-          minRate = rate;
 
           alfUnitParamCurr = alfUnitParamTemp;
         }

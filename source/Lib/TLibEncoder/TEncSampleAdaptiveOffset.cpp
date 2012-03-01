@@ -1884,7 +1884,6 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnit(SAOParam *pcSaoParam, Int iAddr, Int i
   Double dComplexityCost = 0;
   Int64 iMinDist;
   Int64 iMinRate;
-  Double dMinCost;
   SaoLcuParam*  psSaoLcuParam = NULL;   
   SaoLcuParam*  psSaoLcuParamUp = NULL; 
   SaoLcuParam*  psSaoLcuParamLeft = NULL;
@@ -2226,7 +2225,6 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnit(SAOParam *pcSaoParam, Int iAddr, Int i
 
   iMinDist   =        m_iTypePartBest[iYCbCr] >= 0 ? m_iDist[iYCbCr][m_iTypePartBest[iYCbCr]] : m_iDistOrg[iYCbCr];
   iMinRate   = (Int) (m_iTypePartBest[iYCbCr] >= 0 ? m_iRate[iYCbCr][m_iTypePartBest[iYCbCr]] : 0);
-  dMinCost   = iMinDist + dLambda * iMinRate;
   psSaoLcuParam->typeIdx  = m_iTypePartBest[iYCbCr];
   if (psSaoLcuParam->typeIdx != -1)
   {
