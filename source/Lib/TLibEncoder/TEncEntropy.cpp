@@ -1695,14 +1695,13 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* psSaoLcuParam)
  */
 Void TEncEntropy::encodeSaoUnit(Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam, Int bRepeatedRow )
 {
-  int iAddr, iAddrUp, iAddrLeft; 
+  int iAddr, iAddrLeft; 
   int iNumCuInWidth  = pSaoParam->iNumCuInWidth;
   SaoLcuParam* psSaoOneLcu;
   Int iRunLeft;
 
   iAddr      =  rx + ry*iNumCuInWidth;
   iAddrLeft  =  (iAddr%iNumCuInWidth == 0) ? -1 : iAddr - 1;
-  iAddrUp    =  (iAddr<iNumCuInWidth)      ? -1 : iAddr - iNumCuInWidth;
 
   if (!bRepeatedRow)
   {
