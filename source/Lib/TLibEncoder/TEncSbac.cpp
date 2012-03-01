@@ -1780,9 +1780,20 @@ Void TEncSbac::codeSaoMergeUp       ( UInt uiCode)
 }
 Void TEncSbac::codeSaoTypeIdx       ( UInt uiCode)
 {
-  m_pcBinIf->encodeBin( ((uiCode>>2) & 0x01),  m_cSaoTypeIdxSCModel.get( 0, 0, 0 ));
-  m_pcBinIf->encodeBin( ((uiCode>>1) & 0x01),  m_cSaoTypeIdxSCModel.get( 0, 0, 1 ));
-  m_pcBinIf->encodeBin( ((uiCode   ) & 0x01),  m_cSaoTypeIdxSCModel.get( 0, 0, 1 ));
+  Int i;
+  if ( uiCode == 0 )
+  {
+    m_pcBinIf->encodeBin( 0, m_cSaoTypeIdxSCModel.get( 0, 0, 0 ) );
+  }
+  else
+  {
+    m_pcBinIf->encodeBin( 1, m_cSaoTypeIdxSCModel.get( 0, 0, 0 ) );
+    for ( i=0; i<uiCode-1; i++ )
+    {
+      m_pcBinIf->encodeBin( 1, m_cSaoTypeIdxSCModel.get( 0, 0, 1 ) );
+    }
+    m_pcBinIf->encodeBin( 0, m_cSaoTypeIdxSCModel.get( 0, 0, 1 ) );
+  }
 }
 #endif
 /*!
