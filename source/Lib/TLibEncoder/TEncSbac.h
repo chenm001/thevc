@@ -111,6 +111,10 @@ public:
   Void  codeAlfUvlc       ( UInt uiCode );
   Void  codeAlfSvlc       ( Int  uiCode );
   Void  codeAlfCtrlDepth  ();
+#if LCU_SYNTAX_ALF
+  Void codeAPSAlflag(UInt uiCode) {assert (0);  return;}
+  Void codeAlfFixedLengthIdx( UInt idx, UInt maxValue){ assert (0);  return;}
+#endif
 
   Void codeAlfCtrlFlag       ( UInt uiSymbol );
   Void  codeSaoFlag          ( UInt uiCode );

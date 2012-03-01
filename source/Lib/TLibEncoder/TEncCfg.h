@@ -169,6 +169,10 @@ protected:
   Int       m_iALFEncodePassReduction;
 
   Int       m_iALFMaxNumberFilters;
+#if LCU_SYNTAX_ALF
+  Bool      m_bALFParamInSlice;
+  Bool      m_bALFPicBasedEncode;
+#endif
 
   Bool      m_bUseASR;
   Bool      m_bUseHADME;
@@ -396,6 +400,12 @@ public:
 
   Void      setALFMaxNumberFilters          (Int i)  { m_iALFMaxNumberFilters = i; } 
   Int       getALFMaxNumberFilters          ()       { return m_iALFMaxNumberFilters; } 
+#if LCU_SYNTAX_ALF
+  Void      setALFParamInSlice              (Bool b) {m_bALFParamInSlice = b;}
+  Bool      getALFParamInSlice              ()       {return m_bALFParamInSlice;}
+  Void      setALFPicBasedEncode            (Bool b) {m_bALFPicBasedEncode = b;}
+  Bool      getALFPicBasedEncode            ()       {return m_bALFPicBasedEncode;}
+#endif
 
   Bool      getUseLComb                     ()      { return m_bUseLComb;   }
   Bool      getLCMod                        ()      { return m_bLCMod; }

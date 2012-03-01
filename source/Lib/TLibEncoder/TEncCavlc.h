@@ -124,6 +124,10 @@ public:
   Void codeAlfUvlc       ( UInt uiCode );
   Void codeAlfSvlc       ( Int   iCode );
   Void codeAlfCtrlDepth();
+#if LCU_SYNTAX_ALF
+  Void codeAPSAlflag(UInt uiCode);
+  Void codeAlfFixedLengthIdx( UInt idx, UInt numFilterSetsInBuffer);
+#endif
   Void codeSaoFlag       ( UInt uiCode );
   Void codeSaoUvlc       ( UInt uiCode );
   Void codeSaoSvlc       ( Int   iCode );

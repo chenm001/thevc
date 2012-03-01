@@ -118,6 +118,10 @@ public:
   virtual Void codeAlfFlag          ( UInt uiCode ) = 0;
   virtual Void codeAlfUvlc          ( UInt uiCode ) = 0;
   virtual Void codeAlfSvlc          ( Int   iCode ) = 0;
+#if LCU_SYNTAX_ALF
+  virtual Void codeAlfFixedLengthIdx( UInt idx, UInt numFilterSetsInBuffer) = 0;
+  virtual Void codeAPSAlflag(UInt uiCode) = 0;
+#endif
   /// set slice granularity
   virtual Void setSliceGranularity(Int iSliceGranularity) = 0;
 
@@ -174,8 +178,16 @@ public:
   Void    encodeFlush               ();
   Void    encodeStart               ();
 #endif
-
-  
+#if LCU_SYNTAX_ALF
+  Void encodeAlfFlag(UInt code) {m_pcEntropyCoderIf->codeAlfFlag(code);}
+  Void encodeAlfStoredFilterSetIdx(UInt idx, UInt numFilterSetsInBuffer);
+  Void encodeAlfFixedLengthRun(UInt run, UInt rx, UInt numLCUInWidth);
+  Void encodeAlfParam(AlfParamSet* pAlfParamSet, Bool bSentInAPS = true, Int firstLCUAddr = 0, Bool alfAcrossSlice= true);
+  Void encodeAlfParamSet(AlfParamSet* pAlfParamSet, Int numLCUInWidth, Int numLCU, Int firstLCUAddr, Bool alfAcrossSlice, Int startCompIdx, Int endCompIdx);
+  Bool getAlfRepeatRowFlag(Int compIdx, AlfParamSet* pAlfParamSet, Int lcuIdx, Int lcuPos, Int startlcuPosX, Int endlcuPosX, Int numLCUInWidth);
+  Int  getAlfRun(Int compIdx, AlfParamSet* pAlfParamSet, Int lcuIdxInSlice, Int lcuPos, Int startlcuPosX, Int endlcuPosX);
+  Void encodeAPSAlfFlag(UInt code) {m_pcEntropyCoderIf->codeAPSAlflag(code);}
+#endif  
   Void encodeAlfParam(ALFParam* pAlfParam);
   
   TEncEntropyIf*      m_pcEntropyCoderIf;

@@ -132,6 +132,10 @@ protected:
   Int       m_iALFEncodePassReduction;                        //!< ALF encoding pass, 0 = original 16-pass, 1 = 1-pass, 2 = 2-pass
   
   Int       m_iALFMaxNumberFilters;                           ///< ALF Max Number Filters in one picture
+#if LCU_SYNTAX_ALF
+  Bool      m_bALFParamInSlice;
+  Bool      m_bALFPicBasedEncode;
+#endif
 
   Bool      m_bLoopFilterDisable;                             ///< flag for using deblocking filter
   Bool      m_loopFilterOffsetInAPS;                         ///< offset for deblocking filter in 0 = slice header, 1 = APS

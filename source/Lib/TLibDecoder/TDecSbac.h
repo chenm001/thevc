@@ -95,7 +95,13 @@ public:
 #endif
   void parseSEI(SEImessages&) {}
 #if PARAMSET_VLC_CLEANUP
+
+#if LCU_SYNTAX_ALF
+  Void  parseSliceHeader          ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl, AlfParamSet& alfParamSet) {}
+#else
   Void  parseSliceHeader          ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl ) {}
+#endif
+
 #else
   Void  parseSliceHeader          ( TComSlice*& rpcSlice ) {}
   Void parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice) {printf("Not supported\n");assert(0); exit(1);}

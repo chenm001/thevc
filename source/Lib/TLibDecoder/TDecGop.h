@@ -87,6 +87,9 @@ private:
 
   bool m_pictureDigestEnabled; ///< if true, handle picture_digest SEI messages
   AlfCUCtrlInfo       m_cAlfCUCtrlOneSlice;
+#if LCU_SYNTAX_ALF
+  AlfParamSet           m_alfParamSetPilot;
+#endif
 
 public:
   TDecGop();
@@ -111,7 +114,18 @@ public:
   Void decodeAlfOnOffCtrlParam() { m_pcEntropyDecoder->decodeAlfCtrlParam( m_cAlfCUCtrlOneSlice, m_pcAdaptiveLoopFilter->getNumCUsInPic());}
 #else
   AlfCUCtrlInfo& getAlfCuCtrlParam() { return m_cAlfCUCtrlOneSlice; }
+#if LCU_SYNTAX_ALF
+  AlfParamSet& getAlfParamSet() {return m_alfParamSetPilot;}
 #endif
+
+#endif
+
+private:
+#if LCU_SYNTAX_ALF
+  Void patchAlfLCUParams(ALFParam*** alfLCUParam, AlfParamSet* alfParamSet, Int firstLCUAddr = 0);
+#endif
+
+
 };
 
 //! \}

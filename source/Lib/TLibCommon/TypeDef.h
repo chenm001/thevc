@@ -45,6 +45,9 @@
 
 #define PARAMSET_VLC_CLEANUP               1      ///< followup to G220: Simplify parameter set code
 
+#define ALF_16_BA_GROUPS        1     ///< H0409 16 BA groups
+#define LCU_SYNTAX_ALF          1     ///< H0274 LCU-syntax ALF
+
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
 #define MAX_NUM_APS                32         //< !!!KS: number not defined in WD yet
@@ -275,12 +278,16 @@ struct SAOParam
 struct ALFParam
 {
   Int alf_flag;                           ///< indicates use of ALF
+#if !LCU_SYNTAX_ALF
   Int chroma_idc;                         ///< indicates use of ALF for chroma
+#endif
   Int num_coeff;                          ///< number of filter coefficients
   Int filter_shape;
+#if !LCU_SYNTAX_ALF
   Int filter_shape_chroma;
   Int num_coeff_chroma;                   ///< number of filter coefficients (chroma)
   Int *coeff_chroma;                      ///< filter coefficient array (chroma)
+#endif
   Int *filterPattern;
   Int startSecondFilter;
   Int filters_per_group;
@@ -288,12 +295,64 @@ struct ALFParam
   Int *nbSPred;
   Int **coeffmulti;
   Int minKStart;
+#if !LCU_SYNTAX_ALF
   Int maxScanVal;
   Int kMinTab[42];
 
   Int alf_pcr_region_flag;
   ~ALFParam();
+#endif
+#if LCU_SYNTAX_ALF
+  Int componentID;
+  Int* kMinTab;
+  //constructor, operator
+  ALFParam():componentID(-1){}
+  ALFParam(Int cID){create(cID);}
+  ALFParam(const ALFParam& src) {*this = src;}
+  ~ALFParam(){destroy();}
+  const ALFParam& operator= (const ALFParam& src);
+private:
+  Void create(Int cID);
+  Void destroy();
+  Void copy(const ALFParam& src);
+#endif
 };
+
+#if LCU_SYNTAX_ALF
+struct AlfUnitParam
+{
+  Int   mergeType;
+  Bool  isEnabled;
+  Bool  isNewFilt;
+  Int   storedFiltIdx;
+  ALFParam* alfFiltParam;
+  //constructor, operator 
+  AlfUnitParam();
+  AlfUnitParam(const AlfUnitParam& src){ *this = src;}
+  const AlfUnitParam& operator= (const AlfUnitParam& src);
+  Bool operator == (const AlfUnitParam& cmp);
+};
+
+struct AlfParamSet
+{
+  Bool isEnabled[3];
+  Bool isUniParam[3];
+  Int  numLCUInWidth;
+  Int  numLCUInHeight;
+  Int  numLCU;
+  AlfUnitParam* alfUnitParam[3];
+  //constructor, operator 
+  AlfParamSet(){create();}
+  ~AlfParamSet(){destroy();}
+  Void create(Int width =0, Int height=0, Int num=0);
+  Void init();
+  Void releaseALFParam();
+  Void createALFParam();
+private:
+  Void destroy();
+};
+#endif
+
 
 
 /// parameters for deblocking filter

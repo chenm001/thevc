@@ -222,6 +222,17 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setEnableTMVP ( m_enableTMVP );
   m_cTEncTop.setUseScalingListId           ( m_useScalingListId  );
   m_cTEncTop.setScalingListFile            ( m_scalingListFile   );
+
+#if LCU_SYNTAX_ALF
+  if(uiTilesCount > 1)
+  {
+    m_bALFParamInSlice = false;
+    m_bALFPicBasedEncode = true;
+  }
+  m_cTEncTop.setALFParamInSlice              ( m_bALFParamInSlice);
+  m_cTEncTop.setALFPicBasedEncode            ( m_bALFPicBasedEncode);
+#endif
+
 }
 
 Void TAppEncTop::xCreateLib()

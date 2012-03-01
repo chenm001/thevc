@@ -363,7 +363,11 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDispl
   m_apcSlicePilot->setTLayerInfo(nalu.m_TemporalID);
 
   // ALF CU parameters should be part of the slice header -> needs to be fixed 
+#if LCU_SYNTAX_ALF
+  m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot, &m_parameterSetManagerDecoder, m_cGopDecoder.getAlfCuCtrlParam(), m_cGopDecoder.getAlfParamSet());
+#else
   m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot, &m_parameterSetManagerDecoder, m_cGopDecoder.getAlfCuCtrlParam() );
+#endif
   // byte align
   {
     Int numBitsForByteAlignment = nalu.m_Bitstream->getNumBitsUntilByteAligned();
@@ -1340,7 +1344,9 @@ Void TDecTop::allocAPS (TComAPS* pAPS)
   pAPS->createSaoParam();
   m_cSAO.allocSaoParam(pAPS->getSaoParam());
   pAPS->createAlfParam();
+#if !LCU_SYNTAX_ALF
   m_cAdaptiveLoopFilter.allocALFParam(pAPS->getAlfParam());
+#endif
 #else
   if(m_cSPS.getScalingListFlag())
   {
