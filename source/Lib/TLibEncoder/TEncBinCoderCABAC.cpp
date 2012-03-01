@@ -126,13 +126,43 @@ Void TEncBinCABAC::resetBac()
   start();
 }
 
+#if BURST_IPCM
+/** Encode # of subsequent IPCM blocks.
+ * \param numSubseqIPCM 
+ * \returns Void
+ */
+Void TEncBinCABAC::encodeNumSubseqIPCM( Int numSubseqIPCM )
+{
+  finish();
+  m_pcTComBitIf->write( 1, 1 ); // stop bit
+
+  m_pcTComBitIf->write( numSubseqIPCM ? 1 : 0, 1);
+
+  if ( numSubseqIPCM > 0)
+  {
+    Bool bCodeLast = ( 3 > numSubseqIPCM );
+
+    while( --numSubseqIPCM )
+    {
+      m_pcTComBitIf->write( 1, 1 );
+    }
+    if( bCodeLast )
+    {
+      m_pcTComBitIf->write( 0, 1 );
+    }
+  }
+}
+#endif
+
 /** Encode PCM alignment zero bits.
  * \returns Void
  */
 Void TEncBinCABAC::encodePCMAlignBits()
 {
+#if !BURST_IPCM
   finish();
   m_pcTComBitIf->write( 1, 1 ); // stop bit
+#endif
   m_pcTComBitIf->writeAlignZero(); // pcm align zero
 }
 

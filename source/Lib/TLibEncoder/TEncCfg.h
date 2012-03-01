@@ -108,8 +108,13 @@ protected:
   Int       m_iGOPSize;
   GOPEntry  m_pcGOPList[MAX_GOP];
   Int       m_iExtraRPSs;
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  UInt      m_uiMaxDecPicBuffering;
+  Int       m_numReorderPics;
+#else
   UInt      m_uiMaxNumberOfReferencePictures;
   Int       m_numReorderFrames;
+#endif
   
   Int       m_iQP;                              //  if (AdaptiveQP == OFF)
   
@@ -120,8 +125,12 @@ protected:
   Int       m_iMaxRefPicNum;                     ///< this is used to mimic the sliding mechanism used by the decoder
                                                  // TODO: We need to have a common sliding mechanism used by both the encoder and decoder
 
+#if H0566_TLA
+  Int       m_maxTempLayer;                      ///< Max temporal layer
+#else
   Bool      m_bTLayering;                        ///< indicates whether temporal IDs are set based on the hierarchical coding structure
   Bool      m_abTLayerSwitchingFlag[MAX_TLAYER]; ///< temporal layer switching flags corresponding to temporal layer
+#endif
   Bool      m_bDisInter4x4;
   Bool m_useAMP;
   //======= Transform =============
@@ -174,6 +183,9 @@ protected:
   Bool      m_bUsePAD;
   Bool      m_bUseFastEnc;
   Bool      m_bUseEarlyCU;
+#if FAST_DECISION_FOR_MRG_RD_COST
+  Bool      m_useFastDecisionForMerge;
+#endif
   Bool      m_bUseCbfFastMode;
   Bool      m_bUseMRG; // SOPH:
   Bool      m_bUseLMChroma; 
@@ -226,6 +238,10 @@ protected:
   char*     m_scalingListFile;          ///< quantization matrix file name
 
   Bool      m_bEnableTMVP;
+#if MULTIBITS_DATA_HIDING
+  Int       m_signHideFlag;
+  Int       m_signHidingThreshold;
+#endif
 
 public:
   TEncCfg()          {}
@@ -261,8 +277,13 @@ public:
   Void      setGopList                      ( GOPEntry*  piGOPList )      {  for ( Int i = 0; i < MAX_GOP; i++ ) m_pcGOPList[i] = piGOPList[i]; }
   Void      setExtraRPSs                    ( Int   i )      { m_iExtraRPSs = i; }
   GOPEntry  getGOPEntry                     ( Int   i )      { return m_pcGOPList[i]; }
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  Void      setMaxDecPicBuffering           ( UInt u )       { m_uiMaxDecPicBuffering = u;    }
+  Void      setNumReorderPics               ( Int  i )       { m_numReorderPics = i;    }
+#else
   Void      setMaxNumberOfReferencePictures ( UInt u )       { m_uiMaxNumberOfReferencePictures = u;    }
   Void      setNumReorderFrames             ( Int  i )       { m_numReorderFrames = i;    }
+#endif
   
   Void      setQP                           ( Int   i )      { m_iQP = i; }
   
@@ -272,10 +293,15 @@ public:
   Int       getMaxRefPicNum                 ()                              { return m_iMaxRefPicNum;           }
   Void      setMaxRefPicNum                 ( Int iMaxRefPicNum )           { m_iMaxRefPicNum = iMaxRefPicNum;  }
 
+#if H0566_TLA
+  Bool      getMaxTempLayer                 ()                              { return m_maxTempLayer;              } 
+  Void      setMaxTempLayer                 ( Int maxTempLayer )            { m_maxTempLayer = maxTempLayer;      }
+#else
   Bool      getTLayering                    ()                              { return m_bTLayering;              } 
   Void      setTLayering                    ( Bool bTLayering )             { m_bTLayering = bTLayering;        }
   Bool      getTLayerSwitchingFlag          ( UInt uiTLayer )               { assert (uiTLayer < MAX_TLAYER ); return  m_abTLayerSwitchingFlag[uiTLayer];                   }
   Void      setTLayerSwitchingFlag          ( Bool* pbTLayerSwitchingFlag ) { for ( Int i = 0; i < MAX_TLAYER; i++ ) m_abTLayerSwitchingFlag[i] = pbTLayerSwitchingFlag[i]; }
+#endif
 
   Bool      getDisInter4x4                  ()              { return m_bDisInter4x4;        }
   Void      setDisInter4x4                  ( Bool b )      { m_bDisInter4x4  = b;          }
@@ -327,8 +353,13 @@ public:
   UInt      getIntraPeriod                  ()      { return  m_uiIntraPeriod; }
   UInt      getDecodingRefreshType          ()      { return  m_uiDecodingRefreshType; }
   Int       getGOPSize                      ()      { return  m_iGOPSize; }
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  UInt      getMaxDecPicBuffering           ()      { return m_uiMaxDecPicBuffering; }
+  Int       geNumReorderPics                ()      { return m_numReorderPics; }
+#else
   UInt      getMaxNumberOfReferencePictures ()      { return m_uiMaxNumberOfReferencePictures; }
   Int       geNumReorderFrames              ()      { return m_numReorderFrames; }
+#endif
   Int       getQP                           ()      { return  m_iQP; }
   
   Int       getTemporalLayerQPOffset        ( Int i )      { assert (i < MAX_TLAYER ); return  m_aiTLayerQPOffset[i]; }
@@ -367,6 +398,9 @@ public:
   Void      setUsePAD                       ( Bool  b )     { m_bUsePAD     = b; }
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
   Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
+#if FAST_DECISION_FOR_MRG_RD_COST
+  Void      setUseFastDecisionForMerge      ( Bool  b )     { m_useFastDecisionForMerge = b; }
+#endif
   Void      setUseCbfFastMode            ( Bool  b )     { m_bUseCbfFastMode = b; }
   Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
@@ -393,6 +427,9 @@ public:
   Bool      getUsePAD                       ()      { return m_bUsePAD;     }
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
   Bool      getUseEarlyCU                   ()      { return m_bUseEarlyCU; }
+#if FAST_DECISION_FOR_MRG_RD_COST
+  Bool      getUseFastDecisionForMerge      ()      { return m_useFastDecisionForMerge; }
+#endif
   Bool      getUseCbfFastMode           ()      { return m_bUseCbfFastMode; }
   Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
@@ -533,6 +570,12 @@ public:
 
   Void      setEnableTMVP ( Bool b ) { m_bEnableTMVP = b;    }
   Bool      getEnableTMVP ()         { return m_bEnableTMVP; }
+#if MULTIBITS_DATA_HIDING
+  Void      setSignHideFlag( Int signHideFlag ) { m_signHideFlag = signHideFlag; }
+  Void      setTSIG( Int tsig )                 { m_signHidingThreshold = tsig; }
+  Int       getSignHideFlag()                    { return m_signHideFlag; }
+  Int       getTSIG()                            { return m_signHidingThreshold; }
+#endif
 };
 
 //! \}

@@ -52,12 +52,20 @@
 #define NUM_SKIP_FLAG_CTX             3       ///< number of context models for skip flag
 
 #define NUM_MERGE_FLAG_EXT_CTX        1       ///< number of context models for merge flag of merge extended
+#if MRG_IDX_CTX_RED
+#define NUM_MERGE_IDX_EXT_CTX         1       ///< number of context models for merge index of merge extended
+#else
 #define NUM_MERGE_IDX_EXT_CTX         4       ///< number of context models for merge index of merge extended
+#endif
 
 #define NUM_ALF_CTRL_FLAG_CTX         1       ///< number of context models for ALF control flag
 #define NUM_PART_SIZE_CTX             4       ///< number of context models for partition size
+#if AMP_CTX
+#define NUM_CU_AMP_CTX                1       ///< number of context models for partition size (AMP)
+#else
 #define NUM_CU_X_POS_CTX              2       ///< number of context models for partition size (AMP)
 #define NUM_CU_Y_POS_CTX              2       ///< number of context models for partition size (AMP)
+#endif
 #define NUM_PRED_MODE_CTX             1       ///< number of context models for prediction mode
 
 #define NUM_ADI_CTX                   1       ///< number of context models for intra prediction
@@ -78,14 +86,39 @@
 
 #define NUM_SIG_FLAG_CTX_LUMA         27      ///< number of context models for luma sig flag
 #define NUM_SIG_FLAG_CTX_CHROMA       21      ///< number of context models for chroma sig flag
+#if LAST_CTX_REDUCTION
+#define NUM_CTX_LAST_FLAG_XY          15      ///< number of context models for last coefficient position
+#else
 #define NUM_CTX_LAST_FLAG_XY          18      ///< number of context models for last coefficient position
+#endif
 
+#if LEVEL_CTX_LUMA_RED
+#define NUM_ONE_FLAG_CTX              24      ///< number of context models for greater than 1 flag
+#define NUM_ONE_FLAG_CTX_LUMA         16      ///< number of context models for greater than 1 flag of luma
+#define NUM_ONE_FLAG_CTX_CHROMA        8      ///< number of context models for greater than 1 flag of chroma
+#if RESTRICT_GR1GR2FLAG_NUMBER
+#define NUM_ABS_FLAG_CTX               6      ///< number of context models for greater than 2 flag
+#define NUM_ABS_FLAG_CTX_LUMA          4      ///< number of context models for greater than 2 flag of luma
+#define NUM_ABS_FLAG_CTX_CHROMA        2      ///< number of context models for greater than 2 flag of chroma
+#else
+#define NUM_ABS_FLAG_CTX              18      ///< number of context models for greater than 2 flag
+#define NUM_ABS_FLAG_CTX_LUMA         12      ///< number of context models for greater than 2 flag of luma
+#define NUM_ABS_FLAG_CTX_CHROMA        6      ///< number of context models for greater than 2 flag of chroma
+#endif
+#else
 #define NUM_ONE_FLAG_CTX              32      ///< number of context models for greater than 1 flag
 #define NUM_ONE_FLAG_CTX_LUMA         24      ///< number of context models for greater than 1 flag of luma
 #define NUM_ONE_FLAG_CTX_CHROMA        8      ///< number of context models for greater than 1 flag of chroma
+#if RESTRICT_GR1GR2FLAG_NUMBER
+#define NUM_ABS_FLAG_CTX               8      ///< number of context models for greater than 2 flag
+#define NUM_ABS_FLAG_CTX_LUMA          6      ///< number of context models for greater than 2 flag of luma
+#define NUM_ABS_FLAG_CTX_CHROMA        2      ///< number of context models for greater than 2 flag of chroma
+#else
 #define NUM_ABS_FLAG_CTX              24      ///< number of context models for greater than 2 flag
 #define NUM_ABS_FLAG_CTX_LUMA         18      ///< number of context models for greater than 2 flag of luma
 #define NUM_ABS_FLAG_CTX_CHROMA        6      ///< number of context models for greater than 2 flag of chroma
+#endif
+#endif
 
 #define NUM_MVP_IDX_CTX               2       ///< number of context models for MVP index
 
@@ -178,6 +211,19 @@ INIT_MERGE_FLAG_EXT[3][NUM_MERGE_FLAG_EXT_CTX] =
 static const UChar
 INIT_MERGE_IDX_EXT[3][NUM_MERGE_IDX_EXT_CTX] =
 {
+#if MRG_IDX_CTX_RED
+  {
+    CNU,
+    
+  },
+  {
+    100,
+    
+  },
+  {
+    116,
+  },
+#else
   {
     CNU, CNU, CNU, CNU,
     
@@ -190,6 +236,7 @@ INIT_MERGE_IDX_EXT[3][NUM_MERGE_IDX_EXT_CTX] =
     116,  87, 119, 103,
     
   },
+#endif
 };
 
 // initial probability for PU size
@@ -209,7 +256,21 @@ INIT_PART_SIZE[3][NUM_PART_SIZE_CTX] =
     
   },
 };
-
+#if AMP_CTX
+static const UChar
+INIT_CU_AMP_POS[3][NUM_CU_AMP_CTX] =
+{
+  {
+    CNU, 
+  },
+  {
+    119, 
+  },
+  {
+    119, 
+  },
+};
+#else
 // initial probability for AMP split position (X)
 static const UChar
 INIT_CU_X_POS[3][NUM_CU_X_POS_CTX] =
@@ -245,7 +306,7 @@ INIT_CU_Y_POS[3][NUM_CU_Y_POS_CTX] =
     
   },
 };
-
+#endif
 // initial probability for prediction mode
 static const UChar
 INIT_PRED_MODE[3][NUM_PRED_MODE_CTX] =
@@ -409,6 +470,24 @@ INIT_QT_ROOT_CBF[3][NUM_QT_ROOT_CBF_CTX] =
   },
 };
 
+#if LAST_CTX_REDUCTION
+static const UChar
+INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =
+{
+  {
+    72,  72,  71,  72, 104,  89,  88,  89,  59,  73,  89, 106,  60,  59,  43,   
+    54,  70,  53,  CNU, CNU, CNU,  CNU, CNU, CNU,  CNU, CNU, CNU, CNU, CNU, CNU,
+  },
+  {
+    57,  72,  55,  72,  57,  72,   88,  73,  73,  72,  103,  73,  89,  73,  57,  
+    54,  70,  54,  CNU, CNU, CNU,  CNU, CNU, CNU,  CNU, CNU, CNU, CNU, CNU, CNU,
+  },
+  {
+    88,  72,  71,  72,  57,  72,  88,  73,  73,  72,   103,  73,  89,  73,  57,   
+    54,  70,  69,   CNU, CNU, CNU,  CNU, CNU, CNU,  CNU, CNU, CNU, CNU, CNU, CNU,
+  },
+};
+#else
 static const UChar
 INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =
 {
@@ -428,6 +507,7 @@ INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =
     
   },
 };
+#endif
 
 static const UChar
 INIT_SIG_CG_FLAG[3][2 * NUM_SIG_CG_FLAG_CTX] = 
@@ -466,6 +546,57 @@ INIT_SIG_FLAG[3][NUM_SIG_FLAG_CTX] =
   },
 };
 
+#if LEVEL_CTX_LUMA_RED
+static const UChar
+INIT_ONE_FLAG[3][NUM_ONE_FLAG_CTX] =
+{
+  {
+    104,  68, 116,  86, 104, 132,  86,  87, 102,  66, 114,  68,  87,  84, 100, 101, 
+      104, 130, 147, 149, 104, 196, 100, 165,
+  },
+  {
+    119, 179, 179, 164, 119,  85, 117, 149, 133,  98, 114, 115, 118,  99, 115, 116,
+      135, 146, 147, 164, 119, 148, 116, 133,
+  },
+  {
+    119, 179, 148, 164, 119,  85, 117, 149, 133,  98, 114, 115, 118,  99, 115, 100,
+      135, 177, 147, 164, 119, 132, 148, 149,
+  },
+};
+
+#if RESTRICT_GR1GR2FLAG_NUMBER
+static const UChar
+INIT_ABS_FLAG[3][NUM_ABS_FLAG_CTX] =
+{
+  {
+    86, 102, 115, 117, 101, 101,
+  },
+  {
+    84, 117, 83, 100, 84, 117,
+  },
+  {
+    84, 117, 83,  84, 84, 117,
+  },
+};
+#else
+static const UChar
+INIT_ABS_FLAG[3][NUM_ABS_FLAG_CTX] =
+{
+  {
+    86, 103,  73, 102, 103,  73, 115, 117, 103, 117, 118, 103,
+      101, 103, 104, 101, 167, 121,
+  },
+  {
+    84, 102,  88, 117, 118, 104, 83, 116, 118, 100, 117,  87,
+      84, 118, 120, 117, 150, 120,
+    },
+    {
+      84, 102,  88, 117, 118, 104, 83, 116, 118,  84, 117,  87,
+        84, 118, 120, 117, 150, 120,
+    },
+};
+#endif
+#else
 static const UChar
 INIT_ONE_FLAG[3][NUM_ONE_FLAG_CTX] =
 {
@@ -483,7 +614,21 @@ INIT_ONE_FLAG[3][NUM_ONE_FLAG_CTX] =
   },
 };
 
-
+#if RESTRICT_GR1GR2FLAG_NUMBER
+static const UChar
+INIT_ABS_FLAG[3][NUM_ABS_FLAG_CTX] =
+{
+  {
+    86, 102, 103, 115, 117, 102, 101, 101,
+  },
+  {
+    84, 117, 103, 83, 100, 85, 84, 117, 
+  },
+  {
+    84, 117, 87, 83, 84, 69, 84, 117,
+  },
+};
+#else
 static const UChar
 INIT_ABS_FLAG[3][NUM_ABS_FLAG_CTX] =
 {
@@ -500,7 +645,8 @@ INIT_ABS_FLAG[3][NUM_ABS_FLAG_CTX] =
     84, 118, 120, 117, 150, 120,
   },
 };
-
+#endif
+#endif
 // initial probability for motion vector predictor index
 static const UChar
 INIT_MVP_IDX[3][NUM_MVP_IDX_CTX] =

@@ -236,7 +236,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       else if(m_pcEncTop->getUseScalingListId() == SCALING_LIST_DEFAULT)
       {
         pcSlice->setDefaultScalingList ();
-        pcSlice->getScalingList()->setUseDefaultOnlyFlag(true);
+        pcSlice->getScalingList()->setScalingListPresentFlag(true);
         m_pcEncTop->getTrQuant()->setScalingList(pcSlice->getScalingList());
         m_pcEncTop->getTrQuant()->setUseScalingList(true);
       }
@@ -246,8 +246,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         {
           pcSlice->setDefaultScalingList ();
         }
-        pcSlice->getScalingList()->xScalingListMatrixModeDecision();
-        pcSlice->getScalingList()->setUseDefaultOnlyFlag(pcSlice->checkDefaultScalingList());
+#if SCALING_LIST
+        pcSlice->getScalingList()->checkDcOfMatrix();
+#endif
+        pcSlice->getScalingList()->setScalingListPresentFlag(pcSlice->checkDefaultScalingList());
         m_pcEncTop->getTrQuant()->setScalingList(pcSlice->getScalingList());
         m_pcEncTop->getTrQuant()->setUseScalingList(true);
       }
@@ -374,6 +376,35 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       {
         m_pcSliceEncoder->setSearchRange(pcSlice);
       }
+
+#if H0111_MVD_L1_ZERO
+      Bool bGPBcheck=false;
+      if ( pcSlice->getSliceType() == B_SLICE)
+      {
+        if ( pcSlice->getNumRefIdx(RefPicList( 0 ) ) == pcSlice->getNumRefIdx(RefPicList( 1 ) ) )
+        {
+          bGPBcheck=true;
+          int i;
+          for ( i=0; i < pcSlice->getNumRefIdx(RefPicList( 1 ) ); i++ )
+          {
+            if ( pcSlice->getRefPOC(RefPicList(1), i) != pcSlice->getRefPOC(RefPicList(0), i) ) 
+            {
+              bGPBcheck=false;
+              break;
+            }
+          }
+        }
+      }
+      if(bGPBcheck)
+      {
+        pcSlice->setMvdL1ZeroFlag(true);
+      }
+      else
+      {
+        pcSlice->setMvdL1ZeroFlag(false);
+      }
+      pcPic->getSlice(pcSlice->getSliceIdx())->setMvdL1ZeroFlag(pcSlice->getMvdL1ZeroFlag());
+#endif
 
       UInt uiNumSlices = 1;
 
@@ -1573,7 +1604,12 @@ static const char* nalUnitTypeToString(NalUnitType type)
   switch (type)
   {
   case NAL_UNIT_CODED_SLICE: return "SLICE";
+#if H0566_TLA
+  case NAL_UNIT_CODED_SLICE_CRA: return "CRA";
+  case NAL_UNIT_CODED_SLICE_TLA: return "TLA";
+#else
   case NAL_UNIT_CODED_SLICE_CDR: return "CDR";
+#endif
   case NAL_UNIT_CODED_SLICE_IDR: return "IDR";
   case NAL_UNIT_SEI: return "SEI";
   case NAL_UNIT_SPS: return "SPS";
@@ -1749,7 +1785,11 @@ NalUnitType TEncGOP::getNalUnitType(UInt uiPOCCurr)
   {
     if (m_pcCfg->getDecodingRefreshType() == 1)
     {
+#if H0566_TLA
+      return NAL_UNIT_CODED_SLICE_CRA;
+#else
       return NAL_UNIT_CODED_SLICE_CDR;
+#endif
     }
     else if (m_pcCfg->getDecodingRefreshType() == 2)
     {

@@ -162,7 +162,11 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
 {
   xUpdateGopSize(pcSlice);
   
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  m_iMaxRefPicNum = pcSlice->getSPS()->getMaxDecPicBuffering(pcSlice->getTLayer())+pcSlice->getSPS()->getNumReorderPics(pcSlice->getTLayer()) + 1; // +1 to have space for the picture currently being decoded
+#else
   m_iMaxRefPicNum = pcSlice->getSPS()->getMaxNumberOfReferencePictures()+pcSlice->getSPS()->getNumReorderFrames() + 1; // +1 to have space for the picture currently being decoded
+#endif
   if (m_cListPic.size() < (UInt)m_iMaxRefPicNum)
   {
     rpcPic = new TComPic();
@@ -685,8 +689,8 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDispl
   {
     if(pcSlice->getAPS()->getScalingListEnabled())
     {
-      pcSlice->setScalingList ( &m_scalingList  );
-      if(pcSlice->getScalingList()->getUseDefaultOnlyFlag())
+      pcSlice->setScalingList ( pcSlice->getAPS()->getScalingList()  );
+      if(pcSlice->getScalingList()->getScalingListPresentFlag())
       {
         pcSlice->setDefaultScalingList();
       }
@@ -713,15 +717,23 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDispl
 Void TDecTop::xDecodeSPS()
 {
   TComSPS* sps = new TComSPS();
+#if RPS_IN_SPS
+  TComRPS* rps = new TComRPS();
+  sps->setRPSList(rps);
+#endif
   m_cEntropyDecoder.decodeSPS( sps );
   m_parameterSetManagerDecoder.storePrefetchedSPS(sps);
 }
 
 Void TDecTop::xDecodePPS()
 {
+#if !RPS_IN_SPS
   TComRPS* rps = new TComRPS();
+#endif
   TComPPS* pps = new TComPPS();
+#if !RPS_IN_SPS
   pps->setRPSList(rps);
+#endif
   m_cEntropyDecoder.decodePPS( pps );
   m_parameterSetManagerDecoder.storePrefetchedPPS( pps );
 
@@ -817,7 +829,12 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 
     case NAL_UNIT_CODED_SLICE:
     case NAL_UNIT_CODED_SLICE_IDR:
+#if H0566_TLA
+    case NAL_UNIT_CODED_SLICE_CRA:
+    case NAL_UNIT_CODED_SLICE_TLA:
+#else
     case NAL_UNIT_CODED_SLICE_CDR:
+#endif
 #if PARAMSET_VLC_CLEANUP
       return xDecodeSlice(nalu, iSkipFrame, iPOCLastDisplay);
 #else
@@ -1177,7 +1194,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
         if(pcSlice->getAPS()->getScalingListEnabled())
         {
           pcSlice->setScalingList ( &m_scalingList  );
-          if(pcSlice->getScalingList()->getUseDefaultOnlyFlag())
+          if(pcSlice->getScalingList()->getScalingListPresentFlag())
           {
             pcSlice->setDefaultScalingList();
           }
@@ -1228,7 +1245,11 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
   }
   else if (m_uiPOCRA == MAX_UINT) // start of random access point, m_uiPOCRA has not been set yet.
   {
+#if H0566_TLA
+    if (m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_CRA)
+#else
     if (m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_CDR)
+#endif
     {
       m_uiPOCRA = m_apcSlicePilot->getPOC(); // set the POC random access since we need to skip the reordered pictures in CDR.
     }

@@ -79,7 +79,11 @@ protected:
 
   UInt  xGetBit             ();
   
+#if RPS_IN_SPS
+  void  parseShortTermRefPicSet            (TComSPS* pcSPS, TComReferencePictureSet* pcRPS, Int idx);
+#else
   void  parseShortTermRefPicSet            (TComPPS* pcPPS, TComReferencePictureSet* pcRPS, Int idx);
+#endif
 private:
   TComInputBitstream*   m_pcBitstream;
 #if !PARAMSET_VLC_CLEANUP
@@ -165,8 +169,7 @@ public:
 
   Void xParsePredWeightTable ( TComSlice* pcSlice );
   Void  parseScalingList               ( TComScalingList* scalingList );
-  Void  xDecodeDPCMScalingListMatrix   ( TComScalingList *scalingList, Int* data, UInt sizeId, UInt listId);
-  Void  xReadScalingListCode           ( TComScalingList *scalingList, Int* buf,  UInt sizeId, UInt listId);
+  Void xDecodeScalingList    ( TComScalingList *scalingList, UInt sizeId, UInt listId);
   Void parseDFFlag         ( UInt& ruiVal, const Char *pSymbolName );
   Void parseDFSvlc         ( Int&  riVal,  const Char *pSymbolName  );
 #if PARAMSET_VLC_CLEANUP

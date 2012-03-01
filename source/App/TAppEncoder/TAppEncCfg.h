@@ -73,8 +73,13 @@ protected:
   Int       m_iGOPSize;                                       ///< GOP size of hierarchical structure
   Int       m_iExtraRPSs;
   GOPEntry  m_pcGOPList[MAX_GOP];
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  Int       m_numReorderPics;                               ///< total number of reorder pictures
+  UInt      m_uiMaxDecPicBuffering;                         ///< total number of reference pictures needed for decoding
+#else
   Int       m_numReorderFrames;                               ///< total number of reorder pictures
   UInt      m_uiMaxNumberOfReferencePictures;                 ///< total number of reference pictures needed for decoding
+#endif
   Bool      m_bUseLComb;                                      ///< flag for using combined reference list for uni-prediction in B-slices (JCTVC-D421)
   Bool      m_bLCMod;                                         ///< flag for specifying whether the combined reference list for uni-prediction in B-slices is uploaded explicitly
   Bool      m_bDisInter4x4;
@@ -100,8 +105,12 @@ protected:
   Bool      m_bUseAdaptiveQP;                                 ///< Flag for enabling QP adaptation based on a psycho-visual model
   Int       m_iQPAdaptationRange;                             ///< dQP range by QP adaptation
   
+#if H0566_TLA
+  Int       m_maxTempLayer;                                  ///< Max temporal layer
+#else
   Bool      m_bTLayering;                                     ///< indicates whether temporal IDs are set based on the hierarchical coding structure
   Bool      m_abTLayerSwitchingFlag[MAX_TLAYER];              ///< temporal layer switching flags corresponding to each temporal layer
+#endif
 
   // coding unit (CU) definition
   UInt      m_uiMaxCUWidth;                                   ///< max. CU width in pixel
@@ -158,6 +167,9 @@ protected:
   Int       m_bipredSearchRange;                              ///< ME search range for bipred refinement
   Bool      m_bUseFastEnc;                                    ///< flag for using fast encoder setting
   Bool      m_bUseEarlyCU;                                    ///< flag for using Early CU setting
+#if FAST_DECISION_FOR_MRG_RD_COST
+  Bool      m_useFastDecisionForMerge;                        ///< flag for using Fast Decision Merge RD-Cost 
+#endif
   Bool      m_bUseCbfFastMode;                              ///< flag for using Cbf Fast PU Mode Decision
   Int       m_iSliceMode;           ///< 0: Disable all Recon slice limits, 1 : Maximum number of largest coding units per slice, 2: Maximum number of bytes in a slice
   Int       m_iSliceArgument;       ///< If m_iSliceMode==1, m_iSliceArgument=max. # of largest coding units. If m_iSliceMode==2, m_iSliceArgument=max. # of bytes.
@@ -193,6 +205,10 @@ protected:
   UInt      m_uiBiPredIdc;                                    ///< Use of Bi-Directional Weighting Prediction (B_SLICE): explicit(1) or implicit(2)
 
   Bool      m_enableTMVP;
+#if MULTIBITS_DATA_HIDING
+  Int       m_signHideFlag;
+  Int       m_signHidingThreshold;
+#endif
 
   Int       m_useScalingListId;                               ///< using quantization matrix
   char*     m_scalingListFile;                                ///< quantization matrix file name

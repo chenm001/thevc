@@ -79,8 +79,13 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setGOPSize                      ( m_iGOPSize );
   m_cTEncTop.setGopList                      ( m_pcGOPList );
   m_cTEncTop.setExtraRPSs                     ( m_iExtraRPSs );
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  m_cTEncTop.setNumReorderPics               ( m_numReorderPics );
+  m_cTEncTop.setMaxDecPicBuffering           ( m_uiMaxDecPicBuffering );
+#else
   m_cTEncTop.setNumReorderFrames             ( m_numReorderFrames );
   m_cTEncTop.setMaxNumberOfReferencePictures ( m_uiMaxNumberOfReferencePictures );
+#endif
   for( UInt uiLoop = 0; uiLoop < MAX_TLAYER; ++uiLoop )
   {
     m_cTEncTop.setLambdaModifier( uiLoop, m_adLambdaModifier[ uiLoop ] );
@@ -90,8 +95,12 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setTemporalLayerQPOffset        ( m_aiTLayerQPOffset );
   m_cTEncTop.setPad                          ( m_aiPad );
     
+#if H0566_TLA
+  m_cTEncTop.setMaxTempLayer                 ( m_maxTempLayer );
+#else
   m_cTEncTop.setTLayering                    ( m_bTLayering );
   m_cTEncTop.setTLayerSwitchingFlag          ( m_abTLayerSwitchingFlag );
+#endif
 
   m_cTEncTop.setDisInter4x4                  ( m_bDisInter4x4);
   
@@ -146,6 +155,9 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setQuadtreeTUMaxDepthIntra      ( m_uiQuadtreeTUMaxDepthIntra );
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
   m_cTEncTop.setUseEarlyCU                   ( m_bUseEarlyCU  ); 
+#if FAST_DECISION_FOR_MRG_RD_COST
+  m_cTEncTop.setUseFastDecisionForMerge      ( m_useFastDecisionForMerge  );
+#endif
   m_cTEncTop.setUseCbfFastMode            ( m_bUseCbfFastMode  );
   m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
 
@@ -217,6 +229,10 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setEnableTMVP ( m_enableTMVP );
   m_cTEncTop.setUseScalingListId           ( m_useScalingListId  );
   m_cTEncTop.setScalingListFile            ( m_scalingListFile   );
+#if MULTIBITS_DATA_HIDING
+  m_cTEncTop.setSignHideFlag(m_signHideFlag);
+  m_cTEncTop.setTSIG(m_signHidingThreshold);
+#endif
 }
 
 Void TAppEncTop::xCreateLib()
@@ -411,9 +427,14 @@ void TAppEncTop::rateStatsAccum(const AccessUnit& au, const std::vector<unsigned
     switch ((*it_au)->m_UnitType)
     {
     case NAL_UNIT_CODED_SLICE:
+#if H0566_TLA
+    case NAL_UNIT_CODED_SLICE_TLA:
+    case NAL_UNIT_CODED_SLICE_CRA:
+#else
     case NAL_UNIT_CODED_SLICE_DATAPART_A:
     case NAL_UNIT_CODED_SLICE_DATAPART_B:
     case NAL_UNIT_CODED_SLICE_CDR:
+#endif
     case NAL_UNIT_CODED_SLICE_IDR:
     case NAL_UNIT_SPS:
     case NAL_UNIT_PPS:

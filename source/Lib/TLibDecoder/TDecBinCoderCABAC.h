@@ -65,8 +65,11 @@ public:
   Void  decodeBinTrm      ( UInt& ruiBin                           );
   
   Void  resetBac          ();
+#if BURST_IPCM
+  Void  decodeNumSubseqIPCM( Int& numSubseqIPCM ) ;
+#endif
   Void  decodePCMAlignBits();
-  Void  xReadPCMCode      (UInt uiLength, UInt& ruiCode);
+  Void  xReadPCMCode      ( UInt uiLength, UInt& ruiCode );
   
   Void  copyState         ( TDecBinIf* pcTDecBinIf );
   TDecBinCABAC* getTDecBinCABAC()  { return this; }

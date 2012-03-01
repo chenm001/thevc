@@ -378,6 +378,8 @@ const short g_as_DST_MAT_4 [4][4]=
   {84,  -29,   -74,   55},
   {55,  -84,    74,  -29},
 };
+
+#if !LOGI_INTRA_NAME_3MPM
 // Mapping each Unified Directional Intra prediction direction to DCT/DST transform 
 // 0 implies use DCT, 1 implies DST
 const UChar g_aucDCTDSTMode_Vert[NUM_INTRA_MODE] =
@@ -388,7 +390,7 @@ const UChar g_aucDCTDSTMode_Hor[NUM_INTRA_MODE] =
 { //0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33
   1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0
 };
-
+#endif
 
 
 // ====================================================================================================================
@@ -423,6 +425,7 @@ const UChar g_aucIntraModeNumFast[7] =
 
 const UChar g_aucConvertTxtTypeToIdx[4] = { 0, 1, 1, 2 };
 
+#if !LOGI_INTRA_NAME_3MPM
 // ====================================================================================================================
 // Angular Intra prediction
 // ====================================================================================================================
@@ -491,6 +494,7 @@ const UChar g_aucIntraModeBitsAng[7] =
   6,  //  64x64   34   5+esc
   3   // 128x128   5   2+1
 };
+#endif
 
 // ====================================================================================================================
 // Bit-depth
@@ -535,10 +539,30 @@ UInt g_sigCGScanNSQT[ 4 ][ 16 ] =
   { 0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15 }
 };
 
+#if MULTILEVEL_SIGMAP_EXT
+const UInt g_sigLastScan8x8[ 4 ][ 4 ] =
+{
+  {0, 1, 2, 3},
+  {0, 1, 2, 3},
+  {0, 1, 2, 3},
+  {0, 2, 1, 3}
+};
+UInt g_sigLastScanCG32x32[ 64 ];
+#endif
+
 UInt* g_auiNonSquareSigLastScan[ 4 ];
 
 const UInt g_uiMinInGroup[ 10 ] = {0,1,2,3,4,6,8,12,16,24};
 const UInt g_uiGroupIdx[ 32 ]   = {0,1,2,3,4,4,5,5,6,6,6,6,7,7,7,7,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9};
+#if LAST_CTX_REDUCTION
+const UInt g_uiLastCtx[ 28 ]    = 
+{
+  0,   1,  2,  2,                         // 4x4    4
+  3,   4,  5,  5, 2,  2,                  // 8x8    6  
+  6,   7,  8,  8, 9,  9, 2, 2,            // 16x16  8
+  10, 11, 12, 12, 13, 13, 14, 14, 2, 2    // 32x32  10
+};
+#else
 const UInt g_uiLastCtx[ 28 ]    = 
 {
   0,   1,  2,  2,                         // 4x4    4
@@ -546,8 +570,20 @@ const UInt g_uiLastCtx[ 28 ]    =
   7,   8,  9,  9, 10, 10, 11, 11,         // 16x16  8
   12, 13, 14, 14, 15, 15, 16, 16, 17, 17  // 32x32  10
 };
+#endif
 
 // Rice parameters for absolute transform levels
+#if EIGHT_BITS_RICE_CODE
+const UInt g_auiGoRiceRange[5] =
+{
+  7, 14, 26, 46, 78
+};
+
+const UInt g_auiGoRicePrefixLen[5] =
+{
+  8, 7, 6, 5, 4
+};
+#else
 const UInt g_auiGoRiceRange[4] =
 {
   7, 20, 42, 70
@@ -557,9 +593,62 @@ const UInt g_auiGoRicePrefixLen[4] =
 {
   8, 10, 10, 8
 };
+#endif
 
+#if EIGHT_BITS_RICE_CODE
+const UInt g_aauiGoRiceUpdate[5][24] =
+{
+#if RESTRICT_GR1GR2FLAG_NUMBER
+  {
+    0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4
+  },
+  {
+    1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4
+  },
+  {
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4
+  },
+  {
+    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4
+  },
+  {
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
+  }
+#else
+  {
+    0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4
+  },
+  {
+    1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4
+  },
+  {
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4
+  },
+  {
+    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4
+  },
+  {
+    4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
+  }
+#endif
+};
+#else
 const UInt g_aauiGoRiceUpdate[4][16] =
 {
+#if RESTRICT_GR1GR2FLAG_NUMBER
+  {
+    0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3,
+  },
+  { 
+    1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3,
+  },
+  { 
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3,
+  },
+  { 
+    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 
+  }
+#else  
   {
     0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3
   },
@@ -572,7 +661,9 @@ const UInt g_aauiGoRiceUpdate[4][16] =
   {
     3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
   }
+#endif
 };
+#endif
 
 // initialize g_auiFrameScanXY
 Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int iHeight )
@@ -626,6 +717,13 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int
 
   if( iWidth < 16 )
   {
+#if MULTILEVEL_SIGMAP_EXT
+  UInt* pBuffTemp = pBuffD;
+  if( iWidth == 8 )
+  {
+    pBuffTemp = g_sigLastScanCG32x32;
+  }
+#endif
   for( UInt uiScanLine = 0; uiNextScanPos < uiNumScanPos; uiScanLine++ )
   {
     int    iPrimDim  = int( uiScanLine );
@@ -637,14 +735,22 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int
     }
     while( iPrimDim >= 0 && iScndDim < iWidth )
     {
+#if MULTILEVEL_SIGMAP_EXT
+      pBuffTemp[ uiNextScanPos ] = iPrimDim * iWidth + iScndDim ;
+#else
       pBuffD[ uiNextScanPos ] = iPrimDim * iWidth + iScndDim ;
+#endif
       uiNextScanPos++;
       iScndDim++;
       iPrimDim--;
     }
   }
   }
+#if MULTILEVEL_SIGMAP_EXT
+  if( iWidth > 4 )
+#else
   else
+#endif
   {
     UInt uiNumBlkSide = iWidth >> 2;
     UInt uiNumBlks    = uiNumBlkSide * uiNumBlkSide;
@@ -654,6 +760,12 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int
     {
       uiNextScanPos   = 0;
       UInt initBlkPos = g_auiSigLastScan[ SCAN_DIAG ][ log2Blk ][ uiBlk ];
+#if MULTILEVEL_SIGMAP_EXT
+      if( iWidth == 32 )
+      {
+        initBlkPos = g_sigLastScanCG32x32[ uiBlk ];
+      }
+#endif
       UInt offsetY    = initBlkPos / uiNumBlkSide;
       UInt offsetX    = initBlkPos - offsetY * uiNumBlkSide;
       UInt offsetD    = 4 * ( offsetX + offsetY * iWidth );
@@ -780,6 +892,46 @@ Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)
   }
 }
 
+#if SCALING_LIST
+Int g_quantIntraDefault4x4[16] =
+{
+  16,16,17,21,
+  16,17,20,25,
+  17,20,30,41,
+  21,25,41,70
+};
+Int g_quantInterDefault4x4[16] =
+{
+  16,16,17,21,
+  16,17,21,24,
+  17,21,24,36,
+  21,24,36,57
+};
+
+Int g_quantIntraDefault8x8[64] =
+{
+  16,16,16,16,17,18,21,24,
+  16,16,16,16,17,19,22,25,
+  16,16,17,18,20,22,25,29,
+  16,16,18,21,24,27,31,36,
+  17,17,20,24,30,35,41,47,
+  18,19,22,27,35,44,54,65,
+  21,22,25,31,41,54,70,88,
+  24,25,29,36,47,65,88,115
+};
+
+Int g_quantInterDefault8x8[64] =
+{
+  16,16,16,16,17,18,20,24,
+  16,16,16,17,18,20,24,25,
+  16,16,17,18,20,24,25,28,
+  16,17,18,20,24,25,28,33,
+  17,18,20,24,25,28,33,41,
+  18,20,24,25,28,33,41,54,
+  20,24,25,28,33,41,54,71,
+  24,25,28,33,41,54,71,91
+};
+#else
 Int g_quantIntraDefault4x4[16] =
 {
    6,13,20,28,
@@ -930,10 +1082,10 @@ Int g_quantInterDefault32x32[1024] =
   26,28,28,28,28,29,30,30,31,32,33,34,35,36,38,40,42,45,48,52,56,60,64,69,74,80,87,94,101,108,115,123,
   28,28,28,28,29,30,30,31,32,33,34,35,36,38,40,42,45,48,52,56,60,64,69,74,80,87,94,101,108,115,123,131
 };
-
+#endif
 UInt g_scalingListSize   [4] = {16,64,256,1024}; 
 UInt g_scalingListSizeX  [4] = { 4, 8, 16,  32};
-UInt g_auiScalingListNum[SCALING_LIST_SIZE_NUM]={6,6,6,2};
+UInt g_scalingListNum[SCALING_LIST_SIZE_NUM]={6,6,6,2};
 Int  g_eTTable[4] = {0,3,1,2};
 
 //! \}

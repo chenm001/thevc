@@ -304,6 +304,45 @@ Void TDecBinCABAC::resetBac()
   m_bitsNeeded = -8;
   m_uiValue    = m_pcTComBitstream->read( 16 );
 }
+
+#if BURST_IPCM
+/** Decode subsequent_pcm_num.
+ * \param numSubseqIPCM
+ * \returns Void
+ */
+Void TDecBinCABAC::decodeNumSubseqIPCM( Int& numSubseqIPCM )
+{
+  UInt bit = 0;
+
+  numSubseqIPCM = 0;
+
+  do
+  {
+    m_uiValue += m_uiValue;
+    if ( ++m_bitsNeeded >= 0 )
+    {
+      m_bitsNeeded = -8;
+#if OL_FLUSH && !OL_FLUSH_ALIGN
+      m_uiLastByte = m_pcTComBitstream->readByte();
+      m_uiValue += m_uiLastByte;
+#else
+      m_uiValue += m_pcTComBitstream->readByte();
+#endif
+    }
+    bit = ((m_uiValue&128)>>7);
+    numSubseqIPCM++;
+  }
+  while( bit && (numSubseqIPCM < 3 ));
+
+  if( bit && (numSubseqIPCM == 3 ))
+  {
+    numSubseqIPCM++;
+  }
+
+  numSubseqIPCM --;
+}
+#endif
+
 /** Decode PCM alignment zero bits.
  * \returns Void
  */
