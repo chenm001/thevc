@@ -178,6 +178,9 @@ private:
   Bool        m_bDisInter4x4;
   Bool        m_useAMP;
   Bool        m_bUseALF;
+#if LCU_SYNTAX_ALF
+  Bool        m_bALFCoefInSlice;
+#endif
   Bool        m_bUsePAD;
   Bool        m_bUseMRG; // SOPH:
 
@@ -311,6 +314,10 @@ public:
   
   // Tool list
   Bool getUseALF      ()         { return m_bUseALF;        }
+#if LCU_SYNTAX_ALF
+  Void setUseALFCoefInSlice(Bool b) {m_bALFCoefInSlice = b;}
+  Bool getUseALFCoefInSlice()    {return m_bALFCoefInSlice;}
+#endif
 
   Bool getUsePAD      ()         { return m_bUsePAD;        }
   Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
@@ -604,6 +611,10 @@ private:
   Int      m_signHidingThreshold;
 #endif
 
+#if DBL_CONTROL
+  Bool     m_DeblockingFilterControlPresent;
+#endif
+
 public:
   TComPPS();
   virtual ~TComPPS();
@@ -718,6 +729,11 @@ public:
 
   Void     setEnableTMVPFlag( Bool b )  { m_enableTMVPFlag = b;    }
   Bool     getEnableTMVPFlag()          { return m_enableTMVPFlag; }
+
+#if DBL_CONTROL
+  Void setDeblockingFilterControlPresent    ( Bool bValue )       { m_DeblockingFilterControlPresent = bValue; }
+  Bool getDeblockingFilterControlPresent    ()                    { return m_DeblockingFilterControlPresent; }
+#endif
 };
 typedef struct
 {
@@ -776,7 +792,11 @@ public:
   Void      setAlfEnabled (Bool bVal) {m_bAlfEnabled = bVal;     }  //!< set ALF enabled/disabled in APS
   Bool      getAlfEnabled ()          {return m_bAlfEnabled;     }  //!< get ALF enabled/disabled in APS
 
+#if LCU_SYNTAX_ALF
+  AlfParamSet* getAlfParam   ()          {return m_alfParamSet;}
+#else
   ALFParam* getAlfParam   ()          {return m_pAlfParam;       }  //!< get ALF parameters in APS
+#endif
   SAOParam* getSaoParam   ()          {return m_pSaoParam;       }  //!< get SAO parameters in APS
 
   Void      createSaoParam();   //!< create SAO parameter object
@@ -808,13 +828,22 @@ public:
   Void      setScalingListEnabled (Bool bVal) { m_scalingListEnabled = bVal; }  //!< set ScalingList enabled/disabled in APS
   Bool      getScalingListEnabled ()          { return m_scalingListEnabled; }  //!< get ScalingList enabled/disabled in APS
   TComScalingList* getScalingList ()          { return m_scalingList; }         //!< get ScalingList class pointer in APS
+#if SAO_UNIT_INTERLEAVING
+  Bool     m_bSaoInterleavingFlag;
+  Bool     getSaoInterleavingFlag() {return m_bSaoInterleavingFlag;}
+  Void     setSaoInterleavingFlag(Bool bVal) {m_bSaoInterleavingFlag = bVal;}
+#endif
 
 private:
   Int         m_apsID;        //!< APS ID
   Bool        m_bSaoEnabled;  //!< SAO enabled/disabled in APS (true for enabled)
   Bool        m_bAlfEnabled;  //!< ALF enabled/disabled in APS (true for enabled)
   SAOParam*   m_pSaoParam;    //!< SAO parameter object pointer 
+#if LCU_SYNTAX_ALF
+  AlfParamSet*   m_alfParamSet;
+#else
   ALFParam*   m_pAlfParam;    //!< ALF parameter object pointer
+#endif
   Bool        m_loopFilterOffsetInAPS;       //< offset for deblocking filter in 0 = slice header, 1 = APS
   Bool        m_loopFilterDisable;           //< Deblocking filter enabled/disabled in APS
   Int         m_loopFilterBetaOffsetDiv2;    //< beta offset for deblocking filter
@@ -857,6 +886,11 @@ private:
   Int         m_iAPSId; //!< APS ID in slice header
   bool       m_alfEnabledFlag;
   bool       m_saoEnabledFlag;
+#if SAO_UNIT_INTERLEAVING
+  bool       m_saoInterleavingFlag;
+  bool       m_saoEnabledFlagCb;
+  bool       m_saoEnabledFlagCr;
+#endif
   Int         m_iPPSId;               ///< picture parameter set ID
   Int         m_iPOC;
   Int         m_iLastIDR;
@@ -989,6 +1023,14 @@ public:
   Bool      getAlfEnabledFlag() { return m_alfEnabledFlag; }
   Void      setSaoEnabledFlag(Bool s) {m_saoEnabledFlag =s; }
   Bool      getSaoEnabledFlag() { return m_saoEnabledFlag; }
+#if SAO_UNIT_INTERLEAVING
+  Void      setSaoInterleavingFlag(Bool s) {m_saoInterleavingFlag =s; }
+  Bool      getSaoInterleavingFlag() { return m_saoInterleavingFlag;  }
+  Void      setSaoEnabledFlagCb(Bool s) {m_saoEnabledFlagCb =s; }
+  Bool      getSaoEnabledFlagCb() { return m_saoEnabledFlagCb; }
+  Void      setSaoEnabledFlagCr(Bool s) {m_saoEnabledFlagCr =s; }
+  Bool      getSaoEnabledFlagCr() { return m_saoEnabledFlagCr; }
+#endif
   Void      setRPS          ( TComReferencePictureSet *pcRPS ) { m_pcRPS = pcRPS; }
   TComReferencePictureSet*  getRPS          () { return m_pcRPS; }
   TComReferencePictureSet*  getLocalRPS     () { return &m_LocalRPS; }
@@ -1188,6 +1230,7 @@ public:
   Bool  checkDefaultScalingList     ();
   Void      setCABACinitIDC(Int iVal) {m_cabacInitIdc = iVal;    }  //!< set CABAC initial IDC number 
   Int       getCABACinitIDC()         {return m_cabacInitIdc;    }  //!< get CABAC initial IDC number 
+
 protected:
   TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,
                          UInt                uiPOC);

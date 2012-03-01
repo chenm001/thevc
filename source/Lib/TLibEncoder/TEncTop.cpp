@@ -97,6 +97,10 @@ Void TEncTop::create ()
   m_cCuEncoder.         create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
   if (m_bUseSAO)
   {
+#if SAO_UNIT_INTERLEAVING
+    m_cEncSAO.setSaoInterleavingFlag(getSaoInterleavingFlag());
+    m_cEncSAO.setMaxNumOffsetsPerPic(getMaxNumOffsetsPerPic());
+#endif
     m_cEncSAO.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
     m_cEncSAO.createEncBuffer();
   }
@@ -111,8 +115,13 @@ Void TEncTop::create ()
   
   if(m_bUseALF)
   {
+#if LCU_SYNTAX_ALF
+    m_cAdaptiveLoopFilter.setAlfCoefInSlice(m_bALFParamInSlice);
+    m_cAdaptiveLoopFilter.createAlfGlobalBuffers();
+#else
     m_cAdaptiveLoopFilter.setGOPSize( getGOPSize() );
     m_cAdaptiveLoopFilter.createAlfGlobalBuffers(m_iALFEncodePassReduction);
+#endif
   }
 
   if(m_bUseSAO || m_bUseALF)
@@ -327,6 +336,9 @@ Void TEncTop::init()
   {
     m_cAdaptiveLoopFilter.setALFEncodePassReduction( m_iALFEncodePassReduction );
     m_cAdaptiveLoopFilter.setALFMaxNumberFilters( m_iALFMaxNumberFilters );
+#if LCU_SYNTAX_ALF
+    m_cAdaptiveLoopFilter.initPicQuadTreePartition(m_bALFPicBasedEncode );   
+#endif
   }
 
   m_iMaxRefPicNum = 0;
@@ -470,6 +482,12 @@ Void TEncTop::xInitSPS()
   m_cSPS.setPCMLog2MaxSize( m_pcmLog2MaxSize  );
 
   m_cSPS.setUseALF        ( m_bUseALF           );
+#if LCU_SYNTAX_ALF
+  if(m_bUseALF)
+  {
+    m_cSPS.setUseALFCoefInSlice(m_bALFParamInSlice);
+  }
+#endif
   
   m_cSPS.setQuadtreeTULog2MaxSize( m_uiQuadtreeTULog2MaxSize );
   m_cSPS.setQuadtreeTULog2MinSize( m_uiQuadtreeTULog2MinSize );
@@ -653,6 +671,9 @@ Void TEncTop::xInitPPS()
 #if MULTIBITS_DATA_HIDING
   m_cPPS.setSignHideFlag(getSignHideFlag());
   m_cPPS.setTSIG(getTSIG());
+#endif
+#if DBL_CONTROL
+  m_cPPS.setDeblockingFilterControlPresent (m_DeblockingFilterControlPresent );
 #endif
 }
 

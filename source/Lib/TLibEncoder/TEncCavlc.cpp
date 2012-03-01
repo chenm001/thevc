@@ -160,13 +160,21 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
   WRITE_FLAG( pcAPS->getScalingListEnabled()?1:0, "aps_scaling_list_data_present_flag");
   //DF flag
   WRITE_FLAG(pcAPS->getLoopFilterOffsetInAPS()?1:0, "aps_deblocking_filter_flag");
+#if !SAO_UNIT_INTERLEAVING
   //SAO flag
   WRITE_FLAG( pcAPS->getSaoEnabled()?1:0, "aps_sample_adaptive_offset_flag"); 
-
+#endif
+#if !LCU_SYNTAX_ALF
   //ALF flag
   WRITE_FLAG( pcAPS->getAlfEnabled()?1:0, "aps_adaptive_loop_filter_flag"); 
-
+#endif
 }
+#if LCU_SYNTAX_ALF
+Void TEncCavlc::codeAPSAlflag(UInt uiCode)
+{
+  WRITE_FLAG(uiCode, "aps_adaptive_loop_filter_flag");
+}
+#endif
 
 Void TEncCavlc::codeDFFlag(UInt uiCode, const Char *pSymbolName)
 {
@@ -333,7 +341,9 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
       }
     }
   }
-
+#if DBL_CONTROL
+  WRITE_FLAG( pcPPS->getDeblockingFilterControlPresent()?1 : 0, "deblocking_filter_control_present_flag");
+#endif
   return;
 }
 
@@ -424,6 +434,12 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_FLAG( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0,                            "loop_filter_across_slice_flag");
   WRITE_FLAG( pcSPS->getUseSAO() ? 1 : 0,                                            "sample_adaptive_offset_enabled_flag");
   WRITE_FLAG( (pcSPS->getUseALF ()) ? 1 : 0,                                         "adaptive_loop_filter_enabled_flag");
+#if LCU_SYNTAX_ALF
+  if(pcSPS->getUseALF())
+  {
+    WRITE_FLAG( (pcSPS->getUseALFCoefInSlice()) ? 1 : 0,                                         "alf_coef_in_slice_flag");
+  }
+#endif
 
   if( pcSPS->getUsePCM() )
   {
@@ -596,16 +612,28 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     {
       if (pcSlice->getSPS()->getUseALF())
       {
+#if !LCU_SYNTAX_ALF
          if (pcSlice->getAlfEnabledFlag())
          {
            assert (pcSlice->getAPS()->getAlfEnabled());
          }
+#endif
          WRITE_FLAG( pcSlice->getAlfEnabledFlag(), "ALF on/off flag in slice header" );
       }
       if (pcSlice->getSPS()->getUseSAO())
       {
+#if SAO_UNIT_INTERLEAVING
+        WRITE_FLAG( pcSlice->getSaoInterleavingFlag(), "SAO interleaving flag" );
+#endif
          assert (pcSlice->getSaoEnabledFlag() == pcSlice->getAPS()->getSaoEnabled());
          WRITE_FLAG( pcSlice->getSaoEnabledFlag(), "SAO on/off flag in slice header" );
+#if SAO_UNIT_INTERLEAVING
+         if (pcSlice->getSaoInterleavingFlag()&&pcSlice->getSaoEnabledFlag() )
+         {
+           WRITE_FLAG( pcSlice->getAPS()->getSaoParam()->bSaoFlag[1], "SAO on/off flag for Cb in slice header" );
+           WRITE_FLAG( pcSlice->getAPS()->getSaoParam()->bSaoFlag[2], "SAO on/off flag for Cr in slice header" );
+         }
+#endif
       }
       WRITE_UVLC( pcSlice->getAPS()->getAPSID(), "aps_id");
     }
@@ -704,37 +732,32 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   {
     Int iCode = pcSlice->getSliceQp() - ( pcSlice->getPPS()->getPicInitQPMinus26() + 26 );
     WRITE_SVLC( iCode, "slice_qp_delta" ); 
-  //   if( sample_adaptive_offset_enabled_flag )
-  //     sao_param()
-  //   if( deblocking_filter_control_present_flag ) {
-  //     disable_deblocking_filter_idc
-    WRITE_FLAG(pcSlice->getInheritDblParamFromAPS(), "inherit_dbl_param_from_APS_flag");
-    if (!pcSlice->getInheritDblParamFromAPS())
+#if DBL_CONTROL
+    if (pcSlice->getPPS()->getDeblockingFilterControlPresent())
     {
-      WRITE_FLAG(pcSlice->getLoopFilterDisable(), "loop_filter_disable");  // should be an IDC
-      if(!pcSlice->getLoopFilterDisable())
+      if ( pcSlice->getSPS()->getUseDF() )
       {
-        WRITE_SVLC (pcSlice->getLoopFilterBetaOffset(), "beta_offset_div2");
-        WRITE_SVLC (pcSlice->getLoopFilterTcOffset(), "tc_offset_div2");
+        WRITE_FLAG(pcSlice->getInheritDblParamFromAPS(), "inherit_dbl_param_from_APS_flag");
       }
+#else
+    WRITE_FLAG(pcSlice->getInheritDblParamFromAPS(), "inherit_dbl_param_from_APS_flag");
+#endif
+      if (!pcSlice->getInheritDblParamFromAPS())
+      {
+        WRITE_FLAG(pcSlice->getLoopFilterDisable(), "loop_filter_disable");  // should be an IDC
+        if(!pcSlice->getLoopFilterDisable())
+        {
+          WRITE_SVLC (pcSlice->getLoopFilterBetaOffset(), "beta_offset_div2");
+          WRITE_SVLC (pcSlice->getLoopFilterTcOffset(), "tc_offset_div2");
+        }
+      }
+#if DBL_CONTROL
     }
-  //     if( disable_deblocking_filter_idc  !=  1 ) {
-  //       slice_alpha_c0_offset_div2
-  //       slice_beta_offset_div2
-  //     }
-  //   }
-  //   if( slice_type = = B )
-  //   collocated_from_l0_flag
+#endif
     if ( pcSlice->getSliceType() == B_SLICE )
     {
       WRITE_FLAG( pcSlice->getColDir(), "collocated_from_l0_flag" );
     }
-    //   if( adaptive_loop_filter_enabled_flag ) {
-  //     if( !shared_pps_info_enabled_flag )
-  //       alf_param( )
-  //     alf_cu_control_param( )
-  //   }
-  // }
   
     if ( (pcSlice->getPPS()->getUseWP() && pcSlice->getSliceType()==P_SLICE) || (pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getSliceType()==B_SLICE) )
     {
@@ -1054,6 +1077,32 @@ Void TEncCavlc::codeAlfSvlc( Int iCode )
 {
   xWriteSvlc( iCode );
 }
+#if LCU_SYNTAX_ALF
+/** Code the fixed length code (smaller than one max value) in OSALF
+ * \param idx:  coded value 
+ * \param maxValue: max value
+ */
+Void TEncCavlc::codeAlfFixedLengthIdx( UInt idx, UInt maxValue)
+{
+  UInt length = 0;
+  assert(idx<=maxValue);
+
+  UInt temp = maxValue;
+  for(UInt i=0; i<32; i++)
+  {
+    if(temp&0x1)
+    {
+      length = i+1;
+    }
+    temp = (temp >> 1);
+  }
+
+  if(length)
+  {
+    xWriteCode( idx, length );
+  }
+}
+#endif
 
 Void TEncCavlc::codeSaoFlag( UInt uiCode )
 {
@@ -1069,6 +1118,27 @@ Void TEncCavlc::codeSaoSvlc( Int iCode )
 {
     xWriteSvlc( iCode );
 }
+#if SAO_UNIT_INTERLEAVING
+Void TEncCavlc::codeSaoRun( UInt uiCode, UInt uiMaxValue)
+{
+  UInt uiLength = 0;
+  if (!uiMaxValue)
+  {
+    return;
+  }
+  assert(uiCode<=uiMaxValue);              
+
+  for(UInt i=0; i<32; i++)                                     
+  {                                                            
+    if(uiMaxValue&0x1)                                               
+    {                                                          
+      uiLength = i+1;                                          
+    }                                                          
+    uiMaxValue = (uiMaxValue >> 1);                                        
+  }
+  xWriteCode(uiCode, uiLength);
+}
+#endif
 
 Void TEncCavlc::estBit( estBitsSbacStruct* pcEstBitsCabac, Int width, Int height, TextType eTType )
 {

@@ -128,9 +128,21 @@ public:
   Void codeAlfUvlc       ( UInt uiCode );
   Void codeAlfSvlc       ( Int   iCode );
   Void codeAlfCtrlDepth();
+#if LCU_SYNTAX_ALF
+  Void codeAPSAlflag(UInt uiCode);
+  Void codeAlfFixedLengthIdx( UInt idx, UInt numFilterSetsInBuffer);
+#endif
   Void codeSaoFlag       ( UInt uiCode );
   Void codeSaoUvlc       ( UInt uiCode );
   Void codeSaoSvlc       ( Int   iCode );
+#if SAO_UNIT_INTERLEAVING
+  Void codeSaoRun        ( UInt uiCode, UInt uiMaxValue  );
+  Void codeSaoMergeLeft  ( UInt uiCode, UInt uiCompIdx ){;}
+  Void codeSaoMergeUp    ( UInt uiCode ){;}
+  Void codeSaoTypeIdx    ( UInt uiCode ){ xWriteUvlc(uiCode   );}
+  Void codeSaoUflc       ( UInt uiCode ){ assert(uiCode < 32); xWriteCode(uiCode, 5);}
+#endif
+
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx );

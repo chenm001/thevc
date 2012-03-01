@@ -118,12 +118,25 @@ public:
   Void  parseSaoUvlc        ( UInt& ruiVal );
   Void  parseSaoSvlc        ( Int&  riVal  );
 #endif  
+#if SAO_UNIT_INTERLEAVING
+  Void  parseSaoUvlc        ( UInt& ruiVal ){;}
+  Void  parseSaoSvlc        ( Int&  riVal  ){;}
+  Void  parseSaoMergeLeft   ( UInt& ruiVal, UInt uiCompIdx   ){;}
+  Void  parseSaoMergeUp     ( UInt& ruiVal ){;}
+  Void  parseSaoTypeIdx     ( UInt& ruiVal ){;}
+  Void  parseSaoUflc        ( UInt& ruiVal ){;}
+#endif
+
   Void  parseSPS            ( TComSPS* pcSPS );
   Void  parsePPS            ( TComPPS* pcPPS);
   Void  parseSEI(SEImessages&);
 #if PARAMSET_VLC_CLEANUP
-  Void  parseAPS             ( TComAPS* pAPS );
+  Void  parseAPS            ( TComAPS* pAPS );
+#if LCU_SYNTAX_ALF
+  Void  parseSliceHeader    ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl, AlfParamSet& alfParamSet);
+#else
   Void  parseSliceHeader    ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl );
+#endif
 #else
   Void  parseSliceHeader    ( TComSlice*& rpcSlice );
   Void parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice);
@@ -174,9 +187,23 @@ public:
   Void parseDFSvlc         ( Int&  riVal,  const Char *pSymbolName  );
 #if PARAMSET_VLC_CLEANUP
 protected:
+#if DBL_CONTROL
+  Void  xParseDblParam       ( TComAPS* aps );
+#endif
   Void  xParseSaoParam       ( SAOParam* pSaoParam );
+#if SAO_UNIT_INTERLEAVING
+  Void  xParseSaoOffset      (SaoLcuParam* psSaoLcuParam);
+  Void  xParseSaoUnit        (Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam, Bool& bRepeatedRow );
+#else
   Void  xParseSaoSplitParam  ( SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr );
   Void  xParseSaoOffsetParam ( SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr );
+#endif
+#if LCU_SYNTAX_ALF 
+  Void  xParseAlfParam(AlfParamSet* pAlfParamSet, Bool bSentInAPS = true, Int firstLCUAddr = 0, Bool acrossSlice = true, Int numLCUInWidth= -1, Int numLCUInHeight= -1);
+  Void  parseAlfParamSet(AlfParamSet* pAlfParamSet, Int firstLCUAddr, Bool alfAcrossSlice);
+  Void  parseAlfFixedLengthRun(UInt& idx, UInt rx, UInt numLCUInWidth);
+  Void  parseAlfStoredFilterIdx(UInt& idx, UInt numFilterSetsInBuffer);
+#endif
   Void  xParseAlfParam       ( ALFParam* pAlfParam );
   Void  xParseAlfCuControlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
   Int   xGolombDecode        ( Int k );

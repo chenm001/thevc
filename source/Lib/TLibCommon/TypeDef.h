@@ -85,7 +85,14 @@
 
 #define EIGHT_BITS_RICE_CODE        1 ///< H0498 : 8 bits rice codes
 
+#define SAO_UNIT_INTERLEAVING      1   ///< H0273
+
+#define ALF_SINGLE_FILTER_SHAPE    1     //< !!! H0068: Single filter type : 9x7 cross + 3x3 square
+
 #define PARAMSET_VLC_CLEANUP               1      ///< followup to G220: Simplify parameter set code
+
+#define ALF_16_BA_GROUPS        1     ///< H0409 16 BA groups
+#define LCU_SYNTAX_ALF          1     ///< H0274 LCU-syntax ALF
 
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
@@ -116,6 +123,7 @@
 
 #define CHROMA_MODE_CODING                   1     //H0326/H0475 : 2-length fixed, bypass coding for chroma intra prediction mode
 
+#define NSQT_LFFIX                           1     ///< Bug fix related to NSQT and deblocking filter
 #define NS_HAD                               1
 
 #define APS_BITS_FOR_SAO_BYTE_LENGTH 12           
@@ -219,6 +227,10 @@
 
 #define H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER 1
 
+#define DBL_H0473_PART_1          1   //Deblocking filtering simplification
+#define DBL_CONTROL               1   //PPS deblocking_filter_control_present_flag (JCTVC-H0398); condition for inherit params flag in SH (JCTVC-H0424)
+#define DBL_STRONG_FILTER_CLIP    1   //Introduction of strong filter clipping in deblocking filter (JCTVC-H0275)
+
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
@@ -270,7 +282,12 @@ class TComPicSym;
 enum SAOTypeLen
 {
   SAO_EO_LEN    = 4, 
+#if SAO_UNIT_INTERLEAVING
+  SAO_BO_LEN    = 4,
+  SAO_MAX_BO_CLASSES = 32
+#else
   SAO_BO_LEN    = 16
+#endif
 };
 
 enum SAOType
@@ -279,18 +296,28 @@ enum SAOType
   SAO_EO_1,
   SAO_EO_2, 
   SAO_EO_3,
+#if SAO_UNIT_INTERLEAVING
+  SAO_BO,
+#else
   SAO_BO_0,
   SAO_BO_1,
+#endif
   MAX_NUM_SAO_TYPE
 };
 
 typedef struct _SaoQTPart
 {
+#if !SAO_UNIT_INTERLEAVING
   Bool        bEnableFlag;
+#endif
   Int         iBestType;
   Int         iLength;
+#if SAO_UNIT_INTERLEAVING
+  Int         bandPosition ;
+  Int         iOffset[4];
+#else
   Int         iOffset[32];
-
+#endif
   Int         StartCUX;
   Int         StartCUY;
   Int         EndCUX;
@@ -314,24 +341,50 @@ typedef struct _SaoQTPart
   //---- encoder only end -----//
 } SAOQTPart;
 
+#if SAO_UNIT_INTERLEAVING
+typedef struct _SaoLcuParam
+{
+  Bool       mergeUpFlag;
+  Bool       mergeLeftFlag;
+  Int        typeIdx;
+  Int        bandPosition;
+  Int        iOffset[4];
+  Int        runDiff;
+  Int        run;
+  Int        iPartIdx;
+  Int        iPartIdxTmp;
+  Int        iLength;
+} SaoLcuParam;
+#endif
+
 struct SAOParam
 {
   Bool       bSaoFlag[3];
   SAOQTPart* psSaoPart[3];
   Int        iMaxSplitLevel;
   Int        iNumClass[MAX_NUM_SAO_TYPE];
+#if SAO_UNIT_INTERLEAVING
+  Bool         oneUnitFlag[3];
+  SaoLcuParam* psSaoLcuParam[3];
+  Int          iNumCuInHeight;
+  Int          iNumCuInWidth;
+#endif
   ~SAOParam();
 };
 
 struct ALFParam
 {
   Int alf_flag;                           ///< indicates use of ALF
+#if !LCU_SYNTAX_ALF
   Int chroma_idc;                         ///< indicates use of ALF for chroma
+#endif
   Int num_coeff;                          ///< number of filter coefficients
   Int filter_shape;
+#if !LCU_SYNTAX_ALF
   Int filter_shape_chroma;
   Int num_coeff_chroma;                   ///< number of filter coefficients (chroma)
   Int *coeff_chroma;                      ///< filter coefficient array (chroma)
+#endif
   Int *filterPattern;
   Int startSecondFilter;
   Int filters_per_group;
@@ -339,12 +392,64 @@ struct ALFParam
   Int *nbSPred;
   Int **coeffmulti;
   Int minKStart;
+#if !LCU_SYNTAX_ALF
   Int maxScanVal;
   Int kMinTab[42];
 
   Int alf_pcr_region_flag;
   ~ALFParam();
+#endif
+#if LCU_SYNTAX_ALF
+  Int componentID;
+  Int* kMinTab;
+  //constructor, operator
+  ALFParam():componentID(-1){}
+  ALFParam(Int cID){create(cID);}
+  ALFParam(const ALFParam& src) {*this = src;}
+  ~ALFParam(){destroy();}
+  const ALFParam& operator= (const ALFParam& src);
+private:
+  Void create(Int cID);
+  Void destroy();
+  Void copy(const ALFParam& src);
+#endif
 };
+
+#if LCU_SYNTAX_ALF
+struct AlfUnitParam
+{
+  Int   mergeType;
+  Bool  isEnabled;
+  Bool  isNewFilt;
+  Int   storedFiltIdx;
+  ALFParam* alfFiltParam;
+  //constructor, operator 
+  AlfUnitParam();
+  AlfUnitParam(const AlfUnitParam& src){ *this = src;}
+  const AlfUnitParam& operator= (const AlfUnitParam& src);
+  Bool operator == (const AlfUnitParam& cmp);
+};
+
+struct AlfParamSet
+{
+  Bool isEnabled[3];
+  Bool isUniParam[3];
+  Int  numLCUInWidth;
+  Int  numLCUInHeight;
+  Int  numLCU;
+  AlfUnitParam* alfUnitParam[3];
+  //constructor, operator 
+  AlfParamSet(){create();}
+  ~AlfParamSet(){destroy();}
+  Void create(Int width =0, Int height=0, Int num=0);
+  Void init();
+  Void releaseALFParam();
+  Void createALFParam();
+private:
+  Void destroy();
+};
+#endif
+
 
 
 /// parameters for deblocking filter

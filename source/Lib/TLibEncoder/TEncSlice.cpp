@@ -358,13 +358,20 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setNumRefIdx(REF_PIC_LIST_1,m_pcCfg->getGOPEntry(iGOPid).m_iRefBufSize);
   
   rpcSlice->setLoopFilterOffsetInAPS( m_pcCfg->getLoopFilterOffsetInAPS() );
-  rpcSlice->setInheritDblParamFromAPS( m_pcCfg->getLoopFilterOffsetInAPS() ? 1 : 0 );
-  rpcSlice->setLoopFilterDisable( m_pcCfg->getLoopFilterDisable() );
-  if ( !rpcSlice->getLoopFilterDisable())
+#if DBL_CONTROL
+  if (rpcSlice->getPPS()->getDeblockingFilterControlPresent())
   {
-    rpcSlice->setLoopFilterBetaOffset( m_pcCfg->getLoopFilterBetaOffset() );
-    rpcSlice->setLoopFilterTcOffset( m_pcCfg->getLoopFilterTcOffset() );
+#endif
+    rpcSlice->setInheritDblParamFromAPS( m_pcCfg->getLoopFilterOffsetInAPS() ? 1 : 0 );
+    rpcSlice->setLoopFilterDisable( m_pcCfg->getLoopFilterDisable() );
+    if ( !rpcSlice->getLoopFilterDisable())
+    {
+      rpcSlice->setLoopFilterBetaOffset( m_pcCfg->getLoopFilterBetaOffset() );
+      rpcSlice->setLoopFilterTcOffset( m_pcCfg->getLoopFilterTcOffset() );
+    }
+#if DBL_CONTROL
   }
+#endif
 
   rpcSlice->setDepth            ( iDepth );
   
@@ -1084,6 +1091,17 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         }
       }
     }
+#if SAO_UNIT_INTERLEAVING
+    if ( pcSlice->getSPS()->getUseSAO() && pcSlice->getAPS()->getSaoInterleavingFlag() && pcSlice->getSaoEnabledFlag() )
+    {
+      Int iNumCuInWidth     = pcSlice->getAPS()->getSaoParam()->iNumCuInWidth;
+      Int iCUAddrInSlice    = uiCUAddr - (uiStartCUAddr /rpcPic->getNumPartInCU());
+      Int iCUAddrUpInSlice  = iCUAddrInSlice - iNumCuInWidth;
+      Int rx = uiCUAddr % iNumCuInWidth;
+      Int ry = uiCUAddr / iNumCuInWidth;
+      m_pcEntropyCoder->encodeSaoUnitInterleaving( rx, ry, pcSlice->getAPS()->getSaoParam(),pcCU, iCUAddrInSlice, iCUAddrUpInSlice, pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+    }
+#endif
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceEnable;
 #endif

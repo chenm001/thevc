@@ -146,8 +146,14 @@ protected:
   Bool      m_loopFilterOffsetInAPS;
   Int       m_loopFilterBetaOffsetDiv2;
   Int       m_loopFilterTcOffsetDiv2;
-
+#if DBL_CONTROL
+  Bool      m_DeblockingFilterControlPresent;
+#endif
   Bool      m_bUseSAO;
+#if SAO_UNIT_INTERLEAVING
+  Int       m_iMaxNumOffsetsPerPic;
+  Bool      m_bSaoInterleavingFlag;
+#endif
 
   //====== Motion search ========
   Int       m_iFastSearch;                      //  0:Full search  1:Diamond  2:PMVFAST
@@ -174,6 +180,10 @@ protected:
   Int       m_iALFEncodePassReduction;
 
   Int       m_iALFMaxNumberFilters;
+#if LCU_SYNTAX_ALF
+  Bool      m_bALFParamInSlice;
+  Bool      m_bALFPicBasedEncode;
+#endif
 
   Bool      m_bUseASR;
   Bool      m_bUseHADME;
@@ -319,6 +329,9 @@ public:
   Void      setLoopFilterOffsetInAPS        ( Bool  b )      { m_loopFilterOffsetInAPS      = b; }
   Void      setLoopFilterBetaOffset         ( Int   i )      { m_loopFilterBetaOffsetDiv2  = i; }
   Void      setLoopFilterTcOffset           ( Int   i )      { m_loopFilterTcOffsetDiv2    = i; }
+#if DBL_CONTROL
+  Void      setDeblockingFilterControlPresent ( Bool b ) { m_DeblockingFilterControlPresent = b; }
+#endif
 
   //====== Motion search ========
   Void      setFastSearch                   ( Int   i )      { m_iFastSearch = i; }
@@ -376,6 +389,9 @@ public:
   Bool      getLoopFilterOffsetInAPS        ()      { return m_loopFilterOffsetInAPS; }
   Int       getLoopFilterBetaOffset         ()      { return m_loopFilterBetaOffsetDiv2; }
   Int       getLoopFilterTcOffset           ()      { return m_loopFilterTcOffsetDiv2; }
+#if DBL_CONTROL
+  Bool      getDeblockingFilterControlPresent()  { return  m_DeblockingFilterControlPresent; }
+#endif
 
   //==== Motion search ========
   Int       getFastSearch                   ()      { return  m_iFastSearch; }
@@ -420,6 +436,12 @@ public:
 
   Void      setALFMaxNumberFilters          (Int i)  { m_iALFMaxNumberFilters = i; } 
   Int       getALFMaxNumberFilters          ()       { return m_iALFMaxNumberFilters; } 
+#if LCU_SYNTAX_ALF
+  Void      setALFParamInSlice              (Bool b) {m_bALFParamInSlice = b;}
+  Bool      getALFParamInSlice              ()       {return m_bALFParamInSlice;}
+  Void      setALFPicBasedEncode            (Bool b) {m_bALFPicBasedEncode = b;}
+  Bool      getALFPicBasedEncode            ()       {return m_bALFPicBasedEncode;}
+#endif
 
   Bool      getUseLComb                     ()      { return m_bUseLComb;   }
   Bool      getLCMod                        ()      { return m_bLCMod; }
@@ -465,6 +487,12 @@ public:
 
   Void      setUseSAO                  (Bool bVal)     {m_bUseSAO = bVal;}
   Bool      getUseSAO                  ()              {return m_bUseSAO;}
+#if SAO_UNIT_INTERLEAVING
+  Void      setMaxNumOffsetsPerPic                  (Int iVal)     {m_iMaxNumOffsetsPerPic = iVal;}
+  Int       getMaxNumOffsetsPerPic                  ()              {return m_iMaxNumOffsetsPerPic;}
+  Void      setSaoInterleavingFlag                  (bool bVal)  {m_bSaoInterleavingFlag = bVal;}
+  Bool      getSaoInterleavingFlag                 ()           {return m_bSaoInterleavingFlag;}
+#endif
   Void  setTileBehaviorControlPresentFlag        ( Int i )             { m_iTileBehaviorControlPresentFlag = i;    }
   Int   getTileBehaviorControlPresentFlag        ()                    { return m_iTileBehaviorControlPresentFlag; }
   Void  setLFCrossTileBoundaryFlag               ( Bool   bValue  )    { m_bLFCrossTileBoundaryFlag = bValue; }

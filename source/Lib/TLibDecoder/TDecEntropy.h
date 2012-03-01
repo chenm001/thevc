@@ -85,7 +85,13 @@ public:
 #endif
   virtual void parseSEI(SEImessages&) = 0;
 #if PARAMSET_VLC_CLEANUP
+
+#if LCU_SYNTAX_ALF
+  virtual Void parseSliceHeader          ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl, AlfParamSet& alfParamSet)       = 0;
+#else
   virtual Void parseSliceHeader          ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl )                                = 0;
+#endif
+
 #else
   virtual Void parseSliceHeader          ( TComSlice*& rpcSlice )                                = 0;
   virtual Void  parseWPPTileInfoToSliceHeader  ( TComSlice*& rpcSlice )                           = 0;
@@ -139,6 +145,14 @@ public:
   virtual Void parseSaoUvlc       ( UInt& ruiVal           ) = 0;
   virtual Void parseSaoSvlc       ( Int&  riVal            ) = 0;
 #endif
+#if SAO_UNIT_INTERLEAVING
+  virtual Void parseSaoUvlc       ( UInt& ruiVal           ) = 0;
+  virtual Void parseSaoSvlc       ( Int&  riVal            ) = 0;
+  virtual Void parseSaoMergeLeft  (UInt&  ruiVal, UInt uiCompIdx ) = 0;
+  virtual Void parseSaoMergeUp     (UInt&  ruiVal) = 0;
+  virtual Void parseSaoTypeIdx     (UInt&  ruiVal) = 0;
+  virtual Void parseSaoUflc       ( UInt& ruiVal           ) = 0;
+#endif
   virtual Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed ) = 0;
   virtual Void updateContextTables( SliceType eSliceType, Int iQp ) = 0;
   
@@ -183,7 +197,13 @@ public:
 #endif
   void decodeSEI(SEImessages& seis) { m_pcEntropyDecoderIf->parseSEI(seis); }
 #if PARAMSET_VLC_CLEANUP
+
+#if LCU_SYNTAX_ALF
+  Void    decodeSliceHeader           ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl, AlfParamSet& alfParamSet)  { m_pcEntropyDecoderIf->parseSliceHeader(rpcSlice, parameterSetManager, alfCUCtrl, alfParamSet);         }
+#else
   Void    decodeSliceHeader           ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl )  { m_pcEntropyDecoderIf->parseSliceHeader(rpcSlice, parameterSetManager, alfCUCtrl);         }
+#endif
+
 #else
   Void    decodeSliceHeader           ( TComSlice*& rpcSlice )  { m_pcEntropyDecoderIf->parseSliceHeader(rpcSlice);         }
   Void    decodeWPPTileInfoToSliceHeader  ( TComSlice*& rpcSlice )  { m_pcEntropyDecoderIf->parseWPPTileInfoToSliceHeader(rpcSlice); }
@@ -227,9 +247,17 @@ public:
   
 private:
 #if UNIFIED_TRANSFORM_TREE
+#if NSQT_LFFIX
+  Void xDecodeTransform        ( TComDataCU* pcCU, UInt offsetLuma, UInt offsetChroma, UInt uiAbsPartIdx, UInt uiNSAbsPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3, Bool& bCodeDQP );
+#else
   Void xDecodeTransform        ( TComDataCU* pcCU, UInt offsetLuma, UInt offsetChroma, UInt uiAbsPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3, Bool& bCodeDQP );
+#endif
+#else
+#if NSQT_LFFIX
+  Void xDecodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiNSAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 );
 #else
   Void xDecodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 );
+#endif
   
   Void xDecodeCoeff            ( TComDataCU* pcCU, UInt uiLumaOffset, UInt uiChromaOffset, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, UInt uiTrIdx, UInt uiCurrTrIdx, Bool& bCodeDQP );
 #endif //UNIFIED_TRANSFORM_TREE
@@ -255,6 +283,12 @@ public:
   Void decodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
   Void decodeSaoParam         (SAOParam* pSaoParam);
 #endif
+#if SAO_UNIT_INTERLEAVING
+  Void decodeSaoParam         (SAOParam* pSaoParam);
+  void decodeSaoLcu(Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam, Bool &bRepeatedRow );
+  Void decodeSaoOneLcu(SaoLcuParam* psSaoLcuParam);
+#endif
+
 #if OL_FLUSH
   Void decodeFlush() { m_pcEntropyDecoderIf->decodeFlush(); }
 #endif

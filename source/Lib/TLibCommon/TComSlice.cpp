@@ -1186,6 +1186,9 @@ TComSPS::TComSPS()
 , m_uiPCMLog2MinSize          (  7)
 , m_bDisInter4x4              (  1)
 , m_bUseALF                   (false)
+#if LCU_SYNTAX_ALF
+, m_bALFCoefInSlice           (false)
+#endif
 , m_bUsePAD                   (false)
 , m_bUseMRG                   (false)
 , m_bUseLMChroma              (false)
@@ -1496,7 +1499,11 @@ TComAPS::TComAPS()
   m_bAlfEnabled = false;
   m_bSaoEnabled = false;
   m_pSaoParam = NULL;
+#if LCU_SYNTAX_ALF
+  m_alfParamSet = NULL;
+#else
   m_pAlfParam = NULL;
+#endif
 #if !PARAMSET_VLC_CLEANUP
   m_bCABACForAPS = false;
   m_CABACinitIDC = -1;
@@ -1521,7 +1528,11 @@ TComAPS& TComAPS::operator= (const TComAPS& src)
   m_bAlfEnabled = src.m_bAlfEnabled;
   m_bSaoEnabled = src.m_bSaoEnabled;
   m_pSaoParam   = src.m_pSaoParam; 
+#if LCU_SYNTAX_ALF
+  m_alfParamSet    = src.m_alfParamSet;
+#else
   m_pAlfParam   = src.m_pAlfParam; 
+#endif
 #if !PARAMSET_VLC_CLEANUP
   m_bCABACForAPS= src.m_bCABACForAPS;
   m_CABACinitIDC= src.m_CABACinitIDC;
@@ -1529,6 +1540,9 @@ TComAPS& TComAPS::operator= (const TComAPS& src)
 #endif
   m_scalingList = src.m_scalingList;
   m_scalingListEnabled = src.m_scalingListEnabled;
+#if SAO_UNIT_INTERLEAVING
+  m_bSaoInterleavingFlag = src.m_bSaoInterleavingFlag;
+#endif
 
   return *this;
 }
@@ -1549,15 +1563,27 @@ Void TComAPS::destroySaoParam()
 
 Void TComAPS::createAlfParam()
 {
+#if LCU_SYNTAX_ALF
+  m_alfParamSet = new AlfParamSet;
+#else
   m_pAlfParam = new ALFParam;
+#endif
 }
 Void TComAPS::destroyAlfParam()
 {
+#if LCU_SYNTAX_ALF
+  if(m_alfParamSet != NULL)
+  {
+    delete m_alfParamSet;
+    m_alfParamSet = NULL;
+  }
+#else
   if(m_pAlfParam != NULL)
   {
     delete m_pAlfParam;
     m_pAlfParam = NULL;
   }
+#endif
 }
 
 Void TComAPS::createScalingList()

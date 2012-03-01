@@ -134,17 +134,27 @@ protected:
   UInt      m_uiPCMBitDepthLuma;                              ///< PCM bit-depth for luma
 
   Bool      m_bUseSAO; 
-
+#if SAO_UNIT_INTERLEAVING
+  Int       m_iMaxNumOffsetsPerPic;
+  Bool      m_bSaoInterleavingFlag; 
+#endif
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
   Int       m_iALFEncodePassReduction;                        //!< ALF encoding pass, 0 = original 16-pass, 1 = 1-pass, 2 = 2-pass
   
   Int       m_iALFMaxNumberFilters;                           ///< ALF Max Number Filters in one picture
+#if LCU_SYNTAX_ALF
+  Bool      m_bALFParamInSlice;
+  Bool      m_bALFPicBasedEncode;
+#endif
 
   Bool      m_bLoopFilterDisable;                             ///< flag for using deblocking filter
   Bool      m_loopFilterOffsetInAPS;                         ///< offset for deblocking filter in 0 = slice header, 1 = APS
   Int       m_loopFilterBetaOffsetDiv2;                     ///< beta offset for deblocking filter
   Int       m_loopFilterTcOffsetDiv2;                       ///< tc offset for deblocking filter
+#if DBL_CONTROL
+  Bool      m_DeblockingFilterControlPresent;                 ///< deblocking filter control present flag in PPS
+#endif
 
   // coding tools (inter - merge motion partitions)
   Bool      m_bUseMRG;                                        ///< SOPH: flag for using motion partition Merge Mode

@@ -266,32 +266,126 @@ Void TDecCavlc::parseAPS(TComAPS* aps)
   READ_UVLC(uiCode, "aps_id");                             aps->setAPSID(uiCode);
   READ_FLAG(uiCode, "aps_scaling_list_data_present_flag"); aps->setScalingListEnabled( (uiCode==1)?true:false );
   READ_FLAG(uiCode, "aps_deblocking_filter_flag");         aps->setLoopFilterOffsetInAPS( (uiCode==1)?true:false );
+#if !SAO_UNIT_INTERLEAVING
   READ_FLAG(uiCode, "aps_sample_adaptive_offset_flag");    aps->setSaoEnabled( (uiCode==1)?true:false );
+#endif
+#if !LCU_SYNTAX_ALF
   READ_FLAG(uiCode, "aps_adaptive_loop_filter_flag");      aps->setAlfEnabled( (uiCode==1)?true:false );
-
+#endif
   if(aps->getScalingListEnabled())
   {
     parseScalingList( aps->getScalingList() );
   }
-
+#if DBL_CONTROL
+  if(aps->getLoopFilterOffsetInAPS())
+  {
+    xParseDblParam( aps );    
+  }
+#endif
+#if SAO_UNIT_INTERLEAVING
+  READ_FLAG(uiCode, "aps_sao_interleaving_flag");      aps->setSaoInterleavingFlag( (uiCode==1)?true:false );
+  if(!aps->getSaoInterleavingFlag())
+  {
+    READ_FLAG(uiCode, "aps_sample_adaptive_offset_flag");      aps->setSaoEnabled( (uiCode==1)?true:false );
+#endif
   if(aps->getSaoEnabled())
   {
     aps->getSaoParam()->bSaoFlag[0] = true;
-    xParseSaoParam( aps->getSaoParam());
+    xParseSaoParam( aps->getSaoParam() );
   }
-
+#if SAO_UNIT_INTERLEAVING
+  }
+#endif
+#if LCU_SYNTAX_ALF
+  READ_FLAG(uiCode, "aps_adaptive_loop_filter_flag");      aps->setAlfEnabled( (uiCode==1)?true:false );
+#endif
   if(aps->getAlfEnabled())
   {
+#if !LCU_SYNTAX_ALF
     aps->getAlfParam()->alf_flag = 1;
+#endif
     xParseAlfParam( aps->getAlfParam());
   }
 }
 
+#if DBL_CONTROL
+Void  TDecCavlc::xParseDblParam       ( TComAPS* aps )
+{
+  UInt uiSymbol;
+  Int iSymbol;
 
+  parseDFFlag(uiSymbol, "loop_filter_disable");
+  aps->setLoopFilterDisable(uiSymbol?true:false);
+
+  if (!aps->getLoopFilterDisable())
+  {
+    parseDFSvlc(iSymbol, "beta_offset_div2");
+    aps->setLoopFilterBetaOffset(iSymbol);
+    parseDFSvlc(iSymbol, "tc_offset_div2");
+    aps->setLoopFilterTcOffset(iSymbol);
+  }
+}
+#endif
+/** parse SAO parameters
+ * \param pSaoParam
+ */
 Void TDecCavlc::xParseSaoParam(SAOParam* pSaoParam)
 {
   UInt uiSymbol;
 
+#if SAO_UNIT_INTERLEAVING
+  int i,j, iCompIdx; 
+  int iNumCuInWidth; 
+  int iNumCuInHeight; 
+  Bool bRepeatedRow[3];
+  if (pSaoParam->bSaoFlag[0])                                                                    
+  {     
+    READ_FLAG (uiSymbol, "sao_cb_enable_flag");            pSaoParam->bSaoFlag[1]    = uiSymbol? true:false;  
+    READ_FLAG (uiSymbol, "sao_cr_enable_flag");            pSaoParam->bSaoFlag[2]    = uiSymbol? true:false;  
+    READ_UVLC (uiSymbol, "sao_num_lcu_in_width_minus1");   pSaoParam->iNumCuInWidth  = uiSymbol + 1;                          
+    READ_UVLC (uiSymbol, "sao_num_lcu_in_height_minus1");  pSaoParam->iNumCuInHeight = uiSymbol + 1;                          
+    iNumCuInWidth  = pSaoParam->iNumCuInWidth;
+    iNumCuInHeight = pSaoParam->iNumCuInHeight;
+
+    READ_FLAG (uiSymbol, "sao_one_luma_unit_flag");  pSaoParam->oneUnitFlag[0] = uiSymbol? true:false;  
+    if (pSaoParam->oneUnitFlag[0] )
+      xParseSaoOffset(&(pSaoParam->psSaoLcuParam[0][0]));
+
+    if (pSaoParam->bSaoFlag[1])
+    {
+      READ_FLAG (uiSymbol, "sao_one_cb_unit_flag");  pSaoParam->oneUnitFlag[1] = uiSymbol? true:false;  
+      if (pSaoParam->oneUnitFlag[1] )
+        xParseSaoOffset(&(pSaoParam->psSaoLcuParam[1][0]));
+    }
+    if (pSaoParam->bSaoFlag[2])
+    {
+      READ_FLAG (uiSymbol, "sao_one_cr_unit_flag");  pSaoParam->oneUnitFlag[2] = uiSymbol? true:false;  
+      if (pSaoParam->oneUnitFlag[2] )
+        xParseSaoOffset(&(pSaoParam->psSaoLcuParam[2][0]));
+    }
+    for (j=0;j<iNumCuInHeight;j++)
+    {
+      for (iCompIdx=0;iCompIdx<3;iCompIdx++)
+      {
+        bRepeatedRow[iCompIdx] = 0;
+      }
+      for (i=0;i<iNumCuInWidth;i++)
+      {
+        for (iCompIdx=0; iCompIdx<3; iCompIdx++)
+        {
+          if (pSaoParam->bSaoFlag[iCompIdx]  && !pSaoParam->oneUnitFlag[iCompIdx]) 
+          {
+            if (j>0 && i==0) 
+            {
+              READ_FLAG (uiSymbol, "sao_repeat_row_flag");  bRepeatedRow[iCompIdx] = uiSymbol? true:false; 
+            }
+            xParseSaoUnit (i,j, iCompIdx, pSaoParam, bRepeatedRow[iCompIdx]);
+          }
+        }
+      }
+    }
+  }
+#else
   if (pSaoParam->bSaoFlag[0])
   {
     xParseSaoSplitParam (pSaoParam, 0, 0);
@@ -312,8 +406,181 @@ Void TDecCavlc::xParseSaoParam(SAOParam* pSaoParam)
       xParseSaoOffsetParam(pSaoParam, 0, 2);
     }
   }
+#endif
+}
+#if SAO_UNIT_INTERLEAVING
+/** copy SAO parameter
+* \param psDst
+* \param psSrc
+ */
+inline Void copySaoOneLcuParam(SaoLcuParam* psDst,  SaoLcuParam* psSrc)
+{
+  Int i;
+  psDst->iPartIdx = psSrc->iPartIdx;
+  psDst->typeIdx    = psSrc->typeIdx;
+  if (psDst->typeIdx != -1)
+  {
+    if (psDst->typeIdx == SAO_BO)
+    {
+      psDst->bandPosition = psSrc->bandPosition ;
+    }
+    else
+    {
+      psDst->bandPosition = 0;
+    }
+    psDst->iLength  = psSrc->iLength;
+    for (i=0;i<psDst->iLength;i++)
+    {
+      psDst->iOffset[i] = psSrc->iOffset[i];
+    }
+  }
+  else
+  {
+    psDst->iLength  = 0;
+    for (i=0;i<SAO_BO_LEN;i++)
+    {
+      psDst->iOffset[i] = 0;
+    }
+  }
+}
+/** parse SAO offset
+* \param psSaoLcuParam
+ */
+Void TDecCavlc::xParseSaoOffset(SaoLcuParam* psSaoLcuParam)
+{
+  UInt uiSymbol;
+  Int iSymbol;
+  static Int iTypeLength[MAX_NUM_SAO_TYPE] = {
+    SAO_EO_LEN,
+    SAO_EO_LEN,
+    SAO_EO_LEN,
+    SAO_EO_LEN,
+    SAO_BO_LEN
+  }; 
+
+  READ_UVLC (uiSymbol, "sao_type_idx");   psSaoLcuParam->typeIdx = (Int)uiSymbol - 1;       
+  if (uiSymbol)
+  {
+    psSaoLcuParam->iLength = iTypeLength[psSaoLcuParam->typeIdx];
+    if( psSaoLcuParam->typeIdx == SAO_BO )
+    {
+      READ_CODE( 5, uiSymbol, "sao_band_position"); psSaoLcuParam->bandPosition = uiSymbol; 
+      for(Int i=0; i< psSaoLcuParam->iLength; i++)
+      {
+        READ_SVLC (iSymbol, "sao_offset");    psSaoLcuParam->iOffset[i] = iSymbol;   
+      }   
+    }
+    else if( psSaoLcuParam->typeIdx < 4 )
+    {
+      READ_UVLC (uiSymbol, "sao_offset");  psSaoLcuParam->iOffset[0] = uiSymbol;
+      READ_UVLC (uiSymbol, "sao_offset");  psSaoLcuParam->iOffset[1] = uiSymbol;
+      READ_UVLC (uiSymbol, "sao_offset");  psSaoLcuParam->iOffset[2] = -(Int)uiSymbol;
+      READ_UVLC (uiSymbol, "sao_offset");  psSaoLcuParam->iOffset[3] = -(Int)uiSymbol;
+    }
+  }
+  else
+  {
+    psSaoLcuParam->iLength = 0;
+  }
 }
 
+/** parse SAO unit
+* \param rx
+* \param ry
+* \param iCompIdx
+* \param pSaoParam
+* \param bRepeatedRow
+ */
+void TDecCavlc::xParseSaoUnit(Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam, Bool& bRepeatedRow )
+{
+  int iAddr, iAddrUp, iAddrLeft; 
+  int iNumCuInWidth  = pSaoParam->iNumCuInWidth;
+  SaoLcuParam* psSaoOneLcu;
+  SaoLcuParam* psSaoOneLcuUp;
+  SaoLcuParam* psSaoOneLcuLeft;
+  UInt uiSymbol;
+  Int  iSymbol;
+  Int iRunLeft;
+  UInt uiMaxValue;
+
+  iAddr      =  rx + ry*iNumCuInWidth;
+  iAddrLeft  =  (iAddr%iNumCuInWidth == 0) ? -1 : iAddr - 1;
+  iAddrUp    =  (iAddr<iNumCuInWidth)      ? -1 : iAddr - iNumCuInWidth;
+
+  psSaoOneLcu = &(pSaoParam->psSaoLcuParam[iCompIdx][iAddr]);      
+  if (!bRepeatedRow)
+  {
+    iRunLeft = (iAddrLeft>=0 )  ? pSaoParam->psSaoLcuParam[iCompIdx][iAddrLeft].run : -1;
+    if (rx == 0 || iRunLeft==0)
+    {
+      psSaoOneLcu->mergeLeftFlag = 0;
+      if (ry == 0)
+      {
+        uiMaxValue = iNumCuInWidth-rx-1;
+        UInt uiLength = 0;
+        UInt ruiVal;
+        if (!uiMaxValue)
+        {
+          ruiVal = 0;
+        }
+        else
+        {
+          for(UInt i=0; i<32; i++)
+          {
+            if(uiMaxValue&0x1)
+            {
+              uiLength = i+1;
+            }
+            uiMaxValue = (uiMaxValue >> 1);
+          }
+          if(uiLength)
+          {
+            xReadCode( uiLength, ruiVal );
+          }
+        }
+        uiSymbol = ruiVal;
+        psSaoOneLcu->runDiff = uiSymbol; 
+        xParseSaoOffset(psSaoOneLcu);
+        psSaoOneLcu->run = psSaoOneLcu->runDiff;
+      }
+      else 
+      {
+        psSaoOneLcuUp = &(pSaoParam->psSaoLcuParam[iCompIdx][iAddrUp]);
+        READ_SVLC (iSymbol , "sao_run_diff"     );  psSaoOneLcu->runDiff = iSymbol; 
+        READ_FLAG (uiSymbol, "sao_merge_up_flag");  psSaoOneLcu->mergeUpFlag   = uiSymbol? true:false;
+        if (!psSaoOneLcu->mergeUpFlag)
+        {
+          xParseSaoOffset(psSaoOneLcu);
+        }
+        else
+        {
+          psSaoOneLcuUp = &(pSaoParam->psSaoLcuParam[iCompIdx][iAddrUp]);
+          copySaoOneLcuParam(psSaoOneLcu, psSaoOneLcuUp);
+        }
+        psSaoOneLcu->run = psSaoOneLcu->runDiff + psSaoOneLcuUp->run;
+      }
+    }
+    else
+    {
+      psSaoOneLcuLeft = &(pSaoParam->psSaoLcuParam[iCompIdx][iAddrLeft]);
+      copySaoOneLcuParam(psSaoOneLcu, psSaoOneLcuLeft);
+      psSaoOneLcu->mergeLeftFlag = 1;
+      psSaoOneLcu->run = psSaoOneLcuLeft->run-1;
+    }
+  }
+  else
+  {
+    if (ry > 0)
+    {
+      psSaoOneLcuUp = &(pSaoParam->psSaoLcuParam[iCompIdx][iAddrUp]);
+      copySaoOneLcuParam(psSaoOneLcu, psSaoOneLcuUp);
+      psSaoOneLcu->mergeLeftFlag = 0;
+      psSaoOneLcu->run = psSaoOneLcuUp->run;
+    }
+  }
+}
+
+#else
 /** Decode quadtree split flag
  * \param  pSaoParam, iPartIdx
  */
@@ -394,21 +661,315 @@ Void TDecCavlc::xParseSaoOffsetParam(SAOParam* pSaoParam, Int iPartIdx, Int iYCb
     }
   }
 }
+#endif
+
+#if LCU_SYNTAX_ALF 
+Void TDecCavlc::xParseAlfParam(AlfParamSet* pAlfParamSet, Bool bSentInAPS, Int firstLCUAddr, Bool acrossSlice, Int numLCUInWidth, Int numLCUInHeight)
+{
+  Int  numLCU;
+  UInt uiSymbol;
+  Bool isEnabled[NUM_ALF_COMPONENT];
+  Bool isUniParam[NUM_ALF_COMPONENT];
+  
+  isEnabled[ALF_Y] = true;
+  READ_FLAG(uiSymbol, "alf_cb_enable_flag");  isEnabled[ALF_Cb] = ((uiSymbol ==1)?true:false);
+  READ_FLAG(uiSymbol, "alf_cr_enable_flag");  isEnabled[ALF_Cr] = ((uiSymbol ==1)?true:false);
+  READ_FLAG(uiSymbol, "alf_one_luma_unit_per_slice_flag");   isUniParam[ALF_Y] = ((uiSymbol ==1)?true:false);
+  
+  isUniParam[ALF_Cb] = true;
+  if (isEnabled[ALF_Cb])
+  {
+    READ_FLAG(uiSymbol, "alf_one_cb_unit_per_slice_flag");   isUniParam[ALF_Cb] = ((uiSymbol ==1)?true:false);
+  }
+  
+  isUniParam[ALF_Cr] = true;
+  if (isEnabled[ALF_Cr])
+  {
+    READ_FLAG(uiSymbol, "alf_one_cr_unit_per_slice_flag");   isUniParam[ALF_Cr] = ((uiSymbol ==1)?true:false);
+  }
+  
+  if(bSentInAPS)
+  {
+    READ_UVLC(uiSymbol, "alf_num_lcu_in_width_minus1");  numLCUInWidth = uiSymbol+1;
+    READ_UVLC(uiSymbol, "alf_num_lcu_in_height_minus1");  numLCUInHeight = uiSymbol+1;
+    numLCU = numLCUInWidth*numLCUInHeight;
+  }
+  else //sent in slice header
+  {
+    READ_UVLC(uiSymbol, "alf_num_lcu_in_slice_minus1");  numLCU = uiSymbol+1;
+  }
+  
+  assert(pAlfParamSet != NULL);
+  
+  pAlfParamSet->create(numLCUInWidth, numLCUInHeight, numLCU);
+  for(Int compIdx = 0; compIdx < NUM_ALF_COMPONENT; compIdx++)
+  {
+    pAlfParamSet->isEnabled[compIdx] = isEnabled[compIdx];
+    pAlfParamSet->isUniParam[compIdx]= isUniParam[compIdx];
+  }
+  
+  parseAlfParamSet(pAlfParamSet, firstLCUAddr, acrossSlice);
+}
+
+
+Void TDecCavlc::parseAlfParamSet(AlfParamSet* pAlfParamSet, Int firstLCUAddr, Bool alfAcrossSlice)
+{
+  Int numLCUInWidth = pAlfParamSet->numLCUInWidth;
+  Int numLCU        = pAlfParamSet->numLCU;
+  
+  static Bool isRepeatedRow   [NUM_ALF_COMPONENT];
+  static Int  numStoredFilters[NUM_ALF_COMPONENT];
+  static Int* run             [NUM_ALF_COMPONENT];
+  
+  for(Int compIdx =0; compIdx < NUM_ALF_COMPONENT; compIdx++)
+  {
+    isRepeatedRow[compIdx]    = false;
+    numStoredFilters[compIdx] = 0;
+    
+    run[compIdx] = new Int[numLCU+1];
+    run[compIdx][0] = -1; 
+  }
+  
+  UInt uiSymbol;
+  Int  iSymbol, ry, rx, addrUp;
+  
+  for(Int i=0; i< numLCU; i++)
+  {
+    rx    = (i+ firstLCUAddr)% numLCUInWidth;
+    ry    = (i+ firstLCUAddr)/ numLCUInWidth;
+    
+    for(Int compIdx =0; compIdx < NUM_ALF_COMPONENT; compIdx++)
+    {
+      AlfUnitParam& alfUnitParam = pAlfParamSet->alfUnitParam[compIdx][i];
+      
+      if(pAlfParamSet->isEnabled[compIdx])
+      {
+        if(!pAlfParamSet->isUniParam[compIdx])
+        {
+          addrUp = i-numLCUInWidth;
+          if(rx ==0 && addrUp >=0)
+          {
+            READ_FLAG(uiSymbol, "alf_repeat_row _flag"); isRepeatedRow[compIdx] = ((uiSymbol ==1)?true:false);
+          }
+          
+          if(isRepeatedRow[compIdx])
+          {
+            alfUnitParam.mergeType = ALF_MERGE_UP;
+            assert(addrUp >=0);
+            run[compIdx][i] = run[compIdx][addrUp];
+          }
+          else
+          {
+            if(rx == 0 || run[compIdx][i] < 0)
+            {             
+              if(addrUp < 0)
+              {
+                //alf_run_diff u(v)
+                parseAlfFixedLengthRun(uiSymbol, rx, numLCUInWidth);
+                run[compIdx][i] = uiSymbol;
+              }
+              else
+              {
+                //alf_run_diff s(v)
+                READ_SVLC(iSymbol, "alf_run_diff");
+                run[compIdx][i] = run[compIdx][addrUp] + iSymbol;
+                assert(run[compIdx][i] >= 0);
+              }
+              
+              if(ry > 0 && (addrUp >=0 || alfAcrossSlice))
+              {
+                //alf_merge_up_flag
+                READ_FLAG(uiSymbol, "alf_merge_up_flag");  alfUnitParam.mergeType = ((uiSymbol ==1)?ALF_MERGE_UP:ALF_MERGE_DISABLED);
+              }
+              else
+              {
+                alfUnitParam.mergeType = ALF_MERGE_DISABLED;
+              }
+              
+              if(alfUnitParam.mergeType != ALF_MERGE_UP)
+              {
+                //alf_lcu_enable_flag
+                READ_FLAG(uiSymbol, "alf_lcu_enable_flag");  alfUnitParam.isEnabled = ((uiSymbol ==1)?true:false);
+                
+                if(alfUnitParam.isEnabled)
+                {
+                  if(numStoredFilters[compIdx] > 0)
+                  {
+                    //alf_new_filter_set_flag
+                    READ_FLAG(uiSymbol, "alf_new_filter_set_flag");  alfUnitParam.isNewFilt = ((uiSymbol ==1)?true:false);
+                    
+                    if(!alfUnitParam.isNewFilt)
+                    {
+                      //alf_stored_filter_set_idx
+                      parseAlfStoredFilterIdx(uiSymbol, numStoredFilters[compIdx]);
+                      
+                      alfUnitParam.storedFiltIdx = uiSymbol;
+                      
+                      assert( alfUnitParam.storedFiltIdx < numStoredFilters[compIdx]);
+                    }
+                  }
+                  else
+                  {
+                    alfUnitParam.isNewFilt = true;
+                  }
+                  
+                  if(alfUnitParam.isNewFilt)
+                  {
+                    alfUnitParam.alfFiltParam = new ALFParam(compIdx);
+                    xParseAlfParam(alfUnitParam.alfFiltParam);
+                    alfUnitParam.alfFiltParam->alf_flag = 1;
+                    
+                    numStoredFilters[compIdx]++;
+                  }
+                }
+                
+              }
+            }
+            else
+            {
+              alfUnitParam.mergeType = ALF_MERGE_LEFT;
+            }
+            
+            run[compIdx][i+1] = run[compIdx][i] -1;
+          }
+          
+        }
+        else // uni-param
+        {
+          if(i == 0)
+          {
+            alfUnitParam.mergeType = ALF_MERGE_DISABLED;
+            
+            //alf_lcu_enable_flag
+            READ_FLAG(uiSymbol, "alf_lcu_enable_flag");  alfUnitParam.isEnabled = ((uiSymbol ==1)?true:false);
+            if(alfUnitParam.isEnabled)
+            {
+              alfUnitParam.isNewFilt = true;
+              alfUnitParam.alfFiltParam = new ALFParam(compIdx);
+              xParseAlfParam(alfUnitParam.alfFiltParam);
+              alfUnitParam.alfFiltParam->alf_flag = 1;
+            }
+          }
+          else
+          {
+            alfUnitParam.mergeType = ALF_MERGE_FIRST;
+          }
+          
+        }
+      }
+      else
+      {
+        alfUnitParam.mergeType = ALF_MERGE_DISABLED;
+        alfUnitParam.isEnabled = false;
+      }
+    }
+  }
+  
+  for(Int compIdx =0; compIdx < NUM_ALF_COMPONENT; compIdx++)
+  {
+    delete[] run[compIdx];
+  }
+}
+
+
+Void TDecCavlc::parseAlfFixedLengthRun( UInt& idx, UInt rx, UInt numLCUInWidth )
+{
+  assert(numLCUInWidth > rx);
+  
+  UInt length = 0;  
+  UInt maxNumRun = numLCUInWidth - rx - 1; 
+  
+  for(UInt i=0; i<32; i++)
+  {
+    if(maxNumRun&0x1)
+    {
+      length = i+1;
+    }
+    maxNumRun = (maxNumRun >> 1);
+  }
+  
+  idx = 0;
+  if(length)
+  {
+    READ_CODE( length, idx, "alf_run_diff" );
+  }
+  else
+  {
+    idx = 0;
+  }
+}
+
+
+Void TDecCavlc::parseAlfStoredFilterIdx( UInt& idx, UInt numFilterSetsInBuffer )
+{
+  assert(numFilterSetsInBuffer > 0);
+  
+  UInt length = 0;  
+  UInt maxValue = numFilterSetsInBuffer - 1;
+  
+  for(UInt i=0; i<32; i++)
+  {
+    if(maxValue&0x1)
+    {
+      length = i+1;
+    }
+    maxValue = (maxValue >> 1);
+  }
+  
+  idx = 0;
+  if(length)
+  {
+    READ_CODE( length, idx, "alf_stored_filter_set_idx" );
+  }
+  else
+  {
+    idx = 0;
+  }
+}
+
+#endif
 
 Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
 {
   UInt uiSymbol;
   Int iSymbol;
+#if ALF_SINGLE_FILTER_SHAPE
+  Int sqrFiltLengthTab[NUM_ALF_FILTER_SHAPE] = {ALF_FILTER_LEN}; 
+#else
   Int sqrFiltLengthTab[2] = { 9, 9}; 
+#endif
 
+#if LCU_SYNTAX_ALF
+  switch(pAlfParam->componentID)
+  {
+  case ALF_Cb:
+  case ALF_Cr:
+    {
+      pAlfParam->filter_shape = ALF_CROSS9x7_SQUARE3x3;
+      pAlfParam->num_coeff = sqrFiltLengthTab[pAlfParam->filter_shape];
+      pAlfParam->filters_per_group = 1;
+      for(Int pos=0; pos< pAlfParam->num_coeff; pos++)
+      {
+        READ_SVLC(iSymbol, "alf_filt_coeff");
+        pAlfParam->coeffmulti[0][pos] = iSymbol;
+      }
+    }
+    break;
+  case ALF_Y:
+    {
+#endif
   pAlfParam->filters_per_group = 0;
   memset (pAlfParam->filterPattern, 0 , sizeof(Int)*NO_VAR_BINS);
-
+#if !LCU_SYNTAX_ALF
   READ_FLAG (uiSymbol, "alf_region_adaptation_flag");
   pAlfParam->alf_pcr_region_flag = uiSymbol;  
-
+#endif
+#if ALF_SINGLE_FILTER_SHAPE  
+  pAlfParam->filter_shape = 0;
+#else
   READ_UVLC (uiSymbol, "alf_length_luma_minus_5_div2");
   pAlfParam->filter_shape = uiSymbol;
+#endif
   pAlfParam->num_coeff = sqrFiltLengthTab[pAlfParam->filter_shape];
 
   // filters_per_fr
@@ -424,7 +985,15 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
   else if (uiSymbol > 1) // filters_per_group > 2
   {
     pAlfParam->filters_per_group = 1;
+#if LCU_SYNTAX_ALF
+#if ALF_16_BA_GROUPS
+    Int numMergeFlags = 16;
+#else
+    Int numMergeFlags = 15;
+#endif
+#else
     Int numMergeFlags = pAlfParam->alf_pcr_region_flag ? 16 : 15;
+#endif
     for (Int i=1; i<numMergeFlags; i++) 
     {
       READ_FLAG (uiSymbol,  "alf_filter_pattern");
@@ -444,7 +1013,11 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
     pAlfParam->nbSPred[idx] = uiSymbol;
   }
 
+#if ALF_SINGLE_FILTER_SHAPE
+  Int minScanVal = MIN_SCAN_POS_CROSS;
+#else
   Int minScanVal = (pAlfParam->filter_shape == ALF_STAR5x5) ? 0: MIN_SCAN_POS_CROSS;
+#endif
 
   // Determine maxScanVal
   Int maxScanVal = 0;
@@ -455,6 +1028,10 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
   }
 
   // Golomb parameters
+#if LCU_SYNTAX_ALF
+  if( pAlfParam->filters_per_group > 1 )
+  {
+#endif
   READ_UVLC (uiSymbol, "alf_min_kstart_minus1");
   pAlfParam->minKStart = 1 + uiSymbol;
 
@@ -466,6 +1043,9 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
     pAlfParam->kMinTab[scanPos] = kMin + uiSymbol;
     kMin = pAlfParam->kMinTab[scanPos];
   }
+#if LCU_SYNTAX_ALF
+  }
+#endif
 
   Int scanPos;
   for(Int idx = 0; idx < pAlfParam->filters_per_group; ++idx)
@@ -473,19 +1053,39 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
     for(Int i = 0; i < pAlfParam->num_coeff; i++)
     {
       scanPos = pDepthInt[i] - 1;
+#if LCU_SYNTAX_ALF
+      Int k = (pAlfParam->filters_per_group == 1) ? kTableTabShapes[ALF_CROSS9x7_SQUARE3x3][i] : pAlfParam->kMinTab[scanPos];
+      pAlfParam->coeffmulti[idx][i] = xGolombDecode(k);
+#else
       pAlfParam->coeffmulti[idx][i] = xGolombDecode(pAlfParam->kMinTab[scanPos]);
+#endif
     }
   }
-
+#if LCU_SYNTAX_ALF
+    }
+    break;
+  default:
+    {
+      printf("Not a legal component ID for ALF\n");
+      assert(0);
+      exit(-1);
+    }
+  }
+#else
   // filter parameters for chroma
   READ_UVLC (uiSymbol, "alf_chroma_idc");
   pAlfParam->chroma_idc = uiSymbol;
 
   if(pAlfParam->chroma_idc)
   {
+
+#if ALF_SINGLE_FILTER_SHAPE 
+    pAlfParam->filter_shape_chroma  = 0;
+#else
     READ_UVLC (uiSymbol, "alf_length_chroma_minus_5_div2");
 
     pAlfParam->filter_shape_chroma = uiSymbol;
+#endif
     pAlfParam->num_coeff_chroma = sqrFiltLengthTab[pAlfParam->filter_shape_chroma];
     // filter coefficients for chroma
     for(Int pos=0; pos<pAlfParam->num_coeff_chroma; pos++)
@@ -494,6 +1094,7 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
       pAlfParam->coeff_chroma[pos] = iSymbol;
     }
   }
+#endif
 }
 
 Int TDecCavlc::xGolombDecode(Int k)
@@ -682,6 +1283,11 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
     }
   }
 
+#if DBL_CONTROL
+  READ_FLAG( uiCode, "deblocking_filter_control_present_flag" ); 
+  pcPPS->setDeblockingFilterControlPresent( uiCode ? true : false);
+#endif
+
   return;
 }
 
@@ -807,7 +1413,12 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_FLAG( uiCode, "loop_filter_across_slice_flag" );          pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
   READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO ( uiCode ? true : false );  
   READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );      pcSPS->setUseALF ( uiCode ? true : false );
-
+#if LCU_SYNTAX_ALF
+  if(pcSPS->getUseALF())
+  {
+    READ_FLAG( uiCode, "alf_coef_in_slice_flag" );      pcSPS->setUseALFCoefInSlice ( uiCode ? true : false );
+  }
+#endif
   if( pcSPS->getUsePCM() )
   {
     READ_FLAG( uiCode, "pcm_loop_filter_disable_flag" );           pcSPS->setPCMFilterDisableFlag ( uiCode ? true : false );
@@ -897,7 +1508,11 @@ Void TDecCavlc::readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed )
 }
 
 #if PARAMSET_VLC_CLEANUP
+#if LCU_SYNTAX_ALF
+Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl, AlfParamSet& alfParamSet)
+#else
 Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl)
+#endif
 #else
 Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
 #endif
@@ -1066,8 +1681,22 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       }
       if (sps->getUseSAO())
       {
-        READ_FLAG(uiCode, "slice_sample_adaptive_offset_flag");
-        rpcSlice->setSaoEnabledFlag((Bool)uiCode);
+#if SAO_UNIT_INTERLEAVING
+        READ_FLAG(uiCode, "slice_sao_interleaving_flag");        rpcSlice->setSaoInterleavingFlag(uiCode);
+#endif
+        READ_FLAG(uiCode, "slice_sample_adaptive_offset_flag");  rpcSlice->setSaoEnabledFlag((Bool)uiCode);
+#if SAO_UNIT_INTERLEAVING
+        if (rpcSlice->getSaoEnabledFlag() && rpcSlice->getSaoInterleavingFlag())
+        {
+          READ_FLAG(uiCode, "sao_cb_enable_flag");  rpcSlice->setSaoEnabledFlagCb((Bool)uiCode);
+          READ_FLAG(uiCode, "sao_cr_enable_flag");  rpcSlice->setSaoEnabledFlagCr((Bool)uiCode);
+        }
+        else
+        {
+          rpcSlice->setSaoEnabledFlagCb(0);
+          rpcSlice->setSaoEnabledFlagCr(0);
+        }
+#endif
       }
       READ_UVLC (    uiCode, "aps_id" );  rpcSlice->setAPSId(uiCode);
     }
@@ -1255,17 +1884,31 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
     assert( rpcSlice->getSliceQp() <=  51 );
 #endif
 
-    READ_FLAG ( uiCode, "inherit_dbl_param_from_APS_flag" ); rpcSlice->setInheritDblParamFromAPS(uiCode ? 1 : 0);
-    if(!rpcSlice->getInheritDblParamFromAPS())
+#if DBL_CONTROL
+    if (rpcSlice->getPPS()->getDeblockingFilterControlPresent())
     {
-      READ_FLAG ( uiCode, "disable_deblocking_filter_flag" );  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
-      if(!rpcSlice->getLoopFilterDisable())
+      if ( rpcSlice->getSPS()->getUseDF() )
       {
-        READ_SVLC( iCode, "beta_offset_div2" ); rpcSlice->setLoopFilterBetaOffset(iCode);
-        READ_SVLC( iCode, "tc_offset_div2" ); rpcSlice->setLoopFilterTcOffset(iCode);
+        READ_FLAG ( uiCode, "inherit_dbl_param_from_APS_flag" ); rpcSlice->setInheritDblParamFromAPS(uiCode ? 1 : 0);
+      } else
+      {
+        rpcSlice->setInheritDblParamFromAPS(0);
       }
-    }
-
+#else
+    READ_FLAG ( uiCode, "inherit_dbl_param_from_APS_flag" ); rpcSlice->setInheritDblParamFromAPS(uiCode ? 1 : 0);
+#endif
+      if(!rpcSlice->getInheritDblParamFromAPS())
+      {
+        READ_FLAG ( uiCode, "disable_deblocking_filter_flag" );  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
+        if(!rpcSlice->getLoopFilterDisable())
+        {
+          READ_SVLC( iCode, "beta_offset_div2" ); rpcSlice->setLoopFilterBetaOffset(iCode);
+          READ_SVLC( iCode, "tc_offset_div2" ); rpcSlice->setLoopFilterTcOffset(iCode);
+        }
+      }
+#if DBL_CONTROL
+   }
+#endif
     if ( rpcSlice->getSliceType() == B_SLICE )
     {
       READ_FLAG( uiCode, "collocated_from_l0_flag" );
@@ -1295,8 +1938,25 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       uiNumLCUsInHeight += ( sps->getHeight() % g_uiMaxCUHeight ) ? 1 : 0;
 
       Int uiNumCUsInFrame = uiNumLCUsInWidth* uiNumLCUsInHeight; 
+#if LCU_SYNTAX_ALF
+      if(sps->getUseALFCoefInSlice())
+      {
+        alfParamSet.releaseALFParam();
+        alfParamSet.init();
+        Bool isAcrossSlice = sps->getLFCrossSliceBoundaryFlag();   
+        Int numSUinLCU    = 1<< (g_uiMaxCUDepth << 1); 
+        Int firstLCUAddr   = rpcSlice->getSliceCurStartCUAddr() / numSUinLCU;  
+        xParseAlfParam(&alfParamSet, false, firstLCUAddr, isAcrossSlice, uiNumLCUsInWidth, uiNumLCUsInHeight);
+      }
 
+      if(!sps->getUseALFCoefInSlice())
+      {
+#endif
       xParseAlfCuControlParam(alfCUCtrl, uiNumCUsInFrame);
+#if LCU_SYNTAX_ALF
+      }
+#endif
+
     }
   }
   
