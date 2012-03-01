@@ -1061,17 +1061,15 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         }
       }
     }
-#if SAO_UNIT_INTERLEAVING
     if ( pcSlice->getSPS()->getUseSAO() && pcSlice->getAPS()->getSaoInterleavingFlag() && pcSlice->getSaoEnabledFlag() )
     {
-      Int iNumCuInWidth     = pcSlice->getAPS()->getSaoParam()->iNumCuInWidth;
-      Int iCUAddrInSlice    = uiCUAddr - (uiStartCUAddr /rpcPic->getNumPartInCU());
-      Int iCUAddrUpInSlice  = iCUAddrInSlice - iNumCuInWidth;
-      Int rx = uiCUAddr % iNumCuInWidth;
-      Int ry = uiCUAddr / iNumCuInWidth;
-      m_pcEntropyCoder->encodeSaoUnitInterleaving( rx, ry, pcSlice->getAPS()->getSaoParam(),pcCU, iCUAddrInSlice, iCUAddrUpInSlice, pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+      Int numCuInWidth     = pcSlice->getAPS()->getSaoParam()->numUnitInWidth;
+      Int cuAddrInSlice    = uiCUAddr - (uiStartCUAddr /rpcPic->getNumPartInCU());
+      Int cuAddrUpInSlice  = cuAddrInSlice - numCuInWidth;
+      Int rx = uiCUAddr % numCuInWidth;
+      Int ry = uiCUAddr / numCuInWidth;
+      m_pcEntropyCoder->encodeSaoUnitInterleaving( rx, ry, pcSlice->getAPS()->getSaoParam(),pcCU, cuAddrInSlice, cuAddrUpInSlice, pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
     }
-#endif
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceEnable;
 #endif

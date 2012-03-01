@@ -87,11 +87,9 @@ TEncSbac::TEncSbac()
 , m_cSaoFlagSCModel           ( 1,             1,               NUM_SAO_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoUvlcSCModel           ( 1,             1,               NUM_SAO_UVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoSvlcSCModel           ( 1,             1,               NUM_SAO_SVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
-#if SAO_UNIT_INTERLEAVING
 , m_cSaoMergeLeftSCModel      ( 1,             1,               NUM_SAO_MERGE_LEFT_FLAG_CTX   , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoMergeUpSCModel        ( 1,             1,               NUM_SAO_MERGE_UP_FLAG_CTX     , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoTypeIdxSCModel        ( 1,             1,               NUM_SAO_TYPE_IDX_CTX          , m_contextModels + m_numContextModels, m_numContextModels)
-#endif
 {
   assert( m_numContextModels <= MAX_NUM_CTX_MOD );
   m_iSliceGranularity = 0;
@@ -142,11 +140,9 @@ Void TEncSbac::resetEntropy           ()
   m_cSaoFlagSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_FLAG );
   m_cSaoUvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_UVLC );
   m_cSaoSvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_SVLC );
-#if SAO_UNIT_INTERLEAVING
   m_cSaoMergeLeftSCModel.initBuffer      ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_LEFT_FLAG );
   m_cSaoMergeUpSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_UP_FLAG );
   m_cSaoTypeIdxSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_TYPE_IDX );
-#endif
   // new structure
   m_uiLastQp = iQp;
   
@@ -193,11 +189,9 @@ Void TEncSbac::updateContextTables( SliceType eSliceType, Int iQp, Bool bExecute
   m_cSaoFlagSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_FLAG );
   m_cSaoUvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_UVLC );
   m_cSaoSvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_SVLC );
-#if SAO_UNIT_INTERLEAVING
   m_cSaoMergeLeftSCModel.initBuffer      ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_LEFT_FLAG );
   m_cSaoMergeUpSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_UP_FLAG );
   m_cSaoTypeIdxSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_TYPE_IDX );
-#endif
   m_pcBinIf->start();
 }
 
@@ -1397,14 +1391,16 @@ Void TEncSbac::codeSaoSvlc       ( Int iCode )
     m_pcBinIf->encodeBin( 0, m_cSaoSvlcSCModel.get( 0, 0, 2 ) );
   }
 }
-#if SAO_UNIT_INTERLEAVING
+/** code SAO Uflc 
+ * \param uiCode
+ */
 Void TEncSbac::codeSaoUflc       ( UInt uiCode )
 {
-  for (Int i=0;i<5;i++)
-  {
-    m_pcBinIf->encodeBinEP ( (uiCode>>i) &0x01 );
-  }
+    m_pcBinIf->encodeBinsEP ( uiCode, 5 );
 }
+/** code SAO merge-left flag 
+ * \param uiCode
+ */
 Void TEncSbac::codeSaoMergeLeft       ( UInt uiCode, UInt uiCompIdx )
 {
   if (uiCode == 0)
@@ -1416,7 +1412,9 @@ Void TEncSbac::codeSaoMergeLeft       ( UInt uiCode, UInt uiCompIdx )
     m_pcBinIf->encodeBin(1,  m_cSaoMergeLeftSCModel.get( 0, 0, uiCompIdx ));
   }
 }
-
+/** code SAO merge-up flag 
+ * \param uiCode
+ */
 Void TEncSbac::codeSaoMergeUp       ( UInt uiCode)
 {
   if (uiCode == 0)
@@ -1428,13 +1426,26 @@ Void TEncSbac::codeSaoMergeUp       ( UInt uiCode)
     m_pcBinIf->encodeBin(1,  m_cSaoMergeUpSCModel.get( 0, 0, 0 ));
   }
 }
+/** code SAO type index
+ * \param uiCode
+ */
 Void TEncSbac::codeSaoTypeIdx       ( UInt uiCode)
 {
-  m_pcBinIf->encodeBin( ((uiCode>>2) & 0x01),  m_cSaoTypeIdxSCModel.get( 0, 0, 0 ));
-  m_pcBinIf->encodeBin( ((uiCode>>1) & 0x01),  m_cSaoTypeIdxSCModel.get( 0, 0, 1 ));
-  m_pcBinIf->encodeBin( ((uiCode   ) & 0x01),  m_cSaoTypeIdxSCModel.get( 0, 0, 1 ));
+  Int i;
+  if ( uiCode == 0 )
+  {
+    m_pcBinIf->encodeBin( 0, m_cSaoTypeIdxSCModel.get( 0, 0, 0 ) );
+  }
+  else
+  {
+    m_pcBinIf->encodeBin( 1, m_cSaoTypeIdxSCModel.get( 0, 0, 0 ) );
+    for ( i=0; i<uiCode-1; i++ )
+    {
+      m_pcBinIf->encodeBin( 1, m_cSaoTypeIdxSCModel.get( 0, 0, 1 ) );
+    }
+    m_pcBinIf->encodeBin( 0, m_cSaoTypeIdxSCModel.get( 0, 0, 1 ) );
+  }
 }
-#endif
 /*!
  ****************************************************************************
  * \brief

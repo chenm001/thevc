@@ -113,16 +113,14 @@ public:
   Void  codeAlfCtrlDepth  ();
 
   Void codeAlfCtrlFlag       ( UInt uiSymbol );
-  Void  codeSaoFlag       ( UInt uiCode );
-  Void  codeSaoUvlc       ( UInt uiCode );
-  Void  codeSaoSvlc       ( Int  uiCode );
-#if SAO_UNIT_INTERLEAVING
-  Void  codeSaoRun        ( UInt  uiCode, UInt uiMaxValue  ) {;}
-  Void  codeSaoMergeLeft  ( UInt  uiCode, UInt uiCompIdx );
-  Void  codeSaoMergeUp    ( UInt  uiCode);
-  Void  codeSaoTypeIdx    ( UInt  uiCode);
-  Void  codeSaoUflc       ( UInt  uiCode);
-#endif
+  Void  codeSaoFlag          ( UInt uiCode );
+  Void  codeSaoUvlc          ( UInt uiCode );
+  Void  codeSaoSvlc          ( Int  uiCode );
+  Void  codeSaoRun           ( UInt  uiCode, UInt uiMaxValue  ) {;}
+  Void  codeSaoMergeLeft     ( UInt  uiCode, UInt uiCompIdx );
+  Void  codeSaoMergeUp       ( UInt  uiCode);
+  Void  codeSaoTypeIdx       ( UInt  uiCode);
+  Void  codeSaoUflc          ( UInt  uiCode);
   Void  codeScalingList      ( TComScalingList* scalingList     ){ assert (0);  return;};
 
 private:

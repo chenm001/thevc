@@ -258,9 +258,6 @@ Void TDecCavlc::parseAPS(TComAPS* aps)
   READ_UVLC(uiCode, "aps_id");                             aps->setAPSID(uiCode);
   READ_FLAG(uiCode, "aps_scaling_list_data_present_flag"); aps->setScalingListEnabled( (uiCode==1)?true:false );
   READ_FLAG(uiCode, "aps_deblocking_filter_flag");         aps->setLoopFilterOffsetInAPS( (uiCode==1)?true:false );
-#if !SAO_UNIT_INTERLEAVING
-  READ_FLAG(uiCode, "aps_sample_adaptive_offset_flag");    aps->setSaoEnabled( (uiCode==1)?true:false );
-#endif
   READ_FLAG(uiCode, "aps_adaptive_loop_filter_flag");      aps->setAlfEnabled( (uiCode==1)?true:false );
 
   if(aps->getScalingListEnabled())
@@ -273,20 +270,16 @@ Void TDecCavlc::parseAPS(TComAPS* aps)
     xParseDblParam( aps );    
   }
 #endif
-#if SAO_UNIT_INTERLEAVING
   READ_FLAG(uiCode, "aps_sao_interleaving_flag");      aps->setSaoInterleavingFlag( (uiCode==1)?true:false );
   if(!aps->getSaoInterleavingFlag())
   {
     READ_FLAG(uiCode, "aps_sample_adaptive_offset_flag");      aps->setSaoEnabled( (uiCode==1)?true:false );
-#endif
-  if(aps->getSaoEnabled())
-  {
-    aps->getSaoParam()->bSaoFlag[0] = true;
-    xParseSaoParam( aps->getSaoParam() );
+    if(aps->getSaoEnabled())
+    {
+      aps->getSaoParam()->saoFlag[0] = true;
+      xParseSaoParam( aps->getSaoParam() );
+    }
   }
-#if SAO_UNIT_INTERLEAVING
-  }
-#endif
   if(aps->getAlfEnabled())
   {
     aps->getAlfParam()->alf_flag = 1;
@@ -315,39 +308,37 @@ Void  TDecCavlc::xParseDblParam       ( TComAPS* aps )
 /** parse SAO parameters
  * \param pSaoParam
  */
-Void TDecCavlc::xParseSaoParam(SAOParam* pSaoParam)
+Void TDecCavlc::xParseSaoParam(SAOParam* saoParam)
 {
   UInt uiSymbol;
-
-#if SAO_UNIT_INTERLEAVING
   int i,j, iCompIdx; 
   int iNumCuInWidth; 
   int iNumCuInHeight; 
   Bool bRepeatedRow[3];
-  if (pSaoParam->bSaoFlag[0])                                                                    
+  if (saoParam->saoFlag[0])                                                                    
   {     
-    READ_FLAG (uiSymbol, "sao_cb_enable_flag");            pSaoParam->bSaoFlag[1]    = uiSymbol? true:false;  
-    READ_FLAG (uiSymbol, "sao_cr_enable_flag");            pSaoParam->bSaoFlag[2]    = uiSymbol? true:false;  
-    READ_UVLC (uiSymbol, "sao_num_lcu_in_width_minus1");   pSaoParam->iNumCuInWidth  = uiSymbol + 1;                          
-    READ_UVLC (uiSymbol, "sao_num_lcu_in_height_minus1");  pSaoParam->iNumCuInHeight = uiSymbol + 1;                          
-    iNumCuInWidth  = pSaoParam->iNumCuInWidth;
-    iNumCuInHeight = pSaoParam->iNumCuInHeight;
+    READ_FLAG (uiSymbol, "sao_cb_enable_flag");            saoParam->saoFlag[1]    = uiSymbol? true:false;  
+    READ_FLAG (uiSymbol, "sao_cr_enable_flag");            saoParam->saoFlag[2]    = uiSymbol? true:false;  
+    READ_UVLC (uiSymbol, "sao_num_lcu_in_width_minus1");   saoParam->numUnitInWidth  = uiSymbol + 1;                          
+    READ_UVLC (uiSymbol, "sao_num_lcu_in_height_minus1");  saoParam->numUnitInHeight = uiSymbol + 1;                          
+    iNumCuInWidth  = saoParam->numUnitInWidth;
+    iNumCuInHeight = saoParam->numUnitInHeight;
 
-    READ_FLAG (uiSymbol, "sao_one_luma_unit_flag");  pSaoParam->oneUnitFlag[0] = uiSymbol? true:false;  
-    if (pSaoParam->oneUnitFlag[0] )
-      xParseSaoOffset(&(pSaoParam->psSaoLcuParam[0][0]));
+    READ_FLAG (uiSymbol, "sao_one_luma_unit_flag");  saoParam->oneUnitFlag[0] = uiSymbol? true:false;  
+    if (saoParam->oneUnitFlag[0] )
+      xParseSaoOffset(&(saoParam->saoLcuParam[0][0]));
 
-    if (pSaoParam->bSaoFlag[1])
+    if (saoParam->saoFlag[1])
     {
-      READ_FLAG (uiSymbol, "sao_one_cb_unit_flag");  pSaoParam->oneUnitFlag[1] = uiSymbol? true:false;  
-      if (pSaoParam->oneUnitFlag[1] )
-        xParseSaoOffset(&(pSaoParam->psSaoLcuParam[1][0]));
+      READ_FLAG (uiSymbol, "sao_one_cb_unit_flag");  saoParam->oneUnitFlag[1] = uiSymbol? true:false;  
+      if (saoParam->oneUnitFlag[1] )
+        xParseSaoOffset(&(saoParam->saoLcuParam[1][0]));
     }
-    if (pSaoParam->bSaoFlag[2])
+    if (saoParam->saoFlag[2])
     {
-      READ_FLAG (uiSymbol, "sao_one_cr_unit_flag");  pSaoParam->oneUnitFlag[2] = uiSymbol? true:false;  
-      if (pSaoParam->oneUnitFlag[2] )
-        xParseSaoOffset(&(pSaoParam->psSaoLcuParam[2][0]));
+      READ_FLAG (uiSymbol, "sao_one_cr_unit_flag");  saoParam->oneUnitFlag[2] = uiSymbol? true:false;  
+      if (saoParam->oneUnitFlag[2] )
+        xParseSaoOffset(&(saoParam->saoLcuParam[2][0]));
     }
     for (j=0;j<iNumCuInHeight;j++)
     {
@@ -359,42 +350,19 @@ Void TDecCavlc::xParseSaoParam(SAOParam* pSaoParam)
       {
         for (iCompIdx=0; iCompIdx<3; iCompIdx++)
         {
-          if (pSaoParam->bSaoFlag[iCompIdx]  && !pSaoParam->oneUnitFlag[iCompIdx]) 
+          if (saoParam->saoFlag[iCompIdx]  && !saoParam->oneUnitFlag[iCompIdx]) 
           {
             if (j>0 && i==0) 
             {
               READ_FLAG (uiSymbol, "sao_repeat_row_flag");  bRepeatedRow[iCompIdx] = uiSymbol? true:false; 
             }
-            xParseSaoUnit (i,j, iCompIdx, pSaoParam, bRepeatedRow[iCompIdx]);
+            xParseSaoUnit (i,j, iCompIdx, saoParam, bRepeatedRow[iCompIdx]);
           }
         }
       }
     }
   }
-#else
-  if (pSaoParam->bSaoFlag[0])
-  {
-    xParseSaoSplitParam (pSaoParam, 0, 0);
-    xParseSaoOffsetParam(pSaoParam, 0, 0);
-    READ_FLAG (uiSymbol, "sao_flag_cb");
-    pSaoParam->bSaoFlag[1] = uiSymbol? true:false;
-    if (pSaoParam->bSaoFlag[1])
-    {
-      xParseSaoSplitParam (pSaoParam, 0, 1);
-      xParseSaoOffsetParam(pSaoParam, 0, 1);
-    }
-
-    READ_FLAG (uiSymbol, "sao_flag_cr");
-    pSaoParam->bSaoFlag[2] = uiSymbol? true:false;
-    if (pSaoParam->bSaoFlag[2])
-    {
-      xParseSaoSplitParam (pSaoParam, 0, 2);
-      xParseSaoOffsetParam(pSaoParam, 0, 2);
-    }
-  }
-#endif
 }
-#if SAO_UNIT_INTERLEAVING
 /** copy SAO parameter
 * \param psDst
 * \param psSrc
@@ -402,7 +370,7 @@ Void TDecCavlc::xParseSaoParam(SAOParam* pSaoParam)
 inline Void copySaoOneLcuParam(SaoLcuParam* psDst,  SaoLcuParam* psSrc)
 {
   Int i;
-  psDst->iPartIdx = psSrc->iPartIdx;
+  psDst->partIdx = psSrc->partIdx;
   psDst->typeIdx    = psSrc->typeIdx;
   if (psDst->typeIdx != -1)
   {
@@ -414,18 +382,18 @@ inline Void copySaoOneLcuParam(SaoLcuParam* psDst,  SaoLcuParam* psSrc)
     {
       psDst->bandPosition = 0;
     }
-    psDst->iLength  = psSrc->iLength;
-    for (i=0;i<psDst->iLength;i++)
+    psDst->length  = psSrc->length;
+    for (i=0;i<psDst->length;i++)
     {
-      psDst->iOffset[i] = psSrc->iOffset[i];
+      psDst->offset[i] = psSrc->offset[i];
     }
   }
   else
   {
-    psDst->iLength  = 0;
+    psDst->length  = 0;
     for (i=0;i<SAO_BO_LEN;i++)
     {
-      psDst->iOffset[i] = 0;
+      psDst->offset[i] = 0;
     }
   }
 }
@@ -447,26 +415,26 @@ Void TDecCavlc::xParseSaoOffset(SaoLcuParam* psSaoLcuParam)
   READ_UVLC (uiSymbol, "sao_type_idx");   psSaoLcuParam->typeIdx = (Int)uiSymbol - 1;       
   if (uiSymbol)
   {
-    psSaoLcuParam->iLength = iTypeLength[psSaoLcuParam->typeIdx];
+    psSaoLcuParam->length = iTypeLength[psSaoLcuParam->typeIdx];
     if( psSaoLcuParam->typeIdx == SAO_BO )
     {
       READ_CODE( 5, uiSymbol, "sao_band_position"); psSaoLcuParam->bandPosition = uiSymbol; 
-      for(Int i=0; i< psSaoLcuParam->iLength; i++)
+      for(Int i=0; i< psSaoLcuParam->length; i++)
       {
-        READ_SVLC (iSymbol, "sao_offset");    psSaoLcuParam->iOffset[i] = iSymbol;   
+        READ_SVLC (iSymbol, "sao_offset");    psSaoLcuParam->offset[i] = iSymbol;   
       }   
     }
     else if( psSaoLcuParam->typeIdx < 4 )
     {
-      READ_UVLC (uiSymbol, "sao_offset");  psSaoLcuParam->iOffset[0] = uiSymbol;
-      READ_UVLC (uiSymbol, "sao_offset");  psSaoLcuParam->iOffset[1] = uiSymbol;
-      READ_UVLC (uiSymbol, "sao_offset");  psSaoLcuParam->iOffset[2] = -(Int)uiSymbol;
-      READ_UVLC (uiSymbol, "sao_offset");  psSaoLcuParam->iOffset[3] = -(Int)uiSymbol;
+      READ_UVLC (uiSymbol, "sao_offset");  psSaoLcuParam->offset[0] = uiSymbol;
+      READ_UVLC (uiSymbol, "sao_offset");  psSaoLcuParam->offset[1] = uiSymbol;
+      READ_UVLC (uiSymbol, "sao_offset");  psSaoLcuParam->offset[2] = -(Int)uiSymbol;
+      READ_UVLC (uiSymbol, "sao_offset");  psSaoLcuParam->offset[3] = -(Int)uiSymbol;
     }
   }
   else
   {
-    psSaoLcuParam->iLength = 0;
+    psSaoLcuParam->length = 0;
   }
 }
 
@@ -480,7 +448,7 @@ Void TDecCavlc::xParseSaoOffset(SaoLcuParam* psSaoLcuParam)
 void TDecCavlc::xParseSaoUnit(Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam, Bool& bRepeatedRow )
 {
   int iAddr, iAddrUp, iAddrLeft; 
-  int iNumCuInWidth  = pSaoParam->iNumCuInWidth;
+  int iNumCuInWidth  = pSaoParam->numUnitInWidth;
   SaoLcuParam* psSaoOneLcu;
   SaoLcuParam* psSaoOneLcuUp;
   SaoLcuParam* psSaoOneLcuLeft;
@@ -493,10 +461,10 @@ void TDecCavlc::xParseSaoUnit(Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam,
   iAddrLeft  =  (iAddr%iNumCuInWidth == 0) ? -1 : iAddr - 1;
   iAddrUp    =  (iAddr<iNumCuInWidth)      ? -1 : iAddr - iNumCuInWidth;
 
-  psSaoOneLcu = &(pSaoParam->psSaoLcuParam[iCompIdx][iAddr]);      
+  psSaoOneLcu = &(pSaoParam->saoLcuParam[iCompIdx][iAddr]);      
   if (!bRepeatedRow)
   {
-    iRunLeft = (iAddrLeft>=0 )  ? pSaoParam->psSaoLcuParam[iCompIdx][iAddrLeft].run : -1;
+    iRunLeft = (iAddrLeft>=0 )  ? pSaoParam->saoLcuParam[iCompIdx][iAddrLeft].run : -1;
     if (rx == 0 || iRunLeft==0)
     {
       psSaoOneLcu->mergeLeftFlag = 0;
@@ -521,7 +489,7 @@ void TDecCavlc::xParseSaoUnit(Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam,
           }
           if(uiLength)
           {
-            xReadCode( uiLength, ruiVal );
+            READ_CODE( uiLength, ruiVal, "sao_run_diff");
           }
         }
         uiSymbol = ruiVal;
@@ -531,7 +499,7 @@ void TDecCavlc::xParseSaoUnit(Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam,
       }
       else 
       {
-        psSaoOneLcuUp = &(pSaoParam->psSaoLcuParam[iCompIdx][iAddrUp]);
+        psSaoOneLcuUp = &(pSaoParam->saoLcuParam[iCompIdx][iAddrUp]);
         READ_SVLC (iSymbol , "sao_run_diff"     );  psSaoOneLcu->runDiff = iSymbol; 
         READ_FLAG (uiSymbol, "sao_merge_up_flag");  psSaoOneLcu->mergeUpFlag   = uiSymbol? true:false;
         if (!psSaoOneLcu->mergeUpFlag)
@@ -540,7 +508,7 @@ void TDecCavlc::xParseSaoUnit(Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam,
         }
         else
         {
-          psSaoOneLcuUp = &(pSaoParam->psSaoLcuParam[iCompIdx][iAddrUp]);
+          psSaoOneLcuUp = &(pSaoParam->saoLcuParam[iCompIdx][iAddrUp]);
           copySaoOneLcuParam(psSaoOneLcu, psSaoOneLcuUp);
         }
         psSaoOneLcu->run = psSaoOneLcu->runDiff + psSaoOneLcuUp->run;
@@ -548,7 +516,7 @@ void TDecCavlc::xParseSaoUnit(Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam,
     }
     else
     {
-      psSaoOneLcuLeft = &(pSaoParam->psSaoLcuParam[iCompIdx][iAddrLeft]);
+      psSaoOneLcuLeft = &(pSaoParam->saoLcuParam[iCompIdx][iAddrLeft]);
       copySaoOneLcuParam(psSaoOneLcu, psSaoOneLcuLeft);
       psSaoOneLcu->mergeLeftFlag = 1;
       psSaoOneLcu->run = psSaoOneLcuLeft->run-1;
@@ -558,96 +526,13 @@ void TDecCavlc::xParseSaoUnit(Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam,
   {
     if (ry > 0)
     {
-      psSaoOneLcuUp = &(pSaoParam->psSaoLcuParam[iCompIdx][iAddrUp]);
+      psSaoOneLcuUp = &(pSaoParam->saoLcuParam[iCompIdx][iAddrUp]);
       copySaoOneLcuParam(psSaoOneLcu, psSaoOneLcuUp);
       psSaoOneLcu->mergeLeftFlag = 0;
       psSaoOneLcu->run = psSaoOneLcuUp->run;
     }
   }
 }
-
-#else
-/** Decode quadtree split flag
- * \param  pSaoParam, iPartIdx
- */
-Void TDecCavlc::xParseSaoSplitParam(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr)
-{
-  UInt uiSymbol;
-  SAOQTPart*  pSaoPart = NULL;
-  pSaoPart= &(pSaoParam->psSaoPart[iYCbCr][iPartIdx]);
-
-  if(pSaoPart->PartLevel < pSaoParam->iMaxSplitLevel)
-  {
-    READ_FLAG (uiSymbol, "sao_split_flag");
-    pSaoPart->bSplit = uiSymbol? true:false; 
-    if(pSaoPart->bSplit)
-    {
-      for (Int i=0;i<NUM_DOWN_PART;i++)
-      {
-        xParseSaoSplitParam(pSaoParam, pSaoPart->DownPartsIdx[i], iYCbCr);
-      }
-    }
-  }
-  else
-  {
-    pSaoPart->bSplit = false; 
-  }
-}
-
-/** Decode SAO for one partition
- * \param  pSaoParam, iPartIdx
- */
-Void TDecCavlc::xParseSaoOffsetParam(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr)
-{
-  UInt uiSymbol;
-  Int iSymbol;  
-  SAOQTPart*  pSaoPart = NULL;
-  pSaoPart = &(pSaoParam->psSaoPart[iYCbCr][iPartIdx]);
-
-  static Int iTypeLength[MAX_NUM_SAO_TYPE] = {
-    SAO_EO_LEN,
-    SAO_EO_LEN,
-    SAO_EO_LEN,
-    SAO_EO_LEN,
-    SAO_BO_LEN,
-    SAO_BO_LEN
-  };  
-  if(!pSaoPart->bSplit)
-  {
-    READ_UVLC (uiSymbol, "sao_type_idx");
-    if (uiSymbol)
-    {
-      pSaoPart->iBestType = uiSymbol-1;
-      pSaoPart->bEnableFlag = true;
-    }
-    else
-    {
-      pSaoPart->iBestType = -1;
-      pSaoPart->bEnableFlag = false;
-    }
-
-    if (pSaoPart->bEnableFlag)
-    {
-      pSaoPart->iLength = iTypeLength[pSaoPart->iBestType];
-      for(Int i=0; i< pSaoPart->iLength; i++)
-      {
-        READ_SVLC (iSymbol, "sao_offset");
-        pSaoPart->iOffset[i] = iSymbol;
-      }
-    }
-    return;
-  }
-
-  //split
-  if (pSaoPart->PartLevel < pSaoParam->iMaxSplitLevel)
-  {
-    for(Int i=0;i<NUM_DOWN_PART;i++)
-    {
-      xParseSaoOffsetParam(pSaoParam, pSaoPart->DownPartsIdx[i], iYCbCr);
-    }
-  }
-}
-#endif
 
 Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
 {
@@ -1269,11 +1154,8 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
       }
       if (sps->getUseSAO())
       {
-#if SAO_UNIT_INTERLEAVING
         READ_FLAG(uiCode, "slice_sao_interleaving_flag");        rpcSlice->setSaoInterleavingFlag(uiCode);
-#endif
         READ_FLAG(uiCode, "slice_sample_adaptive_offset_flag");  rpcSlice->setSaoEnabledFlag((Bool)uiCode);
-#if SAO_UNIT_INTERLEAVING
         if (rpcSlice->getSaoEnabledFlag() && rpcSlice->getSaoInterleavingFlag())
         {
           READ_FLAG(uiCode, "sao_cb_enable_flag");  rpcSlice->setSaoEnabledFlagCb((Bool)uiCode);
@@ -1284,7 +1166,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice)
           rpcSlice->setSaoEnabledFlagCb(0);
           rpcSlice->setSaoEnabledFlagCr(0);
         }
-#endif
       }
       READ_UVLC (    uiCode, "aps_id" );  rpcSlice->setAPSId(uiCode);
     }

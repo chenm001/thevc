@@ -671,13 +671,11 @@ public:
   Void      setScalingListEnabled (Bool bVal) { m_scalingListEnabled = bVal; }  //!< set ScalingList enabled/disabled in APS
   Bool      getScalingListEnabled ()          { return m_scalingListEnabled; }  //!< get ScalingList enabled/disabled in APS
   TComScalingList* getScalingList ()          { return m_scalingList; }         //!< get ScalingList class pointer in APS
-#if SAO_UNIT_INTERLEAVING
-  Bool     m_bSaoInterleavingFlag;
-  Bool     getSaoInterleavingFlag() {return m_bSaoInterleavingFlag;}
-  Void     setSaoInterleavingFlag(Bool bVal) {m_bSaoInterleavingFlag = bVal;}
-#endif
+  Bool     getSaoInterleavingFlag() {return m_saoInterleavingFlag;}             //!< get SAO interleaving flag in APS
+  Void     setSaoInterleavingFlag(Bool bVal) {m_saoInterleavingFlag = bVal;}    //!< set SAO interleaving flag in APS
 
 private:
+  Bool        m_saoInterleavingFlag;  //!< SAO interleaving flag in APS
   Int         m_apsID;        //!< APS ID
   Bool        m_bSaoEnabled;  //!< SAO enabled/disabled in APS (true for enabled)
   Bool        m_bAlfEnabled;  //!< ALF enabled/disabled in APS (true for enabled)
@@ -723,13 +721,11 @@ class TComSlice
 private:
   //  Bitstream writing
   Int         m_iAPSId; //!< APS ID in slice header
-  bool       m_alfEnabledFlag;
-  bool       m_saoEnabledFlag;
-#if SAO_UNIT_INTERLEAVING
-  bool       m_saoInterleavingFlag;
-  bool       m_saoEnabledFlagCb;
-  bool       m_saoEnabledFlagCr;
-#endif
+  bool        m_alfEnabledFlag;
+  bool        m_saoEnabledFlag;
+  bool        m_saoInterleavingFlag;  ///< SAO interleaving flag in slice
+  bool        m_saoEnabledFlagCb;     ///< SAO Cb enabled flag in slice  
+  bool        m_saoEnabledFlagCr;     ///< SAO Cr enabled flag in slice
   Int         m_iPPSId;               ///< picture parameter set ID
   Int         m_iPOC;
   Int         m_iLastIDR;
