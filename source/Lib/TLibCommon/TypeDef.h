@@ -41,8 +41,6 @@
 //! \ingroup TLibCommon
 //! \{
 
-#define SAO_UNIT_INTERLEAVING      1   ///< H0273
-
 #define ALF_SINGLE_FILTER_SHAPE    1     //< !!! H0068: Single filter type : 9x7 cross + 3x3 square
 
 #define PARAMSET_VLC_CLEANUP               1      ///< followup to G220: Simplify parameter set code
