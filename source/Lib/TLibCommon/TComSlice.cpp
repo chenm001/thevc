@@ -1487,7 +1487,9 @@ TComAPS& TComAPS::operator= (const TComAPS& src)
 #endif
   m_scalingList = src.m_scalingList;
   m_scalingListEnabled = src.m_scalingListEnabled;
-  m_saoInterleavingFlag = src.m_saoInterleavingFlag;
+#if SAO_UNIT_INTERLEAVING
+  m_bSaoInterleavingFlag = src.m_bSaoInterleavingFlag;
+#endif
 
   return *this;
 }

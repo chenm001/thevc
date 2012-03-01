@@ -132,11 +132,13 @@ public:
   virtual Void codeSaoFlag          ( UInt uiCode ) = 0;
   virtual Void codeSaoUvlc          ( UInt uiCode ) = 0;
   virtual Void codeSaoSvlc          ( Int   iCode ) = 0;
-  virtual Void codeSaoRun           ( UInt   uiCode, UInt uiMaxValue ) = 0;
-  virtual Void codeSaoMergeLeft     ( UInt   uiCode, UInt uiCompIdx  ) = 0;
-  virtual Void codeSaoMergeUp       ( UInt   uiCode) = 0;
-  virtual Void codeSaoTypeIdx       ( UInt   uiCode) = 0;
-  virtual Void codeSaoUflc          ( UInt   uiCode) = 0;
+#if SAO_UNIT_INTERLEAVING
+  virtual Void codeSaoRun          ( UInt   uiCode, UInt uiMaxValue  ) = 0;
+  virtual Void codeSaoMergeLeft    ( UInt   uiCode, UInt uiCompIdx  ) = 0;
+  virtual Void codeSaoMergeUp      ( UInt   uiCode) = 0;
+  virtual Void codeSaoTypeIdx      ( UInt   uiCode) = 0;
+  virtual Void codeSaoUflc         ( UInt   uiCode) = 0;
+#endif
   virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType) = 0;
   
   virtual Void updateContextTables ( SliceType eSliceType, Int iQp, Bool bExecuteFinish )   = 0;
@@ -269,10 +271,16 @@ public:
                         int **FilterCoeff, int kMinTab[]);
   Int golombEncode(int coeff, int k);
   Int lengthGolomb(int coeffVal, int k);
-  Void encodeSaoUnit(Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam, Int bRepeatedRow);
-  Void encodeSaoOffset(SaoLcuParam* pSaoLcuParam);
-  Void encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* pSaoParam, TComDataCU* pcCU, Int iCUAddrInSlice, Int iCUAddrUpInSlice, Bool bLFCrossSliceBoundaryFlag);
-  Void encodeSaoParam         (TComAPS*  pcAPS);
+#if SAO_UNIT_INTERLEAVING
+  Void    encodeSaoUnit(Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam, Int bRepeatedRow);
+  Void    encodeSaoOffset(SaoLcuParam* pSaoLcuParam);
+  Void    encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* pSaoParam, TComDataCU* pcCU, Int iCUAddrInSlice, Int iCUAddrUpInSlice, Bool bLFCrossSliceBoundaryFlag);
+  Void    encodeSaoParam         (TComAPS*  pcAPS);
+#else
+  Void    encodeSaoOnePart       (SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
+  Void    encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
+  Void    encodeSaoParam         (SAOParam* pSaoParam);
+#endif
 
   static Int countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize );
 

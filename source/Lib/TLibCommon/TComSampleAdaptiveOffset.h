@@ -51,9 +51,12 @@
 #define SAO_MAX_DEPTH                 4
 #define SAO_BO_BITS                   5
 #define LUMA_GROUP_NUM                (1<<SAO_BO_BITS)
+#if SAO_UNIT_INTERLEAVING
 #define MAX_NUM_SAO_OFFSETS           4
 #define MAX_NUM_SAO_CLASS             33
-
+#else
+#define MAX_NUM_SAO_CLASS             32
+#endif
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -68,7 +71,9 @@ protected:
   static const Int m_aiNumPartsInRow[5];
   static const Int m_aiNumPartsLevel[5];
   static const Int m_aiNumCulPartsLevel[5];
-  static const UInt m_auiEoTable[5];
+  static const UInt m_auiEoTable[9];
+  static const UInt m_auiEoTable2D[9];
+  static const UInt m_iWeightSao[MAX_NUM_SAO_TYPE];
   Int *m_iOffsetBo;
   Int m_iOffsetEo[LUMA_GROUP_NUM];
 
@@ -80,13 +85,21 @@ protected:
   Int  m_iNumCuInWidth;
   Int  m_iNumCuInHeight;
   Int  m_iNumTotalParts;
+  static Int m_iNumClass[MAX_NUM_SAO_TYPE];
+  SliceType  m_eSliceType;
+  Int        m_iPicNalReferenceIdc;
 
   UInt m_uiSaoBitIncrease;
   UInt m_uiQP;
 
   Pel   *m_pClipTable;
   Pel   *m_pClipTableBase;
+#if SAO_UNIT_INTERLEAVING
   Pel   *m_ppLumaTableBo;
+#else
+  Pel   *m_ppLumaTableBo0;
+  Pel   *m_ppLumaTableBo1;
+#endif
   Int   *m_iUpBuff1;
   Int   *m_iUpBuff2;
   Int   *m_iUpBufft;
@@ -96,13 +109,22 @@ protected:
   Int   m_iSGDepth;              //!< slice granularity depth
   TComPicYuv* m_pcYuvTmp;    //!< temporary picture buffer pointer when non-across slice/tile boundary SAO is enabled
 
-  Pel*  m_pTmpU1;
-  Pel*  m_pTmpU2;
-  Pel*  m_pTmpL1;
-  Pel*  m_pTmpL2;
-  Int*  m_iLcuPartIdx;
-  Int   m_maxNumOffsetsPerPic;
-  Bool  m_saoInterleavingFlag;
+  Pel* m_pTmpU1;
+  Pel* m_pTmpU2;
+  Pel* m_pTmpL1;
+  Pel* m_pTmpL2;
+  Int* m_iLcuPartIdx;
+#if SAO_UNIT_INTERLEAVING
+  Int     m_iMaxNumOffsetsPerPic;
+  Bool    m_bDisableBOMaxDepth;
+  Bool    m_bSaoInterleavingFlag;
+#else
+  Void initTmpSaoQuadTree(SAOQTPart *psQTPart, Int iYCbCr);
+  Void disableSaoOnePart(SAOQTPart *psQTPart, UInt uiPartIdx, Int iYCbCr);
+  Void xSaoQt2Lcu(SAOQTPart *psQTPart,UInt uiPartIdx);
+  Void convertSaoQt2Lcu(SAOQTPart *psQTPart,UInt uiPartIdx);
+  Void xSaoAllPart(SAOQTPart *psQTPart, Int iYCbCr);
+#endif
 public:
   TComSampleAdaptiveOffset         ();
   virtual ~TComSampleAdaptiveOffset();
@@ -113,7 +135,7 @@ public:
   Int  convertLevelRowCol2Idx(int level, int row, int col);
   void convertIdx2LevelRowCol(int idx, int *level, int *row, int *col);
 
-  Void initSAOParam   (SAOParam *pcSaoParam, Int iPartLevel, Int iPartRow, Int iPartCol, Int iParentPartIdx, Int startCUX, Int endCUX, Int StartCUY, Int endCUY, Int iYCbCr);
+  Void initSAOParam   (SAOParam *pcSaoParam, Int iPartLevel, Int iPartRow, Int iPartCol, Int iParentPartIdx, Int StartCUX, Int EndCUX, Int StartCUY, Int EndCUY, Int iYCbCr);
   Void allocSaoParam  (SAOParam* pcSaoParam);
   Void resetSAOParam  (SAOParam *pcSaoParam);
   Void freeSaoParam   (SAOParam *pcSaoParam);
@@ -122,20 +144,22 @@ public:
   Void processSaoCu(Int iAddr, Int iSaoType, Int iYCbCr);
   Void processSaoOnePart(SAOQTPart *psQTPart, UInt uiPartIdx, Int iYCbCr);
   Void processSaoQuadTree(SAOQTPart *psQTPart, UInt uiPartIdx, Int iYCbCr);
-  Void processSaoCuOrg(Int iAddr, Int partIdx, Int iYCbCr);  //!< LCU-basd SAO process without slice granularity 
+  Pel* getPicYuvAddr(TComPicYuv* pcPicYuv, Int iYCbCr,Int iAddr = 0);
+
+  Void processSaoCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process without slice granularity 
   Void createPicSaoInfo(TComPic* pcPic, Int numSlicesInPic = 1);
   Void destroyPicSaoInfo();
   Void processSaoBlock(Pel* pDec, Pel* pRest, Int stride, Int iSaoType, UInt xPos, UInt yPos, UInt width, UInt height, Bool* pbBorderAvail);
 
+#if SAO_UNIT_INTERLEAVING
   Void resetLcuPart(SaoLcuParam* psSaoLcuParam);
   Void convertQT2SaoUnit(SAOParam* pcSaoParam, UInt uiPartIdx, Int iYCbCr);
   Void convertOnePart2SaoUnit(SAOParam *pcSaoParam, UInt uiPartIdx, Int iYCbCr);
   Void processSaoUnitAll(SaoLcuParam* psSaoLcuParam, Bool oneUnitFlag, Int iYCbCr);
-  Void setSaoInterleavingFlag (Bool bVal)  {m_saoInterleavingFlag = bVal;}
-  Bool getSaoInterleavingFlag ()           {return m_saoInterleavingFlag;}
+  Void setSaoInterleavingFlag (Bool bVal)  {m_bSaoInterleavingFlag = bVal;}
+  Bool getSaoInterleavingFlag ()           {return m_bSaoInterleavingFlag;}
+#endif
 };
-
-inline Pel* getPicYuvAddr(TComPicYuv* pcPicYuv, Int iYCbCr, Int iAddr = 0);
 
 //! \}
 #endif

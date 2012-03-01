@@ -114,6 +114,15 @@ public:
   Void  parseSaoUvlc        ( UInt& ruiVal );
   Void  parseSaoSvlc        ( Int&  riVal  );
 #endif  
+#if SAO_UNIT_INTERLEAVING
+  Void  parseSaoUvlc        ( UInt& ruiVal ){;}
+  Void  parseSaoSvlc        ( Int&  riVal  ){;}
+  Void  parseSaoMergeLeft   ( UInt& ruiVal, UInt uiCompIdx   ){;}
+  Void  parseSaoMergeUp     ( UInt& ruiVal ){;}
+  Void  parseSaoTypeIdx     ( UInt& ruiVal ){;}
+  Void  parseSaoUflc        ( UInt& ruiVal ){;}
+#endif
+
   Void  parseSPS            ( TComSPS* pcSPS );
   Void  parsePPS            ( TComPPS* pcPPS);
   Void  parseSEI(SEImessages&);
@@ -179,9 +188,13 @@ protected:
   Void  xParseDblParam       ( TComAPS* aps );
 #endif
   Void  xParseSaoParam       ( SAOParam* pSaoParam );
+#if SAO_UNIT_INTERLEAVING
   Void  xParseSaoOffset      (SaoLcuParam* psSaoLcuParam);
   Void  xParseSaoUnit        (Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam, Bool& bRepeatedRow );
-
+#else
+  Void  xParseSaoSplitParam  ( SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr );
+  Void  xParseSaoOffsetParam ( SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr );
+#endif
 #if LCU_SYNTAX_ALF 
   Void  xParseAlfParam(AlfParamSet* pAlfParamSet, Bool bSentInAPS = true, Int firstLCUAddr = 0, Bool acrossSlice = true, Int numLCUInWidth= -1, Int numLCUInHeight= -1);
   Void  parseAlfParamSet(AlfParamSet* pAlfParamSet, Int firstLCUAddr, Bool alfAcrossSlice);

@@ -55,6 +55,9 @@
 class TEncSampleAdaptiveOffset : public TComSampleAdaptiveOffset
 {
 private:
+  Double            m_dLambdaLuma;
+  Double            m_dLambdaChroma;
+
   TEncEntropy*      m_pcEntropyCoder;
   TEncSbac***       m_pppcRDSbacCoder;              ///< for CABAC
   TEncSbac*         m_pcRDGoOnSbacCoder;
@@ -97,13 +100,14 @@ public:
   Void calcSaoStatsCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);
   Void destroyEncBuffer();
   Void createEncBuffer();
-  Void assignSaoUnitSyntax(SaoLcuParam* pSaoLcuParam,  SAOQTPart* pSaoPart, Bool &oneUnitFlag);
+#if SAO_UNIT_INTERLEAVING
+  Void assignSaoUnitSyntax(SaoLcuParam* pSaoLcuParam,  SAOQTPart* pSaoPart, Bool &oneUnitFlag, Int iYCbCr);
   Void checkMerge(SaoLcuParam * LcuParamCurr,SaoLcuParam * LcuParamCheck, Int iDir);
   Void rdoSaoUnitAll(SAOParam *pcSaoParam, Double dLambda, Double dLambdaChroma);
   Void rdoSaoUnit(SAOParam *pcSaoParam, Int iAddr, Int iAddrUp, Int iAddrLeft, Int iYCbCr, Double dLambda);
-  Void setMaxNumOffsetsPerPic(Int iVal) {m_maxNumOffsetsPerPic = iVal; }
-  Int  getMaxNumOffsetsPerPic() {return m_maxNumOffsetsPerPic; }
-  Void checkMergeSaoUnit( SaoLcuParam*  saoLcuParam, SaoLcuParam*  saoLcuParamCheck, Int compIdx, Int mergeLeft, Double lambda );
+  Void setMaxNumOffsetsPerPic(Int iVal) {m_iMaxNumOffsetsPerPic = iVal; }
+  Int  getMaxNumOffsetsPerPic() {return m_iMaxNumOffsetsPerPic; }
+#endif
 };
 
 //! \}

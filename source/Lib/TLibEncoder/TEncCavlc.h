@@ -131,11 +131,13 @@ public:
   Void codeSaoFlag       ( UInt uiCode );
   Void codeSaoUvlc       ( UInt uiCode );
   Void codeSaoSvlc       ( Int   iCode );
+#if SAO_UNIT_INTERLEAVING
   Void codeSaoRun        ( UInt uiCode, UInt uiMaxValue  );
   Void codeSaoMergeLeft  ( UInt uiCode, UInt uiCompIdx ){;}
   Void codeSaoMergeUp    ( UInt uiCode ){;}
   Void codeSaoTypeIdx    ( UInt uiCode ){ xWriteUvlc(uiCode   );}
   Void codeSaoUflc       ( UInt uiCode ){ assert(uiCode < 32); xWriteCode(uiCode, 5);}
+#endif
 
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );

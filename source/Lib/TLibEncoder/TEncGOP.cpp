@@ -1094,7 +1094,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           {
             TComAPS cAPS;
             allocAPS(&cAPS, pcSlice->getSPS());
+#if SAO_UNIT_INTERLEAVING
             cAPS.setSaoInterleavingFlag(m_pcCfg->getSaoInterleavingFlag());
+#endif
             // set entropy coder for RD
             m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
 
@@ -1177,7 +1179,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
               }
               if (pcSlice->getSPS()->getUseSAO())
               {
-                pcPic->getSlice(s)->setSaoEnabledFlag((cAPS.getSaoParam()->saoFlag[0]==1)?true:false);
+                pcPic->getSlice(s)->setSaoEnabledFlag((cAPS.getSaoParam()->bSaoFlag[0]==1)?true:false);
               }
               pcPic->getSlice(s)->setAPS(&(vAPS[iCodedAPSIdx]));
               pcPic->getSlice(s)->setAPSId(iCodedAPSIdx);
@@ -1354,7 +1356,7 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
     cAPS.setScalingListEnabled(false);
   }
 
-  cAPS.setSaoEnabled(pcSlice->getSPS()->getUseSAO() ? (cAPS.getSaoParam()->saoFlag[0] ):(false));
+  cAPS.setSaoEnabled(pcSlice->getSPS()->getUseSAO() ? (cAPS.getSaoParam()->bSaoFlag[0] ):(false));
 #if LCU_SYNTAX_ALF
   cAPS.setAlfEnabled(pcSlice->getSPS()->getUseALF() ? (cAPS.getAlfParam()->isEnabled[0]):(false));
 #else
@@ -1410,7 +1412,14 @@ Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* p
   {
     m_pcEntropyCoder->encodeDFParams(pcAPS);
   }
+#if SAO_UNIT_INTERLEAVING
   m_pcEntropyCoder->encodeSaoParam(pcAPS);
+#else
+  if(pcAPS->getSaoEnabled())
+  {
+    m_pcEntropyCoder->encodeSaoParam(pcAPS->getSaoParam());
+  }
+#endif
 #if LCU_SYNTAX_ALF
   m_pcEntropyCoder->encodeAPSAlfFlag( pcAPS->getAlfEnabled()?1:0);
 #endif

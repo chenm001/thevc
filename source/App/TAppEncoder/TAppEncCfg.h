@@ -125,8 +125,10 @@ protected:
   UInt      m_uiPCMBitDepthLuma;                              ///< PCM bit-depth for luma
 
   Bool      m_bUseSAO; 
-  Int       m_maxNumOffsetsPerPic;                            ///< maximun number of offset per picture
-  Bool      m_saoInterleavingFlag;                            ///< 0: SAO in APS mode. 1: SAO in interleving mode.
+#if SAO_UNIT_INTERLEAVING
+  Int       m_iMaxNumOffsetsPerPic;
+  Bool      m_bSaoInterleavingFlag; 
+#endif
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
   Int       m_iALFEncodePassReduction;                        //!< ALF encoding pass, 0 = original 16-pass, 1 = 1-pass, 2 = 2-pass

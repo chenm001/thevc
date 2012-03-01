@@ -51,14 +51,15 @@ Void TEncEntropy::setEntropyCoder ( TEncEntropyIf* e, TComSlice* pcSlice )
 
 Void TEncEntropy::encodeSliceHeader ( TComSlice* pcSlice )
 {
+#if SAO_UNIT_INTERLEAVING
   if (pcSlice->getSPS()->getUseSAO())
   {
     pcSlice->setSaoInterleavingFlag(pcSlice->getAPS()->getSaoInterleavingFlag());
-    pcSlice->setSaoEnabledFlag     (pcSlice->getAPS()->getSaoParam()->saoFlag[0]);
+    pcSlice->setSaoEnabledFlag     (pcSlice->getAPS()->getSaoParam()->bSaoFlag[0]);
     if (pcSlice->getAPS()->getSaoInterleavingFlag())
     {
-      pcSlice->setSaoEnabledFlagCb   (pcSlice->getAPS()->getSaoParam()->saoFlag[1]);
-      pcSlice->setSaoEnabledFlagCr   (pcSlice->getAPS()->getSaoParam()->saoFlag[2]);
+      pcSlice->setSaoEnabledFlagCb   (pcSlice->getAPS()->getSaoParam()->bSaoFlag[1]);
+      pcSlice->setSaoEnabledFlagCr   (pcSlice->getAPS()->getSaoParam()->bSaoFlag[2]);
     }
     else
     {
@@ -66,6 +67,7 @@ Void TEncEntropy::encodeSliceHeader ( TComSlice* pcSlice )
       pcSlice->setSaoEnabledFlagCr   (0);
     }
   }
+#endif
 
   m_pcEntropyCoderIf->codeSliceHeader( pcSlice );
   return;
@@ -1460,188 +1462,190 @@ Void TEncEntropy::estimateBit (estBitsSbacStruct* pcEstBitsSbac, Int width, Int 
   m_pcEntropyCoderIf->estBit ( pcEstBitsSbac, width, height, eTType );
 }
 
-/** encode SAO Offset
- * \param  saoLcuParam
+#if SAO_UNIT_INTERLEAVING
+/** Encode SAO Offset
+ * \param  psSaoLcuParam
  */
-Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
+Void TEncEntropy::encodeSaoOffset(SaoLcuParam* psSaoLcuParam)
 {
   UInt uiSymbol;
-  Int   i;
+  Int i;
 
-  uiSymbol = saoLcuParam->typeIdx + 1;
+  uiSymbol = psSaoLcuParam->typeIdx + 1;
   m_pcEntropyCoderIf->codeSaoTypeIdx(uiSymbol);
   if (uiSymbol)
   {
-    if( saoLcuParam->typeIdx == SAO_BO )
+    if( psSaoLcuParam->typeIdx == SAO_BO )
     {
       // Code Left Band Index
-      uiSymbol = (UInt) (saoLcuParam->bandPosition);
+      uiSymbol = (UInt) (psSaoLcuParam->bandPosition);
       m_pcEntropyCoderIf->codeSaoUflc(uiSymbol);
-      for( i=0; i< saoLcuParam->length; i++)
+      for( i=0; i< psSaoLcuParam->iLength; i++)
       {
-        m_pcEntropyCoderIf->codeSaoSvlc(saoLcuParam->offset[i]);
+        m_pcEntropyCoderIf->codeSaoSvlc(psSaoLcuParam->iOffset[i]);
       }  
     }
-    else if ( saoLcuParam->typeIdx < 4 )
-    {
-      m_pcEntropyCoderIf->codeSaoUvlc( saoLcuParam->offset[0]);
-      m_pcEntropyCoderIf->codeSaoUvlc( saoLcuParam->offset[1]);
-      m_pcEntropyCoderIf->codeSaoUvlc(-saoLcuParam->offset[2]);
-      m_pcEntropyCoderIf->codeSaoUvlc(-saoLcuParam->offset[3]);
-    }
+    else
+      if( psSaoLcuParam->typeIdx < 4 )
+      {
+        m_pcEntropyCoderIf->codeSaoUvlc( psSaoLcuParam->iOffset[0]);
+        m_pcEntropyCoderIf->codeSaoUvlc( psSaoLcuParam->iOffset[1]);
+        m_pcEntropyCoderIf->codeSaoUvlc(-psSaoLcuParam->iOffset[2]);
+        m_pcEntropyCoderIf->codeSaoUvlc(-psSaoLcuParam->iOffset[3]);
+      }
   }
 }
 /** Encode SAO unit
 * \param  rx
 * \param  ry
-* \param  compIdx
-* \param  saoParam
-* \param  repeatedRow
+* \param  iCompIdx
+* \param  pSaoParam
+* \param  bRepeatedRow
  */
-Void TEncEntropy::encodeSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam, Int repeatedRow )
+Void TEncEntropy::encodeSaoUnit(Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam, Int bRepeatedRow )
 {
-  int addr, addrUp, addrLeft; 
-  int numUnitInWidth  = saoParam->numUnitInWidth;
-  SaoLcuParam* saoOneUnit = NULL;
-  SaoLcuParam* saoOneUnitUp = NULL;
-  Int runLeft;
+  int iAddr, iAddrUp, iAddrLeft; 
+  int iNumCuInWidth  = pSaoParam->iNumCuInWidth;
+  SaoLcuParam* psSaoOneLcu;
+  SaoLcuParam* psSaoOneLcuUp;
+  Int iRunLeft;
 
-  addr      =  rx + ry*numUnitInWidth;
-  addrLeft  =  (addr%numUnitInWidth == 0) ? -1 : addr - 1;
-  addrUp    =  (addr<numUnitInWidth)      ? -1 : addr - numUnitInWidth;
+  iAddr      =  rx + ry*iNumCuInWidth;
+  iAddrLeft  =  (iAddr%iNumCuInWidth == 0) ? -1 : iAddr - 1;
+  iAddrUp    =  (iAddr<iNumCuInWidth)      ? -1 : iAddr - iNumCuInWidth;
 
-  if (!repeatedRow)
+  if (!bRepeatedRow)
   {
-    saoOneUnit = &(saoParam->saoLcuParam[compIdx][addr]);    
-    runLeft = (addrLeft>=0 ) ? saoParam->saoLcuParam[compIdx][addrLeft].run : -1;
-    if (rx == 0 || runLeft==0)
+    psSaoOneLcu = &(pSaoParam->psSaoLcuParam[iCompIdx][iAddr]);    
+    iRunLeft = (iAddrLeft>=0 ) ? pSaoParam->psSaoLcuParam[iCompIdx][iAddrLeft].run : -1;
+    if (rx == 0 || iRunLeft==0)
     {
       if (ry == 0)
       {
-        m_pcEntropyCoderIf->codeSaoRun(saoOneUnit->runDiff, numUnitInWidth-rx-1); 
-        saoOneUnit->mergeUpFlag = 0;
+        m_pcEntropyCoderIf->codeSaoRun(psSaoOneLcu->runDiff, iNumCuInWidth-rx-1); 
+        psSaoOneLcu->mergeUpFlag = 0;
       }
       else 
       {
-        saoOneUnitUp = &(saoParam->saoLcuParam[compIdx][addrUp]);
-        m_pcEntropyCoderIf->codeSaoSvlc(saoOneUnit->runDiff); 
-        m_pcEntropyCoderIf->codeSaoFlag(saoOneUnit->mergeUpFlag);  
+        psSaoOneLcuUp = &(pSaoParam->psSaoLcuParam[iCompIdx][iAddrUp]);
+        m_pcEntropyCoderIf->codeSaoSvlc(psSaoOneLcu->runDiff); 
+        m_pcEntropyCoderIf->codeSaoFlag(psSaoOneLcu->mergeUpFlag);  
       }
-      if (!saoOneUnit->mergeUpFlag)
+      if (!psSaoOneLcu->mergeUpFlag)
       {
-        encodeSaoOffset(saoOneUnit);
+        encodeSaoOffset(psSaoOneLcu);
       }
     }
   }
 }
 
-/** encode SAO unit interleaving
+/** Encode SAO unit interleaving
 * \param  rx
 * \param  ry
-* \param  saoParam
+* \param  pSaoParam
 * \param  pcCU
-* \param  lcuAddrInSlice
-* \param  lcuAddrUpInSlice
-* \param  lfCrossSliceBoundaryFlag
-*/
-Void TEncEntropy::encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, TComDataCU* pcCU, Int lcuAddrInSlice, Int lcuAddrUpInSlice, Bool lfCrossSliceBoundaryFlag)
+* \param  iCUAddrInSlice
+* \param  iCUAddrUpInSlice
+* \param  bLFCrossSliceBoundaryFlag
+ */
+Void TEncEntropy::encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* pSaoParam, TComDataCU* pcCU, Int iCUAddrInSlice, Int iCUAddrUpInSlice, Bool bLFCrossSliceBoundaryFlag)
 {
-  Int addr = pcCU->getAddr();
-  for (Int compIdx=0; compIdx<3; compIdx++)
+  Int iAddr = pcCU->getAddr();
+  for (Int iCompIdx=0; iCompIdx<3; iCompIdx++)
   {
-    if (saoParam->saoFlag[compIdx])
+    if (pSaoParam->bSaoFlag[iCompIdx])
     {
-      if ( rx>0 && lcuAddrInSlice!=0 )
+      if (rx>0 && iCUAddrInSlice!=0)
       {
-        m_pcEntropyCoderIf->codeSaoMergeLeft(saoParam->saoLcuParam[compIdx][addr].mergeLeftFlag,compIdx);
+      m_pcEntropyCoderIf->codeSaoMergeLeft(pSaoParam->psSaoLcuParam[iCompIdx][iAddr].mergeLeftFlag,iCompIdx);
       }
       else
       {
-        saoParam->saoLcuParam[compIdx][addr].mergeLeftFlag = 0;
+        pSaoParam->psSaoLcuParam[iCompIdx][iAddr].mergeLeftFlag = 0;
       }
-      if (saoParam->saoLcuParam[compIdx][addr].mergeLeftFlag == 0)
+      if (pSaoParam->psSaoLcuParam[iCompIdx][iAddr].mergeLeftFlag == 0)
       {
-        if ( (ry>0) && (lcuAddrUpInSlice>0||lfCrossSliceBoundaryFlag) )
+        if ( (ry > 0) && (iCUAddrUpInSlice||bLFCrossSliceBoundaryFlag))
         {
-          m_pcEntropyCoderIf->codeSaoMergeUp(saoParam->saoLcuParam[compIdx][addr].mergeUpFlag);
+          m_pcEntropyCoderIf->codeSaoMergeUp(pSaoParam->psSaoLcuParam[iCompIdx][iAddr].mergeUpFlag);
         }
         else
         {
-          saoParam->saoLcuParam[compIdx][addr].mergeUpFlag = 0;
+          pSaoParam->psSaoLcuParam[iCompIdx][iAddr].mergeUpFlag = 0;
         }
-        if (!saoParam->saoLcuParam[compIdx][addr].mergeUpFlag)
+        if (!pSaoParam->psSaoLcuParam[iCompIdx][iAddr].mergeUpFlag)
         {
-          encodeSaoOffset(&(saoParam->saoLcuParam[compIdx][addr]));
+          encodeSaoOffset(&(pSaoParam->psSaoLcuParam[iCompIdx][iAddr]));
         }
       }
     }
   }
 }
 
-/** encode SAO parameter
- * \param  aps
+/** Encode SAO parameter
+* \param  pcAPS
  */
-Void TEncEntropy::encodeSaoParam(TComAPS* aps)
+Void TEncEntropy::encodeSaoParam(TComAPS* pcAPS)
 {
-  SaoLcuParam* saoOneUnit;
-  int i,j,k, compIdx; 
-  int numCuInWidth  ;
-  int numCuInHeight ;
-  Bool repeatedRow[3];
-  Int addr;
-  m_pcEntropyCoderIf->codeSaoFlag(aps->getSaoInterleavingFlag());  
-  if(!aps->getSaoInterleavingFlag())
+  SaoLcuParam* psSaoOneLcu;
+  int i,j,k, iCompIdx; 
+  int iNumCuInWidth  ;
+  int iNumCuInHeight ;
+  Bool bRepeatedRow[3];
+  Int iAddr;
+  m_pcEntropyCoderIf->codeSaoFlag(pcAPS->getSaoInterleavingFlag());  
+  if(!pcAPS->getSaoInterleavingFlag())
   {
-    m_pcEntropyCoderIf->codeSaoFlag(aps->getSaoEnabled());  
-    if (aps->getSaoEnabled())
+    m_pcEntropyCoderIf->codeSaoFlag(pcAPS->getSaoEnabled());  
+    if (pcAPS->getSaoEnabled())
     {
-      SAOParam* saoParam = aps->getSaoParam();
-      numCuInWidth  = saoParam->numUnitInWidth;
-      numCuInHeight = saoParam->numUnitInHeight;
-      m_pcEntropyCoderIf->codeSaoFlag(saoParam->saoFlag[1]); 
-      m_pcEntropyCoderIf->codeSaoFlag(saoParam->saoFlag[2]); 
-      m_pcEntropyCoderIf->codeSaoUvlc(numCuInWidth-1); 
-      m_pcEntropyCoderIf->codeSaoUvlc(numCuInHeight-1); 
-      for (compIdx=0;compIdx<3;compIdx++)
+      SAOParam* pSaoParam = pcAPS->getSaoParam();
+      iNumCuInWidth  = pSaoParam->iNumCuInWidth;
+      iNumCuInHeight = pSaoParam->iNumCuInHeight;
+      m_pcEntropyCoderIf->codeSaoFlag(pSaoParam->bSaoFlag[1]); 
+      m_pcEntropyCoderIf->codeSaoFlag(pSaoParam->bSaoFlag[2]); 
+      m_pcEntropyCoderIf->codeSaoUvlc(iNumCuInWidth-1); 
+      m_pcEntropyCoderIf->codeSaoUvlc(iNumCuInHeight-1); 
+      for (iCompIdx=0;iCompIdx<3;iCompIdx++)
       {
-        if (saoParam->saoFlag[compIdx])
+        if (pSaoParam->bSaoFlag[iCompIdx])
         {
-          m_pcEntropyCoderIf->codeSaoFlag(saoParam->oneUnitFlag[compIdx]); 
-          if (saoParam->oneUnitFlag[compIdx])
+          m_pcEntropyCoderIf->codeSaoFlag(pSaoParam->oneUnitFlag[iCompIdx]); 
+          if (pSaoParam->oneUnitFlag[iCompIdx])
           {
-            saoOneUnit = &(saoParam->saoLcuParam[compIdx][0]);   
-            encodeSaoOffset(saoOneUnit);
+            psSaoOneLcu = &(pSaoParam->psSaoLcuParam[iCompIdx][0]);   
+            encodeSaoOffset(psSaoOneLcu);
           }
         }
       }
 
-      for (j=0;j<numCuInHeight;j++)
+      for (j=0;j<iNumCuInHeight;j++)
       {
-        for (compIdx=0; compIdx<3; compIdx++)
+        for (iCompIdx=0; iCompIdx<3; iCompIdx++)
         {
-          repeatedRow[compIdx] = true;
-          for (k=0;k<numCuInWidth;k++)
+          bRepeatedRow[iCompIdx] = true;
+          for (k=0;k<iNumCuInWidth;k++)
           {
-            addr       =  k + j*numCuInWidth;
-            saoOneUnit = &(saoParam->saoLcuParam[compIdx][addr]);    
-            if (!saoOneUnit->mergeUpFlag || saoOneUnit->runDiff)
+            iAddr       =  k + j*iNumCuInWidth;
+            psSaoOneLcu = &(pSaoParam->psSaoLcuParam[iCompIdx][iAddr]);    
+            if (!psSaoOneLcu->mergeUpFlag || psSaoOneLcu->runDiff)
             {
-              repeatedRow[compIdx] = false;
+              bRepeatedRow[iCompIdx] = false;
               break;
             }
           }
         }
-        for (i=0;i<numCuInWidth;i++)
+        for (i=0;i<iNumCuInWidth;i++)
         {
-          for (compIdx=0; compIdx<3; compIdx++)
+          for (iCompIdx=0; iCompIdx<3; iCompIdx++)
           {
-            if (saoParam->saoFlag[compIdx]  && !saoParam->oneUnitFlag[compIdx]) 
+            if (pSaoParam->bSaoFlag[iCompIdx]  && !pSaoParam->oneUnitFlag[iCompIdx]) 
             {
               if (j>0 && i==0) 
               {
-                m_pcEntropyCoderIf->codeSaoFlag(repeatedRow[compIdx]); 
+                m_pcEntropyCoderIf->codeSaoFlag(bRepeatedRow[iCompIdx]); 
               }
-              encodeSaoUnit (i,j, compIdx, saoParam, repeatedRow[compIdx]);
+              encodeSaoUnit (i,j, iCompIdx, pSaoParam, bRepeatedRow[iCompIdx]);
             }
           }
         }
@@ -1649,7 +1653,96 @@ Void TEncEntropy::encodeSaoParam(TComAPS* aps)
     }
   }
 }
+#else
+/** Encode SAO for one partition
+ * \param  pSaoParam, iPartIdx
+ */
+Void TEncEntropy::encodeSaoOnePart(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr)
+{
+  SAOQTPart*  pAlfPart = NULL;
+  pAlfPart = &(pSaoParam->psSaoPart[iYCbCr][iPartIdx]); 
 
+  UInt uiSymbol;
+
+  if(!pAlfPart->bSplit)
+  {
+    if (pAlfPart->bEnableFlag)
+    {
+      uiSymbol = pAlfPart->iBestType + 1;
+    }
+    else
+    {
+      uiSymbol = 0;
+    }
+    
+    m_pcEntropyCoderIf->codeSaoUvlc(uiSymbol);
+
+    if (pAlfPart->bEnableFlag)
+    {
+      for(Int i=0; i< pAlfPart->iLength; i++)
+      {
+        m_pcEntropyCoderIf->codeSaoSvlc(pAlfPart->iOffset[i]);
+      }   
+    }
+    return;
+  }
+
+  //split
+  if (pAlfPart->PartLevel < pSaoParam->iMaxSplitLevel)
+  {
+    for (Int i=0;i<NUM_DOWN_PART;i++)
+    {
+      encodeSaoOnePart(pSaoParam, pAlfPart->DownPartsIdx[i], iYCbCr);
+    }
+  }
+}
+
+/** Encode quadtree split flag
+ * \param  pSaoParam, iPartIdx
+ */
+Void TEncEntropy::encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr)
+{
+  SAOQTPart*  pSaoPart = NULL;
+  pSaoPart = &(pSaoParam->psSaoPart[iYCbCr][iPartIdx]);
+
+  if(pSaoPart->PartLevel < pSaoParam->iMaxSplitLevel)
+  {
+    //send one flag
+    m_pcEntropyCoderIf->codeSaoFlag( (pSaoPart->bSplit)?(1):(0)  );
+
+    if(pSaoPart->bSplit)
+    {
+      for (Int i=0;i<NUM_DOWN_PART;i++)
+      {
+        encodeQuadTreeSplitFlag(pSaoParam, pSaoPart->DownPartsIdx[i], iYCbCr);
+      }
+    } 
+  }
+}
+/** Encode SAO parameters
+ * \param  pSaoParam
+ */
+Void TEncEntropy::encodeSaoParam(SAOParam* pSaoParam)
+{
+  if (pSaoParam->bSaoFlag[0])
+  {
+    encodeQuadTreeSplitFlag(pSaoParam, 0, 0);
+    encodeSaoOnePart(pSaoParam, 0, 0);
+    m_pcEntropyCoderIf->codeSaoFlag(pSaoParam->bSaoFlag[1]); 
+    if (pSaoParam->bSaoFlag[1])
+    {
+      encodeQuadTreeSplitFlag(pSaoParam, 0, 1);
+      encodeSaoOnePart(pSaoParam, 0, 1);
+    }
+    m_pcEntropyCoderIf->codeSaoFlag(pSaoParam->bSaoFlag[2]); 
+    if (pSaoParam->bSaoFlag[2])
+    {
+      encodeQuadTreeSplitFlag(pSaoParam, 0, 2);
+      encodeSaoOnePart(pSaoParam, 0, 2);
+    }
+  }
+}
+#endif
 
 Int TEncEntropy::countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize )
 {
