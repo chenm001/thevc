@@ -94,6 +94,8 @@
 #define ALF_16_BA_GROUPS        1     ///< H0409 16 BA groups
 #define LCU_SYNTAX_ALF          1     ///< H0274 LCU-syntax ALF
 
+#define CABAC_LINEAR_INIT       1     ///< H0535 : linear CABAC initialization
+
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
 #define MAX_NUM_APS                32         //< !!!KS: number not defined in WD yet
