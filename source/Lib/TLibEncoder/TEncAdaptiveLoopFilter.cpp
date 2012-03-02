@@ -380,10 +380,12 @@ AlfPicQTPart& AlfPicQTPart::operator= (const AlfPicQTPart& src)
 
 TEncAdaptiveLoopFilter::TEncAdaptiveLoopFilter()
 {
+#if !LCU_SYNTAX_ALF
   m_ppdAlfCorr = NULL;
   m_ppdAlfCorrCb = NULL;
   m_ppdAlfCorrCr = NULL;
   m_pdDoubleAlfCoeff = NULL;
+#endif
   m_pcEntropyCoder = NULL;
 #if !LCU_SYNTAX_ALF
   m_pcBestAlfParam = NULL;
@@ -836,7 +838,9 @@ Void TEncAdaptiveLoopFilter::destroyAlfGlobalBuffers()
 Void TEncAdaptiveLoopFilter::startALFEnc( TComPic* pcPic, TEncEntropy* pcEntropyCoder )
 {
   m_pcEntropyCoder = pcEntropyCoder;
+#if !LCU_SYNTAX_ALF
   xInitParam();
+#endif
   xCreateTmpAlfCtrlFlags();
   
   Int iWidth = pcPic->getPicYuvOrg()->getWidth();
@@ -861,12 +865,15 @@ Void TEncAdaptiveLoopFilter::startALFEnc( TComPic* pcPic, TEncEntropy* pcEntropy
 
   allocALFParam(pcAlfParamShape0);  
   allocALFParam(pcAlfParamShape1);
-#endif
+
   // init qc_filter
   initMatrix4D_double(&m_EGlobalSym, NUM_ALF_FILTER_SHAPE+1,  NO_VAR_BINS, MAX_SQR_FILT_LENGTH, MAX_SQR_FILT_LENGTH);
   initMatrix3D_double(&m_yGlobalSym, NUM_ALF_FILTER_SHAPE+1, NO_VAR_BINS, MAX_SQR_FILT_LENGTH); 
+#endif
   initMatrix_int(&m_filterCoeffSymQuant, NO_VAR_BINS, ALF_MAX_NUM_COEF); 
+#if !LCU_SYNTAX_ALF
   m_pixAcc = (double *) calloc(NO_VAR_BINS, sizeof(double));
+#endif
   initMatrix_Pel(&m_maskImg, m_img_height, m_img_width);
   initMatrix_double(&m_E_temp, MAX_SQR_FILT_LENGTH, MAX_SQR_FILT_LENGTH);//
   m_y_temp = (double *) calloc(MAX_SQR_FILT_LENGTH, sizeof(double));//
@@ -894,7 +901,9 @@ Void TEncAdaptiveLoopFilter::startALFEnc( TComPic* pcPic, TEncEntropy* pcEntropy
 
 Void TEncAdaptiveLoopFilter::endALFEnc()
 {
+#if !LCU_SYNTAX_ALF
   xUninitParam();
+#endif
   xDestroyTmpAlfCtrlFlags();
   
   m_pcPicYuvTmp->destroyLuma();
@@ -921,13 +930,15 @@ Void TEncAdaptiveLoopFilter::endALFEnc()
 
   delete pcAlfParamShape0;
   delete pcAlfParamShape1;
-#endif
+
   // delete qc filters
   destroyMatrix4D_double(m_EGlobalSym, NUM_ALF_FILTER_SHAPE+1,  NO_VAR_BINS);
   destroyMatrix3D_double(m_yGlobalSym, NUM_ALF_FILTER_SHAPE+1);
+#endif
   destroyMatrix_int(m_filterCoeffSymQuant);
-  
+#if !LCU_SYNTAX_ALF  
   free(m_pixAcc);
+#endif
   destroyMatrix_Pel(m_maskImg);
   destroyMatrix3D_double(m_E_merged, NO_VAR_BINS);
   destroyMatrix_double(m_y_merged);
@@ -960,8 +971,9 @@ Void TEncAdaptiveLoopFilter::endALFEnc()
 #if LCU_SYNTAX_ALF
 Void TEncAdaptiveLoopFilter::initALFEncoderParam(std::vector<AlfCUCtrlInfo>* alfCtrlParam)
 {
-  m_uiVarGenMethod = ALF_BA;
-  m_varImg = m_varImgMethods[m_uiVarGenMethod];
+  //reset BA index map 
+  memset(&m_varImg[0][0], 0, sizeof(Pel)*(m_img_height*m_img_width));
+
   //reset mask
   for(Int y=0; y< m_img_height; y++)
   {
@@ -2287,7 +2299,7 @@ Void TEncAdaptiveLoopFilter::decideParameters(TComPicYuv* pPicOrg, TComPicYuv* p
 {
   static Int lumaStride        = pPicOrg->getStride();
   static Int chromaStride      = pPicOrg->getCStride();
-  //const  Int chromaFormatShift = 1;
+
   Pel *pOrg, *pDec, *pRest;
   Int stride, formatShift;
 
@@ -2894,7 +2906,7 @@ Void TEncAdaptiveLoopFilter::PCMLFDisableProcess (TComPic* pcPic)
 // ====================================================================================================================
 // Private member functions
 // ====================================================================================================================
-
+#if !LCU_SYNTAX_ALF
 Void TEncAdaptiveLoopFilter::xInitParam()
 {
   Int i, j;
@@ -3026,7 +3038,7 @@ Void TEncAdaptiveLoopFilter::xUninitParam()
     m_ppdAlfCorrCr = NULL;
   }
 }
-
+#endif
 Void TEncAdaptiveLoopFilter::xCreateTmpAlfCtrlFlags()
 {
   for( UInt uiCUAddr = 0; uiCUAddr < m_pcPic->getNumCUsInFrame() ; uiCUAddr++ )

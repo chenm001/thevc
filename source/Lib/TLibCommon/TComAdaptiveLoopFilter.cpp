@@ -537,6 +537,15 @@ TComAdaptiveLoopFilter::TComAdaptiveLoopFilter()
   m_ppSliceAlfLCUs = NULL;
   m_pvpAlfLCU    = NULL;
   m_pvpSliceTileAlfLCU = NULL;
+#if LCU_SYNTAX_ALF
+  for(Int c=0; c< NUM_ALF_COMPONENT; c++)
+  {
+    m_alfFiltInfo[c] = NULL;
+  }
+  m_varImg = NULL;
+  m_filterCoeffSym = NULL;
+#endif
+
 }
 
 Void TComAdaptiveLoopFilter:: xError(const char *text, int code)
@@ -747,10 +756,14 @@ Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCU
   }
   m_img_height = iPicHeight;
   m_img_width = iPicWidth;
+#if LCU_SYNTAX_ALF
+  initMatrix_Pel(&(m_varImg), m_img_height, m_img_width);
+#else
   for(Int i=0; i< NUM_ALF_CLASS_METHOD; i++)
   {
     initMatrix_Pel(&(m_varImgMethods[i]), m_img_height, m_img_width);
   }
+#endif
   initMatrix_int(&m_filterCoeffSym, NO_VAR_BINS, ALF_MAX_NUM_COEF);
   UInt uiNumLCUsInWidth   = m_img_width  / uiMaxCUWidth;
   UInt uiNumLCUsInHeight  = m_img_height / uiMaxCUHeight;
@@ -791,12 +804,28 @@ Void TComAdaptiveLoopFilter::destroy()
   {
     m_pcTempPicYuv->destroy();
     delete m_pcTempPicYuv;
+#if LCU_SYNTAX_ALF
+    m_pcTempPicYuv = NULL;
+#endif
   }
+#if LCU_SYNTAX_ALF
+  if(m_varImg != NULL)
+  {
+    destroyMatrix_Pel( m_varImg );
+    m_varImg = NULL;
+  }
+  if(m_filterCoeffSym != NULL)
+  {
+    destroyMatrix_int(m_filterCoeffSym);
+    m_filterCoeffSym = NULL;
+  }
+#else
   for(Int i=0; i< NUM_ALF_CLASS_METHOD; i++)
   {
     destroyMatrix_Pel(m_varImgMethods[i]);
   }
   destroyMatrix_int(m_filterCoeffSym);
+#endif
 #if LCU_SYNTAX_ALF
   destroyLCUAlfInfo();
 #endif
@@ -959,8 +988,6 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, std::vector<AlfCUCtrlInf
           assignAlfOnOffControlFlags(pcPic, *alfCUCtrlParam);
         }
 
-        m_uiVarGenMethod = ALF_BA;
-        m_varImg         = m_varImgMethods[m_uiVarGenMethod];
         memset(&m_varImg[0][0], 0, sizeof(Pel)*(m_img_height*m_img_width));
 
         //calcOneRegionVar(m_varImg, pDec, stride, false, 0, m_img_height, 0, m_img_width);
@@ -3585,11 +3612,15 @@ Void TComAdaptiveLoopFilter::destroyLCUAlfInfo()
 {
   for(Int compIdx = 0; compIdx < NUM_ALF_COMPONENT; compIdx++)
   {
-    for(Int n=0; n< m_uiNumCUsInFrame; n++)
+    if(m_alfFiltInfo[compIdx] != NULL)
     {
-      delete m_alfFiltInfo[compIdx][n];
+      for(Int n=0; n< m_uiNumCUsInFrame; n++)
+      {
+        delete m_alfFiltInfo[compIdx][n];
+      }
+      delete[] m_alfFiltInfo[compIdx];
+      m_alfFiltInfo[compIdx] = NULL;
     }
-    delete[] m_alfFiltInfo[compIdx];
   }
 }
 

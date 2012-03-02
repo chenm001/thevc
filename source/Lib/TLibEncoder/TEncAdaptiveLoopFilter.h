@@ -119,6 +119,7 @@ private:
   ///
   /// variables for correlation calculation
   ///
+#if !LCU_SYNTAX_ALF
   Double** m_ppdAlfCorr;
   Double* m_pdDoubleAlfCoeff;
   Double** m_ppdAlfCorrCb;
@@ -126,6 +127,7 @@ private:
   double ***m_yGlobalSym;
   double ****m_EGlobalSym;
   double *m_pixAcc;
+#endif
   double **m_y_merged;
   double ***m_E_merged;
   double *m_pixAcc_merged;
@@ -183,10 +185,11 @@ private:
   Int    **m_filterCoeffSymQuant;
   Int    **m_diffFilterCoeffQuant;
   Int    **m_FilterCoeffQuantTemp;
+#if !LCU_SYNTAX_ALF
   Int**  m_mergeTableSavedMethods[NUM_ALF_CLASS_METHOD];
   Int*** m_aiFilterCoeffSavedMethods[NUM_ALF_CLASS_METHOD];  //!< time-delayed filter set buffer
   Int*   m_iPreviousFilterShapeMethods[NUM_ALF_CLASS_METHOD];
-
+#endif
   ///
   /// coding control parameters
   ///
@@ -262,11 +265,11 @@ private:
   Void transferToAlfParamSet(Int compIdx, AlfUnitParam* alfUnitPic, AlfParamSet* & alfParamSet);
   Int  calculateAlfParamSetRateRDO(Int compIdx, AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCUCtrlParam);
 #endif
-
+#if !LCU_SYNTAX_ALF
   // init / uninit internal variables
   Void xInitParam      ();
   Void xUninitParam    ();
-
+#endif
   // ALF on/off control related functions
   Void xCreateTmpAlfCtrlFlags   ();
   Void xDestroyTmpAlfCtrlFlags  ();

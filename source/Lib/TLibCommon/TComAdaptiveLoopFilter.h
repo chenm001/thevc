@@ -104,7 +104,7 @@ enum AlfChromaID
   ALF_Cb = 0,
   ALF_Cr = 1
 };
-#endif
+
 
 ///
 /// Adaptation mode ID
@@ -115,7 +115,7 @@ enum ALFClassficationMethod
   ALF_RA,
   NUM_ALF_CLASS_METHOD
 };
-
+#endif
 ///
 /// Filter shape
 ///
@@ -208,8 +208,10 @@ protected: //protected member variables
 
   //classification
   Int      m_varIndTab[NO_VAR_BINS];
+#if !LCU_SYNTAX_ALF
   UInt     m_uiVarGenMethod;
   Pel** m_varImgMethods[NUM_ALF_CLASS_METHOD];
+#endif
   Pel** m_varImg;
 
   //parameters
