@@ -323,7 +323,9 @@ public: //public methods, interface functions
   ALFParam*** getAlfLCUParam() {return m_alfFiltInfo;}
 #else
   Void predictALFCoeffChroma  ( ALFParam* pAlfParam );                  //!< prediction of chroma ALF coefficients
-
+#if ALF_CHROMA_COEF_PRED_HARMONIZATION
+  Void reconstructALFCoeffChroma( ALFParam* pAlfParam );
+#endif
   Void ALFProcess             ( TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam ); ///< interface function for ALF process
 
   Void allocALFParam  ( ALFParam* pAlfParam ); //!< allocate ALF parameters

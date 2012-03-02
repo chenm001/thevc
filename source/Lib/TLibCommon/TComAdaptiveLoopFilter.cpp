@@ -887,8 +887,29 @@ Void TComAdaptiveLoopFilter::predictALFCoeffChroma( ALFParam* pAlfParam )
     sum+=pFiltMag[i]*pAlfParam->coeff_chroma[i];
   }
   pred=(1<<ALF_NUM_BIT_SHIFT)-(sum-pAlfParam->coeff_chroma[N-1]);
+#if ALF_CHROMA_COEF_PRED_HARMONIZATION
+  pAlfParam->coeff_chroma[N-1]=pAlfParam->coeff_chroma[N-1] - pred;
+#else
   pAlfParam->coeff_chroma[N-1]=pred-pAlfParam->coeff_chroma[N-1];
+#endif
 }
+
+#if ALF_CHROMA_COEF_PRED_HARMONIZATION
+Void TComAdaptiveLoopFilter::reconstructALFCoeffChroma( ALFParam* pAlfParam )
+{
+  Int i, sum, pred, N;
+  const Int* pFiltMag = NULL;
+  pFiltMag = weightsTabShapes[pAlfParam->filter_shape_chroma];
+  N = pAlfParam->num_coeff_chroma;
+  sum=0;
+  for(i=0; i<N;i++)
+  {
+    sum+=pFiltMag[i]*pAlfParam->coeff_chroma[i];
+  }
+  pred=(1<<ALF_NUM_BIT_SHIFT)-(sum-pAlfParam->coeff_chroma[N-1]);
+  pAlfParam->coeff_chroma[N-1]=pred+ pAlfParam->coeff_chroma[N-1];
+}
+#endif
 #endif
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -1090,8 +1111,11 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam, st
   xALFLuma(pcPic, pcAlfParam, vAlfCUCtrlParam, pcPicYuvExtRec, pcPicYuvRec);
   if(pcAlfParam->chroma_idc)
   {
+#if ALF_CHROMA_COEF_PRED_HARMONIZATION
+    reconstructALFCoeffChroma(pcAlfParam);
+#else
     predictALFCoeffChroma(pcAlfParam);
-
+#endif
     checkFilterCoeffValue(pcAlfParam->coeff_chroma, pcAlfParam->num_coeff_chroma, true );
 
     xALFChroma( pcAlfParam, pcPicYuvExtRec, pcPicYuvRec);
@@ -1765,9 +1789,15 @@ Void TComAdaptiveLoopFilter::calcVar(Pel **imgYvar, Pel *imgYpad, Int stride, In
   static Int shiftH = (Int)(log((double)VAR_SIZE_H)/log(2.0));
   static Int shiftW = (Int)(log((double)VAR_SIZE_W)/log(2.0));
   static Int varmax = (Int)NO_VAR_BINS-1;
+#if ALF_16_BA_GROUPS
+  static Int th[NO_VAR_BINS] = {0, 1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5}; 
+  static Int avgVarTab[3][6] = { {0,  1,  2,  3,  4,  5,},
+  {0,  6,  7,  8,  9, 10,},
+  {0, 11, 12, 13, 14, 15}   };
+#else
   static Int step1  = (Int)((Int)(NO_VAR_BINS)/3) - 1;  
   static Int th[NO_VAR_BINS] = {0, 1, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4}; 
-  
+#endif  
   Int i, j, avgvar, vertical, horizontal,direction, yoffset;
   Pel *pimgYpad, *pimgYpadup, *pimgYpaddown;
 
@@ -1806,7 +1836,11 @@ Void TComAdaptiveLoopFilter::calcVar(Pel **imgYvar, Pel *imgYpad, Int stride, In
       avgvar = (vertical + horizontal) >> 2;
       avgvar = (Pel) Clip_post(varmax, avgvar >>(g_uiBitIncrement+1));
       avgvar = th[avgvar];
+#if ALF_16_BA_GROUPS
+      avgvar = avgVarTab[direction][avgvar];
+#else      
       avgvar = Clip_post(step1, (Int) avgvar ) + (step1+1)*direction;
+#endif
       imgYvar[(i )>>shiftH][(j)>>shiftW] = avgvar;
     }
   }
@@ -3113,7 +3147,11 @@ Void TComAdaptiveLoopFilter::reconstructChromaCoefficients(ALFParam* alfLCUParam
 #else
   coeffPred = (1<<ALF_NUM_BIT_SHIFT) - sum;
 #endif
+#if ALF_CHROMA_COEF_PRED_HARMONIZATION
   filterCoeff[0][alfLCUParam->num_coeff-1] = coeffPred + alfLCUParam->coeffmulti[0][alfLCUParam->num_coeff-1];
+#else
+  filterCoeff[0][alfLCUParam->num_coeff-1] = coeffPred - alfLCUParam->coeffmulti[0][alfLCUParam->num_coeff-1];
+#endif
 }
 
 
@@ -3292,7 +3330,11 @@ Void TComAdaptiveLoopFilter::predictALFCoeffChroma(Int* coeff, Int numCoef)
 #else
   Int pred = (1<<ALF_NUM_BIT_SHIFT) - (sum);
 #endif
+#if ALF_CHROMA_COEF_PRED_HARMONIZATION
   coeff[numCoef-1] = coeff[numCoef-1] - pred;
+#else
+  coeff[numCoef-1] = pred- coeff[numCoef-1];
+#endif
 }
 
 #if ALF_SINGLE_FILTER_SHAPE 
