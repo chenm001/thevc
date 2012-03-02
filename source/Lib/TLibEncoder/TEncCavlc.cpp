@@ -1136,7 +1136,7 @@ Void TEncCavlc::codeSaoRun( UInt uiCode, UInt maxValue)
     }                                                          
     maxValue = (maxValue >> 1);                                        
   }
-  xWriteCode(uiCode, uiLength);
+  WRITE_CODE( uiCode, uiLength, "sao_run_diff");
 }
 #endif
 
