@@ -829,7 +829,6 @@ public:
   Bool      getScalingListEnabled ()          { return m_scalingListEnabled; }  //!< get ScalingList enabled/disabled in APS
   TComScalingList* getScalingList ()          { return m_scalingList; }         //!< get ScalingList class pointer in APS
 #if SAO_UNIT_INTERLEAVING
-  Bool     m_bSaoInterleavingFlag;
   Bool     getSaoInterleavingFlag() {return m_bSaoInterleavingFlag;}
   Void     setSaoInterleavingFlag(Bool bVal) {m_bSaoInterleavingFlag = bVal;}
 #endif
@@ -855,6 +854,9 @@ private:
 #endif
   Bool        m_scalingListEnabled;     //!< ScalingList enabled/disabled in APS (true for enabled)
   TComScalingList*     m_scalingList;   //!< ScalingList class pointer
+#if SAO_UNIT_INTERLEAVING
+  Bool        m_bSaoInterleavingFlag;
+#endif
 
 public:
   TComAPS& operator= (const TComAPS& src);  //!< "=" operator for APS object
