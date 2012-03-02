@@ -1094,7 +1094,7 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
 #if SAO_UNIT_INTERLEAVING
     if ( pcSlice->getSPS()->getUseSAO() && pcSlice->getAPS()->getSaoInterleavingFlag() && pcSlice->getSaoEnabledFlag() )
     {
-      Int iNumCuInWidth     = pcSlice->getAPS()->getSaoParam()->iNumCuInWidth;
+      Int iNumCuInWidth     = pcSlice->getAPS()->getSaoParam()->numCuInWidth;
       Int iCUAddrInSlice    = uiCUAddr - (uiStartCUAddr /rpcPic->getNumPartInCU());
       Int iCUAddrUpInSlice  = iCUAddrInSlice - iNumCuInWidth;
       Int rx = uiCUAddr % iNumCuInWidth;

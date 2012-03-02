@@ -101,12 +101,12 @@ public:
   Void destroyEncBuffer();
   Void createEncBuffer();
 #if SAO_UNIT_INTERLEAVING
-  Void assignSaoUnitSyntax(SaoLcuParam* pSaoLcuParam,  SAOQTPart* pSaoPart, Bool &oneUnitFlag, Int iYCbCr);
-  Void checkMerge(SaoLcuParam * LcuParamCurr,SaoLcuParam * LcuParamCheck, Int iDir);
-  Void rdoSaoUnitAll(SAOParam *pcSaoParam, Double dLambda, Double dLambdaChroma);
-  Void rdoSaoUnit(SAOParam *pcSaoParam, Int iAddr, Int iAddrUp, Int iAddrLeft, Int iYCbCr, Double dLambda);
-  Void setMaxNumOffsetsPerPic(Int iVal) {m_iMaxNumOffsetsPerPic = iVal; }
-  Int  getMaxNumOffsetsPerPic() {return m_iMaxNumOffsetsPerPic; }
+  Void assignSaoUnitSyntax(SaoLcuParam* saoLcuParam,  SAOQTPart* saoPart, Bool &oneUnitFlag, Int yCbCr);
+  Void checkMerge(SaoLcuParam * lcuParamCurr,SaoLcuParam * lcuParamCheck, Int dir);
+  Void rdoSaoUnitAll(SAOParam *saoParam, Double lambda, Double lambdaChroma);
+  Void rdoSaoUnit(SAOParam *saoParam, Int addr, Int addrUp, Int addrLeft, Int yCbCr, Double lambda);
+  Void setMaxNumOffsetsPerPic(Int iVal) {m_maxNumOffsetsPerPic = iVal; }
+  Int  getMaxNumOffsetsPerPic() {return m_maxNumOffsetsPerPic; }
 #endif
 };
 

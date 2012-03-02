@@ -351,12 +351,12 @@ typedef struct _SaoLcuParam
   Bool       mergeLeftFlag;
   Int        typeIdx;
   Int        bandPosition;
-  Int        iOffset[4];
+  Int        offset[4];
   Int        runDiff;
   Int        run;
-  Int        iPartIdx;
-  Int        iPartIdxTmp;
-  Int        iLength;
+  Int        partIdx;
+  Int        partIdxTmp;
+  Int        length;
 } SaoLcuParam;
 #endif
 
@@ -368,9 +368,9 @@ struct SAOParam
   Int        iNumClass[MAX_NUM_SAO_TYPE];
 #if SAO_UNIT_INTERLEAVING
   Bool         oneUnitFlag[3];
-  SaoLcuParam* psSaoLcuParam[3];
-  Int          iNumCuInHeight;
-  Int          iNumCuInWidth;
+  SaoLcuParam* saoLcuParam[3];
+  Int          numCuInHeight;
+  Int          numCuInWidth;
 #endif
   ~SAOParam();
 };

@@ -286,10 +286,10 @@ public:
   Int golombEncode(int coeff, int k);
   Int lengthGolomb(int coeffVal, int k);
 #if SAO_UNIT_INTERLEAVING
-  Void    encodeSaoUnit(Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam, Int bRepeatedRow);
-  Void    encodeSaoOffset(SaoLcuParam* pSaoLcuParam);
-  Void    encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* pSaoParam, TComDataCU* pcCU, Int iCUAddrInSlice, Int iCUAddrUpInSlice, Bool bLFCrossSliceBoundaryFlag);
-  Void    encodeSaoParam         (TComAPS*  pcAPS);
+  Void    encodeSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam, Int repeatedRow);
+  Void    encodeSaoOffset(SaoLcuParam* saoLcuParam);
+  Void    encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, TComDataCU* cu, Int cuAddrInSlice, Int cuAddrUpInSlice, Bool lfCrossSliceBoundaryFlag);
+  Void    encodeSaoParam         (TComAPS*  aps);
 #else
   Void    encodeSaoOnePart       (SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
   Void    encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);

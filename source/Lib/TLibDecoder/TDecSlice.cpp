@@ -307,12 +307,12 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
         pcSlice->getAPS()->getSaoParam()->bSaoFlag[1] = pcSlice->getSaoEnabledFlagCb();
         pcSlice->getAPS()->getSaoParam()->bSaoFlag[2] = pcSlice->getSaoEnabledFlagCr();
       }
-      Int iNumCuInWidth     = pcSlice->getAPS()->getSaoParam()->iNumCuInWidth;
-      Int iCUAddrInSlice = iCUAddr - pcSlice->getSliceCurStartCUAddr()/rpcPic->getNumPartInCU();
-      Int iCUAddrUpInSlice  = iCUAddrInSlice - iNumCuInWidth;
-      Int rx = iCUAddr % iNumCuInWidth;
-      Int ry = iCUAddr / iNumCuInWidth;
-      pcSbacDecoder->parseSaoOneLcuInterleaving(rx, ry, pcSlice->getAPS()->getSaoParam(),pcCU, iCUAddrInSlice, iCUAddrUpInSlice, pcSlice->getSPS()->getLFCrossSliceBoundaryFlag() );
+      Int numCuInWidth     = pcSlice->getAPS()->getSaoParam()->numCuInWidth;
+      Int cuAddrInSlice = iCUAddr - pcSlice->getSliceCurStartCUAddr()/rpcPic->getNumPartInCU();
+      Int cuAddrUpInSlice  = cuAddrInSlice - numCuInWidth;
+      Int rx = iCUAddr % numCuInWidth;
+      Int ry = iCUAddr / numCuInWidth;
+      pcSbacDecoder->parseSaoOneLcuInterleaving(rx, ry, pcSlice->getAPS()->getSaoParam(),pcCU, cuAddrInSlice, cuAddrUpInSlice, pcSlice->getSPS()->getLFCrossSliceBoundaryFlag() );
     }
 #endif
 

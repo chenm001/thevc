@@ -276,9 +276,9 @@ public:
   Void decodeSaoParam         (SAOParam* pSaoParam);
 #endif
 #if SAO_UNIT_INTERLEAVING
-  Void decodeSaoParam         (SAOParam* pSaoParam);
-  void decodeSaoLcu(Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam, Bool &bRepeatedRow );
-  Void decodeSaoOneLcu(SaoLcuParam* psSaoLcuParam);
+  Void decodeSaoParam         (SAOParam* saoParam);
+  void decodeSaoLcu(Int rx, Int ry, Int compIdx, SAOParam* saoParam, Bool &repeatedRow );
+  Void decodeSaoOneLcu(SaoLcuParam* saoLcuParam);
 #endif
 
 #if OL_FLUSH

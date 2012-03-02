@@ -1119,22 +1119,22 @@ Void TEncCavlc::codeSaoSvlc( Int iCode )
     xWriteSvlc( iCode );
 }
 #if SAO_UNIT_INTERLEAVING
-Void TEncCavlc::codeSaoRun( UInt uiCode, UInt uiMaxValue)
+Void TEncCavlc::codeSaoRun( UInt uiCode, UInt maxValue)
 {
   UInt uiLength = 0;
-  if (!uiMaxValue)
+  if (!maxValue)
   {
     return;
   }
-  assert(uiCode<=uiMaxValue);              
+  assert(uiCode<=maxValue);              
 
   for(UInt i=0; i<32; i++)                                     
   {                                                            
-    if(uiMaxValue&0x1)                                               
+    if(maxValue&0x1)                                               
     {                                                          
       uiLength = i+1;                                          
     }                                                          
-    uiMaxValue = (uiMaxValue >> 1);                                        
+    maxValue = (maxValue >> 1);                                        
   }
   xWriteCode(uiCode, uiLength);
 }
