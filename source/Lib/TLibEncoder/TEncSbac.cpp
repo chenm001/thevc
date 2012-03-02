@@ -1748,6 +1748,9 @@ Void TEncSbac::codeSaoSvlc       ( Int iCode )
   }
 }
 #if SAO_UNIT_INTERLEAVING
+/** Code SAO band position 
+ * \param uiCode
+ */
 Void TEncSbac::codeSaoUflc       ( UInt uiCode )
 {
   for (Int i=0;i<5;i++)
@@ -1755,6 +1758,10 @@ Void TEncSbac::codeSaoUflc       ( UInt uiCode )
     m_pcBinIf->encodeBinEP ( (uiCode>>i) &0x01 );
   }
 }
+/** Code SAO merge left flag 
+ * \param uiCode
+ * \param uiCompIdx
+ */
 Void TEncSbac::codeSaoMergeLeft       ( UInt uiCode, UInt uiCompIdx )
 {
   if (uiCode == 0)
@@ -1766,7 +1773,9 @@ Void TEncSbac::codeSaoMergeLeft       ( UInt uiCode, UInt uiCompIdx )
     m_pcBinIf->encodeBin(1,  m_cSaoMergeLeftSCModel.get( 0, 0, uiCompIdx ));
   }
 }
-
+/** Code SAO merge up flag 
+ * \param uiCode
+ */
 Void TEncSbac::codeSaoMergeUp       ( UInt uiCode)
 {
   if (uiCode == 0)
@@ -1778,6 +1787,9 @@ Void TEncSbac::codeSaoMergeUp       ( UInt uiCode)
     m_pcBinIf->encodeBin(1,  m_cSaoMergeUpSCModel.get( 0, 0, 0 ));
   }
 }
+/** Code SAO type index 
+ * \param uiCode
+ */
 Void TEncSbac::codeSaoTypeIdx       ( UInt uiCode)
 {
   Int i;

@@ -1524,10 +1524,10 @@ Pel* TComSampleAdaptiveOffset::getPicYuvAddr(TComPicYuv* pcPicYuv, Int iYCbCr, I
   }
 }
 #if SAO_UNIT_INTERLEAVING
-/** Process SAO unit all 
- * \param pcSaoParam
- * \param oneUnitFlag
- * \param iYCbCr
+/** Process SAO all units 
+ * \param saoLcuParam SAO LCU parameters
+ * \param oneUnitFlag one unit flag
+ * \param yCbCr color componet index
  */
 Void TComSampleAdaptiveOffset::processSaoUnitAll(SaoLcuParam* saoLcuParam, Bool oneUnitFlag, Int yCbCr)
 {
@@ -1691,8 +1691,8 @@ Void TComSampleAdaptiveOffset::processSaoUnitAll(SaoLcuParam* saoLcuParam, Bool 
   }
 
 }
-/** Reset Lcu part 
- * \param SaoLcuParam
+/** Reset SAO LCU part 
+ * \param saoLcuParam
  */
 Void TComSampleAdaptiveOffset::resetLcuPart(SaoLcuParam* saoLcuParam)
 {
@@ -1712,9 +1712,9 @@ Void TComSampleAdaptiveOffset::resetLcuPart(SaoLcuParam* saoLcuParam)
 }
 
 /** convert QP part to SAO unit 
-* \param SaoLcuParam
-* \param uiPartIdx
-* \param iYCbCr
+* \param saoParam SAO parameter 
+* \param partIdx SAO part index
+* \param yCbCr color component index
  */
 Void TComSampleAdaptiveOffset::convertQT2SaoUnit(SAOParam *saoParam, UInt partIdx, Int yCbCr)
 {
@@ -1734,10 +1734,10 @@ Void TComSampleAdaptiveOffset::convertQT2SaoUnit(SAOParam *saoParam, UInt partId
     convertQT2SaoUnit(saoParam, saoPart->DownPartsIdx[3], yCbCr);
   }
 }
-/** convert one part to SAO unit 
-* \param SaoLcuParam
-* \param uiPartIdx
-* \param iYCbCr
+/** convert one SAO part to SAO unit 
+* \param saoParam SAO parameter 
+* \param partIdx SAO part index
+* \param yCbCr color component index
  */
 Void TComSampleAdaptiveOffset::convertOnePart2SaoUnit(SAOParam *saoParam, UInt partIdx, Int yCbCr)
 {

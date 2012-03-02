@@ -1119,6 +1119,10 @@ Void TEncCavlc::codeSaoSvlc( Int iCode )
     xWriteSvlc( iCode );
 }
 #if SAO_UNIT_INTERLEAVING
+/** Code SAO run. 
+ * \param uiCode
+ * \param maxValue
+ */
 Void TEncCavlc::codeSaoRun( UInt uiCode, UInt maxValue)
 {
   UInt uiLength = 0;

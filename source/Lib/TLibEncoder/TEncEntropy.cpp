@@ -1659,7 +1659,7 @@ Void TEncEntropy::estimateBit (estBitsSbacStruct* pcEstBitsSbac, Int width, Int 
 
 #if SAO_UNIT_INTERLEAVING
 /** Encode SAO Offset
- * \param  saoLcuParam
+ * \param  saoLcuParam SAO LCU paramters
  */
 Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
 {

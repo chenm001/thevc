@@ -410,8 +410,8 @@ Void TDecCavlc::xParseSaoParam(SAOParam* pSaoParam)
 }
 #if SAO_UNIT_INTERLEAVING
 /** copy SAO parameter
-* \param psDst
-* \param psSrc
+ * \param dst  
+ * \param src 
  */
 inline Void copySaoOneLcuParam(SaoLcuParam* dst,  SaoLcuParam* src)
 {
@@ -444,7 +444,7 @@ inline Void copySaoOneLcuParam(SaoLcuParam* dst,  SaoLcuParam* src)
   }
 }
 /** parse SAO offset
-* \param saoLcuParam
+ * \param saoLcuParam SAO LCU parameters
  */
 Void TDecCavlc::xParseSaoOffset(SaoLcuParam* saoLcuParam)
 {
@@ -485,11 +485,11 @@ Void TDecCavlc::xParseSaoOffset(SaoLcuParam* saoLcuParam)
 }
 
 /** parse SAO unit
-* \param rx
-* \param ry
-* \param iCompIdx
-* \param pSaoParam
-* \param bRepeatedRow
+ * \param rx x-axis location
+ * \param ry y-axis location
+ * \param compIdx color component index
+ * \param saoParam SAO parameters
+ * \param repeatedRow repeat row flag
  */
 void TDecCavlc::xParseSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam, Bool& repeatedRow )
 {

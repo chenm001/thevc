@@ -1637,6 +1637,11 @@ Void TEncSampleAdaptiveOffset::SAOProcess(SAOParam *pcSaoParam, Double dLambda)
 #endif
 }
 #if SAO_UNIT_INTERLEAVING
+/** Check merge SAO unit
+ * \param saoUnitCurr current SAO unit 
+ * \param saoUnitCheck SAO unit tobe check
+ * \param dir direction
+ */
 Void TEncSampleAdaptiveOffset::checkMerge(SaoLcuParam * saoUnitCurr, SaoLcuParam * saoUnitCheck, Int dir)
 {
   Int i ;
@@ -1688,10 +1693,10 @@ Void TEncSampleAdaptiveOffset::checkMerge(SaoLcuParam * saoUnitCurr, SaoLcuParam
   }
 }
 /** Assign SAO unit syntax from picture-based algorithm
- * \param saoLcuParam
- * \param saoPart
- * \param oneUnitFlag
- * \param iYCbCr
+ * \param saoLcuParam SAO LCU parameters
+ * \param saoPart SAO part
+ * \param oneUnitFlag SAO one unit flag
+ * \param iYCbCr color component Index
  */
 Void TEncSampleAdaptiveOffset::assignSaoUnitSyntax(SaoLcuParam* saoLcuParam,  SAOQTPart* saoPart, Bool &oneUnitFlag, Int yCbCr)
 {
@@ -1796,10 +1801,10 @@ Void TEncSampleAdaptiveOffset::assignSaoUnitSyntax(SaoLcuParam* saoLcuParam,  SA
     }
   }
 }
-/** rate distortion optimization of SAO all units
- * \param pcSaoParam
- * \param dLambda
- * \param dLambdaChroma
+/** rate distortion optimization of all SAO units
+ * \param saoParam SAO parameters
+ * \param lambda 
+ * \param lambdaChroma
  */
 Void TEncSampleAdaptiveOffset::rdoSaoUnitAll(SAOParam *saoParam, Double lambda, Double lambdaChroma)
 {
@@ -1864,11 +1869,12 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnitAll(SAOParam *saoParam, Double lambda, 
 
 }
 /** rate distortion optimization of SAO unit 
- * \param pcSaoParam
- * \param iAddrUp
- * \param iAddrLeft
- * \param iYCbCr
- * \param dLambda
+ * \param saoParam SAO parameters
+ * \param addr address 
+ * \param addrUp above address
+ * \param addrLeft left address 
+ * \param yCbCr color component index
+ * \param lambda 
  */
 Void TEncSampleAdaptiveOffset::rdoSaoUnit(SAOParam *saoParam, Int addr, Int addrUp, Int addrLeft, Int yCbCr, Double lambda)
 {

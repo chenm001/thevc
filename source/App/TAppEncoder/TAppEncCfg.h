@@ -135,8 +135,8 @@ protected:
 
   Bool      m_bUseSAO; 
 #if SAO_UNIT_INTERLEAVING
-  Int       m_maxNumOffsetsPerPic;
-  Bool      m_saoInterleavingFlag; 
+  Int       m_maxNumOffsetsPerPic;                            ///< SAO maximun number of offset per picture
+  Bool      m_saoInterleavingFlag;                            ///< SAO interleaving flag
 #endif
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
