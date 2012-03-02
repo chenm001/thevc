@@ -1400,7 +1400,7 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
   startTotalBit = m_pcBitIf->getNumberOfWrittenBits();
 #endif
 
-  WRITE_FLAG( scalingList->getScalingListPresentFlag (), "use_default_scaling_list_flag" );
+  WRITE_FLAG( scalingList->getScalingListPresentFlag (), "scaling_list_present_flag" );
 
   if(scalingList->getScalingListPresentFlag () == false)
   {
@@ -1417,11 +1417,11 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
 #endif
         scalingListPredModeFlag = scalingList->checkPredMode( sizeId, listId );
         WRITE_FLAG( scalingListPredModeFlag, "scaling_list_pred_mode_flag" );
-        if(!scalingListPredModeFlag)
+        if(!scalingListPredModeFlag)// Copy Mode
         {
           WRITE_UVLC( (Int)listId - (Int)scalingList->getRefMatrixId (sizeId,listId) - 1, "scaling_list_pred_matrix_id_delta");
         }
-        else//DPCM Mode
+        else// DPCM Mode
         {
           xCodeScalingList(scalingList, sizeId, listId);
         }
@@ -1505,17 +1505,6 @@ Void TEncCavlc::xCodeScalingList(TComScalingList* scalingList, UInt sizeId, UInt
     WRITE_SVLC( data,  "delta_coef");
   }
 #endif
-}
-/** write resiidual code
- * \param uiSize side index
- * \param data residual coefficient
- */
-Void TEncCavlc::xWriteResidualCode(UInt uiSize, Int *data)
-{
-  for(UInt i=0;i<uiSize;i++)
-  {
-    WRITE_SVLC( data[i],  "delta_coef");
-  }
 }
 Bool TComScalingList::checkPredMode(UInt sizeId, UInt listId)
 {

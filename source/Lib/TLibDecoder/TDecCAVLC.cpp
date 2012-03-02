@@ -2813,7 +2813,7 @@ Void TDecCavlc::parseScalingList(TComScalingList* scalingList)
 {
   UInt  code, sizeId, listId;
   Bool scalingListPredModeFlag;
-  READ_FLAG( code, "use_default_scaling_list_flag" );
+  READ_FLAG( code, "scaling_list_present_flag" );
   scalingList->setScalingListPresentFlag ( (code==1)?true:false );
   if(scalingList->getScalingListPresentFlag() == false)
   {
@@ -2822,11 +2822,11 @@ Void TDecCavlc::parseScalingList(TComScalingList* scalingList)
     {
       for(listId = 0; listId <  g_scalingListNum[sizeId]; listId++)
       {
-        READ_FLAG( code, "pred_mode_flag");
+        READ_FLAG( code, "scaling_list_pred_mode_flag");
         scalingListPredModeFlag = (code) ? true : false;
-        if(!scalingListPredModeFlag) // Matrix_Copy_Mode
+        if(!scalingListPredModeFlag) //Copy Mode
         {
-          READ_UVLC( code, "pred_matrix_id_delta");
+          READ_UVLC( code, "scaling_list_pred_matrix_id_delta");
           scalingList->setRefMatrixId (sizeId,listId,(UInt)((Int)(listId)-(code+1)));
 #if SCALING_LIST
           if( sizeId > SCALING_LIST_8x8 )
@@ -2837,7 +2837,7 @@ Void TDecCavlc::parseScalingList(TComScalingList* scalingList)
           scalingList->processRefMatrix( sizeId, listId, scalingList->getRefMatrixId (sizeId,listId));
           
         }
-        else
+        else //DPCM Mode
         {
           xDecodeScalingList(scalingList, sizeId, listId);
         }

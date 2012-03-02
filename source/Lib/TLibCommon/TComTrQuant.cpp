@@ -3823,7 +3823,7 @@ Void TComTrQuant::xsetFlatScalingList(UInt list, UInt size, UInt qp)
 Void TComTrQuant::processScalingListEnc( Int *coeff, Int *quantcoeff, Int quantScales, UInt height, UInt width, UInt ratio, Int sizuNum, UInt dc)
 {
   Int nsqth = (height < width) ? 4: 1; //height ratio for NSQT
-  Int nsqtw  = (width < height) ? 4: 1; //width ratio for NSQT
+  Int nsqtw = (width < height) ? 4: 1; //width ratio for NSQT
   for(UInt j=0;j<height;j++)
   {
     for(UInt i=0;i<width;i++)
@@ -3851,7 +3851,7 @@ Void TComTrQuant::processScalingListEnc( Int *coeff, Int *quantcoeff, Int quantS
 Void TComTrQuant::processScalingListDec( Int *coeff, Int *dequantcoeff, Int invQuantScales, UInt height, UInt width, UInt ratio, Int sizuNum, UInt dc)
 {
   Int nsqth = (height < width) ? 4: 1; //height ratio for NSQT
-  Int nsqtw  = (width < height) ? 4: 1; //width ratio for NSQT
+  Int nsqtw = (width < height) ? 4: 1; //width ratio for NSQT
   for(UInt j=0;j<height;j++)
   {
     for(UInt i=0;i<width;i++)

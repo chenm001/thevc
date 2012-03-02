@@ -247,12 +247,6 @@ enum ScalingListSize
   SCALING_LIST_32x32,
   SCALING_LIST_SIZE_NUM
 };
-enum ScalingListPredMode
-{
-  SCALING_LIST_PRED_COPY = 0,
-  SCALING_LIST_PRED_DPCM,
-  SCALING_LIST_PRED_NUM
-};
 static const char MatrixType[4][6][20] =
 {
   {

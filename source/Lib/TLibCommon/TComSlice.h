@@ -735,11 +735,6 @@ public:
   Bool getDeblockingFilterControlPresent    ()                    { return m_DeblockingFilterControlPresent; }
 #endif
 };
-typedef struct
-{
-  Bool predMode;        //!< prediction mode
-  Int  predListIdx;     //!< list index for prediction
-} estScalingListStruct;
 
 /// SCALING_LIST class
 class TComScalingList
