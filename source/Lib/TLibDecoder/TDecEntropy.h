@@ -145,14 +145,6 @@ public:
   virtual Void parseSaoUvlc       ( UInt& ruiVal           ) = 0;
   virtual Void parseSaoSvlc       ( Int&  riVal            ) = 0;
 #endif
-#if SAO_UNIT_INTERLEAVING
-  virtual Void parseSaoUvlc       ( UInt& ruiVal           ) = 0;
-  virtual Void parseSaoSvlc       ( Int&  riVal            ) = 0;
-  virtual Void parseSaoMergeLeft  (UInt&  ruiVal, UInt uiCompIdx ) = 0;
-  virtual Void parseSaoMergeUp     (UInt&  ruiVal) = 0;
-  virtual Void parseSaoTypeIdx     (UInt&  ruiVal) = 0;
-  virtual Void parseSaoUflc       ( UInt& ruiVal           ) = 0;
-#endif
   virtual Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed ) = 0;
   virtual Void updateContextTables( SliceType eSliceType, Int iQp ) = 0;
   

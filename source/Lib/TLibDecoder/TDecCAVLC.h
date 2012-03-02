@@ -118,14 +118,6 @@ public:
   Void  parseSaoUvlc        ( UInt& ruiVal );
   Void  parseSaoSvlc        ( Int&  riVal  );
 #endif  
-#if SAO_UNIT_INTERLEAVING
-  Void  parseSaoUvlc        ( UInt& ruiVal ){;}
-  Void  parseSaoSvlc        ( Int&  riVal  ){;}
-  Void  parseSaoMergeLeft   ( UInt& ruiVal, UInt uiCompIdx   ){;}
-  Void  parseSaoMergeUp     ( UInt& ruiVal ){;}
-  Void  parseSaoTypeIdx     ( UInt& ruiVal ){;}
-  Void  parseSaoUflc        ( UInt& ruiVal ){;}
-#endif
 
   Void  parseSPS            ( TComSPS* pcSPS );
   Void  parsePPS            ( TComPPS* pcPPS);
