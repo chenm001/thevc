@@ -222,8 +222,8 @@ protected:
   Void          deriveRightBottomIdx        ( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxRB );
   Bool          xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUnitIdx, TComMv& rcMv, Int& riRefIdx );
   
-  /// remove redundant candidates
 #if !AMVP_PRUNING_SIMPLIFICATION
+  /// remove redundant candidates
   Void          xUniqueMVPCand        ( AMVPInfo* pInfo );
 #endif
 

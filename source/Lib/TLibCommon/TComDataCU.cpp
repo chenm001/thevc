@@ -3501,8 +3501,8 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     //----  co-located RightBottom Temporal Predictor  ---//
   }
 
-  // Check No MV Candidate
 #if !AMVP_PRUNING_SIMPLIFICATION
+  // Check No MV Candidate
   xUniqueMVPCand( pInfo );
 #endif
 
