@@ -86,6 +86,9 @@
 #define EIGHT_BITS_RICE_CODE        1 ///< H0498 : 8 bits rice codes
 
 #define SAO_UNIT_INTERLEAVING      1   ///< H0273
+#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_1 0
+#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_2 0
+#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_3 0
 
 #define ALF_SINGLE_FILTER_SHAPE    1     //< !!! H0068: Single filter type : 9x7 cross + 3x3 square
 

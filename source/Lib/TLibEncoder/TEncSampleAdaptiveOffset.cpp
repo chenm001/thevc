@@ -1856,6 +1856,7 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnitAll(SAOParam *saoParam, Double lambda, 
         lambdaComp = compIdx==0 ? lambda : lambdaChroma;
         calcSaoStatsCu(addr, compIdx,  compIdx);
         rdoSaoUnit (saoParam, addr, addrUp, addrLeft, compIdx,  lambdaComp);
+#if !REMOVE_SAO_LCU_ENC_CONSTRAINTS_3
         if (compIdx!=0)
         {
           if ( saoParam->saoLcuParam[compIdx][0].typeIdx == -1 )
@@ -1863,6 +1864,7 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnitAll(SAOParam *saoParam, Double lambda, 
             saoParam->bSaoFlag[compIdx] = false;
           }
         }
+#endif
       }
     }
   }
@@ -1930,15 +1932,19 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnit(SAOParam *saoParam, Int addr, Int addr
 
     if (m_saoInterleavingFlag)
     {
+#if !REMOVE_SAO_LCU_ENC_CONSTRAINTS_1
       if(yCbCr>0 && typeIdx>3 )
       {
         continue;
       }
+#endif
+#if !REMOVE_SAO_LCU_ENC_CONSTRAINTS_2
       if (yCbCr>0 )
       {
         offsetTh = 2<<g_uiBitIncrement;
       }
       else
+#endif
       {
         offsetTh = m_iOffsetTh;
       }
