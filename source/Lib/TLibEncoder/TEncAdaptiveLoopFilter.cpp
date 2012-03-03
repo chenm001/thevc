@@ -380,10 +380,12 @@ AlfPicQTPart& AlfPicQTPart::operator= (const AlfPicQTPart& src)
 
 TEncAdaptiveLoopFilter::TEncAdaptiveLoopFilter()
 {
+#if !LCU_SYNTAX_ALF
   m_ppdAlfCorr = NULL;
   m_ppdAlfCorrCb = NULL;
   m_ppdAlfCorrCr = NULL;
   m_pdDoubleAlfCoeff = NULL;
+#endif
   m_pcEntropyCoder = NULL;
 #if !LCU_SYNTAX_ALF
   m_pcBestAlfParam = NULL;
@@ -475,7 +477,9 @@ Void TEncAdaptiveLoopFilter::convertIdx2LevelRowCol(Int idx, Int *level, Int *ro
   }
 }
 
-
+/** Initial picture quad-tree
+ * \param [in] isPicBasedEncode picture quad-tree encoding is enabled or disabled
+ */
 Void TEncAdaptiveLoopFilter::initPicQuadTreePartition(Bool isPicBasedEncode)
 {
   if (!isPicBasedEncode)
@@ -503,7 +507,8 @@ Void TEncAdaptiveLoopFilter::initPicQuadTreePartition(Bool isPicBasedEncode)
   creatPQTPart(0, 0, 0, -1, 0, m_numLCUInPicWidth-1, 0, m_numLCUInPicHeight-1); 
 }
 
-
+/** Reset picture quad-tree variables
+ */
 Void TEncAdaptiveLoopFilter::resetPQTPart()
 {
   Int compIdx, i;
@@ -525,7 +530,16 @@ Void TEncAdaptiveLoopFilter::resetPQTPart()
   }
 }
 
-
+/** create picture quad-tree
+ * \param [in] partLevel quad-tree level
+ * \param [in] partRow row position at partLevel
+ * \param [in] partCol column position at partLevel
+ * \param [in] parentPartIdx parent partition index
+ * \param [in] partCUXS starting LCU X position
+ * \param [in] partCUXE ending LCU X position
+ * \param [in] partCUYS starting LCU Y position
+ * \param [in] partCUYE ending LCU Y position
+ */
 Void TEncAdaptiveLoopFilter::creatPQTPart(Int partLevel, Int partRow, Int partCol, Int parentPartIdx, Int partCUXS, Int partCUXE, Int partCUYS, Int partCUYE)
 {
   Int partIdx = convertLevelRowCol2Idx(partLevel, partRow, partCol);
@@ -630,7 +644,8 @@ Void TEncAdaptiveLoopFilter::creatPQTPart(Int partLevel, Int partRow, Int partCo
   }
 }
 
-
+/** create global buffers for ALF encoding
+ */
 Void TEncAdaptiveLoopFilter::createAlfGlobalBuffers()
 {
   for(Int compIdx =0; compIdx < NUM_ALF_COMPONENT; compIdx++)
@@ -689,6 +704,13 @@ Void TEncAdaptiveLoopFilter::destroyAlfGlobalBuffers()
 
 }
 
+/** initialize ALF encoder at picture level
+ * \param [in] isAlfParamInSlice ALF parameters are coded in slice (true) or APS (false)
+ * \param [in] isPicBasedEncode picture-based encoding (true) or LCU-based encoding (false)
+ * \param [in] numSlices number of slices in current picture
+ * \param [in, out] alfParams ALF parameter set
+ * \param [in, out] alfCUCtrlParam ALF CU-on/off control parameters
+ */
 Void TEncAdaptiveLoopFilter::initALFEnc(Bool isAlfParamInSlice, Bool isPicBasedEncode, Int numSlices, AlfParamSet* & alfParams, std::vector<AlfCUCtrlInfo>* & alfCUCtrlParam)
 {
   m_picBasedALFEncode = isPicBasedEncode;
@@ -734,6 +756,10 @@ Void TEncAdaptiveLoopFilter::initALFEnc(Bool isAlfParamInSlice, Bool isPicBasedE
 
 }
 
+/** Uninitialize ALF encoder at picture level
+ * \param [in, out] alfParams ALF parameter set
+ * \param [in, out] alfCUCtrlParam ALF CU-on/off control parameters
+ */
 Void TEncAdaptiveLoopFilter::uninitALFEnc(AlfParamSet* & alfParams, std::vector<AlfCUCtrlInfo>* & alfCUCtrlParam)
 {
   if(alfParams != NULL)
@@ -753,6 +779,8 @@ Void TEncAdaptiveLoopFilter::uninitALFEnc(AlfParamSet* & alfParams, std::vector<
   }
 }
 
+/** reset ALF unit parameters in current picture
+ */
 Void TEncAdaptiveLoopFilter::resetPicAlfUnit()
 {
   for(Int compIdx =0; compIdx < NUM_ALF_COMPONENT; compIdx++)
@@ -836,7 +864,9 @@ Void TEncAdaptiveLoopFilter::destroyAlfGlobalBuffers()
 Void TEncAdaptiveLoopFilter::startALFEnc( TComPic* pcPic, TEncEntropy* pcEntropyCoder )
 {
   m_pcEntropyCoder = pcEntropyCoder;
+#if !LCU_SYNTAX_ALF
   xInitParam();
+#endif
   xCreateTmpAlfCtrlFlags();
   
   Int iWidth = pcPic->getPicYuvOrg()->getWidth();
@@ -861,12 +891,15 @@ Void TEncAdaptiveLoopFilter::startALFEnc( TComPic* pcPic, TEncEntropy* pcEntropy
 
   allocALFParam(pcAlfParamShape0);  
   allocALFParam(pcAlfParamShape1);
-#endif
+
   // init qc_filter
   initMatrix4D_double(&m_EGlobalSym, NUM_ALF_FILTER_SHAPE+1,  NO_VAR_BINS, MAX_SQR_FILT_LENGTH, MAX_SQR_FILT_LENGTH);
   initMatrix3D_double(&m_yGlobalSym, NUM_ALF_FILTER_SHAPE+1, NO_VAR_BINS, MAX_SQR_FILT_LENGTH); 
+#endif
   initMatrix_int(&m_filterCoeffSymQuant, NO_VAR_BINS, ALF_MAX_NUM_COEF); 
+#if !LCU_SYNTAX_ALF
   m_pixAcc = (double *) calloc(NO_VAR_BINS, sizeof(double));
+#endif
   initMatrix_Pel(&m_maskImg, m_img_height, m_img_width);
   initMatrix_double(&m_E_temp, MAX_SQR_FILT_LENGTH, MAX_SQR_FILT_LENGTH);//
   m_y_temp = (double *) calloc(MAX_SQR_FILT_LENGTH, sizeof(double));//
@@ -894,7 +927,9 @@ Void TEncAdaptiveLoopFilter::startALFEnc( TComPic* pcPic, TEncEntropy* pcEntropy
 
 Void TEncAdaptiveLoopFilter::endALFEnc()
 {
+#if !LCU_SYNTAX_ALF
   xUninitParam();
+#endif
   xDestroyTmpAlfCtrlFlags();
   
   m_pcPicYuvTmp->destroyLuma();
@@ -921,13 +956,15 @@ Void TEncAdaptiveLoopFilter::endALFEnc()
 
   delete pcAlfParamShape0;
   delete pcAlfParamShape1;
-#endif
+
   // delete qc filters
   destroyMatrix4D_double(m_EGlobalSym, NUM_ALF_FILTER_SHAPE+1,  NO_VAR_BINS);
   destroyMatrix3D_double(m_yGlobalSym, NUM_ALF_FILTER_SHAPE+1);
+#endif
   destroyMatrix_int(m_filterCoeffSymQuant);
-  
+#if !LCU_SYNTAX_ALF  
   free(m_pixAcc);
+#endif
   destroyMatrix_Pel(m_maskImg);
   destroyMatrix3D_double(m_E_merged, NO_VAR_BINS);
   destroyMatrix_double(m_y_merged);
@@ -958,10 +995,69 @@ Void TEncAdaptiveLoopFilter::endALFEnc()
 }
 
 #if LCU_SYNTAX_ALF
-Void TEncAdaptiveLoopFilter::initALFEncoderParam(std::vector<AlfCUCtrlInfo>* alfCtrlParam)
+
+/** Assign output ALF parameters
+ * \param [in, out] alfParamSet ALF parameter set
+ * \param [in, out] alfCtrlParam ALF CU-on/off control parameters
+ */
+Void TEncAdaptiveLoopFilter::assignALFEncoderParam(AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam)
 {
-  m_uiVarGenMethod = ALF_BA;
-  m_varImg = m_varImgMethods[m_uiVarGenMethod];
+  //assign CU control parameters
+  if(m_bAlfCUCtrlEnabled)
+  {
+    for(Int s=0; s< m_uiNumSlicesInPic; s++)
+    {
+      (*alfCtrlParam)[s]= m_vBestAlfCUCtrlParam[s];
+    }
+  }
+
+  //assign RDO results to alfParamSet
+  if(m_alfCoefInSlice)
+  {
+    for(Int s=0; s< m_uiNumSlicesInPic; s++)
+    {
+      if(!m_pcPic->getValidSlice(s))
+      {
+        continue;
+      }
+
+      if( m_bestAlfParamSet[s].isEnabled[ALF_Y] || m_bestAlfParamSet[s].isEnabled[ALF_Cb] || m_bestAlfParamSet[s].isEnabled[ALF_Cr])
+      {
+        m_bestAlfParamSet[s].isEnabled[ALF_Y] = true;
+      }
+
+      copyAlfParamSet(&(alfParamSet[s]), &(m_bestAlfParamSet[s]));
+    }
+  }
+  else
+  {
+    if( m_bestAlfParamSet->isEnabled[ALF_Y] || m_bestAlfParamSet->isEnabled[ALF_Cb] || m_bestAlfParamSet->isEnabled[ALF_Cr])
+    {
+      m_bestAlfParamSet->isEnabled[ALF_Y] = true;
+    }
+
+    copyAlfParamSet(alfParamSet, m_bestAlfParamSet);
+  }
+
+  if(m_alfCoefInSlice)
+  {
+    delete[] m_bestAlfParamSet;
+  }
+  else
+  {
+    delete m_bestAlfParamSet;
+  }
+}
+
+/** initialize ALF encoder configurations
+ * \param [in, out] alfParamSet ALF parameter set
+ * \param [in, out] alfCtrlParam ALF CU-on/off control parameters
+ */
+Void TEncAdaptiveLoopFilter::initALFEncoderParam(AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam)
+{
+  //reset BA index map 
+  memset(&m_varImg[0][0], 0, sizeof(Pel)*(m_img_height*m_img_width));
+
   //reset mask
   for(Int y=0; y< m_img_height; y++)
   {
@@ -1033,9 +1129,27 @@ Void TEncAdaptiveLoopFilter::initALFEncoderParam(std::vector<AlfCUCtrlInfo>* alf
     m_iALFNumOfRedesign = ALF_NUM_OF_REDESIGN;
   }
 
+  //initialize m_bestAlfParamSet
+  if(m_alfCoefInSlice)
+  {
+    m_bestAlfParamSet = new AlfParamSet[m_uiNumSlicesInPic];
+    for(Int s=0; s< m_uiNumSlicesInPic; s++)
+    {
+      m_bestAlfParamSet[s].create( alfParamSet[s].numLCUInWidth, alfParamSet[s].numLCUInHeight, alfParamSet[s].numLCU);
+    }
+  }
+  else
+  {
+    m_bestAlfParamSet = new AlfParamSet;
+    m_bestAlfParamSet->create( alfParamSet->numLCUInWidth, alfParamSet->numLCUInHeight, alfParamSet->numLCU);
+  }
+
 }
 
-
+/** copy ALF parameter set
+ * \param [out] dst destination ALF parameter set
+ * \param [in] src source ALF parameter set
+ */
 Void TEncAdaptiveLoopFilter::copyAlfParamSet(AlfParamSet* dst, AlfParamSet* src)
 {
   dst->numLCU = src->numLCU;
@@ -1059,101 +1173,51 @@ Void TEncAdaptiveLoopFilter::copyAlfParamSet(AlfParamSet* dst, AlfParamSet* src)
 }
 
 
-
+/** ALF encoding process top function
+ * \param [in, out] alfParamSet ALF parameter set
+ * \param [in, out] alfCtrlParam ALF CU-on/off control parameters
+ * \param [in] dLambdaLuma lambda value for luma RDO
+ * \param [in] dLambdaChroma lambda value for chroma RDO
+ */
 #if ALF_CHROMA_LAMBDA
-Void TEncAdaptiveLoopFilter::ALFProcess( AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam, Double dLambdaLuma, Double dLambdaChroma)
+Void TEncAdaptiveLoopFilter::ALFProcess( AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam, Double lambdaLuma, Double lambdaChroma)
 #else
-Void TEncAdaptiveLoopFilter::ALFProcess( AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam, Double dLambda)
+Void TEncAdaptiveLoopFilter::ALFProcess( AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam, Double lambda)
 #endif
 {
 #if ALF_CHROMA_LAMBDA
-  m_dLambdaLuma   = dLambdaLuma;
-  m_dLambdaChroma = dLambdaChroma;
+  m_dLambdaLuma   = lambdaLuma;
+  m_dLambdaChroma = lambdaChroma;
 #else
-  m_dLambdaLuma   = dLambda;
-  m_dLambdaChroma = dLambda;
+  m_dLambdaLuma   = lambda;
+  m_dLambdaChroma = lambda;
 #endif
-  TComPicYuv* pcPicOrg       = m_pcPic->getPicYuvOrg();
-  TComPicYuv* pcPicYuvRec    = m_pcPic->getPicYuvRec();
-  TComPicYuv* pcPicYuvExtRec = m_pcTempPicYuv;
+  TComPicYuv* yuvOrg    = m_pcPic->getPicYuvOrg();
+  TComPicYuv* yuvRec    = m_pcPic->getPicYuvRec();
+  TComPicYuv* yuvExtRec = m_pcTempPicYuv;
 
   //picture boundary padding
-  pcPicYuvRec->copyToPic(pcPicYuvExtRec);
-  pcPicYuvExtRec->setBorderExtension( false );
-  pcPicYuvExtRec->extendPicBorder   ();
+  yuvRec->copyToPic(yuvExtRec);
+  yuvExtRec->setBorderExtension( false );
+  yuvExtRec->extendPicBorder   ();
 
-  //initial encoder parameters
-  initALFEncoderParam(alfCtrlParam);
+  //initialize encoder parameters
+  initALFEncoderParam(alfParamSet, alfCtrlParam);
 
-  //get lcu statistics
-  getStatistics(pcPicOrg, pcPicYuvExtRec);
+  //get LCU statistics
+  getStatistics(yuvOrg, yuvExtRec);
 
-  if(m_alfCoefInSlice)
-  {
-    m_bestAlfParamSet = new AlfParamSet[m_uiNumSlicesInPic];
-    for(Int s=0; s< m_uiNumSlicesInPic; s++)
-    {
-      m_bestAlfParamSet[s].create( alfParamSet[s].numLCUInWidth, alfParamSet[s].numLCUInHeight, alfParamSet[s].numLCU);
-    }
-  }
-  else
-  {
-    m_bestAlfParamSet = new AlfParamSet;
-    m_bestAlfParamSet->create( alfParamSet->numLCUInWidth, alfParamSet->numLCUInHeight, alfParamSet->numLCU);
-  }
+  //decide ALF parameters
+  decideParameters(yuvOrg, yuvExtRec, yuvRec, m_bestAlfParamSet, alfCtrlParam);
 
-  //mode decision
-  decideParameters(pcPicOrg, pcPicYuvExtRec, pcPicYuvRec, m_bestAlfParamSet, alfCtrlParam);
-
-  if(m_bAlfCUCtrlEnabled)
-  {
-    for(Int s=0; s< m_uiNumSlicesInPic; s++)
-    {
-      (*alfCtrlParam)[s]= m_vBestAlfCUCtrlParam[s];
-    }
-  }
-
-  if(m_alfCoefInSlice)
-  {
-
-    for(Int s=0; s< m_uiNumSlicesInPic; s++)
-    {
-      if(!m_pcPic->getValidSlice(s))
-      {
-        continue;
-      }
-
-      if( m_bestAlfParamSet[s].isEnabled[ALF_Y] || m_bestAlfParamSet[s].isEnabled[ALF_Cb] || m_bestAlfParamSet[s].isEnabled[ALF_Cr])
-      {
-        m_bestAlfParamSet[s].isEnabled[ALF_Y] = true;
-      }
-
-      copyAlfParamSet(&(alfParamSet[s]), &(m_bestAlfParamSet[s]));
-    }
-  }
-  else
-  {
-    if( m_bestAlfParamSet->isEnabled[ALF_Y] || m_bestAlfParamSet->isEnabled[ALF_Cb] || m_bestAlfParamSet->isEnabled[ALF_Cr])
-    {
-      m_bestAlfParamSet->isEnabled[ALF_Y] = true;
-    }
-
-    copyAlfParamSet(alfParamSet, m_bestAlfParamSet);
-  }
-
-  if(m_alfCoefInSlice)
-  {
-    delete[] m_bestAlfParamSet;
-  }
-  else
-  {
-    delete m_bestAlfParamSet;
-  }
-
+  //assign best parameters
+  assignALFEncoderParam(alfParamSet, alfCtrlParam);
 }
 
-
-
+/** Check if the current LCU can be merged with neighboring LCU
+ * \param [in] compIdx luma/chroma component index
+ * \param [out] alfUnitPic ALF unit parameters for all LCUs in picture
+ */
 Void TEncAdaptiveLoopFilter::checkMerge(Int compIdx, AlfUnitParam* alfUnitPic)
 {
   AlfUnitParam *alfUnitLeft, *alfUnitUp;
@@ -1198,6 +1262,11 @@ Void TEncAdaptiveLoopFilter::checkMerge(Int compIdx, AlfUnitParam* alfUnitPic)
 
 }
 
+/** Transfer ALF unit parameters for LCUs to to-be-coded ALF parameter set
+ * \param [in] compIdx luma/chroma component index
+ * \param [in] alfUnitPic ALF unit parameters for all LCUs in picture
+ * \param [out] alfParamSet to-be-coded ALF parameter set
+ */
 Void TEncAdaptiveLoopFilter::transferToAlfParamSet(Int compIdx, AlfUnitParam* alfUnitPic, AlfParamSet* & alfParamSet)
 {
 
@@ -1246,6 +1315,11 @@ Void TEncAdaptiveLoopFilter::transferToAlfParamSet(Int compIdx, AlfUnitParam* al
 
 }
 
+/** Disable all ALF unit parameters in current component
+ * \param [in] compIdx luma/chroma component index
+ * \param [out] alfParamSet to-be-coded ALF parameter set
+ * \param [in] alfUnitPic ALF unit parameters for all LCUs in picture
+ */
 Void TEncAdaptiveLoopFilter::disableComponentAlfParam(Int compIdx, AlfParamSet* alfParamSet, AlfUnitParam* alfUnitPic)
 {
   alfParamSet->isEnabled [compIdx] = false;
@@ -1270,6 +1344,16 @@ Void TEncAdaptiveLoopFilter::disableComponentAlfParam(Int compIdx, AlfParamSet* 
 
 }
 
+/** Picture-based encoding
+ * \param [out] alfParamSet to-be-coded ALF parameter set
+ * \param [in, out] alfPicQTPart picture quad-tree partition
+ * \param [in] compIdx luma/chroma component index
+ * \param [in] pOrg picture buffer for original picture
+ * \param [in] pDec picture buffer for un-filtered picture
+ * \param [out] pRest picture buffer for filtered picture
+ * \param [in] stride stride size for 1-D picture memory
+ * \param [in, out] alfCorrLCUs correlation values for LCUs
+ */
 Void TEncAdaptiveLoopFilter::executePicBasedModeDecision(AlfParamSet* alfParamSet
                                                         , AlfPicQTPart* alfPicQTPart
                                                         , Int compIdx
@@ -1351,7 +1435,10 @@ Void TEncAdaptiveLoopFilter::executePicBasedModeDecision(AlfParamSet* alfParamSe
 
 }
 
-
+/** copy picture quadtree infromation
+ * \param [out] alfPicQTPartDest destination part in picture quad tree
+ * \param [in ] alfPicQTPartSrc source part in picture quad tree
+ */
 Void TEncAdaptiveLoopFilter::copyPicQT(AlfPicQTPart* alfPicQTPartDest, AlfPicQTPart* alfPicQTPartSrc)
 {
   for (Int i=0; i< m_alfNumCulPartsLevelTab[m_alfPQTMaxDepth]; i++)
@@ -1360,7 +1447,15 @@ Void TEncAdaptiveLoopFilter::copyPicQT(AlfPicQTPart* alfPicQTPartDest, AlfPicQTP
   }
 }
 
-
+/** copy pixel values for one rectangular region
+ * \param [out] imgDest destination part in picture quad tree
+ * \param [in ] imgSrc source part in picture quad tree
+ * \param [in ] stride source part in picture quad tree
+ * \param [in ] yPos starting y position
+ * \param [in ] height region height
+ * \param [in ] xPos starting x position
+ * \param [in ] width region width
+ */
 Void TEncAdaptiveLoopFilter::copyPixelsInOneRegion(Pel* imgDest, Pel* imgSrc, Int stride, Int yPos, Int height, Int xPos, Int width)
 {
   Int offset = (yPos*stride) + xPos;
@@ -1375,7 +1470,11 @@ Void TEncAdaptiveLoopFilter::copyPixelsInOneRegion(Pel* imgDest, Pel* imgSrc, In
   }
 }
 
-
+/** Re-design ALF parameters for picture quad-tree partitions
+ * \param [out] alfPicQTPart picture quad-tree partition information
+ * \param [in ] partIdx partition index
+ * \param [in ] partLevel partition level
+ */
 Void TEncAdaptiveLoopFilter::reDesignQT(AlfPicQTPart *alfPicQTPart, Int partIdx, Int partLevel)
 {
   AlfPicQTPart *alfPicQTOnePart = &(alfPicQTPart[partIdx]);  
@@ -1397,7 +1496,17 @@ Void TEncAdaptiveLoopFilter::reDesignQT(AlfPicQTPart *alfPicQTPart, Int partIdx,
   }  
 }
 
-
+/** CU-on/off control decision
+ * \param [in ] imgOrg picture buffer for original picture
+ * \param [in ] imgDec picture buffer for un-filtered picture
+ * \param [in ] imgRest picture buffer for filtered picture
+ * \param [in ] stride buffer stride size for 1-D picture memory
+ * \param [in, out] alfPicQTPart picture quad-tree partition information
+ * \param [in, out] alfParamSet ALF parameter set
+ * \param [in, out ] minRate minimum rate
+ * \param [in, out ] minDist minimum distortion
+ * \param [in, out ] minCost minimum RD cost
+ */
 Void TEncAdaptiveLoopFilter::decideBlockControl(Pel* imgOrg, Pel* imgDec, Pel* imgRest, Int stride, AlfPicQTPart* alfPicQTPart, AlfParamSet* & alfParamSet, Int64 &minRate, Int64 &minDist, Double &minCost)
 {
   Int    rate, ctrlDepth;
@@ -1500,7 +1609,11 @@ Void TEncAdaptiveLoopFilter::decideBlockControl(Pel* imgOrg, Pel* imgDec, Pel* i
   alfPicQTPartBest = NULL;
 }
 
-
+/** Copy ALF unit parameters from quad-tree partition to LCUs
+ * \param [in] alfPicQTPart picture quad-tree partition information
+ * \param [in] partIdx partition index
+ * \param [out] alfUnitPic ALF unit parameters for LCUs
+ */
 Void TEncAdaptiveLoopFilter::patchAlfUnitParams(AlfPicQTPart* alfPicQTPart, Int partIdx, AlfUnitParam* alfUnitPic)
 {
   AlfPicQTPart* alfQTPart = &(alfPicQTPart[partIdx]);
@@ -1535,6 +1648,15 @@ Void TEncAdaptiveLoopFilter::patchAlfUnitParams(AlfPicQTPart* alfPicQTPart, Int 
   }
 }
 
+/** Decide picture quad-tree partition
+ * \param [in, out] alfPicQTPart picture quad-tree partition information
+ * \param [in, out] alfPicLCUCorr correlations for LCUs
+ * \param [int] partIdx partition index
+ * \param [int] partLevel partition level
+ * \param [in, out] cost cost for one partition
+ * \param [in, out] dist distortion for one partition
+ * \param [in, out] rate bitrate for one partition
+ */
 Void TEncAdaptiveLoopFilter::decideQTPartition(AlfPicQTPart* alfPicQTPart, AlfCorrData** alfPicLCUCorr, Int partIdx, Int partLevel, Double &cost, Int64 &dist, Int64 &rate)
 {
   AlfPicQTPart* alfPicQTOnePart = &(alfPicQTPart[partIdx]);
@@ -1595,7 +1717,12 @@ Void TEncAdaptiveLoopFilter::decideQTPartition(AlfPicQTPart* alfPicQTPart, AlfCo
 
 }
 
-
+/** Mode decision process for one picture quad-tree partition
+ * \param [in, out] alfPicQTPart picture quad-tree partition information
+ * \param [in, out] alfPicLCUCorr correlations for LCUs
+ * \param [int] partIdx partition index
+ * \param [int] partLevel partition level
+ */
 Void TEncAdaptiveLoopFilter::executeModeDecisionOnePart(AlfPicQTPart *alfPicQTPart, AlfCorrData** alfPicLCUCorr, Int partIdx, Int partLevel)
 {
   AlfPicQTPart* alfQTPart = &(alfPicQTPart[partIdx]);
@@ -1647,7 +1774,12 @@ Void TEncAdaptiveLoopFilter::executeModeDecisionOnePart(AlfPicQTPart *alfPicQTPa
 
 }
 
-
+/** Derive filter coefficients
+ * \param [in, out] alfPicQTPart picture quad-tree partition information
+ * \param [in, out] alfPicLCUCorr correlations for LCUs
+ * \param [int] partIdx partition index
+ * \param [int] partLevel partition level
+ */
 Void TEncAdaptiveLoopFilter::deriveFilterInfo(Int compIdx, AlfCorrData* alfCorr, ALFParam* alfFiltParam, Int maxNumFilters)
 {
   const Int filtNo = 0; 
@@ -1690,6 +1822,11 @@ Void TEncAdaptiveLoopFilter::deriveFilterInfo(Int compIdx, AlfCorrData* alfCorr,
 
 }
 
+/** Estimate rate-distortion cost for ALF parameter set
+ * \param [in] compIdx luma/chroma component index
+ * \param [in] alfParamSet ALF parameter set
+ * \param [in] alfCUCtrlParam CU-on/off control parameters
+ */
 Int TEncAdaptiveLoopFilter::calculateAlfParamSetRateRDO(Int compIdx, AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCUCtrlParam)
 {
   Int rate = 0;
@@ -1713,6 +1850,10 @@ Int TEncAdaptiveLoopFilter::calculateAlfParamSetRateRDO(Int compIdx, AlfParamSet
   return rate;
 }
 
+/** Estimate rate-distortion cost for ALF unit parameters
+ * \param [in] alfUnitParam ALF unit parameters
+ * \param [in] numStoredFilters number of stored filter (set)
+ */
 Int TEncAdaptiveLoopFilter::calculateAlfUnitRateRDO(AlfUnitParam* alfUnitParam, Int numStoredFilters)
 {
   Int rate = 0;
@@ -1751,6 +1892,14 @@ Int TEncAdaptiveLoopFilter::calculateAlfUnitRateRDO(AlfUnitParam* alfUnitParam, 
   return rate;
 }
 
+/** Estimate filtering distortion
+ * \param [in] compIdx luma/chroma component index
+ * \param [in] alfCorr correlations
+ * \param [in] coeffSet filter coefficients
+ * \param [in] filterSetSize number of filter set
+ * \param [in] mergeTable merge table of filter set (only for luma BA)
+ * \param [in] doPixAccMerge calculate pixel squared value (true) or not (false)
+ */
 Int64 TEncAdaptiveLoopFilter::estimateFilterDistortion(Int compIdx, AlfCorrData* alfCorr, Int** coeffSet, Int filterSetSize, Int* mergeTable, Bool doPixAccMerge)
 {
   const Int numCoeff = (Int)ALF_MAX_NUM_COEF;
@@ -1767,7 +1916,20 @@ Int64 TEncAdaptiveLoopFilter::estimateFilterDistortion(Int compIdx, AlfCorrData*
   return iDist;
 }
 
-
+/** Mode decision for ALF unit in LCU-based encoding
+ * \param [in] compIdx luma/chroma component index
+ * \param [in] alfUnitPic ALF unit parmeters for LCUs in picture
+ * \param [in] lcuIdx LCU index (order) in slice
+ * \param [in] lcuPos LCU position in picture
+ * \param [in] numLCUWidth number of width in LCU
+ * \param [in, out] alfUnitParams ALF unit parameters for LCUs in slice
+ * \param [in] alfCorr correlations
+ * \param [in] storedFilters stored-filter buffer
+ * \param [in] maxNumFilter constraint for number of filters
+ * \param [in] lambda lagrangian multiplier for RDO
+ * \param [in] isLeftUnitAvailable left ALF unit available (true) or not (false)
+ * \param [in] isUpUnitAvailable upper ALF unit available (true) or not (false)
+ */
 Void TEncAdaptiveLoopFilter::decideLCUALFUnitParam(Int compIdx, AlfUnitParam* alfUnitPic, Int lcuIdx, Int lcuPos, Int numLCUWidth, AlfUnitParam* alfUnitParams, AlfCorrData* alfCorr, std::vector<ALFParam*>& storedFilters, Int maxNumFilter, Double lambda, Bool isLeftUnitAvailable, Bool isUpUnitAvailable)
 {
   Int    numSliceDataInCurrLCU = m_numSlicesDataInOneLCU[lcuPos];
@@ -1890,6 +2052,13 @@ Void TEncAdaptiveLoopFilter::decideLCUALFUnitParam(Int compIdx, AlfUnitParam* al
   }
 }
 
+/** Choose the best ALF unit parameters when filter is not enabled.
+ * \param [out] alfFiltOffParam ALF unit parameters for filter-off case
+ * \param [in] lcuPos LCU position in picture
+ * \param [in] alfUnitPic ALF unit parmeters for LCUs in picture
+ * \param [in] isLeftUnitAvailable left ALF unit available (true) or not (false)
+ * \param [in] isUpUnitAvailable upper ALF unit available (true) or not (false)
+ */
 Void TEncAdaptiveLoopFilter::getFiltOffAlfUnitParam(AlfUnitParam* alfFiltOffParam, Int lcuPos, AlfUnitParam* alfUnitPic, Bool isLeftUnitAvailable, Bool isUpUnitAvailable)
 {
   Int    numSliceDataInCurrLCU = m_numSlicesDataInOneLCU[lcuPos];
@@ -1936,6 +2105,16 @@ Void TEncAdaptiveLoopFilter::getFiltOffAlfUnitParam(AlfUnitParam* alfFiltOffPara
   return;
 }
 
+/** Calculate distortion for ALF LCU
+ * \param [in] skipLCUBottomLines true for considering skipping bottom LCU lines
+ * \param [in] compIdx luma/chroma component index
+ * \param [in] alfLCUInfo ALF LCU information
+ * \param [in] picSrc source picture buffer
+ * \param [in] picCmp to-be-compared picture buffer
+ * \param [in] stride buffer stride size for 1-D pictrue memory
+ * \param [in] formatShift 0 for luma and 1 for chroma (4:2:0)
+ * \return the distortion
+ */
 Int64 TEncAdaptiveLoopFilter::calcAlfLCUDist(Bool skipLCUBottomLines, Int compIdx, AlfLCUInfo& alfLCUInfo, Pel* picSrc, Pel* picCmp, Int stride, Int formatShift)
 {
   Int64 dist = 0;  
@@ -2026,6 +2205,13 @@ Int64 TEncAdaptiveLoopFilter::calcAlfLCUDist(Bool skipLCUBottomLines, Int compId
   return dist;
 }
 
+/** Copy one ALF LCU region
+ * \param [in] alfLCUInfo ALF LCU information
+ * \param [out] picDst to-be-compared picture buffer
+ * \param [in] picSrc source picture buffer
+ * \param [in] stride buffer stride size for 1-D pictrue memory
+ * \param [in] formatShift 0 for luma and 1 for chroma (4:2:0)
+ */
 Void TEncAdaptiveLoopFilter::copyOneAlfLCU(AlfLCUInfo& alfLCUInfo, Pel* picDst, Pel* picSrc, Int stride, Int formatShift)
 {
   Int posOffset, ypos, xpos, height, width;
@@ -2053,6 +2239,15 @@ Void TEncAdaptiveLoopFilter::copyOneAlfLCU(AlfLCUInfo& alfLCUInfo, Pel* picDst, 
 
 }
 
+/** Reconstruct ALF LCU pixels
+ * \param [in] compIdx luma/chroma component index
+ * \param [in] alfLCUInfo ALF LCU information
+ * \param [in] alfUnitParam ALF unit parameters
+ * \param [in] picDec picture buffer for un-filtered picture 
+ * \param [out] picRest picture buffer for reconstructed picture
+ * \param [in] stride buffer stride size for 1-D pictrue memory
+ * \param [in] formatShift 0 for luma and 1 for chroma (4:2:0)
+ */
 Void TEncAdaptiveLoopFilter::reconstructOneAlfLCU(Int compIdx, AlfLCUInfo& alfLCUInfo, AlfUnitParam* alfUnitParam, Pel* picDec, Pel* picRest, Int stride, Int formatShift)
 {
   ALFParam* alfParam = alfUnitParam->alfFiltParam;
@@ -2082,6 +2277,16 @@ Void TEncAdaptiveLoopFilter::reconstructOneAlfLCU(Int compIdx, AlfLCUInfo& alfLC
   }
 }
 
+/** LCU-based mode decision
+ * \param [in, out] alfParamSet ALF parameter set
+ * \param [in] compIdx luma/chroma component index
+ * \param [in] pOrg picture buffer for original picture
+ * \param [in] pDec picture buffer for un-filtered picture 
+ * \param [out] pRest picture buffer for reconstructed picture
+ * \param [in] stride buffer stride size for 1-D pictrue memory
+ * \param [in] formatShift 0 for luma and 1 for chroma (4:2:0)
+ * \param [in] alfCorrLCUs correlations for LCUs
+ */
 Void TEncAdaptiveLoopFilter::executeLCUBasedModeDecision(AlfParamSet* alfParamSet
                                                         ,Int compIdx, Pel* pOrg, Pel* pDec, Pel* pRest, Int stride, Int formatShift
                                                         ,AlfCorrData** alfCorrLCUs
@@ -2281,13 +2486,20 @@ Void TEncAdaptiveLoopFilter::executeLCUBasedModeDecision(AlfParamSet* alfParamSe
 }
 
 
+/** Decide ALF parameter set for luma/chroma components (top function) 
+ * \param [in] pPicOrg picture buffer for original picture
+ * \param [in] pPicDec picture buffer for un-filtered picture 
+ * \param [out] pPicRest picture buffer for reconstructed picture
+ * \param [in, out] alfParamSet ALF parameter set
+ * \param [in, out] alfCtrlParam ALF CU-on/off control parameters
+ */
 Void TEncAdaptiveLoopFilter::decideParameters(TComPicYuv* pPicOrg, TComPicYuv* pPicDec, TComPicYuv* pPicRest
                                             , AlfParamSet* alfParamSet
                                             , std::vector<AlfCUCtrlInfo>* alfCtrlParam)
 {
   static Int lumaStride        = pPicOrg->getStride();
   static Int chromaStride      = pPicOrg->getCStride();
-  //const  Int chromaFormatShift = 1;
+
   Pel *pOrg, *pDec, *pRest;
   Int stride, formatShift;
 
@@ -2315,7 +2527,10 @@ Void TEncAdaptiveLoopFilter::decideParameters(TComPicYuv* pPicOrg, TComPicYuv* p
 
 }
 
-
+/** Gather correlations for all LCUs in picture
+ * \param [in] pPicOrg picture buffer for original picture
+ * \param [in] pPicDec picture buffer for un-filtered picture 
+ */
 Void TEncAdaptiveLoopFilter::getStatistics(TComPicYuv* pPicOrg, TComPicYuv* pPicDec)
 {
   Int lumaStride   = pPicOrg->getStride();
@@ -2334,7 +2549,15 @@ Void TEncAdaptiveLoopFilter::getStatistics(TComPicYuv* pPicOrg, TComPicYuv* pPic
   } 
 }
 
-
+/** Gather correlations for all LCUs of one luma/chroma component in picture
+ * \param [out] alfCorrComp correlations for LCUs
+ * \param [in] compIdx luma/chroma component index
+ * \param [in] imgOrg picture buffer for original picture
+ * \param [in] imgDec picture buffer for un-filtered picture 
+ * \param [in] stride buffer stride size for 1-D pictrue memory
+ * \param [in] formatShift 0 for luma and 1 for chroma (4:2:0)
+ * \param [in] isRedesignPhase at re-design filter stage (true) or not (false)
+ */
 Void TEncAdaptiveLoopFilter::getOneCompStatistics(AlfCorrData** alfCorrComp, Int compIdx, Pel* imgOrg, Pel* imgDec, Int stride, Int formatShift, Bool isRedesignPhase)
 {
 
@@ -2375,7 +2598,15 @@ Void TEncAdaptiveLoopFilter::getOneCompStatistics(AlfCorrData** alfCorrComp, Int
 
 }
 
-
+/** Gather correlations for one LCU
+ * \param [out] alfCorrComp correlations for LCUs
+ * \param [in] compIdx luma/chroma component index
+ * \param [in] imgOrg picture buffer for original picture
+ * \param [in] imgDec picture buffer for un-filtered picture 
+ * \param [in] stride buffer stride size for 1-D pictrue memory
+ * \param [in] formatShift 0 for luma and 1 for chroma (4:2:0)
+ * \param [in] isRedesignPhase at re-design filter stage (true) or not (false)
+ */
 Void TEncAdaptiveLoopFilter::getStatisticsOneLCU(Bool skipLCUBottomLines, Int compIdx, AlfLCUInfo* alfLCU, AlfCorrData* alfCorr, Pel* pPicOrg, Pel* pPicSrc, Int stride, Int formatShift, Bool isRedesignPhase)
 {
   Int numBlocks = alfLCU->numSGU;
@@ -2499,6 +2730,18 @@ Void TEncAdaptiveLoopFilter::getStatisticsOneLCU(Bool skipLCUBottomLines, Int co
 
 
 #if ALF_SINGLE_FILTER_SHAPE
+/** Gather correlations for one region for chroma component
+ * \param [in] imgOrg picture buffer for original picture
+ * \param [in] imgPad picture buffer for un-filtered picture 
+ * \param [in] stride buffer stride size for 1-D pictrue memory
+ * \param [in] yPos region starting y position
+ * \param [in] xPos region starting x position
+ * \param [in] height region height
+ * \param [in] width region width
+ * \param [out] eCorr auto-correlation matrix
+ * \param [out] yCorr cross-correlation array
+ * \param [in] isSymmCopyBlockMatrix symmetrically copy correlation values in eCorr (true) or not (false)
+ */
 Void TEncAdaptiveLoopFilter::calcCorrOneCompRegionChma(Pel* imgOrg, Pel* imgPad, Int stride 
                                                      , Int yPos, Int xPos, Int height, Int width
                                                      , Double **eCorr, Double *yCorr, Bool isSymmCopyBlockMatrix
@@ -2610,7 +2853,20 @@ Void TEncAdaptiveLoopFilter::calcCorrOneCompRegionChma(Pel* imgOrg, Pel* imgPad,
   }
 }
 
-
+/** Gather correlations for one region for luma component
+ * \param [in] imgOrg picture buffer for original picture
+ * \param [in] imgPad picture buffer for un-filtered picture 
+ * \param [in] stride buffer stride size for 1-D pictrue memory
+ * \param [in] yPos region starting y position
+ * \param [in] xPos region starting x position
+ * \param [in] height region height
+ * \param [in] width region width
+ * \param [out] eCorr auto-correlation matrix
+ * \param [out] yCorr cross-correlation array
+ * \param [out] pixAcc pixel squared value
+ * \param [in] isforceCollection all pixel are used for correlation calculation (true) or not (false)
+ * \param [in] isSymmCopyBlockMatrix symmetrically copy correlation values in eCorr (true) or not (false)
+ */
 Void TEncAdaptiveLoopFilter::calcCorrOneCompRegionLuma(Pel* imgOrg, Pel* imgPad, Int stride
                                                       ,Int yPos, Int xPos, Int height, Int width
                                                       ,Double ***eCorr, Double **yCorr, Double *pixAcc
@@ -2894,7 +3150,7 @@ Void TEncAdaptiveLoopFilter::PCMLFDisableProcess (TComPic* pcPic)
 // ====================================================================================================================
 // Private member functions
 // ====================================================================================================================
-
+#if !LCU_SYNTAX_ALF
 Void TEncAdaptiveLoopFilter::xInitParam()
 {
   Int i, j;
@@ -3026,7 +3282,7 @@ Void TEncAdaptiveLoopFilter::xUninitParam()
     m_ppdAlfCorrCr = NULL;
   }
 }
-
+#endif
 Void TEncAdaptiveLoopFilter::xCreateTmpAlfCtrlFlags()
 {
   for( UInt uiCUAddr = 0; uiCUAddr < m_pcPic->getNumCUsInFrame() ; uiCUAddr++ )
@@ -3789,13 +4045,18 @@ Void TEncAdaptiveLoopFilter::xFilteringFrameChroma(ALFParam* pcAlfParam, TComPic
 
 }
 #endif
+#if LCU_SYNTAX_ALF 
+/** Restore the not-filtered pixels
+ * \param [in] imgDec picture buffer before filtering
+ * \param [out] imgRest picture buffer after filtering
+ * \param [in] stride stride size for 1-D picture memory
+ */
+Void TEncAdaptiveLoopFilter::xCopyDecToRestCUs(Pel* imgDec, Pel* imgRest, Int stride)
+#else
 /** Restore the not-filtered pixels
  * \param pcPicDec picture buffer before filtering
  * \param pcPicRest picture buffer after filtering
  */
-#if LCU_SYNTAX_ALF 
-Void TEncAdaptiveLoopFilter::xCopyDecToRestCUs(Pel* imgDec, Pel* imgRest, Int stride)
-#else
 Void TEncAdaptiveLoopFilter::xCopyDecToRestCUs(TComPicYuv* pcPicDec, TComPicYuv* pcPicRest)
 #endif
 {

@@ -145,14 +145,6 @@ public:
   virtual Void parseSaoUvlc       ( UInt& ruiVal           ) = 0;
   virtual Void parseSaoSvlc       ( Int&  riVal            ) = 0;
 #endif
-#if SAO_UNIT_INTERLEAVING
-  virtual Void parseSaoUvlc       ( UInt& ruiVal           ) = 0;
-  virtual Void parseSaoSvlc       ( Int&  riVal            ) = 0;
-  virtual Void parseSaoMergeLeft  (UInt&  ruiVal, UInt uiCompIdx ) = 0;
-  virtual Void parseSaoMergeUp     (UInt&  ruiVal) = 0;
-  virtual Void parseSaoTypeIdx     (UInt&  ruiVal) = 0;
-  virtual Void parseSaoUflc       ( UInt& ruiVal           ) = 0;
-#endif
   virtual Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed ) = 0;
   virtual Void updateContextTables( SliceType eSliceType, Int iQp ) = 0;
   
@@ -248,13 +240,13 @@ public:
 private:
 #if UNIFIED_TRANSFORM_TREE
 #if NSQT_LFFIX
-  Void xDecodeTransform        ( TComDataCU* pcCU, UInt offsetLuma, UInt offsetChroma, UInt uiAbsPartIdx, UInt uiNSAbsPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3, Bool& bCodeDQP );
+  Void xDecodeTransform        ( TComDataCU* pcCU, UInt offsetLuma, UInt offsetChroma, UInt uiAbsPartIdx, UInt nsAbsPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3, Bool& bCodeDQP );
 #else
   Void xDecodeTransform        ( TComDataCU* pcCU, UInt offsetLuma, UInt offsetChroma, UInt uiAbsPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3, Bool& bCodeDQP );
 #endif
 #else
 #if NSQT_LFFIX
-  Void xDecodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiNSAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 );
+  Void xDecodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt nsAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 );
 #else
   Void xDecodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 );
 #endif
@@ -284,9 +276,9 @@ public:
   Void decodeSaoParam         (SAOParam* pSaoParam);
 #endif
 #if SAO_UNIT_INTERLEAVING
-  Void decodeSaoParam         (SAOParam* pSaoParam);
-  void decodeSaoLcu(Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam, Bool &bRepeatedRow );
-  Void decodeSaoOneLcu(SaoLcuParam* psSaoLcuParam);
+  Void decodeSaoParam         (SAOParam* saoParam);
+  void decodeSaoLcu(Int rx, Int ry, Int compIdx, SAOParam* saoParam, Bool &repeatedRow );
+  Void decodeSaoOneLcu(SaoLcuParam* saoLcuParam);
 #endif
 
 #if OL_FLUSH

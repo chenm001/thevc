@@ -1741,10 +1741,10 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
   UInt iTransformShift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize; 
   iShift = QUANT_IQUANT_SHIFT - QUANT_SHIFT - iTransformShift;
 
-#if DEQUAN_CLIPPING
-  TCoeff iClipQCoef;
-  const Int iBitRange = min( 15, ( Int )( 12 + uiLog2TrSize + uiBitDepth - m_cQP.m_iPer) );
-  const Int iLevelLimit = 1 << iBitRange;
+#if DEQUANT_CLIPPING
+  TCoeff clipQCoef;
+  const Int bitRange = min( 15, ( Int )( 12 + uiLog2TrSize + uiBitDepth - m_cQP.m_iPer) );
+  const Int levelLimit = 1 << bitRange;
 #endif
 
   if(getUseScalingList())
@@ -1764,9 +1764,9 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
     {
       for( Int n = 0; n < iWidth*iHeight; n++ )
       {
-#if DEQUAN_CLIPPING
-        iClipQCoef = Clip3( -32768, 32767, piQCoef[n] );
-        iCoeffQ = ((iClipQCoef * piDequantCoef[n]) + iAdd ) >> (iShift -  m_cQP.m_iPer);
+#if DEQUANT_CLIPPING
+        clipQCoef = Clip3( -32768, 32767, piQCoef[n] );
+        iCoeffQ = ((clipQCoef * piDequantCoef[n]) + iAdd ) >> (iShift -  m_cQP.m_iPer);
 #else
         iCoeffQ = ((piQCoef[n] * piDequantCoef[n]) + iAdd ) >> (iShift -  m_cQP.m_iPer);
 #endif
@@ -1777,9 +1777,9 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
     {
       for( Int n = 0; n < iWidth*iHeight; n++ )
       {
-#if DEQUAN_CLIPPING
-        iClipQCoef = Clip3( -iLevelLimit, iLevelLimit - 1, piQCoef[n] );
-        iCoeffQ = (iClipQCoef * piDequantCoef[n]) << (m_cQP.m_iPer - iShift);
+#if DEQUANT_CLIPPING
+        clipQCoef = Clip3( -levelLimit, levelLimit - 1, piQCoef[n] );
+        iCoeffQ = (clipQCoef * piDequantCoef[n]) << (m_cQP.m_iPer - iShift);
 #else
         iCoeffQ = (piQCoef[n] * piDequantCoef[n]) << (m_cQP.m_iPer - iShift);
 #endif
@@ -1794,9 +1794,9 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
 
     for( Int n = 0; n < iWidth*iHeight; n++ )
     {
-#if DEQUAN_CLIPPING
-      iClipQCoef = Clip3( -32768, 32767, piQCoef[n] );
-      iCoeffQ = ( iClipQCoef * scale + iAdd ) >> iShift;
+#if DEQUANT_CLIPPING
+      clipQCoef = Clip3( -32768, 32767, piQCoef[n] );
+      iCoeffQ = ( clipQCoef * scale + iAdd ) >> iShift;
 #else
       iCoeffQ = ( piQCoef[n] * scale + iAdd ) >> iShift;
 #endif
@@ -3823,7 +3823,7 @@ Void TComTrQuant::xsetFlatScalingList(UInt list, UInt size, UInt qp)
 Void TComTrQuant::processScalingListEnc( Int *coeff, Int *quantcoeff, Int quantScales, UInt height, UInt width, UInt ratio, Int sizuNum, UInt dc)
 {
   Int nsqth = (height < width) ? 4: 1; //height ratio for NSQT
-  Int nsqtw  = (width < height) ? 4: 1; //width ratio for NSQT
+  Int nsqtw = (width < height) ? 4: 1; //width ratio for NSQT
   for(UInt j=0;j<height;j++)
   {
     for(UInt i=0;i<width;i++)
@@ -3851,7 +3851,7 @@ Void TComTrQuant::processScalingListEnc( Int *coeff, Int *quantcoeff, Int quantS
 Void TComTrQuant::processScalingListDec( Int *coeff, Int *dequantcoeff, Int invQuantScales, UInt height, UInt width, UInt ratio, Int sizuNum, UInt dc)
 {
   Int nsqth = (height < width) ? 4: 1; //height ratio for NSQT
-  Int nsqtw  = (width < height) ? 4: 1; //width ratio for NSQT
+  Int nsqtw = (width < height) ? 4: 1; //width ratio for NSQT
   for(UInt j=0;j<height;j++)
   {
     for(UInt i=0;i<width;i++)

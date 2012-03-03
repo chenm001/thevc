@@ -118,14 +118,6 @@ public:
   Void  parseSaoUvlc        ( UInt& ruiVal );
   Void  parseSaoSvlc        ( Int&  riVal  );
 #endif  
-#if SAO_UNIT_INTERLEAVING
-  Void  parseSaoUvlc        ( UInt& ruiVal ){;}
-  Void  parseSaoSvlc        ( Int&  riVal  ){;}
-  Void  parseSaoMergeLeft   ( UInt& ruiVal, UInt uiCompIdx   ){;}
-  Void  parseSaoMergeUp     ( UInt& ruiVal ){;}
-  Void  parseSaoTypeIdx     ( UInt& ruiVal ){;}
-  Void  parseSaoUflc        ( UInt& ruiVal ){;}
-#endif
 
   Void  parseSPS            ( TComSPS* pcSPS );
   Void  parsePPS            ( TComPPS* pcPPS);
@@ -192,8 +184,8 @@ protected:
 #endif
   Void  xParseSaoParam       ( SAOParam* pSaoParam );
 #if SAO_UNIT_INTERLEAVING
-  Void  xParseSaoOffset      (SaoLcuParam* psSaoLcuParam);
-  Void  xParseSaoUnit        (Int rx, Int ry, Int iCompIdx, SAOParam* pSaoParam, Bool& bRepeatedRow );
+  Void  xParseSaoOffset      (SaoLcuParam* saoLcuParam);
+  Void  xParseSaoUnit        (Int rx, Int ry, Int compIdx, SAOParam* saoParam, Bool& repeatedRow );
 #else
   Void  xParseSaoSplitParam  ( SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr );
   Void  xParseSaoOffsetParam ( SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr );

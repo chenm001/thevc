@@ -53,7 +53,7 @@
 #define MULTILEVEL_SIGMAP_EXT     1  ///< H0526: multi-level significance map extended to smaller TUs
 #define MULTIBITS_DATA_HIDING     1  ///< H0481: multiple sign bit hiding
 
-#define DEQUAN_CLIPPING           1  ///< H0312/H0541: transformed coefficients clipping before de-quantization
+#define DEQUANT_CLIPPING           1  ///< H0312/H0541: transformed coefficients clipping before de-quantization
 
 #define REMOVE_NON_SCALED         1 ///< H0164/H0250: Removal of non-scaled merge candidate
 #define MRG_IDX_CTX_RED           1 ///< H0251: Merge index context reduction
@@ -86,6 +86,9 @@
 #define EIGHT_BITS_RICE_CODE        1 ///< H0498 : 8 bits rice codes
 
 #define SAO_UNIT_INTERLEAVING      1   ///< H0273
+#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_1 0  ///< disable the encoder constraint that does not test SAO/BO mode for chroma in interleaved mode
+#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_2 0  ///< disable the encoder constraint that reduce the range of SAO/EO for chroma in interleaved mode
+#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_3 0  ///< disable the encoder constraint that conditionally disable SAO for chroma for entire slice in interleaved mode
 
 #define ALF_SINGLE_FILTER_SHAPE    1     //< !!! H0068: Single filter type : 9x7 cross + 3x3 square
 
@@ -93,6 +96,9 @@
 
 #define ALF_16_BA_GROUPS        1     ///< H0409 16 BA groups
 #define LCU_SYNTAX_ALF          1     ///< H0274 LCU-syntax ALF
+#define ALF_CHROMA_COEF_PRED_HARMONIZATION 1 ///< H0483: ALF chroma coeff pred harmonization
+
+#define CABAC_LINEAR_INIT       1     ///< H0535 : linear CABAC initialization
 
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
@@ -348,12 +354,12 @@ typedef struct _SaoLcuParam
   Bool       mergeLeftFlag;
   Int        typeIdx;
   Int        bandPosition;
-  Int        iOffset[4];
+  Int        offset[4];
   Int        runDiff;
   Int        run;
-  Int        iPartIdx;
-  Int        iPartIdxTmp;
-  Int        iLength;
+  Int        partIdx;
+  Int        partIdxTmp;
+  Int        length;
 } SaoLcuParam;
 #endif
 
@@ -365,9 +371,9 @@ struct SAOParam
   Int        iNumClass[MAX_NUM_SAO_TYPE];
 #if SAO_UNIT_INTERLEAVING
   Bool         oneUnitFlag[3];
-  SaoLcuParam* psSaoLcuParam[3];
-  Int          iNumCuInHeight;
-  Int          iNumCuInWidth;
+  SaoLcuParam* saoLcuParam[3];
+  Int          numCuInHeight;
+  Int          numCuInWidth;
 #endif
   ~SAOParam();
 };

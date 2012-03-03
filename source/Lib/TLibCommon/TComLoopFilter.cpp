@@ -243,7 +243,7 @@ Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiD
 }
 
 #if NSQT_LFFIX
-Void TComLoopFilter::xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiScanIdx, UInt uiDepth, Int iDir, Int iEdgeIdx, Bool bValue,UInt uiWidthInBaseUnits, UInt uiHeightInBaseUnits, Bool bNonSquare )
+Void TComLoopFilter::xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiScanIdx, UInt uiDepth, Int iDir, Int iEdgeIdx, Bool bValue,UInt uiWidthInBaseUnits, UInt uiHeightInBaseUnits, Bool nonSquare )
 #else
 Void TComLoopFilter::xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiScanIdx, UInt uiDepth, Int iDir, Int iEdgeIdx, Bool bValue,UInt uiWidthInBaseUnits, UInt uiHeightInBaseUnits)
 #endif
@@ -264,7 +264,7 @@ Void TComLoopFilter::xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiScanIdx, U
   {
     UInt uiBsIdx;
 #if NSQT_LFFIX
-    if( !bNonSquare)
+    if( !nonSquare )
 #else
     if ( uiWidthInBaseUnits == uiHeightInBaseUnits )
 #endif
@@ -303,15 +303,15 @@ Void TComLoopFilter::xSetEdgefilterTU( TComDataCU* pcCU, UInt uiRasterIdx, UInt 
       if( ( ( 1 << uiLog2TrSize ) < pcCU->getSlice()->getSPS()->getMaxTrSize() && pcCU->getDepth( uiAbsZorderIdx ) == uiDepth ) ||
         ( 1 << uiLog2TrSize ) == ( pcCU->getSlice()->getSPS()->getMaxTrSize() >> 1 ) || ( uiLog2TrSize == 2 ) ) 
       {
-        const UInt iBaseUnitIdx = ( uiLog2TrSize == 2 ) ? 1 :uiLCUWidthInBaseUnits >> ( uiDepth + 2 );
+        const UInt baseUnitIdx = ( uiLog2TrSize == 2 ) ? 1 :uiLCUWidthInBaseUnits >> ( uiDepth + 2 );
         UInt offset;
         if( uiLog2TrSize == 2 )
         {
-          offset = ( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nLx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nRx2N ) ? iBaseUnitIdx * uiLCUWidthInBaseUnits : iBaseUnitIdx;
+          offset = ( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nLx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nRx2N ) ? baseUnitIdx * uiLCUWidthInBaseUnits : baseUnitIdx;
         }
         else
         {
-          offset = ( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nLx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nRx2N ) ? iBaseUnitIdx : iBaseUnitIdx * uiLCUWidthInBaseUnits;
+          offset = ( pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_Nx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nLx2N || pcCU->getPartitionSize( uiAbsZorderIdx ) == SIZE_nRx2N ) ? baseUnitIdx : baseUnitIdx * uiLCUWidthInBaseUnits;
         }
 #else
       if( ( ( 1 << uiLog2TrSize ) < ( pcCU->getSlice()->getSPS()->getMaxTrSize() >> 1 ) && pcCU->getDepth( uiAbsZorderIdx ) == uiDepth ) ||
@@ -548,18 +548,18 @@ Void TComLoopFilter::xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZo
   if ( !pcCUP->isIntra(uiPartP) && !pcCUQ->isIntra(uiPartQ) )
   {
 #if NSQT_LFFIX
-    UInt uiNSPartQ = uiPartQ;
-    UInt uiNSPartP = uiPartP;
+    UInt nsPartQ = uiPartQ;
+    UInt nsPartP = uiPartP;
     if(pcCUQ->getPredictionMode(uiPartQ) == MODE_INTER && pcCUQ->useNonSquarePU(uiPartQ))
     {
-      uiNSPartQ = pcCUQ->getNSQTPartIdx( uiAbsPartIdx );
+      nsPartQ = pcCUQ->getNSQTPartIdx( uiAbsPartIdx );
     }
     if(pcCUP->getPredictionMode(uiPartP) == MODE_INTER && pcCUP->useNonSquarePU(uiPartP))
     {
-      uiNSPartP = pcCUP->getNSQTPartIdx( uiPartP );
+      nsPartP = pcCUP->getNSQTPartIdx( uiPartP );
     }
 
-    if ( m_aapucBS[iDir][uiAbsPartIdx] && (pcCUQ->getCbf( uiNSPartQ, TEXT_LUMA, pcCUQ->getTransformIdx(uiNSPartQ)) != 0 || pcCUP->getCbf( uiNSPartP, TEXT_LUMA, pcCUP->getTransformIdx(uiNSPartP) ) != 0) )
+    if ( m_aapucBS[iDir][uiAbsPartIdx] && (pcCUQ->getCbf( nsPartQ, TEXT_LUMA, pcCUQ->getTransformIdx(nsPartQ)) != 0 || pcCUP->getCbf( nsPartP, TEXT_LUMA, pcCUP->getTransformIdx(nsPartP) ) != 0) )
 #else
     if ( m_aapucBS[iDir][uiAbsPartIdx] && (pcCUQ->getCbf( uiPartQ, TEXT_LUMA, pcCUQ->getTransformIdx(uiPartQ)) != 0 || pcCUP->getCbf( uiPartP, TEXT_LUMA, pcCUP->getTransformIdx(uiPartP) ) != 0) )
 #endif

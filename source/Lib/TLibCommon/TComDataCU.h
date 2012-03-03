@@ -139,7 +139,7 @@ private:
 #endif
   UChar*        m_puhTrIdx;           ///< array of transform indices
 #if NSQT_LFFIX
-  UChar*        m_puhNSQTPartIdx;     ///< array of absPartIdx mapping table, map zigzag to NSQT
+  UChar*        m_nsqtPartIdx;        ///< array of absPartIdx mapping table, map zigzag to NSQT
 #endif
   UChar*        m_puhCbf[3];          ///< array of coded block flags (CBF)
   TComCUMvField m_acCUMvField[2];     ///< array of motion vectors
@@ -222,8 +222,8 @@ protected:
   Void          deriveRightBottomIdx        ( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxRB );
   Bool          xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUnitIdx, TComMv& rcMv, Int& riRefIdx );
   
-  /// remove redundant candidates
 #if !AMVP_PRUNING_SIMPLIFICATION
+  /// remove redundant candidates
   Void          xUniqueMVPCand        ( AMVPInfo* pInfo );
 #endif
 
@@ -340,10 +340,10 @@ public:
 #endif
 
 #if NSQT_LFFIX
-  UChar*        getNSQTPartIdx        ()                        { return m_puhNSQTPartIdx;          }
-  UChar         getNSQTPartIdx        ( UInt uiIdx )            { return m_puhNSQTPartIdx[uiIdx];   }
-  Void          setNSQTIdxSubParts    ( UInt uiAbsPartIdx, UInt uidepth );
-  Void          setNSQTIdxSubParts    ( UInt uiLog2TrafoSize, UInt uiAbsPartIdx, UInt uiNSAbsPartIdx, UInt uiTrMode );
+  UChar*        getNSQTPartIdx        ()                        { return m_nsqtPartIdx;        }
+  UChar         getNSQTPartIdx        ( UInt idx )              { return m_nsqtPartIdx[idx];   }
+  Void          setNSQTIdxSubParts    ( UInt absPartIdx, UInt depth );
+  Void          setNSQTIdxSubParts    ( UInt log2TrafoSize, UInt absPartIdx, UInt nsAbsPartIdx, UInt trMode );
 #endif
   
   UChar*        getTransformIdx       ()                        { return m_puhTrIdx;          }
@@ -583,10 +583,10 @@ public:
   Bool useNonSquareTrans( UInt uiTrMode, Int absPartIdx );
   Void getNSQTSize(Int trMode, Int absPartIdx, Int &trWidth, Int &trHeight);
 #if NSQT_LFFIX
-  Bool          useNonSquarePU   ( UInt uiAbsPartIdx);
-  UInt          getInterTUSplitDirection ( Int iWidth, Int iHeight, Int trLastWidth, Int trLastHeight );
-  UInt          getNSAbsPartIdx  ( UInt uiLog2TrafoSize, UInt uiAbsPartIdx, UInt uiNSAbsPartIdx, UInt uiInnerQuadIdx, UInt uiTrMode );
-  Void          setZorderIdxInCU ( UInt uiAbsPartIdx )  { m_uiAbsIdxInLCU = uiAbsPartIdx; }
+  Bool          useNonSquarePU   ( UInt absPartIdx);
+  UInt          getInterTUSplitDirection ( Int width, Int height, Int trLastWidth, Int trLastHeight );
+  UInt          getNSAbsPartIdx  ( UInt log2TrafoSize, UInt absPartIdx, UInt nsAbsPartIdx, UInt innerQuadIdx, UInt trMode );
+  Void          setZorderIdxInCU ( UInt absPartIdx )  { m_uiAbsIdxInLCU = absPartIdx; }
 #endif
   Void getPixOffset( UInt uiTrMode, UInt ui, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiPix_X, UInt& uiPix_Y, TextType eTxt );
 };

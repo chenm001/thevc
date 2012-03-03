@@ -119,6 +119,7 @@ private:
   ///
   /// variables for correlation calculation
   ///
+#if !LCU_SYNTAX_ALF
   Double** m_ppdAlfCorr;
   Double* m_pdDoubleAlfCoeff;
   Double** m_ppdAlfCorrCb;
@@ -126,6 +127,7 @@ private:
   double ***m_yGlobalSym;
   double ****m_EGlobalSym;
   double *m_pixAcc;
+#endif
   double **m_y_merged;
   double ***m_E_merged;
   double *m_pixAcc_merged;
@@ -183,10 +185,11 @@ private:
   Int    **m_filterCoeffSymQuant;
   Int    **m_diffFilterCoeffQuant;
   Int    **m_FilterCoeffQuantTemp;
+#if !LCU_SYNTAX_ALF
   Int**  m_mergeTableSavedMethods[NUM_ALF_CLASS_METHOD];
   Int*** m_aiFilterCoeffSavedMethods[NUM_ALF_CLASS_METHOD];  //!< time-delayed filter set buffer
   Int*   m_iPreviousFilterShapeMethods[NUM_ALF_CLASS_METHOD];
-
+#endif
   ///
   /// coding control parameters
   ///
@@ -220,7 +223,8 @@ private:
 #if LCU_SYNTAX_ALF
   Void disableComponentAlfParam(Int compIdx, AlfParamSet* alfParamSet, AlfUnitParam* alfUnitPic);
   Void copyAlfParamSet(AlfParamSet* dst, AlfParamSet* src);
-  Void initALFEncoderParam(std::vector<AlfCUCtrlInfo>* alfCtrlParam);
+  Void initALFEncoderParam(AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam);
+  Void assignALFEncoderParam(AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam);
   Void getStatistics(TComPicYuv* pPicOrg, TComPicYuv* pPicDec);
   Void getOneCompStatistics(AlfCorrData** alfCorrComp, Int compIdx, Pel* imgOrg, Pel* imgDec, Int stride, Int formatShift, Bool isRedesignPhase);
   Void getStatisticsOneLCU(Bool skipLCUBottomLines, Int compIdx, AlfLCUInfo* alfLCU, AlfCorrData* alfCorr, Pel* pPicOrg, Pel* pPicSrc, Int stride, Int formatShift, Bool isRedesignPhase);
@@ -262,11 +266,11 @@ private:
   Void transferToAlfParamSet(Int compIdx, AlfUnitParam* alfUnitPic, AlfParamSet* & alfParamSet);
   Int  calculateAlfParamSetRateRDO(Int compIdx, AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCUCtrlParam);
 #endif
-
+#if !LCU_SYNTAX_ALF
   // init / uninit internal variables
   Void xInitParam      ();
   Void xUninitParam    ();
-
+#endif
   // ALF on/off control related functions
   Void xCreateTmpAlfCtrlFlags   ();
   Void xDestroyTmpAlfCtrlFlags  ();
@@ -362,9 +366,9 @@ public:
   Void endALFEnc(); //!< destroy temporal memory
 #if LCU_SYNTAX_ALF
 #if ALF_CHROMA_LAMBDA
-  Void ALFProcess( AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam, Double dLambdaLuma, Double dLambdaChroma);
+  Void ALFProcess( AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam, Double lambdaLuma, Double lambdaChroma);
 #else
-  Void ALFProcess( AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam, Double dLambda);
+  Void ALFProcess( AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam, Double lambda);
 #endif
   Void initALFEnc(Bool isAlfParamInSlice, Bool isPicBasedEncode, Int numSlices, AlfParamSet* & alfParams, std::vector<AlfCUCtrlInfo>* & alfCUCtrlParam);
   Void uninitALFEnc(AlfParamSet* & alfParams, std::vector<AlfCUCtrlInfo>* & alfCUCtrlParam);

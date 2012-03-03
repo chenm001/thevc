@@ -104,7 +104,7 @@ enum AlfChromaID
   ALF_Cb = 0,
   ALF_Cr = 1
 };
-#endif
+
 
 ///
 /// Adaptation mode ID
@@ -115,7 +115,7 @@ enum ALFClassficationMethod
   ALF_RA,
   NUM_ALF_CLASS_METHOD
 };
-
+#endif
 ///
 /// Filter shape
 ///
@@ -208,8 +208,10 @@ protected: //protected member variables
 
   //classification
   Int      m_varIndTab[NO_VAR_BINS];
+#if !LCU_SYNTAX_ALF
   UInt     m_uiVarGenMethod;
   Pel** m_varImgMethods[NUM_ALF_CLASS_METHOD];
+#endif
   Pel** m_varImg;
 
   //parameters
@@ -323,7 +325,9 @@ public: //public methods, interface functions
   ALFParam*** getAlfLCUParam() {return m_alfFiltInfo;}
 #else
   Void predictALFCoeffChroma  ( ALFParam* pAlfParam );                  //!< prediction of chroma ALF coefficients
-
+#if ALF_CHROMA_COEF_PRED_HARMONIZATION
+  Void reconstructALFCoeffChroma( ALFParam* pAlfParam );
+#endif
   Void ALFProcess             ( TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam ); ///< interface function for ALF process
 
   Void allocALFParam  ( ALFParam* pAlfParam ); //!< allocate ALF parameters

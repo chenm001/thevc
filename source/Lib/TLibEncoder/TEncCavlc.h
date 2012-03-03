@@ -136,8 +136,8 @@ public:
   Void codeSaoUvlc       ( UInt uiCode );
   Void codeSaoSvlc       ( Int   iCode );
 #if SAO_UNIT_INTERLEAVING
-  Void codeSaoRun        ( UInt uiCode, UInt uiMaxValue  );
-  Void codeSaoMergeLeft  ( UInt uiCode, UInt uiCompIdx ){;}
+  Void codeSaoRun        ( UInt uiCode, UInt maxValue  );
+  Void codeSaoMergeLeft  ( UInt uiCode, UInt compIdx ){;}
   Void codeSaoMergeUp    ( UInt uiCode ){;}
   Void codeSaoTypeIdx    ( UInt uiCode ){ xWriteUvlc(uiCode   );}
   Void codeSaoUflc       ( UInt uiCode ){ assert(uiCode < 32); xWriteCode(uiCode, 5);}
@@ -191,9 +191,8 @@ public:
 
   Void  codeAPSInitInfo(TComAPS* pcAPS);  //!< code APS flags before encoding SAO and ALF parameters
   Void  codeFinish(Bool bEnd) { /*do nothing*/}
-  Void  codeScalingList            ( TComScalingList* scalingList );
-  Void  xCodeScalingList           ( TComScalingList* scalingList, UInt sizeId, UInt listId);
-  Void  xWriteResidualCode         ( UInt size, Int *data);
+  Void codeScalingList  ( TComScalingList* scalingList );
+  Void xCodeScalingList ( TComScalingList* scalingList, UInt sizeId, UInt listId);
   Void codeDFFlag       ( UInt uiCode, const Char *pSymbolName );
   Void codeDFSvlc       ( Int   iCode, const Char *pSymbolName );
 

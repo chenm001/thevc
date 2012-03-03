@@ -151,8 +151,8 @@ protected:
 #endif
   Bool      m_bUseSAO;
 #if SAO_UNIT_INTERLEAVING
-  Int       m_iMaxNumOffsetsPerPic;
-  Bool      m_bSaoInterleavingFlag;
+  Int       m_maxNumOffsetsPerPic;
+  Bool      m_saoInterleavingFlag;
 #endif
 
   //====== Motion search ========
@@ -488,10 +488,10 @@ public:
   Void      setUseSAO                  (Bool bVal)     {m_bUseSAO = bVal;}
   Bool      getUseSAO                  ()              {return m_bUseSAO;}
 #if SAO_UNIT_INTERLEAVING
-  Void      setMaxNumOffsetsPerPic                  (Int iVal)     {m_iMaxNumOffsetsPerPic = iVal;}
-  Int       getMaxNumOffsetsPerPic                  ()              {return m_iMaxNumOffsetsPerPic;}
-  Void      setSaoInterleavingFlag                  (bool bVal)  {m_bSaoInterleavingFlag = bVal;}
-  Bool      getSaoInterleavingFlag                 ()           {return m_bSaoInterleavingFlag;}
+  Void  setMaxNumOffsetsPerPic                   (Int iVal)            { m_maxNumOffsetsPerPic = iVal; }
+  Int   getMaxNumOffsetsPerPic                   ()                    { return m_maxNumOffsetsPerPic; }
+  Void  setSaoInterleavingFlag                   (bool bVal)           { m_saoInterleavingFlag = bVal; }
+  Bool  getSaoInterleavingFlag                   ()                    { return m_saoInterleavingFlag; }
 #endif
   Void  setTileBehaviorControlPresentFlag        ( Int i )             { m_iTileBehaviorControlPresentFlag = i;    }
   Int   getTileBehaviorControlPresentFlag        ()                    { return m_iTileBehaviorControlPresentFlag; }
