@@ -577,13 +577,13 @@ Void TDecEntropy::decodeMVPIdxPU( TComDataCU* pcSubCU, UInt uiPartAddr, UInt uiD
 
 #if UNIFIED_TRANSFORM_TREE
 #if NSQT_LFFIX
-Void TDecEntropy::xDecodeTransform( TComDataCU* pcCU, UInt offsetLuma, UInt offsetChroma, UInt uiAbsPartIdx, UInt uiNSAbsPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3, Bool& bCodeDQP )
+Void TDecEntropy::xDecodeTransform( TComDataCU* pcCU, UInt offsetLuma, UInt offsetChroma, UInt uiAbsPartIdx, UInt nsAbsPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3, Bool& bCodeDQP )
 #else
 Void TDecEntropy::xDecodeTransform( TComDataCU* pcCU, UInt offsetLuma, UInt offsetChroma, UInt uiAbsPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3, Bool& bCodeDQP )
 #endif
 #else
 #if NSQT_LFFIX
-Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiNSAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 )
+Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt nsAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 )
 #else
 Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 )
 #endif
@@ -712,17 +712,17 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
     {
 #if UNIFIED_TRANSFORM_TREE
 #if NSQT_LFFIX
-      UInt uiNSAddr = 0;
-      uiNSAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, uiNSAbsPartIdx, i, uiTrDepth+1 );
-      xDecodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, uiNSAddr, uiDepth, width, height, uiTrIdx, i, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV, bCodeDQP );
+      UInt nsAddr = 0;
+      nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, nsAbsPartIdx, i, uiTrDepth+1 );
+      xDecodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, nsAddr, uiDepth, width, height, uiTrIdx, i, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV, bCodeDQP );
 #else
       xDecodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, uiDepth, width, height, uiTrIdx, i, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV, bCodeDQP );
 #endif
 #else
 #if NSQT_LFFIX
-      UInt uiNSAddr = 0;
-      uiNSAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, uiNSAbsPartIdx, i, uiTrDepth+1 );
-      xDecodeTransformSubdiv( pcCU, uiAbsPartIdx, uiNSAddr, uiDepth, i, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
+      UInt nsAddr = 0;
+      nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, nsAbsPartIdx, i, uiTrDepth+1 );
+      xDecodeTransformSubdiv( pcCU, uiAbsPartIdx, nsAddr, uiDepth, i, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
 #else
       xDecodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, i, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
 #endif
@@ -769,7 +769,7 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
 #if NSQT_LFFIX
     if(pcCU->getPredictionMode( uiAbsPartIdx ) == MODE_INTER && pcCU->useNonSquarePU( uiAbsPartIdx ) )
     {
-      pcCU->setNSQTIdxSubParts( uiLog2TrafoSize, uiAbsPartIdx, uiNSAbsPartIdx, uiLumaTrMode );
+      pcCU->setNSQTIdxSubParts( uiLog2TrafoSize, uiAbsPartIdx, nsAbsPartIdx, uiLumaTrMode );
     }
 #endif
     pcCU->setCbfSubParts ( 0, TEXT_LUMA, uiAbsPartIdx, uiDepth );
