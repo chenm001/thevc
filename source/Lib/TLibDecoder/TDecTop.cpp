@@ -334,8 +334,10 @@ Void TDecTop::xActivateParameterSets()
     sps->setAMPAcc( i, 0 );
   }
 
+#if !LCU_SYNTAX_ALF
   // create ALF temporary buffer
   m_cAdaptiveLoopFilter.create( sps->getWidth(), sps->getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+#endif
   m_cSAO.create( sps->getWidth(), sps->getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   m_cLoopFilter.        create( g_uiMaxCUDepth );
 }
@@ -726,6 +728,9 @@ Void TDecTop::xDecodeSPS()
 #endif
   m_cEntropyDecoder.decodeSPS( sps );
   m_parameterSetManagerDecoder.storePrefetchedSPS(sps);
+#if LCU_SYNTAX_ALF
+  m_cAdaptiveLoopFilter.create( sps->getWidth(), sps->getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+#endif
 }
 
 Void TDecTop::xDecodePPS()
