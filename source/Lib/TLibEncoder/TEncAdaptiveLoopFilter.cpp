@@ -995,10 +995,65 @@ Void TEncAdaptiveLoopFilter::endALFEnc()
 }
 
 #if LCU_SYNTAX_ALF
-/** initialize ALF encoder configurations
- * \param [in, out] alfCUCtrlParam ALF CU-on/off control parameters
+
+/** Assign output ALF parameters
+ * \param [in, out] alfParamSet ALF parameter set
+ * \param [in, out] alfCtrlParam ALF CU-on/off control parameters
  */
-Void TEncAdaptiveLoopFilter::initALFEncoderParam(std::vector<AlfCUCtrlInfo>* alfCtrlParam)
+Void TEncAdaptiveLoopFilter::assignALFEncoderParam(AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam)
+{
+  //assign CU control parameters
+  if(m_bAlfCUCtrlEnabled)
+  {
+    for(Int s=0; s< m_uiNumSlicesInPic; s++)
+    {
+      (*alfCtrlParam)[s]= m_vBestAlfCUCtrlParam[s];
+    }
+  }
+
+  //assign RDO results to alfParamSet
+  if(m_alfCoefInSlice)
+  {
+    for(Int s=0; s< m_uiNumSlicesInPic; s++)
+    {
+      if(!m_pcPic->getValidSlice(s))
+      {
+        continue;
+      }
+
+      if( m_bestAlfParamSet[s].isEnabled[ALF_Y] || m_bestAlfParamSet[s].isEnabled[ALF_Cb] || m_bestAlfParamSet[s].isEnabled[ALF_Cr])
+      {
+        m_bestAlfParamSet[s].isEnabled[ALF_Y] = true;
+      }
+
+      copyAlfParamSet(&(alfParamSet[s]), &(m_bestAlfParamSet[s]));
+    }
+  }
+  else
+  {
+    if( m_bestAlfParamSet->isEnabled[ALF_Y] || m_bestAlfParamSet->isEnabled[ALF_Cb] || m_bestAlfParamSet->isEnabled[ALF_Cr])
+    {
+      m_bestAlfParamSet->isEnabled[ALF_Y] = true;
+    }
+
+    copyAlfParamSet(alfParamSet, m_bestAlfParamSet);
+  }
+
+  if(m_alfCoefInSlice)
+  {
+    delete[] m_bestAlfParamSet;
+  }
+  else
+  {
+    delete m_bestAlfParamSet;
+  }
+}
+
+/** initialize ALF encoder configurations
+ * \param [in, out] alfParamSet ALF parameter set
+ * \param [in, out] alfCtrlParam ALF CU-on/off control parameters
+ */
+Void TEncAdaptiveLoopFilter::initALFEncoderParam(AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam)
 {
   //reset BA index map 
   memset(&m_varImg[0][0], 0, sizeof(Pel)*(m_img_height*m_img_width));
@@ -1074,6 +1129,21 @@ Void TEncAdaptiveLoopFilter::initALFEncoderParam(std::vector<AlfCUCtrlInfo>* alf
     m_iALFNumOfRedesign = ALF_NUM_OF_REDESIGN;
   }
 
+  //initialize m_bestAlfParamSet
+  if(m_alfCoefInSlice)
+  {
+    m_bestAlfParamSet = new AlfParamSet[m_uiNumSlicesInPic];
+    for(Int s=0; s< m_uiNumSlicesInPic; s++)
+    {
+      m_bestAlfParamSet[s].create( alfParamSet[s].numLCUInWidth, alfParamSet[s].numLCUInHeight, alfParamSet[s].numLCU);
+    }
+  }
+  else
+  {
+    m_bestAlfParamSet = new AlfParamSet;
+    m_bestAlfParamSet->create( alfParamSet->numLCUInWidth, alfParamSet->numLCUInHeight, alfParamSet->numLCU);
+  }
+
 }
 
 /** copy ALF parameter set
@@ -1110,95 +1180,38 @@ Void TEncAdaptiveLoopFilter::copyAlfParamSet(AlfParamSet* dst, AlfParamSet* src)
  * \param [in] dLambdaChroma lambda value for chroma RDO
  */
 #if ALF_CHROMA_LAMBDA
-Void TEncAdaptiveLoopFilter::ALFProcess( AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam, Double dLambdaLuma, Double dLambdaChroma)
+Void TEncAdaptiveLoopFilter::ALFProcess( AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam, Double lambdaLuma, Double lambdaChroma)
 #else
-Void TEncAdaptiveLoopFilter::ALFProcess( AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam, Double dLambda)
+Void TEncAdaptiveLoopFilter::ALFProcess( AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam, Double lambda)
 #endif
 {
 #if ALF_CHROMA_LAMBDA
-  m_dLambdaLuma   = dLambdaLuma;
-  m_dLambdaChroma = dLambdaChroma;
+  m_dLambdaLuma   = lambdaLuma;
+  m_dLambdaChroma = lambdaChroma;
 #else
-  m_dLambdaLuma   = dLambda;
-  m_dLambdaChroma = dLambda;
+  m_dLambdaLuma   = lambda;
+  m_dLambdaChroma = lambda;
 #endif
-  TComPicYuv* pcPicOrg       = m_pcPic->getPicYuvOrg();
-  TComPicYuv* pcPicYuvRec    = m_pcPic->getPicYuvRec();
-  TComPicYuv* pcPicYuvExtRec = m_pcTempPicYuv;
+  TComPicYuv* yuvOrg    = m_pcPic->getPicYuvOrg();
+  TComPicYuv* yuvRec    = m_pcPic->getPicYuvRec();
+  TComPicYuv* yuvExtRec = m_pcTempPicYuv;
 
   //picture boundary padding
-  pcPicYuvRec->copyToPic(pcPicYuvExtRec);
-  pcPicYuvExtRec->setBorderExtension( false );
-  pcPicYuvExtRec->extendPicBorder   ();
+  yuvRec->copyToPic(yuvExtRec);
+  yuvExtRec->setBorderExtension( false );
+  yuvExtRec->extendPicBorder   ();
 
-  //initial encoder parameters
-  initALFEncoderParam(alfCtrlParam);
+  //initialize encoder parameters
+  initALFEncoderParam(alfParamSet, alfCtrlParam);
 
-  //get lcu statistics
-  getStatistics(pcPicOrg, pcPicYuvExtRec);
+  //get LCU statistics
+  getStatistics(yuvOrg, yuvExtRec);
 
-  if(m_alfCoefInSlice)
-  {
-    m_bestAlfParamSet = new AlfParamSet[m_uiNumSlicesInPic];
-    for(Int s=0; s< m_uiNumSlicesInPic; s++)
-    {
-      m_bestAlfParamSet[s].create( alfParamSet[s].numLCUInWidth, alfParamSet[s].numLCUInHeight, alfParamSet[s].numLCU);
-    }
-  }
-  else
-  {
-    m_bestAlfParamSet = new AlfParamSet;
-    m_bestAlfParamSet->create( alfParamSet->numLCUInWidth, alfParamSet->numLCUInHeight, alfParamSet->numLCU);
-  }
+  //decide ALF parameters
+  decideParameters(yuvOrg, yuvExtRec, yuvRec, m_bestAlfParamSet, alfCtrlParam);
 
-  //mode decision
-  decideParameters(pcPicOrg, pcPicYuvExtRec, pcPicYuvRec, m_bestAlfParamSet, alfCtrlParam);
-
-  if(m_bAlfCUCtrlEnabled)
-  {
-    for(Int s=0; s< m_uiNumSlicesInPic; s++)
-    {
-      (*alfCtrlParam)[s]= m_vBestAlfCUCtrlParam[s];
-    }
-  }
-
-  if(m_alfCoefInSlice)
-  {
-
-    for(Int s=0; s< m_uiNumSlicesInPic; s++)
-    {
-      if(!m_pcPic->getValidSlice(s))
-      {
-        continue;
-      }
-
-      if( m_bestAlfParamSet[s].isEnabled[ALF_Y] || m_bestAlfParamSet[s].isEnabled[ALF_Cb] || m_bestAlfParamSet[s].isEnabled[ALF_Cr])
-      {
-        m_bestAlfParamSet[s].isEnabled[ALF_Y] = true;
-      }
-
-      copyAlfParamSet(&(alfParamSet[s]), &(m_bestAlfParamSet[s]));
-    }
-  }
-  else
-  {
-    if( m_bestAlfParamSet->isEnabled[ALF_Y] || m_bestAlfParamSet->isEnabled[ALF_Cb] || m_bestAlfParamSet->isEnabled[ALF_Cr])
-    {
-      m_bestAlfParamSet->isEnabled[ALF_Y] = true;
-    }
-
-    copyAlfParamSet(alfParamSet, m_bestAlfParamSet);
-  }
-
-  if(m_alfCoefInSlice)
-  {
-    delete[] m_bestAlfParamSet;
-  }
-  else
-  {
-    delete m_bestAlfParamSet;
-  }
-
+  //assign best parameters
+  assignALFEncoderParam(alfParamSet, alfCtrlParam);
 }
 
 /** Check if the current LCU can be merged with neighboring LCU

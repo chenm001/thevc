@@ -223,7 +223,8 @@ private:
 #if LCU_SYNTAX_ALF
   Void disableComponentAlfParam(Int compIdx, AlfParamSet* alfParamSet, AlfUnitParam* alfUnitPic);
   Void copyAlfParamSet(AlfParamSet* dst, AlfParamSet* src);
-  Void initALFEncoderParam(std::vector<AlfCUCtrlInfo>* alfCtrlParam);
+  Void initALFEncoderParam(AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam);
+  Void assignALFEncoderParam(AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam);
   Void getStatistics(TComPicYuv* pPicOrg, TComPicYuv* pPicDec);
   Void getOneCompStatistics(AlfCorrData** alfCorrComp, Int compIdx, Pel* imgOrg, Pel* imgDec, Int stride, Int formatShift, Bool isRedesignPhase);
   Void getStatisticsOneLCU(Bool skipLCUBottomLines, Int compIdx, AlfLCUInfo* alfLCU, AlfCorrData* alfCorr, Pel* pPicOrg, Pel* pPicSrc, Int stride, Int formatShift, Bool isRedesignPhase);
@@ -365,9 +366,9 @@ public:
   Void endALFEnc(); //!< destroy temporal memory
 #if LCU_SYNTAX_ALF
 #if ALF_CHROMA_LAMBDA
-  Void ALFProcess( AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam, Double dLambdaLuma, Double dLambdaChroma);
+  Void ALFProcess( AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam, Double lambdaLuma, Double lambdaChroma);
 #else
-  Void ALFProcess( AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam, Double dLambda);
+  Void ALFProcess( AlfParamSet* alfParamSet, std::vector<AlfCUCtrlInfo>* alfCtrlParam, Double lambda);
 #endif
   Void initALFEnc(Bool isAlfParamInSlice, Bool isPicBasedEncode, Int numSlices, AlfParamSet* & alfParams, std::vector<AlfCUCtrlInfo>* & alfCUCtrlParam);
   Void uninitALFEnc(AlfParamSet* & alfParams, std::vector<AlfCUCtrlInfo>* & alfCUCtrlParam);
