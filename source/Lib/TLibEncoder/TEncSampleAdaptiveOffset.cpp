@@ -1872,8 +1872,7 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnit(SAOParam *saoParam, Int addr, Int addr
   //   Double dAreaWeight =  0;
   Double complexityCost = 0;
   SaoLcuParam*  saoLcuParam = NULL;   
-  SaoLcuParam*  saoLcuParamUp = NULL; 
-  SaoLcuParam*  saoLcuParamLeft = NULL;
+  SaoLcuParam*  saoLcuParamNeighbor = NULL; 
   Int   merge_iOffset [33];
   Int64 merge_iDist;
   Int   merge_iRate;
@@ -1881,14 +1880,6 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnit(SAOParam *saoParam, Int addr, Int addr
   Int offsetTh = m_iOffsetTh;
 
   saoLcuParam = &(saoParam->saoLcuParam[yCbCr][addr]);
-  if (addrUp>=0)
-  {
-    saoLcuParamUp = &(saoParam->saoLcuParam[yCbCr][addrUp]);
-  }
-  if (addrLeft>=0)
-  {
-    saoLcuParamLeft = &(saoParam->saoLcuParam[yCbCr][addrLeft]);
-  }
 
   saoLcuParam->mergeUpFlag   = 0;
   saoLcuParam->mergeLeftFlag = 0;
@@ -2083,136 +2074,83 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnit(SAOParam *saoParam, Int addr, Int addr
     }
   }
 
-  // LEFT merge
-  if (addrLeft>=0) 
+  // merge left or merge up
+
+  for (Int idxNeighbor=0;idxNeighbor<2;idxNeighbor++) 
   {
-    if (saoLcuParamLeft->typeIdx>=0) //new
+    saoLcuParamNeighbor = NULL;
+    if (addrLeft>=0 && idxNeighbor ==0)
     {
-      m_pcEntropyCoder->resetEntropy();
-      m_pcEntropyCoder->resetBits();
-
-      estDist = 0;
-      typeIdx = saoLcuParamLeft->typeIdx;
-      m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoFlag(1);
-      if (saoLcuParamLeft->typeIdx == SAO_BO)
-      {
-        for(classIdx = saoLcuParamLeft->bandPosition+1; classIdx < saoLcuParamLeft->bandPosition+SAO_BO_LEN+1; classIdx++)
-        {
-          merge_iOffset[classIdx] = saoLcuParamLeft->offset[classIdx-1-saoLcuParamLeft->bandPosition];
-
-          count     =  m_iCount [yCbCr][typeIdx][classIdx];
-          offset    =  merge_iOffset[classIdx];
-          offsetOrg =  m_iOffsetOrg[yCbCr][typeIdx][classIdx];
-          estDist   += (( count*offset*offset-offsetOrg*offset*2 ) >> shift);
-        }
-      }
-      else
-      {
-        for(classIdx=1; classIdx < m_iNumClass[typeIdx]+1; classIdx++)
-        {
-          merge_iOffset[classIdx] = saoLcuParamLeft->offset[classIdx-1];
-
-          count     =  m_iCount [yCbCr][typeIdx][classIdx];
-          offset    =  merge_iOffset[classIdx];
-          offsetOrg =  m_iOffsetOrg[yCbCr][typeIdx][classIdx];
-          estDist   += (( count*offset*offset-offsetOrg*offset*2 ) >> shift);
-        }
-      }
-      merge_iDist = estDist;
-      merge_iRate = m_pcEntropyCoder->getNumberOfWrittenBits();
-      merge_dCost = (Double)((Double)merge_iDist + m_dLambdaLuma * (Double) merge_iRate) ;
-
-      if(merge_dCost < m_dCostPartBest[yCbCr])
-      {
-        m_iDistOrg [yCbCr] = (Int64)complexityCost;
-        m_dCostPartBest[yCbCr] = merge_dCost;
-        m_iTypePartBest[yCbCr] = typeIdx;
-        if (typeIdx == SAO_BO)
-        {
-          bestClassTableBoMerge   = saoLcuParamLeft->bandPosition;
-          for(classIdx = saoLcuParamLeft->bandPosition+1; classIdx < saoLcuParamLeft->bandPosition+SAO_BO_LEN+1; classIdx++)
-          {
-            m_iOffset[yCbCr][typeIdx][classIdx] = merge_iOffset[classIdx];
-          }
-        }
-        else  
-        {
-          for(classIdx=1; classIdx < m_iNumClass[typeIdx]+1; classIdx++)
-          {
-            m_iOffset[yCbCr][typeIdx][classIdx] = merge_iOffset[classIdx];
-          }
-        }
-        saoLcuParam->mergeUpFlag   = 0;
-        saoLcuParam->mergeLeftFlag = 1;
-      }
+      saoLcuParamNeighbor = &(saoParam->saoLcuParam[yCbCr][addrLeft]);
     }
-  } 
-
-  //UP merge
-  if (addrUp>=0) 
-  {
-    if (saoLcuParamUp->typeIdx>=0) //new
+    else if (addrUp>=0 && idxNeighbor ==1)
     {
-      m_pcEntropyCoder->resetEntropy();
-      m_pcEntropyCoder->resetBits();
-
-      estDist = 0;
-      typeIdx = saoLcuParamUp->typeIdx;
-      m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoFlag(1);
-      if (saoLcuParamUp->typeIdx == SAO_BO)
+      saoLcuParamNeighbor = &(saoParam->saoLcuParam[yCbCr][addrUp]);
+    }
+    if (saoLcuParamNeighbor!=NULL)
+    {
+      if (saoLcuParamNeighbor->typeIdx>=0) //new
       {
-        for(classIdx = saoLcuParamUp->bandPosition+1; classIdx < saoLcuParamUp->bandPosition+SAO_BO_LEN+1; classIdx++)
-        {
-          merge_iOffset[classIdx] = saoLcuParamUp->offset[classIdx-1-saoLcuParamUp->bandPosition];
+        m_pcEntropyCoder->resetEntropy();
+        m_pcEntropyCoder->resetBits();
 
-          count     =  m_iCount [yCbCr][typeIdx][classIdx];
-          offset    =  merge_iOffset[classIdx];
-          offsetOrg  =  m_iOffsetOrg[yCbCr][typeIdx][classIdx];
-          estDist   += (( count*offset*offset-offsetOrg*offset*2 ) >> shift);
-        }
-      }
-      else
-      {
-        for(classIdx=1; classIdx < m_iNumClass[typeIdx]+1; classIdx++)
+        estDist = 0;
+        typeIdx = saoLcuParamNeighbor->typeIdx;
+        m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoFlag(1);
+        if (saoLcuParamNeighbor->typeIdx == SAO_BO)
         {
-          merge_iOffset[classIdx] = saoLcuParamUp->offset[classIdx-1];
-          count      =  m_iCount [yCbCr][typeIdx][classIdx];
-          offset     =  merge_iOffset[classIdx];
-          offsetOrg  =  m_iOffsetOrg[yCbCr][typeIdx][classIdx];
-          estDist   += (( count*offset*offset-offsetOrg*offset*2 ) >> shift);
-        }
-      }
-      merge_iDist = estDist;
-      merge_iRate = m_pcEntropyCoder->getNumberOfWrittenBits();
-
-      merge_dCost = (Double)((Double)merge_iDist + m_dLambdaLuma * (Double) merge_iRate) ;
-
-      if(merge_dCost < m_dCostPartBest[yCbCr])
-      {
-        m_iDistOrg [yCbCr] = (Int64)complexityCost;
-        m_dCostPartBest[yCbCr] = merge_dCost;
-        m_iTypePartBest[yCbCr] = typeIdx;
-        if (typeIdx == SAO_BO)
-        {
-          bestClassTableBoMerge   = saoLcuParamUp->bandPosition;
-          for(classIdx = saoLcuParamUp->bandPosition+1; classIdx < saoLcuParamUp->bandPosition+SAO_BO_LEN+1; classIdx++)
+          for(classIdx = saoLcuParamNeighbor->bandPosition+1; classIdx < saoLcuParamNeighbor->bandPosition+SAO_BO_LEN+1; classIdx++)
           {
-            m_iOffset[yCbCr][typeIdx][classIdx] = merge_iOffset[classIdx];
+            merge_iOffset[classIdx] = saoLcuParamNeighbor->offset[classIdx-1-saoLcuParamNeighbor->bandPosition];
+
+            count     =  m_iCount [yCbCr][typeIdx][classIdx];
+            offset    =  merge_iOffset[classIdx];
+            offsetOrg =  m_iOffsetOrg[yCbCr][typeIdx][classIdx];
+            estDist   += (( count*offset*offset-offsetOrg*offset*2 ) >> shift);
           }
         }
         else
         {
           for(classIdx=1; classIdx < m_iNumClass[typeIdx]+1; classIdx++)
           {
-            m_iOffset[yCbCr][typeIdx][classIdx] = merge_iOffset[classIdx];
+            merge_iOffset[classIdx] = saoLcuParamNeighbor->offset[classIdx-1];
+
+            count     =  m_iCount [yCbCr][typeIdx][classIdx];
+            offset    =  merge_iOffset[classIdx];
+            offsetOrg =  m_iOffsetOrg[yCbCr][typeIdx][classIdx];
+            estDist   += (( count*offset*offset-offsetOrg*offset*2 ) >> shift);
           }
         }
-        saoLcuParam->mergeUpFlag   = 1;
-        saoLcuParam->mergeLeftFlag = 0;
+        merge_iDist = estDist;
+        merge_iRate = m_pcEntropyCoder->getNumberOfWrittenBits();
+        merge_dCost = (Double)((Double)merge_iDist + m_dLambdaLuma * (Double) merge_iRate) ;
+
+        if(merge_dCost < m_dCostPartBest[yCbCr])
+        {
+          m_iDistOrg [yCbCr] = (Int64)complexityCost;
+          m_dCostPartBest[yCbCr] = merge_dCost;
+          m_iTypePartBest[yCbCr] = typeIdx;
+          if (typeIdx == SAO_BO)
+          {
+            bestClassTableBoMerge   = saoLcuParamNeighbor->bandPosition;
+            for(classIdx = saoLcuParamNeighbor->bandPosition+1; classIdx < saoLcuParamNeighbor->bandPosition+SAO_BO_LEN+1; classIdx++)
+            {
+              m_iOffset[yCbCr][typeIdx][classIdx] = merge_iOffset[classIdx];
+            }
+          }
+          else  
+          {
+            for(classIdx=1; classIdx < m_iNumClass[typeIdx]+1; classIdx++)
+            {
+              m_iOffset[yCbCr][typeIdx][classIdx] = merge_iOffset[classIdx];
+            }
+          }
+          saoLcuParam->mergeUpFlag   = idxNeighbor;
+          saoLcuParam->mergeLeftFlag = !idxNeighbor;
+        }
       }
     }
   } 
-
 
   saoLcuParam->typeIdx  = m_iTypePartBest[yCbCr];
   if (saoLcuParam->typeIdx != -1)
@@ -2243,7 +2181,7 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnit(SAOParam *saoParam, Int addr, Int addr
 
   if (addrUp>=0)
   {
-    if (saoLcuParam->typeIdx == -1 && saoLcuParamUp->typeIdx == -1)
+    if (saoLcuParam->typeIdx == -1 && saoParam->saoLcuParam[yCbCr][addrUp].typeIdx == -1)
     {
       saoLcuParam->mergeUpFlag   = 1;
       saoLcuParam->mergeLeftFlag = 0;
@@ -2251,7 +2189,7 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnit(SAOParam *saoParam, Int addr, Int addr
   }
   if (addrLeft>=0)
   {
-    if (saoLcuParam->typeIdx == -1 && saoLcuParamLeft->typeIdx == -1)
+    if (saoLcuParam->typeIdx == -1 && saoParam->saoLcuParam[yCbCr][addrLeft].typeIdx == -1)
     {
       saoLcuParam->mergeUpFlag   = 0;
       saoLcuParam->mergeLeftFlag = 1;
