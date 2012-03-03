@@ -1547,10 +1547,12 @@ Void TEncSampleAdaptiveOffset::SAOProcess(SAOParam *pcSaoParam, Double dLambda)
   Int iY  = 0;
   Double dCostFinal = 0;
 
+#if !SAO_UNIT_INTERLEAVING
   Int iCb = 1;
   Int iCr = 2;
   Double dCostFinalCb = 0;
   Double dCostFinalCr = 0;
+#endif
 
 #if SAO_UNIT_INTERLEAVING
   if ( m_saoInterleavingFlag)
@@ -1559,55 +1561,34 @@ Void TEncSampleAdaptiveOffset::SAOProcess(SAOParam *pcSaoParam, Double dLambda)
   }
   else
   {
-    // luma
-    getSaoStats(pcSaoParam->psSaoPart[iY], iY);
-    runQuadTreeDecision(pcSaoParam->psSaoPart[iY], 0, dCostFinal, m_uiMaxSplitLevel, m_dLambdaLuma);
-    pcSaoParam->bSaoFlag[iY] = dCostFinal < m_iDistOrg[0] ? 1:0;
-    if(pcSaoParam->bSaoFlag[iY])
+    pcSaoParam->bSaoFlag[0] = 1;
+    pcSaoParam->bSaoFlag[1] = 0;
+    pcSaoParam->bSaoFlag[2] = 0;
+    for (Int compIdx=0;compIdx<3;compIdx++)
     {
-      convertQT2SaoUnit(pcSaoParam, 0, iY);
-      assignSaoUnitSyntax(pcSaoParam->saoLcuParam[iY],  pcSaoParam->psSaoPart[iY], pcSaoParam->oneUnitFlag[iY], iY);
-      
-      // Cb
-      resetStats();
-      getSaoStats(pcSaoParam->psSaoPart[iCb], iCb);
-      runQuadTreeDecision(pcSaoParam->psSaoPart[iCb], 0, dCostFinalCb, m_uiMaxSplitLevel, m_dLambdaChroma);
-      pcSaoParam->bSaoFlag[iCb] = dCostFinalCb < 0 ? 1:0;
-      if (pcSaoParam->bSaoFlag[iCb])
+      if (pcSaoParam->bSaoFlag[iY])
       {
-        convertQT2SaoUnit(pcSaoParam, 0, iCb);
-        assignSaoUnitSyntax(pcSaoParam->saoLcuParam[iCb],  pcSaoParam->psSaoPart[iCb], pcSaoParam->oneUnitFlag[iCb], iCb);
+        dCostFinal = 0;
+        Double lambdaRdo = (compIdx==0 ? dLambdaLuma: dLambdaChroma);
+        resetStats();
+        getSaoStats(pcSaoParam->psSaoPart[compIdx], compIdx);
+        runQuadTreeDecision(pcSaoParam->psSaoPart[compIdx], 0, dCostFinal, m_uiMaxSplitLevel, lambdaRdo);
+        pcSaoParam->bSaoFlag[compIdx] = dCostFinal < 0 ? 1:0;
+        if(pcSaoParam->bSaoFlag[compIdx])
+        {
+          convertQT2SaoUnit(pcSaoParam, 0, compIdx);
+          assignSaoUnitSyntax(pcSaoParam->saoLcuParam[compIdx],  pcSaoParam->psSaoPart[compIdx], pcSaoParam->oneUnitFlag[compIdx], compIdx);
+        }
       }
-
-      // Cr
-      resetStats();
-      getSaoStats(pcSaoParam->psSaoPart[iCr], iCr);
-      runQuadTreeDecision(pcSaoParam->psSaoPart[iCr], 0, dCostFinalCr, m_uiMaxSplitLevel, m_dLambdaChroma);
-      pcSaoParam->bSaoFlag[iCr] = dCostFinalCr < 0 ? 1:0;
-      if (pcSaoParam->bSaoFlag[iCr])
-      {
-        convertQT2SaoUnit(pcSaoParam, 0, iCr);
-        assignSaoUnitSyntax(pcSaoParam->saoLcuParam[iCr],  pcSaoParam->psSaoPart[iCr], pcSaoParam->oneUnitFlag[iCr], iCr);
-      }
-    }  
+    }
   }
-
-
-  if(pcSaoParam->bSaoFlag[iY])
+  for (Int compIdx=0;compIdx<3;compIdx++)
   {
-    processSaoUnitAll(pcSaoParam->saoLcuParam[iY], pcSaoParam->oneUnitFlag[iY], 0);
-    if (pcSaoParam->bSaoFlag[iCb])
+    if (pcSaoParam->bSaoFlag[compIdx])
     {
-      processSaoUnitAll(pcSaoParam->saoLcuParam[iCb], pcSaoParam->oneUnitFlag[iCb], iCb);
-    }
-    if (pcSaoParam->bSaoFlag[iCr])
-    {
-      processSaoUnitAll(pcSaoParam->saoLcuParam[iCr], pcSaoParam->oneUnitFlag[iCr], iCr);
+      processSaoUnitAll( pcSaoParam->saoLcuParam[compIdx], pcSaoParam->oneUnitFlag[compIdx], compIdx);
     }
   }
-
-
-
 #else
   getSaoStats(pcSaoParam->psSaoPart[iY], iY);
   runQuadTreeDecision(pcSaoParam->psSaoPart[iY], 0, dCostFinal, m_uiMaxSplitLevel, m_dLambdaLuma);
