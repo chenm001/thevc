@@ -1757,7 +1757,7 @@ Void TEncEntropy::encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, 
       }
       if (saoParam->saoLcuParam[compIdx][addr].mergeLeftFlag == 0)
       {
-        if ( (ry > 0) && (cuAddrUpInSlice||lfCrossSliceBoundaryFlag))
+        if ( (ry > 0) && (cuAddrUpInSlice>0||lfCrossSliceBoundaryFlag))
         {
           m_pcEntropyCoderIf->codeSaoMergeUp(saoParam->saoLcuParam[compIdx][addr].mergeUpFlag);
         }
