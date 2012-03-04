@@ -183,8 +183,13 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("IntraPeriod,-ip",m_iIntraPeriod, -1, "intra period in frames, (-1: only first frame)")
   ("DecodingRefreshType,-dr",m_iDecodingRefreshType, 0, "intra refresh, (0:none 1:CDR 2:IDR)")
   ("GOPSize,g",      m_iGOPSize,      1, "GOP size of temporal structure")
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  ("MaxNumberOfReorderPictures", m_numReorderPics, -1, "Max. number of reorder pictures: -1: encoder determines value, >=0: set explicitly")
+  ("MaxDecPicBuffering", m_uiMaxDecPicBuffering, 6u, "Max. number of reference pictures")
+#else
   ("MaxNumberOfReorderPictures",   m_numReorderFrames,               -1, "Max. number of reorder pictures: -1: encoder determines value, >=0: set explicitly")
   ("MaxNumberOfReferencePictures", m_uiMaxNumberOfReferencePictures, 6u, "Max. number of reference pictures")
+#endif
   ("ListCombination,-lc", m_bUseLComb, true, "combined reference list flag for uni-prediction in B-slices")
   ("LCModification", m_bLCMod, false, "enables signalling of combined reference list derivation")
   ("DisableInter4x4", m_bDisInter4x4, true, "Disable Inter 4x4")
@@ -219,12 +224,14 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("TemporalLayerQPOffset_L2,-tq2", m_aiTLayerQPOffset[2], MAX_QP + 1, "QP offset of temporal layer 2")
   ("TemporalLayerQPOffset_L3,-tq3", m_aiTLayerQPOffset[3], MAX_QP + 1, "QP offset of temporal layer 3")
   
+#if !H0566_TLA
   ("TLayeringBasedOnCodingStruct,-tl", m_bTLayering, false, "Temporal ID is set based on the hierarchical coding structure")
   
   ("TLayerSwitchingFlag_L0,-ts0", m_abTLayerSwitchingFlag[0], false, "Switching flag for temporal layer 0")
   ("TLayerSwitchingFlag_L1,-ts1", m_abTLayerSwitchingFlag[1], false, "Switching flag for temporal layer 1")
   ("TLayerSwitchingFlag_L2,-ts2", m_abTLayerSwitchingFlag[2], false, "Switching flag for temporal layer 2")
   ("TLayerSwitchingFlag_L3,-ts3", m_abTLayerSwitchingFlag[3], false, "Switching flag for temporal layer 3")
+#endif
 
   /* Entropy coding parameters */
   ("SBACRD", m_bUseSBACRD, true, "SBAC based RD estimation")
@@ -234,6 +241,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("LoopFilterOffsetInAPS", m_loopFilterOffsetInAPS, false)
   ("LoopFilterBetaOffset_div2", m_loopFilterBetaOffsetDiv2, 0 )
   ("LoopFilterTcOffset_div2", m_loopFilterTcOffsetDiv2, 0 )
+#if DBL_CONTROL
+  ("DeblockingFilterControlPresent", m_DeblockingFilterControlPresent, false)
+#endif
 
   /* Coding tools */
   ("MRG", m_bUseMRG, true, "merging of motion partitions")
@@ -242,10 +252,18 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 
   ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
   ("SAO", m_bUseSAO, true, "SAO")   
+#if SAO_UNIT_INTERLEAVING
+  ("MaxNumOffsetsPerPic", m_maxNumOffsetsPerPic, 2048, "2048: default")   
+  ("SAOInterleaving", m_saoInterleavingFlag, false, "0: SAO Picture Mode, 1: SAO Interleaving ")   
+#endif
 
   ("ALFEncodePassReduction", m_iALFEncodePassReduction, 0, "0:Original 16-pass, 1: 1-pass, 2: 2-pass encoding")
 
   ("ALFMaxNumFilter,-ALFMNF", m_iALFMaxNumberFilters, 16, "16: No Constrained, 1-15: Constrained max number of filter")
+#if LCU_SYNTAX_ALF
+  ("ALFParamInSlice", m_bALFParamInSlice, false, "ALF parameters in 0: APS, 1: slice header")
+  ("ALFPicBasedEncode", m_bALFPicBasedEncode, true, "ALF picture-based encoding 0: false, 1: true")
+#endif
 
     ("SliceMode",            m_iSliceMode,           0, "0: Disable all Recon slice limits, 1: Enforce max # of LCUs, 2: Enforce max # of bytes")
     ("SliceArgument",        m_iSliceArgument,       0, "if SliceMode==1 SliceArgument represents max # of LCUs. if SliceMode==2 SliceArgument represents max # of bytes.")
@@ -280,6 +298,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("WaveFrontSubstreams",         m_iWaveFrontSubstreams,          1,          "# coded substreams wanted; per tile if TileBoundaryIndependenceIdc is 1, otherwise per frame")
     ("ScalingList",                 m_useScalingListId,              0,          "0: no scaling list, 1: default scaling lists, 2: scaling lists specified in ScalingListFile")
     ("ScalingListFile",             cfg_ScalingListFile,             string(""), "Scaling list file name")
+#if MULTIBITS_DATA_HIDING
+    ("SignHideFlag,-SBH",                m_signHideFlag, 1)
+    ("SignHideThreshold,-TSIG",          m_signHidingThreshold,         4)
+#endif
   /* Misc. */
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
                                               "\t1: use MD5\n"
@@ -289,6 +311,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 
   ("FEN", m_bUseFastEnc, false, "fast encoder setting")
   ("ECU", m_bUseEarlyCU, false, "Early CU setting") 
+#if FAST_DECISION_FOR_MRG_RD_COST
+  ("FDM", m_useFastDecisionForMerge, true, "Fast decision for Merge RD Cost") 
+#endif
   ("CFM", m_bUseCbfFastMode, false, "Cbf fast mode setting")
   /* Compatability with old style -1 FOO or -0 FOO options. */
   ("1", doOldStyleCmdlineOn, "turn option <name> on")
@@ -411,10 +436,17 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iGOPSize > 1 &&  m_iGOPSize % 2,                                          "GOP Size must be a multiple of 2, if GOP Size is greater than 1" );
   xConfirmPara( (m_iIntraPeriod > 0 && m_iIntraPeriod < m_iGOPSize) || m_iIntraPeriod == 0, "Intra period must be more than GOP size, or -1 , not 0" );
   xConfirmPara( m_iDecodingRefreshType < 0 || m_iDecodingRefreshType > 2,                   "Decoding Refresh Type must be equal to 0, 1 or 2" );
+#if H0736_AVC_STYLE_QP_RANGE
+  xConfirmPara( m_iQP <  -6 * ((Int)m_uiInternalBitDepth - 8) || m_iQP > 51,                "QP exceeds supported range (-QpBDOffsety to 51)" );
+#else
   xConfirmPara( m_iQP < 0 || m_iQP > 51,                                                    "QP exceeds supported range (0 to 51)" );
+#endif
   xConfirmPara( m_iALFEncodePassReduction < 0 || m_iALFEncodePassReduction > 2,             "ALFEncodePassReduction must be equal to 0, 1 or 2");
-
+#if LCU_SYNTAX_ALF
+  xConfirmPara( m_iALFMaxNumberFilters < 1,                                                 "ALFMaxNumFilter should be larger than 1");  
+#else
   xConfirmPara( m_iALFMaxNumberFilters < 1 || m_iALFMaxNumberFilters > 16,                  "ALFMaxNumFilter exceeds supported range (1 to 16)");  
+#endif
   xConfirmPara( m_loopFilterBetaOffsetDiv2 < -13 || m_loopFilterBetaOffsetDiv2 > 13,          "Loop Filter Beta Offset div. 2 exceeds supported range (-13 to 13)");
   xConfirmPara( m_loopFilterTcOffsetDiv2 < -13 || m_loopFilterTcOffsetDiv2 > 13,              "Loop Filter Tc Offset div. 2 exceeds supported range (-13 to 13)");
   xConfirmPara( m_iFastSearch < 0 || m_iFastSearch > 2,                                     "Fast Search Mode is not supported value (0:Full search  1:Diamond  2:PMVFAST)" );
@@ -454,6 +486,13 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_uiQuadtreeTUMaxDepthInter > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthInter must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra < 1,                                                         "QuadtreeTUMaxDepthIntra must be greater than or equal to 1" );
   xConfirmPara( m_uiQuadtreeTUMaxDepthIntra > m_uiQuadtreeTULog2MaxSize - m_uiQuadtreeTULog2MinSize + 1, "QuadtreeTUMaxDepthIntra must be less than or equal to the difference between QuadtreeTULog2MaxSize and QuadtreeTULog2MinSize plus 1" );
+
+#if ADAPTIVE_QP_SELECTION
+#if H0736_AVC_STYLE_QP_RANGE
+  xConfirmPara( m_bUseAdaptQpSelect == true && m_iQP < 0,                                              "AdaptiveQpSelection must be disabled when QP < 0.");
+  xConfirmPara( m_bUseAdaptQpSelect == true && (m_iChromaQpOffset !=0 || m_iChromaQpOffset2nd != 0 ),  "AdaptiveQpSelection must be disabled when ChromaQpOffset is not equal to 0.");
+#endif
+#endif
 
   if( m_usePCM)
   {
@@ -504,8 +543,13 @@ Void TAppEncCfg::xCheckParameter()
     bIsOK[i]=false;
   }
   Int iNumOK=0;
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  Int numReorderPicsRequired=0;
+  m_uiMaxDecPicBuffering=0;
+#else
   Int numReorderFramesRequired=0;
   m_uiMaxNumberOfReferencePictures=0;
+#endif
   Int iLastDisp = -1;
   m_iExtraRPSs=0;
   while(!bVerified_GOP&&!bError_GOP) 
@@ -673,8 +717,15 @@ Void TAppEncCfg::xCheckParameter()
           iNumRefs++;
         }
       }
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+      if(m_uiMaxDecPicBuffering<iNumRefs)
+      {
+        m_uiMaxDecPicBuffering=iNumRefs;
+      }
+#else
       if(m_uiMaxNumberOfReferencePictures<iNumRefs)
         m_uiMaxNumberOfReferencePictures=iNumRefs;
+#endif
       aRefList[iNumRefs]=iCurPOC;
       iNumRefs++;
       Int iNonDisplayed=0;
@@ -688,25 +739,52 @@ Void TAppEncCfg::xCheckParameter()
         if(aRefList[i]>iLastDisp)
           iNonDisplayed++;
       }
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+      if(iNonDisplayed>numReorderPicsRequired)
+      {
+        numReorderPicsRequired=iNonDisplayed;
+      }
+#else
       if(iNonDisplayed>numReorderFramesRequired)
       {
         numReorderFramesRequired=iNonDisplayed;
       }
+#endif
     }
     iCheckGOP++;
   }
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  if (m_numReorderPics == -1)
+  {
+    m_numReorderPics = numReorderPicsRequired;
+  }
+#else
   if (m_numReorderFrames == -1)
   {
     m_numReorderFrames = numReorderFramesRequired;
   }
+#endif
   xConfirmPara(bError_GOP,"Invalid GOP structure given");
+#if H0566_TLA
+  m_maxTempLayer = 1;
+#endif
   for(Int i=0; i<m_iGOPSize; i++) 
   {
+#if H0566_TLA
+    if(m_pcGOPList[i].m_iTemporalId >= m_maxTempLayer)
+    {
+      m_maxTempLayer = m_pcGOPList[i].m_iTemporalId+1;
+    }
+#endif
     xConfirmPara(m_pcGOPList[i].m_iSliceType!='B'&&m_pcGOPList[i].m_iSliceType!='P', "Slice type must be equal to B or P");
   }
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  xConfirmPara( m_bUseLComb==false && m_numReorderPics!=0, "ListCombination can only be 0 in low delay coding (more precisely when L0 and L1 are identical)" );  // Note however this is not the full necessary condition as ref_pic_list_combination_flag can only be 0 if L0 == L1.
+  xConfirmPara( m_numReorderPics < numReorderPicsRequired, "For the used GOP the encoder requires more pictures for reordering than specified in MaxNumberOfReorderPictures" );
+#else
   xConfirmPara( m_bUseLComb==false && m_numReorderFrames!=0, "ListCombination can only be 0 in low delay coding (more precisely when L0 and L1 are identical)" );  // Note however this is not the full necessary condition as ref_pic_list_combination_flag can only be 0 if L0 == L1.
   xConfirmPara( m_numReorderFrames < numReorderFramesRequired, "For the used GOP the encoder requires more pictures for reordering than specified in MaxNumberOfReorderPictures" );
-
+#endif
   xConfirmPara( m_iWaveFrontSynchro < 0, "WaveFrontSynchro cannot be negative" );
   xConfirmPara( m_iWaveFrontFlush < 0, "WaveFrontFlush cannot be negative" );
   xConfirmPara( m_iWaveFrontSubstreams <= 0, "WaveFrontSubstreams must be positive" );
@@ -796,6 +874,11 @@ Void TAppEncCfg::xPrintParameter()
   
   printf("TOOL CFG: ");
   printf("ALF:%d ", m_bUseALF             );
+#if LCU_SYNTAX_ALF
+  printf("ALFMNF:%d ", m_iALFMaxNumberFilters);
+  printf("ALFInSlice:%d ", m_bALFParamInSlice);
+  printf("ALFPicEnc:%d ", m_bALFPicBasedEncode);
+#endif
   printf("IBD:%d ", !!g_uiBitIncrement);
   printf("HAD:%d ", m_bUseHADME           );
   printf("SRD:%d ", m_bUseSBACRD          );
@@ -807,6 +890,9 @@ Void TAppEncCfg::xPrintParameter()
   printf("LCMod:%d ", m_bLCMod         );
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("ECU:%d ", m_bUseEarlyCU         );
+#if FAST_DECISION_FOR_MRG_RD_COST
+  printf("FDM:%d ", m_useFastDecisionForMerge );
+#endif
   printf("CFM:%d ", m_bUseCbfFastMode         );
   printf("RQT:%d ", 1     );
   printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
@@ -823,7 +909,15 @@ Void TAppEncCfg::xPrintParameter()
   }
   printf("CIP:%d ", m_bUseConstrainedIntraPred);
   printf("SAO:%d ", (m_bUseSAO)?(1):(0));
+#if BURST_IPCM
+  printf("PCM:%d ", (m_usePCM && (1<<m_uiPCMLog2MinSize) <= m_uiMaxCUWidth)? 1 : 0);
+#else
   printf("PCM:%d ", ((1<<m_uiPCMLog2MinSize) <= m_uiMaxCUWidth)? 1 : 0);
+#endif
+#if SAO_UNIT_INTERLEAVING
+  printf("SAOInterleaving:%d ", (m_saoInterleavingFlag)?(1):(0));
+#endif
+  
   printf("WPP:%d ", (Int)m_bUseWeightPred);
   printf("WPB:%d ", m_uiBiPredIdc);
   printf("TileBoundaryIndependence:%d ", m_iTileBoundaryIndependenceIdr ); 
@@ -847,6 +941,9 @@ Void TAppEncCfg::xPrintParameter()
   printf("AQpS:%d", m_bUseAdaptQpSelect   );
 #endif
 
+#if MULTIBITS_DATA_HIDING
+  printf(" SignBitHidingFlag:%d SignBitHidingThreshold:%d", m_signHideFlag, m_signHidingThreshold);
+#endif
   printf("\n\n");
   
   fflush(stdout);

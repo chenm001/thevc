@@ -63,9 +63,12 @@ TComSampleAdaptiveOffset::TComSampleAdaptiveOffset()
 {
   m_pClipTable = NULL;
   m_pClipTableBase = NULL;
+#if SAO_UNIT_INTERLEAVING
+  m_lumaTableBo = NULL;
+#else
   m_ppLumaTableBo0 = NULL;
   m_ppLumaTableBo1 = NULL;
-
+#endif
   m_iUpBuff1 = NULL;
   m_iUpBuff2 = NULL;
   m_iUpBufft = NULL;
@@ -129,7 +132,9 @@ const UInt TComSampleAdaptiveOffset::m_iWeightSao[MAX_NUM_SAO_TYPE] =
   2,
   2,
   2,
+#if !SAO_UNIT_INTERLEAVING
   1,
+#endif
   1
 };
 
@@ -152,7 +157,9 @@ Int TComSampleAdaptiveOffset::m_iNumClass[MAX_NUM_SAO_TYPE] =
   SAO_EO_LEN,
   SAO_EO_LEN,
   SAO_EO_LEN,
+#if !SAO_UNIT_INTERLEAVING
   SAO_BO_LEN,
+#endif
   SAO_BO_LEN
 };
 
@@ -246,7 +253,7 @@ Void TComSampleAdaptiveOffset::create( UInt uiSourceWidth, UInt uiSourceHeight, 
   m_uiMaxSplitLevel = (iMaxSplitLevelHeight < iMaxSplitLevelWidth)?(iMaxSplitLevelHeight):(iMaxSplitLevelWidth);
   m_uiMaxSplitLevel = (m_uiMaxSplitLevel< m_uiMaxDepth)?(m_uiMaxSplitLevel):(m_uiMaxDepth);
   m_iNumTotalParts  = m_aiNumCulPartsLevel[m_uiMaxSplitLevel];
-
+#if !SAO_UNIT_INTERLEAVING
   UInt auiTable[2][LUMA_GROUP_NUM] = 
   {{0, 0, 0, 0, 0, 0, 0, 0,
   1, 2, 3, 4, 5, 6, 7, 8,
@@ -257,11 +264,19 @@ Void TComSampleAdaptiveOffset::create( UInt uiSourceWidth, UInt uiSourceHeight, 
   0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 0, 0,
   9,10,11,12,13,14,15,16}};
+#endif
 
   UInt uiInternalBitDepth = g_uiBitDepth+g_uiBitIncrement;
   UInt uiPixelRange = 1<<uiInternalBitDepth;
   UInt uiBoRangeShift = uiInternalBitDepth - SAO_BO_BITS;
 
+#if SAO_UNIT_INTERLEAVING
+  m_lumaTableBo = new Pel [uiPixelRange];
+  for (Int k2=0; k2<uiPixelRange; k2++)
+  {
+    m_lumaTableBo[k2] = 1 + (k2>>uiBoRangeShift);
+  }
+#else
   m_ppLumaTableBo0 = new Pel [uiPixelRange];
   m_ppLumaTableBo1 = new Pel [uiPixelRange];
   for (Int k2=0; k2<uiPixelRange; k2++)
@@ -269,7 +284,7 @@ Void TComSampleAdaptiveOffset::create( UInt uiSourceWidth, UInt uiSourceHeight, 
     m_ppLumaTableBo0[k2] = auiTable[0][k2>>uiBoRangeShift];
     m_ppLumaTableBo1[k2] = auiTable[1][k2>>uiBoRangeShift];
   }
-
+#endif
   m_iUpBuff1 = new Int[m_iPicWidth+2];
   m_iUpBuff2 = new Int[m_iPicWidth+2];
   m_iUpBufft = new Int[m_iPicWidth+2];
@@ -324,6 +339,12 @@ Void TComSampleAdaptiveOffset::destroy()
   {
     delete [] m_iOffsetBo; m_iOffsetBo = NULL;
   }
+#if SAO_UNIT_INTERLEAVING
+  if (m_lumaTableBo)
+  {
+    delete[] m_lumaTableBo; m_lumaTableBo = NULL;
+  }
+#else
   if (m_ppLumaTableBo0)
   {
     delete[] m_ppLumaTableBo0; m_ppLumaTableBo0 = NULL;
@@ -332,6 +353,8 @@ Void TComSampleAdaptiveOffset::destroy()
   {
     delete[] m_ppLumaTableBo1; m_ppLumaTableBo1 = NULL;
   }
+#endif
+
 
   m_iUpBuff1--;
   m_iUpBuff2--;
@@ -387,6 +410,13 @@ Void TComSampleAdaptiveOffset::allocSaoParam(SAOParam *pcSaoParam)
   {
     pcSaoParam->iNumClass[j] = m_iNumClass[j];
   }
+#if SAO_UNIT_INTERLEAVING
+  pcSaoParam->numCuInWidth  = m_iNumCuInWidth;
+  pcSaoParam->numCuInHeight = m_iNumCuInHeight;
+  pcSaoParam->saoLcuParam[0] = new SaoLcuParam [m_iNumCuInHeight*m_iNumCuInWidth];
+  pcSaoParam->saoLcuParam[1] = new SaoLcuParam [m_iNumCuInHeight*m_iNumCuInWidth];
+  pcSaoParam->saoLcuParam[2] = new SaoLcuParam [m_iNumCuInHeight*m_iNumCuInWidth];
+#endif
 }
 
 /** initialize SAO parameters
@@ -412,12 +442,19 @@ Void TComSampleAdaptiveOffset::initSAOParam(SAOParam *pcSaoParam, Int iPartLevel
   pSaoPart->EndCUY    = EndCUY;
 
   pSaoPart->UpPartIdx = iParentPartIdx;
-
+#if !SAO_UNIT_INTERLEAVING
   pSaoPart->bEnableFlag =  0;
+#endif
   pSaoPart->iBestType   = -1;
   pSaoPart->iLength     =  0;
 
+#if SAO_UNIT_INTERLEAVING
+  pSaoPart->bandPosition = 0;
+
+  for (j=0;j<MAX_NUM_SAO_OFFSETS;j++)
+#else
   for (j=0;j<MAX_NUM_SAO_CLASS;j++)
+#endif
   {
     pSaoPart->iOffset[j] = 0;
   }
@@ -502,6 +539,20 @@ Void TComSampleAdaptiveOffset::freeSaoParam(SAOParam *pcSaoParam)
   pcSaoParam->psSaoPart[0] = 0;
   pcSaoParam->psSaoPart[1] = 0;
   pcSaoParam->psSaoPart[2] = 0;
+#if SAO_UNIT_INTERLEAVING
+  if( pcSaoParam->saoLcuParam[0]) 
+  {
+    delete [] pcSaoParam->saoLcuParam[0]; pcSaoParam->saoLcuParam[0] = NULL;
+  }
+  if( pcSaoParam->saoLcuParam[1]) 
+  {
+    delete [] pcSaoParam->saoLcuParam[1]; pcSaoParam->saoLcuParam[1] = NULL;
+  }
+  if( pcSaoParam->saoLcuParam[2]) 
+  {
+    delete [] pcSaoParam->saoLcuParam[2]; pcSaoParam->saoLcuParam[2] = NULL;
+  }
+#endif
 } 
 
 /** reset SAO parameters
@@ -515,7 +566,9 @@ Void TComSampleAdaptiveOffset::resetSAOParam(SAOParam *pcSaoParam)
     pcSaoParam->bSaoFlag[c] = 0;
     for(Int i=0; i< m_aiNumCulPartsLevel[m_uiMaxSplitLevel]; i++)
     {
+#if !SAO_UNIT_INTERLEAVING
       pcSaoParam->psSaoPart[c][i].bEnableFlag   =  0;
+#endif
       pcSaoParam->psSaoPart[c][i].iBestType     = -1;
       pcSaoParam->psSaoPart[c][i].iLength       =  0;
       pcSaoParam->psSaoPart[c][i].bSplit        = false; 
@@ -523,13 +576,26 @@ Void TComSampleAdaptiveOffset::resetSAOParam(SAOParam *pcSaoParam)
       pcSaoParam->psSaoPart[c][i].dMinCost      = MAX_DOUBLE;
       pcSaoParam->psSaoPart[c][i].iMinDist      = MAX_INT;
       pcSaoParam->psSaoPart[c][i].iMinRate      = MAX_INT;
+#if SAO_UNIT_INTERLEAVING
+      pcSaoParam->psSaoPart[c][i].bandPosition = 0;
+      for (Int j=0;j<MAX_NUM_SAO_OFFSETS;j++)
+#else
       for (Int j=0;j<MAX_NUM_SAO_CLASS;j++)
+#endif
       {
         pcSaoParam->psSaoPart[c][i].iOffset[j] = 0;
         pcSaoParam->psSaoPart[c][i].iOffset[j] = 0;
         pcSaoParam->psSaoPart[c][i].iOffset[j] = 0;
       }
     }
+#if SAO_UNIT_INTERLEAVING
+    pcSaoParam->oneUnitFlag[0]   = 0;
+    pcSaoParam->oneUnitFlag[1]   = 0;
+    pcSaoParam->oneUnitFlag[2]   = 0;
+    resetLcuPart(pcSaoParam->saoLcuParam[0]);
+    resetLcuPart(pcSaoParam->saoLcuParam[1]);
+    resetLcuPart(pcSaoParam->saoLcuParam[2]);
+#endif
   }
 }
 
@@ -810,8 +876,12 @@ Void TComSampleAdaptiveOffset::processSaoBlock(Pel* pDec, Pel* pRest, Int stride
       }
       break;
     }   
+#if SAO_UNIT_INTERLEAVING
+  case SAO_BO:
+#else
   case SAO_BO_0:
   case SAO_BO_1:
+#endif
     {
       for (y=0; y< height; y++)
       {
@@ -1028,8 +1098,12 @@ Void TComSampleAdaptiveOffset::processSaoCuOrg(Int iAddr, Int iSaoType, Int iYCb
       } 
       break;
     }   
+#if SAO_UNIT_INTERLEAVING
+  case SAO_BO:
+#else
   case SAO_BO_0:
   case SAO_BO_1:
+#endif
     {
       for (y=0; y<iLcuHeight; y++)
       {
@@ -1050,6 +1124,7 @@ Void TComSampleAdaptiveOffset::processSaoCuOrg(Int iAddr, Int iSaoType, Int iYCb
     m_pTmpL2  = pTmpLSwap;
   }
 }
+#if !SAO_UNIT_INTERLEAVING
 /** sample adaptive offset process for one partition
  * \param   *psQTPart,  uiPartIdx,  iYCbCr
  */
@@ -1370,7 +1445,7 @@ Void TComSampleAdaptiveOffset::xSaoQt2Lcu(SAOQTPart *psQTPart,UInt uiPartIdx)
     }
   }
 }
-
+#endif
 /** Sample adaptive offset process
  * \param pcPic, pcSaoParam  
  */
@@ -1389,6 +1464,29 @@ Void TComSampleAdaptiveOffset::SAOProcess(TComPic* pcPic, SAOParam* pcSaoParam)
       m_pcPic->getPicYuvRec()->copyToPic(m_pcYuvTmp);
     }
 
+#if SAO_UNIT_INTERLEAVING
+    if (m_saoInterleavingFlag)
+    {
+      pcSaoParam->oneUnitFlag[0] = 0;  
+      pcSaoParam->oneUnitFlag[1] = 0;  
+      pcSaoParam->oneUnitFlag[2] = 0;  
+    }
+    Int iY  = 0;
+    processSaoUnitAll( pcSaoParam->saoLcuParam[iY], pcSaoParam->oneUnitFlag[iY], iY);
+
+    Int iCb = 1;
+    Int iCr = 2;
+    if (pcSaoParam->bSaoFlag[iCb])
+    {
+      processSaoUnitAll( pcSaoParam->saoLcuParam[iCb], pcSaoParam->oneUnitFlag[iCb], iCb);
+    }
+    if (pcSaoParam->bSaoFlag[iCr])
+    {
+      processSaoUnitAll( pcSaoParam->saoLcuParam[iCr], pcSaoParam->oneUnitFlag[iCr], iCr);
+    }
+
+
+#else
     Int iY  = 0;
     processSaoQuadTree( pcSaoParam->psSaoPart[iY], 0 , iY);
 
@@ -1402,6 +1500,7 @@ Void TComSampleAdaptiveOffset::SAOProcess(TComPic* pcPic, SAOParam* pcSaoParam)
     {
       processSaoQuadTree( pcSaoParam->psSaoPart[iCr], 0 , iCr);
     }
+#endif
     m_pcPic = NULL;
   }
 }
@@ -1424,4 +1523,262 @@ Pel* TComSampleAdaptiveOffset::getPicYuvAddr(TComPicYuv* pcPicYuv, Int iYCbCr, I
     break;
   }
 }
+#if SAO_UNIT_INTERLEAVING
+/** Process SAO all units 
+ * \param saoLcuParam SAO LCU parameters
+ * \param oneUnitFlag one unit flag
+ * \param yCbCr color componet index
+ */
+Void TComSampleAdaptiveOffset::processSaoUnitAll(SaoLcuParam* saoLcuParam, Bool oneUnitFlag, Int yCbCr)
+{
+  Pel *pRec;
+  Int picWidthTmp;
+
+  if (yCbCr == 0)
+  {
+    pRec        = m_pcPic->getPicYuvRec()->getLumaAddr();
+    picWidthTmp = m_iPicWidth;
+  } 
+  else if (yCbCr == 1)
+  {
+    pRec        = m_pcPic->getPicYuvRec()->getCbAddr();
+    picWidthTmp = m_iPicWidth>>1;
+  }
+  else 
+  {
+    pRec        = m_pcPic->getPicYuvRec()->getCrAddr();
+    picWidthTmp = m_iPicWidth>>1;
+  }
+
+  memcpy(m_pTmpU1, pRec, sizeof(Pel)*picWidthTmp);
+
+  int  i;
+  UInt edgeType;
+  Pel* ppLumaTable = NULL;
+  Int  typeIdx;
+
+  static Int offset[LUMA_GROUP_NUM+1];
+  Int idxX;
+  Int idxY;
+  Int addr;
+  Int frameWidthInCU = m_pcPic->getFrameWidthInCU();
+  Int frameHeightInCU = m_pcPic->getFrameHeightInCU();
+  Int stride;
+  Pel *tmpUSwap;
+  Int isChroma = (yCbCr == 0) ? 0:1;
+  Bool mergeLeftFlag;
+
+
+  for (idxY = 0; idxY< frameHeightInCU; idxY++)
+  { 
+    addr = idxY * frameWidthInCU;
+    if (yCbCr == 0)
+    {
+      pRec  = m_pcPic->getPicYuvRec()->getLumaAddr(addr);
+      stride = m_pcPic->getStride();
+      picWidthTmp = m_iPicWidth;
+    }
+    else if (yCbCr == 1)
+    {
+      pRec  = m_pcPic->getPicYuvRec()->getCbAddr(addr);
+      stride = m_pcPic->getCStride();
+      picWidthTmp = m_iPicWidth>>1;
+    }
+    else
+    {
+      pRec  = m_pcPic->getPicYuvRec()->getCrAddr(addr);
+      stride = m_pcPic->getCStride();
+      picWidthTmp = m_iPicWidth>>1;
+    }
+
+    //     pRec += iStride*(m_uiMaxCUHeight-1);
+    for (i=0;i<(m_uiMaxCUHeight>>isChroma)+1;i++)
+    {
+      m_pTmpL1[i] = pRec[0];
+      pRec+=stride;
+    }
+    pRec-=(stride<<1);
+
+    memcpy(m_pTmpU2, pRec, sizeof(Pel)*picWidthTmp);
+
+    for (idxX = 0; idxX < frameWidthInCU; idxX++)
+    {
+      addr = idxY * frameWidthInCU + idxX;
+
+      if (oneUnitFlag)
+      {
+        typeIdx = saoLcuParam[0].typeIdx;
+        mergeLeftFlag = (addr == 0)? 0:1;
+      }
+      else
+      {
+        typeIdx = saoLcuParam[addr].typeIdx;
+        mergeLeftFlag = saoLcuParam[addr].mergeLeftFlag;
+      }
+      if (typeIdx>=0)
+      {
+        if (!mergeLeftFlag)
+        {
+
+          if (typeIdx == SAO_BO)
+          {
+            for (i=0; i<SAO_MAX_BO_CLASSES+1;i++)
+            {
+              offset[i] = 0;
+            }
+            for (i=0; i<saoLcuParam[addr].length; i++)
+            {
+              offset[ (saoLcuParam[addr].bandPosition +i)%SAO_MAX_BO_CLASSES  +1] = saoLcuParam[addr].offset[i] << m_uiSaoBitIncrease;
+            }
+
+            ppLumaTable = m_lumaTableBo;
+
+#if FULL_NBIT
+            for (i=0;i<(1<<(g_uiBitDepth));i++)
+#else
+            for (i=0;i<(1<<(g_uiBitIncrement+8));i++)
+#endif
+            {
+              m_iOffsetBo[i] = m_pClipTable[i + offset[ppLumaTable[i]]];
+            }
+
+          }
+          if (typeIdx == SAO_EO_0 || typeIdx == SAO_EO_1 || typeIdx == SAO_EO_2 || typeIdx == SAO_EO_3)
+          {
+            for (i=0;i<saoLcuParam[addr].length;i++)
+            {
+              offset[i+1] = saoLcuParam[addr].offset[i] << m_uiSaoBitIncrease;
+            }
+            for (edgeType=0;edgeType<6;edgeType++)
+            {
+              m_iOffsetEo[edgeType]= offset[m_auiEoTable[edgeType]];
+            }
+          }
+        }
+        processSaoCu(addr, typeIdx, yCbCr);
+      }
+      else
+      {
+        if (idxX != (frameWidthInCU-1))
+        {
+          if (yCbCr == 0)
+          {
+            pRec  = m_pcPic->getPicYuvRec()->getLumaAddr(addr);
+            stride = m_pcPic->getStride();
+          }
+          else if (yCbCr == 1)
+          {
+            pRec  = m_pcPic->getPicYuvRec()->getCbAddr(addr);
+            stride = m_pcPic->getCStride();
+          }
+          else
+          {
+            pRec  = m_pcPic->getPicYuvRec()->getCrAddr(addr);
+            stride = m_pcPic->getCStride();
+          }
+          Int widthShift = m_uiMaxCUWidth>>isChroma;
+          for (i=0;i<(m_uiMaxCUHeight>>isChroma)+1;i++)
+          {
+            m_pTmpL1[i] = pRec[widthShift-1];
+            pRec+=stride;
+          }
+        }
+      }
+    }
+    tmpUSwap = m_pTmpU1;
+    m_pTmpU1 = m_pTmpU2;
+    m_pTmpU2 = tmpUSwap;
+  }
+
+}
+/** Reset SAO LCU part 
+ * \param saoLcuParam
+ */
+Void TComSampleAdaptiveOffset::resetLcuPart(SaoLcuParam* saoLcuParam)
+{
+  Int i,j;
+  for (i=0;i<m_iNumCuInWidth*m_iNumCuInHeight;i++)
+  {
+    saoLcuParam[i].mergeUpFlag     =  1;
+    saoLcuParam[i].mergeLeftFlag =  0;
+    saoLcuParam[i].partIdx   =  0;
+    saoLcuParam[i].typeIdx      = -1;
+    for (j=0;j<MAX_NUM_SAO_OFFSETS;j++)
+    {
+      saoLcuParam[i].offset[j] = 0;
+    }
+    saoLcuParam[i].bandPosition = 0;
+  }
+}
+
+/** convert QP part to SAO unit 
+* \param saoParam SAO parameter 
+* \param partIdx SAO part index
+* \param yCbCr color component index
+ */
+Void TComSampleAdaptiveOffset::convertQT2SaoUnit(SAOParam *saoParam, UInt partIdx, Int yCbCr)
+{
+
+  SAOQTPart*  saoPart= &(saoParam->psSaoPart[yCbCr][partIdx]);
+  if (!saoPart->bSplit)
+  {
+    convertOnePart2SaoUnit(saoParam, partIdx, yCbCr);
+    return;
+  }
+
+  if (saoPart->PartLevel < m_uiMaxSplitLevel)
+  {
+    convertQT2SaoUnit(saoParam, saoPart->DownPartsIdx[0], yCbCr);
+    convertQT2SaoUnit(saoParam, saoPart->DownPartsIdx[1], yCbCr);
+    convertQT2SaoUnit(saoParam, saoPart->DownPartsIdx[2], yCbCr);
+    convertQT2SaoUnit(saoParam, saoPart->DownPartsIdx[3], yCbCr);
+  }
+}
+/** convert one SAO part to SAO unit 
+* \param saoParam SAO parameter 
+* \param partIdx SAO part index
+* \param yCbCr color component index
+ */
+Void TComSampleAdaptiveOffset::convertOnePart2SaoUnit(SAOParam *saoParam, UInt partIdx, Int yCbCr)
+{
+  Int j;
+  Int idxX;
+  Int idxY;
+  Int addr;
+  Int frameWidthInCU = m_pcPic->getFrameWidthInCU();
+  SAOQTPart* saoQTPart = saoParam->psSaoPart[yCbCr];
+  SaoLcuParam* saoLcuParam = saoParam->saoLcuParam[yCbCr];
+
+  for (idxY = saoQTPart[partIdx].StartCUY; idxY<= saoQTPart[partIdx].EndCUY; idxY++)
+  {
+    for (idxX = saoQTPart[partIdx].StartCUX; idxX<= saoQTPart[partIdx].EndCUX; idxX++)
+    {
+      addr = idxY * frameWidthInCU + idxX;
+      saoLcuParam[addr].partIdxTmp = (Int)partIdx; 
+      saoLcuParam[addr].typeIdx    = saoQTPart[partIdx].iBestType;
+      saoLcuParam[addr].bandPosition = saoQTPart[partIdx].bandPosition;
+      if (saoLcuParam[addr].typeIdx!=-1)
+      {
+        saoLcuParam[addr].length    = saoQTPart[partIdx].iLength;
+        for (j=0;j<MAX_NUM_SAO_OFFSETS;j++)
+        {
+          saoLcuParam[addr].offset[j] = saoQTPart[partIdx].iOffset[j];
+        }
+      }
+      else
+      {
+        saoLcuParam[addr].length    = 0;
+        saoLcuParam[addr].bandPosition = saoQTPart[partIdx].bandPosition;
+        for (j=0;j<MAX_NUM_SAO_OFFSETS;j++)
+        {
+          saoLcuParam[addr].offset[j] = 0;
+        }
+      }
+    }
+  }
+}
+
+
+#endif
+
 //! \}

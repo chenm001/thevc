@@ -263,9 +263,9 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 #else
     Int    bitdepth_luma_qp_scale = 0;
 #endif
-    Double qp_temp = (double) dQP + bitdepth_luma_qp_scale - SHIFT_QP;
+    Double qp_temp = (Double) dQP + bitdepth_luma_qp_scale - SHIFT_QP;
 #if FULL_NBIT
-    Double qp_temp_orig = (double) dQP - SHIFT_QP;
+    Double qp_temp_orig = (Double) dQP - SHIFT_QP;
 #endif
     // Case #1: I or P-slices (key-frame)
     Double dQPFactor = m_pcCfg->getGOPEntry(iGOPid).m_iQPFactor;
@@ -290,8 +290,12 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
       dLambda *= 0.95;
     }
     
+#if H0736_AVC_STYLE_QP_RANGE
+    iQP = max( -pSPS->getQpBDOffsetY(), min( MAX_QP, (Int) floor( dQP + 0.5 ) ) );
+#else
     iQP = max( MIN_QP, min( MAX_QP, (Int)floor( dQP + 0.5 ) ) );
-    
+#endif
+
     m_pdRdPicLambda[iDQpIdx] = dLambda;
     m_pdRdPicQp    [iDQpIdx] = dQP;
     m_piRdPicQp    [iDQpIdx] = iQP;
@@ -312,7 +316,15 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 #if WEIGHTED_CHROMA_DISTORTION
 // for RDO
   // in RdCost there is only one lambda because the luma and chroma bits are not separated, instead we weight the distortion of chroma.
-  double weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
+#if H0736_AVC_STYLE_QP_RANGE
+  Double weight = 1.0;
+  if(iQP >= 0)
+  {
+    weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
+  }
+#else
+  Double weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
+#endif
   m_pcRdCost ->setChromaDistortionWeight( weight );     
 #endif
 
@@ -346,13 +358,20 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setNumRefIdx(REF_PIC_LIST_1,m_pcCfg->getGOPEntry(iGOPid).m_iRefBufSize);
   
   rpcSlice->setLoopFilterOffsetInAPS( m_pcCfg->getLoopFilterOffsetInAPS() );
-  rpcSlice->setInheritDblParamFromAPS( m_pcCfg->getLoopFilterOffsetInAPS() ? 1 : 0 );
-  rpcSlice->setLoopFilterDisable( m_pcCfg->getLoopFilterDisable() );
-  if ( !rpcSlice->getLoopFilterDisable())
+#if DBL_CONTROL
+  if (rpcSlice->getPPS()->getDeblockingFilterControlPresent())
   {
-    rpcSlice->setLoopFilterBetaOffset( m_pcCfg->getLoopFilterBetaOffset() );
-    rpcSlice->setLoopFilterTcOffset( m_pcCfg->getLoopFilterTcOffset() );
+#endif
+    rpcSlice->setInheritDblParamFromAPS( m_pcCfg->getLoopFilterOffsetInAPS() ? 1 : 0 );
+    rpcSlice->setLoopFilterDisable( m_pcCfg->getLoopFilterDisable() );
+    if ( !rpcSlice->getLoopFilterDisable())
+    {
+      rpcSlice->setLoopFilterBetaOffset( m_pcCfg->getLoopFilterBetaOffset() );
+      rpcSlice->setLoopFilterTcOffset( m_pcCfg->getLoopFilterTcOffset() );
+    }
+#if DBL_CONTROL
   }
+#endif
 
   rpcSlice->setDepth            ( iDepth );
   
@@ -362,7 +381,9 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     pcPic->setTLayer(0);
   }
   rpcSlice->setTLayer( pcPic->getTLayer() );
+#if !H0566_TLA
   rpcSlice->setTLayerSwitchingFlag( pPPS->getTLayerSwitchingFlag( pcPic->getTLayer() ) );
+#endif
 
   assert( m_apcPicYuvPred );
   assert( m_apcPicYuvResi );
@@ -449,7 +470,15 @@ Void TEncSlice::precompressSlice( TComPic*& rpcPic )
     // for RDO
     // in RdCost there is only one lambda because the luma and chroma bits are not separated, instead we weight the distortion of chroma.
     int iQP = m_piRdPicQp    [uiQpIdx];
-    double weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
+#if H0736_AVC_STYLE_QP_RANGE
+    Double weight = 1.0;
+    if(iQP >= 0)
+    {
+      weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
+    }
+#else
+    Double weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
+#endif
     m_pcRdCost    ->setChromaDistortionWeight( weight );     
 #endif
 
@@ -494,7 +523,15 @@ Void TEncSlice::precompressSlice( TComPic*& rpcPic )
 #if WEIGHTED_CHROMA_DISTORTION
   // in RdCost there is only one lambda because the luma and chroma bits are not separated, instead we weight the distortion of chroma.
   int iQP = m_piRdPicQp    [uiQpIdxBest];
-  double weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
+#if H0736_AVC_STYLE_QP_RANGE
+  Double weight = 1.0;
+  if(iQP >= 0)
+  {
+    weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
+  }
+#else
+  Double weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
+#endif
   m_pcRdCost ->setChromaDistortionWeight( weight );     
 #endif
 
@@ -1054,6 +1091,17 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         }
       }
     }
+#if SAO_UNIT_INTERLEAVING
+    if ( pcSlice->getSPS()->getUseSAO() && pcSlice->getAPS()->getSaoInterleavingFlag() && pcSlice->getSaoEnabledFlag() )
+    {
+      Int iNumCuInWidth     = pcSlice->getAPS()->getSaoParam()->numCuInWidth;
+      Int iCUAddrInSlice    = uiCUAddr - (uiStartCUAddr /rpcPic->getNumPartInCU());
+      Int iCUAddrUpInSlice  = iCUAddrInSlice - iNumCuInWidth;
+      Int rx = uiCUAddr % iNumCuInWidth;
+      Int ry = uiCUAddr / iNumCuInWidth;
+      m_pcEntropyCoder->encodeSaoUnitInterleaving( rx, ry, pcSlice->getAPS()->getSaoParam(),pcCU, iCUAddrInSlice, iCUAddrUpInSlice, pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+    }
+#endif
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceEnable;
 #endif

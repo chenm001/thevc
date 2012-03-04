@@ -111,11 +111,22 @@ public:
   Void  codeAlfUvlc       ( UInt uiCode );
   Void  codeAlfSvlc       ( Int  uiCode );
   Void  codeAlfCtrlDepth  ();
+#if LCU_SYNTAX_ALF
+  Void codeAPSAlflag(UInt uiCode) {assert (0);  return;}
+  Void codeAlfFixedLengthIdx( UInt idx, UInt maxValue){ assert (0);  return;}
+#endif
 
   Void codeAlfCtrlFlag       ( UInt uiSymbol );
   Void  codeSaoFlag       ( UInt uiCode );
   Void  codeSaoUvlc       ( UInt uiCode );
   Void  codeSaoSvlc       ( Int  uiCode );
+#if SAO_UNIT_INTERLEAVING
+  Void  codeSaoRun        ( UInt  uiCode, UInt uiMaxValue  ) {;}
+  Void  codeSaoMergeLeft  ( UInt  uiCode, UInt uiCompIdx );
+  Void  codeSaoMergeUp    ( UInt  uiCode);
+  Void  codeSaoTypeIdx    ( UInt  uiCode);
+  Void  codeSaoUflc       ( UInt  uiCode);
+#endif
   Void  codeScalingList      ( TComScalingList* scalingList     ){ assert (0);  return;};
 
 private:
@@ -163,7 +174,11 @@ public:
   
   Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void codePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+#if BURST_IPCM
+  Void codeIPCMInfo      ( TComDataCU* pcCU, UInt uiAbsPartIdx, Int numIPCM, Bool firstIPCMFlag);
+#else
   Void codeIPCMInfo      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+#endif
   Void codeTransformSubdivFlag ( UInt uiSymbol, UInt uiCtx );
   Void codeQtCbf               ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   Void codeQtRootCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx );
@@ -230,11 +245,20 @@ private:
   ContextModel3DBuffer m_cALFFlagSCModel;
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;
+#if AMP_CTX
+  ContextModel3DBuffer m_cCUAMPSCModel;
+#else
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;
+#endif
   ContextModel3DBuffer m_cSaoFlagSCModel;
   ContextModel3DBuffer m_cSaoUvlcSCModel;
   ContextModel3DBuffer m_cSaoSvlcSCModel;
+#if SAO_UNIT_INTERLEAVING
+  ContextModel3DBuffer m_cSaoMergeLeftSCModel;
+  ContextModel3DBuffer m_cSaoMergeUpSCModel;
+  ContextModel3DBuffer m_cSaoTypeIdxSCModel;
+#endif
 
 };
 

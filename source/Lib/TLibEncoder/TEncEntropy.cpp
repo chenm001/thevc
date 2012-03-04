@@ -51,6 +51,24 @@ Void TEncEntropy::setEntropyCoder ( TEncEntropyIf* e, TComSlice* pcSlice )
 
 Void TEncEntropy::encodeSliceHeader ( TComSlice* pcSlice )
 {
+#if SAO_UNIT_INTERLEAVING
+  if (pcSlice->getSPS()->getUseSAO())
+  {
+    pcSlice->setSaoInterleavingFlag(pcSlice->getAPS()->getSaoInterleavingFlag());
+    pcSlice->setSaoEnabledFlag     (pcSlice->getAPS()->getSaoParam()->bSaoFlag[0]);
+    if (pcSlice->getAPS()->getSaoInterleavingFlag())
+    {
+      pcSlice->setSaoEnabledFlagCb   (pcSlice->getAPS()->getSaoParam()->bSaoFlag[1]);
+      pcSlice->setSaoEnabledFlagCr   (pcSlice->getAPS()->getSaoParam()->bSaoFlag[2]);
+    }
+    else
+    {
+      pcSlice->setSaoEnabledFlagCb   (0);
+      pcSlice->setSaoEnabledFlagCr   (0);
+    }
+  }
+#endif
+
   m_pcEntropyCoderIf->codeSliceHeader( pcSlice );
   return;
 }
@@ -111,6 +129,15 @@ Void TEncEntropy::encodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
   {
     uiAbsPartIdx = 0;
   }
+#if BURST_IPCM
+  if( !bRD )
+  {
+    if( pcCU->getLastCUSucIPCMFlag() && pcCU->getIPCMFlag(uiAbsPartIdx) )
+    {
+      return;
+    }
+  }
+#endif
   m_pcEntropyCoderIf->codeSkipFlag( pcCU, uiAbsPartIdx );
 }
 
@@ -138,8 +165,12 @@ Void TEncEntropy::codeAux(ALFParam* pAlfParam)
 {
   //  m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->realfiltNo); 
 
+#if !LCU_SYNTAX_ALF
   m_pcEntropyCoderIf->codeAlfFlag(pAlfParam->alf_pcr_region_flag);
+#endif
+#if !ALF_SINGLE_FILTER_SHAPE
   m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->filter_shape); 
+#endif
   Int noFilters = min(pAlfParam->filters_per_group-1, 2);
   m_pcEntropyCoderIf->codeAlfUvlc(noFilters);
 
@@ -149,7 +180,19 @@ Void TEncEntropy::codeAux(ALFParam* pAlfParam)
   }
   else if (noFilters == 2)
   {
+#if LCU_SYNTAX_ALF
+#if ALF_16_BA_GROUPS
+    Int numMergeFlags = 16;
+#else
+    Int numMergeFlags = 15;
+#endif
+#else
+#if ALF_16_BA_GROUPS
+    Int numMergeFlags = 16;
+#else
     Int numMergeFlags = pAlfParam->alf_pcr_region_flag ? 16 : 15;
+#endif
+#endif
     for (Int i=1; i<numMergeFlags; i++) 
     {
       m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->filterPattern[i]);
@@ -181,7 +224,11 @@ Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
   
   pDepthInt = pDepthIntTabShapes[ALFp->filter_shape];
   maxScanVal = 0;
+#if ALF_SINGLE_FILTER_SHAPE
+  int minScanVal = MIN_SCAN_POS_CROSS;
+#else
   int minScanVal = ( ALFp->filter_shape==ALF_STAR5x5 ) ? 0 : MIN_SCAN_POS_CROSS;
+#endif
 
   for(i = 0; i < sqrFiltLength; i++)
   {
@@ -247,16 +294,29 @@ Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
   
   // Coding parameters
   ALFp->minKStart = minKStart;
+#if !LCU_SYNTAX_ALF  
   ALFp->maxScanVal = maxScanVal;
+#endif
   for(scanPos = minScanVal; scanPos < maxScanVal; scanPos++)
   {
     ALFp->kMinTab[scanPos] = kMinTab[scanPos];
   }
 
+#if LCU_SYNTAX_ALF
+  if (ALFp->filters_per_group == 1)
+  {
+    len += writeFilterCoeffs(sqrFiltLength, filters_per_group, pDepthInt, ALFp->coeffmulti, kTableTabShapes[ALF_CROSS9x7_SQUARE3x3]);
+  }
+  else
+  {
+#endif
   len += writeFilterCodingParams(minKStart, minScanVal, maxScanVal, kMinTab);
 
   // Filter coefficients
   len += writeFilterCoeffs(sqrFiltLength, filters_per_group, pDepthInt, ALFp->coeffmulti, kMinTab);
+#if LCU_SYNTAX_ALF
+  }
+#endif
   
   return len;
 }
@@ -294,7 +354,12 @@ Int TEncEntropy::writeFilterCoeffs(int sqrFiltLength, int filters_per_group, int
     for(i = 0; i < sqrFiltLength; i++)
     {
       scanPos = pDepthInt[i] - 1;
+#if LCU_SYNTAX_ALF
+      Int k = (filters_per_group == 1) ? kMinTab[i] : kMinTab[scanPos];
+      golombEncode(FilterCoeff[ind][i], k);
+#else
       golombEncode(FilterCoeff[ind][i], kMinTab[scanPos]);
+#endif
     }
   }
   return 0;
@@ -375,8 +440,307 @@ Void TEncEntropy::encodeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   }
 }
 
+#if LCU_SYNTAX_ALF
+/** parse the fixed length code (smaller than one max value) in ALF
+ * \param run: coded value
+ * \param rx: cur addr
+ * \param numLCUInWidth: # of LCU in one LCU 
+ * \returns Void
+ */
+Void TEncEntropy::encodeAlfFixedLengthRun(UInt run, UInt rx, UInt numLCUInWidth)
+{
+  assert(numLCUInWidth > rx);
+  UInt maxValue = numLCUInWidth - rx - 1;
+  m_pcEntropyCoderIf->codeAlfFixedLengthIdx(run, maxValue);
+}
+
+/** parse the fixed length code (smaller than one max value) in ALF
+ * \param idx: coded value
+ * \param numFilterSetsInBuffer: max value 
+ * \returns Void
+ */
+Void TEncEntropy::encodeAlfStoredFilterSetIdx(UInt idx, UInt numFilterSetsInBuffer)
+{
+  assert(numFilterSetsInBuffer > 0);
+  UInt maxValue = numFilterSetsInBuffer - 1;
+  m_pcEntropyCoderIf->codeAlfFixedLengthIdx(idx, maxValue);
+}
+
+Void TEncEntropy::encodeAlfParam(AlfParamSet* pAlfParamSet, Bool bSentInAPS, Int firstLCUAddr, Bool alfAcrossSlice)
+{
+  Bool isEnabled[NUM_ALF_COMPONENT];
+  Bool isUniParam[NUM_ALF_COMPONENT];
+
+  isEnabled[ALF_Y] = true;
+  isEnabled[ALF_Cb]= pAlfParamSet->isEnabled[ALF_Cb];
+  isEnabled[ALF_Cr]= pAlfParamSet->isEnabled[ALF_Cr];
+
+  isUniParam[ALF_Y]= pAlfParamSet->isUniParam[ALF_Y];
+  isUniParam[ALF_Cb]= pAlfParamSet->isUniParam[ALF_Cb];
+  isUniParam[ALF_Cr]= pAlfParamSet->isUniParam[ALF_Cr]; 
+
+
+  //alf_cb_enable_flag
+  m_pcEntropyCoderIf->codeAlfFlag(isEnabled[ALF_Cb]?1:0);
+  //alf_cr_enable_flag
+  m_pcEntropyCoderIf->codeAlfFlag(isEnabled[ALF_Cr]?1:0);  
+
+  for(Int compIdx = 0; compIdx< NUM_ALF_COMPONENT; compIdx++)
+  {
+    if(isEnabled[compIdx])
+    {
+      //alf_one_{luma, cb, cr}_unit_per_slice_flag
+      m_pcEntropyCoderIf->codeAlfFlag(isUniParam[compIdx]?1:0);
+    }
+  }
+  if(bSentInAPS)
+  {
+    //alf_num_lcu_in_width_minus1
+    m_pcEntropyCoderIf->codeAlfUvlc(pAlfParamSet->numLCUInWidth-1);
+    //alf_num_lcu_in_height_minus1
+    m_pcEntropyCoderIf->codeAlfUvlc(pAlfParamSet->numLCUInHeight-1);
+  }
+  else //sent in slice header
+  {
+    //alf_num_lcu_in_slice_minus1
+    m_pcEntropyCoderIf->codeAlfUvlc(pAlfParamSet->numLCU-1);
+  }
+
+
+  encodeAlfParamSet(pAlfParamSet, pAlfParamSet->numLCUInWidth, pAlfParamSet->numLCU, firstLCUAddr, alfAcrossSlice, 0, (Int)NUM_ALF_COMPONENT-1);
+
+}
+
+Bool TEncEntropy::getAlfRepeatRowFlag(Int compIdx, AlfParamSet* pAlfParamSet
+                                    , Int lcuIdxInSlice, Int lcuPos
+                                    , Int startlcuPosX, Int endlcuPosX
+                                    , Int numLCUInWidth
+                                    )
+{
+  assert(startlcuPosX == 0); //only the beginning of one LCU row needs to send repeat_row_flag
+  
+  Int len = endlcuPosX - startlcuPosX +1;
+  Bool isRepeatRow = true;
+  Int curPos;
+
+  for(Int i= 0; i < len; i++)
+  {
+    curPos = lcuIdxInSlice +i;
+    AlfUnitParam& alfUnitParam = pAlfParamSet->alfUnitParam[compIdx][curPos];
+    AlfUnitParam& alfUpUnitParam = pAlfParamSet->alfUnitParam[compIdx][curPos-numLCUInWidth];
+
+    if ( !(alfUnitParam == alfUpUnitParam) )
+    {
+      isRepeatRow = false;
+      break;
+    }
+  }
+
+  return isRepeatRow;
+}
+
+
+Int TEncEntropy::getAlfRun(Int compIdx, AlfParamSet* pAlfParamSet
+                          , Int lcuIdxInSlice, Int lcuPos
+                          , Int startlcuPosX, Int endlcuPosX
+                          )
+{
+  Int alfRun = 0;
+  Int len = endlcuPosX - startlcuPosX +1;
+  AlfUnitParam& alfLeftUnitParam = pAlfParamSet->alfUnitParam[compIdx][lcuIdxInSlice];
+
+
+
+  for(Int i= 1; i < len; i++)
+  {
+    AlfUnitParam& alfUnitParam = pAlfParamSet->alfUnitParam[compIdx][lcuIdxInSlice+ i];
+
+    if (alfUnitParam == alfLeftUnitParam)
+    {
+      alfRun++;
+    }
+    else
+    {
+      break;
+    }
+  }
+
+  return alfRun;
+
+}
+
+
+
+Void TEncEntropy::encodeAlfParamSet(AlfParamSet* pAlfParamSet, Int numLCUInWidth, Int numLCU, Int firstLCUAddr, Bool alfAcrossSlice, Int startCompIdx, Int endCompIdx)
+{
+  Int endLCUY       = (numLCU -1 + firstLCUAddr)/numLCUInWidth;
+  Int endLCUX       = (numLCU -1 + firstLCUAddr)%numLCUInWidth;
+
+  static Bool isRepeatedRow   [NUM_ALF_COMPONENT];
+  static Int  numStoredFilters[NUM_ALF_COMPONENT];
+  static Int* run             [NUM_ALF_COMPONENT];
+
+  for(Int compIdx =startCompIdx; compIdx <= endCompIdx; compIdx++)
+  {
+    isRepeatedRow[compIdx]    = false;
+    numStoredFilters[compIdx] = 0;
+
+    run[compIdx] = new Int[numLCU+1];
+    run[compIdx][0] = -1; 
+  }
+
+  Int  ry, rx, addrUp, endrX, lcuPos;
+
+  for(Int i=0; i< numLCU; i++)
+  {
+    lcuPos= firstLCUAddr+ i;
+    rx    = lcuPos% numLCUInWidth;
+    ry    = lcuPos/ numLCUInWidth;
+    endrX = ( ry == endLCUY)?( endLCUX ):(numLCUInWidth-1);
+
+    for(Int compIdx =startCompIdx; compIdx <= endCompIdx; compIdx++)
+    {
+      AlfUnitParam& alfUnitParam = pAlfParamSet->alfUnitParam[compIdx][i];
+      if(pAlfParamSet->isEnabled[compIdx])
+      {
+        if(!pAlfParamSet->isUniParam[compIdx])
+        {
+          addrUp = i-numLCUInWidth;
+          if(rx ==0 && addrUp >=0)
+          {
+            isRepeatedRow[compIdx] = getAlfRepeatRowFlag(compIdx, pAlfParamSet, i, lcuPos, rx, endrX, numLCUInWidth);
+
+            //alf_repeat_row_flag
+            m_pcEntropyCoderIf->codeAlfFlag(isRepeatedRow[compIdx]?1:0);
+          }
+
+          if(isRepeatedRow[compIdx])
+          {
+            assert(addrUp >=0);
+            run[compIdx][i] = run[compIdx][addrUp];
+          }
+          else
+          {
+            if(rx == 0 || run[compIdx][i] < 0)
+            {             
+              run[compIdx][i] = getAlfRun(compIdx, pAlfParamSet, i, lcuPos, rx, endrX);
+
+              if(addrUp < 0)
+              {
+                //alf_run_diff u(v)
+                encodeAlfFixedLengthRun(run[compIdx][i], rx, numLCUInWidth);                
+              }
+              else
+              {
+                //alf_run_diff s(v)
+                m_pcEntropyCoderIf->codeAlfSvlc(run[compIdx][i]- run[compIdx][addrUp]);
+
+              }
+
+              if(ry > 0 && (addrUp >=0 || alfAcrossSlice))
+              {
+                //alf_merge_up_flag
+                m_pcEntropyCoderIf->codeAlfFlag(  (alfUnitParam.mergeType == ALF_MERGE_UP)?1:0   );  
+              }
+
+              if(alfUnitParam.mergeType != ALF_MERGE_UP)
+              {
+                assert(alfUnitParam.mergeType == ALF_MERGE_DISABLED);
+
+                //alf_lcu_enable_flag
+                m_pcEntropyCoderIf->codeAlfFlag(alfUnitParam.isEnabled ? 1 : 0);
+
+                if(alfUnitParam.isEnabled)
+                {
+                  if(numStoredFilters[compIdx] > 0)
+                  {
+                    //alf_new_filter_set_flag
+                    m_pcEntropyCoderIf->codeAlfFlag(alfUnitParam.isNewFilt ? 1:0);
+
+                    if(!alfUnitParam.isNewFilt)
+                    {
+                      //alf_stored_filter_set_idx
+                      encodeAlfStoredFilterSetIdx(alfUnitParam.storedFiltIdx, numStoredFilters[compIdx]);
+
+                    }
+                  }
+                  else
+                  {
+                    assert(alfUnitParam.isNewFilt);
+                  }
+
+                  if(alfUnitParam.isNewFilt)
+                  {
+                    assert(alfUnitParam.alfFiltParam->alf_flag == 1);
+                    encodeAlfParam(alfUnitParam.alfFiltParam);
+                    numStoredFilters[compIdx]++;
+                  }
+                }
+
+              }
+            }
+
+            run[compIdx][i+1] = run[compIdx][i] -1;
+          }
+
+        }
+        else // uni-param
+        {
+          if(i == 0)
+          {
+            //alf_lcu_enable_flag
+            m_pcEntropyCoderIf->codeAlfFlag(alfUnitParam.isEnabled?1:0);
+            if(alfUnitParam.isEnabled)
+            {
+              encodeAlfParam(alfUnitParam.alfFiltParam);
+            }
+          }
+        }
+      } // component enabled/disable
+    } //comp
+
+  }
+
+  for(Int compIdx =startCompIdx; compIdx <= endCompIdx; compIdx++)
+  {
+    delete[] run[compIdx];
+  }
+
+}
+#endif
+
+
 Void TEncEntropy::encodeAlfParam(ALFParam* pAlfParam)
 {
+#if LCU_SYNTAX_ALF
+  const Int numCoeff = (Int)ALF_MAX_NUM_COEF;
+
+  switch(pAlfParam->componentID)
+  {
+  case ALF_Cb:
+  case ALF_Cr:
+    {
+      for(Int pos=0; pos< numCoeff; pos++)
+      {
+        m_pcEntropyCoderIf->codeAlfSvlc(  pAlfParam->coeffmulti[0][pos]);
+
+      }
+    }
+    break;
+  case ALF_Y:
+    {
+      codeAux(pAlfParam);
+      codeFilt(pAlfParam);
+    }
+    break;
+  default:
+    {
+      printf("Not a legal component ID\n");
+      assert(0);
+      exit(-1);
+    }
+  }
+#else
   if (!pAlfParam->alf_flag)
   {
     return;
@@ -389,13 +753,16 @@ Void TEncEntropy::encodeAlfParam(ALFParam* pAlfParam)
   m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->chroma_idc);
   if(pAlfParam->chroma_idc)
   {
+#if !ALF_SINGLE_FILTER_SHAPE
     m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->filter_shape_chroma);
+#endif
     // filter coefficients for chroma
     for(pos=0; pos<pAlfParam->num_coeff_chroma; pos++)
     {
       m_pcEntropyCoderIf->codeAlfSvlc(pAlfParam->coeff_chroma[pos]);
     }
   }
+#endif
 }
 
 Void TEncEntropy::encodeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
@@ -454,12 +821,21 @@ Void TEncEntropy::encodePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
   {
     uiAbsPartIdx = 0;
   }
-  
+#if BURST_IPCM
+  if( !bRD )
+  {
+    if( pcCU->getLastCUSucIPCMFlag() && pcCU->getIPCMFlag(uiAbsPartIdx) )
+    {
+      return;
+    }
+  }
+#endif
+
   if ( pcCU->getSlice()->isIntra() )
   {
     return;
   }
- 
+
   m_pcEntropyCoderIf->codePredMode( pcCU, uiAbsPartIdx );
 }
 
@@ -470,7 +846,16 @@ Void TEncEntropy::encodeSplitFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
   {
     uiAbsPartIdx = 0;
   }
-  
+#if BURST_IPCM
+  if( !bRD )
+  {
+    if( pcCU->getLastCUSucIPCMFlag() && pcCU->getIPCMFlag(uiAbsPartIdx) )
+    {
+      return;
+    }
+  }
+#endif
+
   m_pcEntropyCoderIf->codeSplitFlag( pcCU, uiAbsPartIdx, uiDepth );
 }
 
@@ -487,7 +872,15 @@ Void TEncEntropy::encodePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
   {
     uiAbsPartIdx = 0;
   }
-  
+#if BURST_IPCM
+  if( !bRD )
+  {
+    if( pcCU->getLastCUSucIPCMFlag() && pcCU->getIPCMFlag(uiAbsPartIdx) )
+    {
+      return;
+    }
+  }
+#endif  
   m_pcEntropyCoderIf->codePartSize( pcCU, uiAbsPartIdx, uiDepth );
 }
 
@@ -511,13 +904,64 @@ Void TEncEntropy::encodeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
     uiAbsPartIdx = 0;
   }
   
+#if BURST_IPCM
+  Int numIPCM = 0;
+  Bool firstIPCMFlag = false;
+
+  if( pcCU->getIPCMFlag(uiAbsPartIdx) )
+  {
+    numIPCM = 1;
+    firstIPCMFlag = true;
+
+    if( !bRD )
+    {
+      numIPCM = pcCU->getNumSucIPCM();
+      firstIPCMFlag = !pcCU->getLastCUSucIPCMFlag();
+    }
+  }
+  m_pcEntropyCoderIf->codeIPCMInfo ( pcCU, uiAbsPartIdx, numIPCM, firstIPCMFlag);
+#else
   m_pcEntropyCoderIf->codeIPCMInfo ( pcCU, uiAbsPartIdx );
+#endif
+
 }
 
+#if UNIFIED_TRANSFORM_TREE
+#if NSQT_LFFIX
+Void TEncEntropy::xEncodeTransform( TComDataCU* pcCU,UInt offsetLuma, UInt offsetChroma, UInt uiAbsPartIdx, UInt nsAbsPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3, Bool& bCodeDQP )
+#else
+Void TEncEntropy::xEncodeTransform( TComDataCU* pcCU,UInt offsetLuma, UInt offsetChroma, UInt uiAbsPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3, Bool& bCodeDQP )
+#endif
+#else
+#if NSQT_LFFIX
+Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt nsAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 )
+#else
 Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 )
+#endif
+#endif
 {
   const UInt uiSubdiv = pcCU->getTransformIdx( uiAbsPartIdx ) + pcCU->getDepth( uiAbsPartIdx ) > uiDepth;
   const UInt uiLog2TrafoSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth()]+2 - uiDepth;
+#if UNIFIED_TRANSFORM_TREE
+  UInt cbfY = pcCU->getCbf( uiAbsPartIdx, TEXT_LUMA    , uiTrIdx );
+  UInt cbfU = pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrIdx );
+  UInt cbfV = pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiTrIdx );
+
+  if( uiLog2TrafoSize == 2 )
+  {
+    UInt partNum = pcCU->getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
+    if( ( uiAbsPartIdx % partNum ) == 0 )
+    {
+      m_uiBakAbsPartIdx   = uiAbsPartIdx;
+      m_uiBakChromaOffset = offsetChroma;
+    }
+    else if( ( uiAbsPartIdx % partNum ) == (partNum - 1) )
+    {
+      cbfU = pcCU->getCbf( m_uiBakAbsPartIdx, TEXT_CHROMA_U, uiTrIdx );
+      cbfV = pcCU->getCbf( m_uiBakAbsPartIdx, TEXT_CHROMA_V, uiTrIdx );
+    }
+  }
+#endif // UNIFIED_TRANSFORM_TREE
   {//CABAC
     if( pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA && pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_NxN && uiDepth == pcCU->getDepth(uiAbsPartIdx) )
     {
@@ -597,13 +1041,68 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
     
     if( uiSubdiv )
     {
+#if UNIFIED_TRANSFORM_TREE
+      UInt size;
+      width  >>= 1;
+      height >>= 1;
+      size = width*height;
+      uiTrIdx++;
+#endif // UNIFIED_TRANSFORM_TREE
       ++uiDepth;
+#if UNIFIED_TRANSFORM_TREE
+      const UInt partNum = pcCU->getPic()->getNumPartInCU() >> (uiDepth << 1);
+#else
       const UInt uiQPartNum = pcCU->getPic()->getNumPartInCU() >> (uiDepth << 1);
+#endif
       
       UInt uiCurrentCbfY = 0;
       UInt uiCurrentCbfU = 0;
       UInt uiCurrentCbfV = 0;
       
+#if UNIFIED_TRANSFORM_TREE
+#if NSQT_LFFIX
+      UInt nsAddr = 0;
+      nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, nsAbsPartIdx, 0, uiDepth - pcCU->getDepth( uiAbsPartIdx ) );
+      xEncodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, nsAddr, uiDepth, width, height, uiTrIdx, 0, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV, bCodeDQP );
+
+      uiAbsPartIdx += partNum;  offsetLuma += size;  offsetChroma += (size>>2);
+      nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, nsAbsPartIdx, 1, uiDepth - pcCU->getDepth( uiAbsPartIdx ) );
+      xEncodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, nsAddr, uiDepth, width, height, uiTrIdx, 1, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV, bCodeDQP );
+
+      uiAbsPartIdx += partNum;  offsetLuma += size;  offsetChroma += (size>>2);
+      nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, nsAbsPartIdx, 2, uiDepth - pcCU->getDepth( uiAbsPartIdx ) );
+      xEncodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, nsAddr, uiDepth, width, height, uiTrIdx, 2, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV, bCodeDQP );
+
+      uiAbsPartIdx += partNum;  offsetLuma += size;  offsetChroma += (size>>2);
+      nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, nsAbsPartIdx, 3, uiDepth - pcCU->getDepth( uiAbsPartIdx ) );
+      xEncodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, nsAddr, uiDepth, width, height, uiTrIdx, 3, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV, bCodeDQP );      
+#else
+      xEncodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, uiDepth, width, height, uiTrIdx, 0, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV, bCodeDQP );
+      uiAbsPartIdx += partNum;  offsetLuma += size;  offsetChroma += (size>>2);
+      xEncodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, uiDepth, width, height, uiTrIdx, 1, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV, bCodeDQP );
+      uiAbsPartIdx += partNum;  offsetLuma += size;  offsetChroma += (size>>2);
+      xEncodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, uiDepth, width, height, uiTrIdx, 2, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV, bCodeDQP );
+      uiAbsPartIdx += partNum;  offsetLuma += size;  offsetChroma += (size>>2);
+      xEncodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, uiDepth, width, height, uiTrIdx, 3, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV, bCodeDQP );
+#endif
+#else // UNIFIED_TRANSFORM_TREE
+#if NSQT_LFFIX
+      UInt nsAddr = 0;
+      nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, nsAbsPartIdx, 0, uiDepth - pcCU->getDepth( uiAbsPartIdx ) );
+      xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, nsAddr, uiDepth, 0, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
+
+      uiAbsPartIdx += uiQPartNum;
+      nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, nsAbsPartIdx, 1, uiDepth - pcCU->getDepth( uiAbsPartIdx ) );
+      xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, nsAddr, uiDepth, 1, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
+
+      uiAbsPartIdx += uiQPartNum;
+      nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, nsAbsPartIdx, 2, uiDepth - pcCU->getDepth( uiAbsPartIdx ) );
+      xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, nsAddr, uiDepth, 2, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
+
+      uiAbsPartIdx += uiQPartNum;
+      nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, nsAbsPartIdx, 3, uiDepth - pcCU->getDepth( uiAbsPartIdx ) );
+      xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, nsAddr, uiDepth, 3, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
+#else
       xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
       uiAbsPartIdx += uiQPartNum;
       xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 1, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
@@ -611,6 +1110,8 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
       xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 2, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
       uiAbsPartIdx += uiQPartNum;
       xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 3, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
+#endif
+#endif // UNIFIED_TRANSFORM_TREE
       
       uiYCbfFront3 += uiCurrentCbfY;
       uiUCbfFront3 += uiCurrentCbfU;
@@ -630,6 +1131,12 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
       }
       UInt uiLumaTrMode, uiChromaTrMode;
       pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
+#if NSQT_LFFIX
+      if(pcCU->getPredictionMode( uiAbsPartIdx ) == MODE_INTER && pcCU->useNonSquarePU( uiAbsPartIdx ) )
+      {
+        pcCU->setNSQTIdxSubParts( uiLog2TrafoSize, uiAbsPartIdx, nsAbsPartIdx, uiLumaTrMode );
+      }
+#endif
       if( pcCU->getPredictionMode(uiAbsPartIdx) != MODE_INTRA && uiDepth == pcCU->getDepth( uiAbsPartIdx ) && !pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, 0 ) && !pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, 0 ) )
       {
         assert( pcCU->getCbf( uiAbsPartIdx, TEXT_LUMA, 0 ) );
@@ -650,10 +1157,64 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
         }
       }
       
+#if UNIFIED_TRANSFORM_TREE
+      if ( cbfY || cbfU || cbfV )
+      {
+        // dQP: only for LCU once
+        if ( pcCU->getSlice()->getPPS()->getUseDQP() )
+        {
+          if ( bCodeDQP )
+          {
+            encodeQP( pcCU, uiAbsPartIdx );
+            bCodeDQP = false;
+          }
+        }
+      }
+      if( cbfY )
+      {
+        Int trWidth = width;
+        Int trHeight = height;
+        pcCU->getNSQTSize( uiTrIdx, uiAbsPartIdx, trWidth, trHeight );
+        m_pcEntropyCoderIf->codeCoeffNxN( pcCU, (pcCU->getCoeffY()+offsetLuma), uiAbsPartIdx, trWidth, trHeight, uiDepth, TEXT_LUMA );
+      }
+      if( uiLog2TrafoSize > 2 )
+      {
+        Int trWidth = width >> 1;
+        Int trHeight = height >> 1;
+        pcCU->getNSQTSize( uiTrIdx, uiAbsPartIdx, trWidth, trHeight );
+        if( cbfU )
+        {
+          m_pcEntropyCoderIf->codeCoeffNxN( pcCU, (pcCU->getCoeffCb()+offsetChroma), uiAbsPartIdx, trWidth, trHeight, uiDepth, TEXT_CHROMA_U );
+        }
+        if( cbfV )
+        {
+          m_pcEntropyCoderIf->codeCoeffNxN( pcCU, (pcCU->getCoeffCr()+offsetChroma), uiAbsPartIdx, trWidth, trHeight, uiDepth, TEXT_CHROMA_V );
+        }
+      }
+      else
+      {
+        UInt partNum = pcCU->getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
+        if( ( uiAbsPartIdx % partNum ) == (partNum - 1) )
+        {
+          Int trWidth = width;
+          Int trHeight = height;
+          pcCU->getNSQTSize( uiTrIdx-1, uiAbsPartIdx, trWidth, trHeight );
+          if( cbfU )
+          {
+            m_pcEntropyCoderIf->codeCoeffNxN( pcCU, (pcCU->getCoeffCb()+m_uiBakChromaOffset), m_uiBakAbsPartIdx, trWidth, trHeight, uiDepth, TEXT_CHROMA_U );
+          }
+          if( cbfV )
+          {
+            m_pcEntropyCoderIf->codeCoeffNxN( pcCU, (pcCU->getCoeffCr()+m_uiBakChromaOffset), m_uiBakAbsPartIdx, trWidth, trHeight, uiDepth, TEXT_CHROMA_V );
+          }
+        }
+      }
+#endif // UNIFIED_TRANSFORM_TREE
     }
   }
 }
 
+#if !UNIFIED_TRANSFORM_TREE
 // transform index
 Void TEncEntropy::encodeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD )
 {
@@ -670,8 +1231,13 @@ Void TEncEntropy::encodeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt 
   UInt temp = 0;
   UInt temp1 = 0;
   UInt temp2 = 0;
+#if NSQT_LFFIX
+  xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiAbsPartIdx, uiDepth, 0, temp, temp1, temp2 );
+#else
   xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0, temp, temp1, temp2 );
+#endif
 }
+#endif // !UNIFIED_TRANSFORM_TREE
 
 // Intra direction for Luma
 Void TEncEntropy::encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx )
@@ -880,6 +1446,7 @@ Void TEncEntropy::encodeQP( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 
 
 // texture
+#if !UNIFIED_TRANSFORM_TREE
 Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, UInt uiLumaOffset, UInt uiChromaOffset, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, UInt uiTrIdx, UInt uiCurrTrIdx, Bool& bCodeDQP )
 {
   UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
@@ -1009,6 +1576,7 @@ Void TEncEntropy::xEncodeCoeff( TComDataCU* pcCU, UInt uiLumaOffset, UInt uiChro
     }
   }
 }
+#endif // !UNIFIED_TRANSFORM_TREE
 
 /** encode coefficients
  * \param pcCU
@@ -1032,11 +1600,16 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     DTRACE_CABAC_T( "\tdecodeTransformIdx()\tCUDepth=" )
     DTRACE_CABAC_V( uiDepth )
     DTRACE_CABAC_T( "\n" )
+#if !UNIFIED_TRANSFORM_TREE
     UInt temp = 0;
     UInt temp1 = 0;
     UInt temp2 = 0;
+#if NSQT_LFFIX
+    xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiAbsPartIdx, uiDepth, 0, temp, temp1, temp2 );
+#else
     xEncodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0, temp, temp1, temp2 );
-    
+#endif
+#endif // !UNIFIED_TRANSFORM_TREE
   }
   else
   {
@@ -1047,14 +1620,29 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
       }
       if ( !pcCU->getQtRootCbf( uiAbsPartIdx ) )
       {
+#if NSQT_LFFIX
+        pcCU->setNSQTIdxSubParts( uiAbsPartIdx, uiDepth );
+#endif
         return;
       }
     }
-    
+#if !UNIFIED_TRANSFORM_TREE
     encodeTransformIdx( pcCU, uiAbsPartIdx, pcCU->getDepth(uiAbsPartIdx) );
+#endif
   }
   
+#if UNIFIED_TRANSFORM_TREE
+  UInt temp = 0;
+  UInt temp1 = 0;
+  UInt temp2 = 0;
+#if NSQT_LFFIX
+  xEncodeTransform( pcCU, uiLumaOffset, uiChromaOffset, uiAbsPartIdx, uiAbsPartIdx, uiDepth, uiWidth, uiHeight, 0, 0, temp, temp1, temp2, bCodeDQP );
+#else
+  xEncodeTransform( pcCU, uiLumaOffset, uiChromaOffset, uiAbsPartIdx, uiDepth, uiWidth, uiHeight, 0, 0, temp, temp1, temp2, bCodeDQP );
+#endif
+#else // UNIFIED_TRANSFORM_TREE
   xEncodeCoeff( pcCU, uiLumaOffset, uiChromaOffset, uiAbsPartIdx, uiDepth, uiWidth, uiHeight, 0, uiLumaTrMode, bCodeDQP );
+#endif // UNIFIED_TRANSFORM_TREE
 }
 
 Void TEncEntropy::encodeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPartIdx, UInt uiTrWidth, UInt uiTrHeight, UInt uiDepth, TextType eType )
@@ -1069,6 +1657,195 @@ Void TEncEntropy::estimateBit (estBitsSbacStruct* pcEstBitsSbac, Int width, Int 
   m_pcEntropyCoderIf->estBit ( pcEstBitsSbac, width, height, eTType );
 }
 
+#if SAO_UNIT_INTERLEAVING
+/** Encode SAO Offset
+ * \param  saoLcuParam SAO LCU paramters
+ */
+Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
+{
+  UInt uiSymbol;
+  Int i;
+
+  uiSymbol = saoLcuParam->typeIdx + 1;
+  m_pcEntropyCoderIf->codeSaoTypeIdx(uiSymbol);
+  if (uiSymbol)
+  {
+    if( saoLcuParam->typeIdx == SAO_BO )
+    {
+      // Code Left Band Index
+      uiSymbol = (UInt) (saoLcuParam->bandPosition);
+      m_pcEntropyCoderIf->codeSaoUflc(uiSymbol);
+      for( i=0; i< saoLcuParam->length; i++)
+      {
+        m_pcEntropyCoderIf->codeSaoSvlc(saoLcuParam->offset[i]);
+      }  
+    }
+    else
+      if( saoLcuParam->typeIdx < 4 )
+      {
+        m_pcEntropyCoderIf->codeSaoUvlc( saoLcuParam->offset[0]);
+        m_pcEntropyCoderIf->codeSaoUvlc( saoLcuParam->offset[1]);
+        m_pcEntropyCoderIf->codeSaoUvlc(-saoLcuParam->offset[2]);
+        m_pcEntropyCoderIf->codeSaoUvlc(-saoLcuParam->offset[3]);
+      }
+  }
+}
+/** Encode SAO unit
+* \param  rx
+* \param  ry
+* \param  iCompIdx
+* \param  pSaoParam
+* \param  bRepeatedRow
+ */
+Void TEncEntropy::encodeSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam, Int repeatedRow )
+{
+  int addr, addrLeft; 
+  int numCuInWidth  = saoParam->numCuInWidth;
+  SaoLcuParam* saoOneLcu;
+  Int runLeft;
+
+  addr      =  rx + ry*numCuInWidth;
+  addrLeft  =  (addr%numCuInWidth == 0) ? -1 : addr - 1;
+
+  if (!repeatedRow)
+  {
+    saoOneLcu = &(saoParam->saoLcuParam[compIdx][addr]);    
+    runLeft = (addrLeft>=0 ) ? saoParam->saoLcuParam[compIdx][addrLeft].run : -1;
+    if (rx == 0 || runLeft==0)
+    {
+      if (ry == 0)
+      {
+        m_pcEntropyCoderIf->codeSaoRun(saoOneLcu->runDiff, numCuInWidth-rx-1); 
+        saoOneLcu->mergeUpFlag = 0;
+      }
+      else 
+      {
+        m_pcEntropyCoderIf->codeSaoSvlc(saoOneLcu->runDiff); 
+        m_pcEntropyCoderIf->codeSaoFlag(saoOneLcu->mergeUpFlag);  
+      }
+      if (!saoOneLcu->mergeUpFlag)
+      {
+        encodeSaoOffset(saoOneLcu);
+      }
+    }
+  }
+}
+
+/** Encode SAO unit interleaving
+* \param  rx
+* \param  ry
+* \param  pSaoParam
+* \param  pcCU
+* \param  iCUAddrInSlice
+* \param  iCUAddrUpInSlice
+* \param  bLFCrossSliceBoundaryFlag
+ */
+Void TEncEntropy::encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, TComDataCU* cu, Int cuAddrInSlice, Int cuAddrUpInSlice, Bool lfCrossSliceBoundaryFlag)
+{
+  Int addr = cu->getAddr();
+  for (Int compIdx=0; compIdx<3; compIdx++)
+  {
+    if (saoParam->bSaoFlag[compIdx])
+    {
+      if (rx>0 && cuAddrInSlice!=0)
+      {
+      m_pcEntropyCoderIf->codeSaoMergeLeft(saoParam->saoLcuParam[compIdx][addr].mergeLeftFlag,compIdx);
+      }
+      else
+      {
+        saoParam->saoLcuParam[compIdx][addr].mergeLeftFlag = 0;
+      }
+      if (saoParam->saoLcuParam[compIdx][addr].mergeLeftFlag == 0)
+      {
+        if ( (ry > 0) && (cuAddrUpInSlice>0||lfCrossSliceBoundaryFlag))
+        {
+          m_pcEntropyCoderIf->codeSaoMergeUp(saoParam->saoLcuParam[compIdx][addr].mergeUpFlag);
+        }
+        else
+        {
+          saoParam->saoLcuParam[compIdx][addr].mergeUpFlag = 0;
+        }
+        if (!saoParam->saoLcuParam[compIdx][addr].mergeUpFlag)
+        {
+          encodeSaoOffset(&(saoParam->saoLcuParam[compIdx][addr]));
+        }
+      }
+    }
+  }
+}
+
+/** Encode SAO parameter
+* \param  pcAPS
+ */
+Void TEncEntropy::encodeSaoParam(TComAPS* aps)
+{
+  SaoLcuParam* psSaoOneLcu;
+  int i,j,k, compIdx; 
+  int numCuInWidth  ;
+  int numCuInHeight ;
+  Bool repeatedRow[3];
+  Int addr;
+  m_pcEntropyCoderIf->codeSaoFlag(aps->getSaoInterleavingFlag());  
+  if(!aps->getSaoInterleavingFlag())
+  {
+    m_pcEntropyCoderIf->codeSaoFlag(aps->getSaoEnabled());  
+    if (aps->getSaoEnabled())
+    {
+      SAOParam* pSaoParam = aps->getSaoParam();
+      numCuInWidth  = pSaoParam->numCuInWidth;
+      numCuInHeight = pSaoParam->numCuInHeight;
+      m_pcEntropyCoderIf->codeSaoFlag(pSaoParam->bSaoFlag[1]); 
+      m_pcEntropyCoderIf->codeSaoFlag(pSaoParam->bSaoFlag[2]); 
+      m_pcEntropyCoderIf->codeSaoUvlc(numCuInWidth-1); 
+      m_pcEntropyCoderIf->codeSaoUvlc(numCuInHeight-1); 
+      for (compIdx=0;compIdx<3;compIdx++)
+      {
+        if (pSaoParam->bSaoFlag[compIdx])
+        {
+          m_pcEntropyCoderIf->codeSaoFlag(pSaoParam->oneUnitFlag[compIdx]); 
+          if (pSaoParam->oneUnitFlag[compIdx])
+          {
+            psSaoOneLcu = &(pSaoParam->saoLcuParam[compIdx][0]);   
+            encodeSaoOffset(psSaoOneLcu);
+          }
+        }
+      }
+
+      for (j=0;j<numCuInHeight;j++)
+      {
+        for (compIdx=0; compIdx<3; compIdx++)
+        {
+          repeatedRow[compIdx] = true;
+          for (k=0;k<numCuInWidth;k++)
+          {
+            addr       =  k + j*numCuInWidth;
+            psSaoOneLcu = &(pSaoParam->saoLcuParam[compIdx][addr]);    
+            if (!psSaoOneLcu->mergeUpFlag || psSaoOneLcu->runDiff)
+            {
+              repeatedRow[compIdx] = false;
+              break;
+            }
+          }
+        }
+        for (i=0;i<numCuInWidth;i++)
+        {
+          for (compIdx=0; compIdx<3; compIdx++)
+          {
+            if (pSaoParam->bSaoFlag[compIdx]  && !pSaoParam->oneUnitFlag[compIdx]) 
+            {
+              if (j>0 && i==0) 
+              {
+                m_pcEntropyCoderIf->codeSaoFlag(repeatedRow[compIdx]); 
+              }
+              encodeSaoUnit (i,j, compIdx, pSaoParam, repeatedRow[compIdx]);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+#else
 /** Encode SAO for one partition
  * \param  pSaoParam, iPartIdx
  */
@@ -1134,7 +1911,6 @@ Void TEncEntropy::encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int
     } 
   }
 }
-
 /** Encode SAO parameters
  * \param  pSaoParam
  */
@@ -1158,6 +1934,7 @@ Void TEncEntropy::encodeSaoParam(SAOParam* pSaoParam)
     }
   }
 }
+#endif
 
 Int TEncEntropy::countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize )
 {

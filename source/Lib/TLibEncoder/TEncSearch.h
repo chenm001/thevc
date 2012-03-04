@@ -294,6 +294,9 @@ protected:
                                     Int         iRefIdx,
                                     TComMv&     rcMvPred,
                                     Bool        bFilled = false
+                                  #if H0111_MVD_L1_ZERO
+                                  , UInt*       puiDistBiP = NULL
+                                  #endif
                                   #if ZERO_MVD_EST
                                   , UInt*       puiDist = NULL
                                   #endif

@@ -89,7 +89,11 @@ protected:
       return g_auiRasterToZscan[uiScanorderIdx + iEdgeIdx * uiLCUWidthInBaseUnits + iBaseUnitIdx ];
   }
   
+#if NSQT_LFFIX
+  Void xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdgeIdx, Bool bValue ,UInt uiWidthInBaseUnits = 0, UInt uiHeightInBaseUnits = 0, Bool nonSquare = false );
+#else
   Void xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdgeIdx, Bool bValue ,UInt uiWidthInBaseUnits = 0, UInt uiHeightInBaseUnits = 0 );
+#endif
   
   Void xEdgeFilterLuma            ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
   Void xEdgeFilterChroma          ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
@@ -110,7 +114,11 @@ public:
   Void  destroy                   ();
   
   /// set configuration
+#if DBL_CONTROL
+  Void setCfg( Bool DeblockingFilterControlPresent, UInt uiDisableDblkIdc, Int betaOffsetDiv2, Int tcOffsetDiv2, Bool bLFCrossTileBoundary);
+#else
   Void setCfg( UInt uiDisableDblkIdc, Int betaOffsetDiv2, Int tcOffsetDiv2, Bool bLFCrossTileBoundary);
+#endif
   
   /// picture-level deblocking filter
   Void loopFilterPic( TComPic* pcPic );

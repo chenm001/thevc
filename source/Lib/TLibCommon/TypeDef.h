@@ -40,8 +40,65 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define FAST_DECISION_FOR_MRG_RD_COST  1 ////< H0178: Fast Decision for Merge 2Nx2N RDCost
+
+#define REMOVE_DIV_OPERATION      1 ///< H0238: Simplified intra horizontal and vertical filtering
+#define LOGI_INTRA_NAME_3MPM      1  ///< H0407: logical Intra mode naming (sequential angular mode numbering) and 3 MPM mode coding
+
+#define LEVEL_CTX_LUMA_RED        1  ///<H0130: Luma level context reduction
+#define REMOVE_INFER_SIGGRP       1  ///<H0131: Remove inferred significant_coeff_group_flag
+
+#define SET_MERGE_TMVP_REFIDX     1  ///< H0278/H0199: Setting the merge TMVP refidx to 0 for the non-first partition
+
+#define MULTILEVEL_SIGMAP_EXT     1  ///< H0526: multi-level significance map extended to smaller TUs
+#define MULTIBITS_DATA_HIDING     1  ///< H0481: multiple sign bit hiding
+
+#define DEQUANT_CLIPPING           1  ///< H0312/H0541: transformed coefficients clipping before de-quantization
+
+#define REMOVE_NON_SCALED         1 ///< H0164/H0250: Removal of non-scaled merge candidate
+#define MRG_IDX_CTX_RED           1 ///< H0251: Merge index context reduction
+#define SIMP_MRG_PRUN             1 ///< H0252: simplification of merge pruning process
+
+#define AMVP_PRUNING_SIMPLIFICATION         1     ///H0316: simplify the pruning process of AMVP by exempting the temporal candidate
+#define AMVP_ZERO_CHECKING_REMOVAL          1     ///H0239/H0316: remove zero motion vector checking of AMVP
+
+#define H0111_MVD_L1_ZERO         1  ///< H0111: modification of bi-prediction
+#define DISABLING_CLIP_FOR_BIPREDME         1  ///< Ticket #175
+  
+#define CLIPSCALEDMVP               1  ///< H0216: Clipping scaled MV to 16 bit
+
+#define UNIFIED_TRANSFORM_TREE      1   ///< H0123: unified tree structure for TU
+
+#define SIGMAP_CTX_SUBBLOCK       1 ///< H0290: 4x4 sub-block based region for significant_flag context selection
+
+#define SIGMAP_CONST_AT_HIGH_FREQUENCY      1      ///< H0095 method2.1: const significance map at high freaquency
+
+#define LAST_CTX_REDUCTION        1  ///< H0537/H514: contexts reduction for last position coding
+
+#define AMP_CTX                   1 ///<H0545: context reduction for asymmetric partition
+
+#define RESTRICT_GR1GR2FLAG_NUMBER    1 ///< H0554: Throughput improvement of CABAC coefficients level coding
+#if RESTRICT_GR1GR2FLAG_NUMBER    // 
+#define C1FLAG_NUMBER               8 // maximum number of largerThan1 flag coded in one chunk :  16 in HM5
+#define C2FLAG_NUMBER               1 // maximum number of largerThan2 flag coded in one chunk:  16 in HM5 
+#endif 
+
+#define EIGHT_BITS_RICE_CODE        1 ///< H0498 : 8 bits rice codes
+
+#define SAO_UNIT_INTERLEAVING      1   ///< H0273
+#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_1 0  ///< disable the encoder constraint that does not test SAO/BO mode for chroma in interleaved mode
+#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_2 0  ///< disable the encoder constraint that reduce the range of SAO/EO for chroma in interleaved mode
+#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_3 0  ///< disable the encoder constraint that conditionally disable SAO for chroma for entire slice in interleaved mode
+
+#define ALF_SINGLE_FILTER_SHAPE    1     //< !!! H0068: Single filter type : 9x7 cross + 3x3 square
 
 #define PARAMSET_VLC_CLEANUP               1      ///< followup to G220: Simplify parameter set code
+
+#define ALF_16_BA_GROUPS        1     ///< H0409 16 BA groups
+#define LCU_SYNTAX_ALF          1     ///< H0274 LCU-syntax ALF
+#define ALF_CHROMA_COEF_PRED_HARMONIZATION 1 ///< H0483: ALF chroma coeff pred harmonization
+
+#define CABAC_LINEAR_INIT       1     ///< H0535 : linear CABAC initialization
 
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
@@ -69,14 +126,22 @@
 #define LEVEL_RANGE                         30     ///< G382: max coefficient level in statistics collection
 #endif
 
+
+#define CHROMA_MODE_CODING                   1     //H0326/H0475 : 2-length fixed, bypass coding for chroma intra prediction mode
+
+#define NSQT_LFFIX                           1     ///< Bug fix related to NSQT and deblocking filter
 #define NS_HAD                               1
 
 #define APS_BITS_FOR_SAO_BYTE_LENGTH 12           
 #define APS_BITS_FOR_ALF_BYTE_LENGTH 8
 
+#define H0736_AVC_STYLE_QP_RANGE             1    ///< H0736: AVC style qp range and wrapping.
+#define H0204_QP_PREDICTION                  1    ///< H0204: improved QP prediction
 
 #define HHI_RQT_INTRA_SPEEDUP             1           ///< tests one best mode with full rqt
 #define HHI_RQT_INTRA_SPEEDUP_MOD         0           ///< tests two best modes with full rqt
+
+#define BURST_IPCM                        1           ///< H0051: Burst IPCM
 
 #if HHI_RQT_INTRA_SPEEDUP_MOD && !HHI_RQT_INTRA_SPEEDUP
 #error
@@ -114,7 +179,13 @@
 #define RVM_VCEGAM10_M 4
 
 #define PLANAR_IDX             0
+#if LOGI_INTRA_NAME_3MPM
+#define VER_IDX                26                    // index for intra VERTICAL   mode
+#define HOR_IDX                10                    // index for intra HORIZONTAL mode
+#define DC_IDX                 1                     // index for intra DC mode
+#else
 #define DC_IDX                 3                     // index for intra DC mode
+#endif
 #define NUM_CHROMA_MODE        6                     // total number of chroma modes
 #define DM_CHROMA_IDX          36                    // chroma mode index for derived from luma intra mode
 
@@ -150,6 +221,21 @@
 #endif
 
 #define SCALING_LIST_OUTPUT_RESULT    0 //JCTVC-G880/JCTVC-G1016 quantization matrices
+#define SCALING_LIST                  1 //JCTVC-H0230/H0461/H0237
+
+#define DEFAULT_DC                    1 // JCTVC-H0242
+
+#define RPS_IN_SPS                    1 // Adopted during discussion of JCTVC-H0423
+
+#define H0412_REF_PIC_LIST_RESTRICTION 1
+
+#define H0566_TLA                     1
+
+#define H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER 1
+
+#define DBL_H0473_PART_1          1   //Deblocking filtering simplification
+#define DBL_CONTROL               1   //PPS deblocking_filter_control_present_flag (JCTVC-H0398); condition for inherit params flag in SH (JCTVC-H0424)
+#define DBL_STRONG_FILTER_CLIP    1   //Introduction of strong filter clipping in deblocking filter (JCTVC-H0275)
 
 // ====================================================================================================================
 // Basic type redefinition
@@ -202,7 +288,12 @@ class TComPicSym;
 enum SAOTypeLen
 {
   SAO_EO_LEN    = 4, 
+#if SAO_UNIT_INTERLEAVING
+  SAO_BO_LEN    = 4,
+  SAO_MAX_BO_CLASSES = 32
+#else
   SAO_BO_LEN    = 16
+#endif
 };
 
 enum SAOType
@@ -211,18 +302,28 @@ enum SAOType
   SAO_EO_1,
   SAO_EO_2, 
   SAO_EO_3,
+#if SAO_UNIT_INTERLEAVING
+  SAO_BO,
+#else
   SAO_BO_0,
   SAO_BO_1,
+#endif
   MAX_NUM_SAO_TYPE
 };
 
 typedef struct _SaoQTPart
 {
+#if !SAO_UNIT_INTERLEAVING
   Bool        bEnableFlag;
+#endif
   Int         iBestType;
   Int         iLength;
+#if SAO_UNIT_INTERLEAVING
+  Int         bandPosition ;
+  Int         iOffset[4];
+#else
   Int         iOffset[32];
-
+#endif
   Int         StartCUX;
   Int         StartCUY;
   Int         EndCUX;
@@ -246,24 +347,50 @@ typedef struct _SaoQTPart
   //---- encoder only end -----//
 } SAOQTPart;
 
+#if SAO_UNIT_INTERLEAVING
+typedef struct _SaoLcuParam
+{
+  Bool       mergeUpFlag;
+  Bool       mergeLeftFlag;
+  Int        typeIdx;
+  Int        bandPosition;
+  Int        offset[4];
+  Int        runDiff;
+  Int        run;
+  Int        partIdx;
+  Int        partIdxTmp;
+  Int        length;
+} SaoLcuParam;
+#endif
+
 struct SAOParam
 {
   Bool       bSaoFlag[3];
   SAOQTPart* psSaoPart[3];
   Int        iMaxSplitLevel;
   Int        iNumClass[MAX_NUM_SAO_TYPE];
+#if SAO_UNIT_INTERLEAVING
+  Bool         oneUnitFlag[3];
+  SaoLcuParam* saoLcuParam[3];
+  Int          numCuInHeight;
+  Int          numCuInWidth;
+#endif
   ~SAOParam();
 };
 
 struct ALFParam
 {
   Int alf_flag;                           ///< indicates use of ALF
+#if !LCU_SYNTAX_ALF
   Int chroma_idc;                         ///< indicates use of ALF for chroma
+#endif
   Int num_coeff;                          ///< number of filter coefficients
   Int filter_shape;
+#if !LCU_SYNTAX_ALF
   Int filter_shape_chroma;
   Int num_coeff_chroma;                   ///< number of filter coefficients (chroma)
   Int *coeff_chroma;                      ///< filter coefficient array (chroma)
+#endif
   Int *filterPattern;
   Int startSecondFilter;
   Int filters_per_group;
@@ -271,12 +398,64 @@ struct ALFParam
   Int *nbSPred;
   Int **coeffmulti;
   Int minKStart;
+#if !LCU_SYNTAX_ALF
   Int maxScanVal;
   Int kMinTab[42];
 
   Int alf_pcr_region_flag;
   ~ALFParam();
+#endif
+#if LCU_SYNTAX_ALF
+  Int componentID;
+  Int* kMinTab;
+  //constructor, operator
+  ALFParam():componentID(-1){}
+  ALFParam(Int cID){create(cID);}
+  ALFParam(const ALFParam& src) {*this = src;}
+  ~ALFParam(){destroy();}
+  const ALFParam& operator= (const ALFParam& src);
+private:
+  Void create(Int cID);
+  Void destroy();
+  Void copy(const ALFParam& src);
+#endif
 };
+
+#if LCU_SYNTAX_ALF
+struct AlfUnitParam
+{
+  Int   mergeType;
+  Bool  isEnabled;
+  Bool  isNewFilt;
+  Int   storedFiltIdx;
+  ALFParam* alfFiltParam;
+  //constructor, operator 
+  AlfUnitParam();
+  AlfUnitParam(const AlfUnitParam& src){ *this = src;}
+  const AlfUnitParam& operator= (const AlfUnitParam& src);
+  Bool operator == (const AlfUnitParam& cmp);
+};
+
+struct AlfParamSet
+{
+  Bool isEnabled[3];
+  Bool isUniParam[3];
+  Int  numLCUInWidth;
+  Int  numLCUInHeight;
+  Int  numLCU;
+  AlfUnitParam* alfUnitParam[3];
+  //constructor, operator 
+  AlfParamSet(){create();}
+  ~AlfParamSet(){destroy();}
+  Void create(Int width =0, Int height=0, Int num=0);
+  Void init();
+  Void releaseALFParam();
+  Void createALFParam();
+private:
+  Void destroy();
+};
+#endif
+
 
 
 /// parameters for deblocking filter

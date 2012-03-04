@@ -95,7 +95,13 @@ public:
 #endif
   void parseSEI(SEImessages&) {}
 #if PARAMSET_VLC_CLEANUP
+
+#if LCU_SYNTAX_ALF
+  Void  parseSliceHeader          ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl, AlfParamSet& alfParamSet) {}
+#else
   Void  parseSliceHeader          ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl ) {}
+#endif
+
 #else
   Void  parseSliceHeader          ( TComSlice*& rpcSlice ) {}
   Void parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice) {printf("Not supported\n");assert(0); exit(1);}
@@ -114,6 +120,16 @@ public:
   Void  parseSaoSvlc              ( Int&  riVal            );
   Void parseDFFlag                (UInt& ruiVal, const Char *pSymbolName) {printf("Not supported\n");assert(0);exit(1);};
   Void parseDFSvlc                (Int&  riVal, const Char *pSymbolName)  {printf("Not supported\n");assert(0);exit(1);};
+#endif
+#if SAO_UNIT_INTERLEAVING
+  Void  parseSaoUvlc              ( UInt& ruiVal           );
+  Void  parseSaoSvlc              ( Int&  riVal            );
+  Void  parseSaoMergeLeft         ( UInt&  ruiVal, UInt uiCompIdx   );
+  Void  parseSaoMergeUp           ( UInt&  ruiVal  );
+  Void  parseSaoTypeIdx           ( UInt&  ruiVal  );
+  Void  parseSaoUflc              ( UInt& ruiVal           );
+  Void  parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, TComDataCU* pcCU, Int iCUAddrInSlice, Int iCUAddrUpInSlice, Bool bLFCrossSliceBoundaryFlag);
+  Void  parseSaoOffset            (SaoLcuParam* psSaoLcuParam);
 #endif
 private:
   Void  xReadUnarySymbol    ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset );
@@ -209,11 +225,20 @@ private:
   ContextModel3DBuffer m_cALFFlagSCModel;
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;
+#if AMP_CTX
+  ContextModel3DBuffer m_cCUAMPSCModel;
+#else
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;
+#endif
   ContextModel3DBuffer m_cSaoFlagSCModel;
   ContextModel3DBuffer m_cSaoUvlcSCModel;
   ContextModel3DBuffer m_cSaoSvlcSCModel;
+#if SAO_UNIT_INTERLEAVING
+  ContextModel3DBuffer m_cSaoMergeLeftSCModel;
+  ContextModel3DBuffer m_cSaoMergeUpSCModel;
+  ContextModel3DBuffer m_cSaoTypeIdxSCModel;
+#endif
 
 };
 

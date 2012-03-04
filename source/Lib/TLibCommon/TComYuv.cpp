@@ -583,7 +583,11 @@ Void TComYuv::removeHighFreq( TComYuv* pcYuvSrc, UInt uiPartIdx, UInt uiWidht, U
   {
     for ( x = uiWidht-1; x >= 0; x-- )
     {
+#if DISABLING_CLIP_FOR_BIPREDME
+      pDst[x ] = (pDst[x ]<<1) - pSrc[x ] ;
+#else
       pDst[x ] = Clip( (pDst[x ]<<1) - pSrc[x ] );
+#endif
     }
     pSrc += iSrcStride;
     pDst += iDstStride;
@@ -599,8 +603,13 @@ Void TComYuv::removeHighFreq( TComYuv* pcYuvSrc, UInt uiPartIdx, UInt uiWidht, U
   {
     for ( x = uiWidht-1; x >= 0; x-- )
     {
+#if DISABLING_CLIP_FOR_BIPREDME
+      pDstU[x ] = (pDstU[x ]<<1) - pSrcU[x ] ;
+      pDstV[x ] = (pDstV[x ]<<1) - pSrcV[x ] ;
+#else
       pDstU[x ] = Clip( (pDstU[x ]<<1) - pSrcU[x ] );
       pDstV[x ] = Clip( (pDstV[x ]<<1) - pSrcV[x ] );
+#endif
     }
     pSrcU += iSrcStride;
     pSrcV += iSrcStride;

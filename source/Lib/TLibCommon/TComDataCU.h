@@ -86,6 +86,9 @@ struct NDBFBlockInfo
   UInt  width;    //!< number of pixels in width
   UInt  height;   //!< number of pixels in height
   Bool  isBorderAvailable[NUM_SGU_BORDER];  //!< the border availabilities
+#if LCU_SYNTAX_ALF
+  Bool  allBordersAvailable;
+#endif
 
   NDBFBlockInfo():tileID(0), sliceID(0), startSU(0), endSU(0) {} //!< constructor
   const NDBFBlockInfo& operator= (const NDBFBlockInfo& src);  //!< "=" operator
@@ -129,8 +132,15 @@ private:
   
   Char*         m_pePartSize;         ///< array of partition sizes
   Char*         m_pePredMode;         ///< array of prediction modes
+#if H0736_AVC_STYLE_QP_RANGE
+  Char*         m_phQP;               ///< array of QP values
+#else
   UChar*        m_phQP;               ///< array of QP values
+#endif
   UChar*        m_puhTrIdx;           ///< array of transform indices
+#if NSQT_LFFIX
+  UChar*        m_nsqtPartIdx;        ///< array of absPartIdx mapping table, map zigzag to NSQT
+#endif
   UChar*        m_puhCbf[3];          ///< array of coded block flags (CBF)
   TComCUMvField m_acCUMvField[2];     ///< array of motion vectors
   TCoeff*       m_pcTrCoeffY;         ///< transformed coefficient buffer (Y)
@@ -186,6 +196,11 @@ private:
   
   Bool*         m_pbIPCMFlag;         ///< array of intra_pcm flags
 
+#if BURST_IPCM
+  Int           m_numSucIPCM;         ///< the number of succesive IPCM blocks associated with the current log2CUSize
+  Bool          m_lastCUSucIPCMFlag;  ///< True indicates that the last CU is IPCM and shares the same root as the current CU.  
+#endif
+
   // -------------------------------------------------------------------------------------------------------------------
   // misc. variables
   // -------------------------------------------------------------------------------------------------------------------
@@ -207,8 +222,10 @@ protected:
   Void          deriveRightBottomIdx        ( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxRB );
   Bool          xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUnitIdx, TComMv& rcMv, Int& riRefIdx );
   
+#if !AMVP_PRUNING_SIMPLIFICATION
   /// remove redundant candidates
   Void          xUniqueMVPCand        ( AMVPInfo* pInfo );
+#endif
 
   Void xCheckCornerCand( TComDataCU* pcCorner, UInt uiCornerIdx, UInt uiIter, Bool& rbValidCand );
   /// compute required bits to encode MVD (used in AMVP)
@@ -223,7 +240,9 @@ protected:
   
   Void xCheckDuplicateCand(TComMvField* pcMvFieldNeighbours, UChar* puhInterDirNeighbours, bool* pbCandIsInter, UInt& ruiArrayAddr);
 
+#if !BURST_IPCM
   Int           getLastValidPartIdx   ( Int iAbsPartIdx );
+#endif
 
 public:
   TComDataCU();
@@ -241,8 +260,13 @@ public:
   Void          destroy               ();
   
   Void          initCU                ( TComPic* pcPic, UInt uiCUAddr );
+#if H0736_AVC_STYLE_QP_RANGE
+  Void          initEstData           ( UInt uiDepth, Int qp );
+  Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, Int qp );
+#else
   Void          initEstData           ( UInt uiDepth, UInt uiQP );
   Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, UInt uiQP );
+#endif
   Void          setOutsideCUPart      ( UInt uiAbsPartIdx, UInt uiDepth );
 
   Void          copySubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
@@ -295,11 +319,32 @@ public:
   
   Void          setSizeSubParts       ( UInt uiWidth, UInt uiHeight, UInt uiAbsPartIdx, UInt uiDepth );
   
+#if H0736_AVC_STYLE_QP_RANGE
+  Char*         getQP                 ()                        { return m_phQP;              }
+  Char          getQP                 ( UInt uiIdx )            { return m_phQP[uiIdx];       }
+  Void          setQP                 ( UInt uiIdx, Char value ){ m_phQP[uiIdx] =  value;     }
+  Void          setQPSubParts         ( Int qp,   UInt uiAbsPartIdx, UInt uiDepth );
+#if BURST_IPCM
+  Int           getLastValidPartIdx   ( Int iAbsPartIdx );
+#endif
+  Char          getLastCodedQP        ( UInt uiAbsPartIdx );
+#else
   UChar*        getQP                 ()                        { return m_phQP;              }
   UChar         getQP                 ( UInt uiIdx )            { return m_phQP[uiIdx];       }
   Void          setQP                 ( UInt uiIdx, UChar  uh ) { m_phQP[uiIdx] = uh;         }
   Void          setQPSubParts         ( UInt uiQP,   UInt uiAbsPartIdx, UInt uiDepth );
+#if BURST_IPCM
+  Int           getLastValidPartIdx   ( Int iAbsPartIdx );
+#endif
   UChar         getLastCodedQP        ( UInt uiAbsPartIdx );
+#endif
+
+#if NSQT_LFFIX
+  UChar*        getNSQTPartIdx        ()                        { return m_nsqtPartIdx;        }
+  UChar         getNSQTPartIdx        ( UInt idx )              { return m_nsqtPartIdx[idx];   }
+  Void          setNSQTIdxSubParts    ( UInt absPartIdx, UInt depth );
+  Void          setNSQTIdxSubParts    ( UInt log2TrafoSize, UInt absPartIdx, UInt nsAbsPartIdx, UInt trMode );
+#endif
   
   UChar*        getTransformIdx       ()                        { return m_puhTrIdx;          }
   UChar         getTransformIdx       ( UInt uiIdx )            { return m_puhTrIdx[uiIdx];   }
@@ -379,10 +424,17 @@ public:
   Void          copyAlfCtrlFlagToTmp  ();
   Void          copyAlfCtrlFlagFromTmp();
   
-  Bool*         getIPCMFlag          ()                        { return m_pbIPCMFlag;               }
-  Bool          getIPCMFlag          (UInt uiIdx )             { return m_pbIPCMFlag[uiIdx];        }
-  Void          setIPCMFlag          (UInt uiIdx, Bool b )     { m_pbIPCMFlag[uiIdx] = b;           }
-  Void          setIPCMFlagSubParts  (Bool bIpcmFlag, UInt uiAbsPartIdx, UInt uiDepth);
+  Bool*         getIPCMFlag           ()                        { return m_pbIPCMFlag;               }
+  Bool          getIPCMFlag           (UInt uiIdx )             { return m_pbIPCMFlag[uiIdx];        }
+  Void          setIPCMFlag           (UInt uiIdx, Bool b )     { m_pbIPCMFlag[uiIdx] = b;           }
+  Void          setIPCMFlagSubParts   (Bool bIpcmFlag, UInt uiAbsPartIdx, UInt uiDepth);
+
+#if BURST_IPCM
+  Int           getNumSucIPCM         ()                        { return m_numSucIPCM;             }
+  Void          setNumSucIPCM         ( Int num )               { m_numSucIPCM = num;              }
+  Bool          getLastCUSucIPCMFlag  ()                        { return m_lastCUSucIPCMFlag;        }
+  Void          setLastCUSucIPCMFlag  ( Bool flg )              { m_lastCUSucIPCMFlag = flg;         }
+#endif
 
   /// get slice ID for SU
   Int           getSUSliceID          (UInt uiIdx)              {return m_piSliceSUMap[uiIdx];      } 
@@ -457,8 +509,15 @@ public:
   TComDataCU*   getPUAboveRight             ( UInt&  uiARPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false );
   TComDataCU*   getPUBelowLeft              ( UInt& uiBLPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
 
-  TComDataCU*   getQpMinCuLeft                   ( UInt&  uiLPartUnitIdx , UInt uiCurrAbsIdxInLCU, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
-  UChar         getRefQP                         ( UInt   uiCurrAbsIdxInLCU                       );
+  TComDataCU*   getQpMinCuLeft              ( UInt&  uiLPartUnitIdx , UInt uiCurrAbsIdxInLCU, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
+#if H0204_QP_PREDICTION
+  TComDataCU*   getQpMinCuAbove             ( UInt&  aPartUnitIdx , UInt currAbsIdxInLCU, Bool enforceSliceRestriction=true, Bool enforceEntropySliceRestriction=true );
+#endif
+#if H0736_AVC_STYLE_QP_RANGE
+  Char          getRefQP                    ( UInt   uiCurrAbsIdxInLCU                       );
+#else
+  UChar         getRefQP                    ( UInt   uiCurrAbsIdxInLCU                       );
+#endif
 
   TComDataCU*   getPUAboveRightAdi          ( UInt&  uiARPartUnitIdx, UInt uiPuWidth, UInt uiCurrPartUnitIdx, UInt uiPartUnitOffset = 1, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
   TComDataCU*   getPUBelowLeftAdi           ( UInt& uiBLPartUnitIdx, UInt uiPuHeight, UInt uiCurrPartUnitIdx, UInt uiPartUnitOffset = 1, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
@@ -470,7 +529,11 @@ public:
   Void          deriveLeftBottomIdxAdi      ( UInt& ruiPartIdxLB, UInt  uiPartOffset, UInt uiPartDepth );
   
   Bool          hasEqualMotion              ( UInt uiAbsPartIdx, TComDataCU* pcCandCU, UInt uiCandAbsPartIdx );
+#if SIMP_MRG_PRUN
+  Void          getInterMergeCandidates       ( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDepth, TComMvField* pcMFieldNeighbours, UChar* puhInterDirNeighbours, Int& numValidMergeCand, Int mrgCandIdx = -1 );
+#else
   Void          getInterMergeCandidates       ( UInt uiAbsPartIdx, UInt uiPUIdx, UInt uiDepth, TComMvField* pcMFieldNeighbours, UChar* puhInterDirNeighbours, Int& numValidMergeCand );
+#endif
   Void          deriveLeftRightTopIdxGeneral  ( PartSize eCUMode, UInt uiAbsPartIdx, UInt uiPartIdx, UInt& ruiPartIdxLT, UInt& ruiPartIdxRT );
   Void          deriveLeftBottomIdxGeneral    ( PartSize eCUMode, UInt uiAbsPartIdx, UInt uiPartIdx, UInt& ruiPartIdxLB );
   
@@ -519,6 +582,12 @@ public:
   Bool useNonSquareTrans( UInt uiTrMode );
   Bool useNonSquareTrans( UInt uiTrMode, Int absPartIdx );
   Void getNSQTSize(Int trMode, Int absPartIdx, Int &trWidth, Int &trHeight);
+#if NSQT_LFFIX
+  Bool          useNonSquarePU   ( UInt absPartIdx);
+  UInt          getInterTUSplitDirection ( Int width, Int height, Int trLastWidth, Int trLastHeight );
+  UInt          getNSAbsPartIdx  ( UInt log2TrafoSize, UInt absPartIdx, UInt nsAbsPartIdx, UInt innerQuadIdx, UInt trMode );
+  Void          setZorderIdxInCU ( UInt absPartIdx )  { m_uiAbsIdxInLCU = absPartIdx; }
+#endif
   Void getPixOffset( UInt uiTrMode, UInt ui, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiPix_X, UInt& uiPix_Y, TextType eTxt );
 };
 

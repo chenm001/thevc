@@ -130,9 +130,20 @@ extern const UInt   g_uiGroupIdx[ 32 ];
 extern const UInt   g_uiMinInGroup[ 10 ];
 extern const UInt   g_uiLastCtx[ 28 ];
 
+#if EIGHT_BITS_RICE_CODE
+extern const UInt   g_auiGoRiceRange[5];                  //!< maximum value coded with Rice codes
+extern const UInt   g_auiGoRicePrefixLen[5];              //!< prefix length for each maximum value
+extern const UInt   g_aauiGoRiceUpdate[5][24];            //!< parameter update rules for Rice codes
+#else
 extern const UInt   g_auiGoRiceRange[4];                  //!< maximum value coded with Rice codes
 extern const UInt   g_auiGoRicePrefixLen[4];              //!< prefix length for each maximum value
 extern const UInt   g_aauiGoRiceUpdate[4][16];            //!< parameter update rules for Rice codes
+#endif
+  
+#if MULTILEVEL_SIGMAP_EXT
+extern const UInt   g_sigLastScan8x8[ 4 ][ 4 ];           //!< coefficient group scan order for 8x8 TUs
+extern       UInt   g_sigLastScanCG32x32[ 64 ];
+#endif
 
 // ====================================================================================================================
 // ADI table
@@ -212,9 +223,15 @@ extern UInt64 g_nSymbolCounter;
 #endif
 
 
-#define SCALING_LIST_NUM 6                         ///< list number for quantization matrix
-#define SCALING_LIST_NUM_32x32 2                   ///< list number for quantization matrix 32x32
-#define SCALING_LIST_REM_NUM 6
+#define SCALING_LIST_NUM 6         ///< list number for quantization matrix
+#define SCALING_LIST_NUM_32x32 2   ///< list number for quantization matrix 32x32
+#define SCALING_LIST_REM_NUM 6     ///< remainder of QP/6
+#define SCALING_LIST_START_VALUE 8 ///< start value for dpcm mode
+#define MAX_MATRIX_COEF_NUM 64     ///< max coefficient number for quantization matrix
+#define MAX_MATRIX_SIZE_NUM 8      ///< max size number for quantization matrix
+#if SCALING_LIST
+#define SCALING_LIST_DC 16         ///< default DC value
+#endif
 enum ScalingListDIR
 {
   SCALING_LIST_SQT = 0,
@@ -229,12 +246,6 @@ enum ScalingListSize
   SCALING_LIST_16x16,
   SCALING_LIST_32x32,
   SCALING_LIST_SIZE_NUM
-};
-enum ScalingListPredMode
-{
-  SCALING_LIST_PRED_COPY = 0,
-  SCALING_LIST_PRED_DPCM,
-  SCALING_LIST_PRED_NUM
 };
 static const char MatrixType[4][6][20] =
 {
@@ -267,7 +278,27 @@ static const char MatrixType[4][6][20] =
   "INTER32X32_LUMA",
   },
 };
-#define SCALING_LIST_START_VALUE 8                      ///< start value for dpcm mode
+#if SCALING_LIST
+static const char MatrixType_DC[4][12][22] =
+{
+  {
+  },
+  {
+  },
+  {
+  "INTRA16X16_LUMA_DC",
+  "INTRA16X16_CHROMAU_DC", 
+  "INTRA16X16_CHROMAV_DC", 
+  "INTER16X16_LUMA_DC",
+  "INTER16X16_CHROMAU_DC", 
+  "INTER16X16_CHROMAV_DC"  
+  },
+  {
+  "INTRA32X32_LUMA_DC",
+  "INTER32X32_LUMA_DC",
+  },
+};
+#endif
 extern Int g_quantIntraDefault4x4[16];
 extern Int g_quantIntraDefault8x8[64];
 extern Int g_quantIntraDefault16x16[256];
@@ -278,7 +309,7 @@ extern Int g_quantInterDefault16x16[256];
 extern Int g_quantInterDefault32x32[1024];
 extern UInt g_scalingListSize [SCALING_LIST_SIZE_NUM];
 extern UInt g_scalingListSizeX[SCALING_LIST_SIZE_NUM];
-extern UInt g_auiScalingListNum  [SCALING_LIST_SIZE_NUM];
+extern UInt g_scalingListNum  [SCALING_LIST_SIZE_NUM];
 extern Int  g_eTTable[4];
 //! \}
 

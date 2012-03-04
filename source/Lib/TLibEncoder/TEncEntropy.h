@@ -101,7 +101,11 @@ public:
   virtual Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth ) = 0;
   virtual Void codePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
   
+#if BURST_IPCM
+  virtual Void codeIPCMInfo      ( TComDataCU* pcCU, UInt uiAbsPartIdx, Int numIPCM, Bool firstIPCMFlag) = 0;
+#else
   virtual Void codeIPCMInfo      ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
+#endif
 
   virtual Void codeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx ) = 0;
   virtual Void codeQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth ) = 0;
@@ -118,6 +122,10 @@ public:
   virtual Void codeAlfFlag          ( UInt uiCode ) = 0;
   virtual Void codeAlfUvlc          ( UInt uiCode ) = 0;
   virtual Void codeAlfSvlc          ( Int   iCode ) = 0;
+#if LCU_SYNTAX_ALF
+  virtual Void codeAlfFixedLengthIdx( UInt idx, UInt numFilterSetsInBuffer) = 0;
+  virtual Void codeAPSAlflag(UInt uiCode) = 0;
+#endif
   /// set slice granularity
   virtual Void setSliceGranularity(Int iSliceGranularity) = 0;
 
@@ -128,6 +136,13 @@ public:
   virtual Void codeSaoFlag          ( UInt uiCode ) = 0;
   virtual Void codeSaoUvlc          ( UInt uiCode ) = 0;
   virtual Void codeSaoSvlc          ( Int   iCode ) = 0;
+#if SAO_UNIT_INTERLEAVING
+  virtual Void codeSaoRun          ( UInt   uiCode, UInt uiMaxValue  ) = 0;
+  virtual Void codeSaoMergeLeft    ( UInt   uiCode, UInt uiCompIdx  ) = 0;
+  virtual Void codeSaoMergeUp      ( UInt   uiCode) = 0;
+  virtual Void codeSaoTypeIdx      ( UInt   uiCode) = 0;
+  virtual Void codeSaoUflc         ( UInt   uiCode) = 0;
+#endif
   virtual Void estBit               (estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType) = 0;
   
   virtual Void updateContextTables ( SliceType eSliceType, Int iQp, Bool bExecuteFinish )   = 0;
@@ -169,8 +184,16 @@ public:
   Void    encodeFlush               ();
   Void    encodeStart               ();
 #endif
-
-  
+#if LCU_SYNTAX_ALF
+  Void encodeAlfFlag(UInt code) {m_pcEntropyCoderIf->codeAlfFlag(code);}
+  Void encodeAlfStoredFilterSetIdx(UInt idx, UInt numFilterSetsInBuffer);
+  Void encodeAlfFixedLengthRun(UInt run, UInt rx, UInt numLCUInWidth);
+  Void encodeAlfParam(AlfParamSet* pAlfParamSet, Bool bSentInAPS = true, Int firstLCUAddr = 0, Bool alfAcrossSlice= true);
+  Void encodeAlfParamSet(AlfParamSet* pAlfParamSet, Int numLCUInWidth, Int numLCU, Int firstLCUAddr, Bool alfAcrossSlice, Int startCompIdx, Int endCompIdx);
+  Bool getAlfRepeatRowFlag(Int compIdx, AlfParamSet* pAlfParamSet, Int lcuIdx, Int lcuPos, Int startlcuPosX, Int endlcuPosX, Int numLCUInWidth);
+  Int  getAlfRun(Int compIdx, AlfParamSet* pAlfParamSet, Int lcuIdxInSlice, Int lcuPos, Int startlcuPosX, Int endlcuPosX);
+  Void encodeAPSAlfFlag(UInt code) {m_pcEntropyCoderIf->codeAPSAlflag(code);}
+#endif  
   Void encodeAlfParam(ALFParam* pAlfParam);
   
   TEncEntropyIf*      m_pcEntropyCoderIf;
@@ -212,7 +235,9 @@ public:
   
   Void encodeIntraDirModeChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   
+#if !UNIFIED_TRANSFORM_TREE
   Void encodeTransformIdx      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD = false );
+#endif
   Void encodeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx );
   Void encodeQtCbf             ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   Void encodeQtRootCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx );
@@ -227,8 +252,20 @@ public:
   Void encodeDFParams          (TComAPS* pcAPS);
 
 private:
+#if UNIFIED_TRANSFORM_TREE
+#if NSQT_LFFIX
+  Void xEncodeTransform        ( TComDataCU* pcCU,UInt offsetLumaOffset, UInt offsetChroma, UInt uiAbsPartIdx, UInt nsAbsPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3, Bool& bCodeDQP );
+#else
+  Void xEncodeTransform        ( TComDataCU* pcCU,UInt offsetLumaOffset, UInt offsetChroma, UInt uiAbsPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3, Bool& bCodeDQP );
+#endif
+#else
+#if NSQT_LFFIX
+  Void xEncodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt nsAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 );
+#else
   Void xEncodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 );
+#endif
   Void xEncodeCoeff            ( TComDataCU* pcCU, UInt uiLumaOffset, UInt uiChromaOffset, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, UInt uiTrIdx, UInt uiCurrTrIdx, Bool& bCodeDQP );
+#endif // !UNIFIED_TRANSFORM_TREE
 public:
   Void encodeCoeff             ( TComDataCU* pcCU,                 UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, Bool& bCodeDQP );
   
@@ -248,9 +285,16 @@ public:
                         int **FilterCoeff, int kMinTab[]);
   Int golombEncode(int coeff, int k);
   Int lengthGolomb(int coeffVal, int k);
+#if SAO_UNIT_INTERLEAVING
+  Void    encodeSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam, Int repeatedRow);
+  Void    encodeSaoOffset(SaoLcuParam* saoLcuParam);
+  Void    encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, TComDataCU* cu, Int cuAddrInSlice, Int cuAddrUpInSlice, Bool lfCrossSliceBoundaryFlag);
+  Void    encodeSaoParam         (TComAPS*  aps);
+#else
   Void    encodeSaoOnePart       (SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
   Void    encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr);
   Void    encodeSaoParam         (SAOParam* pSaoParam);
+#endif
 
   static Int countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize );
 
