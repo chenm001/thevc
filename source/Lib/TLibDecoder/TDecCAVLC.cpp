@@ -518,12 +518,8 @@ void TDecCavlc::xParseSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam, B
       {
         maxValue = numCuInWidth-rx-1;
         UInt uiLength = 0;
-        UInt ruiVal;
-        if (!maxValue)
-        {
-          ruiVal = 0;
-        }
-        else
+        UInt ruiVal = 0;
+        if (maxValue)
         {
           for(UInt i=0; i<32; i++)
           {
