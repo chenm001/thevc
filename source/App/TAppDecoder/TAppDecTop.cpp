@@ -157,10 +157,6 @@ Void TAppDecTop::decode()
     if (bNewPicture || !bitstreamFile)
     {
       m_cTDecTop.executeDeblockAndAlf(uiPOC, pcListPic, m_iSkipFrame, m_iPOCLastDisplay);
-      if(nalu.m_UnitType == NAL_UNIT_CODED_SLICE_IDR)
-      {
-        xFlushOutput( pcListPic );
-      }
     }
 
     if( pcListPic )
@@ -172,6 +168,10 @@ Void TAppDecTop::decode()
 
         m_cTVideoIOYuvReconFile.open( m_pchReconFile, true, m_outputBitDepth, g_uiBitDepth + g_uiBitIncrement ); // write mode
         recon_opened = true;
+      }
+      if (bNewPicture && (nalu.m_UnitType == NAL_UNIT_CODED_SLICE_IDR))
+      {
+        xFlushOutput( pcListPic );
       }
       // write reconstuction to file
       if(bNewPicture)
