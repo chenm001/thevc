@@ -252,7 +252,9 @@ Void TComSampleAdaptiveOffset::create( UInt uiSourceWidth, UInt uiSourceHeight, 
 
   m_uiMaxSplitLevel = (iMaxSplitLevelHeight < iMaxSplitLevelWidth)?(iMaxSplitLevelHeight):(iMaxSplitLevelWidth);
   m_uiMaxSplitLevel = (m_uiMaxSplitLevel< m_uiMaxDepth)?(m_uiMaxSplitLevel):(m_uiMaxDepth);
-  m_iNumTotalParts  = m_aiNumCulPartsLevel[m_uiMaxSplitLevel];
+  /* various structures are overloaded to store per component data.
+   * m_iNumTotalParts must allow for sufficient storage in any allocated arrays */
+  m_iNumTotalParts  = max(3,m_aiNumCulPartsLevel[m_uiMaxSplitLevel]);
 #if !SAO_UNIT_INTERLEAVING
   UInt auiTable[2][LUMA_GROUP_NUM] = 
   {{0, 0, 0, 0, 0, 0, 0, 0,
