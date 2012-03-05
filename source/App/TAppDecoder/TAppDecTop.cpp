@@ -117,12 +117,14 @@ Void TAppDecTop::decode()
     // call actual decoding function
     bool bNewPicture = false;
     if (nalUnit.empty())
+    {
       /* this can happen if the following occur:
        *  - empty input file
        *  - two back-to-back start_code_prefixes
        *  - start_code_prefix immediately followed by EOF
        */
       fprintf(stderr, "Warning: Attempt to decode an empty NAL unit\n");
+    }
     else
     {
       read(nalu, nalUnit);
@@ -164,7 +166,9 @@ Void TAppDecTop::decode()
       if ( m_pchReconFile && !recon_opened )
       {
         if ( m_outputBitDepth == 0 )
+        {
           m_outputBitDepth = g_uiBitDepth + g_uiBitIncrement;
+        }
 
         m_cTVideoIOYuvReconFile.open( m_pchReconFile, true, m_outputBitDepth, g_uiBitDepth + g_uiBitIncrement ); // write mode
         recon_opened = true;
@@ -173,7 +177,7 @@ Void TAppDecTop::decode()
       {
         xFlushOutput( pcListPic );
       }
-      // write reconstuction to file
+      // write reconstruction to file
       if(bNewPicture)
       {
         xWriteOutput( pcListPic );
