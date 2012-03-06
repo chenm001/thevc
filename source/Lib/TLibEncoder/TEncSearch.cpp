@@ -2398,9 +2398,9 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
   PartSize      ePartSize = pcCU->getPartitionSize( 0 );
 
 #if H0111_MVD_L1_ZERO
-  Int           bestBiPRefIdxL1=0;
-  Int           bestBiPMvpL1=0;
-  UInt          biPDistTemp;
+  Int           bestBiPRefIdxL1 = 0;
+  Int           bestBiPMvpL1 = 0;
+  UInt          biPDistTemp = MAX_INT;
 #endif
 
 #if ZERO_MVD_EST
@@ -2425,7 +2425,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     UInt          auiZeroMvdBits[3];
 #endif
 #if H0111_MVD_L1_ZERO
-    UInt          bestBiPDist=MAX_INT;
+    UInt          bestBiPDist = MAX_INT;
 #endif
 
     UInt          uiCostTempL0[MAX_NUM_REF];
