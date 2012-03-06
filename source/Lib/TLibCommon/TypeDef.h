@@ -92,8 +92,6 @@
 
 #define ALF_SINGLE_FILTER_SHAPE    1     //< !!! H0068: Single filter type : 9x7 cross + 3x3 square
 
-#define PARAMSET_VLC_CLEANUP               1      ///< followup to G220: Simplify parameter set code
-
 #define ALF_16_BA_GROUPS        1     ///< H0409 16 BA groups
 #define LCU_SYNTAX_ALF          1     ///< H0274 LCU-syntax ALF
 #define ALF_CHROMA_COEF_PRED_HARMONIZATION 1 ///< H0483: ALF chroma coeff pred harmonization
