@@ -2955,7 +2955,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
     } // end if bTestNormalMC
 #endif
 
-    if ( pcCU->getSlice()->getSPS()->getUseMRG() && pcCU->getPartitionSize( uiPartAddr ) != SIZE_2Nx2N )
+    if ( pcCU->getPartitionSize( uiPartAddr ) != SIZE_2Nx2N )
     {
       UInt uiMRGInterDir = 0;     
       TComMvField cMRGMvField[2];
@@ -3721,68 +3721,6 @@ Void TEncSearch::xPatternSearchFracDIF(TComDataCU* pcCU,
   ruiCost = xPatternRefinement( pcPatternKey, baseRefMv, 1, rcMvQter );
 }
 
-Void TEncSearch::predInterSkipSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*& rpcPredYuv, TComYuv*& rpcResiYuv, TComYuv*& rpcRecoYuv )
-{
-  SliceType eSliceType = pcCU->getSlice()->getSliceType();
-  if ( eSliceType == I_SLICE )
-    return;
-  
-  if ( eSliceType == P_SLICE && pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 )
-  {
-    pcCU->setInterDirSubParts( 1, 0, 0, pcCU->getDepth( 0 ) );
-    
-    TComMvField mvData;
-    TComMv cZeroMv;
-    
-    mvData.setRefIdx( 0 );
-    xEstimateMvPredAMVP( pcCU, pcOrgYuv, 0, REF_PIC_LIST_0, 0, mvData.getMv(), (pcCU->getCUMvField( REF_PIC_LIST_0 )->getAMVPInfo()->iN > 0?  true:false) );
-    pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( mvData,        SIZE_2Nx2N, 0, 0 );
-    pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvd    ( cZeroMv,       SIZE_2Nx2N, 0, 0 );  //unnecessary
-    pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( TComMvField(), SIZE_2Nx2N, 0, 0 );  //unnecessary
-    pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvd    ( cZeroMv,       SIZE_2Nx2N, 0, 0 );  //unnecessary
-
-    pcCU->setMVPIdxSubParts( -1, REF_PIC_LIST_1, 0, 0, pcCU->getDepth(0));
-    pcCU->setMVPNumSubParts( -1, REF_PIC_LIST_1, 0, 0, pcCU->getDepth(0));
-    
-    //  Motion compensation
-    motionCompensation ( pcCU, rpcPredYuv, REF_PIC_LIST_0 );
-    
-  }
-  else if ( eSliceType == B_SLICE &&
-           pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 &&
-           pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0  )
-  {
-    TComMvField mvData;
-    TComMv cZeroMv;
-    
-    if (pcCU->getInterDir(0)!=2)
-    {
-
-      mvData.setRefIdx( 0 );
-      xEstimateMvPredAMVP( pcCU, pcOrgYuv, 0, REF_PIC_LIST_0, 0, mvData.getMv(), (pcCU->getCUMvField( REF_PIC_LIST_0 )->getAMVPInfo()->iN > 0?  true:false) );      
-      pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( mvData, SIZE_2Nx2N, 0, 0 );
-      pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvd    ( cZeroMv, SIZE_2Nx2N, 0, 0 ); //unnecessary
-    }
-    
-    if (pcCU->getInterDir(0)!=1)
-    {
-      mvData.setRefIdx( 0 );
-      xEstimateMvPredAMVP( pcCU, pcOrgYuv, 0, REF_PIC_LIST_1, 0, mvData.getMv(), (pcCU->getCUMvField( REF_PIC_LIST_1 )->getAMVPInfo()->iN > 0?  true:false) );
-      pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( mvData, SIZE_2Nx2N, 0, 0 );
-      pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvd    ( cZeroMv, SIZE_2Nx2N, 0, 0 );  //unnecessary
-    }
-    
-    motionCompensation ( pcCU, rpcPredYuv );
-    
-  }
-  else
-  {
-    assert( 0 );
-  }
-  
-  return;
-}
-
 /** encode residual and calculate rate-distortion for a CU block
  * \param pcCU
  * \param pcYuvOrg
@@ -3830,20 +3768,7 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     
     m_pcEntropyCoder->resetBits();
     m_pcEntropyCoder->encodeSkipFlag(pcCU, 0, true);
-    if ( pcCU->getSlice()->getSPS()->getUseMRG() )
-    {
-      m_pcEntropyCoder->encodeMergeIndex( pcCU, 0, 0, true );
-    } 
-    else
-    {
-      for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
-      {
-        if ( pcCU->getSlice()->getNumRefIdx( RefPicList( uiRefListIdx ) ) > 0 )
-        {
-          m_pcEntropyCoder->encodeMVPIdxPU( pcCU, 0, RefPicList( uiRefListIdx ));
-        }
-      }
-    }
+    m_pcEntropyCoder->encodeMergeIndex( pcCU, 0, 0, true );
     
     uiBits = m_pcEntropyCoder->getNumberOfWrittenBits();
     pcCU->getTotalBits()       = uiBits;
@@ -5049,23 +4974,7 @@ Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMod
   {
     m_pcEntropyCoder->resetBits();
     m_pcEntropyCoder->encodeSkipFlag(pcCU, 0, true);
-    ruiBits = m_pcEntropyCoder->getNumberOfWrittenBits();
-    
-    m_pcEntropyCoder->resetBits();
-    if ( pcCU->getSlice()->getSPS()->getUseMRG() )
-    {
-      m_pcEntropyCoder->encodeMergeIndex(pcCU, 0, 0, true);
-    } 
-    else
-    {
-      for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
-      {        
-        if ( pcCU->getSlice()->getNumRefIdx( RefPicList( uiRefListIdx ) ) > 0 )
-        {
-          m_pcEntropyCoder->encodeMVPIdxPU( pcCU, 0, RefPicList( uiRefListIdx ));
-        }
-      }
-    }
+    m_pcEntropyCoder->encodeMergeIndex(pcCU, 0, 0, true);
     ruiBits += m_pcEntropyCoder->getNumberOfWrittenBits();
   }
   else

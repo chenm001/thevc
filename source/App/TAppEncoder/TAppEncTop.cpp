@@ -162,7 +162,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseFastDecisionForMerge      ( m_useFastDecisionForMerge  );
 #endif
   m_cTEncTop.setUseCbfFastMode            ( m_bUseCbfFastMode  );
-  m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
 
   m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );

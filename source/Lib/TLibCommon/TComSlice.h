@@ -182,7 +182,6 @@ private:
   Bool        m_bALFCoefInSlice;
 #endif
   Bool        m_bUsePAD;
-  Bool        m_bUseMRG; // SOPH:
 
   Bool        m_bUseLMChroma; // JL:
 
@@ -320,12 +319,8 @@ public:
 #endif
 
   Bool getUsePAD      ()         { return m_bUsePAD;        }
-  Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
-  
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
-  
   Void setUsePAD      ( Bool b ) { m_bUsePAD   = b;         }
-  Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:
   
   Void setUseLComb    (Bool b)   { m_bUseLComb = b;         }
   Bool getUseLComb    ()         { return m_bUseLComb;      }

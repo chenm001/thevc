@@ -197,7 +197,6 @@ protected:
   Bool      m_useFastDecisionForMerge;
 #endif
   Bool      m_bUseCbfFastMode;
-  Bool      m_bUseMRG; // SOPH:
   Bool      m_bUseLMChroma; 
 
   Int*      m_aidQP;
@@ -418,7 +417,6 @@ public:
   Void      setUseFastDecisionForMerge      ( Bool  b )     { m_useFastDecisionForMerge = b; }
 #endif
   Void      setUseCbfFastMode            ( Bool  b )     { m_bUseCbfFastMode = b; }
-  Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
   Void      setPCMInputBitDepthFlag         ( Bool  b )     { m_bPCMInputBitDepthFlag = b; }
   Void      setPCMFilterDisableFlag         ( Bool  b )     {  m_bPCMFilterDisableFlag = b; }
@@ -453,7 +451,6 @@ public:
   Bool      getUseFastDecisionForMerge      ()      { return m_useFastDecisionForMerge; }
 #endif
   Bool      getUseCbfFastMode           ()      { return m_bUseCbfFastMode; }
-  Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
 #if NS_HAD
   Bool      getUseNSQT                      ()      { return m_useNSQT; }

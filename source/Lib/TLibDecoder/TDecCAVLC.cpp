@@ -1416,8 +1416,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 
   xReadUvlc ( uiCode ); pcSPS->setPadX        ( uiCode    );
   xReadUvlc ( uiCode ); pcSPS->setPadY        ( uiCode    );
-
-  xReadFlag( uiCode ); pcSPS->setUseMRG ( uiCode ? true : false );
   
   // AMVP mode for each depth (AM_NONE or AM_EXPL)
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)

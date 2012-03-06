@@ -1294,7 +1294,6 @@ Void TEncEntropy::encodePredInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
  * \param uiAbsPartIdx
  * \param bRD
  * \returns Void
- * This function is called only if merge is enabled.
  */
 Void TEncEntropy::encodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
@@ -1310,12 +1309,7 @@ Void TEncEntropy::encodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 
   for ( UInt uiPartIdx = 0, uiSubPartIdx = uiAbsPartIdx; uiPartIdx < uiNumPU; uiPartIdx++, uiSubPartIdx += uiPUOffset )
   {
-    if ( pcCU->getSlice()->getSPS()->getUseMRG() )
-    {
-      {
-        encodeMergeFlag( pcCU, uiSubPartIdx, uiPartIdx );
-      }
-    }
+    encodeMergeFlag( pcCU, uiSubPartIdx, uiPartIdx );
     if ( pcCU->getMergeFlag( uiSubPartIdx ) )
     {
       encodeMergeIndex( pcCU, uiSubPartIdx, uiPartIdx );

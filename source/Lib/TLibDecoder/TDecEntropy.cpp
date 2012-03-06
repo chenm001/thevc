@@ -177,10 +177,7 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
     {
       uhInterDirNeighbours[ui] = 0;
     }
-    if ( pcCU->getSlice()->getSPS()->getUseMRG() )
-    {
-      decodeMergeFlag( pcCU, uiSubPartIdx, uiDepth, uiPartIdx );
-    }
+    decodeMergeFlag( pcCU, uiSubPartIdx, uiDepth, uiPartIdx );
     if ( pcCU->getMergeFlag( uiSubPartIdx ) )
     {
       decodeMergeIndex( pcCU, uiPartIdx, uiSubPartIdx, ePartSize, uhInterDirNeighbours, cMvFieldNeighbours, uiDepth );
@@ -194,19 +191,16 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
       pcCU->setInterDirSubParts( uhInterDirNeighbours[uiMergeIndex], uiSubPartIdx, uiPartIdx, uiDepth );
 
       TComMv cTmpMv( 0, 0 );
-      if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0  ) //if ( ref. frame list0 has at least 1 entry )
-      {
-        pcCU->setMVPIdxSubParts( 0, REF_PIC_LIST_0, uiSubPartIdx, uiPartIdx, uiDepth);
-        pcCU->setMVPNumSubParts( 0, REF_PIC_LIST_0, uiSubPartIdx, uiPartIdx, uiDepth);
-        pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvd( cTmpMv, ePartSize, uiSubPartIdx, uiDepth, uiPartIdx );
-        pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMvFieldNeighbours[ 2*uiMergeIndex ], ePartSize, uiSubPartIdx, uiDepth, uiPartIdx );
-      }
-      if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 ) //if ( ref. frame list1 has at least 1 entry )
-      {
-        pcCU->setMVPIdxSubParts( 0, REF_PIC_LIST_1, uiSubPartIdx, uiPartIdx, uiDepth);
-        pcCU->setMVPNumSubParts( 0, REF_PIC_LIST_1, uiSubPartIdx, uiPartIdx, uiDepth);
-        pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvd( cTmpMv, ePartSize, uiSubPartIdx, uiDepth, uiPartIdx );
-        pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMvFieldNeighbours[ 2*uiMergeIndex + 1 ], ePartSize, uiSubPartIdx, uiDepth, uiPartIdx );
+      for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
+      {        
+        if ( pcCU->getSlice()->getNumRefIdx( RefPicList( uiRefListIdx ) ) > 0 )
+        {
+          pcCU->setMVPIdxSubParts( 0, RefPicList( uiRefListIdx ), uiSubPartIdx, uiPartIdx, uiDepth);
+          pcCU->setMVPNumSubParts( 0, RefPicList( uiRefListIdx ), uiSubPartIdx, uiPartIdx, uiDepth);
+          pcCU->getCUMvField( RefPicList( uiRefListIdx ) )->setAllMvd( cTmpMv, ePartSize, uiSubPartIdx, uiDepth, uiPartIdx );
+          pcCU->getCUMvField( RefPicList( uiRefListIdx ) )->setAllMvField( cMvFieldNeighbours[ 2*uiMergeIndex + uiRefListIdx ], ePartSize, uiSubPartIdx, uiDepth, uiPartIdx );
+
+        }
       }
     }
     else

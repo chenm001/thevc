@@ -495,8 +495,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setQuadtreeTUMaxDepthIntra( m_uiQuadtreeTUMaxDepthIntra    );
   
   m_cSPS.setUsePAD        ( m_bUsePAD           );
-  
-  m_cSPS.setUseMRG        ( m_bUseMRG           ); // SOPH:
 
   m_cSPS.setUseLMChroma   ( m_bUseLMChroma           );  
   

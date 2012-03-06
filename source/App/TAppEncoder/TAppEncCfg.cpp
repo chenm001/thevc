@@ -246,8 +246,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #endif
 
   /* Coding tools */
-  ("MRG", m_bUseMRG, true, "merging of motion partitions")
-
   ("LMChroma", m_bUseLMChroma, true, "intra chroma prediction based on recontructed luma")
 
   ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
@@ -895,7 +893,6 @@ Void TAppEncCfg::xPrintParameter()
 #endif
   printf("CFM:%d ", m_bUseCbfFastMode         );
   printf("RQT:%d ", 1     );
-  printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
   printf("LMC:%d ", m_bUseLMChroma        ); 
   printf("Slice: G=%d M=%d ", m_iSliceGranularity, m_iSliceMode);
   if (m_iSliceMode!=0)
@@ -965,10 +962,7 @@ Void TAppEncCfg::xPrintUsage()
   printf( "                   FEN - fast encoder setting\n");  
   printf( "                   ECU - Early CU setting\n");
   printf( "                   CFM - Cbf fast mode setting\n");
-  printf( "                   MRG - merging of motion partitions\n"); // SOPH: Merge Mode
-
   printf( "                   LMC - intra chroma prediction based on luma\n");
-
   printf( "\n" );
   printf( "  Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4\n");
   printf("              -> QP 32, hierarchical-B GOP 8, 9 frames, 64x64-8x8 CU (~4x4 PU)\n\n");

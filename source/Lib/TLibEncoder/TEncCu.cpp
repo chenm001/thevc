@@ -468,17 +468,8 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       if( rpcBestCU->getSlice()->getSliceType() != I_SLICE )
       {
         // SKIP
-
-        if( pcPic->getSlice(0)->getSPS()->getUseMRG() )
-        {
-          xCheckRDCostMerge2Nx2N( rpcBestCU, rpcTempCU );
-          rpcTempCU->initEstData( uiDepth, iQP );
-        }
-        else
-        {
-          xCheckRDCostAMVPSkip ( rpcBestCU, rpcTempCU );
-          rpcTempCU->initEstData( uiDepth, iQP );
-        }
+        xCheckRDCostMerge2Nx2N( rpcBestCU, rpcTempCU );
+        rpcTempCU->initEstData( uiDepth, iQP );
 
         // fast encoder decision for early skip
         if ( m_pcEncCfg->getUseFastEnc() )
@@ -1161,20 +1152,7 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   
   if( pcCU->isSkipped( uiAbsPartIdx ) )
   {
-    if ( pcCU->getSlice()->getSPS()->getUseMRG() )
-    {
-      m_pcEntropyCoder->encodeMergeIndex( pcCU, uiAbsPartIdx, 0 );
-    } 
-    else
-    {
-      for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
-      {        
-        if ( pcCU->getSlice()->getNumRefIdx( RefPicList( uiRefListIdx ) ) > 0 )
-        {
-          m_pcEntropyCoder->encodeMVPIdxPU( pcCU, uiAbsPartIdx, RefPicList( uiRefListIdx ));
-        }
-      }
-    }
+    m_pcEntropyCoder->encodeMergeIndex( pcCU, uiAbsPartIdx, 0 );
     finishCU(pcCU,uiAbsPartIdx,uiDepth);
     return;
   }
@@ -1204,31 +1182,6 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 
   // --- write terminating bit ---
   finishCU(pcCU,uiAbsPartIdx,uiDepth);
-}
-
-Void TEncCu::xCheckRDCostSkip( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, Bool bSkipRes )
-{
-  UChar uhDepth = rpcTempCU->getDepth( 0 );
-  
-  rpcTempCU->setPredModeSubParts( MODE_SKIP,   0, uhDepth );
-  rpcTempCU->setPartSizeSubParts( SIZE_2Nx2N,  0, uhDepth );
-  
-  m_pcPredSearch->predInterSkipSearch       ( rpcTempCU,
-                                             m_ppcOrigYuv    [uhDepth],
-                                             m_ppcPredYuvTemp[uhDepth],
-                                             m_ppcResiYuvTemp[uhDepth],
-                                             m_ppcRecoYuvTemp[uhDepth] );
-  
-  m_pcPredSearch->encodeResAndCalcRdInterCU ( rpcTempCU,
-                                             m_ppcOrigYuv    [uhDepth],
-                                             m_ppcPredYuvTemp[uhDepth],
-                                             m_ppcResiYuvTemp[uhDepth],
-                                             m_ppcResiYuvBest[uhDepth],
-                                             m_ppcRecoYuvTemp[uhDepth],
-                                             bSkipRes );
-  
-  xCheckDQP( rpcTempCU );
-  xCheckBestMode(rpcBestCU, rpcTempCU, uhDepth);
 }
 
 /** check RD costs for a CU block encoded with merge
@@ -1642,74 +1595,6 @@ Int TEncCu::countNumSucIPCM ( TComDataCU* pcCU, UInt uiCurAbsPartIdx )
   return numSucIPCM;
 }
 #endif
-
-Void TEncCu::xCheckRDCostAMVPSkip           ( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
-{
-  UChar uhDepth = rpcTempCU->getDepth(0);
-  
-  AMVPInfo cAMVPInfo0;
-  cAMVPInfo0.iN = 0;
-  
-  AMVPInfo cAMVPInfo1;
-  cAMVPInfo1.iN = 0;
-  
-  if (rpcTempCU->getAMVPMode(0) == AM_EXPL)
-  {
-    rpcTempCU->setPredModeSubParts( MODE_SKIP, 0, uhDepth );
-    rpcTempCU->setPartSizeSubParts( SIZE_2Nx2N,  0, uhDepth );
-    
-    if ( rpcTempCU->getSlice()->isInterP() && rpcTempCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 )
-    {
-      rpcTempCU->fillMvpCand(0, 0, REF_PIC_LIST_0, 0, &cAMVPInfo0);
-    }
-    else if ( rpcTempCU->getSlice()->isInterB() &&
-             rpcTempCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0 &&
-             rpcTempCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0  )
-    {
-      rpcTempCU->fillMvpCand(0, 0, REF_PIC_LIST_0, 0, &cAMVPInfo0);
-      rpcTempCU->fillMvpCand(0, 0, REF_PIC_LIST_1, 0, &cAMVPInfo1);
-    }
-    else
-    {
-      assert( 0 );
-    }
-  }
-  
-  Int iMVP0, iMVP1;
-  
-#if H0736_AVC_STYLE_QP_RANGE
-  Int orgQP = rpcTempCU->getQP( 0 );
-#else
-  UInt uiOrgQP = rpcTempCU->getQP( 0 );
-#endif
-
-  for (iMVP0 = (cAMVPInfo0.iN > 0? 0:-1); iMVP0 < cAMVPInfo0.iN; iMVP0++)
-  {
-    for (iMVP1 = (cAMVPInfo1.iN > 0? 0:-1); iMVP1 < cAMVPInfo1.iN; iMVP1++)
-    {
-      rpcTempCU->setPredModeSubParts( MODE_SKIP, 0, uhDepth );
-      rpcTempCU->setPartSizeSubParts( SIZE_2Nx2N,  0, uhDepth );
-
-      if (rpcTempCU->getSlice()->isInterB())
-        rpcTempCU->setInterDirSubParts( 3, 0, 0, uhDepth );
-
-      rpcTempCU->setMVPIdxSubParts( iMVP0, REF_PIC_LIST_0, 0, 0, uhDepth );
-      rpcTempCU->setMVPIdxSubParts( iMVP1, REF_PIC_LIST_1, 0, 0, uhDepth );
-
-      rpcTempCU->setMVPNumSubParts( cAMVPInfo0.iN, REF_PIC_LIST_0, 0, 0, uhDepth );
-      rpcTempCU->setMVPNumSubParts( cAMVPInfo1.iN, REF_PIC_LIST_1, 0, 0, uhDepth );
-
-      xCopyAMVPInfo(&cAMVPInfo0, rpcTempCU->getCUMvField(REF_PIC_LIST_0)->getAMVPInfo());
-      xCopyAMVPInfo(&cAMVPInfo1, rpcTempCU->getCUMvField(REF_PIC_LIST_1)->getAMVPInfo());
-      xCheckRDCostSkip ( rpcBestCU, rpcTempCU, true ); 
-#if H0736_AVC_STYLE_QP_RANGE
-      rpcTempCU->initEstData( uhDepth, orgQP );
-#else
-      rpcTempCU->initEstData( uhDepth, uiOrgQP );
-#endif
-    }
-  }
-}
 
 Void TEncCu::xCopyAMVPInfo (AMVPInfo* pSrc, AMVPInfo* pDst)
 {

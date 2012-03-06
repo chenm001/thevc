@@ -1177,7 +1177,6 @@ TComSPS::TComSPS()
 , m_bALFCoefInSlice           (false)
 #endif
 , m_bUsePAD                   (false)
-, m_bUseMRG                   (false)
 , m_bUseLMChroma              (false)
 , m_bUseLComb                 (false)
 , m_bLCMod                    (false)

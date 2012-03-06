@@ -466,9 +466,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   
   xWriteUvlc  ( pcSPS->getPad (0) );
   xWriteUvlc  ( pcSPS->getPad (1) );
-
-  // Tools
-  xWriteFlag  ( (pcSPS->getUseMRG ()) ? 1 : 0 ); // SOPH:
   
   // AMVP mode for each depth
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)

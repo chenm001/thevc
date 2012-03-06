@@ -186,13 +186,6 @@ public:
                                  ,Bool        bUseMRG = false
 #endif
                                 );
-
-  /// encoder estimation - intra prediction (skip)
-  Void predInterSkipSearch      ( TComDataCU* pcCU,
-                                  TComYuv*    pcOrgYuv,
-                                  TComYuv*&   rpcPredYuv,
-                                  TComYuv*&   rpcResiYuv,
-                                  TComYuv*&   rpcRecoYuv );
   
   /// encode residual and compute rd-cost for inter mode
   Void encodeResAndCalcRdInterCU( TComDataCU* pcCU,

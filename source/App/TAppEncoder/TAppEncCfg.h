@@ -155,10 +155,7 @@ protected:
 #if DBL_CONTROL
   Bool      m_DeblockingFilterControlPresent;                 ///< deblocking filter control present flag in PPS
 #endif
-
-  // coding tools (inter - merge motion partitions)
-  Bool      m_bUseMRG;                                        ///< SOPH: flag for using motion partition Merge Mode
-  
+ 
   Bool      m_bUseLMChroma;                                  ///< JL: Chroma intra prediction based on luma signal
 
   // coding tools (PCM)
