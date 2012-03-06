@@ -171,9 +171,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setSliceBits(0);
   rpcSlice->setPic( pcPic );
   rpcSlice->initSlice();
-#if PARAMSET_VLC_CLEANUP
   rpcSlice->initTiles();
-#endif
 
   rpcSlice->setPOC( uiPOCCurr );
   

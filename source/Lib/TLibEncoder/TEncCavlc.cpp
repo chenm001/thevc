@@ -886,11 +886,7 @@ Void TEncCavlc::codeAlfCtrlDepth()
   
   UInt uiDepth = m_uiMaxAlfCtrlDepth;
   
-#if !PARAMSET_VLC_CLEANUP
-  xWriteUnaryMaxSymbol(uiDepth, g_uiMaxCUDepth-1);
-#else
   xWriteUvlc(uiDepth);
-#endif
 }
 
 Void TEncCavlc::codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiEncMode )

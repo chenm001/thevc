@@ -83,18 +83,10 @@ public:
 
   Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
   
-#if !PARAMSET_VLC_CLEANUP
-  Void  setAlfCtrl                ( Bool bAlfCtrl          ) { m_bAlfCtrl = bAlfCtrl;                   }
-  Void  setMaxAlfCtrlDepth        ( UInt uiMaxAlfCtrlDepth ) { m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth; }
-#endif
-
   Void  parseSPS                  ( TComSPS* pcSPS         ) {}
   Void  parsePPS                  ( TComPPS* pcPPS         ) {}
-#if PARAMSET_VLC_CLEANUP
   Void  parseAPS                  ( TComAPS* pAPS          ) {}
-#endif
   void parseSEI(SEImessages&) {}
-#if PARAMSET_VLC_CLEANUP
 
 #if LCU_SYNTAX_ALF
   Void  parseSliceHeader          ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl, AlfParamSet& alfParamSet) {}
@@ -102,25 +94,9 @@ public:
   Void  parseSliceHeader          ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl ) {}
 #endif
 
-#else
-  Void  parseSliceHeader          ( TComSlice*& rpcSlice ) {}
-  Void parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice) {printf("Not supported\n");assert(0); exit(1);}
-#endif
-
   Void  parseTerminatingBit       ( UInt& ruiBit );
   Void  parseMVPIdx               ( Int& riMVPIdx          );
   
-#if !PARAMSET_VLC_CLEANUP
-  Void  parseAlfFlag              ( UInt& ruiVal           );
-  Void  parseAlfSvlc              ( Int&  riVal            );
-  Void  parseAlfCtrlDepth         ( UInt& ruiAlfCtrlDepth  );
-  Void  parseAlfUvlc              ( UInt& ruiVal           );
-  Void  parseSaoFlag              ( UInt& ruiVal           );
-  Void  parseSaoUvlc              ( UInt& ruiVal           );
-  Void  parseSaoSvlc              ( Int&  riVal            );
-  Void parseDFFlag                (UInt& ruiVal, const Char *pSymbolName) {printf("Not supported\n");assert(0);exit(1);};
-  Void parseDFSvlc                (Int&  riVal, const Char *pSymbolName)  {printf("Not supported\n");assert(0);exit(1);};
-#endif
 #if SAO_UNIT_INTERLEAVING
   Void  parseSaoUvlc              ( UInt& ruiVal           );
   Void  parseSaoSvlc              ( Int&  riVal            );
@@ -141,10 +117,6 @@ private:
   TComInputBitstream* m_pcBitstream;
   TDecBinIf*        m_pcTDecBinIf;
   
-#if !PARAMSET_VLC_CLEANUP
-  Bool m_bAlfCtrl;
-  UInt m_uiMaxAlfCtrlDepth;
-#endif
   Int           m_iSliceGranularity; //!< slice granularity
 
 public:
@@ -185,9 +157,6 @@ public:
   Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed );
   Void updateContextTables( SliceType eSliceType, Int iQp );
 
-#if !PARAMSET_VLC_CLEANUP
-  Void parseAPSInitInfo(TComAPS& cAPS) {printf("Not supported in parseAPSInitInfo()\n");assert(0);exit(1);}
-#endif
   Void  parseScalingList ( TComScalingList* scalingList ) {}
 
 private:

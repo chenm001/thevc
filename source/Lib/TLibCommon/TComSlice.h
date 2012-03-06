@@ -809,15 +809,6 @@ public:
   Void      setLoopFilterTcOffset(Int val)      {m_loopFilterTcOffsetDiv2 = val; }      //!< set tc offset for deblocking filter
   Int       getLoopFilterTcOffset()             {return m_loopFilterTcOffsetDiv2; }     //!< get tc offset for deblocking filter
 
-#if !PARAMSET_VLC_CLEANUP
-  Void      setCABACForAPS(Bool bVal) {m_bCABACForAPS = bVal;    }  //!< set CABAC enabled/disabled in APS
-  Bool      getCABACForAPS()          {return m_bCABACForAPS;    }  //!< get CABAC enabled/disabled in APS
-  Void      setCABACinitIDC(Int iVal) {m_CABACinitIDC = iVal;    }  //!< set CABAC initial IDC number for APS coding
-  Int       getCABACinitIDC()         {return m_CABACinitIDC;    }  //!< get CABAC initial IDC number for APS coding
-  Void      setCABACinitQP(Int iVal)  {m_CABACinitQP = iVal;     }  //!< set CABAC initial QP value for APS coding
-  Int       getCABACinitQP()          {return m_CABACinitQP;     }  //!< get CABAC initial QP value for APS coding
-#endif
-
   Void      createScalingList();
   Void      destroyScalingList();
   Void      setScalingListEnabled (Bool bVal) { m_scalingListEnabled = bVal; }  //!< set ScalingList enabled/disabled in APS
@@ -842,11 +833,6 @@ private:
   Bool        m_loopFilterDisable;           //< Deblocking filter enabled/disabled in APS
   Int         m_loopFilterBetaOffsetDiv2;    //< beta offset for deblocking filter
   Int         m_loopFilterTcOffsetDiv2;      //< tc offset for deblocking filter
-#if !PARAMSET_VLC_CLEANUP
-  Bool        m_bCABACForAPS; //!< CABAC coding enabled/disabled for APS (true for enabling CABAC)
-  Int         m_CABACinitIDC; //!< CABAC initial IDC number for APS coding
-  Int         m_CABACinitQP;  //!< CABAC initial QP value for APS coding
-#endif
   Bool        m_scalingListEnabled;     //!< ScalingList enabled/disabled in APS (true for enabled)
   TComScalingList*     m_scalingList;   //!< ScalingList class pointer
 #if SAO_UNIT_INTERLEAVING
@@ -994,9 +980,7 @@ public:
   virtual ~TComSlice();
   
   Void      initSlice       ();
-#if PARAMSET_VLC_CLEANUP
   Void      initTiles();
-#endif
 
   
   Void      setSPS          ( TComSPS* pcSPS ) { m_pcSPS = pcSPS; }
@@ -1236,8 +1220,6 @@ protected:
 };// END CLASS DEFINITION TComSlice
 
 
-#if PARAMSET_VLC_CLEANUP
-
 template <class T> class ParameterSetMap
 {
 public:
@@ -1316,8 +1298,6 @@ protected:
   ParameterSetMap<TComPPS> m_ppsMap; 
   ParameterSetMap<TComAPS> m_apsMap; 
 };
-
-#endif
 
 //! \}
 

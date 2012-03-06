@@ -155,21 +155,9 @@ Void TComSlice::initSlice()
 
   m_bFinalized=false;
 
-#if !PARAMSET_VLC_CLEANUP
-  Int iWidth             = m_pcSPS->getWidth();
-  Int iHeight            = m_pcSPS->getHeight();
-  UInt uiWidthInCU       = ( iWidth %g_uiMaxCUWidth  ) ? iWidth /g_uiMaxCUWidth  + 1 : iWidth /g_uiMaxCUWidth;
-  UInt uiHeightInCU      = ( iHeight%g_uiMaxCUHeight ) ? iHeight/g_uiMaxCUHeight + 1 : iHeight/g_uiMaxCUHeight;
-  UInt uiNumCUsInFrame   = uiWidthInCU * uiHeightInCU;
-
   m_uiTileCount          = 0;
-  if (m_uiTileByteLocation==NULL) m_uiTileByteLocation   = new UInt[uiNumCUsInFrame];
-#else
-  m_uiTileCount          = 0;
-#endif
 }
 
-#if PARAMSET_VLC_CLEANUP
 Void TComSlice::initTiles()
 {
   Int iWidth             = m_pcSPS->getWidth();
@@ -180,7 +168,6 @@ Void TComSlice::initTiles()
 
   if (m_uiTileByteLocation==NULL) m_uiTileByteLocation   = new UInt[uiNumCUsInFrame];
 }
-#endif
 
 
 /**
@@ -1504,11 +1491,6 @@ TComAPS::TComAPS()
 #else
   m_pAlfParam = NULL;
 #endif
-#if !PARAMSET_VLC_CLEANUP
-  m_bCABACForAPS = false;
-  m_CABACinitIDC = -1;
-  m_CABACinitQP = -1;
-#endif
   m_scalingList = NULL;
   m_scalingListEnabled = false;
 }
@@ -1532,11 +1514,6 @@ TComAPS& TComAPS::operator= (const TComAPS& src)
   m_alfParamSet    = src.m_alfParamSet;
 #else
   m_pAlfParam   = src.m_pAlfParam; 
-#endif
-#if !PARAMSET_VLC_CLEANUP
-  m_bCABACForAPS= src.m_bCABACForAPS;
-  m_CABACinitIDC= src.m_CABACinitIDC;
-  m_CABACinitQP = src.m_CABACinitQP;
 #endif
   m_scalingList = src.m_scalingList;
   m_scalingListEnabled = src.m_scalingListEnabled;
@@ -1874,7 +1851,6 @@ Void TComScalingList::checkDcOfMatrix()
   }
 }
 #endif
-#if PARAMSET_VLC_CLEANUP
 
 ParameterSetManager::ParameterSetManager()
 : m_spsMap(MAX_NUM_SPS)
@@ -1887,7 +1863,5 @@ ParameterSetManager::ParameterSetManager()
 ParameterSetManager::~ParameterSetManager()
 {
 }
-
-#endif
 
 //! \}

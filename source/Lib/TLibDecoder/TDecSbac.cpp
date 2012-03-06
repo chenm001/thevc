@@ -48,10 +48,6 @@ TDecSbac::TDecSbac()
 // new structure here
 : m_pcBitstream               ( 0 )
 , m_pcTDecBinIf               ( NULL )
-#if !PARAMSET_VLC_CLEANUP
-, m_bAlfCtrl                  ( false )
-, m_uiMaxAlfCtrlDepth         ( 0 )
-#endif
 , m_numContextModels          ( 0 )
 , m_cCUSplitFlagSCModel       ( 1,             1,               NUM_SPLIT_FLAG_CTX            , m_contextModels + m_numContextModels, m_numContextModels )
 , m_cCUSkipFlagSCModel        ( 1,             1,               NUM_SKIP_FLAG_CTX             , m_contextModels + m_numContextModels, m_numContextModels)
@@ -487,15 +483,6 @@ Void TDecSbac::parseIPCMInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 #endif
   }
 }
-
-#if !PARAMSET_VLC_CLEANUP
-Void TDecSbac::parseAlfCtrlDepth( UInt& ruiAlfCtrlDepth )
-{
-  UInt uiSymbol;
-  xReadUnaryMaxSymbol( uiSymbol, m_cALFUvlcSCModel.get( 0 ), 1, g_uiMaxCUDepth - 1 );
-  ruiAlfCtrlDepth = uiSymbol;
-}
-#endif
 
 /** parse skip flag
  * \param pcCU
@@ -1640,157 +1627,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   
   return;
 }
-
-#if !PARAMSET_VLC_CLEANUP
-Void TDecSbac::parseAlfFlag (UInt& ruiVal)
-{
-  UInt uiSymbol;
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cALFFlagSCModel.get( 0, 0, 0 ) );
-  
-  ruiVal = uiSymbol;
-}
-
-
-Void TDecSbac::parseAlfCtrlFlag( UInt &ruiAlfCtrlFlag )
-{
-  UInt uiSymbol;
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUAlfCtrlFlagSCModel.get( 0, 0, 0 ) );
-  ruiAlfCtrlFlag = uiSymbol;
-}
-
-Void TDecSbac::parseAlfUvlc (UInt& ruiVal)
-{
-  UInt uiCode;
-  Int  i;
-  
-  m_pcTDecBinIf->decodeBin( uiCode, m_cALFUvlcSCModel.get( 0, 0, 0 ) );
-  if ( uiCode == 0 )
-  {
-    ruiVal = 0;
-    return;
-  }
-  
-  i=1;
-  while (1)
-  {
-    m_pcTDecBinIf->decodeBin( uiCode, m_cALFUvlcSCModel.get( 0, 0, 1 ) );
-    if ( uiCode == 0 )
-    {
-      break;
-    }
-    i++;
-  }
-  
-  ruiVal = i;
-}
-
-Void TDecSbac::parseAlfSvlc (Int&  riVal)
-{
-  UInt uiCode;
-  Int  iSign;
-  Int  i;
-  
-  m_pcTDecBinIf->decodeBin( uiCode, m_cALFSvlcSCModel.get( 0, 0, 0 ) );
-  
-  if ( uiCode == 0 )
-  {
-    riVal = 0;
-    return;
-  }
-  
-  // read sign
-  m_pcTDecBinIf->decodeBin( uiCode, m_cALFSvlcSCModel.get( 0, 0, 1 ) );
-  
-  if ( uiCode == 0 )
-  {
-    iSign =  1;
-  }
-  else
-  {
-    iSign = -1; 
-  }
-  
-  // read magnitude
-  i=1;
-  while (1)
-  {
-    m_pcTDecBinIf->decodeBin( uiCode, m_cALFSvlcSCModel.get( 0, 0, 2 ) );
-    if ( uiCode == 0 ) break;
-    i++;
-  }
-  
-  riVal = i*iSign;
-}
-
-Void TDecSbac::parseSaoFlag (UInt& ruiVal)
-{
-  UInt uiSymbol;
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cSaoFlagSCModel.get( 0, 0, 0 ) );
-
-  ruiVal = uiSymbol;
-}
-
-Void TDecSbac::parseSaoUvlc (UInt& ruiVal)
-{
-  UInt uiCode;
-  Int  i;
-
-  m_pcTDecBinIf->decodeBin( uiCode, m_cSaoUvlcSCModel.get( 0, 0, 0 ) );
-  if ( uiCode == 0 )
-  {
-    ruiVal = 0;
-    return;
-  }
-
-  i=1;
-  while (1)
-  {
-    m_pcTDecBinIf->decodeBin( uiCode, m_cSaoUvlcSCModel.get( 0, 0, 1 ) );
-    if ( uiCode == 0 ) break;
-    i++;
-  }
-
-  ruiVal = i;
-}
-
-Void TDecSbac::parseSaoSvlc (Int&  riVal)
-{
-  UInt uiCode;
-  Int  iSign;
-  Int  i;
-
-  m_pcTDecBinIf->decodeBin( uiCode, m_cSaoSvlcSCModel.get( 0, 0, 0 ) );
-
-  if ( uiCode == 0 )
-  {
-    riVal = 0;
-    return;
-  }
-
-  // read sign
-  m_pcTDecBinIf->decodeBin( uiCode, m_cSaoSvlcSCModel.get( 0, 0, 1 ) );
-
-  if ( uiCode == 0 )
-  {
-    iSign =  1;
-  }
-  else
-  {
-    iSign = -1;
-  }
-  
-  // read magnitude
-  i=1;
-  while (1)
-  {
-    m_pcTDecBinIf->decodeBin( uiCode, m_cSaoSvlcSCModel.get( 0, 0, 2 ) );
-    if ( uiCode == 0 ) break;
-    i++;
-  }
-
-  riVal = i*iSign;
-}
-#endif
 
 
 #if SAO_UNIT_INTERLEAVING
