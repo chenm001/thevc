@@ -135,8 +135,6 @@ public:
   
   TComBitCounter*         getBitCounter         () { return  &m_cBitCounter;          }
   TComRdCost*             getRdCost             () { return  &m_cRdCost;              }
-  TEncSbac***             getRDSbacCoder        () { return  m_pppcRDSbacCoder;       }
-  TEncSbac*               getRDGoOnSbacCoder    () { return  &m_cRDGoOnSbacCoder;     }
   
   TComSPS*                getSPS                () { return  &m_cSPS;                 }
   TComPPS*                getPPS                () { return  &m_cPPS;                 }

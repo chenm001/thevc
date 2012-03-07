@@ -81,12 +81,6 @@ public:
   Void  setSlice               ( TComSlice* p )  { m_pcSlice = p;                       }
   
   // SBAC RD
-  Void  resetCoeffCost         ()                { m_uiCoeffCost = 0;  }
-  UInt  getCoeffCost           ()                { return  m_uiCoeffCost;  }
-  
-  Void  load                   ( TEncSbac* pScr  );
-  Void  loadIntraDirModeLuma   ( TEncSbac* pScr  );
-  Void  store                  ( TEncSbac* pDest );
   Void  resetBits              ()                { m_pcBinIf->resetBits(); m_pcBitIf->resetBits(); }
   UInt  getNumberOfWrittenBits ()                { return m_pcBinIf->getNumWrittenBits(); }
   //--SBAC RD
@@ -111,9 +105,6 @@ protected:
   TComBitIf*    m_pcBitIf;
   TComSlice*    m_pcSlice;
   TEncBinIf*    m_pcBinIf;
-  
-  //SBAC RD
-  UInt          m_uiCoeffCost;
   
 public:
 

@@ -96,7 +96,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setSearchRange                  ( m_iSearchRange );
 
   //====== Tool list ========
-  m_cTEncTop.setUseSBACRD                    ( m_bUseSBACRD   );
   m_cTEncTop.setUseHADME                     ( m_bUseHADME    );
 
   m_cTEncTop.setQuadtreeTULog2MaxSize        ( m_uiQuadtreeTULog2MaxSize );

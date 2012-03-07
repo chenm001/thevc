@@ -66,7 +66,6 @@ public:
 protected:
   TComBitIf*    m_pcBitIf;
   TComSlice*    m_pcSlice;
-  UInt          m_uiCoeffCost;
   
   Void  xWriteCode            ( UInt uiCode, UInt uiLength );
   Void  xWriteUvlc            ( UInt uiCode );
@@ -97,9 +96,7 @@ public:
   Void  setBitstream          ( TComBitIf* p )  { m_pcBitIf = p;  }
   Void  setSlice              ( TComSlice* p )  { m_pcSlice = p;  }
   Void  resetBits             ()                { m_pcBitIf->resetBits(); }
-  Void  resetCoeffCost        ()                { m_uiCoeffCost = 0;  }
   UInt  getNumberOfWrittenBits()                { return  m_pcBitIf->getNumberOfWrittenBits();  }
-  UInt  getCoeffCost          ()                { return  m_uiCoeffCost;  }
   
   Void  codeSPS                 ( TComSPS* pcSPS );
   Void  codePPS                 ( TComPPS* pcPPS );

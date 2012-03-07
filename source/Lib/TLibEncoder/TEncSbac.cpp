@@ -53,7 +53,6 @@ TEncSbac::TEncSbac()
 : m_pcBitIf                   ( NULL )
 , m_pcSlice                   ( NULL )
 , m_pcBinIf                   ( NULL )
-, m_uiCoeffCost               ( 0 )
 , m_numContextModels          ( 0 )
 , m_cCUSplitFlagSCModel       ( 1,             1,               NUM_SPLIT_FLAG_CTX            , m_contextModels + m_numContextModels, m_numContextModels )
 , m_cCUSkipFlagSCModel        ( 1,             1,               NUM_SKIP_FLAG_CTX             , m_contextModels + m_numContextModels, m_numContextModels)
@@ -344,36 +343,6 @@ Void TEncSbac::xWriteGoRiceExGolomb( UInt uiSymbol, UInt &ruiGoRiceParam )
     uiSymbol -= uiMaxVlc + 1;
     xWriteEpExGolomb( uiSymbol, 0 );
   }
-}
-
-// SBAC RD
-Void  TEncSbac::load ( TEncSbac* pSrc)
-{
-  this->xCopyFrom(pSrc);
-}
-
-Void  TEncSbac::loadIntraDirModeLuma( TEncSbac* pSrc)
-{
-  m_pcBinIf->copyState( pSrc->m_pcBinIf );
-  
-  this->m_cCUIntraPredSCModel      .copyFrom( &pSrc->m_cCUIntraPredSCModel       );
-}
-
-
-Void  TEncSbac::store( TEncSbac* pDest)
-{
-  pDest->xCopyFrom( this );
-}
-
-
-Void TEncSbac::xCopyFrom( TEncSbac* pSrc )
-{
-  m_pcBinIf->copyState( pSrc->m_pcBinIf );
-  
-  this->m_uiCoeffCost = pSrc->m_uiCoeffCost;
-  this->m_uiLastQp    = pSrc->m_uiLastQp;
-  
-  memcpy( m_contextModels, pSrc->m_contextModels, m_numContextModels * sizeof( ContextModel ) );
 }
 
 Void TEncSbac::codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx )

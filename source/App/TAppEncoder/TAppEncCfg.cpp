@@ -149,9 +149,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("QP,q",          m_fQP,             30.0, "Qp value, if value is float, QP is switched once during encoding")
 
   ("dQPFile,m",     cfg_dQPFile, string(""), "dQP file name")
-
-  /* Entropy coding parameters */
-  ("SBACRD", m_bUseSBACRD, true, "SBAC based RD estimation")
   
   /* Coding tools */
   ("LMChroma", m_bUseLMChroma, true, "intra chroma prediction based on recontructed luma")
@@ -382,7 +379,6 @@ Void TAppEncCfg::xPrintParameter()
   
   printf("TOOL CFG: ");
   printf("HAD:%d ", m_bUseHADME           );
-  printf("SRD:%d ", m_bUseSBACRD          );
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("ECU:%d ", m_bUseEarlyCU         );
 #if FAST_DECISION_FOR_MRG_RD_COST
@@ -405,7 +401,6 @@ Void TAppEncCfg::xPrintUsage()
 {
   printf( "          <name> = GPB - generalized B instead of P in low-delay mode\n");
   printf( "                   HAD - hadamard ME for fractional-pel\n");
-  printf( "                   SRD - SBAC based RD estimation\n");
   printf( "                   NRF - non-reference frame marking in last layer\n");
   printf( "                   BQP - hier-P style QP assignment in low-delay mode\n");
   printf( "                   FEN - fast encoder setting\n");  
@@ -437,10 +432,6 @@ void translateOldStyleCmdline(const char* value, po::Options& opts, const std::s
   if (arg == "HAD")
   {
     argv[0] = "HadamardME";
-  }
-  else if (arg == "SRD")
-  {
-    argv[0] = "SBACRD";
   }
   else if (arg == "IBD")
   {

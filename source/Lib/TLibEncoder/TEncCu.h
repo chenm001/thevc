@@ -91,11 +91,6 @@ private:
   TEncSbac*               m_pcSbacCoder;
   TEncBinCABAC*           m_pcBinCABAC;
   
-  // SBAC RD
-  TEncSbac***             m_pppcRDSbacCoder;
-  TEncSbac*               m_pcRDGoOnSbacCoder;
-  Bool                    m_bUseSBACRD;
-  
 public:
   /// copy parameters from encoder class
   Void  init                ( TEncTop* pcEncTop );

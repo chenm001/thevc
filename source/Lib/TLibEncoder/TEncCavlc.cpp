@@ -115,7 +115,6 @@ Void  TEncCavlc::xWriteFlagTr(UInt value, const Char *pSymbolName)
 TEncCavlc::TEncCavlc()
 {
   m_pcBitIf           = NULL;
-  m_uiCoeffCost       = 0;
 }
 
 TEncCavlc::~TEncCavlc()

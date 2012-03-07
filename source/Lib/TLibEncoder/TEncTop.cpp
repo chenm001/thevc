@@ -87,37 +87,6 @@ Void TEncTop::create ()
   m_cGOPEncoder.        create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight );
   m_cSliceEncoder.      create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   m_cCuEncoder.         create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
-  // if SBAC-based RD optimization is used
-  if( m_bUseSBACRD )
-  {
-    m_pppcRDSbacCoder = new TEncSbac** [g_uiMaxCUDepth+1];
-#if FAST_BIT_EST
-    m_pppcBinCoderCABAC = new TEncBinCABACCounter** [g_uiMaxCUDepth+1];
-#else
-    m_pppcBinCoderCABAC = new TEncBinCABAC** [g_uiMaxCUDepth+1];
-#endif
-    
-    for ( Int iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
-    {
-      m_pppcRDSbacCoder[iDepth] = new TEncSbac* [CI_NUM];
-#if FAST_BIT_EST
-      m_pppcBinCoderCABAC[iDepth] = new TEncBinCABACCounter* [CI_NUM];
-#else
-      m_pppcBinCoderCABAC[iDepth] = new TEncBinCABAC* [CI_NUM];
-#endif
-      
-      for (Int iCIIdx = 0; iCIIdx < CI_NUM; iCIIdx ++ )
-      {
-        m_pppcRDSbacCoder[iDepth][iCIIdx] = new TEncSbac;
-#if FAST_BIT_EST
-        m_pppcBinCoderCABAC [iDepth][iCIIdx] = new TEncBinCABACCounter;
-#else
-        m_pppcBinCoderCABAC [iDepth][iCIIdx] = new TEncBinCABAC;
-#endif
-        m_pppcRDSbacCoder   [iDepth][iCIIdx]->init( m_pppcBinCoderCABAC [iDepth][iCIIdx] );
-      }
-    }
-  }
 }
 
 Void TEncTop::destroy ()
@@ -126,29 +95,6 @@ Void TEncTop::destroy ()
   m_cGOPEncoder.        destroy();
   m_cSliceEncoder.      destroy();
   m_cCuEncoder.         destroy();
-  
-  // SBAC RD
-  if( m_bUseSBACRD )
-  {
-    Int iDepth;
-    for ( iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
-    {
-      for (Int iCIIdx = 0; iCIIdx < CI_NUM; iCIIdx ++ )
-      {
-        delete m_pppcRDSbacCoder[iDepth][iCIIdx];
-        delete m_pppcBinCoderCABAC[iDepth][iCIIdx];
-      }
-    }
-    
-    for ( iDepth = 0; iDepth < g_uiMaxCUDepth+1; iDepth++ )
-    {
-      delete [] m_pppcRDSbacCoder[iDepth];
-      delete [] m_pppcBinCoderCABAC[iDepth];
-    }
-    
-    delete [] m_pppcRDSbacCoder;
-    delete [] m_pppcBinCoderCABAC;
-  }
   
   // destroy ROM
   destroyROM();
@@ -181,7 +127,7 @@ Void TEncTop::init()
                   );
   
   // initialize encoder search class
-  m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_iFastSearch, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
+  m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_iFastSearch, &m_cEntropyCoder, &m_cRdCost );
 
   m_iMaxRefPicNum = 0;
 }

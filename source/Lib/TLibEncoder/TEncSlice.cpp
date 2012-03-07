@@ -110,8 +110,6 @@ Void TEncSlice::init( TEncTop* pcEncTop )
   
   m_pcBitCounter      = pcEncTop->getBitCounter();
   m_pcRdCost          = pcEncTop->getRdCost();
-  m_pppcRDSbacCoder   = pcEncTop->getRDSbacCoder();
-  m_pcRDGoOnSbacCoder = pcEncTop->getRDGoOnSbacCoder();
 }
 
 /**
@@ -273,28 +271,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   TComSlice* pcSlice            = rpcPic->getSlice();
   xDetermineStartAndBoundingCUAddr ( uiBoundingCUAddr, rpcPic, false );
   
-  // initialize cost values
-  m_uiPicTotalBits  = 0;
-  m_dPicRdCost      = 0;
-  m_uiPicDist       = 0;
-  
-  // set entropy coder
-  if( m_pcCfg->getUseSBACRD() )
-  {
-    m_pcSbacCoder->init( m_pcBinCABAC );
-    m_pcEntropyCoder->setEntropyCoder   ( m_pcSbacCoder, pcSlice );
-    m_pcEntropyCoder->resetEntropy      ();
-    m_pppcRDSbacCoder[0][CI_CURR_BEST]->load(m_pcSbacCoder);
-    pppcRDSbacCoder = (TEncBinCABAC *) m_pppcRDSbacCoder[0][CI_CURR_BEST]->getEncBinIf();
-    pppcRDSbacCoder->setBinCountingEnableFlag( false );
-  }
-  else
-  {
-    m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
-    m_pcEntropyCoder->resetEntropy      ();
-    m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-  }
-  
   // chen_fix
   TEncTop* pcEncTop = (TEncTop*) m_pcCfg;
   m_pcBitCounter = pcEncTop->getBitCounter();
@@ -306,29 +282,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );
     pcCU->initCU( rpcPic, uiCUAddr );
 
-    // if RD based on SBAC is used
-    if( m_pcCfg->getUseSBACRD() )
-    {
-      // set go-on entropy coder
-      m_pcEntropyCoder->setEntropyCoder ( m_pcRDGoOnSbacCoder, pcSlice );
-      m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-      
-      ((TEncBinCABAC*)m_pcRDGoOnSbacCoder->getEncBinIf())->setBinCountingEnableFlag(true);
-      // run CU encoder
-      m_pcCuEncoder->compressCU( pcCU );
-      
-      // restore entropy coder to an initial stage
-      m_pcEntropyCoder->setEntropyCoder ( m_pppcRDSbacCoder[0][CI_CURR_BEST], pcSlice );
-      m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-      m_pcCuEncoder->setBitCounter      ( m_pcBitCounter );
-      pppcRDSbacCoder->setBinCountingEnableFlag( true );
-      m_pcBitCounter->resetBits();
-      m_pcCuEncoder->encodeCU( pcCU );
-
-      pppcRDSbacCoder->setBinCountingEnableFlag( false );
-    }
     // other case: encodeCU is not called
-    else
     {
       m_pcSbacCoder->init( m_pcBinCABAC );
       m_pcEntropyCoder->setEntropyCoder   ( m_pcSbacCoder, pcSlice );
@@ -338,10 +292,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       m_pcEntropyCoder->resetEntropy      ();
       m_pcCuEncoder->encodeCU( pcCU );
     }
-    
-    m_uiPicTotalBits += pcCU->getTotalBits();
-    m_dPicRdCost     += pcCU->getTotalCost();
-    m_uiPicDist      += pcCU->getTotalDistortion();
   }
 }
 

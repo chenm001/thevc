@@ -125,9 +125,7 @@ void TEncSearch::init(TEncCfg*      pcEncCfg,
                       Int           iSearchRange,
                       Int           iFastSearch,
                       TEncEntropy*  pcEntropyCoder,
-                      TComRdCost*   pcRdCost,
-                      TEncSbac*** pppcRDSbacCoder,
-                      TEncSbac*   pcRDGoOnSbacCoder
+                      TComRdCost*   pcRdCost
                       )
 {
   m_pcEncCfg             = pcEncCfg;
@@ -136,11 +134,6 @@ void TEncSearch::init(TEncCfg*      pcEncCfg,
   m_iFastSearch          = iFastSearch;
   m_pcEntropyCoder       = pcEntropyCoder;
   m_pcRdCost             = pcRdCost;
-  
-  m_pppcRDSbacCoder     = pppcRDSbacCoder;
-  m_pcRDGoOnSbacCoder   = pcRDGoOnSbacCoder;
-  
-  m_bUseSBACRD          = pppcRDSbacCoder ? true : false;
   
   m_iAdaptSR = iSearchRange;
   
@@ -1171,10 +1164,6 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
   if( bCheckFull )
   {
     //----- store original entropy coding status -----
-    if( m_bUseSBACRD && bCheckSplit )
-    {
-      m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[ uiFullDepth ][ CI_QT_TRAFO_ROOT ] );
-    }
     //----- code luma block with given intra prediction mode and store Cbf-----
     dSingleCost   = 0.0;
     xIntraCodingLumaBlk( pcCU, uiTrDepth, uiAbsPartIdx, pcOrgYuv, pcPredYuv, pcResiYuv, uiSingleDistY ); 
@@ -1189,19 +1178,6 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
   
   if( bCheckSplit )
   {
-    //----- store full entropy coding status, load original entropy coding status -----
-    if( m_bUseSBACRD )
-    {
-      if( bCheckFull )
-      {
-        m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[ uiFullDepth ][ CI_QT_TRAFO_TEST ] );
-        m_pcRDGoOnSbacCoder->load ( m_pppcRDSbacCoder[ uiFullDepth ][ CI_QT_TRAFO_ROOT ] );
-      }
-      else
-      {
-        m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[ uiFullDepth ][ CI_QT_TRAFO_ROOT ] );
-      }
-    }
     //----- code splitted block -----
     Double  dSplitCost      = 0.0;
     UInt    uiSplitDistY    = 0;
@@ -1228,11 +1204,6 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
     {
       pcCU->getCbf( TEXT_LUMA )[ uiAbsPartIdx + uiOffs ] |= ( uiSplitCbfY << uiTrDepth );
     }
-    //----- restore context states -----
-    if( m_bUseSBACRD )
-    {
-      m_pcRDGoOnSbacCoder->load ( m_pppcRDSbacCoder[ uiFullDepth ][ CI_QT_TRAFO_ROOT ] );
-    }
     //----- determine rate and r-d cost -----
     UInt uiSplitBits = xGetIntraBitsQT( pcCU, uiTrDepth, uiAbsPartIdx, true, false, false );
     dSplitCost       = m_pcRdCost->calcRdCost( uiSplitBits, uiSplitDistY + uiSplitDistC );
@@ -1245,11 +1216,6 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
       ruiDistC += uiSplitDistC;
       dRDCost  += dSplitCost;
       return;
-    }
-    //----- set entropy coding status -----
-    if( m_bUseSBACRD )
-    {
-      m_pcRDGoOnSbacCoder->load ( m_pppcRDSbacCoder[ uiFullDepth ][ CI_QT_TRAFO_TEST ] );
     }
     
     //--- set transform index and Cbf values ---
@@ -1564,12 +1530,6 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       
       pcCU->setLumaIntraDirSubParts ( uiOrgMode, uiPartOffset, uiDepth + uiInitTrDepth );
       
-      // set context models
-      if( m_bUseSBACRD )
-      {
-        m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST] );
-      }
-      
       // determine residual for partition
       UInt   uiPUDistY = 0;
       UInt   uiPUDistC = 0;
@@ -1626,12 +1586,6 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
 #endif
       
       pcCU->setLumaIntraDirSubParts ( uiOrgMode, uiPartOffset, uiDepth + uiInitTrDepth );
-      
-      // set context models
-      if( m_bUseSBACRD )
-      {
-        m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST] );
-      }
       
       // determine residual for partition
       UInt   uiPUDistY = 0;
@@ -1717,12 +1671,6 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     }
   }
   
-  //===== reset context models =====
-  if(m_bUseSBACRD)
-  {
-    m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST]);
-  }
-  
   //===== set distortion (rate and r-d costs are determined later) =====
   ruiDistC                   = uiOverallDistC;
   pcCU->getTotalDistortion() = uiOverallDistY + uiOverallDistC;
@@ -1756,12 +1704,6 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
     {
       continue;
     }
-    //----- restore context models -----
-    if( m_bUseSBACRD )
-    {
-      m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST] );
-    }
-    
     //----- chroma coding -----
     UInt    uiDist = 0;
     pcCU->setChromIntraDirSubParts  ( uiModeList[uiMode], 0, uiDepth );
@@ -1788,12 +1730,6 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
   ::memcpy( pcCU->getCbf( TEXT_CHROMA_V ), m_puhQTTempCbf[2], uiQPN * sizeof( UChar ) );
   pcCU->setChromIntraDirSubParts( uiBestMode, 0, uiDepth );
   pcCU->getTotalDistortion      () += uiBestDist - uiPreCalcDistC;
-  
-  //----- restore context models -----
-  if( m_bUseSBACRD )
-  {
-    m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST] );
-  }
 }
 
 Void TEncSearch::xGetInterPredictionError( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPartIdx, UInt& ruiErr, Bool bHadamard )
@@ -2839,9 +2775,6 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     + m_pcRdCost->getDistPart( rpcYuvRec->getCrAddr(),   rpcYuvRec->getCStride(), pcYuvOrg->getCrAddr(),   pcYuvOrg->getCStride(), uiWidth >> 1, uiHeight >> 1 );
 #endif
 
-    if( m_bUseSBACRD )
-      m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[pcCU->getDepth(0)][CI_CURR_BEST]);
-    
     m_pcEntropyCoder->resetBits();
     m_pcEntropyCoder->encodeSkipFlag(pcCU, 0, true);
     m_pcEntropyCoder->encodeMergeIndex( pcCU, 0, 0, true );
@@ -2850,9 +2783,6 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     pcCU->getTotalBits()       = uiBits;
     pcCU->getTotalDistortion() = uiDistortion;
     pcCU->getTotalCost()       = m_pcRdCost->calcRdCost( uiBits, uiDistortion );
-    
-    if( m_bUseSBACRD )
-      m_pcRDGoOnSbacCoder->store(m_pppcRDSbacCoder[pcCU->getDepth(0)][CI_TEMP_BEST]);
     
     pcCU->setCbfSubParts( 0, 0, 0, 0, pcCU->getDepth( 0 ) );
     pcCU->setTrIdxSubParts( 0, 0, pcCU->getDepth(0) );
@@ -2882,10 +2812,6 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     dCost = 0.;
     uiBits = 0;
     uiDistortion = 0;
-    if( m_bUseSBACRD )
-    {
-      m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[ pcCU->getDepth( 0 ) ][ CI_CURR_BEST ] );
-    }
     
     UInt uiZeroDistortion = 0;
 #if IBDI_DISTORTION
@@ -2915,19 +2841,11 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
       xSetResidualQTData( pcCU, 0, 0, 0, NULL, pcCU->getDepth(0), false );
     }
     
-    if( m_bUseSBACRD )
-    {
-      m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[pcCU->getDepth(0)][CI_CURR_BEST] );
-    }
 #if 0 // check
     {
       m_pcEntropyCoder->resetBits();
       m_pcEntropyCoder->encodeCoeff( pcCU, 0, pcCU->getDepth(0), pcCU->getWidth(0), pcCU->getHeight(0) );
       const UInt uiBitsForCoeff = m_pcEntropyCoder->getNumberOfWrittenBits();
-      if( m_bUseSBACRD )
-      {
-        m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[pcCU->getDepth(0)][CI_CURR_BEST] );
-      }
       if( uiBitsForCoeff != uiBits )
         assert( 0 );
     }
@@ -2968,11 +2886,6 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
       uiDistortionBest = uiDistortion;
       dCostBest        = dCost;
       uiQpBest         = uiQp;
-      
-      if( m_bUseSBACRD )
-      {
-        m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[ pcCU->getDepth( 0 ) ][ CI_TEMP_BEST ] );
-      }
     }
   }
   
@@ -2980,11 +2893,6 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
   
   if( uiQpMin != uiQpMax && uiQpBest != uiQpMax )
   {
-    if( m_bUseSBACRD )
-    {
-      assert( 0 ); // check
-      m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[ pcCU->getDepth( 0 ) ][ CI_TEMP_BEST ] );
-    }
     // copy best cbf and trIdx to pcCU
     const UInt uiQPartNum = pcCU->getPic()->getNumPartInCU() >> (pcCU->getDepth(0) << 1);
     ::memcpy( pcCU->getTransformIdx(),       m_puhQTTempTrIdx,  uiQPartNum * sizeof(UChar) );
@@ -3064,11 +2972,6 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
   UInt uiSingleBits = 0;
   UInt uiSingleDist = 0;
   UInt uiAbsSumY = 0, uiAbsSumU = 0, uiAbsSumV = 0;
-  
-  if( m_bUseSBACRD )
-  {
-    m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[ uiDepth ][ CI_QT_TRAFO_ROOT ] );
-  }
   
   if( bCheckFull )
   {
@@ -3308,11 +3211,6 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
       pcCU->setCbfSubParts( uiAbsSumV ? uiSetCbf : 0, TEXT_CHROMA_V, uiAbsPartIdx, pcCU->getDepth(0)+uiTrModeC );
     }
     
-    if( m_bUseSBACRD )
-    {
-      m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[ uiDepth ][ CI_QT_TRAFO_ROOT ] );
-    }
-    
     m_pcEntropyCoder->resetBits();
 
       if( uiLog2TrSize > pcCU->getQuadtreeTULog2MinSizeInCU(uiAbsPartIdx) )
@@ -3345,11 +3243,6 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
   // code sub-blocks
   if( bCheckSplit )
   {
-    if( m_bUseSBACRD && bCheckFull )
-    {
-      m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[ uiDepth ][ CI_QT_TRAFO_TEST ] );
-      m_pcRDGoOnSbacCoder->load ( m_pppcRDSbacCoder[ uiDepth ][ CI_QT_TRAFO_ROOT ] );
-    }
     UInt uiSubdivDist = 0;
     UInt uiSubdivBits = 0;
     Double dSubdivCost = 0.0;
@@ -3382,10 +3275,6 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
       pcCU->getCbf( TEXT_CHROMA_V )[uiAbsPartIdx + ui] |= uiVCbf << uiTrMode;
     }
     
-    if( m_bUseSBACRD )
-    {
-      m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[ uiDepth ][ CI_QT_TRAFO_ROOT ] );
-    }
     m_pcEntropyCoder->resetBits();
     
     {
@@ -3409,10 +3298,6 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
       }
     }
     assert( bCheckFull );
-    if( m_bUseSBACRD )
-    {
-      m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[ uiDepth ][ CI_QT_TRAFO_TEST ] );
-    }
   }
   rdCost += dSingleCost;
   ruiBits += uiSingleBits;
@@ -3606,12 +3491,6 @@ Void TEncSearch::xSetResidualQTData( TComDataCU* pcCU, UInt uiQuadrant, UInt uiA
 
 UInt TEncSearch::xModeBitsIntra( TComDataCU* pcCU, UInt uiMode, UInt uiPU, UInt uiPartOffset, UInt uiDepth, UInt uiInitTrDepth )
 {
-  if( m_bUseSBACRD )
-  {
-    // Reload only contexts required for coding intra mode information
-    m_pcRDGoOnSbacCoder->loadIntraDirModeLuma( m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST] );
-  }
-  
   pcCU->setLumaIntraDirSubParts ( uiMode, uiPartOffset, uiDepth + uiInitTrDepth );
   
   m_pcEntropyCoder->resetBits();

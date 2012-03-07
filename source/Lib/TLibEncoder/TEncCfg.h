@@ -94,8 +94,6 @@ protected:
   Int       m_iSearchRange;                     //  0:Full frame
 
   //====== Tool list ========
-  Bool      m_bUseSBACRD;
-
   Bool      m_bUseHADME;
   Bool      m_bUseFastEnc;
   Bool      m_bUseEarlyCU;
@@ -187,7 +185,6 @@ public:
   Int       getSearchRange                  ()      { return  m_iSearchRange; }
   
   //==== Tool list ========
-  Void      setUseSBACRD                    ( Bool  b )     { m_bUseSBACRD  = b; }
   Void      setUseHADME                     ( Bool  b )     { m_bUseHADME   = b; }
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
   Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
@@ -195,7 +192,6 @@ public:
   Void      setUseFastDecisionForMerge      ( Bool  b )     { m_useFastDecisionForMerge = b; }
 #endif
   Void      setUseCbfFastMode            ( Bool  b )     { m_bUseCbfFastMode = b; }
-  Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
   Bool      getUseHADME                     ()      { return m_bUseHADME;   }
 
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }

@@ -91,9 +91,6 @@ protected:
   TComMv          m_acMvPredictors[3];
   
   // RD computation
-  TEncSbac***     m_pppcRDSbacCoder;
-  TEncSbac*       m_pcRDGoOnSbacCoder;
-  Bool            m_bUseSBACRD;
   DistParam       m_cDistParam;
   
   // Misc.
@@ -112,9 +109,7 @@ public:
             Int           iSearchRange,
             Int           iFastSearch,
             TEncEntropy*  pcEntropyCoder,
-            TComRdCost*   pcRdCost,
-            TEncSbac***   pppcRDSbacCoder,
-            TEncSbac*     pcRDGoOnSbacCoder );
+            TComRdCost*   pcRdCost );
   
 protected:
   

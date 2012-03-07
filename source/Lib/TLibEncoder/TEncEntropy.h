@@ -64,9 +64,7 @@ public:
   virtual Void  setBitstream          ( TComBitIf* p )  = 0;
   virtual Void  setSlice              ( TComSlice* p )  = 0;
   virtual Void  resetBits             ()                = 0;
-  virtual Void  resetCoeffCost        ()                = 0;
   virtual UInt  getNumberOfWrittenBits()                = 0;
-  virtual UInt  getCoeffCost          ()                = 0;
 
   virtual Void  codeSPS                 ( TComSPS* pcSPS )                                      = 0;
   virtual Void  codePPS                 ( TComPPS* pcPPS )                                      = 0;
@@ -115,9 +113,7 @@ public:
   Void    setEntropyCoder           ( TEncEntropyIf* e, TComSlice* pcSlice );
   Void    setBitstream              ( TComBitIf* p )          { m_pcEntropyCoderIf->setBitstream(p);  }
   Void    resetBits                 ()                        { m_pcEntropyCoderIf->resetBits();      }
-  Void    resetCoeffCost            ()                        { m_pcEntropyCoderIf->resetCoeffCost(); }
   UInt    getNumberOfWrittenBits    ()                        { return m_pcEntropyCoderIf->getNumberOfWrittenBits(); }
-  UInt    getCoeffCost              ()                        { return  m_pcEntropyCoderIf->getCoeffCost(); }
   Void    resetEntropy              ()                        { m_pcEntropyCoderIf->resetEntropy();  }
 #if CABAC_INIT_FLAG
   Void    determineCabacInitIdx     ()                        { m_pcEntropyCoderIf->determineCabacInitIdx(); }
