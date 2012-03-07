@@ -131,7 +131,6 @@ private:
   // misc. variables
   // -------------------------------------------------------------------------------------------------------------------
   
-  Bool          m_bDecSubCu;          ///< indicates decoder-mode
   Double        m_dTotalCost;         ///< sum of partition RD costs
   UInt          m_uiTotalDistortion;  ///< sum of partition distortion
   UInt          m_uiTotalBits;        ///< sum of partition bits
@@ -167,8 +166,7 @@ public:
   // create / destroy / initialize / copy
   // -------------------------------------------------------------------------------------------------------------------
   
-  Void          create                ( UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool bDecSubCu, Int unitSize
-    );
+  Void          create                ( UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Int unitSize );
   Void          destroy               ();
   
   Void          initCU                ( TComPic* pcPic, UInt uiCUAddr );

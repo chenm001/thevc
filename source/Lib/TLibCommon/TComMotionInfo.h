@@ -140,18 +140,6 @@ public:
   Void    setAllRefIdx ( Int iRefIdx,                 PartSize eMbMode, Int iPartAddr, UInt uiDepth, Int iPartIdx=0 );
   Void    setAllMvField( TComMvField const & mvField, PartSize eMbMode, Int iPartAddr, UInt uiDepth, Int iPartIdx=0 );
 
-  Void setNumPartition( Int iNumPart )
-  {
-    m_uiNumPartition = iNumPart;
-  }
-  
-  Void linkToWithOffset( TComCUMvField const * src, Int offset )
-  {
-    m_pcMv     = src->m_pcMv     + offset;
-    m_pcMvd    = src->m_pcMvd    + offset;
-    m_piRefIdx = src->m_piRefIdx + offset;
-  }
-  
   Void compress(Char* pePredMode, Int scale); 
 };
 

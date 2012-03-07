@@ -80,25 +80,19 @@ TComDataCU::TComDataCU()
   
   m_piMVPIdx           = NULL;
   m_piMVPNum           = NULL;
-  
-  m_bDecSubCu          = false;
 }
 
 TComDataCU::~TComDataCU()
 {
 }
 
-Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool bDecSubCu, Int unitSize
-                        )
+Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Int unitSize)
 {
-  m_bDecSubCu = bDecSubCu;
-  
   m_pcPic              = NULL;
   m_pcSlice            = NULL;
   m_uiNumPartition     = uiNumPartition;
   m_unitSize = unitSize;
   
-  if ( !bDecSubCu )
   {
     m_phQP               = (UChar*    )xMalloc(UChar,    uiNumPartition);
     m_puhDepth           = (UChar*    )xMalloc(UChar,    uiNumPartition);
@@ -133,10 +127,6 @@ Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool b
     m_cCUMvField.create( uiNumPartition );
     
   }
-  else
-  {
-    m_cCUMvField.setNumPartition(uiNumPartition );
-  }
   
   // create pattern memory
   m_pcPattern            = (TComPattern*)xMalloc(TComPattern, 1);
@@ -163,7 +153,6 @@ Void TComDataCU::destroy()
   }
   
   // encoder-side buffer free
-  if ( !m_bDecSubCu )
   {
     if ( m_phQP               ) { xFree(m_phQP);                m_phQP              = NULL; }
     if ( m_puhDepth           ) { xFree(m_puhDepth);            m_puhDepth          = NULL; }
@@ -186,7 +175,6 @@ Void TComDataCU::destroy()
     if ( m_piMVPNum           ) { delete[] m_piMVPNum;          m_piMVPNum          = NULL; }
     
     m_cCUMvField.destroy();
-    
   }
   
   m_pcCUAboveLeft       = NULL;
