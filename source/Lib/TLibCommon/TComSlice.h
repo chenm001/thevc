@@ -514,11 +514,15 @@ class TComRefPicListModification
 private:
   UInt      m_bRefPicListModificationFlagL0;  
   UInt      m_bRefPicListModificationFlagL1;  
+#if !H0137_0138_LIST_MODIFICATION
   UInt      m_uiNumberOfRefPicListModificationsL0;
   UInt      m_uiNumberOfRefPicListModificationsL1;
   UInt      m_ListIdcL0[32];
+#endif
   UInt      m_RefPicSetIdxL0[32];
+#if !H0137_0138_LIST_MODIFICATION
   UInt      m_ListIdcL1[32];
+#endif
   UInt      m_RefPicSetIdxL1[32];
     
 public:
@@ -532,16 +536,20 @@ public:
   Void       setRefPicListModificationFlagL0(Bool flag) { m_bRefPicListModificationFlagL0 = flag; }
   Bool       getRefPicListModificationFlagL1() { return m_bRefPicListModificationFlagL1; }
   Void       setRefPicListModificationFlagL1(Bool flag) { m_bRefPicListModificationFlagL1 = flag; }
+#if !H0137_0138_LIST_MODIFICATION
   UInt       getNumberOfRefPicListModificationsL0() { return m_uiNumberOfRefPicListModificationsL0; }
   Void       setNumberOfRefPicListModificationsL0(UInt nr) { m_uiNumberOfRefPicListModificationsL0 = nr; }
   UInt       getNumberOfRefPicListModificationsL1() { return m_uiNumberOfRefPicListModificationsL1; }
   Void       setNumberOfRefPicListModificationsL1(UInt nr) { m_uiNumberOfRefPicListModificationsL1 = nr; }
   Void       setListIdcL0(UInt idx, UInt idc) { m_ListIdcL0[idx] = idc; }
   UInt       getListIdcL0(UInt idx) { return m_ListIdcL0[idx]; }
+#endif
   Void       setRefPicSetIdxL0(UInt idx, UInt refPicSetIdx) { m_RefPicSetIdxL0[idx] = refPicSetIdx; }
   UInt       getRefPicSetIdxL0(UInt idx) { return m_RefPicSetIdxL0[idx]; }
+#if !H0137_0138_LIST_MODIFICATION
   Void       setListIdcL1(UInt idx, UInt idc) { m_ListIdcL1[idx] = idc; }
   UInt       getListIdcL1(UInt idx) { return m_ListIdcL1[idx]; }
+#endif
   Void       setRefPicSetIdxL1(UInt idx, UInt refPicSetIdx) { m_RefPicSetIdxL1[idx] = refPicSetIdx; }
   UInt       getRefPicSetIdxL1(UInt idx) { return m_RefPicSetIdxL1[idx]; }
 };
@@ -1045,7 +1053,9 @@ public:
 #if H0111_MVD_L1_ZERO
   Bool      getMvdL1ZeroFlag ()                                  { return m_bLMvdL1Zero;    }
 #endif
-
+#if H0137_0138_LIST_MODIFICATION
+  Int       getNumRpsCurrTempList();
+#endif
   Int       getRefIdxOfLC       (RefPicList e, Int iRefIdx)     { return m_iRefIdxOfLC[e][iRefIdx];           }
   Int       getListIdFromIdxOfLC(Int iRefIdx)                   { return m_eListIdFromIdxOfLC[iRefIdx];       }
   Int       getRefIdxFromIdxOfLC(Int iRefIdx)                   { return m_iRefIdxFromIdxOfLC[iRefIdx];       }
