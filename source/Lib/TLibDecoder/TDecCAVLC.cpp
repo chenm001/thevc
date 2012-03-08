@@ -1259,7 +1259,11 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   READ_FLAG( uiCode, "deblocking_filter_control_present_flag" ); 
   pcPPS->setDeblockingFilterControlPresent( uiCode ? true : false);
 #endif
-
+#if PARALLEL_MERGE
+  READ_UVLC( uiCode, "log2ParallelMergeLevelMinus2");
+  assert(uiCode == LOG2_PARALLEL_MERGE_LEVEL_MINUS2);
+  pcPPS->setLog2ParallelMergeLevelMinus2 (uiCode);
+#endif
   return;
 }
 
