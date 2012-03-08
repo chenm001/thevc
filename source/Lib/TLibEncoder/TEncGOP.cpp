@@ -751,6 +751,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         if (uiNextCUAddr == m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx])
         {
           pcSlice = pcPic->getSlice(uiStartCUAddrSliceIdx);
+#if COLLOCATED_REF_IDX
+          if(uiStartCUAddrSliceIdx > 0 && pcSlice->getSliceType()!= I_SLICE)
+          {
+            pcSlice->checkColRefIdx(uiStartCUAddrSliceIdx, pcPic);
+          }
+#endif
           pcPic->setCurrSliceIdx(uiStartCUAddrSliceIdx);
           m_pcSliceEncoder->setSliceIdx(uiStartCUAddrSliceIdx);
           assert(uiStartCUAddrSliceIdx == pcSlice->getSliceIdx());

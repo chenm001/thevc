@@ -931,6 +931,10 @@ private:
 
   UInt        m_uiColDir;  // direction to get colocated CUs
   
+#if COLLOCATED_REF_IDX
+  UInt        m_colRefIdx;
+#endif
+
 #if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA
   Double      m_dLambdaLuma;
   Double      m_dLambdaChroma;
@@ -1049,6 +1053,10 @@ public:
   Int       getRefPOC           ( RefPicList e, Int iRefIdx)    { return  m_aiRefPOCList[e][iRefIdx];   }
   Int       getDepth            ()                              { return  m_iDepth;                     }
   UInt      getColDir           ()                              { return  m_uiColDir;                   }
+#if COLLOCATED_REF_IDX
+  Bool      getColRefIdx        ()                              { return  m_colRefIdx;                  }
+  Void      checkColRefIdx      (UInt curSliceIdx, TComPic* pic);
+#endif
   Bool      getCheckLDC     ()                                  { return m_bCheckLDC; }
 #if H0111_MVD_L1_ZERO
   Bool      getMvdL1ZeroFlag ()                                  { return m_bLMvdL1Zero;    }
@@ -1098,6 +1106,9 @@ public:
   Void      setRefPicList       ( TComList<TComPic*>& rcListPic );
   Void      setRefPOCList       ();
   Void      setColDir           ( UInt uiDir ) { m_uiColDir = uiDir; }
+#if COLLOCATED_REF_IDX
+  Void      setColRefIdx        ( UInt refIdx) { m_colRefIdx = refIdx; }
+#endif
   Void      setCheckLDC         ( Bool b )                      { m_bCheckLDC = b; }
 #if H0111_MVD_L1_ZERO
   Void      setMvdL1ZeroFlag     ( Bool b)                       { m_bLMvdL1Zero = b; }

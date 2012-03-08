@@ -844,6 +844,15 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     {
       WRITE_FLAG( pcSlice->getColDir(), "collocated_from_l0_flag" );
     }
+
+#if COLLOCATED_REF_IDX
+    if ( pcSlice->getSliceType() != I_SLICE &&
+      ((pcSlice->getColDir()==0 && pcSlice->getNumRefIdx(REF_PIC_LIST_0)>1)||
+      (pcSlice->getColDir()==1  && pcSlice->getNumRefIdx(REF_PIC_LIST_1)>1)))
+    {
+      WRITE_UVLC( pcSlice->getColRefIdx(), "collocated_ref_idx" );
+    }
+#endif
   
     if ( (pcSlice->getPPS()->getUseWP() && pcSlice->getSliceType()==P_SLICE) || (pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getSliceType()==B_SLICE) )
     {
