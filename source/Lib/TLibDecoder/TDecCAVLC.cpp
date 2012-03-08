@@ -1619,12 +1619,43 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
         Int offset = pcRPS->getNumberOfNegativePictures()+pcRPS->getNumberOfPositivePictures();
         READ_UVLC( uiCode, "num_long_term_pics");             pcRPS->setNumberOfLongtermPictures(uiCode);
         Int prev = 0;
+#if LTRP_MULT
+        Int prevMsb=0;
+        Int prevDeltaPocLt=0;
+#endif
         for(Int j=pcRPS->getNumberOfLongtermPictures()+offset-1 ; j > offset-1; j--)
         {
-          READ_UVLC(uiCode,"delta_poc_lsb_lt_minus1"); 
-          prev += 1+uiCode;
-          pcRPS->setPOC(j,rpcSlice->getPOC()-prev);          
-          pcRPS->setDeltaPOC(j,-(Int)prev);
+          READ_UVLC(uiCode,"delta_poc_lsb_lt"); 
+          prev += uiCode;
+
+#if LTRP_MULT
+          READ_FLAG(uiCode,"delta_poc_msb_present_flag");
+          Int decDeltaPOCMsbPresent=uiCode;
+
+          if(decDeltaPOCMsbPresent==1)
+          {
+            READ_UVLC(uiCode, "delta_poc_msb_cycle_lt_minus1");
+            if(  (j==(pcRPS->getNumberOfLongtermPictures()+offset-1)) || (prev!=prevDeltaPocLt) )
+            {
+              prevMsb=(1+uiCode); 
+            }
+            else
+            {
+              prevMsb+=(1+uiCode); 
+            }
+            Int decMaxPocLsb = 1<<rpcSlice->getSPS()->getBitsForPOC();
+            pcRPS->setPOC(j,rpcSlice->getPOC()-prev-(prevMsb)*decMaxPocLsb); 
+            pcRPS->setDeltaPOC(j,-(Int)(prev+(prevMsb)*decMaxPocLsb));
+          }
+          else
+          {
+#endif
+            pcRPS->setPOC(j,rpcSlice->getPOC()-prev);          
+            pcRPS->setDeltaPOC(j,-(Int)prev);
+#if LTRP_MULT
+          }
+          prevDeltaPocLt=prev;
+#endif
           READ_FLAG( uiCode, "used_by_curr_pic_lt_flag");     pcRPS->setUsed(j,uiCode);
         }
         offset += pcRPS->getNumberOfLongtermPictures();

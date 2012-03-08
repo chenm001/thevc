@@ -172,6 +172,7 @@
                                                     // using one nearest frame as reference frame, and the other frames are high quality (POC%4==0) frames (1+X)
                                                     // this should be done with encoder only decision
                                                     // but because of the absence of reference frame management, the related code was hard coded currently
+#define LTRP_MULT                       1           ///< enable/disable multiple long term reference pictures with same POC LSB
 
 #define OL_FLUSH 1          // Set to 1 to enable Wavefront Flush.
 #define OL_FLUSH_ALIGN 0    // Align flush to byte boundary.  This preserves byte operations in CABAC (faster) but at the expense of an average
