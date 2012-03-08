@@ -850,6 +850,7 @@ TEncSearch::xGetIntraBitsQT( TComDataCU*  pcCU,
     xEncCoeffQT   ( pcCU, uiTrDepth, uiAbsPartIdx, TEXT_CHROMA_U,  bRealCoeff );
     xEncCoeffQT   ( pcCU, uiTrDepth, uiAbsPartIdx, TEXT_CHROMA_V,  bRealCoeff );
   }
+  return 0;
   UInt   uiBits = m_pcEntropyCoder->getNumberOfWrittenBits();
   return uiBits;
 }
@@ -1459,12 +1460,10 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
         predIntraLumaAng( pcCU->getPattern(), uiMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
         
         // use hadamard transform here
-        UInt uiSad = m_pcRdCost->calcHAD( piOrg, uiStride, piPred, uiStride, uiWidth, uiHeight );
+        UInt uiSad = m_pcRdCost->calcSAD( piOrg, uiStride, piPred, uiStride, uiWidth, uiHeight );
+        pcCU->setLumaIntraDirSubParts ( uiMode, uiPartOffset, uiDepth + uiInitTrDepth );
         
-        UInt   iModeBits = xModeBitsIntra( pcCU, uiMode, uiPU, uiPartOffset, uiDepth, uiInitTrDepth );
-        Double cost      = (Double)uiSad + (Double)iModeBits * m_pcRdCost->getSqrtLambda();
-        
-        CandNum += xUpdateCandList( uiMode, cost, numModesForFullRD, uiRdModeList, CandCostList );
+        CandNum += xUpdateCandList( uiMode, uiSad, numModesForFullRD, uiRdModeList, CandCostList );
       }
     
 #if FAST_UDI_USE_MPM
@@ -3487,16 +3486,6 @@ Void TEncSearch::xSetResidualQTData( TComDataCU* pcCU, UInt uiQuadrant, UInt uiA
       xSetResidualQTData( pcCU, ui, uiAbsPartIdx + ui * uiQPartNumSubdiv, nsAddr, pcResi, uiDepth + 1, bSpatial );
     }
   }
-}
-
-UInt TEncSearch::xModeBitsIntra( TComDataCU* pcCU, UInt uiMode, UInt uiPU, UInt uiPartOffset, UInt uiDepth, UInt uiInitTrDepth )
-{
-  pcCU->setLumaIntraDirSubParts ( uiMode, uiPartOffset, uiDepth + uiInitTrDepth );
-  
-  m_pcEntropyCoder->resetBits();
-  m_pcEntropyCoder->encodeIntraDirModeLuma ( pcCU, uiPartOffset);
-  
-  return m_pcEntropyCoder->getNumberOfWrittenBits();
 }
 
 UInt TEncSearch::xUpdateCandList( UInt uiMode, Double uiCost, UInt uiFastCandNum, UInt * CandModeList, Double * CandCostList )

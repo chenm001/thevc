@@ -339,11 +339,46 @@ TComRdCost::setDistParam( DistParam& rcDP, Pel* p1, Int iStride1, Pel* p2, Int i
 #endif
 }
 
+UInt TComRdCost::calcSAD( Pel* pi0, Int iStride0, Pel* pi1, Int iStride1, Int iWidth, Int iHeight )
+{
+  UInt uiSum = 0;
+  Int x, y;
+  
+  assert( ( (iWidth % 4) == 0 ) && ( (iHeight % 4) == 0 ) );
+  if ( ( (iWidth % 8) == 0 ) && ( (iHeight % 8) == 0 ) )
+  {
+    for ( y=0; y<iHeight; y+= 8 )
+    {
+      for ( x=0; x<iWidth; x+= 8 )
+      {
+        uiSum += xCalcSADs8x8( &pi0[x], &pi1[x], iStride0, iStride1, 1 );
+      }
+      pi0 += iStride0*8;
+      pi1 += iStride1*8;
+    }
+  }
+  else if ( ( (iWidth % 4) == 0 ) && ( (iHeight % 4) == 0 ) )
+  {
+    for ( y=0; y<iHeight; y+= 4 )
+    {
+      for ( x=0; x<iWidth; x+= 4 )
+      {
+        uiSum += xCalcSADs4x4( &pi0[x], &pi1[x], iStride0, iStride1, 1 );
+      }
+      pi0 += iStride0*4;
+      pi1 += iStride1*4;
+    }
+  }
+  
+  return ( uiSum );
+}
+
 UInt TComRdCost::calcHAD( Pel* pi0, Int iStride0, Pel* pi1, Int iStride1, Int iWidth, Int iHeight )
 {
   UInt uiSum = 0;
   Int x, y;
   
+  assert( ( (iWidth % 4) == 0 ) && ( (iHeight % 4) == 0 ) );
   if ( ( (iWidth % 8) == 0 ) && ( (iHeight % 8) == 0 ) )
   {
     for ( y=0; y<iHeight; y+= 8 )
@@ -366,18 +401,6 @@ UInt TComRdCost::calcHAD( Pel* pi0, Int iStride0, Pel* pi1, Int iStride1, Int iW
       }
       pi0 += iStride0*4;
       pi1 += iStride1*4;
-    }
-  }
-  else
-  {
-    for ( y=0; y<iHeight; y+= 2 )
-    {
-      for ( x=0; x<iWidth; x+= 2 )
-      {
-        uiSum += xCalcHADs8x8( &pi0[x], &pi1[x], iStride0, iStride1, 1 );
-      }
-      pi0 += iStride0*2;
-      pi1 += iStride1*2;
     }
   }
   
@@ -1519,6 +1542,42 @@ UInt TComRdCost::xCalcHADs2x2( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStri
   
   return satd;
 }
+
+// chen
+UInt TComRdCost::xCalcSADs4x4( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStrideCur, Int iStep )
+{
+  Int k, sad = 0;
+
+  for( k=0; k<4; k++ ) {
+    sad += abs( piOrg[0] - piCur[0] );
+    sad += abs( piOrg[1] - piCur[1] );
+    sad += abs( piOrg[2] - piCur[2] );
+    sad += abs( piOrg[3] - piCur[3] );
+    piCur += iStrideCur;
+    piOrg += iStrideOrg;
+  }
+  return sad;
+}
+
+UInt TComRdCost::xCalcSADs8x8( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStrideCur, Int iStep )
+{
+  Int k, sad = 0;
+
+  for( k=0; k<8; k++ ) {
+    sad += abs( piOrg[0] - piCur[0] );
+    sad += abs( piOrg[1] - piCur[1] );
+    sad += abs( piOrg[2] - piCur[2] );
+    sad += abs( piOrg[3] - piCur[3] );
+    sad += abs( piOrg[4] - piCur[4] );
+    sad += abs( piOrg[5] - piCur[5] );
+    sad += abs( piOrg[6] - piCur[6] );
+    sad += abs( piOrg[7] - piCur[7] );
+    piCur += iStrideCur;
+    piOrg += iStrideOrg;
+  }
+  return sad;
+}
+// ~chen
 
 UInt TComRdCost::xCalcHADs4x4( Pel *piOrg, Pel *piCur, Int iStrideOrg, Int iStrideCur, Int iStep )
 {
