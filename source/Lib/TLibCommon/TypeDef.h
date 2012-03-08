@@ -40,6 +40,9 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define PARALLEL_MERGE  1                   //< H0082 parallel merge/skip      
+#define LOG2_PARALLEL_MERGE_LEVEL_MINUS2 0  //< H0082 parallel merge level 0-> 4x4, 1-> 8x8, 2->16x16, 3->32x32, 4->64x64
+
 #define FAST_DECISION_FOR_MRG_RD_COST  1 ////< H0178: Fast Decision for Merge 2Nx2N RDCost
 
 #define REMOVE_DIV_OPERATION      1 ///< H0238: Simplified intra horizontal and vertical filtering

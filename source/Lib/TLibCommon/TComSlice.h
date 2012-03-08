@@ -737,6 +737,11 @@ public:
   Void setDeblockingFilterControlPresent    ( Bool bValue )       { m_DeblockingFilterControlPresent = bValue; }
   Bool getDeblockingFilterControlPresent    ()                    { return m_DeblockingFilterControlPresent; }
 #endif
+#if PARALLEL_MERGE
+  UInt m_uiLog2ParallelMergeLevelMinus2;
+  UInt getLog2ParallelMergeLevelMinus2      ()                    { return m_uiLog2ParallelMergeLevelMinus2; }
+  Void setLog2ParallelMergeLevelMinus2      (UInt mrgLevel)       { m_uiLog2ParallelMergeLevelMinus2 = mrgLevel; }
+#endif
 };
 
 /// SCALING_LIST class
