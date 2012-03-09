@@ -493,24 +493,24 @@ void TDecCavlc::xParseSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam, B
       if (ry == 0)
       {
         maxValue = numCuInWidth-rx-1;
-        UInt uiLength = 0;
-        UInt ruiVal = 0;
+        UInt length = 0;
+        UInt val = 0;
         if (maxValue)
         {
           for(UInt i=0; i<32; i++)
           {
             if(maxValue&0x1)
             {
-              uiLength = i+1;
+              length = i+1;
             }
             maxValue = (maxValue >> 1);
           }
-          if(uiLength)
+          if(length)
           {
-            xReadCode( uiLength, ruiVal );
+            READ_CODE(length, val, "sao_run_diff");
           }
         }
-        uiSymbol = ruiVal;
+        uiSymbol = val;
         saoOneLcu->runDiff = uiSymbol; 
         xParseSaoOffset(saoOneLcu);
         saoOneLcu->run = saoOneLcu->runDiff;
