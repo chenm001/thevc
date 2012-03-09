@@ -41,6 +41,14 @@
 #include "TEncSearch.h"
 #include <math.h>
 
+#define CHEN_TV     1
+
+// chen_debug
+#if (CHEN_TV)
+FILE *fp_tv = NULL;
+#endif
+// ~chen_debug
+
 //! \ingroup TLibEncoder
 //! \{
 
@@ -1417,6 +1425,14 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
   UInt    CandNum;
   Double  CandCostList[ FAST_UDI_MAX_RDMODE_NUM ];
   
+  // chen_debug
+#if (CHEN_TV)
+  if ( fp_tv == NULL ) {
+      fp_tv = fopen("CHEN_TV.TXT", "w");
+  }
+#endif
+  // ~chen_debug
+
   //===== set QP and clear Cbf =====
     pcCU->setQPSubParts( pcCU->getSlice()->getSliceQp(), 0, uiDepth );
   
@@ -1452,7 +1468,51 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
         CandCostList[ i ] = MAX_DOUBLE;
       }
       CandNum = 0;
-      
+
+      // chen_debug
+#if (CHEN_TV)
+      extern FILE *fp_tv;
+      fprintf( fp_tv, "\n========== [%4d](%2d): Size=%2d, Avail=(%d,%d)\n",
+          pcCU->getAddr(), uiPU,
+          uiWidth,
+          bLeftAvail, bAboveAvail
+      );
+      Int *pSrc0 = m_piYuvExt;
+      Int *pSrc1 = NULL;
+      {
+        //Int *pSrc = pcCU->getPattern()->getPredictorPtr( modeIdx, g_aucConvertToBit[ uiWidth ] + 2, m_piYuvExt );
+        Pel *pDst = piPred;
+        Int iWidth = uiWidth;
+        Int sw = 2 * iWidth + 1;
+        Int offset = sw * sw;
+        int i, j;
+        pSrc0 += sw + 1;
+        pSrc1  = pSrc0 + offset;
+
+        for( i=-1; i<iWidth*2; i++ ) {
+          fprintf( fp_tv, "%02X ", pSrc0[i-sw] & 0xFF );
+        }
+        fprintf( fp_tv, "\n" );
+        for( i=0; i<iWidth*2; i++ ) {
+          fprintf( fp_tv, "%02X ", pSrc0[i*sw-1] & 0xFF );
+          if ( i > 0 )
+            fprintf( fp_tv, "   " );
+          if ( i == 1 ) {
+            for( j=-1; j<iWidth*2; j++ ) {
+              fprintf( fp_tv, "%02X ", pSrc1[j-sw] & 0xFF );
+            }
+          }
+          else if ( i >= 2 ) {
+            fprintf( fp_tv, "%02X", pSrc1[(i-2)*sw-1] & 0xFF );
+          }
+          fprintf( fp_tv, "\n" );
+        }
+        fprintf( fp_tv, "      %02X\n", pSrc1[(iWidth*2-2)*sw-1] & 0xFF );
+        fprintf( fp_tv, "      %02X\n", pSrc1[(iWidth*2-1)*sw-1] & 0xFF );
+        fflush( fp_tv );
+      }
+#endif
+      // ~chen_debug
       for( Int modeIdx = 0; modeIdx < numModesAvailable; modeIdx++ )
       {
         UInt uiMode = modeIdx;
@@ -1464,6 +1524,23 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
         pcCU->setLumaIntraDirSubParts ( uiMode, uiPartOffset, uiDepth + uiInitTrDepth );
         
         CandNum += xUpdateCandList( uiMode, uiSad, numModesForFullRD, uiRdModeList, CandCostList );
+        // chen_debug
+#if (CHEN_TV)
+        fprintf( fp_tv, "*** Mode=%2d, Sad=%6d\n", uiMode, uiSad );
+        {
+          Int iWidth = uiWidth;
+          Pel *pDst = piPred;
+          Int i, j;
+          for( i=0; i<iWidth; i++ ) {
+            for( j=0; j<iWidth; j++ ) {
+              fprintf( fp_tv, "%02X ", pDst[i*uiStride+j] & 0xFF );
+            }
+            fprintf( fp_tv, "\n" );
+          }
+        }
+        fflush( fp_tv );
+#endif
+        // ~chen_debug
       }
     
 #if FAST_UDI_USE_MPM
@@ -1487,8 +1564,15 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       }
 #endif
       
+      // chen_debug
+#if (CHEN_TV)
+      fprintf( fp_tv, "@@@ CandMode=(%2d,%2d,%2d), numCand=%d\n",
+          uiPreds[0], uiPreds[1], uiPreds[2],
+          numCand
+      );
+#endif
+      // ~chen_debug
       for( Int j=0; j < numCand; j++)
-
       {
         Bool mostProbableModeIncluded = false;
         Int mostProbableMode = uiPreds[j];
