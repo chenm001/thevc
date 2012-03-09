@@ -467,8 +467,8 @@ public:
   AMVP_MODE     getAMVPMode           ( UInt uiIdx );
   Void          fillMvpCand           ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefPicList, Int iRefIdx, AMVPInfo* pInfo );
 #if PARALLEL_MERGE 
-  Bool          isDiffMER             ( UInt uiPartIdx, Int neighPUCol, Int neighPURow, Int currPUCol, Int currPURow);
-  Void          getPartPosition       ( UInt uiPartIdx, Int& PUCol, Int &PURow, Int& riWidth,Int& riHeight);
+  Bool          isDiffMER             ( Int xN, Int yN, Int xP, Int yP);
+  Void          getPartPosition       ( UInt partIdx, Int& xP, Int& yP, Int& nPSW, Int& nPSH);
 #endif 
   Void          setMVPIdx             ( RefPicList eRefPicList, UInt uiIdx, Int iMVPIdx)  { m_apiMVPIdx[eRefPicList][uiIdx] = iMVPIdx;  }
   Int           getMVPIdx             ( RefPicList eRefPicList, UInt uiIdx)               { return m_apiMVPIdx[eRefPicList][uiIdx];     }

@@ -617,7 +617,9 @@ private:
 #if DBL_CONTROL
   Bool     m_DeblockingFilterControlPresent;
 #endif
-
+#if PARALLEL_MERGE
+  UInt m_log2ParallelMergeLevelMinus2;
+#endif
 public:
   TComPPS();
   virtual ~TComPPS();
@@ -738,9 +740,8 @@ public:
   Bool getDeblockingFilterControlPresent    ()                    { return m_DeblockingFilterControlPresent; }
 #endif
 #if PARALLEL_MERGE
-  UInt m_uiLog2ParallelMergeLevelMinus2;
-  UInt getLog2ParallelMergeLevelMinus2      ()                    { return m_uiLog2ParallelMergeLevelMinus2; }
-  Void setLog2ParallelMergeLevelMinus2      (UInt mrgLevel)       { m_uiLog2ParallelMergeLevelMinus2 = mrgLevel; }
+  UInt getLog2ParallelMergeLevelMinus2      ()                    { return m_log2ParallelMergeLevelMinus2; }
+  Void setLog2ParallelMergeLevelMinus2      (UInt mrgLevel)       { m_log2ParallelMergeLevelMinus2 = mrgLevel; }
 #endif
 };
 

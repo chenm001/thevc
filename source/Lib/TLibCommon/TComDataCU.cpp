@@ -2738,8 +2738,8 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   }
   // compute the location of the current PU
 #if PARALLEL_MERGE
-  Int currPUCol, currPURow, nPSW, nPSH;
-  this->getPartPosition(uiPUIdx, currPUCol, currPURow, nPSW, nPSH);
+  Int xP, yP, nPSW, nPSH;
+  this->getPartPosition(uiPUIdx, xP, yP, nPSW, nPSH);
 #endif
 
   Int iCount = 0;
@@ -2760,7 +2760,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 #if PARALLEL_MERGE
   if (pcCULeft) 
   {
-    if (!pcCULeft->isDiffMER(uiLeftPartIdx, currPUCol -1, currPURow+nPSH-1, currPUCol, currPURow))
+    if (!pcCULeft->isDiffMER(xP -1, yP+nPSH-1, xP, yP))
     {
       pcCULeft = NULL;
     }
@@ -2806,7 +2806,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 #if PARALLEL_MERGE
     if (pcCUAbove) 
     {
-      if (!pcCUAbove->isDiffMER(uiAbovePartIdx, currPUCol+nPSW-1, currPURow-1, currPUCol, currPURow))
+      if (!pcCUAbove->isDiffMER(xP+nPSW-1, yP-1, xP, yP))
       {
         pcCUAbove = NULL;
       }
@@ -2852,7 +2852,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 #if PARALLEL_MERGE
   if (pcCUAboveRight) 
   {
-    if (!pcCUAboveRight->isDiffMER(uiAboveRightPartIdx, currPUCol+nPSW, currPURow-1, currPUCol, currPURow))
+    if (!pcCUAboveRight->isDiffMER(xP+nPSW, yP-1, xP, yP))
     {
       pcCUAboveRight = NULL;
     }
@@ -2893,7 +2893,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 #if PARALLEL_MERGE
   if (pcCULeftBottom)
   {
-    if (!pcCULeftBottom->isDiffMER(uiLeftBottomPartIdx, currPUCol-1, currPURow+nPSH, currPUCol, currPURow))
+    if (!pcCULeftBottom->isDiffMER(xP-1, yP+nPSH, xP, yP))
     {
       pcCULeftBottom = NULL;
     }
@@ -2936,7 +2936,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 #if PARALLEL_MERGE
     if (pcCUAboveLeft) 
     {
-      if (!pcCUAboveLeft->isDiffMER(uiAboveLeftPartIdx, currPUCol-1, currPURow-1, currPUCol, currPURow))
+      if (!pcCUAboveLeft->isDiffMER(xP-1, yP-1, xP, yP))
       {
         pcCUAboveLeft = NULL;
       }
@@ -3403,23 +3403,22 @@ Void TComDataCU::xCheckCornerCand( TComDataCU* pcCorner, UInt uiCornerPUIdx, UIn
   }
 }
 #if PARALLEL_MERGE
-Bool TComDataCU::isDiffMER( UInt uiAbsPartIdx, Int neighPUCol, Int neighPURow,
-                           Int currPUCol, Int currPURow)
+Bool TComDataCU::isDiffMER(Int xN, Int yN, Int xP, Int yP)
 {
 
   UInt plevel = this->getSlice()->getPPS()->getLog2ParallelMergeLevelMinus2() + 2;
-  if ((neighPUCol>>plevel)!= (currPUCol>>plevel))
+  if ((xN>>plevel)!= (xP>>plevel))
   {
     return true;
   }
-  if ((neighPURow>>plevel)!= (currPURow>>plevel))
+  if ((yN>>plevel)!= (yP>>plevel))
   {
     return true;
   }
   return false;
 }
 
-Void TComDataCU::getPartPosition( UInt uiPartIdx, Int& PUCol, Int &PURow, Int& riWidth,Int& riHeight)
+Void TComDataCU::getPartPosition( UInt partIdx, Int& xP, Int& yP, Int& nPSW, Int& nPSH)
 {
   UInt col = m_uiCUPelX;
   UInt row = m_uiCUPelY;
@@ -3427,50 +3426,54 @@ Void TComDataCU::getPartPosition( UInt uiPartIdx, Int& PUCol, Int &PURow, Int& r
   switch ( m_pePartSize[0] )
   {
   case SIZE_2NxN:
-    riWidth = getWidth(0);      riHeight = getHeight(0) >> 1; 
-    PUCol = col;
-    PURow = (uiPartIdx ==0)? row: row + riHeight;
+    nPSW = getWidth(0);      
+    nPSH = getHeight(0) >> 1; 
+    xP   = col;
+    yP   = (partIdx ==0)? row: row + nPSH;
     break;
   case SIZE_Nx2N:
-    riWidth = getWidth(0) >> 1; riHeight = getHeight(0);      
-    PUCol = (uiPartIdx ==0)? col: col + riWidth;
-    PURow = row;
+    nPSW = getWidth(0) >> 1; 
+    nPSH = getHeight(0);      
+    xP   = (partIdx ==0)? col: col + nPSW;
+    yP   = row;
     break;
   case SIZE_NxN:
-    riWidth = getWidth(0) >> 1; riHeight = getHeight(0) >> 1; 
-    PUCol = col + (uiPartIdx&0x1)*riWidth;
-    PURow = row + (uiPartIdx>>1)*riHeight;
+    nPSW = getWidth(0) >> 1; 
+    nPSH = getHeight(0) >> 1; 
+    xP   = col + (partIdx&0x1)*nPSW;
+    yP   = row + (partIdx>>1)*nPSH;
     break;
   case SIZE_2NxnU:
-    riWidth     = getWidth(0);
-    riHeight    = ( uiPartIdx == 0 ) ?  getHeight(0) >> 2 : ( getHeight(0) >> 2 ) + ( getHeight(0) >> 1 );
-    PUCol = col;
-    PURow = (uiPartIdx ==0)? row: row + getHeight(0) - riHeight;
+    nPSW = getWidth(0);
+    nPSH = ( partIdx == 0 ) ?  getHeight(0) >> 2 : ( getHeight(0) >> 2 ) + ( getHeight(0) >> 1 );
+    xP   = col;
+    yP   = (partIdx ==0)? row: row + getHeight(0) - nPSH;
 
     break;
   case SIZE_2NxnD:
-    riWidth     = getWidth(0);
-    riHeight    = ( uiPartIdx == 0 ) ?  ( getHeight(0) >> 2 ) + ( getHeight(0) >> 1 ) : getHeight(0) >> 2;
-    PUCol = col;
-    PURow = (uiPartIdx ==0)? row: row + getHeight(0) - riHeight;
+    nPSW = getWidth(0);
+    nPSH = ( partIdx == 0 ) ?  ( getHeight(0) >> 2 ) + ( getHeight(0) >> 1 ) : getHeight(0) >> 2;
+    xP   = col;
+    yP   = (partIdx ==0)? row: row + getHeight(0) - nPSH;
     break;
   case SIZE_nLx2N:
-    riWidth     = ( uiPartIdx == 0 ) ? getWidth(0) >> 2 : ( getWidth(0) >> 2 ) + ( getWidth(0) >> 1 );
-    riHeight    = getHeight(0);
-    PUCol = (uiPartIdx ==0)? col: col + getWidth(0) - riWidth;
-    PURow = row;
+    nPSW = ( partIdx == 0 ) ? getWidth(0) >> 2 : ( getWidth(0) >> 2 ) + ( getWidth(0) >> 1 );
+    nPSH = getHeight(0);
+    xP   = (partIdx ==0)? col: col + getWidth(0) - nPSW;
+    yP   = row;
     break;
   case SIZE_nRx2N:
-    riWidth     = ( uiPartIdx == 0 ) ? ( getWidth(0) >> 2 ) + ( getWidth(0) >> 1 ) : getWidth(0) >> 2;
-    riHeight    = getHeight(0);
-    PUCol = (uiPartIdx ==0)? col: col + getWidth(0) - riWidth;
-    PURow = row;
+    nPSW = ( partIdx == 0 ) ? ( getWidth(0) >> 2 ) + ( getWidth(0) >> 1 ) : getWidth(0) >> 2;
+    nPSH = getHeight(0);
+    xP   = (partIdx ==0)? col: col + getWidth(0) - nPSW;
+    yP   = row;
     break;
   default:
     assert ( m_pePartSize[0] == SIZE_2Nx2N );
-    riWidth = getWidth(0);      riHeight = getHeight(0);      
-    PUCol = col ;
-    PURow = row ;
+    nPSW = getWidth(0);      
+    nPSH = getHeight(0);      
+    xP   = col ;
+    yP   = row ;
 
     break;
   }

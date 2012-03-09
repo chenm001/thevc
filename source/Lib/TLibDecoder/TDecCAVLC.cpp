@@ -1260,7 +1260,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   pcPPS->setDeblockingFilterControlPresent( uiCode ? true : false);
 #endif
 #if PARALLEL_MERGE
-  READ_UVLC( uiCode, "log2ParallelMergeLevelMinus2");
+  READ_UVLC( uiCode, "log2_parallel_merge_level_minus2");
   assert(uiCode == LOG2_PARALLEL_MERGE_LEVEL_MINUS2);
   pcPPS->setLog2ParallelMergeLevelMinus2 (uiCode);
 #endif
