@@ -791,6 +791,14 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   for ( int e=0 ; e<2 ; e++ )
     for ( int n=0 ; n<MAX_NUM_REF ; n++ )
       memcpy(m_weightPredTable[e][n], pSrc->m_weightPredTable[e][n], sizeof(wpScalingParam)*3 );
+
+  m_saoEnabledFlag = pSrc->m_saoEnabledFlag; 
+#if SAO_UNIT_INTERLEAVING
+  m_saoInterleavingFlag = pSrc->m_saoInterleavingFlag;
+  m_saoEnabledFlagCb = pSrc->m_saoEnabledFlagCb;
+  m_saoEnabledFlagCr = pSrc->m_saoEnabledFlagCr; 
+#endif
+
 }
 
 int TComSlice::m_iPrevPOC = 0;
