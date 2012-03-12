@@ -38,6 +38,8 @@
 #ifndef _TYPEDEF__
 #define _TYPEDEF__
 
+#define CHEN_TV     1
+
 //! \ingroup TLibCommon
 //! \{
 #define LOSSLESS_CODING                   1  ///< H0530: lossless and lossy (mixed) coding

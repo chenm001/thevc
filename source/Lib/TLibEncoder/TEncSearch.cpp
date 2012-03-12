@@ -41,8 +41,6 @@
 #include "TEncSearch.h"
 #include <math.h>
 
-#define CHEN_TV     1
-
 // chen_debug
 #if (CHEN_TV)
 FILE *fp_tv = NULL;
@@ -1170,7 +1168,11 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
   UInt    uiSingleCbfY  = 0;
   UInt    uiSingleCbfU  = 0;
   UInt    uiSingleCbfV  = 0;
-  
+
+#if (CHEN_TV)
+  assert( bCheckFull && !bCheckSplit );
+#endif
+
   if( bCheckFull )
   {
     //----- store original entropy coding status -----
@@ -1472,17 +1474,28 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
 
       // chen_debug
 #if (CHEN_TV)
+      UInt tv_QP = pcCU->getQP( uiPartOffset );
+      Int dummy;
+      Int tv_uiPreds[3] = {-1, -1, -1};
+      pcCU->getIntraDirLumaPredictor( uiPartOffset, tv_uiPreds, &dummy );
+
+      // all avail is valid?
+      assert( bLeftAvail && bAboveAvail);
+
       extern FILE *fp_tv;
       extern int do_print;
       if ( pcCU->getAddr() == 0 )
           do_print = 1;
       else
           do_print = 0;
+      if ( pcCU->getSlice()->getSliceType() != I_SLICE )
+          do_print = 0;
       if (do_print) {
-        fprintf( fp_tv, "\n========== [%4d](%2d): Size=%2d, Avail=(%d,%d)\n",
+        fprintf( fp_tv, "\n========== [%4d](%2d): Size=%2d, Avail=(%d,%d), Cand=(%2d,%2d,%2d)\n",
             pcCU->getAddr(), uiPU,
             uiWidth,
-            bLeftAvail, bAboveAvail
+            1, 1,
+            tv_uiPreds[0], tv_uiPreds[1], tv_uiPreds[2]
         );
         Int *pSrc0 = m_piYuvExt;
         Int *pSrc1 = NULL;
@@ -1519,7 +1532,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
           fflush( fp_tv );
         }
       }
-      if ( pcCU->getAddr() == 98 && uiPU == 0 && uiWidth == 32 )
+      if ( pcCU->getAddr() == 0 && uiPU == 1 && uiWidth == 16 )
           printf("");
 #endif
       // ~chen_debug
@@ -1532,6 +1545,15 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
         // use hadamard transform here
         UInt uiSad = m_pcRdCost->calcSAD( piOrg, uiStride, piPred, uiStride, uiWidth, uiHeight );
         pcCU->setLumaIntraDirSubParts ( uiMode, uiPartOffset, uiDepth + uiInitTrDepth );
+
+#if (CHEN_TV)
+        if ( uiMode == tv_uiPreds[0] )
+            uiSad += 1 * tv_QP;
+        else if (uiMode == tv_uiPreds[1] || uiMode == tv_uiPreds[2])
+            uiSad += 2 * tv_QP;
+        else
+            uiSad += 3 * tv_QP;
+#endif
         
         CandNum += xUpdateCandList( uiMode, uiSad, numModesForFullRD, uiRdModeList, CandCostList );
         // chen_debug
@@ -1607,16 +1629,6 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       }
 #endif
       
-      // chen_debug
-#if (CHEN_TV)
-      if (do_print) {
-        fprintf( fp_tv, "@@@ CandMode=(%2d,%2d,%2d), numCand=%d\n",
-            uiPreds[0], uiPreds[1], uiPreds[2],
-            numCand
-        );
-      }
-#endif
-      // ~chen_debug
       for( Int j=0; j < numCand; j++)
       {
         Bool mostProbableModeIncluded = false;
@@ -1651,6 +1663,10 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     UInt    uiBestPUDistY = 0;
     UInt    uiBestPUDistC = 0;
     Double  dBestPUCost   = MAX_DOUBLE;
+#if (CHEN_TV)
+    uiBestPUMode = uiRdModeList[0];
+    if (0)
+#endif
     for( UInt uiMode = 0; uiMode < numModesForFullRD; uiMode++ )
     {
       // set luma prediction mode
@@ -1712,7 +1728,6 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
 #else
       UInt uiOrgMode = uiBestPUMode;
 #endif
-      
       pcCU->setLumaIntraDirSubParts ( uiOrgMode, uiPartOffset, uiDepth + uiInitTrDepth );
       
       // determine residual for partition
