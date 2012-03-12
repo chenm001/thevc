@@ -46,6 +46,7 @@
 // chen_debug
 #if (CHEN_TV)
 FILE *fp_tv = NULL;
+int do_print = 0;
 #endif
 // ~chen_debug
 
@@ -1472,45 +1473,54 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       // chen_debug
 #if (CHEN_TV)
       extern FILE *fp_tv;
-      fprintf( fp_tv, "\n========== [%4d](%2d): Size=%2d, Avail=(%d,%d)\n",
-          pcCU->getAddr(), uiPU,
-          uiWidth,
-          bLeftAvail, bAboveAvail
-      );
-      Int *pSrc0 = m_piYuvExt;
-      Int *pSrc1 = NULL;
-      {
-        //Int *pSrc = pcCU->getPattern()->getPredictorPtr( modeIdx, g_aucConvertToBit[ uiWidth ] + 2, m_piYuvExt );
-        Pel *pDst = piPred;
-        Int iWidth = uiWidth;
-        Int sw = 2 * iWidth + 1;
-        Int offset = sw * sw;
-        int i, j;
-        pSrc0 += sw + 1;
-        pSrc1  = pSrc0 + offset;
+      extern int do_print;
+      if ( pcCU->getAddr() == 0 )
+          do_print = 1;
+      else
+          do_print = 0;
+      if (do_print) {
+        fprintf( fp_tv, "\n========== [%4d](%2d): Size=%2d, Avail=(%d,%d)\n",
+            pcCU->getAddr(), uiPU,
+            uiWidth,
+            bLeftAvail, bAboveAvail
+        );
+        Int *pSrc0 = m_piYuvExt;
+        Int *pSrc1 = NULL;
+        {
+          //Int *pSrc = pcCU->getPattern()->getPredictorPtr( modeIdx, g_aucConvertToBit[ uiWidth ] + 2, m_piYuvExt );
+          Pel *pDst = piPred;
+          Int iWidth = uiWidth;
+          Int sw = 2 * iWidth + 1;
+          Int offset = sw * sw;
+          int i, j;
+          pSrc0 += sw + 1;
+          pSrc1  = pSrc0 + offset;
 
-        for( i=-1; i<iWidth*2; i++ ) {
-          fprintf( fp_tv, "%02X ", pSrc0[i-sw] & 0xFF );
-        }
-        fprintf( fp_tv, "\n" );
-        for( i=0; i<iWidth*2; i++ ) {
-          fprintf( fp_tv, "%02X ", pSrc0[i*sw-1] & 0xFF );
-          if ( i > 0 )
-            fprintf( fp_tv, "   " );
-          if ( i == 1 ) {
-            for( j=-1; j<iWidth*2; j++ ) {
-              fprintf( fp_tv, "%02X ", pSrc1[j-sw] & 0xFF );
-            }
-          }
-          else if ( i >= 2 ) {
-            fprintf( fp_tv, "%02X", pSrc1[(i-2)*sw-1] & 0xFF );
+          for( i=-1; i<iWidth*2; i++ ) {
+            fprintf( fp_tv, "%02X ", pSrc0[i-sw] & 0xFF );
           }
           fprintf( fp_tv, "\n" );
+          for( i=0; i<iWidth*2; i++ ) {
+            fprintf( fp_tv, "%02X ", pSrc0[i*sw-1] & 0xFF );
+            if ( i > 0 )
+              fprintf( fp_tv, "   " );
+            if ( i == 1 ) {
+              for( j=-1; j<iWidth*2; j++ ) {
+                fprintf( fp_tv, "%02X ", pSrc1[j-sw] & 0xFF );
+              }
+            }
+            else if ( i >= 2 ) {
+              fprintf( fp_tv, "%02X", pSrc1[(i-2)*sw-1] & 0xFF );
+            }
+            fprintf( fp_tv, "\n" );
+          }
+          fprintf( fp_tv, "      %02X\n", pSrc1[(iWidth*2-2)*sw-1] & 0xFF );
+          fprintf( fp_tv, "      %02X\n", pSrc1[(iWidth*2-1)*sw-1] & 0xFF );
+          fflush( fp_tv );
         }
-        fprintf( fp_tv, "      %02X\n", pSrc1[(iWidth*2-2)*sw-1] & 0xFF );
-        fprintf( fp_tv, "      %02X\n", pSrc1[(iWidth*2-1)*sw-1] & 0xFF );
-        fflush( fp_tv );
       }
+      if ( pcCU->getAddr() == 98 && uiPU == 0 && uiWidth == 32 )
+          printf("");
 #endif
       // ~chen_debug
       for( Int modeIdx = 0; modeIdx < numModesAvailable; modeIdx++ )
@@ -1526,19 +1536,52 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
         CandNum += xUpdateCandList( uiMode, uiSad, numModesForFullRD, uiRdModeList, CandCostList );
         // chen_debug
 #if (CHEN_TV)
-        fprintf( fp_tv, "*** Mode=%2d, Sad=%6d\n", uiMode, uiSad );
-        {
-          Int iWidth = uiWidth;
-          Pel *pDst = piPred;
-          Int i, j;
-          for( i=0; i<iWidth; i++ ) {
-            for( j=0; j<iWidth; j++ ) {
-              fprintf( fp_tv, "%02X ", pDst[i*uiStride+j] & 0xFF );
+        if (do_print) {
+          static const UChar m_aucIntraFilter[5] = {
+                      10, //4x4
+                       7, //8x8
+                       1, //16x16
+                       0, //32x32
+                      10, //64x64
+          };
+          extern Char g_aucConvertToBit[ MAX_CU_SIZE+1 ]; 
+          Int diff = min<Int>(abs((Int) modeIdx - HOR_IDX), abs((Int)modeIdx - VER_IDX));
+          UChar ucFiltIdx = diff > m_aucIntraFilter[g_aucConvertToBit[ uiWidth ]] ? 1 : 0;
+          if (modeIdx == DC_IDX /*|| uiDirMode == LM_CHROMA_IDX*/)
+            ucFiltIdx = 0; //no smoothing for DC or LM chroma
+
+          fprintf( fp_tv, "*** Mode=%2d, bFilter=%d, Sad=%6d\n", uiMode, ucFiltIdx, uiSad );
+          {
+            Int iWidth = uiWidth;
+            Pel *pDst = piPred;
+            Int i, j;
+            for( i=0; i<iWidth; i++ ) {
+              for( j=0; j<iWidth; j++ ) {
+                fprintf( fp_tv, "%02X ", pDst[i*uiStride+j] & 0xFF );
+              }
+              fprintf( fp_tv, "\n" );
             }
-            fprintf( fp_tv, "\n" );
+#if 0
+            if ( pcCU->getAddr() == 98 && uiPU == 0 && uiWidth == 32 ) {
+                FILE *fp = fopen("mode.cpp", "a");
+                if (fp) {
+                    fprintf( fp, "    // %d\n", modeIdx );
+                    fprintf( fp, "    {\n" );
+                    for( i=0; i<iWidth; i++ ) {
+                        fprintf( fp, "        " );
+                        for( j=0; j<iWidth; j++ ) {
+                            fprintf( fp, "0x%02X, ", pDst[i*uiStride+j] & 0xFF );
+                        }
+                        fprintf( fp, "\n" );
+                    }
+                    fprintf( fp, "    },\n" );
+                    fclose( fp );
+                }
+            }
+#endif
           }
+          fflush( fp_tv );
         }
-        fflush( fp_tv );
 #endif
         // ~chen_debug
       }
@@ -1566,10 +1609,12 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       
       // chen_debug
 #if (CHEN_TV)
-      fprintf( fp_tv, "@@@ CandMode=(%2d,%2d,%2d), numCand=%d\n",
-          uiPreds[0], uiPreds[1], uiPreds[2],
-          numCand
-      );
+      if (do_print) {
+        fprintf( fp_tv, "@@@ CandMode=(%2d,%2d,%2d), numCand=%d\n",
+            uiPreds[0], uiPreds[1], uiPreds[2],
+            numCand
+        );
+      }
 #endif
       // ~chen_debug
       for( Int j=0; j < numCand; j++)
