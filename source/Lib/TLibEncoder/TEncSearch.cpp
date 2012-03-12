@@ -45,6 +45,45 @@
 #if (CHEN_TV)
 FILE *fp_tv = NULL;
 int do_print = 0;
+
+void tPrintMatrix( FILE *fp, char *name, Pel *P, UInt uiStride, Int iSize )
+{
+    Int i, j;
+    fprintf( fp, "%s", name );
+    for( i=0; i<iSize; i++ ) {
+        for( j=0; j<iSize; j++ ) {
+            fprintf( fp, "%02X ", P[i*uiStride+j] & 0xFF );
+        }
+        fprintf( fp, "\n" );
+    }
+    fflush( fp );
+}
+
+void tPrintMatrix16( FILE *fp, char *name, Pel *P, UInt uiStride, Int iSize )
+{
+    Int i, j;
+    fprintf( fp, "%s", name );
+    for( i=0; i<iSize; i++ ) {
+        for( j=0; j<iSize; j++ ) {
+            fprintf( fp, "%04X ", P[i*uiStride+j] & 0xFFFF );
+        }
+        fprintf( fp, "\n" );
+    }
+    fflush( fp );
+}
+
+void tPrintMatrix32( FILE *fp, char *name, Int *P, UInt uiStride, Int iSize )
+{
+    Int i, j;
+    fprintf( fp, "%s", name );
+    for( i=0; i<iSize; i++ ) {
+        for( j=0; j<iSize; j++ ) {
+            fprintf( fp, "%04X ", P[i*uiStride+j] & 0xFFFF );
+        }
+        fprintf( fp, "\n" );
+    }
+    fflush( fp );
+}
 #endif
 // ~chen_debug
 
@@ -902,7 +941,7 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
   
   //===== get prediction signal =====
   predIntraLumaAng( pcCU->getPattern(), uiLumaPredMode, piPred, uiStride, uiWidth, uiHeight, pcCU, bAboveAvail, bLeftAvail );
-  
+
   //===== get residual signal =====
   {
     // get residual
@@ -921,6 +960,15 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
     }
   }
   
+#if (CHEN_TV)
+  if ( do_print ) {
+    fprintf( fp_tv, "\n### BestMode=%d\n", uiLumaPredMode );
+    tPrintMatrix  ( fp_tv, "--- Orig ---\n", piOrg, uiStride, uiWidth);
+    tPrintMatrix  ( fp_tv, "--- Pred ---\n", piPred, uiStride, uiWidth);
+    tPrintMatrix16( fp_tv, "--- Resi ---\n", piResi, uiStride, uiWidth);
+  }
+#endif
+
   //===== transform and quantization =====
   //--- transform and quantization ---
   UInt uiAbsSum = 0;
@@ -950,6 +998,12 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
       memset( pResi, 0, sizeof( Pel ) * uiWidth );
       pResi += uiStride;
     }
+#if (CHEN_TV)
+    if ( do_print ) {
+      tPrintMatrix32( fp_tv, "--- IQuant ---\n", pcCoeff, uiWidth, uiWidth);
+      tPrintMatrix16( fp_tv, "--- ITrans ---\n", pResi, uiStride, uiWidth);
+    }
+#endif
   }
   
   //===== reconstruction =====
@@ -974,6 +1028,11 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
       pRecIPred += uiRecIPredStride;
     }
   }
+#if (CHEN_TV)
+  if ( do_print ) {
+    tPrintMatrix( fp_tv, "--- Recon ---\n", piReco, uiWidth, uiWidth);
+  }
+#endif
   
   //===== update distortion =====
   ruiDist += m_pcRdCost->getDistPart( piReco, uiStride, piOrg, uiStride, uiWidth, uiHeight );
@@ -1576,17 +1635,12 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
           {
             Int iWidth = uiWidth;
             Pel *pDst = piPred;
-            Int i, j;
-            for( i=0; i<iWidth; i++ ) {
-              for( j=0; j<iWidth; j++ ) {
-                fprintf( fp_tv, "%02X ", pDst[i*uiStride+j] & 0xFF );
-              }
-              fprintf( fp_tv, "\n" );
-            }
+            tPrintMatrix( fp_tv, "", pDst, uiStride, iWidth );
 #if 0
             if ( pcCU->getAddr() == 98 && uiPU == 0 && uiWidth == 32 ) {
                 FILE *fp = fopen("mode.cpp", "a");
                 if (fp) {
+                    Int i, j;
                     fprintf( fp, "    // %d\n", modeIdx );
                     fprintf( fp, "    {\n" );
                     for( i=0; i<iWidth; i++ ) {

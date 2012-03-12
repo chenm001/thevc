@@ -42,6 +42,13 @@
 #include "TComPic.h"
 #include "ContextTables.h"
 
+#if (CHEN_TV)
+extern FILE *fp_tv;
+extern int do_print;
+extern void tPrintMatrix16( FILE *fp, char *name, Pel *P, UInt uiStride, Int iSize );
+extern void tPrintMatrix32( FILE *fp, char *name, Int *P, UInt uiStride, Int iSize );
+#endif
+
 typedef struct
 {
   Int    iNNZbeforePos0;
@@ -1679,15 +1686,43 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
   assert( (pcCU->getSlice()->getSPS()->getMaxTrSize() >= uiWidth) );
 
   xT( uiMode, pcResidual, uiStride, m_plTempCoeff, uiWidth, uiHeight );
+#if (CHEN_TV)
+  if ( do_print ) {
+      if ( uiMode != REG_DCT ) {
+        tPrintMatrix32( fp_tv, "--- Trans ---\n", m_plTempCoeff, uiWidth, uiWidth);
+      }
+  }
+#endif
   xQuant( pcCU, m_plTempCoeff, rpcCoeff,
        uiWidth, uiHeight, uiAbsSum, eTType, uiAbsPartIdx );
+#if (CHEN_TV)
+  if ( do_print ) {
+      if ( uiMode != REG_DCT ) {
+        tPrintMatrix32( fp_tv, "--- Quant ---\n", rpcCoeff, uiWidth, uiWidth);
+      }
+  }
+#endif
 }
 
 
 Void TComTrQuant::invtransformNxN( TextType eText,UInt uiMode, Pel* rpcResidual, UInt uiStride, TCoeff* pcCoeff, UInt uiWidth, UInt uiHeight )
 {
   xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight);
+#if (CHEN_TV)
+  if ( do_print ) {
+    if ( eText == TEXT_LUMA ) {
+      tPrintMatrix32( fp_tv, "--- IQuant ---\n", m_plTempCoeff, uiWidth, uiWidth);
+    }
+  }
+#endif
   xIT( uiMode, m_plTempCoeff, rpcResidual, uiStride, uiWidth, uiHeight );
+#if (CHEN_TV)
+  if ( do_print ) {
+    if ( eText == TEXT_LUMA ) {
+      tPrintMatrix16( fp_tv, "--- ITrans ---\n", rpcResidual, uiStride, uiWidth);
+    }
+  }
+#endif
 }
 
 // ------------------------------------------------------------------------------------------------
