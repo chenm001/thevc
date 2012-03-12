@@ -623,16 +623,6 @@ Void TEncTop::xInitPPS()
     }
   }   
 #endif
-  Int max_temporal_layers = m_cPPS.getSPS()->getMaxTLayers();
-  if(max_temporal_layers > 4)
-     m_cPPS.setBitsForTemporalId(3);
-  else if(max_temporal_layers > 2)
-     m_cPPS.setBitsForTemporalId(2);
-  else if(max_temporal_layers > 1)
-     m_cPPS.setBitsForTemporalId(1);
-  else
-     m_cPPS.setBitsForTemporalId(0);
-
   Bool bUseDQP = (getMaxCuDQPDepth() > 0)? true : false;
 
   if(bUseDQP == false)

@@ -578,9 +578,6 @@ private:
 #if !RPS_IN_SPS
   Bool        m_bLongTermRefsPresent;
 #endif
-  UInt        m_uiBitsForLongTermRefs;
-
-  UInt        m_uiBitsForTemporalId;
 
 #if !H0566_TLA
   UInt        m_uiNumTlayerSwitchingFlags;            // num_temporal_layer_switching_point_flags
@@ -645,15 +642,11 @@ public:
   Bool      getTLayerSwitchingFlag( UInt uiTLayer )                       { assert( uiTLayer < MAX_TLAYER ); return m_abTLayerSwitchingFlag[ uiTLayer ]; }
   Void      setTLayerSwitchingFlag( UInt uiTLayer, Bool bValue )          { m_abTLayerSwitchingFlag[ uiTLayer ] = bValue; }
 #endif
-  UInt      getBitsForTemporalId()           { return m_uiBitsForTemporalId; }
-  Void      setBitsForTemporalId(UInt bits)  { m_uiBitsForTemporalId = bits; }
 
 #if !RPS_IN_SPS
   Bool      getLongTermRefsPresent()         { return m_bLongTermRefsPresent; }
   Void      setLongTermRefsPresent(Bool b)   { m_bLongTermRefsPresent=b;      }
 #endif
-  UInt      getBitsForLongTermRefs()         { return m_uiBitsForLongTermRefs;}
-  Void      setBitsForLongTermRefs(UInt ui)  { m_uiBitsForLongTermRefs=ui;    }
   Void      setSPS              ( TComSPS* pcSPS ) { m_pcSPS = pcSPS; }
   TComSPS*  getSPS              ()         { return m_pcSPS;          }
 #if !RPS_IN_SPS

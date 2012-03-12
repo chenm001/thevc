@@ -1374,7 +1374,6 @@ TComPPS::TComPPS()
 #if !RPS_IN_SPS
 , m_bLongTermRefsPresent        (false)
 #endif
-, m_uiBitsForLongTermRefs       (0)
 #if !H0566_TLA
 , m_uiNumTlayerSwitchingFlags   (0)
 #endif
