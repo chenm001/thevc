@@ -131,6 +131,9 @@ private:
   TComPrediction* m_pcPrediction;
   UInt    m_uiBakAbsPartIdx;
   UInt    m_uiBakChromaOffset;
+#if UNIFIED_TRANSFORM_TREE
+  UInt    m_bakAbsPartIdxCU;
+#endif
   
 public:
   Void init (TComPrediction* p) {m_pcPrediction = p;}
@@ -177,7 +180,11 @@ public:
 #if !UNIFIED_TRANSFORM_TREE
   Void decodeTransformIdx      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 #endif
+#if UNIFIED_TRANSFORM_TREE
+  Void decodeQP                ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+#else
   Void decodeQP                ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+#endif
   
   Void readTileMarker         ( UInt& uiTileIdx, UInt uiBitsUsed )  {  m_pcEntropyDecoderIf->readTileMarker( uiTileIdx, uiBitsUsed ); }
   Void updateContextTables    ( SliceType eSliceType, Int iQp ) { m_pcEntropyDecoderIf->updateContextTables( eSliceType, iQp ); }

@@ -363,6 +363,10 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
   const UInt uiLog2TrafoSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth()]+2 - uiDepth;
 
 #if UNIFIED_TRANSFORM_TREE
+  if(uiTrIdx==0)
+  {
+    m_bakAbsPartIdxCU = uiAbsPartIdx;
+  }
   if( uiLog2TrafoSize == 2 )
   {
     UInt partNum = pcCU->getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
@@ -584,7 +588,7 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
       {
         if ( bCodeDQP )
         {
-          decodeQP( pcCU, uiAbsPartIdx, uiDepth);
+          decodeQP( pcCU, m_bakAbsPartIdxCU);
           bCodeDQP = false;
         }
       }
@@ -651,6 +655,15 @@ Void TDecEntropy::decodeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt 
 }
 #endif // UNIFIED_TRANSFORM_TREE
 
+#if UNIFIED_TRANSFORM_TREE
+Void TDecEntropy::decodeQP          ( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  if ( pcCU->getSlice()->getPPS()->getUseDQP() )
+  {
+    m_pcEntropyDecoderIf->parseDeltaQP( pcCU, uiAbsPartIdx, pcCU->getDepth( uiAbsPartIdx ) );
+  }
+}
+#else
 Void TDecEntropy::decodeQP          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   if ( pcCU->getSlice()->getPPS()->getUseDQP() )
@@ -658,6 +671,7 @@ Void TDecEntropy::decodeQP          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt 
     m_pcEntropyDecoderIf->parseDeltaQP( pcCU, uiAbsPartIdx, uiDepth );
   }
 }
+#endif
 
 #if !UNIFIED_TRANSFORM_TREE
 Void TDecEntropy::xDecodeCoeff( TComDataCU* pcCU, UInt uiLumaOffset, UInt uiChromaOffset, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, UInt uiTrIdx, UInt uiCurrTrIdx, Bool& bCodeDQP )

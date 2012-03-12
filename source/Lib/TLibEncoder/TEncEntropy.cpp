@@ -947,6 +947,10 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
   UInt cbfU = pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrIdx );
   UInt cbfV = pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiTrIdx );
 
+  if(uiTrIdx==0)
+  {
+    m_bakAbsPartIdxCU = uiAbsPartIdx;
+  }
   if( uiLog2TrafoSize == 2 )
   {
     UInt partNum = pcCU->getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
@@ -1165,7 +1169,7 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
         {
           if ( bCodeDQP )
           {
-            encodeQP( pcCU, uiAbsPartIdx );
+            encodeQP( pcCU, m_bakAbsPartIdxCU );
             bCodeDQP = false;
           }
         }
