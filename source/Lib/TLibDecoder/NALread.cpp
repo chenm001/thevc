@@ -126,37 +126,21 @@ void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
   nalu.m_RefIDC = (NalRefIdc) bs.read(2);
   nalu.m_UnitType = (NalUnitType) bs.read(5);
 
-  switch (nalu.m_UnitType)
+  nalu.m_TemporalID = bs.read(3);
+  unsigned reserved_one_5bits = bs.read(5);
+  assert(reserved_one_5bits == 1);
+
+  /* should this assert be removed since we now have 2 byte NAL headers for all NAL unit?
+#if H0566_TLA
+  if (nalu.m_TemporalID == 0)
   {
-  case NAL_UNIT_CODED_SLICE:
-  case NAL_UNIT_CODED_SLICE_IDR:
-#if H0566_TLA
-  case NAL_UNIT_CODED_SLICE_CRA:
-  case NAL_UNIT_CODED_SLICE_TLA:
-#else
-  case NAL_UNIT_CODED_SLICE_CDR:
-#endif
-    {
-      nalu.m_TemporalID = bs.read(3);
-      nalu.m_OutputFlag = bs.read(1);
-      unsigned reserved_one_4bits = bs.read(4);
-      assert(reserved_one_4bits == 1);
-#if H0566_TLA
-      if (nalu.m_TemporalID == 0)
-      {
-        assert(nalu.m_UnitType == NAL_UNIT_CODED_SLICE || nalu.m_UnitType == NAL_UNIT_CODED_SLICE_CRA || nalu.m_UnitType == NAL_UNIT_CODED_SLICE_IDR);
-      }
-      else
-      {
-        assert(nalu.m_UnitType == NAL_UNIT_CODED_SLICE || nalu.m_UnitType == NAL_UNIT_CODED_SLICE_TLA);
-      }
-#endif
-    }
-    break;
-  default:
-    nalu.m_TemporalID = 0;
-    nalu.m_OutputFlag = true;
-    break;
+    assert(nalu.m_UnitType == NAL_UNIT_CODED_SLICE || nalu.m_UnitType == NAL_UNIT_CODED_SLICE_CRA || nalu.m_UnitType == NAL_UNIT_CODED_SLICE_IDR);
   }
+  else
+  {
+    assert(nalu.m_UnitType == NAL_UNIT_CODED_SLICE || nalu.m_UnitType == NAL_UNIT_CODED_SLICE_TLA);
+  }
+#endif
+  */
 }
 //! \}

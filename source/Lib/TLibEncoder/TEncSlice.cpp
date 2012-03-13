@@ -173,6 +173,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->initSlice();
   rpcSlice->initTiles();
 
+  rpcSlice->setPicOutputFlag( true );
   rpcSlice->setPOC( uiPOCCurr );
   
   // depth computation based on GOP size
