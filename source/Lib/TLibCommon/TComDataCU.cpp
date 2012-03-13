@@ -3403,6 +3403,11 @@ Void TComDataCU::xCheckCornerCand( TComDataCU* pcCorner, UInt uiCornerPUIdx, UIn
   }
 }
 #if PARALLEL_MERGE
+/** Check whether the current PU and a spatial neighboring PU are in a same ME region.
+ * \param xN, xN   location of the upper-left corner pixel of a neighboring PU
+ * \param xP, yP   location of the upper-left corner pixel of the current PU
+ * \returns Bool
+ */
 Bool TComDataCU::isDiffMER(Int xN, Int yN, Int xP, Int yP)
 {
 
@@ -3417,7 +3422,12 @@ Bool TComDataCU::isDiffMER(Int xN, Int yN, Int xP, Int yP)
   }
   return false;
 }
-
+/** calculate the location of upper-left corner pixel and size of the current PU.
+ * \param partIdx  PU index within a CU
+ * \param xP, yP   location of the upper-left corner pixel of the current PU
+ * \param PSW, nPSH    size of the curren PU
+ * \returns Void
+ */
 Void TComDataCU::getPartPosition( UInt partIdx, Int& xP, Int& yP, Int& nPSW, Int& nPSH)
 {
   UInt col = m_uiCUPelX;
