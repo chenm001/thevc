@@ -282,6 +282,16 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       }
       pcSlice->applyReferencePictureSet(rcListPic, pcSlice->getRPS());
 
+#if H0566_TLA && H0566_TLA_SET_FOR_SWITCHING_POINTS
+      if(pcSlice->getTLayer() > 0)
+      {
+        if(pcSlice->isTemporalLayerSwitchingPoint(rcListPic, pcSlice->getRPS()))
+        {
+          pcSlice->setNalUnitType(NAL_UNIT_CODED_SLICE_TLA);
+        }
+      }
+#endif
+
       TComRefPicListModification* refPicListModification = pcSlice->getRefPicListModification();
       refPicListModification->setRefPicListModificationFlagL0(0);
 #if !H0137_0138_LIST_MODIFICATION

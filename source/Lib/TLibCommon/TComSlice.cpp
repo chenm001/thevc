@@ -835,6 +835,29 @@ Void TComSlice::setTLayerInfo( UInt uiTLayer )
 #endif
 }
 
+#if H0566_TLA && H0566_TLA_SET_FOR_SWITCHING_POINTS
+/** Function for checking if this is a switching-point
+*/
+Bool TComSlice::isTemporalLayerSwitchingPoint( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet)
+{
+  TComPic* rpcPic;
+  // loop through all pictures in the reference picture buffer
+  TComList<TComPic*>::iterator iterPic = rcListPic.begin();
+  while ( iterPic != rcListPic.end())
+  {
+    rpcPic = *(iterPic++);
+    if(rpcPic->getSlice(0)->isReferenced() && rpcPic->getPOC() != getPOC())
+    {
+      if(rpcPic->getTLayer() >= getTLayer())
+      {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+#endif
+
 /** Function for applying picture marking based on the Reference Picture Set in pReferencePictureSet.
 */
 Void TComSlice::applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet)
