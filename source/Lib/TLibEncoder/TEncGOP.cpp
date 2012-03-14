@@ -856,7 +856,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         Int iTransmitLWHeader = (m_pcCfg->getTileMarkerFlag()==0) ? 0 : 1;
         pcSlice->setTileMarkerFlag ( iTransmitLWHeader );
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
+#if !CABAC_INIT_FLAG
         pcSlice->setCABACinitIDC(pcSlice->getSliceType());
+#endif
         m_pcEntropyCoder->encodeSliceHeader(pcSlice);
         if(pcSlice->isNextSlice())
         {

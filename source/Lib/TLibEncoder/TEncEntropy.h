@@ -65,6 +65,9 @@ public:
   virtual Void setMaxAlfCtrlDepth(UInt uiMaxAlfCtrlDepth)                = 0;
   
   virtual Void  resetEntropy          ()                = 0;
+#if CABAC_INIT_FLAG
+  virtual Void  determineCabacInitIdx ()                = 0;
+#endif
   virtual Void  setBitstream          ( TComBitIf* p )  = 0;
   virtual Void  setSlice              ( TComSlice* p )  = 0;
   virtual Void  resetBits             ()                = 0;
@@ -177,6 +180,9 @@ public:
   UInt    getNumberOfWrittenBits    ()                        { return m_pcEntropyCoderIf->getNumberOfWrittenBits(); }
   UInt    getCoeffCost              ()                        { return  m_pcEntropyCoderIf->getCoeffCost(); }
   Void    resetEntropy              ()                        { m_pcEntropyCoderIf->resetEntropy();  }
+#if CABAC_INIT_FLAG
+  Void    determineCabacInitIdx     ()                        { m_pcEntropyCoderIf->determineCabacInitIdx(); }
+#endif
   
   Void    encodeSliceHeader         ( TComSlice* pcSlice );
   Void    encodeTileMarkerFlag       (TComSlice* pcSlice) {m_pcEntropyCoderIf->codeTileMarkerFlag(pcSlice);}

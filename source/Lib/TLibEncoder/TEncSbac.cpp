@@ -115,6 +115,12 @@ Void TEncSbac::resetEntropy           ()
   Int  iQp              = m_pcSlice->getSliceQp();
   SliceType eSliceType  = m_pcSlice->getSliceType();
   
+#if CABAC_INIT_FLAG
+  Int  encCABACTableIdx = m_pcSlice->getPPS()->getEncCABACTableIdx();
+  if (!m_pcSlice->isIntra() && (encCABACTableIdx==B_SLICE || encCABACTableIdx==P_SLICE) && m_pcSlice->getPPS()->getCabacInitPresentFlag())
+    eSliceType = (SliceType) encCABACTableIdx;
+#endif
+
   m_cCUSplitFlagSCModel.initBuffer       ( eSliceType, iQp, (UChar*)INIT_SPLIT_FLAG );
   
   m_cCUSkipFlagSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SKIP_FLAG );
@@ -163,6 +169,83 @@ Void TEncSbac::resetEntropy           ()
   
   return;
 }
+
+#if CABAC_INIT_FLAG
+/** The function does the following: 
+ * If current slice type is P/B then it determines the distance of initialisation type 1 and 2 from the current CABAC states and 
+ * stores the index of the closest table.  This index is used for the next P/B slice when cabac_init_present_flag is true.
+ */
+Void TEncSbac::determineCabacInitIdx()
+{
+  Int  iQp              = m_pcSlice->getSliceQp();
+
+  if (!m_pcSlice->isIntra())
+  {
+    SliceType aeSliceTypeChoices[] = {B_SLICE, P_SLICE};
+
+    UInt uiBestCost           = MAX_UINT;
+    SliceType eBestSliceType  = aeSliceTypeChoices[0];
+    for (UInt uiIdx=0; uiIdx<2; uiIdx++)
+    {
+      UInt uiCurCost            = 0;
+      SliceType eCurSliceType   = aeSliceTypeChoices[uiIdx];
+
+      uiCurCost  = m_cCUSplitFlagSCModel.calcCost       ( eCurSliceType, iQp, (UChar*)INIT_SPLIT_FLAG );
+      uiCurCost += m_cCUSkipFlagSCModel.calcCost        ( eCurSliceType, iQp, (UChar*)INIT_SKIP_FLAG );
+      uiCurCost += m_cCUAlfCtrlFlagSCModel.calcCost     ( eCurSliceType, iQp, (UChar*)INIT_ALF_CTRL_FLAG );
+      uiCurCost += m_cCUMergeFlagExtSCModel.calcCost    ( eCurSliceType, iQp, (UChar*)INIT_MERGE_FLAG_EXT);
+      uiCurCost += m_cCUMergeIdxExtSCModel.calcCost     ( eCurSliceType, iQp, (UChar*)INIT_MERGE_IDX_EXT);
+      uiCurCost += m_cCUPartSizeSCModel.calcCost        ( eCurSliceType, iQp, (UChar*)INIT_PART_SIZE );
+#if AMP_CTX
+      uiCurCost += m_cCUAMPSCModel.calcCost             ( eCurSliceType, iQp, (UChar*)INIT_CU_AMP_POS );
+#else
+      uiCurCost += m_cCUXPosiSCModel.calcCost           ( eCurSliceType, iQp, (UChar*)INIT_CU_X_POS );
+      uiCurCost += m_cCUYPosiSCModel.calcCost           ( eCurSliceType, iQp, (UChar*)INIT_CU_Y_POS );
+#endif
+      uiCurCost += m_cCUPredModeSCModel.calcCost        ( eCurSliceType, iQp, (UChar*)INIT_PRED_MODE );
+      uiCurCost += m_cCUIntraPredSCModel.calcCost       ( eCurSliceType, iQp, (UChar*)INIT_INTRA_PRED_MODE );
+      uiCurCost += m_cCUChromaPredSCModel.calcCost      ( eCurSliceType, iQp, (UChar*)INIT_CHROMA_PRED_MODE );
+      uiCurCost += m_cCUInterDirSCModel.calcCost        ( eCurSliceType, iQp, (UChar*)INIT_INTER_DIR );
+      uiCurCost += m_cCUMvdSCModel.calcCost             ( eCurSliceType, iQp, (UChar*)INIT_MVD );
+      uiCurCost += m_cCURefPicSCModel.calcCost          ( eCurSliceType, iQp, (UChar*)INIT_REF_PIC );
+      uiCurCost += m_cCUDeltaQpSCModel.calcCost         ( eCurSliceType, iQp, (UChar*)INIT_DQP );
+      uiCurCost += m_cCUQtCbfSCModel.calcCost           ( eCurSliceType, iQp, (UChar*)INIT_QT_CBF );
+      uiCurCost += m_cCUQtRootCbfSCModel.calcCost       ( eCurSliceType, iQp, (UChar*)INIT_QT_ROOT_CBF );
+      uiCurCost += m_cCUSigCoeffGroupSCModel.calcCost   ( eCurSliceType, iQp, (UChar*)INIT_SIG_CG_FLAG );
+      uiCurCost += m_cCUSigSCModel.calcCost             ( eCurSliceType, iQp, (UChar*)INIT_SIG_FLAG );
+      uiCurCost += m_cCuCtxLastX.calcCost               ( eCurSliceType, iQp, (UChar*)INIT_LAST );
+      uiCurCost += m_cCuCtxLastY.calcCost               ( eCurSliceType, iQp, (UChar*)INIT_LAST );
+      uiCurCost += m_cCUOneSCModel.calcCost             ( eCurSliceType, iQp, (UChar*)INIT_ONE_FLAG );
+      uiCurCost += m_cCUAbsSCModel.calcCost             ( eCurSliceType, iQp, (UChar*)INIT_ABS_FLAG );
+      uiCurCost += m_cMVPIdxSCModel.calcCost            ( eCurSliceType, iQp, (UChar*)INIT_MVP_IDX );
+      uiCurCost += m_cALFFlagSCModel.calcCost           ( eCurSliceType, iQp, (UChar*)INIT_ALF_FLAG );
+      uiCurCost += m_cALFUvlcSCModel.calcCost           ( eCurSliceType, iQp, (UChar*)INIT_ALF_UVLC );
+      uiCurCost += m_cALFSvlcSCModel.calcCost           ( eCurSliceType, iQp, (UChar*)INIT_ALF_SVLC );
+      uiCurCost += m_cCUTransSubdivFlagSCModel.calcCost ( eCurSliceType, iQp, (UChar*)INIT_TRANS_SUBDIV_FLAG );
+      uiCurCost += m_cSaoFlagSCModel.calcCost           ( eCurSliceType, iQp, (UChar*)INIT_SAO_FLAG );
+      uiCurCost += m_cSaoUvlcSCModel.calcCost           ( eCurSliceType, iQp, (UChar*)INIT_SAO_UVLC );
+      uiCurCost += m_cSaoSvlcSCModel.calcCost           ( eCurSliceType, iQp, (UChar*)INIT_SAO_SVLC );
+#if SAO_UNIT_INTERLEAVING
+      uiCurCost += m_cSaoMergeLeftSCModel.calcCost      ( eCurSliceType, iQp, (UChar*)INIT_SAO_MERGE_LEFT_FLAG );
+      uiCurCost += m_cSaoMergeUpSCModel.calcCost        ( eCurSliceType, iQp, (UChar*)INIT_SAO_MERGE_UP_FLAG );
+      uiCurCost += m_cSaoTypeIdxSCModel.calcCost        ( eCurSliceType, iQp, (UChar*)INIT_SAO_TYPE_IDX );
+#endif
+
+      if (uiCurCost < uiBestCost)
+      {
+        eBestSliceType = eCurSliceType;
+        uiBestCost     = uiCurCost;
+      }
+    }
+    m_pcSlice->getPPS()->setEncCABACTableIdx( eBestSliceType );
+  }
+  else
+  {
+    m_pcSlice->getPPS()->setEncCABACTableIdx( I_SLICE );
+  }  
+}
+#endif
+
 
 /** The function does the followng: Write out terminate bit. Flush CABAC. Intialize CABAC states. Start CABAC.
  */

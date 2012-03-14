@@ -98,7 +98,11 @@ TComSlice::TComSlice()
 , m_iTileMarkerFlag               ( 0 )
 , m_uiTileOffstForMultES          ( 0 )
 , m_puiSubstreamSizes             ( NULL )
+#if CABAC_INIT_FLAG
+, m_CabacInitFlag                 ( 0 )
+#else
 , m_cabacInitIdc                 ( -1 )
+#endif
 {
   m_aiNumRefIdx[0] = m_aiNumRefIdx[1] = m_aiNumRefIdx[2] = 0;
   
@@ -162,6 +166,9 @@ Void TComSlice::initSlice()
   m_bFinalized=false;
 
   m_uiTileCount          = 0;
+#if CABAC_INIT_FLAG
+  m_CabacInitFlag        = 0;
+#endif
 }
 
 Void TComSlice::initTiles()
@@ -797,6 +804,9 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_saoInterleavingFlag = pSrc->m_saoInterleavingFlag;
   m_saoEnabledFlagCb = pSrc->m_saoEnabledFlagCb;
   m_saoEnabledFlagCr = pSrc->m_saoEnabledFlagCr; 
+#endif 
+#if CABAC_INIT_FLAG
+  m_CabacInitFlag                = pSrc->m_CabacInitFlag;
 #endif
 
 }
@@ -1419,6 +1429,10 @@ TComPPS::TComPPS()
 #if MULTIBITS_DATA_HIDING
 , m_signHideFlag(0)
 , m_signHidingThreshold(0)
+#endif
+#if CABAC_INIT_FLAG
+, m_CabacInitPresentFlag         (false)
+, m_iEncCABACTableIdx            (0)
 #endif
 {
 #if !H0566_TLA

@@ -79,8 +79,24 @@ public:
 
   Void  resetEntropywithQPandInitIDC ( Int  iQp, Int iID);
   Void  resetEntropy                 ( Int  iQp, Int iID      ) { resetEntropywithQPandInitIDC(iQp, iID);                                      }
+#if CABAC_INIT_FLAG
+  Void  resetEntropy                 ( TComSlice* pcSlice     ) 
+  { 
+    SliceType eSliceType  = pcSlice->getSliceType();
+    if (pcSlice->getPPS()->getCabacInitPresentFlag() && pcSlice->getCabacInitFlag())
+    {
+      switch (eSliceType)
+      {
+      case P_SLICE: eSliceType = B_SLICE; break;
+      case B_SLICE: eSliceType = P_SLICE; break;
+      default     : break;
+      }
+    }
+    resetEntropywithQPandInitIDC(pcSlice->getSliceQp(), eSliceType);
+  }
+#else
   Void  resetEntropy                 ( TComSlice* pcSlice     ) { resetEntropywithQPandInitIDC(pcSlice->getSliceQp(), pcSlice->getCABACinitIDC());}
-
+#endif
   Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
   
   Void  parseSPS                  ( TComSPS* pcSPS         ) {}

@@ -618,6 +618,10 @@ private:
   Int      m_signHidingThreshold;
 #endif
 
+#if CABAC_INIT_FLAG
+  Bool     m_CabacInitPresentFlag;
+  UInt     m_iEncCABACTableIdx;           // Used to transmit table selection across slices
+#endif
 #if DBL_CONTROL
   Bool     m_DeblockingFilterControlPresent;
 #endif
@@ -735,6 +739,12 @@ public:
   Void     setEnableTMVPFlag( Bool b )  { m_enableTMVPFlag = b;    }
   Bool     getEnableTMVPFlag()          { return m_enableTMVPFlag; }
 
+#if CABAC_INIT_FLAG
+  Void     setCabacInitPresentFlag(Bool bFlag)     { m_CabacInitPresentFlag = bFlag;    }
+  Void     setEncCABACTableIdx( Int iIdx )         { m_iEncCABACTableIdx = iIdx;        }
+  Bool     getCabacInitPresentFlag()               { return m_CabacInitPresentFlag;     }
+  UInt     getEncCABACTableIdx()                   { return m_iEncCABACTableIdx;        }
+#endif
 #if DBL_CONTROL
   Void setDeblockingFilterControlPresent    ( Bool bValue )       { m_DeblockingFilterControlPresent = bValue; }
   Bool getDeblockingFilterControlPresent    ()                    { return m_DeblockingFilterControlPresent; }
@@ -982,7 +992,11 @@ private:
 
   UInt*       m_puiSubstreamSizes;
   TComScalingList*     m_scalingList;                 //!< pointer of quantization matrix
+#if CABAC_INIT_FLAG
+  Int         m_CabacInitFlag; 
+#else
   Int         m_cabacInitIdc; 
+#endif
 
 #if H0111_MVD_L1_ZERO
   Bool       m_bLMvdL1Zero;
@@ -1234,8 +1248,13 @@ public:
   TComScalingList*   getScalingList ()                               { return m_scalingList; }
   Void  setDefaultScalingList       ();
   Bool  checkDefaultScalingList     ();
+#if CABAC_INIT_FLAG
+  Void      setCabacInitFlag(Int iVal) {m_CabacInitFlag = iVal;    }  //!< set CABAC initial flag number 
+  Int       getCabacInitFlag()         {return m_CabacInitFlag;    }  //!< get CABAC initial flag number 
+#else
   Void      setCABACinitIDC(Int iVal) {m_cabacInitIdc = iVal;    }  //!< set CABAC initial IDC number 
   Int       getCABACinitIDC()         {return m_cabacInitIdc;    }  //!< get CABAC initial IDC number 
+#endif
 
 protected:
   TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,

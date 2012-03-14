@@ -1129,6 +1129,9 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   }
 #endif
 
+#if CABAC_INIT_FLAG
+  READ_FLAG( uiCode,   "cabac_init_present_flag" );            pcPPS->setCabacInitPresentFlag( uiCode ? true : false );
+#endif
 #if !RPS_IN_SPS
   // RPS is put before entropy_coding_mode_flag
   // since entropy_coding_mode_flag will probably be removed from the WD
@@ -1927,6 +1930,14 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   }
 #endif
 
+#if CABAC_INIT_FLAG
+  rpcSlice->setCabacInitFlag(0); // default
+  if(pps->getCabacInitPresentFlag() && !rpcSlice->isIntra())
+  {
+    READ_FLAG(uiCode, "cabac_init_flag");
+    rpcSlice->setCabacInitFlag(uiCode);
+  }
+#else
   if(pps->getEntropyCodingMode() && !rpcSlice->isIntra())
   {
     READ_UVLC(uiCode, "cabac_init_idc");
@@ -1936,6 +1947,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   {
     rpcSlice->setCABACinitIDC(0);
   }
+#endif
 
   if(!bEntropySlice)
   {
