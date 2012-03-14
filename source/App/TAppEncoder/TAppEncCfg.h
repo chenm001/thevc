@@ -74,8 +74,8 @@ protected:
   Int       m_iExtraRPSs;
   GOPEntry  m_pcGOPList[MAX_GOP];
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  Int       m_numReorderPics;                               ///< total number of reorder pictures
-  UInt      m_uiMaxDecPicBuffering;                         ///< total number of reference pictures needed for decoding
+  Int       m_numReorderPics[MAX_TLAYER];                               ///< total number of reorder pictures
+  UInt      m_uiMaxDecPicBuffering[MAX_TLAYER];                         ///< total number of reference pictures needed for decoding
 #else
   Int       m_numReorderFrames;                               ///< total number of reorder pictures
   UInt      m_uiMaxNumberOfReferencePictures;                 ///< total number of reference pictures needed for decoding

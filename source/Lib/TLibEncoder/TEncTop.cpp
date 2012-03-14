@@ -423,7 +423,7 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
   TComSlice::sortPicList(m_cListPic);
   
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  if (m_cListPic.size() >= (UInt)(m_iGOPSize + getMaxDecPicBuffering() + 2) )
+  if (m_cListPic.size() >= (UInt)(m_iGOPSize + getMaxDecPicBuffering(MAX_TLAYER-1) + 2) )
 #else
   if (m_cListPic.size() >= (UInt)(m_iGOPSize + getMaxNumberOfReferencePictures() + 2) )
 #endif
@@ -582,8 +582,8 @@ Void TEncTop::xInitSPS()
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   for ( i = 0; i < m_cSPS.getMaxTLayers(); i++ )
   {
-    m_cSPS.setMaxDecPicBuffering(m_uiMaxDecPicBuffering, i);
-    m_cSPS.setNumReorderPics(m_numReorderPics, i);
+    m_cSPS.setMaxDecPicBuffering(m_uiMaxDecPicBuffering[i], i);
+    m_cSPS.setNumReorderPics(m_numReorderPics[i], i);
   }
 #endif
   m_cSPS.setPCMBitDepthLuma (g_uiPCMBitDepthLuma);

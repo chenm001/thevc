@@ -183,10 +183,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("IntraPeriod,-ip",m_iIntraPeriod, -1, "intra period in frames, (-1: only first frame)")
   ("DecodingRefreshType,-dr",m_iDecodingRefreshType, 0, "intra refresh, (0:none 1:CDR 2:IDR)")
   ("GOPSize,g",      m_iGOPSize,      1, "GOP size of temporal structure")
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  ("MaxNumberOfReorderPictures", m_numReorderPics, -1, "Max. number of reorder pictures: -1: encoder determines value, >=0: set explicitly")
-  ("MaxDecPicBuffering", m_uiMaxDecPicBuffering, 6u, "Max. number of reference pictures")
-#else
+#if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   ("MaxNumberOfReorderPictures",   m_numReorderFrames,               -1, "Max. number of reorder pictures: -1: encoder determines value, >=0: set explicitly")
   ("MaxNumberOfReferencePictures", m_uiMaxNumberOfReferencePictures, 6u, "Max. number of reference pictures")
 #endif
@@ -544,10 +541,7 @@ Void TAppEncCfg::xCheckParameter()
     bIsOK[i]=false;
   }
   Int iNumOK=0;
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  Int numReorderPicsRequired=0;
-  m_uiMaxDecPicBuffering=0;
-#else
+#if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   Int numReorderFramesRequired=0;
   m_uiMaxNumberOfReferencePictures=0;
 #endif
@@ -718,17 +712,13 @@ Void TAppEncCfg::xCheckParameter()
           iNumRefs++;
         }
       }
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-      if(m_uiMaxDecPicBuffering<iNumRefs)
-      {
-        m_uiMaxDecPicBuffering=iNumRefs;
-      }
-#else
+#if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
       if(m_uiMaxNumberOfReferencePictures<iNumRefs)
         m_uiMaxNumberOfReferencePictures=iNumRefs;
 #endif
       aRefList[iNumRefs]=iCurPOC;
       iNumRefs++;
+#if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
       Int iNonDisplayed=0;
       for(Int i=0; i<iNumRefs; i++) {
         if(aRefList[i]==iLastDisp+1) {
@@ -740,12 +730,6 @@ Void TAppEncCfg::xCheckParameter()
         if(aRefList[i]>iLastDisp)
           iNonDisplayed++;
       }
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-      if(iNonDisplayed>numReorderPicsRequired)
-      {
-        numReorderPicsRequired=iNonDisplayed;
-      }
-#else
       if(iNonDisplayed>numReorderFramesRequired)
       {
         numReorderFramesRequired=iNonDisplayed;
@@ -754,12 +738,7 @@ Void TAppEncCfg::xCheckParameter()
     }
     iCheckGOP++;
   }
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  if (m_numReorderPics == -1)
-  {
-    m_numReorderPics = numReorderPicsRequired;
-  }
-#else
+#if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   if (m_numReorderFrames == -1)
   {
     m_numReorderFrames = numReorderFramesRequired;
@@ -780,8 +759,66 @@ Void TAppEncCfg::xCheckParameter()
     xConfirmPara(m_pcGOPList[i].m_iSliceType!='B'&&m_pcGOPList[i].m_iSliceType!='P', "Slice type must be equal to B or P");
   }
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  for(Int i=0; i<MAX_TLAYER; i++)
+  {
+    m_numReorderPics[i] = 0;
+    m_uiMaxDecPicBuffering[i] = 0;
+  }
+  for(Int i=0; i<m_iGOPSize; i++) 
+  {
+    if(m_pcGOPList[i].m_iNumRefPics > m_uiMaxDecPicBuffering[m_pcGOPList[i].m_iTemporalId])
+    {
+      m_uiMaxDecPicBuffering[m_pcGOPList[i].m_iTemporalId] = m_pcGOPList[i].m_iNumRefPics;
+    }
+    Int highestDecodingNumberWithLowerPOC = 0; 
+    for(Int j=0; j<m_iGOPSize; j++)
+    {
+      if(m_pcGOPList[j].m_iPOC <= m_pcGOPList[i].m_iPOC)
+      {
+        highestDecodingNumberWithLowerPOC = j;
+      }
+    }
+    Int numReorder = 0;
+    for(Int j=0; j<highestDecodingNumberWithLowerPOC; j++)
+    {
+      if(m_pcGOPList[j].m_iTemporalId <= m_pcGOPList[i].m_iTemporalId && 
+        m_pcGOPList[j].m_iPOC > m_pcGOPList[i].m_iPOC)
+      {
+        numReorder++;
+      }
+    }    
+    if(numReorder > m_numReorderPics[m_pcGOPList[i].m_iTemporalId])
+    {
+      m_numReorderPics[m_pcGOPList[i].m_iTemporalId] = numReorder;
+    }
+  }
+  for(Int i=0; i<MAX_TLAYER-1; i++) 
+  {
+    // a lower layer can not have higher value of m_numReorderPics than a higher layer
+    if(m_numReorderPics[i+1] < m_numReorderPics[i])
+    {
+      m_numReorderPics[i+1] = m_numReorderPics[i];
+    }
+    // the value of num_reorder_pics[ i ] shall be in the range of 0 to max_dec_pic_buffering[ i ], inclusive
+    if(m_numReorderPics[i] > m_uiMaxDecPicBuffering[i])
+    {
+      m_uiMaxDecPicBuffering[i] = m_numReorderPics[i];
+    }
+    // a lower layer can not have higher value of m_uiMaxDecPicBuffering than a higher layer
+    if(m_uiMaxDecPicBuffering[i+1] < m_uiMaxDecPicBuffering[i])
+    {
+      m_uiMaxDecPicBuffering[i+1] = m_uiMaxDecPicBuffering[i];
+    }
+  }
+  // the value of num_reorder_pics[ i ] shall be in the range of 0 to max_dec_pic_buffering[ i ], inclusive
+  if(m_numReorderPics[MAX_TLAYER-1] > m_uiMaxDecPicBuffering[MAX_TLAYER-1])
+  {
+    m_uiMaxDecPicBuffering[MAX_TLAYER-1] = m_numReorderPics[MAX_TLAYER-1];
+  }
+#endif
+
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   xConfirmPara( m_bUseLComb==false && m_numReorderPics!=0, "ListCombination can only be 0 in low delay coding (more precisely when L0 and L1 are identical)" );  // Note however this is not the full necessary condition as ref_pic_list_combination_flag can only be 0 if L0 == L1.
-  xConfirmPara( m_numReorderPics < numReorderPicsRequired, "For the used GOP the encoder requires more pictures for reordering than specified in MaxNumberOfReorderPictures" );
 #else
   xConfirmPara( m_bUseLComb==false && m_numReorderFrames!=0, "ListCombination can only be 0 in low delay coding (more precisely when L0 and L1 are identical)" );  // Note however this is not the full necessary condition as ref_pic_list_combination_flag can only be 0 if L0 == L1.
   xConfirmPara( m_numReorderFrames < numReorderFramesRequired, "For the used GOP the encoder requires more pictures for reordering than specified in MaxNumberOfReorderPictures" );
