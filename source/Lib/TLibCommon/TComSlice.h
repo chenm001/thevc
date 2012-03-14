@@ -182,10 +182,6 @@ private:
   Bool        m_bALFCoefInSlice;
 #endif
   Bool        m_bUsePAD;
-#if LOSSLESS_CODING
-  Bool        m_useLossless;
-#endif
-
   Bool        m_bUseLMChroma; // JL:
 
   Bool        m_bUseLComb;
@@ -204,6 +200,10 @@ private:
 #if H0736_AVC_STYLE_QP_RANGE
   Int         m_qpBDOffsetY;
   Int         m_qpBDOffsetC;
+#endif
+
+#if LOSSLESS_CODING
+  Bool        m_useLossless;
 #endif
 
   UInt        m_uiPCMBitDepthLuma;
