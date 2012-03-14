@@ -40,6 +40,11 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define LOSSLESS_CODING                   1  ///< H0530: lossless and lossy (mixed) coding
+#if LOSSLESS_CODING
+#define SEQUENCE_LEVEL_LOSSLESS           0  ///< H0530: used only for sequence or frame-level lossless coding
+#endif
+
 #define PARALLEL_MERGE  1                   //< H0082 parallel merge/skip      
 #define LOG2_PARALLEL_MERGE_LEVEL_MINUS2 0  //< H0082 parallel merge level 0-> 4x4, 1-> 8x8, 2->16x16, 3->32x32, 4->64x64
 #if PARALLEL_MERGE && LOG2_PARALLEL_MERGE_LEVEL_MINUS2

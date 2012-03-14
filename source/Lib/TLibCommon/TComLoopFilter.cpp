@@ -782,6 +782,11 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
           bPartPNoFilter = (pcCUP->getIPCMFlag(uiPartPIdx));
           bPartQNoFilter = (pcCUQ->getIPCMFlag(uiPartQIdx));
         }
+#if LOSSLESS_CODING
+        // check if each of PUs is lossless coded
+        bPartPNoFilter = bPartPNoFilter || (pcCU->isLosslessCoded(uiAbsZorderIdx) );
+        bPartQNoFilter = bPartQNoFilter || (pcCU->isLosslessCoded(uiAbsZorderIdx) );
+#endif 
 #if !DBL_H0473_PART_1          
         if (d0+d3 < iBeta)
         {
@@ -937,6 +942,11 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
         bPartQNoFilter = (pcCUQ->getIPCMFlag(uiPartQIdx));
       }
       
+#if LOSSLESS_CODING
+      // check if each of PUs is lossless coded
+      bPartPNoFilter = bPartPNoFilter || (pcCU->isLosslessCoded(uiAbsZorderIdx) );
+      bPartQNoFilter = bPartQNoFilter || (pcCU->isLosslessCoded(uiAbsZorderIdx) );
+#endif
       for ( UInt uiStep = 0; uiStep < uiPelsInPartChroma; uiStep++ )
       {
         xPelFilterChroma( piTmpSrcCb + iSrcStep*(uiStep+iIdx*uiPelsInPartChroma), iOffset, iTc , bPartPNoFilter, bPartQNoFilter);

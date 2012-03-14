@@ -1833,6 +1833,21 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
                                 TextType    eTType, 
                                 UInt        uiAbsPartIdx )
 {
+#if LOSSLESS_CODING
+  if((m_cQP.qp() == 0) && (pcCU->getSlice()->getSPS()->getUseLossless()))
+  {
+    uiAbsSum=0;
+    for (UInt k = 0; k<uiHeight; k++)
+    {
+      for (UInt j = 0; j<uiWidth; j++)
+      {
+        rpcCoeff[k*uiWidth+j]= pcResidual[k*uiStride+j];
+        uiAbsSum += abs(pcResidual[k*uiStride+j]);
+      }
+    }
+    return;
+  }
+#endif
   UInt uiMode;  //luma intra pred
   if(eTType == TEXT_LUMA && pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
   {
@@ -1854,9 +1869,25 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
        uiWidth, uiHeight, uiAbsSum, eTType, uiAbsPartIdx );
 }
 
-
-Void TComTrQuant::invtransformNxN( TextType eText,UInt uiMode, Pel*& rpcResidual, UInt uiStride, TCoeff* pcCoeff, UInt uiWidth, UInt uiHeight, Int scalingListType )
+#if LOSSLESS_CODING
+Void TComTrQuant::invtransformNxN( TComDataCU* pcCU, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType)
+#else
+Void TComTrQuant::invtransformNxN(                   TextType eText, UInt uiMode,Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight, Int scalingListType)
+#endif
 {
+#if LOSSLESS_CODING
+  if((m_cQP.qp() == 0) && (pcCU->getSlice()->getSPS()->getUseLossless()))
+  {
+    for (UInt k = 0; k<uiHeight; k++)
+    {
+      for (UInt j = 0; j<uiWidth; j++)
+      {
+        rpcResidual[k*uiStride+j] = pcCoeff[k*uiWidth+j];
+      }
+    } 
+    return;
+  }
+#endif
   xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight, scalingListType);
   xIT( uiMode, m_plTempCoeff, rpcResidual, uiStride, uiWidth, uiHeight );
 }
@@ -1907,7 +1938,11 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
     }
     Int scalingListType = (pcCU->isIntra(uiAbsPartIdx) ? 0 : 3) + g_eTTable[(Int)eTxt];
     assert(scalingListType < 6);
-    invtransformNxN( eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, scalingListType );
+#if LOSSLESS_CODING
+    invtransformNxN( pcCU, eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, scalingListType );
+#else  
+    invtransformNxN(       eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, scalingListType );
+#endif
   }
   else
   {

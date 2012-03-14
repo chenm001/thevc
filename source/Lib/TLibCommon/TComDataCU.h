@@ -339,6 +339,9 @@ public:
   UChar         getLastCodedQP        ( UInt uiAbsPartIdx );
 #endif
 
+#if LOSSLESS_CODING
+  Bool          isLosslessCoded(UInt uiAbsPartIdx);
+#endif
 #if NSQT_LFFIX
   UChar*        getNSQTPartIdx        ()                        { return m_nsqtPartIdx;        }
   UChar         getNSQTPartIdx        ( UInt idx )              { return m_nsqtPartIdx[idx];   }

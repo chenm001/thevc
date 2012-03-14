@@ -1343,6 +1343,9 @@ TComSPS::TComSPS()
 , m_qpBDOffsetY               (  0)
 , m_qpBDOffsetC               (  0)
 #endif
+#if LOSSLESS_CODING
+, m_useLossless               (false)
+#endif
 , m_uiPCMBitDepthLuma         (  8)
 , m_uiPCMBitDepthChroma       (  8)
 , m_bPCMFilterDisableFlag     (false)

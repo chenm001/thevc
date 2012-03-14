@@ -3773,7 +3773,11 @@ Void TComAdaptiveLoopFilter::xPCMRestoration(TComPic* pcPic)
 {
   Bool  bPCMFilter = (pcPic->getSlice(0)->getSPS()->getUsePCM() && pcPic->getSlice(0)->getSPS()->getPCMFilterDisableFlag())? true : false;
 
+#if LOSSLESS_CODING
+  if(bPCMFilter || pcPic->getSlice(0)->getSPS()->getUseLossless())
+#else
   if(bPCMFilter)
+#endif
   {
     for( UInt uiCUAddr = 0; uiCUAddr < pcPic->getNumCUsInFrame() ; uiCUAddr++ )
     {
@@ -3810,7 +3814,11 @@ Void TComAdaptiveLoopFilter::xPCMCURestoration ( TComDataCU* pcCU, UInt uiAbsZor
   }
 
   // restore PCM samples
+#if LOSSLESS_CODING 
+  if ((pcCU->getIPCMFlag(uiAbsZorderIdx)) || pcCU->isLosslessCoded( uiAbsZorderIdx))
+#else
   if (pcCU->getIPCMFlag(uiAbsZorderIdx))
+#endif
   {
     xPCMSampleRestoration (pcCU, uiAbsZorderIdx, uiDepth, TEXT_LUMA    );
     xPCMSampleRestoration (pcCU, uiAbsZorderIdx, uiDepth, TEXT_CHROMA_U);
@@ -3846,7 +3854,16 @@ Void TComAdaptiveLoopFilter::xPCMSampleRestoration (TComDataCU* pcCU, UInt uiAbs
     uiStride  = pcPicYuvRec->getStride();
     uiWidth  = (g_uiMaxCUWidth >> uiDepth);
     uiHeight = (g_uiMaxCUHeight >> uiDepth);
-    uiPcmLeftShiftBit = g_uiBitDepth + g_uiBitIncrement - pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
+#if LOSSLESS_CODING 
+    if ( pcCU->isLosslessCoded(uiAbsZorderIdx) )
+    {
+      uiPcmLeftShiftBit = 0;
+    }
+    else
+#endif
+    {
+        uiPcmLeftShiftBit = g_uiBitDepth + g_uiBitIncrement - pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
+    }
   }
   else
   {
@@ -3864,7 +3881,16 @@ Void TComAdaptiveLoopFilter::xPCMSampleRestoration (TComDataCU* pcCU, UInt uiAbs
     uiStride = pcPicYuvRec->getCStride();
     uiWidth  = ((g_uiMaxCUWidth >> uiDepth)/2);
     uiHeight = ((g_uiMaxCUWidth >> uiDepth)/2);
-    uiPcmLeftShiftBit = g_uiBitDepth + g_uiBitIncrement - pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
+#if LOSSLESS_CODING 
+    if ( pcCU->isLosslessCoded(uiAbsZorderIdx) )
+    {
+      uiPcmLeftShiftBit = 0;
+    }
+    else
+#endif
+    {
+      uiPcmLeftShiftBit = g_uiBitDepth + g_uiBitIncrement - pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
+    }
   }
 
   for( uiY = 0; uiY < uiHeight; uiY++ )

@@ -1842,6 +1842,27 @@ UChar TComDataCU::getLastCodedQP( UInt uiAbsPartIdx )
     }
   }
 }
+#if LOSSLESS_CODING
+/** Check whether the CU is coded in lossless coding mode
+ * \param   uiAbsPartIdx
+ * \returns true if the CU is coded in lossless coding mode; false if otherwise 
+ */
+Bool TComDataCU::isLosslessCoded(UInt uiAbsPartIdx)
+{
+#if H0736_AVC_STYLE_QP_RANGE
+  if( getSlice()->getSPS()->getUseLossless() && ((getQP(uiAbsPartIdx) + getSlice()->getSPS()->getQpBDOffsetY()) == 0) )
+#else
+  if( getSlice()->getSPS()->getUseLossless() && (getQP(uiAbsPartPIdx)  == 0) )
+#endif
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+#endif
 
 /** Get allowed chroma intra modes
 *\param   uiAbsPartIdx

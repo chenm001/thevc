@@ -182,6 +182,9 @@ private:
   Bool        m_bALFCoefInSlice;
 #endif
   Bool        m_bUsePAD;
+#if LOSSLESS_CODING
+  Bool        m_useLossless;
+#endif
 
   Bool        m_bUseLMChroma; // JL:
 
@@ -330,6 +333,10 @@ public:
   Bool getUseLMChroma ()         { return m_bUseLMChroma;        }
   Void setUseLMChroma ( Bool b ) { m_bUseLMChroma  = b;          }
 
+#if LOSSLESS_CODING
+  Bool getUseLossless ()         { return m_useLossless; }
+  Void setUseLossless ( Bool b ) { m_useLossless  = b; }
+#endif
   Bool getUseNSQT() { return m_useNSQT; }
   Void setUseNSQT( Bool b ) { m_useNSQT = b; }
   
