@@ -1752,7 +1752,13 @@ Void TEncCu::xCopyYuv2Tmp( UInt uiPartUnitIdx, UInt uiNextDepth )
   UInt uiCurrDepth = uiNextDepth - 1;
   m_ppcRecoYuvBest[uiNextDepth]->copyToPartYuv( m_ppcRecoYuvTemp[uiCurrDepth], uiPartUnitIdx );
 }
+
 #if LOSSLESS_CODING 
+/** Function for filling the PCM buffer of a CU using its original sample array 
+ * \param pcCU pointer to current CU
+ * \param pcOrgYuv pointer to original sample array
+ * \returns Void
+ */
 Void TEncCu::xFillPCMBuffer     ( TComDataCU*& pcCU, TComYuv* pcOrgYuv )
 {
 

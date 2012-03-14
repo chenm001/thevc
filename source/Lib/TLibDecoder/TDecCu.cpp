@@ -940,7 +940,14 @@ Void TDecCu::xReconPCM( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   xDecodePCMTexture( pcCU, 0, piPcmCb, pRecoCb, uiCStride, uiCWidth, uiCHeight, TEXT_CHROMA_U);
   xDecodePCMTexture( pcCU, 0, piPcmCr, pRecoCr, uiCStride, uiCWidth, uiCHeight, TEXT_CHROMA_V);
 }
+
 #if LOSSLESS_CODING 
+/** Function for filling the PCM buffer of a CU using its reconstructed sample array 
+ * \param pcCU pointer to current CU
+ * \param uiAbsPartIdx CU index
+ * \param uiDepth CU Depth
+ * \returns Void
+ */
 Void TDecCu::xFillPCMBuffer(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth)
 {
   // Luma
