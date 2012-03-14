@@ -126,6 +126,17 @@ void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
   nalu.m_RefIDC = (NalRefIdc) bs.read(2);
   nalu.m_UnitType = (NalUnitType) bs.read(5);
 
+#if H0388
+  nalu.m_TemporalID = bs.read(3);
+  unsigned reserved_one_5bits = bs.read(5);
+  assert(reserved_one_5bits == 1);
+#if H0566_TLA
+  if ( nalu.m_TemporalID )
+  {
+    assert(nalu.m_UnitType != NAL_UNIT_CODED_SLICE_CRA && nalu.m_UnitType != NAL_UNIT_CODED_SLICE_IDR);
+  }
+#endif
+#else
   switch (nalu.m_UnitType)
   {
   case NAL_UNIT_CODED_SLICE:
@@ -158,5 +169,6 @@ void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
     nalu.m_OutputFlag = true;
     break;
   }
+#endif
 }
 //! \}

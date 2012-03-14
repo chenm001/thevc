@@ -308,7 +308,9 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 
   WRITE_FLAG( pcPPS->getUseWP() ? 1 : 0,  "weighted_pred_flag" );   // Use of Weighting Prediction (P_SLICE)
   WRITE_CODE( pcPPS->getWPBiPredIdc(), 2, "weighted_bipred_idc" );  // Use of Weighting Bi-Prediction (B_SLICE)
-
+#if H0388
+  WRITE_FLAG( pcPPS->getOutputFlagPresentFlag() ? 1 : 0,  "output_flag_present_flag" );
+#endif
   WRITE_FLAG( pcPPS->getColumnRowInfoPresent(),           "tile_info_present_flag" );
   WRITE_FLAG( pcPPS->getTileBehaviorControlPresentFlag(),  "tile_control_present_flag");
   if( pcPPS->getColumnRowInfoPresent() == 1 )
@@ -573,6 +575,12 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   if (!bEntropySlice)
   {
     WRITE_UVLC( pcSlice->getPPS()->getPPSId(), "pic_parameter_set_id" );
+#if H0388
+    if( pcSlice->getPPS()->getOutputFlagPresentFlag() )
+    {
+      WRITE_FLAG( pcSlice->getPicOutputFlag() ? 1 : 0, "pic_output_flag" );
+    }
+#endif
     if(pcSlice->getNalUnitType()==NAL_UNIT_CODED_SLICE_IDR) 
     {
       WRITE_UVLC( 0, "idr_pic_id" );

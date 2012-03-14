@@ -53,6 +53,15 @@ struct OutputNALUnit : public NALUnit
    * storage for a bitstream.  Upon construction the NALunit header is
    * written to the bitstream.
    */
+#if H0388
+  OutputNALUnit(
+    NalUnitType nalUnitType,
+    NalRefIdc nalRefIDC,
+    unsigned temporalID = 0)
+  : NALUnit(nalUnitType, nalRefIDC, temporalID)
+  , m_Bitstream()
+  {}
+#else
   OutputNALUnit(
     NalUnitType nalUnitType,
     NalRefIdc nalRefIDC,
@@ -61,6 +70,7 @@ struct OutputNALUnit : public NALUnit
   : NALUnit(nalUnitType, nalRefIDC, temporalID, outputFlag)
   , m_Bitstream()
   {}
+#endif
 
   OutputNALUnit& operator=(const NALUnit& src)
   {

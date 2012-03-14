@@ -57,7 +57,10 @@ void write(ostream& out, OutputNALUnit& nalu)
   bsNALUHeader.write(0,1); // forbidden_zero_flag
   bsNALUHeader.write(nalu.m_RefIDC, 2); // nal_ref_idc
   bsNALUHeader.write(nalu.m_UnitType, 5); // nal_unit_type
-
+#if H0388
+  bsNALUHeader.write(nalu.m_TemporalID, 3); // temporal_id
+  bsNALUHeader.write(1, 5); // reserved_one_5bits
+#else
   switch (nalu.m_UnitType)
   {
   case NAL_UNIT_CODED_SLICE:
@@ -74,7 +77,7 @@ void write(ostream& out, OutputNALUnit& nalu)
     break;
   default: break;
   }
-
+#endif
   out.write(bsNALUHeader.getByteStream(), bsNALUHeader.getByteStreamLength());
 
   /* write out rsbp_byte's, inserting any required
@@ -183,7 +186,9 @@ void copyNaluData(OutputNALUnit& naluDest, const OutputNALUnit& naluSrc)
   naluDest.m_UnitType   = naluSrc.m_UnitType;
   naluDest.m_RefIDC     = naluSrc.m_RefIDC;
   naluDest.m_TemporalID = naluSrc.m_TemporalID;
+#if !H0388
   naluDest.m_OutputFlag = naluSrc.m_OutputFlag;
+#endif
   naluDest.m_Bitstream  = naluSrc.m_Bitstream;
 }
 
