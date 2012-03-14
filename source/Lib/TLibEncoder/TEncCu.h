@@ -171,6 +171,9 @@ protected:
 #endif
 #endif
 
+#if LOSSLESS_CODING 
+  Void  xFillPCMBuffer     ( TComDataCU*& pcCU, TComYuv* pcOrgYuv ); 
+#endif
 };
 
 //! \}

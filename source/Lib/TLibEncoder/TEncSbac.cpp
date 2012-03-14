@@ -880,6 +880,20 @@ Void TEncSbac::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
 #if H0736_AVC_STYLE_QP_RANGE
   Int qpBdOffsetY =  pcCU->getSlice()->getSPS()->getQpBDOffsetY();
   iDQp = (iDQp + 78 + qpBdOffsetY + (qpBdOffsetY/2)) % (52 + qpBdOffsetY) - 26 - (qpBdOffsetY/2);
+#else
+#if LOSSLESS_CODING
+  if(pcCU->getSlice()->getSPS()->getUseLossless())
+  {
+    if(iDQp > 25)
+    {
+      iDQp = iDQp - 52;
+    }
+    if(iDQp < -26)
+    {
+      iDQp = iDQp + 52;
+    }
+  }
+#endif
 #endif
 
   if ( iDQp == 0 )
@@ -1253,7 +1267,19 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   
 #if MULTIBITS_DATA_HIDING
   UInt const tsig = pcCU->getSlice()->getPPS()->getTSIG();
+#if LOSSLESS_CODING
+  Bool beValid; 
+  if (pcCU->isLosslessCoded(uiAbsPartIdx))
+  {
+    beValid = false;
+  }
+  else 
+  {
+    beValid = pcCU->getSlice()->getPPS()->getSignHideFlag() > 0;
+  }
+#else
   Bool beValid = pcCU->getSlice()->getPPS()->getSignHideFlag() > 0;
+#endif
 #endif
 
   // Find position of last coefficient

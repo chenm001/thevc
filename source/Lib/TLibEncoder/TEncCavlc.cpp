@@ -455,6 +455,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 
   WRITE_FLAG( pcSPS->getTemporalIdNestingFlag() ? 1 : 0,                             "temporal_id_nesting_flag" );
 
+#if LOSSLESS_CODING
+  WRITE_FLAG( (pcSPS->getUseLossless ()) ? 1 : 0,                                    "qpprime_y_zero_transquant_bypass_flag" );
+#endif
 #if RPS_IN_SPS
   TComRPS* pcRPSList = pcSPS->getRPSList();
   TComReferencePictureSet*      pcRPS;

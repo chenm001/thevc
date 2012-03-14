@@ -230,7 +230,16 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   dQP = m_pcCfg->getQP();
   if(eSliceType!=I_SLICE)
   {
-    dQP += m_pcCfg->getGOPEntry(iGOPid).m_iQPOffset;
+#if LOSSLESS_CODING
+#if H0736_AVC_STYLE_QP_RANGE
+    if (!(( m_pcCfg->getMaxDeltaQP() == 0 ) && (dQP == -rpcSlice->getSPS()->getQpBDOffsetY() ) && (rpcSlice->getSPS()->getUseLossless()))) 
+#else
+    if (!(( m_pcCfg->getMaxDeltaQP() == 0 ) && (dQP == 0 ) && (rpcSlice->getSPS()->getUseLossless())))
+#endif
+#endif
+    {
+      dQP += m_pcCfg->getGOPEntry(iGOPid).m_iQPOffset;
+    }
   }
   
   // modify QP

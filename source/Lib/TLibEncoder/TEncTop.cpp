@@ -494,6 +494,9 @@ Void TEncTop::xInitSPS()
   m_cSPS.setQuadtreeTUMaxDepthInter( m_uiQuadtreeTUMaxDepthInter    );
   m_cSPS.setQuadtreeTUMaxDepthIntra( m_uiQuadtreeTUMaxDepthIntra    );
   
+#if LOSSLESS_CODING
+  m_cSPS.setUseLossless   ( m_useLossless  );
+#endif
   m_cSPS.setUsePAD        ( m_bUsePAD           );
 
   m_cSPS.setUseLMChroma   ( m_bUseLMChroma           );  
@@ -625,6 +628,36 @@ Void TEncTop::xInitPPS()
 #endif
   Bool bUseDQP = (getMaxCuDQPDepth() > 0)? true : false;
 
+#if LOSSLESS_CODING
+#if H0736_AVC_STYLE_QP_RANGE
+  Int lowestQP = - m_cSPS.getQpBDOffsetY();
+#else
+  Int lowestQP = 0;
+#endif
+
+  if(getUseLossless())
+  {
+    if ((getMaxCuDQPDepth() == 0) && (getMaxDeltaQP() == 0 ) && (getQP() == lowestQP) )
+    {
+      bUseDQP = false;
+    }
+    else
+    {
+      bUseDQP = true;
+    }
+  }
+  else
+  {
+    if(bUseDQP == false)
+    {
+      if((getMaxDeltaQP() != 0 )|| getUseAdaptiveQP())
+      {
+        bUseDQP = true;
+      }
+    }
+  }
+
+#else
   if(bUseDQP == false)
   {
     if((getMaxDeltaQP() != 0 )|| getUseAdaptiveQP())
@@ -632,6 +665,7 @@ Void TEncTop::xInitPPS()
       bUseDQP = true;
     }
   }
+#endif
 
   if(bUseDQP)
   {
