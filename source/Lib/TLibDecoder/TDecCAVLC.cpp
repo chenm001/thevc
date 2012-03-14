@@ -1405,6 +1405,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 
   READ_FLAG( uiCode, "temporal_id_nesting_flag" );               pcSPS->setTemporalIdNestingFlag ( uiCode > 0 ? true : false );
 
+#if LOSSLESS_CODING
+  READ_FLAG( uiCode, "qpprime_y_zero_transquant_bypass_flag" );    pcSPS->setUseLossless ( uiCode ? true : false );
+#endif
 #if RPS_IN_SPS
   TComRPS* pcRPSList = pcSPS->getRPSList();
   TComReferencePictureSet*      pcRPS;

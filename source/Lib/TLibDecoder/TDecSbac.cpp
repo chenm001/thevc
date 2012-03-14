@@ -1023,7 +1023,11 @@ Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 #if H0736_AVC_STYLE_QP_RANGE
     qp = (((Int) pcCU->getRefQP( uiAbsPartIdx ) + iDQp + 52 + 2*qpBdOffsetY )%(52+qpBdOffsetY)) - qpBdOffsetY;
 #else
+#if LOSSLESS_CODING
+    uiDQp = (pcCU->getRefQP(uiAbsPartIdx) + iDQp + 52) % 52;
+#else
     uiDQp = pcCU->getRefQP(uiAbsPartIdx) + iDQp;
+#endif
 #endif
   }
   
@@ -1242,7 +1246,19 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 
 #if MULTIBITS_DATA_HIDING
   UInt const tsig = pcCU->getSlice()->getPPS()->getTSIG();
+#if LOSSLESS_CODING
+  Bool beValid; 
+  if (pcCU->isLosslessCoded(uiAbsPartIdx))
+  {
+    beValid = false;
+  }
+  else 
+  {
+    beValid = pcCU->getSlice()->getPPS()->getSignHideFlag() > 0;
+  }
+#else
   Bool beValid = pcCU->getSlice()->getPPS()->getSignHideFlag() > 0;
+#endif
   UInt absSum = 0;
 #endif  // MULTIBITS_DATA_HIDING
 

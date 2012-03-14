@@ -454,6 +454,12 @@ Void TDecCu::xDecompressCU( TComDataCU* pcCU, TComDataCU* pcCUCur, UInt uiAbsPar
       assert(0);
       break;
   }
+#if LOSSLESS_CODING 
+  if ( m_ppcCU[uiDepth]->isLosslessCoded(0) && (m_ppcCU[uiDepth]->getIPCMFlag(0) == false))
+  {
+    xFillPCMBuffer(m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth);    
+  }
+#endif
   
   xCopyToPic( m_ppcCU[uiDepth], pcPic, uiAbsPartIdx, uiDepth );
 }
@@ -524,7 +530,11 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
 
   Int scalingListType = (pcCU->isIntra(uiAbsPartIdx) ? 0 : 3) + g_eTTable[(Int)TEXT_LUMA];
   assert(scalingListType < 6);
-  m_pcTrQuant->invtransformNxN( TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
+#if LOSSLESS_CODING
+  m_pcTrQuant->invtransformNxN( pcCU, TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
+#else  
+  m_pcTrQuant->invtransformNxN(       TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
+#endif
 
   
   //===== reconstruction =====
@@ -646,7 +656,11 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
 
   Int scalingListType = (pcCU->isIntra(uiAbsPartIdx) ? 0 : 3) + g_eTTable[(Int)eText];
   assert(scalingListType < 6);
-  m_pcTrQuant->invtransformNxN( eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
+#if LOSSLESS_CODING
+  m_pcTrQuant->invtransformNxN( pcCU, eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
+#else  
+  m_pcTrQuant->invtransformNxN(       eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
+#endif
 
   //===== reconstruction =====
   Pel* pPred      = piPred;
@@ -926,5 +940,53 @@ Void TDecCu::xReconPCM( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   xDecodePCMTexture( pcCU, 0, piPcmCb, pRecoCb, uiCStride, uiCWidth, uiCHeight, TEXT_CHROMA_U);
   xDecodePCMTexture( pcCU, 0, piPcmCr, pRecoCr, uiCStride, uiCWidth, uiCHeight, TEXT_CHROMA_V);
 }
+#if LOSSLESS_CODING 
+Void TDecCu::xFillPCMBuffer(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth)
+{
+  // Luma
+  UInt width  = (g_uiMaxCUWidth >> uiDepth);
+  UInt height = (g_uiMaxCUHeight >> uiDepth);
+
+  Pel* piPcmY = pcCU->getPCMSampleY();
+  Pel* piRecoY = m_ppcYuvReco[uiDepth]->getLumaAddr(0, width);
+
+  UInt stride = m_ppcYuvReco[uiDepth]->getStride();
+
+  for(int y = 0; y < height; y++ )
+  {
+    for(int x = 0; x < width; x++ )
+    {
+      piPcmY[x] = piRecoY[x];
+    }
+    piPcmY += width;
+    piRecoY += stride;
+  }
+
+  // Cb and Cr
+  UInt widthC  = (width>>1);
+  UInt heightC = (height>>1);
+
+  Pel* piPcmCb = pcCU->getPCMSampleCb();
+  Pel* piPcmCr = pcCU->getPCMSampleCr();
+  Pel* piRecoCb = m_ppcYuvReco[uiDepth]->getCbAddr();
+  Pel* piRecoCr = m_ppcYuvReco[uiDepth]->getCrAddr();
+
+  UInt strideC = m_ppcYuvReco[uiDepth]->getCStride();
+
+  for(int y = 0; y < heightC; y++ )
+  {
+    for(int x = 0; x < widthC; x++ )
+    {
+      piPcmCb[x] = piRecoCb[x];
+      piPcmCr[x] = piRecoCr[x];
+    }
+    piPcmCr += widthC;
+    piPcmCb += widthC;
+    piRecoCb += strideC;
+    piRecoCr += strideC;
+  }
+
+}
+#endif
 
 //! \}
