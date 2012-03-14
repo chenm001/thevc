@@ -277,6 +277,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 
     ("PCMInputBitDepthFlag", m_bPCMInputBitDepthFlag, true)
     ("PCMFilterDisableFlag", m_bPCMFilterDisableFlag, false)
+#if LOSSLESS_CODING
+    ("LosslessCuEnabled", m_useLossless, false)
+#endif
     ("weighted_pred_flag,-wpP",     m_bUseWeightPred, false, "weighted prediction flag (P-Slices)")
     ("weighted_bipred_idc,-wpBidc", m_uiBiPredIdc,    0u,    "weighted bipred idc (B-Slices)")
     ("TileInfoPresentFlag",         m_iColumnRowInfoPresent,         1,          "0: tiles parameters are NOT present in the PPS. 1: tiles parameters are present in the PPS")
@@ -914,7 +917,9 @@ Void TAppEncCfg::xPrintParameter()
 #if SAO_UNIT_INTERLEAVING
   printf("SAOInterleaving:%d ", (m_saoInterleavingFlag)?(1):(0));
 #endif
-  
+#if LOSSLESS_CODING
+  printf("LosslessCuEnabled:%d ", (m_useLossless)? 1:0 );
+#endif  
   printf("WPP:%d ", (Int)m_bUseWeightPred);
   printf("WPB:%d ", m_uiBiPredIdc);
   printf("TileBoundaryIndependence:%d ", m_iTileBoundaryIndependenceIdr ); 

@@ -133,6 +133,10 @@ protected:
   Bool      m_bPCMInputBitDepthFlag;                          ///< 0: PCM bit-depth is internal bit-depth. 1: PCM bit-depth is input bit-depth.
   UInt      m_uiPCMBitDepthLuma;                              ///< PCM bit-depth for luma
 
+  // coding tool (lossless)
+#if LOSSLESS_CODING
+  Bool      m_useLossless;                                    ///< flag for using lossless coding
+#endif
   Bool      m_bUseSAO; 
 #if SAO_UNIT_INTERLEAVING
   Int       m_maxNumOffsetsPerPic;                            ///< SAO maximun number of offset per picture
