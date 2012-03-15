@@ -544,8 +544,8 @@ Void TAppEncCfg::xCheckParameter()
 #if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   Int numReorderFramesRequired=0;
   m_uiMaxNumberOfReferencePictures=0;
-#endif
   Int iLastDisp = -1;
+#endif
   m_iExtraRPSs=0;
   while(!bVerified_GOP&&!bError_GOP) 
   {
