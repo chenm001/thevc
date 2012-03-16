@@ -186,57 +186,55 @@ Void TEncCavlc::codeDFSvlc(Int iCode, const Char *pSymbolName)
 }
 
 #if RPS_IN_SPS
-Void TEncCavlc::codeShortTermRefPicSet( TComSPS* pcSPS, TComReferencePictureSet* pcRPS )
+Void TEncCavlc::codeShortTermRefPicSet( TComSPS* pcSPS, TComReferencePictureSet* rps )
 #else
-Void TEncCavlc::codeShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet* pcRPS )
+Void TEncCavlc::codeShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet* rps )
 #endif
 {
 #if PRINT_RPS_INFO
   int lastBits = getNumberOfWrittenBits();
 #endif
-  WRITE_FLAG( pcRPS->getInterRPSPrediction(), "inter_ref_pic_set_prediction_flag" ); // inter_RPS_prediction_flag
-  if (pcRPS->getInterRPSPrediction()) 
+  WRITE_FLAG( rps->getInterRPSPrediction(), "inter_ref_pic_set_prediction_flag" ); // inter_RPS_prediction_flag
+  if (rps->getInterRPSPrediction()) 
   {
-    //Int rIdx = i - pcRPS->getDeltaRIdxMinus1() - 1;
-    Int deltaRPS = pcRPS->getDeltaRPS();
-    //assert (rIdx <= i);
-    WRITE_UVLC( pcRPS->getDeltaRIdxMinus1(), "delta_idx_minus1" ); // delta index of the Reference Picture Set used for prediction minus 1
+    Int deltaRPS = rps->getDeltaRPS();
+    WRITE_UVLC( rps->getDeltaRIdxMinus1(), "delta_idx_minus1" ); // delta index of the Reference Picture Set used for prediction minus 1
     WRITE_CODE( (deltaRPS >=0 ? 0: 1), 1, "delta_rps_sign" ); //delta_rps_sign
     WRITE_UVLC( abs(deltaRPS) - 1, "abs_delta_rps_minus1"); // absolute delta RPS minus 1
 
-    for(Int j=0; j < pcRPS->getNumRefIdc(); j++)
+    for(Int j=0; j < rps->getNumRefIdc(); j++)
     {
-      Int refIdc = pcRPS->getRefIdc(j);
-      WRITE_CODE( (refIdc==1? 1: 0), 1, "ref_idc0" ); //first bit is "1" if Idc is 1 
+      Int refIdc = rps->getRefIdc(j);
+      WRITE_CODE( (refIdc==1? 1: 0), 1, "used_by_curr_pic_flag" ); //first bit is "1" if Idc is 1 
       if (refIdc != 1) 
       {
-        WRITE_CODE( refIdc>>1, 1, "ref_idc1" ); //second bit is "1" if Idc is 2, "0" otherwise.
+        WRITE_CODE( refIdc>>1, 1, "use_delta_flag" ); //second bit is "1" if Idc is 2, "0" otherwise.
       }
     }
   }
   else
   {
-    WRITE_UVLC( pcRPS->getNumberOfNegativePictures(), "num_negative_pics" );
-    WRITE_UVLC( pcRPS->getNumberOfPositivePictures(), "num_positive_pics" );
+    WRITE_UVLC( rps->getNumberOfNegativePictures(), "num_negative_pics" );
+    WRITE_UVLC( rps->getNumberOfPositivePictures(), "num_positive_pics" );
     Int prev = 0;
-    for(Int j=0 ; j < pcRPS->getNumberOfNegativePictures(); j++)
+    for(Int j=0 ; j < rps->getNumberOfNegativePictures(); j++)
     {
-      WRITE_UVLC( prev-pcRPS->getDeltaPOC(j)-1, "delta_poc_s0_minus1" );
-      prev = pcRPS->getDeltaPOC(j);
-      WRITE_FLAG( pcRPS->getUsed(j), "used_by_curr_pic_s0_flag"); 
+      WRITE_UVLC( prev-rps->getDeltaPOC(j)-1, "delta_poc_s0_minus1" );
+      prev = rps->getDeltaPOC(j);
+      WRITE_FLAG( rps->getUsed(j), "used_by_curr_pic_s0_flag"); 
     }
     prev = 0;
-    for(Int j=pcRPS->getNumberOfNegativePictures(); j < pcRPS->getNumberOfNegativePictures()+pcRPS->getNumberOfPositivePictures(); j++)
+    for(Int j=rps->getNumberOfNegativePictures(); j < rps->getNumberOfNegativePictures()+rps->getNumberOfPositivePictures(); j++)
     {
-      WRITE_UVLC( pcRPS->getDeltaPOC(j)-prev-1, "delta_poc_s1_minus1" );
-      prev = pcRPS->getDeltaPOC(j);
-      WRITE_FLAG( pcRPS->getUsed(j), "used_by_curr_pic_s1_flag" ); 
+      WRITE_UVLC( rps->getDeltaPOC(j)-prev-1, "delta_poc_s1_minus1" );
+      prev = rps->getDeltaPOC(j);
+      WRITE_FLAG( rps->getUsed(j), "used_by_curr_pic_s1_flag" ); 
     }
   }
 
 #if PRINT_RPS_INFO
-  printf("irps=%d (%2d bits) ", pcRPS->getInterRPSPrediction(), getNumberOfWrittenBits() - lastBits);
-  pcRPS->printDeltaPOC();
+  printf("irps=%d (%2d bits) ", rps->getInterRPSPrediction(), getNumberOfWrittenBits() - lastBits);
+  rps->printDeltaPOC();
 #endif
 }
 
@@ -247,7 +245,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   xTracePPSHeader (pcPPS);
 #endif
 #if !RPS_IN_SPS
-   TComRPS* pcRPSList = pcPPS->getRPSList();
+  TComRPSList* rpsList = pcPPS->getRPSList();
 #endif
   
   WRITE_UVLC( pcPPS->getPPSId(),                             "pic_parameter_set_id" );
@@ -266,14 +264,14 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #if !RPS_IN_SPS
   // RPS is put before entropy_coding_mode_flag
   // since entropy_coding_mode_flag will probably be removed from the WD
-  TComReferencePictureSet*      pcRPS;
+  TComReferencePictureSet*      rps;
 
-  WRITE_UVLC(pcRPSList->getNumberOfReferencePictureSets(), "num_short_term_ref_pic_sets" );
-  for(UInt i=0; i < pcRPSList->getNumberOfReferencePictureSets(); i++)
+  WRITE_UVLC(rpsList->getNumberOfReferencePictureSets(), "num_short_term_ref_pic_sets" );
+  for(UInt i=0; i < rpsList->getNumberOfReferencePictureSets(); i++)
   {
-    pcRPS = pcRPSList->getReferencePictureSet(i);
-    codeShortTermRefPicSet(pcPPS,pcRPS);
-  }    
+    rps = rpsList->getReferencePictureSet(i);
+    codeShortTermRefPicSet(pcPPS,rps);
+  }
   WRITE_FLAG( pcPPS->getLongTermRefsPresent() ? 1 : 0,         "long_term_ref_pics_present_flag" );
 #endif
   // entropy_coding_mode_flag
@@ -461,14 +459,14 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_FLAG( (pcSPS->getUseLossless ()) ? 1 : 0,                                    "qpprime_y_zero_transquant_bypass_flag" );
 #endif
 #if RPS_IN_SPS
-  TComRPS* pcRPSList = pcSPS->getRPSList();
-  TComReferencePictureSet*      pcRPS;
+  TComRPSList* rpsList = pcSPS->getRPSList();
+  TComReferencePictureSet*      rps;
 
-  WRITE_UVLC(pcRPSList->getNumberOfReferencePictureSets(), "num_short_term_ref_pic_sets" );
-  for(UInt i=0; i < pcRPSList->getNumberOfReferencePictureSets(); i++)
+  WRITE_UVLC(rpsList->getNumberOfReferencePictureSets(), "num_short_term_ref_pic_sets" );
+  for(Int i=0; i < rpsList->getNumberOfReferencePictureSets(); i++)
   {
-    pcRPS = pcRPSList->getReferencePictureSet(i);
-    codeShortTermRefPicSet(pcSPS,pcRPS);
+    rps = rpsList->getReferencePictureSet(i);
+    codeShortTermRefPicSet(pcSPS,rps);
   }    
   WRITE_FLAG( pcSPS->getLongTermRefsPresent() ? 1 : 0,         "long_term_ref_pics_present_flag" );
 #endif
@@ -603,19 +601,19 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     else
     {
       WRITE_CODE( (pcSlice->getPOC()-pcSlice->getLastIDR()+(1<<pcSlice->getSPS()->getBitsForPOC()))%(1<<pcSlice->getSPS()->getBitsForPOC()), pcSlice->getSPS()->getBitsForPOC(), "pic_order_cnt_lsb");
-      TComReferencePictureSet* pcRPS = pcSlice->getRPS();
+      TComReferencePictureSet* rps = pcSlice->getRPS();
       if(pcSlice->getRPSidx() < 0)
       {
-        WRITE_FLAG( 0, "short_term_ref_pic_set_pps_flag");
+        WRITE_FLAG( 0, "short_term_ref_pic_set_sps_flag");
 #if RPS_IN_SPS
-        codeShortTermRefPicSet(pcSlice->getSPS(), pcRPS);
+        codeShortTermRefPicSet(pcSlice->getSPS(), rps);
 #else
-        codeShortTermRefPicSet(pcSlice->getPPS(), pcRPS);
+        codeShortTermRefPicSet(pcSlice->getPPS(), rps);
 #endif
       }
       else
       {
-        WRITE_FLAG( 1, "short_term_ref_pic_set_pps_flag");
+        WRITE_FLAG( 1, "short_term_ref_pic_set_sps_flag");
         WRITE_UVLC( pcSlice->getRPSidx(), "short_term_ref_pic_set_idx" );
       }
 #if RPS_IN_SPS
@@ -624,28 +622,28 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       if(pcSlice->getPPS()->getLongTermRefsPresent())
 #endif
       {
-        WRITE_UVLC( pcRPS->getNumberOfLongtermPictures(), "num_long_term_pics");
+        WRITE_UVLC( rps->getNumberOfLongtermPictures(), "num_long_term_pics");
         Int maxPocLsb = 1<<pcSlice->getSPS()->getBitsForPOC();
         Int prev = 0;
 #if LTRP_MULT
         Int prevDeltaPocLt=0;
         Int currDeltaPocLt=0;
 #endif
-        for(Int i=pcRPS->getNumberOfPictures()-1 ; i > pcRPS->getNumberOfPictures()-pcRPS->getNumberOfLongtermPictures()-1; i--)
+        for(Int i=rps->getNumberOfPictures()-1 ; i > rps->getNumberOfPictures()-rps->getNumberOfLongtermPictures()-1; i--)
         {
-          WRITE_UVLC((maxPocLsb-pcRPS->getDeltaPOC(i)+prev)%maxPocLsb, "delta_poc_lsb_lt");
+          WRITE_UVLC((maxPocLsb-rps->getDeltaPOC(i)+prev)%maxPocLsb, "delta_poc_lsb_lt");
           
 #if LTRP_MULT
-          currDeltaPocLt=((maxPocLsb-pcRPS->getDeltaPOC(i)+prev)%maxPocLsb)+prevDeltaPocLt;
+          currDeltaPocLt=((maxPocLsb-rps->getDeltaPOC(i)+prev)%maxPocLsb)+prevDeltaPocLt;
 
           Int deltaMsbCycle=0;
-          if( (i==(pcRPS->getNumberOfPictures()-1)) )
+          if( (i==(rps->getNumberOfPictures()-1)) )
           {
-            deltaMsbCycle=((-pcRPS->getDeltaPOC(i))/maxPocLsb)-1;
+            deltaMsbCycle=((-rps->getDeltaPOC(i))/maxPocLsb)-1;
           }
           else if( prevDeltaPocLt!=currDeltaPocLt )
           {
-            deltaMsbCycle=((-pcRPS->getDeltaPOC(i))/maxPocLsb)-1;
+            deltaMsbCycle=((-rps->getDeltaPOC(i))/maxPocLsb)-1;
             if( ((prevDeltaPocLt==maxPocLsb-1) && (currDeltaPocLt==maxPocLsb+1)) ||  ((prevDeltaPocLt==maxPocLsb-2) && (currDeltaPocLt==maxPocLsb)))
             {
               deltaMsbCycle=deltaMsbCycle-1;
@@ -653,7 +651,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
           }
           else
           {
-            deltaMsbCycle=((pcRPS->getDeltaPOC(i+1)-pcRPS->getDeltaPOC(i))/maxPocLsb)-1;
+            deltaMsbCycle=((rps->getDeltaPOC(i+1)-rps->getDeltaPOC(i))/maxPocLsb)-1;
           }
 
           if(deltaMsbCycle>=0)
@@ -667,8 +665,8 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
           }
           prevDeltaPocLt=currDeltaPocLt;
 #endif
-          prev = pcRPS->getDeltaPOC(i);
-          WRITE_FLAG( pcRPS->getUsed(i), "used_by_curr_pic_lt_flag"); 
+          prev = rps->getDeltaPOC(i);
+          WRITE_FLAG( rps->getUsed(i), "used_by_curr_pic_lt_flag"); 
         }
       }
     }
@@ -728,7 +726,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #if H0137_0138_LIST_MODIFICATION
     if(!pcSlice->isIntra())
     {
-      WRITE_FLAG(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0() ? 1 : 0,       "ref_pic_list_modification_flag" );
+      WRITE_FLAG(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0() ? 1 : 0,       "ref_pic_list_modification_flag_l0" );
       if (pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0())
       {
         Int numRpsCurrTempList0 = pcSlice->getNumRpsCurrTempList();
@@ -749,7 +747,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     }
     if(pcSlice->isInterB())
     {    
-      WRITE_FLAG(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL1() ? 1 : 0,       "ref_pic_list_modification_flag" );
+      WRITE_FLAG(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL1() ? 1 : 0,       "ref_pic_list_modification_flag_l1" );
       if (pcSlice->getRefPicListModification()->getRefPicListModificationFlagL1())
       {
         Int numRpsCurrTempList1 = pcSlice->getNumRpsCurrTempList();

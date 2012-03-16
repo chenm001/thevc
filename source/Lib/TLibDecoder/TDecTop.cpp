@@ -681,7 +681,7 @@ Void TDecTop::xDecodeSPS()
 {
   TComSPS* sps = new TComSPS();
 #if RPS_IN_SPS
-  TComRPS* rps = new TComRPS();
+  TComRPSList* rps = new TComRPSList();
   sps->setRPSList(rps);
 #endif
   m_cEntropyDecoder.decodeSPS( sps );
@@ -694,7 +694,7 @@ Void TDecTop::xDecodeSPS()
 Void TDecTop::xDecodePPS()
 {
 #if !RPS_IN_SPS
-  TComRPS* rps = new TComRPS();
+  TComRPSList* rps = new TComRPSList();
 #endif
   TComPPS* pps = new TComPPS();
 #if !RPS_IN_SPS

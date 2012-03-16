@@ -47,38 +47,38 @@
 
 struct GOPEntry
 {
-  Int m_iPOC;
-  Int m_iQPOffset;
-  Double m_iQPFactor;
-  Int m_iTemporalId;
-  Bool m_bRefPic;
-  Int m_iRefBufSize;
-  Char m_iSliceType;
-  Int m_iNumRefPics;
-  Int m_aiReferencePics[MAX_NUM_REF_PICS];
-  Int m_aiUsedByCurrPic[MAX_NUM_REF_PICS];
-  Bool m_bInterRPSPrediction;
-  Int m_iDeltaRIdxMinus1;
-  Int m_iDeltaRPS;
-  Int m_iNumRefIdc;
-  Int m_aiRefIdc[MAX_NUM_REF_PICS+1];
+  Int m_POC;
+  Int m_QPOffset;
+  Double m_QPFactor;
+  Int m_temporalId;
+  Bool m_refPic;
+  Int m_numRefPicsActive;
+  Char m_sliceType;
+  Int m_numRefPics;
+  Int m_referencePics[MAX_NUM_REF_PICS];
+  Int m_usedByCurrPic[MAX_NUM_REF_PICS];
+  Bool m_interRPSPrediction;
+  Int m_deltaRIdxMinus1;
+  Int m_deltaRPS;
+  Int m_numRefIdc;
+  Int m_refIdc[MAX_NUM_REF_PICS+1];
   GOPEntry()
-  : m_iPOC(-1)
-  , m_iQPOffset()
-  , m_iQPFactor()
-  , m_iTemporalId()
-  , m_bRefPic()
-  , m_iRefBufSize()
-  , m_iSliceType()
-  , m_iNumRefPics()
-  , m_bInterRPSPrediction()
-  , m_iDeltaRIdxMinus1()
-  , m_iDeltaRPS()
-  , m_iNumRefIdc()
+  : m_POC(-1)
+  , m_QPOffset()
+  , m_QPFactor()
+  , m_temporalId()
+  , m_refPic()
+  , m_numRefPicsActive()
+  , m_sliceType()
+  , m_numRefPics()
+  , m_interRPSPrediction()
+  , m_deltaRIdxMinus1()
+  , m_deltaRPS()
+  , m_numRefIdc()
   {
-    ::memset( m_aiReferencePics, 0, sizeof(m_aiReferencePics) );
-    ::memset( m_aiUsedByCurrPic, 0, sizeof(m_aiUsedByCurrPic) );
-    ::memset( m_aiRefIdc,        0, sizeof(m_aiRefIdc) );
+    ::memset( m_referencePics, 0, sizeof(m_referencePics) );
+    ::memset( m_usedByCurrPic, 0, sizeof(m_usedByCurrPic) );
+    ::memset( m_refIdc,        0, sizeof(m_refIdc) );
   }
 };
 
@@ -106,13 +106,13 @@ protected:
   UInt      m_uiIntraPeriod;
   UInt      m_uiDecodingRefreshType;            ///< the type of decoding refresh employed for the random access.
   Int       m_iGOPSize;
-  GOPEntry  m_pcGOPList[MAX_GOP];
-  Int       m_iExtraRPSs;
+  GOPEntry  m_GOPList[MAX_GOP];
+  Int       m_extraRPSs;
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  UInt      m_uiMaxDecPicBuffering[MAX_TLAYER];
+  Int       m_maxDecPicBuffering[MAX_TLAYER];
   Int       m_numReorderPics[MAX_TLAYER];
 #else
-  UInt      m_uiMaxNumberOfReferencePictures;
+  Int       m_maxNumberOfReferencePictures;
   Int       m_numReorderFrames;
 #endif
   
@@ -287,14 +287,14 @@ public:
   Void      setIntraPeriod                  ( Int   i )      { m_uiIntraPeriod = (UInt)i; }
   Void      setDecodingRefreshType          ( Int   i )      { m_uiDecodingRefreshType = (UInt)i; }
   Void      setGOPSize                      ( Int   i )      { m_iGOPSize = i; }
-  Void      setGopList                      ( GOPEntry*  piGOPList )      {  for ( Int i = 0; i < MAX_GOP; i++ ) m_pcGOPList[i] = piGOPList[i]; }
-  Void      setExtraRPSs                    ( Int   i )      { m_iExtraRPSs = i; }
-  GOPEntry  getGOPEntry                     ( Int   i )      { return m_pcGOPList[i]; }
+  Void      setGopList                      ( GOPEntry*  GOPList ) {  for ( Int i = 0; i < MAX_GOP; i++ ) m_GOPList[i] = GOPList[i]; }
+  Void      setExtraRPSs                    ( Int   i )      { m_extraRPSs = i; }
+  GOPEntry  getGOPEntry                     ( Int   i )      { return m_GOPList[i]; }
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  Void      setMaxDecPicBuffering           ( UInt u, UInt tlayer ) { m_uiMaxDecPicBuffering[tlayer] = u;    }
+  Void      setMaxDecPicBuffering           ( UInt u, UInt tlayer ) { m_maxDecPicBuffering[tlayer] = u;    }
   Void      setNumReorderPics               ( Int  i, UInt tlayer ) { m_numReorderPics[tlayer] = i;    }
 #else
-  Void      setMaxNumberOfReferencePictures ( UInt u )       { m_uiMaxNumberOfReferencePictures = u;    }
+  Void      setMaxNumberOfReferencePictures ( Int u )       { m_maxNumberOfReferencePictures = u;    }
   Void      setNumReorderFrames             ( Int  i )       { m_numReorderFrames = i;    }
 #endif
   
@@ -374,10 +374,10 @@ public:
   UInt      getDecodingRefreshType          ()      { return  m_uiDecodingRefreshType; }
   Int       getGOPSize                      ()      { return  m_iGOPSize; }
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  UInt      getMaxDecPicBuffering           (UInt tlayer) { return m_uiMaxDecPicBuffering[tlayer]; }
+  Int       getMaxDecPicBuffering           (UInt tlayer) { return m_maxDecPicBuffering[tlayer]; }
   Int       getNumReorderPics               (UInt tlayer) { return m_numReorderPics[tlayer]; }
 #else
-  UInt      getMaxNumberOfReferencePictures ()      { return m_uiMaxNumberOfReferencePictures; }
+  Int      getMaxNumberOfReferencePictures ()      { return m_maxNumberOfReferencePictures; }
   Int       geNumReorderFrames              ()      { return m_numReorderFrames; }
 #endif
   Int       getQP                           ()      { return  m_iQP; }

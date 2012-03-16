@@ -66,74 +66,74 @@ class TComTrQuant;
 class TComReferencePictureSet
 {
 private:
-  UInt      m_uiNumberOfPictures;
-  UInt      m_uiNumberOfNegativePictures;
-  UInt      m_uiNumberOfPositivePictures;
-  UInt      m_uiNumberOfLongtermPictures;
-  Int       m_piDeltaPOC[MAX_NUM_REF_PICS];
-  Int       m_piPOC[MAX_NUM_REF_PICS];
-  Bool      m_pbUsed[MAX_NUM_REF_PICS];
-  Bool m_bInterRPSPrediction;
-  Int m_iDeltaRIdxMinus1;   
-  Int m_iDeltaRPS; 
-  Int m_iNumRefIdc; 
-  Int m_piRefIdc[MAX_NUM_REF_PICS+1];
+  Int  m_numberOfPictures;
+  Int  m_numberOfNegativePictures;
+  Int  m_numberOfPositivePictures;
+  Int  m_numberOfLongtermPictures;
+  Int  m_deltaPOC[MAX_NUM_REF_PICS];
+  Int  m_POC[MAX_NUM_REF_PICS];
+  Bool m_used[MAX_NUM_REF_PICS];
+  Bool m_interRPSPrediction;
+  Int  m_deltaRIdxMinus1;   
+  Int  m_deltaRPS; 
+  Int  m_numRefIdc; 
+  Int  m_refIdc[MAX_NUM_REF_PICS+1];
 
 public:
   TComReferencePictureSet();
   virtual ~TComReferencePictureSet();
 
-  Void setUsed(UInt uiBufferNum, Bool bUsed);
-  Void setDeltaPOC(UInt uiBufferNum, Int iDeltaPOC);
-  Void setPOC(UInt uiBufferNum, Int iDeltaPOC);
-  Void setNumberOfPictures(UInt NumberOfPictures);
+  Void setUsed(Int bufferNum, Bool used);
+  Void setDeltaPOC(Int bufferNum, Int deltaPOC);
+  Void setPOC(Int bufferNum, Int deltaPOC);
+  Void setNumberOfPictures(Int numberOfPictures);
 
-  UInt getUsed(UInt uiBufferNum);
-  Int  getDeltaPOC(UInt uiBufferNum);
-  Int  getPOC(UInt uiBufferNum);
-  UInt getNumberOfPictures();
+  Int  getUsed(Int bufferNum);
+  Int  getDeltaPOC(Int bufferNum);
+  Int  getPOC(Int bufferNum);
+  Int  getNumberOfPictures();
 
-  Void setNumberOfNegativePictures(UInt Number) { m_uiNumberOfNegativePictures = Number; }
-  UInt getNumberOfNegativePictures() { return m_uiNumberOfNegativePictures; }
-  Void setNumberOfPositivePictures(UInt Number) { m_uiNumberOfPositivePictures = Number; }
-  UInt getNumberOfPositivePictures() { return m_uiNumberOfPositivePictures; }
-  Void setNumberOfLongtermPictures(UInt Number) { m_uiNumberOfLongtermPictures = Number; }
-  UInt getNumberOfLongtermPictures() { return m_uiNumberOfLongtermPictures; }
+  Void setNumberOfNegativePictures(Int number)  { m_numberOfNegativePictures = number; }
+  Int  getNumberOfNegativePictures()            { return m_numberOfNegativePictures; }
+  Void setNumberOfPositivePictures(Int number)  { m_numberOfPositivePictures = number; }
+  Int  getNumberOfPositivePictures()            { return m_numberOfPositivePictures; }
+  Void setNumberOfLongtermPictures(Int number)  { m_numberOfLongtermPictures = number; }
+  Int  getNumberOfLongtermPictures()            { return m_numberOfLongtermPictures; }
 
-  Void setInterRPSPrediction(Bool flag) { m_bInterRPSPrediction = flag; }
-  Bool getInterRPSPrediction() { return m_bInterRPSPrediction; }
-  Void setDeltaRIdxMinus1(Int x) { m_iDeltaRIdxMinus1 = x; }
-  Int getDeltaRIdxMinus1() { return m_iDeltaRIdxMinus1; }
-  Void setDeltaRPS(Int x) { m_iDeltaRPS = x; }
-  Int getDeltaRPS() { return m_iDeltaRPS; }
-  Void setNumRefIdc(Int x) { m_iNumRefIdc = x; }
-  Int getNumRefIdc() { return m_iNumRefIdc; }
+  Void setInterRPSPrediction(Bool flag)         { m_interRPSPrediction = flag; }
+  Bool getInterRPSPrediction()                  { return m_interRPSPrediction; }
+  Void setDeltaRIdxMinus1(Int x)                { m_deltaRIdxMinus1 = x; }
+  Int  getDeltaRIdxMinus1()                     { return m_deltaRIdxMinus1; }
+  Void setDeltaRPS(Int x)                       { m_deltaRPS = x; }
+  Int  getDeltaRPS()                            { return m_deltaRPS; }
+  Void setNumRefIdc(Int x)                      { m_numRefIdc = x; }
+  Int  getNumRefIdc()                           { return m_numRefIdc; }
 
-  Void setRefIdc(UInt uiBufferNum, Int iRefIdc);
-  Int  getRefIdc(UInt uiBufferNum);
+  Void setRefIdc(Int bufferNum, Int refIdc);
+  Int  getRefIdc(Int bufferNum);
 
   Void sortDeltaPOC();
   Void printDeltaPOC();
 };
 
 /// Reference Picture Set set class
-class TComRPS
+class TComRPSList
 {
 private:
-  UInt      m_uiNumberOfReferencePictureSets;
-  TComReferencePictureSet*      m_pReferencePictureSet;
+  Int  m_numberOfReferencePictureSets;
+  TComReferencePictureSet* m_referencePictureSets;
   
 public:
-  TComRPS();
-  virtual ~TComRPS();
+  TComRPSList();
+  virtual ~TComRPSList();
   
-  Void  create                    (UInt uiNumberOfEntries);
-  Void  destroy                   ();
+  Void  create  (Int numberOfEntries);
+  Void  destroy ();
 
 
-  TComReferencePictureSet* getReferencePictureSet(UInt uiReferencePictureSetNum);
-  UInt getNumberOfReferencePictureSets();
-  Void setNumberOfReferencePictureSets(UInt uiNumberOfReferencePictureSets);
+  TComReferencePictureSet* getReferencePictureSet(Int referencePictureSetNum);
+  Int getNumberOfReferencePictureSets();
+  Void setNumberOfReferencePictureSets(Int numberOfReferencePictureSets);
 };
 #endif
 /// SPS class
@@ -157,13 +157,13 @@ private:
   UInt        m_uiMinTrDepth;
   UInt        m_uiMaxTrDepth;
 #if RPS_IN_SPS
-  TComRPS*    m_pcRPSList;
+  TComRPSList* m_RPSList;
   Bool        m_bLongTermRefsPresent;
 #endif
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   Int         m_numReorderPics[MAX_TLAYER];
 #else
-  UInt        m_uiMaxNumberOfReferencePictures;
+  Int         m_maxNumberOfReferencePictures;
   Int         m_numReorderFrames;
 #endif
   
@@ -299,14 +299,14 @@ public:
   Void setNumReorderPics(Int i, UInt tlayer)              { m_numReorderPics[tlayer] = i;    }
   Int  getNumReorderPics(UInt tlayer)                     { return m_numReorderPics[tlayer]; }
 #else
-  Void setMaxNumberOfReferencePictures( UInt u ) { m_uiMaxNumberOfReferencePictures = u;    }
-  UInt getMaxNumberOfReferencePictures()         { return m_uiMaxNumberOfReferencePictures; }
+  Void setMaxNumberOfReferencePictures( Int u )  { m_maxNumberOfReferencePictures = u;    }
+  Int  getMaxNumberOfReferencePictures()         { return m_maxNumberOfReferencePictures; }
   Void setNumReorderFrames( Int i )              { m_numReorderFrames = i;    }
   Int  getNumReorderFrames()                     { return m_numReorderFrames; }
 #endif
 #if RPS_IN_SPS
-  Void      setRPSList              ( TComRPS* pcRPSList ) { m_pcRPSList = pcRPSList; }
-  TComRPS*  getRPSList              ()         { return m_pcRPSList;          }
+  Void      setRPSList( TComRPSList* RPSList )   { m_RPSList = RPSList;       }
+  TComRPSList* getRPSList()                      { return m_RPSList;          }
   Bool      getLongTermRefsPresent()         { return m_bLongTermRefsPresent; }
   Void      setLongTermRefsPresent(Bool b)   { m_bLongTermRefsPresent=b;      }
 #endif
@@ -455,74 +455,74 @@ public:
 class TComReferencePictureSet
 {
 private:
-  UInt      m_uiNumberOfPictures;
-  UInt      m_uiNumberOfNegativePictures;
-  UInt      m_uiNumberOfPositivePictures;
-  UInt      m_uiNumberOfLongtermPictures;
-  Int       m_piDeltaPOC[MAX_NUM_REF_PICS];
-  Int       m_piPOC[MAX_NUM_REF_PICS];
-  Bool      m_pbUsed[MAX_NUM_REF_PICS];
-  Bool m_bInterRPSPrediction;
-  Int m_iDeltaRIdxMinus1;   
-  Int m_iDeltaRPS; 
-  Int m_iNumRefIdc; 
-  Int m_piRefIdc[MAX_NUM_REF_PICS+1];
+  Int m_numberOfPictures;
+  Int m_numberOfNegativePictures;
+  Int m_numberOfPositivePictures;
+  Int m_numberOfLongtermPictures;
+  Int  m_deltaPOC[MAX_NUM_REF_PICS];
+  Int  m_POC[MAX_NUM_REF_PICS];
+  Bool m_used[MAX_NUM_REF_PICS];
+  Bool m_interRPSPrediction;
+  Int  m_deltaRIdxMinus1;   
+  Int  m_deltaRPS; 
+  Int  m_numRefIdc; 
+  Int  m_refIdc[MAX_NUM_REF_PICS+1];
 
 public:
   TComReferencePictureSet();
   virtual ~TComReferencePictureSet();
 
-  Void setUsed(UInt uiBufferNum, Bool bUsed);
-  Void setDeltaPOC(UInt uiBufferNum, Int iDeltaPOC);
-  Void setPOC(UInt uiBufferNum, Int iDeltaPOC);
-  Void setNumberOfPictures(UInt NumberOfPictures);
+  Void setUsed(Int bufferNum, Bool used);
+  Void setDeltaPOC(Int bufferNum, Int deltaPOC);
+  Void setPOC(Int bufferNum, Int deltaPOC);
+  Void setNumberOfPictures(Int numberOfPictures);
 
-  UInt getUsed(UInt uiBufferNum);
-  Int  getDeltaPOC(UInt uiBufferNum);
-  Int  getPOC(UInt uiBufferNum);
-  UInt getNumberOfPictures();
+  Int  getUsed(Int bufferNum);
+  Int  getDeltaPOC(Int bufferNum);
+  Int  getPOC(Int bufferNum);
+  Int  getNumberOfPictures();
 
-  Void setNumberOfNegativePictures(UInt Number) { m_uiNumberOfNegativePictures = Number; }
-  UInt getNumberOfNegativePictures() { return m_uiNumberOfNegativePictures; }
-  Void setNumberOfPositivePictures(UInt Number) { m_uiNumberOfPositivePictures = Number; }
-  UInt getNumberOfPositivePictures() { return m_uiNumberOfPositivePictures; }
-  Void setNumberOfLongtermPictures(UInt Number) { m_uiNumberOfLongtermPictures = Number; }
-  UInt getNumberOfLongtermPictures() { return m_uiNumberOfLongtermPictures; }
+  Void setNumberOfNegativePictures(Int number)  { m_numberOfNegativePictures = number; }
+  Int  getNumberOfNegativePictures()            { return m_numberOfNegativePictures; }
+  Void setNumberOfPositivePictures(Int number)  { m_numberOfPositivePictures = number; }
+  Int  getNumberOfPositivePictures()            { return m_numberOfPositivePictures; }
+  Void setNumberOfLongtermPictures(Int number)  { m_numberOfLongtermPictures = number; }
+  Int  getNumberOfLongtermPictures()            { return m_numberOfLongtermPictures; }
 
-  Void setInterRPSPrediction(Bool flag) { m_bInterRPSPrediction = flag; }
-  Bool getInterRPSPrediction() { return m_bInterRPSPrediction; }
-  Void setDeltaRIdxMinus1(Int x) { m_iDeltaRIdxMinus1 = x; }
-  Int getDeltaRIdxMinus1() { return m_iDeltaRIdxMinus1; }
-  Void setDeltaRPS(Int x) { m_iDeltaRPS = x; }
-  Int getDeltaRPS() { return m_iDeltaRPS; }
-  Void setNumRefIdc(Int x) { m_iNumRefIdc = x; }
-  Int getNumRefIdc() { return m_iNumRefIdc; }
+  Void setInterRPSPrediction(Bool flag)         { m_interRPSPrediction = flag; }
+  Bool getInterRPSPrediction()                  { return m_interRPSPrediction; }
+  Void setDeltaRIdxMinus1(Int x)                { m_deltaRIdxMinus1 = x; }
+  Int  getDeltaRIdxMinus1()                     { return m_deltaRIdxMinus1; }
+  Void setDeltaRPS(Int x)                       { m_deltaRPS = x; }
+  Int  getDeltaRPS()                            { return m_deltaRPS; }
+  Void setNumRefIdc(Int x)                      { m_numRefIdc = x; }
+  Int  getNumRefIdc()                           { return m_numRefIdc; }
 
-  Void setRefIdc(UInt uiBufferNum, Int iRefIdc);
-  Int  getRefIdc(UInt uiBufferNum);
+  Void setRefIdc(Int bufferNum, Int refIdc);
+  Int  getRefIdc(Int bufferNum);
 
   Void sortDeltaPOC();
   Void printDeltaPOC();
 };
 
 /// Reference Picture Set set class
-class TComRPS
+class TComRPSList
 {
 private:
-  UInt      m_uiNumberOfReferencePictureSets;
-  TComReferencePictureSet*      m_pReferencePictureSet;
+  Int  m_numberOfReferencePictureSets;
+  TComReferencePictureSet* m_referencePictureSets;
   
 public:
-  TComRPS();
-  virtual ~TComRPS();
+  TComRPSList();
+  virtual ~TComRPSList();
   
-  Void  create                    (UInt uiNumberOfEntries);
-  Void  destroy                   ();
+  Void  create  (Int numberOfEntries);
+  Void  destroy ();
 
 
-  TComReferencePictureSet* getReferencePictureSet(UInt uiReferencePictureSetNum);
-  UInt getNumberOfReferencePictureSets();
-  Void setNumberOfReferencePictureSets(UInt uiNumberOfReferencePictureSets);
+  TComReferencePictureSet* getReferencePictureSet(Int referencePictureSetNum);
+  Int getNumberOfReferencePictureSets();
+  Void setNumberOfReferencePictureSets(Int numberOfReferencePictureSets);
 };
 #endif
 
@@ -585,7 +585,7 @@ private:
   // access channel
   TComSPS*    m_pcSPS;
 #if !RPS_IN_SPS
-  TComRPS*    m_pcRPSList;
+  TComRPSList* m_RPSList;
 #endif
   UInt        m_uiMaxCuDQPDepth;
   UInt        m_uiMinCuDQPSize;
@@ -676,8 +676,8 @@ public:
   Void      setSPS              ( TComSPS* pcSPS ) { m_pcSPS = pcSPS; }
   TComSPS*  getSPS              ()         { return m_pcSPS;          }
 #if !RPS_IN_SPS
-  Void      setRPSList              ( TComRPS* pcRPSList ) { m_pcRPSList = pcRPSList; }
-  TComRPS*  getRPSList              ()         { return m_pcRPSList;          }
+  Void      setRPSList          ( TComRPSList* RPSList ) { m_RPSList = RPSList; }
+  TComRPSList* getRPSList       ()         { return m_RPSList;        }
 #endif
   Void      setMaxCuDQPDepth    ( UInt u ) { m_uiMaxCuDQPDepth = u;   }
   UInt      getMaxCuDQPDepth    ()         { return m_uiMaxCuDQPDepth;}
@@ -1207,9 +1207,9 @@ public:
 
   Void setTLayerInfo( UInt uiTLayer );
   Void decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, Int& iMaxRefPicNum ); 
-  Void      applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pcRPSList);
+  Void applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComReferencePictureSet *RPSList);
 #if H0566_TLA && H0566_TLA_SET_FOR_SWITCHING_POINTS
-  Bool      isTemporalLayerSwitchingPoint( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pcRPSList);
+  Bool isTemporalLayerSwitchingPoint( TComList<TComPic*>& rcListPic, TComReferencePictureSet *RPSList);
 #endif
   Int       checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool outputFlag);
   Void      createExplicitReferencePictureSetFromReference( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet);

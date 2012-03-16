@@ -155,9 +155,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       
       //select uiColDir
       Int iCloseLeft=1, iCloseRight=-1;
-      for(Int i = 0; i<m_pcCfg->getGOPEntry(iGOPid).m_iNumRefPics; i++) 
+      for(Int i = 0; i<m_pcCfg->getGOPEntry(iGOPid).m_numRefPics; i++) 
       {
-        Int iRef = m_pcCfg->getGOPEntry(iGOPid).m_aiReferencePics[i];
+        Int iRef = m_pcCfg->getGOPEntry(iGOPid).m_referencePics[i];
         if(iRef>0&&(iRef<iCloseRight||iCloseRight==-1))
         {
           iCloseRight=iRef;
@@ -169,23 +169,27 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       }
       if(iCloseRight>-1)
       {
-        iCloseRight=iCloseRight+m_pcCfg->getGOPEntry(iGOPid).m_iPOC-1;
+        iCloseRight=iCloseRight+m_pcCfg->getGOPEntry(iGOPid).m_POC-1;
       }
       if(iCloseLeft<1) 
       {
-        iCloseLeft=iCloseLeft+m_pcCfg->getGOPEntry(iGOPid).m_iPOC-1;
+        iCloseLeft=iCloseLeft+m_pcCfg->getGOPEntry(iGOPid).m_POC-1;
         while(iCloseLeft<0)
         {
           iCloseLeft+=m_iGopSize;
         }
       }
-      int iLeftQP=0, iRightQP=0;
+      Int iLeftQP=0, iRightQP=0;
       for(Int i=0; i<m_iGopSize; i++)
       {
-        if(m_pcCfg->getGOPEntry(i).m_iPOC==(iCloseLeft%m_iGopSize)+1)
-          iLeftQP= m_pcCfg->getGOPEntry(i).m_iQPOffset;
-        if (m_pcCfg->getGOPEntry(i).m_iPOC==(iCloseRight%m_iGopSize)+1)
-          iRightQP=m_pcCfg->getGOPEntry(i).m_iQPOffset;
+        if(m_pcCfg->getGOPEntry(i).m_POC==(iCloseLeft%m_iGopSize)+1)
+        {
+          iLeftQP= m_pcCfg->getGOPEntry(i).m_QPOffset;
+        }
+        if (m_pcCfg->getGOPEntry(i).m_POC==(iCloseRight%m_iGopSize)+1)
+        {
+          iRightQP=m_pcCfg->getGOPEntry(i).m_QPOffset;
+        }
       }
       if(iCloseRight>-1&&iRightQP<iLeftQP)
       {
@@ -193,8 +197,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       }
 
       /////////////////////////////////////////////////////////////////////////////////////////////////// Initial to start encoding
-      UInt uiPOCCurr = iPOCLast -iNumPicRcvd+ m_pcCfg->getGOPEntry(iGOPid).m_iPOC;
-      Int iTimeOffset = m_pcCfg->getGOPEntry(iGOPid).m_iPOC;
+      UInt uiPOCCurr = iPOCLast -iNumPicRcvd+ m_pcCfg->getGOPEntry(iGOPid).m_POC;
+      Int iTimeOffset = m_pcCfg->getGOPEntry(iGOPid).m_POC;
       if(uiPOCCurr>=m_pcCfg->getFrameToBeEncoded())
       {
         continue;
@@ -259,7 +263,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         assert(0);
       }
 
-      if(pcSlice->getSliceType()==B_SLICE&&m_pcCfg->getGOPEntry(iGOPid).m_iSliceType=='P')
+      if(pcSlice->getSliceType()==B_SLICE&&m_pcCfg->getGOPEntry(iGOPid).m_sliceType=='P')
       {
         pcSlice->setSliceType(P_SLICE);
       }
@@ -301,8 +305,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if !H0137_0138_LIST_MODIFICATION
       refPicListModification->setNumberOfRefPicListModificationsL1(0);
 #endif
-      pcSlice->setNumRefIdx(REF_PIC_LIST_0,min((UInt)m_pcCfg->getGOPEntry(iGOPid).m_iRefBufSize,pcSlice->getRPS()->getNumberOfPictures()));
-      pcSlice->setNumRefIdx(REF_PIC_LIST_1,min((UInt)m_pcCfg->getGOPEntry(iGOPid).m_iRefBufSize,pcSlice->getRPS()->getNumberOfPictures()));
+      pcSlice->setNumRefIdx(REF_PIC_LIST_0,min(m_pcCfg->getGOPEntry(iGOPid).m_numRefPicsActive,pcSlice->getRPS()->getNumberOfPictures()));
+      pcSlice->setNumRefIdx(REF_PIC_LIST_1,min(m_pcCfg->getGOPEntry(iGOPid).m_numRefPicsActive,pcSlice->getRPS()->getNumberOfPictures()));
 
 #if ADAPTIVE_QP_SELECTION
       pcSlice->setTrQuant( m_pcEncTop->getTrQuant() );

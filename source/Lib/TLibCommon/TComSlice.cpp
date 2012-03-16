@@ -1471,62 +1471,62 @@ TComPPS::~TComPPS()
 }
 
 TComReferencePictureSet::TComReferencePictureSet()
-: m_uiNumberOfPictures (0)
-, m_uiNumberOfNegativePictures (0)
-, m_uiNumberOfPositivePictures (0)
-, m_uiNumberOfLongtermPictures (0)
-, m_bInterRPSPrediction (0) 
-, m_iDeltaRIdxMinus1 (0)   
-, m_iDeltaRPS (0) 
-, m_iNumRefIdc (0) 
+: m_numberOfPictures (0)
+, m_numberOfNegativePictures (0)
+, m_numberOfPositivePictures (0)
+, m_numberOfLongtermPictures (0)
+, m_interRPSPrediction (0) 
+, m_deltaRIdxMinus1 (0)   
+, m_deltaRPS (0) 
+, m_numRefIdc (0) 
 {
-  ::memset( m_piDeltaPOC, 0, sizeof(m_piDeltaPOC) );
-  ::memset( m_piPOC, 0, sizeof(m_piPOC) );
-  ::memset( m_pbUsed, 0, sizeof(m_pbUsed) );
-  ::memset( m_piRefIdc, 0, sizeof(m_piRefIdc) );
+  ::memset( m_deltaPOC, 0, sizeof(m_deltaPOC) );
+  ::memset( m_POC, 0, sizeof(m_POC) );
+  ::memset( m_used, 0, sizeof(m_used) );
+  ::memset( m_refIdc, 0, sizeof(m_refIdc) );
 }
 
 TComReferencePictureSet::~TComReferencePictureSet()
 {
 }
 
-Void TComReferencePictureSet::setUsed(UInt uiBufferNum, Bool bUsed)
+Void TComReferencePictureSet::setUsed(Int bufferNum, Bool used)
 {
-   m_pbUsed[uiBufferNum] = bUsed;
+  m_used[bufferNum] = used;
 }
 
-Void TComReferencePictureSet::setDeltaPOC(UInt uiBufferNum, Int iDeltaPOC)
+Void TComReferencePictureSet::setDeltaPOC(Int bufferNum, Int deltaPOC)
 {
-   m_piDeltaPOC[uiBufferNum] = iDeltaPOC;
+  m_deltaPOC[bufferNum] = deltaPOC;
 }
 
-Void TComReferencePictureSet::setNumberOfPictures(UInt NumberOfPictures)
+Void TComReferencePictureSet::setNumberOfPictures(Int numberOfPictures)
 {
-   m_uiNumberOfPictures = NumberOfPictures;
+  m_numberOfPictures = numberOfPictures;
 }
 
-UInt TComReferencePictureSet::getUsed(UInt uiBufferNum)
+Int TComReferencePictureSet::getUsed(Int bufferNum)
 {
-   return (UInt)m_pbUsed[uiBufferNum];
+  return m_used[bufferNum];
 }
 
-Int TComReferencePictureSet::getDeltaPOC(UInt uiBufferNum)
+Int TComReferencePictureSet::getDeltaPOC(Int bufferNum)
 {
-   return m_piDeltaPOC[uiBufferNum];
+  return m_deltaPOC[bufferNum];
 }
 
-UInt TComReferencePictureSet::getNumberOfPictures()
+Int TComReferencePictureSet::getNumberOfPictures()
 {
-   return m_uiNumberOfPictures;
+  return m_numberOfPictures;
 }
 
-Int TComReferencePictureSet::getPOC(UInt uiBufferNum)
+Int TComReferencePictureSet::getPOC(Int bufferNum)
 {
-   return m_piPOC[uiBufferNum];
+  return m_POC[bufferNum];
 }
-Void TComReferencePictureSet::setPOC(UInt uiBufferNum, Int iPOC)
+Void TComReferencePictureSet::setPOC(Int bufferNum, Int POC)
 {
-   m_piPOC[uiBufferNum] = iPOC;
+  m_POC[bufferNum] = POC;
 }
 
 /** set the reference idc value at uiBufferNum entry to the value of iRefIdc
@@ -1534,18 +1534,18 @@ Void TComReferencePictureSet::setPOC(UInt uiBufferNum, Int iPOC)
  * \param iRefIdc
  * \returns Void
  */
-Void TComReferencePictureSet::setRefIdc(UInt uiBufferNum, Int iRefIdc)
+Void TComReferencePictureSet::setRefIdc(Int bufferNum, Int refIdc)
 {
-   m_piRefIdc[uiBufferNum] = iRefIdc;
+  m_refIdc[bufferNum] = refIdc;
 }
 
 /** get the reference idc value at uiBufferNum
  * \param uiBufferNum
  * \returns Int
  */
-Int  TComReferencePictureSet::getRefIdc(UInt uiBufferNum)
+Int  TComReferencePictureSet::getRefIdc(Int bufferNum)
 {
-   return m_piRefIdc[uiBufferNum];
+  return m_refIdc[bufferNum];
 }
 
 /** Sorts the deltaPOC and Used by current values in the RPS based on the deltaPOC values.
@@ -1559,7 +1559,7 @@ Void TComReferencePictureSet::sortDeltaPOC()
   for(Int j=1; j < getNumberOfPictures(); j++)
   { 
     Int deltaPOC = getDeltaPOC(j);
-    Bool bUsed = getUsed(j);
+    Bool used = getUsed(j);
     for (Int k=j-1; k >= 0; k--)
     {
       Int temp = getDeltaPOC(k);
@@ -1568,20 +1568,20 @@ Void TComReferencePictureSet::sortDeltaPOC()
         setDeltaPOC(k+1, temp);
         setUsed(k+1, getUsed(k));
         setDeltaPOC(k, deltaPOC);
-        setUsed(k, bUsed);
+        setUsed(k, used);
       }
     }
   }
   // flip the negative values to largest first
-  Int NumNegPics = getNumberOfNegativePictures();
-  for(Int j=0, k=NumNegPics-1; j < NumNegPics>>1; j++, k--)
+  Int numNegPics = getNumberOfNegativePictures();
+  for(Int j=0, k=numNegPics-1; j < numNegPics>>1; j++, k--)
   { 
     Int deltaPOC = getDeltaPOC(j);
-    Bool bUsed = getUsed(j);
+    Bool used = getUsed(j);
     setDeltaPOC(j, getDeltaPOC(k));
     setUsed(j, getUsed(k));
     setDeltaPOC(k, deltaPOC);
-    setUsed(k, bUsed);
+    setUsed(k, used);
   }
 }
 
@@ -1607,42 +1607,42 @@ Void TComReferencePictureSet::printDeltaPOC()
   printf("}\n");
 }
 
-TComRPS::TComRPS()
+TComRPSList::TComRPSList()
 {
 }
 
-TComRPS::~TComRPS()
+TComRPSList::~TComRPSList()
 {
 }
 
-Void TComRPS::create( UInt uiNumberOfReferencePictureSets)
+Void TComRPSList::create( Int numberOfReferencePictureSets)
 {
-  m_uiNumberOfReferencePictureSets = uiNumberOfReferencePictureSets;
-  m_pReferencePictureSet = new TComReferencePictureSet[uiNumberOfReferencePictureSets];
+  m_numberOfReferencePictureSets = numberOfReferencePictureSets;
+  m_referencePictureSets = new TComReferencePictureSet[numberOfReferencePictureSets];
 }
 
-Void TComRPS::destroy()
+Void TComRPSList::destroy()
 {
-  delete [] m_pReferencePictureSet;     
-  m_uiNumberOfReferencePictureSets = 0;
-  m_pReferencePictureSet = NULL;
+  delete [] m_referencePictureSets;
+  m_numberOfReferencePictureSets = 0;
+  m_referencePictureSets = NULL;
 }
 
 
 
-TComReferencePictureSet* TComRPS::getReferencePictureSet(UInt uiReferencePictureSetNum)
+TComReferencePictureSet* TComRPSList::getReferencePictureSet(Int referencePictureSetNum)
 {
-   return &m_pReferencePictureSet[uiReferencePictureSetNum];
+  return &m_referencePictureSets[referencePictureSetNum];
 }
 
-UInt TComRPS::getNumberOfReferencePictureSets()
+Int TComRPSList::getNumberOfReferencePictureSets()
 {
-   return m_uiNumberOfReferencePictureSets;
+  return m_numberOfReferencePictureSets;
 }
 
-Void TComRPS::setNumberOfReferencePictureSets(UInt uiNumberOfReferencePictureSets)
+Void TComRPSList::setNumberOfReferencePictureSets(Int numberOfReferencePictureSets)
 {
-   m_uiNumberOfReferencePictureSets = uiNumberOfReferencePictureSets;
+  m_numberOfReferencePictureSets = numberOfReferencePictureSets;
 }
 
 TComRefPicListModification::TComRefPicListModification()

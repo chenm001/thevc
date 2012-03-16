@@ -218,7 +218,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   // Non-referenced frame marking
   // ------------------------------------------------------------------------------------------------------------------
   
-  rpcSlice->setReferenced(m_pcCfg->getGOPEntry(iGOPid).m_bRefPic);
+  rpcSlice->setReferenced(m_pcCfg->getGOPEntry(iGOPid).m_refPic);
   if(eSliceType==I_SLICE)
   {
     rpcSlice->setReferenced(true);
@@ -239,7 +239,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 #endif
 #endif
     {
-      dQP += m_pcCfg->getGOPEntry(iGOPid).m_iQPOffset;
+      dQP += m_pcCfg->getGOPEntry(iGOPid).m_QPOffset;
     }
   }
   
@@ -277,7 +277,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     Double qp_temp_orig = (Double) dQP - SHIFT_QP;
 #endif
     // Case #1: I or P-slices (key-frame)
-    Double dQPFactor = m_pcCfg->getGOPEntry(iGOPid).m_iQPFactor;
+    Double dQPFactor = m_pcCfg->getGOPEntry(iGOPid).m_QPFactor;
     if ( eSliceType==I_SLICE )
     {
       dQPFactor=0.57*dLambda_scale;
@@ -363,8 +363,8 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setSliceQpBase      ( iQP );
 #endif
   rpcSlice->setSliceQpDelta     ( 0 );
-  rpcSlice->setNumRefIdx(REF_PIC_LIST_0,m_pcCfg->getGOPEntry(iGOPid).m_iRefBufSize);
-  rpcSlice->setNumRefIdx(REF_PIC_LIST_1,m_pcCfg->getGOPEntry(iGOPid).m_iRefBufSize);
+  rpcSlice->setNumRefIdx(REF_PIC_LIST_0,m_pcCfg->getGOPEntry(iGOPid).m_numRefPicsActive);
+  rpcSlice->setNumRefIdx(REF_PIC_LIST_1,m_pcCfg->getGOPEntry(iGOPid).m_numRefPicsActive);
   
   rpcSlice->setLoopFilterOffsetInAPS( m_pcCfg->getLoopFilterOffsetInAPS() );
 #if DBL_CONTROL
@@ -384,7 +384,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 
   rpcSlice->setDepth            ( iDepth );
   
-  pcPic->setTLayer( m_pcCfg->getGOPEntry(iGOPid).m_iTemporalId );
+  pcPic->setTLayer( m_pcCfg->getGOPEntry(iGOPid).m_temporalId );
   if(eSliceType==I_SLICE)
   {
     pcPic->setTLayer(0);

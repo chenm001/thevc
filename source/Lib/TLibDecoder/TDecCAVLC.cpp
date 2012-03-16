@@ -147,43 +147,43 @@ void TDecCavlc::parseSEI(SEImessages& seis)
   assert(m_pcBitstream->getNumBitsLeft() == 8); /* rsbp_trailing_bits */
 }
 #if RPS_IN_SPS
-void TDecCavlc::parseShortTermRefPicSet( TComSPS* pcSPS, TComReferencePictureSet* pcRPS, Int idx )
+void TDecCavlc::parseShortTermRefPicSet( TComSPS* sps, TComReferencePictureSet* rps, Int idx )
 #else
-void TDecCavlc::parseShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet* pcRPS, Int idx )
+void TDecCavlc::parseShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet* rps, Int idx )
 #endif
 {
-  UInt uiCode;
-  UInt uiInterRPSPred;
-  READ_FLAG(uiInterRPSPred, "inter_RPS_flag");  pcRPS->setInterRPSPrediction(uiInterRPSPred);
-  if (uiInterRPSPred) 
+  UInt code;
+  UInt interRPSPred;
+  READ_FLAG(interRPSPred, "inter_ref_pic_set_prediction_flag");  rps->setInterRPSPrediction(interRPSPred);
+  if (interRPSPred) 
   {
-    UInt uiBit;
-    READ_UVLC(uiCode, "delta_idx_minus1" ); // delta index of the Reference Picture Set used for prediction minus 1
-    Int rIdx =  idx - 1 - uiCode;
+    UInt bit;
+    READ_UVLC(code, "delta_idx_minus1" ); // delta index of the Reference Picture Set used for prediction minus 1
+    Int rIdx =  idx - 1 - code;
     assert (rIdx <= idx && rIdx >= 0);
 #if RPS_IN_SPS
-    TComReferencePictureSet*   pcRPSRef = pcSPS->getRPSList()->getReferencePictureSet(rIdx);
+    TComReferencePictureSet*   rpsRef = sps->getRPSList()->getReferencePictureSet(rIdx);
 #else
-    TComReferencePictureSet*   pcRPSRef = pcPPS->getRPSList()->getReferencePictureSet(rIdx);
+    TComReferencePictureSet*   rpsRef = pcPPS->getRPSList()->getReferencePictureSet(rIdx);
 #endif
     Int k = 0, k0 = 0, k1 = 0;
-    READ_CODE(1, uiBit, "delta_rps_sign"); // delta_RPS_sign
-    READ_UVLC(uiCode, "abs_delta_rps_minus1");  // absolute delta RPS minus 1
-    Int deltaRPS = (1 - (uiBit<<1)) * (uiCode + 1); // delta_RPS
-    for(Int j=0 ; j <= pcRPSRef->getNumberOfPictures(); j++)
+    READ_CODE(1, bit, "delta_rps_sign"); // delta_RPS_sign
+    READ_UVLC(code, "abs_delta_rps_minus1");  // absolute delta RPS minus 1
+    Int deltaRPS = (1 - (bit<<1)) * (code + 1); // delta_RPS
+    for(Int j=0 ; j <= rpsRef->getNumberOfPictures(); j++)
     {
-      READ_CODE(1, uiBit, "ref_idc0" ); //first bit is "1" if Idc is 1 
-      Int refIdc = uiBit;
+      READ_CODE(1, bit, "used_by_curr_pic_flag" ); //first bit is "1" if Idc is 1 
+      Int refIdc = bit;
       if (refIdc == 0) 
       {
-        READ_CODE(1, uiBit, "ref_idc1" ); //second bit is "1" if Idc is 2, "0" otherwise.
-        refIdc = uiBit<<1; //second bit is "1" if refIdc is 2, "0" if refIdc = 0.
+        READ_CODE(1, bit, "use_delta_flag" ); //second bit is "1" if Idc is 2, "0" otherwise.
+        refIdc = bit<<1; //second bit is "1" if refIdc is 2, "0" if refIdc = 0.
       }
       if (refIdc == 1 || refIdc == 2)
       {
-        Int deltaPOC = deltaRPS + ((j < pcRPSRef->getNumberOfPictures())? pcRPSRef->getDeltaPOC(j) : 0);
-        pcRPS->setDeltaPOC(k, deltaPOC);
-        pcRPS->setUsed(k, (refIdc == 1));
+        Int deltaPOC = deltaRPS + ((j < rpsRef->getNumberOfPictures())? rpsRef->getDeltaPOC(j) : 0);
+        rps->setDeltaPOC(k, deltaPOC);
+        rps->setUsed(k, (refIdc == 1));
 
         if (deltaPOC < 0) {
           k0++;
@@ -194,41 +194,41 @@ void TDecCavlc::parseShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet
         }
         k++;
       }  
-      pcRPS->setRefIdc(j,refIdc);  
+      rps->setRefIdc(j,refIdc);  
     }
-    pcRPS->setNumRefIdc(pcRPSRef->getNumberOfPictures()+1);  
-    pcRPS->setNumberOfPictures(k);
-    pcRPS->setNumberOfNegativePictures(k0);
-    pcRPS->setNumberOfPositivePictures(k1);
-    pcRPS->sortDeltaPOC();
+    rps->setNumRefIdc(rpsRef->getNumberOfPictures()+1);  
+    rps->setNumberOfPictures(k);
+    rps->setNumberOfNegativePictures(k0);
+    rps->setNumberOfPositivePictures(k1);
+    rps->sortDeltaPOC();
   }
   else
   {
-    READ_UVLC(uiCode, "num_negative_pics");           pcRPS->setNumberOfNegativePictures(uiCode);
-    READ_UVLC(uiCode, "num_positive_pics");           pcRPS->setNumberOfPositivePictures(uiCode);
+    READ_UVLC(code, "num_negative_pics");           rps->setNumberOfNegativePictures(code);
+    READ_UVLC(code, "num_positive_pics");           rps->setNumberOfPositivePictures(code);
     Int prev = 0;
     Int poc;
-    for(Int j=0 ; j < pcRPS->getNumberOfNegativePictures(); j++)
+    for(Int j=0 ; j < rps->getNumberOfNegativePictures(); j++)
     {
-      READ_UVLC(uiCode, "delta_poc_s0_minus1");
-      poc = prev-uiCode-1;
+      READ_UVLC(code, "delta_poc_s0_minus1");
+      poc = prev-code-1;
       prev = poc;
-      pcRPS->setDeltaPOC(j,poc);
-      READ_FLAG(uiCode, "used_by_curr_pic_s0_flag");  pcRPS->setUsed(j,uiCode);
+      rps->setDeltaPOC(j,poc);
+      READ_FLAG(code, "used_by_curr_pic_s0_flag");  rps->setUsed(j,code);
     }
     prev = 0;
-    for(Int j=pcRPS->getNumberOfNegativePictures(); j < pcRPS->getNumberOfNegativePictures()+pcRPS->getNumberOfPositivePictures(); j++)
+    for(Int j=rps->getNumberOfNegativePictures(); j < rps->getNumberOfNegativePictures()+rps->getNumberOfPositivePictures(); j++)
     {
-      READ_UVLC(uiCode, "delta_poc_s1_minus1");
-      poc = prev+uiCode+1;
+      READ_UVLC(code, "delta_poc_s1_minus1");
+      poc = prev+code+1;
       prev = poc;
-      pcRPS->setDeltaPOC(j,poc);
-      READ_FLAG(uiCode, "used_by_curr_pic_s1_flag");  pcRPS->setUsed(j,uiCode);
+      rps->setDeltaPOC(j,poc);
+      READ_FLAG(code, "used_by_curr_pic_s1_flag");  rps->setUsed(j,code);
     }
-    pcRPS->setNumberOfPictures(pcRPS->getNumberOfNegativePictures()+pcRPS->getNumberOfPositivePictures());
+    rps->setNumberOfPictures(rps->getNumberOfNegativePictures()+rps->getNumberOfPositivePictures());
   }
 #if PRINT_RPS_INFO
-  pcRPS->printDeltaPOC();
+  rps->printDeltaPOC();
 #endif
 }
 
@@ -1116,7 +1116,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   Int   iCode;
 
 #if !RPS_IN_SPS
-  TComRPS* pcRPSList = pcPPS->getRPSList();
+  TComRPSList* rpsList = pcPPS->getRPSList();
 #endif
   READ_UVLC( uiCode, "pic_parameter_set_id");                      pcPPS->setPPSId (uiCode);
   READ_UVLC( uiCode, "seq_parameter_set_id");                      pcPPS->setSPSId (uiCode);
@@ -1138,11 +1138,11 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   TComReferencePictureSet*      pcRPS;
 
   READ_UVLC( uiCode, "num_short_term_ref_pic_sets" );
-  pcRPSList->create(uiCode);
+  rpsList->create(uiCode);
 
-  for(UInt i=0; i< pcRPSList->getNumberOfReferencePictureSets(); i++)
+  for(Int i=0; i< rpsList->getNumberOfReferencePictureSets(); i++)
   {
-    pcRPS = pcRPSList->getReferencePictureSet(i);
+    pcRPS = rpsList->getReferencePictureSet(i);
     parseShortTermRefPicSet(pcPPS,pcRPS,i);
   }
   READ_FLAG( uiCode, "long_term_ref_pics_present_flag" );          pcPPS->setLongTermRefsPresent(uiCode);
@@ -1414,16 +1414,16 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_FLAG( uiCode, "qpprime_y_zero_transquant_bypass_flag" );    pcSPS->setUseLossless ( uiCode ? true : false );
 #endif
 #if RPS_IN_SPS
-  TComRPS* pcRPSList = pcSPS->getRPSList();
-  TComReferencePictureSet*      pcRPS;
+  TComRPSList* rpsList = pcSPS->getRPSList();
+  TComReferencePictureSet* rps;
 
   READ_UVLC( uiCode, "num_short_term_ref_pic_sets" );
-  pcRPSList->create(uiCode);
+  rpsList->create(uiCode);
 
-  for(UInt i=0; i< pcRPSList->getNumberOfReferencePictureSets(); i++)
+  for(UInt i=0; i< rpsList->getNumberOfReferencePictureSets(); i++)
   {
-    pcRPS = pcRPSList->getReferencePictureSet(i);
-    parseShortTermRefPicSet(pcSPS,pcRPS,i);
+    rps = rpsList->getReferencePictureSet(i);
+    parseShortTermRefPicSet(pcSPS,rps,i);
   }
   READ_FLAG( uiCode, "long_term_ref_pics_present_flag" );          pcSPS->setLongTermRefsPresent(uiCode);
 #endif
@@ -1585,12 +1585,12 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       READ_UVLC( uiCode, "idr_pic_id" );  //ignored
       READ_FLAG( uiCode, "no_output_of_prior_pics_flag" );  //ignored
       rpcSlice->setPOC(0);
-      TComReferencePictureSet* pcRPS = rpcSlice->getLocalRPS();
-      pcRPS->setNumberOfNegativePictures(0);
-      pcRPS->setNumberOfPositivePictures(0);
-      pcRPS->setNumberOfLongtermPictures(0);
-      pcRPS->setNumberOfPictures(0);
-      rpcSlice->setRPS(pcRPS);
+      TComReferencePictureSet* rps = rpcSlice->getLocalRPS();
+      rps->setNumberOfNegativePictures(0);
+      rps->setNumberOfPositivePictures(0);
+      rps->setNumberOfLongtermPictures(0);
+      rps->setNumberOfPictures(0);
+      rpcSlice->setRPS(rps);
     }
     else
     {
@@ -1615,17 +1615,17 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       }
       rpcSlice->setPOC              (iPOCmsb+iPOClsb);
 
-      TComReferencePictureSet* pcRPS;
-      READ_FLAG( uiCode, "short_term_ref_pic_set_pps_flag" );
+      TComReferencePictureSet* rps;
+      READ_FLAG( uiCode, "short_term_ref_pic_set_sps_flag" );
       if(uiCode == 0) // use short-term reference picture set explicitly signalled in slice header
       {
-        pcRPS = rpcSlice->getLocalRPS();
+        rps = rpcSlice->getLocalRPS();
 #if RPS_IN_SPS
-        parseShortTermRefPicSet(sps,pcRPS, sps->getRPSList()->getNumberOfReferencePictureSets());
+        parseShortTermRefPicSet(sps,rps, sps->getRPSList()->getNumberOfReferencePictureSets());
 #else
-        parseShortTermRefPicSet(pps,pcRPS, pps->getRPSList()->getNumberOfReferencePictureSets());
+        parseShortTermRefPicSet(pps,rps, pps->getRPSList()->getNumberOfReferencePictureSets());
 #endif
-        rpcSlice->setRPS(pcRPS);
+        rpcSlice->setRPS(rps);
       }
       else // use reference to short-term reference picture set in PPS
       {
@@ -1634,7 +1634,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
 #else
         READ_UVLC( uiCode, "short_term_ref_pic_set_idx"); rpcSlice->setRPS(pps->getRPSList()->getReferencePictureSet(uiCode));
 #endif
-        pcRPS = rpcSlice->getRPS();
+        rps = rpcSlice->getRPS();
       }
 #if RPS_IN_SPS
       if(sps->getLongTermRefsPresent())
@@ -1642,14 +1642,14 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       if(pps->getLongTermRefsPresent())
 #endif
       {
-        Int offset = pcRPS->getNumberOfNegativePictures()+pcRPS->getNumberOfPositivePictures();
-        READ_UVLC( uiCode, "num_long_term_pics");             pcRPS->setNumberOfLongtermPictures(uiCode);
+        Int offset = rps->getNumberOfNegativePictures()+rps->getNumberOfPositivePictures();
+        READ_UVLC( uiCode, "num_long_term_pics");             rps->setNumberOfLongtermPictures(uiCode);
         Int prev = 0;
 #if LTRP_MULT
         Int prevMsb=0;
         Int prevDeltaPocLt=0;
 #endif
-        for(Int j=pcRPS->getNumberOfLongtermPictures()+offset-1 ; j > offset-1; j--)
+        for(Int j=rps->getNumberOfLongtermPictures()+offset-1 ; j > offset-1; j--)
         {
           READ_UVLC(uiCode,"delta_poc_lsb_lt"); 
           prev += uiCode;
@@ -1661,7 +1661,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
           if(decDeltaPOCMsbPresent==1)
           {
             READ_UVLC(uiCode, "delta_poc_msb_cycle_lt_minus1");
-            if(  (j==(pcRPS->getNumberOfLongtermPictures()+offset-1)) || (prev!=prevDeltaPocLt) )
+            if(  (j==(rps->getNumberOfLongtermPictures()+offset-1)) || (prev!=prevDeltaPocLt) )
             {
               prevMsb=(1+uiCode); 
             }
@@ -1670,22 +1670,22 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
               prevMsb+=(1+uiCode); 
             }
             Int decMaxPocLsb = 1<<rpcSlice->getSPS()->getBitsForPOC();
-            pcRPS->setPOC(j,rpcSlice->getPOC()-prev-(prevMsb)*decMaxPocLsb); 
-            pcRPS->setDeltaPOC(j,-(Int)(prev+(prevMsb)*decMaxPocLsb));
+            rps->setPOC(j,rpcSlice->getPOC()-prev-(prevMsb)*decMaxPocLsb); 
+            rps->setDeltaPOC(j,-(Int)(prev+(prevMsb)*decMaxPocLsb));
           }
           else
           {
 #endif
-            pcRPS->setPOC(j,rpcSlice->getPOC()-prev);          
-            pcRPS->setDeltaPOC(j,-(Int)prev);
+            rps->setPOC(j,rpcSlice->getPOC()-prev);          
+            rps->setDeltaPOC(j,-(Int)prev);
 #if LTRP_MULT
           }
           prevDeltaPocLt=prev;
 #endif
-          READ_FLAG( uiCode, "used_by_curr_pic_lt_flag");     pcRPS->setUsed(j,uiCode);
+          READ_FLAG( uiCode, "used_by_curr_pic_lt_flag");     rps->setUsed(j,uiCode);
         }
-        offset += pcRPS->getNumberOfLongtermPictures();
-        pcRPS->setNumberOfPictures(offset);        
+        offset += rps->getNumberOfLongtermPictures();
+        rps->setNumberOfPictures(offset);        
       }  
     }
     if(sps->getUseSAO() || sps->getUseALF() || sps->getScalingListFlag() || sps->getUseDF())

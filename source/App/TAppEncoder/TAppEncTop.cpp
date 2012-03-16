@@ -77,17 +77,17 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setIntraPeriod                  ( m_iIntraPeriod );
   m_cTEncTop.setDecodingRefreshType          ( m_iDecodingRefreshType );
   m_cTEncTop.setGOPSize                      ( m_iGOPSize );
-  m_cTEncTop.setGopList                      ( m_pcGOPList );
-  m_cTEncTop.setExtraRPSs                     ( m_iExtraRPSs );
+  m_cTEncTop.setGopList                      ( m_GOPList );
+  m_cTEncTop.setExtraRPSs                    ( m_extraRPSs );
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   for(Int i = 0; i < MAX_TLAYER; i++)
   {
-    m_cTEncTop.setNumReorderPics               ( m_numReorderPics[i], i );
-    m_cTEncTop.setMaxDecPicBuffering           ( m_uiMaxDecPicBuffering[i], i );
+    m_cTEncTop.setNumReorderPics             ( m_numReorderPics[i], i );
+    m_cTEncTop.setMaxDecPicBuffering         ( m_maxDecPicBuffering[i], i );
   }
 #else
   m_cTEncTop.setNumReorderFrames             ( m_numReorderFrames );
-  m_cTEncTop.setMaxNumberOfReferencePictures ( m_uiMaxNumberOfReferencePictures );
+  m_cTEncTop.setMaxNumberOfReferencePictures ( m_maxNumberOfReferencePictures );
 #endif
   for( UInt uiLoop = 0; uiLoop < MAX_TLAYER; ++uiLoop )
   {

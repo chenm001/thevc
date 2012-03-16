@@ -93,27 +93,27 @@ Void TAppEncCfg::destroy()
 
 std::istringstream &operator>>(std::istringstream &in, GOPEntry &entry)     //input
 {
-  in>>entry.m_iSliceType;
-  in>>entry.m_iPOC;
-  in>>entry.m_iQPOffset;
-  in>>entry.m_iQPFactor;
-  in>>entry.m_iTemporalId;
-  in>>entry.m_iRefBufSize;
-  in>>entry.m_bRefPic;
-  in>>entry.m_iNumRefPics;
-  for ( Int i = 0; i < entry.m_iNumRefPics; i++ )
+  in>>entry.m_sliceType;
+  in>>entry.m_POC;
+  in>>entry.m_QPOffset;
+  in>>entry.m_QPFactor;
+  in>>entry.m_temporalId;
+  in>>entry.m_numRefPicsActive;
+  in>>entry.m_refPic;
+  in>>entry.m_numRefPics;
+  for ( Int i = 0; i < entry.m_numRefPics; i++ )
   {
-    in>>entry.m_aiReferencePics[i];
+    in>>entry.m_referencePics[i];
   }
-  in>>entry.m_bInterRPSPrediction;
-  if (entry.m_bInterRPSPrediction)
+  in>>entry.m_interRPSPrediction;
+  if (entry.m_interRPSPrediction)
   {
-    in>>entry.m_iDeltaRIdxMinus1;
-    in>>entry.m_iDeltaRPS;
-    in>>entry.m_iNumRefIdc;
-    for ( Int i = 0; i < entry.m_iNumRefIdc; i++ )
+    in>>entry.m_deltaRIdxMinus1;
+    in>>entry.m_deltaRPS;
+    in>>entry.m_numRefIdc;
+    for ( Int i = 0; i < entry.m_numRefIdc; i++ )
     {
-      in>>entry.m_aiRefIdc[i];
+      in>>entry.m_refIdc[i];
     }
   }
   return in;
@@ -185,7 +185,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("GOPSize,g",      m_iGOPSize,      1, "GOP size of temporal structure")
 #if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   ("MaxNumberOfReorderPictures",   m_numReorderFrames,               -1, "Max. number of reorder pictures: -1: encoder determines value, >=0: set explicitly")
-  ("MaxNumberOfReferencePictures", m_uiMaxNumberOfReferencePictures, 6u, "Max. number of reference pictures")
+  ("MaxNumberOfReferencePictures", m_maxNumberOfReferencePictures, 6, "Max. number of reference pictures")
 #endif
   ("ListCombination,-lc", m_bUseLComb, true, "combined reference list flag for uni-prediction in B-slices")
   ("LCModification", m_bLCMod, false, "enables signalling of combined reference list derivation")
@@ -321,7 +321,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   for(Int i=1; i<MAX_GOP+1; i++) {
     std::ostringstream cOSS;
     cOSS<<"Frame"<<i;
-    opts.addOptions()(cOSS.str(), m_pcGOPList[i-1], GOPEntry());
+    opts.addOptions()(cOSS.str(), m_GOPList[i-1], GOPEntry());
   }
   po::setDefaults(opts);
   const list<const char*>& argv_unhandled = po::scanArgv(opts, argc, (const char**) argv);
@@ -530,213 +530,236 @@ Void TAppEncCfg::xCheckParameter()
       xConfirmPara( ui != 1 , "Height should be 2^n");
   }
   
-  Bool bVerified_GOP=false;
-  Bool bError_GOP=false;
-  Int iCheckGOP=1;
-  Int iNumRefs = 1;
-  Int aRefList[MAX_NUM_REF_PICS+1];
-  aRefList[0]=0;
-  Bool bIsOK[MAX_GOP];
+  Bool verified_GOP=false;
+  Bool error_GOP=false;
+  Int checkGOP=1;
+  Int numRefs = 1;
+  Int refList[MAX_NUM_REF_PICS+1];
+  refList[0]=0;
+  Bool isOK[MAX_GOP];
   for(Int i=0; i<MAX_GOP; i++) {
-    bIsOK[i]=false;
+    isOK[i]=false;
   }
-  Int iNumOK=0;
+  Int numOK=0;
 #if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   Int numReorderFramesRequired=0;
-  m_uiMaxNumberOfReferencePictures=0;
-  Int iLastDisp = -1;
+  m_maxNumberOfReferencePictures=0;
+  Int lastDisp = -1;
 #endif
-  m_iExtraRPSs=0;
-  while(!bVerified_GOP&&!bError_GOP) 
+  m_extraRPSs=0;
+  //start looping through frames in coding order until we can verify that the GOP structure is correct.
+  while(!verified_GOP&&!error_GOP) 
   {
-    Int iCurGOP = (iCheckGOP-1)%m_iGOPSize;
-    Int iCurPOC = ((iCheckGOP-1)/m_iGOPSize)*m_iGOPSize + m_pcGOPList[iCurGOP].m_iPOC;
-    
-    if(m_pcGOPList[iCurGOP].m_iPOC<0) {
+    Int curGOP = (checkGOP-1)%m_iGOPSize;
+    Int curPOC = ((checkGOP-1)/m_iGOPSize)*m_iGOPSize + m_GOPList[curGOP].m_POC;    
+    if(m_GOPList[curGOP].m_POC<0) 
+    {
       printf("\nError: found fewer Reference Picture Sets than GOPSize\n");
-      bError_GOP=true;
+      error_GOP=true;
     }
-    else {
-      Bool bBeforeI = false;
-      for(Int i = 0; i< m_pcGOPList[iCurGOP].m_iNumRefPics; i++) 
+    else 
+    {
+      //check that all reference pictures are available, or have a POC < 0 meaning they might be available in the next GOP.
+      Bool beforeI = false;
+      for(Int i = 0; i< m_GOPList[curGOP].m_numRefPics; i++) 
       {
-        Int iAbsPOC = iCurPOC+m_pcGOPList[iCurGOP].m_aiReferencePics[i];
-        if(iAbsPOC < 0)
-          bBeforeI=true;
-        else {
-          Bool bFound=false;
-          for(Int j=0; j<iNumRefs; j++) {
-            if(aRefList[j]==iAbsPOC) {
-              bFound=true;
+        Int absPOC = curPOC+m_GOPList[curGOP].m_referencePics[i];
+        if(absPOC < 0)
+        {
+          beforeI=true;
+        }
+        else 
+        {
+          Bool found=false;
+          for(Int j=0; j<numRefs; j++) 
+          {
+            if(refList[j]==absPOC) 
+            {
+              found=true;
               for(Int k=0; k<m_iGOPSize; k++)
               {
-                if(iAbsPOC%m_iGOPSize == m_pcGOPList[k].m_iPOC%m_iGOPSize)
-                  m_pcGOPList[iCurGOP].m_aiUsedByCurrPic[i]=m_pcGOPList[k].m_iTemporalId<=m_pcGOPList[iCurGOP].m_iTemporalId;
+                if(absPOC%m_iGOPSize == m_GOPList[k].m_POC%m_iGOPSize)
+                {
+                  m_GOPList[curGOP].m_usedByCurrPic[i]=m_GOPList[k].m_temporalId<=m_GOPList[curGOP].m_temporalId;
                 }
+              }
             }
           }
-          if(!bFound)
+          if(!found)
           {
-            printf("\nError: ref pic %d is not available for GOP frame %d\n",m_pcGOPList[iCurGOP].m_aiReferencePics[i],iCurGOP+1);
-            bError_GOP=true;
+            printf("\nError: ref pic %d is not available for GOP frame %d\n",m_GOPList[curGOP].m_referencePics[i],curGOP+1);
+            error_GOP=true;
           }
         }
       }
-      if(!bBeforeI&&!bError_GOP)
+      if(!beforeI&&!error_GOP)
       {
         //all ref frames were present
-        if(!bIsOK[iCurGOP]) 
+        if(!isOK[curGOP]) 
         {
-          iNumOK++;
-          bIsOK[iCurGOP]=true;
-          if(iNumOK==m_iGOPSize)
-            bVerified_GOP=true;
-        }
-      }
-      else {
-        
-        m_pcGOPList[m_iGOPSize+m_iExtraRPSs]=m_pcGOPList[iCurGOP];
-        Int iNewRefs=0;
-        for(Int i = 0; i< m_pcGOPList[iCurGOP].m_iNumRefPics; i++) 
-        {
-          Int iAbsPOC = iCurPOC+m_pcGOPList[iCurGOP].m_aiReferencePics[i];
-          if(iAbsPOC>=0)
+          numOK++;
+          isOK[curGOP]=true;
+          if(numOK==m_iGOPSize)
           {
-            m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiReferencePics[iNewRefs]=m_pcGOPList[iCurGOP].m_aiReferencePics[i];
-            m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiUsedByCurrPic[iNewRefs]=m_pcGOPList[iCurGOP].m_aiUsedByCurrPic[i];
-            iNewRefs++;
+            verified_GOP=true;
           }
         }
-        Int iNumPrefRefs = m_pcGOPList[iCurGOP].m_iRefBufSize;
-        
-        for(Int iOffset = -1; iOffset>-iCheckGOP; iOffset--)
+      }
+      else 
+      {
+        //create a new GOPEntry for this frame containing all the reference pictures that were available (POC > 0)
+        m_GOPList[m_iGOPSize+m_extraRPSs]=m_GOPList[curGOP];
+        Int newRefs=0;
+        for(Int i = 0; i< m_GOPList[curGOP].m_numRefPics; i++) 
         {
-          //step backwards in coding order and include pictures we might find useful. 
-          Int iOffGOP = (iCheckGOP-1+iOffset)%m_iGOPSize;
-          Int iOffPOC = ((iCheckGOP-1+iOffset)/m_iGOPSize)*m_iGOPSize + m_pcGOPList[iOffGOP].m_iPOC;
-          if(iOffPOC>=0&&m_pcGOPList[iOffGOP].m_bRefPic&&m_pcGOPList[iOffGOP].m_iTemporalId<=m_pcGOPList[iCurGOP].m_iTemporalId) 
+          Int absPOC = curPOC+m_GOPList[curGOP].m_referencePics[i];
+          if(absPOC>=0)
           {
-            Bool bNewRef=false;
-            for(Int i=0; i<iNumRefs; i++)
+            m_GOPList[m_iGOPSize+m_extraRPSs].m_referencePics[newRefs]=m_GOPList[curGOP].m_referencePics[i];
+            m_GOPList[m_iGOPSize+m_extraRPSs].m_usedByCurrPic[newRefs]=m_GOPList[curGOP].m_usedByCurrPic[i];
+            newRefs++;
+          }
+        }
+        Int numPrefRefs = m_GOPList[curGOP].m_numRefPicsActive;
+        
+        for(Int offset = -1; offset>-checkGOP; offset--)
+        {
+          //step backwards in coding order and include any extra available pictures we might find useful to replace the ones with POC < 0.
+          Int offGOP = (checkGOP-1+offset)%m_iGOPSize;
+          Int offPOC = ((checkGOP-1+offset)/m_iGOPSize)*m_iGOPSize + m_GOPList[offGOP].m_POC;
+          if(offPOC>=0&&m_GOPList[offGOP].m_refPic&&m_GOPList[offGOP].m_temporalId<=m_GOPList[curGOP].m_temporalId) 
+          {
+            Bool newRef=false;
+            for(Int i=0; i<numRefs; i++)
             {
-              if(aRefList[i]==iOffPOC)
+              if(refList[i]==offPOC)
               {
-                bNewRef=true;
+                newRef=true;
               }
             }
-            for(Int i=0; i<iNewRefs; i++) 
+            for(Int i=0; i<newRefs; i++) 
             {
-              if(m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiReferencePics[i]==iOffPOC-iCurPOC)
+              if(m_GOPList[m_iGOPSize+m_extraRPSs].m_referencePics[i]==offPOC-curPOC)
               {
-                bNewRef=false;
+                newRef=false;
               }
             }
-            if(bNewRef) 
+            if(newRef) 
             {
-              Int iInsertPoint=iNewRefs;
-              for(Int j=0; j<iNewRefs; j++)
+              Int insertPoint=newRefs;
+              //this picture can be added, find appropriate place in list and insert it.
+              for(Int j=0; j<newRefs; j++)
               {
-                if(m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiReferencePics[j]<iOffPOC-iCurPOC||m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiReferencePics[j]>0)
+                if(m_GOPList[m_iGOPSize+m_extraRPSs].m_referencePics[j]<offPOC-curPOC||m_GOPList[m_iGOPSize+m_extraRPSs].m_referencePics[j]>0)
                 {
-                  iInsertPoint = j;
+                  insertPoint = j;
                   break;
                 }
               }
-              Int prev = iOffPOC-iCurPOC;
-              Int prevUsed = m_pcGOPList[iOffGOP].m_iTemporalId<=m_pcGOPList[iCurGOP].m_iTemporalId;
-              for(Int j=iInsertPoint; j<iNewRefs+1; j++)
+              Int prev = offPOC-curPOC;
+              Int prevUsed = m_GOPList[offGOP].m_temporalId<=m_GOPList[curGOP].m_temporalId;
+              for(Int j=insertPoint; j<newRefs+1; j++)
               {
-                Int newPrev = m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiReferencePics[j];
-                Int newUsed = m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiUsedByCurrPic[j];
-                m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiReferencePics[j]=prev;
-                m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiUsedByCurrPic[j]=prevUsed;
+                Int newPrev = m_GOPList[m_iGOPSize+m_extraRPSs].m_referencePics[j];
+                Int newUsed = m_GOPList[m_iGOPSize+m_extraRPSs].m_usedByCurrPic[j];
+                m_GOPList[m_iGOPSize+m_extraRPSs].m_referencePics[j]=prev;
+                m_GOPList[m_iGOPSize+m_extraRPSs].m_usedByCurrPic[j]=prevUsed;
                 prevUsed=newUsed;
                 prev=newPrev;
               }
-              //m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiReferencePics[iNewRefs]=iOffPOC-iCurPOC;
-              iNewRefs++;
+              newRefs++;
             }
           }
-          if(iNewRefs>=iNumPrefRefs)
+          if(newRefs>=numPrefRefs)
+          {
             break;
+          }
         }
-        m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iNumRefPics=iNewRefs;
-        m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iPOC = iCurPOC;
-        if (m_iExtraRPSs == 0)
+        m_GOPList[m_iGOPSize+m_extraRPSs].m_numRefPics=newRefs;
+        m_GOPList[m_iGOPSize+m_extraRPSs].m_POC = curPOC;
+        if (m_extraRPSs == 0)
         {
-          m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_bInterRPSPrediction = 0;
-          m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iNumRefIdc = 0;
+          m_GOPList[m_iGOPSize+m_extraRPSs].m_interRPSPrediction = 0;
+          m_GOPList[m_iGOPSize+m_extraRPSs].m_numRefIdc = 0;
         }
         else
         {
-          Int rIdx =  m_iGOPSize + m_iExtraRPSs - 1;
-          Int iRefPOC = m_pcGOPList[rIdx].m_iPOC;
-          Int iRefPics = m_pcGOPList[rIdx].m_iNumRefPics;
-          Int iNewIdc=0;
-          for(Int i = 0; i<= iRefPics; i++) 
+          Int rIdx =  m_iGOPSize + m_extraRPSs - 1;
+          Int refPOC = m_GOPList[rIdx].m_POC;
+          Int refPics = m_GOPList[rIdx].m_numRefPics;
+          Int newIdc=0;
+          for(Int i = 0; i<= refPics; i++) 
           {
-            Int deltaPOC = ((i != iRefPics)? m_pcGOPList[rIdx].m_aiReferencePics[i] : 0);  // check if the reference abs POC is >= 0
-            Int iAbsPOCref = iRefPOC+deltaPOC;
-            Int iRefIdc = 0;
-            for (Int j = 0; j < m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iNumRefPics; j++)
+            Int deltaPOC = ((i != refPics)? m_GOPList[rIdx].m_referencePics[i] : 0);  // check if the reference abs POC is >= 0
+            Int absPOCref = refPOC+deltaPOC;
+            Int refIdc = 0;
+            for (Int j = 0; j < m_GOPList[m_iGOPSize+m_extraRPSs].m_numRefPics; j++)
             {
-              if ( (iAbsPOCref - iCurPOC) == m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiReferencePics[j])
+              if ( (absPOCref - curPOC) == m_GOPList[m_iGOPSize+m_extraRPSs].m_referencePics[j])
               {
-                if (m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiUsedByCurrPic[j])
+                if (m_GOPList[m_iGOPSize+m_extraRPSs].m_usedByCurrPic[j])
                 {
-                  iRefIdc = 1;
+                  refIdc = 1;
                 }
                 else
                 {
-                  iRefIdc = 2;
+                  refIdc = 2;
                 }
               }
             }
-            m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_aiRefIdc[iNewIdc]=iRefIdc;
-            iNewIdc++;
+            m_GOPList[m_iGOPSize+m_extraRPSs].m_refIdc[newIdc]=refIdc;
+            newIdc++;
           }
-          m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_bInterRPSPrediction = 1;  
-          m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iNumRefIdc = iNewIdc;
-          m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iDeltaRPS = iRefPOC - m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iPOC; 
-          m_pcGOPList[m_iGOPSize+m_iExtraRPSs].m_iDeltaRIdxMinus1 = 0; 
+          m_GOPList[m_iGOPSize+m_extraRPSs].m_interRPSPrediction = 1;  
+          m_GOPList[m_iGOPSize+m_extraRPSs].m_numRefIdc = newIdc;
+          m_GOPList[m_iGOPSize+m_extraRPSs].m_deltaRPS = refPOC - m_GOPList[m_iGOPSize+m_extraRPSs].m_POC; 
+          m_GOPList[m_iGOPSize+m_extraRPSs].m_deltaRIdxMinus1 = 0; 
         }
-        iCurGOP=m_iGOPSize+m_iExtraRPSs;
-        m_iExtraRPSs++;
+        curGOP=m_iGOPSize+m_extraRPSs;
+        m_extraRPSs++;
       }
-      iNumRefs=0;
-      for(Int i = 0; i< m_pcGOPList[iCurGOP].m_iNumRefPics; i++) 
+      numRefs=0;
+      for(Int i = 0; i< m_GOPList[curGOP].m_numRefPics; i++) 
       {
-        Int iAbsPOC = iCurPOC+m_pcGOPList[iCurGOP].m_aiReferencePics[i];
-        if(iAbsPOC >= 0) {
-          aRefList[iNumRefs]=iAbsPOC;
-          iNumRefs++;
+        Int absPOC = curPOC+m_GOPList[curGOP].m_referencePics[i];
+        if(absPOC >= 0) 
+        {
+          refList[numRefs]=absPOC;
+          numRefs++;
         }
       }
 #if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-      if(m_uiMaxNumberOfReferencePictures<iNumRefs)
-        m_uiMaxNumberOfReferencePictures=iNumRefs;
+      if(m_maxNumberOfReferencePictures<numRefs)
+      {
+        m_maxNumberOfReferencePictures=numRefs;
+      }
 #endif
-      aRefList[iNumRefs]=iCurPOC;
-      iNumRefs++;
+      refList[numRefs]=curPOC;
+      numRefs++;
 #if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-      Int iNonDisplayed=0;
-      for(Int i=0; i<iNumRefs; i++) {
-        if(aRefList[i]==iLastDisp+1) {
-          iLastDisp=aRefList[i];
+      Int nonDisplayed=0;
+      for(Int i=0; i<numRefs; i++) 
+      {
+        if(refList[i]==lastDisp+1) 
+        {
+          lastDisp=refList[i];
           i=0;
         }
       }
-      for(Int i=0; i<iNumRefs; i++) {
-        if(aRefList[i]>iLastDisp)
-          iNonDisplayed++;
-      }
-      if(iNonDisplayed>numReorderFramesRequired)
+      for(Int i=0; i<numRefs; i++) 
       {
-        numReorderFramesRequired=iNonDisplayed;
+        if(refList[i]>lastDisp)
+        {
+          nonDisplayed++;
+        }
+      }
+      if(nonDisplayed>numReorderFramesRequired)
+      {
+        numReorderFramesRequired=nonDisplayed;
       }
 #endif
     }
-    iCheckGOP++;
+    checkGOP++;
   }
 #if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   if (m_numReorderFrames == -1)
@@ -744,36 +767,36 @@ Void TAppEncCfg::xCheckParameter()
     m_numReorderFrames = numReorderFramesRequired;
   }
 #endif
-  xConfirmPara(bError_GOP,"Invalid GOP structure given");
+  xConfirmPara(error_GOP,"Invalid GOP structure given");
 #if H0566_TLA
   m_maxTempLayer = 1;
 #endif
   for(Int i=0; i<m_iGOPSize; i++) 
   {
 #if H0566_TLA
-    if(m_pcGOPList[i].m_iTemporalId >= m_maxTempLayer)
+    if(m_GOPList[i].m_temporalId >= m_maxTempLayer)
     {
-      m_maxTempLayer = m_pcGOPList[i].m_iTemporalId+1;
+      m_maxTempLayer = m_GOPList[i].m_temporalId+1;
     }
 #endif
-    xConfirmPara(m_pcGOPList[i].m_iSliceType!='B'&&m_pcGOPList[i].m_iSliceType!='P', "Slice type must be equal to B or P");
+    xConfirmPara(m_GOPList[i].m_sliceType!='B'&&m_GOPList[i].m_sliceType!='P', "Slice type must be equal to B or P");
   }
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   for(Int i=0; i<MAX_TLAYER; i++)
   {
     m_numReorderPics[i] = 0;
-    m_uiMaxDecPicBuffering[i] = 0;
+    m_maxDecPicBuffering[i] = 0;
   }
   for(Int i=0; i<m_iGOPSize; i++) 
   {
-    if(m_pcGOPList[i].m_iNumRefPics > m_uiMaxDecPicBuffering[m_pcGOPList[i].m_iTemporalId])
+    if(m_GOPList[i].m_numRefPics > m_maxDecPicBuffering[m_GOPList[i].m_temporalId])
     {
-      m_uiMaxDecPicBuffering[m_pcGOPList[i].m_iTemporalId] = m_pcGOPList[i].m_iNumRefPics;
+      m_maxDecPicBuffering[m_GOPList[i].m_temporalId] = m_GOPList[i].m_numRefPics;
     }
     Int highestDecodingNumberWithLowerPOC = 0; 
     for(Int j=0; j<m_iGOPSize; j++)
     {
-      if(m_pcGOPList[j].m_iPOC <= m_pcGOPList[i].m_iPOC)
+      if(m_GOPList[j].m_POC <= m_GOPList[i].m_POC)
       {
         highestDecodingNumberWithLowerPOC = j;
       }
@@ -781,15 +804,15 @@ Void TAppEncCfg::xCheckParameter()
     Int numReorder = 0;
     for(Int j=0; j<highestDecodingNumberWithLowerPOC; j++)
     {
-      if(m_pcGOPList[j].m_iTemporalId <= m_pcGOPList[i].m_iTemporalId && 
-        m_pcGOPList[j].m_iPOC > m_pcGOPList[i].m_iPOC)
+      if(m_GOPList[j].m_temporalId <= m_GOPList[i].m_temporalId && 
+        m_GOPList[j].m_POC > m_GOPList[i].m_POC)
       {
         numReorder++;
       }
     }    
-    if(numReorder > m_numReorderPics[m_pcGOPList[i].m_iTemporalId])
+    if(numReorder > m_numReorderPics[m_GOPList[i].m_temporalId])
     {
-      m_numReorderPics[m_pcGOPList[i].m_iTemporalId] = numReorder;
+      m_numReorderPics[m_GOPList[i].m_temporalId] = numReorder;
     }
   }
   for(Int i=0; i<MAX_TLAYER-1; i++) 
@@ -800,20 +823,20 @@ Void TAppEncCfg::xCheckParameter()
       m_numReorderPics[i+1] = m_numReorderPics[i];
     }
     // the value of num_reorder_pics[ i ] shall be in the range of 0 to max_dec_pic_buffering[ i ], inclusive
-    if(m_numReorderPics[i] > m_uiMaxDecPicBuffering[i])
+    if(m_numReorderPics[i] > m_maxDecPicBuffering[i])
     {
-      m_uiMaxDecPicBuffering[i] = m_numReorderPics[i];
+      m_maxDecPicBuffering[i] = m_numReorderPics[i];
     }
     // a lower layer can not have higher value of m_uiMaxDecPicBuffering than a higher layer
-    if(m_uiMaxDecPicBuffering[i+1] < m_uiMaxDecPicBuffering[i])
+    if(m_maxDecPicBuffering[i+1] < m_maxDecPicBuffering[i])
     {
-      m_uiMaxDecPicBuffering[i+1] = m_uiMaxDecPicBuffering[i];
+      m_maxDecPicBuffering[i+1] = m_maxDecPicBuffering[i];
     }
   }
   // the value of num_reorder_pics[ i ] shall be in the range of 0 to max_dec_pic_buffering[ i ], inclusive
-  if(m_numReorderPics[MAX_TLAYER-1] > m_uiMaxDecPicBuffering[MAX_TLAYER-1])
+  if(m_numReorderPics[MAX_TLAYER-1] > m_maxDecPicBuffering[MAX_TLAYER-1])
   {
-    m_uiMaxDecPicBuffering[MAX_TLAYER-1] = m_numReorderPics[MAX_TLAYER-1];
+    m_maxDecPicBuffering[MAX_TLAYER-1] = m_numReorderPics[MAX_TLAYER-1];
   }
 #endif
 

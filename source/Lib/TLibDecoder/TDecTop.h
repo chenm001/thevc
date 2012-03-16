@@ -76,7 +76,7 @@ private:
   UInt                    m_uiValidPS;
   TComList<TComPic*>      m_cListPic;         //  Dynamic buffer
   ParameterSetManagerDecoder m_parameterSetManagerDecoder;  // storage for parameter sets 
-  TComRPS                 m_cRPSList;
+  TComRPSList             m_RPSList;
   TComSlice*              m_apcSlicePilot;
   
   SEImessages *m_SEIs; ///< "all" SEI messages.  If not NULL, we own the object.

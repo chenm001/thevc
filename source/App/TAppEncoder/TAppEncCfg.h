@@ -71,14 +71,14 @@ protected:
   Int       m_iIntraPeriod;                                   ///< period of I-slice (random access period)
   Int       m_iDecodingRefreshType;                           ///< random access type
   Int       m_iGOPSize;                                       ///< GOP size of hierarchical structure
-  Int       m_iExtraRPSs;
-  GOPEntry  m_pcGOPList[MAX_GOP];
+  Int       m_extraRPSs;                                      ///< extra RPSs added to handle CRA
+  GOPEntry  m_GOPList[MAX_GOP];                               ///< the coding structure entries from the config file
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  Int       m_numReorderPics[MAX_TLAYER];                               ///< total number of reorder pictures
-  UInt      m_uiMaxDecPicBuffering[MAX_TLAYER];                         ///< total number of reference pictures needed for decoding
+  Int       m_numReorderPics[MAX_TLAYER];                     ///< total number of reorder pictures
+  Int       m_maxDecPicBuffering[MAX_TLAYER];                 ///< total number of reference pictures needed for decoding
 #else
   Int       m_numReorderFrames;                               ///< total number of reorder pictures
-  UInt      m_uiMaxNumberOfReferencePictures;                 ///< total number of reference pictures needed for decoding
+  Int       m_maxNumberOfReferencePictures;                   ///< total number of reference pictures needed for decoding
 #endif
   Bool      m_bUseLComb;                                      ///< flag for using combined reference list for uni-prediction in B-slices (JCTVC-D421)
   Bool      m_bLCMod;                                         ///< flag for specifying whether the combined reference list for uni-prediction in B-slices is uploaded explicitly
