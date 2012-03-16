@@ -328,10 +328,18 @@ Void TEncSbac::codeSliceHeader( TComSlice* pcSlice )
   return;
 }
 
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+Void TEncSbac::codeTilesWPPEntryPoint( TComSlice* pcSlice )
+{
+  assert (0);
+  return;
+}
+#else
 Void TEncSbac::codeSliceHeaderSubstreamTable( TComSlice* pcSlice )
 {
   assert (0);
 }
+#endif
 
 Void TEncSbac::codeTerminatingBit( UInt uilsLast )
 {

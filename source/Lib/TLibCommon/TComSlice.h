@@ -240,6 +240,11 @@ private:
 
   Bool        m_useDF;
 
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+  UInt        m_uiTilesOrEntropyCodingSyncIdc;
+  Int         m_iNumSubstreams;
+#endif
+
 public:
   TComSPS();
   virtual ~TComSPS();
@@ -436,6 +441,12 @@ public:
   Void setMaxDecFrameBuffering  ( UInt ui )   { m_uiMaxDecFrameBuffering = ui;   }
   UInt getMaxLatencyIncrease    ()            { return m_uiMaxLatencyIncrease;   }
   Void setMaxLatencyIncrease    ( UInt ui )   { m_uiMaxLatencyIncrease= ui;      }
+#endif
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+  UInt getTilesOrEntropyCodingSyncIdc ()          { return m_uiTilesOrEntropyCodingSyncIdc; }
+  Void setTilesOrEntropyCodingSyncIdc (UInt ui )  { m_uiTilesOrEntropyCodingSyncIdc = ui;   }
+  Int  getNumSubstreams()                         { return m_iNumSubstreams;                }
+  Void setNumSubstreams(Int iNumSubstreams)       { m_iNumSubstreams = iNumSubstreams;      }
 #endif
 };
 
@@ -1013,6 +1024,9 @@ private:
 #if H0111_MVD_L1_ZERO
   Bool       m_bLMvdL1Zero;
 #endif
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+  Int         m_numEntryPointOffsets;
+#endif
 
 public:
   TComSlice();
@@ -1270,6 +1284,10 @@ public:
 #else
   Void      setCABACinitIDC(Int iVal) {m_cabacInitIdc = iVal;    }  //!< set CABAC initial IDC number 
   Int       getCABACinitIDC()         {return m_cabacInitIdc;    }  //!< get CABAC initial IDC number 
+#endif
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+  Void      setNumEntryPointOffsets(Int iVal) { m_numEntryPointOffsets = iVal;    }
+  Int       getNumEntryPointOffsets()         { return m_numEntryPointOffsets;    }
 #endif
 
 protected:

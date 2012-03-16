@@ -102,7 +102,11 @@ public:
   void codeSEI(const SEI&);
   Void  codeSliceHeader         ( TComSlice* pcSlice );
   Void codeTileMarkerFlag(TComSlice* pcSlice) {printf("Not supported\n"); assert(0); exit(1);}
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+  Void  codeTilesWPPEntryPoint( TComSlice* pcSlice );
+#else
   Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );
+#endif
   Void  codeTerminatingBit      ( UInt uilsLast      );
   Void  codeSliceFinish         ();
 #if OL_FLUSH

@@ -719,6 +719,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       {
         OutputNALUnit nalu(NAL_UNIT_SPS, NAL_REF_IDC_PRIORITY_HIGHEST);
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+        pcSlice->getSPS()->setNumSubstreams( pcSlice->getPPS()->getNumSubstreams() );
+#endif
         m_pcEntropyCoder->encodeSPS(pcSlice->getSPS());
         writeRBSPTrailingBits(nalu.m_Bitstream);
         accessUnit.push_back(new NALUnitEBSP(nalu));
@@ -991,6 +994,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             m_pcEntropyCoder->encodeTerminatingBit( 1 );
             m_pcEntropyCoder->encodeSliceFinish();
             pcSubstreamsOut[ui].write( 1, 1 ); // stop bit.
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+            pcSubstreamsOut[ui].writeAlignZero();
+#endif
             // Byte alignment is necessary between tiles when tiles are independent.
             uiTotalCodedSize += pcSubstreamsOut[ui].getNumberOfWrittenBits();
 
@@ -1018,7 +1024,14 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           // Complete the slice header info.
           m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
           m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+          if (m_pcCfg->getTileLocationInSliceHeaderFlag()==0) 
+            pcSlice->setTileLocationCount( 0 );
+
+          m_pcEntropyCoder->encodeTilesWPPEntryPoint( pcSlice );
+#else
           m_pcEntropyCoder->encodeSliceHeaderSubstreamTable(pcSlice);
+#endif
 
           // Substreams...
           TComOutputBitstream *pcOut = pcBitstreamRedirect;
@@ -1986,6 +1999,7 @@ Double TEncGOP::xCalculateRVM()
 Void TEncGOP::xWriteTileLocationToSliceHeader (OutputNALUnit& rNalu, TComOutputBitstream*& rpcBitstreamRedirect, TComSlice*& rpcSlice)
 {
   {
+#if !TILES_WPP_ENTRY_POINT_SIGNALLING
     Int iTransmitTileLocationInSliceHeader = (rpcSlice->getTileLocationCount()==0 || m_pcCfg->getTileLocationInSliceHeaderFlag()==0) ? 0 : 1;
     rNalu.m_Bitstream.write(iTransmitTileLocationInSliceHeader, 1);   // write flag indicating whether tile location information communicated in slice header
 
@@ -2083,6 +2097,7 @@ Void TEncGOP::xWriteTileLocationToSliceHeader (OutputNALUnit& rNalu, TComOutputB
 
       delete [] aiDiff;
     }
+#endif
   }
 
   // Byte-align

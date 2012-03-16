@@ -73,10 +73,17 @@ Void TEncEntropy::encodeSliceHeader ( TComSlice* pcSlice )
   return;
 }
 
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+Void  TEncEntropy::encodeTilesWPPEntryPoint( TComSlice* pcSlice )
+{
+  m_pcEntropyCoderIf->codeTilesWPPEntryPoint( pcSlice );
+}
+#else
 Void TEncEntropy::encodeSliceHeaderSubstreamTable( TComSlice* pcSlice )
 {
   m_pcEntropyCoderIf->codeSliceHeaderSubstreamTable( pcSlice );
 }
+#endif
 
 Void TEncEntropy::encodeTerminatingBit      ( UInt uiIsLast )
 {

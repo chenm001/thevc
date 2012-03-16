@@ -103,6 +103,9 @@ TComSlice::TComSlice()
 #else
 , m_cabacInitIdc                 ( -1 )
 #endif
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+, m_numEntryPointOffsets          ( 0 )
+#endif
 {
   m_aiNumRefIdx[0] = m_aiNumRefIdx[1] = m_aiNumRefIdx[2] = 0;
   
@@ -168,6 +171,9 @@ Void TComSlice::initSlice()
   m_uiTileCount          = 0;
 #if CABAC_INIT_FLAG
   m_CabacInitFlag        = 0;
+#endif
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+  m_numEntryPointOffsets = 0;
 #endif
 }
 
@@ -808,6 +814,9 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
 #if CABAC_INIT_FLAG
   m_CabacInitFlag                = pSrc->m_CabacInitFlag;
 #endif
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+  m_numEntryPointOffsets  = pSrc->m_numEntryPointOffsets;
+#endif
 
 }
 
@@ -1368,6 +1377,10 @@ TComSPS::TComSPS()
 #if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
 , m_uiMaxDecFrameBuffering    (  0)
 , m_uiMaxLatencyIncrease      (  0)
+#endif
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+,  m_uiTilesOrEntropyCodingSyncIdc  ( 0 )
+,  m_iNumSubstreams                 ( 0 )
 #endif
 {
   // AMVP parameter

@@ -260,6 +260,8 @@
 
 #define H0388                       1 // JCTVC-H0388
 
+#define TILES_WPP_ENTRY_POINT_SIGNALLING        1 // JCTVC-H0556. Assumes either Tiles is ON or WPP is ON (not both simultaneously).
+
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================

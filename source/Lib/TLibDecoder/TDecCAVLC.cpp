@@ -1439,6 +1439,10 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     pcSPS->setAMVPMode( i, (AMVP_MODE)uiCode );
   }
 
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+  READ_CODE(2, uiCode, "tiles_or_entropy_coding_sync_idc");         pcSPS->setTilesOrEntropyCodingSyncIdc(uiCode);
+#endif
+
   READ_FLAG ( uiCode, "uniform_spacing_flag" ); 
   pcSPS->setUniformSpacingIdr( uiCode );
   READ_UVLC ( uiCode, "num_tile_columns_minus1" );
@@ -2071,6 +2075,64 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     }
   }
 
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+  Int tilesOrEntropyCodingSyncIdc = rpcSlice->getSPS()->getTilesOrEntropyCodingSyncIdc();
+
+  UInt numEntryPointOffsets, offsetLenMinus1;
+  UInt *entryPointOffset = NULL;
+  rpcSlice->setNumEntryPointOffsets ( 0 ); // default
+  
+  if (tilesOrEntropyCodingSyncIdc>0)
+  {
+    READ_UVLC(numEntryPointOffsets, "num_entry_point_offsets"); rpcSlice->setNumEntryPointOffsets ( numEntryPointOffsets );
+    if (numEntryPointOffsets>0)
+      READ_UVLC(offsetLenMinus1, "offset_len_minus1");
+    entryPointOffset = new UInt[numEntryPointOffsets];
+    for (UInt idx=0; idx<numEntryPointOffsets; idx++)
+    {
+      Int bitsRead = m_pcBitstream->getNumBitsRead();
+      READ_CODE(offsetLenMinus1+1, uiCode, "entry_point_offset");
+      entryPointOffset[ idx ] = uiCode;
+      if ( idx == 0 && tilesOrEntropyCodingSyncIdc == 2 )
+      {
+        // Subtract distance from NALU header start to provide WPP 0-th substream the correct size.
+        entryPointOffset[ idx ] -= ( bitsRead + numEntryPointOffsets*(offsetLenMinus1+1) ) >> 3;
+      }
+    }
+  }
+
+  if ( tilesOrEntropyCodingSyncIdc == 1 ) // tiles
+  {
+    rpcSlice->setTileLocationCount( numEntryPointOffsets );
+
+    UInt prevPos = 0;
+    for (Int idx=0; idx<rpcSlice->getTileLocationCount(); idx++)
+    {
+      rpcSlice->setTileLocation( idx, prevPos + entryPointOffset [ idx ] );
+      prevPos += entryPointOffset[ idx ];
+    }
+  }
+  else if ( tilesOrEntropyCodingSyncIdc == 2 ) // wavefront
+  {
+    UInt numSubstreams = pps->getNumSubstreams();
+    rpcSlice->allocSubstreamSizes(numSubstreams);
+    UInt *pSubstreamSizes       = rpcSlice->getSubstreamSizes();
+    for (Int idx=0; idx<numSubstreams; idx++)
+    {
+      if ( idx < numEntryPointOffsets )
+      {
+        pSubstreamSizes[ idx ] = ( entryPointOffset[ idx ] << 3 ) ;
+      }
+      else
+      {
+        pSubstreamSizes[ idx ] = 0;
+      }
+    }
+  }
+
+  if (entryPointOffset)
+    delete [] entryPointOffset;
+#else
   if (pps->getEntropyCodingSynchro())
   {
     UInt uiNumSubstreams = pps->getNumSubstreams();
@@ -2103,12 +2165,14 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       puiSubstreamSizes[ui] = uiCode;
     }
   }
+#endif
 
   if (!bEntropySlice)
   {
     // Reading location information
     if (sps->getTileBoundaryIndependenceIdr())
     {   
+#if !TILES_WPP_ENTRY_POINT_SIGNALLING
       xReadCode(1, uiCode); // read flag indicating if location information signaled in slice header
       Bool bTileLocationInformationInSliceHeaderFlag = (uiCode)? true : false;
 
@@ -2146,6 +2210,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
           }
         }
       }
+#endif
 
       // read out trailing bits
       m_pcBitstream->readOutTrailingBits();
