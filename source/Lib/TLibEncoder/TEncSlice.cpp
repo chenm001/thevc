@@ -769,7 +769,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       {
 #if CABAC_INIT_FLAG
         SliceType eSliceType  = pcSlice->getSliceType();
-        if (!pcSlice->isIntra() && pcSlice->getPPS()->getCabacInitPresentFlag())
+        if (!pcSlice->isIntra() && pcSlice->getPPS()->getCabacInitPresentFlag() && pcSlice->getPPS()->getEncCABACTableIdx()!=0)
           eSliceType = (SliceType) pcSlice->getPPS()->getEncCABACTableIdx();
 
         m_pcEntropyCoder->updateContextTables ( eSliceType, pcSlice->getSliceQp(), false );
@@ -1051,7 +1051,7 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         {
 #if CABAC_INIT_FLAG
           SliceType eSliceType  = pcSlice->getSliceType();
-          if (!pcSlice->isIntra() && pcSlice->getPPS()->getCabacInitPresentFlag())
+          if (!pcSlice->isIntra() && pcSlice->getPPS()->getCabacInitPresentFlag() && pcSlice->getPPS()->getEncCABACTableIdx()!=0)
             eSliceType = (SliceType) pcSlice->getPPS()->getEncCABACTableIdx();
 
           m_pcEntropyCoder->updateContextTables( eSliceType, pcSlice->getSliceQp() );
