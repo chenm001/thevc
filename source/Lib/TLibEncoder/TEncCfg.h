@@ -510,8 +510,10 @@ public:
   Int   getColumnRowInfoPresent        ()                  { return m_iColumnRowInfoPresent; }
   Void  setUniformSpacingIdr           ( Int i )           { m_iUniformSpacingIdr = i; }
   Int   getUniformSpacingIdr           ()                  { return m_iUniformSpacingIdr; }
+#if !REMOVE_TILE_DEPENDENCE
   Void  setTileBoundaryIndependenceIdr ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
   Int   getTileBoundaryIndependenceIdr ()                  { return m_iTileBoundaryIndependenceIdr; }
+#endif
   Void  setNumColumnsMinus1            ( Int i )           { m_iNumColumnsMinus1 = i; }
   Int   getNumColumnsMinus1            ()                  { return m_iNumColumnsMinus1; }
   Void  setColumnWidth ( char* str )

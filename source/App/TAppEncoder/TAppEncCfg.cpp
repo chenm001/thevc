@@ -281,7 +281,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("weighted_bipred_idc,-wpBidc", m_uiBiPredIdc,    0u,    "weighted bipred idc (B-Slices)")
     ("TileInfoPresentFlag",         m_iColumnRowInfoPresent,         1,          "0: tiles parameters are NOT present in the PPS. 1: tiles parameters are present in the PPS")
     ("UniformSpacingIdc",           m_iUniformSpacingIdr,            0,          "Indicates if the column and row boundaries are distributed uniformly")
+#if !REMOVE_TILE_DEPENDENCE
     ("TileBoundaryIndependenceIdc", m_iTileBoundaryIndependenceIdr,  1,          "Indicates if the column and row boundaries break the prediction")
+#endif
     ("NumTileColumnsMinus1",        m_iNumColumnsMinus1,             0,          "Number of columns in a picture minus 1")
     ("ColumnWidthArray",            cfg_ColumnWidth,                 string(""), "Array containing ColumnWidth values in units of LCU")
     ("NumTileRowsMinus1",           m_iNumRowsMinus1,                0,          "Number of rows in a picture minus 1")
@@ -982,7 +984,9 @@ Void TAppEncCfg::xPrintParameter()
 #endif  
   printf("WPP:%d ", (Int)m_bUseWeightPred);
   printf("WPB:%d ", m_uiBiPredIdc);
+#if !REMOVE_TILE_DEPENDENCE
   printf("TileBoundaryIndependence:%d ", m_iTileBoundaryIndependenceIdr ); 
+#endif
   printf("TileLocationInSliceHdr:%d ", m_iTileLocationInSliceHeaderFlag);
   printf("TileMarker:%d", m_iTileMarkerFlag);
   if (m_iTileMarkerFlag)

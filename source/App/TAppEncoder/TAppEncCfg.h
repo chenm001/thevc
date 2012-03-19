@@ -193,7 +193,9 @@ protected:
   Bool m_bLFCrossTileBoundaryFlag;  //!< 1: Cross-tile-boundary in-loop filtering 0: non-cross-tile-boundary in-loop filtering
   Int       m_iColumnRowInfoPresent;
   Int       m_iUniformSpacingIdr;
+#if !REMOVE_TILE_DEPENDENCE
   Int       m_iTileBoundaryIndependenceIdr;
+#endif
   Int       m_iNumColumnsMinus1;
   char*     m_pchColumnWidth;
   Int       m_iNumRowsMinus1;

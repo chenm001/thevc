@@ -136,8 +136,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
   TComSlice*      pcSlice;
   TComOutputBitstream  *pcBitstreamRedirect;
   pcBitstreamRedirect = new TComOutputBitstream;
+#if !REMOVE_TILE_DEPENDENCE
   OutputNALUnit        *naluBuffered             = NULL;
   Bool                  bIteratorAtListStart     = false;
+#endif
   AccessUnit::iterator  itLocationToPushSliceHeaderNALU; // used to store location where NALU containing slice header is to be inserted
   UInt                  uiOneBitstreamPerSliceLength = 0;
   TEncSbac* pcSbacCoders = NULL;
@@ -450,6 +452,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
     Int  p, j;
     UInt uiEncCUAddr;
     
+#if !REMOVE_TILE_DEPENDENCE
     if(pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)
     {
       pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getTileBoundaryIndependenceIdr() );
@@ -459,6 +462,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getSPS()->getTileBoundaryIndependenceIdr() );
 
     }
+#endif
 
     if( pcSlice->getPPS()->getColumnRowInfoPresent() == 1 )    //derive the tile parameters from PPS
     {
@@ -987,7 +991,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           UInt* puiSubstreamSizes = pcSlice->getSubstreamSizes();
           UInt uiTotalCodedSize = 0; // for padding calcs.
           UInt uiNumSubstreamsPerTile = iNumSubstreams;
+#if !REMOVE_TILE_DEPENDENCE
           if (pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && pcSlice->getPPS()->getEntropyCodingSynchro())
+#else
+          if (pcSlice->getPPS()->getEntropyCodingSynchro())
+#endif
             uiNumSubstreamsPerTile /= pcPic->getPicSym()->getNumTiles();
           for ( UInt ui = 0 ; ui < iNumSubstreams; ui++ )
           {
@@ -1068,11 +1076,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         uiBoundingAddrSlice        = m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx];          
         uiBoundingAddrEntropySlice = m_uiStoredStartCUAddrForEncodingEntropySlice[uiStartCUAddrEntropySliceIdx];          
         uiNextCUAddr               = min(uiBoundingAddrSlice, uiBoundingAddrEntropySlice);
+#if !REMOVE_TILE_DEPENDENCE
         Bool bNextCUInNewSlice     = (uiNextCUAddr >= uiRealEndAddress) || (uiNextCUAddr == m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx]);
-
+#endif
         // If current NALU is the first NALU of slice (containing slice header) and more NALUs exist (due to multiple entropy slices) then buffer it.
         // If current NALU is the last NALU of slice and a NALU was buffered, then (a) Write current NALU (b) Update an write buffered NALU at approproate location in NALU list.
         Bool bNALUAlignedWrittenToList    = false; // used to ensure current NALU is not written more than once to the NALU list.
+#if !REMOVE_TILE_DEPENDENCE
         if (pcSlice->getSPS()->getTileBoundaryIndependenceIdr() && !pcSlice->getSPS()->getTileBoundaryIndependenceIdr())
         {
           if (bNextCUInNewSlice)
@@ -1146,6 +1156,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           }
         }
         else
+#endif
         {
           xWriteTileLocationToSliceHeader(nalu, pcBitstreamRedirect, pcSlice);
           writeRBSPTrailingBits(nalu.m_Bitstream);
