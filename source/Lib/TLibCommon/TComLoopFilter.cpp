@@ -194,6 +194,8 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
 */
 Void TComLoopFilter::xDeblockCU( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int Edge )
 {
+  if(pcCU->getPic()==0||pcCU->getPartitionSize(uiAbsZorderIdx)==SIZE_NONE)
+    return;
   TComPic* pcPic     = pcCU->getPic();
   UInt uiCurNumParts = pcPic->getNumPartInCU() >> (uiDepth<<1);
   UInt uiQNumParts   = uiCurNumParts>>2;
@@ -457,7 +459,6 @@ Void TComLoopFilter::xSetEdgefilterPU( TComDataCU* pcCU, UInt uiAbsZorderIdx )
     }
     default:
     {
-      assert(0);
       break;
     }
   }

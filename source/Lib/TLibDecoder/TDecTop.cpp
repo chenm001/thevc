@@ -174,15 +174,12 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
   
   if ( !bBufferIsAvailable )
   {
-    pcSlice->sortPicList(m_cListPic);
-    iterPic = m_cListPic.begin();
-    rpcPic = *(iterPic);
-    rpcPic->setReconMark(false);
-    rpcPic->setOutputMark(false);
-    
-    // mark it should be extended
-    rpcPic->getPicYuvRec()->setBorderExtension(false);
+    //There is no room for this picture, either because of faulty encoder or dropped NAL. Extend the buffer.
+    m_iMaxRefPicNum++;
+    rpcPic = new TComPic();
+    m_cListPic.pushBack( rpcPic );
   }
+  rpcPic->create ( pcSlice->getSPS()->getWidth(), pcSlice->getSPS()->getHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, true);
 }
 
 Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame, Int& iPOCLastDisplay)
@@ -802,8 +799,7 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
     else 
     {
       printf("\nUnsafe random access point. Decoder may crash.");
-      m_uiPOCRA = m_apcSlicePilot->getPOC(); // set the POC random access skip the reordered pictures and try to decode if possible.  This increases the chances of avoiding a decoder crash.
-      //m_uiPOCRA = 0;
+      m_uiPOCRA = 0;
     }
   }
   else if (m_apcSlicePilot->getPOC() < m_uiPOCRA)  // skip the reordered pictures if necessary

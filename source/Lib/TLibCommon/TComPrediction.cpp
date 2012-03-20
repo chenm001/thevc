@@ -662,7 +662,7 @@ Void TComPrediction::xWeightedAverage( TComDataCU* pcCU, TComYuv* pcYuvSrc0, TCo
   }
   else
   {
-    assert (0);
+
   }
 }
 

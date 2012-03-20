@@ -139,6 +139,7 @@ Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool b
     m_puhWidth           = (UChar*    )xMalloc(UChar,    uiNumPartition);
     m_puhHeight          = (UChar*    )xMalloc(UChar,    uiNumPartition);
     m_pePartSize         = new Char[ uiNumPartition ];
+    memset( m_pePartSize, SIZE_NONE,uiNumPartition * sizeof( *m_pePartSize ) );
     m_pePredMode         = new Char[ uiNumPartition ];
     
     m_puiAlfCtrlFlag     = new Bool[ uiNumPartition ];
@@ -162,10 +163,15 @@ Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool b
     m_apiMVPIdx[1]       = new Char[ uiNumPartition ];
     m_apiMVPNum[0]       = new Char[ uiNumPartition ];
     m_apiMVPNum[1]       = new Char[ uiNumPartition ];
+    memset( m_apiMVPIdx[0], -1,uiNumPartition * sizeof( Char ) );
+    memset( m_apiMVPIdx[1], -1,uiNumPartition * sizeof( Char ) );
     
     m_pcTrCoeffY         = (TCoeff*)xMalloc(TCoeff, uiWidth*uiHeight);
     m_pcTrCoeffCb        = (TCoeff*)xMalloc(TCoeff, uiWidth*uiHeight/4);
     m_pcTrCoeffCr        = (TCoeff*)xMalloc(TCoeff, uiWidth*uiHeight/4);
+    memset( m_pcTrCoeffY, 0,uiWidth*uiHeight * sizeof( TCoeff ) );
+    memset( m_pcTrCoeffCb, 0,uiWidth*uiHeight/4 * sizeof( TCoeff ) );
+    memset( m_pcTrCoeffCr, 0,uiWidth*uiHeight/4 * sizeof( TCoeff ) );
 #if ADAPTIVE_QP_SELECTION    
     if( bGlobalRMARLBuffer )
     {
@@ -2810,7 +2816,6 @@ Void TComDataCU::deriveLeftBottomIdxAdi( UInt& ruiPartIdxLB, UInt uiPartOffset, 
 
 Bool TComDataCU::hasEqualMotion( UInt uiAbsPartIdx, TComDataCU* pcCandCU, UInt uiCandAbsPartIdx )
 {
-  assert( getInterDir( uiAbsPartIdx ) != 0 );
 
   if ( getInterDir( uiAbsPartIdx ) != pcCandCU->getInterDir( uiCandAbsPartIdx ) )
   {
@@ -4168,9 +4173,6 @@ Bool TComDataCU::xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUni
   Int iColPOC, iColRefPOC, iCurrPOC, iCurrRefPOC, iScale;
   TComMv cColMv;
 
-  iCurrPOC = m_pcSlice->getPOC();    
-  iCurrRefPOC = m_pcSlice->getRefPic(eRefPicList, riRefIdx)->getPOC();
-
   // use coldir.
 #if COLLOCATED_REF_IDX
   TComPic *pColPic = getSlice()->getRefPic( RefPicList(getSlice()->isInterB() ? getSlice()->getColDir() : 0), getSlice()->getColRefIdx());
@@ -4178,6 +4180,10 @@ Bool TComDataCU::xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUni
   TComPic *pColPic = getSlice()->getRefPic( RefPicList(getSlice()->isInterB() ? getSlice()->getColDir() : 0), 0);
 #endif
   TComDataCU *pColCU = pColPic->getCU( uiCUAddr );
+  if(pColCU->getPic()==0||pColCU->getPartitionSize(uiPartUnitIdx)==SIZE_NONE)
+    return false;
+  iCurrPOC = m_pcSlice->getPOC();    
+  iCurrRefPOC = m_pcSlice->getRefPic(eRefPicList, riRefIdx)->getPOC();
   iColPOC = pColCU->getSlice()->getPOC();  
 
   if (pColCU->isIntra(uiAbsPartAddr))
