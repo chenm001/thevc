@@ -712,6 +712,16 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
       iQP_Q = pcCU->getQP( uiBsAbsIdx );
       uiPartQIdx = uiBsAbsIdx;
       // Derive neighboring PU index
+#if ACROSS_TILE_BOUNDARY_DEBLOCKING
+      if (iDir == EDGE_VER)
+      {
+        pcCUP = pcCUQ->getPULeft (uiPartPIdx, uiPartQIdx,!pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false, !m_bLFCrossTileBoundary);
+      }
+      else  // (iDir == EDGE_HOR)
+      {
+        pcCUP = pcCUQ->getPUAbove(uiPartPIdx, uiPartQIdx,!pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false, false, false, !m_bLFCrossTileBoundary);
+      }
+#else
       if (iDir == EDGE_VER)
       {
         pcCUP = pcCUQ->getPULeft (uiPartPIdx, uiPartQIdx);
@@ -724,7 +734,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
       {
         return;
       }
-      
+#endif 
       iQP_P = pcCUP->getQP(uiPartPIdx);
       
       if(pcCU->getIPCMFlag(uiPartQIdx)) 
@@ -906,6 +916,16 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
       iQP_Q = pcCU->getQP( uiBsAbsIdx );
       uiPartQIdx = uiBsAbsIdx;
       // Derive neighboring PU index
+#if ACROSS_TILE_BOUNDARY_DEBLOCKING
+      if (iDir == EDGE_VER)
+      {
+        pcCUP = pcCUQ->getPULeft (uiPartPIdx, uiPartQIdx,!pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false, !m_bLFCrossTileBoundary);
+      }
+      else  // (iDir == EDGE_HOR)
+      {
+        pcCUP = pcCUQ->getPUAbove(uiPartPIdx, uiPartQIdx,!pcCU->getSlice()->getSPS()->getLFCrossSliceBoundaryFlag(), false, false, false, !m_bLFCrossTileBoundary);
+      }
+#else
       if (iDir == EDGE_VER)
       {
         pcCUP = pcCUQ->getPULeft (uiPartPIdx, uiPartQIdx);
@@ -918,7 +938,7 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
       {
         return;
       }
-      
+#endif      
       iQP_P = pcCUP->getQP(uiPartPIdx);
       
       if(pcCU->getIPCMFlag(uiPartQIdx)) 
