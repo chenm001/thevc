@@ -340,7 +340,7 @@ public:
 #endif
 
 #if LOSSLESS_CODING
-  Bool          isLosslessCoded(UInt uiAbsPartIdx);
+  Bool          isLosslessCoded(UInt absPartIdx);
 #endif
 #if NSQT_LFFIX
   UChar*        getNSQTPartIdx        ()                        { return m_nsqtPartIdx;        }

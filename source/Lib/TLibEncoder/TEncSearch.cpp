@@ -4361,9 +4361,9 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
       }
       else
       {
-        const Double dSingleCostY = m_pcRdCost->calcRdCost( uiSingleBitsY, uiNonzeroDistY );
-        const Double dNullCostY   = m_pcRdCost->calcRdCost( 0, uiDistY );
-        if( dNullCostY < dSingleCostY )  
+        const Double singleCostY = m_pcRdCost->calcRdCost( uiSingleBitsY, uiNonzeroDistY );
+        const Double nullCostY   = m_pcRdCost->calcRdCost( 0, uiDistY );
+        if( nullCostY < singleCostY )  
         {    
           uiAbsSumY = 0;
           ::memset( pcCoeffCurrY, 0, sizeof( TCoeff ) * uiNumSamplesLuma );

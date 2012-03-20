@@ -948,49 +948,49 @@ Void TDecCu::xReconPCM( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
  * \param uiDepth CU Depth
  * \returns Void
  */
-Void TDecCu::xFillPCMBuffer(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth)
+Void TDecCu::xFillPCMBuffer(TComDataCU* pCU, UInt absPartIdx, UInt depth)
 {
   // Luma
-  UInt width  = (g_uiMaxCUWidth >> uiDepth);
-  UInt height = (g_uiMaxCUHeight >> uiDepth);
+  UInt width  = (g_uiMaxCUWidth >> depth);
+  UInt height = (g_uiMaxCUHeight >> depth);
 
-  Pel* piPcmY = pcCU->getPCMSampleY();
-  Pel* piRecoY = m_ppcYuvReco[uiDepth]->getLumaAddr(0, width);
+  Pel* pPcmY = pCU->getPCMSampleY();
+  Pel* pRecoY = m_ppcYuvReco[depth]->getLumaAddr(0, width);
 
-  UInt stride = m_ppcYuvReco[uiDepth]->getStride();
+  UInt stride = m_ppcYuvReco[depth]->getStride();
 
-  for(int y = 0; y < height; y++ )
+  for(Int y = 0; y < height; y++ )
   {
-    for(int x = 0; x < width; x++ )
+    for(Int x = 0; x < width; x++ )
     {
-      piPcmY[x] = piRecoY[x];
+      pPcmY[x] = pRecoY[x];
     }
-    piPcmY += width;
-    piRecoY += stride;
+    pPcmY += width;
+    pRecoY += stride;
   }
 
   // Cb and Cr
   UInt widthC  = (width>>1);
   UInt heightC = (height>>1);
 
-  Pel* piPcmCb = pcCU->getPCMSampleCb();
-  Pel* piPcmCr = pcCU->getPCMSampleCr();
-  Pel* piRecoCb = m_ppcYuvReco[uiDepth]->getCbAddr();
-  Pel* piRecoCr = m_ppcYuvReco[uiDepth]->getCrAddr();
+  Pel* pPcmCb = pCU->getPCMSampleCb();
+  Pel* pPcmCr = pCU->getPCMSampleCr();
+  Pel* pRecoCb = m_ppcYuvReco[depth]->getCbAddr();
+  Pel* pRecoCr = m_ppcYuvReco[depth]->getCrAddr();
 
-  UInt strideC = m_ppcYuvReco[uiDepth]->getCStride();
+  UInt strideC = m_ppcYuvReco[depth]->getCStride();
 
-  for(int y = 0; y < heightC; y++ )
+  for(Int y = 0; y < heightC; y++ )
   {
-    for(int x = 0; x < widthC; x++ )
+    for(Int x = 0; x < widthC; x++ )
     {
-      piPcmCb[x] = piRecoCb[x];
-      piPcmCr[x] = piRecoCr[x];
+      pPcmCb[x] = pRecoCb[x];
+      pPcmCr[x] = pRecoCr[x];
     }
-    piPcmCr += widthC;
-    piPcmCb += widthC;
-    piRecoCb += strideC;
-    piRecoCr += strideC;
+    pPcmCr += widthC;
+    pPcmCb += widthC;
+    pRecoCb += strideC;
+    pRecoCr += strideC;
   }
 
 }

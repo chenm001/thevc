@@ -1949,20 +1949,13 @@ UChar TComDataCU::getLastCodedQP( UInt uiAbsPartIdx )
  * \param   uiAbsPartIdx
  * \returns true if the CU is coded in lossless coding mode; false if otherwise 
  */
-Bool TComDataCU::isLosslessCoded(UInt uiAbsPartIdx)
+Bool TComDataCU::isLosslessCoded(UInt absPartIdx)
 {
 #if H0736_AVC_STYLE_QP_RANGE
-  if( getSlice()->getSPS()->getUseLossless() && ((getQP(uiAbsPartIdx) + getSlice()->getSPS()->getQpBDOffsetY()) == 0) )
+  return ( getSlice()->getSPS()->getUseLossless() && ((getQP(absPartIdx) + getSlice()->getSPS()->getQpBDOffsetY()) == 0) );
 #else
-  if( getSlice()->getSPS()->getUseLossless() && (getQP(uiAbsPartPIdx)  == 0) )
+  return ( getSlice()->getSPS()->getUseLossless() && (getQP(absPartPIdx)  == 0) );
 #endif
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
 }
 #endif
 

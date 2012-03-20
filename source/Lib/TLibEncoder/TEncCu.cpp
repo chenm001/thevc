@@ -1770,19 +1770,19 @@ Void TEncCu::xCopyYuv2Tmp( UInt uiPartUnitIdx, UInt uiNextDepth )
  * \param pcOrgYuv pointer to original sample array
  * \returns Void
  */
-Void TEncCu::xFillPCMBuffer     ( TComDataCU*& pcCU, TComYuv* pcOrgYuv )
+Void TEncCu::xFillPCMBuffer     ( TComDataCU*& pCU, TComYuv* pOrgYuv )
 {
 
-  UInt   width        = pcCU->getWidth(0);
-  UInt   height       = pcCU->getHeight(0);
+  UInt   width        = pCU->getWidth(0);
+  UInt   height       = pCU->getHeight(0);
 
-  Pel*   pSrcY = pcOrgYuv->getLumaAddr(0, width); 
-  Pel*   pDstY = pcCU->getPCMSampleY();
-  UInt   srcStride = pcOrgYuv->getStride();
+  Pel*   pSrcY = pOrgYuv->getLumaAddr(0, width); 
+  Pel*   pDstY = pCU->getPCMSampleY();
+  UInt   srcStride = pOrgYuv->getStride();
 
-  for(int y = 0; y < height; y++ )
+  for(Int y = 0; y < height; y++ )
   {
-    for(int x = 0; x < width; x++ )
+    for(Int x = 0; x < width; x++ )
     {
       pDstY[x] = pSrcY[x];
     }
@@ -1790,19 +1790,19 @@ Void TEncCu::xFillPCMBuffer     ( TComDataCU*& pcCU, TComYuv* pcOrgYuv )
     pSrcY += srcStride;
   }
 
-  Pel* pSrcCb       = pcOrgYuv->getCbAddr();
-  Pel* pSrcCr       = pcOrgYuv->getCrAddr();;
+  Pel* pSrcCb       = pOrgYuv->getCbAddr();
+  Pel* pSrcCr       = pOrgYuv->getCrAddr();;
 
-  Pel* pDstCb       = pcCU->getPCMSampleCb();
-  Pel* pDstCr       = pcCU->getPCMSampleCr();;
+  Pel* pDstCb       = pCU->getPCMSampleCb();
+  Pel* pDstCr       = pCU->getPCMSampleCr();;
 
-  UInt srcStrideC = pcOrgYuv->getCStride();
+  UInt srcStrideC = pOrgYuv->getCStride();
   UInt heightC   = height >> 1;
   UInt widthC    = width  >> 1;
 
-  for(int y = 0; y < heightC; y++ )
+  for(Int y = 0; y < heightC; y++ )
   {
-    for(int x = 0; x < widthC; x++ )
+    for(Int x = 0; x < widthC; x++ )
     {
       pDstCb[x] = pSrcCb[x];
       pDstCr[x] = pSrcCr[x];
