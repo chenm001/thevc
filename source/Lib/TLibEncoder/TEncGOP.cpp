@@ -201,14 +201,14 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       /////////////////////////////////////////////////////////////////////////////////////////////////// Initial to start encoding
       UInt uiPOCCurr = iPOCLast -iNumPicRcvd+ m_pcCfg->getGOPEntry(iGOPid).m_POC;
       Int iTimeOffset = m_pcCfg->getGOPEntry(iGOPid).m_POC;
-      if(uiPOCCurr>=m_pcCfg->getFrameToBeEncoded())
-      {
-        continue;
-      }
       if(iPOCLast == 0)
       {
         uiPOCCurr=0;
         iTimeOffset = 1;
+      }
+      if(uiPOCCurr>=m_pcCfg->getFrameToBeEncoded())
+      {
+        continue;
       }
         
       if(getNalUnitType(uiPOCCurr) == NAL_UNIT_CODED_SLICE_IDR)
