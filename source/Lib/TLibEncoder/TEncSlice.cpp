@@ -784,13 +784,14 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     {
       {
 #if CABAC_INIT_FLAG
-        SliceType eSliceType  = pcSlice->getSliceType();
+        SliceType sliceType = pcSlice->getSliceType();
         if (!pcSlice->isIntra() && pcSlice->getPPS()->getCabacInitPresentFlag() && pcSlice->getPPS()->getEncCABACTableIdx()!=0)
-          eSliceType = (SliceType) pcSlice->getPPS()->getEncCABACTableIdx();
-
-        m_pcEntropyCoder->updateContextTables ( eSliceType, pcSlice->getSliceQp(), false );
+        {
+          sliceType = (SliceType) pcSlice->getPPS()->getEncCABACTableIdx();
+        }
+        m_pcEntropyCoder->updateContextTables ( sliceType, pcSlice->getSliceQp(), false );
         m_pcEntropyCoder->setEntropyCoder     ( m_pppcRDSbacCoder[0][CI_CURR_BEST], pcSlice );
-        m_pcEntropyCoder->updateContextTables ( eSliceType, pcSlice->getSliceQp() );
+        m_pcEntropyCoder->updateContextTables ( sliceType, pcSlice->getSliceQp() );
         m_pcEntropyCoder->setEntropyCoder     ( m_pcSbacCoder, pcSlice );
 #else
         m_pcEntropyCoder->updateContextTables ( pcSlice->getSliceType(), pcSlice->getSliceQp(), false );
@@ -1083,11 +1084,12 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         else
         {
 #if CABAC_INIT_FLAG
-          SliceType eSliceType  = pcSlice->getSliceType();
+          SliceType sliceType  = pcSlice->getSliceType();
           if (!pcSlice->isIntra() && pcSlice->getPPS()->getCabacInitPresentFlag() && pcSlice->getPPS()->getEncCABACTableIdx()!=0)
-            eSliceType = (SliceType) pcSlice->getPPS()->getEncCABACTableIdx();
-
-          m_pcEntropyCoder->updateContextTables( eSliceType, pcSlice->getSliceQp() );
+          {
+            sliceType = (SliceType) pcSlice->getPPS()->getEncCABACTableIdx();
+          }
+          m_pcEntropyCoder->updateContextTables( sliceType, pcSlice->getSliceQp() );
 #else
           m_pcEntropyCoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp() );
 #endif
@@ -1214,7 +1216,9 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
 #endif
 #if CABAC_INIT_FLAG
   if (pcSlice->getPPS()->getCabacInitPresentFlag())
+  {
     m_pcEntropyCoder->determineCabacInitIdx();
+  }
 #endif
 }
 

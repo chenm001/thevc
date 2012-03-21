@@ -103,7 +103,7 @@ public:
   Void  codeSliceHeader         ( TComSlice* pcSlice );
   Void codeTileMarkerFlag(TComSlice* pcSlice) {printf("Not supported\n"); assert(0); exit(1);}
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
-  Void  codeTilesWPPEntryPoint( TComSlice* pcSlice );
+  Void  codeTilesWPPEntryPoint( TComSlice* pSlice );
 #else
   Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );
 #endif

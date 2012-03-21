@@ -256,17 +256,22 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
       else
       {
 #if CABAC_INIT_FLAG
-        SliceType eSliceType  = pcSlice->getSliceType();
+        SliceType sliceType  = pcSlice->getSliceType();
         if (pcSlice->getCabacInitFlag())
         {
-          switch (eSliceType)
+          switch (sliceType)
           {
-          case P_SLICE: eSliceType = B_SLICE; break;
-          case B_SLICE: eSliceType = P_SLICE; break;
-          default     : break;
+          case P_SLICE:           // change initialization table to B_SLICE intialization
+            sliceType = B_SLICE; 
+            break;
+          case B_SLICE:           // change initialization table to P_SLICE intialization
+            sliceType = P_SLICE; 
+            break;
+          default     :           // should not occur
+            assert(0);
           }
         }
-        m_pcEntropyDecoder->updateContextTables( eSliceType, pcSlice->getSliceQp() );
+        m_pcEntropyDecoder->updateContextTables( sliceType, pcSlice->getSliceQp() );
 #else
         m_pcEntropyDecoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp() );
 #endif

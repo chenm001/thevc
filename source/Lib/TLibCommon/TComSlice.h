@@ -241,8 +241,8 @@ private:
   Bool        m_useDF;
 
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
-  UInt        m_uiTilesOrEntropyCodingSyncIdc;
-  Int         m_iNumSubstreams;
+  UInt        m_tilesOrEntropyCodingSyncIdc;
+  Int         m_numSubstreams;
 #endif
 
 public:
@@ -445,10 +445,10 @@ public:
   Void setMaxLatencyIncrease    ( UInt ui )   { m_uiMaxLatencyIncrease= ui;      }
 #endif
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
-  UInt getTilesOrEntropyCodingSyncIdc ()          { return m_uiTilesOrEntropyCodingSyncIdc; }
-  Void setTilesOrEntropyCodingSyncIdc (UInt ui )  { m_uiTilesOrEntropyCodingSyncIdc = ui;   }
-  Int  getNumSubstreams()                         { return m_iNumSubstreams;                }
-  Void setNumSubstreams(Int iNumSubstreams)       { m_iNumSubstreams = iNumSubstreams;      }
+  UInt getTilesOrEntropyCodingSyncIdc ()                    { return m_tilesOrEntropyCodingSyncIdc;   }
+  Void setTilesOrEntropyCodingSyncIdc ( UInt val )          { m_tilesOrEntropyCodingSyncIdc = val;    }
+  Int  getNumSubstreams               ()                    { return m_numSubstreams;                 }
+  Void setNumSubstreams               ( Int numSubstreams ) { m_numSubstreams = numSubstreams;        }
 #endif
 };
 
@@ -638,8 +638,8 @@ private:
 #endif
 
 #if CABAC_INIT_FLAG
-  Bool     m_CabacInitPresentFlag;
-  UInt     m_iEncCABACTableIdx;           // Used to transmit table selection across slices
+  Bool     m_cabacInitPresentFlag;
+  UInt     m_encCABACTableIdx;           // Used to transmit table selection across slices
 #endif
 #if DBL_CONTROL
   Bool     m_DeblockingFilterControlPresent;
@@ -766,10 +766,10 @@ public:
   Bool     getEnableTMVPFlag()          { return m_enableTMVPFlag; }
 
 #if CABAC_INIT_FLAG
-  Void     setCabacInitPresentFlag(Bool bFlag)     { m_CabacInitPresentFlag = bFlag;    }
-  Void     setEncCABACTableIdx( Int iIdx )         { m_iEncCABACTableIdx = iIdx;        }
-  Bool     getCabacInitPresentFlag()               { return m_CabacInitPresentFlag;     }
-  UInt     getEncCABACTableIdx()                   { return m_iEncCABACTableIdx;        }
+  Void     setCabacInitPresentFlag( Bool flag )     { m_cabacInitPresentFlag = flag;    }
+  Void     setEncCABACTableIdx( Int idx )           { m_encCABACTableIdx = idx;         }
+  Bool     getCabacInitPresentFlag()                { return m_cabacInitPresentFlag;    }
+  UInt     getEncCABACTableIdx()                    { return m_encCABACTableIdx;        }
 #endif
 #if DBL_CONTROL
   Void setDeblockingFilterControlPresent    ( Bool bValue )       { m_DeblockingFilterControlPresent = bValue; }
@@ -1022,7 +1022,7 @@ private:
   UInt*       m_puiSubstreamSizes;
   TComScalingList*     m_scalingList;                 //!< pointer of quantization matrix
 #if CABAC_INIT_FLAG
-  Int         m_CabacInitFlag; 
+  Int         m_cabacInitFlag; 
 #else
   Int         m_cabacInitIdc; 
 #endif
@@ -1285,14 +1285,14 @@ public:
   Void  setDefaultScalingList       ();
   Bool  checkDefaultScalingList     ();
 #if CABAC_INIT_FLAG
-  Void      setCabacInitFlag(Int iVal) {m_CabacInitFlag = iVal;    }  //!< set CABAC initial flag number 
-  Int       getCabacInitFlag()         {return m_CabacInitFlag;    }  //!< get CABAC initial flag number 
+  Void      setCabacInitFlag  ( Int val ) { m_cabacInitFlag = val;      }  //!< set CABAC initial flag 
+  Int       getCabacInitFlag  ()          { return m_cabacInitFlag;     }  //!< get CABAC initial flag 
 #else
   Void      setCABACinitIDC(Int iVal) {m_cabacInitIdc = iVal;    }  //!< set CABAC initial IDC number 
   Int       getCABACinitIDC()         {return m_cabacInitIdc;    }  //!< get CABAC initial IDC number 
 #endif
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
-  Void      setNumEntryPointOffsets(Int iVal) { m_numEntryPointOffsets = iVal;    }
+  Void      setNumEntryPointOffsets(Int val)  { m_numEntryPointOffsets = val;     }
   Int       getNumEntryPointOffsets()         { return m_numEntryPointOffsets;    }
 #endif
 

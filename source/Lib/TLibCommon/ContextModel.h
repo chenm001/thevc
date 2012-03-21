@@ -57,7 +57,7 @@ class ContextModel
 {
 public:
 #if CABAC_INIT_FLAG
-  ContextModel  ()                        { m_ucState = 0; m_uiBinsCoded = 0; }
+  ContextModel  ()                        { m_ucState = 0; m_binsCoded = 0; }
 #else
   ContextModel  ()                        { m_ucState = 0;             }
 #endif
@@ -90,8 +90,8 @@ public:
   static Int getEntropyBitsTrm( Int val ) { return m_entropyBits[126 ^ val]; }
 #endif
 #if CABAC_INIT_FLAG
-  Void setBinsCoded(UInt uiVal) { m_uiBinsCoded = uiVal;  }
-  UInt getBinsCoded()           { return m_uiBinsCoded;   }
+  Void setBinsCoded(UInt val)   { m_binsCoded = val;  }
+  UInt getBinsCoded()           { return m_binsCoded;   }
 #endif
   
 private:
@@ -108,7 +108,7 @@ private:
   static const Int m_accumulatedSegOffset[8];
 #endif
 #if CABAC_INIT_FLAG
-  UInt          m_uiBinsCoded;
+  UInt          m_binsCoded;
 #endif
 };
 

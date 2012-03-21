@@ -74,9 +74,9 @@ Void TEncEntropy::encodeSliceHeader ( TComSlice* pcSlice )
 }
 
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
-Void  TEncEntropy::encodeTilesWPPEntryPoint( TComSlice* pcSlice )
+Void  TEncEntropy::encodeTilesWPPEntryPoint( TComSlice* pSlice )
 {
-  m_pcEntropyCoderIf->codeTilesWPPEntryPoint( pcSlice );
+  m_pcEntropyCoderIf->codeTilesWPPEntryPoint( pSlice );
 }
 #else
 Void TEncEntropy::encodeSliceHeaderSubstreamTable( TComSlice* pcSlice )

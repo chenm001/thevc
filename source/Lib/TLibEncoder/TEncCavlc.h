@@ -121,7 +121,7 @@ public:
   Void codeTileMarkerFlag(TComSlice* pcSlice);
 
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
-  Void  codeTilesWPPEntryPoint( TComSlice* pcSlice );
+  Void  codeTilesWPPEntryPoint( TComSlice* pSlice );
 #else
   Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );
 #endif

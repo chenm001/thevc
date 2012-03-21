@@ -2086,16 +2086,18 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
 
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
   Int tilesOrEntropyCodingSyncIdc = rpcSlice->getSPS()->getTilesOrEntropyCodingSyncIdc();
-
+  UInt *entryPointOffset          = NULL;
   UInt numEntryPointOffsets, offsetLenMinus1;
-  UInt *entryPointOffset = NULL;
+
   rpcSlice->setNumEntryPointOffsets ( 0 ); // default
   
   if (tilesOrEntropyCodingSyncIdc>0)
   {
     READ_UVLC(numEntryPointOffsets, "num_entry_point_offsets"); rpcSlice->setNumEntryPointOffsets ( numEntryPointOffsets );
     if (numEntryPointOffsets>0)
+    {
       READ_UVLC(offsetLenMinus1, "offset_len_minus1");
+    }
     entryPointOffset = new UInt[numEntryPointOffsets];
     for (UInt idx=0; idx<numEntryPointOffsets; idx++)
     {
@@ -2140,7 +2142,9 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   }
 
   if (entryPointOffset)
+  {
     delete [] entryPointOffset;
+  }
 #else
   if (pps->getEntropyCodingSynchro())
   {

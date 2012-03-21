@@ -1038,8 +1038,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
           if (m_pcCfg->getTileLocationInSliceHeaderFlag()==0) 
+          {
             pcSlice->setTileLocationCount( 0 );
-
+          }
           m_pcEntropyCoder->encodeTilesWPPEntryPoint( pcSlice );
 #else
           m_pcEntropyCoder->encodeSliceHeaderSubstreamTable(pcSlice);

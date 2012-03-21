@@ -845,9 +845,9 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #if CABAC_INIT_FLAG
     if (!pcSlice->isIntra() && pcSlice->getPPS()->getCabacInitPresentFlag())
     {
-      SliceType eSliceType  = pcSlice->getSliceType();
+      SliceType sliceType   = pcSlice->getSliceType();
       Int  encCABACTableIdx = pcSlice->getPPS()->getEncCABACTableIdx();
-      UInt encCabacInitFlag = (eSliceType!=encCABACTableIdx && encCABACTableIdx!=0) ? 1 : 0;
+      UInt encCabacInitFlag = (sliceType!=encCABACTableIdx && encCABACTableIdx!=0) ? 1 : 0;
       pcSlice->setCabacInitFlag( encCabacInitFlag );
       WRITE_FLAG( encCabacInitFlag, "cabac_init_flag" );
     }
@@ -926,28 +926,30 @@ Void TEncCavlc::codeTileMarkerFlag(TComSlice* pcSlice)
  \param pcSlice Where we find the substream size information.
  */
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
-Void  TEncCavlc::codeTilesWPPEntryPoint( TComSlice* pcSlice )
+Void  TEncCavlc::codeTilesWPPEntryPoint( TComSlice* pSlice )
 {
-  Int tilesOrEntropyCodingSyncIdc = pcSlice->getSPS()->getTilesOrEntropyCodingSyncIdc();
+  Int tilesOrEntropyCodingSyncIdc = pSlice->getSPS()->getTilesOrEntropyCodingSyncIdc();
 
   if ( tilesOrEntropyCodingSyncIdc == 0 )
+  {
     return;
+  }
 
   UInt numEntryPointOffsets = 0, offsetLenMinus1 = 0, maxOffset = 0;
   UInt *entryPointOffset = NULL;
   if (tilesOrEntropyCodingSyncIdc == 1) // tiles
   {
-    numEntryPointOffsets = pcSlice->getTileLocationCount();
+    numEntryPointOffsets = pSlice->getTileLocationCount();
     entryPointOffset     = new UInt[numEntryPointOffsets];
-    for (Int idx=0; idx<pcSlice->getTileLocationCount(); idx++)
+    for (Int idx=0; idx<pSlice->getTileLocationCount(); idx++)
     {
       if ( idx == 0 )
       {
-        entryPointOffset [ idx ] = pcSlice->getTileLocation( 0 );
+        entryPointOffset [ idx ] = pSlice->getTileLocation( 0 );
       }
       else
       {
-        entryPointOffset [ idx ] = pcSlice->getTileLocation( idx ) - pcSlice->getTileLocation( idx-1 );
+        entryPointOffset [ idx ] = pSlice->getTileLocation( idx ) - pSlice->getTileLocation( idx-1 );
       }
 
       if ( entryPointOffset[ idx ] > maxOffset )
@@ -959,10 +961,10 @@ Void  TEncCavlc::codeTilesWPPEntryPoint( TComSlice* pcSlice )
   else if (tilesOrEntropyCodingSyncIdc == 2) // wavefront
   {
     Int  numZeroSubstreamsAtEndOfSlice  = 0;
-    entryPointOffset                    = new UInt[pcSlice->getPPS()->getNumSubstreams()];
-    UInt*pSubstreamSizes                = pcSlice->getSubstreamSizes();
+    entryPointOffset                    = new UInt[pSlice->getPPS()->getNumSubstreams()];
+    UInt* pSubstreamSizes               = pSlice->getSubstreamSizes();
     // Find number of zero substreams at the end of slice
-    for (Int idx=pcSlice->getPPS()->getNumSubstreams()-1; idx>=0; idx--)
+    for (Int idx=pSlice->getPPS()->getNumSubstreams()-1; idx>=0; idx--)
     {
       if ( pSubstreamSizes[ idx ] ==  0 )
       {
@@ -973,7 +975,7 @@ Void  TEncCavlc::codeTilesWPPEntryPoint( TComSlice* pcSlice )
         break;
       }
     }
-    numEntryPointOffsets       = pcSlice->getPPS()->getNumSubstreams() - numZeroSubstreamsAtEndOfSlice;
+    numEntryPointOffsets       = pSlice->getPPS()->getNumSubstreams() - numZeroSubstreamsAtEndOfSlice;
     for (Int idx=0; idx<numEntryPointOffsets; idx++)
     {
       entryPointOffset[ idx ] = ( pSubstreamSizes[ idx ] >> 3 ) ;
@@ -1006,17 +1008,19 @@ Void  TEncCavlc::codeTilesWPPEntryPoint( TComSlice* pcSlice )
 
   WRITE_UVLC(numEntryPointOffsets, "num_entry_point_offsets");
   if (numEntryPointOffsets>0)
-    WRITE_UVLC(offsetLenMinus1, "offset_len_minus1");
-
-  for (UInt uiIdx=0; uiIdx<numEntryPointOffsets; uiIdx++)
   {
-    if ( uiIdx == 0 )
+    WRITE_UVLC(offsetLenMinus1, "offset_len_minus1");
+  }
+
+  for (UInt idx=0; idx<numEntryPointOffsets; idx++)
+  {
+    if ( idx == 0 )
     {
       // Adding sizes of NALU header and slice header information to entryPointOffset[ 0 ]
       Int bitDistFromNALUHdrStart    = m_pcBitIf->getNumberOfWrittenBits() + 16;
-      entryPointOffset[ uiIdx ] += ( bitDistFromNALUHdrStart + numEntryPointOffsets*(offsetLenMinus1+1) ) >> 3;
+      entryPointOffset[ idx ] += ( bitDistFromNALUHdrStart + numEntryPointOffsets*(offsetLenMinus1+1) ) >> 3;
     }
-    WRITE_CODE(entryPointOffset[ uiIdx ], offsetLenMinus1+1, "entry_point_offset");
+    WRITE_CODE(entryPointOffset[ idx ], offsetLenMinus1+1, "entry_point_offset");
   }
 
   delete [] entryPointOffset;

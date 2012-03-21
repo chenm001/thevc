@@ -99,7 +99,7 @@ TComSlice::TComSlice()
 , m_uiTileOffstForMultES          ( 0 )
 , m_puiSubstreamSizes             ( NULL )
 #if CABAC_INIT_FLAG
-, m_CabacInitFlag                 ( 0 )
+, m_cabacInitFlag                 ( 0 )
 #else
 , m_cabacInitIdc                 ( -1 )
 #endif
@@ -170,7 +170,7 @@ Void TComSlice::initSlice()
 
   m_uiTileCount          = 0;
 #if CABAC_INIT_FLAG
-  m_CabacInitFlag        = 0;
+  m_cabacInitFlag        = 0;
 #endif
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
   m_numEntryPointOffsets = 0;
@@ -812,7 +812,7 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_saoEnabledFlagCr = pSrc->m_saoEnabledFlagCr; 
 #endif 
 #if CABAC_INIT_FLAG
-  m_CabacInitFlag                = pSrc->m_CabacInitFlag;
+  m_cabacInitFlag                = pSrc->m_cabacInitFlag;
 #endif
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
   m_numEntryPointOffsets  = pSrc->m_numEntryPointOffsets;
@@ -1379,8 +1379,8 @@ TComSPS::TComSPS()
 , m_uiMaxLatencyIncrease      (  0)
 #endif
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
-,  m_uiTilesOrEntropyCodingSyncIdc  ( 0 )
-,  m_iNumSubstreams                 ( 0 )
+,  m_tilesOrEntropyCodingSyncIdc( 0 )
+,  m_numSubstreams              ( 0 )
 #endif
 {
   // AMVP parameter
@@ -1446,8 +1446,8 @@ TComPPS::TComPPS()
 , m_signHidingThreshold(0)
 #endif
 #if CABAC_INIT_FLAG
-, m_CabacInitPresentFlag         (false)
-, m_iEncCABACTableIdx            (0)
+, m_cabacInitPresentFlag        (false)
+, m_encCABACTableIdx            (0)
 #endif
 {
 #if !H0566_TLA

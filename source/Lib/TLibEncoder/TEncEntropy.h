@@ -82,7 +82,7 @@ public:
   virtual Void codeTileMarkerFlag      ( TComSlice* pcSlice )                                  = 0;
 
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
-  virtual Void  codeTilesWPPEntryPoint  ( TComSlice* pcSlice )     = 0;
+  virtual Void  codeTilesWPPEntryPoint  ( TComSlice* pSlice )     = 0;
 #else
   virtual Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice )                             = 0;
 #endif
@@ -191,7 +191,7 @@ public:
   Void    encodeSliceHeader         ( TComSlice* pcSlice );
   Void    encodeTileMarkerFlag       (TComSlice* pcSlice) {m_pcEntropyCoderIf->codeTileMarkerFlag(pcSlice);}
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
-  Void    encodeTilesWPPEntryPoint( TComSlice* pcSlice );
+  Void    encodeTilesWPPEntryPoint( TComSlice* pSlice );
 #else
   Void    encodeSliceHeaderSubstreamTable( TComSlice* pcSlice );
 #endif
