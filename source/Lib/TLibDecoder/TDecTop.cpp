@@ -699,7 +699,11 @@ Void TDecTop::xDecodePPS()
 #if !RPS_IN_SPS
   pps->setRPSList(rps);
 #endif
+#if TILES_OR_ENTROPY_SYNC_IDC
+  m_cEntropyDecoder.decodePPS( pps, &m_parameterSetManagerDecoder );
+#else
   m_cEntropyDecoder.decodePPS( pps );
+#endif
   m_parameterSetManagerDecoder.storePrefetchedPPS( pps );
 
   //!!!KS: Activate parameter sets for parsing APS (unless dependency is resolved)

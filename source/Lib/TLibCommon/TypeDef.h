@@ -262,6 +262,7 @@
 
 #define TILES_WPP_ENTRY_POINT_SIGNALLING        1 // JCTVC-H0556. Assumes either Tiles is ON or WPP is ON (not both simultaneously).
 #define REMOVE_TILE_DEPENDENCE                  1 // remove tile_boundary_independence_flag and dependent tiles
+#define TILES_OR_ENTROPY_SYNC_IDC               1 // tiles_or_entropy_coding_sync_idc flag
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
