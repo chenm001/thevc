@@ -713,22 +713,22 @@ Void TEncTop::xInitPPS()
 //Function for initializing m_RPSList, a list of TComReferencePictureSet, based on the GOPEntry objects read from the config file.
 Void TEncTop::xInitRPS()
 {
-  TComReferencePictureSet*      RPS;
+  TComReferencePictureSet*      rps;
   
   m_RPSList.create(getGOPSize()+m_extraRPSs);
   for( Int i = 0; i < getGOPSize()+m_extraRPSs; i++) 
   {
-    GOPEntry GE = getGOPEntry(i);
-    RPS = m_RPSList.getReferencePictureSet(i);
-    RPS->setNumberOfPictures(GE.m_numRefPics);
-    RPS->setNumRefIdc(GE.m_numRefIdc);
+    GOPEntry ge = getGOPEntry(i);
+    rps = m_RPSList.getReferencePictureSet(i);
+    rps->setNumberOfPictures(ge.m_numRefPics);
+    rps->setNumRefIdc(ge.m_numRefIdc);
     Int numNeg = 0;
     Int numPos = 0;
-    for( Int j = 0; j < GE.m_numRefPics; j++)
+    for( Int j = 0; j < ge.m_numRefPics; j++)
     {
-      RPS->setDeltaPOC(j,GE.m_referencePics[j]);
-      RPS->setUsed(j,GE.m_usedByCurrPic[j]);
-      if(GE.m_referencePics[j]>0)
+      rps->setDeltaPOC(j,ge.m_referencePics[j]);
+      rps->setUsed(j,ge.m_usedByCurrPic[j]);
+      if(ge.m_referencePics[j]>0)
       {
         numPos++;
       }
@@ -737,31 +737,31 @@ Void TEncTop::xInitRPS()
         numNeg++;
       }
     }
-    RPS->setNumberOfNegativePictures(numNeg);
-    RPS->setNumberOfPositivePictures(numPos);
-    RPS->setInterRPSPrediction(GE.m_interRPSPrediction);
-    if (GE.m_interRPSPrediction)
+    rps->setNumberOfNegativePictures(numNeg);
+    rps->setNumberOfPositivePictures(numPos);
+    rps->setInterRPSPrediction(ge.m_interRPSPrediction);
+    if (ge.m_interRPSPrediction)
     {
-      RPS->setDeltaRIdxMinus1(GE.m_deltaRIdxMinus1);
-      RPS->setDeltaRPS(GE.m_deltaRPS);
-      RPS->setNumRefIdc(GE.m_numRefIdc);
-      for (Int j = 0; j < GE.m_numRefIdc; j++ )
+      rps->setDeltaRIdxMinus1(ge.m_deltaRIdxMinus1);
+      rps->setDeltaRPS(ge.m_deltaRPS);
+      rps->setNumRefIdc(ge.m_numRefIdc);
+      for (Int j = 0; j < ge.m_numRefIdc; j++ )
       {
-        RPS->setRefIdc(j, GE.m_refIdc[j]);
+        rps->setRefIdc(j, ge.m_refIdc[j]);
       }
 #if WRITE_BACK
       // the folowing code overwrite the deltaPOC and Used by current values read from the config file with the ones
       // computed from the RefIdc.  This is not necessary if both are identical. Currently there is no check to see if they are identical.
       numNeg = 0;
       numPos = 0;
-      TComReferencePictureSet*     RPSRef = m_RPSList.getReferencePictureSet(i-(GE.m_deltaRIdxMinus1+1));
-      for (Int j = 0; j < GE.m_numRefIdc; j++ )
+      TComReferencePictureSet*     RPSRef = m_RPSList.getReferencePictureSet(i-(ge.m_deltaRIdxMinus1+1));
+      for (Int j = 0; j < ge.m_numRefIdc; j++ )
       {
-        if (GE.m_refIdc[j])
+        if (ge.m_refIdc[j])
         {
-          int deltaPOC = GE.m_deltaRPS + ((j < RPSRef->getNumberOfPictures())? RPSRef->getDeltaPOC(j) : 0);
-          RPS->setDeltaPOC((numNeg+numPos),deltaPOC);
-          RPS->setUsed((numNeg+numPos),GE.m_refIdc[j]==1?1:0);
+          Int deltaPOC = ge.m_deltaRPS + ((j < RPSRef->getNumberOfPictures())? RPSRef->getDeltaPOC(j) : 0);
+          rps->setDeltaPOC((numNeg+numPos),deltaPOC);
+          rps->setUsed((numNeg+numPos),ge.m_refIdc[j]==1?1:0);
           if (deltaPOC<0)
           {
             numNeg++;
@@ -772,9 +772,9 @@ Void TEncTop::xInitRPS()
           }
         }
       }
-      RPS->setNumberOfNegativePictures(numNeg);
-      RPS->setNumberOfPositivePictures(numPos);
-      RPS->sortDeltaPOC();
+      rps->setNumberOfNegativePictures(numNeg);
+      rps->setNumberOfPositivePictures(numPos);
+      rps->sortDeltaPOC();
 #endif
     }
   }
@@ -830,7 +830,9 @@ Void  TEncTop::xInitPPSforTiles()
 
     // # substreams is "per tile" when tiles are independent.
     if (m_iTileBoundaryIndependenceIdr && m_iWaveFrontSynchro)
+    {
       m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams * (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1));
+    }
 }
 
 Void  TEncCfg::xCheckGSParameters()

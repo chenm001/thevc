@@ -531,14 +531,15 @@ Void TAppEncCfg::xCheckParameter()
       xConfirmPara( ui != 1 , "Height should be 2^n");
   }
   
-  Bool verified_GOP=false;
-  Bool error_GOP=false;
+  Bool verifiedGOP=false;
+  Bool errorGOP=false;
   Int checkGOP=1;
   Int numRefs = 1;
   Int refList[MAX_NUM_REF_PICS+1];
   refList[0]=0;
   Bool isOK[MAX_GOP];
-  for(Int i=0; i<MAX_GOP; i++) {
+  for(Int i=0; i<MAX_GOP; i++) 
+  {
     isOK[i]=false;
   }
   Int numOK=0;
@@ -549,14 +550,14 @@ Void TAppEncCfg::xCheckParameter()
 #endif
   m_extraRPSs=0;
   //start looping through frames in coding order until we can verify that the GOP structure is correct.
-  while(!verified_GOP&&!error_GOP) 
+  while(!verifiedGOP&&!errorGOP) 
   {
     Int curGOP = (checkGOP-1)%m_iGOPSize;
     Int curPOC = ((checkGOP-1)/m_iGOPSize)*m_iGOPSize + m_GOPList[curGOP].m_POC;    
     if(m_GOPList[curGOP].m_POC<0) 
     {
       printf("\nError: found fewer Reference Picture Sets than GOPSize\n");
-      error_GOP=true;
+      errorGOP=true;
     }
     else 
     {
@@ -589,11 +590,11 @@ Void TAppEncCfg::xCheckParameter()
           if(!found)
           {
             printf("\nError: ref pic %d is not available for GOP frame %d\n",m_GOPList[curGOP].m_referencePics[i],curGOP+1);
-            error_GOP=true;
+            errorGOP=true;
           }
         }
       }
-      if(!beforeI&&!error_GOP)
+      if(!beforeI&&!errorGOP)
       {
         //all ref frames were present
         if(!isOK[curGOP]) 
@@ -602,7 +603,7 @@ Void TAppEncCfg::xCheckParameter()
           isOK[curGOP]=true;
           if(numOK==m_iGOPSize)
           {
-            verified_GOP=true;
+            verifiedGOP=true;
           }
         }
       }
@@ -768,7 +769,7 @@ Void TAppEncCfg::xCheckParameter()
     m_numReorderFrames = numReorderFramesRequired;
   }
 #endif
-  xConfirmPara(error_GOP,"Invalid GOP structure given");
+  xConfirmPara(errorGOP,"Invalid GOP structure given");
 #if H0566_TLA
   m_maxTempLayer = 1;
 #endif
