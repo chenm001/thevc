@@ -746,16 +746,14 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         {
           pcCUTR = rpcPic->getCU( uiCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
         }
-        if ( (true/*bEnforceSliceRestriction*/ &&
-             ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || 
+        if ( ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || 
              (pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getSliceCurStartCUAddr()) ||
 #if !REMOVE_TILE_DEPENDENCE
              (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr() && (rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr)))
 #else
              ((rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr)))
 #endif
-             ))||
-             (true/*bEnforceEntropySliceRestriction*/ &&
+             )||
              ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || 
              (pcCUTR->getSCUAddr()+uiMaxParts-1 < pcSlice->getEntropySliceCurStartCUAddr()) ||
 #if !REMOVE_TILE_DEPENDENCE
@@ -763,7 +761,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
 #else
              ((rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr)))
 #endif
-             ))
+             )
            )
         {
           // TR not available.
@@ -775,31 +773,29 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         }
       }
       m_pppcRDSbacCoder[0][CI_CURR_BEST]->load( ppppcRDSbacCoders[uiSubStrm][0][CI_CURR_BEST] ); //this load is used to simplify the code
-  }
+    }
 
     // reset the entropy coder
     if( uiCUAddr == rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(uiCUAddr))->getFirstCUAddr() &&                                   // must be first CU of tile
         uiCUAddr!=0 &&                                                                                                                                    // cannot be first CU of picture
         uiCUAddr!=rpcPic->getPicSym()->getPicSCUAddr(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr())/rpcPic->getNumPartInCU())     // cannot be first CU of slice
     {
-      {
 #if CABAC_INIT_FLAG
-        SliceType sliceType = pcSlice->getSliceType();
-        if (!pcSlice->isIntra() && pcSlice->getPPS()->getCabacInitPresentFlag() && pcSlice->getPPS()->getEncCABACTableIdx()!=0)
-        {
-          sliceType = (SliceType) pcSlice->getPPS()->getEncCABACTableIdx();
-        }
-        m_pcEntropyCoder->updateContextTables ( sliceType, pcSlice->getSliceQp(), false );
-        m_pcEntropyCoder->setEntropyCoder     ( m_pppcRDSbacCoder[0][CI_CURR_BEST], pcSlice );
-        m_pcEntropyCoder->updateContextTables ( sliceType, pcSlice->getSliceQp() );
-        m_pcEntropyCoder->setEntropyCoder     ( m_pcSbacCoder, pcSlice );
-#else
-        m_pcEntropyCoder->updateContextTables ( pcSlice->getSliceType(), pcSlice->getSliceQp(), false );
-        m_pcEntropyCoder->setEntropyCoder     ( m_pppcRDSbacCoder[0][CI_CURR_BEST], pcSlice );
-        m_pcEntropyCoder->updateContextTables ( pcSlice->getSliceType(), pcSlice->getSliceQp() );
-        m_pcEntropyCoder->setEntropyCoder     ( m_pcSbacCoder, pcSlice );
-#endif
+      SliceType sliceType = pcSlice->getSliceType();
+      if (!pcSlice->isIntra() && pcSlice->getPPS()->getCabacInitPresentFlag() && pcSlice->getPPS()->getEncCABACTableIdx()!=0)
+      {
+        sliceType = (SliceType) pcSlice->getPPS()->getEncCABACTableIdx();
       }
+      m_pcEntropyCoder->updateContextTables ( sliceType, pcSlice->getSliceQp(), false );
+      m_pcEntropyCoder->setEntropyCoder     ( m_pppcRDSbacCoder[0][CI_CURR_BEST], pcSlice );
+      m_pcEntropyCoder->updateContextTables ( sliceType, pcSlice->getSliceQp() );
+      m_pcEntropyCoder->setEntropyCoder     ( m_pcSbacCoder, pcSlice );
+#else
+      m_pcEntropyCoder->updateContextTables ( pcSlice->getSliceType(), pcSlice->getSliceQp(), false );
+      m_pcEntropyCoder->setEntropyCoder     ( m_pppcRDSbacCoder[0][CI_CURR_BEST], pcSlice );
+      m_pcEntropyCoder->updateContextTables ( pcSlice->getSliceType(), pcSlice->getSliceQp() );
+      m_pcEntropyCoder->setEntropyCoder     ( m_pcSbacCoder, pcSlice );
+#endif
     }
 #if !REMOVE_TILE_DEPENDENCE
     if( (rpcPic->getPicSym()->getTileBoundaryIndependenceIdr()==0) && (rpcPic->getPicSym()->getNumColumnsMinus1()!=0) )
