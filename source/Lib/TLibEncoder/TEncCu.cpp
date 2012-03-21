@@ -296,7 +296,9 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
       }
 #else
       if (pcCU->getSlice()->getPPS()->getEntropyCodingSynchro())
+      {
         iNumSubstreamsPerTile /= pcCU->getPic()->getPicSym()->getNumTiles();
+      }
       if ((uiCol == uiTileLCUX+uiTileWidth-1) && (uiLin+iNumSubstreamsPerTile < uiTileLCUY+uiTileHeight))
       {
         m_pcEntropyCoder->encodeFlush();

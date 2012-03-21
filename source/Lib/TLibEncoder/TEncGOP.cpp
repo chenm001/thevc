@@ -993,10 +993,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           UInt uiNumSubstreamsPerTile = iNumSubstreams;
 #if !REMOVE_TILE_DEPENDENCE
           if (pcPic->getPicSym()->getTileBoundaryIndependenceIdr() && pcSlice->getPPS()->getEntropyCodingSynchro())
+            uiNumSubstreamsPerTile /= pcPic->getPicSym()->getNumTiles();
 #else
           if (pcSlice->getPPS()->getEntropyCodingSynchro())
-#endif
+          {
             uiNumSubstreamsPerTile /= pcPic->getPicSym()->getNumTiles();
+          }
+#endif
           for ( UInt ui = 0 ; ui < iNumSubstreams; ui++ )
           {
             // Flush all substreams -- this includes empty ones.
@@ -1157,14 +1160,16 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           }
         }
         else
-#endif
         {
-          xWriteTileLocationToSliceHeader(nalu, pcBitstreamRedirect, pcSlice);
-          writeRBSPTrailingBits(nalu.m_Bitstream);
-          accessUnit.push_back(new NALUnitEBSP(nalu));
-          bNALUAlignedWrittenToList = true; 
-          uiOneBitstreamPerSliceLength += nalu.m_Bitstream.getNumberOfWrittenBits(); // length of bitstream after byte-alignment
+#endif
+        xWriteTileLocationToSliceHeader(nalu, pcBitstreamRedirect, pcSlice);
+        writeRBSPTrailingBits(nalu.m_Bitstream);
+        accessUnit.push_back(new NALUnitEBSP(nalu));
+        bNALUAlignedWrittenToList = true; 
+        uiOneBitstreamPerSliceLength += nalu.m_Bitstream.getNumberOfWrittenBits(); // length of bitstream after byte-alignment
+#if !REMOVE_TILE_DEPENDENCE
         }
+#endif
 
         if (!bNALUAlignedWrittenToList)
         {

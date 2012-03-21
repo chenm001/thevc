@@ -339,10 +339,12 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #if !REMOVE_TILE_DEPENDENCE
       WRITE_FLAG( pcPPS->getTileBoundaryIndependenceIdr(),                         "tile_boundary_independence_flag" );
       if(pcPPS->getTileBoundaryIndependenceIdr() == 1)
-#endif
       {
-        WRITE_FLAG( pcPPS->getLFCrossTileBoundaryFlag()?1 : 0,            "loop_filter_across_tile_flag");
+#endif
+      WRITE_FLAG( pcPPS->getLFCrossTileBoundaryFlag()?1 : 0,            "loop_filter_across_tile_flag");
+#if !REMOVE_TILE_DEPENDENCE
       }
+#endif
     }
   }
 #if DBL_CONTROL
@@ -517,10 +519,12 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if !REMOVE_TILE_DEPENDENCE
     WRITE_FLAG( pcSPS->getTileBoundaryIndependenceIdr(),                "tile_boundary_independence_flag" );
     if(pcSPS->getTileBoundaryIndependenceIdr() == 1)
-#endif
     {
-      WRITE_FLAG( pcSPS->getLFCrossTileBoundaryFlag()?1 : 0,            "loop_filter_across_tile_flag");
+#endif
+    WRITE_FLAG( pcSPS->getLFCrossTileBoundaryFlag()?1 : 0,            "loop_filter_across_tile_flag");
+#if !REMOVE_TILE_DEPENDENCE
     }
+#endif
   }
 
   // Software-only flags

@@ -1257,12 +1257,13 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
       pcPPS->setTileBoundaryIndependenceIdr( uiCode );
 
       if(pcPPS->getTileBoundaryIndependenceIdr() == 1)
-#endif
       {
-        READ_FLAG ( uiCode, "loop_filter_across_tile_flag" );  
-        pcPPS->setLFCrossTileBoundaryFlag( (uiCode == 1)?true:false );
+#endif
+      READ_FLAG ( uiCode, "loop_filter_across_tile_flag" );  
+      pcPPS->setLFCrossTileBoundaryFlag( (uiCode == 1)?true:false );
+#if !REMOVE_TILE_DEPENDENCE
       }
-
+#endif
     }
   }
 
@@ -1483,11 +1484,13 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     READ_FLAG ( uiCode, "tile_boundary_independence_flag" );  
     pcSPS->setTileBoundaryIndependenceIdr( uiCode );
     if(pcSPS->getTileBoundaryIndependenceIdr() == 1)
-#endif
     {
-      READ_FLAG ( uiCode, "loop_filter_across_tile_flag" );  
-      pcSPS->setLFCrossTileBoundaryFlag( (uiCode==1)?true:false);
+#endif
+    READ_FLAG ( uiCode, "loop_filter_across_tile_flag" );  
+    pcSPS->setLFCrossTileBoundaryFlag( (uiCode==1)?true:false);
+#if !REMOVE_TILE_DEPENDENCE
     }
+#endif
   }
 
   // Software-only flags
@@ -2077,11 +2080,13 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   {
 #if !REMOVE_TILE_DEPENDENCE
     if (sps->getTileBoundaryIndependenceIdr())
-#endif
     {   
-      xReadCode(1, uiCode); // read flag indicating if tile markers transmitted
-      rpcSlice->setTileMarkerFlag( uiCode );
+#endif
+    xReadCode(1, uiCode); // read flag indicating if tile markers transmitted
+    rpcSlice->setTileMarkerFlag( uiCode );
+#if !REMOVE_TILE_DEPENDENCE
     }
+#endif
   }
 
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
@@ -2185,8 +2190,8 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     // Reading location information
 #if !REMOVE_TILE_DEPENDENCE
     if (sps->getTileBoundaryIndependenceIdr())
-#endif
     {   
+#endif
 #if !TILES_WPP_ENTRY_POINT_SIGNALLING
       xReadCode(1, uiCode); // read flag indicating if location information signaled in slice header
       Bool bTileLocationInformationInSliceHeaderFlag = (uiCode)? true : false;
@@ -2228,8 +2233,10 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
 #endif
 
       // read out trailing bits
-      m_pcBitstream->readOutTrailingBits();
+    m_pcBitstream->readOutTrailingBits();
+#if !REMOVE_TILE_DEPENDENCE
     }
+#endif
   }
   return;
 }
