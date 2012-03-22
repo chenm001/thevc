@@ -1022,7 +1022,7 @@ private:
   UInt*       m_puiSubstreamSizes;
   TComScalingList*     m_scalingList;                 //!< pointer of quantization matrix
 #if CABAC_INIT_FLAG
-  Int         m_cabacInitFlag; 
+  Bool        m_cabacInitFlag; 
 #else
   Int         m_cabacInitIdc; 
 #endif
@@ -1285,8 +1285,8 @@ public:
   Void  setDefaultScalingList       ();
   Bool  checkDefaultScalingList     ();
 #if CABAC_INIT_FLAG
-  Void      setCabacInitFlag  ( Int val ) { m_cabacInitFlag = val;      }  //!< set CABAC initial flag 
-  Int       getCabacInitFlag  ()          { return m_cabacInitFlag;     }  //!< get CABAC initial flag 
+  Void      setCabacInitFlag  ( Bool val ) { m_cabacInitFlag = val;      }  //!< set CABAC initial flag 
+  Bool      getCabacInitFlag  ()           { return m_cabacInitFlag;     }  //!< get CABAC initial flag 
 #else
   Void      setCABACinitIDC(Int iVal) {m_cabacInitIdc = iVal;    }  //!< set CABAC initial IDC number 
   Int       getCABACinitIDC()         {return m_cabacInitIdc;    }  //!< get CABAC initial IDC number 

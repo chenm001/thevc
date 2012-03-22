@@ -873,9 +873,9 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     {
       SliceType sliceType   = pcSlice->getSliceType();
       Int  encCABACTableIdx = pcSlice->getPPS()->getEncCABACTableIdx();
-      UInt encCabacInitFlag = (sliceType!=encCABACTableIdx && encCABACTableIdx!=0) ? 1 : 0;
+      Bool encCabacInitFlag = (sliceType!=encCABACTableIdx && encCABACTableIdx!=0) ? true : false;
       pcSlice->setCabacInitFlag( encCabacInitFlag );
-      WRITE_FLAG( encCabacInitFlag, "cabac_init_flag" );
+      WRITE_FLAG( encCabacInitFlag?1:0, "cabac_init_flag" );
     }
 #else
     WRITE_UVLC(pcSlice->getCABACinitIDC(),  "cabac_init_idc");

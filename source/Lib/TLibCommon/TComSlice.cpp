@@ -99,7 +99,7 @@ TComSlice::TComSlice()
 , m_uiTileOffstForMultES          ( 0 )
 , m_puiSubstreamSizes             ( NULL )
 #if CABAC_INIT_FLAG
-, m_cabacInitFlag                 ( 0 )
+, m_cabacInitFlag                 ( false )
 #else
 , m_cabacInitIdc                 ( -1 )
 #endif
@@ -170,7 +170,7 @@ Void TComSlice::initSlice()
 
   m_uiTileCount          = 0;
 #if CABAC_INIT_FLAG
-  m_cabacInitFlag        = 0;
+  m_cabacInitFlag        = false;
 #endif
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
   m_numEntryPointOffsets = 0;

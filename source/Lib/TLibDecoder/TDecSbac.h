@@ -77,10 +77,9 @@ public:
   Void decodeFlush();
 #endif
 
-  Void  resetEntropywithQPandInitIDC ( Int  iQp, Int iID);
-  Void  resetEntropy                 ( Int  iQp, Int iID      ) { resetEntropywithQPandInitIDC(iQp, iID);                                      }
 #if CABAC_INIT_FLAG
-  Void  resetEntropy                 ( TComSlice* pSlice      ) 
+  Void  resetEntropy ( Int  qp, SliceType sliceType);
+  Void  resetEntropy (TComSlice* pSlice ) 
   { 
     SliceType sliceType  = pSlice->getSliceType();
     if (pSlice->getPPS()->getCabacInitPresentFlag() && pSlice->getCabacInitFlag())
@@ -97,9 +96,11 @@ public:
         assert(0);
       }
     }
-    resetEntropywithQPandInitIDC(pSlice->getSliceQp(), sliceType);
+    resetEntropy(pSlice->getSliceQp(), sliceType);
   }
 #else
+  Void  resetEntropywithQPandInitIDC ( Int  iQp, Int iID);
+  Void  resetEntropy                 ( Int  iQp, Int iID      ) { resetEntropywithQPandInitIDC(iQp, iID);                                      }
   Void  resetEntropy                 ( TComSlice* pcSlice     ) { resetEntropywithQPandInitIDC(pcSlice->getSliceQp(), pcSlice->getCABACinitIDC());}
 #endif
   Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }

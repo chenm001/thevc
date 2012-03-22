@@ -102,9 +102,14 @@ TDecSbac::~TDecSbac()
 // Public member functions
 // ====================================================================================================================
 
+#if CABAC_INIT_FLAG
+Void TDecSbac::resetEntropy (Int  iQp, SliceType eSliceType)
+{
+#else
 Void TDecSbac::resetEntropywithQPandInitIDC (Int  iQp, Int iID)
 {
   SliceType eSliceType = (SliceType)iID;
+#endif  
 
   m_cCUSplitFlagSCModel.initBuffer       ( eSliceType, iQp, (UChar*)INIT_SPLIT_FLAG );
   m_cCUSkipFlagSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SKIP_FLAG );

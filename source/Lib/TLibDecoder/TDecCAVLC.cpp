@@ -1983,11 +1983,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
 #endif
 
 #if CABAC_INIT_FLAG
-  rpcSlice->setCabacInitFlag(0); // default
+  rpcSlice->setCabacInitFlag( false ); // default
   if(pps->getCabacInitPresentFlag() && !rpcSlice->isIntra())
   {
     READ_FLAG(uiCode, "cabac_init_flag");
-    rpcSlice->setCabacInitFlag(uiCode);
+    rpcSlice->setCabacInitFlag( uiCode ? true : false );
   }
 #else
   if(pps->getEntropyCodingMode() && !rpcSlice->isIntra())
