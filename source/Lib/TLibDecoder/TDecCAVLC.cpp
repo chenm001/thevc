@@ -1468,12 +1468,12 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   if(pcSPS->getTilesOrEntropyCodingSyncIdc() == 1)
   {
 #endif
-    READ_FLAG ( uiCode, "uniform_spacing_flag" ); 
-    pcSPS->setUniformSpacingIdr( uiCode );
     READ_UVLC ( uiCode, "num_tile_columns_minus1" );
     pcSPS->setNumColumnsMinus1( uiCode );  
     READ_UVLC ( uiCode, "num_tile_rows_minus1" ); 
     pcSPS->setNumRowsMinus1( uiCode ); 
+    READ_FLAG ( uiCode, "uniform_spacing_flag" ); 
+    pcSPS->setUniformSpacingIdr( uiCode );
     if( pcSPS->getUniformSpacingIdr() == 0 )
     {
       UInt* columnWidth = (UInt*)malloc(pcSPS->getNumColumnsMinus1()*sizeof(UInt));

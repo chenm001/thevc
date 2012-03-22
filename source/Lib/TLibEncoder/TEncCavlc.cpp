@@ -517,9 +517,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   if(tilesOrEntropyCodingSyncIdc == 1)
   {
 #endif
-    WRITE_FLAG( pcSPS->getUniformSpacingIdr(),                          "uniform_spacing_flag" );
     WRITE_UVLC( pcSPS->getNumColumnsMinus1(),                           "num_tile_columns_minus1" );
     WRITE_UVLC( pcSPS->getNumRowsMinus1(),                              "num_tile_rows_minus1" );
+    WRITE_FLAG( pcSPS->getUniformSpacingIdr(),                          "uniform_spacing_flag" );
 
     if( pcSPS->getUniformSpacingIdr()==0 )
     {
