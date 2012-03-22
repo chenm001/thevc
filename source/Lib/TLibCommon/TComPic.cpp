@@ -274,7 +274,9 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
       uiAddr = pcCU->getAddr();
 
       if(pcCU->getPic()==0)
+      {
         continue;
+      }
       Int iTileID= m_apcPicSym->getTileIdxMap(uiAddr);
       Bool bTopTileBoundary = false, bDownTileBoundary= false, bLeftTileBoundary= false, bRightTileBoundary= false;
 

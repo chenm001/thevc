@@ -1721,7 +1721,9 @@ Void TComAdaptiveLoopFilter::xSubCUAdaptive(TComDataCU* pcCU, Int filtNo, Pel *i
   TComPic* pcPic = pcCU->getPic();
 
   if(pcPic==NULL)
+  {
     return;
+  }
   Bool bBoundary = false;
   UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
   UInt uiRPelX   = uiLPelX + (g_uiMaxCUWidth>>uiDepth)  - 1;
@@ -2538,7 +2540,9 @@ Void TComAdaptiveLoopFilter::createPicAlfInfo(TComPic* pcPic, Int numSlicesInPic
       {
         TComDataCU* pcCU       = vSliceLCUPointers[i];
         if(pcCU->getPic()==0)
+        {
           continue;
+        }
         Int         currTileID = pcPic->getPicSym()->getTileIdxMap(pcCU->getAddr());
 
         InitAlfLCUInfo(m_ppSliceAlfLCUs[s][i], s, currTileID, pcCU, pcPic->getNumPartInCU());
@@ -2753,7 +2757,9 @@ Void TComAdaptiveLoopFilter::transferCtrlFlagsFromAlfParamOneSlice(std::vector< 
     {
       AlfLCUInfo& cAlfLCU = *(vpAlfLCU[idx]);
       if(cAlfLCU.pcCU==0)
+      {
         return;
+      }
       if( cAlfLCU.bAllSUsInLCUInSameSlice)
       {
         cAlfLCU.pcCU->setAlfCtrlFlagSubParts(1, 0, 0);
@@ -2775,7 +2781,9 @@ Void TComAdaptiveLoopFilter::transferCtrlFlagsFromAlfParamOneSlice(std::vector< 
     AlfLCUInfo& cAlfLCU = *(vpAlfLCU[idx]);
 
     if(cAlfLCU.pcCU==NULL)
+    {
       continue;
+    }
     uiNumCtrlFlags += (UInt)getCtrlFlagsFromAlfParam(&cAlfLCU, iAlfDepth, &(vCtrlFlags[uiNumCtrlFlags]) );
   }
 }
