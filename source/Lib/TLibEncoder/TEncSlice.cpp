@@ -1266,6 +1266,29 @@ Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& u
     pcSlice->setSliceCurEndCUAddr( uiBoundingCUAddrSlice );
   }
 
+#if COMPLETE_SLICES_IN_TILE
+  if ((m_pcCfg->getSliceMode() == AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE || m_pcCfg->getSliceMode() == AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE) && 
+      (m_pcCfg->getNumRowsMinus1() > 0 || m_pcCfg->getNumColumnsMinus1() > 0))
+  {
+    UInt lcuEncAddr = (uiStartCUAddrSlice+rpcPic->getNumPartInCU()-1)/rpcPic->getNumPartInCU();
+    UInt lcuAddr = rpcPic->getPicSym()->getCUOrderMap(lcuEncAddr);
+    UInt startTileIdx = rpcPic->getPicSym()->getTileIdxMap(lcuAddr);
+    UInt tileBoundingCUAddrSlice = 0;
+    while (lcuEncAddr < uiNumberOfCUsInFrame && rpcPic->getPicSym()->getTileIdxMap(lcuAddr) == startTileIdx)
+    {
+      lcuEncAddr++;
+      lcuAddr = rpcPic->getPicSym()->getCUOrderMap(lcuEncAddr);
+    }
+    tileBoundingCUAddrSlice = lcuEncAddr*rpcPic->getNumPartInCU();
+    
+    if (tileBoundingCUAddrSlice < uiBoundingCUAddrSlice)
+    {
+      uiBoundingCUAddrSlice = tileBoundingCUAddrSlice;
+      pcSlice->setSliceCurEndCUAddr( uiBoundingCUAddrSlice );
+    }
+  }
+#endif
+
   // Entropy slice
   UInt uiStartCUAddrEntropySlice, uiBoundingCUAddrEntropySlice;
   uiStartCUAddrEntropySlice    = pcSlice->getEntropySliceCurStartCUAddr();
