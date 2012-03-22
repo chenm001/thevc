@@ -319,9 +319,9 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
     WRITE_FLAG( pcPPS->getTileBehaviorControlPresentFlag(),  "tile_control_present_flag");
     if( pcPPS->getColumnRowInfoPresent() == 1 )
     {
-      WRITE_FLAG( pcPPS->getUniformSpacingIdr(),                                   "uniform_spacing_flag" );
       WRITE_UVLC( pcPPS->getNumColumnsMinus1(),                                    "num_tile_columns_minus1" );
       WRITE_UVLC( pcPPS->getNumRowsMinus1(),                                       "num_tile_rows_minus1" );
+      WRITE_FLAG( pcPPS->getUniformSpacingIdr(),                                   "uniform_spacing_flag" );
       if( pcPPS->getUniformSpacingIdr() == 0 )
       {
         for(UInt i=0; i<pcPPS->getNumColumnsMinus1(); i++)

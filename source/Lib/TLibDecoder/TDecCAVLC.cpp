@@ -1220,13 +1220,12 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
     pcPPS->setTileBehaviorControlPresentFlag(uiCode);
     if( pcPPS->getColumnRowInfoPresent() == 1 )
     {
-      READ_FLAG ( uiCode, "uniform_spacing_flag" );  
-      pcPPS->setUniformSpacingIdr( uiCode );
-
       READ_UVLC ( uiCode, "num_tile_columns_minus1" );   
       pcPPS->setNumColumnsMinus1( uiCode );  
       READ_UVLC ( uiCode, "num_tile_rows_minus1" );  
       pcPPS->setNumRowsMinus1( uiCode );  
+      READ_FLAG ( uiCode, "uniform_spacing_flag" );  
+      pcPPS->setUniformSpacingIdr( uiCode );
 
       if( pcPPS->getUniformSpacingIdr() == 0 )
       {
