@@ -987,10 +987,9 @@ Void  TEncCavlc::codeTilesWPPEntryPoint( TComSlice* pSlice )
   else if (tilesOrEntropyCodingSyncIdc == 2) // wavefront
   {
     Int  numZeroSubstreamsAtEndOfSlice  = 0;
-    entryPointOffset                    = new UInt[pSlice->getPPS()->getNumSubstreams()];
     UInt* pSubstreamSizes               = pSlice->getSubstreamSizes();
     // Find number of zero substreams at the end of slice
-    for (Int idx=pSlice->getPPS()->getNumSubstreams()-1; idx>=0; idx--)
+    for (Int idx=pSlice->getPPS()->getNumSubstreams()-2; idx>=0; idx--)
     {
       if ( pSubstreamSizes[ idx ] ==  0 )
       {
@@ -1001,7 +1000,8 @@ Void  TEncCavlc::codeTilesWPPEntryPoint( TComSlice* pSlice )
         break;
       }
     }
-    numEntryPointOffsets       = pSlice->getPPS()->getNumSubstreams() - numZeroSubstreamsAtEndOfSlice;
+    numEntryPointOffsets       = pSlice->getPPS()->getNumSubstreams() - 1 - numZeroSubstreamsAtEndOfSlice;
+    entryPointOffset           = new UInt[numEntryPointOffsets];
     for (Int idx=0; idx<numEntryPointOffsets; idx++)
     {
       entryPointOffset[ idx ] = ( pSubstreamSizes[ idx ] >> 3 ) ;

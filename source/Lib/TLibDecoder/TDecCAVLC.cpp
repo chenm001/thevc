@@ -2152,10 +2152,10 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   }
   else if ( tilesOrEntropyCodingSyncIdc == 2 ) // wavefront
   {
-    UInt numSubstreams = pps->getNumSubstreams();
+    Int numSubstreams = pps->getNumSubstreams();
     rpcSlice->allocSubstreamSizes(numSubstreams);
     UInt *pSubstreamSizes       = rpcSlice->getSubstreamSizes();
-    for (Int idx=0; idx<numSubstreams; idx++)
+    for (Int idx=0; idx<numSubstreams-1; idx++)
     {
       if ( idx < numEntryPointOffsets )
       {
