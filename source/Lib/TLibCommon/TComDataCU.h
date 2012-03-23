@@ -353,7 +353,7 @@ public:
   UChar         getTransformIdx       ( UInt uiIdx )            { return m_puhTrIdx[uiIdx];   }
   Void          setTrIdxSubParts      ( UInt uiTrIdx, UInt uiAbsPartIdx, UInt uiDepth );
   
-  UInt          getQuadtreeTULog2MinSizeInCU( UInt uiIdx );
+  UInt          getQuadtreeTULog2MinSizeInCU( UInt absPartIdx );
   
   TComCUMvField* getCUMvField         ( RefPicList e )          { return  &m_acCUMvField[e];  }
   

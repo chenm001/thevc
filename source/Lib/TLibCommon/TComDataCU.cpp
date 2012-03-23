@@ -2164,7 +2164,7 @@ UInt TComDataCU::getQuadtreeTULog2MinSizeInCU( UInt absPartIdx )
     if ( log2MinTUSizeInCU > m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize())
     {
       // when fully making use of signaled TUMaxDepth + inter/intraSplitFlag, resulting luma TB size is still > QuadtreeTULog2MaxSize
-      log2MinTUSizeInCU = m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize() - interSplitFlag;
+      log2MinTUSizeInCU = m_pcSlice->getSPS()->getQuadtreeTULog2MaxSize();
     }  
   }
   return log2MinTUSizeInCU;
