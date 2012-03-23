@@ -431,8 +431,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       UInt uiExternalAddress = pcPic->getPicSym()->getNumberOfCUsInFrame()-1;
       UInt uiPosX = ( uiExternalAddress % pcPic->getFrameWidthInCU() ) * g_uiMaxCUWidth+ g_auiRasterToPelX[ g_auiZscanToRaster[uiInternalAddress] ];
       UInt uiPosY = ( uiExternalAddress / pcPic->getFrameWidthInCU() ) * g_uiMaxCUHeight+ g_auiRasterToPelY[ g_auiZscanToRaster[uiInternalAddress] ];
-      UInt uiWidth = pcSlice->getSPS()->getWidth();
-      UInt uiHeight = pcSlice->getSPS()->getHeight();
+      UInt uiWidth = pcSlice->getSPS()->getPicWidthInLumaSamples();
+      UInt uiHeight = pcSlice->getSPS()->getPicHeightInLumaSamples();
       while(uiPosX>=uiWidth||uiPosY>=uiHeight) 
       {
         uiInternalAddress--;
@@ -814,8 +814,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         uiExternalAddress = pcPic->getPicSym()->getPicSCUAddr(pcSlice->getEntropySliceCurEndCUAddr()-1) / pcPic->getNumPartInCU();
         uiPosX = ( uiExternalAddress % pcPic->getFrameWidthInCU() ) * g_uiMaxCUWidth+ g_auiRasterToPelX[ g_auiZscanToRaster[uiInternalAddress] ];
         uiPosY = ( uiExternalAddress / pcPic->getFrameWidthInCU() ) * g_uiMaxCUHeight+ g_auiRasterToPelY[ g_auiZscanToRaster[uiInternalAddress] ];
-        uiWidth = pcSlice->getSPS()->getWidth();
-        uiHeight = pcSlice->getSPS()->getHeight();
+        uiWidth = pcSlice->getSPS()->getPicWidthInLumaSamples();
+        uiHeight = pcSlice->getSPS()->getPicHeightInLumaSamples();
         while(uiPosX>=uiWidth||uiPosY>=uiHeight)
         {
           uiInternalAddress--;

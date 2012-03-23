@@ -179,8 +179,8 @@ Void TComSlice::initSlice()
 
 Void TComSlice::initTiles()
 {
-  Int iWidth             = m_pcSPS->getWidth();
-  Int iHeight            = m_pcSPS->getHeight();
+  Int iWidth             = m_pcSPS->getPicWidthInLumaSamples();
+  Int iHeight            = m_pcSPS->getPicHeightInLumaSamples();
   UInt uiWidthInCU       = ( iWidth %g_uiMaxCUWidth  ) ? iWidth /g_uiMaxCUWidth  + 1 : iWidth /g_uiMaxCUWidth;
   UInt uiHeightInCU      = ( iHeight%g_uiMaxCUHeight ) ? iHeight/g_uiMaxCUHeight + 1 : iHeight/g_uiMaxCUHeight;
   UInt uiNumCUsInFrame   = uiWidthInCU * uiHeightInCU;
@@ -1322,8 +1322,8 @@ TComSPS::TComSPS()
 , m_chromaFormatIdc           (CHROMA_420)
 , m_uiMaxTLayers              (  1)
 // Structure
-, m_uiWidth                   (352)
-, m_uiHeight                  (288)
+, m_picWidthInLumaSamples     (352)
+, m_picHeightInLumaSamples    (288)
 , m_uiMaxCUWidth              ( 32)
 , m_uiMaxCUHeight             ( 32)
 , m_uiMaxCUDepth              (  3)

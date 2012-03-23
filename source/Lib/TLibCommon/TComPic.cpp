@@ -131,8 +131,8 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
 {
   UInt maxNumSUInLCU = getNumPartInCU();
   UInt numLCUInPic   = getNumCUsInFrame();
-  UInt picWidth      = getSlice(0)->getSPS()->getWidth();
-  UInt picHeight     = getSlice(0)->getSPS()->getHeight();
+  UInt picWidth      = getSlice(0)->getSPS()->getPicWidthInLumaSamples();
+  UInt picHeight     = getSlice(0)->getSPS()->getPicHeightInLumaSamples();
   Int  numLCUsInPicWidth = getFrameWidthInCU();
   Int  numLCUsInPicHeight= getFrameHeightInCU();
   UInt maxNumSUInLCUWidth = getNumPartInWidth();

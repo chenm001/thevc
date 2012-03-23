@@ -148,8 +148,8 @@ private:
   UInt        m_uiMaxTLayers;           // maximum number of temporal layers
 
   // Structure
-  UInt        m_uiWidth;
-  UInt        m_uiHeight;
+  UInt        m_picWidthInLumaSamples;
+  UInt        m_picHeightInLumaSamples;
   Int         m_aiPad[2];
   UInt        m_uiMaxCUWidth;
   UInt        m_uiMaxCUHeight;
@@ -260,10 +260,10 @@ public:
   Void setChromaFormatIdc (Int i)    { m_chromaFormatIdc = i;          }
   
   // structure
-  Void setWidth       ( UInt u ) { m_uiWidth = u;           }
-  UInt getWidth       ()         { return  m_uiWidth;       }
-  Void setHeight      ( UInt u ) { m_uiHeight = u;          }
-  UInt getHeight      ()         { return  m_uiHeight;      }
+  Void setPicWidthInLumaSamples       ( UInt u ) { m_picWidthInLumaSamples = u;        }
+  UInt getPicWidthInLumaSamples       ()         { return  m_picWidthInLumaSamples;    }
+  Void setPicHeightInLumaSamples      ( UInt u ) { m_picHeightInLumaSamples = u;       }
+  UInt getPicHeightInLumaSamples      ()         { return  m_picHeightInLumaSamples;   }
   Void setMaxCUWidth  ( UInt u ) { m_uiMaxCUWidth = u;      }
   UInt getMaxCUWidth  ()         { return  m_uiMaxCUWidth;  }
   Void setMaxCUHeight ( UInt u ) { m_uiMaxCUHeight = u;     }

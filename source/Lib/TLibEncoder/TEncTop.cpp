@@ -464,8 +464,8 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
 
 Void TEncTop::xInitSPS()
 {
-  m_cSPS.setWidth         ( m_iSourceWidth      );
-  m_cSPS.setHeight        ( m_iSourceHeight     );
+  m_cSPS.setPicWidthInLumaSamples         ( m_iSourceWidth      );
+  m_cSPS.setPicHeightInLumaSamples        ( m_iSourceHeight     );
   m_cSPS.setPad           ( m_aiPad             );
   m_cSPS.setMaxCUWidth    ( g_uiMaxCUWidth      );
   m_cSPS.setMaxCUHeight   ( g_uiMaxCUHeight     );

@@ -1309,8 +1309,8 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_UVLC(     uiCode, "seq_parameter_set_id" );               pcSPS->setSPSId( uiCode );
   READ_UVLC(     uiCode, "chroma_format_idc" );                  pcSPS->setChromaFormatIdc( uiCode );
   READ_CODE( 3,  uiCode, "max_temporal_layers_minus1" );         pcSPS->setMaxTLayers( uiCode+1 );
-  READ_UVLC (    uiCode, "pic_width_in_luma_samples" );          pcSPS->setWidth       ( uiCode    );
-  READ_UVLC (    uiCode, "pic_height_in_luma_samples" );         pcSPS->setHeight      ( uiCode    );
+  READ_UVLC (    uiCode, "pic_width_in_luma_samples" );          pcSPS->setPicWidthInLumaSamples ( uiCode    );
+  READ_UVLC (    uiCode, "pic_height_in_luma_samples" );         pcSPS->setPicHeightInLumaSamples( uiCode    );
 
 #if FULL_NBIT
   READ_UVLC(     uiCode, "bit_depth_luma_minus8" );
@@ -1540,8 +1540,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
 #if ENC_DEC_TRACE
   xTraceSliceHeader(rpcSlice);
 #endif
-  
-  Int numCUs = ((rpcSlice->getSPS()->getWidth()+rpcSlice->getSPS()->getMaxCUWidth()-1)/rpcSlice->getSPS()->getMaxCUWidth())*((rpcSlice->getSPS()->getHeight()+rpcSlice->getSPS()->getMaxCUHeight()-1)/rpcSlice->getSPS()->getMaxCUHeight());
+  Int numCUs = ((rpcSlice->getSPS()->getPicWidthInLumaSamples()+rpcSlice->getSPS()->getMaxCUWidth()-1)/rpcSlice->getSPS()->getMaxCUWidth())*((rpcSlice->getSPS()->getPicHeightInLumaSamples()+rpcSlice->getSPS()->getMaxCUHeight()-1)/rpcSlice->getSPS()->getMaxCUHeight());
   Int maxParts = (1<<(rpcSlice->getSPS()->getMaxCUDepth()<<1));
   Int numParts = (1<<(rpcSlice->getPPS()->getSliceGranularity()<<1));
   UInt lCUAddress = 0;
@@ -2067,11 +2066,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   {
     if(sps->getUseALF() && rpcSlice->getAlfEnabledFlag())
     {
-      UInt uiNumLCUsInWidth   = sps->getWidth()  / g_uiMaxCUWidth;
-      UInt uiNumLCUsInHeight  = sps->getHeight() / g_uiMaxCUHeight;
+      UInt uiNumLCUsInWidth   = sps->getPicWidthInLumaSamples()  / g_uiMaxCUWidth;
+      UInt uiNumLCUsInHeight  = sps->getPicHeightInLumaSamples() / g_uiMaxCUHeight;
 
-      uiNumLCUsInWidth  += ( sps->getWidth() % g_uiMaxCUWidth ) ? 1 : 0;
-      uiNumLCUsInHeight += ( sps->getHeight() % g_uiMaxCUHeight ) ? 1 : 0;
+      uiNumLCUsInWidth  += ( sps->getPicWidthInLumaSamples() % g_uiMaxCUWidth ) ? 1 : 0;
+      uiNumLCUsInHeight += ( sps->getPicHeightInLumaSamples() % g_uiMaxCUHeight ) ? 1 : 0;
 
       Int uiNumCUsInFrame = uiNumLCUsInWidth* uiNumLCUsInHeight; 
 #if LCU_SYNTAX_ALF
