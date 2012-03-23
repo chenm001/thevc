@@ -78,26 +78,7 @@ public:
 #endif
 
 #if CABAC_INIT_FLAG
-  Void  resetEntropy ( Int  qp, SliceType sliceType);
-  Void  resetEntropy (TComSlice* pSlice ) 
-  { 
-    SliceType sliceType  = pSlice->getSliceType();
-    if (pSlice->getPPS()->getCabacInitPresentFlag() && pSlice->getCabacInitFlag())
-    {
-      switch (sliceType)
-      {
-      case P_SLICE:           // change initialization table to B_SLICE intialization
-        sliceType = B_SLICE; 
-        break;
-      case B_SLICE:           // change initialization table to P_SLICE intialization
-        sliceType = P_SLICE; 
-        break;
-      default     :           // should not occur
-        assert(0);
-      }
-    }
-    resetEntropy(pSlice->getSliceQp(), sliceType);
-  }
+  Void  resetEntropy (TComSlice* pSlice );
 #else
   Void  resetEntropywithQPandInitIDC ( Int  iQp, Int iID);
   Void  resetEntropy                 ( Int  iQp, Int iID      ) { resetEntropywithQPandInitIDC(iQp, iID);                                      }

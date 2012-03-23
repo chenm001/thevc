@@ -2287,9 +2287,11 @@ Void TDecCavlc::xParseAlfCuControlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInP
   }
 }
 
+#if !CABAC_INIT_FLAG
 Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
 {
 }
+#endif
 
 Void TDecCavlc::parseTerminatingBit( UInt& ruiBit )
 {

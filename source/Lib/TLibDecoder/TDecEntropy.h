@@ -63,7 +63,7 @@ class TDecEntropyIf
 {
 public:
   //  Virtual list for SBAC/CAVLC
-  virtual Void  resetEntropy          (TComSlice* pcSlice)                = 0;
+  virtual Void  resetEntropy          ( TComSlice* pcSlice )     = 0;
   virtual Void  setBitstream          ( TComInputBitstream* p )  = 0;
 
 #if OL_FLUSH
