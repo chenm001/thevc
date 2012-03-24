@@ -1688,18 +1688,18 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
   xT( uiMode, pcResidual, uiStride, m_plTempCoeff, uiWidth, uiHeight );
 #if (CHEN_TV)
   if ( do_print ) {
-      if ( uiMode != REG_DCT ) {
+      //if ( uiMode != REG_DCT ) {
         tPrintMatrix32( fp_tv, "--- Trans ---\n", m_plTempCoeff, uiWidth, uiWidth);
-      }
+      //}
   }
 #endif
   xQuant( pcCU, m_plTempCoeff, rpcCoeff,
        uiWidth, uiHeight, uiAbsSum, eTType, uiAbsPartIdx );
 #if (CHEN_TV)
   if ( do_print ) {
-      if ( uiMode != REG_DCT ) {
+      //if ( uiMode != REG_DCT ) {
         tPrintMatrix32( fp_tv, "--- Quant ---\n", rpcCoeff, uiWidth, uiWidth);
-      }
+      //}
   }
 #endif
 }
@@ -1710,17 +1710,17 @@ Void TComTrQuant::invtransformNxN( TextType eText,UInt uiMode, Pel* rpcResidual,
   xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight);
 #if (CHEN_TV)
   if ( do_print ) {
-    if ( eText == TEXT_LUMA ) {
+    //if ( eText == TEXT_LUMA ) {
       tPrintMatrix32( fp_tv, "--- IQuant ---\n", m_plTempCoeff, uiWidth, uiWidth);
-    }
+    //}
   }
 #endif
   xIT( uiMode, m_plTempCoeff, rpcResidual, uiStride, uiWidth, uiHeight );
 #if (CHEN_TV)
   if ( do_print ) {
-    if ( eText == TEXT_LUMA ) {
+    //if ( eText == TEXT_LUMA ) {
       tPrintMatrix16( fp_tv, "--- ITrans ---\n", rpcResidual, uiStride, uiWidth);
-    }
+    //}
   }
 #endif
 }

@@ -45,6 +45,7 @@
 #if (CHEN_TV)
 FILE *fp_tv = NULL;
 int do_print = 0;
+int first_chr = 0;
 
 void tPrintMatrix( FILE *fp, char *name, Pel *P, UInt uiStride, Int iSize )
 {
@@ -1083,6 +1084,9 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
   UInt      uiZOrder          = pcCU->getZorderIdxInCU() + uiAbsPartIdx;
   Pel*      piRecIPred        = ( uiChromaId > 0 ? pcCU->getPic()->getPicYuvRec()->getCrAddr( pcCU->getAddr(), uiZOrder ) : pcCU->getPic()->getPicYuvRec()->getCbAddr( pcCU->getAddr(), uiZOrder ) );
   UInt      uiRecIPredStride  = pcCU->getPic()->getPicYuvRec()->getCStride();
+#if (CHEN_TV)
+  UInt      uiSad = 0;
+#endif
   
   //===== update chroma mode =====
   if( uiChromaPredMode == DM_CHROMA_IDX )
@@ -1090,6 +1094,22 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
     uiChromaPredMode          = pcCU->getLumaIntraDir( 0 );
   }
   
+#if (CHEN_TV)
+    if ( do_print ) {
+      if ( uiChromaId == 0 ) {
+        if ( first_chr == 1 ) {
+          Pel *pU = pcOrgYuv ->getCbAddr( 0 );
+          Pel *pV = pcOrgYuv ->getCrAddr( 0 );
+          Int cStride = pcOrgYuv->getCStride();
+          Int iWidth = pcCU->getWidth(0) >> 1;
+          tPrintMatrix( fp_tv, "--- U ---\n", pU, cStride, iWidth );
+          tPrintMatrix( fp_tv, "--- V ---\n", pV, cStride, iWidth );
+        }
+        fprintf( fp_tv, "    ChrMode=%d\n", uiChromaPredMode );
+      }
+    }
+#endif
+
   //===== init availability pattern =====
   Bool  bAboveAvail = false;
   Bool  bLeftAvail  = false;
@@ -1104,6 +1124,25 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
   pcCU->getPattern()->initAdiPatternChroma( pcCU, uiAbsPartIdx, uiTrDepth, m_piYuvExt, m_iYuvExtStride, m_iYuvExtHeight, bAboveAvail, bLeftAvail );
   Int*  pPatChroma  = ( uiChromaId > 0 ? pcCU->getPattern()->getAdiCrBuf( uiWidth, uiHeight, m_piYuvExt ) : pcCU->getPattern()->getAdiCbBuf( uiWidth, uiHeight, m_piYuvExt ) );
   
+#if (CHEN_TV)
+    if ( do_print ) {
+      if ( first_chr ) {
+        fprintf( fp_tv, "    Reference[%d]=[", uiChromaId );
+        Int sw = 2 * uiWidth + 1;
+        Int *P = pPatChroma + sw + 1;
+        Int iWidth = uiWidth;
+        Int iHeight = uiHeight;
+        int x, y;
+        for( y=2 * iHeight - 1; y>=0; y-- ) {
+          fprintf( fp_tv, "%02X ", P[y*sw-1] & 0xFF );
+        }
+        for( x=-1; x<2 * iWidth; x++ ) {
+          fprintf( fp_tv, "%02X ", P[-1*sw+x] & 0xFF );
+        }
+        fprintf( fp_tv, "]\n" );
+      }
+    }
+#endif
   //===== get prediction signal =====
   if( uiChromaPredMode == LM_CHROMA_IDX )
   {
@@ -1125,11 +1164,20 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
       for( UInt uiX = 0; uiX < uiWidth; uiX++ )
       {
         pResi[ uiX ] = pOrg[ uiX ] - pPred[ uiX ];
+#if (CHEN_TV)
+        uiSad += abs( pOrg[ uiX ] - pPred[ uiX ] );
+#endif
       }
       pOrg  += uiStride;
       pResi += uiStride;
       pPred += uiStride;
     }
+#if (CHEN_TV)
+    if ( do_print ) {
+      tPrintMatrix  ( fp_tv, "--- Pred ---\n", piPred, uiStride, uiWidth);
+      tPrintMatrix16( fp_tv, "--- Resi ---\n", piResi, uiStride, uiWidth);
+    }
+#endif
   }
   
   //===== transform and quantization =====
@@ -1160,6 +1208,12 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
         memset( pResi, 0, sizeof( Pel ) * uiWidth );
         pResi += uiStride;
       }
+#if (CHEN_TV)
+      if ( do_print ) {
+        tPrintMatrix16( fp_tv, "--- IQuant ---\n", piResi, uiStride, uiWidth);
+        tPrintMatrix16( fp_tv, "--- ITrans ---\n", piResi, uiStride, uiWidth);
+      }
+#endif
     }
   }
   
@@ -1185,13 +1239,22 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
       pRecIPred += uiRecIPredStride;
     }
   }
+#if (CHEN_TV)
+  if ( do_print ) {
+    tPrintMatrix( fp_tv, "--- Recon ---\n", piReco, uiWidth, uiWidth);
+  }
+#endif
   
   //===== update distortion =====
+#if (CHEN_TV)
+  ruiDist += uiSad;
+#else
 #if WEIGHTED_CHROMA_DISTORTION
   ruiDist += m_pcRdCost->getDistPart( piReco, uiStride, piOrg, uiStride, uiWidth, uiHeight, true );
 #else
   ruiDist += m_pcRdCost->getDistPart( piReco, uiStride, piOrg, uiStride, uiWidth, uiHeight );
 #endif
+#endif // CHEN_TV
 }
 
 
@@ -1396,6 +1459,9 @@ TEncSearch::xRecurIntraChromaCodingQT( TComDataCU*  pcCU,
   }
   else
   {
+#if (CHEN_TV)
+    assert( 0 );
+#endif
     UInt uiSplitCbfU     = 0;
     UInt uiSplitCbfV     = 0;
     UInt uiQPartsDiv     = pcCU->getPic()->getNumPartInCU() >> ( ( uiFullDepth + 1 ) << 1 );
@@ -1893,6 +1959,12 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
   UInt  uiModeList[ NUM_CHROMA_MODE ];
   pcCU->getAllowedChromaDir( 0, uiModeList );
   UInt  uiMaxMode = NUM_CHROMA_MODE;
+#if (CHEN_TV)
+  if ( do_print ) {
+    fprintf( fp_tv, "\n@@@ ChromaMode=(%d,%d,%d,%d,%d)\n", uiModeList[0], uiModeList[1], uiModeList[2], uiModeList[3], uiModeList[4] );
+  }
+  first_chr = 1;
+#endif
 
   //----- check chroma modes -----
   for( UInt uiMode = uiMinMode; uiMode < uiMaxMode; uiMode++ )
@@ -1907,7 +1979,7 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
     xRecurIntraChromaCodingQT       ( pcCU,   0, 0, pcOrgYuv, pcPredYuv, pcResiYuv, uiDist );
     UInt    uiBits = xGetIntraBitsQT( pcCU,   0, 0, false, true, false );
     Double  dCost  = m_pcRdCost->calcRdCost( uiBits, uiDist );
-    
+
     //----- compare -----
     if( dCost < dBestCost )
     {
@@ -1919,7 +1991,15 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
       ::memcpy( m_puhQTTempCbf[1], pcCU->getCbf( TEXT_CHROMA_U ), uiQPN * sizeof( UChar ) );
       ::memcpy( m_puhQTTempCbf[2], pcCU->getCbf( TEXT_CHROMA_V ), uiQPN * sizeof( UChar ) );
     }
+#if (CHEN_TV)
+    first_chr = 0;
+#endif
   }
+#if (CHEN_TV)
+  if ( do_print ) {
+    fprintf( fp_tv, "\n@@@ BestChromaMode=%d, Sad=%d\n", uiBestMode, uiBestDist );
+  }
+#endif
   
   //----- set data -----
   UInt  uiQPN = pcCU->getPic()->getNumPartInCU() >> ( uiDepth << 1 );
