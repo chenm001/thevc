@@ -112,6 +112,8 @@
 
 #define COLLOCATED_REF_IDX      1     ///< H0442: signal collocated reference index
 
+#define UNIFIED_TRANSFORM       1     ///< H0492: unify square and non-square transform
+
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
 #define MAX_NUM_APS                32         //< !!!KS: number not defined in WD yet
