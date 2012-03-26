@@ -610,7 +610,7 @@ private:
   UInt        m_uiBiPredIdc;              // Use of Weighting Bi-Prediction (B_SLICE)
 
 #if H0388
-  Bool        m_bOutputFlagPresentFlag;   // Indicates the presence of output_flag in slice header
+  Bool        m_OutputFlagPresentFlag;   // Indicates the presence of output_flag in slice header
 #endif
 
   Int      m_iTileBehaviorControlPresentFlag;
@@ -700,8 +700,8 @@ public:
   Void setWPBiPredIdc               ( UInt u )  { m_uiBiPredIdc = u;        }
 
 #if H0388
-  Void      setOutputFlagPresentFlag( Bool b )  { m_bOutputFlagPresentFlag = b;    }
-  Bool      getOutputFlagPresentFlag()          { return m_bOutputFlagPresentFlag; }
+  Void      setOutputFlagPresentFlag( Bool b )  { m_OutputFlagPresentFlag = b;    }
+  Bool      getOutputFlagPresentFlag()          { return m_OutputFlagPresentFlag; }
 #endif 
 
   Void    setTileBehaviorControlPresentFlag        ( Int i )             { m_iTileBehaviorControlPresentFlag = i;    }
@@ -921,7 +921,7 @@ private:
 #endif
   Int         m_iPPSId;               ///< picture parameter set ID
 #if H0388
-  Bool        m_bPicOutputFlag;       ///< pic_output_flag 
+  Bool        m_PicOutputFlag;        ///< pic_output_flag 
 #endif
   Int         m_iPOC;
   Int         m_iLastIDR;
@@ -1060,8 +1060,8 @@ public:
   Void      setAPSId        ( Int Id)          { m_iAPSId =Id;    } //!< set APS ID
   Int       getAPSId        ()                 { return m_iAPSId; } //!< get APS ID
 #if H0388
-  Void      setPicOutputFlag( Bool b )         { m_bPicOutputFlag = b;    }
-  Bool      getPicOutputFlag()                 { return m_bPicOutputFlag; }
+  Void      setPicOutputFlag( Bool b )         { m_PicOutputFlag = b;    }
+  Bool      getPicOutputFlag()                 { return m_PicOutputFlag; }
 #endif
   Void      setAlfEnabledFlag(Bool s) {m_alfEnabledFlag =s; }
   Bool      getAlfEnabledFlag() { return m_alfEnabledFlag; }
