@@ -71,6 +71,13 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setFrameSkip                    ( m_FrameSkip );
   m_cTEncTop.setSourceWidth                  ( m_iSourceWidth );
   m_cTEncTop.setSourceHeight                 ( m_iSourceHeight );
+#if PIC_CROPPING
+  m_cTEncTop.setCroppingMode                 ( m_croppingMode );
+  m_cTEncTop.setCropLeft                     ( m_cropLeft );
+  m_cTEncTop.setCropRight                    ( m_cropRight );
+  m_cTEncTop.setCropTop                      ( m_cropTop );
+  m_cTEncTop.setCropBottom                   ( m_cropBottom );
+#endif
   m_cTEncTop.setFrameToBeEncoded             ( m_iFrameToBeEncoded );
   
   //====== Coding Structure ========
@@ -170,7 +177,9 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setLCMod                        ( m_bLCMod         );
   m_cTEncTop.setdQPs                         ( m_aidQP        );
   m_cTEncTop.setUseRDOQ                      ( m_bUseRDOQ     );
+#if !PIC_CROPPING
   m_cTEncTop.setUsePAD                       ( m_bUsePAD      );
+#endif
   m_cTEncTop.setQuadtreeTULog2MaxSize        ( m_uiQuadtreeTULog2MaxSize );
   m_cTEncTop.setQuadtreeTULog2MinSize        ( m_uiQuadtreeTULog2MinSize );
   m_cTEncTop.setQuadtreeTUMaxDepthInter      ( m_uiQuadtreeTUMaxDepthInter );
@@ -453,7 +462,13 @@ Void TAppEncTop::xWriteOutput(std::ostream& bitstreamFile, Int iNumEncoded, cons
   {
     TComPicYuv*  pcPicYuvRec  = *(iterPicYuvRec++);
     if (m_pchReconFile)
+#if PIC_CROPPING
+    {
+      m_cTVideoIOYuvReconFile.write( pcPicYuvRec, m_cropLeft, m_cropRight, m_cropTop, m_cropBottom );
+    }
+#else
       m_cTVideoIOYuvReconFile.write( pcPicYuvRec, m_aiPad );
+#endif
 
     const AccessUnit& au = *(iterBitstream++);
     const vector<unsigned>& stats = writeAnnexB(bitstreamFile, au);

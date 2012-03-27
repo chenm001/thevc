@@ -466,7 +466,18 @@ Void TEncTop::xInitSPS()
 {
   m_cSPS.setPicWidthInLumaSamples         ( m_iSourceWidth      );
   m_cSPS.setPicHeightInLumaSamples        ( m_iSourceHeight     );
+#if PIC_CROPPING
+  m_cSPS.setPicCroppingFlag( m_croppingMode!= 0 );
+  if (m_croppingMode != 0)
+  {
+    m_cSPS.setPicCropLeftOffset( m_cropLeft );
+    m_cSPS.setPicCropRightOffset( m_cropRight );
+    m_cSPS.setPicCropTopOffset( m_cropTop );
+    m_cSPS.setPicCropBottomOffset( m_cropBottom );
+  }
+#else
   m_cSPS.setPad           ( m_aiPad             );
+#endif
   m_cSPS.setMaxCUWidth    ( g_uiMaxCUWidth      );
   m_cSPS.setMaxCUHeight   ( g_uiMaxCUHeight     );
   m_cSPS.setMaxCUDepth    ( g_uiMaxCUDepth      );
@@ -497,8 +508,9 @@ Void TEncTop::xInitSPS()
 #if LOSSLESS_CODING
   m_cSPS.setUseLossless   ( m_useLossless  );
 #endif
+#if !PIC_CROPPING
   m_cSPS.setUsePAD        ( m_bUsePAD           );
-
+#endif
   m_cSPS.setUseLMChroma   ( m_bUseLMChroma           );  
   
   m_cSPS.setMaxTrSize   ( 1 << m_uiQuadtreeTULog2MaxSize );

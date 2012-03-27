@@ -1327,6 +1327,13 @@ TComSPS::TComSPS()
 // Structure
 , m_picWidthInLumaSamples     (352)
 , m_picHeightInLumaSamples    (288)
+#if PIC_CROPPING
+, m_picCroppingFlag           (false)
+, m_picCropLeftOffset         (  0)
+, m_picCropRightOffset        (  0)
+, m_picCropTopOffset          (  0)
+, m_picCropBottomOffset       (  0) 
+#endif
 , m_uiMaxCUWidth              ( 32)
 , m_uiMaxCUHeight             ( 32)
 , m_uiMaxCUDepth              (  3)
@@ -1351,7 +1358,9 @@ TComSPS::TComSPS()
 #if LCU_SYNTAX_ALF
 , m_bALFCoefInSlice           (false)
 #endif
+#if !PIC_CROPPING
 , m_bUsePAD                   (false)
+#endif
 , m_bUseLMChroma              (false)
 , m_bUseLComb                 (false)
 , m_bLCMod                    (false)

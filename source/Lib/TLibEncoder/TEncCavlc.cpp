@@ -383,6 +383,16 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_CODE( pcSPS->getMaxTLayers() - 1,  3,       "max_temporal_layers_minus1" );
   WRITE_UVLC( pcSPS->getPicWidthInLumaSamples (),   "pic_width_in_luma_samples" );
   WRITE_UVLC( pcSPS->getPicHeightInLumaSamples(),   "pic_height_in_luma_samples" );
+#if PIC_CROPPING
+  WRITE_FLAG( pcSPS->getPicCroppingFlag(),          "pic_cropping_flag" );
+  if (pcSPS->getPicCroppingFlag())
+  {
+    WRITE_UVLC( pcSPS->getPicCropLeftOffset(),      "pic_crop_left_offset" );
+    WRITE_UVLC( pcSPS->getPicCropRightOffset(),     "pic_crop_right_offset" );
+    WRITE_UVLC( pcSPS->getPicCropTopOffset(),       "pic_crop_top_offset" );
+    WRITE_UVLC( pcSPS->getPicCropBottomOffset(),    "pic_crop_bottom_offset" );
+  }
+#endif
 
 #if FULL_NBIT
   WRITE_UVLC( pcSPS->getBitDepth() - 8,             "bit_depth_luma_minus8" );
@@ -488,11 +498,12 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   }    
   WRITE_FLAG( pcSPS->getLongTermRefsPresent() ? 1 : 0,         "long_term_ref_pics_present_flag" );
 #endif
+#if !PIC_CROPPING
   //!!!KS: Syntax not in WD !!!
   
   xWriteUvlc  ( pcSPS->getPad (0) );
   xWriteUvlc  ( pcSPS->getPad (1) );
-  
+#endif
   // AMVP mode for each depth
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
   {

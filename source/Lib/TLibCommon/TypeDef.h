@@ -54,6 +54,7 @@
 
 #define FAST_DECISION_FOR_MRG_RD_COST  1 ////< H0178: Fast Decision for Merge 2Nx2N RDCost
 
+#define PIC_CROPPING              1 ///< Picture cropping and size constraints
 #define REMOVE_DIV_OPERATION      1 ///< H0238: Simplified intra horizontal and vertical filtering
 #define LOGI_INTRA_NAME_3MPM      1  ///< H0407: logical Intra mode naming (sequential angular mode numbering) and 3 MPM mode coding
 

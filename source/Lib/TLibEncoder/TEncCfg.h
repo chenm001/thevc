@@ -99,6 +99,13 @@ protected:
   Int       m_FrameSkip;
   Int       m_iSourceWidth;
   Int       m_iSourceHeight;
+#if PIC_CROPPING
+  Int       m_croppingMode;
+  Int       m_cropLeft;
+  Int       m_cropRight;
+  Int       m_cropTop;
+  Int       m_cropBottom;
+#endif
   Int       m_iFrameToBeEncoded;
   Double    m_adLambdaModifier[ MAX_TLAYER ];
 
@@ -194,7 +201,9 @@ protected:
   Bool      m_bUseLComb;
   Bool      m_bLCMod;
   Bool      m_bUseRDOQ;
+#if !PIC_CROPPING
   Bool      m_bUsePAD;
+#endif
   Bool      m_bUseFastEnc;
   Bool      m_bUseEarlyCU;
 #if FAST_DECISION_FOR_MRG_RD_COST
@@ -281,6 +290,13 @@ public:
   Void      setFrameSkip                    ( unsigned int i ) { m_FrameSkip = i; }
   Void      setSourceWidth                  ( Int   i )      { m_iSourceWidth = i; }
   Void      setSourceHeight                 ( Int   i )      { m_iSourceHeight = i; }
+#if PIC_CROPPING
+  Void      setCroppingMode                 ( Int   i )      { m_croppingMode = i; }
+  Void      setCropLeft                     ( Int   i )      { m_cropLeft = i; }
+  Void      setCropRight                    ( Int   i )      { m_cropRight = i; }
+  Void      setCropTop                      ( Int   i )      { m_cropTop = i; }
+  Void      setCropBottom                   ( Int   i )      { m_cropBottom = i; }
+#endif
   Void      setFrameToBeEncoded             ( Int   i )      { m_iFrameToBeEncoded = i; }
   
   //====== Coding Structure ========
@@ -365,6 +381,13 @@ public:
   unsigned int getFrameSkip                 ()      { return  m_FrameSkip; }
   Int       getSourceWidth                  ()      { return  m_iSourceWidth; }
   Int       getSourceHeight                 ()      { return  m_iSourceHeight; }
+#if PIC_CROPPING
+  Int       getCroppingMode                 ()      { return  m_croppingMode; }
+  Int       getCropLeft                     ()      { return  m_cropLeft; }
+  Int       getCropRight                    ()      { return  m_cropRight; }
+  Int       getCropTop                      ()      { return  m_cropTop; }
+  Int       getCropBottom                   ()      { return  m_cropBottom; }
+#endif
   Int       getFrameToBeEncoded             ()      { return  m_iFrameToBeEncoded; }
   void setLambdaModifier                    ( UInt uiIndex, Double dValue ) { m_adLambdaModifier[ uiIndex ] = dValue; }
   Double getLambdaModifier                  ( UInt uiIndex ) const { return m_adLambdaModifier[ uiIndex ]; }
@@ -422,7 +445,9 @@ public:
   Void      setUseLComb                     ( Bool  b )     { m_bUseLComb   = b; }
   Void      setLCMod                        ( Bool  b )     { m_bLCMod   = b;    }
   Void      setUseRDOQ                      ( Bool  b )     { m_bUseRDOQ    = b; }
+#if !PIC_CROPPING
   Void      setUsePAD                       ( Bool  b )     { m_bUsePAD     = b; }
+#endif
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
   Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
 #if FAST_DECISION_FOR_MRG_RD_COST
@@ -456,7 +481,9 @@ public:
   Bool      getUseLComb                     ()      { return m_bUseLComb;   }
   Bool      getLCMod                        ()      { return m_bLCMod; }
   Bool      getUseRDOQ                      ()      { return m_bUseRDOQ;    }
+#if !PIC_CROPPING
   Bool      getUsePAD                       ()      { return m_bUsePAD;     }
+#endif
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
   Bool      getUseEarlyCU                   ()      { return m_bUseEarlyCU; }
 #if FAST_DECISION_FOR_MRG_RD_COST

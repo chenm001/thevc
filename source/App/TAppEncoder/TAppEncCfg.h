@@ -63,8 +63,17 @@ protected:
   unsigned int m_FrameSkip;                                   ///< number of skipped frames from the beginning
   Int       m_iSourceWidth;                                   ///< source width in pixel
   Int       m_iSourceHeight;                                  ///< source height in pixel
+#if PIC_CROPPING
+  Int       m_croppingMode;
+  Int       m_cropLeft;
+  Int       m_cropRight;
+  Int       m_cropTop;
+  Int       m_cropBottom;
+#endif
   Int       m_iFrameToBeEncoded;                              ///< number of encoded frames
+#if !PIC_CROPPING
   Bool      m_bUsePAD;                                        ///< flag for using source padding
+#endif
   Int       m_aiPad[2];                                       ///< number of padded pixels for width and height
   
   // coding structure
