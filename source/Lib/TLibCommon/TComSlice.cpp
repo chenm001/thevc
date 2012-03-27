@@ -818,6 +818,9 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_numEntryPointOffsets  = pSrc->m_numEntryPointOffsets;
 #endif
 
+#if H0111_MVD_L1_ZERO
+  m_bLMvdL1Zero = pSrc->m_bLMvdL1Zero;
+#endif
 }
 
 int TComSlice::m_iPrevPOC = 0;
