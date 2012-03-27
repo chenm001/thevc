@@ -1317,6 +1317,7 @@ Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& u
   }
 
 #if COMPLETE_SLICES_IN_TILE
+  Bool tileBoundary = false;
   if ((m_pcCfg->getSliceMode() == AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE || m_pcCfg->getSliceMode() == AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE) && 
       (m_pcCfg->getNumRowsMinus1() > 0 || m_pcCfg->getNumColumnsMinus1() > 0))
   {
@@ -1335,6 +1336,7 @@ Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& u
     {
       uiBoundingCUAddrSlice = tileBoundingCUAddrSlice;
       pcSlice->setSliceCurEndCUAddr( uiBoundingCUAddrSlice );
+      tileBoundary = true;
     }
   }
 #endif
@@ -1445,6 +1447,9 @@ Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& u
 #if FIXED_NUMBER_OF_TILES_SLICE_MODE
       || (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_TILES_IN_SLICE && m_pcCfg->getEntropySliceMode()==SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE)
       || (m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_TILES_IN_SLICE && m_pcCfg->getEntropySliceMode()==0) 
+#endif
+#if COMPLETE_SLICES_IN_TILE
+      || tileBoundary
 #endif
 )
     {
