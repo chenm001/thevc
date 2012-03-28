@@ -192,7 +192,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   
   /* Coding structure paramters */
   ("IntraPeriod,-ip",m_iIntraPeriod, -1, "intra period in frames, (-1: only first frame)")
-  ("DecodingRefreshType,-dr",m_iDecodingRefreshType, 0, "intra refresh, (0:none 1:CDR 2:IDR)")
+  ("DecodingRefreshType,-dr",m_iDecodingRefreshType, 0, "intra refresh, (0:none 1:CRA 2:IDR)")
   ("GOPSize,g",      m_iGOPSize,      1, "GOP size of temporal structure")
 #if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   ("MaxNumberOfReorderPictures",   m_numReorderFrames,               -1, "Max. number of reorder pictures: -1: encoder determines value, >=0: set explicitly")

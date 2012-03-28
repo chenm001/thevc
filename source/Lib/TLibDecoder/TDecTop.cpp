@@ -55,9 +55,9 @@ TDecTop::TDecTop()
   g_nSymbolCounter = 0;
 #endif
   m_bRefreshPending = 0;
-  m_uiPOCCDR = 0;
-  m_uiPOCRA = MAX_UINT;          
-  m_uiPrevPOC               = UInt(-1);
+  m_iPocCRA = 0;
+  m_iPocRandomAccess = MAX_INT;          
+  m_iPrevPOC                = MAX_INT;
   m_bFirstSliceInPicture    = true;
   m_bFirstSliceInSequence   = true;
 }
@@ -252,9 +252,9 @@ Void TDecTop::xCreateLostPicture(Int iLostPoc)
   cFillPic->getSlice(0)->setPOC(iLostPoc);
   cFillPic->setReconMark(true);
   cFillPic->setOutputMark(true);
-  if(m_uiPOCRA == MAX_UINT)
+  if(m_iPocRandomAccess == MAX_INT)
   {
-    m_uiPOCRA = iLostPoc;
+    m_iPocRandomAccess = iLostPoc;
   }
 }
 
@@ -345,9 +345,9 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDispl
   }
 
   // exit when a new picture is found
-  if (m_apcSlicePilot->isNextSlice() && m_apcSlicePilot->getPOC()!=m_uiPrevPOC && !m_bFirstSliceInSequence)
+  if (m_apcSlicePilot->isNextSlice() && m_apcSlicePilot->getPOC()!=m_iPrevPOC && !m_bFirstSliceInSequence)
   {
-    m_uiPrevPOC = m_apcSlicePilot->getPOC();
+    m_iPrevPOC = m_apcSlicePilot->getPOC();
     return true;
   }
   // actual decoding starts here
@@ -356,7 +356,7 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDispl
 
   if (m_apcSlicePilot->isNextSlice()) 
   {
-    m_uiPrevPOC = m_apcSlicePilot->getPOC();
+    m_iPrevPOC = m_apcSlicePilot->getPOC();
   }
   m_bFirstSliceInSequence = false;
   if (m_apcSlicePilot->isNextSlice())
@@ -574,7 +574,7 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDispl
 
   if (bNextSlice)
   {
-    pcSlice->checkCRA(pcSlice->getRPS(), m_uiPOCCDR, m_cListPic); 
+    pcSlice->checkCRA(pcSlice->getRPS(), m_iPocCRA, m_cListPic); 
 
     if ( !pcSlice->getPPS()->getEnableTMVPFlag() && pcPic->getTLayer() == 0 )
     {
@@ -777,10 +777,10 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
  * This function checks the skipping of pictures in the case of -s option random access.
  * All pictures prior to the random access point indicated by the counter iSkipFrame are skipped.
  * It also checks the type of Nal unit type at the random access point.
- * If the random access point is CDR, pictures with POC equal to or greater than the CDR POC are decoded.
+ * If the random access point is CRA, pictures with POC equal to or greater than the CRA POC are decoded.
  * If the random access point is IDR all pictures after the random access point are decoded.
- * If the random access point is not IDR or CDR, a warning is issues, and decoding of pictures with POC 
- * equal to or greater than the random access point POC is attempted. For non IDR/CDR random 
+ * If the random access point is not IDR or CRA, a warning is issues, and decoding of pictures with POC 
+ * equal to or greater than the random access point POC is attempted. For non IDR/CRA random 
  * access point there is no guarantee that the decoder will not crash.
  */
 Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
@@ -790,7 +790,7 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
     iSkipFrame--;   // decrement the counter
     return true;
   }
-  else if (m_uiPOCRA == MAX_UINT) // start of random access point, m_uiPOCRA has not been set yet.
+  else if (m_iPocRandomAccess == MAX_INT) // start of random access point, m_uiPOCRA has not been set yet.
   {
 #if H0566_TLA
     if (m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_CRA)
@@ -798,19 +798,19 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
     if (m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_CDR)
 #endif
     {
-      m_uiPOCRA = m_apcSlicePilot->getPOC(); // set the POC random access since we need to skip the reordered pictures in CDR.
+      m_iPocRandomAccess = m_apcSlicePilot->getPOC(); // set the POC random access since we need to skip the reordered pictures in CRA.
     }
     else if (m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_IDR)
     {
-      m_uiPOCRA = 0; // no need to skip the reordered pictures in IDR, they are decodable.
+      m_iPocRandomAccess = 0; // no need to skip the reordered pictures in IDR, they are decodable.
     }
     else 
     {
       printf("\nUnsafe random access point. Decoder may crash.");
-      m_uiPOCRA = 0;
+      m_iPocRandomAccess = 0;
     }
   }
-  else if (m_apcSlicePilot->getPOC() < m_uiPOCRA)  // skip the reordered pictures if necessary
+  else if (m_apcSlicePilot->getPOC() < m_iPocRandomAccess)  // skip the reordered pictures if necessary
   {
     iPOCLastDisplay++;
     return true;

@@ -613,7 +613,7 @@ Void TComSlice::checkColRefIdx(UInt curSliceIdx, TComPic* pic)
   }
 }
 #endif
-Void TComSlice::checkCRA(TComReferencePictureSet *pReferencePictureSet, UInt& pocCRA, TComList<TComPic*>& rcListPic)
+Void TComSlice::checkCRA(TComReferencePictureSet *pReferencePictureSet, Int& pocCRA, TComList<TComPic*>& rcListPic)
 {
   for(Int i = 0; i < pReferencePictureSet->getNumberOfNegativePictures()+pReferencePictureSet->getNumberOfPositivePictures(); i++)
   {
@@ -639,24 +639,24 @@ Void TComSlice::checkCRA(TComReferencePictureSet *pReferencePictureSet, UInt& po
   }
 }
 
-/** Function for marking the reference pictures when an IDR and CDR is encountered.
- * \param uiPOCCDR POC of the CDR picture
+/** Function for marking the reference pictures when an IDR and CRA is encountered.
+ * \param pocCRA POC of the CRA picture
  * \param bRefreshPending flag indicating if a deferred decoding refresh is pending
  * \param rcListPic reference to the reference picture list
  * This function marks the reference pictures as "unused for reference" in the following conditions.
  * If the nal_unit_type is IDR all pictures in the reference picture list  
  * is marked as "unused for reference" 
- * Otherwise do for the CDR case (non CDR case has no effect since both if conditions below will not be true)
+ * Otherwise do for the CRA case (non CRA case has no effect since both if conditions below will not be true)
  *    If the bRefreshPending flag is true (a deferred decoding refresh is pending) and the current 
- *    temporal reference is greater than the temporal reference of the latest CDR picture (uiPOCCDR), 
- *    mark all reference pictures except the latest CDR picture as "unused for reference" and set 
+ *    temporal reference is greater than the temporal reference of the latest CRA picture (pocCRA), 
+ *    mark all reference pictures except the latest CRA picture as "unused for reference" and set 
  *    the bRefreshPending flag to false.
- *    If the nal_unit_type is CDR, set the bRefreshPending flag to true and iPOCCDR to the temporal 
+ *    If the nal_unit_type is CRA, set the bRefreshPending flag to true and pocCRA to the temporal 
  *    reference of the current picture.
  * Note that the current picture is already placed in the reference list and its marking is not changed.
  * If the current picture has a nal_ref_idc that is not 0, it will remain marked as "used for reference".
  */
-Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TComList<TComPic*>& rcListPic)
+Void TComSlice::decodingRefreshMarking(Int& pocCRA, Bool& bRefreshPending, TComList<TComPic*>& rcListPic)
 {
   TComPic*                 rpcPic;
   UInt uiPOCCurr = getPOC(); 
@@ -673,15 +673,15 @@ Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TC
       iterPic++;
     }
   }
-  else // CDR or No DR
+  else // CRA or No DR
   {
-    if (bRefreshPending==true && uiPOCCurr > uiPOCCDR) // CDR reference marking pending 
+    if (bRefreshPending==true && uiPOCCurr > pocCRA) // CRA reference marking pending 
     {
       TComList<TComPic*>::iterator        iterPic       = rcListPic.begin();
       while (iterPic != rcListPic.end())
       {
         rpcPic = *(iterPic);
-        if (rpcPic->getPOC() != uiPOCCurr && rpcPic->getPOC() != uiPOCCDR) rpcPic->getSlice(0)->setReferenced(false);
+        if (rpcPic->getPOC() != uiPOCCurr && rpcPic->getPOC() != pocCRA) rpcPic->getSlice(0)->setReferenced(false);
         iterPic++;
       }
       bRefreshPending = false; 
@@ -693,7 +693,7 @@ Void TComSlice::decodingRefreshMarking(UInt& uiPOCCDR, Bool& bRefreshPending, TC
 #endif
     {
       bRefreshPending = true; 
-      uiPOCCDR = uiPOCCurr;
+      pocCRA = uiPOCCurr;
     }
   }
 }
