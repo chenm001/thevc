@@ -123,8 +123,13 @@ void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
   bool forbidden_zero_bit = bs.read(1);
   assert(forbidden_zero_bit == 0);
 
+#if NAL_REF_FLAG
+  nalu.m_nalRefFlag = (bs.read(1) != 0 );
+  nalu.m_UnitType   = (NalUnitType) bs.read(6);
+#else
   nalu.m_RefIDC = (NalRefIdc) bs.read(2);
   nalu.m_UnitType = (NalUnitType) bs.read(5);
+#endif
 
 #if H0388
   nalu.m_TemporalID = bs.read(3);

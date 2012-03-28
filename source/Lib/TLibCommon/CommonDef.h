@@ -189,6 +189,7 @@ template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min
 
 #define MAX_NUM_REF_PICS 16
 
+#if !NAL_REF_FLAG
 enum NalRefIdc
 {
   NAL_REF_IDC_PRIORITY_LOWEST = 0,
@@ -196,6 +197,7 @@ enum NalRefIdc
   NAL_REF_IDC_PRIORITY_HIGH,
   NAL_REF_IDC_PRIORITY_HIGHEST
 };
+#endif
 
 enum NalUnitType
 {

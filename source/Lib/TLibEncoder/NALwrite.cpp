@@ -55,8 +55,13 @@ void write(ostream& out, OutputNALUnit& nalu)
   TComOutputBitstream bsNALUHeader;
 
   bsNALUHeader.write(0,1); // forbidden_zero_flag
+#if NAL_REF_FLAG
+  bsNALUHeader.write(nalu.m_nalRefFlag? 1 : 0, 1); // nal_ref_flag
+  bsNALUHeader.write(nalu.m_UnitType, 6);          // nal_unit_type
+#else
   bsNALUHeader.write(nalu.m_RefIDC, 2); // nal_ref_idc
   bsNALUHeader.write(nalu.m_UnitType, 5); // nal_unit_type
+#endif
 #if H0388
   bsNALUHeader.write(nalu.m_TemporalID, 3); // temporal_id
   bsNALUHeader.write(1, 5); // reserved_one_5bits
@@ -184,7 +189,11 @@ void writeRBSPTrailingBits(TComOutputBitstream& bs)
 void copyNaluData(OutputNALUnit& naluDest, const OutputNALUnit& naluSrc)
 {
   naluDest.m_UnitType   = naluSrc.m_UnitType;
+#if NAL_REF_FLAG
+  naluDest.m_nalRefFlag = naluSrc.m_nalRefFlag;
+#else
   naluDest.m_RefIDC     = naluSrc.m_RefIDC;
+#endif
   naluDest.m_TemporalID = naluSrc.m_TemporalID;
 #if !H0388
   naluDest.m_OutputFlag = naluSrc.m_OutputFlag;

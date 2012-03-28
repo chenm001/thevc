@@ -56,9 +56,17 @@ struct OutputNALUnit : public NALUnit
 #if H0388
   OutputNALUnit(
     NalUnitType nalUnitType,
+#if NAL_REF_FLAG
+    Bool nalRefFlag,
+#else
     NalRefIdc nalRefIDC,
+#endif
     unsigned temporalID = 0)
+#if NAL_REF_FLAG
+  : NALUnit(nalUnitType, nalRefFlag, temporalID)
+#else
   : NALUnit(nalUnitType, nalRefIDC, temporalID)
+#endif
   , m_Bitstream()
   {}
 #else
