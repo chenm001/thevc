@@ -57,7 +57,7 @@ TDecTop::TDecTop()
   m_bRefreshPending = 0;
   m_iPocCRA = 0;
   m_iPocRandomAccess = MAX_INT;          
-  m_iPrevPOC                = MAX_INT;
+  m_iPrevPoc                = MAX_INT;
   m_bFirstSliceInPicture    = true;
   m_bFirstSliceInSequence   = true;
 }
@@ -345,10 +345,19 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDispl
   }
 
   // exit when a new picture is found
-  if (m_apcSlicePilot->isNextSlice() && m_apcSlicePilot->getPOC()!=m_iPrevPOC && !m_bFirstSliceInSequence)
+  if (m_apcSlicePilot->isNextSlice() && m_apcSlicePilot->getPOC()!=m_iPrevPoc && !m_bFirstSliceInSequence)
   {
-    m_iPrevPOC = m_apcSlicePilot->getPOC();
+#if START_DECODING_AT_CRA
+    if (m_iPrevPoc >= m_iPocRandomAccess)
+    {
+      m_iPrevPoc = m_apcSlicePilot->getPOC();
+      return true;
+    }
+    m_iPrevPoc = m_apcSlicePilot->getPOC();
+#else
+    m_iPrevPoc = m_apcSlicePilot->getPOC();
     return true;
+#endif
   }
   // actual decoding starts here
   xActivateParameterSets();
@@ -356,7 +365,7 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDispl
 
   if (m_apcSlicePilot->isNextSlice()) 
   {
-    m_iPrevPOC = m_apcSlicePilot->getPOC();
+    m_iPrevPoc = m_apcSlicePilot->getPOC();
   }
   m_bFirstSliceInSequence = false;
   if (m_apcSlicePilot->isNextSlice())
@@ -368,7 +377,11 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDispl
     }
   }
   //detect lost reference picture and insert copy of earlier frame.
+#if START_DECODING_AT_CRA
+  while(m_apcSlicePilot->checkThatAllRefPicsAreAvailable(m_cListPic, m_apcSlicePilot->getRPS(), true, m_iPocRandomAccess) > 0)
+#else
   while(m_apcSlicePilot->checkThatAllRefPicsAreAvailable(m_cListPic, m_apcSlicePilot->getRPS(), true) > 0)
+#endif
   {
     xCreateLostPicture(m_apcSlicePilot->checkThatAllRefPicsAreAvailable(m_cListPic, m_apcSlicePilot->getRPS(), false)-1);
   }
@@ -790,7 +803,7 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
     iSkipFrame--;   // decrement the counter
     return true;
   }
-  else if (m_iPocRandomAccess == MAX_INT) // start of random access point, m_uiPOCRA has not been set yet.
+  else if (m_iPocRandomAccess == MAX_INT) // start of random access point, m_iPocRandomAccess has not been set yet.
   {
 #if H0566_TLA
     if (m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_CRA)
@@ -806,8 +819,18 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
     }
     else 
     {
+#if START_DECODING_AT_CRA
+      static bool warningMessage = false;
+      if(!warningMessage)
+      {
+        printf("\nWarning: this is not a valid random access point and the data is discarded until the first CRA picture");
+        warningMessage = true;
+      }
+      return true;
+#else
       printf("\nUnsafe random access point. Decoder may crash.");
       m_iPocRandomAccess = 0;
+#endif
     }
   }
   else if (m_apcSlicePilot->getPOC() < m_iPocRandomAccess)  // skip the reordered pictures if necessary

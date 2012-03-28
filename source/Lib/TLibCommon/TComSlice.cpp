@@ -927,7 +927,11 @@ Void TComSlice::applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComRef
 
 /** Function for applying picture marking based on the Reference Picture Set in pReferencePictureSet.
 */
+#if START_DECODING_AT_CRA
+Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool outputFlag, Int pocRandomAccess)
+#else
 Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool outputFlag)
+#endif
 {
   TComPic* rpcPic;
   Int i, isAvailable, j;
@@ -973,19 +977,26 @@ Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, T
     // but not available as reference picture
     if(isAvailable == 0)    
     {            
-      if(!pReferencePictureSet->getUsed(i) )
+#if START_DECODING_AT_CRA
+      if (this->getPOC() + pReferencePictureSet->getDeltaPOC(i) >= pocRandomAccess)
       {
-        if(outputFlag)
-          printf("\nLong-term reference picture with POC = %3d seems to have been removed or not correctly decoded.", this->getPOC() + pReferencePictureSet->getDeltaPOC(i));
-        atLeastOneRemoved = 1;
+#endif
+        if(!pReferencePictureSet->getUsed(i) )
+        {
+          if(outputFlag)
+            printf("\nLong-term reference picture with POC = %3d seems to have been removed or not correctly decoded.", this->getPOC() + pReferencePictureSet->getDeltaPOC(i));
+          atLeastOneRemoved = 1;
+        }
+        else
+        {
+          if(outputFlag)
+            printf("\nLong-term reference picture with POC = %3d is lost or not correctly decoded!", this->getPOC() + pReferencePictureSet->getDeltaPOC(i));
+          atLeastOneLost = 1;
+          iPocLost=this->getPOC() + pReferencePictureSet->getDeltaPOC(i);
+        }
+#if START_DECODING_AT_CRA
       }
-      else
-      {
-        if(outputFlag)
-          printf("\nLong-term reference picture with POC = %3d is lost or not correctly decoded!", this->getPOC() + pReferencePictureSet->getDeltaPOC(i));
-        atLeastOneLost = 1;
-        iPocLost=this->getPOC() + pReferencePictureSet->getDeltaPOC(i);
-      }
+#endif
     }
   }  
   // loop through all short-term pictures in the Reference Picture Set
@@ -1010,19 +1021,26 @@ Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, T
     // but not available as reference picture
     if(isAvailable == 0)    
     {            
-      if(!pReferencePictureSet->getUsed(i) )
+#if START_DECODING_AT_CRA
+      if (this->getPOC() + pReferencePictureSet->getDeltaPOC(i) >= pocRandomAccess)
       {
-        if(outputFlag)
-          printf("\nShort-term reference picture with POC = %3d seems to have been removed or not correctly decoded.", this->getPOC() + pReferencePictureSet->getDeltaPOC(i));
-        atLeastOneRemoved = 1;
+#endif
+        if(!pReferencePictureSet->getUsed(i) )
+        {
+          if(outputFlag)
+            printf("\nShort-term reference picture with POC = %3d seems to have been removed or not correctly decoded.", this->getPOC() + pReferencePictureSet->getDeltaPOC(i));
+          atLeastOneRemoved = 1;
+        }
+        else
+        {
+          if(outputFlag)
+            printf("\nShort-term reference picture with POC = %3d is lost or not correctly decoded!", this->getPOC() + pReferencePictureSet->getDeltaPOC(i));
+          atLeastOneLost = 1;
+          iPocLost=this->getPOC() + pReferencePictureSet->getDeltaPOC(i);
+        }
+#if START_DECODING_AT_CRA
       }
-      else
-      {
-        if(outputFlag)
-          printf("\nShort-term reference picture with POC = %3d is lost or not correctly decoded!", this->getPOC() + pReferencePictureSet->getDeltaPOC(i));
-        atLeastOneLost = 1;
-        iPocLost=this->getPOC() + pReferencePictureSet->getDeltaPOC(i);
-      }
+#endif
     }
   }    
   if(atLeastOneLost)

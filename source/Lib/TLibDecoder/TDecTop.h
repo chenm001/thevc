@@ -99,7 +99,7 @@ private:
   TComPic*                m_pcPic;
   UInt                    m_uiSliceIdx;
   UInt                    m_uiLastSliceIdx;
-  Int                     m_iPrevPOC;
+  Int                     m_iPrevPoc;
   Bool                    m_bFirstSliceInPicture;
   Bool                    m_bFirstSliceInSequence;
 

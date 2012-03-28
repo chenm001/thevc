@@ -41,7 +41,8 @@
 //! \ingroup TLibCommon
 //! \{
 
-#define SKIPFRAME_BUGFIX                  1 // buf fix to enable skipFrame for decoder 
+#define SKIPFRAME_BUGFIX                  1 ///< bug fix to enable skipFrame at decoder 
+#define START_DECODING_AT_CRA             1 ///< H0496, start decoding at clear random access point 
 
 #define LOSSLESS_CODING                   1  ///< H0530: lossless and lossy (mixed) coding
 #if LOSSLESS_CODING
