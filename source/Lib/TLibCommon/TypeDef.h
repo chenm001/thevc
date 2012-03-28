@@ -40,6 +40,9 @@
 
 //! \ingroup TLibCommon
 //! \{
+
+#define SKIPFRAME_BUGFIX                  1 // buf fix to enable skipFrame for decoder 
+
 #define LOSSLESS_CODING                   1  ///< H0530: lossless and lossy (mixed) coding
 #if LOSSLESS_CODING
 #define SEQUENCE_LEVEL_LOSSLESS           0  ///< H0530: used only for sequence or frame-level lossless coding
