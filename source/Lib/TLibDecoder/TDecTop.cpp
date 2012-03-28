@@ -323,13 +323,13 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDispl
     m_apcSlicePilot->copySliceInfo( pcPic->getPicSym()->getSlice(m_uiSliceIdx-1) );
   }
 
-  m_apcSlicePilot->setNalUnitType(nalu.m_UnitType);
+  m_apcSlicePilot->setNalUnitType(nalu.m_nalUnitType);
 #if NAL_REF_FLAG
   m_apcSlicePilot->setReferenced(nalu.m_nalRefFlag);
 #else
-  m_apcSlicePilot->setReferenced(nalu.m_RefIDC != NAL_REF_IDC_PRIORITY_LOWEST);
+  m_apcSlicePilot->setReferenced(nalu.m_nalRefIDC != NAL_REF_IDC_PRIORITY_LOWEST);
 #endif
-  m_apcSlicePilot->setTLayerInfo(nalu.m_TemporalID);
+  m_apcSlicePilot->setTLayerInfo(nalu.m_temporalId);
 
   // ALF CU parameters should be part of the slice header -> needs to be fixed 
 #if LCU_SYNTAX_ALF
@@ -587,7 +587,7 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDispl
   m_apcSlicePilot = pcPic->getPicSym()->getSlice(m_uiSliceIdx); 
   pcPic->getPicSym()->setSlice(pcSlice, m_uiSliceIdx);
 
-  pcPic->setTLayer(nalu.m_TemporalID);
+  pcPic->setTLayer(nalu.m_temporalId);
 
   if (bNextSlice)
   {
@@ -753,7 +753,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
   m_cEntropyDecoder.setEntropyDecoder (&m_cCavlcDecoder);
   m_cEntropyDecoder.setBitstream      (nalu.m_Bitstream);
 
-  switch (nalu.m_UnitType)
+  switch (nalu.m_nalUnitType)
   {
     case NAL_UNIT_SPS:
       xDecodeSPS();

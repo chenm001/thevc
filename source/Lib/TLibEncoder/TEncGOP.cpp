@@ -1891,9 +1891,9 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
   {
     unsigned numRBSPBytes_nal = unsigned((*it)->m_nalUnitData.str().size());
 #if VERBOSE_RATE
-    printf("*** %6s numBytesInNALunit: %u\n", nalUnitTypeToString((*it)->m_UnitType), numRBSPBytes_nal);
+    printf("*** %6s numBytesInNALunit: %u\n", nalUnitTypeToString((*it)->m_nalUnitType), numRBSPBytes_nal);
 #endif
-    if ((*it)->m_UnitType != NAL_UNIT_SEI)
+    if ((*it)->m_nalUnitType != NAL_UNIT_SEI)
       numRBSPBytes += numRBSPBytes_nal;
   }
 

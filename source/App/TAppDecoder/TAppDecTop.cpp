@@ -128,7 +128,7 @@ Void TAppDecTop::decode()
     else
     {
       read(nalu, nalUnit);
-      if(m_iMaxTemporalLayer >= 0 && nalu.m_TemporalID > m_iMaxTemporalLayer)
+      if(m_iMaxTemporalLayer >= 0 && nalu.m_temporalId > m_iMaxTemporalLayer)
       {
         if(bPreviousPictureDecoded)
         {
@@ -173,7 +173,7 @@ Void TAppDecTop::decode()
         m_cTVideoIOYuvReconFile.open( m_pchReconFile, true, m_outputBitDepth, g_uiBitDepth + g_uiBitIncrement ); // write mode
         recon_opened = true;
       }
-      if (bNewPicture && (nalu.m_UnitType == NAL_UNIT_CODED_SLICE_IDR))
+      if (bNewPicture && (nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR))
       {
         xFlushOutput( pcListPic );
       }
@@ -181,7 +181,7 @@ Void TAppDecTop::decode()
       if(bNewPicture)
       {
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-        xWriteOutput( pcListPic, nalu.m_TemporalID );
+        xWriteOutput( pcListPic, nalu.m_temporalId );
 #else
         xWriteOutput( pcListPic );
 #endif

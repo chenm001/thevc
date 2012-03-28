@@ -486,7 +486,7 @@ void TAppEncTop::rateStatsAccum(const AccessUnit& au, const std::vector<unsigned
 
   for (; it_au != au.end(); it_au++, it_stats++)
   {
-    switch ((*it_au)->m_UnitType)
+    switch ((*it_au)->m_nalUnitType)
     {
     case NAL_UNIT_CODED_SLICE:
 #if H0566_TLA
