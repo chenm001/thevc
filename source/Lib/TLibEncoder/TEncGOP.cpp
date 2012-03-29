@@ -77,7 +77,7 @@ TEncGOP::TEncGOP()
   m_bSeqFirst           = true;
   
   m_bRefreshPending     = 0;
-  m_iPocCRA            = 0;
+  m_pocCRA            = 0;
 
   return;
 }
@@ -272,7 +272,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       // Set the nal unit type
       pcSlice->setNalUnitType(getNalUnitType(uiPOCCurr));
       // Do decoding refresh marking if any 
-      pcSlice->decodingRefreshMarking(m_iPocCRA, m_bRefreshPending, rcListPic);
+      pcSlice->decodingRefreshMarking(m_pocCRA, m_bRefreshPending, rcListPic);
 
       if ( !pcSlice->getPPS()->getEnableTMVPFlag() && pcPic->getTLayer() == 0 )
       {

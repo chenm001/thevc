@@ -958,7 +958,7 @@ private:
 #endif
   Int         m_iPOC;
   Int         m_iLastIDR;
-  static Int  m_iPrevPOC;
+  static Int  m_prevPOC;
   TComReferencePictureSet *m_pcRPS;
   TComReferencePictureSet m_LocalRPS;
   Int         m_iBDidx; 
@@ -1118,7 +1118,7 @@ public:
   Int       getCombinationBDidx          () { return m_iCombinationBDidx; }
   Void      setCombineWithReferenceFlag          ( Bool bCombineWithReferenceFlag ) { m_bCombineWithReferenceFlag = bCombineWithReferenceFlag; }
   Bool      getCombineWithReferenceFlag          () { return m_bCombineWithReferenceFlag; }
-  Int       getPrevPOC      ()                          { return  m_iPrevPOC;       }
+  Int       getPrevPOC      ()                          { return  m_prevPOC;       }
 
   TComRefPicListModification* getRefPicListModification() { return &m_RefPicListModification; }
   Void      setLastIDR(Int iIDRPOC)                       { m_iLastIDR = iIDRPOC; }
@@ -1169,7 +1169,7 @@ public:
   Void      setReferenced(Bool b)                               { m_bRefenced = b; }
   Bool      isReferenced()                                      { return m_bRefenced; }
   
-  Void      setPOC              ( Int i )                       { m_iPOC              = i; if(getTLayer()==0) m_iPrevPOC=i; }
+  Void      setPOC              ( Int i )                       { m_iPOC              = i; if(getTLayer()==0) m_prevPOC=i; }
   Void      setNalUnitType      ( NalUnitType e )               { m_eNalUnitType      = e;      }
   NalUnitType getNalUnitType    ()                              { return m_eNalUnitType;        }
   Void      checkCRA(TComReferencePictureSet *pReferencePictureSet, Int& pocCRA, TComList<TComPic*>& rcListPic);

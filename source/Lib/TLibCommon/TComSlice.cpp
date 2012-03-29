@@ -823,7 +823,7 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
 #endif
 }
 
-int TComSlice::m_iPrevPOC = 0;
+int TComSlice::m_prevPOC = 0;
 /** Function for setting the slice's temporal layer ID and corresponding temporal_layer_switching_point_flag.
  * \param uiTLayer Temporal layer ID of the current slice
  * The decoder calls this function to set temporal_layer_switching_point_flag for each temporal layer based on 

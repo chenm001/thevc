@@ -70,8 +70,8 @@ private:
   int                     m_iMaxRefPicNum;
   
   Bool                    m_bRefreshPending;    ///< refresh pending flag
-  Int                     m_iPocCRA;            ///< POC number of the latest CRA picture
-  Int                     m_iPocRandomAccess;   ///< POC number of the random access point (the first IDR or CRA picture)
+  Int                     m_pocCRA;            ///< POC number of the latest CRA picture
+  Int                     m_pocRandomAccess;   ///< POC number of the random access point (the first IDR or CRA picture)
 
   UInt                    m_uiValidPS;
   TComList<TComPic*>      m_cListPic;         //  Dynamic buffer
@@ -99,7 +99,7 @@ private:
   TComPic*                m_pcPic;
   UInt                    m_uiSliceIdx;
   UInt                    m_uiLastSliceIdx;
-  Int                     m_iPrevPoc;
+  Int                     m_prevPOC;
   Bool                    m_bFirstSliceInPicture;
   Bool                    m_bFirstSliceInSequence;
 

@@ -102,7 +102,7 @@ private:
   
   // clean decoding refresh
   Bool                    m_bRefreshPending;
-  Int                     m_iPocCRA;
+  Int                     m_pocCRA;
   UInt*                   m_uiStoredStartCUAddrForEncodingSlice;
   UInt*                   m_uiStoredStartCUAddrForEncodingEntropySlice;
 
