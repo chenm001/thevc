@@ -590,7 +590,14 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iSliceGranularity >= m_uiMaxCUDepth, "SliceGranularity must be smaller than maximum cu depth");
   xConfirmPara( m_iSliceGranularity <0 || m_iSliceGranularity > 3, "SliceGranularity exceeds supported range (0 to 3)" );
   xConfirmPara( m_iSliceGranularity > m_iMaxCuDQPDepth, "SliceGranularity must be smaller smaller than or equal to maximum dqp depth" );
-  
+
+#if NO_COMBINED_PARALLEL
+  bool tileFlag = (m_iNumColumnsMinus1 > 0 || m_iNumRowsMinus1 > 0 );
+  xConfirmPara( tileFlag && m_iEntropySliceMode,            "Tile and Entropy Slice can not be applied together");
+  xConfirmPara( tileFlag && m_iWaveFrontSynchro,            "Tile and Wavefront can not be applied together");
+  xConfirmPara( m_iWaveFrontSynchro && m_iEntropySliceMode, "Wavefront and Entropy Slice can not be applied together");  
+#endif
+
   // max CU width and height should be power of 2
   UInt ui = m_uiMaxCUWidth;
   while(ui)
