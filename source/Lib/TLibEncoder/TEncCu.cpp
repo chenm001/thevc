@@ -271,7 +271,11 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
   bool bTerminateSlice = bForceTerminate;
   UInt uiCUAddr = pcCU->getAddr();
     /* If at the end of an LCU line but not at the end of a substream, perform CABAC flush */
+#if WPP_SIMPLIFICATION
+    if (!bTerminateSlice && pcCU->getSlice()->getPPS()->getNumSubstreams() > 1)
+#else
     if (!bTerminateSlice && pcCU->getSlice()->getPPS()->getCabacIstateReset())
+#endif
     {
       Int iNumSubstreams = pcCU->getSlice()->getPPS()->getNumSubstreams();
       UInt uiWidthInLCUs = pcCU->getPic()->getPicSym()->getFrameWidthInCU();
@@ -287,7 +291,11 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
       UInt uiTileHeight = pcCU->getPic()->getPicSym()->getTComTile(pcCU->getPic()->getPicSym()->getTileIdxMap(uiCUAddr))->getTileHeight();
       Int iNumSubstreamsPerTile = iNumSubstreams;
 #if !REMOVE_TILE_DEPENDENCE
+#if WPP_SIMPLIFICATION
+      if (iBreakDep && pcCU->getSlice()->getPPS()->getNumSubstreams() > 1)
+#else
       if (iBreakDep && pcCU->getSlice()->getPPS()->getEntropyCodingSynchro())
+#endif
         iNumSubstreamsPerTile /= pcCU->getPic()->getPicSym()->getNumTiles();
       if ((iBreakDep && (uiCol == uiTileLCUX+uiTileWidth-1) && (uiLin+iNumSubstreamsPerTile < uiTileLCUY+uiTileHeight))
           || (!iBreakDep && (uiCol == uiWidthInLCUs-1) && (uiLin+iNumSubstreams < pcCU->getPic()->getFrameHeightInCU())))
@@ -295,7 +303,11 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
         m_pcEntropyCoder->encodeFlush();
       }
 #else
+#if WPP_SIMPLIFICATION
+      if (pcCU->getSlice()->getPPS()->getNumSubstreams() > 1)
+#else
       if (pcCU->getSlice()->getPPS()->getEntropyCodingSynchro())
+#endif
       {
         iNumSubstreamsPerTile /= pcCU->getPic()->getPicSym()->getNumTiles();
       }

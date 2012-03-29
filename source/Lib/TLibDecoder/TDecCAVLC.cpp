@@ -1164,10 +1164,14 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   READ_FLAG( uiCode, "entropy_coding_mode_flag" );                 pcPPS->setEntropyCodingMode( uiCode ? true : false );
   if (pcPPS->getEntropyCodingMode())
   {
+#if !WPP_SIMPLIFICATION
     READ_UVLC( uiCode, "entropy_coding_synchro" );                 pcPPS->setEntropyCodingSynchro( uiCode );
     READ_FLAG( uiCode, "cabac_istate_reset" );                     pcPPS->setCabacIstateReset( uiCode ? true : false );
+#endif
 #if !TILES_OR_ENTROPY_SYNC_IDC
+#if !WPP_SIMPLIFICATION
     if ( pcPPS->getEntropyCodingSynchro() )
+#endif
     {
       READ_UVLC( uiCode, "num_substreams_minus1" );                pcPPS->setNumSubstreams(uiCode+1);
     }
@@ -2209,7 +2213,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     delete [] entryPointOffset;
   }
 #else
+#if WPP_SIMPLIFICATION
+  if (pps->getNumSubstreams() > 1)
+#else
   if (pps->getEntropyCodingSynchro())
+#endif
   {
     UInt uiNumSubstreams = pps->getNumSubstreams();
     rpcSlice->allocSubstreamSizes(uiNumSubstreams);

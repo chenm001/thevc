@@ -1475,8 +1475,10 @@ TComPPS::TComPPS()
 , m_puiColumnWidth               (NULL)
 , m_iNumRowsMinus1               (0)
 , m_puiRowHeight                 (NULL)
+#if !WPP_SIMPLIFICATION
 ,  m_iEntropyCodingSynchro      (0)
 ,  m_bCabacIstateReset          (false)
+#endif
 ,  m_iNumSubstreams             (1)
 #if MULTIBITS_DATA_HIDING
 , m_signHideFlag(0)
