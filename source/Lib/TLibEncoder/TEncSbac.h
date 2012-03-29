@@ -124,6 +124,7 @@ public:
 #endif
 
   Void codeAlfCtrlFlag       ( UInt uiSymbol );
+  Void  codeApsExtensionFlag () { assert (0); return; };
   Void  codeSaoFlag       ( UInt uiCode );
   Void  codeSaoUvlc       ( UInt uiCode );
   Void  codeSaoSvlc       ( Int  uiCode );

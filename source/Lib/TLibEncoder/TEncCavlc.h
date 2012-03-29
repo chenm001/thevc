@@ -155,6 +155,8 @@ public:
   Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 
+  Void codeApsExtensionFlag ();
+
   /// set slice granularity
   Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
 

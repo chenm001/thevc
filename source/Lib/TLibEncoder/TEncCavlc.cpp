@@ -367,7 +367,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #if PARALLEL_MERGE
   WRITE_UVLC( pcPPS->getLog2ParallelMergeLevelMinus2(), "log2_parallel_merge_level_minus2");
 #endif
-  return;
+  WRITE_FLAG( 0, "pps_extension_flag" );
 }
 
 Void TEncCavlc::codeSPS( TComSPS* pcSPS )
@@ -563,6 +563,8 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   // Software-only flags
   WRITE_FLAG( pcSPS->getUseNSQT(), "enable_nsqt" );
   WRITE_FLAG( pcSPS->getUseAMP(), "enable_amp" );
+
+  WRITE_FLAG( 0, "sps_extension_flag" );
 }
 
 Void TEncCavlc::writeTileMarker( UInt uiTileIdx, UInt uiBitsUsed )
@@ -1152,6 +1154,11 @@ Void TEncCavlc::codeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
   UInt uiSymbol = pcCU->getAlfCtrlFlag( uiAbsPartIdx ) ? 1 : 0;
   
   xWriteFlag( uiSymbol );
+}
+
+Void TEncCavlc::codeApsExtensionFlag ()
+{
+  WRITE_FLAG(0, "aps_extension_flag");
 }
 
 Void TEncCavlc::codeAlfCtrlDepth()

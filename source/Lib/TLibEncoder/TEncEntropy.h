@@ -99,6 +99,7 @@ public:
   
 public:
   virtual Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
+  virtual Void codeApsExtensionFlag () = 0;
   
   virtual Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
   virtual Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
@@ -241,6 +242,8 @@ public:
 
   /// encode ALF CU control flag
   Void encodeAlfCtrlFlag(UInt uiFlag);
+  
+  Void encodeApsExtensionFlag() {m_pcEntropyCoderIf->codeApsExtensionFlag();};
 
   Void encodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
 

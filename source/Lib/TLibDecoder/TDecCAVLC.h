@@ -176,6 +176,7 @@ protected:
   Void  xParseAlfParam       ( ALFParam* pAlfParam );
   Void  xParseAlfCuControlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
   Int   xGolombDecode        ( Int k );
+  Bool  xMoreRbspData();
 };
 
 //! \}

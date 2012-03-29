@@ -1530,6 +1530,7 @@ Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* p
     m_pcEntropyCoder->encodeAlfParam(pcAPS->getAlfParam());
   }
 
+  m_pcEntropyCoder->encodeApsExtensionFlag();
   //neither SAO and ALF is enabled
   writeRBSPTrailingBits(APSbs);
 }

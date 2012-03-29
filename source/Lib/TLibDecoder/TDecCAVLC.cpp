@@ -282,6 +282,15 @@ Void TDecCavlc::parseAPS(TComAPS* aps)
 #endif
     xParseAlfParam( aps->getAlfParam());
   }
+  READ_FLAG( uiCode, "aps_extension_flag");
+  if (uiCode)
+  {
+    while ( xMoreRbspData() )
+    {
+      READ_FLAG( uiCode, "aps_extension_data_flag");
+    }
+  }
+
 }
 
 #if DBL_CONTROL
@@ -1292,7 +1301,15 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   assert(uiCode == LOG2_PARALLEL_MERGE_LEVEL_MINUS2);
   pcPPS->setLog2ParallelMergeLevelMinus2 (uiCode);
 #endif
-  return;
+
+  READ_FLAG( uiCode, "pps_extension_flag");
+  if (uiCode)
+  {
+    while ( xMoreRbspData() )
+    {
+      READ_FLAG( uiCode, "pps_extension_data_flag");
+    }
+  }
 }
 
 Void TDecCavlc::parseSPS(TComSPS* pcSPS)
@@ -1532,7 +1549,15 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   pcSPS->setUseNSQT( uiCode );
   READ_FLAG( uiCode, "enable_amp" );
   pcSPS->setUseAMP( uiCode );
-  return;
+
+  READ_FLAG( uiCode, "sps_extension_flag");
+  if (uiCode)
+  {
+    while ( xMoreRbspData() )
+    {
+      READ_FLAG( uiCode, "sps_extension_data_flag");
+    }
+  }
 }
 
 Void TDecCavlc::readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed )
@@ -2987,6 +3012,35 @@ Void TDecCavlc::parseDFFlag(UInt& ruiVal, const Char *pSymbolName)
 Void TDecCavlc::parseDFSvlc(Int&  riVal, const Char *pSymbolName)
 {
   READ_SVLC(riVal, pSymbolName);
+}
+
+Bool TDecCavlc::xMoreRbspData()
+{ 
+  Int bitsLeft = m_pcBitstream->getNumBitsLeft();
+
+  // if there are more than 8 bits, it cannot be rbsp_trailing_bits
+  if (bitsLeft > 8)
+  {
+    return true;
+  }
+
+  UChar lastByte = m_pcBitstream->peekBits(bitsLeft);
+  Int cnt = bitsLeft;
+
+  // remove trailing bits equal to zero
+  while ((cnt>0) && ((lastByte & 1) == 0))
+  {
+    lastByte >>= 1;
+    cnt--;
+  }
+  // remove bit equal to one
+  cnt--;
+
+  // we should not have a negative number of bits
+  assert (cnt>=0);
+
+  // we have more data, if cnt is not zero
+  return (cnt>0);
 }
 
 //! \}
