@@ -1437,17 +1437,23 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_UVLC( uiCode, "max_transform_hierarchy_depth_inter" );    pcSPS->setQuadtreeTUMaxDepthInter( uiCode+1 );
   READ_UVLC( uiCode, "max_transform_hierarchy_depth_intra" );    pcSPS->setQuadtreeTUMaxDepthIntra( uiCode+1 );
   g_uiAddCUDepth = 0;
-  while( ( pcSPS->getMaxCUWidth() >> uiMaxCUDepthCorrect ) > ( 1 << ( pcSPS->getQuadtreeTULog2MinSize() + g_uiAddCUDepth )  ) ) g_uiAddCUDepth++;    
-  pcSPS->setMaxCUDepth( uiMaxCUDepthCorrect+g_uiAddCUDepth  ); g_uiMaxCUDepth  = uiMaxCUDepthCorrect+g_uiAddCUDepth;
+  while( ( pcSPS->getMaxCUWidth() >> uiMaxCUDepthCorrect ) > ( 1 << ( pcSPS->getQuadtreeTULog2MinSize() + g_uiAddCUDepth )  ) )
+  {
+    g_uiAddCUDepth++;
+  }
+  pcSPS->setMaxCUDepth( uiMaxCUDepthCorrect+g_uiAddCUDepth  ); 
+  g_uiMaxCUDepth  = uiMaxCUDepthCorrect+g_uiAddCUDepth;
   // BB: these parameters may be removed completly and replaced by the fixed values
   pcSPS->setMinTrDepth( 0 );
   pcSPS->setMaxTrDepth( 1 );
-  READ_FLAG( uiCode, "scaling_list_enable_flag" );               pcSPS->setScalingListFlag ( uiCode );
-  READ_FLAG( uiCode, "chroma_pred_from_luma_enabled_flag" );     pcSPS->setUseLMChroma ( uiCode ? true : false ); 
-  READ_FLAG( uiCode, "deblocking_filter_In_APS_enabled_flag" );    pcSPS->setUseDF ( uiCode ? true : false );  
-  READ_FLAG( uiCode, "loop_filter_across_slice_flag" );          pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
-  READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );    pcSPS->setUseSAO ( uiCode ? true : false );  
-  READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );      pcSPS->setUseALF ( uiCode ? true : false );
+  READ_FLAG( uiCode, "scaling_list_enabled_flag" );                 pcSPS->setScalingListFlag ( uiCode );
+  READ_FLAG( uiCode, "chroma_pred_from_luma_enabled_flag" );        pcSPS->setUseLMChroma ( uiCode ? true : false ); 
+  READ_FLAG( uiCode, "deblocking_filter_in_aps_enabled_flag" );     pcSPS->setUseDF ( uiCode ? true : false );  
+  READ_FLAG( uiCode, "loop_filter_across_slice_flag" );             pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
+  READ_FLAG( uiCode, "asymmetric_motion_partitions_enabled_flag" ); pcSPS->setUseAMP( uiCode );
+  READ_FLAG( uiCode, "non_square_quadtree_enabled_flag" );          pcSPS->setUseNSQT( uiCode );
+  READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );       pcSPS->setUseSAO ( uiCode ? true : false );  
+  READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );         pcSPS->setUseALF ( uiCode ? true : false );
 #if LCU_SYNTAX_ALF
   if(pcSPS->getUseALF())
   {
@@ -1548,12 +1554,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #if TILES_OR_ENTROPY_SYNC_IDC
   }
 #endif
-  // Software-only flags
-  READ_FLAG( uiCode, "enable_nsqt" );
-  pcSPS->setUseNSQT( uiCode );
-  READ_FLAG( uiCode, "enable_amp" );
-  pcSPS->setUseAMP( uiCode );
-
   READ_FLAG( uiCode, "sps_extension_flag");
   if (uiCode)
   {

@@ -459,22 +459,23 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 
   if( pcSPS->getUsePCM() )
   {
-  WRITE_UVLC( pcSPS->getPCMLog2MinSize() - 3,                                        "log2_min_pcm_coding_block_size_minus3" );
-
-  WRITE_UVLC( pcSPS->getPCMLog2MaxSize() - pcSPS->getPCMLog2MinSize(),               "log2_diff_max_min_pcm_coding_block_size" );
+    WRITE_UVLC( pcSPS->getPCMLog2MinSize() - 3,                                      "log2_min_pcm_coding_block_size_minus3" );
+    WRITE_UVLC( pcSPS->getPCMLog2MaxSize() - pcSPS->getPCMLog2MinSize(),             "log2_diff_max_min_pcm_coding_block_size" );
   }
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthInter() - 1,                               "max_transform_hierarchy_depth_inter" );
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthIntra() - 1,                               "max_transform_hierarchy_depth_intra" );
-  WRITE_FLAG( (pcSPS->getScalingListFlag()) ? 1 : 0,                                  "scaling_list_enabled_flag" ); 
-  WRITE_FLAG  ( (pcSPS->getUseLMChroma ()) ? 1 : 0,                                  "chroma_pred_from_luma_enabled_flag" ); 
+  WRITE_FLAG( pcSPS->getScalingListFlag() ? 1 : 0,                                   "scaling_list_enabled_flag" ); 
+  WRITE_FLAG( pcSPS->getUseLMChroma () ? 1 : 0,                                      "chroma_pred_from_luma_enabled_flag" ); 
   WRITE_FLAG( pcSPS->getUseDF() ? 1 : 0,                                             "deblocking_filter_in_aps_enabled_flag");
-  WRITE_FLAG( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0,                            "loop_filter_across_slice_flag");
+  WRITE_FLAG( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0,                            "seq_loop_filter_across_slices_enabled_flag");
+  WRITE_FLAG( pcSPS->getUseAMP(),                                                    "asymmetric_motion_partitions_enabled_flag" );
+  WRITE_FLAG( pcSPS->getUseNSQT(),                                                   "non_square_quadtree_enabled_flag" );
   WRITE_FLAG( pcSPS->getUseSAO() ? 1 : 0,                                            "sample_adaptive_offset_enabled_flag");
-  WRITE_FLAG( (pcSPS->getUseALF ()) ? 1 : 0,                                         "adaptive_loop_filter_enabled_flag");
+  WRITE_FLAG( pcSPS->getUseALF () ? 1 : 0,                                           "adaptive_loop_filter_enabled_flag");
 #if LCU_SYNTAX_ALF
   if(pcSPS->getUseALF())
   {
-    WRITE_FLAG( (pcSPS->getUseALFCoefInSlice()) ? 1 : 0,                                         "alf_coef_in_slice_flag");
+    WRITE_FLAG( (pcSPS->getUseALFCoefInSlice()) ? 1 : 0,                             "alf_coef_in_slice_flag");
   }
 #endif
 
@@ -563,11 +564,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if TILES_OR_ENTROPY_SYNC_IDC
   }
 #endif
-
-  // Software-only flags
-  WRITE_FLAG( pcSPS->getUseNSQT(), "enable_nsqt" );
-  WRITE_FLAG( pcSPS->getUseAMP(), "enable_amp" );
-
   WRITE_FLAG( 0, "sps_extension_flag" );
 }
 
