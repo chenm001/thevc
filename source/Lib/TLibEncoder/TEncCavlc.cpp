@@ -416,6 +416,11 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_CODE( pcSPS->getPCMBitDepthLuma() - 1, 4,   "pcm_bit_depth_luma_minus1" );
   WRITE_CODE( pcSPS->getPCMBitDepthChroma() - 1, 4, "pcm_bit_depth_chroma_minus1" );
   }
+
+#if LOSSLESS_CODING
+  WRITE_FLAG( (pcSPS->getUseLossless ()) ? 1 : 0,                                    "qpprime_y_zero_transquant_bypass_flag" );
+#endif
+
   WRITE_UVLC( pcSPS->getBitsForPOC()-4,                 "log2_max_pic_order_cnt_lsb_minus4" );
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   for(UInt i=0; i <= pcSPS->getMaxTLayers()-1; i++)
@@ -488,9 +493,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 
   WRITE_FLAG( pcSPS->getTemporalIdNestingFlag() ? 1 : 0,                             "temporal_id_nesting_flag" );
 
-#if LOSSLESS_CODING
-  WRITE_FLAG( (pcSPS->getUseLossless ()) ? 1 : 0,                                    "qpprime_y_zero_transquant_bypass_flag" );
-#endif
 #if RPS_IN_SPS
   TComRPSList* rpsList = pcSPS->getRPSList();
   TComReferencePictureSet*      rps;
