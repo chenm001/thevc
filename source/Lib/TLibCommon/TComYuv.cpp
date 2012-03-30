@@ -335,53 +335,6 @@ Void TComYuv::copyPartToPartChroma( TComYuv* pcYuvDst, UInt uiPartIdx, UInt iWid
   }
 }
 
-Void TComYuv::copyPartToPartLumaMxN  ( TComYuv* pcYuvDst, UInt uiPix_X,UInt uiPix_Y, UInt iWidth, UInt iHeight )
-{
-  Pel* pSrc =           getLumaAddrPix( uiPix_X, uiPix_Y );
-  Pel* pDst = pcYuvDst->getLumaAddrPix( uiPix_X, uiPix_Y );
-  if( pSrc == pDst )
-  {
-    //th not a good idea
-    //th best would be to fix the caller 
-    return ;
-  }
-
-  UInt  iSrcStride = getStride();
-  UInt  iDstStride = pcYuvDst->getStride();
-  for ( UInt y = iHeight; y != 0; y-- )
-  {
-    ::memcpy( pDst, pSrc, iWidth * sizeof( Pel ) );
-    pSrc += iSrcStride;
-    pDst += iDstStride;
-  }
-}
-Void TComYuv::copyPartToPartChromaMxN( TComYuv* pcYuvDst, UInt uiPix_X,UInt uiPix_Y, UInt iWidth, UInt iHeight )
-{
-  Pel*  pSrcU =           getCbAddrPix( uiPix_X, uiPix_Y );
-  Pel*  pSrcV =           getCrAddrPix( uiPix_X, uiPix_Y );
-  Pel*  pDstU = pcYuvDst->getCbAddrPix( uiPix_X, uiPix_Y );
-  Pel*  pDstV = pcYuvDst->getCrAddrPix( uiPix_X, uiPix_Y );
-
-  if( pSrcU == pDstU && pSrcV == pDstV)
-  {
-    //th not a good idea
-    //th best would be to fix the caller 
-    return ;
-  }
-
-  UInt   iSrcStride = getCStride();
-  UInt   iDstStride = pcYuvDst->getCStride();
-  for ( UInt y = iHeight; y != 0; y-- )
-  {
-    ::memcpy( pDstU, pSrcU, iWidth * sizeof( Pel ) );
-    ::memcpy( pDstV, pSrcV, iWidth * sizeof( Pel ) );
-    pSrcU += iSrcStride;
-    pSrcV += iSrcStride;
-    pDstU += iDstStride;
-    pDstV += iDstStride;
-  }
-}
-
 Void TComYuv::addClip( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt uiTrUnitIdx, UInt uiPartSize )
 {
   addClipLuma   ( pcYuvSrc0, pcYuvSrc1, uiTrUnitIdx, uiPartSize     );
@@ -616,18 +569,5 @@ Void TComYuv::removeHighFreq( TComYuv* pcYuvSrc, UInt uiPartIdx, UInt uiWidht, U
     pDstU += iDstStride;
     pDstV += iDstStride;
   }
-}
-
-Pel* TComYuv::getLumaAddrPix( UInt iBlkX, UInt iBlkY )
-{
-  return m_apiBufY + iBlkY * getStride() + iBlkX;
-}
-Pel* TComYuv::getCbAddrPix( UInt iBlkX, UInt iBlkY )
-{
-  return m_apiBufU + ( iBlkY ) * getCStride() + ( iBlkX );
-}
-Pel* TComYuv::getCrAddrPix( UInt iBlkX, UInt iBlkY )
-{
-  return m_apiBufV + ( iBlkY ) * getCStride() + ( iBlkX );
 }
 //! \}

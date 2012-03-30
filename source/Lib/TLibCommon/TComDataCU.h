@@ -346,7 +346,7 @@ public:
   UChar*        getNSQTPartIdx        ()                        { return m_nsqtPartIdx;        }
   UChar         getNSQTPartIdx        ( UInt idx )              { return m_nsqtPartIdx[idx];   }
   Void          setNSQTIdxSubParts    ( UInt absPartIdx, UInt depth );
-  Void          setNSQTIdxSubParts    ( UInt log2TrafoSize, UInt absPartIdx, UInt nsAbsPartIdx, UInt trMode );
+  Void          setNSQTIdxSubParts    ( UInt log2TrafoSize, UInt absPartIdx, UInt absTUPartIdx, UInt trMode );
 #endif
   
   UChar*        getTransformIdx       ()                        { return m_puhTrIdx;          }
@@ -585,16 +585,14 @@ public:
 
   UInt          getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, Bool bIsIntra);
 
-  Bool useNonSquareTrans( UInt uiTrMode );
-  Bool useNonSquareTrans( UInt uiTrMode, Int absPartIdx );
-  Void getNSQTSize(Int trMode, Int absPartIdx, Int &trWidth, Int &trHeight);
+  Bool          useNonSquareTrans( UInt uiTrMode, Int absPartIdx );
+  Void          getNSQTSize(Int trMode, Int absPartIdx, Int &trWidth, Int &trHeight);
 #if NSQT_LFFIX
   Bool          useNonSquarePU   ( UInt absPartIdx);
   UInt          getInterTUSplitDirection ( Int width, Int height, Int trLastWidth, Int trLastHeight );
-  UInt          getNSAbsPartIdx  ( UInt log2TrafoSize, UInt absPartIdx, UInt nsAbsPartIdx, UInt innerQuadIdx, UInt trMode );
-  Void          setZorderIdxInCU ( UInt absPartIdx )  { m_uiAbsIdxInLCU = absPartIdx; }
+  UInt          getNSAbsPartIdx  ( UInt log2TrafoSize, UInt absPartIdx, UInt absTUPartIdx, UInt innerQuadIdx, UInt trMode );
+  UInt          getNSAddrChroma   ( UInt uiLog2TrSizeC, UInt uiTrModeC, UInt uiQuadrant, UInt absTUPartIdx );
 #endif
-  Void getPixOffset( UInt uiTrMode, UInt ui, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiPix_X, UInt& uiPix_Y, TextType eTxt );
 };
 
 namespace RasterAddress

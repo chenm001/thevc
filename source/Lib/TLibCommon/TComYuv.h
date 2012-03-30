@@ -129,10 +129,6 @@ public:
   Void    copyPartToPartYuv     ( TComYuv*    pcYuvDst, UInt uiPartIdx, UInt uiWidth, UInt uiHeight );
   Void    copyPartToPartLuma    ( TComYuv*    pcYuvDst, UInt uiPartIdx, UInt uiWidth, UInt uiHeight );
   Void    copyPartToPartChroma  ( TComYuv*    pcYuvDst, UInt uiPartIdx, UInt uiWidth, UInt uiHeight );
-  
- // Copy YUV partition buffer to other YUV partition buffer for non-square blocks
-  Void    copyPartToPartLumaMxN    ( TComYuv*    pcYuvDst, UInt uiPix_X, UInt uiPix_Y, UInt uiWidth, UInt uiHeight );
-  Void    copyPartToPartChromaMxN  ( TComYuv*    pcYuvDst, UInt uiPix_X, UInt uiPix_Y, UInt uiWidth, UInt uiHeight );
 
   // ------------------------------------------------------------------------------------------------------------------
   //  Algebraic operation for YUV buffer
@@ -172,11 +168,6 @@ public:
   Pel* getLumaAddr( UInt iTransUnitIdx, UInt iBlkSize ) { return m_apiBufY + getAddrOffset( iTransUnitIdx, iBlkSize, m_iWidth  ); }
   Pel* getCbAddr  ( UInt iTransUnitIdx, UInt iBlkSize ) { return m_apiBufU + getAddrOffset( iTransUnitIdx, iBlkSize, m_iCWidth ); }
   Pel* getCrAddr  ( UInt iTransUnitIdx, UInt iBlkSize ) { return m_apiBufV + getAddrOffset( iTransUnitIdx, iBlkSize, m_iCWidth ); }
-  
-  // Access starting position of YUV transform unit buffer by pix offset for non-square blocks
-  Pel*    getLumaAddrPix      ( UInt uiPix_X,UInt uiPix_Y );
-  Pel*    getCbAddrPix        ( UInt uiPix_X,UInt uiPix_Y );
-  Pel*    getCrAddrPix        ( UInt uiPix_X,UInt uiPix_Y );
 
   //  Get stride value of YUV buffer
   UInt    getStride   ()    { return  m_iWidth;   }

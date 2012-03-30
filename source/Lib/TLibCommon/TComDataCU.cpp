@@ -2448,15 +2448,16 @@ Void TComDataCU::setNSQTIdxSubParts( UInt absPartIdx, UInt depth )
   memset( m_nsqtPartIdx + absPartIdx, absPartIdx, sizeof(UChar)*currPartNumb );
 }
 
-Void  TComDataCU::setNSQTIdxSubParts( UInt log2TrafoSize, UInt absPartIdx, UInt nsAbsPartIdx, UInt trMode )
+Void  TComDataCU::setNSQTIdxSubParts( UInt log2TrafoSize, UInt absPartIdx, UInt absTUPartIdx, UInt trMode )
 {
   UInt trWidth, trHeight;
   UInt nsTUWidthInBaseUnits, nsTUHeightInBaseUnits;
-  const UInt lcuWidthInBaseUnits = getPic()->getNumPartInWidth();
+  UInt lcuWidthInBaseUnits = getPic()->getNumPartInWidth();
+  UInt minTuSize = ( 1 << getSlice()->getSPS()->getQuadtreeTULog2MinSize() );
 
   trWidth = trHeight = ( 1 << log2TrafoSize );
 
-  if ( useNonSquareTrans( trMode, absPartIdx ) && trWidth > 4 )
+  if ( useNonSquareTrans( trMode, absPartIdx ) && ( trWidth > minTuSize ) )
   {
     trWidth  = ( m_pePartSize[absPartIdx] == SIZE_Nx2N || m_pePartSize[absPartIdx] == SIZE_nLx2N || m_pePartSize[absPartIdx] == SIZE_nRx2N )? trWidth >> 1  : trWidth << 1;
     trHeight = ( m_pePartSize[absPartIdx] == SIZE_Nx2N || m_pePartSize[absPartIdx] == SIZE_nLx2N || m_pePartSize[absPartIdx] == SIZE_nRx2N )? trHeight << 1 : trHeight >> 1;
@@ -2468,23 +2469,23 @@ Void  TComDataCU::setNSQTIdxSubParts( UInt log2TrafoSize, UInt absPartIdx, UInt 
   if ( nsTUWidthInBaseUnits > nsTUHeightInBaseUnits )
   {
     UInt currPartNumb = nsTUHeightInBaseUnits*nsTUHeightInBaseUnits;
-    memset( m_nsqtPartIdx + nsAbsPartIdx                                                                , absPartIdx, sizeof(UChar)*(currPartNumb) );
-    memset( m_nsqtPartIdx + g_auiRasterToZscan[g_auiZscanToRaster[nsAbsPartIdx]+  nsTUHeightInBaseUnits], absPartIdx, sizeof(UChar)*(currPartNumb) );
-    memset( m_nsqtPartIdx + g_auiRasterToZscan[g_auiZscanToRaster[nsAbsPartIdx]+2*nsTUHeightInBaseUnits], absPartIdx, sizeof(UChar)*(currPartNumb) );
-    memset( m_nsqtPartIdx + g_auiRasterToZscan[g_auiZscanToRaster[nsAbsPartIdx]+3*nsTUHeightInBaseUnits], absPartIdx, sizeof(UChar)*(currPartNumb) );
+    memset( m_nsqtPartIdx + absTUPartIdx                                                                , absPartIdx, sizeof(UChar)*(currPartNumb) );
+    memset( m_nsqtPartIdx + g_auiRasterToZscan[g_auiZscanToRaster[absTUPartIdx]+  nsTUHeightInBaseUnits], absPartIdx, sizeof(UChar)*(currPartNumb) );
+    memset( m_nsqtPartIdx + g_auiRasterToZscan[g_auiZscanToRaster[absTUPartIdx]+2*nsTUHeightInBaseUnits], absPartIdx, sizeof(UChar)*(currPartNumb) );
+    memset( m_nsqtPartIdx + g_auiRasterToZscan[g_auiZscanToRaster[absTUPartIdx]+3*nsTUHeightInBaseUnits], absPartIdx, sizeof(UChar)*(currPartNumb) );
   }
   else if ( nsTUWidthInBaseUnits < nsTUHeightInBaseUnits )
   {
     UInt currPartNumb = nsTUWidthInBaseUnits*nsTUWidthInBaseUnits;
-    memset( m_nsqtPartIdx + nsAbsPartIdx                                                                                   , absPartIdx, sizeof(UChar)*(currPartNumb) );
-    memset( m_nsqtPartIdx + g_auiRasterToZscan[g_auiZscanToRaster[nsAbsPartIdx]+  nsTUWidthInBaseUnits*lcuWidthInBaseUnits], absPartIdx, sizeof(UChar)*(currPartNumb) );
-    memset( m_nsqtPartIdx + g_auiRasterToZscan[g_auiZscanToRaster[nsAbsPartIdx]+2*nsTUWidthInBaseUnits*lcuWidthInBaseUnits], absPartIdx, sizeof(UChar)*(currPartNumb) );
-    memset( m_nsqtPartIdx + g_auiRasterToZscan[g_auiZscanToRaster[nsAbsPartIdx]+3*nsTUWidthInBaseUnits*lcuWidthInBaseUnits], absPartIdx, sizeof(UChar)*(currPartNumb) );
+    memset( m_nsqtPartIdx + absTUPartIdx                                                                                   , absPartIdx, sizeof(UChar)*(currPartNumb) );
+    memset( m_nsqtPartIdx + g_auiRasterToZscan[g_auiZscanToRaster[absTUPartIdx]+  nsTUWidthInBaseUnits*lcuWidthInBaseUnits], absPartIdx, sizeof(UChar)*(currPartNumb) );
+    memset( m_nsqtPartIdx + g_auiRasterToZscan[g_auiZscanToRaster[absTUPartIdx]+2*nsTUWidthInBaseUnits*lcuWidthInBaseUnits], absPartIdx, sizeof(UChar)*(currPartNumb) );
+    memset( m_nsqtPartIdx + g_auiRasterToZscan[g_auiZscanToRaster[absTUPartIdx]+3*nsTUWidthInBaseUnits*lcuWidthInBaseUnits], absPartIdx, sizeof(UChar)*(currPartNumb) );
   }
   else
   {
     UInt currPartNumb = nsTUWidthInBaseUnits*nsTUHeightInBaseUnits;
-    memset( m_nsqtPartIdx + nsAbsPartIdx, absPartIdx, sizeof(UChar)*(currPartNumb) );
+    memset( m_nsqtPartIdx + absTUPartIdx, absPartIdx, sizeof(UChar)*(currPartNumb) );
   }
 }
 #endif
@@ -4456,24 +4457,11 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
   return uiScanIdx;
 }
 
-Bool TComDataCU::useNonSquareTrans(UInt uiTrMode)
-{
-  const UInt uiLog2TrSize = g_aucConvertToBit[ getSlice()->getSPS()->getMaxCUWidth() >> ( m_puhDepth[ 0 ] + uiTrMode ) ] + 2;
-  if ( uiTrMode && uiLog2TrSize < getSlice()->getSPS()->getQuadtreeTULog2MaxSize() && getWidth( 0 ) > 8 &&
-      ( m_pePartSize[0] == SIZE_Nx2N || m_pePartSize[0] == SIZE_2NxN || ( m_pePartSize[0] >= SIZE_2NxnU && m_pePartSize[0] <= SIZE_nRx2N ) ) )
-  {
-    return getSlice()->getSPS()->getUseNSQT();
-  }
-  else
-  {
-    return false;
-  }
-}
-
 Bool TComDataCU::useNonSquareTrans(UInt uiTrMode, Int absPartIdx)
 {
+  UInt minTuSize = ( 1 << ( getSlice()->getSPS()->getQuadtreeTULog2MinSize() + 1 ) );
   const UInt uiLog2TrSize = g_aucConvertToBit[ getSlice()->getSPS()->getMaxCUWidth() >> ( m_puhDepth[ absPartIdx ] + uiTrMode ) ] + 2;
-  if ( uiTrMode && uiLog2TrSize < getSlice()->getSPS()->getQuadtreeTULog2MaxSize() && getWidth( absPartIdx ) > 8 &&
+  if ( uiTrMode && uiLog2TrSize < getSlice()->getSPS()->getQuadtreeTULog2MaxSize() && ( getWidth( absPartIdx ) > minTuSize ) &&
       ( m_pePartSize[absPartIdx] == SIZE_Nx2N || m_pePartSize[absPartIdx] == SIZE_2NxN || ( m_pePartSize[absPartIdx] >= SIZE_2NxnU && m_pePartSize[absPartIdx] <= SIZE_nRx2N ) ) )
   {
     return getSlice()->getSPS()->getUseNSQT();
@@ -4486,7 +4474,8 @@ Bool TComDataCU::useNonSquareTrans(UInt uiTrMode, Int absPartIdx)
 
 Void TComDataCU::getNSQTSize(Int trMode, Int absPartIdx, Int &trWidth, Int &trHeight)
 {
-  if ( useNonSquareTrans( trMode, absPartIdx ) && trWidth > 4 )
+  UInt minTuSize = ( 1 << getSlice()->getSPS()->getQuadtreeTULog2MinSize() );
+  if ( useNonSquareTrans( trMode, absPartIdx ) && ( trWidth > minTuSize ) )
   {
     trWidth  = ( m_pePartSize[absPartIdx] == SIZE_Nx2N || m_pePartSize[absPartIdx] == SIZE_nLx2N || m_pePartSize[absPartIdx] == SIZE_nRx2N )? trWidth >> 1 : trWidth << 1;
     trHeight = ( m_pePartSize[absPartIdx] == SIZE_Nx2N || m_pePartSize[absPartIdx] == SIZE_nLx2N || m_pePartSize[absPartIdx] == SIZE_nRx2N )? trHeight << 1 : trHeight >> 1;
@@ -4523,7 +4512,7 @@ UInt TComDataCU::getInterTUSplitDirection( Int trWidth, Int trHeight, Int trLast
 UInt TComDataCU::getNSAbsPartIdx ( UInt log2TrafoSize, UInt absPartIdx, UInt absTUPartIdx, UInt innerQuadIdx, UInt trMode )
 {
   Int trWidth, trHeight, trLastWidth, trLastHeight;
-  const UInt lcuWidthInBaseUnits = getPic()->getNumPartInWidth();
+  UInt lcuWidthInBaseUnits = getPic()->getNumPartInWidth();
   UInt nsTUWidthInBaseUnits, nsTUHeightInBaseUnits;
   UInt interTUSplitDirection;
   
@@ -4554,47 +4543,44 @@ UInt TComDataCU::getNSAbsPartIdx ( UInt log2TrafoSize, UInt absPartIdx, UInt abs
 
   return absTUPartIdx;  
 }
+
 #endif
+UInt TComDataCU::getNSAddrChroma( UInt uiLog2TrSizeC, UInt uiTrModeC, UInt uiQuadrant, UInt absTUPartIdx )
+{  
+  if( uiLog2TrSizeC != getSlice()->getSPS()->getQuadtreeTULog2MinSize() )
+  {
+    return absTUPartIdx;
+  }
 
-Void TComDataCU::getPixOffset(UInt uiTrMode,  UInt ui, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiPix_X, UInt& uiPix_Y, TextType eTxt)
-{
-  UInt uiPartDir = ( m_pePartSize[ 0 ] == SIZE_Nx2N || m_pePartSize[ 0 ] == SIZE_nLx2N || m_pePartSize[ 0 ] == SIZE_nRx2N ) ? 0 : 1;
-  UInt uiLog2TrSize = g_aucConvertToBit[ getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
+  UInt lcuWidthInBaseUnits = getPic()->getNumPartInWidth();
+  Int trWidth  = ( 1 << ( uiLog2TrSizeC + 1 ) );
+  Int trHeight = ( 1 << ( uiLog2TrSizeC + 1 ) );
+  Int trLastWidth = trWidth << 1, trLastHeight = trHeight << 1;
 
-  if( eTxt != TEXT_LUMA )
+  getNSQTSize ( uiTrModeC - 1, absTUPartIdx, trLastWidth, trLastHeight );
+  getNSQTSize ( uiTrModeC,     absTUPartIdx, trWidth,     trHeight );
+
+  UInt interTUSplitDirection = getInterTUSplitDirection ( trWidth, trHeight, trLastWidth, trLastHeight );
+  UInt nsTUWidthInBaseUnits  = trWidth / getPic()->getMinCUWidth();
+  UInt nsTUHeightInBaseUnits = trHeight / getPic()->getMinCUHeight();
+  UInt firstTURasterIdx = 0, absTUPartIdxC = 0; 
+
+  if(interTUSplitDirection != 2)
   {
-    uiLog2TrSize --;
+    UInt uiNSTUBaseUnits = nsTUWidthInBaseUnits < nsTUHeightInBaseUnits ? 1 : lcuWidthInBaseUnits;
+    firstTURasterIdx   = g_auiZscanToRaster[absTUPartIdx] - uiQuadrant * uiNSTUBaseUnits;
+    absTUPartIdxC      = g_auiRasterToZscan[firstTURasterIdx] + uiQuadrant * nsTUWidthInBaseUnits * nsTUHeightInBaseUnits;
   }
-  
-  if( uiTrMode == 1 )
+  else
   {
-    uiPix_X = uiPartDir ? 0 : ui * ( 1 << ( uiLog2TrSize - 1 ) );
-    uiPix_Y = uiPartDir ? ui * ( 1 << ( uiLog2TrSize - 1 ) ) : 0;
+    UInt uiNSTUBaseUnits = nsTUWidthInBaseUnits < nsTUHeightInBaseUnits ? 2 * lcuWidthInBaseUnits : 2;
+    firstTURasterIdx   = g_auiZscanToRaster[absTUPartIdx] - ( ( uiQuadrant >> 1 ) & 0x01 ) * nsTUHeightInBaseUnits * lcuWidthInBaseUnits - ( uiQuadrant & 0x01 ) * nsTUWidthInBaseUnits;
+    absTUPartIdxC      = g_auiRasterToZscan[firstTURasterIdx + uiQuadrant * uiNSTUBaseUnits];
   }
-  else if( ( ( eTxt == TEXT_LUMA && uiLog2TrSize == ( getSlice()->getSPS()->getQuadtreeTULog2MaxSize() - 1 ) ) 
-    || ( eTxt != TEXT_LUMA && uiLog2TrSize == ( getSlice()->getSPS()->getQuadtreeTULog2MaxSize() - 2 ) ) ) && uiTrMode == 2)
-  {
-    UInt uiQPartNumSubdiv = getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
-    UInt uilastdepth = uiAbsPartIdx / uiQPartNumSubdiv;
-    uiPix_X = ( ( uilastdepth & 0x01 ) << ( uiLog2TrSize + 1 ) ) + ( uiPartDir ? 0 : ui * ( 1 << ( uiLog2TrSize - 1 ) ) );
-    uiPix_Y = ( ( ( uilastdepth >> 1 ) & 0x01 ) << ( uiLog2TrSize + 1 ) ) + ( uiPartDir ? ui * ( 1<< ( uiLog2TrSize - 1 ) ) : 0 );
-  }
-  else 
-  {
-    UInt uiQPartNumSubdiv = getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1);
-    UInt uilastdepth = uiAbsPartIdx / uiQPartNumSubdiv;
-    if( ( 1 << uiLog2TrSize ) == 4 )
-    {
-      uiPix_X = uiPartDir ? ui * ( 1 << uiLog2TrSize ) : uilastdepth * ( 1 << uiLog2TrSize );
-      uiPix_Y = uiPartDir ? uilastdepth * ( 1 << uiLog2TrSize ) : ui * ( 1 << uiLog2TrSize );
-    }
-    else
-    {
-      uiPix_X = uiPartDir ? ( ui & 0x01 ) * ( 1 << ( uiLog2TrSize + 1 ) ) : uilastdepth * ( 1 << uiLog2TrSize ) + ( ui & 0x01 ) * ( 1 << ( uiLog2TrSize - 1 ) );
-      uiPix_Y = uiPartDir ? uilastdepth * ( 1 << uiLog2TrSize ) + ( ( ui >> 1 ) & 0x01 ) * ( 1 << ( uiLog2TrSize - 1 ) ) : ( ( ui >> 1 ) & 0x01 ) * ( 1 << ( uiLog2TrSize + 1 ) );
-    }
-  }
+
+  return absTUPartIdxC;
 }
+
 
 UInt TComDataCU::getSCUAddr()
 { 
