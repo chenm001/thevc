@@ -72,28 +72,20 @@ protected:
   // set / get functions
   Void xSetLoopfilterParam        ( TComDataCU* pcCU, UInt uiAbsZorderIdx );
   // filtering functions
-  Void xSetEdgefilterTU           ( TComDataCU* pcCU, UInt uiRasterIdx, UInt uiAbsZorderIdx, UInt uiDepth );
+  Void xSetEdgefilterTU           ( TComDataCU* pcCU, UInt absTUPartIdx, UInt uiAbsZorderIdx, UInt uiDepth );
   Void xSetEdgefilterPU           ( TComDataCU* pcCU, UInt uiAbsZorderIdx );
   Void xGetBoundaryStrengthSingle ( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir, UInt uiPartIdx );
-  UInt xCalcBsIdx                 ( TComDataCU* pcCU, UInt uiScanorderIdx, Int iDir, Int iEdgeIdx, Int iBaseUnitIdx, Bool bUseZScan = true )
+  UInt xCalcBsIdx                 ( TComDataCU* pcCU, UInt uiAbsZorderIdx, Int iDir, Int iEdgeIdx, Int iBaseUnitIdx )
   {
     TComPic* const pcPic = pcCU->getPic();
     const UInt uiLCUWidthInBaseUnits = pcPic->getNumPartInWidth();
-    if( iDir == 0 && bUseZScan )
-      return g_auiRasterToZscan[g_auiZscanToRaster[uiScanorderIdx] + iBaseUnitIdx * uiLCUWidthInBaseUnits + iEdgeIdx ];
-    else if( iDir == 1 && bUseZScan )
-      return g_auiRasterToZscan[g_auiZscanToRaster[uiScanorderIdx] + iEdgeIdx * uiLCUWidthInBaseUnits + iBaseUnitIdx ];
-    else if( iDir == 0 && !bUseZScan )
-      return g_auiRasterToZscan[uiScanorderIdx + iBaseUnitIdx * uiLCUWidthInBaseUnits + iEdgeIdx ];
+    if( iDir == 0 )
+      return g_auiRasterToZscan[g_auiZscanToRaster[uiAbsZorderIdx] + iBaseUnitIdx * uiLCUWidthInBaseUnits + iEdgeIdx ];
     else
-      return g_auiRasterToZscan[uiScanorderIdx + iEdgeIdx * uiLCUWidthInBaseUnits + iBaseUnitIdx ];
-  }
+      return g_auiRasterToZscan[g_auiZscanToRaster[uiAbsZorderIdx] + iEdgeIdx * uiLCUWidthInBaseUnits + iBaseUnitIdx ];
+  } 
   
-#if NSQT_LFFIX
   Void xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdgeIdx, Bool bValue ,UInt uiWidthInBaseUnits = 0, UInt uiHeightInBaseUnits = 0, Bool nonSquare = false );
-#else
-  Void xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdgeIdx, Bool bValue ,UInt uiWidthInBaseUnits = 0, UInt uiHeightInBaseUnits = 0 );
-#endif
   
   Void xEdgeFilterLuma            ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );
   Void xEdgeFilterChroma          ( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdge );

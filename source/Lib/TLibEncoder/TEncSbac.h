@@ -74,6 +74,9 @@ public:
   
   //  Virtual list
   Void  resetEntropy           ();
+#if CABAC_INIT_FLAG
+  Void  determineCabacInitIdx  ();
+#endif
   Void  setBitstream           ( TComBitIf* p )  { m_pcBitIf = p; m_pcBinIf->init( p ); }
   Void  setSlice               ( TComSlice* p )  { m_pcSlice = p;                       }
   
@@ -99,7 +102,11 @@ public:
   void codeSEI(const SEI&);
   Void  codeSliceHeader         ( TComSlice* pcSlice );
   Void codeTileMarkerFlag(TComSlice* pcSlice) {printf("Not supported\n"); assert(0); exit(1);}
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+  Void  codeTilesWPPEntryPoint( TComSlice* pSlice );
+#else
   Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );
+#endif
   Void  codeTerminatingBit      ( UInt uilsLast      );
   Void  codeSliceFinish         ();
 #if OL_FLUSH
@@ -117,6 +124,7 @@ public:
 #endif
 
   Void codeAlfCtrlFlag       ( UInt uiSymbol );
+  Void  codeApsExtensionFlag () { assert (0); return; };
   Void  codeSaoFlag       ( UInt uiCode );
   Void  codeSaoUvlc       ( UInt uiCode );
   Void  codeSaoSvlc       ( Int  uiCode );

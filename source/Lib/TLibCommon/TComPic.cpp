@@ -131,8 +131,8 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
 {
   UInt maxNumSUInLCU = getNumPartInCU();
   UInt numLCUInPic   = getNumCUsInFrame();
-  UInt picWidth      = getCU(0)->getSlice()->getSPS()->getWidth();
-  UInt picHeight     = getCU(0)->getSlice()->getSPS()->getHeight();
+  UInt picWidth      = getSlice(0)->getSPS()->getPicWidthInLumaSamples();
+  UInt picHeight     = getSlice(0)->getSPS()->getPicHeightInLumaSamples();
   Int  numLCUsInPicWidth = getFrameWidthInCU();
   Int  numLCUsInPicHeight= getFrameHeightInCU();
   UInt maxNumSUInLCUWidth = getNumPartInWidth();
@@ -273,6 +273,10 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
       TComDataCU* pcCU = m_vSliceCUDataLink[s][i];
       uiAddr = pcCU->getAddr();
 
+      if(pcCU->getPic()==0)
+      {
+        continue;
+      }
       Int iTileID= m_apcPicSym->getTileIdxMap(uiAddr);
       Bool bTopTileBoundary = false, bDownTileBoundary= false, bLeftTileBoundary= false, bRightTileBoundary= false;
 

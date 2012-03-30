@@ -226,6 +226,9 @@ Void TEncBinCABAC::encodeBin( UInt binValue, ContextModel &rcCtxModel )
     DTRACE_CABAC_T( "\n" )
   }
   m_uiBinsCoded += m_binCountIncrement;
+#if CABAC_INIT_FLAG
+  rcCtxModel.setBinsCoded( 1 );
+#endif
   
   UInt  uiLPS   = TComCABACTables::sm_aucLPSTable[ rcCtxModel.getState() ][ ( m_uiRange >> 6 ) & 3 ];
   m_uiRange    -= uiLPS;

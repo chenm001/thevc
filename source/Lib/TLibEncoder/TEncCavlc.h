@@ -98,6 +98,9 @@ protected:
 public:
   
   Void  resetEntropy          ();
+#if CABAC_INIT_FLAG
+  Void  determineCabacInitIdx  () {};
+#endif
 
   Void  setBitstream          ( TComBitIf* p )  { m_pcBitIf = p;  }
   Void  setSlice              ( TComSlice* p )  { m_pcSlice = p;  }
@@ -117,7 +120,11 @@ public:
 
   Void codeTileMarkerFlag(TComSlice* pcSlice);
 
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+  Void  codeTilesWPPEntryPoint( TComSlice* pSlice );
+#else
   Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );
+#endif
   Void  codeTerminatingBit      ( UInt uilsLast );
   Void  codeSliceFinish         ();
   Void  codeFlush               () {}
@@ -147,6 +154,8 @@ public:
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+
+  Void codeApsExtensionFlag ();
 
   /// set slice granularity
   Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}

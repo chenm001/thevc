@@ -80,7 +80,11 @@ protected:
   Void  xDestroyDecLib    (); ///< destroy internal classes
   Void  xInitDecLib       (); ///< initialize decoder class
   
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  Void  xWriteOutput      ( TComList<TComPic*>* pcListPic , UInt tId); ///< write YUV to file
+#else
   Void  xWriteOutput      ( TComList<TComPic*>* pcListPic ); ///< write YUV to file
+#endif
   Void  xFlushOutput      ( TComList<TComPic*>* pcListPic ); ///< flush all remaining decoded pictures to file
 };
 

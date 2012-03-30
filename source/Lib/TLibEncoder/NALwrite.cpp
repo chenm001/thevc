@@ -55,10 +55,18 @@ void write(ostream& out, OutputNALUnit& nalu)
   TComOutputBitstream bsNALUHeader;
 
   bsNALUHeader.write(0,1); // forbidden_zero_flag
-  bsNALUHeader.write(nalu.m_RefIDC, 2); // nal_ref_idc
-  bsNALUHeader.write(nalu.m_UnitType, 5); // nal_unit_type
-
-  switch (nalu.m_UnitType)
+#if NAL_REF_FLAG
+  bsNALUHeader.write(nalu.m_nalRefFlag? 1 : 0, 1); // nal_ref_flag
+  bsNALUHeader.write(nalu.m_nalUnitType, 6);          // nal_unit_type
+#else
+  bsNALUHeader.write(nalu.m_nalRefIDC, 2); // nal_ref_idc
+  bsNALUHeader.write(nalu.m_nalUnitType, 5); // nal_unit_type
+#endif
+#if H0388
+  bsNALUHeader.write(nalu.m_temporalId, 3); // temporal_id
+  bsNALUHeader.write(1, 5); // reserved_one_5bits
+#else
+  switch (nalu.m_nalUnitType)
   {
   case NAL_UNIT_CODED_SLICE:
   case NAL_UNIT_CODED_SLICE_IDR:
@@ -68,13 +76,13 @@ void write(ostream& out, OutputNALUnit& nalu)
 #else
   case NAL_UNIT_CODED_SLICE_CDR:
 #endif
-    bsNALUHeader.write(nalu.m_TemporalID, 3); // temporal_id
+    bsNALUHeader.write(nalu.m_temporalId, 3); // temporal_id
     bsNALUHeader.write(nalu.m_OutputFlag, 1); // output_flag
     bsNALUHeader.write(1, 4); // reserved_one_4bits
     break;
   default: break;
   }
-
+#endif
   out.write(bsNALUHeader.getByteStream(), bsNALUHeader.getByteStreamLength());
 
   /* write out rsbp_byte's, inserting any required
@@ -180,11 +188,17 @@ void writeRBSPTrailingBits(TComOutputBitstream& bs)
  */
 void copyNaluData(OutputNALUnit& naluDest, const OutputNALUnit& naluSrc)
 {
-  naluDest.m_UnitType   = naluSrc.m_UnitType;
-  naluDest.m_RefIDC     = naluSrc.m_RefIDC;
-  naluDest.m_TemporalID = naluSrc.m_TemporalID;
-  naluDest.m_OutputFlag = naluSrc.m_OutputFlag;
-  naluDest.m_Bitstream  = naluSrc.m_Bitstream;
+  naluDest.m_nalUnitType = naluSrc.m_nalUnitType;
+#if NAL_REF_FLAG
+  naluDest.m_nalRefFlag  = naluSrc.m_nalRefFlag;
+#else
+  naluDest.m_nalRefIDC   = naluSrc.m_nalRefIDC;
+#endif
+  naluDest.m_temporalId  = naluSrc.m_temporalId;
+#if !H0388
+  naluDest.m_OutputFlag  = naluSrc.m_OutputFlag;
+#endif
+  naluDest.m_Bitstream   = naluSrc.m_Bitstream;
 }
 
 //! \}

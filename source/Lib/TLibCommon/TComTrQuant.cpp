@@ -420,6 +420,7 @@ void xITr(Int *coeff, Pel *block, UInt uiStride, UInt uiTrSize, UInt uiMode)
  *  \param dst   output data (transform coefficients)
  *  \param shift specifies right shift after 1D transform
  */
+#if !UNIFIED_TRANSFORM
 void partialButterfly4(short src[4][4],short dst[4][4],int shift)
 {
   int j;  
@@ -440,6 +441,7 @@ void partialButterfly4(short src[4][4],short dst[4][4],int shift)
     dst[3][j] = (g_aiT4[3][0]*O[0] + g_aiT4[3][1]*O[1] + add)>>shift;
   }
 }
+#endif
 
 void partialButterfly4(short *src,short *dst,int shift, int line)
 {
@@ -467,13 +469,28 @@ void partialButterfly4(short *src,short *dst,int shift, int line)
 
 // Fast DST Algorithm. Full matrix multiplication for DST and Fast DST algorithm 
 // give identical results
+#if UNIFIED_TRANSFORM
+void fastForwardDst(short *block,short *coeff,int shift)  // input block, output coeff
+#else
 void fastForwardDst(short block[4][4],short coeff[4][4],int shift)  // input block, output coeff
+#endif
 {
   int i, c[4];
   int rnd_factor = 1<<(shift-1);
   for (i=0; i<4; i++)
   {
     // Intermediate Variables
+#if UNIFIED_TRANSFORM
+    c[0] = block[4*i+0] + block[4*i+3];
+    c[1] = block[4*i+1] + block[4*i+3];
+    c[2] = block[4*i+0] - block[4*i+1];
+    c[3] = 74* block[4*i+2];
+
+    coeff[   i] =  ( 29 * c[0] + 55 * c[1]         + c[3]               + rnd_factor ) >> shift;
+    coeff[ 4+i] =  ( 74 * (block[4*i+0]+ block[4*i+1] - block[4*i+3])   + rnd_factor ) >> shift;
+    coeff[ 8+i] =  ( 29 * c[2] + 55 * c[0]         - c[3]               + rnd_factor ) >> shift;
+    coeff[12+i] =  ( 55 * c[2] - 29 * c[1]         + c[3]               + rnd_factor ) >> shift;
+#else
     c[0] = block[i][0] + block[i][3];
     c[1] = block[i][1] + block[i][3];
     c[2] = block[i][0] - block[i][1];
@@ -483,16 +500,32 @@ void fastForwardDst(short block[4][4],short coeff[4][4],int shift)  // input blo
     coeff[1][i] =  ( 74 * (block[i][0]+ block[i][1] - block[i][3])      + rnd_factor ) >> shift;
     coeff[2][i] =  ( 29 * c[2] + 55 * c[0]         - c[3]               + rnd_factor ) >> shift;
     coeff[3][i] =  ( 55 * c[2] - 29 * c[1]         + c[3]               + rnd_factor ) >> shift;
+#endif
   }
 }
 
+#if UNIFIED_TRANSFORM
+void fastInverseDst(short *tmp,short *block,int shift)  // input tmp, output block
+#else
 void fastInverseDst(short tmp[4][4],short block[4][4],int shift)  // input tmp, output block
+#endif
 {
   int i, c[4];
   int rnd_factor = 1<<(shift-1);
   for (i=0; i<4; i++)
   {  
     // Intermediate Variables
+#if UNIFIED_TRANSFORM
+    c[0] = tmp[  i] + tmp[ 8+i];
+    c[1] = tmp[8+i] + tmp[12+i];
+    c[2] = tmp[  i] - tmp[12+i];
+    c[3] = 74* tmp[4+i];
+
+    block[4*i+0] = Clip3( -32768, 32767, ( 29 * c[0] + 55 * c[1]     + c[3]               + rnd_factor ) >> shift );
+    block[4*i+1] = Clip3( -32768, 32767, ( 55 * c[2] - 29 * c[1]     + c[3]               + rnd_factor ) >> shift );
+    block[4*i+2] = Clip3( -32768, 32767, ( 74 * (tmp[i] - tmp[8+i]  + tmp[12+i])      + rnd_factor ) >> shift );
+    block[4*i+3] = Clip3( -32768, 32767, ( 55 * c[0] + 29 * c[2]     - c[3]               + rnd_factor ) >> shift );
+#else
     c[0] = tmp[0][i] + tmp[2][i];
     c[1] = tmp[2][i] + tmp[3][i];
     c[2] = tmp[0][i] - tmp[3][i];
@@ -502,8 +535,10 @@ void fastInverseDst(short tmp[4][4],short block[4][4],int shift)  // input tmp, 
     block[i][1] = Clip3( -32768, 32767, ( 55 * c[2] - 29 * c[1]     + c[3]               + rnd_factor ) >> shift );
     block[i][2] = Clip3( -32768, 32767, ( 74 * (tmp[0][i] - tmp[2][i]  + tmp[3][i])      + rnd_factor ) >> shift );
     block[i][3] = Clip3( -32768, 32767, ( 55 * c[0] + 29 * c[2]     - c[3]               + rnd_factor ) >> shift );
+#endif
   }
 }
+#if !UNIFIED_TRANSFORM
 /** 4x4 forward transform (2D)
  *  \param block input data (residual)
  *  \param coeff output data (transform coefficients)
@@ -571,6 +606,7 @@ void partialButterflyInverse4(short src[4][4],short dst[4][4],int shift)
     dst[j][3] = Clip3( -32768, 32767, (E[0] - O[0] + add)>>shift );
   }
 }
+#endif
 
 void partialButterflyInverse4(short *src,short *dst,int shift, int line)
 {
@@ -597,6 +633,7 @@ void partialButterflyInverse4(short *src,short *dst,int shift, int line)
   }
 }
 
+#if !UNIFIED_TRANSFORM
 /** 4x4 inverse transform (2D)
  *  \param coeff input data (transform coefficients)
  *  \param block output data (residual)
@@ -675,6 +712,7 @@ void partialButterfly8(short src[8][8],short dst[8][8],int shift)
     dst[7][j] = (g_aiT8[7][0]*O[0] + g_aiT8[7][1]*O[1] + g_aiT8[7][2]*O[2] + g_aiT8[7][3]*O[3] + add)>>shift;
   }
 }
+#endif
 
 void partialButterfly8(short *src,short *dst,int shift, int line)
 {
@@ -712,6 +750,7 @@ void partialButterfly8(short *src,short *dst,int shift, int line)
   }
 }
 
+#if !UNIFIED_TRANSFORM
 /** 8x8 forward transform (2D)
  *  \param block input data (residual)
  *  \param coeff  output data (transform coefficients)
@@ -767,6 +806,7 @@ void partialButterflyInverse8(short src[8][8],short dst[8][8],int shift)
     }        
   }
 }
+#endif
 
 void partialButterflyInverse8(short *src,short *dst,int shift, int line)
 {
@@ -803,6 +843,7 @@ void partialButterflyInverse8(short *src,short *dst,int shift, int line)
   }
 }
 
+#if !UNIFIED_TRANSFORM
 /** 8x8 inverse transform (2D)
  *  \param coeff input data (transform coefficients)
  *  \param block output data (residual)
@@ -872,6 +913,7 @@ void partialButterfly16(short src[16][16],short dst[16][16],int shift)
 
   }
 }
+#endif
 
 void partialButterfly16(short *src,short *dst,int shift, int line)
 {
@@ -923,6 +965,7 @@ void partialButterfly16(short *src,short *dst,int shift, int line)
   }
 }
 
+#if !UNIFIED_TRANSFORM
 /** 16x16 forward transform (2D)
  *  \param block input data (residual)
  *  \param coeff output data (transform coefficients)
@@ -989,6 +1032,7 @@ void partialButterflyInverse16(short src[16][16],short dst[16][16],int shift)
     }        
   }
 }
+#endif
 
 void partialButterflyInverse16(short *src,short *dst,int shift, int line)
 {
@@ -1036,6 +1080,7 @@ void partialButterflyInverse16(short *src,short *dst,int shift, int line)
   }
 }
 
+#if !UNIFIED_TRANSFORM
 /** 16x16 inverse transform (2D)
  *  \param coeff input data (transform coefficients)
  *  \param block output data (residual)
@@ -1116,6 +1161,7 @@ void partialButterfly32(short src[32][32],short dst[32][32],int shift)
     }
   }
 }
+#endif
 
 void partialButterfly32(short *src,short *dst,int shift, int line)
 {
@@ -1177,6 +1223,7 @@ void partialButterfly32(short *src,short *dst,int shift, int line)
   }
 }
 
+#if !UNIFIED_TRANSFORM
 /** 32x32 forward transform (2D)
  *  \param block input data (residual)
  *  \param coeff output data (transform coefficients)
@@ -1255,6 +1302,7 @@ void partialButterflyInverse32(short src[32][32],short dst[32][32],int shift)
     }        
   }
 }
+#endif
 
 void partialButterflyInverse32(short *src,short *dst,int shift, int line)
 {
@@ -1314,6 +1362,7 @@ void partialButterflyInverse32(short *src,short *dst,int shift, int line)
   }
 }
 
+#if !UNIFIED_TRANSFORM
 /** 32x32 inverse transform (2D)
  *  \param coeff input data (transform coefficients)
  *  \param block output data (residual)
@@ -1331,6 +1380,7 @@ void xITr32(short coeff[32][32],short block[32][32])
   partialButterflyInverse32(coeff,tmp,shift_1st);
   partialButterflyInverse32(tmp,block,shift_2nd);
 }
+#endif
 
 /** MxN forward transform (2D)
 *  \param block input data (residual)
@@ -1338,7 +1388,11 @@ void xITr32(short coeff[32][32],short block[32][32])
 *  \param iWidth input data (width of transform)
 *  \param iHeight input data (height of transform)
 */
+#if UNIFIED_TRANSFORM
+void xTrMxN(short *block,short *coeff, int iWidth, int iHeight, UInt uiMode)
+#else
 void xTrMxN(short *block,short *coeff, int iWidth, int iHeight)
+#endif
 {
 #if FULL_NBIT
   int shift_1st = g_aucConvertToBit[iWidth]  + 1 + g_uiBitDepth - 8; // log2(iWidth) - 1 + g_uiBitDepth - 8
@@ -1369,6 +1423,50 @@ void xTrMxN(short *block,short *coeff, int iWidth, int iHeight)
     partialButterfly8( block, tmp, shift_1st, iHeight );
     partialButterfly32( tmp, coeff, shift_2nd, iWidth );
   }
+#if UNIFIED_TRANSFORM
+  else if( iWidth == 4 && iHeight == 4)
+  {
+#if LOGI_INTRA_NAME_3MPM
+    if (uiMode != REG_DCT && (!uiMode || (uiMode>=2 && uiMode <= 25)))    // Check for DCT or DST
+#else
+    if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode])// Check for DCT or DST
+#endif
+    {
+      fastForwardDst(block,tmp,shift_1st); // Forward DST BY FAST ALGORITHM, block input, tmp output
+    }
+    else  
+    {
+      partialButterfly4(block, tmp, shift_1st, iHeight);
+    }
+#if LOGI_INTRA_NAME_3MPM
+    if (uiMode != REG_DCT && (!uiMode || (uiMode>=11 && uiMode <= 34)))    // Check for DCT or DST
+#else
+    if (uiMode != REG_DCT && g_aucDCTDSTMode_Vert[uiMode] )   // Check for DCT or DST
+#endif
+    {
+      fastForwardDst(tmp,coeff,shift_2nd); // Forward DST BY FAST ALGORITHM, tmp input, coeff output
+    }
+    else  
+    {
+      partialButterfly4(tmp, coeff, shift_2nd, iWidth);
+    }   
+  }
+  else if( iWidth == 8 && iHeight == 8)
+  {
+    partialButterfly8( block, tmp, shift_1st, iHeight );
+    partialButterfly8( tmp, coeff, shift_2nd, iWidth );
+  }
+  else if( iWidth == 16 && iHeight == 16)
+  {
+    partialButterfly16( block, tmp, shift_1st, iHeight );
+    partialButterfly16( tmp, coeff, shift_2nd, iWidth );
+  }
+  else if( iWidth == 32 && iHeight == 32)
+  {
+    partialButterfly32( block, tmp, shift_1st, iHeight );
+    partialButterfly32( tmp, coeff, shift_2nd, iWidth );
+  }
+#endif
 }
 /** MxN inverse transform (2D)
 *  \param coeff input data (transform coefficients)
@@ -1376,7 +1474,11 @@ void xTrMxN(short *block,short *coeff, int iWidth, int iHeight)
 *  \param iWidth input data (width of transform)
 *  \param iHeight input data (height of transform)
 */
+#if UNIFIED_TRANSFORM
+void xITrMxN(short *coeff,short *block, int iWidth, int iHeight, UInt uiMode)
+#else
 void xITrMxN(short *coeff,short *block, int iWidth, int iHeight)
+#endif
 {
   int shift_1st = SHIFT_INV_1ST;
 #if FULL_NBIT
@@ -1406,6 +1508,50 @@ void xITrMxN(short *coeff,short *block, int iWidth, int iHeight)
     partialButterflyInverse32(coeff,tmp,shift_1st,iWidth);
     partialButterflyInverse8(tmp,block,shift_2nd,iHeight);
   }
+#if UNIFIED_TRANSFORM
+  else if( iWidth == 4 && iHeight == 4)
+  {
+#if LOGI_INTRA_NAME_3MPM
+    if (uiMode != REG_DCT && (!uiMode || (uiMode>=11 && uiMode <= 34)))    // Check for DCT or DST
+#else
+    if (uiMode != REG_DCT && g_aucDCTDSTMode_Vert[uiMode] )    // Check for DCT or DST
+#endif
+    {
+      fastInverseDst(coeff,tmp,shift_1st);    // Inverse DST by FAST Algorithm, coeff input, tmp output
+    }
+    else
+    {
+      partialButterflyInverse4(coeff,tmp,shift_1st,iWidth);    
+    } 
+#if LOGI_INTRA_NAME_3MPM
+    if (uiMode != REG_DCT && (!uiMode || (uiMode>=2 && uiMode <= 25)))    // Check for DCT or DST
+#else
+    if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode] )    // Check for DCT or DST
+#endif
+    {
+      fastInverseDst(tmp,block,shift_2nd); // Inverse DST by FAST Algorithm, tmp input, coeff output
+    }
+    else
+    {
+      partialButterflyInverse4(tmp,block,shift_2nd,iHeight);
+    }   
+  }
+  else if( iWidth == 8 && iHeight == 8)
+  {
+    partialButterflyInverse8(coeff,tmp,shift_1st,iWidth);
+    partialButterflyInverse8(tmp,block,shift_2nd,iHeight);
+  }
+  else if( iWidth == 16 && iHeight == 16)
+  {
+    partialButterflyInverse16(coeff,tmp,shift_1st,iWidth);
+    partialButterflyInverse16(tmp,block,shift_2nd,iHeight);
+  }
+  else if( iWidth == 32 && iHeight == 32)
+  {
+    partialButterflyInverse32(coeff,tmp,shift_1st,iWidth);
+    partialButterflyInverse32(tmp,block,shift_2nd,iHeight);
+  }
+#endif
 }
 
 #endif //MATRIX_MULT
@@ -1833,6 +1979,21 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
                                 TextType    eTType, 
                                 UInt        uiAbsPartIdx )
 {
+#if LOSSLESS_CODING
+  if((m_cQP.qp() == 0) && (pcCU->getSlice()->getSPS()->getUseLossless()))
+  {
+    uiAbsSum=0;
+    for (UInt k = 0; k<uiHeight; k++)
+    {
+      for (UInt j = 0; j<uiWidth; j++)
+      {
+        rpcCoeff[k*uiWidth+j]= pcResidual[k*uiStride+j];
+        uiAbsSum += abs(pcResidual[k*uiStride+j]);
+      }
+    }
+    return;
+  }
+#endif
   UInt uiMode;  //luma intra pred
   if(eTType == TEXT_LUMA && pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
   {
@@ -1854,9 +2015,25 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
        uiWidth, uiHeight, uiAbsSum, eTType, uiAbsPartIdx );
 }
 
-
-Void TComTrQuant::invtransformNxN( TextType eText,UInt uiMode, Pel*& rpcResidual, UInt uiStride, TCoeff* pcCoeff, UInt uiWidth, UInt uiHeight, Int scalingListType )
+#if LOSSLESS_CODING
+Void TComTrQuant::invtransformNxN( TComDataCU* pcCU, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType)
+#else
+Void TComTrQuant::invtransformNxN(                   TextType eText, UInt uiMode,Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight, Int scalingListType)
+#endif
 {
+#if LOSSLESS_CODING
+  if((m_cQP.qp() == 0) && (pcCU->getSlice()->getSPS()->getUseLossless()))
+  {
+    for (UInt k = 0; k<uiHeight; k++)
+    {
+      for (UInt j = 0; j<uiWidth; j++)
+      {
+        rpcResidual[k*uiStride+j] = pcCoeff[k*uiWidth+j];
+      }
+    } 
+    return;
+  }
+#endif
   xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight, scalingListType);
   xIT( uiMode, m_plTempCoeff, rpcResidual, uiStride, uiWidth, uiHeight );
 }
@@ -1871,15 +2048,11 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
   UInt uiLumaTrMode, uiChromaTrMode;
   pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
   const UInt uiStopTrMode = eTxt == TEXT_LUMA ? uiLumaTrMode : uiChromaTrMode;
-  PartSize ePartSize = pcCU->getPartitionSize( uiAbsPartIdx );
-  
-  assert(1); // as long as quadtrees are not used for residual transform
   
   if( uiTrMode == uiStopTrMode )
   {
     UInt uiDepth      = pcCU->getDepth( uiAbsPartIdx ) + uiTrMode;
     UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
-    UInt uiTrModeC    = uiTrMode;
     if( eTxt != TEXT_LUMA && uiLog2TrSize == 2 )
     {
       UInt uiQPDiv = pcCU->getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
@@ -1889,71 +2062,51 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
       }
       uiWidth  <<= 1;
       uiHeight <<= 1;
-      uiTrModeC--;
     }
     Pel* pResi = rpcResidual + uiAddr;
-    if( ( eTxt == TEXT_LUMA && pcCU->useNonSquareTrans( uiTrMode ) ) || ( eTxt != TEXT_LUMA && pcCU->useNonSquareTrans( uiTrModeC ) ) )
+    if( pcCU->useNonSquareTrans( uiTrMode, uiAbsPartIdx ) )
     {
-      UInt uiTrWidth  = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N )? uiWidth >> 1 : uiWidth << 1;
-      UInt uiTrHeight = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N )? uiHeight << 1 : uiHeight >> 1;
+      Int trWidth  = uiWidth;
+      Int trHeight = uiHeight;
+      pcCU->getNSQTSize( uiTrMode, uiAbsPartIdx, trWidth, trHeight );
 
-      if( uiWidth == 4 )
-      {
-        uiTrWidth = uiTrHeight = 4;
-      }
-
-      uiWidth = uiTrWidth;
-      uiHeight = uiTrHeight;
+      uiWidth  = trWidth;
+      uiHeight = trHeight;
     }
     Int scalingListType = (pcCU->isIntra(uiAbsPartIdx) ? 0 : 3) + g_eTTable[(Int)eTxt];
     assert(scalingListType < 6);
-    invtransformNxN( eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, scalingListType );
+#if LOSSLESS_CODING
+    invtransformNxN( pcCU, eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, scalingListType );
+#else  
+    invtransformNxN(       eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, scalingListType );
+#endif
   }
   else
   {
     uiTrMode++;
     uiWidth  >>= 1;
     uiHeight >>= 1;
-    UInt uiAddrOffset = uiHeight * uiStride;
-    UInt uiCoefOffset = uiWidth * uiHeight;
-    UInt uiPartOffset = pcCU->getTotalNumPart() >> (uiTrMode<<1);
-    if( pcCU->useNonSquareTrans( uiTrMode ) && ! ( ( uiWidth == 4 && uiTrMode == 1 ) || 
-      ( eTxt != TEXT_LUMA && uiTrMode > 1 && ( ( 1 << pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() ) >> 2 ) == 4 ) ) )
+    Int trWidth = uiWidth, trHeight = uiHeight;
+    Int trLastWidth = uiWidth << 1, trLastHeight = uiHeight << 1;
+    pcCU->getNSQTSize ( uiTrMode, uiAbsPartIdx, trWidth, trHeight );
+    pcCU->getNSQTSize ( uiTrMode - 1, uiAbsPartIdx, trLastWidth, trLastHeight );
+    UInt uiAddrOffset = trHeight * uiStride;
+    UInt uiCoefOffset = trWidth * trHeight;
+    UInt uiPartOffset = pcCU->getTotalNumPart() >> ( uiTrMode << 1 );    
+    UInt uiInterTUSplitDirection = pcCU->getInterTUSplitDirection ( trWidth, trHeight, trLastWidth, trLastHeight );
+    if( uiInterTUSplitDirection != 2 )
     {
-      UInt uiDepth      = pcCU->getDepth( uiAbsPartIdx ) + uiTrMode;
-      UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth ] + 2;
-      if( uiTrMode == 1 || ( uiTrMode == 2 && ( uiWidth == 4 || uiLog2TrSize == ( pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() - 1 ) ) ) )
-      {
-        if( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N )
-        {
-          uiAddrOffset = ( uiTrMode == 1 || ( uiLog2TrSize == ( pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() - 1 ) && uiTrMode == 2 ) ) ? uiWidth >> 1 : uiAddrOffset;
-        }
-        else
-        {
-          uiAddrOffset = ( uiTrMode == 1 || ( uiLog2TrSize == ( pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() - 1 ) && uiTrMode == 2 ) ) ? ( uiWidth >> 1 ) * uiStride : uiWidth;  
-        }
-
-        invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr                    , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
-        invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiAddrOffset     , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
-        invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + 2*uiAddrOffset   , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
-        invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + 3*uiAddrOffset   , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff );
-      }
-      else
-      {
-        UInt uiTrWidth  = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N ) ? uiWidth >> 1 : uiWidth << 1;
-        UInt uiTrHeight = ( ePartSize == SIZE_Nx2N || ePartSize == SIZE_nLx2N || ePartSize == SIZE_nRx2N ) ? uiWidth << 1 : uiWidth >> 1;
-        invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr                                   , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
-        invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiTrWidth                       , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
-        invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiTrHeight*uiStride             , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
-        invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiTrHeight*uiStride+uiTrWidth   , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff );
-      }
+      invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr                                                                                            , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
+      invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr +     trWidth * uiInterTUSplitDirection +     uiAddrOffset * ( 1 - uiInterTUSplitDirection), uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
+      invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + 2 * trWidth * uiInterTUSplitDirection + 2 * uiAddrOffset * ( 1 - uiInterTUSplitDirection), uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
+      invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + 3 * trWidth * uiInterTUSplitDirection + 3 * uiAddrOffset * ( 1 - uiInterTUSplitDirection), uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff );
     }
     else
     {
       invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr                         , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
-      invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiWidth               , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
+      invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + trWidth               , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
       invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiAddrOffset          , uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff ); rpcCoeff += uiCoefOffset; uiAbsPartIdx += uiPartOffset;
-      invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiAddrOffset + uiWidth, uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff );
+      invRecurTransformNxN( pcCU, uiAbsPartIdx, eTxt, rpcResidual, uiAddr + uiAddrOffset + trWidth, uiStride, uiWidth, uiHeight, uiMaxTrMode, uiTrMode, rpcCoeff );
     }
   }
 }
@@ -1980,9 +2133,12 @@ Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Int* psCoeff, 
   }
   xTr(piBlkResi,psCoeff,uiStride,(UInt)iSize,uiMode);
 #else
-  Int j,k;
+#if UNIFIED_TRANSFORM
+  Int j;
+#else
   Int iSize = iWidth; 
   if( iWidth != iHeight)
+#endif
   {
     short block[ 64 * 64 ];
     short coeff[ 64 * 64 ];
@@ -1992,13 +2148,18 @@ Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Int* psCoeff, 
         memcpy( block + j * iWidth, piBlkResi + j * uiStride, iWidth * sizeof( short ) );      
       }
     }
+#if UNIFIED_TRANSFORM
+    xTrMxN( block, coeff, iWidth, iHeight, uiMode );
+#else
     xTrMxN( block, coeff, iWidth, iHeight );
+#endif
     for ( j = 0; j < iHeight * iWidth; j++ )
     {    
       psCoeff[ j ] = coeff[ j ];
     }
     return ;
   }
+#if !UNIFIED_TRANSFORM
   if (iSize==4)
   {   
     short block[4][4];   
@@ -2071,6 +2232,7 @@ Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Int* psCoeff, 
       }    
     }
   }
+#endif
 #endif  
 }
 
@@ -2092,9 +2254,13 @@ Void TComTrQuant::xIT( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, 
   }
   xITr(plCoef,pResidual,uiStride,(UInt)iSize,uiMode);
 #else
+#if UNIFIED_TRANSFORM
+  Int j;
+#else
   Int j,k;
   Int iSize = iWidth; 
   if( iWidth != iHeight )
+#endif
   {
     short block[ 64 * 64 ];
     short coeff[ 64 * 64 ];
@@ -2102,7 +2268,11 @@ Void TComTrQuant::xIT( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, 
     {    
       coeff[j] = (short)plCoef[j];
     }
+#if UNIFIED_TRANSFORM
+    xITrMxN( coeff, block, iWidth, iHeight, uiMode );
+#else
     xITrMxN( coeff, block, iWidth, iHeight );
+#endif
     {
       for ( j = 0; j < iHeight; j++ )
       {    
@@ -2111,6 +2281,7 @@ Void TComTrQuant::xIT( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, 
     }
     return ;
   }
+#if !UNIFIED_TRANSFORM
   if (iSize==4)
   {    
     short block[4][4];
@@ -2184,6 +2355,7 @@ Void TComTrQuant::xIT( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, 
       memcpy(pResidual+j*uiStride,block[j],32*sizeof(short));
     }   
   }
+#endif
 #endif  
 }
  

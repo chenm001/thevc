@@ -110,14 +110,9 @@ public:
   Void  setGopSize( Int i) { m_iGopSize = i; }
 
   void setPictureDigestEnabled(bool enabled) { m_pictureDigestEnabled = enabled; }
-#if !PARAMSET_VLC_CLEANUP
-  Void decodeAlfOnOffCtrlParam() { m_pcEntropyDecoder->decodeAlfCtrlParam( m_cAlfCUCtrlOneSlice, m_pcAdaptiveLoopFilter->getNumCUsInPic());}
-#else
   AlfCUCtrlInfo& getAlfCuCtrlParam() { return m_cAlfCUCtrlOneSlice; }
 #if LCU_SYNTAX_ALF
   AlfParamSet& getAlfParamSet() {return m_alfParamSetPilot;}
-#endif
-
 #endif
 
 private:

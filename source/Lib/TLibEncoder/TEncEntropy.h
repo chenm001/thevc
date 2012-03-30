@@ -65,6 +65,9 @@ public:
   virtual Void setMaxAlfCtrlDepth(UInt uiMaxAlfCtrlDepth)                = 0;
   
   virtual Void  resetEntropy          ()                = 0;
+#if CABAC_INIT_FLAG
+  virtual Void  determineCabacInitIdx ()                = 0;
+#endif
   virtual Void  setBitstream          ( TComBitIf* p )  = 0;
   virtual Void  setSlice              ( TComSlice* p )  = 0;
   virtual Void  resetBits             ()                = 0;
@@ -78,7 +81,11 @@ public:
   virtual Void  codeSliceHeader         ( TComSlice* pcSlice )                                  = 0;
   virtual Void codeTileMarkerFlag      ( TComSlice* pcSlice )                                  = 0;
 
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+  virtual Void  codeTilesWPPEntryPoint  ( TComSlice* pSlice )     = 0;
+#else
   virtual Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice )                             = 0;
+#endif
   virtual Void  codeTerminatingBit      ( UInt uilsLast )                                       = 0;
   virtual Void  codeSliceFinish         ()                                                      = 0;
 #if OL_FLUSH
@@ -92,6 +99,7 @@ public:
   
 public:
   virtual Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
+  virtual Void codeApsExtensionFlag () = 0;
   
   virtual Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
   virtual Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
@@ -165,6 +173,9 @@ class TEncEntropy
 private:
   UInt    m_uiBakAbsPartIdx;
   UInt    m_uiBakChromaOffset;
+#if UNIFIED_TRANSFORM_TREE
+  UInt    m_bakAbsPartIdxCU;
+#endif
 
 public:
   Void    setEntropyCoder           ( TEncEntropyIf* e, TComSlice* pcSlice );
@@ -174,10 +185,17 @@ public:
   UInt    getNumberOfWrittenBits    ()                        { return m_pcEntropyCoderIf->getNumberOfWrittenBits(); }
   UInt    getCoeffCost              ()                        { return  m_pcEntropyCoderIf->getCoeffCost(); }
   Void    resetEntropy              ()                        { m_pcEntropyCoderIf->resetEntropy();  }
+#if CABAC_INIT_FLAG
+  Void    determineCabacInitIdx     ()                        { m_pcEntropyCoderIf->determineCabacInitIdx(); }
+#endif
   
   Void    encodeSliceHeader         ( TComSlice* pcSlice );
   Void    encodeTileMarkerFlag       (TComSlice* pcSlice) {m_pcEntropyCoderIf->codeTileMarkerFlag(pcSlice);}
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+  Void    encodeTilesWPPEntryPoint( TComSlice* pSlice );
+#else
   Void    encodeSliceHeaderSubstreamTable( TComSlice* pcSlice );
+#endif
   Void    encodeTerminatingBit      ( UInt uiIsLast );
   Void    encodeSliceFinish         ();
 #if OL_FLUSH
@@ -224,6 +242,8 @@ public:
 
   /// encode ALF CU control flag
   Void encodeAlfCtrlFlag(UInt uiFlag);
+  
+  Void encodeApsExtensionFlag() {m_pcEntropyCoderIf->codeApsExtensionFlag();};
 
   Void encodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
 
@@ -253,17 +273,9 @@ public:
 
 private:
 #if UNIFIED_TRANSFORM_TREE
-#if NSQT_LFFIX
-  Void xEncodeTransform        ( TComDataCU* pcCU,UInt offsetLumaOffset, UInt offsetChroma, UInt uiAbsPartIdx, UInt nsAbsPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3, Bool& bCodeDQP );
+  Void xEncodeTransform        ( TComDataCU* pcCU,UInt offsetLumaOffset, UInt offsetChroma, UInt uiAbsPartIdx, UInt absTUPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3, Bool& bCodeDQP );
 #else
-  Void xEncodeTransform        ( TComDataCU* pcCU,UInt offsetLumaOffset, UInt offsetChroma, UInt uiAbsPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3, Bool& bCodeDQP );
-#endif
-#else
-#if NSQT_LFFIX
-  Void xEncodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt nsAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 );
-#else
-  Void xEncodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 );
-#endif
+  Void xEncodeTransformSubdiv  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt absTUPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 );
   Void xEncodeCoeff            ( TComDataCU* pcCU, UInt uiLumaOffset, UInt uiChromaOffset, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, UInt uiTrIdx, UInt uiCurrTrIdx, Bool& bCodeDQP );
 #endif // !UNIFIED_TRANSFORM_TREE
 public:

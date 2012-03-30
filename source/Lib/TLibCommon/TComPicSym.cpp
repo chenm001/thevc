@@ -141,9 +141,7 @@ Void TComPicSym::allocateNewSlice()
   {
     m_apcTComSlice[m_uiNumAllocatedSlice-1]->copySliceInfo( m_apcTComSlice[m_uiNumAllocatedSlice-2] );
     m_apcTComSlice[m_uiNumAllocatedSlice-1]->initSlice();
-#if PARAMSET_VLC_CLEANUP
     m_apcTComSlice[m_uiNumAllocatedSlice-1]->initTiles();
-#endif
 
   }
 }

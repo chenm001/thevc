@@ -255,7 +255,11 @@ static const UChar
 INIT_INTER_DIR[3][NUM_INTER_DIR_CTX] = 
 {
   { CNU,  CNU,  CNU,  CNU, }, 
+#if CABAC_INIT_FLAG
+  {  95,   79,   63,   31, }, 
+#else
   { CNU,  CNU,  CNU,  CNU, }, 
+#endif
   {  95,   79,   63,   31, }, 
 };
 

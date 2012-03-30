@@ -44,23 +44,52 @@ class TComOutputBitstream;
  */
 struct NALUnit
 {
-  NalUnitType m_UnitType; ///< nal_unit_type
-  NalRefIdc m_RefIDC; ///< nal_ref_idc
-  unsigned m_TemporalID; ///< temporal_id
-  bool m_OutputFlag; ///< output_flag
+  NalUnitType m_nalUnitType; ///< nal_unit_type
+#if NAL_REF_FLAG
+  Bool        m_nalRefFlag;  ///< nal_ref_flag
+#else
+  NalRefIdc   m_nalRefIDC;   ///< nal_ref_idc
+#endif
+  unsigned    m_temporalId;  ///< temporal_id
+#if !H0388
+  bool        m_OutputFlag;  ///< output_flag
+#endif
 
   /** construct an NALunit structure with given header values. */
+#if H0388
+#if NAL_REF_FLAG
+  NALUnit(
+    NalUnitType nalUnitType,
+    Bool        nalRefFlag,
+    Int         temporalId = 0)
+    :m_nalUnitType (nalUnitType)
+    ,m_nalRefFlag  (nalRefFlag)
+    ,m_temporalId  (temporalId)
+  {}
+#else
+  NALUnit(
+    NalUnitType nalUnitType,
+    NalRefIdc nalRefIDC,
+    unsigned temporalID = 0)
+  {
+    m_nalUnitType = nalUnitType;
+    m_nalRefIDC   = nalRefIDC;
+    m_temporalId  = temporalID;
+  }
+#endif
+#else
   NALUnit(
     NalUnitType nalUnitType,
     NalRefIdc nalRefIDC,
     unsigned temporalID = 0,
     bool outputFlag = true)
   {
-    m_UnitType = nalUnitType;
-    m_RefIDC = nalRefIDC;
-    m_TemporalID = temporalID;
+    m_nalUnitType = nalUnitType;
+    m_nalRefIDC = nalRefIDC;
+    m_temporalId = temporalID;
     m_OutputFlag = outputFlag;
   }
+#endif
 
   /** default constructor - no initialization; must be perfomed by user */
   NALUnit() {}
@@ -68,14 +97,14 @@ struct NALUnit
   /** returns true if the NALunit is a slice NALunit */
   bool isSlice()
   {
-    return m_UnitType == NAL_UNIT_CODED_SLICE_IDR
+    return m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR
 #if H0566_TLA
-        || m_UnitType == NAL_UNIT_CODED_SLICE_CRA
-        || m_UnitType == NAL_UNIT_CODED_SLICE_TLA
+        || m_nalUnitType == NAL_UNIT_CODED_SLICE_CRA
+        || m_nalUnitType == NAL_UNIT_CODED_SLICE_TLA
 #else
-        || m_UnitType == NAL_UNIT_CODED_SLICE_CDR
+        || m_nalUnitType == NAL_UNIT_CODED_SLICE_CDR
 #endif
-        || m_UnitType == NAL_UNIT_CODED_SLICE;
+        || m_nalUnitType == NAL_UNIT_CODED_SLICE;
   }
 };
 

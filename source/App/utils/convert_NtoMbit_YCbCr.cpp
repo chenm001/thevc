@@ -104,7 +104,7 @@ int main(int argc, const char** argv)
     img[0] = 1;
 #endif
 
-    output.write(&frame, pad);
+    output.write(&frame);
     num_frames_processed++;
     if (num_frames_processed == num_frames)
       break;

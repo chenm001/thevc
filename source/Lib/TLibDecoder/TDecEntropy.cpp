@@ -48,230 +48,6 @@ Void TDecEntropy::setEntropyDecoder         ( TDecEntropyIf* p )
 #include "TLibCommon/TComAdaptiveLoopFilter.h"
 #include "TLibCommon/TComSampleAdaptiveOffset.h"
 
-#if !PARAMSET_VLC_CLEANUP
-Void TDecEntropy::decodeAux(ALFParam* pAlfParam)
-{
-  UInt uiSymbol;
-  Int sqrFiltLengthTab[2] = { 9, 9}; 
-
-  pAlfParam->filters_per_group = 0;
-  
-  memset (pAlfParam->filterPattern, 0 , sizeof(Int)*NO_VAR_BINS);
-  m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
-  pAlfParam->alf_pcr_region_flag = uiSymbol;  
-
-  m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
-
-  pAlfParam->filter_shape = uiSymbol;
-  pAlfParam->num_coeff = sqrFiltLengthTab[pAlfParam->filter_shape];
-  // filters_per_fr
-  m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
-  pAlfParam->filters_per_group = uiSymbol + 1;
-
-  if(uiSymbol == 1) // filters_per_group == 2
-  {
-    m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
-    pAlfParam->startSecondFilter = uiSymbol;
-    pAlfParam->filterPattern [uiSymbol] = 1;
-  }
-  else if (uiSymbol > 1) // filters_per_group > 2
-  {
-    pAlfParam->filters_per_group = 1;
-    Int numMergeFlags = pAlfParam->alf_pcr_region_flag ? 16 : 15;
-    for (Int i=1; i<numMergeFlags; i++) 
-    {
-      m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
-      pAlfParam->filterPattern[i] = uiSymbol;
-      pAlfParam->filters_per_group += uiSymbol;
-    }
-  }
-}
-#endif
-
-#if !PARAMSET_VLC_CLEANUP
-Void TDecEntropy::readFilterCodingParams(ALFParam* pAlfParam)
-{
-  UInt uiSymbol;
-  int ind, scanPos;
-  int golombIndexBit;
-  int kMin;
-  int maxScanVal;
-  int *pDepthInt;
-#if ALF_SINGLE_FILTER_SHAPE
-  Int minScanVal = MIN_SCAN_POS_CROSS;
-#else
-  int minScanVal = (pAlfParam->filter_shape == ALF_STAR5x5) ? 0: MIN_SCAN_POS_CROSS;
-#endif
-  // Determine maxScanVal
-  maxScanVal = 0;
-  pDepthInt = pDepthIntTabShapes[pAlfParam->filter_shape];
-  for(ind = 0; ind < pAlfParam->num_coeff; ind++)
-  {
-    maxScanVal = max(maxScanVal, pDepthInt[ind]);
-  }
-  
-  // Golomb parameters
-  m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
-  pAlfParam->minKStart = 1 + uiSymbol;
-  
-  kMin = pAlfParam->minKStart;
-
-  for(scanPos = minScanVal; scanPos < maxScanVal; scanPos++)
-  {
-    m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
-    golombIndexBit = uiSymbol;
-    if(golombIndexBit)
-    {
-      pAlfParam->kMinTab[scanPos] = kMin + 1;
-    }
-    else
-    {
-      pAlfParam->kMinTab[scanPos] = kMin;
-    }
-    kMin = pAlfParam->kMinTab[scanPos];
-  }
-}
-
-Int TDecEntropy::golombDecode(Int k)
-{
-  UInt uiSymbol;
-  Int q = -1;
-  Int nr = 0;
-  Int a;
-  
-  uiSymbol = 1;
-  while (uiSymbol)
-  {
-    m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
-    q++;
-  }
-  for(a = 0; a < k; ++a)          // read out the sequential log2(M) bits
-  {
-    m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
-    if(uiSymbol)
-    {
-      nr += 1 << a;
-    }
-  }
-  nr += q << k;
-  if(nr != 0)
-  {
-    m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
-    nr = (uiSymbol)? nr: -nr;
-  }
-  return nr;
-}
-
-
-
-Void TDecEntropy::readFilterCoeffs(ALFParam* pAlfParam)
-{
-  int ind, scanPos, i;
-  int *pDepthInt;
-  pDepthInt = pDepthIntTabShapes[pAlfParam->filter_shape];
-  for(ind = 0; ind < pAlfParam->filters_per_group; ++ind)
-  {
-    for(i = 0; i < pAlfParam->num_coeff; i++)
-    {
-      scanPos = pDepthInt[i] - 1;
-      pAlfParam->coeffmulti[ind][i] = golombDecode(pAlfParam->kMinTab[scanPos]);
-    }
-  }
-}
-
-Void TDecEntropy::decodeFilterCoeff (ALFParam* pAlfParam)
-{
-  readFilterCodingParams (pAlfParam);
-  readFilterCoeffs (pAlfParam);
-}
-
-
-
-Void TDecEntropy::decodeFilt(ALFParam* pAlfParam)
-{
-  UInt uiSymbol;
-  if (pAlfParam->filters_per_group > 1)
-  {
-    m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
-    pAlfParam->predMethod = uiSymbol;
-  }
-  for(Int ind = 0; ind < pAlfParam->filters_per_group; ++ind)
-  {
-    m_pcEntropyDecoderIf->parseAlfFlag (uiSymbol);
-    pAlfParam->nbSPred[ind] = uiSymbol;
-  }
-  decodeFilterCoeff (pAlfParam);
-}
-
-Void TDecEntropy::decodeAlfParam(ALFParam* pAlfParam)
-{
-  UInt uiSymbol;
-  Int iSymbol;
-  if (!pAlfParam->alf_flag)
-  {
-    m_pcEntropyDecoderIf->setAlfCtrl(false);
-    m_pcEntropyDecoderIf->setMaxAlfCtrlDepth(0); //unncessary
-    return;
-  }
-  
-  Int pos;
-  decodeAux(pAlfParam);
-  decodeFilt(pAlfParam);
-  // filter parameters for chroma
-  m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
-  pAlfParam->chroma_idc = uiSymbol;
-  
-  if(pAlfParam->chroma_idc)
-  {
-    m_pcEntropyDecoderIf->parseAlfUvlc(uiSymbol);
-    Int sqrFiltLengthTab[2] = { 9, 9};
-    pAlfParam->filter_shape_chroma = uiSymbol;
-    pAlfParam->num_coeff_chroma = sqrFiltLengthTab[pAlfParam->filter_shape_chroma];
-    // filter coefficients for chroma
-    for(pos=0; pos<pAlfParam->num_coeff_chroma; pos++)
-    {
-      m_pcEntropyDecoderIf->parseAlfSvlc(iSymbol);
-      pAlfParam->coeff_chroma[pos] = iSymbol;
-    }
-  }
-}
-
-/** decode ALF CU control parameters for one slice
- * \param [in,out] cAlfParam ALF CU control parameters
- * \param [in] iNumCUsinPic number of LCUs in picture for ALF
- */
-
-Void TDecEntropy::decodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic)
-{
-  UInt uiSymbol;
-  Int iSymbol;
-
-  m_pcEntropyDecoderIf->parseAlfFlag(uiSymbol);
-  cAlfParam.cu_control_flag = uiSymbol;
-  if (cAlfParam.cu_control_flag)
-  {
-    m_pcEntropyDecoderIf->setAlfCtrl(true);
-    m_pcEntropyDecoderIf->parseAlfCtrlDepth(uiSymbol);
-    m_pcEntropyDecoderIf->setMaxAlfCtrlDepth(uiSymbol);
-    cAlfParam.alf_max_depth = uiSymbol;
-  }
-  else
-  {
-    m_pcEntropyDecoderIf->setAlfCtrl(false);
-    return;
-  }
-
-  m_pcEntropyDecoderIf->parseAlfSvlc(iSymbol);
-  cAlfParam.num_alf_cu_flag = (UInt)(iSymbol + iNumCUsInPic);
-  cAlfParam.alf_cu_flag.resize(cAlfParam.num_alf_cu_flag);
-
-  for(UInt i=0; i< cAlfParam.num_alf_cu_flag; i++)
-  {
-    m_pcEntropyDecoderIf->parseAlfCtrlFlag( cAlfParam.alf_cu_flag[i] );
-  }
-}
-#endif
-
 Void TDecEntropy::decodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   m_pcEntropyDecoderIf->parseSkipFlag( pcCU, uiAbsPartIdx, uiDepth );
@@ -390,10 +166,23 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
   UInt uiNumPU = ( ePartSize == SIZE_2Nx2N ? 1 : ( ePartSize == SIZE_NxN ? 4 : 2 ) );
   UInt uiPUOffset = ( g_auiPUOffset[UInt( ePartSize )] << ( ( pcCU->getSlice()->getSPS()->getMaxCUDepth() - uiDepth ) << 1 ) ) >> 4;
 
+#if CU_BASED_MRG_CAND_LIST
+  TComMvField cMvFieldNeighbours[MRG_MAX_NUM_CANDS << 1]; // double length for mv of both lists
+  UChar uhInterDirNeighbours[MRG_MAX_NUM_CANDS];
+
+  for ( UInt ui = 0; ui < MRG_MAX_NUM_CANDS; ui++ )
+  {
+    uhInterDirNeighbours[ui] = 0;
+  }
+  Int numValidMergeCand = 0;
+  bool isMerged = false;
+#endif
+
   pcSubCU->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, REF_PIC_LIST_0 );
   pcSubCU->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, REF_PIC_LIST_1 );
   for ( UInt uiPartIdx = 0, uiSubPartIdx = uiAbsPartIdx; uiPartIdx < uiNumPU; uiPartIdx++, uiSubPartIdx += uiPUOffset )
   {
+#if !CU_BASED_MRG_CAND_LIST
     TComMvField cMvFieldNeighbours[MRG_MAX_NUM_CANDS << 1]; // double length for mv of both lists
     UChar uhInterDirNeighbours[MRG_MAX_NUM_CANDS];
     Int numValidMergeCand = 0;
@@ -401,13 +190,34 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
     {
       uhInterDirNeighbours[ui] = 0;
     }
-    if ( pcCU->getSlice()->getSPS()->getUseMRG() )
-    {
-      decodeMergeFlag( pcCU, uiSubPartIdx, uiDepth, uiPartIdx );
-    }
+#endif
+    decodeMergeFlag( pcCU, uiSubPartIdx, uiDepth, uiPartIdx );
     if ( pcCU->getMergeFlag( uiSubPartIdx ) )
     {
       decodeMergeIndex( pcCU, uiPartIdx, uiSubPartIdx, ePartSize, uhInterDirNeighbours, cMvFieldNeighbours, uiDepth );
+#if CU_BASED_MRG_CAND_LIST
+      UInt uiMergeIndex = pcCU->getMergeIndex(uiSubPartIdx);
+      if ( pcCU->getSlice()->getPPS()->getLog2ParallelMergeLevelMinus2() && ePartSize != SIZE_2Nx2N && pcSubCU->getWidth( 0 ) <= 8 ) 
+      {
+        pcSubCU->setPartSizeSubParts( SIZE_2Nx2N, 0, uiDepth );
+        if ( !isMerged )
+        {
+          pcSubCU->getInterMergeCandidates( 0, 0, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand );
+          isMerged = true;
+        }
+        pcSubCU->setPartSizeSubParts( ePartSize, 0, uiDepth );
+      }
+      else
+      {
+#if SIMP_MRG_PRUN
+        uiMergeIndex = pcCU->getMergeIndex(uiSubPartIdx);
+        pcSubCU->getInterMergeCandidates( uiSubPartIdx-uiAbsPartIdx, uiPartIdx, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand, uiMergeIndex );
+#else      
+        pcSubCU->getInterMergeCandidates( uiSubPartIdx-uiAbsPartIdx, uiPartIdx, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand );
+        uiMergeIndex = pcCU->getMergeIndex(uiSubPartIdx);
+#endif
+      }
+#else
 #if SIMP_MRG_PRUN       
       UInt uiMergeIndex = pcCU->getMergeIndex(uiSubPartIdx);
       pcSubCU->getInterMergeCandidates( uiSubPartIdx-uiAbsPartIdx, uiPartIdx, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand, uiMergeIndex );
@@ -415,22 +225,20 @@ Void TDecEntropy::decodePUWise( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDept
       pcSubCU->getInterMergeCandidates( uiSubPartIdx-uiAbsPartIdx, uiPartIdx, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand );
       UInt uiMergeIndex = pcCU->getMergeIndex(uiSubPartIdx);
 #endif
+#endif
       pcCU->setInterDirSubParts( uhInterDirNeighbours[uiMergeIndex], uiSubPartIdx, uiPartIdx, uiDepth );
 
       TComMv cTmpMv( 0, 0 );
-      if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_0 ) > 0  ) //if ( ref. frame list0 has at least 1 entry )
-      {
-        pcCU->setMVPIdxSubParts( 0, REF_PIC_LIST_0, uiSubPartIdx, uiPartIdx, uiDepth);
-        pcCU->setMVPNumSubParts( 0, REF_PIC_LIST_0, uiSubPartIdx, uiPartIdx, uiDepth);
-        pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvd( cTmpMv, ePartSize, uiSubPartIdx, uiDepth, uiPartIdx );
-        pcCU->getCUMvField( REF_PIC_LIST_0 )->setAllMvField( cMvFieldNeighbours[ 2*uiMergeIndex ], ePartSize, uiSubPartIdx, uiDepth, uiPartIdx );
-      }
-      if ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_1 ) > 0 ) //if ( ref. frame list1 has at least 1 entry )
-      {
-        pcCU->setMVPIdxSubParts( 0, REF_PIC_LIST_1, uiSubPartIdx, uiPartIdx, uiDepth);
-        pcCU->setMVPNumSubParts( 0, REF_PIC_LIST_1, uiSubPartIdx, uiPartIdx, uiDepth);
-        pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvd( cTmpMv, ePartSize, uiSubPartIdx, uiDepth, uiPartIdx );
-        pcCU->getCUMvField( REF_PIC_LIST_1 )->setAllMvField( cMvFieldNeighbours[ 2*uiMergeIndex + 1 ], ePartSize, uiSubPartIdx, uiDepth, uiPartIdx );
+      for ( UInt uiRefListIdx = 0; uiRefListIdx < 2; uiRefListIdx++ )
+      {        
+        if ( pcCU->getSlice()->getNumRefIdx( RefPicList( uiRefListIdx ) ) > 0 )
+        {
+          pcCU->setMVPIdxSubParts( 0, RefPicList( uiRefListIdx ), uiSubPartIdx, uiPartIdx, uiDepth);
+          pcCU->setMVPNumSubParts( 0, RefPicList( uiRefListIdx ), uiSubPartIdx, uiPartIdx, uiDepth);
+          pcCU->getCUMvField( RefPicList( uiRefListIdx ) )->setAllMvd( cTmpMv, ePartSize, uiSubPartIdx, uiDepth, uiPartIdx );
+          pcCU->getCUMvField( RefPicList( uiRefListIdx ) )->setAllMvField( cMvFieldNeighbours[ 2*uiMergeIndex + uiRefListIdx ], ePartSize, uiSubPartIdx, uiDepth, uiPartIdx );
+
+        }
       }
     }
     else
@@ -576,23 +384,19 @@ Void TDecEntropy::decodeMVPIdxPU( TComDataCU* pcSubCU, UInt uiPartAddr, UInt uiD
 }
 
 #if UNIFIED_TRANSFORM_TREE
-#if NSQT_LFFIX
-Void TDecEntropy::xDecodeTransform( TComDataCU* pcCU, UInt offsetLuma, UInt offsetChroma, UInt uiAbsPartIdx, UInt nsAbsPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3, Bool& bCodeDQP )
+Void TDecEntropy::xDecodeTransform( TComDataCU* pcCU, UInt offsetLuma, UInt offsetChroma, UInt uiAbsPartIdx, UInt absTUPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3, Bool& bCodeDQP )
 #else
-Void TDecEntropy::xDecodeTransform( TComDataCU* pcCU, UInt offsetLuma, UInt offsetChroma, UInt uiAbsPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3, Bool& bCodeDQP )
-#endif
-#else
-#if NSQT_LFFIX
-Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt nsAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 )
-#else
-Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 )
-#endif
+Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt absTUPartIdx, UInt uiDepth, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3 )
 #endif
 {
   UInt uiSubdiv;
   const UInt uiLog2TrafoSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth()]+2 - uiDepth;
 
 #if UNIFIED_TRANSFORM_TREE
+  if(uiTrIdx==0)
+  {
+    m_bakAbsPartIdxCU = uiAbsPartIdx;
+  }
   if( uiLog2TrafoSize == 2 )
   {
     UInt partNum = pcCU->getPic()->getNumPartInCU() >> ( ( uiDepth - 1 ) << 1 );
@@ -711,21 +515,13 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
     for( Int i = 0; i < 4; i++ )
     {
 #if UNIFIED_TRANSFORM_TREE
-#if NSQT_LFFIX
       UInt nsAddr = 0;
-      nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, nsAbsPartIdx, i, uiTrDepth+1 );
+      nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, absTUPartIdx, i, uiTrDepth+1 );
       xDecodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, nsAddr, uiDepth, width, height, uiTrIdx, i, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV, bCodeDQP );
 #else
-      xDecodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, uiDepth, width, height, uiTrIdx, i, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV, bCodeDQP );
-#endif
-#else
-#if NSQT_LFFIX
       UInt nsAddr = 0;
-      nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, nsAbsPartIdx, i, uiTrDepth+1 );
+      nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, absTUPartIdx, i, uiTrDepth+1 );
       xDecodeTransformSubdiv( pcCU, uiAbsPartIdx, nsAddr, uiDepth, i, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
-#else
-      xDecodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, i, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV );
-#endif
 #endif
       uiYCbf |= pcCU->getCbf( uiAbsPartIdx, TEXT_LUMA, uiLumaTrMode );
       uiUCbf |= pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiChromaTrMode );
@@ -766,12 +562,10 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
     
     UInt uiLumaTrMode, uiChromaTrMode;
     pcCU->convertTransIdx( uiAbsPartIdx, uiTrDepth, uiLumaTrMode, uiChromaTrMode );
-#if NSQT_LFFIX
     if(pcCU->getPredictionMode( uiAbsPartIdx ) == MODE_INTER && pcCU->useNonSquarePU( uiAbsPartIdx ) )
     {
-      pcCU->setNSQTIdxSubParts( uiLog2TrafoSize, uiAbsPartIdx, nsAbsPartIdx, uiLumaTrMode );
+      pcCU->setNSQTIdxSubParts( uiLog2TrafoSize, uiAbsPartIdx, absTUPartIdx, uiLumaTrMode );
     }
-#endif
     pcCU->setCbfSubParts ( 0, TEXT_LUMA, uiAbsPartIdx, uiDepth );
     if( pcCU->getPredictionMode(uiAbsPartIdx) != MODE_INTRA && uiDepth == pcCU->getDepth( uiAbsPartIdx ) && !pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, 0 ) && !pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, 0 ) )
     {
@@ -814,7 +608,7 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
       {
         if ( bCodeDQP )
         {
-          decodeQP( pcCU, uiAbsPartIdx, uiDepth);
+          decodeQP( pcCU, m_bakAbsPartIdxCU);
           bCodeDQP = false;
         }
       }
@@ -847,7 +641,7 @@ Void TDecEntropy::xDecodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
       {
         Int trWidth = width;
         Int trHeight = height;
-        pcCU->getNSQTSize( uiTrIdx-1, uiAbsPartIdx, trWidth, trHeight );
+        pcCU->getNSQTSize( uiTrIdx - 1, uiAbsPartIdx, trWidth, trHeight );
         if( cbfU )
         {
           m_pcEntropyDecoderIf->parseCoeffNxN( pcCU, (pcCU->getCoeffCb()+m_uiBakChromaOffset), m_uiBakAbsPartIdx, trWidth, trHeight, uiDepth, TEXT_CHROMA_U );
@@ -873,14 +667,19 @@ Void TDecEntropy::decodeTransformIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt 
   UInt temp = 0;
   UInt temp1 = 0;
   UInt temp2 = 0;
-#if NSQT_LFFIX
   xDecodeTransformSubdiv( pcCU, uiAbsPartIdx, uiAbsPartIdx, uiDepth, 0, temp, temp1, temp2 );
-#else
-  xDecodeTransformSubdiv( pcCU, uiAbsPartIdx, uiDepth, 0, temp, temp1, temp2 );
-#endif
 }
 #endif // UNIFIED_TRANSFORM_TREE
 
+#if UNIFIED_TRANSFORM_TREE
+Void TDecEntropy::decodeQP          ( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  if ( pcCU->getSlice()->getPPS()->getUseDQP() )
+  {
+    m_pcEntropyDecoderIf->parseDeltaQP( pcCU, uiAbsPartIdx, pcCU->getDepth( uiAbsPartIdx ) );
+  }
+}
+#else
 Void TDecEntropy::decodeQP          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   if ( pcCU->getSlice()->getPPS()->getUseDQP() )
@@ -888,6 +687,7 @@ Void TDecEntropy::decodeQP          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt 
     m_pcEntropyDecoderIf->parseDeltaQP( pcCU, uiAbsPartIdx, uiDepth );
   }
 }
+#endif
 
 #if !UNIFIED_TRANSFORM_TREE
 Void TDecEntropy::xDecodeCoeff( TComDataCU* pcCU, UInt uiLumaOffset, UInt uiChromaOffset, UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, UInt uiTrIdx, UInt uiCurrTrIdx, Bool& bCodeDQP )
@@ -1058,9 +858,7 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     {
       pcCU->setCbfSubParts( 0, 0, 0, uiAbsPartIdx, uiDepth );
       pcCU->setTrIdxSubParts( 0 , uiAbsPartIdx, uiDepth );
-#if NSQT_LFFIX
       pcCU->setNSQTIdxSubParts( uiAbsPartIdx, uiDepth );
-#endif
       return;
     }
     
@@ -1071,145 +869,10 @@ Void TDecEntropy::decodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
 #endif // !UNIFIED_TRANSFORM_TREE
   }
 #if UNIFIED_TRANSFORM_TREE
-#if NSQT_LFFIX
   xDecodeTransform( pcCU, uiLumaOffset, uiChromaOffset, uiAbsPartIdx, uiAbsPartIdx, uiDepth, uiWidth, uiHeight, 0, 0, temp, temp1, temp2, bCodeDQP );
-#else
-  xDecodeTransform( pcCU, uiLumaOffset, uiChromaOffset, uiAbsPartIdx, uiDepth, uiWidth, uiHeight, 0, 0, temp, temp1, temp2, bCodeDQP );
-#endif
 #else // UNIFIED_TRANSFORM_TREE
   xDecodeCoeff( pcCU, uiLumaOffset, uiChromaOffset, uiAbsPartIdx, uiDepth, uiWidth, uiHeight, 0, uiLumaTrMode, bCodeDQP );
 #endif // UNIFIED_TRANSFORM_TREE
 }
 
-#if !PARAMSET_VLC_CLEANUP
-/** Decode SAO for one partition
- * \param  pSaoParam, iPartIdx
- */
-Void TDecEntropy::decodeSaoOnePart(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr)
-{
-  UInt uiSymbol;
-  Int iSymbol;  
-  SAOQTPart*  pSaoPart = NULL;
-  pSaoPart = &(pSaoParam->psSaoPart[iYCbCr][iPartIdx]);
-
-  static Int iTypeLength[MAX_NUM_SAO_TYPE] =
-  {
-    SAO_EO_LEN,
-    SAO_EO_LEN,
-    SAO_EO_LEN,
-    SAO_EO_LEN,
-    SAO_BO_LEN,
-    SAO_BO_LEN
-  };  
-  if(!pSaoPart->bSplit)
-  {
-    m_pcEntropyDecoderIf->parseSaoUvlc(uiSymbol);
-    if (uiSymbol)
-    {
-      pSaoPart->iBestType = uiSymbol-1;
-      pSaoPart->bEnableFlag = true;
-    }
-    else
-    {
-      pSaoPart->iBestType = -1;
-      pSaoPart->bEnableFlag = false;
-    }
-
-    if (pSaoPart->bEnableFlag)
-    {
-      pSaoPart->iLength = iTypeLength[pSaoPart->iBestType];
-      for(Int i=0; i< pSaoPart->iLength; i++)
-      {
-        m_pcEntropyDecoderIf->parseSaoSvlc(iSymbol);
-        pSaoPart->iOffset[i] = iSymbol;
-      }
-    }
-    return;
-  }
-
-  //split
-  if (pSaoPart->PartLevel < pSaoParam->iMaxSplitLevel)
-  {
-    for(Int i=0;i<NUM_DOWN_PART;i++)
-    {
-      decodeSaoOnePart(pSaoParam, pSaoPart->DownPartsIdx[i], iYCbCr);
-    }
-  }
-}
-
-/** Decode quadtree split flag
- * \param  pSaoParam, iPartIdx
- */
-Void TDecEntropy::decodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr)
-{
-  UInt uiSymbol;
-  SAOQTPart*  pSaoPart = NULL;
-  pSaoPart= &(pSaoParam->psSaoPart[iYCbCr][iPartIdx]);
-
-  if(pSaoPart->PartLevel < pSaoParam->iMaxSplitLevel)
-  {
-    m_pcEntropyDecoderIf->parseSaoFlag(uiSymbol); 
-    pSaoPart->bSplit = uiSymbol? true:false; 
-    if(pSaoPart->bSplit)
-    {
-      for (Int i=0;i<NUM_DOWN_PART;i++)
-      {
-        decodeQuadTreeSplitFlag(pSaoParam, pSaoPart->DownPartsIdx[i], iYCbCr);
-      }
-    }
-  }
-  else
-  {
-    pSaoPart->bSplit = false; 
-  }
-}
-
-/** Decode SAO parameters
- * \param  pSaoParam
- */
-Void TDecEntropy::decodeSaoParam(SAOParam* pSaoParam)
-{
-  UInt uiSymbol;
-
-  if (pSaoParam->bSaoFlag[0])
-  {
-    decodeQuadTreeSplitFlag(pSaoParam, 0, 0);
-    decodeSaoOnePart(pSaoParam, 0, 0);
-    m_pcEntropyDecoderIf->parseSaoFlag(uiSymbol);
-    pSaoParam->bSaoFlag[1] = uiSymbol? true:false;
-    if (pSaoParam->bSaoFlag[1])
-    {
-      decodeQuadTreeSplitFlag(pSaoParam, 0, 1);
-      decodeSaoOnePart(pSaoParam, 0, 1);
-    }
-
-    m_pcEntropyDecoderIf->parseSaoFlag(uiSymbol);
-    pSaoParam->bSaoFlag[2] = uiSymbol? true:false;
-    if (pSaoParam->bSaoFlag[2])
-    {
-      decodeQuadTreeSplitFlag(pSaoParam, 0, 2);
-      decodeSaoOnePart(pSaoParam, 0, 2);
-    }
-  }
-
-}
-
-Void TDecEntropy::decodeDFParams(TComAPS *pcAPS)
-{
-  UInt uiSymbol;
-  Int iSymbol;
-
-  m_pcEntropyDecoderIf->parseDFFlag(uiSymbol, "loop_filter_disable");
-  pcAPS->setLoopFilterDisable(uiSymbol?true:false);
-
-  if (!pcAPS->getLoopFilterDisable())
-  {
-    m_pcEntropyDecoderIf->parseDFSvlc(iSymbol, "beta_offset_div2");
-    pcAPS->setLoopFilterBetaOffset(iSymbol);
-    m_pcEntropyDecoderIf->parseDFSvlc(iSymbol, "tc_offset_div2");
-    pcAPS->setLoopFilterTcOffset(iSymbol);
-  }
-}
-
-#endif
 //! \}

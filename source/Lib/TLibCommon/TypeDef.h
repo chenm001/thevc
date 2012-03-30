@@ -40,8 +40,27 @@
 
 //! \ingroup TLibCommon
 //! \{
+
+#define SKIPFRAME_BUGFIX                  1 ///< bug fix to enable skipFrame at decoder 
+#define START_DECODING_AT_CRA             1 ///< H0496, start decoding at clear random access point 
+#define NO_COMBINED_PARALLEL              1 ///< Disallow any combined usage of parallel tools among Tile, EntropySlice and Wavefont
+
+#define LOSSLESS_CODING                   1  ///< H0530: lossless and lossy (mixed) coding
+#if LOSSLESS_CODING
+#define SEQUENCE_LEVEL_LOSSLESS           0  ///< H0530: used only for sequence or frame-level lossless coding
+#endif
+
+#define PARALLEL_MERGE  1                   //< H0082 parallel merge/skip      
+#define LOG2_PARALLEL_MERGE_LEVEL_MINUS2 0  //< H0082 parallel merge level 0-> 4x4, 1-> 8x8, 2->16x16, 3->32x32, 4->64x64
+#if PARALLEL_MERGE && LOG2_PARALLEL_MERGE_LEVEL_MINUS2
+#define CU_BASED_MRG_CAND_LIST           1  //< H0240: single merge candidate list for all PUs inside a 8x8 CU conditioned on LOG2_PARALLEL_MERGE_LEVEL_MINUS2 > 0
+#endif
+#define MVP_AT_ENTROPYSLICE_BOUNDARY  1     //< H0362 enable motion prediction accross entropy slice boundary
+
 #define FAST_DECISION_FOR_MRG_RD_COST  1 ////< H0178: Fast Decision for Merge 2Nx2N RDCost
 
+#define PIC_CROPPING              1 ///< Picture cropping and size constraints
+#define NAL_REF_FLAG              1 ///< Change nal_ref_idc to nal_ref_flag (JCTVC-F463)
 #define REMOVE_DIV_OPERATION      1 ///< H0238: Simplified intra horizontal and vertical filtering
 #define LOGI_INTRA_NAME_3MPM      1  ///< H0407: logical Intra mode naming (sequential angular mode numbering) and 3 MPM mode coding
 
@@ -92,13 +111,15 @@
 
 #define ALF_SINGLE_FILTER_SHAPE    1     //< !!! H0068: Single filter type : 9x7 cross + 3x3 square
 
-#define PARAMSET_VLC_CLEANUP               1      ///< followup to G220: Simplify parameter set code
-
 #define ALF_16_BA_GROUPS        1     ///< H0409 16 BA groups
 #define LCU_SYNTAX_ALF          1     ///< H0274 LCU-syntax ALF
 #define ALF_CHROMA_COEF_PRED_HARMONIZATION 1 ///< H0483: ALF chroma coeff pred harmonization
 
 #define CABAC_LINEAR_INIT       1     ///< H0535 : linear CABAC initialization
+
+#define COLLOCATED_REF_IDX      1     ///< H0442: signal collocated reference index
+
+#define UNIFIED_TRANSFORM       1     ///< H0492: unify square and non-square transform
 
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
@@ -147,6 +168,8 @@
 #error
 #endif
 
+#define H0137_0138_LIST_MODIFICATION      1           // Enabled reference picture lists combination (H0137) and reference picture list modification (H0138) updates
+
 #define VERBOSE_RATE 0 ///< Print additional rate information in encoder
 
 #define AMVP_DECIMATION_FACTOR            4
@@ -169,6 +192,7 @@
                                                     // using one nearest frame as reference frame, and the other frames are high quality (POC%4==0) frames (1+X)
                                                     // this should be done with encoder only decision
                                                     // but because of the absence of reference frame management, the related code was hard coded currently
+#define LTRP_MULT                       1           ///< enable/disable multiple long term reference pictures with same POC LSB
 
 #define OL_FLUSH 1          // Set to 1 to enable Wavefront Flush.
 #define OL_FLUSH_ALIGN 0    // Align flush to byte boundary.  This preserves byte operations in CABAC (faster) but at the expense of an average
@@ -196,8 +220,12 @@
 
 #define FULL_NBIT 0 ///< When enabled, does not use g_uiBitIncrement anymore to support > 8 bit data
 
+#define FIXED_NUMBER_OF_TILES_SLICE_MODE                1
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE      1          ///< OPTION IDENTIFIER. mode==1 -> Limit maximum number of largest coding tree blocks in a slice
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE    2          ///< OPTION IDENTIFIER. mode==2 -> Limit maximum number of bins/bits in a slice
+#if FIXED_NUMBER_OF_TILES_SLICE_MODE
+#define AD_HOC_SLICES_FIXED_NUMBER_OF_TILES_IN_SLICE    3
+#endif
 
 // Entropy slice options
 #define SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE            1          ///< OPTION IDENTIFIER. Limit maximum number of largest coding tree blocks in an entropy slice
@@ -230,6 +258,9 @@
 #define H0412_REF_PIC_LIST_RESTRICTION 1
 
 #define H0566_TLA                     1
+#if H0566_TLA
+#define H0566_TLA_SET_FOR_SWITCHING_POINTS 1
+#endif
 
 #define H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER 1
 
@@ -237,6 +268,16 @@
 #define DBL_CONTROL               1   //PPS deblocking_filter_control_present_flag (JCTVC-H0398); condition for inherit params flag in SH (JCTVC-H0424)
 #define DBL_STRONG_FILTER_CLIP    1   //Introduction of strong filter clipping in deblocking filter (JCTVC-H0275)
 
+#define CABAC_INIT_FLAG             1 // JCTVC-H0540
+#define CABAC_INIT_PRESENT_FLAG     1
+
+#define H0388                       1 // JCTVC-H0388
+
+#define TILES_WPP_ENTRY_POINT_SIGNALLING        1 // JCTVC-H0556. Assumes either Tiles is ON or WPP is ON (not both simultaneously).
+#define REMOVE_TILE_DEPENDENCE                  1 // remove tile_boundary_independence_flag and dependent tiles
+#define TILES_OR_ENTROPY_SYNC_IDC               1 // tiles_or_entropy_coding_sync_idc flag
+#define COMPLETE_SLICES_IN_TILE     1 // Among the constraints between slices and tiles, all slices within a tile shall be complete (JCTVC-H0348/JCTVC-H0463) for SliceMode 1&2
+#define WPP_SIMPLIFICATION          1 // JCTVC-H0349/JCTVC-0517
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================

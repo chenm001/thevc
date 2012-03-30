@@ -86,22 +86,18 @@ protected:
 #endif
 private:
   TComInputBitstream*   m_pcBitstream;
-#if !PARAMSET_VLC_CLEANUP
-  Bool m_bAlfCtrl;
-  UInt m_uiMaxAlfCtrlDepth;
-#endif
   Int           m_iSliceGranularity; //!< slice granularity
   
 public:
 
   /// rest entropy coder by intial QP and IDC in CABAC
+#if !CABAC_INIT_FLAG
   Void  resetEntropy        (Int  iQp, Int iID) { printf("Not supported yet\n"); assert(0); exit(1);}
   Void  resetEntropy        ( TComSlice* pcSlice  );
-  Void  setBitstream        ( TComInputBitstream* p )   { m_pcBitstream = p; }
-#if !PARAMSET_VLC_CLEANUP
-  Void  setAlfCtrl          ( Bool bAlfCtrl )            { m_bAlfCtrl = bAlfCtrl; }
-  Void  setMaxAlfCtrlDepth  ( UInt uiMaxAlfCtrlDepth )  { m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth; }
+#else
+  Void  resetEntropy        ( TComSlice* pcSlice  )     { assert(0); };
 #endif
+  Void  setBitstream        ( TComInputBitstream* p )   { m_pcBitstream = p; }
   /// set slice granularity
   Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
 
@@ -110,28 +106,19 @@ public:
   Void  parseTransformSubdivFlag( UInt& ruiSubdivFlag, UInt uiLog2TransformBlockSize );
   Void  parseQtCbf          ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
   Void  parseQtRootCbf      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf );
-#if !PARAMSET_VLC_CLEANUP
-  Void  parseAlfFlag        ( UInt& ruiVal );
-  Void  parseAlfSvlc        ( Int&  riVal  );
-  Void  parseAlfUvlc        ( UInt& ruiVal );
-  Void  parseSaoFlag        ( UInt& ruiVal );
-  Void  parseSaoUvlc        ( UInt& ruiVal );
-  Void  parseSaoSvlc        ( Int&  riVal  );
-#endif  
 
   Void  parseSPS            ( TComSPS* pcSPS );
+#if TILES_OR_ENTROPY_SYNC_IDC
+  Void  parsePPS            ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet);
+#else
   Void  parsePPS            ( TComPPS* pcPPS);
+#endif
   Void  parseSEI(SEImessages&);
-#if PARAMSET_VLC_CLEANUP
   Void  parseAPS            ( TComAPS* pAPS );
 #if LCU_SYNTAX_ALF
   Void  parseSliceHeader    ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl, AlfParamSet& alfParamSet);
 #else
   Void  parseSliceHeader    ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl );
-#endif
-#else
-  Void  parseSliceHeader    ( TComSlice*& rpcSlice );
-  Void parseWPPTileInfoToSliceHeader(TComSlice*& rpcSlice);
 #endif
   Void  parseTerminatingBit ( UInt& ruiBit );
   
@@ -157,19 +144,10 @@ public:
   
   Void parseIPCMInfo        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
 
-#if !PARAMSET_VLC_CLEANUP
-  Void parseAlfCtrlDepth    ( UInt& ruiAlfCtrlDepth );
-  Void parseAlfCtrlFlag     ( UInt &ruiAlfCtrlFlag );
-#endif
   Void readTileMarker     ( UInt& uiTileIdx, UInt uiBitsUsed );
   Void updateContextTables  ( SliceType eSliceType, Int iQp ) { return; }
 #if OL_FLUSH
   Void decodeFlush() {};
-#endif
-
-#if !PARAMSET_VLC_CLEANUP
-  /// parse APF flags before SAO and ALF parameters
-  Void parseAPSInitInfo(TComAPS& cAPS);
 #endif
 
   Void xParsePredWeightTable ( TComSlice* pcSlice );
@@ -177,7 +155,6 @@ public:
   Void xDecodeScalingList    ( TComScalingList *scalingList, UInt sizeId, UInt listId);
   Void parseDFFlag         ( UInt& ruiVal, const Char *pSymbolName );
   Void parseDFSvlc         ( Int&  riVal,  const Char *pSymbolName  );
-#if PARAMSET_VLC_CLEANUP
 protected:
 #if DBL_CONTROL
   Void  xParseDblParam       ( TComAPS* aps );
@@ -199,7 +176,7 @@ protected:
   Void  xParseAlfParam       ( ALFParam* pAlfParam );
   Void  xParseAlfCuControlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
   Int   xGolombDecode        ( Int k );
-#endif
+  Bool  xMoreRbspData();
 };
 
 //! \}

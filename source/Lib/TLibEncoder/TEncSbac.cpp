@@ -115,6 +115,14 @@ Void TEncSbac::resetEntropy           ()
   Int  iQp              = m_pcSlice->getSliceQp();
   SliceType eSliceType  = m_pcSlice->getSliceType();
   
+#if CABAC_INIT_FLAG
+  Int  encCABACTableIdx = m_pcSlice->getPPS()->getEncCABACTableIdx();
+  if (!m_pcSlice->isIntra() && (encCABACTableIdx==B_SLICE || encCABACTableIdx==P_SLICE) && m_pcSlice->getPPS()->getCabacInitPresentFlag())
+  {
+    eSliceType = (SliceType) encCABACTableIdx;
+  }
+#endif
+
   m_cCUSplitFlagSCModel.initBuffer       ( eSliceType, iQp, (UChar*)INIT_SPLIT_FLAG );
   
   m_cCUSkipFlagSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SKIP_FLAG );
@@ -163,6 +171,83 @@ Void TEncSbac::resetEntropy           ()
   
   return;
 }
+
+#if CABAC_INIT_FLAG
+/** The function does the following: 
+ * If current slice type is P/B then it determines the distance of initialisation type 1 and 2 from the current CABAC states and 
+ * stores the index of the closest table.  This index is used for the next P/B slice when cabac_init_present_flag is true.
+ */
+Void TEncSbac::determineCabacInitIdx()
+{
+  Int  qp              = m_pcSlice->getSliceQp();
+
+  if (!m_pcSlice->isIntra())
+  {
+    SliceType aSliceTypeChoices[] = {B_SLICE, P_SLICE};
+
+    UInt bestCost             = MAX_UINT;
+    SliceType bestSliceType   = aSliceTypeChoices[0];
+    for (UInt idx=0; idx<2; idx++)
+    {
+      UInt curCost          = 0;
+      SliceType curSliceType  = aSliceTypeChoices[idx];
+
+      curCost  = m_cCUSplitFlagSCModel.calcCost       ( curSliceType, qp, (UChar*)INIT_SPLIT_FLAG );
+      curCost += m_cCUSkipFlagSCModel.calcCost        ( curSliceType, qp, (UChar*)INIT_SKIP_FLAG );
+      curCost += m_cCUAlfCtrlFlagSCModel.calcCost     ( curSliceType, qp, (UChar*)INIT_ALF_CTRL_FLAG );
+      curCost += m_cCUMergeFlagExtSCModel.calcCost    ( curSliceType, qp, (UChar*)INIT_MERGE_FLAG_EXT);
+      curCost += m_cCUMergeIdxExtSCModel.calcCost     ( curSliceType, qp, (UChar*)INIT_MERGE_IDX_EXT);
+      curCost += m_cCUPartSizeSCModel.calcCost        ( curSliceType, qp, (UChar*)INIT_PART_SIZE );
+#if AMP_CTX
+      curCost += m_cCUAMPSCModel.calcCost             ( curSliceType, qp, (UChar*)INIT_CU_AMP_POS );
+#else
+      curCost += m_cCUXPosiSCModel.calcCost           ( curSliceType, qp, (UChar*)INIT_CU_X_POS );
+      curCost += m_cCUYPosiSCModel.calcCost           ( curSliceType, qp, (UChar*)INIT_CU_Y_POS );
+#endif
+      curCost += m_cCUPredModeSCModel.calcCost        ( curSliceType, qp, (UChar*)INIT_PRED_MODE );
+      curCost += m_cCUIntraPredSCModel.calcCost       ( curSliceType, qp, (UChar*)INIT_INTRA_PRED_MODE );
+      curCost += m_cCUChromaPredSCModel.calcCost      ( curSliceType, qp, (UChar*)INIT_CHROMA_PRED_MODE );
+      curCost += m_cCUInterDirSCModel.calcCost        ( curSliceType, qp, (UChar*)INIT_INTER_DIR );
+      curCost += m_cCUMvdSCModel.calcCost             ( curSliceType, qp, (UChar*)INIT_MVD );
+      curCost += m_cCURefPicSCModel.calcCost          ( curSliceType, qp, (UChar*)INIT_REF_PIC );
+      curCost += m_cCUDeltaQpSCModel.calcCost         ( curSliceType, qp, (UChar*)INIT_DQP );
+      curCost += m_cCUQtCbfSCModel.calcCost           ( curSliceType, qp, (UChar*)INIT_QT_CBF );
+      curCost += m_cCUQtRootCbfSCModel.calcCost       ( curSliceType, qp, (UChar*)INIT_QT_ROOT_CBF );
+      curCost += m_cCUSigCoeffGroupSCModel.calcCost   ( curSliceType, qp, (UChar*)INIT_SIG_CG_FLAG );
+      curCost += m_cCUSigSCModel.calcCost             ( curSliceType, qp, (UChar*)INIT_SIG_FLAG );
+      curCost += m_cCuCtxLastX.calcCost               ( curSliceType, qp, (UChar*)INIT_LAST );
+      curCost += m_cCuCtxLastY.calcCost               ( curSliceType, qp, (UChar*)INIT_LAST );
+      curCost += m_cCUOneSCModel.calcCost             ( curSliceType, qp, (UChar*)INIT_ONE_FLAG );
+      curCost += m_cCUAbsSCModel.calcCost             ( curSliceType, qp, (UChar*)INIT_ABS_FLAG );
+      curCost += m_cMVPIdxSCModel.calcCost            ( curSliceType, qp, (UChar*)INIT_MVP_IDX );
+      curCost += m_cALFFlagSCModel.calcCost           ( curSliceType, qp, (UChar*)INIT_ALF_FLAG );
+      curCost += m_cALFUvlcSCModel.calcCost           ( curSliceType, qp, (UChar*)INIT_ALF_UVLC );
+      curCost += m_cALFSvlcSCModel.calcCost           ( curSliceType, qp, (UChar*)INIT_ALF_SVLC );
+      curCost += m_cCUTransSubdivFlagSCModel.calcCost ( curSliceType, qp, (UChar*)INIT_TRANS_SUBDIV_FLAG );
+      curCost += m_cSaoFlagSCModel.calcCost           ( curSliceType, qp, (UChar*)INIT_SAO_FLAG );
+      curCost += m_cSaoUvlcSCModel.calcCost           ( curSliceType, qp, (UChar*)INIT_SAO_UVLC );
+      curCost += m_cSaoSvlcSCModel.calcCost           ( curSliceType, qp, (UChar*)INIT_SAO_SVLC );
+#if SAO_UNIT_INTERLEAVING
+      curCost += m_cSaoMergeLeftSCModel.calcCost      ( curSliceType, qp, (UChar*)INIT_SAO_MERGE_LEFT_FLAG );
+      curCost += m_cSaoMergeUpSCModel.calcCost        ( curSliceType, qp, (UChar*)INIT_SAO_MERGE_UP_FLAG );
+      curCost += m_cSaoTypeIdxSCModel.calcCost        ( curSliceType, qp, (UChar*)INIT_SAO_TYPE_IDX );
+#endif
+
+      if (curCost < bestCost)
+      {
+        bestSliceType = curSliceType;
+        bestCost      = curCost;
+      }
+    }
+    m_pcSlice->getPPS()->setEncCABACTableIdx( bestSliceType );
+  }
+  else
+  {
+    m_pcSlice->getPPS()->setEncCABACTableIdx( I_SLICE );
+  }  
+}
+#endif
+
 
 /** The function does the followng: Write out terminate bit. Flush CABAC. Intialize CABAC states. Start CABAC.
  */
@@ -245,10 +330,18 @@ Void TEncSbac::codeSliceHeader( TComSlice* pcSlice )
   return;
 }
 
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+Void TEncSbac::codeTilesWPPEntryPoint( TComSlice* pSlice )
+{
+  assert (0);
+  return;
+}
+#else
 Void TEncSbac::codeSliceHeaderSubstreamTable( TComSlice* pcSlice )
 {
   assert (0);
 }
+#endif
 
 Void TEncSbac::codeTerminatingBit( UInt uilsLast )
 {
@@ -880,6 +973,20 @@ Void TEncSbac::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
 #if H0736_AVC_STYLE_QP_RANGE
   Int qpBdOffsetY =  pcCU->getSlice()->getSPS()->getQpBDOffsetY();
   iDQp = (iDQp + 78 + qpBdOffsetY + (qpBdOffsetY/2)) % (52 + qpBdOffsetY) - 26 - (qpBdOffsetY/2);
+#else
+#if LOSSLESS_CODING
+  if(pcCU->getSlice()->getSPS()->getUseLossless())
+  {
+    if(iDQp > 25)
+    {
+      iDQp = iDQp - 52;
+    }
+    if(iDQp < -26)
+    {
+      iDQp = iDQp + 52;
+    }
+  }
+#endif
 #endif
 
   if ( iDQp == 0 )
@@ -1253,7 +1360,19 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   
 #if MULTIBITS_DATA_HIDING
   UInt const tsig = pcCU->getSlice()->getPPS()->getTSIG();
+#if LOSSLESS_CODING
+  Bool beValid; 
+  if (pcCU->isLosslessCoded(uiAbsPartIdx))
+  {
+    beValid = false;
+  }
+  else 
+  {
+    beValid = pcCU->getSlice()->getPPS()->getSignHideFlag() > 0;
+  }
+#else
   Bool beValid = pcCU->getSlice()->getPPS()->getSignHideFlag() > 0;
+#endif
 #endif
 
   // Find position of last coefficient

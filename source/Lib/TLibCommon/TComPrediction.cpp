@@ -660,10 +660,6 @@ Void TComPrediction::xWeightedAverage( TComDataCU* pcCU, TComYuv* pcYuvSrc0, TCo
   {
     pcYuvSrc1->copyPartToPartYuv( rpcYuvDst, uiPartIdx, iWidth, iHeight );
   }
-  else
-  {
-    assert (0);
-  }
 }
 
 // AMVP

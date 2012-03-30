@@ -63,22 +63,31 @@ protected:
   unsigned int m_FrameSkip;                                   ///< number of skipped frames from the beginning
   Int       m_iSourceWidth;                                   ///< source width in pixel
   Int       m_iSourceHeight;                                  ///< source height in pixel
+#if PIC_CROPPING
+  Int       m_croppingMode;
+  Int       m_cropLeft;
+  Int       m_cropRight;
+  Int       m_cropTop;
+  Int       m_cropBottom;
+#endif
   Int       m_iFrameToBeEncoded;                              ///< number of encoded frames
+#if !PIC_CROPPING
   Bool      m_bUsePAD;                                        ///< flag for using source padding
+#endif
   Int       m_aiPad[2];                                       ///< number of padded pixels for width and height
   
   // coding structure
   Int       m_iIntraPeriod;                                   ///< period of I-slice (random access period)
   Int       m_iDecodingRefreshType;                           ///< random access type
   Int       m_iGOPSize;                                       ///< GOP size of hierarchical structure
-  Int       m_iExtraRPSs;
-  GOPEntry  m_pcGOPList[MAX_GOP];
+  Int       m_extraRPSs;                                      ///< extra RPSs added to handle CRA
+  GOPEntry  m_GOPList[MAX_GOP];                               ///< the coding structure entries from the config file
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  Int       m_numReorderPics;                               ///< total number of reorder pictures
-  UInt      m_uiMaxDecPicBuffering;                         ///< total number of reference pictures needed for decoding
+  Int       m_numReorderPics[MAX_TLAYER];                     ///< total number of reorder pictures
+  Int       m_maxDecPicBuffering[MAX_TLAYER];                 ///< total number of reference pictures needed for decoding
 #else
   Int       m_numReorderFrames;                               ///< total number of reorder pictures
-  UInt      m_uiMaxNumberOfReferencePictures;                 ///< total number of reference pictures needed for decoding
+  Int       m_maxNumberOfReferencePictures;                   ///< total number of reference pictures needed for decoding
 #endif
   Bool      m_bUseLComb;                                      ///< flag for using combined reference list for uni-prediction in B-slices (JCTVC-D421)
   Bool      m_bLCMod;                                         ///< flag for specifying whether the combined reference list for uni-prediction in B-slices is uploaded explicitly
@@ -133,6 +142,10 @@ protected:
   Bool      m_bPCMInputBitDepthFlag;                          ///< 0: PCM bit-depth is internal bit-depth. 1: PCM bit-depth is input bit-depth.
   UInt      m_uiPCMBitDepthLuma;                              ///< PCM bit-depth for luma
 
+  // coding tool (lossless)
+#if LOSSLESS_CODING
+  Bool      m_useLossless;                                    ///< flag for using lossless coding
+#endif
   Bool      m_bUseSAO; 
 #if SAO_UNIT_INTERLEAVING
   Int       m_maxNumOffsetsPerPic;                            ///< SAO maximun number of offset per picture
@@ -155,10 +168,7 @@ protected:
 #if DBL_CONTROL
   Bool      m_DeblockingFilterControlPresent;                 ///< deblocking filter control present flag in PPS
 #endif
-
-  // coding tools (inter - merge motion partitions)
-  Bool      m_bUseMRG;                                        ///< SOPH: flag for using motion partition Merge Mode
-  
+ 
   Bool      m_bUseLMChroma;                                  ///< JL: Chroma intra prediction based on luma signal
 
   // coding tools (PCM)
@@ -192,7 +202,9 @@ protected:
   Bool m_bLFCrossTileBoundaryFlag;  //!< 1: Cross-tile-boundary in-loop filtering 0: non-cross-tile-boundary in-loop filtering
   Int       m_iColumnRowInfoPresent;
   Int       m_iUniformSpacingIdr;
+#if !REMOVE_TILE_DEPENDENCE
   Int       m_iTileBoundaryIndependenceIdr;
+#endif
   Int       m_iNumColumnsMinus1;
   char*     m_pchColumnWidth;
   Int       m_iNumRowsMinus1;

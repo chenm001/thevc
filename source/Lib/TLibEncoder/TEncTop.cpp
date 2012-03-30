@@ -234,7 +234,7 @@ Void TEncTop::destroy ()
   }
   m_cAdaptiveLoopFilter.destroy();
   m_cLoopFilter.        destroy();
-  m_cRPSList.               destroy();
+  m_RPSList.            destroy();
   
   // SBAC RD
   if( m_bUseSBACRD )
@@ -303,9 +303,9 @@ Void TEncTop::init()
   // initialize PPS
   m_cPPS.setSPS(&m_cSPS);
 #if RPS_IN_SPS
-  m_cSPS.setRPSList(&m_cRPSList);
+  m_cSPS.setRPSList(&m_RPSList);
 #else
-  m_cPPS.setRPSList(&m_cRPSList);
+  m_cPPS.setRPSList(&m_RPSList);
 #endif
   xInitPPS();
   xInitRPS();
@@ -423,7 +423,7 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
   TComSlice::sortPicList(m_cListPic);
   
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  if (m_cListPic.size() >= (UInt)(m_iGOPSize + getMaxDecPicBuffering() + 2) )
+  if (m_cListPic.size() >= (UInt)(m_iGOPSize + getMaxDecPicBuffering(MAX_TLAYER-1) + 2) )
 #else
   if (m_cListPic.size() >= (UInt)(m_iGOPSize + getMaxNumberOfReferencePictures() + 2) )
 #endif
@@ -464,9 +464,20 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
 
 Void TEncTop::xInitSPS()
 {
-  m_cSPS.setWidth         ( m_iSourceWidth      );
-  m_cSPS.setHeight        ( m_iSourceHeight     );
+  m_cSPS.setPicWidthInLumaSamples         ( m_iSourceWidth      );
+  m_cSPS.setPicHeightInLumaSamples        ( m_iSourceHeight     );
+#if PIC_CROPPING
+  m_cSPS.setPicCroppingFlag( m_croppingMode!= 0 );
+  if (m_croppingMode != 0)
+  {
+    m_cSPS.setPicCropLeftOffset( m_cropLeft );
+    m_cSPS.setPicCropRightOffset( m_cropRight );
+    m_cSPS.setPicCropTopOffset( m_cropTop );
+    m_cSPS.setPicCropBottomOffset( m_cropBottom );
+  }
+#else
   m_cSPS.setPad           ( m_aiPad             );
+#endif
   m_cSPS.setMaxCUWidth    ( g_uiMaxCUWidth      );
   m_cSPS.setMaxCUHeight   ( g_uiMaxCUHeight     );
   m_cSPS.setMaxCUDepth    ( g_uiMaxCUDepth      );
@@ -474,7 +485,7 @@ Void TEncTop::xInitSPS()
   m_cSPS.setMaxTrDepth    ( 1                   );
   
 #if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  m_cSPS.setMaxNumberOfReferencePictures(m_uiMaxNumberOfReferencePictures);
+  m_cSPS.setMaxNumberOfReferencePictures(m_maxNumberOfReferencePictures);
   m_cSPS.setNumReorderFrames(m_numReorderFrames);
 #endif
   m_cSPS.setPCMLog2MinSize (m_uiPCMLog2MinSize);
@@ -494,10 +505,12 @@ Void TEncTop::xInitSPS()
   m_cSPS.setQuadtreeTUMaxDepthInter( m_uiQuadtreeTUMaxDepthInter    );
   m_cSPS.setQuadtreeTUMaxDepthIntra( m_uiQuadtreeTUMaxDepthIntra    );
   
+#if LOSSLESS_CODING
+  m_cSPS.setUseLossless   ( m_useLossless  );
+#endif
+#if !PIC_CROPPING
   m_cSPS.setUsePAD        ( m_bUsePAD           );
-  
-  m_cSPS.setUseMRG        ( m_bUseMRG           ); // SOPH:
-
+#endif
   m_cSPS.setUseLMChroma   ( m_bUseLMChroma           );  
   
   m_cSPS.setMaxTrSize   ( 1 << m_uiQuadtreeTULog2MaxSize );
@@ -581,8 +594,8 @@ Void TEncTop::xInitSPS()
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   for ( i = 0; i < m_cSPS.getMaxTLayers(); i++ )
   {
-    m_cSPS.setMaxDecPicBuffering(m_uiMaxDecPicBuffering, i);
-    m_cSPS.setNumReorderPics(m_numReorderPics, i);
+    m_cSPS.setMaxDecPicBuffering(m_maxDecPicBuffering[i], i);
+    m_cSPS.setNumReorderPics(m_numReorderPics[i], i);
   }
 #endif
   m_cSPS.setPCMBitDepthLuma (g_uiPCMBitDepthLuma);
@@ -591,7 +604,9 @@ Void TEncTop::xInitSPS()
 
   m_cSPS.setLFCrossTileBoundaryFlag( m_bLFCrossTileBoundaryFlag );
   m_cSPS.setUniformSpacingIdr( m_iUniformSpacingIdr );
+#if !REMOVE_TILE_DEPENDENCE
   m_cSPS.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
+#endif
   m_cSPS.setNumColumnsMinus1( m_iNumColumnsMinus1 );
   m_cSPS.setNumRowsMinus1( m_iNumRowsMinus1 );
   if( m_iUniformSpacingIdr == 0 )
@@ -625,18 +640,38 @@ Void TEncTop::xInitPPS()
     }
   }   
 #endif
-  Int max_temporal_layers = m_cPPS.getSPS()->getMaxTLayers();
-  if(max_temporal_layers > 4)
-     m_cPPS.setBitsForTemporalId(3);
-  else if(max_temporal_layers > 2)
-     m_cPPS.setBitsForTemporalId(2);
-  else if(max_temporal_layers > 1)
-     m_cPPS.setBitsForTemporalId(1);
-  else
-     m_cPPS.setBitsForTemporalId(0);
-
   Bool bUseDQP = (getMaxCuDQPDepth() > 0)? true : false;
 
+#if LOSSLESS_CODING
+#if H0736_AVC_STYLE_QP_RANGE
+  Int lowestQP = - m_cSPS.getQpBDOffsetY();
+#else
+  Int lowestQP = 0;
+#endif
+
+  if(getUseLossless())
+  {
+    if ((getMaxCuDQPDepth() == 0) && (getMaxDeltaQP() == 0 ) && (getQP() == lowestQP) )
+    {
+      bUseDQP = false;
+    }
+    else
+    {
+      bUseDQP = true;
+    }
+  }
+  else
+  {
+    if(bUseDQP == false)
+    {
+      if((getMaxDeltaQP() != 0 )|| getUseAdaptiveQP())
+      {
+        bUseDQP = true;
+      }
+    }
+  }
+
+#else
   if(bUseDQP == false)
   {
     if((getMaxDeltaQP() != 0 )|| getUseAdaptiveQP())
@@ -644,6 +679,7 @@ Void TEncTop::xInitPPS()
       bUseDQP = true;
     }
   }
+#endif
 
   if(bUseDQP)
   {
@@ -662,12 +698,17 @@ Void TEncTop::xInitPPS()
   m_cPPS.setChromaQpOffset2nd( m_iChromaQpOffset2nd );
 
   m_cPPS.setEntropyCodingMode( 1 ); // In the PPS now, but also remains in slice header!
+#if !WPP_SIMPLIFICATION
   m_cPPS.setEntropyCodingSynchro(m_iWaveFrontSynchro);
   m_cPPS.setCabacIstateReset(m_iWaveFrontFlush != 0);
+#endif
   m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams);
   m_cPPS.setUseWP( m_bUseWeightPred );
   m_cPPS.setWPBiPredIdc( m_uiBiPredIdc );
   m_cPPS.setEnableTMVPFlag( m_bEnableTMVP );
+#if H0388
+  m_cPPS.setOutputFlagPresentFlag( false );
+#endif
 #if MULTIBITS_DATA_HIDING
   m_cPPS.setSignHideFlag(getSignHideFlag());
   m_cPPS.setTSIG(getTSIG());
@@ -675,109 +716,112 @@ Void TEncTop::xInitPPS()
 #if DBL_CONTROL
   m_cPPS.setDeblockingFilterControlPresent (m_DeblockingFilterControlPresent );
 #endif
+#if PARALLEL_MERGE
+  m_cPPS.setLog2ParallelMergeLevelMinus2      (LOG2_PARALLEL_MERGE_LEVEL_MINUS2);
+#endif
+#if CABAC_INIT_FLAG
+  m_cPPS.setCabacInitPresentFlag(CABAC_INIT_PRESENT_FLAG);
+#endif
 }
 
+//Function for initializing m_RPSList, a list of TComReferencePictureSet, based on the GOPEntry objects read from the config file.
 Void TEncTop::xInitRPS()
 {
-  TComReferencePictureSet*      pcRPS;
-  // In this function 
-  // a number of Reference Picture Sets
-  // are defined for different coding structures.
-  // This is the place 
-  // where you need to do changes in
-  // order to try different Reference Picture Sets.
-  // In a future implementation the 
-  // Reference Picture Sets will be 
-  // configured directly from the config file.
-  // Here we check what BD is appropriate
+  TComReferencePictureSet*      rps;
   
-  m_cRPSList.create(getGOPSize()+m_iExtraRPSs);
-  for( Int i = 0; i < getGOPSize()+m_iExtraRPSs; i++) 
+  m_RPSList.create(getGOPSize()+m_extraRPSs);
+  for( Int i = 0; i < getGOPSize()+m_extraRPSs; i++) 
   {
-    GOPEntry pGE = getGOPEntry(i);
-    pcRPS = m_cRPSList.getReferencePictureSet(i);
-    pcRPS->setNumberOfPictures(pGE.m_iNumRefPics);
-    pcRPS->setNumRefIdc(pGE.m_iNumRefIdc);
-    int iNumNeg = 0;
-    int iNumPos = 0;
-    for( Int j = 0; j < pGE.m_iNumRefPics; j++)
+    GOPEntry ge = getGOPEntry(i);
+    rps = m_RPSList.getReferencePictureSet(i);
+    rps->setNumberOfPictures(ge.m_numRefPics);
+    rps->setNumRefIdc(ge.m_numRefIdc);
+    Int numNeg = 0;
+    Int numPos = 0;
+    for( Int j = 0; j < ge.m_numRefPics; j++)
     {
-      pcRPS->setDeltaPOC(j,pGE.m_aiReferencePics[j]);
-      pcRPS->setUsed(j,pGE.m_aiUsedByCurrPic[j]);
-      if(pGE.m_aiReferencePics[j]>0)
-        iNumPos++;
-      else
-        iNumNeg++;
-    }
-    pcRPS->setNumberOfNegativePictures(iNumNeg);
-    pcRPS->setNumberOfPositivePictures(iNumPos);
-    pcRPS->setInterRPSPrediction(pGE.m_bInterRPSPrediction);
-    if (pGE.m_bInterRPSPrediction)
-    {
-      pcRPS->setDeltaRIdxMinus1(pGE.m_iDeltaRIdxMinus1);
-      pcRPS->setDeltaRPS(pGE.m_iDeltaRPS);
-      pcRPS->setNumRefIdc(pGE.m_iNumRefIdc);
-      for (Int j = 0; j < pGE.m_iNumRefIdc; j++ )
+      rps->setDeltaPOC(j,ge.m_referencePics[j]);
+      rps->setUsed(j,ge.m_usedByCurrPic[j]);
+      if(ge.m_referencePics[j]>0)
       {
-        pcRPS->setRefIdc(j, pGE.m_aiRefIdc[j]);
+        numPos++;
+      }
+      else
+      {
+        numNeg++;
+      }
+    }
+    rps->setNumberOfNegativePictures(numNeg);
+    rps->setNumberOfPositivePictures(numPos);
+    rps->setInterRPSPrediction(ge.m_interRPSPrediction);
+    if (ge.m_interRPSPrediction)
+    {
+      rps->setDeltaRIdxMinus1(ge.m_deltaRIdxMinus1);
+      rps->setDeltaRPS(ge.m_deltaRPS);
+      rps->setNumRefIdc(ge.m_numRefIdc);
+      for (Int j = 0; j < ge.m_numRefIdc; j++ )
+      {
+        rps->setRefIdc(j, ge.m_refIdc[j]);
       }
 #if WRITE_BACK
       // the folowing code overwrite the deltaPOC and Used by current values read from the config file with the ones
       // computed from the RefIdc.  This is not necessary if both are identical. Currently there is no check to see if they are identical.
-      iNumNeg = 0;
-      iNumPos = 0;
-      TComReferencePictureSet*     pcRPSRef = m_cRPSList.getReferencePictureSet(i-(pGE.m_iDeltaRIdxMinus1+1));
-      for (Int j = 0; j < pGE.m_iNumRefIdc; j++ )
+      numNeg = 0;
+      numPos = 0;
+      TComReferencePictureSet*     RPSRef = m_RPSList.getReferencePictureSet(i-(ge.m_deltaRIdxMinus1+1));
+      for (Int j = 0; j < ge.m_numRefIdc; j++ )
       {
-        if (pGE.m_aiRefIdc[j])
+        if (ge.m_refIdc[j])
         {
-          int deltaPOC = pGE.m_iDeltaRPS + ((j < pcRPSRef->getNumberOfPictures())? pcRPSRef->getDeltaPOC(j) : 0);
-          pcRPS->setDeltaPOC((iNumNeg+iNumPos),deltaPOC);
-          pcRPS->setUsed((iNumNeg+iNumPos),pGE.m_aiRefIdc[j]==1?1:0);
+          Int deltaPOC = ge.m_deltaRPS + ((j < RPSRef->getNumberOfPictures())? RPSRef->getDeltaPOC(j) : 0);
+          rps->setDeltaPOC((numNeg+numPos),deltaPOC);
+          rps->setUsed((numNeg+numPos),ge.m_refIdc[j]==1?1:0);
           if (deltaPOC<0)
-            iNumNeg++;
+          {
+            numNeg++;
+          }
           else
-            iNumPos++;
+          {
+            numPos++;
+          }
         }
       }
-      pcRPS->setNumberOfNegativePictures(iNumNeg);
-      pcRPS->setNumberOfPositivePictures(iNumPos);
-      pcRPS->sortDeltaPOC();
+      rps->setNumberOfNegativePictures(numNeg);
+      rps->setNumberOfPositivePictures(numPos);
+      rps->sortDeltaPOC();
 #endif
     }
   }
   
 }
 
-Void TEncTop::selectReferencePictureSet(TComSlice* pcSlice, UInt uiPOCCurr, UInt iGOPid,TComList<TComPic*>& rcListPic )
-{
-
    // This is a function that 
-   // decides what Reference Picture Set to use 
-   // for a specific picture (with POC = uiPOCCurr)
+   // determines what Reference Picture Set to use 
+   // for a specific slice (with POC = POCCurr)
+Void TEncTop::selectReferencePictureSet(TComSlice* slice, Int POCCurr, Int GOPid,TComList<TComPic*>& listPic )
+{
+  slice->setRPSidx(GOPid);
 
-  pcSlice->setRPSidx(iGOPid);
-
-  for(Int extraNum=m_iGOPSize; extraNum<m_iExtraRPSs+m_iGOPSize; extraNum++)
+  for(Int extraNum=m_iGOPSize; extraNum<m_extraRPSs+m_iGOPSize; extraNum++)
   {    
     if(m_uiIntraPeriod > 0)
     {
-      if(uiPOCCurr%m_uiIntraPeriod==m_pcGOPList[extraNum].m_iPOC)
+      if(POCCurr%m_uiIntraPeriod==m_GOPList[extraNum].m_POC)
       {
-        pcSlice->setRPSidx(extraNum);
+        slice->setRPSidx(extraNum);
       }
     }
     else
     {
-      if(uiPOCCurr==m_pcGOPList[extraNum].m_iPOC)
+      if(POCCurr==m_GOPList[extraNum].m_POC)
       {
-        pcSlice->setRPSidx(extraNum);
+        slice->setRPSidx(extraNum);
       }
     }
   }
 
-  pcSlice->setRPS(getRPSList()->getReferencePictureSet(pcSlice->getRPSidx()));
-  pcSlice->getRPS()->setNumberOfPictures(pcSlice->getRPS()->getNumberOfNegativePictures()+pcSlice->getRPS()->getNumberOfPositivePictures());
+  slice->setRPS(getRPSList()->getReferencePictureSet(slice->getRPSidx()));
+  slice->getRPS()->setNumberOfPictures(slice->getRPS()->getNumberOfNegativePictures()+slice->getRPS()->getNumberOfPositivePictures());
 
 }
 
@@ -785,7 +829,9 @@ Void  TEncTop::xInitPPSforTiles()
 {
     m_cPPS.setColumnRowInfoPresent( m_iColumnRowInfoPresent );
     m_cPPS.setUniformSpacingIdr( m_iUniformSpacingIdr );
+#if !REMOVE_TILE_DEPENDENCE
     m_cPPS.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
+#endif
     m_cPPS.setNumColumnsMinus1( m_iNumColumnsMinus1 );
     m_cPPS.setNumRowsMinus1( m_iNumRowsMinus1 );
     if( m_iUniformSpacingIdr == 0 )
@@ -798,7 +844,9 @@ Void  TEncTop::xInitPPSforTiles()
 
     // # substreams is "per tile" when tiles are independent.
     if (m_iTileBoundaryIndependenceIdr && m_iWaveFrontSynchro)
+    {
       m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams * (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1));
+    }
 }
 
 Void  TEncCfg::xCheckGSParameters()

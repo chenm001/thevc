@@ -47,38 +47,38 @@
 
 struct GOPEntry
 {
-  Int m_iPOC;
-  Int m_iQPOffset;
-  Double m_iQPFactor;
-  Int m_iTemporalId;
-  Bool m_bRefPic;
-  Int m_iRefBufSize;
-  Char m_iSliceType;
-  Int m_iNumRefPics;
-  Int m_aiReferencePics[MAX_NUM_REF_PICS];
-  Int m_aiUsedByCurrPic[MAX_NUM_REF_PICS];
-  Bool m_bInterRPSPrediction;
-  Int m_iDeltaRIdxMinus1;
-  Int m_iDeltaRPS;
-  Int m_iNumRefIdc;
-  Int m_aiRefIdc[MAX_NUM_REF_PICS+1];
+  Int m_POC;
+  Int m_QPOffset;
+  Double m_QPFactor;
+  Int m_temporalId;
+  Bool m_refPic;
+  Int m_numRefPicsActive;
+  Char m_sliceType;
+  Int m_numRefPics;
+  Int m_referencePics[MAX_NUM_REF_PICS];
+  Int m_usedByCurrPic[MAX_NUM_REF_PICS];
+  Bool m_interRPSPrediction;
+  Int m_deltaRIdxMinus1;
+  Int m_deltaRPS;
+  Int m_numRefIdc;
+  Int m_refIdc[MAX_NUM_REF_PICS+1];
   GOPEntry()
-  : m_iPOC(-1)
-  , m_iQPOffset()
-  , m_iQPFactor()
-  , m_iTemporalId()
-  , m_bRefPic()
-  , m_iRefBufSize()
-  , m_iSliceType()
-  , m_iNumRefPics()
-  , m_bInterRPSPrediction()
-  , m_iDeltaRIdxMinus1()
-  , m_iDeltaRPS()
-  , m_iNumRefIdc()
+  : m_POC(-1)
+  , m_QPOffset()
+  , m_QPFactor()
+  , m_temporalId()
+  , m_refPic()
+  , m_numRefPicsActive()
+  , m_sliceType()
+  , m_numRefPics()
+  , m_interRPSPrediction()
+  , m_deltaRIdxMinus1()
+  , m_deltaRPS()
+  , m_numRefIdc()
   {
-    ::memset( m_aiReferencePics, 0, sizeof(m_aiReferencePics) );
-    ::memset( m_aiUsedByCurrPic, 0, sizeof(m_aiUsedByCurrPic) );
-    ::memset( m_aiRefIdc,        0, sizeof(m_aiRefIdc) );
+    ::memset( m_referencePics, 0, sizeof(m_referencePics) );
+    ::memset( m_usedByCurrPic, 0, sizeof(m_usedByCurrPic) );
+    ::memset( m_refIdc,        0, sizeof(m_refIdc) );
   }
 };
 
@@ -99,6 +99,13 @@ protected:
   Int       m_FrameSkip;
   Int       m_iSourceWidth;
   Int       m_iSourceHeight;
+#if PIC_CROPPING
+  Int       m_croppingMode;
+  Int       m_cropLeft;
+  Int       m_cropRight;
+  Int       m_cropTop;
+  Int       m_cropBottom;
+#endif
   Int       m_iFrameToBeEncoded;
   Double    m_adLambdaModifier[ MAX_TLAYER ];
 
@@ -106,13 +113,13 @@ protected:
   UInt      m_uiIntraPeriod;
   UInt      m_uiDecodingRefreshType;            ///< the type of decoding refresh employed for the random access.
   Int       m_iGOPSize;
-  GOPEntry  m_pcGOPList[MAX_GOP];
-  Int       m_iExtraRPSs;
+  GOPEntry  m_GOPList[MAX_GOP];
+  Int       m_extraRPSs;
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  UInt      m_uiMaxDecPicBuffering;
-  Int       m_numReorderPics;
+  Int       m_maxDecPicBuffering[MAX_TLAYER];
+  Int       m_numReorderPics[MAX_TLAYER];
 #else
-  UInt      m_uiMaxNumberOfReferencePictures;
+  Int       m_maxNumberOfReferencePictures;
   Int       m_numReorderFrames;
 #endif
   
@@ -155,6 +162,10 @@ protected:
   Bool      m_saoInterleavingFlag;
 #endif
 
+  //====== Lossless ========
+#if LOSSLESS_CODING
+  Bool      m_useLossless;
+#endif
   //====== Motion search ========
   Int       m_iFastSearch;                      //  0:Full search  1:Diamond  2:PMVFAST
   Int       m_iSearchRange;                     //  0:Full frame
@@ -190,14 +201,15 @@ protected:
   Bool      m_bUseLComb;
   Bool      m_bLCMod;
   Bool      m_bUseRDOQ;
+#if !PIC_CROPPING
   Bool      m_bUsePAD;
+#endif
   Bool      m_bUseFastEnc;
   Bool      m_bUseEarlyCU;
 #if FAST_DECISION_FOR_MRG_RD_COST
   Bool      m_useFastDecisionForMerge;
 #endif
   Bool      m_bUseCbfFastMode;
-  Bool      m_bUseMRG; // SOPH:
   Bool      m_bUseLMChroma; 
 
   Int*      m_aidQP;
@@ -278,20 +290,27 @@ public:
   Void      setFrameSkip                    ( unsigned int i ) { m_FrameSkip = i; }
   Void      setSourceWidth                  ( Int   i )      { m_iSourceWidth = i; }
   Void      setSourceHeight                 ( Int   i )      { m_iSourceHeight = i; }
+#if PIC_CROPPING
+  Void      setCroppingMode                 ( Int   i )      { m_croppingMode = i; }
+  Void      setCropLeft                     ( Int   i )      { m_cropLeft = i; }
+  Void      setCropRight                    ( Int   i )      { m_cropRight = i; }
+  Void      setCropTop                      ( Int   i )      { m_cropTop = i; }
+  Void      setCropBottom                   ( Int   i )      { m_cropBottom = i; }
+#endif
   Void      setFrameToBeEncoded             ( Int   i )      { m_iFrameToBeEncoded = i; }
   
   //====== Coding Structure ========
   Void      setIntraPeriod                  ( Int   i )      { m_uiIntraPeriod = (UInt)i; }
   Void      setDecodingRefreshType          ( Int   i )      { m_uiDecodingRefreshType = (UInt)i; }
   Void      setGOPSize                      ( Int   i )      { m_iGOPSize = i; }
-  Void      setGopList                      ( GOPEntry*  piGOPList )      {  for ( Int i = 0; i < MAX_GOP; i++ ) m_pcGOPList[i] = piGOPList[i]; }
-  Void      setExtraRPSs                    ( Int   i )      { m_iExtraRPSs = i; }
-  GOPEntry  getGOPEntry                     ( Int   i )      { return m_pcGOPList[i]; }
+  Void      setGopList                      ( GOPEntry*  GOPList ) {  for ( Int i = 0; i < MAX_GOP; i++ ) m_GOPList[i] = GOPList[i]; }
+  Void      setExtraRPSs                    ( Int   i )      { m_extraRPSs = i; }
+  GOPEntry  getGOPEntry                     ( Int   i )      { return m_GOPList[i]; }
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  Void      setMaxDecPicBuffering           ( UInt u )       { m_uiMaxDecPicBuffering = u;    }
-  Void      setNumReorderPics               ( Int  i )       { m_numReorderPics = i;    }
+  Void      setMaxDecPicBuffering           ( UInt u, UInt tlayer ) { m_maxDecPicBuffering[tlayer] = u;    }
+  Void      setNumReorderPics               ( Int  i, UInt tlayer ) { m_numReorderPics[tlayer] = i;    }
 #else
-  Void      setMaxNumberOfReferencePictures ( UInt u )       { m_uiMaxNumberOfReferencePictures = u;    }
+  Void      setMaxNumberOfReferencePictures ( Int u )       { m_maxNumberOfReferencePictures = u;    }
   Void      setNumReorderFrames             ( Int  i )       { m_numReorderFrames = i;    }
 #endif
   
@@ -353,11 +372,22 @@ public:
   Void      setUseAdaptiveQP                ( Bool  b )      { m_bUseAdaptiveQP = b; }
   Void      setQPAdaptationRange            ( Int   i )      { m_iQPAdaptationRange = i; }
   
+  //====== Lossless ========
+#if LOSSLESS_CODING
+  Void      setUseLossless                  (Bool    b  )        { m_useLossless = b;  }
+#endif
   //====== Sequence ========
   Int       getFrameRate                    ()      { return  m_iFrameRate; }
   unsigned int getFrameSkip                 ()      { return  m_FrameSkip; }
   Int       getSourceWidth                  ()      { return  m_iSourceWidth; }
   Int       getSourceHeight                 ()      { return  m_iSourceHeight; }
+#if PIC_CROPPING
+  Int       getCroppingMode                 ()      { return  m_croppingMode; }
+  Int       getCropLeft                     ()      { return  m_cropLeft; }
+  Int       getCropRight                    ()      { return  m_cropRight; }
+  Int       getCropTop                      ()      { return  m_cropTop; }
+  Int       getCropBottom                   ()      { return  m_cropBottom; }
+#endif
   Int       getFrameToBeEncoded             ()      { return  m_iFrameToBeEncoded; }
   void setLambdaModifier                    ( UInt uiIndex, Double dValue ) { m_adLambdaModifier[ uiIndex ] = dValue; }
   Double getLambdaModifier                  ( UInt uiIndex ) const { return m_adLambdaModifier[ uiIndex ]; }
@@ -367,10 +397,10 @@ public:
   UInt      getDecodingRefreshType          ()      { return  m_uiDecodingRefreshType; }
   Int       getGOPSize                      ()      { return  m_iGOPSize; }
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  UInt      getMaxDecPicBuffering           ()      { return m_uiMaxDecPicBuffering; }
-  Int       geNumReorderPics                ()      { return m_numReorderPics; }
+  Int       getMaxDecPicBuffering           (UInt tlayer) { return m_maxDecPicBuffering[tlayer]; }
+  Int       getNumReorderPics               (UInt tlayer) { return m_numReorderPics[tlayer]; }
 #else
-  UInt      getMaxNumberOfReferencePictures ()      { return m_uiMaxNumberOfReferencePictures; }
+  Int      getMaxNumberOfReferencePictures ()      { return m_maxNumberOfReferencePictures; }
   Int       geNumReorderFrames              ()      { return m_numReorderFrames; }
 #endif
   Int       getQP                           ()      { return  m_iQP; }
@@ -402,6 +432,10 @@ public:
   Int       getMaxCuDQPDepth                ()      { return  m_iMaxCuDQPDepth; }
   Bool      getUseAdaptiveQP                ()      { return  m_bUseAdaptiveQP; }
   Int       getQPAdaptationRange            ()      { return  m_iQPAdaptationRange; }
+  //====== Lossless ========
+#if LOSSLESS_CODING
+  Bool      getUseLossless                  ()      { return  m_useLossless;  }
+#endif
   
   //==== Tool list ========
   Void      setUseSBACRD                    ( Bool  b )     { m_bUseSBACRD  = b; }
@@ -411,14 +445,15 @@ public:
   Void      setUseLComb                     ( Bool  b )     { m_bUseLComb   = b; }
   Void      setLCMod                        ( Bool  b )     { m_bLCMod   = b;    }
   Void      setUseRDOQ                      ( Bool  b )     { m_bUseRDOQ    = b; }
+#if !PIC_CROPPING
   Void      setUsePAD                       ( Bool  b )     { m_bUsePAD     = b; }
+#endif
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
   Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
 #if FAST_DECISION_FOR_MRG_RD_COST
   Void      setUseFastDecisionForMerge      ( Bool  b )     { m_useFastDecisionForMerge = b; }
 #endif
   Void      setUseCbfFastMode            ( Bool  b )     { m_bUseCbfFastMode = b; }
-  Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
   Void      setPCMInputBitDepthFlag         ( Bool  b )     { m_bPCMInputBitDepthFlag = b; }
   Void      setPCMFilterDisableFlag         ( Bool  b )     {  m_bPCMFilterDisableFlag = b; }
@@ -446,14 +481,15 @@ public:
   Bool      getUseLComb                     ()      { return m_bUseLComb;   }
   Bool      getLCMod                        ()      { return m_bLCMod; }
   Bool      getUseRDOQ                      ()      { return m_bUseRDOQ;    }
+#if !PIC_CROPPING
   Bool      getUsePAD                       ()      { return m_bUsePAD;     }
+#endif
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
   Bool      getUseEarlyCU                   ()      { return m_bUseEarlyCU; }
 #if FAST_DECISION_FOR_MRG_RD_COST
   Bool      getUseFastDecisionForMerge      ()      { return m_useFastDecisionForMerge; }
 #endif
   Bool      getUseCbfFastMode           ()      { return m_bUseCbfFastMode; }
-  Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
 #if NS_HAD
   Bool      getUseNSQT                      ()      { return m_useNSQT; }
@@ -501,8 +537,10 @@ public:
   Int   getColumnRowInfoPresent        ()                  { return m_iColumnRowInfoPresent; }
   Void  setUniformSpacingIdr           ( Int i )           { m_iUniformSpacingIdr = i; }
   Int   getUniformSpacingIdr           ()                  { return m_iUniformSpacingIdr; }
+#if !REMOVE_TILE_DEPENDENCE
   Void  setTileBoundaryIndependenceIdr ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
   Int   getTileBoundaryIndependenceIdr ()                  { return m_iTileBoundaryIndependenceIdr; }
+#endif
   Void  setNumColumnsMinus1            ( Int i )           { m_iNumColumnsMinus1 = i; }
   Int   getNumColumnsMinus1            ()                  { return m_iNumColumnsMinus1; }
   Void  setColumnWidth ( char* str )

@@ -948,6 +948,10 @@ Void TComSampleAdaptiveOffset::processSaoCuOrg(Int iAddr, Int iSaoType, Int iYCb
   iLcuWidth     = uiRPelX - uiLPelX;
   iLcuHeight    = uiBPelY - uiTPelY;
 
+  if(pTmpCu->getPic()==0)
+  {
+    return;
+  }
   if (iYCbCr == 0)
   {
     pRec       = m_pcPic->getPicYuvRec()->getLumaAddr(iAddr);

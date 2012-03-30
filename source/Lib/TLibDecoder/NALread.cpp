@@ -123,10 +123,26 @@ void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
   bool forbidden_zero_bit = bs.read(1);
   assert(forbidden_zero_bit == 0);
 
-  nalu.m_RefIDC = (NalRefIdc) bs.read(2);
-  nalu.m_UnitType = (NalUnitType) bs.read(5);
+#if NAL_REF_FLAG
+  nalu.m_nalRefFlag  = (bs.read(1) != 0 );
+  nalu.m_nalUnitType = (NalUnitType) bs.read(6);
+#else
+  nalu.m_nalRefIDC   = (NalRefIdc) bs.read(2);
+  nalu.m_nalUnitType = (NalUnitType) bs.read(5);
+#endif
 
-  switch (nalu.m_UnitType)
+#if H0388
+  nalu.m_temporalId = bs.read(3);
+  unsigned reserved_one_5bits = bs.read(5);
+  assert(reserved_one_5bits == 1);
+#if H0566_TLA
+  if ( nalu.m_temporalId )
+  {
+    assert(nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_CRA && nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_IDR);
+  }
+#endif
+#else
+  switch (nalu.m_nalUnitType)
   {
   case NAL_UNIT_CODED_SLICE:
   case NAL_UNIT_CODED_SLICE_IDR:
@@ -137,26 +153,27 @@ void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
   case NAL_UNIT_CODED_SLICE_CDR:
 #endif
     {
-      nalu.m_TemporalID = bs.read(3);
+      nalu.m_temporalId = bs.read(3);
       nalu.m_OutputFlag = bs.read(1);
       unsigned reserved_one_4bits = bs.read(4);
       assert(reserved_one_4bits == 1);
 #if H0566_TLA
-      if (nalu.m_TemporalID == 0)
+      if (nalu.m_temporalId == 0)
       {
-        assert(nalu.m_UnitType == NAL_UNIT_CODED_SLICE || nalu.m_UnitType == NAL_UNIT_CODED_SLICE_CRA || nalu.m_UnitType == NAL_UNIT_CODED_SLICE_IDR);
+        assert(nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE || nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_CRA || nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR);
       }
       else
       {
-        assert(nalu.m_UnitType == NAL_UNIT_CODED_SLICE || nalu.m_UnitType == NAL_UNIT_CODED_SLICE_TLA);
+        assert(nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE || nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_TLA);
       }
 #endif
     }
     break;
   default:
-    nalu.m_TemporalID = 0;
+    nalu.m_temporalId = 0;
     nalu.m_OutputFlag = true;
     break;
   }
+#endif
 }
 //! \}
