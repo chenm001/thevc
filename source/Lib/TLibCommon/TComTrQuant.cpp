@@ -2048,9 +2048,6 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
   UInt uiLumaTrMode, uiChromaTrMode;
   pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
   const UInt uiStopTrMode = eTxt == TEXT_LUMA ? uiLumaTrMode : uiChromaTrMode;
-  PartSize ePartSize = pcCU->getPartitionSize( uiAbsPartIdx );
-  
-  assert(1); // as long as quadtrees are not used for residual transform
   
   if( uiTrMode == uiStopTrMode )
   {
