@@ -44,18 +44,30 @@ class TComOutputBitstream;
  */
 struct NALUnit
 {
-  NalUnitType m_UnitType; ///< nal_unit_type
-  NalRefIdc m_RefIDC; ///< nal_ref_idc
-  bool m_OutputFlag; ///< output_flag
+  NalUnitType m_nalUnitType; ///< nal_unit_type
+#if NAL_REF_FLAG
+  Bool        m_nalRefFlag;  ///< nal_ref_flag
+#else
+  NalRefIdc   m_nalRefIDC; ///< nal_ref_idc
+#endif
+  bool        m_OutputFlag;  ///< output_flag
 
   /** construct an NALunit structure with given header values. */
   NALUnit(
     NalUnitType nalUnitType,
+#if NAL_REF_FLAG
+    Bool        nalRefFlag,
+#else
     NalRefIdc nalRefIDC,
+#endif
     bool outputFlag = true)
   {
-    m_UnitType = nalUnitType;
-    m_RefIDC = nalRefIDC;
+    m_nalUnitType = nalUnitType;
+#if NAL_REF_FLAG
+    m_nalRefFlag = nalRefFlag;
+#else
+    m_nalRefIDC = nalRefIDC;
+#endif
     m_OutputFlag = outputFlag;
   }
 
@@ -65,8 +77,8 @@ struct NALUnit
   /** returns true if the NALunit is a slice NALunit */
   bool isSlice()
   {
-    return m_UnitType == NAL_UNIT_CODED_SLICE_IDR
-        || m_UnitType == NAL_UNIT_CODED_SLICE;
+    return m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR
+        || m_nalUnitType == NAL_UNIT_CODED_SLICE;
   }
 };
 

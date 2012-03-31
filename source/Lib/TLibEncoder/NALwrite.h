@@ -55,9 +55,17 @@ struct OutputNALUnit : public NALUnit
    */
   OutputNALUnit(
     NalUnitType nalUnitType,
-    NalRefIdc nalRefIDC,
-    bool outputFlag = true)
-  : NALUnit(nalUnitType, nalRefIDC, outputFlag)
+#if NAL_REF_FLAG
+    Bool nalRefFlag
+#else
+    NalRefIdc nalRefIDC
+#endif
+  )
+#if NAL_REF_FLAG
+  : NALUnit(nalUnitType, nalRefFlag)
+#else
+  : NALUnit(nalUnitType, nalRefIDC)
+#endif
   , m_Bitstream()
   {}
 

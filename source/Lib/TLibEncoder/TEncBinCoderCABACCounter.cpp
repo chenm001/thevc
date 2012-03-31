@@ -71,7 +71,7 @@ UInt TEncBinCABACCounter::getNumWrittenBits()
  */
 Void TEncBinCABACCounter::encodeBin( UInt binValue, ContextModel &rcCtxModel )
 {
-  m_uiBinsCoded += m_binCountIncrement;
+  m_binsCoded += m_binCountIncrement;
   
   m_fracBits += rcCtxModel.getEntropyBits( binValue );
   rcCtxModel.update( binValue );
@@ -84,7 +84,7 @@ Void TEncBinCABACCounter::encodeBin( UInt binValue, ContextModel &rcCtxModel )
  */
 Void TEncBinCABACCounter::encodeBinEP( UInt binValue )
 {
-  m_uiBinsCoded += m_binCountIncrement;
+  m_binsCoded += m_binCountIncrement;
   m_fracBits += 32768;
 }
 
@@ -96,7 +96,7 @@ Void TEncBinCABACCounter::encodeBinEP( UInt binValue )
  */
 Void TEncBinCABACCounter::encodeBinsEP( UInt binValues, Int numBins )
 {
-  m_uiBinsCoded += numBins & -m_binCountIncrement;
+  m_binsCoded += numBins & -m_binCountIncrement;
   m_fracBits += 32768 * numBins;
 }
 
@@ -107,7 +107,7 @@ Void TEncBinCABACCounter::encodeBinsEP( UInt binValues, Int numBins )
  */
 Void TEncBinCABACCounter::encodeBinTrm( UInt binValue )
 {
-  m_uiBinsCoded += m_binCountIncrement;
+  m_binsCoded += m_binCountIncrement;
   m_fracBits += ContextModel::getEntropyBitsTrm( binValue );
 }
 

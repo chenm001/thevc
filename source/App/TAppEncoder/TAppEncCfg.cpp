@@ -108,6 +108,13 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("ReconFile,o",     cfg_ReconFile,     string(""), "reconstructed YUV output file name")
   ("SourceWidth,-wdt",      m_iSourceWidth,  0, "Source picture width")
   ("SourceHeight,-hgt",     m_iSourceHeight, 0, "Source picture height")
+#if PIC_CROPPING
+  ("CroppingMode",          m_croppingMode,  0, "Cropping mode (0: no cropping, 1:automatic padding, 2: padding, 3:cropping")
+  ("CropLeft",              m_cropLeft,      0, "Left cropping/padding for cropping mode 3")
+  ("CropRight",             m_cropRight,     0, "Right cropping/padding for cropping mode 3")
+  ("CropTop",               m_cropTop,       0, "Top cropping/padding for cropping mode 3")
+  ("CropBottom",            m_cropBottom,    0, "Bottom cropping/padding for cropping mode 3")
+#endif
   ("FrameRate,-fr",         m_iFrameRate,        0, "Frame rate")
   ("FrameSkip,-fs",         m_FrameSkip,         0u, "Number of frames to skip at start of input YUV")
   ("FramesToBeEncoded,f",   m_iFrameToBeEncoded, 0, "number of frames to be encoded (default=all)")
@@ -129,7 +136,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   
   /* Coding structure paramters */
   ("IntraPeriod,-ip",m_iIntraPeriod, -1, "intra period in frames, (-1: only first frame)")
-  ("DecodingRefreshType,-dr",m_iDecodingRefreshType, 0, "intra refresh, (0:none 1:CDR 2:IDR)")
+  ("DecodingRefreshType,-dr",m_iDecodingRefreshType, 0, "intra refresh, (0:none 1:CRA 2:IDR)")
   ("DisableInter4x4", m_bDisInter4x4, true, "Disable Inter 4x4")
   ("NSQT", m_enableNSQT, true, "Enable non-square transforms")
   ("AMP", m_enableAMP, true, "Enable asymmetric motion partitions")
@@ -147,8 +154,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("SBACRD", m_bUseSBACRD, true, "SBAC based RD estimation")
   
   /* Coding tools */
-  ("MRG", m_bUseMRG, true, "merging of motion partitions")
-
+#if MULTIBITS_DATA_HIDING
+    ("SignHideFlag,-SBH",                m_signHideFlag, 1)
+    ("SignHideThreshold,-TSIG",          m_signHidingThreshold,         4)
+#endif
   /* Misc. */
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
                                               "\t1: use MD5\n"
@@ -158,6 +167,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 
   ("FEN", m_bUseFastEnc, false, "fast encoder setting")
   ("ECU", m_bUseEarlyCU, false, "Early CU setting") 
+#if FAST_DECISION_FOR_MRG_RD_COST
+  ("FDM", m_useFastDecisionForMerge, true, "Fast decision for Merge RD Cost") 
+#endif
   ("CFM", m_bUseCbfFastMode, false, "Cbf fast mode setting")
   /* Compatability with old style -1 FOO or -0 FOO options. */
   ("1", doOldStyleCmdlineOn, "turn option <name> on")
@@ -187,7 +199,53 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   m_pchInputFile = cfg_InputFile.empty() ? NULL : strdup(cfg_InputFile.c_str());
   m_pchBitstreamFile = cfg_BitstreamFile.empty() ? NULL : strdup(cfg_BitstreamFile.c_str());
   m_pchReconFile = cfg_ReconFile.empty() ? NULL : strdup(cfg_ReconFile.c_str());
-  
+
+#if PIC_CROPPING
+  switch (m_croppingMode)
+  {
+  case 0:
+    {
+      // no cropping or padding
+      m_cropLeft = m_cropRight = m_cropTop = m_cropBottom = 0;
+      break;
+    }
+  case 1:
+    {
+      // automatic padding to minimum CU size
+      Int minCuSize = m_uiMaxCUHeight >> (m_uiMaxCUDepth - 1);
+      if (m_iSourceWidth % minCuSize)
+      {
+        m_cropRight  = ((m_iSourceWidth / minCuSize) + 1) * minCuSize - m_iSourceWidth;
+        m_iSourceWidth  += m_cropRight;
+      }
+      if (m_iSourceHeight % minCuSize)
+      {
+        m_cropBottom = ((m_iSourceHeight / minCuSize) + 1) * minCuSize - m_iSourceHeight;
+        m_iSourceHeight += m_cropBottom;
+      }
+      break;
+    }
+  case 2:
+    {
+      //padding
+      m_iSourceWidth  += 0;
+      m_iSourceHeight += 0;
+      m_cropRight  = 0;
+      m_cropBottom = 0;
+      break;
+    }
+  case 3:
+    {
+      // cropping
+      if ((m_cropLeft == 0) && (m_cropRight == 0) && (m_cropTop == 0) && (m_cropBottom == 0))
+      {
+        fprintf(stderr, "Warning: Cropping enabled, but all cropping parameters set to zero\n");
+      }
+      break;
+    }
+  }
+#endif
+
   // handling of floating-point QP values
   // if QP is not integer, sequence is split into two sections having QP and QP+1
   m_iQP = (Int)( m_fQP );
@@ -215,7 +273,7 @@ Void TAppEncCfg::xCheckParameter()
 #define xConfirmPara(a,b) check_failed |= confirmPara(a,b)
   // check range of parameters
   xConfirmPara( m_iFrameRate <= 0,                                                          "Frame rate must be more than 1" );
-  xConfirmPara( m_iFrameToBeEncoded <= 0,                                                   "Total Number Of Frames encoded must be more than 1" );
+  xConfirmPara( m_iFrameToBeEncoded <= 0,                                                   "Total Number Of Frames encoded must be more than 0" );
   xConfirmPara( m_iIntraPeriod == 0,                                                        "Intra period must be more than GOP size, or -1 , not 0" );
   xConfirmPara( m_iDecodingRefreshType < 0 || m_iDecodingRefreshType > 2,                   "Decoding Refresh Type must be equal to 0, 1 or 2" );
   xConfirmPara( m_iQP < 0 || m_iQP > 51,                                                    "QP exceeds supported range (0 to 51)" );
@@ -223,7 +281,6 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iFastSearch < 0 || m_iFastSearch > 2,                                     "Fast Search Mode is not supported value (0:Full search  1:Diamond  2:PMVFAST)" );
   xConfirmPara( m_iSearchRange < 0 ,                                                        "Search Range must be more than 0" );
 
-  xConfirmPara( m_iFrameToBeEncoded == 0,                                                   "Total Number of Frames to be encoded must be at least 2 * GOP size for the current Reference Picture Set settings");
   if (m_iDecodingRefreshType == 2)
   {
     xConfirmPara( m_iIntraPeriod > 0 && m_iIntraPeriod <= 1 ,                               "Intra period must be larger than GOP size for periodic IDR pictures");
@@ -232,8 +289,13 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( (m_uiMaxCUHeight >> m_uiMaxCUDepth) < 4,                                    "Minimum partition height size should be larger than or equal to 8");
   xConfirmPara( m_uiMaxCUWidth < 16,                                                        "Maximum partition width size should be larger than or equal to 16");
   xConfirmPara( m_uiMaxCUHeight < 16,                                                       "Maximum partition height size should be larger than or equal to 16");
+#if PIC_CROPPING
+  xConfirmPara( (m_iSourceWidth  % (m_uiMaxCUWidth  >> (m_uiMaxCUDepth-1)))!=0,             "Resulting coded frame width must be a multiple of the minimum CU size");
+  xConfirmPara( (m_iSourceHeight % (m_uiMaxCUHeight >> (m_uiMaxCUDepth-1)))!=0,             "Resulting coded frame height must be a multiple of the minimum CU size");
+#else
   xConfirmPara( (m_iSourceWidth  % (m_uiMaxCUWidth  >> (m_uiMaxCUDepth-1)))!=0,             "Frame width should be multiple of minimum CU size");
   xConfirmPara( (m_iSourceHeight % (m_uiMaxCUHeight >> (m_uiMaxCUDepth-1)))!=0,             "Frame height should be multiple of minimum CU size");
+#endif
   
   xConfirmPara( m_uiQuadtreeTULog2MinSize < 2,                                        "QuadtreeTULog2MinSize must be 2 or greater.");
   xConfirmPara( m_uiQuadtreeTULog2MinSize > 5,                                        "QuadtreeTULog2MinSize must be 5 or smaller.");
@@ -296,6 +358,9 @@ Void TAppEncCfg::xPrintParameter()
   printf("Input          File          : %s\n", m_pchInputFile          );
   printf("Bitstream      File          : %s\n", m_pchBitstreamFile      );
   printf("Reconstruction File          : %s\n", m_pchReconFile          );
+#if PIC_CROPPING
+  printf("Real     Format              : %dx%d %dHz\n", m_iSourceWidth - m_cropLeft - m_cropRight, m_iSourceHeight - m_cropTop - m_cropBottom, m_iFrameRate );
+#endif
   printf("Internal Format              : %dx%d %dHz\n", m_iSourceWidth, m_iSourceHeight, m_iFrameRate );
   printf("Frame index                  : %u - %d (%d frames)\n", m_FrameSkip, m_FrameSkip+m_iFrameToBeEncoded-1, m_iFrameToBeEncoded );
   printf("CU size / depth              : %d / %d\n", m_uiMaxCUWidth, m_uiMaxCUDepth );
@@ -318,11 +383,15 @@ Void TAppEncCfg::xPrintParameter()
   printf("SRD:%d ", m_bUseSBACRD          );
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("ECU:%d ", m_bUseEarlyCU         );
+#if FAST_DECISION_FOR_MRG_RD_COST
+  printf("FDM:%d ", m_useFastDecisionForMerge );
+#endif
   printf("CFM:%d ", m_bUseCbfFastMode         );
   printf("RQT:%d ", 1     );
-  printf("MRG:%d ", m_bUseMRG             ); // SOPH: Merge Mode
-
   printf("TMVP:%d ", m_enableTMVP     );
+#if MULTIBITS_DATA_HIDING
+  printf(" SignBitHidingFlag:%d SignBitHidingThreshold:%d", m_signHideFlag, m_signHidingThreshold);
+#endif
 
   printf("\n\n");
   
@@ -339,10 +408,7 @@ Void TAppEncCfg::xPrintUsage()
   printf( "                   FEN - fast encoder setting\n");  
   printf( "                   ECU - Early CU setting\n");
   printf( "                   CFM - Cbf fast mode setting\n");
-  printf( "                   MRG - merging of motion partitions\n"); // SOPH: Merge Mode
-
   printf( "                   LMC - intra chroma prediction based on luma\n");
-
   printf( "\n" );
   printf( "  Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4\n");
   printf("              -> QP 32, hierarchical-B GOP 8, 9 frames, 64x64-8x8 CU (~4x4 PU)\n\n");

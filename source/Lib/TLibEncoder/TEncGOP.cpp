@@ -173,8 +173,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, TComPic* pcListPic[2], std::list<Access
       UInt uiExternalAddress = pcPic->getPicSym()->getNumberOfCUsInFrame()-1;
       UInt uiPosX = ( uiExternalAddress % pcPic->getFrameWidthInCU() ) * g_uiMaxCUWidth+ g_auiRasterToPelX[ g_auiZscanToRaster[uiInternalAddress] ];
       UInt uiPosY = ( uiExternalAddress / pcPic->getFrameWidthInCU() ) * g_uiMaxCUHeight+ g_auiRasterToPelY[ g_auiZscanToRaster[uiInternalAddress] ];
-      UInt uiWidth = pcSlice->getSPS()->getWidth();
-      UInt uiHeight = pcSlice->getSPS()->getHeight();
+      UInt uiWidth = pcSlice->getSPS()->getPicWidthInLumaSamples();
+      UInt uiHeight = pcSlice->getSPS()->getPicHeightInLumaSamples();
       while(uiPosX>=uiWidth||uiPosY>=uiHeight) 
       {
         uiInternalAddress--;
@@ -204,13 +204,21 @@ Void TEncGOP::compressGOP( Int iPOCLast, TComPic* pcListPic[2], std::list<Access
       /* write various header sets. */
       if ( m_bSeqFirst )
       {
+#if NAL_REF_FLAG
+        OutputNALUnit nalu(NAL_UNIT_SPS, true);
+#else
         OutputNALUnit nalu(NAL_UNIT_SPS, NAL_REF_IDC_PRIORITY_HIGHEST);
+#endif
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodeSPS(pcSlice->getSPS());
         writeRBSPTrailingBits(nalu.m_Bitstream);
         accessUnit.push_back(new NALUnitEBSP(nalu));
 
+#if NAL_REF_FLAG
+        nalu = NALUnit(NAL_UNIT_PPS, true);
+#else
         nalu = NALUnit(NAL_UNIT_PPS, NAL_REF_IDC_PRIORITY_HIGHEST);
+#endif
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodePPS(pcSlice->getPPS());
         writeRBSPTrailingBits(nalu.m_Bitstream);
@@ -244,8 +252,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, TComPic* pcListPic[2], std::list<Access
         uiExternalAddress = (pcSlice->getSliceCurEndCUAddr()-1) / pcPic->getNumPartInCU();
         uiPosX = ( uiExternalAddress % pcPic->getFrameWidthInCU() ) * g_uiMaxCUWidth+ g_auiRasterToPelX[ g_auiZscanToRaster[uiInternalAddress] ];
         uiPosY = ( uiExternalAddress / pcPic->getFrameWidthInCU() ) * g_uiMaxCUHeight+ g_auiRasterToPelY[ g_auiZscanToRaster[uiInternalAddress] ];
-        uiWidth = pcSlice->getSPS()->getWidth();
-        uiHeight = pcSlice->getSPS()->getHeight();
+        uiWidth = pcSlice->getSPS()->getPicWidthInLumaSamples();
+        uiHeight = pcSlice->getSPS()->getPicHeightInLumaSamples();
         while(uiPosX>=uiWidth||uiPosY>=uiHeight)
         {
           uiInternalAddress--;
@@ -268,14 +276,22 @@ Void TEncGOP::compressGOP( Int iPOCLast, TComPic* pcListPic[2], std::list<Access
           m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
           m_pcEntropyCoder->resetEntropy      ();
         /* start slice NALunit */
-        OutputNALUnit nalu(pcSlice->getNalUnitType(), pcSlice->isReferenced() ? NAL_REF_IDC_PRIORITY_HIGHEST: NAL_REF_IDC_PRIORITY_LOWEST, true);
+#if NAL_REF_FLAG
+        OutputNALUnit nalu( pcSlice->getNalUnitType(), pcSlice->isReferenced() );
+#else
+        OutputNALUnit nalu(pcSlice->getNalUnitType(), pcSlice->isReferenced() ? NAL_REF_IDC_PRIORITY_HIGHEST: NAL_REF_IDC_PRIORITY_LOWEST);
+#endif
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
+#if !CABAC_INIT_FLAG
         pcSlice->setCABACinitIDC(pcSlice->getSliceType());
+#endif
         m_pcEntropyCoder->encodeSliceHeader(pcSlice);
 
         // CHECK_ME: for bitstream check only
         nalu.m_Bitstream.write(0, 1); //xWriteFlag( 0 ); // encodeTileMarkerFlag
+#if !TILES_WPP_ENTRY_POINT_SIGNALLING
         nalu.m_Bitstream.write(0, 1); // iTransmitTileLocationInSliceHeader
+#endif
 
         // is it needed?
         {
@@ -302,6 +318,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, TComPic* pcListPic[2], std::list<Access
           // Construct the final bitstream by flushing and concatenating substreams.
           // The final bitstream is either nalu.m_Bitstream or pcBitstreamRedirect;
             nalu.m_Bitstream.write( 1, 1 ); // stop bit.
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+            nalu.m_Bitstream.writeAlignZero();
+#endif
         }
 
         writeRBSPTrailingBits(nalu.m_Bitstream);
@@ -321,7 +340,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, TComPic* pcListPic[2], std::list<Access
         calcMD5(*pcPic->getPicYuvRec(), sei_recon_picture_digest.digest);
         digestStr = digestToString(sei_recon_picture_digest.digest);
 
+#if NAL_REF_FLAG
+        OutputNALUnit nalu(NAL_UNIT_SEI, false);
+#else
         OutputNALUnit nalu(NAL_UNIT_SEI, NAL_REF_IDC_PRIORITY_LOWEST);
+#endif
 
         /* write the SEI messages */
         m_pcEntropyCoder->setEntropyCoder(m_pcCavlcCoder, pcSlice);
@@ -397,6 +420,12 @@ static const char* nalUnitTypeToString(NalUnitType type)
   switch (type)
   {
   case NAL_UNIT_CODED_SLICE: return "SLICE";
+#if H0566_TLA
+  case NAL_UNIT_CODED_SLICE_CRA: return "CRA";
+  case NAL_UNIT_CODED_SLICE_TLA: return "TLA";
+#else
+  case NAL_UNIT_CODED_SLICE_CDR: return "CDR";
+#endif
   case NAL_UNIT_CODED_SLICE_IDR: return "IDR";
   case NAL_UNIT_SEI: return "SEI";
   case NAL_UNIT_SPS: return "SPS";
@@ -491,7 +520,7 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
 #if VERBOSE_RATE
     printf("*** %6s numBytesInNALunit: %u\n", nalUnitTypeToString((*it)->m_UnitType), numRBSPBytes_nal);
 #endif
-    if ((*it)->m_UnitType != NAL_UNIT_SEI)
+    if ((*it)->m_nalUnitType != NAL_UNIT_SEI)
       numRBSPBytes += numRBSPBytes_nal;
   }
 

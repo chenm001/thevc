@@ -40,12 +40,81 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define LOSSLESS_CODING                   1  ///< H0530: lossless and lossy (mixed) coding
+#if LOSSLESS_CODING
+#define SEQUENCE_LEVEL_LOSSLESS           0  ///< H0530: used only for sequence or frame-level lossless coding
+#endif
+
+#define PARALLEL_MERGE  1                   //< H0082 parallel merge/skip      
+#define LOG2_PARALLEL_MERGE_LEVEL_MINUS2 0  //< H0082 parallel merge level 0-> 4x4, 1-> 8x8, 2->16x16, 3->32x32, 4->64x64
+#if PARALLEL_MERGE && LOG2_PARALLEL_MERGE_LEVEL_MINUS2
+#define CU_BASED_MRG_CAND_LIST           1  //< H0240: single merge candidate list for all PUs inside a 8x8 CU conditioned on LOG2_PARALLEL_MERGE_LEVEL_MINUS2 > 0
+#endif
+#define MVP_AT_ENTROPYSLICE_BOUNDARY  1     //< H0362 enable motion prediction accross entropy slice boundary
+
+#define FAST_DECISION_FOR_MRG_RD_COST  1 ////< H0178: Fast Decision for Merge 2Nx2N RDCost
+
+#define PIC_CROPPING              1 ///< Picture cropping and size constraints
+#define NAL_REF_FLAG              1 ///< Change nal_ref_idc to nal_ref_flag (JCTVC-F463)
+#define REMOVE_DIV_OPERATION      1 ///< H0238: Simplified intra horizontal and vertical filtering
+#define LOGI_INTRA_NAME_3MPM      1  ///< H0407: logical Intra mode naming (sequential angular mode numbering) and 3 MPM mode coding
+
+#define LEVEL_CTX_LUMA_RED        1  ///<H0130: Luma level context reduction
+#define REMOVE_INFER_SIGGRP       1  ///<H0131: Remove inferred significant_coeff_group_flag
+
+#define SET_MERGE_TMVP_REFIDX     1  ///< H0278/H0199: Setting the merge TMVP refidx to 0 for the non-first partition
+
+#define MULTILEVEL_SIGMAP_EXT     1  ///< H0526: multi-level significance map extended to smaller TUs
+#define MULTIBITS_DATA_HIDING     1  ///< H0481: multiple sign bit hiding
+
+#define DEQUANT_CLIPPING           1  ///< H0312/H0541: transformed coefficients clipping before de-quantization
+
+#define REMOVE_NON_SCALED         1 ///< H0164/H0250: Removal of non-scaled merge candidate
+#define MRG_IDX_CTX_RED           1 ///< H0251: Merge index context reduction
+#define SIMP_MRG_PRUN             1 ///< H0252: simplification of merge pruning process
+
+#define AMVP_PRUNING_SIMPLIFICATION         1     ///H0316: simplify the pruning process of AMVP by exempting the temporal candidate
+#define AMVP_ZERO_CHECKING_REMOVAL          1     ///H0239/H0316: remove zero motion vector checking of AMVP
+
+#define H0111_MVD_L1_ZERO         1  ///< H0111: modification of bi-prediction
+#define DISABLING_CLIP_FOR_BIPREDME         1  ///< Ticket #175
+  
+#define CLIPSCALEDMVP               1  ///< H0216: Clipping scaled MV to 16 bit
+
+#define UNIFIED_TRANSFORM_TREE      1   ///< H0123: unified tree structure for TU
 
 #define SIGMAP_CTX_SUBBLOCK       1 ///< H0290: 4x4 sub-block based region for significant_flag context selection
 
 #define SIGMAP_CONST_AT_HIGH_FREQUENCY      1      ///< H0095 method2.1: const significance map at high freaquency
 
-#define PARAMSET_VLC_CLEANUP               1      ///< followup to G220: Simplify parameter set code
+#define LAST_CTX_REDUCTION        1  ///< H0537/H514: contexts reduction for last position coding
+
+#define AMP_CTX                   1 ///<H0545: context reduction for asymmetric partition
+
+#define RESTRICT_GR1GR2FLAG_NUMBER    1 ///< H0554: Throughput improvement of CABAC coefficients level coding
+#if RESTRICT_GR1GR2FLAG_NUMBER    // 
+#define C1FLAG_NUMBER               8 // maximum number of largerThan1 flag coded in one chunk :  16 in HM5
+#define C2FLAG_NUMBER               1 // maximum number of largerThan2 flag coded in one chunk:  16 in HM5 
+#endif 
+
+#define EIGHT_BITS_RICE_CODE        1 ///< H0498 : 8 bits rice codes
+
+#define SAO_UNIT_INTERLEAVING      1   ///< H0273
+#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_1 0  ///< disable the encoder constraint that does not test SAO/BO mode for chroma in interleaved mode
+#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_2 0  ///< disable the encoder constraint that reduce the range of SAO/EO for chroma in interleaved mode
+#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_3 0  ///< disable the encoder constraint that conditionally disable SAO for chroma for entire slice in interleaved mode
+
+#define ALF_SINGLE_FILTER_SHAPE    1     //< !!! H0068: Single filter type : 9x7 cross + 3x3 square
+
+#define ALF_16_BA_GROUPS        1     ///< H0409 16 BA groups
+#define LCU_SYNTAX_ALF          1     ///< H0274 LCU-syntax ALF
+#define ALF_CHROMA_COEF_PRED_HARMONIZATION 1 ///< H0483: ALF chroma coeff pred harmonization
+
+#define CABAC_LINEAR_INIT       1     ///< H0535 : linear CABAC initialization
+
+#define COLLOCATED_REF_IDX      1     ///< H0442: signal collocated reference index
+
+#define UNIFIED_TRANSFORM       1     ///< H0492: unify square and non-square transform
 
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
@@ -70,15 +139,22 @@
 #define LEVEL_RANGE                         30     ///< G382: max coefficient level in statistics collection
 #endif
 
-#define NS_HAD                               1
 
+#define CHROMA_MODE_CODING                   1     //H0326/H0475 : 2-length fixed, bypass coding for chroma intra prediction mode
+
+#define NSQT_LFFIX                           1     ///< Bug fix related to NSQT and deblocking filter
+#define NS_HAD                               1
 
 #define HHI_RQT_INTRA_SPEEDUP             1           ///< tests one best mode with full rqt
 #define HHI_RQT_INTRA_SPEEDUP_MOD         0           ///< tests two best modes with full rqt
 
+#define BURST_IPCM                        1           ///< H0051: Burst IPCM
+
 #if HHI_RQT_INTRA_SPEEDUP_MOD && !HHI_RQT_INTRA_SPEEDUP
 #error
 #endif
+
+#define H0137_0138_LIST_MODIFICATION      1           // Enabled reference picture lists combination (H0137) and reference picture list modification (H0138) updates
 
 #define VERBOSE_RATE 0 ///< Print additional rate information in encoder
 
@@ -92,7 +168,6 @@
 #define ZERO_MVD_EST                          0           ///< Zero Mvd Estimation in normal mode
 
 #define NUM_INTRA_MODE 36
-#define LM_CHROMA_IDX  35
 
 #define IBDI_DISTORTION                0           ///< enable/disable SSE modification when IBDI is used (JCTVC-D152)
 #define FIXED_ROUNDING_FRAME_MEMORY    0           ///< enable/disable fixed rounding to 8-bitdepth of frame memory when IBDI is used  
@@ -102,12 +177,19 @@
                                                     // using one nearest frame as reference frame, and the other frames are high quality (POC%4==0) frames (1+X)
                                                     // this should be done with encoder only decision
                                                     // but because of the absence of reference frame management, the related code was hard coded currently
+#define LTRP_MULT                       1           ///< enable/disable multiple long term reference pictures with same POC LSB
 
 
 #define RVM_VCEGAM10_M 4
 
 #define PLANAR_IDX             0
+#if LOGI_INTRA_NAME_3MPM
+#define VER_IDX                26                    // index for intra VERTICAL   mode
+#define HOR_IDX                10                    // index for intra HORIZONTAL mode
+#define DC_IDX                 1                     // index for intra DC mode
+#else
 #define DC_IDX                 3                     // index for intra DC mode
+#endif
 #define NUM_CHROMA_MODE        6                     // total number of chroma modes
 #define DM_CHROMA_IDX          36                    // chroma mode index for derived from luma intra mode
 
@@ -134,8 +216,26 @@
 #define AMP_MRG                               1           ///< encoder only force merge for AMP partition (no motion search for AMP)
 #endif
 
-#define SCALING_LIST_OUTPUT_RESULT    0 //JCTVC-G880/JCTVC-G1016 quantization matrices
+#define DEFAULT_DC                    1 // JCTVC-H0242
 
+#define RPS_IN_SPS                    1 // Adopted during discussion of JCTVC-H0423
+
+#define H0412_REF_PIC_LIST_RESTRICTION 1
+
+#define H0566_TLA                     1
+
+#define H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER 1
+
+#define DBL_H0473_PART_1          1   //Deblocking filtering simplification
+#define DBL_CONTROL               1   //PPS deblocking_filter_control_present_flag (JCTVC-H0398); condition for inherit params flag in SH (JCTVC-H0424)
+#define DBL_STRONG_FILTER_CLIP    1   //Introduction of strong filter clipping in deblocking filter (JCTVC-H0275)
+
+#define CABAC_INIT_FLAG             1 // JCTVC-H0540
+#define CABAC_INIT_PRESENT_FLAG     1
+
+#define TILES_WPP_ENTRY_POINT_SIGNALLING        1 // JCTVC-H0556. Assumes either Tiles is ON or WPP is ON (not both simultaneously).
+#define TILES_OR_ENTROPY_SYNC_IDC               1 // tiles_or_entropy_coding_sync_idc flag
+#define WPP_SIMPLIFICATION          1 // JCTVC-H0349/JCTVC-0517
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
@@ -193,6 +293,7 @@ enum SliceType
 {
   I_SLICE,
   P_SLICE,
+  B_SLICE,
 };
 
 /// chroma formats (according to semantics of chroma_format_idc)

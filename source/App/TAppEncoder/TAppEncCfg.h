@@ -62,6 +62,13 @@ protected:
   unsigned int m_FrameSkip;                                   ///< number of skipped frames from the beginning
   Int       m_iSourceWidth;                                   ///< source width in pixel
   Int       m_iSourceHeight;                                  ///< source height in pixel
+#if PIC_CROPPING
+  Int       m_croppingMode;
+  Int       m_cropLeft;
+  Int       m_cropRight;
+  Int       m_cropTop;
+  Int       m_cropBottom;
+#endif
   Int       m_iFrameToBeEncoded;                              ///< number of encoded frames
   
   // coding structure
@@ -85,9 +92,6 @@ protected:
   
   UInt      m_uiQuadtreeTUMaxDepthInter;
   UInt      m_uiQuadtreeTUMaxDepthIntra;
-  
-  // coding tools (inter - merge motion partitions)
-  Bool      m_bUseMRG;                                        ///< SOPH: flag for using motion partition Merge Mode
 
   // coding tools (encoder-only parameters)
   Bool      m_bUseSBACRD;                                     ///< flag for using RD optimization based on SBAC
@@ -96,10 +100,17 @@ protected:
   Int       m_iSearchRange;                                   ///< ME search range
   Bool      m_bUseFastEnc;                                    ///< flag for using fast encoder setting
   Bool      m_bUseEarlyCU;                                    ///< flag for using Early CU setting
+#if FAST_DECISION_FOR_MRG_RD_COST
+  Bool      m_useFastDecisionForMerge;                        ///< flag for using Fast Decision Merge RD-Cost 
+#endif
   Bool      m_bUseCbfFastMode;                              ///< flag for using Cbf Fast PU Mode Decision
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
   Bool      m_enableTMVP;
+#if MULTIBITS_DATA_HIDING
+  Int       m_signHideFlag;
+  Int       m_signHidingThreshold;
+#endif
 
   // internal member functions
   Void  xSetGlobal      ();                                   ///< set global variables

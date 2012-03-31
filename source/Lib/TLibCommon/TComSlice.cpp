@@ -59,7 +59,11 @@ TComSlice::TComSlice()
 , m_bNextSlice                    ( false )
 , m_uiSliceBits                   ( 0 )
 , m_bFinalized                    ( false )
+#if CABAC_INIT_FLAG
+, m_cabacInitFlag                 ( false )
+#else
 , m_cabacInitIdc                 ( -1 )
+#endif
 {
   m_pcRefPicList = NULL;
   m_iRefPOCList = 0;
@@ -75,6 +79,9 @@ Void TComSlice::initSlice()
   m_uiMaxNumMergeCand = MRG_MAX_NUM_CANDS_SIGNALED;
 
   m_bFinalized=false;
+#if CABAC_INIT_FLAG
+  m_cabacInitFlag        = false;
+#endif
 }
 
 Void TComSlice::setRefPOCList       ()
@@ -141,8 +148,15 @@ TComSPS::TComSPS()
 , m_LevelIdc                  (  0)
 , m_chromaFormatIdc           (CHROMA_420)
 // Structure
-, m_uiWidth                   (352)
-, m_uiHeight                  (288)
+, m_picWidthInLumaSamples     (352)
+, m_picHeightInLumaSamples    (288)
+#if PIC_CROPPING
+, m_picCroppingFlag           (false)
+, m_picCropLeftOffset         (  0)
+, m_picCropRightOffset        (  0)
+, m_picCropTopOffset          (  0)
+, m_picCropBottomOffset       (  0) 
+#endif
 , m_uiMaxCUWidth              ( 32)
 , m_uiMaxCUHeight             ( 32)
 , m_uiMaxCUDepth              (  3)
@@ -154,7 +168,6 @@ TComSPS::TComSPS()
 , m_uiQuadtreeTUMaxDepthIntra (  0)
 // Tool list
 , m_bDisInter4x4              (  1)
-, m_bUseMRG                   (false)
 , m_uiBitsForPOC              (  8)
 , m_uiMaxTrSize               ( 32)
 , m_uiMaxDecFrameBuffering    (  0)
@@ -173,6 +186,14 @@ TComPPS::TComPPS()
 , m_SPSId                       (0)
 , m_picInitQPMinus26            (0)
 , m_pcSPS                       (NULL)
+#if MULTIBITS_DATA_HIDING
+, m_signHideFlag(0)
+, m_signHidingThreshold(0)
+#endif
+#if CABAC_INIT_FLAG
+, m_cabacInitPresentFlag        (false)
+, m_encCABACTableIdx            (0)
+#endif
 {
 }
 

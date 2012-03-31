@@ -158,12 +158,19 @@ public:
   static UInt getSigCoeffGroupCtxInc  ( const UInt*                   uiSigCoeffGroupFlag,
                                        const UInt                       uiCGPosX,
                                        const UInt                       uiCGPosY,
+#if MULTILEVEL_SIGMAP_EXT
+                                       const UInt                     scanIdx,
+#endif
                                        Int width, Int height);
-  
+#if !REMOVE_INFER_SIGGRP  
   static Bool bothCGNeighboursOne  ( const UInt*                      uiSigCoeffGroupFlag,
                                     const UInt                       uiCGPosX,
                                     const UInt                       uiCGPosY,
+#if MULTILEVEL_SIGMAP_EXT
+                                    const UInt                       scanIdx,
+#endif
                                     Int width, Int height);
+#endif
 protected:
   Int*    m_plTempCoeff;
   
@@ -180,6 +187,10 @@ private:
   // forward Transform
   Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Int* plCoeff, Int iWidth, Int iHeight );
   
+#if MULTIBITS_DATA_HIDING
+  Void signBitHidingHDQ( TComDataCU* pcCU, TCoeff* pQCoef, TCoeff* pCoef, UInt const *scan, Int* deltaU, Int width, Int height );
+#endif
+
   // quantization
   Void xQuant( TComDataCU* pcCU, 
                Int*        pSrc, 

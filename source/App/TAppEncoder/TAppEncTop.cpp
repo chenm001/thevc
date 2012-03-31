@@ -71,6 +71,13 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setFrameSkip                    ( m_FrameSkip );
   m_cTEncTop.setSourceWidth                  ( m_iSourceWidth );
   m_cTEncTop.setSourceHeight                 ( m_iSourceHeight );
+#if PIC_CROPPING
+  m_cTEncTop.setCroppingMode                 ( m_croppingMode );
+  m_cTEncTop.setCropLeft                     ( m_cropLeft );
+  m_cTEncTop.setCropRight                    ( m_cropRight );
+  m_cTEncTop.setCropTop                      ( m_cropTop );
+  m_cTEncTop.setCropBottom                   ( m_cropBottom );
+#endif
   m_cTEncTop.setFrameToBeEncoded             ( m_iFrameToBeEncoded );
   
   //====== Coding Structure ========
@@ -98,12 +105,18 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setQuadtreeTUMaxDepthIntra      ( m_uiQuadtreeTUMaxDepthIntra );
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
   m_cTEncTop.setUseEarlyCU                   ( m_bUseEarlyCU  ); 
+#if FAST_DECISION_FOR_MRG_RD_COST
+  m_cTEncTop.setUseFastDecisionForMerge      ( m_useFastDecisionForMerge  );
+#endif
   m_cTEncTop.setUseCbfFastMode            ( m_bUseCbfFastMode  );
-  m_cTEncTop.setUseMRG                       ( m_bUseMRG      ); // SOPH:
 
   m_cTEncTop.setPictureDigestEnabled(m_pictureDigestEnabled);
 
   m_cTEncTop.setEnableTMVP ( m_enableTMVP );
+#if MULTIBITS_DATA_HIDING
+  m_cTEncTop.setSignHideFlag(m_signHideFlag);
+  m_cTEncTop.setTSIG(m_signHidingThreshold);
+#endif
 }
 
 Void TAppEncTop::xCreateLib()
@@ -221,7 +234,13 @@ Void TAppEncTop::xWriteOutput(TComPicYuv* pcPicYuvRec, std::ostream& bitstreamFi
   list<AccessUnit>::const_iterator iterBitstream = accessUnits.begin();
   
     if (m_pchReconFile)
+#if PIC_CROPPING
+    {
+      m_cTVideoIOYuvReconFile.write( pcPicYuvRec, m_cropLeft, m_cropRight, m_cropTop, m_cropBottom );
+    }
+#else
       m_cTVideoIOYuvReconFile.write( pcPicYuvRec );
+#endif
 
     const AccessUnit& au = *iterBitstream;
     const vector<unsigned>& stats = writeAnnexB(bitstreamFile, au);
@@ -238,12 +257,17 @@ void TAppEncTop::rateStatsAccum(const AccessUnit& au, const std::vector<unsigned
 
   for (; it_au != au.end(); it_au++, it_stats++)
   {
-    switch ((*it_au)->m_UnitType)
+    switch ((*it_au)->m_nalUnitType)
     {
     case NAL_UNIT_CODED_SLICE:
+#if H0566_TLA
+    case NAL_UNIT_CODED_SLICE_TLA:
+    case NAL_UNIT_CODED_SLICE_CRA:
+#else
     case NAL_UNIT_CODED_SLICE_DATAPART_A:
     case NAL_UNIT_CODED_SLICE_DATAPART_B:
     case NAL_UNIT_CODED_SLICE_CDR:
+#endif
     case NAL_UNIT_CODED_SLICE_IDR:
     case NAL_UNIT_SPS:
     case NAL_UNIT_PPS:

@@ -253,8 +253,18 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
 
 Void TEncTop::xInitSPS()
 {
-  m_cSPS.setWidth         ( m_iSourceWidth      );
-  m_cSPS.setHeight        ( m_iSourceHeight     );
+  m_cSPS.setPicWidthInLumaSamples         ( m_iSourceWidth      );
+  m_cSPS.setPicHeightInLumaSamples        ( m_iSourceHeight     );
+#if PIC_CROPPING
+  m_cSPS.setPicCroppingFlag( m_croppingMode!= 0 );
+  if (m_croppingMode != 0)
+  {
+    m_cSPS.setPicCropLeftOffset( m_cropLeft );
+    m_cSPS.setPicCropRightOffset( m_cropRight );
+    m_cSPS.setPicCropTopOffset( m_cropTop );
+    m_cSPS.setPicCropBottomOffset( m_cropBottom );
+  }
+#endif
   m_cSPS.setMaxCUWidth    ( g_uiMaxCUWidth      );
   m_cSPS.setMaxCUHeight   ( g_uiMaxCUHeight     );
   m_cSPS.setMaxCUDepth    ( g_uiMaxCUDepth      );
@@ -266,8 +276,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setQuadtreeTUMaxDepthInter( m_uiQuadtreeTUMaxDepthInter    );
   m_cSPS.setQuadtreeTUMaxDepthIntra( m_uiQuadtreeTUMaxDepthIntra    );
   
-  m_cSPS.setUseMRG        ( m_bUseMRG           ); // SOPH:
-
   m_cSPS.setMaxTrSize   ( 1 << m_uiQuadtreeTULog2MaxSize );
   
   m_cSPS.setUseNSQT( m_useNSQT );
@@ -302,6 +310,16 @@ Void TEncTop::xInitSPS()
 Void TEncTop::xInitPPS()
 {
   m_cPPS.setEnableTMVPFlag( m_bEnableTMVP );
+#if MULTIBITS_DATA_HIDING
+  m_cPPS.setSignHideFlag(getSignHideFlag());
+  m_cPPS.setTSIG(getTSIG());
+#endif
+#if PARALLEL_MERGE
+  m_cPPS.setLog2ParallelMergeLevelMinus2      (LOG2_PARALLEL_MERGE_LEVEL_MINUS2);
+#endif
+#if CABAC_INIT_FLAG
+  m_cPPS.setCabacInitPresentFlag(CABAC_INIT_PRESENT_FLAG);
+#endif
 }
 
 //! \}

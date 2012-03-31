@@ -55,19 +55,16 @@ void write(ostream& out, const OutputNALUnit& nalu)
   TComOutputBitstream bsNALUHeader;
 
   bsNALUHeader.write(0,1); // forbidden_zero_flag
-  bsNALUHeader.write(nalu.m_RefIDC, 2); // nal_ref_idc
-  bsNALUHeader.write(nalu.m_UnitType, 5); // nal_unit_type
+#if NAL_REF_FLAG
+  bsNALUHeader.write(nalu.m_nalRefFlag? 1 : 0, 1); // nal_ref_flag
+  bsNALUHeader.write(nalu.m_nalUnitType, 6);          // nal_unit_type
+#else
+  bsNALUHeader.write(nalu.m_nalRefIDC, 2); // nal_ref_idc
+  bsNALUHeader.write(nalu.m_nalUnitType, 5); // nal_unit_type
+#endif
 
-  switch (nalu.m_UnitType)
-  {
-  case NAL_UNIT_CODED_SLICE:
-  case NAL_UNIT_CODED_SLICE_IDR:
-    bsNALUHeader.write(0, 3); // temporal_id
-    bsNALUHeader.write(nalu.m_OutputFlag, 1); // output_flag
-    bsNALUHeader.write(1, 4); // reserved_one_4bits
-    break;
-  default: break;
-  }
+  bsNALUHeader.write(0, 3); // temporal_id
+  bsNALUHeader.write(1, 5); // reserved_one_5bits
 
   out.write(bsNALUHeader.getByteStream(), bsNALUHeader.getByteStreamLength());
 

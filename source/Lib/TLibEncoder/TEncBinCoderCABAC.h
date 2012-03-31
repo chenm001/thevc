@@ -67,8 +67,8 @@ public:
   
   TEncBinCABAC* getTEncBinCABAC()  { return this; }
   
-  Void  setBinsCoded              ( UInt uiVal )  { m_uiBinsCoded = uiVal;               }
-  UInt  getBinsCoded              ()              { return m_uiBinsCoded;                }
+  Void  setBinsCoded              ( UInt uiVal )  { m_binsCoded = uiVal;               }
+  UInt  getBinsCoded              ()              { return m_binsCoded;                }
   Void  setBinCountingEnableFlag  ( Bool bFlag )  { m_binCountIncrement = bFlag ? 1 : 0; }
   Bool  getBinCountingEnableFlag  ()              { return m_binCountIncrement != 0;     }
   
@@ -86,7 +86,7 @@ private:
   UInt                m_bufferedByte;
   Int                 m_numBufferedBytes;
   Int                 m_bitsLeft;
-  UInt                m_uiBinsCoded;
+  UInt                m_binsCoded;
   Int                 m_binCountIncrement;
 #if FAST_BIT_EST
   UInt64 m_fracBits;

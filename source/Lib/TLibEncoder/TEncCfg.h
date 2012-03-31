@@ -61,6 +61,13 @@ protected:
   Int       m_FrameSkip;
   Int       m_iSourceWidth;
   Int       m_iSourceHeight;
+#if PIC_CROPPING
+  Int       m_croppingMode;
+  Int       m_cropLeft;
+  Int       m_cropRight;
+  Int       m_cropTop;
+  Int       m_cropBottom;
+#endif
   Int       m_iFrameToBeEncoded;
 
   //====== Coding Structure ========
@@ -92,12 +99,18 @@ protected:
   Bool      m_bUseHADME;
   Bool      m_bUseFastEnc;
   Bool      m_bUseEarlyCU;
+#if FAST_DECISION_FOR_MRG_RD_COST
+  Bool      m_useFastDecisionForMerge;
+#endif
   Bool      m_bUseCbfFastMode;
-  Bool      m_bUseMRG; // SOPH:
 
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
   Bool      m_bEnableTMVP;
+#if MULTIBITS_DATA_HIDING
+  Int       m_signHideFlag;
+  Int       m_signHidingThreshold;
+#endif
 
 public:
   TEncCfg()          {}
@@ -109,6 +122,13 @@ public:
   Void      setFrameSkip                    ( unsigned int i ) { m_FrameSkip = i; }
   Void      setSourceWidth                  ( Int   i )      { m_iSourceWidth = i; }
   Void      setSourceHeight                 ( Int   i )      { m_iSourceHeight = i; }
+#if PIC_CROPPING
+  Void      setCroppingMode                 ( Int   i )      { m_croppingMode = i; }
+  Void      setCropLeft                     ( Int   i )      { m_cropLeft = i; }
+  Void      setCropRight                    ( Int   i )      { m_cropRight = i; }
+  Void      setCropTop                      ( Int   i )      { m_cropTop = i; }
+  Void      setCropBottom                   ( Int   i )      { m_cropBottom = i; }
+#endif
   Void      setFrameToBeEncoded             ( Int   i )      { m_iFrameToBeEncoded = i; }
   
   //====== Coding Structure ========
@@ -140,6 +160,13 @@ public:
   unsigned int getFrameSkip                 ()      { return  m_FrameSkip; }
   Int       getSourceWidth                  ()      { return  m_iSourceWidth; }
   Int       getSourceHeight                 ()      { return  m_iSourceHeight; }
+#if PIC_CROPPING
+  Int       getCroppingMode                 ()      { return  m_croppingMode; }
+  Int       getCropLeft                     ()      { return  m_cropLeft; }
+  Int       getCropRight                    ()      { return  m_cropRight; }
+  Int       getCropTop                      ()      { return  m_cropTop; }
+  Int       getCropBottom                   ()      { return  m_cropBottom; }
+#endif
   Int       getFrameToBeEncoded             ()      { return  m_iFrameToBeEncoded; }
 
   //==== Coding Structure ========
@@ -163,15 +190,19 @@ public:
   Void      setUseHADME                     ( Bool  b )     { m_bUseHADME   = b; }
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
   Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
+#if FAST_DECISION_FOR_MRG_RD_COST
+  Void      setUseFastDecisionForMerge      ( Bool  b )     { m_useFastDecisionForMerge = b; }
+#endif
   Void      setUseCbfFastMode            ( Bool  b )     { m_bUseCbfFastMode = b; }
-  Void      setUseMRG                       ( Bool  b )     { m_bUseMRG     = b; } // SOPH:
   Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
   Bool      getUseHADME                     ()      { return m_bUseHADME;   }
 
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
   Bool      getUseEarlyCU                   ()      { return m_bUseEarlyCU; }
+#if FAST_DECISION_FOR_MRG_RD_COST
+  Bool      getUseFastDecisionForMerge      ()      { return m_useFastDecisionForMerge; }
+#endif
   Bool      getUseCbfFastMode           ()      { return m_bUseCbfFastMode; }
-  Bool      getUseMRG                       ()      { return m_bUseMRG;     } // SOPH:
 #if NS_HAD
   Bool      getUseNSQT                      ()      { return m_useNSQT; }
 #endif
@@ -181,6 +212,12 @@ public:
 
   Void      setEnableTMVP ( Bool b ) { m_bEnableTMVP = b;    }
   Bool      getEnableTMVP ()         { return m_bEnableTMVP; }
+#if MULTIBITS_DATA_HIDING
+  Void      setSignHideFlag( Int signHideFlag ) { m_signHideFlag = signHideFlag; }
+  Void      setTSIG( Int tsig )                 { m_signHidingThreshold = tsig; }
+  Int       getSignHideFlag()                    { return m_signHideFlag; }
+  Int       getTSIG()                            { return m_signHidingThreshold; }
+#endif
 };
 
 //! \}

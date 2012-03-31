@@ -254,18 +254,34 @@ bool TVideoIOYuv::read ( TComPicYuv*  pPicYuv )
  * @param aiPad       source padding size, aiPad[0] = horizontal, aiPad[1] = vertical
  * @return true for success, false in case of error
  */
+#if PIC_CROPPING
+Bool TVideoIOYuv::write( TComPicYuv* pPicYuv, Int cropLeft, Int cropRight, Int cropTop, Int cropBottom )
+#else
 bool TVideoIOYuv::write( TComPicYuv* pPicYuv )
+#endif
 {
   // compute actual YUV frame size excluding padding size
   Int   iStride = pPicYuv->getStride();
+#if PIC_CROPPING
+  UInt  width  = pPicYuv->getWidth()  - cropLeft - cropRight;
+  UInt  height = pPicYuv->getHeight() - cropTop  - cropBottom;
+#else
   unsigned int width  = pPicYuv->getWidth();
   unsigned int height = pPicYuv->getHeight();
+#endif
   TComPicYuv *dstPicYuv = NULL;
   bool retval = true;
 
     dstPicYuv = pPicYuv;
   
+#if PIC_CROPPING
+  // location of upper left pel in a plane
+  Int planeOffset = 0; //cropLeft + cropTop * iStride;
+   
+  if (! writePlane(m_cHandle, dstPicYuv->getLumaAddr() + planeOffset, iStride, width, height))
+#else
   if (! writePlane(m_cHandle, dstPicYuv->getLumaAddr(), iStride, width, height))
+#endif
   {
     retval=false; 
     goto exit;
@@ -274,12 +290,25 @@ bool TVideoIOYuv::write( TComPicYuv* pPicYuv )
   width >>= 1;
   height >>= 1;
   iStride >>= 1;
+#if PIC_CROPPING
+  cropLeft >>= 1;
+  cropRight >>= 1;
+
+  planeOffset = 0; // cropLeft + cropTop * iStride;
+
+  if (! writePlane(m_cHandle, dstPicYuv->getCbAddr() + planeOffset, iStride, width, height))
+#else
   if (! writePlane(m_cHandle, dstPicYuv->getCbAddr(), iStride, width, height))
+#endif
   {
     retval=false; 
     goto exit;
   }
+#if PIC_CROPPING
+  if (! writePlane(m_cHandle, dstPicYuv->getCrAddr() + planeOffset, iStride, width, height))
+#else
   if (! writePlane(m_cHandle, dstPicYuv->getCrAddr(), iStride, width, height))
+#endif
   {
     retval=false; 
     goto exit;

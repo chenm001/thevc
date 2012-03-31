@@ -68,8 +68,15 @@ private:
   Int         m_chromaFormatIdc;
 
   // Structure
-  UInt        m_uiWidth;
-  UInt        m_uiHeight;
+  UInt        m_picWidthInLumaSamples;
+  UInt        m_picHeightInLumaSamples;
+#if PIC_CROPPING
+  Bool        m_picCroppingFlag;
+  Int         m_picCropLeftOffset;
+  Int         m_picCropRightOffset;
+  Int         m_picCropTopOffset;
+  Int         m_picCropBottomOffset;
+#endif
   UInt        m_uiMaxCUWidth;
   UInt        m_uiMaxCUHeight;
   UInt        m_uiMaxCUDepth;
@@ -83,7 +90,7 @@ private:
   UInt        m_uiQuadtreeTUMaxDepthIntra;
   Bool        m_bDisInter4x4;
   Bool        m_useAMP;
-  Bool        m_bUseMRG; // SOPH:
+  Bool        m_bUseALF;
 
   Bool        m_useNSQT;
   
@@ -114,10 +121,24 @@ public:
   Void setChromaFormatIdc (Int i)    { m_chromaFormatIdc = i;          }
   
   // structure
-  Void setWidth       ( UInt u ) { m_uiWidth = u;           }
-  UInt getWidth       ()         { return  m_uiWidth;       }
-  Void setHeight      ( UInt u ) { m_uiHeight = u;          }
-  UInt getHeight      ()         { return  m_uiHeight;      }
+  Void setPicWidthInLumaSamples       ( UInt u ) { m_picWidthInLumaSamples = u;        }
+  UInt getPicWidthInLumaSamples       ()         { return  m_picWidthInLumaSamples;    }
+  Void setPicHeightInLumaSamples      ( UInt u ) { m_picHeightInLumaSamples = u;       }
+  UInt getPicHeightInLumaSamples      ()         { return  m_picHeightInLumaSamples;   }
+
+#if PIC_CROPPING
+  Bool getPicCroppingFlag() const          { return m_picCroppingFlag; }
+  Void setPicCroppingFlag(Bool val)        { m_picCroppingFlag = val; }
+  Int  getPicCropLeftOffset() const        { return m_picCropLeftOffset; }
+  Void setPicCropLeftOffset(Int val)       { m_picCropLeftOffset = val; }
+  Int  getPicCropRightOffset() const       { return m_picCropRightOffset; }
+  Void setPicCropRightOffset(Int val)      { m_picCropRightOffset = val; }
+  Int  getPicCropTopOffset() const         { return m_picCropTopOffset; }
+  Void setPicCropTopOffset(Int val)        { m_picCropTopOffset = val; }
+  Int  getPicCropBottomOffset() const      { return m_picCropBottomOffset; }
+  Void setPicCropBottomOffset(Int val)     { m_picCropBottomOffset = val; }
+#endif
+
   Void setMaxCUWidth  ( UInt u ) { m_uiMaxCUWidth = u;      }
   UInt getMaxCUWidth  ()         { return  m_uiMaxCUWidth;  }
   Void setMaxCUHeight ( UInt u ) { m_uiMaxCUHeight = u;     }
@@ -148,10 +169,6 @@ public:
   UInt getMaxTrSize   ()         { return  m_uiMaxTrSize;   }
   
   // Tool list
-  Bool getUseMRG      ()         { return m_bUseMRG;        } // SOPH:
-  
-  Void setUseMRG      ( Bool b ) { m_bUseMRG  = b;          } // SOPH:
-  
   Bool getUseNSQT() { return m_useNSQT; }
   Void setUseNSQT( Bool b ) { m_useNSQT = b; }
   
@@ -182,6 +199,18 @@ private:
 
   Bool     m_enableTMVPFlag;
 
+#if MULTIBITS_DATA_HIDING
+  Int      m_signHideFlag;
+  Int      m_signHidingThreshold;
+#endif
+
+#if CABAC_INIT_FLAG
+  Bool     m_cabacInitPresentFlag;
+  UInt     m_encCABACTableIdx;           // Used to transmit table selection across slices
+#endif
+#if PARALLEL_MERGE
+  UInt m_log2ParallelMergeLevelMinus2;
+#endif
 public:
 
   TComPPS();
@@ -198,8 +227,26 @@ public:
   Void      setSPS              ( TComSPS* pcSPS ) { m_pcSPS = pcSPS; }
   TComSPS*  getSPS              ()         { return m_pcSPS;          }
 
+#if MULTIBITS_DATA_HIDING
+  Void      setSignHideFlag( Int signHideFlag ) { m_signHideFlag = signHideFlag; }
+  Void      setTSIG( Int tsig )                 { m_signHidingThreshold = tsig; }
+  Int       getSignHideFlag()                    { return m_signHideFlag; }
+  Int       getTSIG()                            { return m_signHidingThreshold; }
+#endif
+
   Void     setEnableTMVPFlag( Bool b )  { m_enableTMVPFlag = b;    }
   Bool     getEnableTMVPFlag()          { return m_enableTMVPFlag; }
+
+#if CABAC_INIT_FLAG
+  Void     setCabacInitPresentFlag( Bool flag )     { m_cabacInitPresentFlag = flag;    }
+  Void     setEncCABACTableIdx( Int idx )           { m_encCABACTableIdx = idx;         }
+  Bool     getCabacInitPresentFlag()                { return m_cabacInitPresentFlag;    }
+  UInt     getEncCABACTableIdx()                    { return m_encCABACTableIdx;        }
+#endif
+#if PARALLEL_MERGE
+  UInt getLog2ParallelMergeLevelMinus2      ()                    { return m_log2ParallelMergeLevelMinus2; }
+  Void setLog2ParallelMergeLevelMinus2      (UInt mrgLevel)       { m_log2ParallelMergeLevelMinus2 = mrgLevel; }
+#endif
 };
 
 /// slice header class
@@ -237,7 +284,11 @@ private:
   UInt        m_uiSliceBits;
   Bool        m_bFinalized;
 
+#if CABAC_INIT_FLAG
+  Bool        m_cabacInitFlag; 
+#else
   Int         m_cabacInitIdc; 
+#endif
 
 public:
   TComSlice();
@@ -284,7 +335,7 @@ public:
   
   Void      setRefPicList       ( TComPic* pcListPic[2] );
   Void      setRefPOCList       ();
-  
+
   Bool      isIntra         ()                          { return  m_eSliceType == I_SLICE;  }
   
   Void      setLambda( Double d ) { m_dLambda = d; }
@@ -311,8 +362,14 @@ public:
   UInt getSliceBits                     ()                  { return m_uiSliceBits;                       }  
   Void setFinalized                     ( Bool uiVal )      { m_bFinalized = uiVal;                       }
   Bool getFinalized                     ()                  { return m_bFinalized;                        }
+#if CABAC_INIT_FLAG
+  Void      setCabacInitFlag  ( Bool val ) { m_cabacInitFlag = val;      }  //!< set CABAC initial flag 
+  Bool      getCabacInitFlag  ()           { return m_cabacInitFlag;     }  //!< get CABAC initial flag 
+#else
   Void      setCABACinitIDC(Int iVal) {m_cabacInitIdc = iVal;    }  //!< set CABAC initial IDC number 
   Int       getCABACinitIDC()         {return m_cabacInitIdc;    }  //!< get CABAC initial IDC number 
+#endif
+
 protected:
 };// END CLASS DEFINITION TComSlice
 

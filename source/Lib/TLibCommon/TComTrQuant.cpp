@@ -291,6 +291,7 @@ void xITr(Int *coeff, Pel *block, UInt uiStride, UInt uiTrSize, UInt uiMode)
  *  \param dst   output data (transform coefficients)
  *  \param shift specifies right shift after 1D transform
  */
+#if !UNIFIED_TRANSFORM
 void partialButterfly4(short src[4][4],short dst[4][4],int shift)
 {
   int j;  
@@ -311,6 +312,7 @@ void partialButterfly4(short src[4][4],short dst[4][4],int shift)
     dst[3][j] = (g_aiT4[3][0]*O[0] + g_aiT4[3][1]*O[1] + add)>>shift;
   }
 }
+#endif
 
 void partialButterfly4(short *src,short *dst,int shift, int line)
 {
@@ -338,13 +340,28 @@ void partialButterfly4(short *src,short *dst,int shift, int line)
 
 // Fast DST Algorithm. Full matrix multiplication for DST and Fast DST algorithm 
 // give identical results
+#if UNIFIED_TRANSFORM
+void fastForwardDst(short *block,short *coeff,int shift)  // input block, output coeff
+#else
 void fastForwardDst(short block[4][4],short coeff[4][4],int shift)  // input block, output coeff
+#endif
 {
   int i, c[4];
   int rnd_factor = 1<<(shift-1);
   for (i=0; i<4; i++)
   {
     // Intermediate Variables
+#if UNIFIED_TRANSFORM
+    c[0] = block[4*i+0] + block[4*i+3];
+    c[1] = block[4*i+1] + block[4*i+3];
+    c[2] = block[4*i+0] - block[4*i+1];
+    c[3] = 74* block[4*i+2];
+
+    coeff[   i] =  ( 29 * c[0] + 55 * c[1]         + c[3]               + rnd_factor ) >> shift;
+    coeff[ 4+i] =  ( 74 * (block[4*i+0]+ block[4*i+1] - block[4*i+3])   + rnd_factor ) >> shift;
+    coeff[ 8+i] =  ( 29 * c[2] + 55 * c[0]         - c[3]               + rnd_factor ) >> shift;
+    coeff[12+i] =  ( 55 * c[2] - 29 * c[1]         + c[3]               + rnd_factor ) >> shift;
+#else
     c[0] = block[i][0] + block[i][3];
     c[1] = block[i][1] + block[i][3];
     c[2] = block[i][0] - block[i][1];
@@ -354,16 +371,32 @@ void fastForwardDst(short block[4][4],short coeff[4][4],int shift)  // input blo
     coeff[1][i] =  ( 74 * (block[i][0]+ block[i][1] - block[i][3])      + rnd_factor ) >> shift;
     coeff[2][i] =  ( 29 * c[2] + 55 * c[0]         - c[3]               + rnd_factor ) >> shift;
     coeff[3][i] =  ( 55 * c[2] - 29 * c[1]         + c[3]               + rnd_factor ) >> shift;
+#endif
   }
 }
 
+#if UNIFIED_TRANSFORM
+void fastInverseDst(short *tmp,short *block,int shift)  // input tmp, output block
+#else
 void fastInverseDst(short tmp[4][4],short block[4][4],int shift)  // input tmp, output block
+#endif
 {
   int i, c[4];
   int rnd_factor = 1<<(shift-1);
   for (i=0; i<4; i++)
   {  
     // Intermediate Variables
+#if UNIFIED_TRANSFORM
+    c[0] = tmp[  i] + tmp[ 8+i];
+    c[1] = tmp[8+i] + tmp[12+i];
+    c[2] = tmp[  i] - tmp[12+i];
+    c[3] = 74* tmp[4+i];
+
+    block[4*i+0] = Clip3( -32768, 32767, ( 29 * c[0] + 55 * c[1]     + c[3]               + rnd_factor ) >> shift );
+    block[4*i+1] = Clip3( -32768, 32767, ( 55 * c[2] - 29 * c[1]     + c[3]               + rnd_factor ) >> shift );
+    block[4*i+2] = Clip3( -32768, 32767, ( 74 * (tmp[i] - tmp[8+i]  + tmp[12+i])      + rnd_factor ) >> shift );
+    block[4*i+3] = Clip3( -32768, 32767, ( 55 * c[0] + 29 * c[2]     - c[3]               + rnd_factor ) >> shift );
+#else
     c[0] = tmp[0][i] + tmp[2][i];
     c[1] = tmp[2][i] + tmp[3][i];
     c[2] = tmp[0][i] - tmp[3][i];
@@ -373,8 +406,10 @@ void fastInverseDst(short tmp[4][4],short block[4][4],int shift)  // input tmp, 
     block[i][1] = Clip3( -32768, 32767, ( 55 * c[2] - 29 * c[1]     + c[3]               + rnd_factor ) >> shift );
     block[i][2] = Clip3( -32768, 32767, ( 74 * (tmp[0][i] - tmp[2][i]  + tmp[3][i])      + rnd_factor ) >> shift );
     block[i][3] = Clip3( -32768, 32767, ( 55 * c[0] + 29 * c[2]     - c[3]               + rnd_factor ) >> shift );
+#endif
   }
 }
+#if !UNIFIED_TRANSFORM
 /** 4x4 forward transform (2D)
  *  \param block input data (residual)
  *  \param coeff output data (transform coefficients)
@@ -385,7 +420,11 @@ void xTr4(short block[4][4],short coeff[4][4],UInt uiMode)
   int shift_1st = 1; // log2(4) - 1 + g_uiBitIncrement
   int shift_2nd = 8;                    // log2(4) + 6
   short tmp[4][4]; 
+#if LOGI_INTRA_NAME_3MPM
+  if (uiMode != REG_DCT && (!uiMode || (uiMode>=2 && uiMode <= 25)))    // Check for DCT or DST
+#else
   if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode])// Check for DCT or DST
+#endif
   {
     fastForwardDst(block,tmp,shift_1st); // Forward DST BY FAST ALGORITHM, block input, tmp output
   }
@@ -394,7 +433,11 @@ void xTr4(short block[4][4],short coeff[4][4],UInt uiMode)
     partialButterfly4(block,tmp,shift_1st);
   }
 
+#if LOGI_INTRA_NAME_3MPM
+  if (uiMode != REG_DCT && (!uiMode || (uiMode>=11 && uiMode <= 34)))    // Check for DCT or DST
+#else
   if (uiMode != REG_DCT && g_aucDCTDSTMode_Vert[uiMode] )   // Check for DCT or DST
+#endif
   {
     fastForwardDst(tmp,coeff,shift_2nd); // Forward DST BY FAST ALGORITHM, tmp input, coeff output
   }
@@ -430,6 +473,7 @@ void partialButterflyInverse4(short src[4][4],short dst[4][4],int shift)
     dst[j][3] = Clip3( -32768, 32767, (E[0] - O[0] + add)>>shift );
   }
 }
+#endif
 
 void partialButterflyInverse4(short *src,short *dst,int shift, int line)
 {
@@ -456,6 +500,7 @@ void partialButterflyInverse4(short *src,short *dst,int shift, int line)
   }
 }
 
+#if !UNIFIED_TRANSFORM
 /** 4x4 inverse transform (2D)
  *  \param coeff input data (transform coefficients)
  *  \param block output data (residual)
@@ -467,7 +512,11 @@ void xITr4(short coeff[4][4],short block[4][4], UInt uiMode)
   int shift_2nd = SHIFT_INV_2ND;
   short tmp[4][4];
   
+#if LOGI_INTRA_NAME_3MPM
+  if (uiMode != REG_DCT && (!uiMode || (uiMode>=11 && uiMode <= 34)))    // Check for DCT or DST
+#else
   if (uiMode != REG_DCT && g_aucDCTDSTMode_Vert[uiMode] )    // Check for DCT or DST
+#endif
   {
     fastInverseDst(coeff,tmp,shift_1st);    // Inverse DST by FAST Algorithm, coeff input, tmp output
   }
@@ -475,7 +524,11 @@ void xITr4(short coeff[4][4],short block[4][4], UInt uiMode)
   {
     partialButterflyInverse4(coeff,tmp,shift_1st);    
   } 
+#if LOGI_INTRA_NAME_3MPM
+  if (uiMode != REG_DCT && (!uiMode || (uiMode>=2 && uiMode <= 25)))    // Check for DCT or DST
+#else
   if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode] )    // Check for DCT or DST
+#endif
   {
     fastInverseDst(tmp,block,shift_2nd); // Inverse DST by FAST Algorithm, tmp input, coeff output
   }
@@ -522,6 +575,7 @@ void partialButterfly8(short src[8][8],short dst[8][8],int shift)
     dst[7][j] = (g_aiT8[7][0]*O[0] + g_aiT8[7][1]*O[1] + g_aiT8[7][2]*O[2] + g_aiT8[7][3]*O[3] + add)>>shift;
   }
 }
+#endif
 
 void partialButterfly8(short *src,short *dst,int shift, int line)
 {
@@ -559,6 +613,7 @@ void partialButterfly8(short *src,short *dst,int shift, int line)
   }
 }
 
+#if !UNIFIED_TRANSFORM
 /** 8x8 forward transform (2D)
  *  \param block input data (residual)
  *  \param coeff  output data (transform coefficients)
@@ -610,6 +665,7 @@ void partialButterflyInverse8(short src[8][8],short dst[8][8],int shift)
     }        
   }
 }
+#endif
 
 void partialButterflyInverse8(short *src,short *dst,int shift, int line)
 {
@@ -646,6 +702,7 @@ void partialButterflyInverse8(short *src,short *dst,int shift, int line)
   }
 }
 
+#if !UNIFIED_TRANSFORM
 /** 8x8 inverse transform (2D)
  *  \param coeff input data (transform coefficients)
  *  \param block output data (residual)
@@ -711,6 +768,7 @@ void partialButterfly16(short src[16][16],short dst[16][16],int shift)
 
   }
 }
+#endif
 
 void partialButterfly16(short *src,short *dst,int shift, int line)
 {
@@ -762,6 +820,7 @@ void partialButterfly16(short *src,short *dst,int shift, int line)
   }
 }
 
+#if !UNIFIED_TRANSFORM
 /** 16x16 forward transform (2D)
  *  \param block input data (residual)
  *  \param coeff output data (transform coefficients)
@@ -824,6 +883,7 @@ void partialButterflyInverse16(short src[16][16],short dst[16][16],int shift)
     }        
   }
 }
+#endif
 
 void partialButterflyInverse16(short *src,short *dst,int shift, int line)
 {
@@ -871,6 +931,7 @@ void partialButterflyInverse16(short *src,short *dst,int shift, int line)
   }
 }
 
+#if !UNIFIED_TRANSFORM
 /** 16x16 inverse transform (2D)
  *  \param coeff input data (transform coefficients)
  *  \param block output data (residual)
@@ -947,6 +1008,7 @@ void partialButterfly32(short src[32][32],short dst[32][32],int shift)
     }
   }
 }
+#endif
 
 void partialButterfly32(short *src,short *dst,int shift, int line)
 {
@@ -1008,6 +1070,7 @@ void partialButterfly32(short *src,short *dst,int shift, int line)
   }
 }
 
+#if !UNIFIED_TRANSFORM
 /** 32x32 forward transform (2D)
  *  \param block input data (residual)
  *  \param coeff output data (transform coefficients)
@@ -1082,6 +1145,7 @@ void partialButterflyInverse32(short src[32][32],short dst[32][32],int shift)
     }        
   }
 }
+#endif
 
 void partialButterflyInverse32(short *src,short *dst,int shift, int line)
 {
@@ -1141,6 +1205,7 @@ void partialButterflyInverse32(short *src,short *dst,int shift, int line)
   }
 }
 
+#if !UNIFIED_TRANSFORM
 /** 32x32 inverse transform (2D)
  *  \param coeff input data (transform coefficients)
  *  \param block output data (residual)
@@ -1154,6 +1219,7 @@ void xITr32(short coeff[32][32],short block[32][32])
   partialButterflyInverse32(coeff,tmp,shift_1st);
   partialButterflyInverse32(tmp,block,shift_2nd);
 }
+#endif
 
 /** MxN forward transform (2D)
 *  \param block input data (residual)
@@ -1161,7 +1227,11 @@ void xITr32(short coeff[32][32],short block[32][32])
 *  \param iWidth input data (width of transform)
 *  \param iHeight input data (height of transform)
 */
+#if UNIFIED_TRANSFORM
+void xTrMxN(short *block,short *coeff, int iWidth, int iHeight, UInt uiMode)
+#else
 void xTrMxN(short *block,short *coeff, int iWidth, int iHeight)
+#endif
 {
   int shift_1st = g_aucConvertToBit[iWidth]  + 1; // log2(iWidth) - 1 + g_uiBitIncrement
   int shift_2nd = g_aucConvertToBit[iHeight]  + 8;                   // log2(iHeight) + 6
@@ -1188,6 +1258,50 @@ void xTrMxN(short *block,short *coeff, int iWidth, int iHeight)
     partialButterfly8( block, tmp, shift_1st, iHeight );
     partialButterfly32( tmp, coeff, shift_2nd, iWidth );
   }
+#if UNIFIED_TRANSFORM
+  else if( iWidth == 4 && iHeight == 4)
+  {
+#if LOGI_INTRA_NAME_3MPM
+    if (uiMode != REG_DCT && (!uiMode || (uiMode>=2 && uiMode <= 25)))    // Check for DCT or DST
+#else
+    if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode])// Check for DCT or DST
+#endif
+    {
+      fastForwardDst(block,tmp,shift_1st); // Forward DST BY FAST ALGORITHM, block input, tmp output
+    }
+    else  
+    {
+      partialButterfly4(block, tmp, shift_1st, iHeight);
+    }
+#if LOGI_INTRA_NAME_3MPM
+    if (uiMode != REG_DCT && (!uiMode || (uiMode>=11 && uiMode <= 34)))    // Check for DCT or DST
+#else
+    if (uiMode != REG_DCT && g_aucDCTDSTMode_Vert[uiMode] )   // Check for DCT or DST
+#endif
+    {
+      fastForwardDst(tmp,coeff,shift_2nd); // Forward DST BY FAST ALGORITHM, tmp input, coeff output
+    }
+    else  
+    {
+      partialButterfly4(tmp, coeff, shift_2nd, iWidth);
+    }   
+  }
+  else if( iWidth == 8 && iHeight == 8)
+  {
+    partialButterfly8( block, tmp, shift_1st, iHeight );
+    partialButterfly8( tmp, coeff, shift_2nd, iWidth );
+  }
+  else if( iWidth == 16 && iHeight == 16)
+  {
+    partialButterfly16( block, tmp, shift_1st, iHeight );
+    partialButterfly16( tmp, coeff, shift_2nd, iWidth );
+  }
+  else if( iWidth == 32 && iHeight == 32)
+  {
+    partialButterfly32( block, tmp, shift_1st, iHeight );
+    partialButterfly32( tmp, coeff, shift_2nd, iWidth );
+  }
+#endif
 }
 /** MxN inverse transform (2D)
 *  \param coeff input data (transform coefficients)
@@ -1195,7 +1309,11 @@ void xTrMxN(short *block,short *coeff, int iWidth, int iHeight)
 *  \param iWidth input data (width of transform)
 *  \param iHeight input data (height of transform)
 */
+#if UNIFIED_TRANSFORM
+void xITrMxN(short *coeff,short *block, int iWidth, int iHeight, UInt uiMode)
+#else
 void xITrMxN(short *coeff,short *block, int iWidth, int iHeight)
+#endif
 {
   int shift_1st = SHIFT_INV_1ST;
   int shift_2nd = SHIFT_INV_2ND;
@@ -1221,9 +1339,182 @@ void xITrMxN(short *coeff,short *block, int iWidth, int iHeight)
     partialButterflyInverse32(coeff,tmp,shift_1st,iWidth);
     partialButterflyInverse8(tmp,block,shift_2nd,iHeight);
   }
+#if UNIFIED_TRANSFORM
+  else if( iWidth == 4 && iHeight == 4)
+  {
+#if LOGI_INTRA_NAME_3MPM
+    if (uiMode != REG_DCT && (!uiMode || (uiMode>=11 && uiMode <= 34)))    // Check for DCT or DST
+#else
+    if (uiMode != REG_DCT && g_aucDCTDSTMode_Vert[uiMode] )    // Check for DCT or DST
+#endif
+    {
+      fastInverseDst(coeff,tmp,shift_1st);    // Inverse DST by FAST Algorithm, coeff input, tmp output
+    }
+    else
+    {
+      partialButterflyInverse4(coeff,tmp,shift_1st,iWidth);    
+    } 
+#if LOGI_INTRA_NAME_3MPM
+    if (uiMode != REG_DCT && (!uiMode || (uiMode>=2 && uiMode <= 25)))    // Check for DCT or DST
+#else
+    if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode] )    // Check for DCT or DST
+#endif
+    {
+      fastInverseDst(tmp,block,shift_2nd); // Inverse DST by FAST Algorithm, tmp input, coeff output
+    }
+    else
+    {
+      partialButterflyInverse4(tmp,block,shift_2nd,iHeight);
+    }   
+  }
+  else if( iWidth == 8 && iHeight == 8)
+  {
+    partialButterflyInverse8(coeff,tmp,shift_1st,iWidth);
+    partialButterflyInverse8(tmp,block,shift_2nd,iHeight);
+  }
+  else if( iWidth == 16 && iHeight == 16)
+  {
+    partialButterflyInverse16(coeff,tmp,shift_1st,iWidth);
+    partialButterflyInverse16(tmp,block,shift_2nd,iHeight);
+  }
+  else if( iWidth == 32 && iHeight == 32)
+  {
+    partialButterflyInverse32(coeff,tmp,shift_1st,iWidth);
+    partialButterflyInverse32(tmp,block,shift_2nd,iHeight);
+  }
+#endif
 }
 
 #endif //MATRIX_MULT
+
+#if MULTIBITS_DATA_HIDING
+// To minimize the distortion only. No rate is considered. 
+Void TComTrQuant::signBitHidingHDQ( TComDataCU* pcCU, TCoeff* pQCoef, TCoeff* pCoef, UInt const *scan, Int* deltaU, Int width, Int height )
+{
+  Int tsig = pcCU->getSlice()->getPPS()->getTSIG() ;
+  Int lastCG = -1;
+  Int absSum = 0 ;
+  Int n ;
+
+  for( Int subSet = (width*height-1) >> LOG2_SCAN_SET_SIZE; subSet >= 0; subSet-- )
+  {
+    Int  subPos     = subSet << LOG2_SCAN_SET_SIZE;
+    Int  firstNZPosInCG=SCAN_SET_SIZE , lastNZPosInCG=-1 ;
+    absSum = 0 ;
+
+    for(n = SCAN_SET_SIZE-1; n >= 0; --n )
+    {
+      if( pQCoef[ scan[ n + subPos ]] )
+      {
+        lastNZPosInCG = n;
+        break;
+      }
+    }
+
+    for(n = 0; n <SCAN_SET_SIZE; n++ )
+    {
+      if( pQCoef[ scan[ n + subPos ]] )
+      {
+        firstNZPosInCG = n;
+        break;
+      }
+    }
+
+    for(n = firstNZPosInCG; n <=lastNZPosInCG; n++ )
+    {
+      absSum += pQCoef[ scan[ n + subPos ]];
+    }
+
+    if(lastNZPosInCG>=0 && lastCG==-1) 
+    {
+      lastCG = 1 ; 
+    }
+    
+    if( lastNZPosInCG-firstNZPosInCG>=tsig )
+    {
+      UInt signbit = (pQCoef[scan[subPos+firstNZPosInCG]]>0?0:1) ;
+      if( signbit!=(absSum&0x1) )  //compare signbit with sum_parity
+      {
+        Int minCostInc = MAX_INT,  minPos =-1, finalChange=0, curCost=MAX_INT, curChange=0;
+        
+        for( n = (lastCG==1?lastNZPosInCG:SCAN_SET_SIZE-1) ; n >= 0; --n )
+        {
+          UInt blkPos   = scan[ n+subPos ];
+          if(pQCoef[ blkPos ] != 0 )
+          {
+            if(deltaU[blkPos]>0)
+            {
+              curCost = - deltaU[blkPos]; 
+              curChange=1 ;
+            }
+            else 
+            {
+              //curChange =-1;
+              if(n==firstNZPosInCG && abs(pQCoef[blkPos])==1)
+              {
+                curCost=MAX_INT ; 
+              }
+              else
+              {
+                curCost = deltaU[blkPos]; 
+                curChange =-1;
+              }
+            }
+          }
+          else
+          {
+            if(n<firstNZPosInCG)
+            {
+              UInt thisSignBit = (pCoef[blkPos]>=0?0:1);
+              if(thisSignBit != signbit )
+              {
+                curCost = MAX_INT;
+              }
+              else
+              { 
+                curCost = - (deltaU[blkPos])  ;
+                curChange = 1 ;
+              }
+            }
+            else
+            {
+              curCost = - (deltaU[blkPos])  ;
+              curChange = 1 ;
+            }
+          }
+
+          if( curCost<minCostInc)
+          {
+            minCostInc = curCost ;
+            finalChange = curChange ;
+            minPos = blkPos ;
+          }
+        } //CG loop
+
+        if(pQCoef[minPos] == 32767 || pQCoef[minPos] == -32768)
+        {
+          finalChange = -1;
+        }
+
+        if(pCoef[minPos]>=0)
+        {
+          pQCoef[minPos] += finalChange ; 
+        }
+        else 
+        { 
+          pQCoef[minPos] -= finalChange ;
+        }  
+      } // Hide
+    }
+    if(lastCG==1) 
+    {
+      lastCG=0 ;
+    }
+  } // TU loop
+
+  return;
+}
+#endif
 
 Void TComTrQuant::xQuant( TComDataCU* pcCU, 
                           Int*        pSrc, 
@@ -1238,6 +1529,33 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
   TCoeff* piQCoef   = pDes;
   Int   iAdd = 0;
   
+#if MULTIBITS_DATA_HIDING
+    const UInt   log2BlockSize   = g_aucConvertToBit[ iWidth ] + 2;
+
+    UInt scanIdx = pcCU->getCoefScanIdx(uiAbsPartIdx, iWidth, eTType==TEXT_LUMA, pcCU->isIntra(uiAbsPartIdx));
+    if (scanIdx == SCAN_ZIGZAG)
+    {
+      scanIdx = SCAN_DIAG;
+    }
+
+    if (iWidth != iHeight)
+    {
+      scanIdx = SCAN_DIAG;
+    }
+
+    const UInt * scan;
+    if (iWidth == iHeight)
+    {
+      scan = g_auiSigLastScan[ scanIdx ][ log2BlockSize - 1 ];
+    }
+    else
+    {
+      scan = g_sigScanNSQT[ log2BlockSize - 2 ];
+    }
+
+    Int deltaU[32*32] ;
+#endif
+
     Bool bNonSqureFlag = ( iWidth != iHeight );
     if( bNonSqureFlag )
     {
@@ -1255,6 +1573,9 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
 
     iAdd = (pcCU->getSlice()->getSliceType()==I_SLICE ? 171 : 85) << (iQBits-9);
 
+#if MULTIBITS_DATA_HIDING
+    Int qBits8 = iQBits-8;
+#endif
     for( Int n = 0; n < iWidth*iHeight; n++ )
     {
       Int iLevel;
@@ -1263,11 +1584,24 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
       iLevel  = piCoef[uiBlockPos];
       iSign   = (iLevel < 0 ? -1: 1);      
 
-      iLevel = (abs(iLevel) * uiQ + iAdd ) >> iQBits;
+      Int64 tmpLevel = (Int64)abs(iLevel) * uiQ;
+      iLevel = (Int)((tmpLevel + iAdd ) >> iQBits);
+#if MULTIBITS_DATA_HIDING
+      deltaU[uiBlockPos] = (Int)((tmpLevel - (iLevel<<iQBits) )>> qBits8);
+#endif
       uiAcSum += iLevel;
       iLevel *= iSign;        
       piQCoef[uiBlockPos] = Clip3( -32768, 32767, iLevel );
     } // for n
+#if MULTIBITS_DATA_HIDING
+    if( pcCU->getSlice()->getPPS()->getSignHideFlag() )
+    {
+      if(uiAcSum>=2)
+      {
+        signBitHidingHDQ( pcCU, piQCoef, piCoef, scan, deltaU, iWidth, iHeight ) ;
+      }
+    }
+#endif
 }
 
 Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeight )
@@ -1297,11 +1631,20 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
   iAdd = 1 << (iShift-1);
   Int scale = g_invQuantScales[m_cQP.m_iRem] << m_cQP.m_iPer;
 
-  for( Int n = 0; n < iWidth*iHeight; n++ )
-  {
-    iCoeffQ = ( piQCoef[n] * scale + iAdd ) >> iShift;
-    piCoef[n] = Clip3(-32768,32767,iCoeffQ);
-  } 
+#if DEQUANT_CLIPPING
+  TCoeff clipQCoef;
+#endif
+
+    for( Int n = 0; n < iWidth*iHeight; n++ )
+    {
+#if DEQUANT_CLIPPING
+      clipQCoef = Clip3( -32768, 32767, piQCoef[n] );
+      iCoeffQ = ( clipQCoef * scale + iAdd ) >> iShift;
+#else
+      iCoeffQ = ( piQCoef[n] * scale + iAdd ) >> iShift;
+#endif
+      piCoef[n] = Clip3(-32768,32767,iCoeffQ);
+    }
 }
 
 Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, UInt *aTableLP4, UInt *aTableLP8, UInt *aTableLastPosVlcIndex,
@@ -1369,9 +1712,12 @@ Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Int* psCoeff, 
   }
   xTr(piBlkResi,psCoeff,uiStride,(UInt)iSize,uiMode);
 #else
-  Int j,k;
+#if UNIFIED_TRANSFORM
+  Int j;
+#else
   Int iSize = iWidth; 
   if( iWidth != iHeight)
+#endif
   {
     short block[ 64 * 64 ];
     short coeff[ 64 * 64 ];
@@ -1381,13 +1727,18 @@ Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Int* psCoeff, 
         memcpy( block + j * iWidth, piBlkResi + j * uiStride, iWidth * sizeof( short ) );      
       }
     }
+#if UNIFIED_TRANSFORM
+    xTrMxN( block, coeff, iWidth, iHeight, uiMode );
+#else
     xTrMxN( block, coeff, iWidth, iHeight );
+#endif
     for ( j = 0; j < iHeight * iWidth; j++ )
     {    
       psCoeff[ j ] = coeff[ j ];
     }
     return ;
   }
+#if !UNIFIED_TRANSFORM
   if (iSize==4)
   {   
     short block[4][4];   
@@ -1460,6 +1811,7 @@ Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Int* psCoeff, 
       }    
     }
   }
+#endif
 #endif  
 }
 
@@ -1481,9 +1833,13 @@ Void TComTrQuant::xIT( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, 
   }
   xITr(plCoef,pResidual,uiStride,(UInt)iSize,uiMode);
 #else
+#if UNIFIED_TRANSFORM
+  Int j;
+#else
   Int j,k;
   Int iSize = iWidth; 
   if( iWidth != iHeight )
+#endif
   {
     short block[ 64 * 64 ];
     short coeff[ 64 * 64 ];
@@ -1491,7 +1847,11 @@ Void TComTrQuant::xIT( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, 
     {    
       coeff[j] = (short)plCoef[j];
     }
+#if UNIFIED_TRANSFORM
+    xITrMxN( coeff, block, iWidth, iHeight, uiMode );
+#else
     xITrMxN( coeff, block, iWidth, iHeight );
+#endif
     {
       for ( j = 0; j < iHeight; j++ )
       {    
@@ -1500,6 +1860,7 @@ Void TComTrQuant::xIT( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, 
     }
     return ;
   }
+#if !UNIFIED_TRANSFORM
   if (iSize==4)
   {    
     short block[4][4];
@@ -1573,6 +1934,7 @@ Void TComTrQuant::xIT( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, 
       memcpy(pResidual+j*uiStride,block[j],32*sizeof(short));
     }   
   }
+#endif
 #endif  
 }
 
@@ -1705,6 +2067,9 @@ Int TComTrQuant::getSigCtxInc    ( TCoeff*                         pcCoeff,
 UInt TComTrQuant::getSigCoeffGroupCtxInc  ( const UInt*               uiSigCoeffGroupFlag,
                                            const UInt                      uiCGPosX,
                                            const UInt                      uiCGPosY,
+#if MULTILEVEL_SIGMAP_EXT
+                                           const UInt                      scanIdx,
+#endif
                                            Int width, Int height)
 {
   UInt uiRight = 0;
@@ -1712,6 +2077,21 @@ UInt TComTrQuant::getSigCoeffGroupCtxInc  ( const UInt*               uiSigCoeff
 
   width >>= 2;
   height >>= 2;
+#if MULTILEVEL_SIGMAP_EXT
+  if( width == 2 && height == 2 ) // 8x8
+  {
+    if( scanIdx == SCAN_HOR )  
+    {
+      width = 1;
+      height = 4;
+    }
+    else if( scanIdx == SCAN_VER )
+    {
+      width = 4;
+      height = 1;
+    }
+  }
+#endif
   if( uiCGPosX < width - 1 )
   {
     uiRight = (uiSigCoeffGroupFlag[ uiCGPosY * width + uiCGPosX + 1 ] != 0);
@@ -1720,14 +2100,21 @@ UInt TComTrQuant::getSigCoeffGroupCtxInc  ( const UInt*               uiSigCoeff
   {
     uiLower = (uiSigCoeffGroupFlag[ (uiCGPosY  + 1 ) * width + uiCGPosX ] != 0);
   }
+#if REMOVE_INFER_SIGGRP
+  return (uiRight || uiLower);
+#else
   return uiRight + uiLower;
+#endif
 
 }
-
+#if !REMOVE_INFER_SIGGRP
 // return 1 if both right neighbour and lower neighour are 1's
 Bool TComTrQuant::bothCGNeighboursOne ( const UInt*                   uiSigCoeffGroupFlag,
                                        const UInt                      uiCGPosX,
                                        const UInt                      uiCGPosY, 
+#if MULTILEVEL_SIGMAP_EXT
+                                       const UInt                      scanIdx,
+#endif
                                        Int width, Int height)
 {
   UInt uiRight = 0;
@@ -1735,6 +2122,21 @@ Bool TComTrQuant::bothCGNeighboursOne ( const UInt*                   uiSigCoeff
 
   width >>= 2;
   height >>= 2;
+#if MULTILEVEL_SIGMAP_EXT
+  if( width == 2 && height == 2 ) // 8x8
+  {
+    if( scanIdx == SCAN_HOR )  
+    {
+      width = 1;
+      height = 4;
+    }
+    else if( scanIdx == SCAN_VER )
+    {
+      width = 4;
+      height = 1;
+    }
+  }
+#endif
   if( uiCGPosX < width - 1 )
   {
     uiRight = (uiSigCoeffGroupFlag[ uiCGPosY * width + uiCGPosX + 1 ] != 0);
@@ -1746,5 +2148,6 @@ Bool TComTrQuant::bothCGNeighboursOne ( const UInt*                   uiSigCoeff
   
   return (uiRight & uiLower);
 }
+#endif
 
 //! \}

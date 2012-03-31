@@ -183,7 +183,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, TCom
     Int    NumberBFrames = 0;
     Int    SHIFT_QP = 12;
     Double dLambda_scale = 1.0 - Clip3( 0.0, 0.5, 0.05*(Double)NumberBFrames );
-    Double qp_temp = (double) dQP - SHIFT_QP;
+    Double qp_temp = (Double) dQP - SHIFT_QP;
     // Case #1: I or P-slices (key-frame)
     // CHECK_ME: Change late?
     Double dQPFactor = 0.85;
@@ -212,7 +212,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, TCom
 #if WEIGHTED_CHROMA_DISTORTION
 // for RDO
   // in RdCost there is only one lambda because the luma and chroma bits are not separated, instead we weight the distortion of chroma.
-  double weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
+  Double weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
   m_pcRdCost ->setChromaDistortionWeight( weight );     
 #endif
 
@@ -335,6 +335,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       m_pcEntropyCoder->resetEntropy      ();
       m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
       m_pcCuEncoder->compressCU( pcCU );
+      m_pcEntropyCoder->resetEntropy      ();
       m_pcCuEncoder->encodeCU( pcCU );
     }
     
@@ -387,6 +388,12 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
     g_bJustDoIt = g_bEncDecTraceDisable;
 #endif    
   }
+#if CABAC_INIT_FLAG
+  if (pcSlice->getPPS()->getCabacInitPresentFlag())
+  {
+    m_pcEntropyCoder->determineCabacInitIdx();
+  }
+#endif
 
 }
 

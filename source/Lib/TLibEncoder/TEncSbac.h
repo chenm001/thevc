@@ -74,6 +74,9 @@ public:
   
   //  Virtual list
   Void  resetEntropy           ();
+#if CABAC_INIT_FLAG
+  Void  determineCabacInitIdx  ();
+#endif
   Void  setBitstream           ( TComBitIf* p )  { m_pcBitIf = p; m_pcBinIf->init( p ); }
   Void  setSlice               ( TComSlice* p )  { m_pcSlice = p;                       }
   
@@ -169,8 +172,12 @@ private:
   
   ContextModel3DBuffer m_cMVPIdxSCModel;
   
+#if AMP_CTX
+  ContextModel3DBuffer m_cCUAMPSCModel;
+#else
   ContextModel3DBuffer m_cCUXPosiSCModel;
   ContextModel3DBuffer m_cCUYPosiSCModel;
+#endif
 
 };
 

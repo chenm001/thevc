@@ -125,7 +125,7 @@ Void TEncBinCABAC::resetBits()
   m_bufferedByte     = 0xff;
   if ( m_binCountIncrement )
   {
-    m_uiBinsCoded = 0;
+    m_binsCoded = 0;
   }
 #if FAST_BIT_EST
   m_fracBits &= 32767;
@@ -153,7 +153,10 @@ Void TEncBinCABAC::encodeBin( UInt binValue, ContextModel &rcCtxModel )
     DTRACE_CABAC_V( binValue )
     DTRACE_CABAC_T( "\n" )
   }
-  m_uiBinsCoded += m_binCountIncrement;
+  m_binsCoded += m_binCountIncrement;
+#if CABAC_INIT_FLAG
+  rcCtxModel.setBinsCoded( 1 );
+#endif
   
   UInt  uiLPS   = TComCABACTables::sm_aucLPSTable[ rcCtxModel.getState() ][ ( m_uiRange >> 6 ) & 3 ];
   m_uiRange    -= uiLPS;
@@ -196,7 +199,7 @@ Void TEncBinCABAC::encodeBinEP( UInt binValue )
     DTRACE_CABAC_V( binValue )
     DTRACE_CABAC_T( "\n" )
   }
-  m_uiBinsCoded += m_binCountIncrement;
+  m_binsCoded += m_binCountIncrement;
   m_uiLow <<= 1;
   if( binValue )
   {
@@ -215,7 +218,7 @@ Void TEncBinCABAC::encodeBinEP( UInt binValue )
  */
 Void TEncBinCABAC::encodeBinsEP( UInt binValues, Int numBins )
 {
-  m_uiBinsCoded += numBins & -m_binCountIncrement;
+  m_binsCoded += numBins & -m_binCountIncrement;
   
   for ( Int i = 0; i < numBins; i++ )
   {
@@ -251,7 +254,7 @@ Void TEncBinCABAC::encodeBinsEP( UInt binValues, Int numBins )
  */
 Void TEncBinCABAC::encodeBinTrm( UInt binValue )
 {
-  m_uiBinsCoded += m_binCountIncrement;
+  m_binsCoded += m_binCountIncrement;
   m_uiRange -= 2;
   if( binValue )
   {

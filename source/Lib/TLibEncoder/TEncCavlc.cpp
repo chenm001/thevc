@@ -165,17 +165,37 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   WRITE_UVLC( pcPPS->getPPSId(),                             "pic_parameter_set_id" );
   WRITE_UVLC( pcPPS->getSPSId(),                             "seq_parameter_set_id" );
 
+#if MULTIBITS_DATA_HIDING
+  WRITE_FLAG( pcPPS->getSignHideFlag(), "sign_data_hiding_flag" );
+  if( pcPPS->getSignHideFlag() )
+  {
+    WRITE_CODE(pcPPS->getTSIG(), 4, "sign_hiding_threshold");
+  }
+#endif
+#if CABAC_INIT_FLAG
+  WRITE_FLAG( pcPPS->getCabacInitPresentFlag() ? 1 : 0,   "cabac_init_present_flag" );
+#endif
+
+#if !RPS_IN_SPS
+  // RPS is put before entropy_coding_mode_flag
+  // since entropy_coding_mode_flag will probably be removed from the WD
+
   WRITE_UVLC(1, "num_short_term_ref_pic_sets" );
     codeShortTermRefPicSet();
   WRITE_FLAG( 0,                                             "long_term_ref_pics_present_flag" );
+#endif
   // entropy_coding_mode_flag
   // We code the entropy_coding_mode_flag, it's needed for tests.
   WRITE_FLAG( 1,                                             "entropy_coding_mode_flag" );
   {
+#if !WPP_SIMPLIFICATION
     WRITE_UVLC( 0,                                           "entropy_coding_synchro" );
     WRITE_FLAG( 0,                                           "cabac_istate_reset" );
+#endif
   }
+#if !H0566_TLA
   WRITE_UVLC( 0,                                             "num_temporal_layer_switching_point_flags" );
+#endif
   //   num_ref_idx_l0_default_active_minus1
   //   num_ref_idx_l1_default_active_minus1
   WRITE_SVLC( pcPPS->getPicInitQPMinus26(),                  "pic_init_qp_minus26");
@@ -187,12 +207,18 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   WRITE_SVLC( 0,                                             "chroma_qp_offset"     );
   WRITE_SVLC( 0,                                             "chroma_qp_offset_2nd" );
 
-  WRITE_FLAG( 0,  "weighted_pred_flag" );   // Use of Weighting Prediction (P_SLICE)
+  WRITE_FLAG( 0,    "weighted_pred_flag" );   // Use of Weighting Prediction (P_SLICE)
   WRITE_CODE( 0, 2, "weighted_bipred_idc" );  // Use of Weighting Bi-Prediction (B_SLICE)
 
-  WRITE_FLAG( 0,                                           "tile_info_present_flag" );
-  WRITE_FLAG( 0,                                           "tile_control_present_flag");
-  return;
+  WRITE_FLAG( 0,    "output_flag_present_flag" );
+
+#if DBL_CONTROL
+  WRITE_FLAG( 1,    "deblocking_filter_control_present_flag");
+#endif
+#if PARALLEL_MERGE
+  WRITE_UVLC( pcPPS->getLog2ParallelMergeLevelMinus2(), "log2_parallel_merge_level_minus2");
+#endif
+  WRITE_FLAG( 0, "pps_extension_flag" );
 }
 
 Void TEncCavlc::codeSPS( TComSPS* pcSPS )
@@ -206,19 +232,39 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_UVLC( pcSPS->getSPSId (),                   "seq_parameter_set_id" );
   WRITE_UVLC( pcSPS->getChromaFormatIdc (),         "chroma_format_idc" );
   WRITE_CODE( 0,  3,                                "max_temporal_layers_minus1" );
-  WRITE_UVLC( pcSPS->getWidth (),                   "pic_width_in_luma_samples" );
-  WRITE_UVLC( pcSPS->getHeight(),                   "pic_height_in_luma_samples" );
+  WRITE_UVLC( pcSPS->getPicWidthInLumaSamples (),   "pic_width_in_luma_samples" );
+  WRITE_UVLC( pcSPS->getPicHeightInLumaSamples(),   "pic_height_in_luma_samples" );
+#if PIC_CROPPING
+  WRITE_FLAG( pcSPS->getPicCroppingFlag(),          "pic_cropping_flag" );
+  if (pcSPS->getPicCroppingFlag())
+  {
+    WRITE_UVLC( pcSPS->getPicCropLeftOffset(),      "pic_crop_left_offset" );
+    WRITE_UVLC( pcSPS->getPicCropRightOffset(),     "pic_crop_right_offset" );
+    WRITE_UVLC( pcSPS->getPicCropTopOffset(),       "pic_crop_top_offset" );
+    WRITE_UVLC( pcSPS->getPicCropBottomOffset(),    "pic_crop_bottom_offset" );
+  }
+#endif
 
   WRITE_UVLC( 0,                                    "bit_depth_luma_minus8" );
   WRITE_UVLC( 0,                                    "bit_depth_chroma_minus8" );
 
   WRITE_FLAG( 0,                                    "pcm_enabled_flag");
 
+#if LOSSLESS_CODING
+  WRITE_FLAG( 0,                                    "qpprime_y_zero_transquant_bypass_flag" );
+#endif
+
   WRITE_UVLC( pcSPS->getBitsForPOC()-4,             "log2_max_pic_order_cnt_lsb_minus4" );
+#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
+  WRITE_UVLC( 1,                                    "max_dec_pic_buffering[i]" );
+  WRITE_UVLC( 0,                                    "num_reorder_pics[i]" );
+  WRITE_UVLC( pcSPS->getMaxLatencyIncrease(),       "max_latency_increase[i]" );
+#else
   WRITE_UVLC( 1,                                    "max_num_ref_pics" ); 
   WRITE_UVLC( 0,                                    "num_reorder_frames" ); 
-  WRITE_UVLC(pcSPS->getMaxDecFrameBuffering(),          "max_dec_frame_buffering" );
-  WRITE_UVLC(pcSPS->getMaxLatencyIncrease(),            "max_latency_increase"    );
+  WRITE_UVLC(pcSPS->getMaxDecFrameBuffering(),      "max_dec_frame_buffering" );
+  WRITE_UVLC(pcSPS->getMaxLatencyIncrease(),        "max_latency_increase"    );
+#endif
   assert( pcSPS->getMaxCUWidth() == pcSPS->getMaxCUHeight() );
   
   UInt MinCUSize = pcSPS->getMaxCUWidth() >> ( pcSPS->getMaxCUDepth()-g_uiAddCUDepth );
@@ -229,6 +275,10 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
     log2MinCUSize++;
   }
 
+#if H0412_REF_PIC_LIST_RESTRICTION
+  WRITE_FLAG( 1,                                                                     "restricted_ref_pic_lists_flag" );
+  WRITE_FLAG( 0,                                                                     "lists_modification_present_flag" );
+#endif
   WRITE_UVLC( log2MinCUSize - 3,                                                     "log2_min_coding_block_size_minus3" );
   WRITE_UVLC( pcSPS->getMaxCUDepth()-g_uiAddCUDepth,                                 "log2_diff_max_min_coding_block_size" );
   WRITE_UVLC( pcSPS->getQuadtreeTULog2MinSize() - 2,                                 "log2_min_transform_block_size_minus2" );
@@ -242,35 +292,40 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthInter() - 1,                               "max_transform_hierarchy_depth_inter" );
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthIntra() - 1,                               "max_transform_hierarchy_depth_intra" );
   WRITE_FLAG( 0,                                                                     "scaling_list_enabled_flag" ); 
-  WRITE_FLAG  ( 0,                                                                   "chroma_pred_from_luma_enabled_flag" );
+  WRITE_FLAG( 0,                                                                     "chroma_pred_from_luma_enabled_flag" ); 
   WRITE_FLAG( 0,                                                                     "deblocking_filter_in_aps_enabled_flag");
-  WRITE_FLAG( 1,                                                                     "loop_filter_across_slice_flag");
+  WRITE_FLAG( 1,                                                                     "seq_loop_filter_across_slices_enabled_flag");
+  WRITE_FLAG( pcSPS->getUseAMP(),                                                    "asymmetric_motion_partitions_enabled_flag" );
+  WRITE_FLAG( pcSPS->getUseNSQT(),                                                   "non_square_quadtree_enabled_flag" );
   WRITE_FLAG( 0,                                                                     "sample_adaptive_offset_enabled_flag");
   WRITE_FLAG( 0,                                                                     "adaptive_loop_filter_enabled_flag");
   WRITE_FLAG( 0,                                                                     "temporal_id_nesting_flag" );
 
+#if RPS_IN_SPS
+  // RPS is put before entropy_coding_mode_flag
+  // since entropy_coding_mode_flag will probably be removed from the WD
+
+  WRITE_UVLC(1, "num_short_term_ref_pic_sets" );
+    codeShortTermRefPicSet();
+  WRITE_FLAG( 0,                                             "long_term_ref_pics_present_flag" );
+#endif
+#if !PIC_CROPPING
   //!!!KS: Syntax not in WD !!!
   
   xWriteUvlc  ( 0 );
   xWriteUvlc  ( 0 );
-
-  // Tools
-  xWriteFlag  ( (pcSPS->getUseMRG ()) ? 1 : 0 ); // SOPH:
-  
+#endif
   // AMVP mode for each depth
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
   {
     xWriteFlag( pcSPS->getAMVPMode(i) ? 1 : 0);
   }
 
+#if TILES_WPP_ENTRY_POINT_SIGNALLING
+  WRITE_CODE( 0, 2,                                                   "tiles_or_entropy_coding_sync_idc" );
+#endif
 
-  WRITE_FLAG( 0,                                                      "uniform_spacing_flag" );
-  WRITE_UVLC( 0,                                                      "num_tile_columns_minus1" );
-  WRITE_UVLC( 0,                                                      "num_tile_rows_minus1" );
-
-  // Software-only flags
-  WRITE_FLAG( pcSPS->getUseNSQT(), "enable_nsqt" );
-  WRITE_FLAG( pcSPS->getUseAMP(), "enable_amp" );
+  WRITE_FLAG( 0, "sps_extension_flag" );
 }
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
@@ -314,17 +369,24 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       WRITE_FLAG( 1 ,                                             "num_ref_idx_active_override_flag");
       WRITE_CODE( 0 , 3,                                          "num_ref_idx_l0_active_minus1" );
     }
-    if(!pcSlice->isIntra())
-    {
-      WRITE_FLAG(0,       "ref_pic_list_modification_flag" );    
-    }
   }
   // ref_pic_list_combination( )
   // maybe move to own function?
     
   if(!pcSlice->isIntra())
   {
+#if CABAC_INIT_FLAG
+    if (!pcSlice->isIntra() && pcSlice->getPPS()->getCabacInitPresentFlag())
+    {
+      SliceType sliceType   = pcSlice->getSliceType();
+      Int  encCABACTableIdx = pcSlice->getPPS()->getEncCABACTableIdx();
+      Bool encCabacInitFlag = (sliceType!=encCABACTableIdx && encCABACTableIdx!=0) ? 1 : 0;
+      pcSlice->setCabacInitFlag( encCabacInitFlag );
+      WRITE_FLAG( encCabacInitFlag?1:0, "cabac_init_flag" );
+    }
+#else
     WRITE_UVLC(pcSlice->getCABACinitIDC(),  "cabac_init_idc");
+#endif
   }
 
   // if( !lightweight_slice_flag ) {
@@ -335,7 +397,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   //     sao_param()
   //   if( deblocking_filter_control_present_flag ) {
   //     disable_deblocking_filter_idc
-    WRITE_FLAG(0, "inherit_dbl_param_from_APS_flag");
     WRITE_FLAG(1, "loop_filter_disable");  // should be an IDC
   //     if( disable_deblocking_filter_idc  !=  1 ) {
   //       slice_alpha_c0_offset_div2
@@ -350,7 +411,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   //     alf_cu_control_param( )
   //   }
   // }
-  
   }
 
   // !!!! sytnax elements not in the WD !!!!

@@ -55,7 +55,7 @@
 // Version information
 // ====================================================================================================================
 
-#define NV_VERSION        "5.2"                 ///< Current software version
+#define NV_VERSION        "6.0"                 ///< Current software version
 
 // ====================================================================================================================
 // Platform information
@@ -182,6 +182,7 @@ template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min
 
 #define MAX_NUM_REF_PICS 16
 
+#if !NAL_REF_FLAG
 enum NalRefIdc
 {
   NAL_REF_IDC_PRIORITY_LOWEST = 0,
@@ -189,24 +190,31 @@ enum NalRefIdc
   NAL_REF_IDC_PRIORITY_HIGH,
   NAL_REF_IDC_PRIORITY_HIGHEST
 };
+#endif
 
 enum NalUnitType
 {
   NAL_UNIT_UNSPECIFIED_0 = 0,
   NAL_UNIT_CODED_SLICE,
+#if H0566_TLA
+  NAL_UNIT_RESERVED_2,
+  NAL_UNIT_CODED_SLICE_TLA,
+  NAL_UNIT_CODED_SLICE_CRA,
+#else
   NAL_UNIT_CODED_SLICE_DATAPART_A,
   NAL_UNIT_CODED_SLICE_DATAPART_B,
   NAL_UNIT_CODED_SLICE_CDR,
+#endif
   NAL_UNIT_CODED_SLICE_IDR,
   NAL_UNIT_SEI,
   NAL_UNIT_SPS,
   NAL_UNIT_PPS,
   NAL_UNIT_ACCESS_UNIT_DELIMITER,
-  NAL_UNIT_END_OF_SEQUENCE,
-  NAL_UNIT_END_OF_STREAM,
+  NAL_UNIT_RESERVED_10,
+  NAL_UNIT_RESERVED_11,
   NAL_UNIT_FILLER_DATA,
+  NAL_UNIT_RESERVED_13,
   NAL_UNIT_APS,
-  NAL_UNIT_RESERVED_14,
   NAL_UNIT_RESERVED_15,
   NAL_UNIT_RESERVED_16,
   NAL_UNIT_RESERVED_17,
