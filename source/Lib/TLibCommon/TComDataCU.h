@@ -93,7 +93,6 @@ private:
   Char*         m_pePredMode;         ///< array of prediction modes
   UChar*        m_phQP;               ///< array of QP values
   UChar*        m_puhTrIdx;           ///< array of transform indices
-  UChar*        m_nsqtPartIdx;        ///< array of absPartIdx mapping table, map zigzag to NSQT
   UChar*        m_puhCbf[3];          ///< array of coded block flags (CBF)
   TComCUMvField m_cCUMvField;         ///< array of motion vectors
   TCoeff*       m_pcTrCoeffY;         ///< transformed coefficient buffer (Y)
@@ -229,11 +228,6 @@ public:
   Void          setQP                 ( UInt uiIdx, UChar  uh ) { m_phQP[uiIdx] = uh;         }
   Void          setQPSubParts         ( UInt uiQP,   UInt uiAbsPartIdx, UInt uiDepth );
 
-  UChar*        getNSQTPartIdx        ()                        { return m_nsqtPartIdx;        }
-  UChar         getNSQTPartIdx        ( UInt idx )              { return m_nsqtPartIdx[idx];   }
-  Void          setNSQTIdxSubParts    ( UInt absPartIdx, UInt depth );
-  Void          setNSQTIdxSubParts    ( UInt log2TrafoSize, UInt absPartIdx, UInt absTUPartIdx, UInt trMode );
-  
   UChar*        getTransformIdx       ()                        { return m_puhTrIdx;          }
   UChar         getTransformIdx       ( UInt uiIdx )            { return m_puhTrIdx[uiIdx];   }
   Void          setTrIdxSubParts      ( UInt uiTrIdx, UInt uiAbsPartIdx, UInt uiDepth );

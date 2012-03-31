@@ -359,10 +359,6 @@ Void TEncEntropy::xEncodeTransformSubdiv( TComDataCU* pcCU, UInt uiAbsPartIdx, U
       }
       UInt uiLumaTrMode, uiChromaTrMode;
       pcCU->convertTransIdx( uiAbsPartIdx, pcCU->getTransformIdx( uiAbsPartIdx ), uiLumaTrMode, uiChromaTrMode );
-      if(pcCU->getPredictionMode( uiAbsPartIdx ) == MODE_INTER && pcCU->useNonSquarePU( uiAbsPartIdx ) )
-      {
-        pcCU->setNSQTIdxSubParts( uiLog2TrafoSize, uiAbsPartIdx, absTUPartIdx, uiLumaTrMode );
-      }
       if( pcCU->getPredictionMode(uiAbsPartIdx) != MODE_INTRA && uiDepth == pcCU->getDepth( uiAbsPartIdx ) && !pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, 0 ) && !pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, 0 ) )
       {
         assert( pcCU->getCbf( uiAbsPartIdx, TEXT_LUMA, 0 ) );
@@ -729,7 +725,6 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
       }
       if ( !pcCU->getQtRootCbf( uiAbsPartIdx ) )
       {
-        pcCU->setNSQTIdxSubParts( uiAbsPartIdx, uiDepth );
         return;
       }
 #if !UNIFIED_TRANSFORM_TREE

@@ -62,9 +62,6 @@ TComDataCU::TComDataCU()
   m_puhLumaIntraDir    = NULL;
   m_puhChromaIntraDir  = NULL;
   m_puhTrIdx           = NULL;
-#if NSQT_MOD2
-  m_nsqtPartIdx        = NULL;
-#endif
   m_puhCbf[0]          = NULL;
   m_puhCbf[1]          = NULL;
   m_puhCbf[2]          = NULL;
@@ -117,7 +114,6 @@ Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool b
     m_puhChromaIntraDir  = (UChar* )xMalloc(UChar,  uiNumPartition);
     
     m_puhTrIdx           = (UChar* )xMalloc(UChar,  uiNumPartition);
-    m_nsqtPartIdx        = (UChar* )xMalloc(UChar,  uiNumPartition);
     
     m_puhCbf[0]          = (UChar* )xMalloc(UChar,  uiNumPartition);
     m_puhCbf[1]          = (UChar* )xMalloc(UChar,  uiNumPartition);
@@ -183,7 +179,6 @@ Void TComDataCU::destroy()
     if ( m_puhLumaIntraDir    ) { xFree(m_puhLumaIntraDir);     m_puhLumaIntraDir   = NULL; }
     if ( m_puhChromaIntraDir  ) { xFree(m_puhChromaIntraDir);   m_puhChromaIntraDir = NULL; }
     if ( m_puhTrIdx           ) { xFree(m_puhTrIdx);            m_puhTrIdx          = NULL; }
-    if ( m_nsqtPartIdx        ) { xFree(m_nsqtPartIdx);         m_nsqtPartIdx       = NULL; }
     if ( m_pcTrCoeffY         ) { xFree(m_pcTrCoeffY);          m_pcTrCoeffY        = NULL; }
     if ( m_pcTrCoeffCb        ) { xFree(m_pcTrCoeffCb);         m_pcTrCoeffCb       = NULL; }
     if ( m_pcTrCoeffCr        ) { xFree(m_pcTrCoeffCr);         m_pcTrCoeffCr       = NULL; }
@@ -317,7 +312,6 @@ Void TComDataCU::initEstData( UInt uiDepth, UInt uiQP )
       m_puhWidth  [ui] = uhWidth;
       m_puhHeight [ui] = uhHeight;
       m_puhTrIdx  [ui] = 0;
-      m_nsqtPartIdx[ui] = 0;
       m_pePartSize[ui] = SIZE_NONE;
       m_pePredMode[ui] = MODE_NONE;
       m_phQP[ui] = uiQP;
@@ -434,7 +428,6 @@ Void TComDataCU::copyPartFrom( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDept
   memcpy( m_puhLumaIntraDir     + uiOffset, pcCU->getLumaIntraDir(),      iSizeInUchar );
   memcpy( m_puhChromaIntraDir   + uiOffset, pcCU->getChromaIntraDir(),    iSizeInUchar );
   memcpy( m_puhTrIdx            + uiOffset, pcCU->getTransformIdx(),      iSizeInUchar );
-  memcpy( m_nsqtPartIdx         + uiOffset, pcCU->getNSQTPartIdx(),       iSizeInUchar );
   
   memcpy( m_puhCbf[0] + uiOffset, pcCU->getCbf(TEXT_LUMA)    , iSizeInUchar );
   memcpy( m_puhCbf[1] + uiOffset, pcCU->getCbf(TEXT_CHROMA_U), iSizeInUchar );
@@ -489,7 +482,6 @@ Void TComDataCU::copyToPic( UChar uhDepth )
   memcpy( rpcCU->getLumaIntraDir()      + m_uiAbsIdxInLCU, m_puhLumaIntraDir,     iSizeInUchar );
   memcpy( rpcCU->getChromaIntraDir()    + m_uiAbsIdxInLCU, m_puhChromaIntraDir,   iSizeInUchar );
   memcpy( rpcCU->getTransformIdx()      + m_uiAbsIdxInLCU, m_puhTrIdx,            iSizeInUchar );
-  memcpy( rpcCU->getNSQTPartIdx()       + m_uiAbsIdxInLCU, m_nsqtPartIdx,         iSizeInUchar );
   
   memcpy( rpcCU->getCbf(TEXT_LUMA)     + m_uiAbsIdxInLCU, m_puhCbf[0], iSizeInUchar );
   memcpy( rpcCU->getCbf(TEXT_CHROMA_U) + m_uiAbsIdxInLCU, m_puhCbf[1], iSizeInUchar );
@@ -539,7 +531,6 @@ Void TComDataCU::copyToPic( UChar uhDepth, UInt uiPartIdx, UInt uiPartDepth )
   memcpy( rpcCU->getLumaIntraDir()      + uiPartOffset, m_puhLumaIntraDir,     iSizeInUchar );
   memcpy( rpcCU->getChromaIntraDir()    + uiPartOffset, m_puhChromaIntraDir,   iSizeInUchar );
   memcpy( rpcCU->getTransformIdx()      + uiPartOffset, m_puhTrIdx,            iSizeInUchar );
-  memcpy( rpcCU->getNSQTPartIdx()       + uiPartOffset, m_nsqtPartIdx,         iSizeInUchar );
   
   memcpy( rpcCU->getCbf(TEXT_LUMA)     + uiPartOffset, m_puhCbf[0], iSizeInUchar );
   memcpy( rpcCU->getCbf(TEXT_CHROMA_U) + uiPartOffset, m_puhCbf[1], iSizeInUchar );
@@ -1378,54 +1369,6 @@ Void TComDataCU::setTrIdxSubParts( UInt uiTrIdx, UInt uiAbsPartIdx, UInt uiDepth
   UInt uiCurrPartNumb = m_pcPic->getNumPartInCU() >> (uiDepth << 1);
   
   memset( m_puhTrIdx + uiAbsPartIdx, uiTrIdx, sizeof(UChar)*uiCurrPartNumb );
-}
-
-Void TComDataCU::setNSQTIdxSubParts( UInt absPartIdx, UInt depth )
-{
-  UInt currPartNumb = m_pcPic->getNumPartInCU() >> (depth << 1);
-  
-  memset( m_nsqtPartIdx + absPartIdx, absPartIdx, sizeof(UChar)*currPartNumb );
-}
-
-Void  TComDataCU::setNSQTIdxSubParts( UInt log2TrafoSize, UInt absPartIdx, UInt absTUPartIdx, UInt trMode )
-{
-  UInt trWidth, trHeight;
-  UInt nsTUWidthInBaseUnits, nsTUHeightInBaseUnits;
-  UInt lcuWidthInBaseUnits = getPic()->getNumPartInWidth();
-  UInt minTuSize = ( 1 << getSlice()->getSPS()->getQuadtreeTULog2MinSize() );
-
-  trWidth = trHeight = ( 1 << log2TrafoSize );
-
-  if ( useNonSquareTrans( trMode, absPartIdx ) && ( trWidth > minTuSize ) )
-  {
-    trWidth  = ( m_pePartSize[absPartIdx] == SIZE_Nx2N || m_pePartSize[absPartIdx] == SIZE_nLx2N || m_pePartSize[absPartIdx] == SIZE_nRx2N )? trWidth >> 1  : trWidth << 1;
-    trHeight = ( m_pePartSize[absPartIdx] == SIZE_Nx2N || m_pePartSize[absPartIdx] == SIZE_nLx2N || m_pePartSize[absPartIdx] == SIZE_nRx2N )? trHeight << 1 : trHeight >> 1;
-  }
-
-  nsTUWidthInBaseUnits  = trWidth / getPic()->getMinCUWidth();
-  nsTUHeightInBaseUnits = trHeight / getPic()->getMinCUHeight();
-  
-  if ( nsTUWidthInBaseUnits > nsTUHeightInBaseUnits )
-  {
-    UInt currPartNumb = nsTUHeightInBaseUnits*nsTUHeightInBaseUnits;
-    memset( m_nsqtPartIdx + absTUPartIdx                                                                , absPartIdx, sizeof(UChar)*(currPartNumb) );
-    memset( m_nsqtPartIdx + g_auiRasterToZscan[g_auiZscanToRaster[absTUPartIdx]+  nsTUHeightInBaseUnits], absPartIdx, sizeof(UChar)*(currPartNumb) );
-    memset( m_nsqtPartIdx + g_auiRasterToZscan[g_auiZscanToRaster[absTUPartIdx]+2*nsTUHeightInBaseUnits], absPartIdx, sizeof(UChar)*(currPartNumb) );
-    memset( m_nsqtPartIdx + g_auiRasterToZscan[g_auiZscanToRaster[absTUPartIdx]+3*nsTUHeightInBaseUnits], absPartIdx, sizeof(UChar)*(currPartNumb) );
-  }
-  else if ( nsTUWidthInBaseUnits < nsTUHeightInBaseUnits )
-  {
-    UInt currPartNumb = nsTUWidthInBaseUnits*nsTUWidthInBaseUnits;
-    memset( m_nsqtPartIdx + absTUPartIdx                                                                                   , absPartIdx, sizeof(UChar)*(currPartNumb) );
-    memset( m_nsqtPartIdx + g_auiRasterToZscan[g_auiZscanToRaster[absTUPartIdx]+  nsTUWidthInBaseUnits*lcuWidthInBaseUnits], absPartIdx, sizeof(UChar)*(currPartNumb) );
-    memset( m_nsqtPartIdx + g_auiRasterToZscan[g_auiZscanToRaster[absTUPartIdx]+2*nsTUWidthInBaseUnits*lcuWidthInBaseUnits], absPartIdx, sizeof(UChar)*(currPartNumb) );
-    memset( m_nsqtPartIdx + g_auiRasterToZscan[g_auiZscanToRaster[absTUPartIdx]+3*nsTUWidthInBaseUnits*lcuWidthInBaseUnits], absPartIdx, sizeof(UChar)*(currPartNumb) );
-  }
-  else
-  {
-    UInt currPartNumb = nsTUWidthInBaseUnits*nsTUHeightInBaseUnits;
-    memset( m_nsqtPartIdx + absTUPartIdx, absPartIdx, sizeof(UChar)*(currPartNumb) );
-  }
 }
 
 Void TComDataCU::setSizeSubParts( UInt uiWidth, UInt uiHeight, UInt uiAbsPartIdx, UInt uiDepth )
