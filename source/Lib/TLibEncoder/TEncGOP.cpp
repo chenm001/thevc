@@ -124,6 +124,9 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
   m_pcAdaptiveLoopFilter = pcTEncTop->getAdaptiveLoopFilter();
   //--Adaptive Loop filter
   m_pcSAO                = pcTEncTop->getSAO();
+#if RATECTRL
+  m_pcRateCtrl           = pcTEncTop->getRateCtrl();
+#endif
 }
 
 // ====================================================================================================================
@@ -1375,6 +1378,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       xCalculateAddPSNR( pcPic, pcPic->getPicYuvRec(), accessUnit, dEncTime );
       if (digestStr)
         printf(" [MD5:%s]", digestStr);
+#if RATECTRL
+      if(m_pcCfg->getUseRateCtrl())
+      {
+        unsigned  uiBits = m_vRVM_RP[m_vRVM_RP.size()-1];
+        m_pcRateCtrl->updataRCFrameStatus((Int)uiBits, pcSlice->getSliceType());
+      }
+#endif
 
 #if FIXED_ROUNDING_FRAME_MEMORY
       /* TODO: this should happen after copyToPic(pcPicYuvRecOut) */
@@ -1393,7 +1403,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       printf("\n");
       fflush(stdout);
   }
-  
+#if RATECTRL
+  if(m_pcCfg->getUseRateCtrl())
+  {
+    m_pcRateCtrl->updateRCGOPStatus();
+  }
+#endif
   delete[] pcSubstreamsOut;
   delete pcBitstreamRedirect;
 

@@ -55,7 +55,9 @@
 #include "TEncSbac.h"
 
 #include "TEncAnalyze.h"
-
+#if RATECTRL
+#include "TEncRateCtrl.h"
+#endif
 #include <vector>
 
 //! \ingroup TLibEncoder
@@ -96,7 +98,9 @@ private:
   //--Adaptive Loop filter
   TEncSampleAdaptiveOffset*  m_pcSAO;
   TComBitCounter*         m_pcBitCounter;
-  
+#if RATECTRL
+  TEncRateCtrl*           m_pcRateCtrl;
+#endif
   // indicate sequence first
   Bool                    m_bSeqFirst;
   
@@ -134,7 +138,9 @@ public:
 protected:
   Void encodeAPS   (TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* pcSlice);            //!< encode APS syntax elements
   Void assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS, TComSlice* pcSlice);  //!< Assign APS object into APS container
-  
+#if RATECTRL
+  TEncRateCtrl* getRateCtrl()       { return m_pcRateCtrl;  }
+#endif
 
 protected:
   Void  xInitGOP          ( Int iPOC, Int iNumPicRcvd, TComList<TComPic*>& rcListPic, TComList<TComPicYuv*>& rcListPicYuvRecOut );

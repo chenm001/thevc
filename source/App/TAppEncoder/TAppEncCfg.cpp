@@ -42,7 +42,9 @@
 #include "TLibCommon/TComRom.h"
 #include "TAppEncCfg.h"
 #include "TAppCommon/program_options_lite.h"
-
+#if RATECTRL
+#include "TLibEncoder/TEncRateCtrl.h"
+#endif
 #ifdef WIN32
 #define strdup _strdup
 #endif
@@ -326,6 +328,12 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("FDM", m_useFastDecisionForMerge, true, "Fast decision for Merge RD Cost") 
 #endif
   ("CFM", m_bUseCbfFastMode, false, "Cbf fast mode setting")
+
+#if RATECTRL
+  ("RateCtrl,-rc", m_bUseRateCtrl, false, "Rate control on/off")
+  ("TargetBitrate,-tbr", m_iTargetBitrate, 0, "Input target bitrate")
+  ("NumLCUInUnit,-nu", m_iNumLCUInUnit, 0, "Number of LCUs in an Unit")
+#endif
   /* Compatability with old style -1 FOO or -0 FOO options. */
   ("1", doOldStyleCmdlineOn, "turn option <name> on")
   ("0", doOldStyleCmdlineOff, "turn option <name> off")
@@ -936,6 +944,20 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iWaveFrontSubstreams <= 0, "WaveFrontSubstreams must be positive" );
   xConfirmPara( m_iWaveFrontSubstreams > 1 && !m_iWaveFrontSynchro, "Must have WaveFrontSynchro > 0 in order to have WaveFrontSubstreams > 1" );
 
+#if RATECTRL
+  if(m_bUseRateCtrl)
+  {
+    Int iNumLCUInWidth  = (m_iSourceWidth  / m_uiMaxCUWidth) + (( m_iSourceWidth  %  m_uiMaxCUWidth ) ? 1 : 0);
+    Int iNumLCUInHeight = (m_iSourceHeight / m_uiMaxCUHeight)+ (( m_iSourceHeight %  m_uiMaxCUHeight) ? 1 : 0);
+    Int iNumLCUInPic    =  iNumLCUInWidth * iNumLCUInHeight;
+
+    xConfirmPara( (iNumLCUInPic % m_iNumLCUInUnit) != 0, "total number of LCUs in a frame should be completely divided by NumLCUInUnit" );
+
+    m_iMaxDeltaQP       = MAX_DELTA_QP;
+    m_iMaxCuDQPDepth    = MAX_CUDQP_DEPTH;
+  }
+#endif
+
 #undef xConfirmPara
   if (check_failed)
   {
@@ -1020,6 +1042,14 @@ Void TAppEncCfg::xPrintParameter()
   {
     printf("DisableInter4x4              : %d\n", m_bDisInter4x4);  
   }
+#if RATECTRL
+  printf("RateControl                  : %d\n", m_bUseRateCtrl);
+  if(m_bUseRateCtrl)
+  {
+    printf("TargetBitrate                : %d\n", m_iTargetBitrate);
+    printf("NumLCUInUnit                 : %d\n", m_iNumLCUInUnit);
+  }
+#endif
   printf("\n");
   
   printf("TOOL CFG: ");

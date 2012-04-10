@@ -218,6 +218,9 @@ Void TEncCu::init( TEncTop* pcEncTop )
   m_pcRDGoOnSbacCoder = pcEncTop->getRDGoOnSbacCoder();
   
   m_bUseSBACRD        = pcEncTop->getUseSBACRD();
+#if RATECTRL
+  m_pcRateCtrl        = pcEncTop->getRateCtrl();
+#endif
 }
 
 // ====================================================================================================================
@@ -494,6 +497,15 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
     iMinQP = rpcTempCU->getQP(0);
     iMaxQP = rpcTempCU->getQP(0);
   }
+
+#if RATECTRL
+  if(m_pcEncCfg->getUseRateCtrl())
+  {
+    Int iQP = m_pcRateCtrl->getUnitQP();
+    iMinQP  = Clip3( MIN_QP, MAX_QP, iQP);
+    iMaxQP  = Clip3( MIN_QP, MAX_QP, iQP);
+  }
+#endif
 
   // If slice start or slice end is within this cu...
   TComSlice * pcSlice = rpcTempCU->getPic()->getSlice(rpcTempCU->getPic()->getCurrSliceIdx());
@@ -864,7 +876,14 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
     iMinQP = iStartQP;
     iMaxQP = iStartQP;
   }
-
+#if RATECTRL
+  if(m_pcEncCfg->getUseRateCtrl())
+  {
+    Int iQP = m_pcRateCtrl->getUnitQP();
+    iMinQP  = Clip3( MIN_QP, MAX_QP, iQP);
+    iMaxQP  = Clip3( MIN_QP, MAX_QP, iQP);
+  }
+#endif
   for (Int iQP=iMinQP; iQP<=iMaxQP; iQP++)
   {
 #if LOSSLESS_CODING

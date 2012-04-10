@@ -264,7 +264,11 @@ protected:
   Int       m_signHideFlag;
   Int       m_signHidingThreshold;
 #endif
-
+#if RATECTRL
+  Bool      m_bUseRateCtrl;                                   ///< Flag for using rate control algorithm
+  Int       m_iTargetBitrate;                                 ///< target bitrate
+  Int       m_iNumLCUInUnit;                                  ///< Total number of LCUs in a frame should be divided by the NumLCUInUnit
+#endif
 public:
   TEncCfg()          {}
   virtual ~TEncCfg()
@@ -641,6 +645,14 @@ public:
   Void      setTSIG( Int tsig )                 { m_signHidingThreshold = tsig; }
   Int       getSignHideFlag()                    { return m_signHideFlag; }
   Int       getTSIG()                            { return m_signHidingThreshold; }
+#endif
+#if RATECTRL
+  Bool      getUseRateCtrl    ()                { return m_bUseRateCtrl;        }
+  Void      setUseRateCtrl    (Bool b)          { m_bUseRateCtrl    = b;        }
+  Int       getTargetBitrate  ()                { return m_iTargetBitrate;      }
+  Void      setTargetBitrate  (Int iBitrate)    { m_iTargetBitrate  = iBitrate; }
+  Int       getNumLCUInUnit   ()                { return m_iNumLCUInUnit;       }
+  Void      setNumLCUInUnit   (Int iNum)        { m_iNumLCUInUnit   = iNum;     }
 #endif
 };
 
