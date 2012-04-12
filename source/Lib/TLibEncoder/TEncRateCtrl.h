@@ -168,7 +168,7 @@ public:
   Void          initFrameData         (Int iQP = 0);
   Void          initUnitData          (Int iQP = 0);
   Int           getFrameQP            (Bool bReferenced, Int iPOC);
-  Bool          calculationUnitQP     ();
+  Bool          calculateUnitQP       ();
   Int           getUnitQP             ()                                          { return m_pcLCUData[m_iNumofLCU].m_iQP;  }
   Void          updateRCGOPStatus     ();
   Void          updataRCFrameStatus   (Int iFrameBits, SliceType eSliceType);

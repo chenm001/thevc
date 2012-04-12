@@ -824,7 +824,7 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
 #if RATECTRL
     if(m_pcCfg->getUseRateCtrl())
     {
-      if(m_pcRateCtrl->calculationUnitQP())
+      if(m_pcRateCtrl->calculateUnitQP())
       {
         xLamdaRecalculation(m_pcRateCtrl->getUnitQP(), m_pcRateCtrl->getGOPId(), pcSlice->getDepth(), pcSlice->getSliceType(), pcSlice->getSPS(), pcSlice );
       }

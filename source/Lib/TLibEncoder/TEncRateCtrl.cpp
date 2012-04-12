@@ -421,7 +421,7 @@ Int  TEncRateCtrl::getFrameQP(Bool bReferenced, Int iPOC)
   return iFinalQP;
 }
 
-Bool  TEncRateCtrl::calculationUnitQP     ()
+Bool  TEncRateCtrl::calculateUnitQP ()
 {
   if(!m_bUnitLevelActive || m_iNumofLCU == 0)
   {
