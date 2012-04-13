@@ -276,6 +276,8 @@ Void TEncTop::xInitSPS()
   m_cSPS.setQuadtreeTUMaxDepthInter( m_uiQuadtreeTUMaxDepthInter    );
   m_cSPS.setQuadtreeTUMaxDepthIntra( m_uiQuadtreeTUMaxDepthIntra    );
   
+  m_cSPS.setUseLMChroma   ( m_bUseLMChroma           );  
+  
   m_cSPS.setMaxTrSize   ( 1 << m_uiQuadtreeTULog2MaxSize );
   
   m_cSPS.setUseNSQT( m_useNSQT );

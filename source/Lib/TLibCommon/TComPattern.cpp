@@ -597,7 +597,7 @@ Int* TComPattern::getPredictorPtr( UInt uiDirMode, UInt log2BlkSize, Int* piAdiB
 #if LOGI_INTRA_NAME_3MPM
   Int diff = min<Int>(abs((Int) uiDirMode - HOR_IDX), abs((Int)uiDirMode - VER_IDX));
   UChar ucFiltIdx = diff > m_aucIntraFilter[log2BlkSize - 2] ? 1 : 0;
-  if (uiDirMode == DC_IDX /*|| uiDirMode == LM_CHROMA_IDX*/)
+  if (uiDirMode == DC_IDX || uiDirMode == LM_CHROMA_IDX)
   {
     ucFiltIdx = 0; //no smoothing for DC or LM chroma
   }

@@ -91,6 +91,7 @@ private:
   Bool        m_bDisInter4x4;
   Bool        m_useAMP;
   Bool        m_bUseALF;
+  Bool        m_bUseLMChroma; // JL:
 
   Bool        m_useNSQT;
   
@@ -169,6 +170,10 @@ public:
   UInt getMaxTrSize   ()         { return  m_uiMaxTrSize;   }
   
   // Tool list
+
+  Bool getUseLMChroma ()         { return m_bUseLMChroma;        }
+  Void setUseLMChroma ( Bool b ) { m_bUseLMChroma  = b;          }
+
   Bool getUseNSQT() { return m_useNSQT; }
   Void setUseNSQT( Bool b ) { m_useNSQT = b; }
   

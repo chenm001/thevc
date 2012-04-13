@@ -292,7 +292,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthInter() - 1,                               "max_transform_hierarchy_depth_inter" );
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthIntra() - 1,                               "max_transform_hierarchy_depth_intra" );
   WRITE_FLAG( 0,                                                                     "scaling_list_enabled_flag" ); 
-  WRITE_FLAG( 0,                                                                     "chroma_pred_from_luma_enabled_flag" ); 
+  WRITE_FLAG( pcSPS->getUseLMChroma () ? 1 : 0,                                      "chroma_pred_from_luma_enabled_flag" ); 
   WRITE_FLAG( 0,                                                                     "deblocking_filter_in_aps_enabled_flag");
   WRITE_FLAG( 1,                                                                     "seq_loop_filter_across_slices_enabled_flag");
   WRITE_FLAG( pcSPS->getUseAMP(),                                                    "asymmetric_motion_partitions_enabled_flag" );

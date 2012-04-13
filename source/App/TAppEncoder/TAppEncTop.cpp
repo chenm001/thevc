@@ -110,6 +110,7 @@ Void TAppEncTop::xInitLibCfg()
 #endif
   m_cTEncTop.setUseCbfFastMode            ( m_bUseCbfFastMode  );
 
+  m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );
   m_cTEncTop.setPictureDigestEnabled(m_pictureDigestEnabled);
 
   m_cTEncTop.setEnableTMVP ( m_enableTMVP );

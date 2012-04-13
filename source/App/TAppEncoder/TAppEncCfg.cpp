@@ -154,6 +154,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("SBACRD", m_bUseSBACRD, true, "SBAC based RD estimation")
   
   /* Coding tools */
+  ("LMChroma", m_bUseLMChroma, true, "intra chroma prediction based on recontructed luma")
+
 #if MULTIBITS_DATA_HIDING
     ("SignHideFlag,-SBH",                m_signHideFlag, 1)
     ("SignHideThreshold,-TSIG",          m_signHidingThreshold,         4)
@@ -388,6 +390,7 @@ Void TAppEncCfg::xPrintParameter()
 #endif
   printf("CFM:%d ", m_bUseCbfFastMode         );
   printf("RQT:%d ", 1     );
+  printf("LMC:%d ", m_bUseLMChroma        ); 
   printf("TMVP:%d ", m_enableTMVP     );
 #if MULTIBITS_DATA_HIDING
   printf(" SignBitHidingFlag:%d SignBitHidingThreshold:%d", m_signHideFlag, m_signHidingThreshold);

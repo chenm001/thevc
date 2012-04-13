@@ -103,6 +103,7 @@ protected:
   Bool      m_useFastDecisionForMerge;
 #endif
   Bool      m_bUseCbfFastMode;
+  Bool      m_bUseLMChroma; 
 
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
 
@@ -206,6 +207,9 @@ public:
 #if NS_HAD
   Bool      getUseNSQT                      ()      { return m_useNSQT; }
 #endif
+
+  Bool getUseLMChroma                       ()      { return m_bUseLMChroma;        }
+  Void setUseLMChroma                       ( Bool b ) { m_bUseLMChroma  = b;       }
 
   void setPictureDigestEnabled(bool b) { m_pictureDigestEnabled = b; }
   bool getPictureDigestEnabled() { return m_pictureDigestEnabled; }

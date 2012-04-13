@@ -972,7 +972,8 @@ Void TComDataCU::getAllowedChromaDir( UInt uiAbsPartIdx, UInt* uiModeList )
   uiModeList[2] = 2;
 #endif
   uiModeList[3] = DC_IDX;
-  uiModeList[4] = DM_CHROMA_IDX;
+  uiModeList[4] = LM_CHROMA_IDX;
+  uiModeList[5] = DM_CHROMA_IDX;
 
   UInt uiLumaMode = getLumaIntraDir( uiAbsPartIdx );
 

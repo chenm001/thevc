@@ -93,6 +93,8 @@ protected:
   UInt      m_uiQuadtreeTUMaxDepthInter;
   UInt      m_uiQuadtreeTUMaxDepthIntra;
 
+  Bool      m_bUseLMChroma;                                  ///< JL: Chroma intra prediction based on luma signal
+
   // coding tools (encoder-only parameters)
   Bool      m_bUseSBACRD;                                     ///< flag for using RD optimization based on SBAC
   Bool      m_bUseHADME;                                      ///< flag for using HAD in sub-pel ME

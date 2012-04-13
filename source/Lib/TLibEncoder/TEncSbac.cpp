@@ -688,6 +688,11 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   {
     m_pcBinIf->encodeBin( 0, m_cCUChromaPredSCModel.get( 0, 0, 0 ) );
   } 
+  else if( uiIntraDirChroma == LM_CHROMA_IDX )
+  {
+    m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, 0 ) );
+    m_pcBinIf->encodeBin( 0, m_cCUChromaPredSCModel.get( 0, 0, 1 ) );
+  }
   else
   { 
     UInt uiAllowedChromaDir[ NUM_CHROMA_MODE ];
@@ -703,6 +708,10 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     }
     m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, 0 ) );
 
+    if (pcCU->getSlice()->getSPS()->getUseLMChroma())
+    {
+      m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, 1 ));
+    }
 #if  CHROMA_MODE_CODING
     m_pcBinIf->encodeBinsEP( uiIntraDirChroma, 2 );
 #else
