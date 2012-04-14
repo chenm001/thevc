@@ -776,6 +776,7 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
 
   if(iTempShift > 0)
   {
+    assert(0);
     x  = ( x +  ( 1 << ( iTempShift - 1 ) ) ) >> iTempShift;
     y  = ( y +  ( 1 << ( iTempShift - 1 ) ) ) >> iTempShift;
     xx = ( xx + ( 1 << ( iTempShift - 1 ) ) ) >> iTempShift;
@@ -787,6 +788,7 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
 
   if( iCountShift == 0 )
   {
+    assert(0);
     a = 0;
     b = 1 << (8 - 1);
     iShift = 0;

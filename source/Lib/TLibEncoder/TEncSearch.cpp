@@ -1141,6 +1141,19 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
         }
         fprintf( fp_tv, "]\n" );
       }
+      else if ( uiChromaPredMode == LM_CHROMA_IDX && uiChromaId == 0 ) {
+        Int  iLumaStride = m_iLumaRecStride;
+        Pel *pLuma0 = m_pLumaRecBuffer + iLumaStride + 1;
+        fprintf( fp_tv, "    ReferenceLM=[" );
+        int x, y;
+        for( y=0; y<uiHeight; y++ ) {
+          fprintf( fp_tv, "%02X ", pLuma0[y*iLumaStride-1] & 0xFF );
+        }
+        for( x=0; x<uiWidth; x++ ) {
+          fprintf( fp_tv, "%02X ", pLuma0[-1*iLumaStride+x] & 0xFF );
+        }
+        fprintf( fp_tv, "]\n" );
+      }
     }
 #endif
   //===== get prediction signal =====
@@ -1174,6 +1187,7 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
     }
 #if (CHEN_TV)
     if ( do_print ) {
+      fprintf( fp_tv, "    Sad=%d\n", uiSad );
       tPrintMatrix  ( fp_tv, "--- Pred ---\n", piPred, uiStride, uiWidth);
       tPrintMatrix16( fp_tv, "--- Resi ---\n", piResi, uiStride, uiWidth);
     }
@@ -1612,7 +1626,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       if ( pcCU->getAddr() == 0 )
           do_print = 1;
       else
-          do_print = 0;
+          do_print = 1;
       if ( pcCU->getSlice()->getSliceType() != I_SLICE )
           do_print = 0;
       if (do_print) {
@@ -1694,7 +1708,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
           extern Char g_aucConvertToBit[ MAX_CU_SIZE+1 ]; 
           Int diff = min<Int>(abs((Int) modeIdx - HOR_IDX), abs((Int)modeIdx - VER_IDX));
           UChar ucFiltIdx = diff > m_aucIntraFilter[g_aucConvertToBit[ uiWidth ]] ? 1 : 0;
-          if (modeIdx == DC_IDX /*|| uiDirMode == LM_CHROMA_IDX*/)
+          if (modeIdx == DC_IDX || modeIdx == LM_CHROMA_IDX)
             ucFiltIdx = 0; //no smoothing for DC or LM chroma
 
           fprintf( fp_tv, "*** Mode=%2d, bFilter=%d, Sad=%6d\n", uiMode, ucFiltIdx, uiSad );
@@ -1961,7 +1975,7 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
   UInt  uiMaxMode = NUM_CHROMA_MODE;
 #if (CHEN_TV)
   if ( do_print ) {
-    fprintf( fp_tv, "\n@@@ ChromaMode=(%d,%d,%d,%d,%d)\n", uiModeList[0], uiModeList[1], uiModeList[2], uiModeList[3], uiModeList[4] );
+    fprintf( fp_tv, "\n@@@ ChromaMode=(%d,%d,%d,%d,%d,%d)\n", uiModeList[0], uiModeList[1], uiModeList[2], uiModeList[3], uiModeList[4], uiModeList[5] );
   }
   first_chr = 1;
 #endif
