@@ -59,96 +59,96 @@ enum MAD_HISOTRY {
 
 Void    MADLinearModel::initMADLinearModel()
 {
-  m_bActive = false;
-  m_dY1 = 1.0;
-  m_dY2 = 0.0;
-  m_adMAD[0] = m_adMAD[1] = m_adMAD[3] = 0.0;
+  m_activeOn = false;
+  m_paramY1  = 1.0;
+  m_paramY2  = 0.0;
+  m_costMADs[0] = m_costMADs[1] = m_costMADs[3] = 0.0;
 }
 
 Double  MADLinearModel::getMAD()
 {
-  Double dMADpred = m_dY1 * m_adMAD[MAD_Previous] + m_dY2;
+  Double costPredMAD = m_paramY1 * m_costMADs[MAD_Previous] + m_paramY2;
 
-  if(dMADpred < 0)
+  if(costPredMAD < 0)
   {
-    dMADpred = m_adMAD[MAD_Previous];
-    m_dY1 = MAD_PRED_Y1;
-    m_dY2 = MAD_PRED_Y2;
+    costPredMAD = m_costMADs[MAD_Previous];
+    m_paramY1   = MAD_PRED_Y1;
+    m_paramY2   = MAD_PRED_Y2;
   } 
-  return dMADpred;
+  return costPredMAD;
 }
 
 Void    MADLinearModel::updateMADLiearModel()
 {
-  Double dNewY1         = ((m_adMAD[MAD_Previous] - m_adMAD[MAD_PPrevious]) / (m_adMAD[MAD_PPrevious] - m_adMAD[MAD_PPPrevious]));
-  Double dNewY2         =  (m_adMAD[MAD_Previous] - (dNewY1*m_adMAD[MAD_PPrevious]));
+  Double dNewY1 = ((m_costMADs[MAD_Previous] - m_costMADs[MAD_PPrevious]) / (m_costMADs[MAD_PPrevious] - m_costMADs[MAD_PPPrevious]));
+  Double dNewY2 =  (m_costMADs[MAD_Previous] - (dNewY1*m_costMADs[MAD_PPrevious]));
   
-  m_dY1 = 0.70+0.20*m_dY1+ 0.10*dNewY1;
-  m_dY2 =      0.20*m_dY2+ 0.10*dNewY2;
+  m_paramY1 = 0.70+0.20*m_paramY1+ 0.10*dNewY1;
+  m_paramY2 =      0.20*m_paramY2+ 0.10*dNewY2;
 }
 
 Void    MADLinearModel::updateMADHistory(Double dMAD)
 {
-  m_adMAD[MAD_PPPrevious] = m_adMAD[MAD_PPrevious];
-  m_adMAD[MAD_PPrevious ] = m_adMAD[MAD_Previous ];
-  m_adMAD[MAD_Previous  ] = dMAD;
-  m_bActive = (m_adMAD[MAD_Previous  ] && m_adMAD[MAD_PPrevious ] && m_adMAD[MAD_PPPrevious]);
+  m_costMADs[MAD_PPPrevious] = m_costMADs[MAD_PPrevious];
+  m_costMADs[MAD_PPrevious ] = m_costMADs[MAD_Previous ];
+  m_costMADs[MAD_Previous  ] = dMAD;
+  m_activeOn = (m_costMADs[MAD_Previous  ] && m_costMADs[MAD_PPrevious ] && m_costMADs[MAD_PPPrevious]);
 }
 
 
 Void    PixelBaseURQQuadraticModel::initPixelBaseQuadraticModel()
 {
-  m_dX1_HIGH = HIGH_QSTEP_ALPHA;
-  m_dX2_HIGH = HIGH_QSTEP_BETA;
-  m_dX1_LOW  = LOW_QSTEP_ALPHA;
-  m_dX2_LOW  = LOW_QSTEP_BETA;
+  m_paramHighX1 = HIGH_QSTEP_ALPHA;
+  m_paramHighX2 = HIGH_QSTEP_BETA;
+  m_paramLowX1  = LOW_QSTEP_ALPHA;
+  m_paramLowX2  = LOW_QSTEP_BETA;
 }
 
-Int     PixelBaseURQQuadraticModel::getQP(Int iQP, Int iTargetBits, Int iNumberOfPixels, Double dMADpred)
+Int     PixelBaseURQQuadraticModel::getQP(Int qp, Int targetBits, Int numberOfPixels, Double costPredMAD)
 {
-  Double dQStep;
-  Double bppPerMAD = (Double)(iTargetBits/(iNumberOfPixels*dMADpred));
+  Double qStep;
+  Double bppPerMAD = (Double)(targetBits/(numberOfPixels*costPredMAD));
   
-  if(xConvertQP2QStep(iQP) >= HIGH_QSTEP_THRESHOLD)
+  if(xConvertQP2QStep(qp) >= HIGH_QSTEP_THRESHOLD)
   {
-    dQStep = 1/( sqrt((bppPerMAD/m_dX1_HIGH)+((m_dX2_HIGH*m_dX2_HIGH)/(4*m_dX1_HIGH*m_dX1_HIGH*m_dX1_HIGH))) - (m_dX2_HIGH/(2*m_dX1_HIGH)));
+    qStep = 1/( sqrt((bppPerMAD/m_paramHighX1)+((m_paramHighX2*m_paramHighX2)/(4*m_paramHighX1*m_paramHighX1*m_paramHighX1))) - (m_paramHighX2/(2*m_paramHighX1)));
   }
   else
   {
-    dQStep = 1/( sqrt((bppPerMAD/m_dX1_LOW)+((m_dX2_LOW*m_dX2_LOW)/(4*m_dX1_LOW*m_dX1_LOW*m_dX1_LOW))) - (m_dX2_LOW/(2*m_dX1_LOW)));
+    qStep = 1/( sqrt((bppPerMAD/m_paramLowX1)+((m_paramLowX2*m_paramLowX2)/(4*m_paramLowX1*m_paramLowX1*m_paramLowX1))) - (m_paramLowX2/(2*m_paramLowX1)));
   }
   
-  return xConvertQStep2QP(dQStep);
+  return xConvertQStep2QP(qStep);
 }
 
-Void    PixelBaseURQQuadraticModel::updatePixelBasedURQQuadraticModel(Int iQP, Int iBits, Int iNumberOfPixels, Double dMAD)
+Void    PixelBaseURQQuadraticModel::updatePixelBasedURQQuadraticModel (Int qp, Int bits, Int numberOfPixels, Double costMAD)
 {
-  Double dQStep     = xConvertQP2QStep(iQP);
-  Double dInvQStep = (1/dQStep);
-  Double dNewBeta, dNewAlpha;
+  Double qStep     = xConvertQP2QStep(qp);
+  Double invqStep = (1/qStep);
+  Double paramNewX1, paramNewX2;
   
-  if(dQStep < HIGH_QSTEP_THRESHOLD)
+  if(qStep >= HIGH_QSTEP_THRESHOLD)
   {
-    dNewBeta  = (((iBits/(iNumberOfPixels*dMAD))-(23.3772*dInvQStep*dInvQStep))/((1-200*dInvQStep)*dInvQStep));
-    dNewAlpha = (23.3772-200*dNewBeta);
-    m_dX1_HIGH = 0.70*HIGH_QSTEP_ALPHA + 0.20 * m_dX1_HIGH + 0.10 * dNewAlpha;
-    m_dX2_HIGH = 0.70*HIGH_QSTEP_BETA  + 0.20 * m_dX2_HIGH + 0.10 * dNewBeta;
+    paramNewX2    = (((bits/(numberOfPixels*costMAD))-(23.3772*invqStep*invqStep))/((1-200*invqStep)*invqStep));
+    paramNewX1    = (23.3772-200*paramNewX2);
+    m_paramHighX1 = 0.70*HIGH_QSTEP_ALPHA + 0.20 * m_paramHighX1 + 0.10 * paramNewX1;
+    m_paramHighX2 = 0.70*HIGH_QSTEP_BETA  + 0.20 * m_paramHighX2 + 0.10 * paramNewX2;
   }
   else
   {
-    dNewBeta  = (((iBits/(iNumberOfPixels*dMAD))-(5.8091*dInvQStep*dInvQStep))/((1-9.5455*dInvQStep)*dInvQStep));
-    dNewAlpha = (5.8091-9.5455*dNewBeta);
-    m_dX1_LOW = 0.90*LOW_QSTEP_ALPHA + 0.09 * m_dX1_LOW + 0.01 * dNewAlpha;
-    m_dX2_LOW = 0.90*LOW_QSTEP_BETA  + 0.09 * m_dX2_LOW + 0.01 * dNewBeta;
+    paramNewX2   = (((bits/(numberOfPixels*costMAD))-(5.8091*invqStep*invqStep))/((1-9.5455*invqStep)*invqStep));
+    paramNewX1   = (5.8091-9.5455*paramNewX2);
+    m_paramLowX1 = 0.90*LOW_QSTEP_ALPHA + 0.09 * m_paramLowX1 + 0.01 * paramNewX1;
+    m_paramLowX2 = 0.90*LOW_QSTEP_BETA  + 0.09 * m_paramLowX2 + 0.01 * paramNewX2;
   }
 }
 
-Bool    PixelBaseURQQuadraticModel::checkUpdateAvailable(Int iReferenceQP )
+Bool    PixelBaseURQQuadraticModel::checkUpdateAvailable(Int qpReference )
 { 
-  Double dCheckQStep = xConvertQP2QStep(iReferenceQP);
+  Double qStep = xConvertQP2QStep(qpReference);
 
-  if (dCheckQStep > xConvertQP2QStep(MAX_QP) 
-    ||dCheckQStep < xConvertQP2QStep(MIN_QP) )
+  if (qStep > xConvertQP2QStep(MAX_QP) 
+    ||qStep < xConvertQP2QStep(MIN_QP) )
   {
     return false;
   }
@@ -156,119 +156,118 @@ Bool    PixelBaseURQQuadraticModel::checkUpdateAvailable(Int iReferenceQP )
   return true;
 }
 
-Double  PixelBaseURQQuadraticModel::xConvertQP2QStep( Int QP )
+Double  PixelBaseURQQuadraticModel::xConvertQP2QStep(Int qp )
 {
   Int i;
-  Double QStep;
-  static const Double QP2QSTEP[6] = { 0.625, 0.703, 0.797, 0.891, 1.000, 1.125 };
+  Double qStep;
+  static const Double mapQP2QSTEP[6] = { 0.625, 0.703, 0.797, 0.891, 1.000, 1.125 };
 
-  QStep = QP2QSTEP[QP % 6];
-  for( i=0; i<(QP/6); i++)
+  qStep = mapQP2QSTEP[qp % 6];
+  for( i=0; i<(qp/6); i++)
   {
-    QStep *= 2;
+    qStep *= 2;
   }
 
-  return QStep;
+  return qStep;
 }
 
-Int     PixelBaseURQQuadraticModel::xConvertQStep2QP( Double dQStep )
+Int     PixelBaseURQQuadraticModel::xConvertQStep2QP(Double qStep )
 {
-  Int iPer = 0, iRem = 0;
+  Int per = 0, rem = 0;
 
-  if( dQStep < xConvertQP2QStep(MIN_QP))
+  if( qStep < xConvertQP2QStep(MIN_QP))
   {
     return MIN_QP;
   }
-  else if (dQStep > xConvertQP2QStep(MAX_QP) )
+  else if (qStep > xConvertQP2QStep(MAX_QP) )
   {
     return MAX_QP;
   }
 
-  while( dQStep > xConvertQP2QStep(5) )
+  while( qStep > xConvertQP2QStep(5) )
   {
-    dQStep /= 2.0;
-    iPer++;
+    qStep /= 2.0;
+    per++;
   }
 
-  if (dQStep <= 0.625)
+  if (qStep <= 0.625)
   {
-    iRem = 0;
+    rem = 0;
   }
-  else if (dQStep <= 0.703)
+  else if (qStep <= 0.703)
   {
-    iRem = 1;
+    rem = 1;
   }
-  else if (dQStep <= 0.797)
+  else if (qStep <= 0.797)
   {
-    iRem = 2;
+    rem = 2;
   }
-  else if (dQStep <= 0.891)
+  else if (qStep <= 0.891)
   {
-    iRem = 3;
+    rem = 3;
   }
-  else if (dQStep <= 1.000)
+  else if (qStep <= 1.000)
   {
-    iRem = 4;
+    rem = 4;
   }
   else
   {
-    iRem = 5;
+    rem = 5;
   }
-  return (iPer * 6 + iRem);
+  return (per * 6 + rem);
 }
 
 
-Void  TEncRateCtrl::create(Int iIntraPeriod, Int iGOPSize, Int iFrameRate, Int iTargetKbps, Int iQP, Int iLCUNumInBasicUnit, Int iSourceWidth, Int iSourceHeight, Int iMaxCUWidth, Int iMaxCUHeight)
+Void  TEncRateCtrl::create(Int sizeIntraPeriod, Int sizeGOP, Int frameRate, Int targetKbps, Int qp, Int numLCUInBasicUnit, Int sourceWidth, Int sourceHeight, Int maxCUWidth, Int maxCUHeight)
 {
-  Int iLeftInHeight, iLeftInWidth;
-  Int iUnitAddr               = 0;
-  m_iSourceWidthInLCU         = (iSourceWidth  / iMaxCUWidth) + (( iSourceWidth  %  iMaxCUWidth ) ? 1 : 0);
-  m_iSourceHeightInLCU        = (iSourceHeight / iMaxCUHeight)+ (( iSourceHeight %  iMaxCUHeight) ? 1 : 0);  
+  Int leftInHeight, leftInWidth;
 
-  m_bIsLowdelay               = (iIntraPeriod == -1) ? true : false;
-  m_iPrevBitrate              = iTargetKbps*1000;
-  m_iCurrBitrate              = iTargetKbps*1000;
-  m_iFrameRate                = iFrameRate;
-  m_iRefFrameNum              = m_bIsLowdelay ? (iGOPSize) : (iGOPSize>>1);
-  m_iNonRefFrameNum           = iGOPSize-m_iRefFrameNum;
-  m_iGOPSize                  = iGOPSize;
-  m_iNumofPixels              = ((iSourceWidth*iSourceHeight*3)>>1);
-  m_iNumofGOP                 = 0;
-  m_iNumofFrame               = 0;
-  m_iNumofLCU                 = 0;
-  m_iNumofUnit                = 0;
-  m_iNumofRefFrame            = 0;
-  m_iNumofNonRefFrame         = 0;
-  m_iOccupancyVB              = 0;
-  m_iInitialOVB               = 0;
-  m_iTargetBufferLevel        = 0;
-  m_iInitialTBL               = 0;
-  m_iOccupancyVBInFrame       = 0;
-  m_iRemainingBitsInGOP       = (m_iCurrBitrate*iGOPSize/m_iFrameRate);
-  m_iRemainingBitsInFrame     = 0;
-  m_iNumUnitInFrame           = m_iSourceWidthInLCU*m_iSourceHeightInLCU;
+  m_sourceWidthInLCU         = (sourceWidth  / maxCUWidth  ) + (( sourceWidth  %  maxCUWidth ) ? 1 : 0);
+  m_sourceHeightInLCU        = (sourceHeight / maxCUHeight) + (( sourceHeight %  maxCUHeight) ? 1 : 0);  
+  m_isLowdelay               = (sizeIntraPeriod == -1) ? true : false;
+  m_prevBitrate              = targetKbps*1000;
+  m_currBitrate              = targetKbps*1000;
+  m_frameRate                = frameRate;
+  m_refFrameNum              = m_isLowdelay ? (sizeGOP) : (sizeGOP>>1);
+  m_nonRefFrameNum           = sizeGOP-m_refFrameNum;
+  m_sizeGOP                  = sizeGOP;
+  m_numOfPixels              = ((sourceWidth*sourceHeight*3)>>1);
+  m_indexGOP                 = 0;
+  m_indexFrame               = 0;
+  m_indexLCU                 = 0;
+  m_indexUnit                = 0;
+  m_indexRefFrame            = 0;
+  m_indexNonRefFrame         = 0;
+  m_occupancyVB              = 0;
+  m_initialOVB               = 0;
+  m_targetBufLevel           = 0;
+  m_initialTBL               = 0;
+  m_occupancyVBInFrame       = 0;
+  m_remainingBitsInGOP       = (m_currBitrate*sizeGOP/m_frameRate);
+  m_remainingBitsInFrame     = 0;
+  m_numUnitInFrame           = m_sourceWidthInLCU*m_sourceHeightInLCU;
   m_cMADLinearModel.        initMADLinearModel();
   m_cPixelURQQuadraticModel.initPixelBaseQuadraticModel();
 
-  m_dRefAvgWeighting          = 0.0;
-  m_dNonRefAvgWeighting       = 0.0;
-  m_dAvgbpp                   = 0.0;  
-  m_bUnitLevelActive          = false;
+  m_costRefAvgWeighting      = 0.0;
+  m_costNonRefAvgWeighting   = 0.0;
+  m_costAvgbpp               = 0.0;  
+  m_activeUnitLevelOn        = false;
 
-  m_pcFrameData               = new FrameData   [iGOPSize+1];         initFrameData(iQP);
-  m_pcLCUData                 = new LCUData     [m_iNumUnitInFrame];  initUnitData (iQP);
+  m_pcFrameData              = new FrameData   [sizeGOP+1];         initFrameData(qp);
+  m_pcLCUData                = new LCUData     [m_numUnitInFrame];  initUnitData (qp);
 
-  for(Int iIdx=0; iIdx<m_iSourceHeightInLCU*iMaxCUHeight; iIdx+=iMaxCUHeight)  
+  for(Int i = 0, addressUnit = 0; i < m_sourceHeightInLCU*maxCUHeight; i += maxCUHeight)  
   {
-    iLeftInHeight = iSourceHeight - iIdx;
-    iLeftInHeight = min(iLeftInHeight, iMaxCUHeight);
-    for(Int jIdx=0; jIdx<m_iSourceWidthInLCU*iMaxCUWidth; jIdx+=iMaxCUWidth)
+    leftInHeight = sourceHeight - i;
+    leftInHeight = min(leftInHeight, maxCUHeight);
+    for(Int j = 0; j < m_sourceWidthInLCU*maxCUWidth; j += maxCUWidth, addressUnit++)
     {
-      iLeftInWidth = iSourceWidth - jIdx;
-      iLeftInWidth = min(iLeftInWidth, iMaxCUWidth);
-      m_pcLCUData[iUnitAddr  ].m_iWidthInPixel = iLeftInWidth;
-      m_pcLCUData[iUnitAddr  ].m_iHeightInPixel= iLeftInHeight;
-      m_pcLCUData[iUnitAddr++].m_iPixels     = ((iLeftInHeight*iLeftInWidth*3)>>1);
+      leftInWidth = sourceWidth - j;
+      leftInWidth = min(leftInWidth, maxCUWidth);
+      m_pcLCUData[addressUnit].m_widthInPixel = leftInWidth;
+      m_pcLCUData[addressUnit].m_heightInPixel= leftInHeight;
+      m_pcLCUData[addressUnit].m_pixels       = ((leftInHeight*leftInWidth*3)>>1);
     }
   }
 }
@@ -287,253 +286,251 @@ Void  TEncRateCtrl::destroy()
   }
 }
 
-Void  TEncRateCtrl::initFrameData   (Int iQP)
+Void  TEncRateCtrl::initFrameData   (Int qp)
 {
-  for(Int iIdx = 0 ; iIdx <= m_iGOPSize; iIdx++)
+  for(Int i = 0 ; i <= m_sizeGOP; i++)
   {
-    m_pcFrameData[iIdx].m_bReferenced = false;
-    m_pcFrameData[iIdx].m_dMAD        = 0.0;
-    m_pcFrameData[iIdx].m_iBits       = 0;
-    m_pcFrameData[iIdx].m_iQP         = iQP;
+    m_pcFrameData[i].m_isReferenced = false;
+    m_pcFrameData[i].m_costMAD      = 0.0;
+    m_pcFrameData[i].m_bits         = 0;
+    m_pcFrameData[i].m_qp           = qp;
   }
 }
 
-Void  TEncRateCtrl::initUnitData    (Int iQP)
+Void  TEncRateCtrl::initUnitData    (Int qp)
 {
-  for(Int iIdx = 1 ; iIdx < m_iNumUnitInFrame; iIdx++)
+  for(Int i = 1 ; i < m_numUnitInFrame; i++)
   {
-    m_pcLCUData[iIdx].m_iQP            = iQP;
-    m_pcLCUData[iIdx].m_iBits          = 0;
-    m_pcLCUData[iIdx].m_iPixels        = 0;
-    m_pcLCUData[iIdx].m_iWidthInPixel  = 0;
-    m_pcLCUData[iIdx].m_iHeightInPixel = 0;
-    m_pcLCUData[iIdx].m_dMAD           = 0.0;
+    m_pcLCUData[i].m_qp            = qp;
+    m_pcLCUData[i].m_bits          = 0;
+    m_pcLCUData[i].m_pixels        = 0;
+    m_pcLCUData[i].m_widthInPixel  = 0;
+    m_pcLCUData[i].m_heightInPixel = 0;
+    m_pcLCUData[i].m_costMAD       = 0.0;
   }
 }
 
-Int  TEncRateCtrl::getFrameQP(Bool bReferenced, Int iPOC)
+Int  TEncRateCtrl::getFrameQP(Bool isReferenced, Int POC)
 {
-  Int iNumofReferenced = 0;
-  Int iFinalQP = 0;
+  Int numofReferenced = 0;
+  Int finalQP = 0;
   FrameData* pcFrameData;
 
-  m_iCurrFrmIdx = (iPOC%m_iGOPSize) == 0 ? m_iGOPSize : (iPOC%m_iGOPSize);
-  pcFrameData = &m_pcFrameData[m_iCurrFrmIdx];
-  
-  
-  if(m_iNumofFrame != 0)
+  m_indexPOCInGOP = (POC%m_sizeGOP) == 0 ? m_sizeGOP : (POC%m_sizeGOP);
+  pcFrameData     = &m_pcFrameData[m_indexPOCInGOP];
+    
+  if(m_indexFrame != 0)
   {
-    if(bReferenced)
+    if(isReferenced)
     {
-      Double dGamma = m_bIsLowdelay ? 0.5 : 0.25;
-      Double dBeta  = m_bIsLowdelay ? 0.9 : 0.6;
-      Int    iNumRemainingRefFrames = m_iRefFrameNum    - m_iNumofRefFrame;
-      Int    iNumRemainingNRefFrames= m_iNonRefFrameNum - m_iNumofNonRefFrame;
+      Double gamma = m_isLowdelay ? 0.5 : 0.25;
+      Double beta  = m_isLowdelay ? 0.9 : 0.6;
+      Int    numRemainingRefFrames  = m_refFrameNum    - m_indexRefFrame;
+      Int    numRemainingNRefFrames = m_nonRefFrameNum - m_indexNonRefFrame;
       
-      Double dTBitsOccupancy  = (m_iCurrBitrate/(Double)m_iFrameRate) + dGamma*(m_iTargetBufferLevel-m_iOccupancyVB - (m_iInitialOVB/(Double)m_iFrameRate));
-      Double dTBitsLeftBudget = ((m_dRefAvgWeighting*m_iRemainingBitsInGOP)/((m_dRefAvgWeighting*iNumRemainingRefFrames)+(m_dNonRefAvgWeighting*iNumRemainingNRefFrames)));
+      Double dTBitsOccupancy  = (m_currBitrate/(Double)m_frameRate) + gamma*(m_targetBufLevel-m_occupancyVB - (m_initialOVB/(Double)m_frameRate));
+      Double dTBitsLeftBudget = ((m_costRefAvgWeighting*m_remainingBitsInGOP)/((m_costRefAvgWeighting*numRemainingRefFrames)+(m_costNonRefAvgWeighting*numRemainingNRefFrames)));
 
-      m_iTargetBits = (Int)(dBeta * dTBitsLeftBudget + (1-dBeta) * dTBitsOccupancy);
+      m_targetBits = (Int)(beta * dTBitsLeftBudget + (1-beta) * dTBitsOccupancy);
   
-      if(m_iTargetBits <= 0 || m_iRemainingBitsInGOP <= 0)
+      if(m_targetBits <= 0 || m_remainingBitsInGOP <= 0)
       {
-        iFinalQP = m_pcFrameData[m_iPrevFrmIdx].m_iQP + 2;
+        finalQP = m_pcFrameData[m_indexPrevPOCInGOP].m_qp + 2;
       }
       else
       {
-        Double dMADpred      = m_cMADLinearModel.getMAD();
-        Int    iQPLowerBound = m_pcFrameData[m_iPrevFrmIdx].m_iQP-2;
-        Int    iQPUpperBound = m_pcFrameData[m_iPrevFrmIdx].m_iQP+2;
-        iFinalQP = m_cPixelURQQuadraticModel.getQP(m_pcFrameData[m_iPrevFrmIdx].m_iQP, m_iTargetBits, m_iNumofPixels, dMADpred);
-        iFinalQP = max(iQPLowerBound, min(iQPUpperBound, iFinalQP));
-        m_bUnitLevelActive      = true;
-        m_iRemainingBitsInFrame = m_iTargetBits;
-        m_dAvgbpp               = (m_iTargetBits/(Double)m_iNumofPixels);
+        Double costPredMAD   = m_cMADLinearModel.getMAD();
+        Int    qpLowerBound = m_pcFrameData[m_indexPrevPOCInGOP].m_qp-2;
+        Int    qpUpperBound = m_pcFrameData[m_indexPrevPOCInGOP].m_qp+2;
+        finalQP = m_cPixelURQQuadraticModel.getQP(m_pcFrameData[m_indexPrevPOCInGOP].m_qp, m_targetBits, m_numOfPixels, costPredMAD);
+        finalQP = max(qpLowerBound, min(qpUpperBound, finalQP));
+        m_activeUnitLevelOn    = true;
+        m_remainingBitsInFrame = m_targetBits;
+        m_costAvgbpp           = (m_targetBits/(Double)m_numOfPixels);
       }
 
-      m_iNumofRefFrame++;
+      m_indexRefFrame++;
     }
     else
     {
-      Int iBwdQP = m_pcFrameData[m_iCurrFrmIdx-1].m_iQP;
-      Int iFwdQP = m_pcFrameData[m_iCurrFrmIdx+1].m_iQP;
+      Int bwdQP = m_pcFrameData[m_indexPOCInGOP-1].m_qp;
+      Int fwdQP = m_pcFrameData[m_indexPOCInGOP+1].m_qp;
        
-      if( (iFwdQP+iBwdQP) == m_pcFrameData[m_iCurrFrmIdx-1].m_iQP
-        ||(iFwdQP+iBwdQP) == m_pcFrameData[m_iCurrFrmIdx+1].m_iQP)
+      if( (fwdQP+bwdQP) == m_pcFrameData[m_indexPOCInGOP-1].m_qp
+        ||(fwdQP+bwdQP) == m_pcFrameData[m_indexPOCInGOP+1].m_qp)
       {
-        iFinalQP = (iFwdQP+iBwdQP);
+        finalQP = (fwdQP+bwdQP);
       }
-      else if(iBwdQP != iFwdQP)
+      else if(bwdQP != fwdQP)
       {
-        iFinalQP = ((iBwdQP+iFwdQP+2)>>1);
+        finalQP = ((bwdQP+fwdQP+2)>>1);
       }
       else
       {
-        iFinalQP = iBwdQP+2;
+        finalQP = bwdQP+2;
       }
-      m_iNumofNonRefFrame++;
+      m_indexNonRefFrame++;
     }
   }
   else
   {
-    Int iLastQPminus2 = m_pcFrameData[0].m_iQP - 2;
-    Int iLastQPplus2  = m_pcFrameData[0].m_iQP + 2;
+    Int lastQPminus2 = m_pcFrameData[0].m_qp - 2;
+    Int lastQPplus2  = m_pcFrameData[0].m_qp + 2;
 
-    for(Int iIdx = 1; iIdx <= m_iGOPSize; iIdx++)
+    for(Int iIdx = 1; iIdx <= m_sizeGOP; iIdx++)
     {
-      if(m_pcFrameData[iIdx].m_bReferenced)
+      if(m_pcFrameData[iIdx].m_isReferenced)
       {
-        iFinalQP += m_pcFrameData[iIdx].m_iQP;
-        iNumofReferenced++;
+        finalQP += m_pcFrameData[iIdx].m_qp;
+        numofReferenced++;
       }
     }
     
-    iFinalQP = (iNumofReferenced == 0) ? m_pcFrameData[0].m_iQP : ((iFinalQP + (1<<(iNumofReferenced>>1)))/iNumofReferenced);
-    iFinalQP = max( iLastQPminus2, min( iLastQPplus2, iFinalQP));
+    finalQP = (numofReferenced == 0) ? m_pcFrameData[0].m_qp : ((finalQP + (1<<(numofReferenced>>1)))/numofReferenced);
+    finalQP = max( lastQPminus2, min( lastQPplus2, finalQP));
 
-    Double dAvgFrameBits = m_iRemainingBitsInGOP/(Double)m_iGOPSize;
-    Int    iBufferLevel  = m_iOccupancyVB + m_iInitialOVB;
+    Double costAvgFrameBits = m_remainingBitsInGOP/(Double)m_sizeGOP;
+    Int    bufLevel  = m_occupancyVB + m_initialOVB;
 
-    if(abs(iBufferLevel) > dAvgFrameBits)
+    if(abs(bufLevel) > costAvgFrameBits)
     {
-      if(iBufferLevel < 0)
+      if(bufLevel < 0)
       {
-        iFinalQP -= 2;
+        finalQP -= 2;
       }
       else
       {
-        iFinalQP += 2;
+        finalQP += 2;
       }
     }
-    m_iNumofRefFrame++;
+    m_indexRefFrame++;
   }
+  finalQP = max(MIN_QP, min(MAX_QP, finalQP));
 
-  iFinalQP = max(MIN_QP, min(MAX_QP, iFinalQP));
-
-  for(Int iLCUIdx = 0 ; iLCUIdx < m_iNumUnitInFrame; iLCUIdx++)
+  for(Int indexLCU = 0 ; indexLCU < m_numUnitInFrame; indexLCU++)
   {
-    m_pcLCUData[iLCUIdx].m_iQP = iFinalQP;
+    m_pcLCUData[indexLCU].m_qp = finalQP;
   }
 
-  pcFrameData->m_bReferenced = bReferenced;
-  pcFrameData->m_iQP         = iFinalQP;
+  pcFrameData->m_isReferenced = isReferenced;
+  pcFrameData->m_qp           = finalQP;
 
-  return iFinalQP;
+  return finalQP;
 }
 
 Bool  TEncRateCtrl::calculateUnitQP ()
 {
-  if(!m_bUnitLevelActive || m_iNumofLCU == 0)
+  if(!m_activeUnitLevelOn || m_indexLCU == 0)
   {
     return false;
   }
-  Int iUpperQPBound, iLowerQPBound, iFinalQP;
-  Int    iColQP        = m_pcLCUData[m_iNumofLCU].m_iQP;
-  Double dColMAD       = m_pcLCUData[m_iNumofLCU].m_dMAD;
-  Double dBudgetInUnit = m_pcLCUData[m_iNumofLCU].m_iPixels*m_dAvgbpp;
+  Int upperQPBound, lowerQPBound, finalQP;
+  Int    colQP        = m_pcLCUData[m_indexLCU].m_qp;
+  Double colMAD       = m_pcLCUData[m_indexLCU].m_costMAD;
+  Double budgetInUnit = m_pcLCUData[m_indexLCU].m_pixels*m_costAvgbpp;
 
 
-  Int iTargetBitsOccupancy = (Int)(dBudgetInUnit - (m_iOccupancyVBInFrame/(m_iNumUnitInFrame-m_iNumofUnit)));
-  Int iTargetBitsLeftBudget= (Int)((m_iRemainingBitsInFrame*m_pcLCUData[m_iNumofLCU].m_iPixels)/(Double)(m_iNumofPixels-m_iCodedPixels));
+  Int iTargetBitsOccupancy = (Int)(budgetInUnit - (m_occupancyVBInFrame/(m_numUnitInFrame-m_indexUnit)));
+  Int iTargetBitsLeftBudget= (Int)((m_remainingBitsInFrame*m_pcLCUData[m_indexLCU].m_pixels)/(Double)(m_numOfPixels-m_codedPixels));
   Int iTargetBits = (iTargetBitsLeftBudget>>1) + (iTargetBitsOccupancy>>1);
   
 
-  if( m_iNumofLCU >= m_iSourceWidthInLCU)
+  if( m_indexLCU >= m_sourceWidthInLCU)
   {
-    iUpperQPBound = ( (m_pcLCUData[m_iNumofLCU-1].m_iQP + m_pcLCUData[m_iNumofLCU - m_iSourceWidthInLCU].m_iQP)>>1) + MAX_DELTA_QP;
-    iLowerQPBound = ( (m_pcLCUData[m_iNumofLCU-1].m_iQP + m_pcLCUData[m_iNumofLCU - m_iSourceWidthInLCU].m_iQP)>>1) - MAX_DELTA_QP;
+    upperQPBound = ( (m_pcLCUData[m_indexLCU-1].m_qp + m_pcLCUData[m_indexLCU - m_sourceWidthInLCU].m_qp)>>1) + MAX_DELTA_QP;
+    lowerQPBound = ( (m_pcLCUData[m_indexLCU-1].m_qp + m_pcLCUData[m_indexLCU - m_sourceWidthInLCU].m_qp)>>1) - MAX_DELTA_QP;
   }
   else
   {
-    iUpperQPBound = m_pcLCUData[m_iNumofLCU-1].m_iQP + MAX_DELTA_QP;
-    iLowerQPBound = m_pcLCUData[m_iNumofLCU-1].m_iQP - MAX_DELTA_QP;
+    upperQPBound = m_pcLCUData[m_indexLCU-1].m_qp + MAX_DELTA_QP;
+    lowerQPBound = m_pcLCUData[m_indexLCU-1].m_qp - MAX_DELTA_QP;
   }
 
   if(iTargetBits < 0)
   {
-    iFinalQP = m_pcLCUData[m_iNumofLCU-1].m_iQP + 1;
+    finalQP = m_pcLCUData[m_indexLCU-1].m_qp + 1;
   }
   else
   {
-    iFinalQP = m_cPixelURQQuadraticModel.getQP(iColQP, iTargetBits, m_pcLCUData[m_iNumofLCU].m_iPixels, dColMAD);
+    finalQP = m_cPixelURQQuadraticModel.getQP(colQP, iTargetBits, m_pcLCUData[m_indexLCU].m_pixels, colMAD);
   }
   
-  iFinalQP = max(iLowerQPBound, min(iUpperQPBound, iFinalQP));
-  m_pcLCUData[m_iNumofLCU].m_iQP = max(MIN_QP, min(MAX_QP, iFinalQP));
+  finalQP = max(lowerQPBound, min(upperQPBound, finalQP));
+  m_pcLCUData[m_indexLCU].m_qp = max(MIN_QP, min(MAX_QP, finalQP));
   
   return true;
 }
 
 Void  TEncRateCtrl::updateRCGOPStatus()
 {
-  m_iRemainingBitsInGOP = ((m_iCurrBitrate/m_iFrameRate)*m_iGOPSize) - m_iOccupancyVB;
-  m_iNumofGOP++;
-
-  FrameData cFrameData= m_pcFrameData[m_iGOPSize];
+  m_remainingBitsInGOP = ((m_currBitrate/m_frameRate)*m_sizeGOP) - m_occupancyVB;
+  
+  FrameData cFrameData = m_pcFrameData[m_sizeGOP];
   initFrameData();
-  m_pcFrameData[0]    = cFrameData;
-  m_iNumofFrame       = 0;
-  m_iNumofRefFrame    = 0;
-  m_iNumofNonRefFrame = 0;
+
+  m_pcFrameData[0]   = cFrameData;
+  m_indexGOP++;
+  m_indexFrame       = 0;
+  m_indexRefFrame    = 0;
+  m_indexNonRefFrame = 0;
 }
 
-Void  TEncRateCtrl::updataRCFrameStatus(Int iFrameBits, SliceType eSliceType)
+Void  TEncRateCtrl::updataRCFrameStatus(Int frameBits, SliceType eSliceType)
 {
-  FrameData* pcFrameData = &m_pcFrameData[m_iCurrFrmIdx];
-  Int iOccupancy;
-  Double dAdjustmentBits;
+  FrameData* pcFrameData = &m_pcFrameData[m_indexPOCInGOP];
+  Int occupancyBits;
+  Double adjustmentBits;
 
-  m_iRemainingBitsInGOP = m_iRemainingBitsInGOP + ( ((m_iCurrBitrate-m_iPrevBitrate)/m_iFrameRate)*(m_iGOPSize-m_iNumofFrame) ) - iFrameBits;
+  m_remainingBitsInGOP = m_remainingBitsInGOP + ( ((m_currBitrate-m_prevBitrate)/m_frameRate)*(m_sizeGOP-m_indexFrame) ) - frameBits;
+  occupancyBits        = (Int)((Double)frameBits - (m_currBitrate/(Double)m_frameRate));
   
-  iOccupancy = (Int)((Double)iFrameBits - (m_iCurrBitrate/(Double)m_iFrameRate));
-  
-  if( (iOccupancy < 0) && (m_iInitialOVB > 0) )
+  if( (occupancyBits < 0) && (m_initialOVB > 0) )
   {
-    dAdjustmentBits = xAdjustmentBits(iOccupancy, m_iInitialOVB );
+    adjustmentBits = xAdjustmentBits(occupancyBits, m_initialOVB );
 
-    if(m_iInitialOVB < 0)
+    if(m_initialOVB < 0)
     {
-      dAdjustmentBits = m_iInitialOVB;
-      iOccupancy     += (Int)dAdjustmentBits;
-      m_iInitialOVB   =  0;
+      adjustmentBits = m_initialOVB;
+      occupancyBits += (Int)adjustmentBits;
+      m_initialOVB   =  0;
     }
   }
-  else if( (iOccupancy > 0) && (m_iInitialOVB < 0) )
+  else if( (occupancyBits > 0) && (m_initialOVB < 0) )
   {
-    dAdjustmentBits = xAdjustmentBits(m_iInitialOVB, iOccupancy );
+    adjustmentBits = xAdjustmentBits(m_initialOVB, occupancyBits );
     
-    if(iOccupancy < 0)
+    if(occupancyBits < 0)
     {
-      dAdjustmentBits = iOccupancy;
-      m_iInitialOVB  += (Int)dAdjustmentBits;
-      iOccupancy      =  0;
+      adjustmentBits = occupancyBits;
+      m_initialOVB  += (Int)adjustmentBits;
+      occupancyBits  =  0;
     }
   }
 
-  if(m_iNumofGOP == 0)
+  if(m_indexGOP == 0)
   {
-    m_iInitialOVB = iOccupancy;
+    m_initialOVB = occupancyBits;
   }
   else
   {
-    m_iOccupancyVB= m_iOccupancyVB + iOccupancy;
+    m_occupancyVB= m_occupancyVB + occupancyBits;
   }
 
-  if(pcFrameData->m_bReferenced)
+  if(pcFrameData->m_isReferenced)
   {
-    m_dRefAvgWeighting  = ((pcFrameData->m_iBits*pcFrameData->m_iQP)/8.0) + (7.0*(m_dRefAvgWeighting)/8.0);
+    m_costRefAvgWeighting  = ((pcFrameData->m_bits*pcFrameData->m_qp)/8.0) + (7.0*(m_costRefAvgWeighting)/8.0);
 
-    if(m_iNumofFrame == 0)
+    if(m_indexFrame == 0)
     {
-      m_iInitialTBL = m_iTargetBufferLevel  = (iFrameBits - (m_iCurrBitrate/m_iFrameRate));
+      m_initialTBL = m_targetBufLevel  = (frameBits - (m_currBitrate/m_frameRate));
     }
     else
     {
-      Int iDistance = (m_dNonRefAvgWeighting == 0) ? 0 : 1;
-      m_iTargetBufferLevel =  m_iTargetBufferLevel 
-                            - (m_iInitialTBL/(m_iRefFrameNum-1)) 
-                            + (Int)((m_dRefAvgWeighting*(iDistance+1)*m_iCurrBitrate)/(m_iFrameRate*(m_dRefAvgWeighting+(m_dNonRefAvgWeighting*iDistance)))) 
-                            - (m_iCurrBitrate/m_iFrameRate);
+      Int iDistance = (m_costNonRefAvgWeighting == 0) ? 0 : 1;
+      m_targetBufLevel =  m_targetBufLevel 
+                            - (m_initialTBL/(m_refFrameNum-1)) 
+                            + (Int)((m_costRefAvgWeighting*(iDistance+1)*m_currBitrate)/(m_frameRate*(m_costRefAvgWeighting+(m_costNonRefAvgWeighting*iDistance)))) 
+                            - (m_currBitrate/m_frameRate);
     }
 
     if(m_cMADLinearModel.IsUpdateAvailable())
@@ -542,95 +539,95 @@ Void  TEncRateCtrl::updataRCFrameStatus(Int iFrameBits, SliceType eSliceType)
     }
 
     if(eSliceType != I_SLICE &&
-       m_cPixelURQQuadraticModel.checkUpdateAvailable(pcFrameData->m_iQP))
+       m_cPixelURQQuadraticModel.checkUpdateAvailable(pcFrameData->m_qp))
     {
-      m_cPixelURQQuadraticModel.updatePixelBasedURQQuadraticModel(pcFrameData->m_iQP, pcFrameData->m_iBits, m_iNumofPixels, pcFrameData->m_dMAD);
+      m_cPixelURQQuadraticModel.updatePixelBasedURQQuadraticModel(pcFrameData->m_qp, pcFrameData->m_bits, m_numOfPixels, pcFrameData->m_costMAD);
     }
   }
   else
   {
-    m_dNonRefAvgWeighting = ((pcFrameData->m_iBits*pcFrameData->m_iQP)/8.0) + (7.0*(m_dNonRefAvgWeighting)/8.0);
+    m_costNonRefAvgWeighting = ((pcFrameData->m_bits*pcFrameData->m_qp)/8.0) + (7.0*(m_costNonRefAvgWeighting)/8.0);
   }
 
-  m_iNumofFrame++;
-  m_iNumofLCU             = 0;
-  m_iNumofUnit            = 0;
-  m_iOccupancyVBInFrame   = 0;
-  m_iRemainingBitsInFrame = 0;
-  m_iCodedPixels          = 0;
-  m_bUnitLevelActive      = false;
-  m_dAvgbpp               = 0.0;
+  m_indexFrame++;
+  m_indexLCU             = 0;
+  m_indexUnit            = 0;
+  m_occupancyVBInFrame   = 0;
+  m_remainingBitsInFrame = 0;
+  m_codedPixels          = 0;
+  m_activeUnitLevelOn    = false;
+  m_costAvgbpp           = 0.0;
 }
 Void  TEncRateCtrl::updataRCUnitStatus ()
 {
-  if(!m_bUnitLevelActive || m_iNumofLCU == 0)
+  if(!m_activeUnitLevelOn || m_indexLCU == 0)
   {
     return;
   }
 
-  m_iCodedPixels  += m_pcLCUData[m_iNumofLCU-1].m_iPixels;
-  m_iRemainingBitsInFrame = m_iRemainingBitsInFrame - m_pcLCUData[m_iNumofLCU-1].m_iBits;
-  m_iOccupancyVBInFrame   = (Int)(m_iOccupancyVBInFrame + m_pcLCUData[m_iNumofLCU-1].m_iBits - m_pcLCUData[m_iNumofLCU-1].m_iPixels*m_dAvgbpp);
+  m_codedPixels  += m_pcLCUData[m_indexLCU-1].m_pixels;
+  m_remainingBitsInFrame = m_remainingBitsInFrame - m_pcLCUData[m_indexLCU-1].m_bits;
+  m_occupancyVBInFrame   = (Int)(m_occupancyVBInFrame + m_pcLCUData[m_indexLCU-1].m_bits - m_pcLCUData[m_indexLCU-1].m_pixels*m_costAvgbpp);
 
-  if( m_cPixelURQQuadraticModel.checkUpdateAvailable(m_pcLCUData[m_iNumofLCU-1].m_iQP) )
+  if( m_cPixelURQQuadraticModel.checkUpdateAvailable(m_pcLCUData[m_indexLCU-1].m_qp) )
   {
-    m_cPixelURQQuadraticModel.updatePixelBasedURQQuadraticModel(m_pcLCUData[m_iNumofLCU-1].m_iQP, m_pcLCUData[m_iNumofLCU-1].m_iBits, m_pcLCUData[m_iNumofLCU-1].m_iPixels, m_pcLCUData[m_iNumofLCU-1].m_dMAD);
+    m_cPixelURQQuadraticModel.updatePixelBasedURQQuadraticModel(m_pcLCUData[m_indexLCU-1].m_qp, m_pcLCUData[m_indexLCU-1].m_bits, m_pcLCUData[m_indexLCU-1].m_pixels, m_pcLCUData[m_indexLCU-1].m_costMAD);
   }
 
-  m_iNumofUnit++;
+  m_indexUnit++;
 }
 
-Void  TEncRateCtrl::updateFrameData(UInt64 uiBits)
+Void  TEncRateCtrl::updateFrameData(UInt64 actualFrameBits)
 {
-  Double dMAD = 0.0;
+  Double costMAD = 0.0;
   
-  for(Int i = 0; i < m_iNumUnitInFrame; i++)
+  for(Int i = 0; i < m_numUnitInFrame; i++)
   {
-    dMAD    += m_pcLCUData[i].m_dMAD;
+    costMAD    += m_pcLCUData[i].m_costMAD;
   }
   
-  m_pcFrameData[m_iCurrFrmIdx].m_dMAD   = (dMAD/(Double)m_iNumUnitInFrame);
-  m_pcFrameData[m_iCurrFrmIdx].m_iBits  = (Int)uiBits;
+  m_pcFrameData[m_indexPOCInGOP].m_costMAD = (costMAD/(Double)m_numUnitInFrame);
+  m_pcFrameData[m_indexPOCInGOP].m_bits    = (Int)actualFrameBits;
   
-  if(m_pcFrameData[m_iCurrFrmIdx].m_bReferenced)
+  if(m_pcFrameData[m_indexPOCInGOP].m_isReferenced)
   {
-    m_iPrevFrmIdx = m_iCurrFrmIdx;
-    m_cMADLinearModel.updateMADHistory(m_pcFrameData[m_iCurrFrmIdx].m_dMAD);
+    m_indexPrevPOCInGOP = m_indexPOCInGOP;
+    m_cMADLinearModel.updateMADHistory(m_pcFrameData[m_indexPOCInGOP].m_costMAD);
   }
 }
 
-Void  TEncRateCtrl::updateLCUData(TComDataCU* pcCU, UInt64 uiBits, Int iQP)
+Void  TEncRateCtrl::updateLCUData(TComDataCU* pcCU, UInt64 actualLCUBits, Int qp)
 {
   Int     x, y;
-  double dMAD = 0.0;
+  double  costMAD = 0.0;
 
-  Pel*  pOrg    = pcCU->getPic()->getPicYuvOrg()->getLumaAddr(pcCU->getAddr(), 0);
-  Pel*  pRec    = pcCU->getPic()->getPicYuvRec()->getLumaAddr(pcCU->getAddr(), 0);
-  Int   iStride = pcCU->getPic()->getStride();
+  Pel*  pOrg   = pcCU->getPic()->getPicYuvOrg()->getLumaAddr(pcCU->getAddr(), 0);
+  Pel*  pRec   = pcCU->getPic()->getPicYuvRec()->getLumaAddr(pcCU->getAddr(), 0);
+  Int   stride = pcCU->getPic()->getStride();
 
-  Int   iWidth  = m_pcLCUData[m_iNumofLCU].m_iWidthInPixel;
-  Int   iHeight = m_pcLCUData[m_iNumofLCU].m_iHeightInPixel;
+  Int   width  = m_pcLCUData[m_indexLCU].m_widthInPixel;
+  Int   height = m_pcLCUData[m_indexLCU].m_heightInPixel;
 
-  for( y = 0; y < iHeight; y++ )
+  for( y = 0; y < height; y++ )
   {
-    for( x = 0; x < iWidth; x++ )
+    for( x = 0; x < width; x++ )
     {
-      dMAD += abs( pOrg[x] - pRec[x] );
+      costMAD += abs( pOrg[x] - pRec[x] );
     }
-    pOrg += iStride;
-    pRec += iStride;
+    pOrg += stride;
+    pRec += stride;
   }
-  m_pcLCUData[m_iNumofLCU  ].m_iQP   = iQP;
-  m_pcLCUData[m_iNumofLCU  ].m_dMAD  = (dMAD /(Double)(iWidth*iHeight));
-  m_pcLCUData[m_iNumofLCU++].m_iBits = (Int)uiBits;
+  m_pcLCUData[m_indexLCU  ].m_qp      = qp;
+  m_pcLCUData[m_indexLCU  ].m_costMAD = (costMAD /(Double)(width*height));
+  m_pcLCUData[m_indexLCU++].m_bits    = (Int)actualLCUBits;
 }
 
-Double TEncRateCtrl::xAdjustmentBits( Int& iReductionFact, Int& iCompensationFact)
+Double TEncRateCtrl::xAdjustmentBits(Int& reductionBits, Int& compensationBits)
 {
-  Double dAdjustment   = ADJUSTMENT_FACTOR*iReductionFact;
-  iReductionFact      -= (Int)dAdjustment;
-  iCompensationFact   += (Int)dAdjustment;
+  Double adjustment  = ADJUSTMENT_FACTOR*reductionBits;
+  reductionBits     -= (Int)adjustment;
+  compensationBits  += (Int)adjustment;
 
-  return dAdjustment;
+  return adjustment;
 }
 

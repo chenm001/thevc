@@ -62,29 +62,29 @@ using namespace std;
 
 typedef struct FrameData
 {
-  Bool       m_bReferenced;
-  Int        m_iQP;
-  Int        m_iBits;
-  Double     m_dMAD;
+  Bool       m_isReferenced;
+  Int        m_qp;
+  Int        m_bits;
+  Double     m_costMAD;
 }FrameData;
 
 typedef struct LCUData
 {
-  Int     m_iQP;            ///<  coded QP
-  Int     m_iBits;          ///<  actually generated bits
-  Int     m_iPixels;        ///<  number of pixels for a unit
-  Int     m_iWidthInPixel;  ///<  number of pixels for width
-  Int     m_iHeightInPixel; ///<  number of pixels for height
-  Double  m_dMAD;           ///<  texture complexity for a unit
+  Int     m_qp;                ///<  coded QP
+  Int     m_bits;              ///<  actually generated bits
+  Int     m_pixels;            ///<  number of pixels for a unit
+  Int     m_widthInPixel;      ///<  number of pixels for width
+  Int     m_heightInPixel;     ///<  number of pixels for height
+  Double  m_costMAD;           ///<  texture complexity for a unit
 }LCUData;
 
 class MADLinearModel
 {
 private:
-  Bool   m_bActive;
-  Double m_dY1;
-  Double m_dY2;
-  Double m_adMAD[3];
+  Bool   m_activeOn;
+  Double m_paramY1;
+  Double m_paramY2;
+  Double m_costMADs[3];
 
 public:
   MADLinearModel ()   {};
@@ -93,64 +93,64 @@ public:
   Void    initMADLinearModel      ();
   Double  getMAD                  ();
   Void    updateMADLiearModel     ();
-  Void    updateMADHistory        (Double dMAD);
-  Bool    IsUpdateAvailable       ()              { return m_bActive; }
+  Void    updateMADHistory        (Double costMAD);
+  Bool    IsUpdateAvailable       ()              { return m_activeOn; }
 };
 
 class PixelBaseURQQuadraticModel
 {
 private:
-  Double m_dX1_HIGH;
-  Double m_dX2_HIGH;
-  Double m_dX1_LOW;
-  Double m_dX2_LOW;
+  Double m_paramHighX1;
+  Double m_paramHighX2;
+  Double m_paramLowX1;
+  Double m_paramLowX2;
 public:
   PixelBaseURQQuadraticModel () {};
   ~PixelBaseURQQuadraticModel() {};
 
   Void    initPixelBaseQuadraticModel       ();
-  Int     getQP                             (Int iQP, Int iTargetBits, Int iNumberOfPixels, Double dMADpred);
-  Void    updatePixelBasedURQQuadraticModel (Int iQP, Int iBits, Int iNumberOfPixels, Double dMAD);
-  Bool    checkUpdateAvailable              (Int iReferenceQP );
-  Double  xConvertQP2QStep                  (Int QP );
-  Int     xConvertQStep2QP                  (Double QStep );
+  Int     getQP                             (Int qp, Int targetBits, Int numberOfPixels, Double costPredMAD);
+  Void    updatePixelBasedURQQuadraticModel (Int qp, Int bits, Int numberOfPixels, Double costMAD);
+  Bool    checkUpdateAvailable              (Int qpReference );
+  Double  xConvertQP2QStep                  (Int qp );
+  Int     xConvertQStep2QP                  (Double qStep );
 };
 
 class TEncRateCtrl
 {
 private:
-  Bool            m_bIsLowdelay;
-  Int             m_iPrevBitrate;
-  Int             m_iCurrBitrate;
-  Int             m_iFrameRate;
-  Int             m_iRefFrameNum;
-  Int             m_iNonRefFrameNum;
-  Int             m_iNumofPixels;
-  Int             m_iSourceWidthInLCU;
-  Int             m_iSourceHeightInLCU;      
-  Int             m_iGOPSize;
-  Int             m_iNumofGOP;
-  Int             m_iNumofFrame;
-  Int             m_iNumofLCU;
-  Int             m_iNumofUnit;
-  Int             m_iNumofRefFrame;
-  Int             m_iNumofNonRefFrame;
-  Int             m_iCurrFrmIdx;
-  Int             m_iPrevFrmIdx;
-  Int             m_iOccupancyVB;
-  Int             m_iInitialOVB;
-  Int             m_iTargetBufferLevel;
-  Int             m_iInitialTBL;
-  Int             m_iRemainingBitsInGOP;
-  Int             m_iRemainingBitsInFrame;
-  Int             m_iOccupancyVBInFrame;
-  Int             m_iTargetBits;
-  Int             m_iNumUnitInFrame;
-  Int             m_iCodedPixels;
-  Bool            m_bUnitLevelActive;
-  Double          m_dNonRefAvgWeighting;
-  Double          m_dRefAvgWeighting;
-  Double          m_dAvgbpp;         
+  Bool            m_isLowdelay;
+  Int             m_prevBitrate;
+  Int             m_currBitrate;
+  Int             m_frameRate;
+  Int             m_refFrameNum;
+  Int             m_nonRefFrameNum;
+  Int             m_numOfPixels;
+  Int             m_sourceWidthInLCU;
+  Int             m_sourceHeightInLCU;      
+  Int             m_sizeGOP;
+  Int             m_indexGOP;
+  Int             m_indexFrame;
+  Int             m_indexLCU;
+  Int             m_indexUnit;
+  Int             m_indexRefFrame;
+  Int             m_indexNonRefFrame;
+  Int             m_indexPOCInGOP;
+  Int             m_indexPrevPOCInGOP;
+  Int             m_occupancyVB;
+  Int             m_initialOVB;
+  Int             m_targetBufLevel;
+  Int             m_initialTBL;
+  Int             m_remainingBitsInGOP;
+  Int             m_remainingBitsInFrame;
+  Int             m_occupancyVBInFrame;
+  Int             m_targetBits;
+  Int             m_numUnitInFrame;
+  Int             m_codedPixels;
+  Bool            m_activeUnitLevelOn;
+  Double          m_costNonRefAvgWeighting;
+  Double          m_costRefAvgWeighting;
+  Double          m_costAvgbpp;         
   
   FrameData*      m_pcFrameData;
   LCUData*        m_pcLCUData;
@@ -162,21 +162,21 @@ public:
   TEncRateCtrl         () {};
   virtual ~TEncRateCtrl() {};
 
-  Void          create                (Int iIntraPeriod, Int iGOPSize, Int iFrameRate, Int iTargetKbps, Int iQP, Int iLCUNumInBasicUnit, Int iSourceWidth, Int iSourceHeight, Int iMaxCUWidth, Int iMaxCUHeight);
+  Void          create                (Int sizeIntraPeriod, Int sizeGOP, Int frameRate, Int targetKbps, Int qp, Int numLCUInBasicUnit, Int sourceWidth, Int sourceHeight, Int maxCUWidth, Int maxCUHeight);
   Void          destroy               ();
 
-  Void          initFrameData         (Int iQP = 0);
-  Void          initUnitData          (Int iQP = 0);
-  Int           getFrameQP            (Bool bReferenced, Int iPOC);
+  Void          initFrameData         (Int qp = 0);
+  Void          initUnitData          (Int qp = 0);
+  Int           getFrameQP            (Bool isReferenced, Int POC);
   Bool          calculateUnitQP       ();
-  Int           getUnitQP             ()                                          { return m_pcLCUData[m_iNumofLCU].m_iQP;  }
+  Int           getUnitQP             ()                                          { return m_pcLCUData[m_indexLCU].m_qp;  }
   Void          updateRCGOPStatus     ();
-  Void          updataRCFrameStatus   (Int iFrameBits, SliceType eSliceType);
+  Void          updataRCFrameStatus   (Int frameBits, SliceType eSliceType);
   Void          updataRCUnitStatus    ();
-  Void          updateLCUData         (TComDataCU* pcCU, UInt64 uiBits, Int iQP);
-  Void          updateFrameData       (UInt64 uiBits);
-  Double        xAdjustmentBits       (Int& iReductionFact, Int& iCompensationFact);
-  Int           getGOPId              ()                                          { return m_iNumofFrame; }
+  Void          updateLCUData         (TComDataCU* pcCU, UInt64 actualLCUBits, Int qp);
+  Void          updateFrameData       (UInt64 actualFrameBits);
+  Double        xAdjustmentBits       (Int& reductionBits, Int& compensationBits);
+  Int           getGOPId              ()                                          { return m_indexFrame; }
 };
 #endif
 
