@@ -328,10 +328,10 @@ Int  TEncRateCtrl::getFrameQP(Bool isReferenced, Int POC)
       Int    numRemainingRefFrames  = m_refFrameNum    - m_indexRefFrame;
       Int    numRemainingNRefFrames = m_nonRefFrameNum - m_indexNonRefFrame;
       
-      Double dTBitsOccupancy  = (m_currBitrate/(Double)m_frameRate) + gamma*(m_targetBufLevel-m_occupancyVB - (m_initialOVB/(Double)m_frameRate));
-      Double dTBitsLeftBudget = ((m_costRefAvgWeighting*m_remainingBitsInGOP)/((m_costRefAvgWeighting*numRemainingRefFrames)+(m_costNonRefAvgWeighting*numRemainingNRefFrames)));
+      Double targetBitsOccupancy  = (m_currBitrate/(Double)m_frameRate) + gamma*(m_targetBufLevel-m_occupancyVB - (m_initialOVB/(Double)m_frameRate));
+      Double targetBitsLeftBudget = ((m_costRefAvgWeighting*m_remainingBitsInGOP)/((m_costRefAvgWeighting*numRemainingRefFrames)+(m_costNonRefAvgWeighting*numRemainingNRefFrames)));
 
-      m_targetBits = (Int)(beta * dTBitsLeftBudget + (1-beta) * dTBitsOccupancy);
+      m_targetBits = (Int)(beta * targetBitsLeftBudget + (1-beta) * targetBitsOccupancy);
   
       if(m_targetBits <= 0 || m_remainingBitsInGOP <= 0)
       {
@@ -377,11 +377,11 @@ Int  TEncRateCtrl::getFrameQP(Bool isReferenced, Int POC)
     Int lastQPminus2 = m_pcFrameData[0].m_qp - 2;
     Int lastQPplus2  = m_pcFrameData[0].m_qp + 2;
 
-    for(Int iIdx = 1; iIdx <= m_sizeGOP; iIdx++)
+    for(Int idx = 1; idx <= m_sizeGOP; idx++)
     {
-      if(m_pcFrameData[iIdx].m_isReferenced)
+      if(m_pcFrameData[idx].m_isReferenced)
       {
-        finalQP += m_pcFrameData[iIdx].m_qp;
+        finalQP += m_pcFrameData[idx].m_qp;
         numofReferenced++;
       }
     }
@@ -430,9 +430,9 @@ Bool  TEncRateCtrl::calculateUnitQP ()
   Double budgetInUnit = m_pcLCUData[m_indexLCU].m_pixels*m_costAvgbpp;
 
 
-  Int iTargetBitsOccupancy = (Int)(budgetInUnit - (m_occupancyVBInFrame/(m_numUnitInFrame-m_indexUnit)));
-  Int iTargetBitsLeftBudget= (Int)((m_remainingBitsInFrame*m_pcLCUData[m_indexLCU].m_pixels)/(Double)(m_numOfPixels-m_codedPixels));
-  Int iTargetBits = (iTargetBitsLeftBudget>>1) + (iTargetBitsOccupancy>>1);
+  Int targetBitsOccupancy = (Int)(budgetInUnit - (m_occupancyVBInFrame/(m_numUnitInFrame-m_indexUnit)));
+  Int targetBitsLeftBudget= (Int)((m_remainingBitsInFrame*m_pcLCUData[m_indexLCU].m_pixels)/(Double)(m_numOfPixels-m_codedPixels));
+  Int targetBits = (targetBitsLeftBudget>>1) + (targetBitsOccupancy>>1);
   
 
   if( m_indexLCU >= m_sourceWidthInLCU)
@@ -446,13 +446,13 @@ Bool  TEncRateCtrl::calculateUnitQP ()
     lowerQPBound = m_pcLCUData[m_indexLCU-1].m_qp - MAX_DELTA_QP;
   }
 
-  if(iTargetBits < 0)
+  if(targetBits < 0)
   {
     finalQP = m_pcLCUData[m_indexLCU-1].m_qp + 1;
   }
   else
   {
-    finalQP = m_cPixelURQQuadraticModel.getQP(colQP, iTargetBits, m_pcLCUData[m_indexLCU].m_pixels, colMAD);
+    finalQP = m_cPixelURQQuadraticModel.getQP(colQP, targetBits, m_pcLCUData[m_indexLCU].m_pixels, colMAD);
   }
   
   finalQP = max(lowerQPBound, min(upperQPBound, finalQP));
@@ -526,10 +526,10 @@ Void  TEncRateCtrl::updataRCFrameStatus(Int frameBits, SliceType eSliceType)
     }
     else
     {
-      Int iDistance = (m_costNonRefAvgWeighting == 0) ? 0 : 1;
+      Int distance = (m_costNonRefAvgWeighting == 0) ? 0 : 1;
       m_targetBufLevel =  m_targetBufLevel 
                             - (m_initialTBL/(m_refFrameNum-1)) 
-                            + (Int)((m_costRefAvgWeighting*(iDistance+1)*m_currBitrate)/(m_frameRate*(m_costRefAvgWeighting+(m_costNonRefAvgWeighting*iDistance)))) 
+                            + (Int)((m_costRefAvgWeighting*(distance+1)*m_currBitrate)/(m_frameRate*(m_costRefAvgWeighting+(m_costNonRefAvgWeighting*distance)))) 
                             - (m_currBitrate/m_frameRate);
     }
 

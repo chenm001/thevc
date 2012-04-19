@@ -293,9 +293,9 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setALFPicBasedEncode            ( m_bALFPicBasedEncode);
 #endif
 #if RATECTRL
-  m_cTEncTop.setUseRateCtrl     ( m_bUseRateCtrl);
-  m_cTEncTop.setTargetBitrate   ( m_iTargetBitrate);
-  m_cTEncTop.setNumLCUInUnit    ( m_iNumLCUInUnit);
+  m_cTEncTop.setUseRateCtrl     ( m_enableRateCtrl);
+  m_cTEncTop.setTargetBitrate   ( m_targetBitrate);
+  m_cTEncTop.setNumLCUInUnit    ( m_numLCUInUnit);
 #endif
 }
 

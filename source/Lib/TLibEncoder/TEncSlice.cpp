@@ -420,18 +420,18 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 /**
  - lambda re-computation based on rate control QP
  */
-Void TEncSlice::xLamdaRecalculation(Int iChangeQP, Int iGOPid, Int iDepth, SliceType eSliceType, TComSPS* pSPS, TComSlice* rpcSlice)
+Void TEncSlice::xLamdaRecalculation(Int changeQP, Int idGOP, Int depth, SliceType eSliceType, TComSPS* pcSPS, TComSlice* pcSlice)
 {
-  Int iQP;
-  Double dQP = (Double)iChangeQP;
-  Double dOrigQP = (Double)dQP;
-  Double dLambda;
+  Int qp;
+  Double recalQP= (Double)changeQP;
+  Double origQP = (Double)recalQP;
+  Double lambda;
 
   // pre-compute lambda and QP values for all possible QP candidates
-  for ( Int iDQpIdx = 0; iDQpIdx < 2 * m_pcCfg->getDeltaQpRD() + 1; iDQpIdx++ )
+  for ( Int deltqQpIdx = 0; deltqQpIdx < 2 * m_pcCfg->getDeltaQpRD() + 1; deltqQpIdx++ )
   {
     // compute QP value
-    dQP = dOrigQP + ((iDQpIdx+1)>>1)*(iDQpIdx%2 ? -1 : 1);
+    recalQP = origQP + ((deltqQpIdx+1)>>1)*(deltqQpIdx%2 ? -1 : 1);
 
     // compute lambda value
     Int    NumberBFrames = ( m_pcCfg->getGOPSize() - 1 );
@@ -442,83 +442,83 @@ Void TEncSlice::xLamdaRecalculation(Int iChangeQP, Int iGOPid, Int iDepth, Slice
 #else
     Int    bitdepth_luma_qp_scale = 0;
 #endif
-    Double qp_temp = (Double) dQP + bitdepth_luma_qp_scale - SHIFT_QP;
+    Double qp_temp = (Double) recalQP + bitdepth_luma_qp_scale - SHIFT_QP;
 #if FULL_NBIT
-    Double qp_temp_orig = (Double) dQP - SHIFT_QP;
+    Double qp_temp_orig = (Double) recalQP - SHIFT_QP;
 #endif
     // Case #1: I or P-slices (key-frame)
-    Double dQPFactor = m_pcCfg->getGOPEntry(iGOPid).m_QPFactor;
+    Double dQPFactor = m_pcCfg->getGOPEntry(idGOP).m_QPFactor;
     if ( eSliceType==I_SLICE )
     {
       dQPFactor=0.57*dLambda_scale;
     }
-    dLambda = dQPFactor*pow( 2.0, qp_temp/3.0 );
+    lambda = dQPFactor*pow( 2.0, qp_temp/3.0 );
 
-    if ( iDepth>0 )
+    if ( depth>0 )
     {
 #if FULL_NBIT
-      dLambda *= Clip3( 2.00, 4.00, (qp_temp_orig / 6.0) ); // (j == B_SLICE && p_cur_frm->layer != 0 )
+      lambda *= Clip3( 2.00, 4.00, (qp_temp_orig / 6.0) ); // (j == B_SLICE && p_cur_frm->layer != 0 )
 #else
-      dLambda *= Clip3( 2.00, 4.00, (qp_temp / 6.0) ); // (j == B_SLICE && p_cur_frm->layer != 0 )
+      lambda *= Clip3( 2.00, 4.00, (qp_temp / 6.0) ); // (j == B_SLICE && p_cur_frm->layer != 0 )
 #endif
     }
 
     // if hadamard is used in ME process
     if ( !m_pcCfg->getUseHADME() )
     {
-      dLambda *= 0.95;
+      lambda *= 0.95;
     }
 
 #if H0736_AVC_STYLE_QP_RANGE
-    iQP = max( -pSPS->getQpBDOffsetY(), min( MAX_QP, (Int) floor( dQP + 0.5 ) ) );
+    qp = max( -pcSPS->getQpBDOffsetY(), min( MAX_QP, (Int) floor( recalQP + 0.5 ) ) );
 #else
-    iQP = max( MIN_QP, min( MAX_QP, (Int)floor( dQP + 0.5 ) ) );
+    qp = max( MIN_QP, min( MAX_QP, (Int)floor( recalQP + 0.5 ) ) );
 #endif
 
-    m_pdRdPicLambda[iDQpIdx] = dLambda;
-    m_pdRdPicQp    [iDQpIdx] = dQP;
-    m_piRdPicQp    [iDQpIdx] = iQP;
+    m_pdRdPicLambda[deltqQpIdx] = lambda;
+    m_pdRdPicQp    [deltqQpIdx] = recalQP;
+    m_piRdPicQp    [deltqQpIdx] = qp;
   }
 
   // obtain dQP = 0 case
-  dLambda = m_pdRdPicLambda[0];
-  dQP     = m_pdRdPicQp    [0];
-  iQP     = m_piRdPicQp    [0];
+  lambda  = m_pdRdPicLambda[0];
+  recalQP = m_pdRdPicQp    [0];
+  qp      = m_piRdPicQp    [0];
 
-  if( rpcSlice->getSliceType( ) != I_SLICE )
+  if( pcSlice->getSliceType( ) != I_SLICE )
   {
-    dLambda *= m_pcCfg->getLambdaModifier( iDepth );
+    lambda *= m_pcCfg->getLambdaModifier( depth );
   }
 
   // store lambda
-  m_pcRdCost ->setLambda( dLambda );
+  m_pcRdCost ->setLambda( lambda );
 #if WEIGHTED_CHROMA_DISTORTION
   // for RDO
   // in RdCost there is only one lambda because the luma and chroma bits are not separated, instead we weight the distortion of chroma.
 #if H0736_AVC_STYLE_QP_RANGE
   Double weight = 1.0;
-  if(iQP >= 0)
+  if(qp >= 0)
   {
-    weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
+    weight = pow( 2.0, (qp-g_aucChromaScale[qp])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
   }
 #else
-  Double weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
+  Double weight = pow( 2.0, (qp-g_aucChromaScale[qp])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
 #endif
   m_pcRdCost ->setChromaDistortionWeight( weight );     
 #endif
 
 #if RDOQ_CHROMA_LAMBDA 
   // for RDOQ
-  m_pcTrQuant->setLambda( dLambda, dLambda / weight );    
+  m_pcTrQuant->setLambda( lambda, lambda / weight );    
 #else
-  m_pcTrQuant->setLambda( dLambda );
+  m_pcTrQuant->setLambda( lambda );
 #endif
 
 #if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA
   // For ALF or SAO
-  rpcSlice   ->setLambda( dLambda, dLambda / weight );  
+  pcSlice   ->setLambda( lambda, lambda / weight );  
 #else
-  rpcSlice   ->setLambda( dLambda );
+  pcSlice   ->setLambda( lambda );
 #endif
 }
 #endif

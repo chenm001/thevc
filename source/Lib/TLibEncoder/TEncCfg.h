@@ -268,9 +268,9 @@ protected:
   Int       m_signHidingThreshold;
 #endif
 #if RATECTRL
-  Bool      m_bUseRateCtrl;                                   ///< Flag for using rate control algorithm
-  Int       m_iTargetBitrate;                                 ///< target bitrate
-  Int       m_iNumLCUInUnit;                                  ///< Total number of LCUs in a frame should be divided by the NumLCUInUnit
+  Bool      m_enableRateCtrl;                                ///< Flag for using rate control algorithm
+  Int       m_targetBitrate;                                 ///< target bitrate
+  Int       m_numLCUInUnit;                                  ///< Total number of LCUs in a frame should be divided by the NumLCUInUnit
 #endif
 public:
   TEncCfg()          {}
@@ -656,12 +656,12 @@ public:
   Int       getTSIG()                            { return m_signHidingThreshold; }
 #endif
 #if RATECTRL
-  Bool      getUseRateCtrl    ()                { return m_bUseRateCtrl;        }
-  Void      setUseRateCtrl    (Bool b)          { m_bUseRateCtrl    = b;        }
-  Int       getTargetBitrate  ()                { return m_iTargetBitrate;      }
-  Void      setTargetBitrate  (Int iBitrate)    { m_iTargetBitrate  = iBitrate; }
-  Int       getNumLCUInUnit   ()                { return m_iNumLCUInUnit;       }
-  Void      setNumLCUInUnit   (Int iNum)        { m_iNumLCUInUnit   = iNum;     }
+  Bool      getUseRateCtrl    ()                { return m_enableRateCtrl;    }
+  Void      setUseRateCtrl    (Bool flag)       { m_enableRateCtrl = flag;    }
+  Int       getTargetBitrate  ()                { return m_targetBitrate;     }
+  Void      setTargetBitrate  (Int target)      { m_targetBitrate  = target;  }
+  Int       getNumLCUInUnit   ()                { return m_numLCUInUnit;      }
+  Void      setNumLCUInUnit   (Int numLCUs)     { m_numLCUInUnit   = numLCUs; }
 #endif
 };
 

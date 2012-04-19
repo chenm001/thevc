@@ -1381,8 +1381,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if RATECTRL
       if(m_pcCfg->getUseRateCtrl())
       {
-        unsigned  uiBits = m_vRVM_RP[m_vRVM_RP.size()-1];
-        m_pcRateCtrl->updataRCFrameStatus((Int)uiBits, pcSlice->getSliceType());
+        unsigned  frameBits = m_vRVM_RP[m_vRVM_RP.size()-1];
+        m_pcRateCtrl->updataRCFrameStatus((Int)frameBits, pcSlice->getSliceType());
       }
 #endif
 

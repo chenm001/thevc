@@ -117,7 +117,7 @@ public:
   Void    initEncSlice        ( TComPic*  pcPic, Int iPOCLast, UInt uiPOCCurr, Int iNumPicRcvd,
                                 Int iGOPid,   TComSlice*& rpcSlice, TComSPS* pSPS, TComPPS *pPPS );
 #if RATECTRL
-  Void    xLamdaRecalculation ( Int iChangeQP, Int iGOPid, Int iDepth, SliceType eSliceType, TComSPS* pSPS, TComSlice* rpcSlice);
+  Void    xLamdaRecalculation ( Int changeQP, Int idGOP, Int depth, SliceType eSliceType, TComSPS* pcSPS, TComSlice* pcSlice);
 #endif
   // compress and encode slice
   Void    precompressSlice    ( TComPic*& rpcPic                                );      ///< precompress slice for multi-loop opt.

@@ -504,9 +504,9 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #if RATECTRL
   if(m_pcEncCfg->getUseRateCtrl())
   {
-    Int iQP = m_pcRateCtrl->getUnitQP();
-    iMinQP  = Clip3( MIN_QP, MAX_QP, iQP);
-    iMaxQP  = Clip3( MIN_QP, MAX_QP, iQP);
+    Int qp = m_pcRateCtrl->getUnitQP();
+    iMinQP  = Clip3( MIN_QP, MAX_QP, qp);
+    iMaxQP  = Clip3( MIN_QP, MAX_QP, qp);
   }
 #endif
 
@@ -908,9 +908,9 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 #if RATECTRL
   if(m_pcEncCfg->getUseRateCtrl())
   {
-    Int iQP = m_pcRateCtrl->getUnitQP();
-    iMinQP  = Clip3( MIN_QP, MAX_QP, iQP);
-    iMaxQP  = Clip3( MIN_QP, MAX_QP, iQP);
+    Int qp = m_pcRateCtrl->getUnitQP();
+    iMinQP  = Clip3( MIN_QP, MAX_QP, qp);
+    iMaxQP  = Clip3( MIN_QP, MAX_QP, qp);
   }
 #endif
   for (Int iQP=iMinQP; iQP<=iMaxQP; iQP++)
