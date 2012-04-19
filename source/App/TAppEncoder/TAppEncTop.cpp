@@ -190,6 +190,9 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseFastDecisionForMerge      ( m_useFastDecisionForMerge  );
 #endif
   m_cTEncTop.setUseCbfFastMode            ( m_bUseCbfFastMode  );
+#if EARLY_SKIP_DETECTION
+  m_cTEncTop.setUseEarlySkipDetection            ( m_useEarlySkipDetection );
+#endif
 
   m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );

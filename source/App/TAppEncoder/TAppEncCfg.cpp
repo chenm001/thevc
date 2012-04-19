@@ -328,7 +328,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("FDM", m_useFastDecisionForMerge, true, "Fast decision for Merge RD Cost") 
 #endif
   ("CFM", m_bUseCbfFastMode, false, "Cbf fast mode setting")
-
+#if EARLY_SKIP_DETECTION
+  ("ESD", m_useEarlySkipDetection, false, "Early SKIP detection setting")
+#endif
 #if RATECTRL
   ("RateCtrl,-rc", m_bUseRateCtrl, false, "Rate control on/off")
   ("TargetBitrate,-tbr", m_iTargetBitrate, 0, "Input target bitrate")
@@ -1076,6 +1078,9 @@ Void TAppEncCfg::xPrintParameter()
   printf("FDM:%d ", m_useFastDecisionForMerge );
 #endif
   printf("CFM:%d ", m_bUseCbfFastMode         );
+#if EARLY_SKIP_DETECTION
+  printf("ESD:%d ", m_useEarlySkipDetection  );
+#endif
   printf("RQT:%d ", 1     );
   printf("LMC:%d ", m_bUseLMChroma        ); 
   printf("Slice: G=%d M=%d ", m_iSliceGranularity, m_iSliceMode);
@@ -1150,6 +1155,9 @@ Void TAppEncCfg::xPrintUsage()
   printf( "                   FEN - fast encoder setting\n");  
   printf( "                   ECU - Early CU setting\n");
   printf( "                   CFM - Cbf fast mode setting\n");
+#if EARLY_SKIP_DETECTION
+  printf( "                   ESD - Early SKIP detection setting\n");
+#endif
   printf( "                   LMC - intra chroma prediction based on luma\n");
   printf( "\n" );
   printf( "  Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4\n");
