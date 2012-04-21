@@ -747,32 +747,27 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     }
 
     //check if numrefidxes match the defaults. If not, override
-    Bool bOverride = (pcSlice->getNumRefIdx( REF_PIC_LIST_0 )!=pcSlice->getPPS()->getNumRefIdxL0DefaultActive()||(pcSlice->isInterB()&&pcSlice->getNumRefIdx( REF_PIC_LIST_1 )!=pcSlice->getPPS()->getNumRefIdxL1DefaultActive()));
     if (!pcSlice->isIntra())
     {
-      if (bOverride) 
+      Bool overrideFlag = (pcSlice->getNumRefIdx( REF_PIC_LIST_0 )!=pcSlice->getPPS()->getNumRefIdxL0DefaultActive()||(pcSlice->isInterB()&&pcSlice->getNumRefIdx( REF_PIC_LIST_1 )!=pcSlice->getPPS()->getNumRefIdxL1DefaultActive()));
+      WRITE_FLAG( overrideFlag ? 1 : 0,                               "num_ref_idx_active_override_flag");
+      if (overrideFlag) 
       {
-        WRITE_FLAG( 1 ,                                             "num_ref_idx_active_override_flag");
-        WRITE_CODE( pcSlice->getNumRefIdx( REF_PIC_LIST_0 ) - 1, 3, "num_ref_idx_l0_active_minus1" );
-      }
-      else
-      {
-        WRITE_FLAG( 0 ,                                             "num_ref_idx_active_override_flag");
+        WRITE_CODE( pcSlice->getNumRefIdx( REF_PIC_LIST_0 ) - 1, 3,   "num_ref_idx_l0_active_minus1" );
+        if (pcSlice->isInterB())
+        {
+          WRITE_CODE( pcSlice->getNumRefIdx( REF_PIC_LIST_1 ) - 1, 3, "num_ref_idx_l1_active_minus1" );
+        }
+        else
+        {
+          pcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
+
+        }
       }
     }
     else
     {
       pcSlice->setNumRefIdx(REF_PIC_LIST_0, 0);
-    }
-    if (pcSlice->isInterB())
-    {
-      if(bOverride) 
-      {
-        WRITE_CODE( pcSlice->getNumRefIdx( REF_PIC_LIST_1 ) - 1, 3, "num_ref_idx_l1_active_minus1" );
-      }
-    }
-    else
-    {
       pcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
     }
 #if H0412_REF_PIC_LIST_RESTRICTION
