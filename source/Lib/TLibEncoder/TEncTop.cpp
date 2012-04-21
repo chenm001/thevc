@@ -726,6 +726,31 @@ Void TEncTop::xInitPPS()
 #if CABAC_INIT_FLAG
   m_cPPS.setCabacInitPresentFlag(CABAC_INIT_PRESENT_FLAG);
 #endif
+
+  Int histogram[8];
+  for(Int i=0; i<8; i++)
+  {
+    histogram[i]=0;
+  }
+  for( Int i = 0; i < getGOPSize(); i++) 
+  {
+    if(getGOPEntry(i).m_numRefPicsActive<8)
+    {
+      histogram[getGOPEntry(i).m_numRefPicsActive]++;
+    }
+  }
+  Int maxHist=-1;
+  Int bestPos=0;
+  for(Int i=0; i<8; i++)
+  {
+    if(histogram[i]>maxHist)
+    {
+      maxHist=histogram[i];
+      bestPos=i;
+    }
+  }
+  m_cPPS.setNumRefIdxL0DefaultActive(bestPos);
+  m_cPPS.setNumRefIdxL1DefaultActive(bestPos);
 }
 
 //Function for initializing m_RPSList, a list of TComReferencePictureSet, based on the GOPEntry objects read from the config file.
