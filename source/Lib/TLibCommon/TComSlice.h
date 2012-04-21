@@ -624,6 +624,9 @@ private:
   Int        m_iChromaQpOffset;
   Int        m_iChromaQpOffset2nd;
 
+  UInt        m_numRefIdxL0DefaultActive;
+  UInt        m_numRefIdxL1DefaultActive;
+
 #if !RPS_IN_SPS
   Bool        m_bLongTermRefsPresent;
 #endif
@@ -723,6 +726,11 @@ public:
   Int       getChromaQpOffset   () { return m_iChromaQpOffset;}
   Void      setChromaQpOffset2nd( Int i ) { m_iChromaQpOffset2nd = i; }
   Int       getChromaQpOffset2nd() { return m_iChromaQpOffset2nd;}
+
+  Void      setNumRefIdxL0DefaultActive(UInt ui)    { m_numRefIdxL0DefaultActive=ui;     }
+  UInt      getNumRefIdxL0DefaultActive()           { return m_numRefIdxL0DefaultActive; }
+  Void      setNumRefIdxL1DefaultActive(UInt ui)    { m_numRefIdxL1DefaultActive=ui;     }
+  UInt      getNumRefIdxL1DefaultActive()           { return m_numRefIdxL1DefaultActive; }
 
   Bool getUseWP                     ()          { return m_bUseWeightPred;  }
   UInt getWPBiPredIdc               ()          { return m_uiBiPredIdc;     }
