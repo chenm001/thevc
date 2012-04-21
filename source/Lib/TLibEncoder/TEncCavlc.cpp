@@ -761,7 +761,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
         else
         {
           pcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
-
         }
       }
     }
@@ -776,48 +775,48 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #endif
       TComRefPicListModification* refPicListModification = pcSlice->getRefPicListModification();
 #if H0137_0138_LIST_MODIFICATION
-    if(!pcSlice->isIntra())
-    {
-      WRITE_FLAG(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0() ? 1 : 0,       "ref_pic_list_modification_flag_l0" );
-      if (pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0())
+      if(!pcSlice->isIntra())
       {
-        Int numRpsCurrTempList0 = pcSlice->getNumRpsCurrTempList();
-        if (numRpsCurrTempList0 > 1)
+        WRITE_FLAG(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0() ? 1 : 0,       "ref_pic_list_modification_flag_l0" );
+        if (pcSlice->getRefPicListModification()->getRefPicListModificationFlagL0())
         {
-          Int length = 1;
-          numRpsCurrTempList0 --;
-          while ( numRpsCurrTempList0 >>= 1) 
+          Int numRpsCurrTempList0 = pcSlice->getNumRpsCurrTempList();
+          if (numRpsCurrTempList0 > 1)
           {
-            length ++;
-          }
-          for(Int i = 0; i < pcSlice->getNumRefIdx( REF_PIC_LIST_0 ); i++)
-          {
-            WRITE_CODE( refPicListModification->getRefPicSetIdxL0(i), length, "list_entry_l0");
+            Int length = 1;
+            numRpsCurrTempList0 --;
+            while ( numRpsCurrTempList0 >>= 1) 
+            {
+              length ++;
+            }
+            for(Int i = 0; i < pcSlice->getNumRefIdx( REF_PIC_LIST_0 ); i++)
+            {
+              WRITE_CODE( refPicListModification->getRefPicSetIdxL0(i), length, "list_entry_l0");
+            }
           }
         }
       }
-    }
-    if(pcSlice->isInterB())
-    {    
-      WRITE_FLAG(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL1() ? 1 : 0,       "ref_pic_list_modification_flag_l1" );
-      if (pcSlice->getRefPicListModification()->getRefPicListModificationFlagL1())
-      {
-        Int numRpsCurrTempList1 = pcSlice->getNumRpsCurrTempList();
-        if ( numRpsCurrTempList1 > 1 )
+      if(pcSlice->isInterB())
+      {    
+        WRITE_FLAG(pcSlice->getRefPicListModification()->getRefPicListModificationFlagL1() ? 1 : 0,       "ref_pic_list_modification_flag_l1" );
+        if (pcSlice->getRefPicListModification()->getRefPicListModificationFlagL1())
         {
-          Int length = 1;
-          numRpsCurrTempList1 --;
-          while ( numRpsCurrTempList1 >>= 1)
+          Int numRpsCurrTempList1 = pcSlice->getNumRpsCurrTempList();
+          if ( numRpsCurrTempList1 > 1 )
           {
-            length ++;
-          }
-          for(Int i = 0; i < pcSlice->getNumRefIdx( REF_PIC_LIST_1 ); i++)
-          {
-            WRITE_CODE( refPicListModification->getRefPicSetIdxL1(i), length, "list_entry_l1");
+            Int length = 1;
+            numRpsCurrTempList1 --;
+            while ( numRpsCurrTempList1 >>= 1)
+            {
+              length ++;
+            }
+            for(Int i = 0; i < pcSlice->getNumRefIdx( REF_PIC_LIST_1 ); i++)
+            {
+              WRITE_CODE( refPicListModification->getRefPicSetIdxL1(i), length, "list_entry_l1");
+            }
           }
         }
       }
-    }
 #else
       if(!pcSlice->isIntra())
       {
