@@ -928,9 +928,9 @@ Void TComSlice::applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComRef
 /** Function for applying picture marking based on the Reference Picture Set in pReferencePictureSet.
 */
 #if START_DECODING_AT_CRA
-Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool outputFlag, Int pocRandomAccess)
+Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool printErrors, Int pocRandomAccess)
 #else
-Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool outputFlag)
+Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool printErrors)
 #endif
 {
   TComPic* rpcPic;
@@ -983,13 +983,13 @@ Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, T
 #endif
         if(!pReferencePictureSet->getUsed(i) )
         {
-          if(outputFlag)
+          if(printErrors)
             printf("\nLong-term reference picture with POC = %3d seems to have been removed or not correctly decoded.", this->getPOC() + pReferencePictureSet->getDeltaPOC(i));
           atLeastOneRemoved = 1;
         }
         else
         {
-          if(outputFlag)
+          if(printErrors)
             printf("\nLong-term reference picture with POC = %3d is lost or not correctly decoded!", this->getPOC() + pReferencePictureSet->getDeltaPOC(i));
           atLeastOneLost = 1;
           iPocLost=this->getPOC() + pReferencePictureSet->getDeltaPOC(i);
@@ -1027,13 +1027,13 @@ Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, T
 #endif
         if(!pReferencePictureSet->getUsed(i) )
         {
-          if(outputFlag)
+          if(printErrors)
             printf("\nShort-term reference picture with POC = %3d seems to have been removed or not correctly decoded.", this->getPOC() + pReferencePictureSet->getDeltaPOC(i));
           atLeastOneRemoved = 1;
         }
         else
         {
-          if(outputFlag)
+          if(printErrors)
             printf("\nShort-term reference picture with POC = %3d is lost or not correctly decoded!", this->getPOC() + pReferencePictureSet->getDeltaPOC(i));
           atLeastOneLost = 1;
           iPocLost=this->getPOC() + pReferencePictureSet->getDeltaPOC(i);
