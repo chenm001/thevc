@@ -436,7 +436,7 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
     Int iSize = Int( m_cListPic.size() );
     for ( Int i = 0; i < iSize; i++ )
     {
-      rpcPic = *(++iterPic);
+      rpcPic = *(iterPic++);
       if(rpcPic->getSlice(0)->isReferenced() == false)
          break;
     }
