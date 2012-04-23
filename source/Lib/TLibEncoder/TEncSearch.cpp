@@ -3779,7 +3779,6 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
     return;
   }
   
-  PredMode  ePredMode    = pcCU->getPredictionMode( 0 );
   Bool      bHighPass    = pcCU->getSlice()->getDepth() ? true : false;
   UInt      uiBits       = 0, uiBitsBest = 0;
   UInt      uiDistortion = 0, uiDistortionBest = 0;
