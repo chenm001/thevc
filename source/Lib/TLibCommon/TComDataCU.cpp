@@ -3855,7 +3855,7 @@ Bool TComDataCU::isSkipped( UInt uiPartIdx )
   {
     return false;
   }
-  return ( m_pePredMode[ uiPartIdx ] == MODE_SKIP && getMergeFlag( uiPartIdx ) && !getQtRootCbf( uiPartIdx ) );
+  return ( getMergeFlag( uiPartIdx ) && getPartitionSize( uiPartIdx ) == SIZE_2Nx2N && !getQtRootCbf( uiPartIdx ) );
 }
 
 // ====================================================================================================================

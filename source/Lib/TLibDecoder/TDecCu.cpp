@@ -443,7 +443,6 @@ Void TDecCu::xDecompressCU( TComDataCU* pcCU, TComDataCU* pcCUCur, UInt uiAbsPar
   
   switch( m_ppcCU[uiDepth]->getPredictionMode(0) )
   {
-    case MODE_SKIP:
     case MODE_INTER:
       xReconInter( m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth );
       break;

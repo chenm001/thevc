@@ -548,7 +548,6 @@ enum PartSize
 /// supported prediction type
 enum PredMode
 {
-  MODE_SKIP,            ///< SKIP mode
   MODE_INTER,           ///< inter-prediction mode
   MODE_INTRA,           ///< intra-prediction mode
   MODE_NONE = 15
