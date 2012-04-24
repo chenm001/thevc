@@ -62,7 +62,7 @@ Void    MADLinearModel::initMADLinearModel()
   m_activeOn = false;
   m_paramY1  = 1.0;
   m_paramY2  = 0.0;
-  m_costMADs[0] = m_costMADs[1] = m_costMADs[3] = 0.0;
+  m_costMADs[0] = m_costMADs[1] = m_costMADs[2] = 0.0;
 }
 
 Double  MADLinearModel::getMAD()
