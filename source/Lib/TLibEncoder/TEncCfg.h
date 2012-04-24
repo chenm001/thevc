@@ -64,17 +64,17 @@ struct GOPEntry
   Int m_refIdc[MAX_NUM_REF_PICS+1];
   GOPEntry()
   : m_POC(-1)
-  , m_QPOffset()
-  , m_QPFactor()
-  , m_temporalId()
-  , m_refPic()
-  , m_numRefPicsActive()
-  , m_sliceType()
-  , m_numRefPics()
-  , m_interRPSPrediction()
-  , m_deltaRIdxMinus1()
-  , m_deltaRPS()
-  , m_numRefIdc()
+  , m_QPOffset(0)
+  , m_QPFactor(0)
+  , m_temporalId(0)
+  , m_refPic(false)
+  , m_numRefPicsActive(0)
+  , m_sliceType('P')
+  , m_numRefPics(0)
+  , m_interRPSPrediction(false)
+  , m_deltaRIdxMinus1(0)
+  , m_deltaRPS(0)
+  , m_numRefIdc(0)
   {
     ::memset( m_referencePics, 0, sizeof(m_referencePics) );
     ::memset( m_usedByCurrPic, 0, sizeof(m_usedByCurrPic) );
