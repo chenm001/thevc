@@ -78,6 +78,9 @@ private:
   Int  m_deltaRPS; 
   Int  m_numRefIdc; 
   Int  m_refIdc[MAX_NUM_REF_PICS+1];
+#if LTRP_MULT
+  Bool m_bCheckLTMSB[MAX_NUM_REF_PICS];
+#endif
 
 public:
   TComReferencePictureSet();
@@ -87,6 +90,10 @@ public:
   Void setDeltaPOC(Int bufferNum, Int deltaPOC);
   Void setPOC(Int bufferNum, Int deltaPOC);
   Void setNumberOfPictures(Int numberOfPictures);
+#if LTRP_MULT
+  Void      setCheckLTMSBPresent     (Int bufferNum, Bool b );
+  Bool      getCheckLTMSBPresent     (Int bufferNum);
+#endif
 
   Int  getUsed(Int bufferNum);
   Int  getDeltaPOC(Int bufferNum);

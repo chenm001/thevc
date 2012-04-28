@@ -78,6 +78,9 @@ private:
   Bool                  m_bIndependentSliceBoundaryForNDBFilter;
   Bool                  m_bIndependentTileBoundaryForNDBFilter;
   TComPicYuv*           m_pNDBFilterYuvTmp;    //!< temporary picture buffer when non-cross slice/tile boundary in-loop filtering is enabled
+#if LTRP_MULT
+  Bool                  m_bCheckLTMSB;
+#endif
   std::vector<std::vector<TComDataCU*> > m_vSliceCUDataLink;
 
   SEImessages* m_SEIs; ///< Any SEI messages that have been received.  If !NULL we own the object.
@@ -96,6 +99,10 @@ public:
   Void          setUsedByCurr( Bool bUsed ) { m_bUsedByCurr = bUsed; }
   Bool          getIsLongTerm()             { return m_bIsLongTerm; }
   Void          setIsLongTerm( Bool lt ) { m_bIsLongTerm = lt; }
+#if LTRP_MULT
+  Void          setCheckLTMSBPresent     (Bool b ) {m_bCheckLTMSB=b;}
+  Bool          getCheckLTMSBPresent     () { return m_bCheckLTMSB;}
+#endif
 
   TComPicSym*   getPicSym()           { return  m_apcPicSym;    }
   TComSlice*    getSlice(Int i)       { return  m_apcPicSym->getSlice(i);  }

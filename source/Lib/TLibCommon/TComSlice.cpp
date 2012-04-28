@@ -364,7 +364,7 @@ Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic )
   m_aiNumRefIdx[0] = getNumRefIdx(REF_PIC_LIST_0);
   m_aiNumRefIdx[1] = getNumRefIdx(REF_PIC_LIST_1);
 
-  TComPic*  pcRefPic;
+  TComPic*  pcRefPic= NULL;
   TComPic*  RefPicSetStCurr0[16];
   TComPic*  RefPicSetStCurr1[16];
   TComPic*  RefPicSetLtCurr[16];
@@ -382,6 +382,9 @@ Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic )
       pcRefPic->getPicYuvRec()->extendPicBorder();
       RefPicSetStCurr0[NumPocStCurr0] = pcRefPic;
       NumPocStCurr0++;
+#if LTRP_MULT
+      pcRefPic->setCheckLTMSBPresent(false);  
+#endif
     }
   }
   for(; i < m_pcRPS->getNumberOfNegativePictures()+m_pcRPS->getNumberOfPositivePictures(); i++)
@@ -393,6 +396,9 @@ Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic )
       pcRefPic->getPicYuvRec()->extendPicBorder();
       RefPicSetStCurr1[NumPocStCurr1] = pcRefPic;
       NumPocStCurr1++;
+#if LTRP_MULT
+      pcRefPic->setCheckLTMSBPresent(false);  
+#endif
     }
   }
   for(i = m_pcRPS->getNumberOfNegativePictures()+m_pcRPS->getNumberOfPositivePictures()+m_pcRPS->getNumberOfLongtermPictures()-1; i > m_pcRPS->getNumberOfNegativePictures()+m_pcRPS->getNumberOfPositivePictures()-1 ; i--)
@@ -405,6 +411,13 @@ Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic )
       RefPicSetLtCurr[NumPocLtCurr] = pcRefPic;
       NumPocLtCurr++;
     }
+#if LTRP_MULT
+    if(pcRefPic==NULL) 
+    {
+      pcRefPic = xGetLongTermRefPic(rcListPic, m_pcRPS->getPOC(i));
+    }
+    pcRefPic->setCheckLTMSBPresent(m_pcRPS->getCheckLTMSBPresent(i));  
+#endif
   }
 
   // ref_pic_list_init
@@ -909,11 +922,32 @@ Void TComSlice::applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComRef
     }
     for(;i<pReferencePictureSet->getNumberOfPictures();i++)
     {
+#if LTRP_MULT
+      if(pReferencePictureSet->getCheckLTMSBPresent(i)==true)
+      {
+        if(rpcPic->getIsLongTerm() && (rpcPic->getPicSym()->getSlice(0)->getPOC()) == pReferencePictureSet->getPOC(i))
+        {
+          isReference = 1;
+          rpcPic->setUsedByCurr(pReferencePictureSet->getUsed(i));
+        }
+      }
+      else 
+      {
+        if(rpcPic->getIsLongTerm() && (rpcPic->getPicSym()->getSlice(0)->getPOC()%(1<<rpcPic->getPicSym()->getSlice(0)->getSPS()->getBitsForPOC())) == pReferencePictureSet->getPOC(i)%(1<<rpcPic->getPicSym()->getSlice(0)->getSPS()->getBitsForPOC()))
+        {
+          isReference = 1;
+          rpcPic->setUsedByCurr(pReferencePictureSet->getUsed(i));
+        }
+      }
+#else
       if(rpcPic->getIsLongTerm() && (rpcPic->getPicSym()->getSlice(0)->getPOC()%(1<<rpcPic->getPicSym()->getSlice(0)->getSPS()->getBitsForPOC())) == pReferencePictureSet->getPOC(i)%(1<<rpcPic->getPicSym()->getSlice(0)->getSPS()->getBitsForPOC()))
+
       {
         isReference = 1;
         rpcPic->setUsedByCurr(pReferencePictureSet->getUsed(i));
       }
+#endif
+
     }
     // mark the picture as "unused for reference" if it is not in
     // the Reference Picture Set
@@ -951,10 +985,27 @@ Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, T
     {
       j++;
       rpcPic = *(iterPic++);
+#if LTRP_MULT
+      if(pReferencePictureSet->getCheckLTMSBPresent(i)==true)
+      {
+        if(rpcPic->getIsLongTerm() && (rpcPic->getPicSym()->getSlice(0)->getPOC()) == pReferencePictureSet->getPOC(i) && rpcPic->getSlice(0)->isReferenced())
+        {
+          isAvailable = 1;
+        }
+      }
+      else 
+      {
+        if(rpcPic->getIsLongTerm() && (rpcPic->getPicSym()->getSlice(0)->getPOC()%(1<<rpcPic->getPicSym()->getSlice(0)->getSPS()->getBitsForPOC())) == pReferencePictureSet->getPOC(i)%(1<<rpcPic->getPicSym()->getSlice(0)->getSPS()->getBitsForPOC()) && rpcPic->getSlice(0)->isReferenced())
+        {
+          isAvailable = 1;
+        }
+      }
+#else
       if(rpcPic->getIsLongTerm() && (rpcPic->getPicSym()->getSlice(0)->getPOC()%(1<<rpcPic->getPicSym()->getSlice(0)->getSPS()->getBitsForPOC())) == pReferencePictureSet->getPOC(i)%(1<<rpcPic->getPicSym()->getSlice(0)->getSPS()->getBitsForPOC()) && rpcPic->getSlice(0)->isReferenced())
       {
         isAvailable = 1;
       }
+#endif   
     }
     // if there was no such long-term check the short terms
     if(!isAvailable)
@@ -1571,6 +1622,16 @@ Void TComReferencePictureSet::setPOC(Int bufferNum, Int POC)
 {
   m_POC[bufferNum] = POC;
 }
+#if LTRP_MULT
+Bool TComReferencePictureSet::getCheckLTMSBPresent(Int bufferNum)
+{
+  return m_bCheckLTMSB[bufferNum];
+}
+Void TComReferencePictureSet::setCheckLTMSBPresent(Int bufferNum, Bool b)
+{
+  m_bCheckLTMSB[bufferNum] = b;
+}
+#endif
 
 /** set the reference idc value at uiBufferNum entry to the value of iRefIdc
  * \param uiBufferNum
