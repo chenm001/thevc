@@ -642,7 +642,15 @@ Void TAppEncCfg::xCheckParameter()
   Int lastDisp = -1;
 #endif
   xConfirmPara( m_iIntraPeriod >=0&&(m_iIntraPeriod%m_iGOPSize!=0), "Intra period must be a multiple of GOPSize, or -1" );
-  xConfirmPara( m_GOPList[0].m_temporalId!=0 , "The first coded frame in each GOP must have temporal ID = 0 " );
+
+  for(Int i=0; i<m_iGOPSize; i++)
+  {
+    if(m_GOPList[i].m_POC==m_iGOPSize)
+    {
+      xConfirmPara( m_GOPList[i].m_temporalId!=0 , "The last frame in each GOP must have temporal ID = 0 " );
+    }
+  }
+  
   m_extraRPSs=0;
   //start looping through frames in coding order until we can verify that the GOP structure is correct.
   while(!verifiedGOP&&!errorGOP) 
