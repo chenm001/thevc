@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="TAppDecoder"
 	ProjectGUID="{A7A515D9-E917-4706-BD5B-57DC6C78D612}"
 	RootNamespace="TAppDecoder"

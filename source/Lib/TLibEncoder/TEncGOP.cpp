@@ -124,6 +124,9 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
   m_pcAdaptiveLoopFilter = pcTEncTop->getAdaptiveLoopFilter();
   //--Adaptive Loop filter
   m_pcSAO                = pcTEncTop->getSAO();
+#if RATECTRL
+  m_pcRateCtrl           = pcTEncTop->getRateCtrl();
+#endif
 }
 
 // ====================================================================================================================
@@ -1028,6 +1031,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             m_pcEntropyCoder->setBitstream      (  &pcSubstreamsOut[ui] );
             m_pcEntropyCoder->encodeTerminatingBit( 1 );
             m_pcEntropyCoder->encodeSliceFinish();
+
+            //!KS: The following writes trailing_bits. Should use proper function call to writeRBSPTrailingBits()
             pcSubstreamsOut[ui].write( 1, 1 ); // stop bit.
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
             pcSubstreamsOut[ui].writeAlignZero();
@@ -1183,7 +1188,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         {
 #endif
         xWriteTileLocationToSliceHeader(nalu, pcBitstreamRedirect, pcSlice);
-        writeRBSPTrailingBits(nalu.m_Bitstream);
         accessUnit.push_back(new NALUnitEBSP(nalu));
         bNALUAlignedWrittenToList = true; 
         uiOneBitstreamPerSliceLength += nalu.m_Bitstream.getNumberOfWrittenBits(); // length of bitstream after byte-alignment
@@ -1375,6 +1379,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       xCalculateAddPSNR( pcPic, pcPic->getPicYuvRec(), accessUnit, dEncTime );
       if (digestStr)
         printf(" [MD5:%s]", digestStr);
+#if RATECTRL
+      if(m_pcCfg->getUseRateCtrl())
+      {
+        unsigned  frameBits = m_vRVM_RP[m_vRVM_RP.size()-1];
+        m_pcRateCtrl->updataRCFrameStatus((Int)frameBits, pcSlice->getSliceType());
+      }
+#endif
 
 #if FIXED_ROUNDING_FRAME_MEMORY
       /* TODO: this should happen after copyToPic(pcPicYuvRecOut) */
@@ -1393,7 +1404,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       printf("\n");
       fflush(stdout);
   }
-  
+#if RATECTRL
+  if(m_pcCfg->getUseRateCtrl())
+  {
+    m_pcRateCtrl->updateRCGOPStatus();
+  }
+#endif
   delete[] pcSubstreamsOut;
   delete pcBitstreamRedirect;
 

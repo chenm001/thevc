@@ -42,7 +42,9 @@
 #include "TLibCommon/TComRom.h"
 #include "TAppEncCfg.h"
 #include "TAppCommon/program_options_lite.h"
-
+#if RATECTRL
+#include "TLibEncoder/TEncRateCtrl.h"
+#endif
 #ifdef WIN32
 #define strdup _strdup
 #endif
@@ -326,6 +328,14 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("FDM", m_useFastDecisionForMerge, true, "Fast decision for Merge RD Cost") 
 #endif
   ("CFM", m_bUseCbfFastMode, false, "Cbf fast mode setting")
+#if EARLY_SKIP_DETECTION
+  ("ESD", m_useEarlySkipDetection, false, "Early SKIP detection setting")
+#endif
+#if RATECTRL
+  ("RateCtrl,-rc", m_enableRateCtrl, false, "Rate control on/off")
+  ("TargetBitrate,-tbr", m_targetBitrate, 0, "Input target bitrate")
+  ("NumLCUInUnit,-nu", m_numLCUInUnit, 0, "Number of LCUs in an Unit")
+#endif
   /* Compatability with old style -1 FOO or -0 FOO options. */
   ("1", doOldStyleCmdlineOn, "turn option <name> on")
   ("0", doOldStyleCmdlineOff, "turn option <name> off")
@@ -631,6 +641,16 @@ Void TAppEncCfg::xCheckParameter()
   m_maxNumberOfReferencePictures=0;
   Int lastDisp = -1;
 #endif
+  xConfirmPara( m_iIntraPeriod >=0&&(m_iIntraPeriod%m_iGOPSize!=0), "Intra period must be a multiple of GOPSize, or -1" );
+
+  for(Int i=0; i<m_iGOPSize; i++)
+  {
+    if(m_GOPList[i].m_POC==m_iGOPSize)
+    {
+      xConfirmPara( m_GOPList[i].m_temporalId!=0 , "The last frame in each GOP must have temporal ID = 0 " );
+    }
+  }
+  
   m_extraRPSs=0;
   //start looping through frames in coding order until we can verify that the GOP structure is correct.
   while(!verifiedGOP&&!errorGOP) 
@@ -936,6 +956,20 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iWaveFrontSubstreams <= 0, "WaveFrontSubstreams must be positive" );
   xConfirmPara( m_iWaveFrontSubstreams > 1 && !m_iWaveFrontSynchro, "Must have WaveFrontSynchro > 0 in order to have WaveFrontSubstreams > 1" );
 
+#if RATECTRL
+  if(m_enableRateCtrl)
+  {
+    Int numLCUInWidth  = (m_iSourceWidth  / m_uiMaxCUWidth) + (( m_iSourceWidth  %  m_uiMaxCUWidth ) ? 1 : 0);
+    Int numLCUInHeight = (m_iSourceHeight / m_uiMaxCUHeight)+ (( m_iSourceHeight %  m_uiMaxCUHeight) ? 1 : 0);
+    Int numLCUInPic    =  numLCUInWidth * numLCUInHeight;
+
+    xConfirmPara( (numLCUInPic % m_numLCUInUnit) != 0, "total number of LCUs in a frame should be completely divided by NumLCUInUnit" );
+
+    m_iMaxDeltaQP       = MAX_DELTA_QP;
+    m_iMaxCuDQPDepth    = MAX_CUDQP_DEPTH;
+  }
+#endif
+
 #undef xConfirmPara
   if (check_failed)
   {
@@ -1020,6 +1054,14 @@ Void TAppEncCfg::xPrintParameter()
   {
     printf("DisableInter4x4              : %d\n", m_bDisInter4x4);  
   }
+#if RATECTRL
+  printf("RateControl                  : %d\n", m_enableRateCtrl);
+  if(m_enableRateCtrl)
+  {
+    printf("TargetBitrate                : %d\n", m_targetBitrate);
+    printf("NumLCUInUnit                 : %d\n", m_numLCUInUnit);
+  }
+#endif
   printf("\n");
   
   printf("TOOL CFG: ");
@@ -1046,6 +1088,9 @@ Void TAppEncCfg::xPrintParameter()
   printf("FDM:%d ", m_useFastDecisionForMerge );
 #endif
   printf("CFM:%d ", m_bUseCbfFastMode         );
+#if EARLY_SKIP_DETECTION
+  printf("ESD:%d ", m_useEarlySkipDetection  );
+#endif
   printf("RQT:%d ", 1     );
   printf("LMC:%d ", m_bUseLMChroma        ); 
   printf("Slice: G=%d M=%d ", m_iSliceGranularity, m_iSliceMode);
@@ -1120,6 +1165,9 @@ Void TAppEncCfg::xPrintUsage()
   printf( "                   FEN - fast encoder setting\n");  
   printf( "                   ECU - Early CU setting\n");
   printf( "                   CFM - Cbf fast mode setting\n");
+#if EARLY_SKIP_DETECTION
+  printf( "                   ESD - Early SKIP detection setting\n");
+#endif
   printf( "                   LMC - intra chroma prediction based on luma\n");
   printf( "\n" );
   printf( "  Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4\n");

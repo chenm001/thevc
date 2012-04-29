@@ -191,6 +191,9 @@ protected:
   Bool      m_useFastDecisionForMerge;                        ///< flag for using Fast Decision Merge RD-Cost 
 #endif
   Bool      m_bUseCbfFastMode;                              ///< flag for using Cbf Fast PU Mode Decision
+#if EARLY_SKIP_DETECTION
+  Bool      m_useEarlySkipDetection;                         ///< flag for using Early SKIP Detection
+#endif
   Int       m_iSliceMode;           ///< 0: Disable all Recon slice limits, 1 : Maximum number of largest coding units per slice, 2: Maximum number of bytes in a slice
   Int       m_iSliceArgument;       ///< If m_iSliceMode==1, m_iSliceArgument=max. # of largest coding units. If m_iSliceMode==2, m_iSliceArgument=max. # of bytes.
   Int       m_iEntropySliceMode;    ///< 0: Disable all entropy slice limits, 1 : Maximum number of largest coding units per slice, 2: Constraint based entropy slice
@@ -231,7 +234,11 @@ protected:
   Int       m_signHideFlag;
   Int       m_signHidingThreshold;
 #endif
-
+#if RATECTRL
+  Bool      m_enableRateCtrl;                                   ///< Flag for using rate control algorithm
+  Int       m_targetBitrate;                                 ///< target bitrate
+  Int       m_numLCUInUnit;                                  ///< Total number of LCUs in a frame should be completely divided by the NumLCUInUnit
+#endif
   Int       m_useScalingListId;                               ///< using quantization matrix
   char*     m_scalingListFile;                                ///< quantization matrix file name
   // internal member functions

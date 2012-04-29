@@ -1185,8 +1185,9 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   }
 #endif
   
-  // num_ref_idx_l0_default_active_minus1
-  // num_ref_idx_l1_default_active_minus1
+  READ_CODE(3,uiCode, "num_ref_idx_l0_default_active_minus1");     pcPPS->setNumRefIdxL0DefaultActive(uiCode+1);
+  READ_CODE(3,uiCode, "num_ref_idx_l1_default_active_minus1");     pcPPS->setNumRefIdxL1DefaultActive(uiCode+1);
+
   READ_SVLC(iCode, "pic_init_qp_minus26" );                        pcPPS->setPicInitQPMinus26(iCode);
   READ_FLAG( uiCode, "constrained_intra_pred_flag" );              pcPPS->setConstrainedIntraPred( uiCode ? true : false );
   READ_FLAG( uiCode, "enable_temporal_mvp_flag" );                 pcPPS->setEnableTMVPFlag( uiCode ? true : false );
@@ -1747,6 +1748,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
             Int decMaxPocLsb = 1<<rpcSlice->getSPS()->getBitsForPOC();
             rps->setPOC(j,rpcSlice->getPOC()-prev-(prevMsb)*decMaxPocLsb); 
             rps->setDeltaPOC(j,-(Int)(prev+(prevMsb)*decMaxPocLsb));
+            rps->setCheckLTMSBPresent(j,true);  
           }
           else
           {
@@ -1754,6 +1756,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
             rps->setPOC(j,rpcSlice->getPOC()-prev);          
             rps->setDeltaPOC(j,-(Int)prev);
 #if LTRP_MULT
+            rps->setCheckLTMSBPresent(j,false);
           }
           prevDeltaPocLt=prev;
 #endif
@@ -1809,8 +1812,15 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       }
       else
       {
-        rpcSlice->setNumRefIdx(REF_PIC_LIST_0, 0);
-        rpcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
+        rpcSlice->setNumRefIdx(REF_PIC_LIST_0, rpcSlice->getPPS()->getNumRefIdxL0DefaultActive());
+        if (rpcSlice->isInterB())
+        {
+          rpcSlice->setNumRefIdx(REF_PIC_LIST_1, rpcSlice->getPPS()->getNumRefIdxL1DefaultActive());
+        }
+        else
+        {
+          rpcSlice->setNumRefIdx(REF_PIC_LIST_1,0);
+        }
       }
     }
     // }
@@ -2511,7 +2521,7 @@ Void TDecCavlc::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   uiQp = pcCU->getRefQP( uiAbsPartIdx ) + iDQp;
 #endif
 
-  UInt uiAbsQpCUPartIdx = (uiAbsPartIdx>>(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)))<<(8-(pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()<<1)) ;
+  UInt uiAbsQpCUPartIdx = (uiAbsPartIdx>>((g_uiMaxCUDepth - pcCU->getSlice()->getPPS()->getMaxCuDQPDepth())<<1))<<((g_uiMaxCUDepth - pcCU->getSlice()->getPPS()->getMaxCuDQPDepth())<<1) ;
   UInt uiQpCUDepth =   min(uiDepth,pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()) ;
 
 #if H0736_AVC_STYLE_QP_RANGE

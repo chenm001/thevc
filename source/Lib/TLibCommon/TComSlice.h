@@ -78,6 +78,9 @@ private:
   Int  m_deltaRPS; 
   Int  m_numRefIdc; 
   Int  m_refIdc[MAX_NUM_REF_PICS+1];
+#if LTRP_MULT
+  Bool m_bCheckLTMSB[MAX_NUM_REF_PICS];
+#endif
 
 public:
   TComReferencePictureSet();
@@ -87,6 +90,10 @@ public:
   Void setDeltaPOC(Int bufferNum, Int deltaPOC);
   Void setPOC(Int bufferNum, Int deltaPOC);
   Void setNumberOfPictures(Int numberOfPictures);
+#if LTRP_MULT
+  Void      setCheckLTMSBPresent     (Int bufferNum, Bool b );
+  Bool      getCheckLTMSBPresent     (Int bufferNum);
+#endif
 
   Int  getUsed(Int bufferNum);
   Int  getDeltaPOC(Int bufferNum);
@@ -624,6 +631,9 @@ private:
   Int        m_iChromaQpOffset;
   Int        m_iChromaQpOffset2nd;
 
+  UInt        m_numRefIdxL0DefaultActive;
+  UInt        m_numRefIdxL1DefaultActive;
+
 #if !RPS_IN_SPS
   Bool        m_bLongTermRefsPresent;
 #endif
@@ -723,6 +733,11 @@ public:
   Int       getChromaQpOffset   () { return m_iChromaQpOffset;}
   Void      setChromaQpOffset2nd( Int i ) { m_iChromaQpOffset2nd = i; }
   Int       getChromaQpOffset2nd() { return m_iChromaQpOffset2nd;}
+
+  Void      setNumRefIdxL0DefaultActive(UInt ui)    { m_numRefIdxL0DefaultActive=ui;     }
+  UInt      getNumRefIdxL0DefaultActive()           { return m_numRefIdxL0DefaultActive; }
+  Void      setNumRefIdxL1DefaultActive(UInt ui)    { m_numRefIdxL1DefaultActive=ui;     }
+  UInt      getNumRefIdxL1DefaultActive()           { return m_numRefIdxL1DefaultActive; }
 
   Bool getUseWP                     ()          { return m_bUseWeightPred;  }
   UInt getWPBiPredIdc               ()          { return m_uiBiPredIdc;     }
@@ -1251,9 +1266,9 @@ public:
   Bool isTemporalLayerSwitchingPoint( TComList<TComPic*>& rcListPic, TComReferencePictureSet *RPSList);
 #endif
 #if START_DECODING_AT_CRA
-  Int       checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool outputFlag, Int pocRandomAccess = 0);
+  Int       checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool printErrors, Int pocRandomAccess = 0);
 #else
-  Int       checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool outputFlag);
+  Int       checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool printErrors);
 #endif
   Void      createExplicitReferencePictureSetFromReference( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet);
 

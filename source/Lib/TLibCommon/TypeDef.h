@@ -41,6 +41,8 @@
 //! \ingroup TLibCommon
 //! \{
 
+#define RATECTRL                          1 ///< H0213: a rate control with pixel-based URQ model
+
 #define SKIPFRAME_BUGFIX                  1 ///< bug fix to enable skipFrame at decoder 
 #define START_DECODING_AT_CRA             1 ///< H0496, start decoding at clear random access point 
 #define NO_COMBINED_PARALLEL              1 ///< Disallow any combined usage of parallel tools among Tile, EntropySlice and Wavefont
@@ -278,6 +280,7 @@
 #define TILES_OR_ENTROPY_SYNC_IDC               1 // tiles_or_entropy_coding_sync_idc flag
 #define COMPLETE_SLICES_IN_TILE     1 // Among the constraints between slices and tiles, all slices within a tile shall be complete (JCTVC-H0348/JCTVC-H0463) for SliceMode 1&2
 #define WPP_SIMPLIFICATION          1 // JCTVC-H0349/JCTVC-0517
+#define EARLY_SKIP_DETECTION               1 // JCTVC-G543
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
@@ -545,7 +548,6 @@ enum PartSize
 /// supported prediction type
 enum PredMode
 {
-  MODE_SKIP,            ///< SKIP mode
   MODE_INTER,           ///< inter-prediction mode
   MODE_INTRA,           ///< intra-prediction mode
   MODE_NONE = 15

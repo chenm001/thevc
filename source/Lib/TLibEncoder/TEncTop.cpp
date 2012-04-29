@@ -128,7 +128,9 @@ Void TEncTop::create ()
   {
     m_vAPS.reserve(MAX_NUM_SUPPORTED_APS);
   }
-
+#if RATECTRL
+  m_cRateCtrl.create(getIntraPeriod(), getGOPSize(), getFrameRate(), getTargetBitrate(), getQP(), getNumLCUInUnit(), getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight);
+#endif
   // if SBAC-based RD optimization is used
   if( m_bUseSBACRD )
   {
@@ -235,7 +237,9 @@ Void TEncTop::destroy ()
   m_cAdaptiveLoopFilter.destroy();
   m_cLoopFilter.        destroy();
   m_RPSList.            destroy();
-  
+#if RATECTRL
+  m_cRateCtrl.          destroy();
+#endif
   // SBAC RD
   if( m_bUseSBACRD )
   {
@@ -432,7 +436,7 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
     Int iSize = Int( m_cListPic.size() );
     for ( Int i = 0; i < iSize; i++ )
     {
-      rpcPic = *(++iterPic);
+      rpcPic = *(iterPic++);
       if(rpcPic->getSlice(0)->isReferenced() == false)
          break;
     }
@@ -722,6 +726,31 @@ Void TEncTop::xInitPPS()
 #if CABAC_INIT_FLAG
   m_cPPS.setCabacInitPresentFlag(CABAC_INIT_PRESENT_FLAG);
 #endif
+
+  Int histogram[8];
+  for(Int i=0; i<8; i++)
+  {
+    histogram[i]=0;
+  }
+  for( Int i = 0; i < getGOPSize(); i++) 
+  {
+    if(getGOPEntry(i).m_numRefPicsActive<8)
+    {
+      histogram[getGOPEntry(i).m_numRefPicsActive]++;
+    }
+  }
+  Int maxHist=-1;
+  Int bestPos=0;
+  for(Int i=0; i<8; i++)
+  {
+    if(histogram[i]>maxHist)
+    {
+      maxHist=histogram[i];
+      bestPos=i;
+    }
+  }
+  m_cPPS.setNumRefIdxL0DefaultActive(bestPos);
+  m_cPPS.setNumRefIdxL1DefaultActive(bestPos);
 }
 
 //Function for initializing m_RPSList, a list of TComReferencePictureSet, based on the GOPEntry objects read from the config file.

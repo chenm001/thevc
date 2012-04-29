@@ -64,17 +64,17 @@ struct GOPEntry
   Int m_refIdc[MAX_NUM_REF_PICS+1];
   GOPEntry()
   : m_POC(-1)
-  , m_QPOffset()
-  , m_QPFactor()
-  , m_temporalId()
-  , m_refPic()
-  , m_numRefPicsActive()
-  , m_sliceType()
-  , m_numRefPics()
-  , m_interRPSPrediction()
-  , m_deltaRIdxMinus1()
-  , m_deltaRPS()
-  , m_numRefIdc()
+  , m_QPOffset(0)
+  , m_QPFactor(0)
+  , m_temporalId(0)
+  , m_refPic(false)
+  , m_numRefPicsActive(0)
+  , m_sliceType('P')
+  , m_numRefPics(0)
+  , m_interRPSPrediction(false)
+  , m_deltaRIdxMinus1(0)
+  , m_deltaRPS(0)
+  , m_numRefIdc(0)
   {
     ::memset( m_referencePics, 0, sizeof(m_referencePics) );
     ::memset( m_usedByCurrPic, 0, sizeof(m_usedByCurrPic) );
@@ -210,6 +210,9 @@ protected:
   Bool      m_useFastDecisionForMerge;
 #endif
   Bool      m_bUseCbfFastMode;
+#if EARLY_SKIP_DETECTION
+  Bool      m_useEarlySkipDetection;
+#endif
   Bool      m_bUseLMChroma; 
 
   Int*      m_aidQP;
@@ -264,7 +267,11 @@ protected:
   Int       m_signHideFlag;
   Int       m_signHidingThreshold;
 #endif
-
+#if RATECTRL
+  Bool      m_enableRateCtrl;                                ///< Flag for using rate control algorithm
+  Int       m_targetBitrate;                                 ///< target bitrate
+  Int       m_numLCUInUnit;                                  ///< Total number of LCUs in a frame should be divided by the NumLCUInUnit
+#endif
 public:
   TEncCfg()          {}
   virtual ~TEncCfg()
@@ -454,6 +461,9 @@ public:
   Void      setUseFastDecisionForMerge      ( Bool  b )     { m_useFastDecisionForMerge = b; }
 #endif
   Void      setUseCbfFastMode            ( Bool  b )     { m_bUseCbfFastMode = b; }
+#if EARLY_SKIP_DETECTION
+  Void      setUseEarlySkipDetection        ( Bool  b )     { m_useEarlySkipDetection = b; }
+#endif
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
   Void      setPCMInputBitDepthFlag         ( Bool  b )     { m_bPCMInputBitDepthFlag = b; }
   Void      setPCMFilterDisableFlag         ( Bool  b )     {  m_bPCMFilterDisableFlag = b; }
@@ -490,6 +500,9 @@ public:
   Bool      getUseFastDecisionForMerge      ()      { return m_useFastDecisionForMerge; }
 #endif
   Bool      getUseCbfFastMode           ()      { return m_bUseCbfFastMode; }
+#if EARLY_SKIP_DETECTION
+  Bool      getUseEarlySkipDetection        ()      { return m_useEarlySkipDetection; }
+#endif
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
 #if NS_HAD
   Bool      getUseNSQT                      ()      { return m_useNSQT; }
@@ -641,6 +654,14 @@ public:
   Void      setTSIG( Int tsig )                 { m_signHidingThreshold = tsig; }
   Int       getSignHideFlag()                    { return m_signHideFlag; }
   Int       getTSIG()                            { return m_signHidingThreshold; }
+#endif
+#if RATECTRL
+  Bool      getUseRateCtrl    ()                { return m_enableRateCtrl;    }
+  Void      setUseRateCtrl    (Bool flag)       { m_enableRateCtrl = flag;    }
+  Int       getTargetBitrate  ()                { return m_targetBitrate;     }
+  Void      setTargetBitrate  (Int target)      { m_targetBitrate  = target;  }
+  Int       getNumLCUInUnit   ()                { return m_numLCUInUnit;      }
+  Void      setNumLCUInUnit   (Int numLCUs)     { m_numLCUInUnit   = numLCUs; }
 #endif
 };
 
