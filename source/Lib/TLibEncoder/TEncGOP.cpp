@@ -1031,6 +1031,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             m_pcEntropyCoder->setBitstream      (  &pcSubstreamsOut[ui] );
             m_pcEntropyCoder->encodeTerminatingBit( 1 );
             m_pcEntropyCoder->encodeSliceFinish();
+
+            //!KS: The following writes trailing_bits. Should use proper function call to writeRBSPTrailingBits()
             pcSubstreamsOut[ui].write( 1, 1 ); // stop bit.
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
             pcSubstreamsOut[ui].writeAlignZero();
@@ -1186,7 +1188,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         {
 #endif
         xWriteTileLocationToSliceHeader(nalu, pcBitstreamRedirect, pcSlice);
-        writeRBSPTrailingBits(nalu.m_Bitstream);
         accessUnit.push_back(new NALUnitEBSP(nalu));
         bNALUAlignedWrittenToList = true; 
         uiOneBitstreamPerSliceLength += nalu.m_Bitstream.getNumberOfWrittenBits(); // length of bitstream after byte-alignment
