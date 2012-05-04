@@ -291,22 +291,16 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     m_pcSbacDecoders[0].load(m_pcSbacDecoder);
     m_pcSliceDecoder->decompressSlice( pcBitstream, ppcSubstreams, rpcPic, m_pcSbacDecoder, m_pcSbacDecoders);
     m_pcEntropyDecoder->setBitstream(  ppcSubstreams[uiNumSubstreams-1] );
-#if WPP_SIMPLIFICATION
-    if ( uiNumSubstreams > 1 )
-#else
-    if ( pcSlice->getPPS()->getEntropyCodingSynchro() )
-#endif
+    // deallocate all created substreams, including internal buffers.
+    for (UInt ui = 0; ui < uiNumSubstreams; ui++)
     {
-      // deallocate all created substreams, including internal buffers.
-      for (UInt ui = 0; ui < uiNumSubstreams; ui++)
-      {
-        ppcSubstreams[ui]->deleteFifo();
-        delete ppcSubstreams[ui];
-      }
-      delete[] ppcSubstreams;
-      delete[] m_pcSbacDecoders; m_pcSbacDecoders = NULL;
-      delete[] m_pcBinCABACs; m_pcBinCABACs = NULL;
+      ppcSubstreams[ui]->deleteFifo();
+      delete ppcSubstreams[ui];
     }
+    delete[] ppcSubstreams;
+    delete[] m_pcSbacDecoders; m_pcSbacDecoders = NULL;
+    delete[] m_pcBinCABACs; m_pcBinCABACs = NULL;
+
     m_dDecTime += (double)(clock()-iBeforeTime) / CLOCKS_PER_SEC;
   }
   else
