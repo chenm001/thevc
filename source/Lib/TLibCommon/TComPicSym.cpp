@@ -121,6 +121,10 @@ Void TComPicSym::destroy()
   delete [] m_apcTComDataCU;
   m_apcTComDataCU = NULL;
 
+  for( int i = 0; i < (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1); i++ )
+  {
+    delete m_apcTComTile[i];
+  }
   delete [] m_apcTComTile;
   m_apcTComTile = NULL;
 
