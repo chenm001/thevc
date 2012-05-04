@@ -872,7 +872,11 @@ Void  TEncTop::xInitPPSforTiles()
     m_cPPS.setLFCrossTileBoundaryFlag( m_bLFCrossTileBoundaryFlag );
 
     // # substreams is "per tile" when tiles are independent.
-    if (m_iTileBoundaryIndependenceIdr && m_iWaveFrontSynchro)
+    if (m_iWaveFrontSynchro
+#if !REMOVE_TILE_DEPENDENCE
+        && m_iTileBoundaryIndependenceIdr
+#endif
+        )
     {
       m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams * (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1));
     }
