@@ -81,6 +81,7 @@ TComDataCU::TComDataCU()
   m_pcTrCoeffCb        = NULL;
   m_pcTrCoeffCr        = NULL;
 #if ADAPTIVE_QP_SELECTION  
+  m_ArlCoeffIsAliasedAllocation = false;
   m_pcArlCoeffY        = NULL;
   m_pcArlCoeffCb       = NULL;
   m_pcArlCoeffCr       = NULL;
@@ -182,6 +183,7 @@ Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool b
       m_pcArlCoeffY        = m_pcGlbArlCoeffY;
       m_pcArlCoeffCb       = m_pcGlbArlCoeffCb;
       m_pcArlCoeffCr       = m_pcGlbArlCoeffCr;
+      m_ArlCoeffIsAliasedAllocation = true;
     }
     else
     {
@@ -258,6 +260,12 @@ Void TComDataCU::destroy()
     if ( m_pcTrCoeffCb        ) { xFree(m_pcTrCoeffCb);         m_pcTrCoeffCb       = NULL; }
     if ( m_pcTrCoeffCr        ) { xFree(m_pcTrCoeffCr);         m_pcTrCoeffCr       = NULL; }
 #if ADAPTIVE_QP_SELECTION
+    if (!m_ArlCoeffIsAliasedAllocation)
+    {
+      xFree(m_pcArlCoeffY); m_pcArlCoeffY = 0;
+      xFree(m_pcArlCoeffCb); m_pcArlCoeffCb = 0;
+      xFree(m_pcArlCoeffCr); m_pcArlCoeffCr = 0;
+    }
     if ( m_pcGlbArlCoeffY     ) { xFree(m_pcGlbArlCoeffY);      m_pcGlbArlCoeffY    = NULL; }
     if ( m_pcGlbArlCoeffCb    ) { xFree(m_pcGlbArlCoeffCb);     m_pcGlbArlCoeffCb   = NULL; }
     if ( m_pcGlbArlCoeffCr    ) { xFree(m_pcGlbArlCoeffCr);     m_pcGlbArlCoeffCr   = NULL; }

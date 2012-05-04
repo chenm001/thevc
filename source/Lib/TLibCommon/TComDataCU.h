@@ -148,6 +148,7 @@ private:
   Int*          m_pcArlCoeffY;        ///< ARL coefficient buffer (Y)
   Int*          m_pcArlCoeffCb;       ///< ARL coefficient buffer (Cb)
   Int*          m_pcArlCoeffCr;       ///< ARL coefficient buffer (Cr)
+  bool          m_ArlCoeffIsAliasedAllocation; ///< ARL coefficient buffer is an alias of the global buffer and must not be free()'d
 
   static Int*   m_pcGlbArlCoeffY;     ///< ARL coefficient buffer (Y)
   static Int*   m_pcGlbArlCoeffCb;    ///< ARL coefficient buffer (Cb)
