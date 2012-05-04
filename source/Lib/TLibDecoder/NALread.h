@@ -46,6 +46,9 @@
  */
 struct InputNALUnit : public NALUnit
 {
+  InputNALUnit() : m_Bitstream(0) {};
+  ~InputNALUnit() { delete m_Bitstream; }
+
   TComInputBitstream* m_Bitstream;
 };
 
