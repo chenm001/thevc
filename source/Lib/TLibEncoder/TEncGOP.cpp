@@ -1302,6 +1302,15 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
               pcPic->getSlice(s)->setAPS(&(vAPS[iCodedAPSIdx]));
               pcPic->getSlice(s)->setAPSId(iCodedAPSIdx);
             }
+
+            /* The destructor of cAPS that is about to be called will free
+             * the resource held by cAPS, which will cause problems since it
+             * has been aliased elsewhere.
+             *   Hint: never ever write an assignment operator that copies
+             *         pointers without the use of smart pointers.
+             * The following will clear the saved state before the destructor.
+             */
+            cAPS = TComAPS();
           }
           break;
         case ENCODE_APS:

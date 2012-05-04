@@ -1788,7 +1788,13 @@ TComAPS::TComAPS()
 
 TComAPS::~TComAPS()
 {
-
+  delete m_pSaoParam;
+#if LCU_SYNTAX_ALF
+  delete m_alfParamSet;
+#else
+  delete m_pAlfParam;
+#endif
+  delete m_scalingList;
 }
 
 TComAPS& TComAPS::operator= (const TComAPS& src)
