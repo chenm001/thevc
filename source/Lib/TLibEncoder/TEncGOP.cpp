@@ -1403,6 +1403,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       /* logging: insert a newline at end of picture period */
       printf("\n");
       fflush(stdout);
+
+      delete[] pcSubstreamsOut;
   }
 #if RATECTRL
   if(m_pcCfg->getUseRateCtrl())
@@ -1410,7 +1412,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
     m_pcRateCtrl->updateRCGOPStatus();
   }
 #endif
-  delete[] pcSubstreamsOut;
   delete pcBitstreamRedirect;
 
   assert ( m_iNumPicCoded == iNumPicRcvd );
