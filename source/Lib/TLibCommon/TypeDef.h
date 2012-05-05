@@ -58,7 +58,6 @@
 #endif
 #define MVP_AT_ENTROPYSLICE_BOUNDARY  1     //< H0362 enable motion prediction accross entropy slice boundary
 
-#define REMOVE_DIV_OPERATION      1 ///< H0238: Simplified intra horizontal and vertical filtering
 #define LOGI_INTRA_NAME_3MPM      1  ///< H0407: logical Intra mode naming (sequential angular mode numbering) and 3 MPM mode coding
 
 #define LEVEL_CTX_LUMA_RED        1  ///<H0130: Luma level context reduction

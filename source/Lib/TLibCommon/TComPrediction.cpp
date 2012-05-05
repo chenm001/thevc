@@ -279,11 +279,7 @@ Void TComPrediction::xPredIntraAng( Int* pSrc, Int srcStride, Pel*& rpDst, Int d
       {
         for (k=0;k<blkSize;k++)
         {
-#if REMOVE_DIV_OPERATION
           pDst[k*dstStride] = Clip ( pDst[k*dstStride] + (( refSide[k+1] - refSide[0] ) >> 1) );
-#else
-          pDst[k*dstStride] = Clip ( pDst[k*dstStride] + ( refSide[k+1] - refSide[0] ) / 2 );
-#endif
         }
       }
     }
