@@ -70,7 +70,6 @@
 
 #define DEQUANT_CLIPPING           1  ///< H0312/H0541: transformed coefficients clipping before de-quantization
 
-#define REMOVE_NON_SCALED         1 ///< H0164/H0250: Removal of non-scaled merge candidate
 #define MRG_IDX_CTX_RED           1 ///< H0251: Merge index context reduction
 #define SIMP_MRG_PRUN             1 ///< H0252: simplification of merge pruning process
 
