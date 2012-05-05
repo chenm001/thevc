@@ -144,13 +144,9 @@ public:
   
   const TComMv scaleMv( Int iScale ) const
   {
-#if CLIPSCALEDMVP
     Int mvx = Clip3( -32768, 32767, (iScale * getHor() + 127 + (iScale * getHor() < 0)) >> 8 );
     Int mvy = Clip3( -32768, 32767, (iScale * getVer() + 127 + (iScale * getVer() < 0)) >> 8 );
     return TComMv( mvx, mvy );
-#else
-    return TComMv( (iScale * getHor() + 127 + (iScale * getHor() < 0)) >> 8, (iScale * getVer() + 127 + (iScale * getVer() < 0)) >> 8);
-#endif
   }
 };// END CLASS DEFINITION TComMV
 
