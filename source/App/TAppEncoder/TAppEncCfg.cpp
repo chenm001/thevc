@@ -234,15 +234,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("TemporalLayerQPOffset_L2,-tq2", m_aiTLayerQPOffset[2], MAX_QP + 1, "QP offset of temporal layer 2")
   ("TemporalLayerQPOffset_L3,-tq3", m_aiTLayerQPOffset[3], MAX_QP + 1, "QP offset of temporal layer 3")
   
-#if !H0566_TLA
-  ("TLayeringBasedOnCodingStruct,-tl", m_bTLayering, false, "Temporal ID is set based on the hierarchical coding structure")
-  
-  ("TLayerSwitchingFlag_L0,-ts0", m_abTLayerSwitchingFlag[0], false, "Switching flag for temporal layer 0")
-  ("TLayerSwitchingFlag_L1,-ts1", m_abTLayerSwitchingFlag[1], false, "Switching flag for temporal layer 1")
-  ("TLayerSwitchingFlag_L2,-ts2", m_abTLayerSwitchingFlag[2], false, "Switching flag for temporal layer 2")
-  ("TLayerSwitchingFlag_L3,-ts3", m_abTLayerSwitchingFlag[3], false, "Switching flag for temporal layer 3")
-#endif
-
   /* Entropy coding parameters */
   ("SBACRD", m_bUseSBACRD, true, "SBAC based RD estimation")
   
@@ -835,17 +826,13 @@ Void TAppEncCfg::xCheckParameter()
   }
 #endif
   xConfirmPara(errorGOP,"Invalid GOP structure given");
-#if H0566_TLA
   m_maxTempLayer = 1;
-#endif
   for(Int i=0; i<m_iGOPSize; i++) 
   {
-#if H0566_TLA
     if(m_GOPList[i].m_temporalId >= m_maxTempLayer)
     {
       m_maxTempLayer = m_GOPList[i].m_temporalId+1;
     }
-#endif
     xConfirmPara(m_GOPList[i].m_sliceType!='B'&&m_GOPList[i].m_sliceType!='P', "Slice type must be equal to B or P");
   }
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER

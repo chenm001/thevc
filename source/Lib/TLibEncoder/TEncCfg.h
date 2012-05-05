@@ -130,12 +130,7 @@ protected:
   Int       m_iMaxRefPicNum;                     ///< this is used to mimic the sliding mechanism used by the decoder
                                                  // TODO: We need to have a common sliding mechanism used by both the encoder and decoder
 
-#if H0566_TLA
   Int       m_maxTempLayer;                      ///< Max temporal layer
-#else
-  Bool      m_bTLayering;                        ///< indicates whether temporal IDs are set based on the hierarchical coding structure
-  Bool      m_abTLayerSwitchingFlag[MAX_TLAYER]; ///< temporal layer switching flags corresponding to temporal layer
-#endif
   Bool      m_bDisInter4x4;
   Bool m_useAMP;
   //======= Transform =============
@@ -317,15 +312,8 @@ public:
   Int       getMaxRefPicNum                 ()                              { return m_iMaxRefPicNum;           }
   Void      setMaxRefPicNum                 ( Int iMaxRefPicNum )           { m_iMaxRefPicNum = iMaxRefPicNum;  }
 
-#if H0566_TLA
   Bool      getMaxTempLayer                 ()                              { return m_maxTempLayer;              } 
   Void      setMaxTempLayer                 ( Int maxTempLayer )            { m_maxTempLayer = maxTempLayer;      }
-#else
-  Bool      getTLayering                    ()                              { return m_bTLayering;              } 
-  Void      setTLayering                    ( Bool bTLayering )             { m_bTLayering = bTLayering;        }
-  Bool      getTLayerSwitchingFlag          ( UInt uiTLayer )               { assert (uiTLayer < MAX_TLAYER ); return  m_abTLayerSwitchingFlag[uiTLayer];                   }
-  Void      setTLayerSwitchingFlag          ( Bool* pbTLayerSwitchingFlag ) { for ( Int i = 0; i < MAX_TLAYER; i++ ) m_abTLayerSwitchingFlag[i] = pbTLayerSwitchingFlag[i]; }
-#endif
 
   Bool      getDisInter4x4                  ()              { return m_bDisInter4x4;        }
   Void      setDisInter4x4                  ( Bool b )      { m_bDisInter4x4  = b;          }

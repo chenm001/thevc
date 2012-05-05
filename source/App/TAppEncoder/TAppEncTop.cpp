@@ -103,12 +103,7 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setTemporalLayerQPOffset        ( m_aiTLayerQPOffset );
   m_cTEncTop.setPad                          ( m_aiPad );
     
-#if H0566_TLA
   m_cTEncTop.setMaxTempLayer                 ( m_maxTempLayer );
-#else
-  m_cTEncTop.setTLayering                    ( m_bTLayering );
-  m_cTEncTop.setTLayerSwitchingFlag          ( m_abTLayerSwitchingFlag );
-#endif
 
   m_cTEncTop.setDisInter4x4                  ( m_bDisInter4x4);
   
@@ -473,14 +468,8 @@ void TAppEncTop::rateStatsAccum(const AccessUnit& au, const std::vector<unsigned
     switch ((*it_au)->m_nalUnitType)
     {
     case NAL_UNIT_CODED_SLICE:
-#if H0566_TLA
     case NAL_UNIT_CODED_SLICE_TLA:
     case NAL_UNIT_CODED_SLICE_CRA:
-#else
-    case NAL_UNIT_CODED_SLICE_DATAPART_A:
-    case NAL_UNIT_CODED_SLICE_DATAPART_B:
-    case NAL_UNIT_CODED_SLICE_CDR:
-#endif
     case NAL_UNIT_CODED_SLICE_IDR:
     case NAL_UNIT_SPS:
     case NAL_UNIT_PPS:

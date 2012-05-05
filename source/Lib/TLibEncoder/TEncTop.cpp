@@ -550,42 +550,8 @@ Void TEncTop::xInitSPS()
   m_cSPS.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
   m_cSPS.setUseSAO( m_bUseSAO );
 
-#if !H0566_TLA
-  if ( m_bTLayering )
-  {
-    Int iMaxTLayers = 1;
-    for ( i = 1; ; i++)
-    {
-      iMaxTLayers = i;
-      if ( (m_iGOPSize >> i) == 0 ) 
-      {
-        break;
-      }
-    }
-  
-    m_cSPS.setMaxTLayers( (UInt)iMaxTLayers );
-
-    Bool bTemporalIdNestingFlag = true;
-    for ( i = 0; i < m_cSPS.getMaxTLayers()-1; i++ )
-    {
-      if ( !m_abTLayerSwitchingFlag[i] )
-      {
-        bTemporalIdNestingFlag = false;
-        break;
-      }
-    }
-
-    m_cSPS.setTemporalIdNestingFlag( bTemporalIdNestingFlag );
-  }
-  else
-  {
-    m_cSPS.setMaxTLayers( 1 );
-    m_cSPS.setTemporalIdNestingFlag( false );
-  }
-#else
   m_cSPS.setMaxTLayers( m_maxTempLayer );
   m_cSPS.setTemporalIdNestingFlag( false );
-#endif
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   for ( i = 0; i < m_cSPS.getMaxTLayers(); i++ )
   {
@@ -614,24 +580,6 @@ Void TEncTop::xInitPPS()
 {
   m_cPPS.setConstrainedIntraPred( m_bUseConstrainedIntraPred );
   m_cPPS.setSliceGranularity(m_iSliceGranularity);
-#if !H0566_TLA
-  if ( m_cSPS.getTemporalIdNestingFlag() ) 
-  {
-    m_cPPS.setNumTLayerSwitchingFlags( 0 );
-    for ( UInt i = 0; i < m_cSPS.getMaxTLayers() - 1; i++ )
-    {
-      m_cPPS.setTLayerSwitchingFlag( i, true );
-    }
-  }
-  else
-  {
-    m_cPPS.setNumTLayerSwitchingFlags( m_cSPS.getMaxTLayers() - 1 );
-    for ( UInt i = 0; i < m_cPPS.getNumTLayerSwitchingFlags(); i++ )
-    {
-      m_cPPS.setTLayerSwitchingFlag( i, m_abTLayerSwitchingFlag[i] );
-    }
-  }   
-#endif
   Bool bUseDQP = (getMaxCuDQPDepth() > 0)? true : false;
 
 #if LOSSLESS_CODING

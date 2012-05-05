@@ -283,13 +283,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
     }
 #endif
   }
-#if !H0566_TLA
-  WRITE_UVLC( pcPPS->getNumTLayerSwitchingFlags(),           "num_temporal_layer_switching_point_flags" );
-  for( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ ) 
-  {
-    WRITE_FLAG( pcPPS->getTLayerSwitchingFlag( i ) ? 1 : 0 , "temporal_layer_switching_point_flag" ); 
-  }
-#endif
   WRITE_CODE( pcPPS->getNumRefIdxL0DefaultActive()-1, 3, "num_ref_idx_l0_default_active_minus1");
   WRITE_CODE( pcPPS->getNumRefIdxL1DefaultActive()-1, 3, "num_ref_idx_l1_default_active_minus1");
 

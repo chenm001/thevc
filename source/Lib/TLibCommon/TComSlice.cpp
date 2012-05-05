@@ -559,11 +559,7 @@ Void TComSlice::checkCRA(TComReferencePictureSet *pReferencePictureSet, Int& poc
       assert(pReferencePictureSet->getPOC(i) >= pocCRA);
     }
   }
-#if H0566_TLA
   if (getNalUnitType() == NAL_UNIT_CODED_SLICE_CRA) // CRA picture found
-#else
-  if (getNalUnitType() == NAL_UNIT_CODED_SLICE_CDR) // CDR picture found
-#endif
   {
     pocCRA = getPOC();
   }
@@ -616,11 +612,7 @@ Void TComSlice::decodingRefreshMarking(Int& pocCRA, Bool& bRefreshPending, TComL
       }
       bRefreshPending = false; 
     }
-#if H0566_TLA
     if (getNalUnitType() == NAL_UNIT_CODED_SLICE_CRA) // CRA picture found
-#else
-    if (getNalUnitType() == NAL_UNIT_CODED_SLICE_CDR) // CDR picture found
-#endif
     {
       bRefreshPending = true; 
       pocCRA = uiPOCCurr;
@@ -760,32 +752,10 @@ int TComSlice::m_prevPOC = 0;
  */
 Void TComSlice::setTLayerInfo( UInt uiTLayer )
 {
-#if !H0566_TLA
-  // If temporal_id_nesting_flag == 1, then num_temporal_layer_switching_point_flags shall be inferred to be 0 and temporal_layer_switching_point_flag shall be inferred to be 1 for all temporal layers
-  if ( m_pcSPS->getTemporalIdNestingFlag() ) 
-  {
-    m_pcPPS->setNumTLayerSwitchingFlags( 0 );
-    for ( UInt i = 0; i < MAX_TLAYER; i++ )
-    {
-      m_pcPPS->setTLayerSwitchingFlag( i, true );
-    }
-  }
-  else 
-  {
-    for ( UInt i = m_pcPPS->getNumTLayerSwitchingFlags(); i < MAX_TLAYER; i++ )
-    {
-      m_pcPPS->setTLayerSwitchingFlag( i, false );
-    }
-  }
-#endif
-
   m_uiTLayer = uiTLayer;
-#if !H0566_TLA
-  m_bTLayerSwitchingFlag = m_pcPPS->getTLayerSwitchingFlag( uiTLayer );
-#endif
 }
 
-#if H0566_TLA && H0566_TLA_SET_FOR_SWITCHING_POINTS
+#if H0566_TLA_SET_FOR_SWITCHING_POINTS
 /** Function for checking if this is a switching-point
 */
 Bool TComSlice::isTemporalLayerSwitchingPoint( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet)
@@ -1409,9 +1379,6 @@ TComPPS::TComPPS()
 #if !RPS_IN_SPS
 , m_bLongTermRefsPresent        (false)
 #endif
-#if !H0566_TLA
-, m_uiNumTlayerSwitchingFlags   (0)
-#endif
 , m_iSliceGranularity           (0)
 , m_iTileBehaviorControlPresentFlag (0)
 , m_bLFCrossTileBoundaryFlag     (true)
@@ -1429,12 +1396,6 @@ TComPPS::TComPPS()
 , m_encCABACTableIdx            (0)
 #endif
 {
-#if !H0566_TLA
-  for ( UInt i = 0; i < MAX_TLAYER; i++ )
-  {
-    m_abTLayerSwitchingFlag[i] = false;
-  }
-#endif
 }
 
 TComPPS::~TComPPS()

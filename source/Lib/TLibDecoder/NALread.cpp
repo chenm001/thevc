@@ -129,11 +129,9 @@ void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
   nalu.m_temporalId = bs.read(3);
   unsigned reserved_one_5bits = bs.read(5);
   assert(reserved_one_5bits == 1);
-#if H0566_TLA
   if ( nalu.m_temporalId )
   {
     assert(nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_CRA && nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_IDR);
   }
-#endif
 }
 //! \}

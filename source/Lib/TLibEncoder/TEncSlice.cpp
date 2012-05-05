@@ -384,9 +384,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
     pcPic->setTLayer(0);
   }
   rpcSlice->setTLayer( pcPic->getTLayer() );
-#if !H0566_TLA
-  rpcSlice->setTLayerSwitchingFlag( pPPS->getTLayerSwitchingFlag( pcPic->getTLayer() ) );
-#endif
 
   assert( m_apcPicYuvPred );
   assert( m_apcPicYuvResi );

@@ -588,11 +588,6 @@ private:
   Bool        m_bLongTermRefsPresent;
 #endif
 
-#if !H0566_TLA
-  UInt        m_uiNumTlayerSwitchingFlags;            // num_temporal_layer_switching_point_flags
-  Bool        m_abTLayerSwitchingFlag[ MAX_TLAYER ];  // temporal_layer_switching_point_flag
-#endif
-
   Int         m_iSliceGranularity;
 
   Bool        m_bUseWeightPred;           // Use of Weighting Prediction (P_SLICE)
@@ -644,14 +639,6 @@ public:
   Void      setUseDQP ( Bool b )           { m_useDQP   = b;         }
   Bool      getConstrainedIntraPred ()         { return  m_bConstrainedIntraPred; }
   Void      setConstrainedIntraPred ( Bool b ) { m_bConstrainedIntraPred = b;     }
-
-#if !H0566_TLA
-  UInt      getNumTLayerSwitchingFlags()                                  { return m_uiNumTlayerSwitchingFlags; }
-  Void      setNumTLayerSwitchingFlags( UInt uiNumTlayerSwitchingFlags )  { assert( uiNumTlayerSwitchingFlags < MAX_TLAYER ); m_uiNumTlayerSwitchingFlags = uiNumTlayerSwitchingFlags; }
-
-  Bool      getTLayerSwitchingFlag( UInt uiTLayer )                       { assert( uiTLayer < MAX_TLAYER ); return m_abTLayerSwitchingFlag[ uiTLayer ]; }
-  Void      setTLayerSwitchingFlag( UInt uiTLayer, Bool bValue )          { m_abTLayerSwitchingFlag[ uiTLayer ] = bValue; }
-#endif
 
 #if !RPS_IN_SPS
   Bool      getLongTermRefsPresent()         { return m_bLongTermRefsPresent; }
@@ -1167,15 +1154,10 @@ public:
   UInt getTLayer             ()                            { return m_uiTLayer;                      }
   Void setTLayer             ( UInt uiTLayer )             { m_uiTLayer = uiTLayer;                  }
 
-#if !H0566_TLA
-  Bool getTLayerSwitchingFlag()                            { return m_bTLayerSwitchingFlag;          }
-  Void setTLayerSwitchingFlag( Bool bValue )               { m_bTLayerSwitchingFlag = bValue;        }
-#endif
-
   Void setTLayerInfo( UInt uiTLayer );
   Void decodingMarking( TComList<TComPic*>& rcListPic, Int iGOPSIze, Int& iMaxRefPicNum ); 
   Void applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComReferencePictureSet *RPSList);
-#if H0566_TLA && H0566_TLA_SET_FOR_SWITCHING_POINTS
+#if H0566_TLA_SET_FOR_SWITCHING_POINTS
   Bool isTemporalLayerSwitchingPoint( TComList<TComPic*>& rcListPic, TComReferencePictureSet *RPSList);
 #endif
   Int       checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool printErrors, Int pocRandomAccess = 0);
