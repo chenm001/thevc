@@ -77,11 +77,7 @@
 
 #define NUM_SIG_FLAG_CTX_LUMA         27      ///< number of context models for luma sig flag
 #define NUM_SIG_FLAG_CTX_CHROMA       21      ///< number of context models for chroma sig flag
-#if LAST_CTX_REDUCTION
 #define NUM_CTX_LAST_FLAG_XY          15      ///< number of context models for last coefficient position
-#else
-#define NUM_CTX_LAST_FLAG_XY          18      ///< number of context models for last coefficient position
-#endif
 
 #if LEVEL_CTX_LUMA_RED
 #define NUM_ONE_FLAG_CTX              24      ///< number of context models for greater than 1 flag
@@ -258,7 +254,6 @@ INIT_QT_ROOT_CBF[3][NUM_QT_ROOT_CBF_CTX] =
   {  79, }, 
 };
 
-#if LAST_CTX_REDUCTION
 static const UChar 
 INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =  
 {
@@ -272,21 +267,6 @@ INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =
     108,  123,   93,  CNU,  CNU,  CNU,  CNU,  CNU,  CNU,  CNU,  CNU,  CNU,  CNU,  CNU,  CNU, 
   }, 
 };
-#else
-static const UChar 
-INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =  
-{
-  { 110,  110,  124,  110,  140,  111,  124,  125,  111,  127,  111,  138,  111,  156,  127,  127,  111,   94,
-    108,  123,   63,   63,  139,  124,   93,  108,  125,  111,  110,   63,  CNU,  CNU,  CNU,  CNU,  CNU,  CNU, 
-  }, 
-  { 125,  110,  124,  110,  125,  110,  153,  125,  111,  111,  110,  153,  139,  111,  111,  111,  125,  139, 
-    108,  123,  108,  152,  124,   94,  123,  137,  139,  110,  110,  154,  CNU,  CNU,  CNU,  CNU,  CNU,  CNU, 
-  }, 
-  { 125,  110,  124,  110,  125,  110,  153,  125,  111,  111,  110,  153,  139,  111,  111,  111,  125,  139,  
-    108,  123,   93,  152,  124,   94,  123,  152,  139,  110,  110,  154,  CNU,  CNU,  CNU,  CNU,  CNU,  CNU, 
-  }, 
-};
-#endif
 
 static const UChar 
 INIT_SIG_CG_FLAG[3][2 * NUM_SIG_CG_FLAG_CTX] =  
@@ -714,7 +694,6 @@ INIT_QT_ROOT_CBF[3][NUM_QT_ROOT_CBF_CTX] =
   },
 };
 
-#if LAST_CTX_REDUCTION
 static const UChar
 INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =
 {
@@ -731,27 +710,6 @@ INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =
     54,  70,  69,   CNU, CNU, CNU,  CNU, CNU, CNU,  CNU, CNU, CNU, CNU, CNU, CNU,
   },
 };
-#else
-static const UChar
-INIT_LAST[3][2*NUM_CTX_LAST_FLAG_XY] =
-{
-  {
-    72,  72,  71,  72, 104,  89,  71,  88,  89,  59,  73,  86,  89, 106,  60,  59,  43,  55,
-    54,  70,  53,  53,  87,  71,  69,  54,  88,  73,  72,  53, CNU, CNU, CNU, CNU, CNU, CNU,
-    
-  },
-  {
-    57,  72,  71,  72,  57,  72, 102,  88,  73,  73,  72, 102, 103,  73,  89,  73,  57,  87,
-    54,  70,  54, 101,  71,  55,  70, 116, 103,  72,  72, 119, CNU, CNU, CNU, CNU, CNU, CNU,
-    
-  },
-  {
-    88,  72,  71,  72,  57,  72, 102,  88,  73,  73,  72, 118, 103,  73,  89,  73,  57,  87,
-    54,  70,  69,  85,  71,  55,  70,  85, 103,  72,  72, 119, CNU, CNU, CNU, CNU, CNU, CNU,
-    
-  },
-};
-#endif
 
 static const UChar
 INIT_SIG_CG_FLAG[3][2 * NUM_SIG_CG_FLAG_CTX] = 

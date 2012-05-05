@@ -1060,26 +1060,18 @@ Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int w
   ContextModel *pCtxY = m_cCuCtxLastY.get( 0, eTType );
 
   // posX
-#if LAST_CTX_REDUCTION
   Int widthCtx = eTType ? 4 : width;
   const UInt *puiCtxIdxX = g_uiLastCtx + ( g_aucConvertToBit[ widthCtx ] * ( g_aucConvertToBit[ widthCtx ] + 3 ) );
-#else
-  const UInt *puiCtxIdxX = g_uiLastCtx + ( g_aucConvertToBit[ width ] * ( g_aucConvertToBit[ width ] + 3 ) );
-#endif
   for( uiPosLastX = 0; uiPosLastX < g_uiGroupIdx[ width - 1 ]; uiPosLastX++ )
   {
-#if LAST_CTX_REDUCTION
     if ( eTType  )
     {
       m_pcTDecBinIf->decodeBin( uiLast, *( pCtxX + (uiPosLastX>>g_aucConvertToBit[ width ])  ) );
     }
     else
     {
-#endif
       m_pcTDecBinIf->decodeBin( uiLast, *( pCtxX + puiCtxIdxX[ uiPosLastX ] ) );
-#if LAST_CTX_REDUCTION
     }
-#endif
     if( !uiLast )
     {
       break;
@@ -1087,26 +1079,18 @@ Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int w
   }
 
   // posY
-#if LAST_CTX_REDUCTION
   Int heightCtx = eTType? 4 : height;
   const UInt *puiCtxIdxY = g_uiLastCtx + ( g_aucConvertToBit[ heightCtx ] * ( g_aucConvertToBit[ heightCtx ] + 3 ) );
-#else
-  const UInt *puiCtxIdxY = g_uiLastCtx + ( g_aucConvertToBit[ height ] * ( g_aucConvertToBit[ height ] + 3 ) );
-#endif
   for( uiPosLastY = 0; uiPosLastY < g_uiGroupIdx[ height - 1 ]; uiPosLastY++ )
   {
-#if LAST_CTX_REDUCTION
     if (eTType)
     {
       m_pcTDecBinIf->decodeBin( uiLast, *( pCtxY + (uiPosLastY>>g_aucConvertToBit[ height ]) ) );
     }
     else
     {
-#endif
       m_pcTDecBinIf->decodeBin( uiLast, *( pCtxY + puiCtxIdxY[ uiPosLastY ] ) );
-#if LAST_CTX_REDUCTION
     }
-#endif
     if( !uiLast )
     {
       break;
