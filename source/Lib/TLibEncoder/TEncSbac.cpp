@@ -1266,7 +1266,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   if (uiWidth == uiHeight)
   {
     scanCG = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize > 3 ? uiLog2BlockSize-2-1 : 0 ];
-#if MULTILEVEL_SIGMAP_EXT
     if( uiLog2BlockSize == 3 )
     {
       scanCG = g_sigLastScan8x8[ uiScanIdx ];
@@ -1275,7 +1274,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     {
       scanCG = g_sigLastScanCG32x32;
     }
-#endif
   }
   else
   {
@@ -1285,10 +1283,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   static const UInt uiShift = MLS_CG_SIZE >> 1;
   const UInt uiNumBlkSide = uiWidth >> uiShift;
 
-#if !MULTILEVEL_SIGMAP_EXT
-  if( blockType > 3 )
-  {
-#endif
     ::memset( uiSigCoeffGroupFlag, 0, sizeof(UInt) * MLS_GRP_NUM );
 
     do
@@ -1299,7 +1293,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       UInt uiPosY    = posLast >> uiLog2BlockSize;
       UInt uiPosX    = posLast - ( uiPosY << uiLog2BlockSize );
       UInt uiBlkIdx  = uiNumBlkSide * (uiPosY >> uiShift) + (uiPosX >> uiShift);
-#if MULTILEVEL_SIGMAP_EXT
       if( uiWidth == 8 && uiHeight == 8 && (uiScanIdx == SCAN_HOR || uiScanIdx == SCAN_VER) )
       {
         if( uiScanIdx == SCAN_HOR )
@@ -1311,7 +1304,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           uiBlkIdx = uiPosX >> 1;
         }
       }
-#endif
       if( pcCoef[ posLast ] )
       {
         uiSigCoeffGroupFlag[ uiBlkIdx ] = 1;
@@ -1320,20 +1312,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       uiNumSig -= ( pcCoef[ posLast ] != 0 );
     }
     while ( uiNumSig > 0 );
-#if !MULTILEVEL_SIGMAP_EXT
-  }
-  else
-  {
-  
-  do
-  {
-    posLast = scan[ ++scanPosLast ];
-    uiNumSig -= ( pcCoef[ posLast ] != 0 );
-  }
-  while ( uiNumSig > 0 );
-
-  }
-#endif
 
   // Code position of last coefficient
   Int posLastY = posLast >> uiLog2BlockSize;
@@ -1370,21 +1348,15 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       iScanPosSig--;
     }
 
-#if !MULTILEVEL_SIGMAP_EXT
-    if( blockType > 3 )
-    {
-#endif
       // encode significant_coeffgroup_flag
       Int iCGBlkPos = scanCG[ iSubSet ];
       Int iCGPosY   = iCGBlkPos / uiNumBlkSide;
       Int iCGPosX   = iCGBlkPos - (iCGPosY * uiNumBlkSide);
-#if MULTILEVEL_SIGMAP_EXT
       if( uiWidth == 8 && uiHeight == 8 && (uiScanIdx == SCAN_HOR || uiScanIdx == SCAN_VER) )
       {
         iCGPosY = (uiScanIdx == SCAN_HOR ? iCGBlkPos : 0);
         iCGPosX = (uiScanIdx == SCAN_VER ? iCGBlkPos : 0);
       }
-#endif
       if( iSubSet == iLastScanSet || iSubSet == 0)
       {
         uiSigCoeffGroupFlag[ iCGBlkPos ] = 1;
@@ -1392,11 +1364,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       else
       {
           UInt uiSigCoeffGroup   = (uiSigCoeffGroupFlag[ iCGBlkPos ] != 0);
-#if MULTILEVEL_SIGMAP_EXT
           UInt uiCtxSig  = TComTrQuant::getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiScanIdx, uiWidth, uiHeight );
-#else
-          UInt uiCtxSig  = TComTrQuant::getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiWidth, uiHeight );
-#endif
           m_pcBinIf->encodeBin( uiSigCoeffGroup, baseCoeffGroupCtx[ uiCtxSig ] );
       }
       
@@ -1432,35 +1400,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       {
         iScanPosSig = iSubPos - 1;
       }
-#if !MULTILEVEL_SIGMAP_EXT
-    } 
-    else
-    {
-
-    for( ; iScanPosSig >= iSubPos; iScanPosSig-- )
-    {
-      UInt  uiBlkPos  = scan[ iScanPosSig ]; 
-      UInt  uiPosY    = uiBlkPos >> uiLog2BlockSize;
-      UInt  uiPosX    = uiBlkPos - ( uiPosY << uiLog2BlockSize );
-      UInt  uiSig     = 0; 
-      if( pcCoef[ uiBlkPos ] != 0 )
-      {
-        uiSig = 1;
-        absCoeff[ numNonZero ] = abs( pcCoef[ uiBlkPos ] );
-        coeffSigns = 2 * coeffSigns + ( pcCoef[ uiBlkPos ] < 0 );
-        numNonZero++;
-        if( lastNZPosInCG == -1 )
-        {
-          lastNZPosInCG = iScanPosSig;
-        }
-        firstNZPosInCG = iScanPosSig;
-      }      
-      UInt  uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
-      m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
-    }
-
-    }
-#endif
 
     if( numNonZero > 0 )
     {

@@ -134,10 +134,8 @@ extern const UInt   g_auiGoRiceRange[5];                  //!< maximum value cod
 extern const UInt   g_auiGoRicePrefixLen[5];              //!< prefix length for each maximum value
 extern const UInt   g_aauiGoRiceUpdate[5][24];            //!< parameter update rules for Rice codes
   
-#if MULTILEVEL_SIGMAP_EXT
 extern const UInt   g_sigLastScan8x8[ 4 ][ 4 ];           //!< coefficient group scan order for 8x8 TUs
 extern       UInt   g_sigLastScanCG32x32[ 64 ];
-#endif
 
 // ====================================================================================================================
 // ADI table
