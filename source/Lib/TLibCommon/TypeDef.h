@@ -90,8 +90,6 @@
 
 #define LAST_CTX_REDUCTION        1  ///< H0537/H514: contexts reduction for last position coding
 
-#define AMP_CTX                   1 ///<H0545: context reduction for asymmetric partition
-
 #define RESTRICT_GR1GR2FLAG_NUMBER    1 ///< H0554: Throughput improvement of CABAC coefficients level coding
 #if RESTRICT_GR1GR2FLAG_NUMBER    // 
 #define C1FLAG_NUMBER               8 // maximum number of largerThan1 flag coded in one chunk :  16 in HM5
