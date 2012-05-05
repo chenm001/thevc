@@ -52,11 +52,7 @@
 #define NUM_SKIP_FLAG_CTX             3       ///< number of context models for skip flag
 
 #define NUM_MERGE_FLAG_EXT_CTX        1       ///< number of context models for merge flag of merge extended
-#if MRG_IDX_CTX_RED
 #define NUM_MERGE_IDX_EXT_CTX         1       ///< number of context models for merge index of merge extended
-#else
-#define NUM_MERGE_IDX_EXT_CTX         4       ///< number of context models for merge index of merge extended
-#endif
 
 #define NUM_ALF_CTRL_FLAG_CTX         1       ///< number of context models for ALF control flag
 #define NUM_PART_SIZE_CTX             4       ///< number of context models for partition size
@@ -177,15 +173,9 @@ INIT_MERGE_FLAG_EXT[3][NUM_MERGE_FLAG_EXT_CTX] =
 static const UChar 
 INIT_MERGE_IDX_EXT[3][NUM_MERGE_IDX_EXT_CTX] =  
 {
-#if MRG_IDX_CTX_RED
   { CNU, }, 
   { 122, }, 
   { 137, }, 
-#else
-  { CNU,  CNU,  CNU,  CNU, }, 
-  { 122,  138,  153,  182, }, 
-  { 137,  139,  154,  139, }, 
-#endif
 };
 
 static const UChar 
@@ -550,7 +540,6 @@ INIT_MERGE_FLAG_EXT[3][NUM_MERGE_FLAG_EXT_CTX] =
 static const UChar
 INIT_MERGE_IDX_EXT[3][NUM_MERGE_IDX_EXT_CTX] =
 {
-#if MRG_IDX_CTX_RED
   {
     CNU,
     
@@ -562,20 +551,6 @@ INIT_MERGE_IDX_EXT[3][NUM_MERGE_IDX_EXT_CTX] =
   {
     116,
   },
-#else
-  {
-    CNU, CNU, CNU, CNU,
-    
-  },
-  {
-    100,  86, 102, 133,
-    
-  },
-  {
-    116,  87, 119, 103,
-    
-  },
-#endif
 };
 
 // initial probability for PU size

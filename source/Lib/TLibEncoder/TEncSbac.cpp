@@ -655,9 +655,6 @@ Void TEncSbac::codeMergeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
 Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiNumCand = MRG_MAX_NUM_CANDS;
-#if !MRG_IDX_CTX_RED
-  UInt auiCtx[4] = { 0, 1, 2, 3 };
-#endif
   UInt uiUnaryIdx = pcCU->getMergeIndex( uiAbsPartIdx );
   uiNumCand = pcCU->getSlice()->getMaxNumMergeCand();
   if ( uiNumCand > 1 )
@@ -665,7 +662,6 @@ Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
     for( UInt ui = 0; ui < uiNumCand - 1; ++ui )
     {
       const UInt uiSymbol = ui == uiUnaryIdx ? 0 : 1;
-#if MRG_IDX_CTX_RED
       if ( ui==0 )
       {
         m_pcBinIf->encodeBin( uiSymbol, m_cCUMergeIdxExtSCModel.get( 0, 0, 0 ) );
@@ -674,9 +670,6 @@ Void TEncSbac::codeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx )
       {
         m_pcBinIf->encodeBinEP( uiSymbol );
       }
-#else
-      m_pcBinIf->encodeBin( uiSymbol, m_cCUMergeIdxExtSCModel.get( 0, 0, auiCtx[ui] ) );
-#endif
       if( uiSymbol == 0 )
       {
         break;
