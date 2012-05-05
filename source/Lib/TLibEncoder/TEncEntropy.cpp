@@ -188,17 +188,9 @@ Void TEncEntropy::codeAux(ALFParam* pAlfParam)
   else if (noFilters == 2)
   {
 #if LCU_SYNTAX_ALF
-#if ALF_16_BA_GROUPS
     Int numMergeFlags = 16;
 #else
-    Int numMergeFlags = 15;
-#endif
-#else
-#if ALF_16_BA_GROUPS
     Int numMergeFlags = 16;
-#else
-    Int numMergeFlags = pAlfParam->alf_pcr_region_flag ? 16 : 15;
-#endif
 #endif
     for (Int i=1; i<numMergeFlags; i++) 
     {

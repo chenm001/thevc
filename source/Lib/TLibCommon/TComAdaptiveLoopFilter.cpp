@@ -1842,15 +1842,10 @@ Void TComAdaptiveLoopFilter::calcVar(Pel **imgYvar, Pel *imgYpad, Int stride, In
   static Int shiftH = (Int)(log((double)VAR_SIZE_H)/log(2.0));
   static Int shiftW = (Int)(log((double)VAR_SIZE_W)/log(2.0));
   static Int varmax = (Int)NO_VAR_BINS-1;
-#if ALF_16_BA_GROUPS
   static Int th[NO_VAR_BINS] = {0, 1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5}; 
   static Int avgVarTab[3][6] = { {0,  1,  2,  3,  4,  5,},
   {0,  6,  7,  8,  9, 10,},
   {0, 11, 12, 13, 14, 15}   };
-#else
-  static Int step1  = (Int)((Int)(NO_VAR_BINS)/3) - 1;  
-  static Int th[NO_VAR_BINS] = {0, 1, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4}; 
-#endif  
   Int i, j, avgvar, vertical, horizontal,direction, yoffset;
   Pel *pimgYpad, *pimgYpadup, *pimgYpaddown;
 
@@ -1889,11 +1884,7 @@ Void TComAdaptiveLoopFilter::calcVar(Pel **imgYvar, Pel *imgYpad, Int stride, In
       avgvar = (vertical + horizontal) >> 2;
       avgvar = (Pel) Clip_post(varmax, avgvar >>(g_uiBitIncrement+1));
       avgvar = th[avgvar];
-#if ALF_16_BA_GROUPS
       avgvar = avgVarTab[direction][avgvar];
-#else      
-      avgvar = Clip_post(step1, (Int) avgvar ) + (step1+1)*direction;
-#endif
       imgYvar[(i )>>shiftH][(j)>>shiftW] = avgvar;
     }
   }
@@ -3604,15 +3595,10 @@ Void TComAdaptiveLoopFilter::calcOneRegionVar(Pel **imgYvar, Pel *imgYpad, Int s
   static Int shiftH = (Int)(log((double)VAR_SIZE_H)/log(2.0));
   static Int shiftW = (Int)(log((double)VAR_SIZE_W)/log(2.0));
   static Int varMax = (Int)NO_VAR_BINS-1;  
-#if ALF_16_BA_GROUPS
   static Int th[NO_VAR_BINS] = {0, 1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5}; 
   static Int avgVarTab[3][6] = { {0,  1,  2,  3,  4,  5,},
   {0,  6,  7,  8,  9, 10,},
   {0, 11, 12, 13, 14, 15}   };
-#else
-  static Int step   = (Int)((Int)(NO_VAR_BINS)/3) - 1;  
-  static Int th[NO_VAR_BINS] = {0, 1, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4}; 
-#endif
 
   Int i, j, avgVar, vertical, horizontal, direction, yOffset;
   Pel *imgYPadCur, *imgYPadUp, *imgYPadDown;
@@ -3664,11 +3650,7 @@ Void TComAdaptiveLoopFilter::calcOneRegionVar(Pel **imgYvar, Pel *imgYpad, Int s
       avgVar = (vertical + horizontal) >> 2;
       avgVar = (Pel) Clip_post( varMax, avgVar>>(g_uiBitIncrement+1) );
       avgVar = th[avgVar];
-#if ALF_16_BA_GROUPS
       avgVar = avgVarTab[direction][avgVar];
-#else      
-      avgVar = Clip_post(step, (Int)avgVar) + (step+1)*direction;
-#endif
       imgYvar[i>>shiftH][j>>shiftW] = avgVar;
     }
   }

@@ -5107,17 +5107,6 @@ Void TEncAdaptiveLoopFilter::xfindBestFilterVarPred(double **ySym, double ***ESy
     }
     filters_per_fr--;
   }
-#if !ALF_16_BA_GROUPS
-  if ( (m_uiVarGenMethod == ALF_BA) && ((*filters_per_fr_best) > 1) )
-  {
-    Int iLastFilter = (*filters_per_fr_best)-1;
-    if (intervalBest[iLastFilter][0] == NO_VAR_BINS-1)
-    {
-      intervalBest[iLastFilter-1][1] = NO_VAR_BINS-1;
-      (*filters_per_fr_best) = iLastFilter;
-    }
-  }
-#endif
   findFilterCoeff(ESym, ySym, pixAcc, filterCoeffSym, filterCoeffSymQuant, intervalBest,
     varIndTab, sqrFiltLength, (*filters_per_fr_best), weights, errorForce0CoeffTab);
 

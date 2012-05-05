@@ -76,7 +76,6 @@
 
 #define ALF_SINGLE_FILTER_SHAPE    1     //< !!! H0068: Single filter type : 9x7 cross + 3x3 square
 
-#define ALF_16_BA_GROUPS        1     ///< H0409 16 BA groups
 #define LCU_SYNTAX_ALF          1     ///< H0274 LCU-syntax ALF
 
 #define CABAC_LINEAR_INIT       1     ///< H0535 : linear CABAC initialization
