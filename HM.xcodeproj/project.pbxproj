@@ -132,6 +132,8 @@
 		DB7795C513F1226500C92469 /* TEncPreanalyzer.h in Headers */ = {isa = PBXBuildFile; fileRef = DB7795C113F1226500C92469 /* TEncPreanalyzer.h */; };
 		DBA796C81499ADE5003F7D5D /* TEncBinCoderCABACCounter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DBA796C61499ADE2003F7D5D /* TEncBinCoderCABACCounter.cpp */; };
 		DBA796C91499ADE5003F7D5D /* TEncBinCoderCABACCounter.h in Headers */ = {isa = PBXBuildFile; fileRef = DBA796C71499ADE3003F7D5D /* TEncBinCoderCABACCounter.h */; };
+		DBB04CFC1555342500CD9529 /* TEncRateCtrl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DBB04CFA1555342500CD9529 /* TEncRateCtrl.cpp */; };
+		DBB04CFD1555342500CD9529 /* TEncRateCtrl.h in Headers */ = {isa = PBXBuildFile; fileRef = DBB04CFB1555342500CD9529 /* TEncRateCtrl.h */; };
 		DBC9C94014477F6400A77A93 /* TComSampleAdaptiveOffset.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DBC9C93E14477F6400A77A93 /* TComSampleAdaptiveOffset.cpp */; };
 		DBC9C94114477F6400A77A93 /* TComSampleAdaptiveOffset.h in Headers */ = {isa = PBXBuildFile; fileRef = DBC9C93F14477F6400A77A93 /* TComSampleAdaptiveOffset.h */; };
 		DBC9C94514477FAE00A77A93 /* TEncSampleAdaptiveOffset.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DBC9C94314477FAE00A77A93 /* TEncSampleAdaptiveOffset.cpp */; };
@@ -334,6 +336,8 @@
 		DB7795C113F1226500C92469 /* TEncPreanalyzer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncPreanalyzer.h; path = source/Lib/TLibEncoder/TEncPreanalyzer.h; sourceTree = "<group>"; };
 		DBA796C61499ADE2003F7D5D /* TEncBinCoderCABACCounter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TEncBinCoderCABACCounter.cpp; path = source/Lib/TLibEncoder/TEncBinCoderCABACCounter.cpp; sourceTree = "<group>"; };
 		DBA796C71499ADE3003F7D5D /* TEncBinCoderCABACCounter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncBinCoderCABACCounter.h; path = source/Lib/TLibEncoder/TEncBinCoderCABACCounter.h; sourceTree = "<group>"; };
+		DBB04CFA1555342500CD9529 /* TEncRateCtrl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TEncRateCtrl.cpp; path = source/Lib/TLibEncoder/TEncRateCtrl.cpp; sourceTree = "<group>"; };
+		DBB04CFB1555342500CD9529 /* TEncRateCtrl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TEncRateCtrl.h; path = source/Lib/TLibEncoder/TEncRateCtrl.h; sourceTree = "<group>"; };
 		DBC9C93E14477F6400A77A93 /* TComSampleAdaptiveOffset.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TComSampleAdaptiveOffset.cpp; path = source/Lib/TLibCommon/TComSampleAdaptiveOffset.cpp; sourceTree = "<group>"; };
 		DBC9C93F14477F6400A77A93 /* TComSampleAdaptiveOffset.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TComSampleAdaptiveOffset.h; path = source/Lib/TLibCommon/TComSampleAdaptiveOffset.h; sourceTree = "<group>"; };
 		DBC9C94314477FAE00A77A93 /* TEncSampleAdaptiveOffset.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TEncSampleAdaptiveOffset.cpp; path = source/Lib/TLibEncoder/TEncSampleAdaptiveOffset.cpp; sourceTree = "<group>"; };
@@ -571,6 +575,8 @@
 				DB7795BF13F1226500C92469 /* TEncPic.h */,
 				DB7795C013F1226500C92469 /* TEncPreanalyzer.cpp */,
 				DB7795C113F1226500C92469 /* TEncPreanalyzer.h */,
+				DBB04CFA1555342500CD9529 /* TEncRateCtrl.cpp */,
+				DBB04CFB1555342500CD9529 /* TEncRateCtrl.h */,
 				DBC9C94314477FAE00A77A93 /* TEncSampleAdaptiveOffset.cpp */,
 				DBC9C94414477FAE00A77A93 /* TEncSampleAdaptiveOffset.h */,
 				6767962911AD628100421804 /* TEncSbac.cpp */,
@@ -723,6 +729,7 @@
 				DBC9C94614477FAE00A77A93 /* TEncSampleAdaptiveOffset.h in Headers */,
 				DBC9C9521447855200A77A93 /* WeightPredAnalysis.h in Headers */,
 				DBA796C91499ADE5003F7D5D /* TEncBinCoderCABACCounter.h in Headers */,
+				DBB04CFD1555342500CD9529 /* TEncRateCtrl.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -975,6 +982,7 @@
 				DBC9C94514477FAE00A77A93 /* TEncSampleAdaptiveOffset.cpp in Sources */,
 				DBC9C9511447855200A77A93 /* WeightPredAnalysis.cpp in Sources */,
 				DBA796C81499ADE5003F7D5D /* TEncBinCoderCABACCounter.cpp in Sources */,
+				DBB04CFC1555342500CD9529 /* TEncRateCtrl.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
