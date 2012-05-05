@@ -1647,9 +1647,7 @@ TComRefPicListModification::TComRefPicListModification()
 : m_bRefPicListModificationFlagL0 (false)
 , m_bRefPicListModificationFlagL1 (false)
 {
-  ::memset( m_ListIdcL0, 0, sizeof(m_ListIdcL0) );
   ::memset( m_RefPicSetIdxL0, 0, sizeof(m_RefPicSetIdxL0) );
-  ::memset( m_ListIdcL1, 0, sizeof(m_ListIdcL1) );
   ::memset( m_RefPicSetIdxL1, 0, sizeof(m_RefPicSetIdxL1) );
 }
 
