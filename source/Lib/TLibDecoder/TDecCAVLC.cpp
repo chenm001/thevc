@@ -1822,7 +1822,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       {
         uiCode = 0;
         Int i = 0;
-#if H0137_0138_LIST_MODIFICATION
         Int numRpsCurrTempList0 = rpcSlice->getNumRpsCurrTempList();
         if ( numRpsCurrTempList0 > 1 )
         {
@@ -1845,34 +1844,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
             refPicListModification->setRefPicSetIdxL0(i, 0 );
           }
         }
-#else
-        Int list_modification_idc = 0;
-        while(list_modification_idc != 3)  
-        {
-          READ_UVLC( uiCode, "list_modification_idc" ); refPicListModification->setListIdcL0(i, uiCode );
-          list_modification_idc = uiCode;
-          if(uiCode != 3)
-          {
-            READ_UVLC( uiCode, "ref_pic_set_idx" ); refPicListModification->setRefPicSetIdxL0(i, uiCode );
-          }
-          i++;
-        }
-        refPicListModification->setNumberOfRefPicListModificationsL0(i-1);
-#endif
       }
-#if !H0137_0138_LIST_MODIFICATION
-      else
-      {
-        refPicListModification->setNumberOfRefPicListModificationsL0(0); 
-      }
-#endif
     }
     else
     {
       refPicListModification->setRefPicListModificationFlagL0(0);
-#if !H0137_0138_LIST_MODIFICATION
-      refPicListModification->setNumberOfRefPicListModificationsL0(0);
-#endif
     }
     if(rpcSlice->isInterB())
     {
@@ -1892,7 +1868,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       {
         uiCode = 0;
         Int i = 0;
-#if H0137_0138_LIST_MODIFICATION
         Int numRpsCurrTempList1 = rpcSlice->getNumRpsCurrTempList();
         if ( numRpsCurrTempList1 > 1 )
         {
@@ -1915,34 +1890,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
             refPicListModification->setRefPicSetIdxL1(i, 0 );
           }
         }
-#else
-        Int list_modification_idc = 0;
-        while(list_modification_idc != 3)  
-        {
-          READ_UVLC( uiCode, "list_modification_idc" ); refPicListModification->setListIdcL1(i, uiCode );
-          list_modification_idc = uiCode;
-          if(uiCode != 3)
-          {
-            READ_UVLC( uiCode, "ref_pic_set_idx" ); refPicListModification->setRefPicSetIdxL1(i, uiCode );
-          }
-          i++;
-        }
-        refPicListModification->setNumberOfRefPicListModificationsL1(i-1);
-#endif
       }
-#if !H0137_0138_LIST_MODIFICATION
-      else
-      {
-        refPicListModification->setNumberOfRefPicListModificationsL1(0);
-      }
-#endif
     }  
     else
     {
       refPicListModification->setRefPicListModificationFlagL1(0);
-#if !H0137_0138_LIST_MODIFICATION
-      refPicListModification->setNumberOfRefPicListModificationsL1(0);
-#endif
     }
   }
   else
@@ -1971,7 +1923,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
           {
             READ_FLAG( uiCode, "pic_from_list_0_flag" );
             rpcSlice->setListIdFromIdxOfLC(i, uiCode);
-#if H0137_0138_LIST_MODIFICATION
           if (((rpcSlice->getListIdFromIdxOfLC(i) == REF_PIC_LIST_0) && (rpcSlice->getNumRefIdx( REF_PIC_LIST_0 ) == 1)) || ((rpcSlice->getListIdFromIdxOfLC(i) == REF_PIC_LIST_1) && (rpcSlice->getNumRefIdx( REF_PIC_LIST_1 ) == 1)) )
           {
             uiCode = 0;
@@ -1980,9 +1931,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
           {
             READ_UVLC( uiCode, "ref_idx_list_curr" );
           }
-#else
-            READ_UVLC( uiCode, "ref_idx_list_curr" );
-#endif
             rpcSlice->setRefIdxFromIdxOfLC(i, uiCode);
             rpcSlice->setRefIdxOfLC((RefPicList)rpcSlice->getListIdFromIdxOfLC(i), rpcSlice->getRefIdxFromIdxOfLC(i), i);
           }

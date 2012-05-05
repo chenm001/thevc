@@ -123,8 +123,6 @@
 #error
 #endif
 
-#define H0137_0138_LIST_MODIFICATION      1           // Enabled reference picture lists combination (H0137) and reference picture list modification (H0138) updates
-
 #define VERBOSE_RATE 0 ///< Print additional rate information in encoder
 
 #define AMVP_DECIMATION_FACTOR            4

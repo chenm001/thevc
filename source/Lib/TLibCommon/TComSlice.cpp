@@ -420,7 +420,6 @@ Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic )
   UInt cIdx = 0;
   UInt num_ref_idx_l0_active_minus1 = m_aiNumRefIdx[0] - 1;
   UInt num_ref_idx_l1_active_minus1 = m_aiNumRefIdx[1] - 1;
-#if H0137_0138_LIST_MODIFICATION
   TComPic*  refPicListTemp0[MAX_NUM_REF+1];
   TComPic*  refPicListTemp1[MAX_NUM_REF+1];
   Int  numRpsCurrTempList0, numRpsCurrTempList1;
@@ -484,84 +483,8 @@ Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic )
       m_apcRefPicList[1][cIdx] = m_RefPicListModification.getRefPicListModificationFlagL1() ? refPicListTemp1[ m_RefPicListModification.getRefPicSetIdxL1(cIdx) ] : refPicListTemp1[cIdx];
     }
   }
-#else
-  while( cIdx <= num_ref_idx_l0_active_minus1 )
-  {
-    for( i=0; i < NumPocStCurr0 && cIdx <= num_ref_idx_l0_active_minus1; cIdx++, i++ )
-      m_apcRefPicList[0][ cIdx ] = RefPicSetStCurr0[ i ];
-    for( i=0;  i < NumPocStCurr1 && cIdx <= num_ref_idx_l0_active_minus1; cIdx++, i++ )
-      m_apcRefPicList[0][ cIdx ] = RefPicSetStCurr1[ i ]; 
-    for( i=0; i < NumPocLtCurr && cIdx <= num_ref_idx_l0_active_minus1; cIdx++, i++ )
-      m_apcRefPicList[0][ cIdx ] = RefPicSetLtCurr[ i ];
-  }
-
-  if ( m_eSliceType == P_SLICE )
-    {
-      m_aiNumRefIdx[1] = 0;
-      ::memset( m_apcRefPicList[1], 0, sizeof(m_apcRefPicList[1]));
-    }
-  else
-  {
-    // ref_pic_list_init
-    cIdx = 0;
-    while( cIdx <= num_ref_idx_l1_active_minus1 )
-    {
-      for( i=0; i < NumPocStCurr1 && cIdx <= num_ref_idx_l1_active_minus1; cIdx++, i++ )
-        m_apcRefPicList[1][ cIdx ] = RefPicSetStCurr1[ i ];
-      for( i=0;  i < NumPocStCurr0 && cIdx <= num_ref_idx_l1_active_minus1; cIdx++, i++ )
-        m_apcRefPicList[1][ cIdx ] = RefPicSetStCurr0[ i ];
-      for( i=0; i < NumPocLtCurr && cIdx <= num_ref_idx_l1_active_minus1; cIdx++, i++ )
-        m_apcRefPicList[1][ cIdx ] = RefPicSetLtCurr[ i ];
-    }
-  }
-
-  //ref_pic_list_modification_l0
-  if(m_RefPicListModification.getRefPicListModificationFlagL0())
-  {
-    for( i = 0; i < m_RefPicListModification.getNumberOfRefPicListModificationsL0(); i++)
-    {
-      for( cIdx = num_ref_idx_l0_active_minus1 + 1; cIdx > i; cIdx-- )
-        m_apcRefPicList[0][ cIdx ] = m_apcRefPicList[0][ cIdx - 1];
-      if(m_RefPicListModification.getListIdcL0(i) == 0)
-        m_apcRefPicList[0][ i ] =  RefPicSetStCurr0[ m_RefPicListModification.getRefPicSetIdxL0(i) ];
-      else if(m_RefPicListModification.getListIdcL0(i) == 1)
-        m_apcRefPicList[0][ i ] =  RefPicSetStCurr1[ m_RefPicListModification.getRefPicSetIdxL0(i) ];
-      else if(m_RefPicListModification.getListIdcL0(i) == 2)
-        m_apcRefPicList[0][ i ] =  RefPicSetLtCurr[ m_RefPicListModification.getRefPicSetIdxL0(i) ];
-      UInt nIdx = i+1;
-      for( cIdx = i+1; cIdx <= num_ref_idx_l0_active_minus1 + 1; cIdx++ )
-      {
-        if( m_apcRefPicList[0][ cIdx ] != m_apcRefPicList[0][ i ] )
-          m_apcRefPicList[0][ nIdx++ ] = m_apcRefPicList[0][ cIdx ];
-      }
-    }
-  }
-  
-  //ref_pic_list_modification_l1
-  if(m_eSliceType == B_SLICE && m_RefPicListModification.getRefPicListModificationFlagL1())
-  {
-    for( i = 0; i < m_RefPicListModification.getNumberOfRefPicListModificationsL1(); i++)
-    {
-      for( cIdx = num_ref_idx_l1_active_minus1 + 1; cIdx > i; cIdx-- )
-        m_apcRefPicList[1][ cIdx ] = m_apcRefPicList[1][ cIdx - 1];
-      if(m_RefPicListModification.getListIdcL1(i) == 0)
-        m_apcRefPicList[1][ i ] =  RefPicSetStCurr1[ m_RefPicListModification.getRefPicSetIdxL1(i) ];
-      else if(m_RefPicListModification.getListIdcL1(i) == 1)
-        m_apcRefPicList[1][ i ] =  RefPicSetStCurr0[ m_RefPicListModification.getRefPicSetIdxL1(i) ];
-      else if(m_RefPicListModification.getListIdcL1(i) == 2)
-        m_apcRefPicList[1][ i ] =  RefPicSetLtCurr[ m_RefPicListModification.getRefPicSetIdxL1(i) ];
-      UInt nIdx = i+1;
-      for( cIdx = i+1; cIdx <= num_ref_idx_l1_active_minus1 + 1; cIdx++ )
-      {
-        if( m_apcRefPicList[1][ cIdx ] != m_apcRefPicList[1][ i ] )
-          m_apcRefPicList[1][ nIdx++ ] = m_apcRefPicList[1][ cIdx ];
-      }
-    }
-  }
-#endif
 }
 
-#if H0137_0138_LIST_MODIFICATION
 Int TComSlice::getNumRpsCurrTempList()
 {
   Int numRpsCurrTempList = 0;
@@ -579,7 +502,6 @@ Int TComSlice::getNumRpsCurrTempList()
   }
   return numRpsCurrTempList;
 }
-#endif
 
 Void TComSlice::initEqualRef()
 {
@@ -1724,18 +1646,10 @@ Void TComRPSList::setNumberOfReferencePictureSets(Int numberOfReferencePictureSe
 TComRefPicListModification::TComRefPicListModification()
 : m_bRefPicListModificationFlagL0 (false)
 , m_bRefPicListModificationFlagL1 (false)
-#if !H0137_0138_LIST_MODIFICATION
-, m_uiNumberOfRefPicListModificationsL0 (0)
-, m_uiNumberOfRefPicListModificationsL1 (0)
-#endif
 {
-#if !H0137_0138_LIST_MODIFICATION
   ::memset( m_ListIdcL0, 0, sizeof(m_ListIdcL0) );
-#endif
   ::memset( m_RefPicSetIdxL0, 0, sizeof(m_RefPicSetIdxL0) );
-#if !H0137_0138_LIST_MODIFICATION
   ::memset( m_ListIdcL1, 0, sizeof(m_ListIdcL1) );
-#endif
   ::memset( m_RefPicSetIdxL1, 0, sizeof(m_RefPicSetIdxL1) );
 }
 
