@@ -277,14 +277,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   WRITE_FLAG( pcPPS->getEntropyCodingMode() ? 1 : 0,         "entropy_coding_mode_flag" );
   if (pcPPS->getEntropyCodingMode())
   {
-#if !WPP_SIMPLIFICATION
-    WRITE_UVLC( pcPPS->getEntropyCodingSynchro(),            "entropy_coding_synchro" );
-    WRITE_FLAG( pcPPS->getCabacIstateReset() ? 1 : 0,        "cabac_istate_reset" );
-#endif
 #if !TILES_OR_ENTROPY_SYNC_IDC
-#if !WPP_SIMPLIFICATION
-    if ( pcPPS->getEntropyCodingSynchro() )
-#endif
     {
       WRITE_UVLC( pcPPS->getNumSubstreams()-1,               "num_substreams_minus1" );
     }

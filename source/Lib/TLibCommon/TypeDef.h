@@ -222,7 +222,6 @@
 #define TILES_WPP_ENTRY_POINT_SIGNALLING        1 // JCTVC-H0556. Assumes either Tiles is ON or WPP is ON (not both simultaneously).
 #define TILES_OR_ENTROPY_SYNC_IDC               1 // tiles_or_entropy_coding_sync_idc flag
 #define COMPLETE_SLICES_IN_TILE     1 // Among the constraints between slices and tiles, all slices within a tile shall be complete (JCTVC-H0348/JCTVC-H0463) for SliceMode 1&2
-#define WPP_SIMPLIFICATION          1 // JCTVC-H0349/JCTVC-0517
 #define EARLY_SKIP_DETECTION               1 // JCTVC-G543
 // ====================================================================================================================
 // Basic type redefinition

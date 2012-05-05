@@ -168,17 +168,9 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
     uiCol     = iCUAddr % uiWidthInLCUs;
     uiLin     = iCUAddr / uiWidthInLCUs;
     // inherit from TR if necessary, select substream to use.
-#if WPP_SIMPLIFICATION
     if( iSymbolMode && pcSlice->getPPS()->getNumSubstreams() > 1 )
-#else
-    if( iSymbolMode && pcSlice->getPPS()->getEntropyCodingSynchro() )
-#endif
     {
-#if WPP_SIMPLIFICATION
       if (pcSlice->getPPS()->getNumSubstreams() > 1)
-#else
-      if (pcSlice->getPPS()->getEntropyCodingSynchro())
-#endif
       {
         // independent tiles => substreams are "per tile".  iNumSubstreams has already been multiplied.
         iNumSubstreamsPerTile = iNumSubstreams/rpcPic->getPicSym()->getNumTiles();
@@ -192,27 +184,16 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
       }
       m_pcEntropyDecoder->setBitstream( ppcSubstreams[uiSubStrm] );
       // Synchronize cabac probabilities with upper-right LCU if it's available and we're at the start of a line.
-#if WPP_SIMPLIFICATION
       if (pcSlice->getPPS()->getNumSubstreams() > 1 && uiCol == uiTileLCUX)
-#else
-      if (pcSlice->getPPS()->getEntropyCodingSynchro() && uiCol == uiTileLCUX)
-#endif
       {
         // We'll sync if the TR is available.
         TComDataCU *pcCUUp = pcCU->getCUAbove();
         UInt uiWidthInCU = rpcPic->getFrameWidthInCU();
         TComDataCU *pcCUTR = NULL;
-#if WPP_SIMPLIFICATION
         if ( pcCUUp && ((iCUAddr%uiWidthInCU+1) < uiWidthInCU)  )
         {
           pcCUTR = rpcPic->getCU( iCUAddr - uiWidthInCU + 1 );
         }
-#else
-        if ( pcCUUp && ((iCUAddr%uiWidthInCU+pcSlice->getPPS()->getEntropyCodingSynchro()) < uiWidthInCU)  )
-        {
-          pcCUTR = rpcPic->getCU( iCUAddr - uiWidthInCU + pcSlice->getPPS()->getEntropyCodingSynchro() );
-        }
-#endif
         UInt uiMaxParts = 1<<(pcSlice->getSPS()->getMaxCUDepth()<<1);
 
         if ( (true/*bEnforceSliceRestriction*/ &&
@@ -237,11 +218,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
       }
       pcSbacDecoder->load(&pcSbacDecoders[uiSubStrm]);  //this load is used to simplify the code (avoid to change all the call to pcSbacDecoders)
     }
-#if WPP_SIMPLIFICATION
     else if ( iSymbolMode && pcSlice->getPPS()->getNumSubstreams() <= 1 )
-#else
-    else if ( iSymbolMode && !pcSlice->getPPS()->getEntropyCodingSynchro() )
-#endif
     {
       // Set variables to appropriate values to avoid later code change.
       iNumSubstreamsPerTile = 1;
@@ -250,11 +227,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
     if ( (iCUAddr == rpcPic->getPicSym()->getTComTile(rpcPic->getPicSym()->getTileIdxMap(iCUAddr))->getFirstCUAddr()) && // 1st in tile.
          (iCUAddr!=0) && (iCUAddr!=rpcPic->getPicSym()->getPicSCUAddr(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr())/rpcPic->getNumPartInCU())) // !1st in frame && !1st in slice
     {
-#if WPP_SIMPLIFICATION
       if (pcSlice->getPPS()->getNumSubstreams() > 1)
-#else
-      if (pcSlice->getPPS()->getEntropyCodingSynchro())
-#endif
       {
         // We're crossing into another tile, tiles are independent.
         // When tiles are independent, we have "substreams per tile".  Each substream has already been terminated, and we no longer
@@ -338,11 +311,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
     {
 #if OL_FLUSH
       /*If at the end of a LCU line but not at the end of a substream, perform CABAC flush*/
-#if WPP_SIMPLIFICATION
       if (!uiIsLast && pcSlice->getPPS()->getNumSubstreams() > 1)
-#else
-      if (!uiIsLast && pcSlice->getPPS()->getCabacIstateReset())
-#endif
       {
         if ((uiCol == uiTileLCUX+uiTileWidth-1) && (uiLin+iNumSubstreamsPerTile < uiTileLCUY+uiTileHeight))
         {
@@ -353,11 +322,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
       pcSbacDecoders[uiSubStrm].load(pcSbacDecoder);
 
       //Store probabilities of second LCU in line into buffer
-#if WPP_SIMPLIFICATION
       if (pcSlice->getPPS()->getNumSubstreams() > 1 && (uiCol == uiTileLCUX+1))
-#else
-      if (pcSlice->getPPS()->getEntropyCodingSynchro() && (uiCol == uiTileLCUX+pcSlice->getPPS()->getEntropyCodingSynchro()))
-#endif
       {
         m_pcBufferSbacDecoders[uiTileCol].loadContexts( &pcSbacDecoders[uiSubStrm] );
       }

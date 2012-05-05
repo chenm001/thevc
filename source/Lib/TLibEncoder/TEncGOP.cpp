@@ -966,11 +966,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           UInt* puiSubstreamSizes = pcSlice->getSubstreamSizes();
           UInt uiTotalCodedSize = 0; // for padding calcs.
           UInt uiNumSubstreamsPerTile = iNumSubstreams;
-#if WPP_SIMPLIFICATION
           if (iNumSubstreams > 1)
-#else
-          if (pcSlice->getPPS()->getEntropyCodingSynchro())
-#endif
           {
             uiNumSubstreamsPerTile /= pcPic->getPicSym()->getNumTiles();
           }
