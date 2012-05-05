@@ -130,15 +130,9 @@ extern const UInt   g_uiGroupIdx[ 32 ];
 extern const UInt   g_uiMinInGroup[ 10 ];
 extern const UInt   g_uiLastCtx[ 28 ];
 
-#if EIGHT_BITS_RICE_CODE
 extern const UInt   g_auiGoRiceRange[5];                  //!< maximum value coded with Rice codes
 extern const UInt   g_auiGoRicePrefixLen[5];              //!< prefix length for each maximum value
 extern const UInt   g_aauiGoRiceUpdate[5][24];            //!< parameter update rules for Rice codes
-#else
-extern const UInt   g_auiGoRiceRange[4];                  //!< maximum value coded with Rice codes
-extern const UInt   g_auiGoRicePrefixLen[4];              //!< prefix length for each maximum value
-extern const UInt   g_aauiGoRiceUpdate[4][16];            //!< parameter update rules for Rice codes
-#endif
   
 #if MULTILEVEL_SIGMAP_EXT
 extern const UInt   g_sigLastScan8x8[ 4 ][ 4 ];           //!< coefficient group scan order for 8x8 TUs

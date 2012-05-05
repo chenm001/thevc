@@ -563,7 +563,6 @@ const UInt g_uiLastCtx[ 28 ]    =
 };
 
 // Rice parameters for absolute transform levels
-#if EIGHT_BITS_RICE_CODE
 const UInt g_auiGoRiceRange[5] =
 {
   7, 14, 26, 46, 78
@@ -573,19 +572,7 @@ const UInt g_auiGoRicePrefixLen[5] =
 {
   8, 7, 6, 5, 4
 };
-#else
-const UInt g_auiGoRiceRange[4] =
-{
-  7, 20, 42, 70
-};
 
-const UInt g_auiGoRicePrefixLen[4] =
-{
-  8, 10, 10, 8
-};
-#endif
-
-#if EIGHT_BITS_RICE_CODE
 const UInt g_aauiGoRiceUpdate[5][24] =
 {
   {
@@ -604,23 +591,6 @@ const UInt g_aauiGoRiceUpdate[5][24] =
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
   }
 };
-#else
-const UInt g_aauiGoRiceUpdate[4][16] =
-{
-  {
-    0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3,
-  },
-  { 
-    1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3,
-  },
-  { 
-    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3,
-  },
-  { 
-    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 
-  }
-};
-#endif
 
 // initialize g_auiFrameScanXY
 Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int iHeight )

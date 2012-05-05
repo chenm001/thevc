@@ -2538,11 +2538,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       baseLevel = (c1Idx < C1FLAG_NUMBER) ? (2 + (c2Idx < C2FLAG_NUMBER)) : 1;
       if( uiLevel >= baseLevel )
       {
-#if EIGHT_BITS_RICE_CODE
         uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - baseLevel, 23 ) ];
-#else
-        uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - baseLevel, 15 ) ];
-#endif
       }
       if ( uiLevel >= 1)
       {
@@ -2680,11 +2676,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
           baseLevel = (c1Idx < C1FLAG_NUMBER) ? (2 + (c2Idx < C2FLAG_NUMBER)) : 1;
           if( uiLevel >= baseLevel )
           {
-#if EIGHT_BITS_RICE_CODE
             uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - baseLevel , 23 ) ];
-#else
-            uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - baseLevel, 15 ) ];
-#endif
           }
           if ( uiLevel >= 1)
           {
