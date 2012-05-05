@@ -249,9 +249,7 @@ private:
   // forward Transform
   Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Int* plCoeff, Int iWidth, Int iHeight );
   
-#if MULTIBITS_DATA_HIDING
   Void signBitHidingHDQ( TComDataCU* pcCU, TCoeff* pQCoef, TCoeff* pCoef, UInt const *scan, Int* deltaU, Int width, Int height );
-#endif
 
   // quantization
   Void xQuant( TComDataCU* pcCU, 
@@ -300,7 +298,6 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
                                    , UInt                            c1Idx,
                                      UInt                            c2Idx
                                      ) const;
-#if MULTIBITS_DATA_HIDING
 __inline Int xGetICRate  ( UInt                            uiAbsLevel,
                            UShort                          ui16CtxNumOne,
                            UShort                          ui16CtxNumAbs,
@@ -308,7 +305,6 @@ __inline Int xGetICRate  ( UInt                            uiAbsLevel,
                          , UInt                            c1Idx,
                            UInt                            c2Idx
                          ) const;
-#endif
   __inline Double xGetRateLast     ( const UInt                      uiPosX,
                                      const UInt                      uiPosY,
                                      const UInt                      uiBlkWdth     ) const;

@@ -706,10 +706,8 @@ Void TEncTop::xInitPPS()
 #if H0388
   m_cPPS.setOutputFlagPresentFlag( false );
 #endif
-#if MULTIBITS_DATA_HIDING
   m_cPPS.setSignHideFlag(getSignHideFlag());
   m_cPPS.setTSIG(getTSIG());
-#endif
 #if DBL_CONTROL
   m_cPPS.setDeblockingFilterControlPresent (m_DeblockingFilterControlPresent );
 #endif

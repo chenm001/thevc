@@ -58,14 +58,11 @@
 #define LOGI_INTRA_NAME_3MPM      1  ///< H0407: logical Intra mode naming (sequential angular mode numbering) and 3 MPM mode coding
 
 #define MULTILEVEL_SIGMAP_EXT     1  ///< H0526: multi-level significance map extended to smaller TUs
-#define MULTIBITS_DATA_HIDING     1  ///< H0481: multiple sign bit hiding
 
 #define H0111_MVD_L1_ZERO         1  ///< H0111: modification of bi-prediction
 #define DISABLING_CLIP_FOR_BIPREDME         1  ///< Ticket #175
   
 #define UNIFIED_TRANSFORM_TREE      1   ///< H0123: unified tree structure for TU
-
-#define SIGMAP_CTX_SUBBLOCK       1 ///< H0290: 4x4 sub-block based region for significant_flag context selection
 
 #define SIGMAP_CONST_AT_HIGH_FREQUENCY      1      ///< H0095 method2.1: const significance map at high freaquency
 

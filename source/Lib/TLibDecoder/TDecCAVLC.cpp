@@ -1133,13 +1133,11 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   READ_UVLC( uiCode, "pic_parameter_set_id");                      pcPPS->setPPSId (uiCode);
   READ_UVLC( uiCode, "seq_parameter_set_id");                      pcPPS->setSPSId (uiCode);
 
-#if MULTIBITS_DATA_HIDING
   READ_FLAG ( uiCode, "sign_data_hiding_flag" ); pcPPS->setSignHideFlag( uiCode );
   if( pcPPS->getSignHideFlag() )
   {
     READ_CODE( 4, uiCode, "sign_hiding_threshold"); pcPPS->setTSIG(uiCode);
   }
-#endif
 
 #if CABAC_INIT_FLAG
   READ_FLAG( uiCode,   "cabac_init_present_flag" );            pcPPS->setCabacInitPresentFlag( uiCode ? true : false );

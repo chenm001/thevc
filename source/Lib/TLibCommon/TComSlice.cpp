@@ -1509,10 +1509,8 @@ TComPPS::TComPPS()
 ,  m_bCabacIstateReset          (false)
 #endif
 ,  m_iNumSubstreams             (1)
-#if MULTIBITS_DATA_HIDING
 , m_signHideFlag(0)
 , m_signHidingThreshold(0)
-#endif
 #if CABAC_INIT_FLAG
 , m_cabacInitPresentFlag        (false)
 , m_encCABACTableIdx            (0)

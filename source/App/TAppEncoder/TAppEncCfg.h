@@ -223,10 +223,8 @@ protected:
   UInt      m_uiBiPredIdc;                                    ///< Use of Bi-Directional Weighting Prediction (B_SLICE): explicit(1) or implicit(2)
 
   Bool      m_enableTMVP;
-#if MULTIBITS_DATA_HIDING
   Int       m_signHideFlag;
   Int       m_signHidingThreshold;
-#endif
 #if RATECTRL
   Bool      m_enableRateCtrl;                                   ///< Flag for using rate control algorithm
   Int       m_targetBitrate;                                 ///< target bitrate

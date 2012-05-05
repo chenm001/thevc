@@ -258,10 +258,8 @@ protected:
   char*     m_scalingListFile;          ///< quantization matrix file name
 
   Bool      m_bEnableTMVP;
-#if MULTIBITS_DATA_HIDING
   Int       m_signHideFlag;
   Int       m_signHidingThreshold;
-#endif
 #if RATECTRL
   Bool      m_enableRateCtrl;                                ///< Flag for using rate control algorithm
   Int       m_targetBitrate;                                 ///< target bitrate
@@ -630,12 +628,10 @@ public:
 
   Void      setEnableTMVP ( Bool b ) { m_bEnableTMVP = b;    }
   Bool      getEnableTMVP ()         { return m_bEnableTMVP; }
-#if MULTIBITS_DATA_HIDING
   Void      setSignHideFlag( Int signHideFlag ) { m_signHideFlag = signHideFlag; }
   Void      setTSIG( Int tsig )                 { m_signHidingThreshold = tsig; }
   Int       getSignHideFlag()                    { return m_signHideFlag; }
   Int       getTSIG()                            { return m_signHidingThreshold; }
-#endif
 #if RATECTRL
   Bool      getUseRateCtrl    ()                { return m_enableRateCtrl;    }
   Void      setUseRateCtrl    (Bool flag)       { m_enableRateCtrl = flag;    }

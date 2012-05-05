@@ -271,10 +271,8 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setEnableTMVP ( m_enableTMVP );
   m_cTEncTop.setUseScalingListId           ( m_useScalingListId  );
   m_cTEncTop.setScalingListFile            ( m_scalingListFile   );
-#if MULTIBITS_DATA_HIDING
   m_cTEncTop.setSignHideFlag(m_signHideFlag);
   m_cTEncTop.setTSIG(m_signHidingThreshold);
-#endif
 
 #if LCU_SYNTAX_ALF
   if(uiTilesCount > 1)

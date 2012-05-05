@@ -251,13 +251,11 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   WRITE_UVLC( pcPPS->getPPSId(),                             "pic_parameter_set_id" );
   WRITE_UVLC( pcPPS->getSPSId(),                             "seq_parameter_set_id" );
 
-#if MULTIBITS_DATA_HIDING
   WRITE_FLAG( pcPPS->getSignHideFlag(), "sign_data_hiding_flag" );
   if( pcPPS->getSignHideFlag() )
   {
     WRITE_CODE(pcPPS->getTSIG(), 4, "sign_hiding_threshold");
   }
-#endif
 #if CABAC_INIT_FLAG
   WRITE_FLAG( pcPPS->getCabacInitPresentFlag() ? 1 : 0,   "cabac_init_present_flag" );
 #endif

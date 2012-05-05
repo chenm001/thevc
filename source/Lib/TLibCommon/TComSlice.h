@@ -651,10 +651,8 @@ private:
 
   Bool     m_enableTMVPFlag;
 
-#if MULTIBITS_DATA_HIDING
   Int      m_signHideFlag;
   Int      m_signHidingThreshold;
-#endif
 
 #if CABAC_INIT_FLAG
   Bool     m_cabacInitPresentFlag;
@@ -781,12 +779,10 @@ public:
   Void     setNumSubstreams(Int iNumSubstreams)               { m_iNumSubstreams = iNumSubstreams; }
   Int      getNumSubstreams()                                 { return m_iNumSubstreams; }
 
-#if MULTIBITS_DATA_HIDING
   Void      setSignHideFlag( Int signHideFlag ) { m_signHideFlag = signHideFlag; }
   Void      setTSIG( Int tsig )                 { m_signHidingThreshold = tsig; }
   Int       getSignHideFlag()                    { return m_signHideFlag; }
   Int       getTSIG()                            { return m_signHidingThreshold; }
-#endif
 
   Void     setEnableTMVPFlag( Bool b )  { m_enableTMVPFlag = b;    }
   Bool     getEnableTMVPFlag()          { return m_enableTMVPFlag; }
