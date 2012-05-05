@@ -298,11 +298,7 @@ Void TDecTop::xActivateParameterSets()
   m_cLoopFilter.        create( g_uiMaxCUDepth );
 }
 
-#if SKIPFRAME_BUGFIX
 Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisplay )
-#else
-Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDisplay )
-#endif
 {
   TComPic*&   pcPic         = m_pcPic;
   m_apcSlicePilot->initSlice();
