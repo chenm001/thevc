@@ -331,9 +331,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 
   ("FEN", m_bUseFastEnc, false, "fast encoder setting")
   ("ECU", m_bUseEarlyCU, false, "Early CU setting") 
-#if FAST_DECISION_FOR_MRG_RD_COST
   ("FDM", m_useFastDecisionForMerge, true, "Fast decision for Merge RD Cost") 
-#endif
   ("CFM", m_bUseCbfFastMode, false, "Cbf fast mode setting")
 #if EARLY_SKIP_DETECTION
   ("ESD", m_useEarlySkipDetection, false, "Early SKIP detection setting")
@@ -1091,9 +1089,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("LCMod:%d ", m_bLCMod         );
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("ECU:%d ", m_bUseEarlyCU         );
-#if FAST_DECISION_FOR_MRG_RD_COST
   printf("FDM:%d ", m_useFastDecisionForMerge );
-#endif
   printf("CFM:%d ", m_bUseCbfFastMode         );
 #if EARLY_SKIP_DETECTION
   printf("ESD:%d ", m_useEarlySkipDetection  );

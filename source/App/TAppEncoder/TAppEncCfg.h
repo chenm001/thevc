@@ -187,9 +187,7 @@ protected:
   Int       m_bipredSearchRange;                              ///< ME search range for bipred refinement
   Bool      m_bUseFastEnc;                                    ///< flag for using fast encoder setting
   Bool      m_bUseEarlyCU;                                    ///< flag for using Early CU setting
-#if FAST_DECISION_FOR_MRG_RD_COST
   Bool      m_useFastDecisionForMerge;                        ///< flag for using Fast Decision Merge RD-Cost 
-#endif
   Bool      m_bUseCbfFastMode;                              ///< flag for using Cbf Fast PU Mode Decision
 #if EARLY_SKIP_DETECTION
   Bool      m_useEarlySkipDetection;                         ///< flag for using Early SKIP Detection

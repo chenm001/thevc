@@ -206,9 +206,7 @@ protected:
 #endif
   Bool      m_bUseFastEnc;
   Bool      m_bUseEarlyCU;
-#if FAST_DECISION_FOR_MRG_RD_COST
   Bool      m_useFastDecisionForMerge;
-#endif
   Bool      m_bUseCbfFastMode;
 #if EARLY_SKIP_DETECTION
   Bool      m_useEarlySkipDetection;
@@ -459,9 +457,7 @@ public:
 #endif
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
   Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
-#if FAST_DECISION_FOR_MRG_RD_COST
   Void      setUseFastDecisionForMerge      ( Bool  b )     { m_useFastDecisionForMerge = b; }
-#endif
   Void      setUseCbfFastMode            ( Bool  b )     { m_bUseCbfFastMode = b; }
 #if EARLY_SKIP_DETECTION
   Void      setUseEarlySkipDetection        ( Bool  b )     { m_useEarlySkipDetection = b; }
@@ -498,9 +494,7 @@ public:
 #endif
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
   Bool      getUseEarlyCU                   ()      { return m_bUseEarlyCU; }
-#if FAST_DECISION_FOR_MRG_RD_COST
   Bool      getUseFastDecisionForMerge      ()      { return m_useFastDecisionForMerge; }
-#endif
   Bool      getUseCbfFastMode           ()      { return m_bUseCbfFastMode; }
 #if EARLY_SKIP_DETECTION
   Bool      getUseEarlySkipDetection        ()      { return m_useEarlySkipDetection; }

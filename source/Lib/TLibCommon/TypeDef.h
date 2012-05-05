@@ -58,7 +58,6 @@
 #endif
 #define MVP_AT_ENTROPYSLICE_BOUNDARY  1     //< H0362 enable motion prediction accross entropy slice boundary
 
-#define FAST_DECISION_FOR_MRG_RD_COST  1 ////< H0178: Fast Decision for Merge 2Nx2N RDCost
 
 #define PIC_CROPPING              1 ///< Picture cropping and size constraints
 #define NAL_REF_FLAG              1 ///< Change nal_ref_idc to nal_ref_flag (JCTVC-F463)

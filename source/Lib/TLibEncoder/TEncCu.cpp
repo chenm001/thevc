@@ -1370,10 +1370,7 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
   Int mergeCandBuffer[MRG_MAX_NUM_CANDS]={0};
 #endif
 
-#if FAST_DECISION_FOR_MRG_RD_COST
   Bool bestIsSkip = false;
-#endif
-
 
 #if EARLY_SKIP_DETECTION
 
@@ -1424,10 +1421,8 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
 
 #endif
 
-#if FAST_DECISION_FOR_MRG_RD_COST
         if( !(bestIsSkip && uiNoResidual == 0) )
         {
-#endif
           // set MC parameters
           rpcTempCU->setPredModeSubParts( MODE_INTER, 0, uhDepth ); // interprets depth relative to LCU level
           rpcTempCU->setPartSizeSubParts( SIZE_2Nx2N, 0, uhDepth ); // interprets depth relative to LCU level
@@ -1468,7 +1463,6 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
         }
         else
         {
-#if FAST_DECISION_FOR_MRG_RD_COST
           if( bestIsSkip)
           {
             m_pcPredSearch->motionCompensation ( rpcTempCU, m_ppcPredYuvTemp[uhDepth] );
@@ -1477,15 +1471,12 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
           }
           else
           {
-#endif
           if ( pcPredYuvTemp != m_ppcPredYuvTemp[uhDepth])
           {
           //adress changes take best (old temp)
           pcPredYuvTemp = m_ppcPredYuvBest[uhDepth];
           }
-#if FAST_DECISION_FOR_MRG_RD_COST
           }
-#endif
               }
 
           // estimate residual and encode everything
@@ -1514,16 +1505,12 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
 
 #if EARLY_SKIP_DETECTION
 
-#if FAST_DECISION_FOR_MRG_RD_COST
       if( m_pcEncCfg->getUseFastDecisionForMerge() && !bestIsSkip )
       {
         bestIsSkip = rpcBestCU->getQtRootCbf(0) == 0;
       }
-#endif
 
-#if FAST_DECISION_FOR_MRG_RD_COST
     }
-#endif
     }
    }
   }
@@ -1562,18 +1549,14 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
 
 #else
 
-#if FAST_DECISION_FOR_MRG_RD_COST
           if( m_pcEncCfg->getUseFastDecisionForMerge() && !bestIsSkip )
           {
             bestIsSkip = rpcBestCU->getQtRootCbf(0) == 0;
           }
-#endif
 
           if (!bQtRootCbf)
             break;
-#if FAST_DECISION_FOR_MRG_RD_COST
         }
-#endif
       }
     }
   }

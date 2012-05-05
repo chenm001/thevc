@@ -186,9 +186,7 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setQuadtreeTUMaxDepthIntra      ( m_uiQuadtreeTUMaxDepthIntra );
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
   m_cTEncTop.setUseEarlyCU                   ( m_bUseEarlyCU  ); 
-#if FAST_DECISION_FOR_MRG_RD_COST
   m_cTEncTop.setUseFastDecisionForMerge      ( m_useFastDecisionForMerge  );
-#endif
   m_cTEncTop.setUseCbfFastMode            ( m_bUseCbfFastMode  );
 #if EARLY_SKIP_DETECTION
   m_cTEncTop.setUseEarlySkipDetection            ( m_useEarlySkipDetection );
