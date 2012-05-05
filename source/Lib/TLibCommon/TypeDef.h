@@ -201,8 +201,6 @@
 #define SCALING_LIST_OUTPUT_RESULT    0 //JCTVC-G880/JCTVC-G1016 quantization matrices
 #define SCALING_LIST                  1 //JCTVC-H0230/H0461/H0237
 
-#define DEFAULT_DC                    1 // JCTVC-H0242
-
 #define RPS_IN_SPS                    1 // Adopted during discussion of JCTVC-H0423
 
 #define H0412_REF_PIC_LIST_RESTRICTION 1
