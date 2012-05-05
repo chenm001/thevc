@@ -59,8 +59,6 @@
 #define H0111_MVD_L1_ZERO         1  ///< H0111: modification of bi-prediction
 #define DISABLING_CLIP_FOR_BIPREDME         1  ///< Ticket #175
   
-#define UNIFIED_TRANSFORM_TREE      1   ///< H0123: unified tree structure for TU
-
 #define SIGMAP_CONST_AT_HIGH_FREQUENCY      1      ///< H0095 method2.1: const significance map at high freaquency
 
 #define C1FLAG_NUMBER               8 // maximum number of largerThan1 flag coded in one chunk :  16 in HM5
