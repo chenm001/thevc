@@ -641,9 +641,7 @@ Void TEncTop::xInitPPS()
   m_cPPS.setOutputFlagPresentFlag( false );
   m_cPPS.setSignHideFlag(getSignHideFlag());
   m_cPPS.setTSIG(getTSIG());
-#if DBL_CONTROL
   m_cPPS.setDeblockingFilterControlPresent (m_DeblockingFilterControlPresent );
-#endif
 #if PARALLEL_MERGE
   m_cPPS.setLog2ParallelMergeLevelMinus2      (LOG2_PARALLEL_MERGE_LEVEL_MINUS2);
 #endif

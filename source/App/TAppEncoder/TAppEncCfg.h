@@ -155,9 +155,7 @@ protected:
   Bool      m_loopFilterOffsetInAPS;                         ///< offset for deblocking filter in 0 = slice header, 1 = APS
   Int       m_loopFilterBetaOffsetDiv2;                     ///< beta offset for deblocking filter
   Int       m_loopFilterTcOffsetDiv2;                       ///< tc offset for deblocking filter
-#if DBL_CONTROL
   Bool      m_DeblockingFilterControlPresent;                 ///< deblocking filter control present flag in PPS
-#endif
  
   Bool      m_bUseLMChroma;                                  ///< JL: Chroma intra prediction based on luma signal
 

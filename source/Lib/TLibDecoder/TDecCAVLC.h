@@ -151,9 +151,7 @@ public:
   Void parseDFFlag         ( UInt& ruiVal, const Char *pSymbolName );
   Void parseDFSvlc         ( Int&  riVal,  const Char *pSymbolName  );
 protected:
-#if DBL_CONTROL
   Void  xParseDblParam       ( TComAPS* aps );
-#endif
   Void  xParseSaoParam       ( SAOParam* pSaoParam );
 #if SAO_UNIT_INTERLEAVING
   Void  xParseSaoOffset      (SaoLcuParam* saoLcuParam);

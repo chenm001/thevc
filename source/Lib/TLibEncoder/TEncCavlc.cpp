@@ -338,9 +338,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   }
 #endif
 
-#if DBL_CONTROL
   WRITE_FLAG( pcPPS->getDeblockingFilterControlPresent()?1 : 0, "deblocking_filter_control_present_flag");
-#endif
 #if PARALLEL_MERGE
   WRITE_UVLC( pcPPS->getLog2ParallelMergeLevelMinus2(), "log2_parallel_merge_level_minus2");
 #endif
@@ -829,16 +827,12 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   {
     Int iCode = pcSlice->getSliceQp() - ( pcSlice->getPPS()->getPicInitQPMinus26() + 26 );
     WRITE_SVLC( iCode, "slice_qp_delta" ); 
-#if DBL_CONTROL
     if (pcSlice->getPPS()->getDeblockingFilterControlPresent())
     {
       if ( pcSlice->getSPS()->getUseDF() )
       {
         WRITE_FLAG(pcSlice->getInheritDblParamFromAPS(), "inherit_dbl_param_from_APS_flag");
       }
-#else
-    WRITE_FLAG(pcSlice->getInheritDblParamFromAPS(), "inherit_dbl_param_from_APS_flag");
-#endif
       if (!pcSlice->getInheritDblParamFromAPS())
       {
         WRITE_FLAG(pcSlice->getLoopFilterDisable(), "loop_filter_disable");  // should be an IDC
@@ -848,9 +842,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
           WRITE_SVLC (pcSlice->getLoopFilterTcOffset(), "tc_offset_div2");
         }
       }
-#if DBL_CONTROL
     }
-#endif
     if ( pcSlice->getSliceType() == B_SLICE )
     {
       WRITE_FLAG( pcSlice->getColDir(), "collocated_from_l0_flag" );

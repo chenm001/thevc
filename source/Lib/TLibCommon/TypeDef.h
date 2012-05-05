@@ -207,8 +207,6 @@
 
 #define H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER 1
 
-#define DBL_CONTROL               1   //PPS deblocking_filter_control_present_flag (JCTVC-H0398); condition for inherit params flag in SH (JCTVC-H0424)
-
 #define CABAC_INIT_PRESENT_FLAG     1
 
 #define TILES_WPP_ENTRY_POINT_SIGNALLING        1 // JCTVC-H0556. Assumes either Tiles is ON or WPP is ON (not both simultaneously).

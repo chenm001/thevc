@@ -308,10 +308,8 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     // deblocking filter
     Bool bLFCrossTileBoundary = (pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)?
                                 (pcSlice->getPPS()->getLFCrossTileBoundaryFlag()):(pcSlice->getPPS()->getSPS()->getLFCrossTileBoundaryFlag());
-#if DBL_CONTROL
     if (pcSlice->getPPS()->getDeblockingFilterControlPresent())
     {
-#endif
       if(pcSlice->getSPS()->getUseDF())
       {
         if(pcSlice->getInheritDblParamFromAPS())
@@ -324,12 +322,8 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
           }
         }
       }
-#if DBL_CONTROL
     }
     m_pcLoopFilter->setCfg(pcSlice->getPPS()->getDeblockingFilterControlPresent(), pcSlice->getLoopFilterDisable(), pcSlice->getLoopFilterBetaOffset(), pcSlice->getLoopFilterTcOffset(), bLFCrossTileBoundary);
-#else
-    m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), pcSlice->getLoopFilterBetaOffset(), pcSlice->getLoopFilterTcOffset(), bLFCrossTileBoundary);
-#endif
     m_pcLoopFilter->loopFilterPic( rpcPic );
 
     pcSlice = rpcPic->getSlice(0);
