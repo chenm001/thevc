@@ -1738,17 +1738,14 @@ TComDataCU* TComDataCU::getQpMinCuLeft( UInt& uiLPartUnitIdx, UInt uiCurrAbsIdxI
     return NULL;
   }
 
-#if H0204_QP_PREDICTION
   if ( m_pcCULeft && m_pcCULeft->getAddr() != getAddr() )
   {
     return NULL;
   }
-#endif
 
   return m_pcCULeft;
 }
 
-#if H0204_QP_PREDICTION
 /** Get Above QpMinCu
 *\param   aPartUnitIdx
 *\param   currAbsIdxInLCU
@@ -1812,7 +1809,6 @@ TComDataCU* TComDataCU::getQpMinCuAbove( UInt& aPartUnitIdx, UInt currAbsIdxInLC
 
   return m_pcCUAbove;
 }
-#endif
 
 /** Get reference QP from left QpMinCu or latest coded QP
 *\param   uiCurrAbsIdxInLCU
@@ -1820,23 +1816,10 @@ TComDataCU* TComDataCU::getQpMinCuAbove( UInt& aPartUnitIdx, UInt currAbsIdxInLC
 */
 Char TComDataCU::getRefQP( UInt uiCurrAbsIdxInLCU )
 {
-#if H0204_QP_PREDICTION
   UInt        lPartIdx, aPartIdx;
   TComDataCU* cULeft  = getQpMinCuLeft ( lPartIdx, m_uiAbsIdxInLCU + uiCurrAbsIdxInLCU );
   TComDataCU* cUAbove = getQpMinCuAbove( aPartIdx, m_uiAbsIdxInLCU + uiCurrAbsIdxInLCU );
   return (((cULeft? cULeft->getQP( lPartIdx ): getLastCodedQP( uiCurrAbsIdxInLCU )) + (cUAbove? cUAbove->getQP( aPartIdx ): getLastCodedQP( uiCurrAbsIdxInLCU )) + 1) >> 1);
-#else
-  // Left CU
-  TComDataCU* pcCULeft;
-  UInt        uiLPartIdx;
-  pcCULeft = getQpMinCuLeft( uiLPartIdx, m_uiAbsIdxInLCU + uiCurrAbsIdxInLCU );
-  if ( pcCULeft )
-  {
-    return pcCULeft->getQP(uiLPartIdx);
-  }
-  // Last QP
-  return getLastCodedQP( uiCurrAbsIdxInLCU );
-#endif
 }
 
 Int TComDataCU::getLastValidPartIdx( Int iAbsPartIdx )
