@@ -160,10 +160,6 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
   WRITE_FLAG( pcAPS->getScalingListEnabled()?1:0, "aps_scaling_list_data_present_flag");
   //DF flag
   WRITE_FLAG(pcAPS->getLoopFilterOffsetInAPS()?1:0, "aps_deblocking_filter_flag");
-#if !SAO_UNIT_INTERLEAVING
-  //SAO flag
-  WRITE_FLAG( pcAPS->getSaoEnabled()?1:0, "aps_sample_adaptive_offset_flag"); 
-#endif
 #if !LCU_SYNTAX_ALF
   //ALF flag
   WRITE_FLAG( pcAPS->getAlfEnabled()?1:0, "aps_adaptive_loop_filter_flag"); 
@@ -682,18 +678,14 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       }
       if (pcSlice->getSPS()->getUseSAO())
       {
-#if SAO_UNIT_INTERLEAVING
         WRITE_FLAG( pcSlice->getSaoInterleavingFlag(), "SAO interleaving flag" );
-#endif
          assert (pcSlice->getSaoEnabledFlag() == pcSlice->getAPS()->getSaoEnabled());
          WRITE_FLAG( pcSlice->getSaoEnabledFlag(), "SAO on/off flag in slice header" );
-#if SAO_UNIT_INTERLEAVING
          if (pcSlice->getSaoInterleavingFlag()&&pcSlice->getSaoEnabledFlag() )
          {
            WRITE_FLAG( pcSlice->getAPS()->getSaoParam()->bSaoFlag[1], "SAO on/off flag for Cb in slice header" );
            WRITE_FLAG( pcSlice->getAPS()->getSaoParam()->bSaoFlag[2], "SAO on/off flag for Cr in slice header" );
          }
-#endif
       }
       WRITE_UVLC( pcSlice->getAPS()->getAPSID(), "aps_id");
     }
@@ -1315,7 +1307,6 @@ Void TEncCavlc::codeSaoSvlc( Int iCode )
 {
     xWriteSvlc( iCode );
 }
-#if SAO_UNIT_INTERLEAVING
 /** Code SAO run. 
  * \param uiCode
  * \param maxValue
@@ -1339,7 +1330,6 @@ Void TEncCavlc::codeSaoRun( UInt uiCode, UInt maxValue)
   }
   WRITE_CODE( uiCode, uiLength, "sao_run_diff");
 }
-#endif
 
 Void TEncCavlc::estBit( estBitsSbacStruct* pcEstBitsCabac, Int width, Int height, TextType eTType )
 {

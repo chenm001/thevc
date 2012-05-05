@@ -68,7 +68,6 @@
 #define C1FLAG_NUMBER               8 // maximum number of largerThan1 flag coded in one chunk :  16 in HM5
 #define C2FLAG_NUMBER               1 // maximum number of largerThan2 flag coded in one chunk:  16 in HM5 
 
-#define SAO_UNIT_INTERLEAVING      1   ///< H0273
 #define REMOVE_SAO_LCU_ENC_CONSTRAINTS_1 0  ///< disable the encoder constraint that does not test SAO/BO mode for chroma in interleaved mode
 #define REMOVE_SAO_LCU_ENC_CONSTRAINTS_2 0  ///< disable the encoder constraint that reduce the range of SAO/EO for chroma in interleaved mode
 #define REMOVE_SAO_LCU_ENC_CONSTRAINTS_3 0  ///< disable the encoder constraint that conditionally disable SAO for chroma for entire slice in interleaved mode
@@ -263,12 +262,8 @@ class TComPicSym;
 enum SAOTypeLen
 {
   SAO_EO_LEN    = 4, 
-#if SAO_UNIT_INTERLEAVING
   SAO_BO_LEN    = 4,
   SAO_MAX_BO_CLASSES = 32
-#else
-  SAO_BO_LEN    = 16
-#endif
 };
 
 enum SAOType
@@ -277,28 +272,16 @@ enum SAOType
   SAO_EO_1,
   SAO_EO_2, 
   SAO_EO_3,
-#if SAO_UNIT_INTERLEAVING
   SAO_BO,
-#else
-  SAO_BO_0,
-  SAO_BO_1,
-#endif
   MAX_NUM_SAO_TYPE
 };
 
 typedef struct _SaoQTPart
 {
-#if !SAO_UNIT_INTERLEAVING
-  Bool        bEnableFlag;
-#endif
   Int         iBestType;
   Int         iLength;
-#if SAO_UNIT_INTERLEAVING
   Int         bandPosition ;
   Int         iOffset[4];
-#else
-  Int         iOffset[32];
-#endif
   Int         StartCUX;
   Int         StartCUY;
   Int         EndCUX;
@@ -322,7 +305,6 @@ typedef struct _SaoQTPart
   //---- encoder only end -----//
 } SAOQTPart;
 
-#if SAO_UNIT_INTERLEAVING
 typedef struct _SaoLcuParam
 {
   Bool       mergeUpFlag;
@@ -336,7 +318,6 @@ typedef struct _SaoLcuParam
   Int        partIdxTmp;
   Int        length;
 } SaoLcuParam;
-#endif
 
 struct SAOParam
 {
@@ -344,12 +325,10 @@ struct SAOParam
   SAOQTPart* psSaoPart[3];
   Int        iMaxSplitLevel;
   Int        iNumClass[MAX_NUM_SAO_TYPE];
-#if SAO_UNIT_INTERLEAVING
   Bool         oneUnitFlag[3];
   SaoLcuParam* saoLcuParam[3];
   Int          numCuInHeight;
   Int          numCuInWidth;
-#endif
   ~SAOParam();
 };
 

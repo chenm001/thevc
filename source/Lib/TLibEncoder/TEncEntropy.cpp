@@ -51,7 +51,6 @@ Void TEncEntropy::setEntropyCoder ( TEncEntropyIf* e, TComSlice* pcSlice )
 
 Void TEncEntropy::encodeSliceHeader ( TComSlice* pcSlice )
 {
-#if SAO_UNIT_INTERLEAVING
   if (pcSlice->getSPS()->getUseSAO())
   {
     pcSlice->setSaoInterleavingFlag(pcSlice->getAPS()->getSaoInterleavingFlag());
@@ -67,7 +66,6 @@ Void TEncEntropy::encodeSliceHeader ( TComSlice* pcSlice )
       pcSlice->setSaoEnabledFlagCr   (0);
     }
   }
-#endif
 
   m_pcEntropyCoderIf->codeSliceHeader( pcSlice );
   return;
@@ -1610,7 +1608,6 @@ Void TEncEntropy::estimateBit (estBitsSbacStruct* pcEstBitsSbac, Int width, Int 
   m_pcEntropyCoderIf->estBit ( pcEstBitsSbac, width, height, eTType );
 }
 
-#if SAO_UNIT_INTERLEAVING
 /** Encode SAO Offset
  * \param  saoLcuParam SAO LCU paramters
  */
@@ -1798,96 +1795,6 @@ Void TEncEntropy::encodeSaoParam(TComAPS* aps)
     }
   }
 }
-#else
-/** Encode SAO for one partition
- * \param  pSaoParam, iPartIdx
- */
-Void TEncEntropy::encodeSaoOnePart(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr)
-{
-  SAOQTPart*  pAlfPart = NULL;
-  pAlfPart = &(pSaoParam->psSaoPart[iYCbCr][iPartIdx]); 
-
-  UInt uiSymbol;
-
-  if(!pAlfPart->bSplit)
-  {
-    if (pAlfPart->bEnableFlag)
-    {
-      uiSymbol = pAlfPart->iBestType + 1;
-    }
-    else
-    {
-      uiSymbol = 0;
-    }
-    
-    m_pcEntropyCoderIf->codeSaoUvlc(uiSymbol);
-
-    if (pAlfPart->bEnableFlag)
-    {
-      for(Int i=0; i< pAlfPart->iLength; i++)
-      {
-        m_pcEntropyCoderIf->codeSaoSvlc(pAlfPart->iOffset[i]);
-      }   
-    }
-    return;
-  }
-
-  //split
-  if (pAlfPart->PartLevel < pSaoParam->iMaxSplitLevel)
-  {
-    for (Int i=0;i<NUM_DOWN_PART;i++)
-    {
-      encodeSaoOnePart(pSaoParam, pAlfPart->DownPartsIdx[i], iYCbCr);
-    }
-  }
-}
-
-/** Encode quadtree split flag
- * \param  pSaoParam, iPartIdx
- */
-Void TEncEntropy::encodeQuadTreeSplitFlag(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr)
-{
-  SAOQTPart*  pSaoPart = NULL;
-  pSaoPart = &(pSaoParam->psSaoPart[iYCbCr][iPartIdx]);
-
-  if(pSaoPart->PartLevel < pSaoParam->iMaxSplitLevel)
-  {
-    //send one flag
-    m_pcEntropyCoderIf->codeSaoFlag( (pSaoPart->bSplit)?(1):(0)  );
-
-    if(pSaoPart->bSplit)
-    {
-      for (Int i=0;i<NUM_DOWN_PART;i++)
-      {
-        encodeQuadTreeSplitFlag(pSaoParam, pSaoPart->DownPartsIdx[i], iYCbCr);
-      }
-    } 
-  }
-}
-/** Encode SAO parameters
- * \param  pSaoParam
- */
-Void TEncEntropy::encodeSaoParam(SAOParam* pSaoParam)
-{
-  if (pSaoParam->bSaoFlag[0])
-  {
-    encodeQuadTreeSplitFlag(pSaoParam, 0, 0);
-    encodeSaoOnePart(pSaoParam, 0, 0);
-    m_pcEntropyCoderIf->codeSaoFlag(pSaoParam->bSaoFlag[1]); 
-    if (pSaoParam->bSaoFlag[1])
-    {
-      encodeQuadTreeSplitFlag(pSaoParam, 0, 1);
-      encodeSaoOnePart(pSaoParam, 0, 1);
-    }
-    m_pcEntropyCoderIf->codeSaoFlag(pSaoParam->bSaoFlag[2]); 
-    if (pSaoParam->bSaoFlag[2])
-    {
-      encodeQuadTreeSplitFlag(pSaoParam, 0, 2);
-      encodeSaoOnePart(pSaoParam, 0, 2);
-    }
-  }
-}
-#endif
 
 Int TEncEntropy::countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize )
 {

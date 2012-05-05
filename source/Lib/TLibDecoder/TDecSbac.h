@@ -98,7 +98,6 @@ public:
   Void  parseTerminatingBit       ( UInt& ruiBit );
   Void  parseMVPIdx               ( Int& riMVPIdx          );
   
-#if SAO_UNIT_INTERLEAVING
   Void  parseSaoUvlc              ( UInt& ruiVal           );
   Void  parseSaoSvlc              ( Int&  riVal            );
   Void  parseSaoMergeLeft         ( UInt&  ruiVal, UInt uiCompIdx   );
@@ -107,7 +106,6 @@ public:
   Void  parseSaoUflc              ( UInt& ruiVal           );
   Void  parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, TComDataCU* pcCU, Int iCUAddrInSlice, Int iCUAddrUpInSlice, Bool bLFCrossSliceBoundaryFlag);
   Void  parseSaoOffset            (SaoLcuParam* psSaoLcuParam);
-#endif
 private:
   Void  xReadUnarySymbol    ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset );
   Void  xReadUnaryMaxSymbol ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );
@@ -199,11 +197,9 @@ private:
   ContextModel3DBuffer m_cSaoFlagSCModel;
   ContextModel3DBuffer m_cSaoUvlcSCModel;
   ContextModel3DBuffer m_cSaoSvlcSCModel;
-#if SAO_UNIT_INTERLEAVING
   ContextModel3DBuffer m_cSaoMergeLeftSCModel;
   ContextModel3DBuffer m_cSaoMergeUpSCModel;
   ContextModel3DBuffer m_cSaoTypeIdxSCModel;
-#endif
 
 };
 

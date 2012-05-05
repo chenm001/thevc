@@ -95,12 +95,10 @@
 #define NUM_SAO_FLAG_CTX              1       ///< number of context models for SAO flag
 #define NUM_SAO_UVLC_CTX              2       ///< number of context models for SAO UVLC
 #define NUM_SAO_SVLC_CTX              3       ///< number of context models for SAO SVLC
-#if SAO_UNIT_INTERLEAVING
 #define NUM_SAO_RUN_CTX               3       ///< number of context models for AO SVLC (filter coeff.)
 #define NUM_SAO_MERGE_LEFT_FLAG_CTX   3       ///< number of context models for AO SVLC (filter coeff.)
 #define NUM_SAO_MERGE_UP_FLAG_CTX     1       ///< number of context models for AO SVLC (filter coeff.)
 #define NUM_SAO_TYPE_IDX_CTX          2       ///< number of context models for AO SVLC (filter coeff.)
-#endif
 #if CABAC_LINEAR_INIT
 #define CNU                          154      ///< dummy initialization value for unused context models 'Context model Not Used'
 #else
@@ -349,7 +347,6 @@ INIT_SAO_SVLC[3][NUM_SAO_SVLC_CTX] =
   { 215,  154,  169, }, 
 };
 
-#if SAO_UNIT_INTERLEAVING 
 static const UChar 
 INIT_SAO_MERGE_LEFT_FLAG[3][NUM_SAO_MERGE_LEFT_FLAG_CTX] = 
 {
@@ -373,7 +370,6 @@ INIT_SAO_TYPE_IDX[3][NUM_SAO_TYPE_IDX_CTX] =
   { 185,  140, }, 
   { 200,  140, }, 
 };
-#endif
 
 static const UChar 
 INIT_TRANS_SUBDIV_FLAG[3][NUM_TRANS_SUBDIV_FLAG_CTX] = 
@@ -873,7 +869,6 @@ INIT_SAO_SVLC[3][NUM_SAO_SVLC_CTX] =
   },
 };
 
-#if SAO_UNIT_INTERLEAVING
 static const UChar
 INIT_SAO_MERGE_LEFT_FLAG[3][NUM_SAO_MERGE_LEFT_FLAG_CTX] =
 {
@@ -927,7 +922,6 @@ INIT_SAO_RUN[3][NUM_SAO_RUN_CTX][2] =
     {    1,   73 }, {    2,   61 }, {    0,   64 }
   }
 };
-#endif
 
 static const UChar
 INIT_TRANS_SUBDIV_FLAG[3][NUM_TRANS_SUBDIV_FLAG_CTX] =

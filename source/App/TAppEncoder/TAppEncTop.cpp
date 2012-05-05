@@ -215,10 +215,8 @@ Void TAppEncTop::xInitLibCfg()
   }
   m_cTEncTop.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
   m_cTEncTop.setUseSAO ( m_bUseSAO );
-#if SAO_UNIT_INTERLEAVING
   m_cTEncTop.setMaxNumOffsetsPerPic (m_maxNumOffsetsPerPic);
   m_cTEncTop.setSaoInterleavingFlag (m_saoInterleavingFlag);
-#endif
   m_cTEncTop.setPCMInputBitDepthFlag  ( m_bPCMInputBitDepthFlag); 
   m_cTEncTop.setPCMFilterDisableFlag  ( m_bPCMFilterDisableFlag); 
 

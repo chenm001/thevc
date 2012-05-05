@@ -1129,7 +1129,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
 
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );    
 
-#if SAO_UNIT_INTERLEAVING
     if ( pcSlice->getSPS()->getUseSAO() && pcSlice->getAPS()->getSaoInterleavingFlag() && pcSlice->getSaoEnabledFlag() )
     {
       Int iNumCuInWidth     = pcSlice->getAPS()->getSaoParam()->numCuInWidth;
@@ -1139,7 +1138,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
       Int ry = uiCUAddr / iNumCuInWidth;
       m_pcEntropyCoder->encodeSaoUnitInterleaving( rx, ry, pcSlice->getAPS()->getSaoParam(),pcCU, iCUAddrInSlice, iCUAddrUpInSlice, pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
     }
-#endif
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceEnable;
 #endif

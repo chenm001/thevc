@@ -126,13 +126,11 @@ public:
   Void  codeSaoFlag       ( UInt uiCode );
   Void  codeSaoUvlc       ( UInt uiCode );
   Void  codeSaoSvlc       ( Int  uiCode );
-#if SAO_UNIT_INTERLEAVING
   Void  codeSaoRun        ( UInt  uiCode, UInt uiMaxValue  ) {;}
   Void  codeSaoMergeLeft  ( UInt  uiCode, UInt uiCompIdx );
   Void  codeSaoMergeUp    ( UInt  uiCode);
   Void  codeSaoTypeIdx    ( UInt  uiCode);
   Void  codeSaoUflc       ( UInt  uiCode);
-#endif
   Void  codeScalingList      ( TComScalingList* scalingList     ){ assert (0);  return;};
 
 private:
@@ -255,12 +253,9 @@ private:
   ContextModel3DBuffer m_cSaoFlagSCModel;
   ContextModel3DBuffer m_cSaoUvlcSCModel;
   ContextModel3DBuffer m_cSaoSvlcSCModel;
-#if SAO_UNIT_INTERLEAVING
   ContextModel3DBuffer m_cSaoMergeLeftSCModel;
   ContextModel3DBuffer m_cSaoMergeUpSCModel;
   ContextModel3DBuffer m_cSaoTypeIdxSCModel;
-#endif
-
 };
 
 //! \}

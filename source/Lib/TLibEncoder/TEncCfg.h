@@ -148,10 +148,8 @@ protected:
   Int       m_loopFilterTcOffsetDiv2;
   Bool      m_DeblockingFilterControlPresent;
   Bool      m_bUseSAO;
-#if SAO_UNIT_INTERLEAVING
   Int       m_maxNumOffsetsPerPic;
   Bool      m_saoInterleavingFlag;
-#endif
 
   //====== Lossless ========
 #if LOSSLESS_CODING
@@ -494,12 +492,10 @@ public:
 
   Void      setUseSAO                  (Bool bVal)     {m_bUseSAO = bVal;}
   Bool      getUseSAO                  ()              {return m_bUseSAO;}
-#if SAO_UNIT_INTERLEAVING
   Void  setMaxNumOffsetsPerPic                   (Int iVal)            { m_maxNumOffsetsPerPic = iVal; }
   Int   getMaxNumOffsetsPerPic                   ()                    { return m_maxNumOffsetsPerPic; }
   Void  setSaoInterleavingFlag                   (bool bVal)           { m_saoInterleavingFlag = bVal; }
   Bool  getSaoInterleavingFlag                   ()                    { return m_saoInterleavingFlag; }
-#endif
   Void  setTileBehaviorControlPresentFlag        ( Int i )             { m_iTileBehaviorControlPresentFlag = i;    }
   Int   getTileBehaviorControlPresentFlag        ()                    { return m_iTileBehaviorControlPresentFlag; }
   Void  setLFCrossTileBoundaryFlag               ( Bool   bValue  )    { m_bLFCrossTileBoundaryFlag = bValue; }

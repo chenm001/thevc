@@ -811,10 +811,8 @@ public:
   Void      setScalingListEnabled (Bool bVal) { m_scalingListEnabled = bVal; }  //!< set ScalingList enabled/disabled in APS
   Bool      getScalingListEnabled ()          { return m_scalingListEnabled; }  //!< get ScalingList enabled/disabled in APS
   TComScalingList* getScalingList ()          { return m_scalingList; }         //!< get ScalingList class pointer in APS
-#if SAO_UNIT_INTERLEAVING
   Bool     getSaoInterleavingFlag() {return m_saoInterleavingFlag;}             //!< get SAO interleaving flag in APS
   Void     setSaoInterleavingFlag(Bool bVal) {m_saoInterleavingFlag = bVal;}    //!< set SAO interleaving flag in APS
-#endif
 
 private:
   Int         m_apsID;        //!< APS ID
@@ -832,9 +830,7 @@ private:
   Int         m_loopFilterTcOffsetDiv2;      //< tc offset for deblocking filter
   Bool        m_scalingListEnabled;     //!< ScalingList enabled/disabled in APS (true for enabled)
   TComScalingList*     m_scalingList;   //!< ScalingList class pointer
-#if SAO_UNIT_INTERLEAVING
   Bool        m_saoInterleavingFlag;    //!< SAO interleaving flag
-#endif
 
 public:
   TComAPS& operator= (const TComAPS& src);  //!< "=" operator for APS object
@@ -866,11 +862,9 @@ private:
   Int         m_iAPSId; //!< APS ID in slice header
   bool       m_alfEnabledFlag;
   bool       m_saoEnabledFlag;
-#if SAO_UNIT_INTERLEAVING
   bool       m_saoInterleavingFlag;   ///< SAO interleaving flag
   bool       m_saoEnabledFlagCb;      ///< SAO Cb enabled flag
   bool       m_saoEnabledFlagCr;      ///< SAO Cr enabled flag
-#endif
   Int         m_iPPSId;               ///< picture parameter set ID
   Bool        m_PicOutputFlag;        ///< pic_output_flag 
   Int         m_iPOC;
@@ -1009,14 +1003,12 @@ public:
   Bool      getAlfEnabledFlag() { return m_alfEnabledFlag; }
   Void      setSaoEnabledFlag(Bool s) {m_saoEnabledFlag =s; }
   Bool      getSaoEnabledFlag() { return m_saoEnabledFlag; }
-#if SAO_UNIT_INTERLEAVING
   Void      setSaoInterleavingFlag(Bool s) {m_saoInterleavingFlag =s; } //!< set SAO interleaving flag
   Bool      getSaoInterleavingFlag() { return m_saoInterleavingFlag;  } //!< get SAO interleaving flag
   Void      setSaoEnabledFlagCb(Bool s) {m_saoEnabledFlagCb =s; }       //!< set SAO Cb enabled flag
   Bool      getSaoEnabledFlagCb() { return m_saoEnabledFlagCb; }        //!< get SAO Cb enabled flag
   Void      setSaoEnabledFlagCr(Bool s) {m_saoEnabledFlagCr =s; }       //!< set SAO Cr enabled flag
   Bool      getSaoEnabledFlagCr() { return m_saoEnabledFlagCr; }        //!< get SAO Cr enabled flag
-#endif
   Void      setRPS          ( TComReferencePictureSet *pcRPS ) { m_pcRPS = pcRPS; }
   TComReferencePictureSet*  getRPS          () { return m_pcRPS; }
   TComReferencePictureSet*  getLocalRPS     () { return &m_LocalRPS; }

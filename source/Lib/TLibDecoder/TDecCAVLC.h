@@ -153,13 +153,8 @@ public:
 protected:
   Void  xParseDblParam       ( TComAPS* aps );
   Void  xParseSaoParam       ( SAOParam* pSaoParam );
-#if SAO_UNIT_INTERLEAVING
   Void  xParseSaoOffset      (SaoLcuParam* saoLcuParam);
   Void  xParseSaoUnit        (Int rx, Int ry, Int compIdx, SAOParam* saoParam, Bool& repeatedRow );
-#else
-  Void  xParseSaoSplitParam  ( SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr );
-  Void  xParseSaoOffsetParam ( SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr );
-#endif
 #if LCU_SYNTAX_ALF 
   Void  xParseAlfParam(AlfParamSet* pAlfParamSet, Bool bSentInAPS = true, Int firstLCUAddr = 0, Bool acrossSlice = true, Int numLCUInWidth= -1, Int numLCUInHeight= -1);
   Void  parseAlfParamSet(AlfParamSet* pAlfParamSet, Int firstLCUAddr, Bool alfAcrossSlice);

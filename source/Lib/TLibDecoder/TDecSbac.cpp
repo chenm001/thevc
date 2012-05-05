@@ -79,11 +79,9 @@ TDecSbac::TDecSbac()
 , m_cSaoFlagSCModel           ( 1,             1,               NUM_SAO_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoUvlcSCModel           ( 1,             1,               NUM_SAO_UVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoSvlcSCModel           ( 1,             1,               NUM_SAO_SVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
-#if SAO_UNIT_INTERLEAVING
 , m_cSaoMergeLeftSCModel      ( 1,             1,               NUM_SAO_MERGE_LEFT_FLAG_CTX   , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoMergeUpSCModel        ( 1,             1,               NUM_SAO_MERGE_UP_FLAG_CTX     , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoTypeIdxSCModel        ( 1,             1,               NUM_SAO_TYPE_IDX_CTX          , m_contextModels + m_numContextModels, m_numContextModels)
-#endif
 {
   assert( m_numContextModels <= MAX_NUM_CTX_MOD );
   m_iSliceGranularity = 0;
@@ -146,11 +144,9 @@ Void TDecSbac::resetEntropy(TComSlice* pSlice)
   m_cSaoFlagSCModel.initBuffer           ( sliceType, qp, (UChar*)INIT_SAO_FLAG );
   m_cSaoUvlcSCModel.initBuffer           ( sliceType, qp, (UChar*)INIT_SAO_UVLC );
   m_cSaoSvlcSCModel.initBuffer           ( sliceType, qp, (UChar*)INIT_SAO_SVLC );
-#if SAO_UNIT_INTERLEAVING
   m_cSaoMergeLeftSCModel.initBuffer      ( sliceType, qp, (UChar*)INIT_SAO_MERGE_LEFT_FLAG );
   m_cSaoMergeUpSCModel.initBuffer        ( sliceType, qp, (UChar*)INIT_SAO_MERGE_UP_FLAG );
   m_cSaoTypeIdxSCModel.initBuffer        ( sliceType, qp, (UChar*)INIT_SAO_TYPE_IDX );
-#endif
 
   m_cCUTransSubdivFlagSCModel.initBuffer ( sliceType, qp, (UChar*)INIT_TRANS_SUBDIV_FLAG );
   m_uiLastDQpNonZero  = 0;
@@ -211,11 +207,9 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   m_cSaoFlagSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_FLAG );
   m_cSaoUvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_UVLC );
   m_cSaoSvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_SVLC );
-#if SAO_UNIT_INTERLEAVING
   m_cSaoMergeLeftSCModel.initBuffer      ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_LEFT_FLAG );
   m_cSaoMergeUpSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_UP_FLAG );
   m_cSaoTypeIdxSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_TYPE_IDX );
-#endif
   m_cCUTransSubdivFlagSCModel.initBuffer ( eSliceType, iQp, (UChar*)INIT_TRANS_SUBDIV_FLAG );
   m_pcTDecBinIf->start();
 }
@@ -1437,7 +1431,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 }
 
 
-#if SAO_UNIT_INTERLEAVING
 Void TDecSbac::parseSaoUvlc (UInt& ruiVal)
 {
   UInt uiCode;
@@ -1674,7 +1667,6 @@ Void TDecSbac::parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, T
     }
   }
 }
-#endif
 
 /**
  - Initialize our contexts from the nominated source.

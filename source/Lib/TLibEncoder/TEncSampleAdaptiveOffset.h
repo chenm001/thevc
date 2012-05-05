@@ -100,14 +100,12 @@ public:
   Void calcSaoStatsCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);
   Void destroyEncBuffer();
   Void createEncBuffer();
-#if SAO_UNIT_INTERLEAVING
   Void assignSaoUnitSyntax(SaoLcuParam* saoLcuParam,  SAOQTPart* saoPart, Bool &oneUnitFlag, Int yCbCr);
   Void checkMerge(SaoLcuParam * lcuParamCurr,SaoLcuParam * lcuParamCheck, Int dir);
   Void rdoSaoUnitAll(SAOParam *saoParam, Double lambda, Double lambdaChroma);
   Void rdoSaoUnit(SAOParam *saoParam, Int addr, Int addrUp, Int addrLeft, Int yCbCr, Double lambda);
   Void setMaxNumOffsetsPerPic(Int iVal) {m_maxNumOffsetsPerPic = iVal; }
   Int  getMaxNumOffsetsPerPic() {return m_maxNumOffsetsPerPic; }
-#endif
 };
 
 //! \}
