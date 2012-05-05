@@ -728,11 +728,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       /* write various header sets. */
       if ( m_bSeqFirst )
       {
-#if NAL_REF_FLAG
         OutputNALUnit nalu(NAL_UNIT_SPS, true);
-#else
-        OutputNALUnit nalu(NAL_UNIT_SPS, NAL_REF_IDC_PRIORITY_HIGHEST);
-#endif
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
         pcSlice->getSPS()->setNumSubstreams( pcSlice->getPPS()->getNumSubstreams() );
@@ -741,11 +737,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         writeRBSPTrailingBits(nalu.m_Bitstream);
         accessUnit.push_back(new NALUnitEBSP(nalu));
 
-#if NAL_REF_FLAG
         nalu = NALUnit(NAL_UNIT_PPS, true);
-#else
-        nalu = NALUnit(NAL_UNIT_PPS, NAL_REF_IDC_PRIORITY_HIGHEST);
-#endif
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodePPS(pcSlice->getPPS());
         writeRBSPTrailingBits(nalu.m_Bitstream);
@@ -868,11 +860,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           m_pcEntropyCoder->resetEntropy      ();
         /* start slice NALunit */
 #if H0388
-#if NAL_REF_FLAG
         OutputNALUnit nalu( pcSlice->getNalUnitType(), pcSlice->isReferenced(), pcSlice->getTLayer() );
-#else
-        OutputNALUnit nalu( pcSlice->getNalUnitType(), pcSlice->isReferenced() ? NAL_REF_IDC_PRIORITY_HIGHEST: NAL_REF_IDC_PRIORITY_LOWEST, pcSlice->getTLayer() );
-#endif
 #else
         OutputNALUnit nalu(pcSlice->getNalUnitType(), pcSlice->isReferenced() ? NAL_REF_IDC_PRIORITY_HIGHEST: NAL_REF_IDC_PRIORITY_LOWEST, pcSlice->getTLayer(), true);
 #endif
@@ -1315,11 +1303,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           break;
         case ENCODE_APS:
           {
-#if NAL_REF_FLAG
             OutputNALUnit nalu(NAL_UNIT_APS, true);
-#else
-            OutputNALUnit nalu(NAL_UNIT_APS, NAL_REF_IDC_PRIORITY_HIGHEST);
-#endif
             encodeAPS(&(vAPS[iCodedAPSIdx]), nalu.m_Bitstream, pcSliceForAPS);
             accessUnit.push_back(new NALUnitEBSP(nalu));
 
@@ -1368,11 +1352,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         calcMD5(*pcPic->getPicYuvRec(), sei_recon_picture_digest.digest);
         digestStr = digestToString(sei_recon_picture_digest.digest);
 
-#if NAL_REF_FLAG
         OutputNALUnit nalu(NAL_UNIT_SEI, false);
-#else
-        OutputNALUnit nalu(NAL_UNIT_SEI, NAL_REF_IDC_PRIORITY_LOWEST);
-#endif
 
         /* write the SEI messages */
         m_pcEntropyCoder->setEntropyCoder(m_pcCavlcCoder, pcSlice);

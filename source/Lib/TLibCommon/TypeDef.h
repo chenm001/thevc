@@ -58,8 +58,6 @@
 #endif
 #define MVP_AT_ENTROPYSLICE_BOUNDARY  1     //< H0362 enable motion prediction accross entropy slice boundary
 
-
-#define NAL_REF_FLAG              1 ///< Change nal_ref_idc to nal_ref_flag (JCTVC-F463)
 #define REMOVE_DIV_OPERATION      1 ///< H0238: Simplified intra horizontal and vertical filtering
 #define LOGI_INTRA_NAME_3MPM      1  ///< H0407: logical Intra mode naming (sequential angular mode numbering) and 3 MPM mode coding
 

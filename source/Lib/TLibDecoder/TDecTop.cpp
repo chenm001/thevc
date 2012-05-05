@@ -321,11 +321,7 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   }
 
   m_apcSlicePilot->setNalUnitType(nalu.m_nalUnitType);
-#if NAL_REF_FLAG
   m_apcSlicePilot->setReferenced(nalu.m_nalRefFlag);
-#else
-  m_apcSlicePilot->setReferenced(nalu.m_nalRefIDC != NAL_REF_IDC_PRIORITY_LOWEST);
-#endif
   m_apcSlicePilot->setTLayerInfo(nalu.m_temporalId);
 
   // ALF CU parameters should be part of the slice header -> needs to be fixed 

@@ -45,11 +45,7 @@ class TComOutputBitstream;
 struct NALUnit
 {
   NalUnitType m_nalUnitType; ///< nal_unit_type
-#if NAL_REF_FLAG
   Bool        m_nalRefFlag;  ///< nal_ref_flag
-#else
-  NalRefIdc   m_nalRefIDC;   ///< nal_ref_idc
-#endif
   unsigned    m_temporalId;  ///< temporal_id
 #if !H0388
   bool        m_OutputFlag;  ///< output_flag
@@ -57,7 +53,6 @@ struct NALUnit
 
   /** construct an NALunit structure with given header values. */
 #if H0388
-#if NAL_REF_FLAG
   NALUnit(
     NalUnitType nalUnitType,
     Bool        nalRefFlag,
@@ -66,17 +61,6 @@ struct NALUnit
     ,m_nalRefFlag  (nalRefFlag)
     ,m_temporalId  (temporalId)
   {}
-#else
-  NALUnit(
-    NalUnitType nalUnitType,
-    NalRefIdc nalRefIDC,
-    unsigned temporalID = 0)
-  {
-    m_nalUnitType = nalUnitType;
-    m_nalRefIDC   = nalRefIDC;
-    m_temporalId  = temporalID;
-  }
-#endif
 #else
   NALUnit(
     NalUnitType nalUnitType,
