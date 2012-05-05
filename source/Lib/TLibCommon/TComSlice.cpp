@@ -1417,9 +1417,6 @@ TComPPS::TComPPS()
 , m_bLFCrossTileBoundaryFlag     (true)
 , m_iColumnRowInfoPresent        (0)
 , m_iUniformSpacingIdr           (0)
-#if !REMOVE_TILE_DEPENDENCE
-, m_iTileBoundaryIndependenceIdr (0)
-#endif
 , m_iNumColumnsMinus1            (0)
 , m_puiColumnWidth               (NULL)
 , m_iNumRowsMinus1               (0)

@@ -599,9 +599,6 @@ Void TEncTop::xInitSPS()
 
   m_cSPS.setLFCrossTileBoundaryFlag( m_bLFCrossTileBoundaryFlag );
   m_cSPS.setUniformSpacingIdr( m_iUniformSpacingIdr );
-#if !REMOVE_TILE_DEPENDENCE
-  m_cSPS.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
-#endif
   m_cSPS.setNumColumnsMinus1( m_iNumColumnsMinus1 );
   m_cSPS.setNumRowsMinus1( m_iNumRowsMinus1 );
   if( m_iUniformSpacingIdr == 0 )
@@ -843,9 +840,6 @@ Void  TEncTop::xInitPPSforTiles()
 {
     m_cPPS.setColumnRowInfoPresent( m_iColumnRowInfoPresent );
     m_cPPS.setUniformSpacingIdr( m_iUniformSpacingIdr );
-#if !REMOVE_TILE_DEPENDENCE
-    m_cPPS.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
-#endif
     m_cPPS.setNumColumnsMinus1( m_iNumColumnsMinus1 );
     m_cPPS.setNumRowsMinus1( m_iNumRowsMinus1 );
     if( m_iUniformSpacingIdr == 0 )
@@ -858,9 +852,6 @@ Void  TEncTop::xInitPPSforTiles()
 
     // # substreams is "per tile" when tiles are independent.
     if (m_iWaveFrontSynchro
-#if !REMOVE_TILE_DEPENDENCE
-        && m_iTileBoundaryIndependenceIdr
-#endif
         )
     {
       m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams * (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1));

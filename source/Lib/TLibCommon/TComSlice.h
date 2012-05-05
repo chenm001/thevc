@@ -407,10 +407,6 @@ public:
   Bool    getLFCrossTileBoundaryFlag               ()                    { return m_bLFCrossTileBoundaryFlag;   }
   Void     setUniformSpacingIdr             ( Int i )           { m_iUniformSpacingIdr = i; }
   Int      getUniformSpacingIdr             ()                  { return m_iUniformSpacingIdr; }
-#if !REMOVE_TILE_DEPENDENCE
-  Void     setTileBoundaryIndependenceIdr   ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
-  Int      getTileBoundaryIndependenceIdr   ()                  { return m_iTileBoundaryIndependenceIdr; }
-#endif
   Void     setNumColumnsMinus1              ( Int i )           { m_iNumColumnsMinus1 = i; }
   Int      getNumColumnsMinus1              ()                  { return m_iNumColumnsMinus1; }
   Void     setColumnWidth ( UInt* columnWidth )
@@ -610,9 +606,6 @@ private:
   Bool     m_bLFCrossTileBoundaryFlag;
   Int      m_iColumnRowInfoPresent;
   Int      m_iUniformSpacingIdr;
-#if !REMOVE_TILE_DEPENDENCE
-  Int      m_iTileBoundaryIndependenceIdr;
-#endif
   Int      m_iNumColumnsMinus1;
   UInt*    m_puiColumnWidth;
   Int      m_iNumRowsMinus1;
@@ -710,10 +703,6 @@ public:
   Int      getColumnRowInfoPresent          ()                  { return m_iColumnRowInfoPresent; }
   Void     setUniformSpacingIdr             ( Int i )           { m_iUniformSpacingIdr = i; }
   Int      getUniformSpacingIdr             ()                  { return m_iUniformSpacingIdr; }
-#if !REMOVE_TILE_DEPENDENCE
-  Void     setTileBoundaryIndependenceIdr   ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
-  Int      getTileBoundaryIndependenceIdr   ()                  { return m_iTileBoundaryIndependenceIdr; }
-#endif
   Void     setNumColumnsMinus1              ( Int i )           { m_iNumColumnsMinus1 = i; }
   Int      getNumColumnsMinus1              ()                  { return m_iNumColumnsMinus1; }
   Void     setColumnWidth ( UInt* columnWidth )

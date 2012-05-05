@@ -1258,25 +1258,12 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
     {
       Int iNumColTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumColumnsMinus1()):(pcPPS->getSPS()->getNumColumnsMinus1());
       Int iNumRowTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumColumnsMinus1()):(pcPPS->getSPS()->getNumRowsMinus1());
-#if !REMOVE_TILE_DEPENDENCE
-      pcPPS->setTileBoundaryIndependenceIdr( 1 ); //default
-#endif
       pcPPS->setLFCrossTileBoundaryFlag(true); //default
 
       if(iNumColTilesMinus1 !=0 || iNumRowTilesMinus1 !=0)
       {
-#if !REMOVE_TILE_DEPENDENCE
-        READ_FLAG ( uiCode, "tile_boundary_independence_flag" );  
-        pcPPS->setTileBoundaryIndependenceIdr( uiCode );
-
-        if(pcPPS->getTileBoundaryIndependenceIdr() == 1)
-        {
-#endif
           READ_FLAG ( uiCode, "loop_filter_across_tile_flag" );  
           pcPPS->setLFCrossTileBoundaryFlag( (uiCode == 1)?true:false );
-#if !REMOVE_TILE_DEPENDENCE
-        }
-#endif
       }
     }
 #if TILES_OR_ENTROPY_SYNC_IDC
@@ -1514,24 +1501,12 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
       pcSPS->setRowHeight(rowHeight);
       free(rowHeight);  
     }
-#if !REMOVE_TILE_DEPENDENCE
-    pcSPS->setTileBoundaryIndependenceIdr( 1 ); //default
-#endif
     pcSPS->setLFCrossTileBoundaryFlag(true); //default
 
     if( pcSPS->getNumColumnsMinus1() !=0 || pcSPS->getNumRowsMinus1() != 0)
     {
-#if !REMOVE_TILE_DEPENDENCE
-      READ_FLAG ( uiCode, "tile_boundary_independence_flag" );  
-      pcSPS->setTileBoundaryIndependenceIdr( uiCode );
-      if(pcSPS->getTileBoundaryIndependenceIdr() == 1)
-      {
-#endif
         READ_FLAG ( uiCode, "loop_filter_across_tile_flag" );  
         pcSPS->setLFCrossTileBoundaryFlag( (uiCode==1)?true:false);
-#if !REMOVE_TILE_DEPENDENCE
-      }
-#endif
     }
 #if TILES_OR_ENTROPY_SYNC_IDC
   }
@@ -2075,15 +2050,8 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   rpcSlice->setTileMarkerFlag ( 0 ); // default
   if (!bEntropySlice)
   {
-#if !REMOVE_TILE_DEPENDENCE
-    if (sps->getTileBoundaryIndependenceIdr())
-    {   
-#endif
     xReadCode(1, uiCode); // read flag indicating if tile markers transmitted
     rpcSlice->setTileMarkerFlag( uiCode );
-#if !REMOVE_TILE_DEPENDENCE
-    }
-#endif
   }
 
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
@@ -2189,10 +2157,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   if (!bEntropySlice)
   {
     // Reading location information
-#if !REMOVE_TILE_DEPENDENCE
-    if (sps->getTileBoundaryIndependenceIdr())
-    {   
-#endif
 #if !TILES_WPP_ENTRY_POINT_SIGNALLING
       xReadCode(1, uiCode); // read flag indicating if location information signaled in slice header
       Bool bTileLocationInformationInSliceHeaderFlag = (uiCode)? true : false;
@@ -2235,9 +2199,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
 
       // read out trailing bits
     m_pcBitstream->readOutTrailingBits();
-#if !REMOVE_TILE_DEPENDENCE
-    }
-#endif
   }
   return;
 }

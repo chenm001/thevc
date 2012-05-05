@@ -402,18 +402,6 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   UInt uiCummulativeTileHeight;
   UInt i, j, p;
 
-#if !REMOVE_TILE_DEPENDENCE
-  //set the TileBoundaryIndependenceIdr
-  if(pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)
-  {
-    pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getTileBoundaryIndependenceIdr() );
-  }
-  else
-  {
-    pcPic->getPicSym()->setTileBoundaryIndependenceIdr( pcSlice->getPPS()->getSPS()->getTileBoundaryIndependenceIdr() );
-  }
-#endif
-
   if( pcSlice->getPPS()->getColumnRowInfoPresent() == 1 )
   {
     //set NumColumnsMins1 and NumRowsMinus1
