@@ -194,10 +194,8 @@ private:
   Bool        m_bLCMod;
   Bool        m_useNSQT;
   
-#if H0412_REF_PIC_LIST_RESTRICTION
   Bool        m_restrictedRefPicListsFlag;
   Bool        m_listsModificationPresentFlag;
-#endif
 
   // Parameter
   AMVP_MODE   m_aeAMVPMode[MAX_CU_DEPTH];
@@ -351,12 +349,10 @@ public:
   Bool getUseNSQT() { return m_useNSQT; }
   Void setUseNSQT( Bool b ) { m_useNSQT = b; }
   
-#if H0412_REF_PIC_LIST_RESTRICTION
   Bool getRestrictedRefPicListsFlag    ()          { return m_restrictedRefPicListsFlag;   }
   Void setRestrictedRefPicListsFlag    ( Bool b )  { m_restrictedRefPicListsFlag = b;      }
   Bool getListsModificationPresentFlag ()          { return m_listsModificationPresentFlag; }
   Void setListsModificationPresentFlag ( Bool b )  { m_listsModificationPresentFlag = b;    }
-#endif
 
   // AMVP mode (for each depth)
   AMVP_MODE getAMVPMode ( UInt uiDepth ) { assert(uiDepth < g_uiMaxCUDepth);  return m_aeAMVPMode[uiDepth]; }

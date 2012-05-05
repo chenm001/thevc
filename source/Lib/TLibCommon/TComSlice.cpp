@@ -1279,10 +1279,8 @@ TComSPS::TComSPS()
 , m_bUseLMChroma              (false)
 , m_bUseLComb                 (false)
 , m_bLCMod                    (false)
-#if H0412_REF_PIC_LIST_RESTRICTION
 , m_restrictedRefPicListsFlag   (  1)
 , m_listsModificationPresentFlag(  0)
-#endif
 , m_uiBitDepth                (  8)
 , m_uiBitIncrement            (  0)
 , m_qpBDOffsetY               (  0)

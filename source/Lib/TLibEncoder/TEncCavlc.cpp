@@ -390,13 +390,11 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
     log2MinCUSize++;
   }
 
-#if H0412_REF_PIC_LIST_RESTRICTION
   WRITE_FLAG( pcSPS->getRestrictedRefPicListsFlag(),                                 "restricted_ref_pic_lists_flag" );
   if( pcSPS->getRestrictedRefPicListsFlag() )
   {
     WRITE_FLAG( pcSPS->getListsModificationPresentFlag(),                            "lists_modification_present_flag" );
   }
-#endif
   WRITE_UVLC( log2MinCUSize - 3,                                                     "log2_min_coding_block_size_minus3" );
   WRITE_UVLC( pcSPS->getMaxCUDepth()-g_uiAddCUDepth,                                 "log2_diff_max_min_coding_block_size" );
   WRITE_UVLC( pcSPS->getQuadtreeTULog2MinSize() - 2,                                 "log2_min_transform_block_size_minus2" );
@@ -683,10 +681,8 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       pcSlice->setNumRefIdx(REF_PIC_LIST_0, 0);
       pcSlice->setNumRefIdx(REF_PIC_LIST_1, 0);
     }
-#if H0412_REF_PIC_LIST_RESTRICTION
     if( pcSlice->getSPS()->getListsModificationPresentFlag() )
     {
-#endif
       TComRefPicListModification* refPicListModification = pcSlice->getRefPicListModification();
       if(!pcSlice->isIntra())
       {
@@ -731,9 +727,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
         }
       }
     }
-#if H0412_REF_PIC_LIST_RESTRICTION
   }
-#endif
   // ref_pic_list_combination( )
   // maybe move to own function?
   if (pcSlice->isInterB())
@@ -743,10 +737,8 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     {
       WRITE_UVLC( pcSlice->getNumRefIdx(REF_PIC_LIST_C) - 1,          "num_ref_idx lc_active_minus1");
       
-#if H0412_REF_PIC_LIST_RESTRICTION
       if( pcSlice->getSPS()->getListsModificationPresentFlag() )
       {
-#endif
         WRITE_FLAG( pcSlice->getRefPicListModificationFlagLC() ? 1 : 0, "ref_pic_list_modification_flag_lc" );
         if(pcSlice->getRefPicListModificationFlagLC())
         {
@@ -759,9 +751,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
           }
           }
         }
-#if H0412_REF_PIC_LIST_RESTRICTION
       }
-#endif
     }
   }
     
