@@ -205,8 +205,6 @@
 
 #define H0412_REF_PIC_LIST_RESTRICTION 1
 
-#define H0566_TLA_SET_FOR_SWITCHING_POINTS 1
-
 #define H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER 1
 
 #define DBL_H0473_PART_1          1   //Deblocking filtering simplification
