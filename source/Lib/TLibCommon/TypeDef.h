@@ -44,7 +44,6 @@
 #define RATECTRL                          1 ///< H0213: a rate control with pixel-based URQ model
 
 #define START_DECODING_AT_CRA             1 ///< H0496, start decoding at clear random access point 
-#define NO_COMBINED_PARALLEL              1 ///< Disallow any combined usage of parallel tools among Tile, EntropySlice and Wavefont
 
 #define LOSSLESS_CODING                   1  ///< H0530: lossless and lossy (mixed) coding
 #if LOSSLESS_CODING
