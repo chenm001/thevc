@@ -2779,11 +2779,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   //left
   UInt uiLeftPartIdx = 0;
   TComDataCU* pcCULeft = 0;
-#if MVP_AT_ENTROPYSLICE_BOUNDARY
   pcCULeft = getPULeft( uiLeftPartIdx, uiPartIdxLB, true, false );
-#else
-  pcCULeft = getPULeft( uiLeftPartIdx, uiPartIdxLB );
-#endif
 #if PARALLEL_MERGE
   if (pcCULeft) 
   {
@@ -2818,11 +2814,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   // above
   UInt uiAbovePartIdx = 0;
   TComDataCU* pcCUAbove = 0;
-#if MVP_AT_ENTROPYSLICE_BOUNDARY
   pcCUAbove = getPUAbove( uiAbovePartIdx, uiPartIdxRT, true, false, true );
-#else
-  pcCUAbove = getPUAbove( uiAbovePartIdx, uiPartIdxRT, true, true, true );
-#endif
 #if PARALLEL_MERGE
     if (pcCUAbove) 
     {
@@ -2855,11 +2847,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   // above right
   UInt uiAboveRightPartIdx = 0;
   TComDataCU* pcCUAboveRight = 0;
-#if MVP_AT_ENTROPYSLICE_BOUNDARY
   pcCUAboveRight = getPUAboveRight( uiAboveRightPartIdx, uiPartIdxRT, true, false, true );
-#else
-  pcCUAboveRight = getPUAboveRight( uiAboveRightPartIdx, uiPartIdxRT, true, true, true);
-#endif
 #if PARALLEL_MERGE
   if (pcCUAboveRight) 
   {
@@ -2890,11 +2878,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   //left bottom
   UInt uiLeftBottomPartIdx = 0;
   TComDataCU* pcCULeftBottom = 0;
-#if MVP_AT_ENTROPYSLICE_BOUNDARY
   pcCULeftBottom = this->getPUBelowLeft( uiLeftBottomPartIdx, uiPartIdxLB, true, false );
-#else
-  pcCULeftBottom = this->getPUBelowLeft( uiLeftBottomPartIdx, uiPartIdxLB );
-#endif
 #if PARALLEL_MERGE
   if (pcCULeftBottom)
   {
@@ -2927,11 +2911,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   {
     UInt uiAboveLeftPartIdx = 0;
     TComDataCU* pcCUAboveLeft = 0;
-#if MVP_AT_ENTROPYSLICE_BOUNDARY
     pcCUAboveLeft = getPUAboveLeft( uiAboveLeftPartIdx, uiAbsPartAddr, true, false, true );
-#else
-    pcCUAboveLeft = getPUAboveLeft( uiAboveLeftPartIdx, uiAbsPartAddr, true, true, true );
-#endif
 #if PARALLEL_MERGE
     if (pcCUAboveLeft) 
     {
@@ -3384,20 +3364,12 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   
   TComDataCU* tmpCU = NULL;
   UInt idx;
-#if MVP_AT_ENTROPYSLICE_BOUNDARY
   tmpCU = getPUBelowLeft(idx, uiPartIdxLB, true, false);
-#else
-  tmpCU = getPUBelowLeft(idx, uiPartIdxLB);
-#endif
   bAddedSmvp = (tmpCU != NULL) && (tmpCU->getPredictionMode(idx) != MODE_INTRA);
 
   if (!bAddedSmvp)
   {
-#if MVP_AT_ENTROPYSLICE_BOUNDARY
     tmpCU = getPULeft(idx, uiPartIdxLB, true, false);
-#else
-    tmpCU = getPULeft(idx, uiPartIdxLB);
-#endif
     bAddedSmvp = (tmpCU != NULL) && (tmpCU->getPredictionMode(idx) != MODE_INTRA);
   }
 
@@ -3617,47 +3589,27 @@ Bool TComDataCU::xAddMVPCand( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefI
   {
     case MD_LEFT:
     {
-#if MVP_AT_ENTROPYSLICE_BOUNDARY
       pcTmpCU = getPULeft(uiIdx, uiPartUnitIdx, true, false);
-#else
-      pcTmpCU = getPULeft(uiIdx, uiPartUnitIdx);
-#endif
       break;
     }
     case MD_ABOVE:
     {
-#if MVP_AT_ENTROPYSLICE_BOUNDARY
       pcTmpCU = getPUAbove(uiIdx, uiPartUnitIdx, true, false, true);
-#else
-      pcTmpCU = getPUAbove(uiIdx, uiPartUnitIdx, true, true, true);
-#endif
       break;
     }
     case MD_ABOVE_RIGHT:
     {
-#if MVP_AT_ENTROPYSLICE_BOUNDARY
       pcTmpCU = getPUAboveRight(uiIdx, uiPartUnitIdx, true, false, true);
-#else
-      pcTmpCU = getPUAboveRight(uiIdx, uiPartUnitIdx, true, true, true);
-#endif
       break;
     }
     case MD_BELOW_LEFT:
     {
-#if MVP_AT_ENTROPYSLICE_BOUNDARY
       pcTmpCU = getPUBelowLeft(uiIdx, uiPartUnitIdx, true, false);
-#else
-      pcTmpCU = getPUBelowLeft(uiIdx, uiPartUnitIdx);
-#endif
       break;
     }
     case MD_ABOVE_LEFT:
     {
-#if MVP_AT_ENTROPYSLICE_BOUNDARY
       pcTmpCU = getPUAboveLeft(uiIdx, uiPartUnitIdx, true, false, true);
-#else
-      pcTmpCU = getPUAboveLeft(uiIdx, uiPartUnitIdx, true, true, true);
-#endif
       break;
     }
     default:
@@ -3723,47 +3675,27 @@ Bool TComDataCU::xAddMVPCandOrder( AMVPInfo* pInfo, RefPicList eRefPicList, Int 
   {
   case MD_LEFT:
     {
-#if MVP_AT_ENTROPYSLICE_BOUNDARY
       pcTmpCU = getPULeft(uiIdx, uiPartUnitIdx, true, false);
-#else
-      pcTmpCU = getPULeft(uiIdx, uiPartUnitIdx);
-#endif
       break;
     }
   case MD_ABOVE:
     {
-#if MVP_AT_ENTROPYSLICE_BOUNDARY
       pcTmpCU = getPUAbove(uiIdx, uiPartUnitIdx, true, false, true);
-#else
-      pcTmpCU = getPUAbove(uiIdx, uiPartUnitIdx, true, true, true);
-#endif
       break;
     }
   case MD_ABOVE_RIGHT:
     {
-#if MVP_AT_ENTROPYSLICE_BOUNDARY
       pcTmpCU = getPUAboveRight(uiIdx, uiPartUnitIdx, true, false, true);
-#else
-      pcTmpCU = getPUAboveRight(uiIdx, uiPartUnitIdx, true, true, true);
-#endif
       break;
     }
   case MD_BELOW_LEFT:
     {
-#if MVP_AT_ENTROPYSLICE_BOUNDARY
       pcTmpCU = getPUBelowLeft(uiIdx, uiPartUnitIdx, true, false);
-#else
-      pcTmpCU = getPUBelowLeft(uiIdx, uiPartUnitIdx);
-#endif
       break;
     }
   case MD_ABOVE_LEFT:
     {
-#if MVP_AT_ENTROPYSLICE_BOUNDARY
       pcTmpCU = getPUAboveLeft(uiIdx, uiPartUnitIdx, true, false, true);
-#else
-      pcTmpCU = getPUAboveLeft(uiIdx, uiPartUnitIdx, true, true, true);
-#endif
       break;
     }
   default:
