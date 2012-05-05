@@ -76,8 +76,6 @@
 
 #define CABAC_LINEAR_INIT       1     ///< H0535 : linear CABAC initialization
 
-#define UNIFIED_TRANSFORM       1     ///< H0492: unify square and non-square transform
-
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
 #define MAX_NUM_APS                32         //< !!!KS: number not defined in WD yet
