@@ -3523,7 +3523,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     return;
   }
 
-#if AMVP_PRUNING_SIMPLIFICATION
   if ( pInfo->iN == 2 )
   {
     if ( pInfo->m_acMvCand[ 0 ] == pInfo->m_acMvCand[ 1 ] )
@@ -3531,7 +3530,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
       pInfo->iN = 1;
     }
   }
-#endif
 
   if ( getSlice()->getPPS()->getEnableTMVPFlag() )
   {
@@ -3596,11 +3594,6 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     }
     //----  co-located RightBottom Temporal Predictor  ---//
   }
-
-#if !AMVP_PRUNING_SIMPLIFICATION
-  // Check No MV Candidate
-  xUniqueMVPCand( pInfo );
-#endif
 
   if (pInfo->iN > AMVP_MAX_NUM_CANDS)
   {
@@ -3799,45 +3792,6 @@ Bool TComDataCU::xAddMVPCand( AMVPInfo* pInfo, RefPicList eRefPicList, Int iRefI
   }
   return false;
 }
-
-#if !AMVP_PRUNING_SIMPLIFICATION
-/**
- * Reduce list of motion vector predictors to a set of unique predictors
- * \param pInfo list of motion vector predictors
- */
-Void TComDataCU::xUniqueMVPCand(AMVPInfo* pInfo)
-{
-  Int n = 1;
-  if ( pInfo->iN == 0 )
-  {
-#if AMVP_ZERO_CHECKING_REMOVAL
-    return;
-#else
-    // Add a zero candidate is none is available
-    pInfo->m_acMvCand[ 0 ].setZero();
-#endif
-  }
-  else
-  {
-    for (Int i = 1; i < pInfo->iN; i++)
-    {
-      Int j;
-      for (j = n - 1; j >= 0; j--)
-      {
-        if ( pInfo->m_acMvCand[ i ] == pInfo->m_acMvCand[ j ] )
-        {
-          break;
-        }
-      }
-      if ( j < 0 )
-      {
-        pInfo->m_acMvCand[ n++ ] = pInfo->m_acMvCand[ i ];
-      }
-    }
-  }
-  pInfo->iN = n;
-}
-#endif
 
 /** 
  * \param pInfo

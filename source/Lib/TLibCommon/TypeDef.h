@@ -70,7 +70,6 @@
 
 #define DEQUANT_CLIPPING           1  ///< H0312/H0541: transformed coefficients clipping before de-quantization
 
-#define AMVP_PRUNING_SIMPLIFICATION         1     ///H0316: simplify the pruning process of AMVP by exempting the temporal candidate
 #define AMVP_ZERO_CHECKING_REMOVAL          1     ///H0239/H0316: remove zero motion vector checking of AMVP
 
 #define H0111_MVD_L1_ZERO         1  ///< H0111: modification of bi-prediction
