@@ -1131,9 +1131,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
     READ_CODE( 4, uiCode, "sign_hiding_threshold"); pcPPS->setTSIG(uiCode);
   }
 
-#if CABAC_INIT_FLAG
   READ_FLAG( uiCode,   "cabac_init_present_flag" );            pcPPS->setCabacInitPresentFlag( uiCode ? true : false );
-#endif
 #if !RPS_IN_SPS
   // RPS is put before entropy_coding_mode_flag
   // since entropy_coding_mode_flag will probably be removed from the WD
@@ -1918,24 +1916,12 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   }
 #endif
 
-#if CABAC_INIT_FLAG
   rpcSlice->setCabacInitFlag( false ); // default
   if(pps->getCabacInitPresentFlag() && !rpcSlice->isIntra())
   {
     READ_FLAG(uiCode, "cabac_init_flag");
     rpcSlice->setCabacInitFlag( uiCode ? true : false );
   }
-#else
-  if(pps->getEntropyCodingMode() && !rpcSlice->isIntra())
-  {
-    READ_UVLC(uiCode, "cabac_init_idc");
-    rpcSlice->setCABACinitIDC(uiCode);
-  }
-  else if (pps->getEntropyCodingMode() && rpcSlice->isIntra())
-  {
-    rpcSlice->setCABACinitIDC(0);
-  }
-#endif
 
   if(!bEntropySlice)
   {
@@ -2204,12 +2190,6 @@ Void TDecCavlc::xParseAlfCuControlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInP
     }
   }
 }
-
-#if !CABAC_INIT_FLAG
-Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
-{
-}
-#endif
 
 Void TDecCavlc::parseTerminatingBit( UInt& ruiBit )
 {

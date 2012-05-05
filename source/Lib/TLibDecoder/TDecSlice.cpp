@@ -237,7 +237,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
       }
       else
       {
-#if CABAC_INIT_FLAG
         SliceType sliceType  = pcSlice->getSliceType();
         if (pcSlice->getCabacInitFlag())
         {
@@ -254,9 +253,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
           }
         }
         m_pcEntropyDecoder->updateContextTables( sliceType, pcSlice->getSliceQp() );
-#else
-        m_pcEntropyDecoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp() );
-#endif
       }
       
       Bool bTileMarkerFoundFlag = false;

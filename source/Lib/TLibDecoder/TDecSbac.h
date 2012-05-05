@@ -77,13 +77,7 @@ public:
   Void decodeFlush();
 #endif
 
-#if CABAC_INIT_FLAG
   Void  resetEntropy (TComSlice* pSlice );
-#else
-  Void  resetEntropywithQPandInitIDC ( Int  iQp, Int iID);
-  Void  resetEntropy                 ( Int  iQp, Int iID      ) { resetEntropywithQPandInitIDC(iQp, iID);                                      }
-  Void  resetEntropy                 ( TComSlice* pcSlice     ) { resetEntropywithQPandInitIDC(pcSlice->getSliceQp(), pcSlice->getCABACinitIDC());}
-#endif
   Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
   
   Void  parseSPS                  ( TComSPS* pcSPS         ) {}

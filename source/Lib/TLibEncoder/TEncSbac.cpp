@@ -110,13 +110,11 @@ Void TEncSbac::resetEntropy           ()
   Int  iQp              = m_pcSlice->getSliceQp();
   SliceType eSliceType  = m_pcSlice->getSliceType();
   
-#if CABAC_INIT_FLAG
   Int  encCABACTableIdx = m_pcSlice->getPPS()->getEncCABACTableIdx();
   if (!m_pcSlice->isIntra() && (encCABACTableIdx==B_SLICE || encCABACTableIdx==P_SLICE) && m_pcSlice->getPPS()->getCabacInitPresentFlag())
   {
     eSliceType = (SliceType) encCABACTableIdx;
   }
-#endif
 
   m_cCUSplitFlagSCModel.initBuffer       ( eSliceType, iQp, (UChar*)INIT_SPLIT_FLAG );
   
@@ -162,7 +160,6 @@ Void TEncSbac::resetEntropy           ()
   return;
 }
 
-#if CABAC_INIT_FLAG
 /** The function does the following: 
  * If current slice type is P/B then it determines the distance of initialisation type 1 and 2 from the current CABAC states and 
  * stores the index of the closest table.  This index is used for the next P/B slice when cabac_init_present_flag is true.
@@ -231,7 +228,6 @@ Void TEncSbac::determineCabacInitIdx()
     m_pcSlice->getPPS()->setEncCABACTableIdx( I_SLICE );
   }  
 }
-#endif
 
 
 /** The function does the followng: Write out terminate bit. Flush CABAC. Intialize CABAC states. Start CABAC.

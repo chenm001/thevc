@@ -74,9 +74,7 @@ public:
   
   //  Virtual list
   Void  resetEntropy           ();
-#if CABAC_INIT_FLAG
   Void  determineCabacInitIdx  ();
-#endif
   Void  setBitstream           ( TComBitIf* p )  { m_pcBitIf = p; m_pcBinIf->init( p ); }
   Void  setSlice               ( TComSlice* p )  { m_pcSlice = p;                       }
   

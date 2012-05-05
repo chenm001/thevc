@@ -98,9 +98,7 @@ protected:
 public:
   
   Void  resetEntropy          ();
-#if CABAC_INIT_FLAG
   Void  determineCabacInitIdx  () {};
-#endif
 
   Void  setBitstream          ( TComBitIf* p )  { m_pcBitIf = p;  }
   Void  setSlice              ( TComSlice* p )  { m_pcSlice = p;  }

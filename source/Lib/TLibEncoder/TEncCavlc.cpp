@@ -256,9 +256,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   {
     WRITE_CODE(pcPPS->getTSIG(), 4, "sign_hiding_threshold");
   }
-#if CABAC_INIT_FLAG
   WRITE_FLAG( pcPPS->getCabacInitPresentFlag() ? 1 : 0,   "cabac_init_present_flag" );
-#endif
 #if !RPS_IN_SPS
   // RPS is put before entropy_coding_mode_flag
   // since entropy_coding_mode_flag will probably be removed from the WD
@@ -816,7 +814,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 
   if(pcSlice->getPPS()->getEntropyCodingMode() && !pcSlice->isIntra())
   {
-#if CABAC_INIT_FLAG
     if (!pcSlice->isIntra() && pcSlice->getPPS()->getCabacInitPresentFlag())
     {
       SliceType sliceType   = pcSlice->getSliceType();
@@ -825,9 +822,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       pcSlice->setCabacInitFlag( encCabacInitFlag );
       WRITE_FLAG( encCabacInitFlag?1:0, "cabac_init_flag" );
     }
-#else
-    WRITE_UVLC(pcSlice->getCABACinitIDC(),  "cabac_init_idc");
-#endif
   }
 
   // if( !lightweight_slice_flag ) {

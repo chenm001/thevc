@@ -853,7 +853,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         uiCUAddr!=0 &&                                                                                                                                    // cannot be first CU of picture
         uiCUAddr!=rpcPic->getPicSym()->getPicSCUAddr(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr())/rpcPic->getNumPartInCU())     // cannot be first CU of slice
     {
-#if CABAC_INIT_FLAG
       SliceType sliceType = pcSlice->getSliceType();
       if (!pcSlice->isIntra() && pcSlice->getPPS()->getCabacInitPresentFlag() && pcSlice->getPPS()->getEncCABACTableIdx()!=0)
       {
@@ -863,12 +862,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       m_pcEntropyCoder->setEntropyCoder     ( m_pppcRDSbacCoder[0][CI_CURR_BEST], pcSlice );
       m_pcEntropyCoder->updateContextTables ( sliceType, pcSlice->getSliceQp() );
       m_pcEntropyCoder->setEntropyCoder     ( m_pcSbacCoder, pcSlice );
-#else
-      m_pcEntropyCoder->updateContextTables ( pcSlice->getSliceType(), pcSlice->getSliceQp(), false );
-      m_pcEntropyCoder->setEntropyCoder     ( m_pppcRDSbacCoder[0][CI_CURR_BEST], pcSlice );
-      m_pcEntropyCoder->updateContextTables ( pcSlice->getSliceType(), pcSlice->getSliceQp() );
-      m_pcEntropyCoder->setEntropyCoder     ( m_pcSbacCoder, pcSlice );
-#endif
     }
     // if RD based on SBAC is used
     if( m_pcCfg->getUseSBACRD() )
@@ -1103,16 +1096,12 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         }
         else
         {
-#if CABAC_INIT_FLAG
           SliceType sliceType  = pcSlice->getSliceType();
           if (!pcSlice->isIntra() && pcSlice->getPPS()->getCabacInitPresentFlag() && pcSlice->getPPS()->getEncCABACTableIdx()!=0)
           {
             sliceType = (SliceType) pcSlice->getPPS()->getEncCABACTableIdx();
           }
           m_pcEntropyCoder->updateContextTables( sliceType, pcSlice->getSliceQp() );
-#else
-          m_pcEntropyCoder->updateContextTables( pcSlice->getSliceType(), pcSlice->getSliceQp() );
-#endif
           pcSubstreams[uiSubStrm].write( 1, 1 );
           pcSubstreams[uiSubStrm].writeAlignZero();
         }
@@ -1189,12 +1178,10 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
     m_pcTrQuant->storeSliceQpNext(pcSlice);
   }
 #endif
-#if CABAC_INIT_FLAG
   if (pcSlice->getPPS()->getCabacInitPresentFlag())
   {
     m_pcEntropyCoder->determineCabacInitIdx();
   }
-#endif
 }
 
 /** Determines the starting and bounding LCU address of current slice / entropy slice

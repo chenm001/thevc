@@ -647,9 +647,7 @@ Void TEncTop::xInitPPS()
 #if PARALLEL_MERGE
   m_cPPS.setLog2ParallelMergeLevelMinus2      (LOG2_PARALLEL_MERGE_LEVEL_MINUS2);
 #endif
-#if CABAC_INIT_FLAG
   m_cPPS.setCabacInitPresentFlag(CABAC_INIT_PRESENT_FLAG);
-#endif
 
   Int histogram[8];
   for(Int i=0; i<8; i++)

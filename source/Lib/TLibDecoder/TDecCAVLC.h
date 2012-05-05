@@ -91,12 +91,7 @@ private:
 public:
 
   /// rest entropy coder by intial QP and IDC in CABAC
-#if !CABAC_INIT_FLAG
-  Void  resetEntropy        (Int  iQp, Int iID) { printf("Not supported yet\n"); assert(0); exit(1);}
-  Void  resetEntropy        ( TComSlice* pcSlice  );
-#else
   Void  resetEntropy        ( TComSlice* pcSlice  )     { assert(0); };
-#endif
   Void  setBitstream        ( TComInputBitstream* p )   { m_pcBitstream = p; }
   /// set slice granularity
   Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}

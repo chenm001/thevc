@@ -96,11 +96,7 @@ TComSlice::TComSlice()
 , m_iTileMarkerFlag               ( 0 )
 , m_uiTileOffstForMultES          ( 0 )
 , m_puiSubstreamSizes             ( NULL )
-#if CABAC_INIT_FLAG
 , m_cabacInitFlag                 ( false )
-#else
-, m_cabacInitIdc                 ( -1 )
-#endif
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
 , m_numEntryPointOffsets          ( 0 )
 #endif
@@ -165,9 +161,7 @@ Void TComSlice::initSlice()
   m_bFinalized=false;
 
   m_uiTileCount          = 0;
-#if CABAC_INIT_FLAG
   m_cabacInitFlag        = false;
-#endif
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
   m_numEntryPointOffsets = 0;
 #endif
@@ -731,9 +725,7 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_saoEnabledFlagCb = pSrc->m_saoEnabledFlagCb;
   m_saoEnabledFlagCr = pSrc->m_saoEnabledFlagCr; 
 #endif 
-#if CABAC_INIT_FLAG
   m_cabacInitFlag                = pSrc->m_cabacInitFlag;
-#endif
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
   m_numEntryPointOffsets  = pSrc->m_numEntryPointOffsets;
 #endif
@@ -1389,10 +1381,8 @@ TComPPS::TComPPS()
 ,  m_iNumSubstreams             (1)
 , m_signHideFlag(0)
 , m_signHidingThreshold(0)
-#if CABAC_INIT_FLAG
 , m_cabacInitPresentFlag        (false)
 , m_encCABACTableIdx            (0)
-#endif
 {
 }
 

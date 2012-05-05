@@ -612,10 +612,8 @@ private:
   Int      m_signHideFlag;
   Int      m_signHidingThreshold;
 
-#if CABAC_INIT_FLAG
   Bool     m_cabacInitPresentFlag;
   UInt     m_encCABACTableIdx;           // Used to transmit table selection across slices
-#endif
 #if DBL_CONTROL
   Bool     m_DeblockingFilterControlPresent;
 #endif
@@ -725,12 +723,10 @@ public:
   Void     setEnableTMVPFlag( Bool b )  { m_enableTMVPFlag = b;    }
   Bool     getEnableTMVPFlag()          { return m_enableTMVPFlag; }
 
-#if CABAC_INIT_FLAG
   Void     setCabacInitPresentFlag( Bool flag )     { m_cabacInitPresentFlag = flag;    }
   Void     setEncCABACTableIdx( Int idx )           { m_encCABACTableIdx = idx;         }
   Bool     getCabacInitPresentFlag()                { return m_cabacInitPresentFlag;    }
   UInt     getEncCABACTableIdx()                    { return m_encCABACTableIdx;        }
-#endif
 #if DBL_CONTROL
   Void setDeblockingFilterControlPresent    ( Bool bValue )       { m_DeblockingFilterControlPresent = bValue; }
   Bool getDeblockingFilterControlPresent    ()                    { return m_DeblockingFilterControlPresent; }
@@ -977,11 +973,7 @@ private:
 
   UInt*       m_puiSubstreamSizes;
   TComScalingList*     m_scalingList;                 //!< pointer of quantization matrix
-#if CABAC_INIT_FLAG
   Bool        m_cabacInitFlag; 
-#else
-  Int         m_cabacInitIdc; 
-#endif
 
 #if H0111_MVD_L1_ZERO
   Bool       m_bLMvdL1Zero;
@@ -1225,13 +1217,8 @@ public:
   TComScalingList*   getScalingList ()                               { return m_scalingList; }
   Void  setDefaultScalingList       ();
   Bool  checkDefaultScalingList     ();
-#if CABAC_INIT_FLAG
   Void      setCabacInitFlag  ( Bool val ) { m_cabacInitFlag = val;      }  //!< set CABAC initial flag 
   Bool      getCabacInitFlag  ()           { return m_cabacInitFlag;     }  //!< get CABAC initial flag 
-#else
-  Void      setCABACinitIDC(Int iVal) {m_cabacInitIdc = iVal;    }  //!< set CABAC initial IDC number 
-  Int       getCABACinitIDC()         {return m_cabacInitIdc;    }  //!< get CABAC initial IDC number 
-#endif
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
   Void      setNumEntryPointOffsets(Int val)  { m_numEntryPointOffsets = val;     }
   Int       getNumEntryPointOffsets()         { return m_numEntryPointOffsets;    }
