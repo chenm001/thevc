@@ -1548,21 +1548,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 #endif  // MULTIBITS_DATA_HIDING
 
       UInt c1 = 1;
-#if LEVEL_CTX_LUMA_RED
       UInt uiCtxSet = (iSubSet > 0 && eTType==TEXT_LUMA) ? 2 : 0;
-#else
-      UInt uiCtxSet = (iSubSet > 0 && eTType==TEXT_LUMA) ? 3 : 0;
-#endif
       
       if( uiNumOne > 0 )
       {
         uiCtxSet++;
-#if !LEVEL_CTX_LUMA_RED
-        if( uiNumOne > 3 && eTType==TEXT_LUMA)
-        {
-          uiCtxSet++;
-        }
-#endif
       }
       
       uiNumOne       >>= 1;

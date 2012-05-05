@@ -2513,12 +2513,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     if ( uiMaxAbsLevel > 0 && iLastScanPos < 0 )
     {
       iLastScanPos            = iScanPos;
-#if LEVEL_CTX_LUMA_RED
       uiCtxSet                = (iScanPos < SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 2;
-#else
-      uiCtxSet                = iScanPos < SCAN_SET_SIZE ? 0 : 3;
-      uiCtxSet                = (iScanPos < SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
-#endif
     }    
 
     if ( iLastScanPos >= 0 )
@@ -2594,20 +2589,10 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
         c1Idx   = 0;
         c2Idx   = 0; 
-#if LEVEL_CTX_LUMA_RED
         uiCtxSet          = (iScanPos == SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 2;
-#else
-        uiCtxSet          = (iScanPos == SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
-#endif
         if( uiNumOne > 0 )
         {
           uiCtxSet++;
-#if !LEVEL_CTX_LUMA_RED
-          if(uiNumOne > 3 && eTType==TEXT_LUMA)
-          {
-            uiCtxSet++;
-          }
-#endif
         }
         uiNumOne    >>= 1;
       }
@@ -2668,11 +2653,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         if ( uiMaxAbsLevel > 0 && iLastScanPos < 0 )
         {
           iLastScanPos            = iScanPos;
-#if LEVEL_CTX_LUMA_RED
           uiCtxSet                = (iScanPos < SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 2;
-#else
-          uiCtxSet                = (iScanPos < SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
-#endif
           iCGLastScanPos          = iCGScanPos;
         }
 
@@ -2754,20 +2735,10 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
             c1Idx   = 0;
             c2Idx   = 0; 
-#if LEVEL_CTX_LUMA_RED
             uiCtxSet          = (iScanPos == SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 2;
-#else
-            uiCtxSet          = (iScanPos == SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 3;
-#endif
             if( uiNumOne > 0 )
             {
               uiCtxSet++;
-#if !LEVEL_CTX_LUMA_RED
-              if( uiNumOne > 3 && eTType==TEXT_LUMA)
-              {
-                uiCtxSet++;
-              }
-#endif
             }
             uiNumOne    >>= 1;
           }

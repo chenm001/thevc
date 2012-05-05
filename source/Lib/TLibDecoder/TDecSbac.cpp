@@ -1404,22 +1404,12 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 #endif  // MULTIBITS_DATA_HIDING
 
       UInt c1 = 1;
-#if LEVEL_CTX_LUMA_RED
       UInt uiCtxSet    = (iSubSet > 0 && eTType==TEXT_LUMA) ? 2 : 0;
-#else
-      UInt uiCtxSet    = (iSubSet > 0 && eTType==TEXT_LUMA) ? 3 : 0;
-#endif
       UInt uiBin;
       
       if( uiNumOne > 0 )
       {
         uiCtxSet++;
-#if !LEVEL_CTX_LUMA_RED
-        if(eTType==TEXT_LUMA && uiNumOne > 3)
-        {
-          uiCtxSet++;
-        }
-#endif
       }
       
       uiNumOne       >>= 1;

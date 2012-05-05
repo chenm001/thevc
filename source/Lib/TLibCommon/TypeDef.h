@@ -57,7 +57,6 @@
 
 #define LOGI_INTRA_NAME_3MPM      1  ///< H0407: logical Intra mode naming (sequential angular mode numbering) and 3 MPM mode coding
 
-#define LEVEL_CTX_LUMA_RED        1  ///<H0130: Luma level context reduction
 #define REMOVE_INFER_SIGGRP       1  ///<H0131: Remove inferred significant_coeff_group_flag
 
 #define MULTILEVEL_SIGMAP_EXT     1  ///< H0526: multi-level significance map extended to smaller TUs
