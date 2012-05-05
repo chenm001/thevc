@@ -2766,15 +2766,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
       if (iCGLastScanPos >= 0) 
       {
-#if REMOVE_INFER_SIGGRP
         if( iCGScanPos )
-#else
-#if MULTILEVEL_SIGMAP_EXT
-        if ( !bothCGNeighboursOne( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY, uiScanIdx, uiWidth, uiHeight ) && (iCGScanPos != 0) )
-#else
-        if ( !bothCGNeighboursOne( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY, uiWidth, uiHeight ) && (iCGScanPos != 0) )
-#endif
-#endif
         {
           if (uiSigCoeffGroupFlag[ uiCGBlkPos ] == 0)
           {
@@ -2842,17 +2834,10 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
             }
           } // end if if (uiSigCoeffGroupFlag[ uiCGBlkPos ] == 0)
         }
-#if REMOVE_INFER_SIGGRP
         else
         {
           uiSigCoeffGroupFlag[ uiCGBlkPos ] = 1;
         }
-#else
-        else // if ( !bothCGNeighboursOne( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY ) && (uiCGScanPos != 0) && (uiSigCoeffGroupFlag[ uiCGBlkPos ] != 0) )
-        {
-          uiSigCoeffGroupFlag[ uiCGBlkPos ] = 1;
-        } // end if ( !bothCGNeighboursOne( uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY ) && (uiCGScanPos != 0) && (uiSigCoeffGroupFlag[ uiCGBlkPos ] != 0) )
-#endif 
       }
     } //end for (iCGScanPos)
 #if !MULTILEVEL_SIGMAP_EXT
@@ -3535,55 +3520,9 @@ UInt TComTrQuant::getSigCoeffGroupCtxInc  ( const UInt*               uiSigCoeff
   {
     uiLower = (uiSigCoeffGroupFlag[ (uiCGPosY  + 1 ) * width + uiCGPosX ] != 0);
   }
-#if REMOVE_INFER_SIGGRP
   return (uiRight || uiLower);
-#else
-  return uiRight + uiLower;
-#endif
 
 }
-#if !REMOVE_INFER_SIGGRP
-// return 1 if both right neighbour and lower neighour are 1's
-Bool TComTrQuant::bothCGNeighboursOne ( const UInt*                   uiSigCoeffGroupFlag,
-                                       const UInt                      uiCGPosX,
-                                       const UInt                      uiCGPosY, 
-#if MULTILEVEL_SIGMAP_EXT
-                                       const UInt                      scanIdx,
-#endif
-                                       Int width, Int height)
-{
-  UInt uiRight = 0;
-  UInt uiLower = 0;
-
-  width >>= 2;
-  height >>= 2;
-#if MULTILEVEL_SIGMAP_EXT
-  if( width == 2 && height == 2 ) // 8x8
-  {
-    if( scanIdx == SCAN_HOR )  
-    {
-      width = 1;
-      height = 4;
-    }
-    else if( scanIdx == SCAN_VER )
-    {
-      width = 4;
-      height = 1;
-    }
-  }
-#endif
-  if( uiCGPosX < width - 1 )
-  {
-    uiRight = (uiSigCoeffGroupFlag[ uiCGPosY * width + uiCGPosX + 1 ] != 0);
-  }
-  if (uiCGPosY < height - 1 )
-  {
-    uiLower = (uiSigCoeffGroupFlag[ (uiCGPosY  + 1 ) * width + uiCGPosX ] != 0);
-  }
-  
-  return (uiRight & uiLower);
-}
-#endif
 /** set quantized matrix coefficient for encode
  * \param scalingList quantaized matrix address
  */

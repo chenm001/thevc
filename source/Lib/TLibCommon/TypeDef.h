@@ -57,8 +57,6 @@
 
 #define LOGI_INTRA_NAME_3MPM      1  ///< H0407: logical Intra mode naming (sequential angular mode numbering) and 3 MPM mode coding
 
-#define REMOVE_INFER_SIGGRP       1  ///<H0131: Remove inferred significant_coeff_group_flag
-
 #define MULTILEVEL_SIGMAP_EXT     1  ///< H0526: multi-level significance map extended to smaller TUs
 #define MULTIBITS_DATA_HIDING     1  ///< H0481: multiple sign bit hiding
 
