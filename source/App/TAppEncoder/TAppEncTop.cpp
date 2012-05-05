@@ -201,12 +201,10 @@ Void TAppEncTop::xInitLibCfg()
   {
     m_cTEncTop.setSliceArgument ( m_iSliceArgument * ( iNumPartInCU >> ( m_iSliceGranularity << 1 ) ) );
   }
-#if FIXED_NUMBER_OF_TILES_SLICE_MODE
   if(m_iSliceMode==AD_HOC_SLICES_FIXED_NUMBER_OF_TILES_IN_SLICE)
   {
     m_cTEncTop.setSliceArgument ( m_iSliceArgument );
   }
-#endif
   
   m_cTEncTop.setSliceGranularity        ( m_iSliceGranularity         );
   if(m_iSliceMode == 0 )
