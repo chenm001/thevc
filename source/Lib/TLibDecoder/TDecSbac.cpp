@@ -1420,9 +1420,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 #endif  // MULTIBITS_DATA_HIDING
 
       UInt c1 = 1;
-#if !RESTRICT_GR1GR2FLAG_NUMBER
-      UInt c2 = 0;
-#endif
 #if LEVEL_CTX_LUMA_RED
       UInt uiCtxSet    = (iSubSet > 0 && eTType==TEXT_LUMA) ? 2 : 0;
 #else
@@ -1445,26 +1442,20 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       ContextModel *baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUOneSCModel.get( 0, 0 ) + 4 * uiCtxSet : m_cCUOneSCModel.get( 0, 0 ) + NUM_ONE_FLAG_CTX_LUMA + 4 * uiCtxSet;
       Int absCoeff[SCAN_SET_SIZE];
 
-#if RESTRICT_GR1GR2FLAG_NUMBER
       for ( Int i = 0; i < numNonZero; i++) absCoeff[i] = 1;   
       Int numC1Flag = min(numNonZero, C1FLAG_NUMBER);
       Int firstC2FlagIdx = -1;
 
       for( Int idx = 0; idx < numC1Flag; idx++ )
-#else
-      for( Int idx = 0; idx < numNonZero; idx++ )
-#endif
       {
         m_pcTDecBinIf->decodeBin( uiBin, baseCtxMod[c1] );
         if( uiBin == 1 )
         {
           c1 = 0;
-#if RESTRICT_GR1GR2FLAG_NUMBER
           if (firstC2FlagIdx == -1)
           {
             firstC2FlagIdx = idx;
           }
-#endif
         }
         else if( (c1 < 3) && (c1 > 0) )
         {
@@ -1475,26 +1466,12 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       
       if (c1 == 0)
       {
-#if RESTRICT_GR1GR2FLAG_NUMBER
         baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUAbsSCModel.get( 0, 0 ) + uiCtxSet : m_cCUAbsSCModel.get( 0, 0 ) + NUM_ABS_FLAG_CTX_LUMA + uiCtxSet;
         if ( firstC2FlagIdx != -1)
         {
           m_pcTDecBinIf->decodeBin( uiBin, baseCtxMod[0] ); 
           absCoeff[ firstC2FlagIdx ] = uiBin + 2;
         }
-#else    
-        baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUAbsSCModel.get( 0, 0 ) + 3 * uiCtxSet : m_cCUAbsSCModel.get( 0, 0 ) + NUM_ABS_FLAG_CTX_LUMA + 3 * uiCtxSet;
-        for( Int idx = 0; idx < numNonZero; idx++ )
-        {
-          if( absCoeff[ idx ] == 2 ) 
-          {
-            m_pcTDecBinIf->decodeBin( uiBin, baseCtxMod[c2] );
-            absCoeff[ idx ] = uiBin + 2;
-            c2 += (c2 < 2);
-            uiNumOne++;
-          }
-        }
-#endif
       }
 
 #if MULTIBITS_DATA_HIDING
@@ -1515,16 +1492,11 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       coeffSigns <<= 32 - numNonZero;
 #endif
       
-#if RESTRICT_GR1GR2FLAG_NUMBER
       Int iFirstCoeff2 = 1;    
       if (c1 == 0 || numNonZero > C1FLAG_NUMBER)
-#else
-      if (c1 == 0)
-#endif
       {
         for( Int idx = 0; idx < numNonZero; idx++ )
         {
-#if RESTRICT_GR1GR2FLAG_NUMBER   
           UInt baseLevel  = (idx < C1FLAG_NUMBER)? (2 + iFirstCoeff2) : 1;
 
           if( absCoeff[ idx ] == baseLevel)
@@ -1539,14 +1511,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
             iFirstCoeff2 = 0;
             uiNumOne++;
           }
-#else
-          if( absCoeff[ idx ] == 3 )
-          {
-            UInt uiLevel;
-            xReadGoRiceExGolomb( uiLevel, uiGoRiceParam );
-            absCoeff[ idx ] = uiLevel + 3;
-          }
-#endif
         }
       }
 

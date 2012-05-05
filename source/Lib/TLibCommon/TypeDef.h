@@ -74,11 +74,8 @@
 
 #define LAST_CTX_REDUCTION        1  ///< H0537/H514: contexts reduction for last position coding
 
-#define RESTRICT_GR1GR2FLAG_NUMBER    1 ///< H0554: Throughput improvement of CABAC coefficients level coding
-#if RESTRICT_GR1GR2FLAG_NUMBER    // 
 #define C1FLAG_NUMBER               8 // maximum number of largerThan1 flag coded in one chunk :  16 in HM5
 #define C2FLAG_NUMBER               1 // maximum number of largerThan2 flag coded in one chunk:  16 in HM5 
-#endif 
 
 #define EIGHT_BITS_RICE_CODE        1 ///< H0498 : 8 bits rice codes
 

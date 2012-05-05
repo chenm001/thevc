@@ -1572,9 +1572,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 #endif  // MULTIBITS_DATA_HIDING
 
       UInt c1 = 1;
-#if !RESTRICT_GR1GR2FLAG_NUMBER
-      UInt c2 = 0;
-#endif
 #if LEVEL_CTX_LUMA_RED
       UInt uiCtxSet = (iSubSet > 0 && eTType==TEXT_LUMA) ? 2 : 0;
 #else
@@ -1595,13 +1592,9 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       uiNumOne       >>= 1;
       ContextModel *baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUOneSCModel.get( 0, 0 ) + 4 * uiCtxSet : m_cCUOneSCModel.get( 0, 0 ) + NUM_ONE_FLAG_CTX_LUMA + 4 * uiCtxSet;
       
-#if RESTRICT_GR1GR2FLAG_NUMBER
       Int numC1Flag = min(numNonZero, C1FLAG_NUMBER);
       Int firstC2FlagIdx = -1;
       for( Int idx = 0; idx < numC1Flag; idx++ )
-#else
-      for ( Int idx = 0; idx < numNonZero; idx++ )
-#endif
       {
         UInt uiSymbol = absCoeff[ idx ] > 1;
         m_pcBinIf->encodeBin( uiSymbol, baseCtxMod[c1] );
@@ -1609,12 +1602,10 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
         {
           c1 = 0;
 
-#if RESTRICT_GR1GR2FLAG_NUMBER
           if (firstC2FlagIdx == -1)
           {
             firstC2FlagIdx = idx;
           }
-#endif
         }
         else if( (c1 < 3) && (c1 > 0) )
         {
@@ -1625,26 +1616,12 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       if (c1 == 0)
       {
 
-#if RESTRICT_GR1GR2FLAG_NUMBER
         baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUAbsSCModel.get( 0, 0 ) + uiCtxSet : m_cCUAbsSCModel.get( 0, 0 ) + NUM_ABS_FLAG_CTX_LUMA + uiCtxSet;
         if ( firstC2FlagIdx != -1)
         {
           UInt symbol = absCoeff[ firstC2FlagIdx ] > 2;
           m_pcBinIf->encodeBin( symbol, baseCtxMod[0] );
         }
-#else    
-        baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUAbsSCModel.get( 0, 0 ) + 3 * uiCtxSet : m_cCUAbsSCModel.get( 0, 0 ) + NUM_ABS_FLAG_CTX_LUMA + 3 * uiCtxSet;
-        for ( Int idx = 0; idx < numNonZero; idx++ )
-        {
-          if( absCoeff[ idx ] > 1 )
-          {
-            UInt symbol = absCoeff[ idx ] > 2;
-            m_pcBinIf->encodeBin( symbol, baseCtxMod[c2] );
-            c2 += (c2 < 2);
-            uiNumOne++;
-          }
-        }
-#endif
       }
       
 #if MULTIBITS_DATA_HIDING
@@ -1660,16 +1637,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       m_pcBinIf->encodeBinsEP( coeffSigns, numNonZero );
 #endif
       
-#if RESTRICT_GR1GR2FLAG_NUMBER
       Int iFirstCoeff2 = 1;    
       if (c1 == 0 || numNonZero > C1FLAG_NUMBER)
-#else
-      if (c1 == 0)
-#endif
       {
         for ( Int idx = 0; idx < numNonZero; idx++ )
         {
-#if RESTRICT_GR1GR2FLAG_NUMBER
           UInt baseLevel  = (idx < C1FLAG_NUMBER)? (2 + iFirstCoeff2 ) : 1;
 
           if( absCoeff[ idx ] >= baseLevel)
@@ -1681,12 +1653,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
             iFirstCoeff2 = 0;
             uiNumOne++;
           }
-#else
-          if ( absCoeff[ idx ] > 2 )
-          {
-            xWriteGoRiceExGolomb( absCoeff[ idx ]  - 3, uiGoRiceParam );            
-          }
-#endif
         }        
       }
     }
