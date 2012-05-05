@@ -102,8 +102,6 @@
 
 #define CABAC_LINEAR_INIT       1     ///< H0535 : linear CABAC initialization
 
-#define COLLOCATED_REF_IDX      1     ///< H0442: signal collocated reference index
-
 #define UNIFIED_TRANSFORM       1     ///< H0492: unify square and non-square transform
 
 #define MAX_NUM_SPS                32

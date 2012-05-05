@@ -66,9 +66,7 @@ TComSlice::TComSlice()
 , m_pcPPS                         ( NULL )
 , m_pcPic                         ( NULL )
 , m_uiColDir                      ( 0 )
-#if COLLOCATED_REF_IDX
 , m_colRefIdx                     ( 0 )
-#endif
 #if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA
 , m_dLambdaLuma( 0.0 )
 , m_dLambdaChroma( 0.0 )
@@ -152,9 +150,7 @@ Void TComSlice::initSlice()
   
   m_uiColDir = 0;
   
-#if COLLOCATED_REF_IDX
   m_colRefIdx = 0;
-#endif
   initEqualRef();
   m_bNoBackPredFlag = false;
   m_bRefIdxCombineCoding = false;
@@ -599,7 +595,6 @@ Void TComSlice::initEqualRef()
   }
 }
 
-#if COLLOCATED_REF_IDX
 Void TComSlice::checkColRefIdx(UInt curSliceIdx, TComPic* pic)
 {
   Int i;
@@ -625,7 +620,7 @@ Void TComSlice::checkColRefIdx(UInt curSliceIdx, TComPic* pic)
     }
   }
 }
-#endif
+
 Void TComSlice::checkCRA(TComReferencePictureSet *pReferencePictureSet, Int& pocCRA, TComList<TComPic*>& rcListPic)
 {
   for(Int i = 0; i < pReferencePictureSet->getNumberOfNegativePictures()+pReferencePictureSet->getNumberOfPositivePictures(); i++)
@@ -776,9 +771,7 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_iAPSId               = pSrc->m_iAPSId;
 
   m_uiColDir             = pSrc->m_uiColDir;
-#if COLLOCATED_REF_IDX
   m_colRefIdx            = pSrc->m_colRefIdx;
-#endif
 #if ALF_CHROMA_LAMBDA || SAO_CHROMA_LAMBDA 
   m_dLambdaLuma          = pSrc->m_dLambdaLuma;
   m_dLambdaChroma        = pSrc->m_dLambdaChroma;

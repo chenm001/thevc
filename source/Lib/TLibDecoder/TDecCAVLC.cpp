@@ -2087,7 +2087,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       rpcSlice->setColDir(uiCode);
     }
 
-#if COLLOCATED_REF_IDX
     if ( rpcSlice->getSliceType() != I_SLICE &&
       ((rpcSlice->getColDir()==0 && rpcSlice->getNumRefIdx(REF_PIC_LIST_0)>1)||
       (rpcSlice->getColDir() ==1 && rpcSlice->getNumRefIdx(REF_PIC_LIST_1)>1)))
@@ -2095,7 +2094,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       READ_UVLC( uiCode, "collocated_ref_idx" );
       rpcSlice->setColRefIdx(uiCode);
     }
-#endif
     
     if ( (pps->getUseWP() && rpcSlice->getSliceType()==P_SLICE) || (pps->getWPBiPredIdc() && rpcSlice->getSliceType()==B_SLICE) )
     {
