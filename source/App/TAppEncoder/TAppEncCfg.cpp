@@ -162,7 +162,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("LambdaModifier3,-LM3", m_adLambdaModifier[ 3 ], ( double )1.0, "Lambda modifier for temporal layer 3")
   ("SourceWidth,-wdt",      m_iSourceWidth,  0, "Source picture width")
   ("SourceHeight,-hgt",     m_iSourceHeight, 0, "Source picture height")
-#if PIC_CROPPING
   ("CroppingMode",          m_croppingMode,  0, "Cropping mode (0: no cropping, 1:automatic padding, 2: padding, 3:cropping")
   ("CropLeft",              m_cropLeft,      0, "Left cropping/padding for cropping mode 3")
   ("CropRight",             m_cropRight,     0, "Right cropping/padding for cropping mode 3")
@@ -170,16 +169,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("CropBottom",            m_cropBottom,    0, "Bottom cropping/padding for cropping mode 3")
   ("HorizontalPadding,-pdx",m_aiPad[0],      0, "horizontal source padding for cropping mode 2")
   ("VerticalPadding,-pdy",  m_aiPad[1],      0, "vertical source padding for cropping mode 2")
-#endif
   ("InputBitDepth",         m_uiInputBitDepth, 8u, "bit-depth of input file")
   ("BitDepth",              m_uiInputBitDepth, 8u, "deprecated alias of InputBitDepth")
   ("OutputBitDepth",        m_uiOutputBitDepth, 0u, "bit-depth of output file")
   ("InternalBitDepth",      m_uiInternalBitDepth, 0u, "Internal bit-depth (BitDepth+BitIncrement)")
-#if !PIC_CROPPING
-  ("HorizontalPadding,-pdx",m_aiPad[0],      0, "horizontal source padding size")
-  ("VerticalPadding,-pdy",  m_aiPad[1],      0, "vertical source padding size")
-  ("PAD",                   m_bUsePAD,   false, "automatic source padding of multiple of 16" )
-#endif
   ("FrameRate,-fr",         m_iFrameRate,        0, "Frame rate")
   ("FrameSkip,-fs",         m_FrameSkip,         0u, "Number of frames to skip at start of input YUV")
   ("FramesToBeEncoded,f",   m_iFrameToBeEncoded, 0, "number of frames to be encoded (default=all)")
@@ -380,7 +373,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   m_pchRowHeight = cfg_RowHeight.empty() ? NULL : strdup(cfg_RowHeight.c_str());
   m_scalingListFile = cfg_ScalingListFile.empty() ? NULL : strdup(cfg_ScalingListFile.c_str());
   
-#if PIC_CROPPING
   switch (m_croppingMode)
   {
   case 0:
@@ -430,23 +422,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
       break;
     }
   }
-#else
-  // compute source padding size
-  if ( m_bUsePAD )
-  {
-    if ( m_iSourceWidth%MAX_PAD_SIZE )
-    {
-      m_aiPad[0] = (m_iSourceWidth/MAX_PAD_SIZE+1)*MAX_PAD_SIZE - m_iSourceWidth;
-    }
-    
-    if ( m_iSourceHeight%MAX_PAD_SIZE )
-    {
-      m_aiPad[1] = (m_iSourceHeight/MAX_PAD_SIZE+1)*MAX_PAD_SIZE - m_iSourceHeight;
-    }
-  }
-  m_iSourceWidth  += m_aiPad[0];
-  m_iSourceHeight += m_aiPad[1];
-#endif
   
   // allocate slice-based dQP values
   m_aidQP = new Int[ m_iFrameToBeEncoded + m_iGOPSize + 1 ];
@@ -547,13 +522,8 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( (m_uiMaxCUHeight >> m_uiMaxCUDepth) < 4,                                    "Minimum partition height size should be larger than or equal to 8");
   xConfirmPara( m_uiMaxCUWidth < 16,                                                        "Maximum partition width size should be larger than or equal to 16");
   xConfirmPara( m_uiMaxCUHeight < 16,                                                       "Maximum partition height size should be larger than or equal to 16");
-#if PIC_CROPPING
   xConfirmPara( (m_iSourceWidth  % (m_uiMaxCUWidth  >> (m_uiMaxCUDepth-1)))!=0,             "Resulting coded frame width must be a multiple of the minimum CU size");
   xConfirmPara( (m_iSourceHeight % (m_uiMaxCUHeight >> (m_uiMaxCUDepth-1)))!=0,             "Resulting coded frame height must be a multiple of the minimum CU size");
-#else
-  xConfirmPara( (m_iSourceWidth  % (m_uiMaxCUWidth  >> (m_uiMaxCUDepth-1)))!=0,             "Frame width should be multiple of minimum CU size");
-  xConfirmPara( (m_iSourceHeight % (m_uiMaxCUHeight >> (m_uiMaxCUDepth-1)))!=0,             "Frame height should be multiple of minimum CU size");
-#endif
   
   xConfirmPara( m_uiQuadtreeTULog2MinSize < 2,                                        "QuadtreeTULog2MinSize must be 2 or greater.");
   xConfirmPara( m_uiQuadtreeTULog2MinSize > 5,                                        "QuadtreeTULog2MinSize must be 5 or smaller.");
@@ -1030,11 +1000,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("Input          File          : %s\n", m_pchInputFile          );
   printf("Bitstream      File          : %s\n", m_pchBitstreamFile      );
   printf("Reconstruction File          : %s\n", m_pchReconFile          );
-#if PIC_CROPPING
   printf("Real     Format              : %dx%d %dHz\n", m_iSourceWidth - m_cropLeft - m_cropRight, m_iSourceHeight - m_cropTop - m_cropBottom, m_iFrameRate );
-#else
-  printf("Real     Format              : %dx%d %dHz\n", m_iSourceWidth - m_aiPad[0], m_iSourceHeight-m_aiPad[1], m_iFrameRate );
-#endif
   printf("Internal Format              : %dx%d %dHz\n", m_iSourceWidth, m_iSourceHeight, m_iFrameRate );
   printf("Frame index                  : %u - %d (%d frames)\n", m_FrameSkip, m_FrameSkip+m_iFrameToBeEncoded-1, m_iFrameToBeEncoded );
   printf("CU size / depth              : %d / %d\n", m_uiMaxCUWidth, m_uiMaxCUDepth );
@@ -1082,9 +1048,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("RDQ:%d ", m_bUseRDOQ            );
   printf("SQP:%d ", m_uiDeltaQpRD         );
   printf("ASR:%d ", m_bUseASR             );
-#if !PIC_CROPPING
-  printf("PAD:%d ", m_bUsePAD             );
-#endif
   printf("LComb:%d ", m_bUseLComb         );
   printf("LCMod:%d ", m_bLCMod         );
   printf("FEN:%d ", m_bUseFastEnc         );

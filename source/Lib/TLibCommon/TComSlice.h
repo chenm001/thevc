@@ -157,15 +157,11 @@ private:
   // Structure
   UInt        m_picWidthInLumaSamples;
   UInt        m_picHeightInLumaSamples;
-#if PIC_CROPPING
   Bool        m_picCroppingFlag;
   Int         m_picCropLeftOffset;
   Int         m_picCropRightOffset;
   Int         m_picCropTopOffset;
   Int         m_picCropBottomOffset;
-#else
-  Int         m_aiPad[2];
-#endif
   UInt        m_uiMaxCUWidth;
   UInt        m_uiMaxCUHeight;
   UInt        m_uiMaxCUDepth;
@@ -195,9 +191,6 @@ private:
   Bool        m_bUseALF;
 #if LCU_SYNTAX_ALF
   Bool        m_bALFCoefInSlice;
-#endif
-#if !PIC_CROPPING
-  Bool        m_bUsePAD;
 #endif
   Bool        m_bUseLMChroma; // JL:
 
@@ -282,7 +275,6 @@ public:
   Void setPicHeightInLumaSamples      ( UInt u ) { m_picHeightInLumaSamples = u;       }
   UInt getPicHeightInLumaSamples      ()         { return  m_picHeightInLumaSamples;   }
 
-#if PIC_CROPPING
   Bool getPicCroppingFlag() const          { return m_picCroppingFlag; }
   Void setPicCroppingFlag(Bool val)        { m_picCroppingFlag = val; }
   Int  getPicCropLeftOffset() const        { return m_picCropLeftOffset; }
@@ -293,7 +285,6 @@ public:
   Void setPicCropTopOffset(Int val)        { m_picCropTopOffset = val; }
   Int  getPicCropBottomOffset() const      { return m_picCropBottomOffset; }
   Void setPicCropBottomOffset(Int val)     { m_picCropBottomOffset = val; }
-#endif
 
   Void setMaxCUWidth  ( UInt u ) { m_uiMaxCUWidth = u;      }
   UInt getMaxCUWidth  ()         { return  m_uiMaxCUWidth;  }
@@ -325,9 +316,6 @@ public:
   Void setQuadtreeTUMaxDepthIntra( UInt u ) { m_uiQuadtreeTUMaxDepthIntra = u;    }
   UInt getQuadtreeTUMaxDepthInter()         { return m_uiQuadtreeTUMaxDepthInter; }
   UInt getQuadtreeTUMaxDepthIntra()         { return m_uiQuadtreeTUMaxDepthIntra; }
-#if !PIC_CROPPING
-  Void setPad         (Int iPad[2]) { m_aiPad[0] = iPad[0]; m_aiPad[1] = iPad[1]; }
-#endif
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   Void setNumReorderPics(Int i, UInt tlayer)              { m_numReorderPics[tlayer] = i;    }
   Int  getNumReorderPics(UInt tlayer)                     { return m_numReorderPics[tlayer]; }
@@ -343,12 +331,6 @@ public:
   Bool      getLongTermRefsPresent()         { return m_bLongTermRefsPresent; }
   Void      setLongTermRefsPresent(Bool b)   { m_bLongTermRefsPresent=b;      }
 #endif
-#if !PIC_CROPPING
-  Void setPadX        ( Int  u ) { m_aiPad[0] = u; }
-  Void setPadY        ( Int  u ) { m_aiPad[1] = u; }
-  Int  getPad         ( Int  u ) { assert(u < 2); return m_aiPad[u];}
-  Int* getPad         ( )        { return m_aiPad; }
-#endif
   
   // physical transform
   Void setMaxTrSize   ( UInt u ) { m_uiMaxTrSize = u;       }
@@ -361,10 +343,6 @@ public:
   Bool getUseALFCoefInSlice()    {return m_bALFCoefInSlice;}
 #endif
 
-#if !PIC_CROPPING
-  Bool getUsePAD      ()         { return m_bUsePAD;        }
-  Void setUsePAD      ( Bool b ) { m_bUsePAD   = b;         }
-#endif
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
   Void setUseLComb    (Bool b)   { m_bUseLComb = b;         }
   Bool getUseLComb    ()         { return m_bUseLComb;      }

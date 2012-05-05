@@ -1333,7 +1333,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_CODE( 3,  uiCode, "max_temporal_layers_minus1" );         pcSPS->setMaxTLayers( uiCode+1 );
   READ_UVLC (    uiCode, "pic_width_in_luma_samples" );          pcSPS->setPicWidthInLumaSamples ( uiCode    );
   READ_UVLC (    uiCode, "pic_height_in_luma_samples" );         pcSPS->setPicHeightInLumaSamples( uiCode    );
-#if PIC_CROPPING
   READ_FLAG(     uiCode, "pic_cropping_flag");                   pcSPS->setPicCroppingFlag ( uiCode ? true : false );
   if (uiCode != 0)
   {
@@ -1342,7 +1341,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     READ_UVLC(   uiCode, "pic_crop_top_offset" );                pcSPS->setPicCropTopOffset( uiCode );
     READ_UVLC(   uiCode, "pic_crop_bottom_offset" );             pcSPS->setPicCropBottomOffset( uiCode );
   }
-#endif
 
 #if FULL_NBIT
   READ_UVLC(     uiCode, "bit_depth_luma_minus8" );
@@ -1487,12 +1485,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     parseShortTermRefPicSet(pcSPS,rps,i);
   }
   READ_FLAG( uiCode, "long_term_ref_pics_present_flag" );          pcSPS->setLongTermRefsPresent(uiCode);
-#endif
-#if !PIC_CROPPING
-  //!!!KS: Syntax not in WD !!!
-
-  xReadUvlc ( uiCode ); pcSPS->setPadX        ( uiCode    );
-  xReadUvlc ( uiCode ); pcSPS->setPadY        ( uiCode    );
 #endif
   
   // AMVP mode for each depth (AM_NONE or AM_EXPL)

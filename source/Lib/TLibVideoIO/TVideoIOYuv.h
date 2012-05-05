@@ -68,11 +68,7 @@ public:
   void skipFrames(unsigned int numFrames, unsigned int width, unsigned int height);
   
   bool  read  ( TComPicYuv*   pPicYuv, Int aiPad[2] );     ///< read  one YUV frame with padding parameter
-#if PIC_CROPPING
   Bool  write( TComPicYuv*    pPicYuv, Int cropLeft=0, Int cropRight=0, Int cropTop=0, Int cropBottom=0 );
-#else
-  bool  write ( TComPicYuv*   pPicYuv, Int aiPad[2] );     ///< write one YUV frame with padding parameter
-#endif
   
   bool  isEof ();                                           ///< check for end-of-file
   bool  isFail();                                           ///< check for failure

@@ -251,9 +251,7 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
   while (iterPic != pcListPic->end())
   {
     TComPic* pcPic = *(iterPic);
-#if PIC_CROPPING
     TComSPS *sps = pcPic->getSlice(0)->getSPS();
-#endif
     
 #if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
     if ( pcPic->getOutputMark() && (not_displayed >  pcPic->getSlice(0)->getSPS()->getNumReorderPics(tId) && pcPic->getPOC() > m_iPOCLastDisplay))
@@ -265,11 +263,7 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
        not_displayed--;
       if ( m_pchReconFile )
       {
-#if PIC_CROPPING
         m_cTVideoIOYuvReconFile.write( pcPic->getPicYuvRec(), sps->getPicCropLeftOffset(), sps->getPicCropRightOffset(), sps->getPicCropTopOffset(), sps->getPicCropBottomOffset() );
-#else
-        m_cTVideoIOYuvReconFile.write( pcPic->getPicYuvRec(), pcPic->getSlice(0)->getSPS()->getPad() );
-#endif
       }
       
       // update POC of display order
@@ -314,20 +308,14 @@ Void TAppDecTop::xFlushOutput( TComList<TComPic*>* pcListPic )
   while (iterPic != pcListPic->end())
   {
     TComPic* pcPic = *(iterPic);
-#if PIC_CROPPING
     TComSPS *sps = pcPic->getSlice(0)->getSPS();
-#endif
 
     if ( pcPic->getOutputMark() )
     {
       // write to file
       if ( m_pchReconFile )
       {
-#if PIC_CROPPING
         m_cTVideoIOYuvReconFile.write( pcPic->getPicYuvRec(), sps->getPicCropLeftOffset(), sps->getPicCropRightOffset(), sps->getPicCropTopOffset(), sps->getPicCropBottomOffset() );
-#else
-        m_cTVideoIOYuvReconFile.write( pcPic->getPicYuvRec(), pcPic->getSlice(0)->getSPS()->getPad() );
-#endif
       }
       
       // update POC of display order
