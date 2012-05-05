@@ -3593,23 +3593,8 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   }
   else if (pInfo->iN < AMVP_MAX_NUM_CANDS)
   {
-#if !AMVP_ZERO_CHECKING_REMOVAL
-    int j;
-    for (j=0; j<pInfo->iN; j++)
-    {
-      if (pInfo->m_acMvCand[j].getHor() == 0 && pInfo->m_acMvCand[j].getVer() == 0)
-      {
-        break;
-      }
-    }
-    if (j == pInfo->iN)
-    {
-#endif
       pInfo->m_acMvCand[pInfo->iN].set(0,0);
       pInfo->iN++;
-#if !AMVP_ZERO_CHECKING_REMOVAL
-    }
-#endif
   }
   return ;
 }
