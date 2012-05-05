@@ -66,8 +66,6 @@
 #define MULTILEVEL_SIGMAP_EXT     1  ///< H0526: multi-level significance map extended to smaller TUs
 #define MULTIBITS_DATA_HIDING     1  ///< H0481: multiple sign bit hiding
 
-#define DEQUANT_CLIPPING           1  ///< H0312/H0541: transformed coefficients clipping before de-quantization
-
 #define AMVP_ZERO_CHECKING_REMOVAL          1     ///H0239/H0316: remove zero motion vector checking of AMVP
 
 #define H0111_MVD_L1_ZERO         1  ///< H0111: modification of bi-prediction
