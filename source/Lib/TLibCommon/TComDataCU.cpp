@@ -1788,13 +1788,8 @@ Bool TComDataCU::isLosslessCoded(UInt absPartIdx)
 Void TComDataCU::getAllowedChromaDir( UInt uiAbsPartIdx, UInt* uiModeList )
 {
   uiModeList[0] = PLANAR_IDX;
-#if LOGI_INTRA_NAME_3MPM
   uiModeList[1] = VER_IDX;
   uiModeList[2] = HOR_IDX;
-#else
-  uiModeList[1] = 1;
-  uiModeList[2] = 2;
-#endif
   uiModeList[3] = DC_IDX;
   uiModeList[4] = LM_CHROMA_IDX;
   uiModeList[5] = DM_CHROMA_IDX;
@@ -1805,11 +1800,7 @@ Void TComDataCU::getAllowedChromaDir( UInt uiAbsPartIdx, UInt* uiModeList )
   {
     if( uiLumaMode == uiModeList[i] )
     {
-#if LOGI_INTRA_NAME_3MPM
       uiModeList[i] = 34; // VER+8 mode
-#else
-      uiModeList[i] = 7; // VER+8 mode
-#endif
       break;
     }
   }
@@ -1838,7 +1829,6 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int* uiIntraDirPred
   
   iAboveIntraDir = pcTempCU ? ( pcTempCU->isIntra( uiTempPartIdx ) ? pcTempCU->getLumaIntraDir( uiTempPartIdx ) : DC_IDX ) : DC_IDX;
   
-#if LOGI_INTRA_NAME_3MPM
   uiPredNum = 3;
   if(iLeftIntraDir == iAboveIntraDir)
   {
@@ -1878,44 +1868,6 @@ Int TComDataCU::getIntraDirLumaPredictor( UInt uiAbsPartIdx, Int* uiIntraDirPred
       uiIntraDirPred[2] =  (iLeftIntraDir+iAboveIntraDir)<2? VER_IDX : DC_IDX;
     }
   }
-#else
-  Int iIdx  = getIntraSizeIdx(uiAbsPartIdx);
-  
-  
-  if ( iLeftIntraDir >= g_aucIntraModeNumAng[iIdx] ) 
-  {
-    iLeftIntraDir = PLANAR_IDX;
-  }
-  
-  
-  if ( iAboveIntraDir >= g_aucIntraModeNumAng[iIdx] ) 
-  {
-    iAboveIntraDir = PLANAR_IDX;
-  }
-  
-  if(iLeftIntraDir == iAboveIntraDir)
-  {
-    uiPredNum = 2;
-    
-    if( piMode )
-    {
-      *piMode = iLeftIntraDir;
-    }
-    
-    iAboveIntraDir = iLeftIntraDir == PLANAR_IDX ? DC_IDX : PLANAR_IDX; // DC or Planar
-    
-    assert( iLeftIntraDir != iAboveIntraDir );
-    
-    uiIntraDirPred[0] = min(iLeftIntraDir, iAboveIntraDir);
-    uiIntraDirPred[1] = max(iLeftIntraDir, iAboveIntraDir);
-  }
-  else
-  {
-    uiPredNum = 2;
-    uiIntraDirPred[0] = min(iLeftIntraDir, iAboveIntraDir);
-    uiIntraDirPred[1] = max(iLeftIntraDir, iAboveIntraDir);
-  }
-#endif
   
   return uiPredNum;
 }
@@ -3866,26 +3818,6 @@ Void TComDataCU::compressMV()
 
 UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, Bool bIsIntra)
 {
-#if !LOGI_INTRA_NAME_3MPM  
-  static const UChar aucIntraDirToScanIdx[MAX_CU_DEPTH][NUM_INTRA_MODE] =
-  {
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    },
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    },
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    },
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    },
-    {0, 1, 2, 0, 0, 1, 1, 0, 2, 2, 0, 0, 1, 1, 0, 0, 2, 2, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0
-    },
-    {0, 1, 2, 0, 0, 1, 1, 0, 2, 2, 0, 0, 1, 1, 0, 0, 2, 2, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 0
-    },
-    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    },
-  };
-#endif
-  
   UInt uiCTXIdx;
   UInt uiScanIdx;
   UInt uiDirMode;
@@ -3910,15 +3842,11 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
   if ( bIsLuma )
   {
     uiDirMode = getLumaIntraDir(uiAbsPartIdx);
-#if LOGI_INTRA_NAME_3MPM
     uiScanIdx = SCAN_ZIGZAG;
     if (uiCTXIdx >3 && uiCTXIdx < 6) //if multiple scans supported for PU size
     {
       uiScanIdx = abs((Int) uiDirMode - VER_IDX) < 5 ? 1 : (abs((Int)uiDirMode - HOR_IDX) < 5 ? 2 : 0);
     }
-#else
-    uiScanIdx = aucIntraDirToScanIdx[uiCTXIdx][uiDirMode];
-#endif
   }
   else
   {
@@ -3932,15 +3860,11 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
       // get luma mode from upper-left corner of current CU
       uiDirMode = getLumaIntraDir((uiAbsPartIdx/numParts)*numParts);
     }
-#if LOGI_INTRA_NAME_3MPM
     uiScanIdx = SCAN_ZIGZAG;
     if (uiCTXIdx >4 && uiCTXIdx < 7) //if multiple scans supported for PU size
     {
       uiScanIdx = abs((Int) uiDirMode - VER_IDX) < 5 ? 1 : (abs((Int)uiDirMode - HOR_IDX) < 5 ? 2 : 0);
     }
-#else
-    uiScanIdx = aucIntraDirToScanIdx[max<Int>(uiCTXIdx-1,0)][uiDirMode];
-#endif
   }
 
   return uiScanIdx;

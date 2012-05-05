@@ -687,18 +687,10 @@ Void TDecSbac::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   
 Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if !LOGI_INTRA_NAME_3MPM
-  Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
-#endif
-  
   UInt uiSymbol;
   Int  intraPredMode;
 
-#if LOGI_INTRA_NAME_3MPM
   Int uiPreds[3] = {-1, -1, -1};
-#else
-  Int uiPreds[2] = {-1, -1};
-#endif
   Int uiPredNum = pcCU->getIntraDirLumaPredictor(uiAbsPartIdx, uiPreds);  
  
   m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 0) );
@@ -706,21 +698,17 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
   if ( uiSymbol )
   {
     m_pcTDecBinIf->decodeBinEP( uiSymbol );
-#if LOGI_INTRA_NAME_3MPM
     if (uiSymbol)
     {
       m_pcTDecBinIf->decodeBinEP( uiSymbol );
       uiSymbol++;
     }
-#endif
     intraPredMode = uiPreds[uiSymbol];
   }
   else
   {
     intraPredMode = 0;
     
-#if LOGI_INTRA_NAME_3MPM
-   
     m_pcTDecBinIf->decodeBinsEP( uiSymbol, 5 );
     intraPredMode = uiSymbol;
     
@@ -737,16 +725,6 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
     {
       std::swap(uiPreds[1], uiPreds[2]);
     }
-#else
-    m_pcTDecBinIf->decodeBinsEP( uiSymbol, g_aucIntraModeBitsAng[iIntraIdx] - 1 );
-    intraPredMode = uiSymbol;
-    
-    if ( intraPredMode == 31 )
-    {
-      m_pcTDecBinIf->decodeBinEP( uiSymbol );
-      intraPredMode += uiSymbol;      
-    }
-#endif
     for ( Int i = 0; i < uiPredNum; i++ )
     {
       intraPredMode += ( intraPredMode >= uiPreds[i] );

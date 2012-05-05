@@ -696,15 +696,8 @@ Void TEncSbac::codeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx )
 Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
-#if !LOGI_INTRA_NAME_3MPM
-  Int iIntraIdx = pcCU->getIntraSizeIdx(uiAbsPartIdx);
-#endif
   
-#if LOGI_INTRA_NAME_3MPM
   Int uiPreds[3] = {-1, -1, -1};
-#else
-  Int uiPreds[2] = {-1, -1};
-#endif
   Int uiPredNum = pcCU->getIntraDirLumaPredictor(uiAbsPartIdx, uiPreds);  
 
   Int uiPredIdx = -1;
@@ -720,21 +713,16 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
   if(uiPredIdx != -1)
   {
     m_pcBinIf->encodeBin( 1, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
-#if LOGI_INTRA_NAME_3MPM
     m_pcBinIf->encodeBinEP( uiPredIdx ? 1 : 0 );
     if (uiPredIdx)
     {
       m_pcBinIf->encodeBinEP( uiPredIdx-1 );
     }
-#else
-    m_pcBinIf->encodeBinEP( uiPredIdx );
-#endif
   }
   else
   {
     m_pcBinIf->encodeBin( 0, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
   
-#if LOGI_INTRA_NAME_3MPM
     if (uiPreds[0] > uiPreds[1])
     { 
       std::swap(uiPreds[0], uiPreds[1]); 
@@ -747,26 +735,13 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
     {
       std::swap(uiPreds[1], uiPreds[2]);
     }
-#endif
 
     for(Int i = (uiPredNum - 1); i >= 0; i--)
     {
       uiDir = uiDir > uiPreds[i] ? uiDir - 1 : uiDir;
     }
 
-#if LOGI_INTRA_NAME_3MPM
     m_pcBinIf->encodeBinsEP( uiDir, 5 );
-#else
-    if ( uiDir < 31 )
-    {
-      m_pcBinIf->encodeBinsEP( uiDir, g_aucIntraModeBitsAng[ iIntraIdx ] - 1 );
-    }
-    else
-    {
-      m_pcBinIf->encodeBinsEP( 31, 5 );
-      m_pcBinIf->encodeBinEP( uiDir - 31 );
-    }
-#endif
    }
   return;
 }

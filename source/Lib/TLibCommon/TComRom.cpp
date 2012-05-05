@@ -379,19 +379,6 @@ const short g_as_DST_MAT_4 [4][4]=
   {55,  -84,    74,  -29},
 };
 
-#if !LOGI_INTRA_NAME_3MPM
-// Mapping each Unified Directional Intra prediction direction to DCT/DST transform 
-// 0 implies use DCT, 1 implies DST
-const UChar g_aucDCTDSTMode_Vert[NUM_INTRA_MODE] =
-{ //0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33
-  1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0
-};
-const UChar g_aucDCTDSTMode_Hor[NUM_INTRA_MODE] =
-{ //0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33
-  1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0
-};
-#endif
-
 
 // ====================================================================================================================
 // ADI
@@ -425,76 +412,6 @@ const UChar g_aucIntraModeNumFast[7] =
 
 const UChar g_aucConvertTxtTypeToIdx[4] = { 0, 1, 1, 2 };
 
-#if !LOGI_INTRA_NAME_3MPM
-// ====================================================================================================================
-// Angular Intra prediction
-// ====================================================================================================================
-
-// g_aucAngIntraModeOrder
-//   Indexing this array with the mode indicated in the bitstream
-//   gives a logical index used in the prediction functions.
-const UChar g_aucAngIntraModeOrder[NUM_INTRA_MODE] =
-{     //  ModeOrder LogicalOrderInPredFunctions
-  34, //  PLANAR_IDX PLANAR PLANAR
-  9,  //  0 VER     DC
-  25, //  1 HOR     VER-8 (diagonal from top-left to bottom-right = HOR-8)
-  0,  //  2 DC      VER-7
-  1,  //  4 VER-8   VER-6
-  5,  //  5 VER-4   VER-5
-  13, //  6 VER+4   VER-4
-  17, //  7 VER+8   VER-3
-  21, //  8 HOR-4   VER-2
-  29, //  9 HOR+4   VER-1
-  33, // 10 HOR+8   VER
-  3,  // 11 VER-6   VER+1
-  7,  // 12 VER-2   VER+2
-  11, // 13 VER+2   VER+3
-  15, // 14 VER+6   VER+4
-  19, // 15 HOR-6   VER+5
-  23, // 16 HOR-2   VER+6
-  27, // 17 HOR+2   VER+7
-  31, // 18 HOR+6   VER+8
-  2,  // 19 VER-7   HOR-7
-  4,  // 20 VER-5   HOR-6
-  6,  // 21 VER-3   HOR-5
-  8,  // 22 VER-1   HOR-4
-  10, // 23 VER+1   HOR-3
-  12, // 24 VER+3   HOR-2
-  14, // 25 VER+5   HOR-1
-  16, // 26 VER+7   HOR
-  18, // 27 HOR-7   HOR+1
-  20, // 28 HOR-5   HOR+2
-  22, // 29 HOR-3   HOR+3
-  24, // 30 HOR-1   HOR+4
-  26, // 31 HOR+1   HOR+5
-  28, // 32 HOR+3   HOR+6
-  30, // 33 HOR+5   HOR+7
-  32, // 34 HOR+7   HOR+8
-  0, // LM_CHROMA_IDX 
-};
-
-const UChar g_aucIntraModeNumAng[7] =
-{
-  4,  //   2x2
-  18,  //   4x4
-  35,  //   8x8
-  35,  //  16x16
-  35,  //  32x32
-  35,  //  64x64
-  6   // 128x128
-};
-
-const UChar g_aucIntraModeBitsAng[7] =
-{
-  2,  //   2x2     3   1+1
-  5,  //   4x4    17   4+1
-  6,  //   8x8    34   5+esc
-  6,  //  16x16   34   5+esc
-  6,  //  32x32   34   5+esc
-  6,  //  64x64   34   5+esc
-  3   // 128x128   5   2+1
-};
-#endif
 
 // ====================================================================================================================
 // Bit-depth

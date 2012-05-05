@@ -825,11 +825,7 @@ void xTrMxN(short *block,short *coeff, int iWidth, int iHeight, UInt uiMode)
   }
   else if( iWidth == 4 && iHeight == 4)
   {
-#if LOGI_INTRA_NAME_3MPM
     if (uiMode != REG_DCT && (!uiMode || (uiMode>=2 && uiMode <= 25)))    // Check for DCT or DST
-#else
-    if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode])// Check for DCT or DST
-#endif
     {
       fastForwardDst(block,tmp,shift_1st); // Forward DST BY FAST ALGORITHM, block input, tmp output
     }
@@ -837,11 +833,7 @@ void xTrMxN(short *block,short *coeff, int iWidth, int iHeight, UInt uiMode)
     {
       partialButterfly4(block, tmp, shift_1st, iHeight);
     }
-#if LOGI_INTRA_NAME_3MPM
     if (uiMode != REG_DCT && (!uiMode || (uiMode>=11 && uiMode <= 34)))    // Check for DCT or DST
-#else
-    if (uiMode != REG_DCT && g_aucDCTDSTMode_Vert[uiMode] )   // Check for DCT or DST
-#endif
     {
       fastForwardDst(tmp,coeff,shift_2nd); // Forward DST BY FAST ALGORITHM, tmp input, coeff output
     }
@@ -904,11 +896,7 @@ void xITrMxN(short *coeff,short *block, int iWidth, int iHeight, UInt uiMode)
   }
   else if( iWidth == 4 && iHeight == 4)
   {
-#if LOGI_INTRA_NAME_3MPM
     if (uiMode != REG_DCT && (!uiMode || (uiMode>=11 && uiMode <= 34)))    // Check for DCT or DST
-#else
-    if (uiMode != REG_DCT && g_aucDCTDSTMode_Vert[uiMode] )    // Check for DCT or DST
-#endif
     {
       fastInverseDst(coeff,tmp,shift_1st);    // Inverse DST by FAST Algorithm, coeff input, tmp output
     }
@@ -916,11 +904,7 @@ void xITrMxN(short *coeff,short *block, int iWidth, int iHeight, UInt uiMode)
     {
       partialButterflyInverse4(coeff,tmp,shift_1st,iWidth);    
     } 
-#if LOGI_INTRA_NAME_3MPM
     if (uiMode != REG_DCT && (!uiMode || (uiMode>=2 && uiMode <= 25)))    // Check for DCT or DST
-#else
-    if (uiMode != REG_DCT && g_aucDCTDSTMode_Hor[uiMode] )    // Check for DCT or DST
-#endif
     {
       fastInverseDst(tmp,block,shift_2nd); // Inverse DST by FAST Algorithm, tmp input, coeff output
     }
