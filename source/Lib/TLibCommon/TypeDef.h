@@ -80,7 +80,6 @@
 
 #define ALF_16_BA_GROUPS        1     ///< H0409 16 BA groups
 #define LCU_SYNTAX_ALF          1     ///< H0274 LCU-syntax ALF
-#define ALF_CHROMA_COEF_PRED_HARMONIZATION 1 ///< H0483: ALF chroma coeff pred harmonization
 
 #define CABAC_LINEAR_INIT       1     ///< H0535 : linear CABAC initialization
 

@@ -924,14 +924,9 @@ Void TComAdaptiveLoopFilter::predictALFCoeffChroma( ALFParam* pAlfParam )
     sum+=pFiltMag[i]*pAlfParam->coeff_chroma[i];
   }
   pred=(1<<ALF_NUM_BIT_SHIFT)-(sum-pAlfParam->coeff_chroma[N-1]);
-#if ALF_CHROMA_COEF_PRED_HARMONIZATION
   pAlfParam->coeff_chroma[N-1]=pAlfParam->coeff_chroma[N-1] - pred;
-#else
-  pAlfParam->coeff_chroma[N-1]=pred-pAlfParam->coeff_chroma[N-1];
-#endif
 }
 
-#if ALF_CHROMA_COEF_PRED_HARMONIZATION
 Void TComAdaptiveLoopFilter::reconstructALFCoeffChroma( ALFParam* pAlfParam )
 {
   Int i, sum, pred, N;
@@ -946,7 +941,6 @@ Void TComAdaptiveLoopFilter::reconstructALFCoeffChroma( ALFParam* pAlfParam )
   pred=(1<<ALF_NUM_BIT_SHIFT)-(sum-pAlfParam->coeff_chroma[N-1]);
   pAlfParam->coeff_chroma[N-1]=pred+ pAlfParam->coeff_chroma[N-1];
 }
-#endif
 #endif
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -1170,11 +1164,7 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam, st
   xALFLuma(pcPic, pcAlfParam, vAlfCUCtrlParam, pcPicYuvExtRec, pcPicYuvRec);
   if(pcAlfParam->chroma_idc)
   {
-#if ALF_CHROMA_COEF_PRED_HARMONIZATION
     reconstructALFCoeffChroma(pcAlfParam);
-#else
-    predictALFCoeffChroma(pcAlfParam);
-#endif
     checkFilterCoeffValue(pcAlfParam->coeff_chroma, pcAlfParam->num_coeff_chroma, true );
 
     xALFChroma( pcAlfParam, pcPicYuvExtRec, pcPicYuvRec);
@@ -3231,11 +3221,7 @@ Void TComAdaptiveLoopFilter::reconstructChromaCoefficients(ALFParam* alfLCUParam
 #else
   coeffPred = (1<<ALF_NUM_BIT_SHIFT) - sum;
 #endif
-#if ALF_CHROMA_COEF_PRED_HARMONIZATION
   filterCoeff[0][alfLCUParam->num_coeff-1] = coeffPred + alfLCUParam->coeffmulti[0][alfLCUParam->num_coeff-1];
-#else
-  filterCoeff[0][alfLCUParam->num_coeff-1] = coeffPred - alfLCUParam->coeffmulti[0][alfLCUParam->num_coeff-1];
-#endif
 }
 
 
@@ -3443,11 +3429,7 @@ Void TComAdaptiveLoopFilter::predictALFCoeffChroma(Int* coeff, Int numCoef)
 #else
   Int pred = (1<<ALF_NUM_BIT_SHIFT) - (sum);
 #endif
-#if ALF_CHROMA_COEF_PRED_HARMONIZATION
   coeff[numCoef-1] = coeff[numCoef-1] - pred;
-#else
-  coeff[numCoef-1] = pred- coeff[numCoef-1];
-#endif
 }
 
 #if ALF_SINGLE_FILTER_SHAPE 
