@@ -344,17 +344,12 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   // exit when a new picture is found
   if (m_apcSlicePilot->isNextSlice() && m_apcSlicePilot->getPOC()!=m_prevPOC && !m_bFirstSliceInSequence)
   {
-#if START_DECODING_AT_CRA
     if (m_prevPOC >= m_pocRandomAccess)
     {
       m_prevPOC = m_apcSlicePilot->getPOC();
       return true;
     }
     m_prevPOC = m_apcSlicePilot->getPOC();
-#else
-    m_prevPOC = m_apcSlicePilot->getPOC();
-    return true;
-#endif
   }
   // actual decoding starts here
   xActivateParameterSets();
@@ -375,11 +370,7 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   }
   //detect lost reference picture and insert copy of earlier frame.
   Int lostPoc;
-#if START_DECODING_AT_CRA
   while((lostPoc=m_apcSlicePilot->checkThatAllRefPicsAreAvailable(m_cListPic, m_apcSlicePilot->getRPS(), true, m_pocRandomAccess)) > 0)
-#else
-  while((lostPoc=m_apcSlicePilot->checkThatAllRefPicsAreAvailable(m_cListPic, m_apcSlicePilot->getRPS(), true)) > 0)
-#endif
   {
     xCreateLostPicture(lostPoc-1);
   }
@@ -817,7 +808,6 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
     }
     else 
     {
-#if START_DECODING_AT_CRA
       static bool warningMessage = false;
       if(!warningMessage)
       {
@@ -825,10 +815,6 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
         warningMessage = true;
       }
       return true;
-#else
-      printf("\nUnsafe random access point. Decoder may crash.");
-      m_pocRandomAccess = 0;
-#endif
     }
   }
   else if (m_apcSlicePilot->getPOC() < m_pocRandomAccess)  // skip the reordered pictures if necessary

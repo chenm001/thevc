@@ -43,8 +43,6 @@
 
 #define RATECTRL                          1 ///< H0213: a rate control with pixel-based URQ model
 
-#define START_DECODING_AT_CRA             1 ///< H0496, start decoding at clear random access point 
-
 #define LOSSLESS_CODING                   1  ///< H0530: lossless and lossy (mixed) coding
 #if LOSSLESS_CODING
 #define SEQUENCE_LEVEL_LOSSLESS           0  ///< H0530: used only for sequence or frame-level lossless coding

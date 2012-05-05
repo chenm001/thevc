@@ -954,11 +954,7 @@ Void TComSlice::applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComRef
 
 /** Function for applying picture marking based on the Reference Picture Set in pReferencePictureSet.
 */
-#if START_DECODING_AT_CRA
 Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool printErrors, Int pocRandomAccess)
-#else
-Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool printErrors)
-#endif
 {
   TComPic* rpcPic;
   Int i, isAvailable, j;
@@ -1021,10 +1017,8 @@ Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, T
     // but not available as reference picture
     if(isAvailable == 0)    
     {            
-#if START_DECODING_AT_CRA
       if (this->getPOC() + pReferencePictureSet->getDeltaPOC(i) >= pocRandomAccess)
       {
-#endif
         if(!pReferencePictureSet->getUsed(i) )
         {
           if(printErrors)
@@ -1038,9 +1032,7 @@ Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, T
           atLeastOneLost = 1;
           iPocLost=this->getPOC() + pReferencePictureSet->getDeltaPOC(i);
         }
-#if START_DECODING_AT_CRA
       }
-#endif
     }
   }  
   // loop through all short-term pictures in the Reference Picture Set
@@ -1065,10 +1057,8 @@ Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, T
     // but not available as reference picture
     if(isAvailable == 0)    
     {            
-#if START_DECODING_AT_CRA
       if (this->getPOC() + pReferencePictureSet->getDeltaPOC(i) >= pocRandomAccess)
       {
-#endif
         if(!pReferencePictureSet->getUsed(i) )
         {
           if(printErrors)
@@ -1082,9 +1072,7 @@ Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, T
           atLeastOneLost = 1;
           iPocLost=this->getPOC() + pReferencePictureSet->getDeltaPOC(i);
         }
-#if START_DECODING_AT_CRA
       }
-#endif
     }
   }    
   if(atLeastOneLost)
