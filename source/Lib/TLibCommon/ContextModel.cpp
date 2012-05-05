@@ -55,9 +55,7 @@ using namespace std;
  */
 Void ContextModel::init( Int qp, Int initValue )
 {
-#if H0736_AVC_STYLE_QP_RANGE
   qp = Clip3(0, 51, qp);
-#endif
 
 #if CABAC_LINEAR_INIT
   Int  slope      = (initValue>>4)*5 - 45;

@@ -1319,10 +1319,8 @@ Void TEncCavlc::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   Int iDQp  = pcCU->getQP( uiAbsPartIdx ) - pcCU->getRefQP( uiAbsPartIdx );
 
-#if H0736_AVC_STYLE_QP_RANGE
   Int qpBdOffsetY =  pcCU->getSlice()->getSPS()->getQpBDOffsetY();
   iDQp = (iDQp + 78 + qpBdOffsetY + (qpBdOffsetY/2)) % (52 + qpBdOffsetY) - 26 - (qpBdOffsetY/2);
-#endif
 
   xWriteSvlc( iDQp );
   

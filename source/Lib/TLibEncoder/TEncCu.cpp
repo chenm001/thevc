@@ -462,17 +462,12 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   Int iMaxQP;
 #if LOSSLESS_CODING
   Bool isAddLowestQP = false;
-#if H0736_AVC_STYLE_QP_RANGE
   Int lowestQP = -rpcTempCU->getSlice()->getSPS()->getQpBDOffsetY();
-#else
-  Int lowestQP = 0;
-#endif
 #endif
 
   if( (g_uiMaxCUWidth>>uiDepth) >= rpcTempCU->getSlice()->getPPS()->getMinCuDQPSize() )
   {
     Int idQP = m_pcEncCfg->getMaxDeltaQP();
-#if H0736_AVC_STYLE_QP_RANGE
     iMinQP = Clip3( -rpcTempCU->getSlice()->getSPS()->getQpBDOffsetY(), MAX_QP, iBaseQP-idQP );
     iMaxQP = Clip3( -rpcTempCU->getSlice()->getSPS()->getQpBDOffsetY(), MAX_QP, iBaseQP+idQP );
 #if LOSSLESS_CODING
@@ -482,17 +477,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       iMinQP = iMinQP - 1;
        
     }
-#endif
-#else
-    iMinQP = Clip3( MIN_QP, MAX_QP, iBaseQP-idQP );
-    iMaxQP = Clip3( MIN_QP, MAX_QP, iBaseQP+idQP );
-#if LOSSLESS_CODING
-    if ( (rpcTempCU->getSlice()->getSPS()->getUseLossless()) && (lowestQP < iMinQP) && rpcTempCU->getSlice()->getPPS()->getUseDQP() )
-    {
-      isAddLowestQP = true;
-      iMinQP = iMinQP - 1;
-    }
-#endif
 #endif
   }
   else
@@ -863,7 +847,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   if( (g_uiMaxCUWidth>>uiDepth) == rpcTempCU->getSlice()->getPPS()->getMinCuDQPSize() )
   {
     Int idQP = m_pcEncCfg->getMaxDeltaQP();
-#if H0736_AVC_STYLE_QP_RANGE
     iMinQP = Clip3( -rpcTempCU->getSlice()->getSPS()->getQpBDOffsetY(), MAX_QP, iBaseQP-idQP );
     iMaxQP = Clip3( -rpcTempCU->getSlice()->getSPS()->getQpBDOffsetY(), MAX_QP, iBaseQP+idQP );
 #if LOSSLESS_CODING
@@ -872,17 +855,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       isAddLowestQP = true;
       iMinQP = iMinQP - 1;      
     }
-#endif
-#else
-    iMinQP = Clip3( MIN_QP, MAX_QP, iBaseQP-idQP );
-    iMaxQP = Clip3( MIN_QP, MAX_QP, iBaseQP+idQP );
-#if LOSSLESS_CODING
-    if ( (rpcTempCU->getSlice()->getSPS()->getUseLossless()) && (lowestQP < iMinQP) && rpcTempCU->getSlice()->getPPS()->getUseDQP() )
-    {
-      isAddLowestQP = true;
-      iMinQP = iMinQP - 1;
-    }
-#endif
 #endif
   }
   else if( (g_uiMaxCUWidth>>uiDepth) > rpcTempCU->getSlice()->getPPS()->getMinCuDQPSize() )
@@ -1230,11 +1202,7 @@ Int TEncCu::xComputeQP( TComDataCU* pcCU, UInt uiDepth )
     Double dQpOffset = log(dNormAct) / log(2.0) * 6.0;
     iQpOffset = Int(floor( dQpOffset + 0.49999 ));
   }
-#if H0736_AVC_STYLE_QP_RANGE
   return Clip3(-pcCU->getSlice()->getSPS()->getQpBDOffsetY(), MAX_QP, iBaseQp+iQpOffset );
-#else
-  return Clip3( MIN_QP, MAX_QP, iBaseQp+iQpOffset );
-#endif
 }
 
 /** encode a CU block recursively
@@ -1491,17 +1459,10 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
 
 #endif
 
-#if H0736_AVC_STYLE_QP_RANGE
           Int orgQP = rpcTempCU->getQP( 0 );
           xCheckDQP( rpcTempCU );
           xCheckBestMode(rpcBestCU, rpcTempCU, uhDepth);
           rpcTempCU->initEstData( uhDepth, orgQP );
-#else
-          UInt uiOrgQP = rpcTempCU->getQP( 0 );
-          xCheckDQP( rpcTempCU );
-          xCheckBestMode(rpcBestCU, rpcTempCU, uhDepth);
-          rpcTempCU->initEstData( uhDepth, uiOrgQP );
-#endif
 
 #if EARLY_SKIP_DETECTION
 

@@ -917,24 +917,8 @@ Void TEncSbac::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   Int iDQp  = pcCU->getQP( uiAbsPartIdx ) - pcCU->getRefQP( uiAbsPartIdx );
   
-#if H0736_AVC_STYLE_QP_RANGE
   Int qpBdOffsetY =  pcCU->getSlice()->getSPS()->getQpBDOffsetY();
   iDQp = (iDQp + 78 + qpBdOffsetY + (qpBdOffsetY/2)) % (52 + qpBdOffsetY) - 26 - (qpBdOffsetY/2);
-#else
-#if LOSSLESS_CODING
-  if(pcCU->getSlice()->getSPS()->getUseLossless())
-  {
-    if(iDQp > 25)
-    {
-      iDQp = iDQp - 52;
-    }
-    if(iDQp < -26)
-    {
-      iDQp = iDQp + 52;
-    }
-  }
-#endif
-#endif
 
   if ( iDQp == 0 )
   {
@@ -945,23 +929,13 @@ Void TEncSbac::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
     m_pcBinIf->encodeBin( 1, m_cCUDeltaQpSCModel.get( 0, 0, 0 ) );
    
     UInt uiSign = (iDQp > 0 ? 0 : 1);
-#if !H0736_AVC_STYLE_QP_RANGE
-    UInt uiQpBdOffsetY = 6*(g_uiBitIncrement + g_uiBitDepth - 8);
-#endif
 
     m_pcBinIf->encodeBinEP(uiSign);
 
-#if H0736_AVC_STYLE_QP_RANGE
     assert(iDQp >= -(26+(qpBdOffsetY/2)));
     assert(iDQp <=  (25+(qpBdOffsetY/2)));
 
     UInt uiMaxAbsDQpMinus1 = 24 + (qpBdOffsetY/2) + (uiSign);
-#else
-    assert(iDQp >= -(26+(Int)(uiQpBdOffsetY/2)));
-    assert(iDQp <=  (25+(Int)(uiQpBdOffsetY/2)));
-
-    UInt uiMaxAbsDQpMinus1 = 24 + (uiQpBdOffsetY/2) + (uiSign);
-#endif
     UInt uiAbsDQpMinus1 = (UInt)((iDQp > 0)? iDQp  : (-iDQp)) - 1;
     xWriteUnaryMaxSymbol( uiAbsDQpMinus1, &m_cCUDeltaQpSCModel.get( 0, 0, 1 ), 1, uiMaxAbsDQpMinus1);
   }

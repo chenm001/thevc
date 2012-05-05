@@ -144,11 +144,7 @@ Void TAppEncTop::xInitLibCfg()
 
 #if LOSSLESS_CODING
   Int lowestQP;
-#if H0736_AVC_STYLE_QP_RANGE
   lowestQP =  - ( (Int)(6*(g_uiBitDepth + g_uiBitIncrement - 8)) );
-#else
-  lowestQP = 0;
-#endif
 
   if ((m_iMaxDeltaQP == 0 ) && (m_iQP == lowestQP) && (m_useLossless == true))
   {

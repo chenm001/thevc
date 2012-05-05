@@ -1345,9 +1345,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   pcSPS->setBitDepth(g_uiBitDepth);
   pcSPS->setBitIncrement(g_uiBitIncrement);
 #endif
-#if H0736_AVC_STYLE_QP_RANGE
   pcSPS->setQpBDOffsetY( (Int) (6*uiCode) );
-#endif
 
   g_uiBASE_MAX  = ((1<<(g_uiBitDepth))-1);
   
@@ -1357,9 +1355,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   g_uiIBDI_MAX  = ((1<<(g_uiBitDepth+g_uiBitIncrement))-1);
 #endif
   READ_UVLC( uiCode,    "bit_depth_chroma_minus8" );
-#if H0736_AVC_STYLE_QP_RANGE
   pcSPS->setQpBDOffsetC( (Int) (6*uiCode) );
-#endif
 
   READ_FLAG( uiCode, "pcm_enabled_flag" ); pcSPS->setUsePCM( uiCode ? true : false );
 
@@ -2041,10 +2037,8 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     READ_SVLC( iCode, "slice_qp_delta" ); 
     rpcSlice->setSliceQp (26 + pps->getPicInitQPMinus26() + iCode);
 
-#if H0736_AVC_STYLE_QP_RANGE
     assert( rpcSlice->getSliceQp() >= -sps->getQpBDOffsetY() );
     assert( rpcSlice->getSliceQp() <=  51 );
-#endif
 
 #if DBL_CONTROL
     if (rpcSlice->getPPS()->getDeblockingFilterControlPresent())
@@ -2485,30 +2479,18 @@ Void TDecCavlc::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, U
 
 Void TDecCavlc::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if H0736_AVC_STYLE_QP_RANGE
   Int qp;
-#else
-  UInt uiQp;
-#endif
   Int  iDQp;
   
   xReadSvlc( iDQp );
 
-#if H0736_AVC_STYLE_QP_RANGE
   Int qpBdOffsetY = pcCU->getSlice()->getSPS()->getQpBDOffsetY();
   qp = (((Int) pcCU->getRefQP( uiAbsPartIdx ) + iDQp + 52 + 2*qpBdOffsetY )%(52+ qpBdOffsetY)) -  qpBdOffsetY;
-#else
-  uiQp = pcCU->getRefQP( uiAbsPartIdx ) + iDQp;
-#endif
 
   UInt uiAbsQpCUPartIdx = (uiAbsPartIdx>>((g_uiMaxCUDepth - pcCU->getSlice()->getPPS()->getMaxCuDQPDepth())<<1))<<((g_uiMaxCUDepth - pcCU->getSlice()->getPPS()->getMaxCuDQPDepth())<<1) ;
   UInt uiQpCUDepth =   min(uiDepth,pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()) ;
 
-#if H0736_AVC_STYLE_QP_RANGE
   pcCU->setQPSubParts( qp, uiAbsQpCUPartIdx, uiQpCUDepth );
-#else
-  pcCU->setQPSubParts( uiQp, uiAbsQpCUPartIdx, uiQpCUDepth );
-#endif
 }
 
 Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType )

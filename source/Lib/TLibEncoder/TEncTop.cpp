@@ -544,10 +544,8 @@ Void TEncTop::xInitSPS()
 
   m_cSPS.setBitDepth    ( g_uiBitDepth        );
   m_cSPS.setBitIncrement( g_uiBitIncrement    );
-#if H0736_AVC_STYLE_QP_RANGE
   m_cSPS.setQpBDOffsetY ( (Int)(6*(g_uiBitDepth + g_uiBitIncrement - 8)) );
   m_cSPS.setQpBDOffsetC ( (Int)(6*(g_uiBitDepth + g_uiBitIncrement - 8)) );
-#endif
 
   m_cSPS.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
   m_cSPS.setUseSAO( m_bUseSAO );
@@ -640,11 +638,7 @@ Void TEncTop::xInitPPS()
   Bool bUseDQP = (getMaxCuDQPDepth() > 0)? true : false;
 
 #if LOSSLESS_CODING
-#if H0736_AVC_STYLE_QP_RANGE
   Int lowestQP = - m_cSPS.getQpBDOffsetY();
-#else
-  Int lowestQP = 0;
-#endif
 
   if(getUseLossless())
   {

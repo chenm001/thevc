@@ -132,11 +132,7 @@ private:
   
   Char*         m_pePartSize;         ///< array of partition sizes
   Char*         m_pePredMode;         ///< array of prediction modes
-#if H0736_AVC_STYLE_QP_RANGE
   Char*         m_phQP;               ///< array of QP values
-#else
-  UChar*        m_phQP;               ///< array of QP values
-#endif
   UChar*        m_puhTrIdx;           ///< array of transform indices
   UChar*        m_nsqtPartIdx;        ///< array of absPartIdx mapping table, map zigzag to NSQT
   UChar*        m_puhCbf[3];          ///< array of coded block flags (CBF)
@@ -254,13 +250,8 @@ public:
   Void          destroy               ();
   
   Void          initCU                ( TComPic* pcPic, UInt uiCUAddr );
-#if H0736_AVC_STYLE_QP_RANGE
   Void          initEstData           ( UInt uiDepth, Int qp );
   Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, Int qp );
-#else
-  Void          initEstData           ( UInt uiDepth, UInt uiQP );
-  Void          initSubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, UInt uiQP );
-#endif
   Void          setOutsideCUPart      ( UInt uiAbsPartIdx, UInt uiDepth );
 
   Void          copySubCU             ( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth );
@@ -313,7 +304,6 @@ public:
   
   Void          setSizeSubParts       ( UInt uiWidth, UInt uiHeight, UInt uiAbsPartIdx, UInt uiDepth );
   
-#if H0736_AVC_STYLE_QP_RANGE
   Char*         getQP                 ()                        { return m_phQP;              }
   Char          getQP                 ( UInt uiIdx )            { return m_phQP[uiIdx];       }
   Void          setQP                 ( UInt uiIdx, Char value ){ m_phQP[uiIdx] =  value;     }
@@ -322,16 +312,6 @@ public:
   Int           getLastValidPartIdx   ( Int iAbsPartIdx );
 #endif
   Char          getLastCodedQP        ( UInt uiAbsPartIdx );
-#else
-  UChar*        getQP                 ()                        { return m_phQP;              }
-  UChar         getQP                 ( UInt uiIdx )            { return m_phQP[uiIdx];       }
-  Void          setQP                 ( UInt uiIdx, UChar  uh ) { m_phQP[uiIdx] = uh;         }
-  Void          setQPSubParts         ( UInt uiQP,   UInt uiAbsPartIdx, UInt uiDepth );
-#if BURST_IPCM
-  Int           getLastValidPartIdx   ( Int iAbsPartIdx );
-#endif
-  UChar         getLastCodedQP        ( UInt uiAbsPartIdx );
-#endif
 
 #if LOSSLESS_CODING
   Bool          isLosslessCoded(UInt absPartIdx);
@@ -511,11 +491,7 @@ public:
 #if H0204_QP_PREDICTION
   TComDataCU*   getQpMinCuAbove             ( UInt&  aPartUnitIdx , UInt currAbsIdxInLCU, Bool enforceSliceRestriction=true, Bool enforceEntropySliceRestriction=true );
 #endif
-#if H0736_AVC_STYLE_QP_RANGE
   Char          getRefQP                    ( UInt   uiCurrAbsIdxInLCU                       );
-#else
-  UChar         getRefQP                    ( UInt   uiCurrAbsIdxInLCU                       );
-#endif
 
   TComDataCU*   getPUAboveRightAdi          ( UInt&  uiARPartUnitIdx, UInt uiPuWidth, UInt uiCurrPartUnitIdx, UInt uiPartUnitOffset = 1, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
   TComDataCU*   getPUBelowLeftAdi           ( UInt& uiBLPartUnitIdx, UInt uiPuHeight, UInt uiCurrPartUnitIdx, UInt uiPartUnitOffset = 1, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );

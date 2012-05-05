@@ -235,11 +235,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   if(eSliceType!=I_SLICE)
   {
 #if LOSSLESS_CODING
-#if H0736_AVC_STYLE_QP_RANGE
     if (!(( m_pcCfg->getMaxDeltaQP() == 0 ) && (dQP == -rpcSlice->getSPS()->getQpBDOffsetY() ) && (rpcSlice->getSPS()->getUseLossless()))) 
-#else
-    if (!(( m_pcCfg->getMaxDeltaQP() == 0 ) && (dQP == 0 ) && (rpcSlice->getSPS()->getUseLossless())))
-#endif
 #endif
     {
       dQP += m_pcCfg->getGOPEntry(iGOPid).m_QPOffset;
@@ -307,11 +303,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
       dLambda *= 0.95;
     }
     
-#if H0736_AVC_STYLE_QP_RANGE
     iQP = max( -pSPS->getQpBDOffsetY(), min( MAX_QP, (Int) floor( dQP + 0.5 ) ) );
-#else
-    iQP = max( MIN_QP, min( MAX_QP, (Int)floor( dQP + 0.5 ) ) );
-#endif
 
     m_pdRdPicLambda[iDQpIdx] = dLambda;
     m_pdRdPicQp    [iDQpIdx] = dQP;
@@ -333,15 +325,11 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 #if WEIGHTED_CHROMA_DISTORTION
 // for RDO
   // in RdCost there is only one lambda because the luma and chroma bits are not separated, instead we weight the distortion of chroma.
-#if H0736_AVC_STYLE_QP_RANGE
   Double weight = 1.0;
   if(iQP >= 0)
   {
     weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
   }
-#else
-  Double weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
-#endif
   m_pcRdCost ->setChromaDistortionWeight( weight );     
 #endif
 
@@ -469,11 +457,7 @@ Void TEncSlice::xLamdaRecalculation(Int changeQP, Int idGOP, Int depth, SliceTyp
       lambda *= 0.95;
     }
 
-#if H0736_AVC_STYLE_QP_RANGE
     qp = max( -pcSPS->getQpBDOffsetY(), min( MAX_QP, (Int) floor( recalQP + 0.5 ) ) );
-#else
-    qp = max( MIN_QP, min( MAX_QP, (Int)floor( recalQP + 0.5 ) ) );
-#endif
 
     m_pdRdPicLambda[deltqQpIdx] = lambda;
     m_pdRdPicQp    [deltqQpIdx] = recalQP;
@@ -495,15 +479,11 @@ Void TEncSlice::xLamdaRecalculation(Int changeQP, Int idGOP, Int depth, SliceTyp
 #if WEIGHTED_CHROMA_DISTORTION
   // for RDO
   // in RdCost there is only one lambda because the luma and chroma bits are not separated, instead we weight the distortion of chroma.
-#if H0736_AVC_STYLE_QP_RANGE
   Double weight = 1.0;
   if(qp >= 0)
   {
     weight = pow( 2.0, (qp-g_aucChromaScale[qp])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
   }
-#else
-  Double weight = pow( 2.0, (qp-g_aucChromaScale[qp])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
-#endif
   m_pcRdCost ->setChromaDistortionWeight( weight );     
 #endif
 
@@ -595,15 +575,11 @@ Void TEncSlice::precompressSlice( TComPic*& rpcPic )
     // for RDO
     // in RdCost there is only one lambda because the luma and chroma bits are not separated, instead we weight the distortion of chroma.
     int iQP = m_piRdPicQp    [uiQpIdx];
-#if H0736_AVC_STYLE_QP_RANGE
     Double weight = 1.0;
     if(iQP >= 0)
     {
       weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
     }
-#else
-    Double weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
-#endif
     m_pcRdCost    ->setChromaDistortionWeight( weight );     
 #endif
 
@@ -648,15 +624,11 @@ Void TEncSlice::precompressSlice( TComPic*& rpcPic )
 #if WEIGHTED_CHROMA_DISTORTION
   // in RdCost there is only one lambda because the luma and chroma bits are not separated, instead we weight the distortion of chroma.
   int iQP = m_piRdPicQp    [uiQpIdxBest];
-#if H0736_AVC_STYLE_QP_RANGE
   Double weight = 1.0;
   if(iQP >= 0)
   {
     weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
   }
-#else
-  Double weight = pow( 2.0, (iQP-g_aucChromaScale[iQP])/3.0 );  // takes into account of the chroma qp mapping without chroma qp Offset
-#endif
   m_pcRdCost ->setChromaDistortionWeight( weight );     
 #endif
 

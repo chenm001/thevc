@@ -131,11 +131,7 @@ Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool b
   
   if ( !bDecSubCu )
   {
-#if H0736_AVC_STYLE_QP_RANGE
     m_phQP               = (Char*     )xMalloc(Char,     uiNumPartition);
-#else
-    m_phQP               = (UChar*    )xMalloc(UChar,    uiNumPartition);
-#endif
     m_puhDepth           = (UChar*    )xMalloc(UChar,    uiNumPartition);
     m_puhWidth           = (UChar*    )xMalloc(UChar,    uiNumPartition);
     m_puhHeight          = (UChar*    )xMalloc(UChar,    uiNumPartition);
@@ -529,7 +525,6 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
   }
 }
 
-#if H0736_AVC_STYLE_QP_RANGE
 /** initialize prediction data with enabling sub-LCU-level delta QP
 *\param  uiDepth  depth of the current CU
 *\param  qp     qp for the current CU
@@ -538,16 +533,6 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
 *- set last-coded qp value according to input last-coded qp 
 */
 Void TComDataCU::initEstData( UInt uiDepth, Int qp )
-#else
-/** initialize prediction data with enabling sub-LCU-level delta QP
-*\param  uiDepth  depth of the current CU
-*\param  uiQP     QP for the current CU
-*- set CU width and CU height according to depth
-*- set QP value according to input QP 
-*- set last-coded QP value according to input last-coded QP 
-*/
-Void TComDataCU::initEstData( UInt uiDepth, UInt uiQP )
-#endif
 {
   m_dTotalCost         = MAX_DOUBLE;
   m_uiTotalDistortion  = 0;
@@ -573,11 +558,7 @@ Void TComDataCU::initEstData( UInt uiDepth, UInt uiQP )
       m_pePartSize[ui] = SIZE_NONE;
       m_pePredMode[ui] = MODE_NONE;
       m_pbIPCMFlag[ui] = 0;
-#if H0736_AVC_STYLE_QP_RANGE
       m_phQP[ui] = qp;
-#else
-      m_phQP[ui] = uiQP;
-#endif
       m_puiAlfCtrlFlag[ui]= false;
       m_pbMergeFlag[ui] = 0;
       m_puhMergeIndex[ui] = 0;
@@ -618,11 +599,7 @@ Void TComDataCU::initEstData( UInt uiDepth, UInt uiQP )
 
 
 // initialize Sub partition
-#if H0736_AVC_STYLE_QP_RANGE
 Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, Int qp )
-#else
-Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, UInt uiQP )
-#endif
 {
   assert( uiPartUnitIdx<4 );
 
@@ -650,12 +627,8 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, 
   Int iSizeInUchar = sizeof( UChar  ) * m_uiNumPartition;
   Int iSizeInBool  = sizeof( Bool   ) * m_uiNumPartition;
 
-#if H0736_AVC_STYLE_QP_RANGE
   Int sizeInChar = sizeof( Char  ) * m_uiNumPartition;
   memset( m_phQP,              qp,  sizeInChar );
-#else
-  memset( m_phQP,              uiQP, iSizeInUchar );
-#endif
 
   memset( m_puiAlfCtrlFlag,     0, iSizeInBool );
   memset( m_pbMergeFlag,        0, iSizeInBool  );
@@ -925,12 +898,8 @@ Void TComDataCU::copyPartFrom( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDept
   Int iSizeInUchar  = sizeof( UChar ) * uiNumPartition;
   Int iSizeInBool   = sizeof( Bool  ) * uiNumPartition;
   
-#if H0736_AVC_STYLE_QP_RANGE
   Int sizeInChar  = sizeof( Char ) * uiNumPartition;
   memcpy( m_phQP       + uiOffset, pcCU->getQP(),             sizeInChar                        );
-#else
-  memcpy( m_phQP       + uiOffset, pcCU->getQP(),             iSizeInUchar                        );
-#endif
   memcpy( m_pePartSize + uiOffset, pcCU->getPartitionSize(),  sizeof( *m_pePartSize ) * uiNumPartition );
   memcpy( m_pePredMode + uiOffset, pcCU->getPredictionMode(), sizeof( *m_pePredMode ) * uiNumPartition );
   
@@ -1004,12 +973,8 @@ Void TComDataCU::copyToPic( UChar uhDepth )
   Int iSizeInUchar  = sizeof( UChar ) * m_uiNumPartition;
   Int iSizeInBool   = sizeof( Bool  ) * m_uiNumPartition;
   
-#if H0736_AVC_STYLE_QP_RANGE
   Int sizeInChar  = sizeof( Char ) * m_uiNumPartition;
   memcpy( rpcCU->getQP() + m_uiAbsIdxInLCU, m_phQP, sizeInChar  );
-#else
-  memcpy( rpcCU->getQP() + m_uiAbsIdxInLCU, m_phQP, iSizeInUchar );
-#endif
 
   memcpy( rpcCU->getPartitionSize()  + m_uiAbsIdxInLCU, m_pePartSize, sizeof( *m_pePartSize ) * m_uiNumPartition );
   memcpy( rpcCU->getPredictionMode() + m_uiAbsIdxInLCU, m_pePredMode, sizeof( *m_pePredMode ) * m_uiNumPartition );
@@ -1079,12 +1044,8 @@ Void TComDataCU::copyToPic( UChar uhDepth, UInt uiPartIdx, UInt uiPartDepth )
   Int iSizeInUchar  = sizeof( UChar  ) * uiQNumPart;
   Int iSizeInBool   = sizeof( Bool   ) * uiQNumPart;
   
-#if H0736_AVC_STYLE_QP_RANGE
   Int sizeInChar  = sizeof( Char ) * uiQNumPart;
   memcpy( rpcCU->getQP() + uiPartOffset, m_phQP, sizeInChar );
-#else
-  memcpy( rpcCU->getQP() + uiPartOffset, m_phQP, iSizeInUchar );
-#endif  
   memcpy( rpcCU->getPartitionSize()  + uiPartOffset, m_pePartSize, sizeof( *m_pePartSize ) * uiQNumPart );
   memcpy( rpcCU->getPredictionMode() + uiPartOffset, m_pePredMode, sizeof( *m_pePredMode ) * uiQNumPart );
   
@@ -1853,19 +1814,11 @@ TComDataCU* TComDataCU::getQpMinCuAbove( UInt& aPartUnitIdx, UInt currAbsIdxInLC
 }
 #endif
 
-#if H0736_AVC_STYLE_QP_RANGE
 /** Get reference QP from left QpMinCu or latest coded QP
 *\param   uiCurrAbsIdxInLCU
 *\returns Char   reference QP value
 */
 Char TComDataCU::getRefQP( UInt uiCurrAbsIdxInLCU )
-#else
-/** Get reference QP from left QpMinCu or latest coded QP
-*\param   uiCurrAbsIdxInLCU
-*\returns UChar   reference QP value
-*/
-UChar TComDataCU::getRefQP( UInt uiCurrAbsIdxInLCU )
-#endif
 {
 #if H0204_QP_PREDICTION
   UInt        lPartIdx, aPartIdx;
@@ -1898,11 +1851,7 @@ Int TComDataCU::getLastValidPartIdx( Int iAbsPartIdx )
   return iLastValidPartIdx;
 }
 
-#if H0736_AVC_STYLE_QP_RANGE
 Char TComDataCU::getLastCodedQP( UInt uiAbsPartIdx )
-#else
-UChar TComDataCU::getLastCodedQP( UInt uiAbsPartIdx )
-#endif
 {
   UInt uiQUPartIdxMask = ~((1<<((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1))-1);
   Int iLastValidPartIdx = getLastValidPartIdx( uiAbsPartIdx&uiQUPartIdxMask );
@@ -1939,11 +1888,7 @@ UChar TComDataCU::getLastCodedQP( UInt uiAbsPartIdx )
  */
 Bool TComDataCU::isLosslessCoded(UInt absPartIdx)
 {
-#if H0736_AVC_STYLE_QP_RANGE
   return ( getSlice()->getSPS()->getUseLossless() && ((getQP(absPartIdx) + getSlice()->getSPS()->getQpBDOffsetY()) == 0) );
-#else
-  return ( getSlice()->getSPS()->getUseLossless() && (getQP(absPartPIdx)  == 0) );
-#endif
 }
 #endif
 
@@ -2257,11 +2202,7 @@ Void TComDataCU::setPredModeSubParts( PredMode eMode, UInt uiAbsPartIdx, UInt ui
   memset( m_pePredMode + uiAbsPartIdx, eMode, m_pcPic->getNumPartInCU() >> ( 2 * uiDepth ) );
 }
 
-#if H0736_AVC_STYLE_QP_RANGE
 Void TComDataCU::setQPSubParts( Int qp, UInt uiAbsPartIdx, UInt uiDepth )
-#else
-Void TComDataCU::setQPSubParts( UInt uiQP, UInt uiAbsPartIdx, UInt uiDepth )
-#endif
 {
   UInt uiCurrPartNumb = m_pcPic->getNumPartInCU() >> (uiDepth << 1);
   TComSlice * pcSlice = getPic()->getSlice(getPic()->getCurrSliceIdx());
@@ -2270,11 +2211,7 @@ Void TComDataCU::setQPSubParts( UInt uiQP, UInt uiAbsPartIdx, UInt uiDepth )
   {
     if( m_pcPic->getCU( getAddr() )->getEntropySliceStartCU(uiSCUIdx+getZorderIdxInCU()) == pcSlice->getEntropySliceCurStartCUAddr() )
     {
-#if H0736_AVC_STYLE_QP_RANGE
       m_phQP[uiSCUIdx] = qp;
-#else
-      m_phQP[uiSCUIdx] = uiQP;
-#endif
     }
   }
 }
