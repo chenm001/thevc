@@ -181,11 +181,7 @@ Void TEncCavlc::codeDFSvlc(Int iCode, const Char *pSymbolName)
   WRITE_SVLC(iCode, pSymbolName);
 }
 
-#if RPS_IN_SPS
 Void TEncCavlc::codeShortTermRefPicSet( TComSPS* pcSPS, TComReferencePictureSet* rps )
-#else
-Void TEncCavlc::codeShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet* rps )
-#endif
 {
 #if PRINT_RPS_INFO
   int lastBits = getNumberOfWrittenBits();
@@ -240,9 +236,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #if ENC_DEC_TRACE  
   xTracePPSHeader (pcPPS);
 #endif
-#if !RPS_IN_SPS
-  TComRPSList* rpsList = pcPPS->getRPSList();
-#endif
   
   WRITE_UVLC( pcPPS->getPPSId(),                             "pic_parameter_set_id" );
   WRITE_UVLC( pcPPS->getSPSId(),                             "seq_parameter_set_id" );
@@ -253,19 +246,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
     WRITE_CODE(pcPPS->getTSIG(), 4, "sign_hiding_threshold");
   }
   WRITE_FLAG( pcPPS->getCabacInitPresentFlag() ? 1 : 0,   "cabac_init_present_flag" );
-#if !RPS_IN_SPS
-  // RPS is put before entropy_coding_mode_flag
-  // since entropy_coding_mode_flag will probably be removed from the WD
-  TComReferencePictureSet*      rps;
-
-  WRITE_UVLC(rpsList->getNumberOfReferencePictureSets(), "num_short_term_ref_pic_sets" );
-  for(UInt i=0; i < rpsList->getNumberOfReferencePictureSets(); i++)
-  {
-    rps = rpsList->getReferencePictureSet(i);
-    codeShortTermRefPicSet(pcPPS,rps);
-  }
-  WRITE_FLAG( pcPPS->getLongTermRefsPresent() ? 1 : 0,         "long_term_ref_pics_present_flag" );
-#endif
   // entropy_coding_mode_flag
   // We code the entropy_coding_mode_flag, it's needed for tests.
   WRITE_FLAG( pcPPS->getEntropyCodingMode() ? 1 : 0,         "entropy_coding_mode_flag" );
@@ -458,7 +438,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 
   WRITE_FLAG( pcSPS->getTemporalIdNestingFlag() ? 1 : 0,                             "temporal_id_nesting_flag" );
 
-#if RPS_IN_SPS
   TComRPSList* rpsList = pcSPS->getRPSList();
   TComReferencePictureSet*      rps;
 
@@ -469,7 +448,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
     codeShortTermRefPicSet(pcSPS,rps);
   }    
   WRITE_FLAG( pcSPS->getLongTermRefsPresent() ? 1 : 0,         "long_term_ref_pics_present_flag" );
-#endif
   // AMVP mode for each depth
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
   {
@@ -599,22 +577,14 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       if(pcSlice->getRPSidx() < 0)
       {
         WRITE_FLAG( 0, "short_term_ref_pic_set_sps_flag");
-#if RPS_IN_SPS
         codeShortTermRefPicSet(pcSlice->getSPS(), rps);
-#else
-        codeShortTermRefPicSet(pcSlice->getPPS(), rps);
-#endif
       }
       else
       {
         WRITE_FLAG( 1, "short_term_ref_pic_set_sps_flag");
         WRITE_UVLC( pcSlice->getRPSidx(), "short_term_ref_pic_set_idx" );
       }
-#if RPS_IN_SPS
       if(pcSlice->getSPS()->getLongTermRefsPresent())
-#else
-      if(pcSlice->getPPS()->getLongTermRefsPresent())
-#endif
       {
         WRITE_UVLC( rps->getNumberOfLongtermPictures(), "num_long_term_pics");
         Int maxPocLsb = 1<<pcSlice->getSPS()->getBitsForPOC();

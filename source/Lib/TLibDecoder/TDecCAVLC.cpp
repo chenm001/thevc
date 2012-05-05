@@ -146,11 +146,7 @@ void TDecCavlc::parseSEI(SEImessages& seis)
   } while (0x80 != m_pcBitstream->peekBits(8));
   assert(m_pcBitstream->getNumBitsLeft() == 8); /* rsbp_trailing_bits */
 }
-#if RPS_IN_SPS
 void TDecCavlc::parseShortTermRefPicSet( TComSPS* sps, TComReferencePictureSet* rps, Int idx )
-#else
-void TDecCavlc::parseShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet* rps, Int idx )
-#endif
 {
   UInt code;
   UInt interRPSPred;
@@ -161,11 +157,7 @@ void TDecCavlc::parseShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet
     READ_UVLC(code, "delta_idx_minus1" ); // delta index of the Reference Picture Set used for prediction minus 1
     Int rIdx =  idx - 1 - code;
     assert (rIdx <= idx && rIdx >= 0);
-#if RPS_IN_SPS
     TComReferencePictureSet*   rpsRef = sps->getRPSList()->getReferencePictureSet(rIdx);
-#else
-    TComReferencePictureSet*   rpsRef = pcPPS->getRPSList()->getReferencePictureSet(rIdx);
-#endif
     Int k = 0, k0 = 0, k1 = 0;
     READ_CODE(1, bit, "delta_rps_sign"); // delta_RPS_sign
     READ_UVLC(code, "abs_delta_rps_minus1");  // absolute delta RPS minus 1
@@ -1003,9 +995,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 
   Int   iCode;
 
-#if !RPS_IN_SPS
-  TComRPSList* rpsList = pcPPS->getRPSList();
-#endif
   READ_UVLC( uiCode, "pic_parameter_set_id");                      pcPPS->setPPSId (uiCode);
   READ_UVLC( uiCode, "seq_parameter_set_id");                      pcPPS->setSPSId (uiCode);
 
@@ -1016,21 +1005,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   }
 
   READ_FLAG( uiCode,   "cabac_init_present_flag" );            pcPPS->setCabacInitPresentFlag( uiCode ? true : false );
-#if !RPS_IN_SPS
-  // RPS is put before entropy_coding_mode_flag
-  // since entropy_coding_mode_flag will probably be removed from the WD
-  TComReferencePictureSet*      pcRPS;
-
-  READ_UVLC( uiCode, "num_short_term_ref_pic_sets" );
-  rpsList->create(uiCode);
-
-  for(Int i=0; i< rpsList->getNumberOfReferencePictureSets(); i++)
-  {
-    pcRPS = rpsList->getReferencePictureSet(i);
-    parseShortTermRefPicSet(pcPPS,pcRPS,i);
-  }
-  READ_FLAG( uiCode, "long_term_ref_pics_present_flag" );          pcPPS->setLongTermRefsPresent(uiCode);
-#endif
   // entropy_coding_mode_flag
   // We code the entropy_coding_mode_flag, it's needed for tests.
   READ_FLAG( uiCode, "entropy_coding_mode_flag" );                 pcPPS->setEntropyCodingMode( uiCode ? true : false );
@@ -1308,8 +1282,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 
   READ_FLAG( uiCode, "temporal_id_nesting_flag" );               pcSPS->setTemporalIdNestingFlag ( uiCode > 0 ? true : false );
 
-
-#if RPS_IN_SPS
   TComRPSList* rpsList = pcSPS->getRPSList();
   TComReferencePictureSet* rps;
 
@@ -1322,7 +1294,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     parseShortTermRefPicSet(pcSPS,rps,i);
   }
   READ_FLAG( uiCode, "long_term_ref_pics_present_flag" );          pcSPS->setLongTermRefsPresent(uiCode);
-#endif
   
   // AMVP mode for each depth (AM_NONE or AM_EXPL)
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
@@ -1511,27 +1482,15 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       if(uiCode == 0) // use short-term reference picture set explicitly signalled in slice header
       {
         rps = rpcSlice->getLocalRPS();
-#if RPS_IN_SPS
         parseShortTermRefPicSet(sps,rps, sps->getRPSList()->getNumberOfReferencePictureSets());
-#else
-        parseShortTermRefPicSet(pps,rps, pps->getRPSList()->getNumberOfReferencePictureSets());
-#endif
         rpcSlice->setRPS(rps);
       }
       else // use reference to short-term reference picture set in PPS
       {
-#if RPS_IN_SPS
         READ_UVLC( uiCode, "short_term_ref_pic_set_idx"); rpcSlice->setRPS(sps->getRPSList()->getReferencePictureSet(uiCode));
-#else
-        READ_UVLC( uiCode, "short_term_ref_pic_set_idx"); rpcSlice->setRPS(pps->getRPSList()->getReferencePictureSet(uiCode));
-#endif
         rps = rpcSlice->getRPS();
       }
-#if RPS_IN_SPS
       if(sps->getLongTermRefsPresent())
-#else
-      if(pps->getLongTermRefsPresent())
-#endif
       {
         Int offset = rps->getNumberOfNegativePictures()+rps->getNumberOfPositivePictures();
         READ_UVLC( uiCode, "num_long_term_pics");             rps->setNumberOfLongtermPictures(uiCode);

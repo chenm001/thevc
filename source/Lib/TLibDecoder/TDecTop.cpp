@@ -673,10 +673,8 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
 Void TDecTop::xDecodeSPS()
 {
   TComSPS* sps = new TComSPS();
-#if RPS_IN_SPS
   TComRPSList* rps = new TComRPSList();
   sps->setRPSList(rps);
-#endif
   m_cEntropyDecoder.decodeSPS( sps );
   m_parameterSetManagerDecoder.storePrefetchedSPS(sps);
 #if LCU_SYNTAX_ALF
@@ -686,13 +684,7 @@ Void TDecTop::xDecodeSPS()
 
 Void TDecTop::xDecodePPS()
 {
-#if !RPS_IN_SPS
-  TComRPSList* rps = new TComRPSList();
-#endif
   TComPPS* pps = new TComPPS();
-#if !RPS_IN_SPS
-  pps->setRPSList(rps);
-#endif
 #if TILES_OR_ENTROPY_SYNC_IDC
   m_cEntropyDecoder.decodePPS( pps, &m_parameterSetManagerDecoder );
 #else

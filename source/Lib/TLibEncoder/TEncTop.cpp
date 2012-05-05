@@ -304,11 +304,7 @@ Void TEncTop::init()
   
   // initialize PPS
   m_cPPS.setSPS(&m_cSPS);
-#if RPS_IN_SPS
   m_cSPS.setRPSList(&m_RPSList);
-#else
-  m_cPPS.setRPSList(&m_RPSList);
-#endif
   xInitPPS();
   xInitRPS();
 

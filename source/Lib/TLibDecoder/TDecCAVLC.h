@@ -79,11 +79,7 @@ protected:
 
   UInt  xGetBit             ();
   
-#if RPS_IN_SPS
   void  parseShortTermRefPicSet            (TComSPS* pcSPS, TComReferencePictureSet* pcRPS, Int idx);
-#else
-  void  parseShortTermRefPicSet            (TComPPS* pcPPS, TComReferencePictureSet* pcRPS, Int idx);
-#endif
 private:
   TComInputBitstream*   m_pcBitstream;
   Int           m_iSliceGranularity; //!< slice granularity

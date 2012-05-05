@@ -1018,11 +1018,7 @@ Void TComSlice::createExplicitReferencePictureSetFromReference( TComList<TComPic
   {
     Int rIdx =  this->getRPSidx() - pReferencePictureSet->getDeltaRIdxMinus1() - 1;
     Int deltaRPS = pReferencePictureSet->getDeltaRPS();
-#if RPS_IN_SPS
     TComReferencePictureSet* pcRefRPS = this->getSPS()->getRPSList()->getReferencePictureSet(rIdx);
-#else
-    TComReferencePictureSet* pcRefRPS = this->getPPS()->getRPSList()->getReferencePictureSet(rIdx);
-#endif
     Int iRefPics = pcRefRPS->getNumberOfPictures();
     Int iNewIdc=0;
     for(i=0; i<= iRefPics; i++) 
@@ -1049,11 +1045,7 @@ Void TComSlice::createExplicitReferencePictureSetFromReference( TComList<TComPic
     pcRPS->setInterRPSPrediction(true);
     pcRPS->setNumRefIdc(iNewIdc);
     pcRPS->setDeltaRPS(deltaRPS); 
-#if RPS_IN_SPS
     pcRPS->setDeltaRIdxMinus1(pReferencePictureSet->getDeltaRIdxMinus1() + this->getSPS()->getRPSList()->getNumberOfReferencePictureSets() - this->getRPSidx());
-#else
-    pcRPS->setDeltaRIdxMinus1(pReferencePictureSet->getDeltaRIdxMinus1() + this->getPPS()->getRPSList()->getNumberOfReferencePictureSets() - this->getRPSidx());
-#endif
   }
 
   this->setRPS(pcRPS);
@@ -1267,9 +1259,7 @@ TComSPS::TComSPS()
 , m_uiMaxCUDepth              (  3)
 , m_uiMinTrDepth              (  0)
 , m_uiMaxTrDepth              (  1)
-#if RPS_IN_SPS
 , m_bLongTermRefsPresent      (false)
-#endif
 #if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
 , m_numReorderFrames          (  0)
 #endif
@@ -1364,9 +1354,6 @@ TComPPS::TComPPS()
 , m_iChromaQpOffset2nd          (0)
 , m_numRefIdxL0DefaultActive    (1)
 , m_numRefIdxL1DefaultActive    (1)
-#if !RPS_IN_SPS
-, m_bLongTermRefsPresent        (false)
-#endif
 , m_iSliceGranularity           (0)
 , m_iTileBehaviorControlPresentFlag (0)
 , m_bLFCrossTileBoundaryFlag     (true)
