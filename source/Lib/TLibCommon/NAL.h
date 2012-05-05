@@ -47,12 +47,8 @@ struct NALUnit
   NalUnitType m_nalUnitType; ///< nal_unit_type
   Bool        m_nalRefFlag;  ///< nal_ref_flag
   unsigned    m_temporalId;  ///< temporal_id
-#if !H0388
-  bool        m_OutputFlag;  ///< output_flag
-#endif
 
   /** construct an NALunit structure with given header values. */
-#if H0388
   NALUnit(
     NalUnitType nalUnitType,
     Bool        nalRefFlag,
@@ -61,19 +57,6 @@ struct NALUnit
     ,m_nalRefFlag  (nalRefFlag)
     ,m_temporalId  (temporalId)
   {}
-#else
-  NALUnit(
-    NalUnitType nalUnitType,
-    NalRefIdc nalRefIDC,
-    unsigned temporalID = 0,
-    bool outputFlag = true)
-  {
-    m_nalUnitType = nalUnitType;
-    m_nalRefIDC = nalRefIDC;
-    m_temporalId = temporalID;
-    m_OutputFlag = outputFlag;
-  }
-#endif
 
   /** default constructor - no initialization; must be perfomed by user */
   NALUnit() {}

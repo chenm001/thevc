@@ -835,11 +835,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
           m_pcEntropyCoder->resetEntropy      ();
         /* start slice NALunit */
-#if H0388
         OutputNALUnit nalu( pcSlice->getNalUnitType(), pcSlice->isReferenced(), pcSlice->getTLayer() );
-#else
-        OutputNALUnit nalu(pcSlice->getNalUnitType(), pcSlice->isReferenced() ? NAL_REF_IDC_PRIORITY_HIGHEST: NAL_REF_IDC_PRIORITY_LOWEST, pcSlice->getTLayer(), true);
-#endif
         Bool bEntropySlice = (!pcSlice->isNextSlice());
         if (!bEntropySlice)
         {

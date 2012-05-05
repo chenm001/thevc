@@ -1209,10 +1209,8 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   pcPPS->setWPBiPredIdc( uiCode );
   printf("TDecCavlc::parsePPS():\tm_bUseWeightPred=%d\tm_uiBiPredIdc=%d\n", pcPPS->getUseWP(), pcPPS->getWPBiPredIdc());
 
-#if H0388
   READ_FLAG( uiCode, "output_flag_present_flag" );
   pcPPS->setOutputFlagPresentFlag( uiCode==1 );
-#endif
 
 #if TILES_OR_ENTROPY_SYNC_IDC
   if(parameterSet->getPrefetchedSPS(pcPPS->getSPSId())->getTilesOrEntropyCodingSyncIdc()==1)
@@ -1598,7 +1596,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     sps = parameterSetManager->getPrefetchedSPS(pps->getSPSId());
     rpcSlice->setSPS(sps);
     rpcSlice->setPPS(pps);
-#if H0388
     if( pps->getOutputFlagPresentFlag() )
     {
       READ_FLAG( uiCode, "pic_output_flag" );
@@ -1608,7 +1605,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     {
       rpcSlice->setPicOutputFlag( true );
     }
-#endif
     if(rpcSlice->getNalUnitType()==NAL_UNIT_CODED_SLICE_IDR) 
     { 
       READ_UVLC( uiCode, "idr_pic_id" );  //ignored
