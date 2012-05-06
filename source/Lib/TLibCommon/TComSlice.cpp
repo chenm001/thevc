@@ -1296,6 +1296,9 @@ TComSPS::~TComSPS()
   }
 }
 
+const Int TComSPS::m_cropUnitX[]={1,2,2,1};
+const Int TComSPS::m_cropUnitY[]={1,2,1,1};
+
 TComPPS::TComPPS()
 : m_PPSId                       (0)
 , m_SPSId                       (0)

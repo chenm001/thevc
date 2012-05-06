@@ -185,6 +185,8 @@ template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min
 
 #define MAX_NUM_REF_PICS 16
 
+#define MAX_CHROMA_FORMAT_IDC      3
+
 enum NalUnitType
 {
   NAL_UNIT_UNSPECIFIED_0 = 0,

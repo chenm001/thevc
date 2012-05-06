@@ -226,6 +226,9 @@ private:
 
   Bool        m_useDF;
 
+  static const Int   m_cropUnitX[MAX_CHROMA_FORMAT_IDC+1];
+  static const Int   m_cropUnitY[MAX_CHROMA_FORMAT_IDC+1];
+
   UInt        m_tilesOrEntropyCodingSyncIdc;
   Int         m_numSubstreams;
 
@@ -242,6 +245,9 @@ public:
 
   Int  getChromaFormatIdc ()         { return m_chromaFormatIdc;       }
   Void setChromaFormatIdc (Int i)    { m_chromaFormatIdc = i;          }
+
+  static Int getCropUnitX (Int chromaFormatIdc) { assert (chromaFormatIdc > 0 && chromaFormatIdc <= MAX_CHROMA_FORMAT_IDC); return m_cropUnitX[chromaFormatIdc];      }
+  static Int getCropUnitY (Int chromaFormatIdc) { assert (chromaFormatIdc > 0 && chromaFormatIdc <= MAX_CHROMA_FORMAT_IDC); return m_cropUnitY[chromaFormatIdc];      }
   
   // structure
   Void setPicWidthInLumaSamples       ( UInt u ) { m_picWidthInLumaSamples = u;        }
