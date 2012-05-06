@@ -243,24 +243,15 @@ protected:
   Int       m_targetBitrate;                                 ///< target bitrate
   Int       m_numLCUInUnit;                                  ///< Total number of LCUs in a frame should be divided by the NumLCUInUnit
 public:
-  TEncCfg()          {}
+  TEncCfg()
+  : m_puiColumnWidth()
+  , m_puiRowHeight()
+  {}
+
   virtual ~TEncCfg()
   {
-    if( m_iUniformSpacingIdr == 0 )
-    {
-      if( m_iNumColumnsMinus1 )
-      { 
-        delete[] m_puiColumnWidth; 
-        m_puiColumnWidth = NULL;
-      }
-      if( m_iNumRowsMinus1 )
-      {
-        delete[] m_puiRowHeight;
-        m_puiRowHeight = NULL;
-      }
-    }
-    m_iTileLocationInSliceHeaderFlag = 0;
-    m_iTileMarkerFlag              = 0;
+    delete[] m_puiColumnWidth;
+    delete[] m_puiRowHeight;
   }
   
   Void      setFrameRate                    ( Int   i )      { m_iFrameRate = i; }

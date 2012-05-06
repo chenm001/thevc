@@ -71,6 +71,13 @@ void doOldStyleCmdlineOff(po::Options& opts, const std::string& arg);
 // ====================================================================================================================
 
 TAppEncCfg::TAppEncCfg()
+: m_pchInputFile()
+, m_pchBitstreamFile()
+, m_pchReconFile()
+, m_pchdQPFile()
+, m_pchColumnWidth()
+, m_pchRowHeight()
+, m_scalingListFile()
 {
   m_aidQP = NULL;
 }
