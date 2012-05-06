@@ -2595,34 +2595,20 @@ Void TComTrQuant::xSetScalingListEnc(TComScalingList *scalingList, UInt listId, 
 {
   UInt width = g_scalingListSizeX[sizeId];
   UInt height = g_scalingListSizeX[sizeId];
-#if SCALING_LIST
   UInt ratio = g_scalingListSizeX[sizeId]/min(MAX_MATRIX_SIZE_NUM,(Int)g_scalingListSizeX[sizeId]);
-#endif
   Int *quantcoeff;
   Int *coeff = scalingList->getScalingListAddress(sizeId,listId);
   quantcoeff   = getQuantCoeff(listId, qp, sizeId, SCALING_LIST_SQT);
 
-#if SCALING_LIST
   processScalingListEnc(coeff,quantcoeff,g_quantScales[qp]<<4,height,width,ratio,min(MAX_MATRIX_SIZE_NUM,(Int)g_scalingListSizeX[sizeId]),scalingList->getScalingListDC(sizeId,listId));
-#else
-  processScalingListEnc(coeff,quantcoeff,g_quantScales[qp]<<4,height,width,1,(Int)g_scalingListSizeX[sizeId],0);
-#endif
 
   if(sizeId == SCALING_LIST_32x32 || sizeId == SCALING_LIST_16x16) //for NSQT
   {
     quantcoeff   = getQuantCoeff(listId, qp, sizeId-1,SCALING_LIST_VER);
-#if SCALING_LIST
     processScalingListEnc(coeff,quantcoeff,g_quantScales[qp]<<4,height,width>>2,ratio,min(MAX_MATRIX_SIZE_NUM,(Int)g_scalingListSizeX[sizeId]),scalingList->getScalingListDC(sizeId,listId));
-#else
-    processScalingListEnc(coeff,quantcoeff,g_quantScales[qp]<<4,height,width>>2,1,(Int)g_scalingListSizeX[sizeId],0);
-#endif
 
     quantcoeff   = getQuantCoeff(listId, qp, sizeId-1,SCALING_LIST_HOR);
-#if SCALING_LIST
     processScalingListEnc(coeff,quantcoeff,g_quantScales[qp]<<4,height>>2,width,ratio,min(MAX_MATRIX_SIZE_NUM,(Int)g_scalingListSizeX[sizeId]),scalingList->getScalingListDC(sizeId,listId));
-#else
-    processScalingListEnc(coeff,quantcoeff,g_quantScales[qp]<<4,height>>2,width,1,(Int)g_scalingListSizeX[sizeId],0);
-#endif
   }
 }
 /** set quantized matrix coefficient for decode
@@ -2635,35 +2621,21 @@ Void TComTrQuant::xSetScalingListDec(TComScalingList *scalingList, UInt listId, 
 {
   UInt width = g_scalingListSizeX[sizeId];
   UInt height = g_scalingListSizeX[sizeId];
-#if SCALING_LIST
   UInt ratio = g_scalingListSizeX[sizeId]/min(MAX_MATRIX_SIZE_NUM,(Int)g_scalingListSizeX[sizeId]);
-#endif
   Int *dequantcoeff;
   Int *coeff = scalingList->getScalingListAddress(sizeId,listId);
 
   dequantcoeff = getDequantCoeff(listId, qp, sizeId,SCALING_LIST_SQT);
-#if SCALING_LIST
   processScalingListDec(coeff,dequantcoeff,g_invQuantScales[qp],height,width,ratio,min(MAX_MATRIX_SIZE_NUM,(Int)g_scalingListSizeX[sizeId]),scalingList->getScalingListDC(sizeId,listId));
-#else
-  processScalingListDec(coeff,dequantcoeff,g_invQuantScales[qp],height,width,1,(Int)g_scalingListSizeX[sizeId],0);
-#endif
 
   if(sizeId == SCALING_LIST_32x32 || sizeId == SCALING_LIST_16x16)
   {
     dequantcoeff   = getDequantCoeff(listId, qp, sizeId-1,SCALING_LIST_VER);
-#if SCALING_LIST
     processScalingListDec(coeff,dequantcoeff,g_invQuantScales[qp],height,width>>2,ratio,min(MAX_MATRIX_SIZE_NUM,(Int)g_scalingListSizeX[sizeId]),scalingList->getScalingListDC(sizeId,listId));
-#else
-    processScalingListDec(coeff,dequantcoeff,g_invQuantScales[qp],height,width>>2,1,(Int)g_scalingListSizeX[sizeId],0);
-#endif
 
     dequantcoeff   = getDequantCoeff(listId, qp, sizeId-1,SCALING_LIST_HOR);
 
-#if SCALING_LIST
     processScalingListDec(coeff,dequantcoeff,g_invQuantScales[qp],height>>2,width,ratio,min(MAX_MATRIX_SIZE_NUM,(Int)g_scalingListSizeX[sizeId]),scalingList->getScalingListDC(sizeId,listId));
-#else
-    processScalingListDec(coeff,dequantcoeff,g_invQuantScales[qp],height>>2,width,1,min(MAX_MATRIX_SIZE_NUM,(Int)g_scalingListSizeX[sizeId]),0);
-#endif
   }
 }
 
@@ -2757,12 +2729,10 @@ Void TComTrQuant::processScalingListEnc( Int *coeff, Int *quantcoeff, Int quantS
       quantcoeff[j*width + i] = quantScales / coeff[sizuNum * (j * nsqth / ratio) + i * nsqtw /ratio];
     }
   }
-#if SCALING_LIST
   if(ratio > 1)
   {
     quantcoeff[0] = quantScales / dc;
   }
-#endif
 }
 /** set quantized matrix coefficient for decode
  * \param coeff quantaized matrix address
@@ -2785,12 +2755,10 @@ Void TComTrQuant::processScalingListDec( Int *coeff, Int *dequantcoeff, Int invQ
       dequantcoeff[j*width + i] = invQuantScales * coeff[sizuNum * (j * nsqth / ratio) + i * nsqtw /ratio];
     }
   }
-#if SCALING_LIST
   if(ratio > 1)
   {
     dequantcoeff[0] = invQuantScales * dc;
   }
-#endif
 }
 
 /** initialization process of scaling list array

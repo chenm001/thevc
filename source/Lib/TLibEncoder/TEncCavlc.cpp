@@ -1427,17 +1427,11 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
  */
 Void TEncCavlc::xCodeScalingList(TComScalingList* scalingList, UInt sizeId, UInt listId)
 {
-#if SCALING_LIST
   Int coefNum = min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId]);
   UInt* scan    = g_auiFrameScanXY [ (sizeId == 0)? 1 : 2];
-#else
-  Int coefNum = (Int)g_scalingListSize[sizeId];
-  UInt* scan    = g_auiFrameScanXY [ sizeId + 1];
-#endif
   Int nextCoef = SCALING_LIST_START_VALUE;
   Int data;
   Int *src = scalingList->getScalingListAddress(sizeId, listId);
-#if SCALING_LIST
   if(sizeId > SCALING_LIST_8x8 && scalingList->getUseDefaultScalingMatrixFlag(sizeId,listId))
   {
     WRITE_SVLC( -8, "scaling_list_dc_coef_minus8");
@@ -1468,34 +1462,13 @@ Void TEncCavlc::xCodeScalingList(TComScalingList* scalingList, UInt sizeId, UInt
       WRITE_SVLC( data,  "scaling_list_delta_coef");
     }
   }
-#else
-  for(Int i=0;i<coefNum;i++)
-  {
-    data = src[scan[i]] - nextCoef;
-    nextCoef = src[scan[i]];
-    if(data > 127)
-    {
-      data = data - 256;
-    }
-    if(data < -128)
-    {
-      data = data + 256;
-    }
-
-    WRITE_SVLC( data,  "delta_coef");
-  }
-#endif
 }
 Bool TComScalingList::checkPredMode(UInt sizeId, UInt listId)
 {
   for(Int predListIdx = (Int)listId -1 ; predListIdx >= 0; predListIdx--)
   {
-#if SCALING_LIST
     if( !memcmp(getScalingListAddress(sizeId,listId),getScalingListAddress(sizeId, predListIdx),sizeof(Int)*min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId])) // check value of matrix
      && ((sizeId < SCALING_LIST_16x16) || (getScalingListDC(sizeId,listId) == getScalingListDC(sizeId,predListIdx)))) // check DC value
-#else
-    if( !memcmp(getScalingListAddress(sizeId,listId),getScalingListAddress(sizeId, predListIdx),sizeof(Int)*(Int)g_scalingListSize[sizeId])) // check value of matrix
-#endif
     {
       setRefMatrixId(sizeId, listId, predListIdx);
       return false;

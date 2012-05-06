@@ -221,9 +221,7 @@ extern UInt64 g_nSymbolCounter;
 #define SCALING_LIST_START_VALUE 8 ///< start value for dpcm mode
 #define MAX_MATRIX_COEF_NUM 64     ///< max coefficient number for quantization matrix
 #define MAX_MATRIX_SIZE_NUM 8      ///< max size number for quantization matrix
-#if SCALING_LIST
 #define SCALING_LIST_DC 16         ///< default DC value
-#endif
 enum ScalingListDIR
 {
   SCALING_LIST_SQT = 0,
@@ -270,7 +268,6 @@ static const char MatrixType[4][6][20] =
   "INTER32X32_LUMA",
   },
 };
-#if SCALING_LIST
 static const char MatrixType_DC[4][12][22] =
 {
   {
@@ -290,7 +287,6 @@ static const char MatrixType_DC[4][12][22] =
   "INTER32X32_LUMA_DC",
   },
 };
-#endif
 extern Int g_quantIntraDefault4x4[16];
 extern Int g_quantIntraDefault8x8[64];
 extern Int g_quantIntraDefault16x16[256];
