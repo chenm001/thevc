@@ -126,7 +126,6 @@ Void TEncBinCABAC::resetBac()
   start();
 }
 
-#if BURST_IPCM
 /** Encode # of subsequent IPCM blocks.
  * \param numSubseqIPCM 
  * \returns Void
@@ -152,17 +151,12 @@ Void TEncBinCABAC::encodeNumSubseqIPCM( Int numSubseqIPCM )
     }
   }
 }
-#endif
 
 /** Encode PCM alignment zero bits.
  * \returns Void
  */
 Void TEncBinCABAC::encodePCMAlignBits()
 {
-#if !BURST_IPCM
-  finish();
-  m_pcTComBitIf->write( 1, 1 ); // stop bit
-#endif
   m_pcTComBitIf->writeAlignZero(); // pcm align zero
 }
 

@@ -62,9 +62,7 @@ public:
   virtual Void  encodeFlush     (Bool bEnd) = 0;
 
   virtual Void  resetBac          ()                                          = 0;
-#if BURST_IPCM
   virtual Void  encodeNumSubseqIPCM( Int numSubseqIPCM )                   = 0;
-#endif
   virtual Void  encodePCMAlignBits()                                          = 0;
   virtual Void  xWritePCMCode     ( UInt uiCode, UInt uiLength )              = 0;
 

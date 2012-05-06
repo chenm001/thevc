@@ -61,9 +61,7 @@ public:
 #endif
 
   Void  resetBac          ();
-#if BURST_IPCM
   Void  encodeNumSubseqIPCM( Int numSubseqIPCM );
-#endif
   Void  encodePCMAlignBits();
   Void  xWritePCMCode     ( UInt uiCode, UInt uiLength );
   

@@ -305,7 +305,6 @@ Void TDecBinCABAC::resetBac()
   m_uiValue    = m_pcTComBitstream->read( 16 );
 }
 
-#if BURST_IPCM
 /** Decode subsequent_pcm_num.
  * \param numSubseqIPCM
  * \returns Void
@@ -341,7 +340,6 @@ Void TDecBinCABAC::decodeNumSubseqIPCM( Int& numSubseqIPCM )
 
   numSubseqIPCM --;
 }
-#endif
 
 /** Decode PCM alignment zero bits.
  * \returns Void

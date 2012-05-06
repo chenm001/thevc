@@ -82,9 +82,7 @@ private:
   
   //  Data : encoder control
   Bool                    m_bEncodeDQP;
-#if BURST_IPCM
   Bool                    m_checkBurstIPCMFlag;
-#endif
 
   //  Access channel
   TEncCfg*                m_pcEncCfg;
@@ -154,13 +152,11 @@ protected:
   Bool getdQPFlag           ()                        { return m_bEncodeDQP;        }
   Void setdQPFlag           ( Bool b )                { m_bEncodeDQP = b;           }
 
-#if BURST_IPCM
   Bool getCheckBurstIPCMFlag()                        { return m_checkBurstIPCMFlag;   }
   Void setCheckBurstIPCMFlag( Bool b )                { m_checkBurstIPCMFlag = b;      }
 
   Bool checkLastCUSucIPCM   ( TComDataCU* pcCU, UInt uiCurAbsPartIdx );
   Int  countNumSucIPCM      ( TComDataCU* pcCU, UInt uiCurAbsPartIdx );
-#endif
 
 #if ADAPTIVE_QP_SELECTION
   // Adaptive reconstruction level (ARL) statistics collection functions

@@ -915,7 +915,6 @@ Void TEncSbac::codeQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, U
   DTRACE_CABAC_T( "\n" )
 }
 
-#if BURST_IPCM
 /** Code I_PCM information. 
  * \param pcCU pointer to CU
  * \param uiAbsPartIdx CU index
@@ -924,20 +923,9 @@ Void TEncSbac::codeQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, U
  * \returns Void
  */
 Void TEncSbac::codeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Int numIPCM, Bool firstIPCMFlag)
-#else
-/** Code I_PCM information. 
- * \param pcCU pointer to CU
- * \param uiAbsPartIdx CU index
- * \returns Void
- *
- * If I_PCM flag indicates that the CU is I_PCM, code its PCM alignment bits and codes.  
- */
-Void TEncSbac::codeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx)
-#endif
 {
   UInt uiIPCM = (pcCU->getIPCMFlag(uiAbsPartIdx) == true)? 1 : 0;
 
-#if BURST_IPCM
   Bool writePCMSampleFlag = pcCU->getIPCMFlag(uiAbsPartIdx);
 
   if( uiIPCM == 0 || firstIPCMFlag)
@@ -950,19 +938,9 @@ Void TEncSbac::codeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx)
       m_pcBinIf->encodePCMAlignBits();
     }
   }
-#else
-  m_pcBinIf->encodeBinTrm (uiIPCM);
-#endif
 
-#if BURST_IPCM
   if (writePCMSampleFlag)
-#else
-  if (uiIPCM)
-#endif
   {
-#if !BURST_IPCM
-    m_pcBinIf->encodePCMAlignBits();
-#endif
     UInt uiMinCoeffSize = pcCU->getPic()->getMinCUWidth()*pcCU->getPic()->getMinCUHeight();
     UInt uiLumaOffset   = uiMinCoeffSize*uiAbsPartIdx;
     UInt uiChromaOffset = uiLumaOffset>>2;
@@ -1019,15 +997,11 @@ Void TEncSbac::codeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx)
       }
       piPCMSample += uiWidth;
     }
-#if BURST_IPCM
     numIPCM--;
     if(numIPCM == 0)
     {
       m_pcBinIf->resetBac();
     }
-#else
-    m_pcBinIf->resetBac();
-#endif
   }
 }
 
