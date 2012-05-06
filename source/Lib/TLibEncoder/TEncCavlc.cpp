@@ -445,7 +445,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
     xWriteFlag( pcSPS->getAMVPMode(i) ? 1 : 0);
   }
 
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
   Int tilesOrEntropyCodingSyncIdc = 0;
   if ( pcSPS->getNumColumnsMinus1() > 0 || pcSPS->getNumRowsMinus1() > 0)
   {
@@ -457,7 +456,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   }
   pcSPS->setTilesOrEntropyCodingSyncIdc( tilesOrEntropyCodingSyncIdc );
   WRITE_CODE(tilesOrEntropyCodingSyncIdc, 2, "tiles_or_entropy_coding_sync_idc");
-#endif
 
 #if TILES_OR_ENTROPY_SYNC_IDC
   if(tilesOrEntropyCodingSyncIdc == 1)
@@ -828,7 +826,6 @@ Void TEncCavlc::codeTileMarkerFlag(TComSlice* pcSlice)
  .
  \param pcSlice Where we find the substream size information.
  */
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
 Void  TEncCavlc::codeTilesWPPEntryPoint( TComSlice* pSlice )
 {
   Int tilesOrEntropyCodingSyncIdc = pSlice->getSPS()->getTilesOrEntropyCodingSyncIdc();
@@ -928,46 +925,6 @@ Void  TEncCavlc::codeTilesWPPEntryPoint( TComSlice* pSlice )
 
   delete [] entryPointOffset;
 }
-#else
-Void TEncCavlc::codeSliceHeaderSubstreamTable( TComSlice* pcSlice )
-{
-  UInt uiNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
-  UInt*puiSubstreamSizes = pcSlice->getSubstreamSizes();
-
-  // Write header information for all substreams except the last.
-  for (UInt ui = 0; ui+1 < uiNumSubstreams; ui++)
-  {
-    UInt uiNumbits = puiSubstreamSizes[ui];
-
-    //the 2 first bits are used to give the size of the header
-    if ( uiNumbits < (1<<8) )
-    {
-      xWriteCode(0,         2  );
-      xWriteCode(uiNumbits, 8  );
-    }
-    else if ( uiNumbits < (1<<16) )
-    {
-      xWriteCode(1,         2  );
-      xWriteCode(uiNumbits, 16 );
-    }
-    else if ( uiNumbits < (1<<24) )
-    {
-      xWriteCode(2,         2  );
-      xWriteCode(uiNumbits, 24 );
-    }
-    else if ( uiNumbits < (1<<31) )
-    {
-      xWriteCode(3,         2  );
-      xWriteCode(uiNumbits, 32 );
-    }
-    else
-    {
-      printf("Error in codeSliceHeaderTable\n");
-      exit(-1);
-    }
-  }
-}
-#endif
 
 Void TEncCavlc::codeTerminatingBit      ( UInt uilsLast )
 {

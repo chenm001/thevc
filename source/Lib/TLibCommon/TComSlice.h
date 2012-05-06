@@ -232,10 +232,8 @@ private:
 
   Bool        m_useDF;
 
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
   UInt        m_tilesOrEntropyCodingSyncIdc;
   Int         m_numSubstreams;
-#endif
 
 public:
   TComSPS();
@@ -416,12 +414,10 @@ public:
   Void setMaxDecPicBuffering  ( UInt ui, UInt tlayer ) { m_uiMaxDecPicBuffering[tlayer] = ui;   }
   UInt getMaxLatencyIncrease  (UInt tlayer)            { return m_uiMaxLatencyIncrease[tlayer];   }
   Void setMaxLatencyIncrease  ( UInt ui , UInt tlayer) { m_uiMaxLatencyIncrease[tlayer] = ui;      }
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
   UInt getTilesOrEntropyCodingSyncIdc ()                    { return m_tilesOrEntropyCodingSyncIdc;   }
   Void setTilesOrEntropyCodingSyncIdc ( UInt val )          { m_tilesOrEntropyCodingSyncIdc = val;    }
   Int  getNumSubstreams               ()                    { return m_numSubstreams;                 }
   Void setNumSubstreams               ( Int numSubstreams ) { m_numSubstreams = numSubstreams;        }
-#endif
 };
 
 /// Reference Picture Lists class
@@ -843,9 +839,7 @@ private:
 #if H0111_MVD_L1_ZERO
   Bool       m_bLMvdL1Zero;
 #endif
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
   Int         m_numEntryPointOffsets;
-#endif
 
 public:
   TComSlice();
@@ -1082,10 +1076,8 @@ public:
   Bool  checkDefaultScalingList     ();
   Void      setCabacInitFlag  ( Bool val ) { m_cabacInitFlag = val;      }  //!< set CABAC initial flag 
   Bool      getCabacInitFlag  ()           { return m_cabacInitFlag;     }  //!< get CABAC initial flag 
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
   Void      setNumEntryPointOffsets(Int val)  { m_numEntryPointOffsets = val;     }
   Int       getNumEntryPointOffsets()         { return m_numEntryPointOffsets;    }
-#endif
 
 protected:
   TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,

@@ -1291,9 +1291,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     pcSPS->setAMVPMode( i, (AMVP_MODE)uiCode );
   }
 
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
   READ_CODE(2, uiCode, "tiles_or_entropy_coding_sync_idc");         pcSPS->setTilesOrEntropyCodingSyncIdc(uiCode);
-#endif
 
 #if TILES_OR_ENTROPY_SYNC_IDC
   if(pcSPS->getTilesOrEntropyCodingSyncIdc() == 1)
@@ -1830,7 +1828,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     rpcSlice->setTileMarkerFlag( uiCode );
   }
 
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
   Int tilesOrEntropyCodingSyncIdc = rpcSlice->getSPS()->getTilesOrEntropyCodingSyncIdc();
   UInt *entryPointOffset          = NULL;
   UInt numEntryPointOffsets, offsetLenMinus1;
@@ -1891,84 +1888,10 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   {
     delete [] entryPointOffset;
   }
-#else
-  if (pps->getNumSubstreams() > 1)
-  {
-    UInt uiNumSubstreams = pps->getNumSubstreams();
-    rpcSlice->allocSubstreamSizes(uiNumSubstreams);
-    UInt *puiSubstreamSizes = rpcSlice->getSubstreamSizes();
-
-    for (UInt ui = 0; ui+1 < uiNumSubstreams; ui++)
-    {
-      xReadCode(2, uiCode);
-      
-      switch ( uiCode )
-      {
-      case 0:
-        xReadCode(8,  uiCode);
-        break;
-      case 1:
-        xReadCode(16, uiCode);
-        break;
-      case 2:
-        xReadCode(24, uiCode);
-        break;
-      case 3:
-        xReadCode(32, uiCode);
-        break;
-      default:
-        printf("Error in parseSliceHeader\n");
-        exit(-1);
-        break;
-      }
-      puiSubstreamSizes[ui] = uiCode;
-    }
-  }
-#endif
 
   if (!bEntropySlice)
   {
     // Reading location information
-#if !TILES_WPP_ENTRY_POINT_SIGNALLING
-      xReadCode(1, uiCode); // read flag indicating if location information signaled in slice header
-      Bool bTileLocationInformationInSliceHeaderFlag = (uiCode)? true : false;
-
-      if (bTileLocationInformationInSliceHeaderFlag)
-      {
-        // location count
-        xReadCode(5, uiCode); // number of tiles for which location information signaled
-        rpcSlice->setTileLocationCount ( uiCode + 1 );
-
-        xReadCode(5, uiCode); // number of bits used by diff
-        Int iBitsUsedByDiff = uiCode + 1;
-
-        // read out tile start location
-        Int iLastSize = 0;
-        for (UInt uiIdx=0; uiIdx<rpcSlice->getTileLocationCount(); uiIdx++)
-        {
-          Int iAbsDiff, iCurSize, iCurDiff;
-          if (uiIdx==0)
-          {
-            xReadCode(iBitsUsedByDiff-1, uiCode); iAbsDiff  = uiCode;
-            rpcSlice->setTileLocation( uiIdx, iAbsDiff );
-            iCurDiff  = iAbsDiff;
-            iLastSize = iAbsDiff;
-          }
-          else
-          {
-            xReadCode(1, uiCode); // read sign
-            Int iSign = (uiCode) ? -1 : +1;
-
-            xReadCode(iBitsUsedByDiff-1, uiCode); iAbsDiff  = uiCode;
-            iCurDiff  = (iSign) * iAbsDiff;
-            iCurSize  = iLastSize + iCurDiff;
-            iLastSize = iCurSize;
-            rpcSlice->setTileLocation( uiIdx, rpcSlice->getTileLocation( uiIdx-1 ) + iCurSize ); // calculate byte location
-          }
-        }
-      }
-#endif
-
       // read out trailing bits
     m_pcBitstream->readOutTrailingBits();
   }

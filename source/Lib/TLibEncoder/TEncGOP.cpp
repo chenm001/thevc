@@ -702,9 +702,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       {
         OutputNALUnit nalu(NAL_UNIT_SPS, true);
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
         pcSlice->getSPS()->setNumSubstreams( pcSlice->getPPS()->getNumSubstreams() );
-#endif
         m_pcEntropyCoder->encodeSPS(pcSlice->getSPS());
         writeRBSPTrailingBits(nalu.m_Bitstream);
         accessUnit.push_back(new NALUnitEBSP(nalu));
@@ -972,9 +970,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
             //!KS: The following writes trailing_bits. Should use proper function call to writeRBSPTrailingBits()
             pcSubstreamsOut[ui].write( 1, 1 ); // stop bit.
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
             pcSubstreamsOut[ui].writeAlignZero();
-#endif
             // Byte alignment is necessary between tiles when tiles are independent.
             uiTotalCodedSize += pcSubstreamsOut[ui].getNumberOfWrittenBits();
 
@@ -1002,15 +998,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           // Complete the slice header info.
           m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
           m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
           if (m_pcCfg->getTileLocationInSliceHeaderFlag()==0) 
           {
             pcSlice->setTileLocationCount( 0 );
           }
           m_pcEntropyCoder->encodeTilesWPPEntryPoint( pcSlice );
-#else
-          m_pcEntropyCoder->encodeSliceHeaderSubstreamTable(pcSlice);
-#endif
 
           // Substreams...
           TComOutputBitstream *pcOut = pcBitstreamRedirect;
@@ -1901,108 +1893,6 @@ Double TEncGOP::xCalculateRVM()
  */
 Void TEncGOP::xWriteTileLocationToSliceHeader (OutputNALUnit& rNalu, TComOutputBitstream*& rpcBitstreamRedirect, TComSlice*& rpcSlice)
 {
-  {
-#if !TILES_WPP_ENTRY_POINT_SIGNALLING
-    Int iTransmitTileLocationInSliceHeader = (rpcSlice->getTileLocationCount()==0 || m_pcCfg->getTileLocationInSliceHeaderFlag()==0) ? 0 : 1;
-    rNalu.m_Bitstream.write(iTransmitTileLocationInSliceHeader, 1);   // write flag indicating whether tile location information communicated in slice header
-
-    if (iTransmitTileLocationInSliceHeader)
-    {
-      rNalu.m_Bitstream.write(rpcSlice->getTileLocationCount()-1, 5);   // write number of tiles
-
-      Int *aiDiff;
-      aiDiff = new Int [rpcSlice->getTileLocationCount()];
-
-      // Find largest number of bits required by Diff
-      Int iLastSize = 0, iDiffMax = 0, iDiffMin = 0;
-      for (UInt uiIdx=0; uiIdx<rpcSlice->getTileLocationCount(); uiIdx++)
-      {
-        Int iCurDiff, iCurSize;
-        if (uiIdx==0)
-        {
-          iCurDiff  = rpcSlice->getTileLocation( uiIdx );
-          iLastSize = rpcSlice->getTileLocation( uiIdx );
-        }
-        else
-        {
-          iCurSize  = rpcSlice->getTileLocation( uiIdx )  - rpcSlice->getTileLocation( uiIdx-1 );
-          iCurDiff  = iCurSize - iLastSize;
-          iLastSize = iCurSize;
-        }
-        // Store Diff so it may be written to slice header later without re-calculating.
-        aiDiff[uiIdx] = iCurDiff;
-
-        if (iCurDiff>iDiffMax)
-        {
-          iDiffMax = iCurDiff;
-        }
-        if (iCurDiff<iDiffMin)
-        {
-          iDiffMin = iCurDiff;
-        }
-      }
-
-      Int iDiffMinAbs, iDiffMaxAbs;
-      iDiffMinAbs = (iDiffMin<0) ? (-iDiffMin) : iDiffMin;
-      iDiffMaxAbs = (iDiffMax<0) ? (-iDiffMax) : iDiffMax;
-
-      Int iBitsUsedByDiff = 0, iDiffAbsLargest;
-      iDiffAbsLargest = (iDiffMinAbs < iDiffMaxAbs) ? iDiffMaxAbs : iDiffMinAbs;        
-      while (1)
-      {
-        if (iDiffAbsLargest >= (1 << iBitsUsedByDiff) )
-        {
-          iBitsUsedByDiff++;
-        }
-        else
-        {
-          break;
-        }
-      }
-      iBitsUsedByDiff++;
-
-      if (iBitsUsedByDiff > 32)
-      {
-        printf("\nDiff magnitude uses more than 32-bits");
-        assert ( 0 );
-        exit ( 0 ); // trying to catch any problems with using fixed bits for Diff information
-      }
-
-      rNalu.m_Bitstream.write( iBitsUsedByDiff-1, 5 ); // write number of bits used by Diff
-
-      // Write diff to slice header (rNalu)
-      for (UInt uiIdx=0; uiIdx<rpcSlice->getTileLocationCount(); uiIdx++)
-      {
-        Int iCurDiff = aiDiff[uiIdx];
-
-        // write sign of diff
-        if (uiIdx!=0)
-        {
-          if (iCurDiff<0)          
-          {
-            rNalu.m_Bitstream.write(1, 1);
-          }
-          else
-          {
-            rNalu.m_Bitstream.write(0, 1);
-          }
-        }
-
-        // write abs value of diff
-        Int iAbsDiff = (iCurDiff<0) ? (-iCurDiff) : iCurDiff;
-        if (iAbsDiff > ((((UInt64)1)<<32)-1))
-        {
-          printf("\niAbsDiff exceeds 32-bit limit");
-          exit(0);
-        }
-        rNalu.m_Bitstream.write( iAbsDiff, iBitsUsedByDiff-1 ); 
-      }
-
-      delete [] aiDiff;
-    }
-#endif
-  }
-
   // Byte-align
   rNalu.m_Bitstream.writeAlignOne();
 

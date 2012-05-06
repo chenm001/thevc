@@ -175,9 +175,7 @@ protected:
   unsigned char m_held_bits;
   UInt m_uiTileMarkerLocationCount;
   UInt *m_puiTileMarkerLocation;
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
   UInt  m_numBitsRead;
-#endif
 
 public:
   /**
@@ -227,9 +225,7 @@ public:
 #if !OL_FLUSH_ALIGN
   Void                backupByte() { m_fifo_idx--; }
 #endif
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
   UInt  getNumBitsRead() { return m_numBitsRead; }
-#endif
 };
 
 //! \}

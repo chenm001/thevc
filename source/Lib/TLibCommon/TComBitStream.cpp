@@ -72,9 +72,7 @@ TComInputBitstream::TComInputBitstream(std::vector<uint8_t>* buf)
   m_num_held_bits = 0;
   m_puiTileMarkerLocation     = new UInt[MAX_MARKER_PER_NALU];
   m_uiTileMarkerLocationCount = 0;
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
   m_numBitsRead = 0;
-#endif
 }
 
 TComInputBitstream::~TComInputBitstream()
@@ -211,9 +209,7 @@ Void TComInputBitstream::read (UInt uiNumberOfBits, UInt& ruiBits)
 {
   assert( uiNumberOfBits <= 32 );
   
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
   m_numBitsRead += uiNumberOfBits;
-#endif
 
   /* NB, bits are extracted from the MSB of each byte. */
   unsigned retval = 0;

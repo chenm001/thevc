@@ -97,9 +97,7 @@ TComSlice::TComSlice()
 , m_uiTileOffstForMultES          ( 0 )
 , m_puiSubstreamSizes             ( NULL )
 , m_cabacInitFlag                 ( false )
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
 , m_numEntryPointOffsets          ( 0 )
-#endif
 {
   m_aiNumRefIdx[0] = m_aiNumRefIdx[1] = m_aiNumRefIdx[2] = 0;
   
@@ -162,9 +160,7 @@ Void TComSlice::initSlice()
 
   m_uiTileCount          = 0;
   m_cabacInitFlag        = false;
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
   m_numEntryPointOffsets = 0;
-#endif
 }
 
 Void TComSlice::initTiles()
@@ -724,9 +720,7 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_saoEnabledFlagCb = pSrc->m_saoEnabledFlagCb;
   m_saoEnabledFlagCr = pSrc->m_saoEnabledFlagCr; 
   m_cabacInitFlag                = pSrc->m_cabacInitFlag;
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
   m_numEntryPointOffsets  = pSrc->m_numEntryPointOffsets;
-#endif
 
 #if H0111_MVD_L1_ZERO
   m_bLMvdL1Zero = pSrc->m_bLMvdL1Zero;
@@ -1301,10 +1295,8 @@ TComSPS::TComSPS()
 , m_puiRowHeight              ( NULL )
 , m_bTemporalIdNestingFlag    (false)
 , m_scalingListEnabledFlag    (false)
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
 ,  m_tilesOrEntropyCodingSyncIdc( 0 )
 ,  m_numSubstreams              ( 0 )
-#endif
 {
   // AMVP parameter
   ::memset( m_aeAMVPMode, 0, sizeof( m_aeAMVPMode ) );

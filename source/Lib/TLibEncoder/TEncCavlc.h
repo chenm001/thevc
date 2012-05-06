@@ -114,11 +114,7 @@ public:
 
   Void codeTileMarkerFlag(TComSlice* pcSlice);
 
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
   Void  codeTilesWPPEntryPoint( TComSlice* pSlice );
-#else
-  Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );
-#endif
   Void  codeTerminatingBit      ( UInt uilsLast );
   Void  codeSliceFinish         ();
   Void  codeFlush               () {}
