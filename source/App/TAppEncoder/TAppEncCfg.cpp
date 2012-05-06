@@ -42,9 +42,7 @@
 #include "TLibCommon/TComRom.h"
 #include "TAppEncCfg.h"
 #include "TAppCommon/program_options_lite.h"
-#if RATECTRL
 #include "TLibEncoder/TEncRateCtrl.h"
-#endif
 #ifdef WIN32
 #define strdup _strdup
 #endif
@@ -303,11 +301,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("FDM", m_useFastDecisionForMerge, true, "Fast decision for Merge RD Cost") 
   ("CFM", m_bUseCbfFastMode, false, "Cbf fast mode setting")
   ("ESD", m_useEarlySkipDetection, false, "Early SKIP detection setting")
-#if RATECTRL
   ("RateCtrl,-rc", m_enableRateCtrl, false, "Rate control on/off")
   ("TargetBitrate,-tbr", m_targetBitrate, 0, "Input target bitrate")
   ("NumLCUInUnit,-nu", m_numLCUInUnit, 0, "Number of LCUs in an Unit")
-#endif
   /* Compatability with old style -1 FOO or -0 FOO options. */
   ("1", doOldStyleCmdlineOn, "turn option <name> on")
   ("0", doOldStyleCmdlineOff, "turn option <name> off")
@@ -839,7 +835,6 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iWaveFrontSubstreams <= 0, "WaveFrontSubstreams must be positive" );
   xConfirmPara( m_iWaveFrontSubstreams > 1 && !m_iWaveFrontSynchro, "Must have WaveFrontSynchro > 0 in order to have WaveFrontSubstreams > 1" );
 
-#if RATECTRL
   if(m_enableRateCtrl)
   {
     Int numLCUInWidth  = (m_iSourceWidth  / m_uiMaxCUWidth) + (( m_iSourceWidth  %  m_uiMaxCUWidth ) ? 1 : 0);
@@ -851,7 +846,6 @@ Void TAppEncCfg::xCheckParameter()
     m_iMaxDeltaQP       = MAX_DELTA_QP;
     m_iMaxCuDQPDepth    = MAX_CUDQP_DEPTH;
   }
-#endif
 
 #undef xConfirmPara
   if (check_failed)
@@ -933,14 +927,12 @@ Void TAppEncCfg::xPrintParameter()
   {
     printf("DisableInter4x4              : %d\n", m_bDisInter4x4);  
   }
-#if RATECTRL
   printf("RateControl                  : %d\n", m_enableRateCtrl);
   if(m_enableRateCtrl)
   {
     printf("TargetBitrate                : %d\n", m_targetBitrate);
     printf("NumLCUInUnit                 : %d\n", m_numLCUInUnit);
   }
-#endif
   printf("\n");
   
   printf("TOOL CFG: ");

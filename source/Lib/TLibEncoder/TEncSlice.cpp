@@ -142,9 +142,7 @@ Void TEncSlice::init( TEncTop* pcEncTop )
   m_pdRdPicLambda     = (Double*)xMalloc( Double, m_pcCfg->getDeltaQpRD() * 2 + 1 );
   m_pdRdPicQp         = (Double*)xMalloc( Double, m_pcCfg->getDeltaQpRD() * 2 + 1 );
   m_piRdPicQp         = (Int*   )xMalloc( Int,    m_pcCfg->getDeltaQpRD() * 2 + 1 );
-#if RATECTRL
   m_pcRateCtrl        = pcEncTop->getRateCtrl();
-#endif
 }
 
 /**
@@ -246,12 +244,10 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   {
     dQP += pdQPs[ rpcSlice->getPOC() ];
   }
-#if RATECTRL
   if ( m_pcCfg->getUseRateCtrl())
   {
     dQP = m_pcRateCtrl->getFrameQP(rpcSlice->isReferenced(), rpcSlice->getPOC());
   }
-#endif
   // ------------------------------------------------------------------------------------------------------------------
   // Lambda computation
   // ------------------------------------------------------------------------------------------------------------------
@@ -395,7 +391,6 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 }
 
 
-#if RATECTRL
 /**
  - lambda re-computation based on rate control QP
  */
@@ -492,7 +487,6 @@ Void TEncSlice::xLamdaRecalculation(Int changeQP, Int idGOP, Int depth, SliceTyp
   pcSlice   ->setLambda( lambda );
 #endif
 }
-#endif
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
@@ -782,7 +776,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );
     pcCU->initCU( rpcPic, uiCUAddr );
 
-#if RATECTRL
     if(m_pcCfg->getUseRateCtrl())
     {
       if(m_pcRateCtrl->calculateUnitQP())
@@ -790,7 +783,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         xLamdaRecalculation(m_pcRateCtrl->getUnitQP(), m_pcRateCtrl->getGOPId(), pcSlice->getDepth(), pcSlice->getSliceType(), pcSlice->getSPS(), pcSlice );
       }
     }
-#endif
     // inherit from TR if necessary, select substream to use.
     if( m_pcCfg->getUseSBACRD() )
     {
@@ -922,21 +914,17 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     m_uiPicTotalBits += pcCU->getTotalBits();
     m_dPicRdCost     += pcCU->getTotalCost();
     m_uiPicDist      += pcCU->getTotalDistortion();
-#if RATECTRL
     if(m_pcCfg->getUseRateCtrl())
     {
       m_pcRateCtrl->updateLCUData(pcCU, pcCU->getTotalBits(), pcCU->getQP(0));
       m_pcRateCtrl->updataRCUnitStatus();
     }
-#endif
   }
   xRestoreWPparam( pcSlice );
-#if RATECTRL
   if(m_pcCfg->getUseRateCtrl())
   {
     m_pcRateCtrl->updateFrameData(m_uiPicTotalBits);
   }
-#endif
 }
 
 /**

@@ -252,11 +252,9 @@ Void TAppEncTop::xInitLibCfg()
   }
   m_cTEncTop.setALFParamInSlice              ( m_bALFParamInSlice);
   m_cTEncTop.setALFPicBasedEncode            ( m_bALFPicBasedEncode);
-#if RATECTRL
   m_cTEncTop.setUseRateCtrl     ( m_enableRateCtrl);
   m_cTEncTop.setTargetBitrate   ( m_targetBitrate);
   m_cTEncTop.setNumLCUInUnit    ( m_numLCUInUnit);
-#endif
 }
 
 Void TAppEncTop::xCreateLib()

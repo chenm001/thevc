@@ -48,9 +48,7 @@
 
 #include "TEncEntropy.h"
 #include "TEncSearch.h"
-#if RATECTRL
 #include "TEncRateCtrl.h"
-#endif
 //! \ingroup TLibEncoder
 //! \{
 
@@ -101,9 +99,7 @@ private:
   TEncSbac***             m_pppcRDSbacCoder;
   TEncSbac*               m_pcRDGoOnSbacCoder;
   Bool                    m_bUseSBACRD;
-#if RATECTRL
   TEncRateCtrl*           m_pcRateCtrl;
-#endif
 public:
   /// copy parameters from encoder class
   Void  init                ( TEncTop* pcEncTop );

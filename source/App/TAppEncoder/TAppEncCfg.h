@@ -204,11 +204,9 @@ protected:
   Bool      m_enableTMVP;
   Int       m_signHideFlag;
   Int       m_signHidingThreshold;
-#if RATECTRL
   Bool      m_enableRateCtrl;                                   ///< Flag for using rate control algorithm
   Int       m_targetBitrate;                                 ///< target bitrate
   Int       m_numLCUInUnit;                                  ///< Total number of LCUs in a frame should be completely divided by the NumLCUInUnit
-#endif
   Int       m_useScalingListId;                               ///< using quantization matrix
   char*     m_scalingListFile;                                ///< quantization matrix file name
   // internal member functions

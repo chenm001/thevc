@@ -121,9 +121,7 @@ Void TEncTop::create ()
   {
     m_vAPS.reserve(MAX_NUM_SUPPORTED_APS);
   }
-#if RATECTRL
   m_cRateCtrl.create(getIntraPeriod(), getGOPSize(), getFrameRate(), getTargetBitrate(), getQP(), getNumLCUInUnit(), getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight);
-#endif
   // if SBAC-based RD optimization is used
   if( m_bUseSBACRD )
   {
@@ -232,9 +230,7 @@ Void TEncTop::destroy ()
   m_cAdaptiveLoopFilter.destroy();
   m_cLoopFilter.        destroy();
   m_RPSList.            destroy();
-#if RATECTRL
   m_cRateCtrl.          destroy();
-#endif
   // SBAC RD
   if( m_bUseSBACRD )
   {
