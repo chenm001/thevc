@@ -170,7 +170,9 @@ Void TEncTop::create ()
 Void TEncTop::createWPPCoders(Int iNumSubstreams)
 {
   if (m_pcSbacCoders != NULL)
+  {
     return; // already generated.
+  }
 
   m_iNumSubstreams         = iNumSubstreams;
   m_pcSbacCoders           = new TEncSbac       [iNumSubstreams];
@@ -432,22 +434,24 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
     {
       rpcPic = *(iterPic++);
       if(rpcPic->getSlice(0)->isReferenced() == false)
-         break;
+      {
+        break;
+      }
     }
   }
   else
   {
-        if ( getUseAdaptiveQP() )
-        {
-          TEncPic* pcEPic = new TEncPic;
-          pcEPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, m_cPPS.getMaxCuDQPDepth()+1 );
-          rpcPic = pcEPic;
-        }
-        else
-        {
-          rpcPic = new TComPic;
-          rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-        }
+    if ( getUseAdaptiveQP() )
+    {
+      TEncPic* pcEPic = new TEncPic;
+      pcEPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, m_cPPS.getMaxCuDQPDepth()+1 );
+      rpcPic = pcEPic;
+    }
+    else
+    {
+      rpcPic = new TComPic;
+      rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+    }
     m_cListPic.pushBack( rpcPic );
   }
   rpcPic->setReconMark (false);
@@ -770,24 +774,24 @@ Void TEncTop::selectReferencePictureSet(TComSlice* slice, Int POCCurr, Int GOPid
 
 Void  TEncTop::xInitPPSforTiles()
 {
-    m_cPPS.setColumnRowInfoPresent( m_iColumnRowInfoPresent );
-    m_cPPS.setUniformSpacingIdr( m_iUniformSpacingIdr );
-    m_cPPS.setNumColumnsMinus1( m_iNumColumnsMinus1 );
-    m_cPPS.setNumRowsMinus1( m_iNumRowsMinus1 );
-    if( m_iUniformSpacingIdr == 0 )
-    {
-      m_cPPS.setColumnWidth( m_puiColumnWidth );
-      m_cPPS.setRowHeight( m_puiRowHeight );
-    }
-    m_cPPS.setTileBehaviorControlPresentFlag( m_iTileBehaviorControlPresentFlag );
-    m_cPPS.setLFCrossTileBoundaryFlag( m_bLFCrossTileBoundaryFlag );
+  m_cPPS.setColumnRowInfoPresent( m_iColumnRowInfoPresent );
+  m_cPPS.setUniformSpacingIdr( m_iUniformSpacingIdr );
+  m_cPPS.setNumColumnsMinus1( m_iNumColumnsMinus1 );
+  m_cPPS.setNumRowsMinus1( m_iNumRowsMinus1 );
+  if( m_iUniformSpacingIdr == 0 )
+  {
+    m_cPPS.setColumnWidth( m_puiColumnWidth );
+    m_cPPS.setRowHeight( m_puiRowHeight );
+  }
+  m_cPPS.setTileBehaviorControlPresentFlag( m_iTileBehaviorControlPresentFlag );
+  m_cPPS.setLFCrossTileBoundaryFlag( m_bLFCrossTileBoundaryFlag );
 
-    // # substreams is "per tile" when tiles are independent.
-    if (m_iWaveFrontSynchro
-        )
-    {
-      m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams * (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1));
-    }
+  // # substreams is "per tile" when tiles are independent.
+  if (m_iWaveFrontSynchro
+    )
+  {
+    m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams * (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1));
+  }
 }
 
 Void  TEncCfg::xCheckGSParameters()
@@ -813,7 +817,9 @@ Void  TEncCfg::xCheckGSParameters()
   if( m_iNumColumnsMinus1 && m_iUniformSpacingIdr==0 )
   {
     for(Int i=0; i<m_iNumColumnsMinus1; i++)
+    {
       uiCummulativeColumnWidth += m_puiColumnWidth[i];
+    }
 
     if( uiCummulativeColumnWidth >= iWidthInCU )
     {
