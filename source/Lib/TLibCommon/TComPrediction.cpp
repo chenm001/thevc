@@ -504,7 +504,8 @@ Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidt
     }
     else
     {
-      if ( pcCU->getSlice()->getPPS()->getWPBiPredIdc() )
+      if ( ( pcCU->getSlice()->getPPS()->getUseWP()       && pcCU->getSlice()->getSliceType() == P_SLICE ) || 
+           ( pcCU->getSlice()->getPPS()->getWPBiPredIdc() && pcCU->getSlice()->getSliceType() == B_SLICE ) )
       {
         xPredInterUni ( pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, iPartIdx, true );
       }
@@ -515,9 +516,13 @@ Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidt
     }
   }
 
-  if ( pcCU->getSlice()->getPPS()->getWPBiPredIdc() )
+  if ( pcCU->getSlice()->getPPS()->getWPBiPredIdc() && pcCU->getSlice()->getSliceType() == B_SLICE  )
   {
     xWeightedPredictionBi( pcCU, &m_acYuvPred[0], &m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, iWidth, iHeight, rpcYuvPred );
+  }  
+  else if ( pcCU->getSlice()->getPPS()->getUseWP() && pcCU->getSlice()->getSliceType() == P_SLICE )
+  {
+    xWeightedPredictionUni( pcCU, &m_acYuvPred[0], uiPartAddr, iWidth, iHeight, REF_PIC_LIST_0, rpcYuvPred, iPartIdx ); 
   }
   else
   {
