@@ -1388,16 +1388,13 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
         Int offset = rps->getNumberOfNegativePictures()+rps->getNumberOfPositivePictures();
         READ_UVLC( uiCode, "num_long_term_pics");             rps->setNumberOfLongtermPictures(uiCode);
         Int prev = 0;
-#if LTRP_MULT
         Int prevMsb=0;
         Int prevDeltaPocLt=0;
-#endif
         for(Int j=rps->getNumberOfLongtermPictures()+offset-1 ; j > offset-1; j--)
         {
           READ_UVLC(uiCode,"delta_poc_lsb_lt"); 
           prev += uiCode;
 
-#if LTRP_MULT
           READ_FLAG(uiCode,"delta_poc_msb_present_flag");
           Int decDeltaPOCMsbPresent=uiCode;
 
@@ -1419,14 +1416,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
           }
           else
           {
-#endif
             rps->setPOC(j,rpcSlice->getPOC()-prev);          
             rps->setDeltaPOC(j,-(Int)prev);
-#if LTRP_MULT
             rps->setCheckLTMSBPresent(j,false);
           }
           prevDeltaPocLt=prev;
-#endif
           READ_FLAG( uiCode, "used_by_curr_pic_lt_flag");     rps->setUsed(j,uiCode);
         }
         offset += rps->getNumberOfLongtermPictures();
