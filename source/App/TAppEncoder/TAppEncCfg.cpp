@@ -219,11 +219,11 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("MaxDeltaQP,d",  m_iMaxDeltaQP,        0, "max dQp offset for block")
   ("MaxCuDQPDepth,-dqd",  m_iMaxCuDQPDepth,        0, "max depth for a minimum CuDQP")
 
-    ("ChromaQpOffset,   -cqo",   m_iChromaQpOffset,           0, "ChromaQpOffset")
-    ("ChromaQpOffset2nd,-cqo2",  m_iChromaQpOffset2nd,        0, "ChromaQpOffset2nd")
+  ("CbQpOffset,-cbqpofs",  m_cbQpOffset,        0, "Chroma Cb QP Offset")
+  ("CrQpOffset,-crqpofs",  m_crQpOffset,        0, "Chroma Cr QP Offset")
 
 #if ADAPTIVE_QP_SELECTION
-    ("AdaptiveQpSelection,-aqps",   m_bUseAdaptQpSelect,           false, "AdaptiveQpSelection")
+  ("AdaptiveQpSelection,-aqps",   m_bUseAdaptQpSelect,           false, "AdaptiveQpSelection")
 #endif
 
   ("AdaptiveQP,-aq", m_bUseAdaptiveQP, false, "QP adaptation based on a psycho-visual model")
@@ -488,10 +488,10 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iMaxDeltaQP > 7,                                                          "Absolute Delta QP exceeds supported range (0 to 7)" );
   xConfirmPara( m_iMaxCuDQPDepth > m_uiMaxCUDepth - 1,                                          "Absolute depth for a minimum CuDQP exceeds maximum coding unit depth" );
 
-  xConfirmPara( m_iChromaQpOffset    < -12,   "Min. Chroma Qp Offset is -12"     );
-  xConfirmPara( m_iChromaQpOffset    >  12,   "Max. Chroma Qp Offset is  12"     );
-  xConfirmPara( m_iChromaQpOffset2nd < -12,   "Min. Chroma Qp Offset 2nd is -12" );
-  xConfirmPara( m_iChromaQpOffset2nd >  12,   "Max. Chroma Qp Offset 2nd is  12" );
+  xConfirmPara( m_cbQpOffset < -12,   "Min. Chroma Cb QP Offset is -12" );
+  xConfirmPara( m_cbQpOffset >  12,   "Max. Chroma Cb QP Offset is  12" );
+  xConfirmPara( m_crQpOffset < -12,   "Min. Chroma Cr QP Offset is -12" );
+  xConfirmPara( m_crQpOffset >  12,   "Max. Chroma Cr QP Offset is  12" );
 
   xConfirmPara( m_iQPAdaptationRange <= 0,                                                  "QP Adaptation Range must be more than 0" );
   if (m_iDecodingRefreshType == 2)
@@ -521,7 +521,7 @@ Void TAppEncCfg::xCheckParameter()
 
 #if ADAPTIVE_QP_SELECTION
   xConfirmPara( m_bUseAdaptQpSelect == true && m_iQP < 0,                                              "AdaptiveQpSelection must be disabled when QP < 0.");
-  xConfirmPara( m_bUseAdaptQpSelect == true && (m_iChromaQpOffset !=0 || m_iChromaQpOffset2nd != 0 ),  "AdaptiveQpSelection must be disabled when ChromaQpOffset is not equal to 0.");
+  xConfirmPara( m_bUseAdaptQpSelect == true && (m_cbQpOffset !=0 || m_crQpOffset != 0 ),               "AdaptiveQpSelection must be disabled when ChromaQpOffset is not equal to 0.");
 #endif
 
   if( m_usePCM)
@@ -946,8 +946,8 @@ Void TAppEncCfg::xPrintParameter()
   printf("QP                           : %5.2f\n", m_fQP );
   printf("Max dQP signaling depth      : %d\n", m_iMaxCuDQPDepth);
 
-  printf("Chroma Qp Offset             : %d\n", m_iChromaQpOffset   );
-  printf("Chroma Qp Offset 2nd         : %d\n", m_iChromaQpOffset2nd);
+  printf("Cb QP Offset                 : %d\n", m_cbQpOffset   );
+  printf("Cr QP Offset                 : %d\n", m_crQpOffset);
 
   printf("QP adaptation                : %d (range=%d)\n", m_bUseAdaptiveQP, (m_bUseAdaptiveQP ? m_iQPAdaptationRange : 0) );
   printf("GOP size                     : %d\n", m_iGOPSize );

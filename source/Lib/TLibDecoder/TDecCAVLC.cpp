@@ -959,11 +959,11 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSe
     pcPPS->setMaxCuDQPDepth(uiCode - 1);
   }
 
-  READ_SVLC( iCode, "chroma_qp_offset");
-  pcPPS->setChromaQpOffset(iCode);
+  READ_SVLC( iCode, "cb_qp_offset");
+  pcPPS->setChromaCbQpOffset(iCode);
 
-  READ_SVLC( iCode, "chroma_qp_offset_2nd");
-  pcPPS->setChromaQpOffset2nd(iCode);
+  READ_SVLC( iCode, "cr_qp_offset");
+  pcPPS->setChromaCrQpOffset(iCode);
 
   READ_FLAG( uiCode, "weighted_pred_flag" );          // Use of Weighting Prediction (P_SLICE)
   pcPPS->setUseWP( uiCode==1 );

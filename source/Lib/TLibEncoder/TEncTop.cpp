@@ -605,8 +605,8 @@ Void TEncTop::xInitPPS()
     m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
   }
 
-  m_cPPS.setChromaQpOffset   ( m_iChromaQpOffset    );
-  m_cPPS.setChromaQpOffset2nd( m_iChromaQpOffset2nd );
+  m_cPPS.setChromaCbQpOffset( m_chromaCbQpOffset );
+  m_cPPS.setChromaCrQpOffset( m_chromaCrQpOffset );
 
   m_cPPS.setEntropyCodingMode( 1 ); // In the PPS now, but also remains in slice header!
   m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams);

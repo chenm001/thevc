@@ -123,8 +123,8 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setMaxDeltaQP                   ( m_iMaxDeltaQP  );
   m_cTEncTop.setMaxCuDQPDepth                ( m_iMaxCuDQPDepth  );
 
-  m_cTEncTop.setChromaQpOffset               ( m_iChromaQpOffset     );
-  m_cTEncTop.setChromaQpOffset2nd            ( m_iChromaQpOffset2nd  );
+  m_cTEncTop.setChromaCbQpOffset               ( m_cbQpOffset     );
+  m_cTEncTop.setChromaCrQpOffset            ( m_crQpOffset  );
 
 #if ADAPTIVE_QP_SELECTION
   m_cTEncTop.setUseAdaptQpSelect             ( m_bUseAdaptQpSelect   );

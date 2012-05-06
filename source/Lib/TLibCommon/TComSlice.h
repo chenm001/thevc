@@ -459,8 +459,8 @@ private:
   UInt        m_uiMaxCuDQPDepth;
   UInt        m_uiMinCuDQPSize;
 
-  Int        m_iChromaQpOffset;
-  Int        m_iChromaQpOffset2nd;
+  Int         m_chromaCbQpOffset;
+  Int         m_chromaCrQpOffset;
 
   UInt        m_numRefIdxL0DefaultActive;
   UInt        m_numRefIdxL1DefaultActive;
@@ -518,10 +518,10 @@ public:
   Void      setMinCuDQPSize     ( UInt u ) { m_uiMinCuDQPSize = u;    }
   UInt      getMinCuDQPSize     ()         { return m_uiMinCuDQPSize; }
 
-  Void      setChromaQpOffset   ( Int i ) { m_iChromaQpOffset = i; }
-  Int       getChromaQpOffset   () { return m_iChromaQpOffset;}
-  Void      setChromaQpOffset2nd( Int i ) { m_iChromaQpOffset2nd = i; }
-  Int       getChromaQpOffset2nd() { return m_iChromaQpOffset2nd;}
+  Void      setChromaCbQpOffset( Int i ) { m_chromaCbQpOffset = i;    }
+  Int       getChromaCbQpOffset()        { return m_chromaCbQpOffset; }
+  Void      setChromaCrQpOffset( Int i ) { m_chromaCrQpOffset = i;    }
+  Int       getChromaCrQpOffset()        { return m_chromaCrQpOffset; }
 
   Void      setNumRefIdxL0DefaultActive(UInt ui)    { m_numRefIdxL0DefaultActive=ui;     }
   UInt      getNumRefIdxL0DefaultActive()           { return m_numRefIdxL0DefaultActive; }

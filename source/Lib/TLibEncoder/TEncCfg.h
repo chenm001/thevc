@@ -159,8 +159,8 @@ protected:
   Int       m_iMaxDeltaQP;                      //  Max. absolute delta QP (1:default)
   Int       m_iMaxCuDQPDepth;                   //  Max. depth for a minimum CuDQP (0:default)
 
-  Int       m_iChromaQpOffset  ;                //  ChromaQpOffset    (0:default)
-  Int       m_iChromaQpOffset2nd;               //  ChromaQpOffset2nd (0:default)
+  Int       m_chromaCbQpOffset;                 //  Chroma Cb QP Offset (0:default)
+  Int       m_chromaCrQpOffset;                 //  Chroma Cr Qp Offset (0:default)
 
 #if ADAPTIVE_QP_SELECTION
   Bool      m_bUseAdaptQpSelect;
@@ -313,8 +313,8 @@ public:
   Void      setMaxDeltaQP                   ( Int   i )      { m_iMaxDeltaQP = i; }
   Void      setMaxCuDQPDepth                ( Int   i )      { m_iMaxCuDQPDepth = i; }
 
-  Void      setChromaQpOffset               ( Int   i ) { m_iChromaQpOffset    = i; }
-  Void      setChromaQpOffset2nd            ( Int   i ) { m_iChromaQpOffset2nd = i; }
+  Void      setChromaCbQpOffset             ( Int   i )      { m_chromaCbQpOffset = i; }
+  Void      setChromaCrQpOffset             ( Int   i )      { m_chromaCrQpOffset = i; }
 
 #if ADAPTIVE_QP_SELECTION
   Void      setUseAdaptQpSelect             ( Bool   i ) { m_bUseAdaptQpSelect    = i; }

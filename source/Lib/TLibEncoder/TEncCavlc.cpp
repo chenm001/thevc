@@ -252,8 +252,8 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   WRITE_CODE( pcPPS->getSliceGranularity(), 2,               "slice_granularity");
   WRITE_UVLC( pcPPS->getMaxCuDQPDepth() + pcPPS->getUseDQP(),                   "max_cu_qp_delta_depth" );
 
-  WRITE_SVLC( pcPPS->getChromaQpOffset(),                   "chroma_qp_offset"     );
-  WRITE_SVLC( pcPPS->getChromaQpOffset2nd(),                "chroma_qp_offset_2nd" );
+  WRITE_SVLC( pcPPS->getChromaCbQpOffset(),                   "cb_qp_offset" );
+  WRITE_SVLC( pcPPS->getChromaCrQpOffset(),                   "cr_qp_offset" );
 
   WRITE_FLAG( pcPPS->getUseWP() ? 1 : 0,  "weighted_pred_flag" );   // Use of Weighting Prediction (P_SLICE)
   WRITE_CODE( pcPPS->getWPBiPredIdc(), 2, "weighted_bipred_idc" );  // Use of Weighting Bi-Prediction (B_SLICE)
