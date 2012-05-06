@@ -129,9 +129,7 @@ public:
 
   Void readTileMarker     ( UInt& uiTileIdx, UInt uiBitsUsed );
   Void updateContextTables  ( SliceType eSliceType, Int iQp ) { return; }
-#if OL_FLUSH
   Void decodeFlush() {};
-#endif
 
   Void xParsePredWeightTable ( TComSlice* pcSlice );
   Void  parseScalingList               ( TComScalingList* scalingList );

@@ -189,7 +189,7 @@ public:
   // interface for decoding
   Void        pseudoRead      ( UInt uiNumberOfBits, UInt& ruiBits );
   Void        read            ( UInt uiNumberOfBits, UInt& ruiBits );
-#if OL_FLUSH && !OL_FLUSH_ALIGN
+#if !OL_FLUSH_ALIGN
   Void        readByte        ( UInt &ruiBits )
   {
     // More expensive, but reads "bytes" that are not aligned.
@@ -201,7 +201,7 @@ public:
     assert(m_fifo_idx < m_fifo->size());
     ruiBits = (*m_fifo)[m_fifo_idx++];
   }
-#endif // OL_FLUSH && !OL_FLUSH_ALIGN
+#endif // !OL_FLUSH_ALIGN
 
   Void        readOutTrailingBits ();
   UChar getHeldBits  ()          { return m_held_bits;          }

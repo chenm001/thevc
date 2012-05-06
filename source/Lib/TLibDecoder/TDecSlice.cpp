@@ -303,7 +303,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
 #endif
     if( iSymbolMode )
     {
-#if OL_FLUSH
       /*If at the end of a LCU line but not at the end of a substream, perform CABAC flush*/
       if (!uiIsLast && pcSlice->getPPS()->getNumSubstreams() > 1)
       {
@@ -312,7 +311,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
           m_pcEntropyDecoder->decodeFlush();
         }
       }
-#endif
       pcSbacDecoders[uiSubStrm].load(pcSbacDecoder);
 
       //Store probabilities of second LCU in line into buffer

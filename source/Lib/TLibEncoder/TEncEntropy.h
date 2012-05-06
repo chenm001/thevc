@@ -82,10 +82,8 @@ public:
   virtual Void  codeTilesWPPEntryPoint  ( TComSlice* pSlice )     = 0;
   virtual Void  codeTerminatingBit      ( UInt uilsLast )                                       = 0;
   virtual Void  codeSliceFinish         ()                                                      = 0;
-#if OL_FLUSH
   virtual Void  codeFlush               ()                                                      = 0;
   virtual Void  encodeStart             ()                                                      = 0;
-#endif
   
   virtual Void codeAlfCtrlDepth() = 0;
   virtual Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList ) = 0;
@@ -176,10 +174,8 @@ public:
   Void    encodeTilesWPPEntryPoint( TComSlice* pSlice );
   Void    encodeTerminatingBit      ( UInt uiIsLast );
   Void    encodeSliceFinish         ();
-#if OL_FLUSH
   Void    encodeFlush               ();
   Void    encodeStart               ();
-#endif
   Void encodeAlfFlag(UInt code) {m_pcEntropyCoderIf->codeAlfFlag(code);}
   Void encodeAlfStoredFilterSetIdx(UInt idx, UInt numFilterSetsInBuffer);
   Void encodeAlfFixedLengthRun(UInt run, UInt rx, UInt numLCUInWidth);

@@ -266,7 +266,6 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
   // Encode CU data
   xEncodeCU( pcCU, 0, 0 );
   
-#if OL_FLUSH
   bool bTerminateSlice = bForceTerminate;
   UInt uiCUAddr = pcCU->getAddr();
     /* If at the end of an LCU line but not at the end of a substream, perform CABAC flush */
@@ -291,7 +290,6 @@ Void TEncCu::encodeCU ( TComDataCU* pcCU, Bool bForceTerminate )
         m_pcEntropyCoder->encodeFlush();
       }
     }
-#endif // OL_FLUSH
 }
 
 // ====================================================================================================================

@@ -127,7 +127,6 @@
                                                     // but because of the absence of reference frame management, the related code was hard coded currently
 #define LTRP_MULT                       1           ///< enable/disable multiple long term reference pictures with same POC LSB
 
-#define OL_FLUSH 1          // Set to 1 to enable Wavefront Flush.
 #define OL_FLUSH_ALIGN 0    // Align flush to byte boundary.  This preserves byte operations in CABAC (faster) but at the expense of an average
                             // of 4 bits per flush.
                             // Setting to 0 will slow cabac by an as yet unknown amount.

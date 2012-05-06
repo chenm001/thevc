@@ -103,10 +103,8 @@ public:
   Void  codeTilesWPPEntryPoint( TComSlice* pSlice );
   Void  codeTerminatingBit      ( UInt uilsLast      );
   Void  codeSliceFinish         ();
-#if OL_FLUSH
   Void  codeFlush               ();
   Void  encodeStart             ();
-#endif
   
   Void  codeAlfFlag       ( UInt uiCode );
   Void  codeAlfUvlc       ( UInt uiCode );

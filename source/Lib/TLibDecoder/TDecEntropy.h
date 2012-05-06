@@ -66,9 +66,7 @@ public:
   virtual Void  resetEntropy          ( TComSlice* pcSlice )     = 0;
   virtual Void  setBitstream          ( TComInputBitstream* p )  = 0;
 
-#if OL_FLUSH
   virtual Void  decodeFlush()                                                                      = 0;
-#endif
 
   virtual Void  parseSPS                  ( TComSPS* pcSPS )                                      = 0;
   virtual Void  parsePPS                  ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet )                                      = 0;
@@ -188,9 +186,7 @@ public:
   void decodeSaoLcu(Int rx, Int ry, Int compIdx, SAOParam* saoParam, Bool &repeatedRow );
   Void decodeSaoOneLcu(SaoLcuParam* saoLcuParam);
 
-#if OL_FLUSH
   Void decodeFlush() { m_pcEntropyDecoderIf->decodeFlush(); }
-#endif
 
 };// END CLASS DEFINITION TDecEntropy
 

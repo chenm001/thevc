@@ -314,7 +314,6 @@ Void TEncSbac::codeSliceFinish()
   m_pcBinIf->finish();
 }
 
-#if OL_FLUSH
 Void TEncSbac::codeFlush()
 {
   m_pcBinIf->flush();
@@ -324,7 +323,6 @@ Void TEncSbac::encodeStart()
 {
   m_pcBinIf->start();
 }
-#endif
 
 Void TEncSbac::xWriteUnarySymbol( UInt uiSymbol, ContextModel* pcSCModel, Int iOffset )
 {

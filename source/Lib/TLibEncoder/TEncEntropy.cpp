@@ -88,7 +88,6 @@ Void TEncEntropy::encodeSliceFinish()
   m_pcEntropyCoderIf->codeSliceFinish();
 }
 
-#if OL_FLUSH
 Void TEncEntropy::encodeFlush()
 {
   m_pcEntropyCoderIf->codeFlush();
@@ -97,7 +96,6 @@ Void TEncEntropy::encodeStart()
 {
   m_pcEntropyCoderIf->encodeStart();
 }
-#endif
 
 Void TEncEntropy::encodeSEI(const SEI& sei)
 {

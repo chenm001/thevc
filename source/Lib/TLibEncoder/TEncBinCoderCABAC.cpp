@@ -104,7 +104,6 @@ Void TEncBinCABAC::finish()
   m_pcTComBitIf->write( m_uiLow >> 8, 24 - m_bitsLeft );
 }
 
-#if OL_FLUSH
 Void TEncBinCABAC::flush()
 {
   encodeBinTrm(1);
@@ -116,7 +115,6 @@ Void TEncBinCABAC::flush()
 
   start();
 }
-#endif
 
 /** Reset BAC register and counter values.
  * \returns Void
