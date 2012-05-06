@@ -189,9 +189,7 @@ protected:
   Bool      m_bUseEarlyCU;
   Bool      m_useFastDecisionForMerge;
   Bool      m_bUseCbfFastMode;
-#if EARLY_SKIP_DETECTION
   Bool      m_useEarlySkipDetection;
-#endif
   Bool      m_bUseLMChroma; 
 
   Int*      m_aidQP;
@@ -407,9 +405,7 @@ public:
   Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
   Void      setUseFastDecisionForMerge      ( Bool  b )     { m_useFastDecisionForMerge = b; }
   Void      setUseCbfFastMode            ( Bool  b )     { m_bUseCbfFastMode = b; }
-#if EARLY_SKIP_DETECTION
   Void      setUseEarlySkipDetection        ( Bool  b )     { m_useEarlySkipDetection = b; }
-#endif
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
   Void      setPCMInputBitDepthFlag         ( Bool  b )     { m_bPCMInputBitDepthFlag = b; }
   Void      setPCMFilterDisableFlag         ( Bool  b )     {  m_bPCMFilterDisableFlag = b; }
@@ -441,9 +437,7 @@ public:
   Bool      getUseEarlyCU                   ()      { return m_bUseEarlyCU; }
   Bool      getUseFastDecisionForMerge      ()      { return m_useFastDecisionForMerge; }
   Bool      getUseCbfFastMode           ()      { return m_bUseCbfFastMode; }
-#if EARLY_SKIP_DETECTION
   Bool      getUseEarlySkipDetection        ()      { return m_useEarlySkipDetection; }
-#endif
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
 #if NS_HAD
   Bool      getUseNSQT                      ()      { return m_useNSQT; }
