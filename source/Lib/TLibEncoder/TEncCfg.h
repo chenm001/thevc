@@ -57,7 +57,11 @@ struct GOPEntry
   Int m_numRefPics;
   Int m_referencePics[MAX_NUM_REF_PICS];
   Int m_usedByCurrPic[MAX_NUM_REF_PICS];
+#if AUTO_INTER_RPS
+  Int m_interRPSPrediction;
+#else
   Bool m_interRPSPrediction;
+#endif
   Int m_deltaRIdxMinus1;
   Int m_deltaRPS;
   Int m_numRefIdc;

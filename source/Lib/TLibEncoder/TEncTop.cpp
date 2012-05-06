@@ -675,6 +675,106 @@ Void TEncTop::xInitRPS()
     }
     rps->setNumberOfNegativePictures(numNeg);
     rps->setNumberOfPositivePictures(numPos);
+
+    // handle inter RPS intialization from the config file.
+#if AUTO_INTER_RPS
+    rps->setInterRPSPrediction(ge.m_interRPSPrediction > 0);  // not very clean, converting anything > 0 to true.
+    rps->setDeltaRIdxMinus1(ge.m_deltaRIdxMinus1);            // index to the Reference RPS
+    TComReferencePictureSet*     RPSRef = m_RPSList.getReferencePictureSet(i-(ge.m_deltaRIdxMinus1+1));  // get the reference RPS
+
+    if (ge.m_interRPSPrediction == 2)  // Automatic generation of the inter RPS idc based on the RIdx provided.
+    {
+      Int deltaRPS = getGOPEntry(i-(ge.m_deltaRIdxMinus1+1)).m_POC - ge.m_POC;  // the ref POC - current POC
+      Int numRefDeltaPOC = RPSRef->getNumberOfPictures();
+
+      rps->setDeltaRPS(deltaRPS);           // set delta RPS
+      rps->setNumRefIdc(numRefDeltaPOC+1);  // set the numRefIdc to the number of pictures in the reference RPS + 1.
+      Int count=0;
+      for (Int j = 0; j <= numRefDeltaPOC; j++ ) // cycle through pics in reference RPS.
+      {
+        Int RefDeltaPOC = (j<numRefDeltaPOC)? RPSRef->getDeltaPOC(j): 0;  // if it is the last decoded picture, set RefDeltaPOC = 0
+        rps->setRefIdc(j, 0);
+        for (Int k = 0; k < rps->getNumberOfPictures(); k++ )  // cycle through pics in current RPS.
+        {
+          if (rps->getDeltaPOC(k) == ( RefDeltaPOC + deltaRPS))  // if the current RPS has a same picture as the reference RPS. 
+          {
+              rps->setRefIdc(j, (rps->getUsed(k)?1:2));
+              count++;
+              break;
+          }
+        }
+      }
+      if (count != rps->getNumberOfPictures())
+      {
+        printf("Warning: Unable fully predict all delta POCs using the reference RPS index given in the config file.  Setting Inter RPS to false for this RPS.\n");
+        rps->setInterRPSPrediction(0);
+      }
+    }
+    else if (ge.m_interRPSPrediction == 1)  // inter RPS idc based on the RefIdc values provided in config file.
+    {
+      rps->setDeltaRPS(ge.m_deltaRPS);
+      rps->setNumRefIdc(ge.m_numRefIdc);
+      for (Int j = 0; j < ge.m_numRefIdc; j++ )
+      {
+        rps->setRefIdc(j, ge.m_refIdc[j]);
+      }
+#if WRITE_BACK
+      // the folowing code overwrite the deltaPOC and Used by current values read from the config file with the ones
+      // computed from the RefIdc.  A warning is printed if they are not identical.
+      numNeg = 0;
+      numPos = 0;
+      TComReferencePictureSet      RPSTemp;  // temporary variable
+
+      for (Int j = 0; j < ge.m_numRefIdc; j++ )
+      {
+        if (ge.m_refIdc[j])
+        {
+          Int deltaPOC = ge.m_deltaRPS + ((j < RPSRef->getNumberOfPictures())? RPSRef->getDeltaPOC(j) : 0);
+          RPSTemp.setDeltaPOC((numNeg+numPos),deltaPOC);
+          RPSTemp.setUsed((numNeg+numPos),ge.m_refIdc[j]==1?1:0);
+          if (deltaPOC<0)
+          {
+            numNeg++;
+          }
+          else
+          {
+            numPos++;
+          }
+        }
+      }
+      if (numNeg != rps->getNumberOfNegativePictures())
+      {
+        printf("Warning: number of negative pictures in RPS is different between intra and inter RPS specified in the config file.\n");
+        rps->setNumberOfNegativePictures(numNeg);
+        rps->setNumberOfPositivePictures(numNeg+numPos);
+      }
+      if (numPos != rps->getNumberOfPositivePictures())
+      {
+        printf("Warning: number of positive pictures in RPS is different between intra and inter RPS specified in the config file.\n");
+        rps->setNumberOfPositivePictures(numPos);
+        rps->setNumberOfPositivePictures(numNeg+numPos);
+      }
+      RPSTemp.setNumberOfPictures(numNeg+numPos);
+      RPSTemp.setNumberOfNegativePictures(numNeg);
+      RPSTemp.sortDeltaPOC();     // sort the created delta POC before comparing
+      // check if Delta POC and Used are the same 
+      // print warning if they are not.
+      for (Int j = 0; j < ge.m_numRefIdc; j++ )
+      {
+        if (RPSTemp.getDeltaPOC(j) != rps->getDeltaPOC(j))
+        {
+          printf("Warning: delta POC is different between intra RPS and inter RPS specified in the config file.\n");
+          rps->setDeltaPOC(j,RPSTemp.getDeltaPOC(j));
+        }
+        if (RPSTemp.getUsed(j) != rps->getUsed(j))
+        {
+          printf("Warning: Used by Current in RPS is different between intra and inter RPS specified in the config file.\n");
+          rps->setUsed(j,RPSTemp.getUsed(j));
+        }
+      }
+#endif
+    }
+#else
     rps->setInterRPSPrediction(ge.m_interRPSPrediction);
     if (ge.m_interRPSPrediction)
     {
@@ -691,6 +791,7 @@ Void TEncTop::xInitRPS()
       numNeg = 0;
       numPos = 0;
       TComReferencePictureSet*     RPSRef = m_RPSList.getReferencePictureSet(i-(ge.m_deltaRIdxMinus1+1));
+
       for (Int j = 0; j < ge.m_numRefIdc; j++ )
       {
         if (ge.m_refIdc[j])
@@ -713,6 +814,7 @@ Void TEncTop::xInitRPS()
       rps->sortDeltaPOC();
 #endif
     }
+#endif //INTER_RPS_AUTO
   }
   
 }
