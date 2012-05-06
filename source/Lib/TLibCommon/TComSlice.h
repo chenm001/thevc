@@ -167,12 +167,7 @@ private:
   UInt        m_uiMaxTrDepth;
   TComRPSList* m_RPSList;
   Bool        m_bLongTermRefsPresent;
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   Int         m_numReorderPics[MAX_TLAYER];
-#else
-  Int         m_maxNumberOfReferencePictures;
-  Int         m_numReorderFrames;
-#endif
   
   // Tool list
   UInt        m_uiQuadtreeTULog2MaxSize;
@@ -232,13 +227,8 @@ private:
   Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
 
   Bool        m_scalingListEnabledFlag;
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   UInt        m_uiMaxDecPicBuffering[MAX_TLAYER]; 
   UInt        m_uiMaxLatencyIncrease[MAX_TLAYER];
-#else
-  UInt        m_uiMaxDecFrameBuffering; 
-  UInt        m_uiMaxLatencyIncrease;
-#endif
 
   Bool        m_useDF;
 
@@ -308,15 +298,8 @@ public:
   Void setQuadtreeTUMaxDepthIntra( UInt u ) { m_uiQuadtreeTUMaxDepthIntra = u;    }
   UInt getQuadtreeTUMaxDepthInter()         { return m_uiQuadtreeTUMaxDepthInter; }
   UInt getQuadtreeTUMaxDepthIntra()         { return m_uiQuadtreeTUMaxDepthIntra; }
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   Void setNumReorderPics(Int i, UInt tlayer)              { m_numReorderPics[tlayer] = i;    }
   Int  getNumReorderPics(UInt tlayer)                     { return m_numReorderPics[tlayer]; }
-#else
-  Void setMaxNumberOfReferencePictures( Int u )  { m_maxNumberOfReferencePictures = u;    }
-  Int  getMaxNumberOfReferencePictures()         { return m_maxNumberOfReferencePictures; }
-  Void setNumReorderFrames( Int i )              { m_numReorderFrames = i;    }
-  Int  getNumReorderFrames()                     { return m_numReorderFrames; }
-#endif
   Void      setRPSList( TComRPSList* RPSList )   { m_RPSList = RPSList;       }
   TComRPSList* getRPSList()                      { return m_RPSList;          }
   Bool      getLongTermRefsPresent()         { return m_bLongTermRefsPresent; }
@@ -429,17 +412,10 @@ public:
   UInt     getRowHeight           (UInt rowIdx)    { return *( m_puiRowHeight + rowIdx ); }
   Bool getScalingListFlag       ()         { return m_scalingListEnabledFlag;     }
   Void setScalingListFlag       ( Bool b ) { m_scalingListEnabledFlag  = b;       }
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   UInt getMaxDecPicBuffering  (UInt tlayer)            { return m_uiMaxDecPicBuffering[tlayer]; }
   Void setMaxDecPicBuffering  ( UInt ui, UInt tlayer ) { m_uiMaxDecPicBuffering[tlayer] = ui;   }
   UInt getMaxLatencyIncrease  (UInt tlayer)            { return m_uiMaxLatencyIncrease[tlayer];   }
   Void setMaxLatencyIncrease  ( UInt ui , UInt tlayer) { m_uiMaxLatencyIncrease[tlayer] = ui;      }
-#else
-  UInt getMaxDecFrameBuffering  ()            { return m_uiMaxDecFrameBuffering; }
-  Void setMaxDecFrameBuffering  ( UInt ui )   { m_uiMaxDecFrameBuffering = ui;   }
-  UInt getMaxLatencyIncrease    ()            { return m_uiMaxLatencyIncrease;   }
-  Void setMaxLatencyIncrease    ( UInt ui )   { m_uiMaxLatencyIncrease= ui;      }
-#endif
 #if TILES_WPP_ENTRY_POINT_SIGNALLING
   UInt getTilesOrEntropyCodingSyncIdc ()                    { return m_tilesOrEntropyCodingSyncIdc;   }
   Void setTilesOrEntropyCodingSyncIdc ( UInt val )          { m_tilesOrEntropyCodingSyncIdc = val;    }

@@ -84,16 +84,11 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setGOPSize                      ( m_iGOPSize );
   m_cTEncTop.setGopList                      ( m_GOPList );
   m_cTEncTop.setExtraRPSs                    ( m_extraRPSs );
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   for(Int i = 0; i < MAX_TLAYER; i++)
   {
     m_cTEncTop.setNumReorderPics             ( m_numReorderPics[i], i );
     m_cTEncTop.setMaxDecPicBuffering         ( m_maxDecPicBuffering[i], i );
   }
-#else
-  m_cTEncTop.setNumReorderFrames             ( m_numReorderFrames );
-  m_cTEncTop.setMaxNumberOfReferencePictures ( m_maxNumberOfReferencePictures );
-#endif
   for( UInt uiLoop = 0; uiLoop < MAX_TLAYER; ++uiLoop )
   {
     m_cTEncTop.setLambdaModifier( uiLoop, m_adLambdaModifier[ uiLoop ] );

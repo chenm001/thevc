@@ -135,11 +135,7 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
 {
   xUpdateGopSize(pcSlice);
   
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   m_iMaxRefPicNum = pcSlice->getSPS()->getMaxDecPicBuffering(pcSlice->getTLayer())+pcSlice->getSPS()->getNumReorderPics(pcSlice->getTLayer()) + 1; // +1 to have space for the picture currently being decoded
-#else
-  m_iMaxRefPicNum = pcSlice->getSPS()->getMaxNumberOfReferencePictures()+pcSlice->getSPS()->getNumReorderFrames() + 1; // +1 to have space for the picture currently being decoded
-#endif
   if (m_cListPic.size() < (UInt)m_iMaxRefPicNum)
   {
     rpcPic = new TComPic();

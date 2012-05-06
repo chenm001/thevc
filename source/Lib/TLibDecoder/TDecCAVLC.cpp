@@ -1195,7 +1195,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #endif
 
   READ_UVLC( uiCode,    "log2_max_pic_order_cnt_lsb_minus4" );   pcSPS->setBitsForPOC( 4 + uiCode );
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   for(UInt i=0; i <= pcSPS->getMaxTLayers()-1; i++)
   {
     READ_UVLC ( uiCode, "max_dec_pic_buffering");
@@ -1205,14 +1204,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     READ_UVLC ( uiCode, "max_latency_increase");
     pcSPS->setMaxLatencyIncrease( uiCode, i );
   }
-#else
-  READ_UVLC( uiCode,    "max_num_ref_pics" );                    pcSPS->setMaxNumberOfReferencePictures(uiCode);
-  READ_UVLC( uiCode,    "num_reorder_frames" );                  pcSPS->setNumReorderFrames(uiCode);
-  READ_UVLC ( uiCode, "max_dec_frame_buffering");
-  pcSPS->setMaxDecFrameBuffering( uiCode );
-  READ_UVLC ( uiCode, "max_latency_increase");
-  pcSPS->setMaxLatencyIncrease( uiCode );
-#endif
 
   READ_FLAG( uiCode, "restricted_ref_pic_lists_flag" );
   pcSPS->setRestrictedRefPicListsFlag( uiCode );

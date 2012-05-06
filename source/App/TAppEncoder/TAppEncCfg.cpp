@@ -196,10 +196,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("IntraPeriod,-ip",m_iIntraPeriod, -1, "intra period in frames, (-1: only first frame)")
   ("DecodingRefreshType,-dr",m_iDecodingRefreshType, 0, "intra refresh, (0:none 1:CRA 2:IDR)")
   ("GOPSize,g",      m_iGOPSize,      1, "GOP size of temporal structure")
-#if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  ("MaxNumberOfReorderPictures",   m_numReorderFrames,               -1, "Max. number of reorder pictures: -1: encoder determines value, >=0: set explicitly")
-  ("MaxNumberOfReferencePictures", m_maxNumberOfReferencePictures, 6, "Max. number of reference pictures")
-#endif
   ("ListCombination,-lc", m_bUseLComb, true, "combined reference list flag for uni-prediction in B-slices")
   ("LCModification", m_bLCMod, false, "enables signalling of combined reference list derivation")
   ("DisableInter4x4", m_bDisInter4x4, true, "Disable Inter 4x4")
@@ -581,11 +577,6 @@ Void TAppEncCfg::xCheckParameter()
     isOK[i]=false;
   }
   Int numOK=0;
-#if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  Int numReorderFramesRequired=0;
-  m_maxNumberOfReferencePictures=0;
-  Int lastDisp = -1;
-#endif
   xConfirmPara( m_iIntraPeriod >=0&&(m_iIntraPeriod%m_iGOPSize!=0), "Intra period must be a multiple of GOPSize, or -1" );
 
   for(Int i=0; i<m_iGOPSize; i++)
@@ -778,45 +769,11 @@ Void TAppEncCfg::xCheckParameter()
           numRefs++;
         }
       }
-#if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-      if(m_maxNumberOfReferencePictures<numRefs)
-      {
-        m_maxNumberOfReferencePictures=numRefs;
-      }
-#endif
       refList[numRefs]=curPOC;
       numRefs++;
-#if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-      Int nonDisplayed=0;
-      for(Int i=0; i<numRefs; i++) 
-      {
-        if(refList[i]==lastDisp+1) 
-        {
-          lastDisp=refList[i];
-          i=0;
-        }
-      }
-      for(Int i=0; i<numRefs; i++) 
-      {
-        if(refList[i]>lastDisp)
-        {
-          nonDisplayed++;
-        }
-      }
-      if(nonDisplayed>numReorderFramesRequired)
-      {
-        numReorderFramesRequired=nonDisplayed;
-      }
-#endif
     }
     checkGOP++;
   }
-#if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  if (m_numReorderFrames == -1)
-  {
-    m_numReorderFrames = numReorderFramesRequired;
-  }
-#endif
   xConfirmPara(errorGOP,"Invalid GOP structure given");
   m_maxTempLayer = 1;
   for(Int i=0; i<m_iGOPSize; i++) 
@@ -827,7 +784,6 @@ Void TAppEncCfg::xCheckParameter()
     }
     xConfirmPara(m_GOPList[i].m_sliceType!='B'&&m_GOPList[i].m_sliceType!='P', "Slice type must be equal to B or P");
   }
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   for(Int i=0; i<MAX_TLAYER; i++)
   {
     m_numReorderPics[i] = 0;
@@ -884,14 +840,8 @@ Void TAppEncCfg::xCheckParameter()
   {
     m_maxDecPicBuffering[MAX_TLAYER-1] = m_numReorderPics[MAX_TLAYER-1];
   }
-#endif
 
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   xConfirmPara( m_bUseLComb==false && m_numReorderPics[MAX_TLAYER-1]!=0, "ListCombination can only be 0 in low delay coding (more precisely when L0 and L1 are identical)" );  // Note however this is not the full necessary condition as ref_pic_list_combination_flag can only be 0 if L0 == L1.
-#else
-  xConfirmPara( m_bUseLComb==false && m_numReorderFrames!=0, "ListCombination can only be 0 in low delay coding (more precisely when L0 and L1 are identical)" );  // Note however this is not the full necessary condition as ref_pic_list_combination_flag can only be 0 if L0 == L1.
-  xConfirmPara( m_numReorderFrames < numReorderFramesRequired, "For the used GOP the encoder requires more pictures for reordering than specified in MaxNumberOfReorderPictures" );
-#endif
   xConfirmPara( m_iWaveFrontSynchro < 0, "WaveFrontSynchro cannot be negative" );
   xConfirmPara( m_iWaveFrontFlush < 0, "WaveFrontFlush cannot be negative" );
   xConfirmPara( m_iWaveFrontSubstreams <= 0, "WaveFrontSubstreams must be positive" );

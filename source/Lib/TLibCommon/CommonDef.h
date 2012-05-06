@@ -160,11 +160,7 @@ template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min
 #define DYN_REF_FREE                0           ///< dynamic free of reference memories
 
 // Explicit temporal layer QP offset
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
 #define MAX_TLAYER                  8           ///< max number of temporal layer
-#else
-#define MAX_TLAYER                  4           ///< max number of temporal layer
-#endif
 #define HB_LAMBDA_FOR_LDC           1           ///< use of B-style lambda for non-key pictures in low-delay mode
 
 // Fast estimation of generalized B in low-delay mode

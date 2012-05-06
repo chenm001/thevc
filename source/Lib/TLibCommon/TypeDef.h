@@ -185,8 +185,6 @@
 #define SCALING_LIST_OUTPUT_RESULT    0 //JCTVC-G880/JCTVC-G1016 quantization matrices
 #define SCALING_LIST                  1 //JCTVC-H0230/H0461/H0237
 
-#define H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER 1
-
 #define CABAC_INIT_PRESENT_FLAG     1
 
 #define TILES_WPP_ENTRY_POINT_SIGNALLING        1 // JCTVC-H0556. Assumes either Tiles is ON or WPP is ON (not both simultaneously).

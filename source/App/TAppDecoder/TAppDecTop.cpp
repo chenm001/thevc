@@ -180,11 +180,7 @@ Void TAppDecTop::decode()
       // write reconstruction to file
       if(bNewPicture)
       {
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
         xWriteOutput( pcListPic, nalu.m_temporalId );
-#else
-        xWriteOutput( pcListPic );
-#endif
       }
     }
   }
@@ -228,11 +224,7 @@ Void TAppDecTop::xInitDecLib()
 /** \param pcListPic list of pictures to be written to file
     \todo            DYN_REF_FREE should be revised
  */
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
 Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic, UInt tId )
-#else
-Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
-#endif
 {
   TComList<TComPic*>::iterator iterPic   = pcListPic->begin();
   Int not_displayed = 0;
@@ -253,11 +245,7 @@ Void TAppDecTop::xWriteOutput( TComList<TComPic*>* pcListPic )
     TComPic* pcPic = *(iterPic);
     TComSPS *sps = pcPic->getSlice(0)->getSPS();
     
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
     if ( pcPic->getOutputMark() && (not_displayed >  pcPic->getSlice(0)->getSPS()->getNumReorderPics(tId) && pcPic->getPOC() > m_iPOCLastDisplay))
-#else
-    if ( pcPic->getOutputMark() && (not_displayed >  pcPic->getSlice(0)->getSPS()->getNumReorderFrames() && pcPic->getPOC() > m_iPOCLastDisplay))
-#endif
     {
       // write to file
        not_displayed--;
