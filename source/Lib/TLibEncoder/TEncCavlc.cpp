@@ -297,9 +297,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   }
 
   WRITE_FLAG( pcPPS->getDeblockingFilterControlPresent()?1 : 0, "deblocking_filter_control_present_flag");
-#if PARALLEL_MERGE
   WRITE_UVLC( pcPPS->getLog2ParallelMergeLevelMinus2(), "log2_parallel_merge_level_minus2");
-#endif
   WRITE_FLAG( 0, "pps_extension_flag" );
 }
 

@@ -486,9 +486,7 @@ private:
   Bool     m_cabacInitPresentFlag;
   UInt     m_encCABACTableIdx;           // Used to transmit table selection across slices
   Bool     m_DeblockingFilterControlPresent;
-#if PARALLEL_MERGE
   UInt m_log2ParallelMergeLevelMinus2;
-#endif
 public:
   TComPPS();
   virtual ~TComPPS();
@@ -590,10 +588,8 @@ public:
   UInt     getEncCABACTableIdx()                    { return m_encCABACTableIdx;        }
   Void setDeblockingFilterControlPresent    ( Bool bValue )       { m_DeblockingFilterControlPresent = bValue; }
   Bool getDeblockingFilterControlPresent    ()                    { return m_DeblockingFilterControlPresent; }
-#if PARALLEL_MERGE
   UInt getLog2ParallelMergeLevelMinus2      ()                    { return m_log2ParallelMergeLevelMinus2; }
   Void setLog2ParallelMergeLevelMinus2      (UInt mrgLevel)       { m_log2ParallelMergeLevelMinus2 = mrgLevel; }
-#endif
 };
 
 /// SCALING_LIST class

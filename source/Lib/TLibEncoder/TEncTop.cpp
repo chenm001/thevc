@@ -617,9 +617,7 @@ Void TEncTop::xInitPPS()
   m_cPPS.setSignHideFlag(getSignHideFlag());
   m_cPPS.setTSIG(getTSIG());
   m_cPPS.setDeblockingFilterControlPresent (m_DeblockingFilterControlPresent );
-#if PARALLEL_MERGE
   m_cPPS.setLog2ParallelMergeLevelMinus2      (LOG2_PARALLEL_MERGE_LEVEL_MINUS2);
-#endif
   m_cPPS.setCabacInitPresentFlag(CABAC_INIT_PRESENT_FLAG);
 
   Int histogram[8];

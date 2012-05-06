@@ -2589,10 +2589,8 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     abCandIsInter[ui] = false;
   }
   // compute the location of the current PU
-#if PARALLEL_MERGE
   Int xP, yP, nPSW, nPSH;
   this->getPartPosition(uiPUIdx, xP, yP, nPSW, nPSH);
-#endif
 
   Int iCount = 0;
 
@@ -2605,7 +2603,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   UInt uiLeftPartIdx = 0;
   TComDataCU* pcCULeft = 0;
   pcCULeft = getPULeft( uiLeftPartIdx, uiPartIdxLB, true, false );
-#if PARALLEL_MERGE
   if (pcCULeft) 
   {
     if (!pcCULeft->isDiffMER(xP -1, yP+nPSH-1, xP, yP))
@@ -2613,7 +2610,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
       pcCULeft = NULL;
     }
   }
-#endif
   PartSize partSize = getPartitionSize( uiAbsPartIdx );
   if (!(uiPUIdx == 1 && (partSize == SIZE_Nx2N || partSize == SIZE_nLx2N || partSize == SIZE_nRx2N)))
   {
@@ -2640,7 +2636,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   UInt uiAbovePartIdx = 0;
   TComDataCU* pcCUAbove = 0;
   pcCUAbove = getPUAbove( uiAbovePartIdx, uiPartIdxRT, true, false, true );
-#if PARALLEL_MERGE
     if (pcCUAbove) 
     {
       if (!pcCUAbove->isDiffMER(xP+nPSW-1, yP-1, xP, yP))
@@ -2648,7 +2643,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
         pcCUAbove = NULL;
       }
     }
-#endif
   if ( pcCUAbove && !pcCUAbove->isIntra( uiAbovePartIdx ) 
     && !(uiPUIdx == 1 && (cCurPS == SIZE_2NxN || cCurPS == SIZE_2NxnU || cCurPS == SIZE_2NxnD))
     && ( !pcCULeft || pcCULeft->isIntra( uiLeftPartIdx ) || !pcCULeft->hasEqualMotion( uiLeftPartIdx, pcCUAbove, uiAbovePartIdx ) ) )
@@ -2673,7 +2667,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   UInt uiAboveRightPartIdx = 0;
   TComDataCU* pcCUAboveRight = 0;
   pcCUAboveRight = getPUAboveRight( uiAboveRightPartIdx, uiPartIdxRT, true, false, true );
-#if PARALLEL_MERGE
   if (pcCUAboveRight) 
   {
     if (!pcCUAboveRight->isDiffMER(xP+nPSW, yP-1, xP, yP))
@@ -2681,7 +2674,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
       pcCUAboveRight = NULL;
     }
   }
-#endif
   if ( pcCUAboveRight && !pcCUAboveRight->isIntra( uiAboveRightPartIdx ) && ( !pcCUAbove || pcCUAbove->isIntra( uiAbovePartIdx ) || !pcCUAbove->hasEqualMotion( uiAbovePartIdx, pcCUAboveRight, uiAboveRightPartIdx ) ) )
   {
     abCandIsInter[iCount] = true;
@@ -2704,7 +2696,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   UInt uiLeftBottomPartIdx = 0;
   TComDataCU* pcCULeftBottom = 0;
   pcCULeftBottom = this->getPUBelowLeft( uiLeftBottomPartIdx, uiPartIdxLB, true, false );
-#if PARALLEL_MERGE
   if (pcCULeftBottom)
   {
     if (!pcCULeftBottom->isDiffMER(xP-1, yP+nPSH, xP, yP))
@@ -2712,7 +2703,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
       pcCULeftBottom = NULL;
     }
   }
-#endif
   if ( pcCULeftBottom && !pcCULeftBottom->isIntra( uiLeftBottomPartIdx ) && ( !pcCULeft || pcCULeft->isIntra( uiLeftPartIdx ) || !pcCULeft->hasEqualMotion( uiLeftPartIdx, pcCULeftBottom, uiLeftBottomPartIdx ) ) )
   {
     abCandIsInter[iCount] = true;
@@ -2737,7 +2727,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     UInt uiAboveLeftPartIdx = 0;
     TComDataCU* pcCUAboveLeft = 0;
     pcCUAboveLeft = getPUAboveLeft( uiAboveLeftPartIdx, uiAbsPartAddr, true, false, true );
-#if PARALLEL_MERGE
     if (pcCUAboveLeft) 
     {
       if (!pcCUAboveLeft->isDiffMER(xP-1, yP-1, xP, yP))
@@ -2745,7 +2734,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
         pcCUAboveLeft = NULL;
       }
     }
-#endif
     if( pcCUAboveLeft && !pcCUAboveLeft->isIntra( uiAboveLeftPartIdx )
      && ( !pcCULeft || pcCULeft->isIntra( uiLeftPartIdx ) || !pcCULeft->hasEqualMotion( uiLeftPartIdx, pcCUAboveLeft, uiAboveLeftPartIdx ) )
      && ( !pcCUAbove || pcCUAbove->isIntra( uiAbovePartIdx ) || !pcCUAbove->hasEqualMotion( uiAbovePartIdx, pcCUAboveLeft, uiAboveLeftPartIdx ) )
@@ -3066,7 +3054,6 @@ Void TComDataCU::xCheckCornerCand( TComDataCU* pcCorner, UInt uiCornerPUIdx, UIn
     }
   }
 }
-#if PARALLEL_MERGE
 /** Check whether the current PU and a spatial neighboring PU are in a same ME region.
  * \param xN, xN   location of the upper-left corner pixel of a neighboring PU
  * \param xP, yP   location of the upper-left corner pixel of the current PU
@@ -3153,7 +3140,6 @@ Void TComDataCU::getPartPosition( UInt partIdx, Int& xP, Int& yP, Int& nPSW, Int
   }
 }
 
-#endif
 AMVP_MODE TComDataCU::getAMVPMode(UInt uiIdx)
 {
   return m_pcSlice->getSPS()->getAMVPMode(m_puhDepth[uiIdx]);

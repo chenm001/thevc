@@ -46,9 +46,8 @@
 #define SEQUENCE_LEVEL_LOSSLESS           0  ///< H0530: used only for sequence or frame-level lossless coding
 #endif
 
-#define PARALLEL_MERGE  1                   //< H0082 parallel merge/skip      
 #define LOG2_PARALLEL_MERGE_LEVEL_MINUS2 0  //< H0082 parallel merge level 0-> 4x4, 1-> 8x8, 2->16x16, 3->32x32, 4->64x64
-#if PARALLEL_MERGE && LOG2_PARALLEL_MERGE_LEVEL_MINUS2
+#if LOG2_PARALLEL_MERGE_LEVEL_MINUS2
 #define CU_BASED_MRG_CAND_LIST           1  //< H0240: single merge candidate list for all PUs inside a 8x8 CU conditioned on LOG2_PARALLEL_MERGE_LEVEL_MINUS2 > 0
 #endif
 
