@@ -238,10 +238,8 @@ private:
   Void setCUAlfCtrlFlag(TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiAlfCtrlDepth, Pel* imgOrg, Pel* imgDec, Pel* imgRest, Int stride, UInt64& ruiDist, std::vector<UInt>& vCUCtrlFlag);
   Void xCopyDecToRestCUs( Pel* imgDec, Pel* imgRest, Int stride );
   Void xCopyDecToRestCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Pel* imgDec, Pel* imgRest, Int stride );
-#if ALF_SINGLE_FILTER_SHAPE 
   Void calcCorrOneCompRegionChma(Pel* imgOrg, Pel* imgPad, Int stride, Int yPos, Int xPos, Int height, Int width, Double **eCorr, Double *yCorr, Bool isSymmCopyBlockMatrix); //!< Calculate correlations for chroma                                        
   Void calcCorrOneCompRegionLuma(Pel* imgOrg, Pel* imgPad, Int stride, Int yPos, Int xPos, Int height, Int width, Double ***eCorr, Double **yCorr, Double *pixAcc, Bool isforceCollection, Bool isSymmCopyBlockMatrix);
-#endif
 
   //LCU-based mode decision
   Void  executeLCUBasedModeDecision(AlfParamSet* alfParamSet, Int compIdx, Pel* pOrg, Pel* pDec, Pel* pRest, Int stride, Int formatShift, AlfCorrData** alfCorrLCUs);

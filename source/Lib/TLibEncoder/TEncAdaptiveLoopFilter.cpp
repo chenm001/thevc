@@ -2653,9 +2653,7 @@ Void TEncAdaptiveLoopFilter::getStatisticsOneLCU(Bool skipLCUBottomLines, Int co
         }
 #endif
 
-#if ALF_SINGLE_FILTER_SHAPE
         calcCorrOneCompRegionChma(pPicOrg, pPicSrc, stride, ypos, xpos, height, width, alfCorr->ECorr[0], alfCorr->yCorr[0], isLastBlock);
-#endif
       }
     }
     break;
@@ -2713,9 +2711,7 @@ Void TEncAdaptiveLoopFilter::getStatisticsOneLCU(Bool skipLCUBottomLines, Int co
         }
 #endif
 
-#if ALF_SINGLE_FILTER_SHAPE
         calcCorrOneCompRegionLuma(pPicOrg, pPicSrc, stride, ypos, xpos, height, width, alfCorr->ECorr, alfCorr->yCorr, alfCorr->pixAcc, forceCollection, isLastBlock);
-#endif        
       }
     }
     break;
@@ -2729,7 +2725,6 @@ Void TEncAdaptiveLoopFilter::getStatisticsOneLCU(Bool skipLCUBottomLines, Int co
 }
 
 
-#if ALF_SINGLE_FILTER_SHAPE
 /** Gather correlations for one region for chroma component
  * \param [in] imgOrg picture buffer for original picture
  * \param [in] imgPad picture buffer for un-filtered picture 
@@ -2977,7 +2972,6 @@ Void TEncAdaptiveLoopFilter::calcCorrOneCompRegionLuma(Pel* imgOrg, Pel* imgPad,
   }
 
 }
-#endif
 
 #else
 
@@ -3018,19 +3012,11 @@ Void TEncAdaptiveLoopFilter::ALFProcess( ALFParam* pcAlfParam, std::vector<AlfCU
 
   m_lcuHeight = m_pcPic->getSlice(0)->getSPS()->getMaxCUHeight();
 
-#if ALF_SINGLE_FILTER_SHAPE
   m_lineIdxPadBot = m_lcuHeight - 4 - 3; // DFRegion, Vertical Taps
-#else
-  m_lineIdxPadBot = m_lcuHeight - 4 - 4; // DFRegion, Vertical Taps
-#endif
   m_lineIdxPadTop = m_lcuHeight - 4; // DFRegion
 
   m_lcuHeightChroma = m_lcuHeight>>1;
-#if ALF_SINGLE_FILTER_SHAPE
   m_lineIdxPadBotChroma = m_lcuHeightChroma - 2 - 3; // DFRegion, Vertical Taps
-#else
-  m_lineIdxPadBotChroma = m_lcuHeightChroma - 2 - 4; // DFRegion, Vertical Taps
-#endif
   m_lineIdxPadTopChroma = m_lcuHeightChroma - 2 ; // DFRegion
 
   TComPicYuv* pcPicOrg = m_pcPic->getPicYuvOrg();
@@ -3400,89 +3386,9 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
 
   switch(filtNo)
   {
-#if !ALF_SINGLE_FILTER_SHAPE
-  case ALF_STAR5x5:
-    {
-      for (i= ypos; i<= yposEnd; i++)
-      {
-        yLineInLCU = i % m_lcuHeightChroma;
-
-        if (yLineInLCU < m_lineIdxPadBotChroma || i-yLineInLCU+m_lcuHeightChroma >= imgHeightChroma )
-        {
-          pImgPad1 = pImgPad +   iCmpStride;
-          pImgPad2 = pImgPad -   iCmpStride;
-          pImgPad3 = pImgPad + 2*iCmpStride;
-          pImgPad4 = pImgPad - 2*iCmpStride;
-        }
-        else if (yLineInLCU < m_lineIdxPadTopChroma)
-        {
-          paddingline = - yLineInLCU + m_lineIdxPadTopChroma - 1;
-          pImgPad1 = pImgPad + min(paddingline, 1)*iCmpStride;
-          pImgPad2 = pImgPad -   iCmpStride;
-          pImgPad3 = pImgPad + min(paddingline, 2)*iCmpStride;
-          pImgPad4 = pImgPad - 2*iCmpStride;
-        }
-        else
-        {
-          paddingline = yLineInLCU - m_lineIdxPadTopChroma ;
-          pImgPad1 = pImgPad +   iCmpStride;
-          pImgPad2 = pImgPad - min(paddingline, 1)*iCmpStride;
-          pImgPad3 = pImgPad + 2*iCmpStride;
-          pImgPad4 = pImgPad - min(paddingline, 2)*iCmpStride;
-        }
-
-        if ( (yLineInLCU == m_lineIdxPadTopChroma || yLineInLCU == m_lineIdxPadTopChroma-1) && i-yLineInLCU+m_lcuHeightChroma < imgHeightChroma ) 
-        {
-          pImgPad+= iCmpStride;
-          pImgOrg+= iOrgStride;
-          continue;
-        }
-        else
-        {
-        for (j= xpos; j<= xposEnd; j++)
-        {
-          memset(ELocal, 0, N*sizeof(Int));
-
-          ELocal[0] = (pImgPad3[j+2] + pImgPad4[j-2]);
-          ELocal[1] = (pImgPad3[j  ] + pImgPad4[j  ]);
-          ELocal[2] = (pImgPad3[j-2] + pImgPad4[j+2]);
-
-          ELocal[3] = (pImgPad1[j+1] + pImgPad2[j-1]);
-          ELocal[4] = (pImgPad1[j  ] + pImgPad2[j  ]);
-          ELocal[5] = (pImgPad1[j-1] + pImgPad2[j+1]);
-
-          ELocal[6] = (pImgPad[j+2] + pImgPad[j-2]);
-          ELocal[7] = (pImgPad[j+1] + pImgPad[j-1]);
-          ELocal[8] = (pImgPad[j  ]);
-
-          yLocal= (Int)pImgOrg[j];
-
-          for(k=0; k<N; k++)
-          {
-            m_ppdAlfCorr[k][k] += ELocal[k]*ELocal[k];
-            for(l=k+1; l<N; l++)
-            {
-              m_ppdAlfCorr[k][l] += ELocal[k]*ELocal[l];
-            }
-
-            m_ppdAlfCorr[k][N] += yLocal*ELocal[k];
-          }
-        }
-        pImgPad+= iCmpStride;
-        pImgOrg+= iOrgStride;
-      }
-
-      }
-    }
-    break;
-  case ALF_CROSS9x9:
-    {
-      Pel *pImgPad5, *pImgPad6, *pImgPad7, *pImgPad8;
-#else
   case ALF_CROSS9x7_SQUARE3x3:
     {
       Pel *pImgPad5, *pImgPad6;
-#endif
       for (i= ypos; i<= yposEnd; i++)
       {
         yLineInLCU = i % m_lcuHeightChroma;
@@ -3496,10 +3402,6 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
           pImgPad4 = pImgPad - 2*iCmpStride;
           pImgPad5 = (paddingline < 3) ? pImgPad : pImgPad + 3*iCmpStride;
           pImgPad6 = (paddingline < 3) ? pImgPad : pImgPad - min(paddingline, 3)*iCmpStride;;
-#if !ALF_SINGLE_FILTER_SHAPE
-          pImgPad7 = (paddingline < 4) ? pImgPad : pImgPad + 4*iCmpStride;
-          pImgPad8 = (paddingline < 4) ? pImgPad : pImgPad - min(paddingline, 4)*iCmpStride;;      
-#endif
         }
         else if (yLineInLCU < m_lineIdxPadBotChroma || i-yLineInLCU+m_lcuHeightChroma >= imgHeightChroma )
         {
@@ -3509,10 +3411,6 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
           pImgPad4 = pImgPad - 2*iCmpStride;
           pImgPad5 = pImgPad + 3*iCmpStride;
           pImgPad6 = pImgPad - 3*iCmpStride;
-#if !ALF_SINGLE_FILTER_SHAPE
-          pImgPad7 = pImgPad + 4*iCmpStride;
-          pImgPad8 = pImgPad - 4*iCmpStride;
-#endif
         }
         else if (yLineInLCU < m_lineIdxPadTopChroma)
         {
@@ -3523,10 +3421,6 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
           pImgPad4 = (paddingline < 2) ? pImgPad : pImgPad - 2*iCmpStride;
           pImgPad5 = (paddingline < 3) ? pImgPad : pImgPad + min(paddingline, 3)*iCmpStride;
           pImgPad6 = (paddingline < 3) ? pImgPad : pImgPad - 3*iCmpStride;
-#if !ALF_SINGLE_FILTER_SHAPE
-          pImgPad7 = (paddingline < 4) ? pImgPad : pImgPad + min(paddingline, 4)*iCmpStride;
-          pImgPad8 = (paddingline < 4) ? pImgPad : pImgPad - 4*iCmpStride;
-#endif
         }
         else
         {
@@ -3537,16 +3431,11 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
           pImgPad4 = (paddingline < 2) ? pImgPad : pImgPad - min(paddingline, 2)*iCmpStride;
           pImgPad5 = (paddingline < 3) ? pImgPad : pImgPad + 3*iCmpStride;
           pImgPad6 = (paddingline < 3) ? pImgPad : pImgPad - min(paddingline, 3)*iCmpStride;
-#if !ALF_SINGLE_FILTER_SHAPE
-          pImgPad7 = (paddingline < 4) ? pImgPad : pImgPad + 4*iCmpStride;
-          pImgPad8 = (paddingline < 4) ? pImgPad : pImgPad - min(paddingline, 4)*iCmpStride;
-#endif
         }
 
         for (j= xpos; j<= xposEnd; j++)
         {
           memset(ELocal, 0, N*sizeof(Int));
-#if ALF_SINGLE_FILTER_SHAPE
           ELocal[0] = (pImgPad5[j]+pImgPad6[j]);
           ELocal[1] = (pImgPad3[j]+pImgPad4[j]);
           ELocal[2] = (pImgPad1[j-1]+pImgPad2[j+1]);
@@ -3557,21 +3446,6 @@ Void TEncAdaptiveLoopFilter::xCalcCorrelationFunc(Int ypos, Int xpos, Pel* pImgO
           ELocal[7] = (pImgPad[j+2]+pImgPad[j-2]);
           ELocal[8] = (pImgPad[j+1]+pImgPad[j-1]);
           ELocal[9] = (pImgPad[j  ]);
-#else
-          ELocal[0] = (pImgPad7[j] + pImgPad8[j]);
-
-          ELocal[1] = (pImgPad5[j] + pImgPad6[j]);
-
-          ELocal[2] = (pImgPad3[j] + pImgPad4[j]);
-
-          ELocal[3] = (pImgPad1[j] + pImgPad2[j]);
-
-          ELocal[4] = (pImgPad[j+4] + pImgPad[j-4]);
-          ELocal[5] = (pImgPad[j+3] + pImgPad[j-3]);
-          ELocal[6] = (pImgPad[j+2] + pImgPad[j-2]);
-          ELocal[7] = (pImgPad[j+1] + pImgPad[j-1]);
-          ELocal[8] = (pImgPad[j  ] );
-#endif
           yLocal= (Int)pImgOrg[j];
 
           for(k=0; k<N; k++)
@@ -3743,20 +3617,7 @@ Void TEncAdaptiveLoopFilter::xQuantFilterCoef(Double* h, Int* qh, Int tap, int b
 #endif
 
   N = m_sqrFiltLengthTab[tap];
-#if ALF_SINGLE_FILTER_SHAPE
   pFiltMag = weightsShape1Sym;
-#else
-  // star shape
-  if(tap == 0)
-  {
-    pFiltMag = weightsShape0Sym;
-  }
-  // cross shape
-  else
-  {
-    pFiltMag = weightsShape1Sym;
-  }
-#endif
 
   dh = new Double[N];
   nc = new Int[N];
@@ -4388,11 +4249,7 @@ Int   TEncAdaptiveLoopFilter::xcodeFilterCoeff(int **pDiffQFilterCoeffIntPP, int
   int i, k, kMin, kStart, minBits, ind, scanPos, maxScanVal, coeffVal, len = 0,
     *pDepthInt=NULL, kMinTab[MAX_SCAN_VAL], bitsCoeffScan[MAX_SCAN_VAL][MAX_EXP_GOLOMB],
   minKStart, minBitsKStart, bitsKStart;
-#if ALF_SINGLE_FILTER_SHAPE
   Int minScanVal = MIN_SCAN_POS_CROSS;
-#else  
-  int minScanVal = (fl==ALF_STAR5x5) ? 0 : MIN_SCAN_POS_CROSS;
-#endif
   pDepthInt = pDepthIntTabShapes[fl];
   
   maxScanVal = 0;
@@ -4611,11 +4468,7 @@ Void   TEncAdaptiveLoopFilter::xEncALFLuma ( TComPicYuv* pcPicOrg, TComPicYuv* p
         UInt64 MinDist_Shape1 = MAX_INT;
         Double MinCost_Shape1 = MAX_DOUBLE;
 
-#if ALF_SINGLE_FILTER_SHAPE
         Int filter_shape = 0;
-#else        
-        for (Int filter_shape = 0; filter_shape < 2 ;filter_shape ++)
-#endif 
         {
           pcAlfParam->filter_shape = filter_shape;
           pcAlfParam->num_coeff = m_pcTempAlfParam->num_coeff = m_sqrFiltLengthTab[filter_shape];
@@ -4805,94 +4658,9 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
 
   switch(filtNo)
   {
-#if !ALF_SINGLE_FILTER_SHAPE
-  case ALF_STAR5x5:
-    {
-      for (i= ypos; i<= yposEnd; i++)
-      {
-        yLineInLCU = i % m_lcuHeight;
-
-        if (yLineInLCU < m_lineIdxPadBot || i-yLineInLCU+m_lcuHeight >= m_img_height )
-        {
-          pImgPad1 = pImgPad +   stride;
-          pImgPad2 = pImgPad -   stride;
-          pImgPad3 = pImgPad + 2*stride;
-          pImgPad4 = pImgPad - 2*stride;
-        }
-        else if (yLineInLCU < m_lineIdxPadTop)
-        {
-          paddingLine = - yLineInLCU + m_lineIdxPadTop - 1;
-          pImgPad1 = pImgPad + min(paddingLine, 1)*stride;
-          pImgPad2 = pImgPad -   stride;
-          pImgPad3 = pImgPad + min(paddingLine, 2)*stride;
-          pImgPad4 = pImgPad - 2*stride;
-        }
-        else
-        {
-          paddingLine = yLineInLCU - m_lineIdxPadTop;
-          pImgPad1 = pImgPad +   stride;
-          pImgPad2 = pImgPad - min(paddingLine, 1)*stride;
-          pImgPad3 = pImgPad + 2*stride;
-          pImgPad4 = pImgPad - min(paddingLine, 2)*stride;
-        }
-
-        if ( (yLineInLCU == m_lineIdxPadTop || yLineInLCU == m_lineIdxPadTop-1) && i-yLineInLCU+m_lcuHeight < m_img_height ) 
-        {
-          pImgPad+= stride;
-          pImgOrg+= stride;
-          continue;
-        }
-        else
-        {
-        for (j= xpos; j<= xposEnd; j++)
-        {
-          if ( (m_maskImg[i][j] == regionOfInterested) || (numValidPels == 0) )
-          {
-            varInd = m_varImg[i/VAR_SIZE_H][j/VAR_SIZE_W];
-            memset(ELocal, 0, 10*sizeof(Int));
-
-            ELocal[0] = (pImgPad3[j+2] + pImgPad4[j-2]);
-            ELocal[1] = (pImgPad3[j  ] + pImgPad4[j  ]);
-            ELocal[2] = (pImgPad3[j-2] + pImgPad4[j+2]);
-
-            ELocal[3] = (pImgPad1[j+1] + pImgPad2[j-1]);
-            ELocal[4] = (pImgPad1[j  ] + pImgPad2[j  ]);
-            ELocal[5] = (pImgPad1[j-1] + pImgPad2[j+1]);
-
-            ELocal[6] = (pImgPad[j+2] + pImgPad[j-2]);
-            ELocal[7] = (pImgPad[j+1] + pImgPad[j-1]);
-            ELocal[8] = (pImgPad[j  ]);
-
-            yLocal= pImgOrg[j];
-            m_pixAcc[varInd]+=(yLocal*yLocal);
-            E= EShape[varInd];  
-            yy= yShape[varInd];
-
-            for (k=0; k<10; k++)
-            {
-              for (l=k; l<10; l++)
-              {
-                E[k][l]+=(double)(ELocal[k]*ELocal[l]);
-              }
-              yy[k]+=(double)(ELocal[k]*yLocal);
-            }
-
-          }
-        }
-        pImgPad+= stride;
-        pImgOrg+= stride;
-        }
-      }
-    }
-    break;
-  case ALF_CROSS9x9: 
-    {
-      Pel *pImgPad5, *pImgPad6, *pImgPad7, *pImgPad8;
-#else
   case ALF_CROSS9x7_SQUARE3x3:
     {
       Pel *pImgPad5, *pImgPad6;
-#endif
       for (i= ypos; i<= yposEnd; i++)
       {
         yLineInLCU = i % m_lcuHeight;
@@ -4905,10 +4673,6 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
           pImgPad4 = pImgPad - 2*stride;
           pImgPad5 = pImgPad + 3*stride;
           pImgPad6 = pImgPad - 3*stride;
-#if !ALF_SINGLE_FILTER_SHAPE
-          pImgPad7 = pImgPad + 4*stride;
-          pImgPad8 = pImgPad - 4*stride;
-#endif
         }
         else if (yLineInLCU<m_lineIdxPadTop)
         {
@@ -4919,10 +4683,6 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
           pImgPad4 = (paddingLine < 2) ? pImgPad : pImgPad - 2*stride;
           pImgPad5 = (paddingLine < 3) ? pImgPad : pImgPad + min(paddingLine, 3)*stride;
           pImgPad6 = (paddingLine < 3) ? pImgPad : pImgPad - 3*stride;
-#if !ALF_SINGLE_FILTER_SHAPE
-          pImgPad7 = (paddingLine < 4) ? pImgPad : pImgPad + min(paddingLine, 4)*stride;
-          pImgPad8 = (paddingLine < 4) ? pImgPad : pImgPad - 4*stride;
-#endif
         }
         else
         {
@@ -4933,10 +4693,6 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
           pImgPad4 = (paddingLine < 2) ? pImgPad : pImgPad - min(paddingLine, 2)*stride;
           pImgPad5 = (paddingLine < 3) ? pImgPad : pImgPad + 3*stride;
           pImgPad6 = (paddingLine < 3) ? pImgPad : pImgPad - min(paddingLine, 3)*stride;
-#if !ALF_SINGLE_FILTER_SHAPE
-          pImgPad7 = (paddingLine < 4) ? pImgPad : pImgPad + 4*stride;
-          pImgPad8 = (paddingLine < 4) ? pImgPad : pImgPad - min(paddingLine, 4)*stride;
-#endif
         }         
 
         for (j= xpos; j<= xposEnd; j++)
@@ -4945,7 +4701,6 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
           {
             varInd = m_varImg[i/VAR_SIZE_H][j/VAR_SIZE_W];
 
-#if ALF_SINGLE_FILTER_SHAPE
             memset(ELocal, 0, (sqrFiltLength+1)*sizeof(Int));
 
             ELocal[0] = (pImgPad5[j]+pImgPad6[j]);
@@ -4958,29 +4713,11 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
             ELocal[7] = (pImgPad[j+2]+pImgPad[j-2]);
             ELocal[8] = (pImgPad[j+1]+pImgPad[j-1]);
             ELocal[9] = (pImgPad[j  ]);
-#else
-            memset(ELocal, 0, 10*sizeof(Int));
-
-            ELocal[0] = (pImgPad7[j] + pImgPad8[j]);
-
-            ELocal[1] = (pImgPad5[j] + pImgPad6[j]);
-
-            ELocal[2] = (pImgPad3[j] + pImgPad4[j]);
-
-            ELocal[3] = (pImgPad1[j] + pImgPad2[j]);
-
-            ELocal[4] = (pImgPad[j+4] + pImgPad[j-4]);
-            ELocal[5] = (pImgPad[j+3] + pImgPad[j-3]);
-            ELocal[6] = (pImgPad[j+2] + pImgPad[j-2]);
-            ELocal[7] = (pImgPad[j+1] + pImgPad[j-1]);
-            ELocal[8] = (pImgPad[j  ] );
-#endif
             yLocal= pImgOrg[j];
             m_pixAcc[varInd]+=(yLocal*yLocal);
             E= EShape[varInd];
             yy= yShape[varInd];
 
-#if ALF_SINGLE_FILTER_SHAPE
             for (k=0; k<(sqrFiltLength+1); k++)
             {
               for (l=k; l<(sqrFiltLength+1); l++)
@@ -4989,16 +4726,6 @@ Void   TEncAdaptiveLoopFilter::xstoreInBlockMatrix(Int ypos, Int xpos, Int iheig
               }
               yy[k]+=(double)(ELocal[k]*yLocal);
             }
-#else
-            for (k=0; k<10; k++)
-            {
-              for (l=k; l<10; l++)
-              {
-                E[k][l]+=(double)(ELocal[k]*ELocal[l]);
-              }
-              yy[k]+=(double)(ELocal[k]*yLocal);
-            }
-#endif
           }
         }
         pImgPad+= stride;
@@ -6231,11 +5958,7 @@ Void TEncAdaptiveLoopFilter::setMaskWithTimeDelayedResults(TComPicYuv* pcPicOrg,
   {
     iBufIdx = setFilterIdx(index);
     filtNo = m_pcTempAlfParam->filter_shape = pFilterShapeSaved[iBufIdx];
-#if ALF_SINGLE_FILTER_SHAPE
     assert(filtNo == ALF_CROSS9x7_SQUARE3x3);
-#else
-    assert(filtNo == ALF_STAR5x5 || filtNo == ALF_CROSS9x9);
-#endif
     m_pcTempAlfParam->num_coeff = m_sqrFiltLengthTab[filtNo]; 
     if(!m_bUseNonCrossALF)
     {
@@ -6533,42 +6256,6 @@ Void  TEncAdaptiveLoopFilter::decideFilterShapeLuma(Pel* ImgOrg, Pel* ImgDec, In
     }
   }
   
-#if !ALF_SINGLE_FILTER_SHAPE
-  // if ALF_STAR5x5 is selected, the distortion of 2 skipped lines per LCU should be added.
-  if(pcAlfSaved->filter_shape == ALF_STAR5x5)
-  {
-    Int    iPelDiff;
-    UInt64  uiSkipPelsDistortion = 0;
-    Pel   *pOrgTemp, *pDecTemp;
-    for(Int y= m_lineIdxPadTop-1; y< m_img_height - m_lcuHeight ; y += m_lcuHeight)
-    {
-      pOrgTemp = ImgOrg + y*Stride;
-      pDecTemp = ImgDec + y*Stride;
-      for(Int x=0; x< m_img_width; x++)
-      {
-        if(m_maskImg[y][x] == 1)
-        {
-          iPelDiff = pOrgTemp[x] - pDecTemp[x];
-          uiSkipPelsDistortion += (UInt64)(  (iPelDiff*iPelDiff) >> uiBitShift );
-        }
-      }
-
-      pOrgTemp += Stride;
-      pDecTemp += Stride;
-      for(Int x=0; x< m_img_width; x++)
-      {
-        if(m_maskImg[y+1][x] == 1)
-        {
-          iPelDiff = pOrgTemp[x] - pDecTemp[x];
-          uiSkipPelsDistortion += (UInt64)(  (iPelDiff*iPelDiff) >> uiBitShift );
-        }
-      }
-    }
-    ruiDist += uiSkipPelsDistortion;
-    rdCost  += (Double)uiSkipPelsDistortion;
-  }
-#endif
-
   for(Int filter_shape = 0; filter_shape < NUM_ALF_FILTER_SHAPE; filter_shape++)
   {
     for(Int i=0; i< NO_VAR_BINS; i++)
@@ -6930,11 +6617,7 @@ Void TEncAdaptiveLoopFilter::xFilterTapDecisionChroma( UInt64 uiLumaRate, TComPi
   copyALFParam(m_pcTempAlfParam, m_pcBestAlfParam);
   xCalcRDCostChroma(pcPicOrg, pcPicRest, m_pcTempAlfParam, uiMinRate, uiMinDist, dMinCost);
 
-#if ALF_SINGLE_FILTER_SHAPE
   iShape = 0;
-#else 
-  for(iShape = 0; iShape < 2; iShape++)
-#endif  
   {
     // set global variables
     num_coeff = m_sqrFiltLengthTab[iShape];

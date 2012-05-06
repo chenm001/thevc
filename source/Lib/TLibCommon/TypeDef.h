@@ -65,8 +65,6 @@
 #define REMOVE_SAO_LCU_ENC_CONSTRAINTS_2 0  ///< disable the encoder constraint that reduce the range of SAO/EO for chroma in interleaved mode
 #define REMOVE_SAO_LCU_ENC_CONSTRAINTS_3 0  ///< disable the encoder constraint that conditionally disable SAO for chroma for entire slice in interleaved mode
 
-#define ALF_SINGLE_FILTER_SHAPE    1     //< !!! H0068: Single filter type : 9x7 cross + 3x3 square
-
 #define LCU_SYNTAX_ALF          1     ///< H0274 LCU-syntax ALF
 
 #define CABAC_LINEAR_INIT       1     ///< H0535 : linear CABAC initialization
