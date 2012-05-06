@@ -481,7 +481,6 @@ private:
   Int      m_iNumRowsMinus1;
   UInt*    m_puiRowHeight;
   
-  Int      m_iEntropyCodingMode; // !!! in PPS now, but also remains in slice header!
   Int      m_iNumSubstreams;
 
   Bool     m_enableTMVPFlag;
@@ -575,8 +574,6 @@ public:
     }
   }
   UInt     getRowHeight           (UInt rowIdx)    { return *( m_puiRowHeight + rowIdx ); }
-  Void     setEntropyCodingMode(Int iEntropyCodingMode)       { m_iEntropyCodingMode = iEntropyCodingMode; }
-  Int      getEntropyCodingMode()                             { return m_iEntropyCodingMode; }
   Void     setNumSubstreams(Int iNumSubstreams)               { m_iNumSubstreams = iNumSubstreams; }
   Int      getNumSubstreams()                                 { return m_iNumSubstreams; }
 

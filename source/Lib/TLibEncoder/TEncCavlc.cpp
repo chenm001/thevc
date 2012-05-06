@@ -240,9 +240,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
     WRITE_CODE(pcPPS->getTSIG(), 4, "sign_hiding_threshold");
   }
   WRITE_FLAG( pcPPS->getCabacInitPresentFlag() ? 1 : 0,   "cabac_init_present_flag" );
-  // entropy_coding_mode_flag
-  // We code the entropy_coding_mode_flag, it's needed for tests.
-  WRITE_FLAG( pcPPS->getEntropyCodingMode() ? 1 : 0,         "entropy_coding_mode_flag" );
   WRITE_CODE( pcPPS->getNumRefIdxL0DefaultActive()-1, 3, "num_ref_idx_l0_default_active_minus1");
   WRITE_CODE( pcPPS->getNumRefIdxL1DefaultActive()-1, 3, "num_ref_idx_l1_default_active_minus1");
 
@@ -472,13 +469,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   xTraceSliceHeader (pcSlice);
 #endif
 
-  // if( nal_ref_idc != 0 )
-  //   dec_ref_pic_marking( )
-  // if( entropy_coding_mode_flag  &&  slice_type  !=  I)
-  //   cabac_init_idc
-  // first_slice_in_pic_flag
-  // if( first_slice_in_pic_flag == 0 )
-  //    slice_address
   //calculate number of bits required for slice address
   Int maxAddrOuter = pcSlice->getPic()->getNumCUsInFrame();
   Int reqBitsOuter = 0;
@@ -715,7 +705,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     WRITE_FLAG( pcSlice->getMvdL1ZeroFlag() ? 1 : 0,   "mvd_l1_zero_flag");
   }
 
-  if(pcSlice->getPPS()->getEntropyCodingMode() && !pcSlice->isIntra())
+  if(!pcSlice->isIntra())
   {
     if (!pcSlice->isIntra() && pcSlice->getPPS()->getCabacInitPresentFlag())
     {

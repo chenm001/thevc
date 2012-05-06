@@ -933,9 +933,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSe
   }
 
   READ_FLAG( uiCode,   "cabac_init_present_flag" );            pcPPS->setCabacInitPresentFlag( uiCode ? true : false );
-  // entropy_coding_mode_flag
-  // We code the entropy_coding_mode_flag, it's needed for tests.
-  READ_FLAG( uiCode, "entropy_coding_mode_flag" );                 pcPPS->setEntropyCodingMode( uiCode ? true : false );
   
   READ_CODE(3,uiCode, "num_ref_idx_l0_default_active_minus1");     pcPPS->setNumRefIdxL0DefaultActive(uiCode+1);
   READ_CODE(3,uiCode, "num_ref_idx_l1_default_active_minus1");     pcPPS->setNumRefIdxL1DefaultActive(uiCode+1);

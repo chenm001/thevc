@@ -573,13 +573,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
     }
     pcPic->getPicSym()->setCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());    
     pcPic->getPicSym()->setInverseCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());
-    if (pcSlice->getPPS()->getEntropyCodingMode())
-    {
-      // Allocate some coders, now we know how many tiles there are.
-      m_pcEncTop->createWPPCoders(iNumSubstreams);
-      pcSbacCoders = m_pcEncTop->getSbacCoders();
-      pcSubstreamsOut = new TComOutputBitstream[iNumSubstreams];
-    }
+
+    // Allocate some coders, now we know how many tiles there are.
+    m_pcEncTop->createWPPCoders(iNumSubstreams);
+    pcSbacCoders = m_pcEncTop->getSbacCoders();
+    pcSubstreamsOut = new TComOutputBitstream[iNumSubstreams];
 
       UInt uiStartCUAddrSliceIdx = 0; // used to index "m_uiStoredStartCUAddrForEncodingSlice" containing locations of slice boundaries
       UInt uiStartCUAddrSlice    = 0; // used to keep track of current slice's starting CU addr.
@@ -802,15 +800,14 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           pcSlice->setNextEntropySlice( false );
         }
         skippedSlice=false;
-        if (pcSlice->getPPS()->getEntropyCodingMode())
+        pcSlice->allocSubstreamSizes( iNumSubstreams );
+        for ( UInt ui = 0 ; ui < iNumSubstreams; ui++ )
         {
-          pcSlice->allocSubstreamSizes( iNumSubstreams );
-          for ( UInt ui = 0 ; ui < iNumSubstreams; ui++ )
-            pcSubstreamsOut[ui].clear();
+          pcSubstreamsOut[ui].clear();
         }
 
-          m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
-          m_pcEntropyCoder->resetEntropy      ();
+        m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
+        m_pcEntropyCoder->resetEntropy      ();
         /* start slice NALunit */
         OutputNALUnit nalu( pcSlice->getNalUnitType(), pcSlice->isReferenced(), pcSlice->getTLayer() );
         Bool bEntropySlice = (!pcSlice->isNextSlice());

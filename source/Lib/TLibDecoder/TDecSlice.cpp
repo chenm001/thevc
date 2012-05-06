@@ -115,32 +115,30 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
 
   UInt uiTilesAcross   = rpcPic->getPicSym()->getNumColumnsMinus1()+1;
   TComSlice*  pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
-  UInt iSymbolMode    = pcSlice->getPPS()->getEntropyCodingMode();
   Int  iNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
 
-  if( iSymbolMode )
+  m_pcBufferSbacDecoders = new TDecSbac    [uiTilesAcross];  
+  m_pcBufferBinCABACs    = new TDecBinCABAC[uiTilesAcross];
+  for (UInt ui = 0; ui < uiTilesAcross; ui++)
   {
-    m_pcBufferSbacDecoders = new TDecSbac    [uiTilesAcross];  
-    m_pcBufferBinCABACs    = new TDecBinCABAC[uiTilesAcross];
-    for (UInt ui = 0; ui < uiTilesAcross; ui++)
-    {
-      m_pcBufferSbacDecoders[ui].init(&m_pcBufferBinCABACs[ui]);
-    }
-    //save init. state
-    for (UInt ui = 0; ui < uiTilesAcross; ui++)
-    {
-      m_pcBufferSbacDecoders[ui].load(pcSbacDecoder);
-    }
-  }  
-  if( iSymbolMode )
+    m_pcBufferSbacDecoders[ui].init(&m_pcBufferBinCABACs[ui]);
+  }
+  //save init. state
+  for (UInt ui = 0; ui < uiTilesAcross; ui++)
   {
-    m_pcBufferLowLatSbacDecoders = new TDecSbac    [uiTilesAcross];  
-    m_pcBufferLowLatBinCABACs    = new TDecBinCABAC[uiTilesAcross];
-    for (UInt ui = 0; ui < uiTilesAcross; ui++)
-      m_pcBufferLowLatSbacDecoders[ui].init(&m_pcBufferLowLatBinCABACs[ui]);
-    //save init. state
-    for (UInt ui = 0; ui < uiTilesAcross; ui++)
-      m_pcBufferLowLatSbacDecoders[ui].load(pcSbacDecoder);
+    m_pcBufferSbacDecoders[ui].load(pcSbacDecoder);
+  }
+
+  m_pcBufferLowLatSbacDecoders = new TDecSbac    [uiTilesAcross];  
+  m_pcBufferLowLatBinCABACs    = new TDecBinCABAC[uiTilesAcross];
+  for (UInt ui = 0; ui < uiTilesAcross; ui++)
+  {
+    m_pcBufferLowLatSbacDecoders[ui].init(&m_pcBufferLowLatBinCABACs[ui]);
+  }
+  //save init. state
+  for (UInt ui = 0; ui < uiTilesAcross; ui++)
+  {
+    m_pcBufferLowLatSbacDecoders[ui].load(pcSbacDecoder);
   }
 
   UInt uiWidthInLCUs  = rpcPic->getPicSym()->getFrameWidthInCU();
@@ -168,20 +166,12 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
     uiCol     = iCUAddr % uiWidthInLCUs;
     uiLin     = iCUAddr / uiWidthInLCUs;
     // inherit from TR if necessary, select substream to use.
-    if( iSymbolMode && pcSlice->getPPS()->getNumSubstreams() > 1 )
+    if( pcSlice->getPPS()->getNumSubstreams() > 1 )
     {
-      if (pcSlice->getPPS()->getNumSubstreams() > 1)
-      {
-        // independent tiles => substreams are "per tile".  iNumSubstreams has already been multiplied.
-        iNumSubstreamsPerTile = iNumSubstreams/rpcPic->getPicSym()->getNumTiles();
-        uiSubStrm = rpcPic->getPicSym()->getTileIdxMap(iCUAddr)*iNumSubstreamsPerTile
-                      + uiLin%iNumSubstreamsPerTile;
-      }
-      else
-      {
-        // dependent tiles => substreams are "per frame".
-        uiSubStrm = uiLin % iNumSubstreams;
-      }
+      // independent tiles => substreams are "per tile".  iNumSubstreams has already been multiplied.
+      iNumSubstreamsPerTile = iNumSubstreams/rpcPic->getPicSym()->getNumTiles();
+      uiSubStrm = rpcPic->getPicSym()->getTileIdxMap(iCUAddr)*iNumSubstreamsPerTile
+                  + uiLin%iNumSubstreamsPerTile;
       m_pcEntropyDecoder->setBitstream( ppcSubstreams[uiSubStrm] );
       // Synchronize cabac probabilities with upper-right LCU if it's available and we're at the start of a line.
       if (pcSlice->getPPS()->getNumSubstreams() > 1 && uiCol == uiTileLCUX)
@@ -218,7 +208,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
       }
       pcSbacDecoder->load(&pcSbacDecoders[uiSubStrm]);  //this load is used to simplify the code (avoid to change all the call to pcSbacDecoders)
     }
-    else if ( iSymbolMode && pcSlice->getPPS()->getNumSubstreams() <= 1 )
+    else if ( pcSlice->getPPS()->getNumSubstreams() <= 1 )
     {
       // Set variables to appropriate values to avoid later code change.
       iNumSubstreamsPerTile = 1;
@@ -301,27 +291,22 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceDisable;
 #endif
-    if( iSymbolMode )
+    /*If at the end of a LCU line but not at the end of a substream, perform CABAC flush*/
+    if (!uiIsLast && pcSlice->getPPS()->getNumSubstreams() > 1)
     {
-      /*If at the end of a LCU line but not at the end of a substream, perform CABAC flush*/
-      if (!uiIsLast && pcSlice->getPPS()->getNumSubstreams() > 1)
+      if ((uiCol == uiTileLCUX+uiTileWidth-1) && (uiLin+iNumSubstreamsPerTile < uiTileLCUY+uiTileHeight))
       {
-        if ((uiCol == uiTileLCUX+uiTileWidth-1) && (uiLin+iNumSubstreamsPerTile < uiTileLCUY+uiTileHeight))
-        {
-          m_pcEntropyDecoder->decodeFlush();
-        }
+        m_pcEntropyDecoder->decodeFlush();
       }
-      pcSbacDecoders[uiSubStrm].load(pcSbacDecoder);
+    }
+    pcSbacDecoders[uiSubStrm].load(pcSbacDecoder);
 
-      //Store probabilities of second LCU in line into buffer
-      if (pcSlice->getPPS()->getNumSubstreams() > 1 && (uiCol == uiTileLCUX+1))
-      {
-        m_pcBufferSbacDecoders[uiTileCol].loadContexts( &pcSbacDecoders[uiSubStrm] );
-      }
-
+    //Store probabilities of second LCU in line into buffer
+    if (pcSlice->getPPS()->getNumSubstreams() > 1 && (uiCol == uiTileLCUX+1))
+    {
+      m_pcBufferSbacDecoders[uiTileCol].loadContexts( &pcSbacDecoders[uiSubStrm] );
     }
   }
-
 }
 
 ParameterSetManagerDecoder::ParameterSetManagerDecoder()

@@ -608,7 +608,6 @@ Void TEncTop::xInitPPS()
   m_cPPS.setChromaCbQpOffset( m_chromaCbQpOffset );
   m_cPPS.setChromaCrQpOffset( m_chromaCrQpOffset );
 
-  m_cPPS.setEntropyCodingMode( 1 ); // In the PPS now, but also remains in slice header!
   m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams);
   m_cPPS.setUseWP( m_bUseWeightPred );
   m_cPPS.setWPBiPredIdc( m_uiBiPredIdc );
