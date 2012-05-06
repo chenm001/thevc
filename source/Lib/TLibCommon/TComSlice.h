@@ -836,9 +836,7 @@ private:
   TComScalingList*     m_scalingList;                 //!< pointer of quantization matrix
   Bool        m_cabacInitFlag; 
 
-#if H0111_MVD_L1_ZERO
   Bool       m_bLMvdL1Zero;
-#endif
   Int         m_numEntryPointOffsets;
 
 public:
@@ -915,9 +913,7 @@ public:
   Bool      getColRefIdx        ()                              { return  m_colRefIdx;                  }
   Void      checkColRefIdx      (UInt curSliceIdx, TComPic* pic);
   Bool      getCheckLDC     ()                                  { return m_bCheckLDC; }
-#if H0111_MVD_L1_ZERO
   Bool      getMvdL1ZeroFlag ()                                  { return m_bLMvdL1Zero;    }
-#endif
   Int       getNumRpsCurrTempList();
   Int       getRefIdxOfLC       (RefPicList e, Int iRefIdx)     { return m_iRefIdxOfLC[e][iRefIdx];           }
   Int       getListIdFromIdxOfLC(Int iRefIdx)                   { return m_eListIdFromIdxOfLC[iRefIdx];       }
@@ -963,9 +959,7 @@ public:
   Void      setColDir           ( UInt uiDir ) { m_uiColDir = uiDir; }
   Void      setColRefIdx        ( UInt refIdx) { m_colRefIdx = refIdx; }
   Void      setCheckLDC         ( Bool b )                      { m_bCheckLDC = b; }
-#if H0111_MVD_L1_ZERO
   Void      setMvdL1ZeroFlag     ( Bool b)                       { m_bLMvdL1Zero = b; }
-#endif  
 
   Bool      isIntra         ()                          { return  m_eSliceType == I_SLICE;  }
   Bool      isInterB        ()                          { return  m_eSliceType == B_SLICE;  }

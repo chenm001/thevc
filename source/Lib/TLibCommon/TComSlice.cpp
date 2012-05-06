@@ -722,9 +722,7 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_cabacInitFlag                = pSrc->m_cabacInitFlag;
   m_numEntryPointOffsets  = pSrc->m_numEntryPointOffsets;
 
-#if H0111_MVD_L1_ZERO
   m_bLMvdL1Zero = pSrc->m_bLMvdL1Zero;
-#endif
 }
 
 int TComSlice::m_prevPOC = 0;

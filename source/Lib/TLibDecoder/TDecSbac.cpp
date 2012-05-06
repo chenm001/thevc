@@ -829,7 +829,6 @@ Void TDecSbac::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UI
   UInt uiVerSign = 0;
   ContextModel *pCtx = m_cCUMvdSCModel.get( 0 );
 
-#if H0111_MVD_L1_ZERO
   if(pcCU->getSlice()->getMvdL1ZeroFlag() && eRefList == REF_PIC_LIST_1 && pcCU->getInterDir(uiAbsPartIdx)==3)
   {
     uiHorAbs=0;
@@ -837,7 +836,6 @@ Void TDecSbac::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UI
   }
   else
   {
-#endif
 
     m_pcTDecBinIf->decodeBin( uiHorAbs, *pCtx );
     m_pcTDecBinIf->decodeBin( uiVerAbs, *pCtx );
@@ -880,9 +878,7 @@ Void TDecSbac::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UI
       m_pcTDecBinIf->decodeBinEP( uiVerSign );
     }
 
-#if H0111_MVD_L1_ZERO
   }
-#endif
 
   const TComMv cMv( uiHorSign ? -Int( uiHorAbs ): uiHorAbs, uiVerSign ? -Int( uiVerAbs ) : uiVerAbs );
   pcCU->getCUMvField( eRefList )->setAllMvd( cMv, pcCU->getPartitionSize( uiAbsPartIdx ), uiAbsPartIdx, uiDepth, uiPartIdx );

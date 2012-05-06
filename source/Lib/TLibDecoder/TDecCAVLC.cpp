@@ -1701,12 +1701,10 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     rpcSlice->setRefPicListCombinationFlag(false);      
   }
   
-#if H0111_MVD_L1_ZERO
   if (rpcSlice->isInterB())
   {
     READ_FLAG( uiCode, "mvd_l1_zero_flag" );       rpcSlice->setMvdL1ZeroFlag( (uiCode ? true : false) );
   }
-#endif
 
   rpcSlice->setCabacInitFlag( false ); // default
   if(pps->getCabacInitPresentFlag() && !rpcSlice->isIntra())

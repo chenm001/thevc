@@ -54,7 +54,6 @@
 #define CU_BASED_MRG_CAND_LIST           1  //< H0240: single merge candidate list for all PUs inside a 8x8 CU conditioned on LOG2_PARALLEL_MERGE_LEVEL_MINUS2 > 0
 #endif
 
-#define H0111_MVD_L1_ZERO         1  ///< H0111: modification of bi-prediction
 #define DISABLING_CLIP_FOR_BIPREDME         1  ///< Ticket #175
   
 #define SIGMAP_CONST_AT_HIGH_FREQUENCY      1      ///< H0095 method2.1: const significance map at high freaquency

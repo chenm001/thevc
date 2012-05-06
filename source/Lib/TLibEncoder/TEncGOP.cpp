@@ -387,7 +387,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcSliceEncoder->setSearchRange(pcSlice);
       }
 
-#if H0111_MVD_L1_ZERO
       Bool bGPBcheck=false;
       if ( pcSlice->getSliceType() == B_SLICE)
       {
@@ -414,7 +413,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         pcSlice->setMvdL1ZeroFlag(false);
       }
       pcPic->getSlice(pcSlice->getSliceIdx())->setMvdL1ZeroFlag(pcSlice->getMvdL1ZeroFlag());
-#endif
 
       UInt uiNumSlices = 1;
 
