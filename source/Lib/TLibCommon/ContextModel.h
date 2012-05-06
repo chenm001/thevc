@@ -96,11 +96,6 @@ private:
 #if FAST_BIT_EST
   static UChar m_nextState[128][2];
 #endif
-#if !CABAC_LINEAR_INIT
-  static const Int m_slopes[16];
-  static const Int m_segOffset[8];
-  static const Int m_accumulatedSegOffset[8];
-#endif
   UInt          m_binsCoded;
 };
 
