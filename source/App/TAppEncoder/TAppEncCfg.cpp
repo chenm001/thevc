@@ -251,10 +251,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("ALFEncodePassReduction", m_iALFEncodePassReduction, 0, "0:Original 16-pass, 1: 1-pass, 2: 2-pass encoding")
 
   ("ALFMaxNumFilter,-ALFMNF", m_iALFMaxNumberFilters, 16, "16: No Constrained, 1-15: Constrained max number of filter")
-#if LCU_SYNTAX_ALF
   ("ALFParamInSlice", m_bALFParamInSlice, false, "ALF parameters in 0: APS, 1: slice header")
   ("ALFPicBasedEncode", m_bALFPicBasedEncode, true, "ALF picture-based encoding 0: false, 1: true")
-#endif
 
     ("SliceMode",            m_iSliceMode,           0, "0: Disable all Recon slice limits, 1: Enforce max # of LCUs, 2: Enforce max # of bytes")
     ("SliceArgument",        m_iSliceArgument,       0, "if SliceMode==1 SliceArgument represents max # of LCUs. if SliceMode==2 SliceArgument represents max # of bytes.")
@@ -467,11 +465,7 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iDecodingRefreshType < 0 || m_iDecodingRefreshType > 2,                   "Decoding Refresh Type must be equal to 0, 1 or 2" );
   xConfirmPara( m_iQP <  -6 * ((Int)m_uiInternalBitDepth - 8) || m_iQP > 51,                "QP exceeds supported range (-QpBDOffsety to 51)" );
   xConfirmPara( m_iALFEncodePassReduction < 0 || m_iALFEncodePassReduction > 2,             "ALFEncodePassReduction must be equal to 0, 1 or 2");
-#if LCU_SYNTAX_ALF
   xConfirmPara( m_iALFMaxNumberFilters < 1,                                                 "ALFMaxNumFilter should be larger than 1");  
-#else
-  xConfirmPara( m_iALFMaxNumberFilters < 1 || m_iALFMaxNumberFilters > 16,                  "ALFMaxNumFilter exceeds supported range (1 to 16)");  
-#endif
   xConfirmPara( m_loopFilterBetaOffsetDiv2 < -13 || m_loopFilterBetaOffsetDiv2 > 13,          "Loop Filter Beta Offset div. 2 exceeds supported range (-13 to 13)");
   xConfirmPara( m_loopFilterTcOffsetDiv2 < -13 || m_loopFilterTcOffsetDiv2 > 13,              "Loop Filter Tc Offset div. 2 exceeds supported range (-13 to 13)");
   xConfirmPara( m_iFastSearch < 0 || m_iFastSearch > 2,                                     "Fast Search Mode is not supported value (0:Full search  1:Diamond  2:PMVFAST)" );
@@ -951,11 +945,9 @@ Void TAppEncCfg::xPrintParameter()
   
   printf("TOOL CFG: ");
   printf("ALF:%d ", m_bUseALF             );
-#if LCU_SYNTAX_ALF
   printf("ALFMNF:%d ", m_iALFMaxNumberFilters);
   printf("ALFInSlice:%d ", m_bALFParamInSlice);
   printf("ALFPicEnc:%d ", m_bALFPicBasedEncode);
-#endif
   printf("IBD:%d ", !!g_uiBitIncrement);
   printf("HAD:%d ", m_bUseHADME           );
   printf("SRD:%d ", m_bUseSBACRD          );

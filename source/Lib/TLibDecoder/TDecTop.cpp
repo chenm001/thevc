@@ -286,10 +286,6 @@ Void TDecTop::xActivateParameterSets()
     sps->setAMPAcc( i, 0 );
   }
 
-#if !LCU_SYNTAX_ALF
-  // create ALF temporary buffer
-  m_cAdaptiveLoopFilter.create( sps->getPicWidthInLumaSamples(), sps->getPicHeightInLumaSamples(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-#endif
   m_cSAO.create( sps->getPicWidthInLumaSamples(), sps->getPicHeightInLumaSamples(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   m_cLoopFilter.        create( g_uiMaxCUDepth );
 }
@@ -321,11 +317,7 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   m_apcSlicePilot->setTLayerInfo(nalu.m_temporalId);
 
   // ALF CU parameters should be part of the slice header -> needs to be fixed 
-#if LCU_SYNTAX_ALF
   m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot, &m_parameterSetManagerDecoder, m_cGopDecoder.getAlfCuCtrlParam(), m_cGopDecoder.getAlfParamSet());
-#else
-  m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot, &m_parameterSetManagerDecoder, m_cGopDecoder.getAlfCuCtrlParam() );
-#endif
   // byte align
   {
     Int numBitsForByteAlignment = nalu.m_Bitstream->getNumBitsUntilByteAligned();
@@ -673,9 +665,7 @@ Void TDecTop::xDecodeSPS()
   sps->setRPSList(rps);
   m_cEntropyDecoder.decodeSPS( sps );
   m_parameterSetManagerDecoder.storePrefetchedSPS(sps);
-#if LCU_SYNTAX_ALF
   m_cAdaptiveLoopFilter.create( sps->getPicWidthInLumaSamples(), sps->getPicHeightInLumaSamples(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-#endif
 }
 
 Void TDecTop::xDecodePPS()
@@ -799,9 +789,6 @@ Void TDecTop::allocAPS (TComAPS* pAPS)
   pAPS->createSaoParam();
   m_cSAO.allocSaoParam(pAPS->getSaoParam());
   pAPS->createAlfParam();
-#if !LCU_SYNTAX_ALF
-  m_cAdaptiveLoopFilter.allocALFParam(pAPS->getAlfParam());
-#endif
 }
 
 //! \}

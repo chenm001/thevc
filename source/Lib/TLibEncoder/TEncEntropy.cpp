@@ -161,9 +161,6 @@ Void TEncEntropy::codeAux(ALFParam* pAlfParam)
 {
   //  m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->realfiltNo); 
 
-#if !LCU_SYNTAX_ALF
-  m_pcEntropyCoderIf->codeAlfFlag(pAlfParam->alf_pcr_region_flag);
-#endif
   Int noFilters = min(pAlfParam->filters_per_group-1, 2);
   m_pcEntropyCoderIf->codeAlfUvlc(noFilters);
 
@@ -173,11 +170,7 @@ Void TEncEntropy::codeAux(ALFParam* pAlfParam)
   }
   else if (noFilters == 2)
   {
-#if LCU_SYNTAX_ALF
     Int numMergeFlags = 16;
-#else
-    Int numMergeFlags = 16;
-#endif
     for (Int i=1; i<numMergeFlags; i++) 
     {
       m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->filterPattern[i]);
@@ -275,29 +268,22 @@ Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
   
   // Coding parameters
   ALFp->minKStart = minKStart;
-#if !LCU_SYNTAX_ALF  
-  ALFp->maxScanVal = maxScanVal;
-#endif
   for(scanPos = minScanVal; scanPos < maxScanVal; scanPos++)
   {
     ALFp->kMinTab[scanPos] = kMinTab[scanPos];
   }
 
-#if LCU_SYNTAX_ALF
   if (ALFp->filters_per_group == 1)
   {
     len += writeFilterCoeffs(sqrFiltLength, filters_per_group, pDepthInt, ALFp->coeffmulti, kTableTabShapes[ALF_CROSS9x7_SQUARE3x3]);
   }
   else
   {
-#endif
   len += writeFilterCodingParams(minKStart, minScanVal, maxScanVal, kMinTab);
 
   // Filter coefficients
   len += writeFilterCoeffs(sqrFiltLength, filters_per_group, pDepthInt, ALFp->coeffmulti, kMinTab);
-#if LCU_SYNTAX_ALF
   }
-#endif
   
   return len;
 }
@@ -335,12 +321,8 @@ Int TEncEntropy::writeFilterCoeffs(int sqrFiltLength, int filters_per_group, int
     for(i = 0; i < sqrFiltLength; i++)
     {
       scanPos = pDepthInt[i] - 1;
-#if LCU_SYNTAX_ALF
       Int k = (filters_per_group == 1) ? kMinTab[i] : kMinTab[scanPos];
       golombEncode(FilterCoeff[ind][i], k);
-#else
-      golombEncode(FilterCoeff[ind][i], kMinTab[scanPos]);
-#endif
     }
   }
   return 0;
@@ -421,7 +403,6 @@ Void TEncEntropy::encodeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   }
 }
 
-#if LCU_SYNTAX_ALF
 /** parse the fixed length code (smaller than one max value) in ALF
  * \param run: coded value
  * \param rx: cur addr
@@ -688,12 +669,9 @@ Void TEncEntropy::encodeAlfParamSet(AlfParamSet* pAlfParamSet, Int numLCUInWidth
   }
 
 }
-#endif
-
 
 Void TEncEntropy::encodeAlfParam(ALFParam* pAlfParam)
 {
-#if LCU_SYNTAX_ALF
   const Int numCoeff = (Int)ALF_MAX_NUM_COEF;
 
   switch(pAlfParam->componentID)
@@ -721,26 +699,6 @@ Void TEncEntropy::encodeAlfParam(ALFParam* pAlfParam)
       exit(-1);
     }
   }
-#else
-  if (!pAlfParam->alf_flag)
-  {
-    return;
-  }
-  Int pos;
-  codeAux(pAlfParam);
-  codeFilt(pAlfParam);
-  
-  // filter parameters for chroma
-  m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->chroma_idc);
-  if(pAlfParam->chroma_idc)
-  {
-    // filter coefficients for chroma
-    for(pos=0; pos<pAlfParam->num_coeff_chroma; pos++)
-    {
-      m_pcEntropyCoderIf->codeAlfSvlc(pAlfParam->coeff_chroma[pos]);
-    }
-  }
-#endif
 }
 
 Void TEncEntropy::encodeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )

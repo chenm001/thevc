@@ -65,8 +65,6 @@
 #define REMOVE_SAO_LCU_ENC_CONSTRAINTS_2 0  ///< disable the encoder constraint that reduce the range of SAO/EO for chroma in interleaved mode
 #define REMOVE_SAO_LCU_ENC_CONSTRAINTS_3 0  ///< disable the encoder constraint that conditionally disable SAO for chroma for entire slice in interleaved mode
 
-#define LCU_SYNTAX_ALF          1     ///< H0274 LCU-syntax ALF
-
 #define CABAC_LINEAR_INIT       1     ///< H0535 : linear CABAC initialization
 
 #define MAX_NUM_SPS                32
@@ -306,16 +304,8 @@ struct SAOParam
 struct ALFParam
 {
   Int alf_flag;                           ///< indicates use of ALF
-#if !LCU_SYNTAX_ALF
-  Int chroma_idc;                         ///< indicates use of ALF for chroma
-#endif
   Int num_coeff;                          ///< number of filter coefficients
   Int filter_shape;
-#if !LCU_SYNTAX_ALF
-  Int filter_shape_chroma;
-  Int num_coeff_chroma;                   ///< number of filter coefficients (chroma)
-  Int *coeff_chroma;                      ///< filter coefficient array (chroma)
-#endif
   Int *filterPattern;
   Int startSecondFilter;
   Int filters_per_group;
@@ -323,14 +313,6 @@ struct ALFParam
   Int *nbSPred;
   Int **coeffmulti;
   Int minKStart;
-#if !LCU_SYNTAX_ALF
-  Int maxScanVal;
-  Int kMinTab[42];
-
-  Int alf_pcr_region_flag;
-  ~ALFParam();
-#endif
-#if LCU_SYNTAX_ALF
   Int componentID;
   Int* kMinTab;
   //constructor, operator
@@ -343,10 +325,8 @@ private:
   Void create(Int cID);
   Void destroy();
   Void copy(const ALFParam& src);
-#endif
 };
 
-#if LCU_SYNTAX_ALF
 struct AlfUnitParam
 {
   Int   mergeType;
@@ -379,8 +359,6 @@ struct AlfParamSet
 private:
   Void destroy();
 };
-#endif
-
 
 
 /// parameters for deblocking filter

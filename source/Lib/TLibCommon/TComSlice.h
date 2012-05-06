@@ -180,9 +180,7 @@ private:
   Bool        m_bDisInter4x4;
   Bool        m_useAMP;
   Bool        m_bUseALF;
-#if LCU_SYNTAX_ALF
   Bool        m_bALFCoefInSlice;
-#endif
   Bool        m_bUseLMChroma; // JL:
 
   Bool        m_bUseLComb;
@@ -309,10 +307,8 @@ public:
   
   // Tool list
   Bool getUseALF      ()         { return m_bUseALF;        }
-#if LCU_SYNTAX_ALF
   Void setUseALFCoefInSlice(Bool b) {m_bALFCoefInSlice = b;}
   Bool getUseALFCoefInSlice()    {return m_bALFCoefInSlice;}
-#endif
 
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
   Void setUseLComb    (Bool b)   { m_bUseLComb = b;         }
@@ -655,11 +651,7 @@ public:
   Void      setAlfEnabled (Bool bVal) {m_bAlfEnabled = bVal;     }  //!< set ALF enabled/disabled in APS
   Bool      getAlfEnabled ()          {return m_bAlfEnabled;     }  //!< get ALF enabled/disabled in APS
 
-#if LCU_SYNTAX_ALF
   AlfParamSet* getAlfParam   ()          {return m_alfParamSet;}
-#else
-  ALFParam* getAlfParam   ()          {return m_pAlfParam;       }  //!< get ALF parameters in APS
-#endif
   SAOParam* getSaoParam   ()          {return m_pSaoParam;       }  //!< get SAO parameters in APS
 
   Void      createSaoParam();   //!< create SAO parameter object
@@ -690,11 +682,7 @@ private:
   Bool        m_bSaoEnabled;  //!< SAO enabled/disabled in APS (true for enabled)
   Bool        m_bAlfEnabled;  //!< ALF enabled/disabled in APS (true for enabled)
   SAOParam*   m_pSaoParam;    //!< SAO parameter object pointer 
-#if LCU_SYNTAX_ALF
   AlfParamSet*   m_alfParamSet;
-#else
-  ALFParam*   m_pAlfParam;    //!< ALF parameter object pointer
-#endif
   Bool        m_loopFilterOffsetInAPS;       //< offset for deblocking filter in 0 = slice header, 1 = APS
   Bool        m_loopFilterDisable;           //< Deblocking filter enabled/disabled in APS
   Int         m_loopFilterBetaOffsetDiv2;    //< beta offset for deblocking filter

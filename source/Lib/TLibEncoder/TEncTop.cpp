@@ -113,13 +113,8 @@ Void TEncTop::create ()
   
   if(m_bUseALF)
   {
-#if LCU_SYNTAX_ALF
     m_cAdaptiveLoopFilter.setAlfCoefInSlice(m_bALFParamInSlice);
     m_cAdaptiveLoopFilter.createAlfGlobalBuffers();
-#else
-    m_cAdaptiveLoopFilter.setGOPSize( getGOPSize() );
-    m_cAdaptiveLoopFilter.createAlfGlobalBuffers(m_iALFEncodePassReduction);
-#endif
   }
 
   if(m_bUseSAO || m_bUseALF)
@@ -336,9 +331,7 @@ Void TEncTop::init()
   {
     m_cAdaptiveLoopFilter.setALFEncodePassReduction( m_iALFEncodePassReduction );
     m_cAdaptiveLoopFilter.setALFMaxNumberFilters( m_iALFMaxNumberFilters );
-#if LCU_SYNTAX_ALF
     m_cAdaptiveLoopFilter.initPicQuadTreePartition(m_bALFPicBasedEncode );   
-#endif
   }
 
   m_iMaxRefPicNum = 0;
@@ -483,12 +476,10 @@ Void TEncTop::xInitSPS()
   m_cSPS.setPCMLog2MaxSize( m_pcmLog2MaxSize  );
 
   m_cSPS.setUseALF        ( m_bUseALF           );
-#if LCU_SYNTAX_ALF
   if(m_bUseALF)
   {
     m_cSPS.setUseALFCoefInSlice(m_bALFParamInSlice);
   }
-#endif
   
   m_cSPS.setQuadtreeTULog2MaxSize( m_uiQuadtreeTULog2MaxSize );
   m_cSPS.setQuadtreeTULog2MinSize( m_uiQuadtreeTULog2MinSize );

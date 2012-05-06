@@ -160,17 +160,11 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
   WRITE_FLAG( pcAPS->getScalingListEnabled()?1:0, "aps_scaling_list_data_present_flag");
   //DF flag
   WRITE_FLAG(pcAPS->getLoopFilterOffsetInAPS()?1:0, "aps_deblocking_filter_flag");
-#if !LCU_SYNTAX_ALF
-  //ALF flag
-  WRITE_FLAG( pcAPS->getAlfEnabled()?1:0, "aps_adaptive_loop_filter_flag"); 
-#endif
 }
-#if LCU_SYNTAX_ALF
 Void TEncCavlc::codeAPSAlflag(UInt uiCode)
 {
   WRITE_FLAG(uiCode, "aps_adaptive_loop_filter_flag");
 }
-#endif
 
 Void TEncCavlc::codeDFFlag(UInt uiCode, const Char *pSymbolName)
 {
@@ -401,12 +395,10 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_FLAG( pcSPS->getUseNSQT(),                                                   "non_square_quadtree_enabled_flag" );
   WRITE_FLAG( pcSPS->getUseSAO() ? 1 : 0,                                            "sample_adaptive_offset_enabled_flag");
   WRITE_FLAG( pcSPS->getUseALF () ? 1 : 0,                                           "adaptive_loop_filter_enabled_flag");
-#if LCU_SYNTAX_ALF
   if(pcSPS->getUseALF())
   {
     WRITE_FLAG( (pcSPS->getUseALFCoefInSlice()) ? 1 : 0,                             "alf_coef_in_slice_flag");
   }
-#endif
 
   if( pcSPS->getUsePCM() )
   {
@@ -611,12 +603,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     {
       if (pcSlice->getSPS()->getUseALF())
       {
-#if !LCU_SYNTAX_ALF
-         if (pcSlice->getAlfEnabledFlag())
-         {
-           assert (pcSlice->getAPS()->getAlfEnabled());
-         }
-#endif
          WRITE_FLAG( pcSlice->getAlfEnabledFlag(), "ALF on/off flag in slice header" );
       }
       if (pcSlice->getSPS()->getUseSAO())
@@ -1079,7 +1065,6 @@ Void TEncCavlc::codeAlfSvlc( Int iCode )
 {
   xWriteSvlc( iCode );
 }
-#if LCU_SYNTAX_ALF
 /** Code the fixed length code (smaller than one max value) in OSALF
  * \param idx:  coded value 
  * \param maxValue: max value
@@ -1104,7 +1089,6 @@ Void TEncCavlc::codeAlfFixedLengthIdx( UInt idx, UInt maxValue)
     xWriteCode( idx, length );
   }
 }
-#endif
 
 Void TEncCavlc::codeSaoFlag( UInt uiCode )
 {

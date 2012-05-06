@@ -313,9 +313,7 @@ const NDBFBlockInfo& NDBFBlockInfo::operator= (const NDBFBlockInfo& src)
   this->width  = src.width;
   this->height = src.height;
   ::memcpy(this->isBorderAvailable, src.isBorderAvailable, sizeof(Bool)*((Int)NUM_SGU_BORDER));
-#if LCU_SYNTAX_ALF
   this->allBordersAvailable = src.allBordersAvailable;
-#endif
 
   return *this;
 }
@@ -4352,7 +4350,6 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
         }
       }
     }
-#if LCU_SYNTAX_ALF
     rSGU.allBordersAvailable = true;
     for(Int b=0; b< NUM_SGU_BORDER; b++)
     {
@@ -4362,8 +4359,6 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
         break;
       }
     }
-#endif
-
   }
 }
 

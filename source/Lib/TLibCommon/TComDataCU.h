@@ -86,9 +86,7 @@ struct NDBFBlockInfo
   UInt  width;    //!< number of pixels in width
   UInt  height;   //!< number of pixels in height
   Bool  isBorderAvailable[NUM_SGU_BORDER];  //!< the border availabilities
-#if LCU_SYNTAX_ALF
   Bool  allBordersAvailable;
-#endif
 
   NDBFBlockInfo():tileID(0), sliceID(0), startSU(0), endSU(0) {} //!< constructor
   const NDBFBlockInfo& operator= (const NDBFBlockInfo& src);  //!< "=" operator

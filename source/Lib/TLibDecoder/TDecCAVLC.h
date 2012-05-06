@@ -102,11 +102,7 @@ public:
   Void  parsePPS            ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet);
   Void  parseSEI(SEImessages&);
   Void  parseAPS            ( TComAPS* pAPS );
-#if LCU_SYNTAX_ALF
   Void  parseSliceHeader    ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl, AlfParamSet& alfParamSet);
-#else
-  Void  parseSliceHeader    ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl );
-#endif
   Void  parseTerminatingBit ( UInt& ruiBit );
   
   Void  parseMVPIdx         ( Int& riMVPIdx );
@@ -147,12 +143,10 @@ protected:
   Void  xParseSaoParam       ( SAOParam* pSaoParam );
   Void  xParseSaoOffset      (SaoLcuParam* saoLcuParam);
   Void  xParseSaoUnit        (Int rx, Int ry, Int compIdx, SAOParam* saoParam, Bool& repeatedRow );
-#if LCU_SYNTAX_ALF 
   Void  xParseAlfParam(AlfParamSet* pAlfParamSet, Bool bSentInAPS = true, Int firstLCUAddr = 0, Bool acrossSlice = true, Int numLCUInWidth= -1, Int numLCUInHeight= -1);
   Void  parseAlfParamSet(AlfParamSet* pAlfParamSet, Int firstLCUAddr, Bool alfAcrossSlice);
   Void  parseAlfFixedLengthRun(UInt& idx, UInt rx, UInt numLCUInWidth);
   Void  parseAlfStoredFilterIdx(UInt& idx, UInt numFilterSetsInBuffer);
-#endif
   Void  xParseAlfParam       ( ALFParam* pAlfParam );
   Void  xParseAlfCuControlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
   Int   xGolombDecode        ( Int k );

@@ -147,12 +147,6 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
   {
     m_pbValidSlice[s] = true;
   }
-#if !LCU_SYNTAX_ALF
-  if( pSliceStartAddress == NULL || (numSlices == 1 && numTiles == 1) )
-  {
-    return;
-  }
-#endif
   m_pSliceSUMap = new Int[maxNumSUInLCU * numLCUInPic];
 
   //initialization

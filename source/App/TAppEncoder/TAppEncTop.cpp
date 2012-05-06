@@ -245,7 +245,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setSignHideFlag(m_signHideFlag);
   m_cTEncTop.setTSIG(m_signHidingThreshold);
 
-#if LCU_SYNTAX_ALF
   if(uiTilesCount > 1)
   {
     m_bALFParamInSlice = false;
@@ -253,7 +252,6 @@ Void TAppEncTop::xInitLibCfg()
   }
   m_cTEncTop.setALFParamInSlice              ( m_bALFParamInSlice);
   m_cTEncTop.setALFPicBasedEncode            ( m_bALFPicBasedEncode);
-#endif
 #if RATECTRL
   m_cTEncTop.setUseRateCtrl     ( m_enableRateCtrl);
   m_cTEncTop.setTargetBitrate   ( m_targetBitrate);
