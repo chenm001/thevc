@@ -187,7 +187,6 @@
 
 #define CABAC_INIT_PRESENT_FLAG     1
 
-#define TILES_OR_ENTROPY_SYNC_IDC               1 // tiles_or_entropy_coding_sync_idc flag
 #define EARLY_SKIP_DETECTION               1 // JCTVC-G543
 // ====================================================================================================================
 // Basic type redefinition

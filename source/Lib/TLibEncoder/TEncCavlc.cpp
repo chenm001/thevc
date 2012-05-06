@@ -249,14 +249,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   // entropy_coding_mode_flag
   // We code the entropy_coding_mode_flag, it's needed for tests.
   WRITE_FLAG( pcPPS->getEntropyCodingMode() ? 1 : 0,         "entropy_coding_mode_flag" );
-  if (pcPPS->getEntropyCodingMode())
-  {
-#if !TILES_OR_ENTROPY_SYNC_IDC
-    {
-      WRITE_UVLC( pcPPS->getNumSubstreams()-1,               "num_substreams_minus1" );
-    }
-#endif
-  }
   WRITE_CODE( pcPPS->getNumRefIdxL0DefaultActive()-1, 3, "num_ref_idx_l0_default_active_minus1");
   WRITE_CODE( pcPPS->getNumRefIdxL1DefaultActive()-1, 3, "num_ref_idx_l1_default_active_minus1");
 
@@ -272,10 +264,8 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   WRITE_FLAG( pcPPS->getUseWP() ? 1 : 0,  "weighted_pred_flag" );   // Use of Weighting Prediction (P_SLICE)
   WRITE_CODE( pcPPS->getWPBiPredIdc(), 2, "weighted_bipred_idc" );  // Use of Weighting Bi-Prediction (B_SLICE)
   WRITE_FLAG( pcPPS->getOutputFlagPresentFlag() ? 1 : 0,  "output_flag_present_flag" );
-#if TILES_OR_ENTROPY_SYNC_IDC
   if(pcPPS->getSPS()->getTilesOrEntropyCodingSyncIdc()==1)
   {
-#endif
     WRITE_FLAG( pcPPS->getColumnRowInfoPresent(),           "tile_info_present_flag" );
     WRITE_FLAG( pcPPS->getTileBehaviorControlPresentFlag(),  "tile_control_present_flag");
     if( pcPPS->getColumnRowInfoPresent() == 1 )
@@ -306,13 +296,11 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
           WRITE_FLAG( pcPPS->getLFCrossTileBoundaryFlag()?1 : 0,            "loop_filter_across_tile_flag");
       }
     }
-#if TILES_OR_ENTROPY_SYNC_IDC
   }
   else if(pcPPS->getSPS()->getTilesOrEntropyCodingSyncIdc()==2)
   {
     WRITE_UVLC( pcPPS->getNumSubstreams()-1,               "num_substreams_minus1" );
   }
-#endif
 
   WRITE_FLAG( pcPPS->getDeblockingFilterControlPresent()?1 : 0, "deblocking_filter_control_present_flag");
 #if PARALLEL_MERGE
@@ -457,10 +445,8 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   pcSPS->setTilesOrEntropyCodingSyncIdc( tilesOrEntropyCodingSyncIdc );
   WRITE_CODE(tilesOrEntropyCodingSyncIdc, 2, "tiles_or_entropy_coding_sync_idc");
 
-#if TILES_OR_ENTROPY_SYNC_IDC
   if(tilesOrEntropyCodingSyncIdc == 1)
   {
-#endif
     WRITE_UVLC( pcSPS->getNumColumnsMinus1(),                           "num_tile_columns_minus1" );
     WRITE_UVLC( pcSPS->getNumRowsMinus1(),                              "num_tile_rows_minus1" );
     WRITE_FLAG( pcSPS->getUniformSpacingIdr(),                          "uniform_spacing_flag" );
@@ -481,9 +467,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
     {
         WRITE_FLAG( pcSPS->getLFCrossTileBoundaryFlag()?1 : 0,            "loop_filter_across_tile_flag");
     }
-#if TILES_OR_ENTROPY_SYNC_IDC
   }
-#endif
   WRITE_FLAG( 0, "sps_extension_flag" );
 }
 

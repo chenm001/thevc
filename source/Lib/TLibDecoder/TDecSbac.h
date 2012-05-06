@@ -81,11 +81,7 @@ public:
   Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
   
   Void  parseSPS                  ( TComSPS* pcSPS         ) {}
-#if TILES_OR_ENTROPY_SYNC_IDC  
   Void  parsePPS                  ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet         ) {}
-#else
-  Void  parsePPS                  ( TComPPS* pcPPS         ) {}
-#endif
   Void  parseAPS                  ( TComAPS* pAPS          ) {}
   void parseSEI(SEImessages&) {}
 

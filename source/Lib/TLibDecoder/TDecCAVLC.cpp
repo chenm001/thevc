@@ -982,11 +982,7 @@ Int TDecCavlc::xGolombDecode(Int k)
   return nr;
 }
 
-#if TILES_OR_ENTROPY_SYNC_IDC
 Void TDecCavlc::parsePPS(TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet)
-#else
-Void TDecCavlc::parsePPS(TComPPS* pcPPS)
-#endif
 {
 #if ENC_DEC_TRACE  
   xTracePPSHeader (pcPPS);
@@ -1008,14 +1004,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   // entropy_coding_mode_flag
   // We code the entropy_coding_mode_flag, it's needed for tests.
   READ_FLAG( uiCode, "entropy_coding_mode_flag" );                 pcPPS->setEntropyCodingMode( uiCode ? true : false );
-  if (pcPPS->getEntropyCodingMode())
-  {
-#if !TILES_OR_ENTROPY_SYNC_IDC
-    {
-      READ_UVLC( uiCode, "num_substreams_minus1" );                pcPPS->setNumSubstreams(uiCode+1);
-    }
-#endif
-  }
   
   READ_CODE(3,uiCode, "num_ref_idx_l0_default_active_minus1");     pcPPS->setNumRefIdxL0DefaultActive(uiCode+1);
   READ_CODE(3,uiCode, "num_ref_idx_l1_default_active_minus1");     pcPPS->setNumRefIdxL1DefaultActive(uiCode+1);
@@ -1054,10 +1042,8 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   READ_FLAG( uiCode, "output_flag_present_flag" );
   pcPPS->setOutputFlagPresentFlag( uiCode==1 );
 
-#if TILES_OR_ENTROPY_SYNC_IDC
   if(parameterSet->getPrefetchedSPS(pcPPS->getSPSId())->getTilesOrEntropyCodingSyncIdc()==1)
   {
-#endif
     READ_FLAG ( uiCode, "tile_info_present_flag" );
     pcPPS->setColumnRowInfoPresent(uiCode);
     READ_FLAG ( uiCode, "tile_control_present_flag" );
@@ -1106,13 +1092,11 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
           pcPPS->setLFCrossTileBoundaryFlag( (uiCode == 1)?true:false );
       }
     }
-#if TILES_OR_ENTROPY_SYNC_IDC
   }
   else if(parameterSet->getPrefetchedSPS(pcPPS->getSPSId())->getTilesOrEntropyCodingSyncIdc()==2)
   {
     READ_UVLC( uiCode, "num_substreams_minus1" );                pcPPS->setNumSubstreams(uiCode+1);
   }
-#endif
 
   READ_FLAG( uiCode, "deblocking_filter_control_present_flag" ); 
   pcPPS->setDeblockingFilterControlPresent( uiCode ? true : false);
@@ -1293,10 +1277,8 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 
   READ_CODE(2, uiCode, "tiles_or_entropy_coding_sync_idc");         pcSPS->setTilesOrEntropyCodingSyncIdc(uiCode);
 
-#if TILES_OR_ENTROPY_SYNC_IDC
   if(pcSPS->getTilesOrEntropyCodingSyncIdc() == 1)
   {
-#endif
     READ_UVLC ( uiCode, "num_tile_columns_minus1" );
     pcSPS->setNumColumnsMinus1( uiCode );  
     READ_UVLC ( uiCode, "num_tile_rows_minus1" ); 
@@ -1330,9 +1312,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
         READ_FLAG ( uiCode, "loop_filter_across_tile_flag" );  
         pcSPS->setLFCrossTileBoundaryFlag( (uiCode==1)?true:false);
     }
-#if TILES_OR_ENTROPY_SYNC_IDC
   }
-#endif
   READ_FLAG( uiCode, "sps_extension_flag");
   if (uiCode)
   {
