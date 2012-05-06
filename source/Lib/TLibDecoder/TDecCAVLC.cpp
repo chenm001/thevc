@@ -1012,7 +1012,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSe
     if(pcPPS->getTileBehaviorControlPresentFlag() == 1)
     {
       Int iNumColTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumColumnsMinus1()):(pcPPS->getSPS()->getNumColumnsMinus1());
-      Int iNumRowTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumColumnsMinus1()):(pcPPS->getSPS()->getNumRowsMinus1());
+      Int iNumRowTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumRowsMinus1()):(pcPPS->getSPS()->getNumRowsMinus1());
       pcPPS->setLFCrossTileBoundaryFlag(true); //default
 
       if(iNumColTilesMinus1 !=0 || iNumRowTilesMinus1 !=0)
