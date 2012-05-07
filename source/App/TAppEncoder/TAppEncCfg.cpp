@@ -175,62 +175,62 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("help", do_help, false, "this help text")
   ("c", po::parseConfigFile, "configuration file name")
   
-  /* File, I/O and source parameters */
-  ("InputFile,i",     cfg_InputFile,     string(""), "original YUV input file name")
-  ("BitstreamFile,b", cfg_BitstreamFile, string(""), "bitstream output file name")
-  ("ReconFile,o",     cfg_ReconFile,     string(""), "reconstructed YUV output file name")
+  // File, I/O and source parameters
+  ("InputFile,i",           cfg_InputFile,     string(""), "Original YUV input file name")
+  ("BitstreamFile,b",       cfg_BitstreamFile, string(""), "Bitstream output file name")
+  ("ReconFile,o",           cfg_ReconFile,     string(""), "Reconstructed YUV output file name")
+  ("SourceWidth,-wdt",      m_iSourceWidth,        0, "Source picture width")
+  ("SourceHeight,-hgt",     m_iSourceHeight,       0, "Source picture height")
+  ("InputBitDepth",         m_uiInputBitDepth,    8u, "Bit-depth of input file")
+  ("BitDepth",              m_uiInputBitDepth,    8u, "Deprecated alias of InputBitDepth")
+  ("OutputBitDepth",        m_uiOutputBitDepth,   0u, "Bit-depth of output file")
+  ("InternalBitDepth",      m_uiInternalBitDepth, 0u, "Internal bit-depth (BitDepth+BitIncrement)")
+  ("CroppingMode",          m_croppingMode,        0, "Cropping mode (0: no cropping, 1:automatic padding, 2: padding, 3:cropping")
+  ("HorizontalPadding,-pdx",m_aiPad[0],            0, "Horizontal source padding for cropping mode 2")
+  ("VerticalPadding,-pdy",  m_aiPad[1],            0, "Vertical source padding for cropping mode 2")
+  ("CropLeft",              m_cropLeft,            0, "Left cropping for cropping mode 3")
+  ("CropRight",             m_cropRight,           0, "Right cropping for cropping mode 3")
+  ("CropTop",               m_cropTop,             0, "Top cropping for cropping mode 3")
+  ("CropBottom",            m_cropBottom,          0, "Bottom cropping for cropping mode 3")
+  ("FrameRate,-fr",         m_iFrameRate,          0, "Frame rate")
+  ("FrameSkip,-fs",         m_FrameSkip,          0u, "Number of frames to skip at start of input YUV")
+  ("FramesToBeEncoded,f",   m_iFrameToBeEncoded,   0, "Number of frames to be encoded (default=all)")
+  
+  // Unit definition parameters
+  ("MaxCUWidth",              m_uiMaxCUWidth,             64u)
+  ("MaxCUHeight",             m_uiMaxCUHeight,            64u)
+  // todo: remove defaults from MaxCUSize
+  ("MaxCUSize,s",             m_uiMaxCUWidth,             64u, "Maximum CU size")
+  ("MaxCUSize,s",             m_uiMaxCUHeight,            64u, "Maximum CU size")
+  ("MaxPartitionDepth,h",     m_uiMaxCUDepth,              4u, "CU depth")
+  
+  ("QuadtreeTULog2MaxSize",   m_uiQuadtreeTULog2MaxSize,   6u, "Maximum TU size in logarithm base 2")
+  ("QuadtreeTULog2MinSize",   m_uiQuadtreeTULog2MinSize,   2u, "Minimum TU size in logarithm base 2")
+  
+  ("QuadtreeTUMaxDepthIntra", m_uiQuadtreeTUMaxDepthIntra, 1u, "Depth of TU tree for intra CUs")
+  ("QuadtreeTUMaxDepthInter", m_uiQuadtreeTUMaxDepthInter, 2u, "Depth of TU tree for inter CUs")
+  
+  // Coding structure paramters
+  ("IntraPeriod,-ip",         m_iIntraPeriod,              -1, "Intra period in frames, (-1: only first frame)")
+  ("DecodingRefreshType,-dr", m_iDecodingRefreshType,       0, "Intra refresh type (0:none 1:CRA 2:IDR)")
+  ("GOPSize,g",               m_iGOPSize,                   1, "GOP size of temporal structure")
+  ("ListCombination,-lc",     m_bUseLComb,               true, "Combined reference list flag for uni-prediction in B-slices")
+  ("LCModification",          m_bLCMod,                 false, "Enables signalling of combined reference list derivation")
+  
+  // motion options
+  ("FastSearch",              m_iFastSearch,                1, "0:Full search  1:Diamond  2:PMVFAST")
+  ("SearchRange,-sr",         m_iSearchRange,              96, "Motion search range")
+  ("BipredSearchRange",       m_bipredSearchRange,          4, "Motion search range for bipred refinement")
+  ("HadamardME",              m_bUseHADME,               true, "Hadamard ME for fractional-pel")
+  ("ASR",                     m_bUseASR,                false, "Adaptive motion search range")
+
+  // Mode decision parameters
+  ("DisableInter4x4",         m_bDisInter4x4,            true, "Disable Inter 4x4")
   ("LambdaModifier0,-LM0", m_adLambdaModifier[ 0 ], ( double )1.0, "Lambda modifier for temporal layer 0")
   ("LambdaModifier1,-LM1", m_adLambdaModifier[ 1 ], ( double )1.0, "Lambda modifier for temporal layer 1")
   ("LambdaModifier2,-LM2", m_adLambdaModifier[ 2 ], ( double )1.0, "Lambda modifier for temporal layer 2")
   ("LambdaModifier3,-LM3", m_adLambdaModifier[ 3 ], ( double )1.0, "Lambda modifier for temporal layer 3")
-  ("SourceWidth,-wdt",      m_iSourceWidth,  0, "Source picture width")
-  ("SourceHeight,-hgt",     m_iSourceHeight, 0, "Source picture height")
-  ("CroppingMode",          m_croppingMode,  0, "Cropping mode (0: no cropping, 1:automatic padding, 2: padding, 3:cropping")
-  ("CropLeft",              m_cropLeft,      0, "Left cropping/padding for cropping mode 3")
-  ("CropRight",             m_cropRight,     0, "Right cropping/padding for cropping mode 3")
-  ("CropTop",               m_cropTop,       0, "Top cropping/padding for cropping mode 3")
-  ("CropBottom",            m_cropBottom,    0, "Bottom cropping/padding for cropping mode 3")
-  ("HorizontalPadding,-pdx",m_aiPad[0],      0, "horizontal source padding for cropping mode 2")
-  ("VerticalPadding,-pdy",  m_aiPad[1],      0, "vertical source padding for cropping mode 2")
-  ("InputBitDepth",         m_uiInputBitDepth, 8u, "bit-depth of input file")
-  ("BitDepth",              m_uiInputBitDepth, 8u, "deprecated alias of InputBitDepth")
-  ("OutputBitDepth",        m_uiOutputBitDepth, 0u, "bit-depth of output file")
-  ("InternalBitDepth",      m_uiInternalBitDepth, 0u, "Internal bit-depth (BitDepth+BitIncrement)")
-  ("FrameRate,-fr",         m_iFrameRate,        0, "Frame rate")
-  ("FrameSkip,-fs",         m_FrameSkip,         0u, "Number of frames to skip at start of input YUV")
-  ("FramesToBeEncoded,f",   m_iFrameToBeEncoded, 0, "number of frames to be encoded (default=all)")
-  ("FrameToBeEncoded",      m_iFrameToBeEncoded, 0, "depricated alias of FramesToBeEncoded")
-  
-  /* Unit definition parameters */
-  ("MaxCUWidth",          m_uiMaxCUWidth,  64u)
-  ("MaxCUHeight",         m_uiMaxCUHeight, 64u)
-  /* todo: remove defaults from MaxCUSize */
-  ("MaxCUSize,s",         m_uiMaxCUWidth,  64u, "max CU size")
-  ("MaxCUSize,s",         m_uiMaxCUHeight, 64u, "max CU size")
-  ("MaxPartitionDepth,h", m_uiMaxCUDepth,   4u, "CU depth")
-  
-  ("QuadtreeTULog2MaxSize", m_uiQuadtreeTULog2MaxSize, 6u)
-  ("QuadtreeTULog2MinSize", m_uiQuadtreeTULog2MinSize, 2u)
-  
-  ("QuadtreeTUMaxDepthIntra", m_uiQuadtreeTUMaxDepthIntra, 1u)
-  ("QuadtreeTUMaxDepthInter", m_uiQuadtreeTUMaxDepthInter, 2u)
-  
-  /* Coding structure paramters */
-  ("IntraPeriod,-ip",m_iIntraPeriod, -1, "intra period in frames, (-1: only first frame)")
-  ("DecodingRefreshType,-dr",m_iDecodingRefreshType, 0, "intra refresh, (0:none 1:CRA 2:IDR)")
-  ("GOPSize,g",      m_iGOPSize,      1, "GOP size of temporal structure")
-  ("ListCombination,-lc", m_bUseLComb, true, "combined reference list flag for uni-prediction in B-slices")
-  ("LCModification", m_bLCMod, false, "enables signalling of combined reference list derivation")
-  ("DisableInter4x4", m_bDisInter4x4, true, "Disable Inter 4x4")
-  ("NSQT", m_enableNSQT, true, "Enable non-square transforms")
-  ("AMP", m_enableAMP, true, "Enable asymmetric motion partitions")
-  /* motion options */
-  ("FastSearch", m_iFastSearch, 1, "0:Full search  1:Diamond  2:PMVFAST")
-  ("SearchRange,-sr",m_iSearchRange, 96, "motion search range")
-  ("BipredSearchRange", m_bipredSearchRange, 4, "motion search range for bipred refinement")
-  ("HadamardME", m_bUseHADME, true, "hadamard ME for fractional-pel")
-  ("ASR", m_bUseASR, false, "adaptive motion search range")
-  
+
   /* Quantization parameters */
   ("QP,q",          m_fQP,             30.0, "Qp value, if value is float, QP is switched once during encoding")
   ("DeltaQpRD,-dqr",m_uiDeltaQpRD,       0u, "max dQp offset for slice")
@@ -244,32 +244,33 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("AdaptiveQpSelection,-aqps",   m_bUseAdaptQpSelect,           false, "AdaptiveQpSelection")
 #endif
 
-  ("AdaptiveQP,-aq", m_bUseAdaptiveQP, false, "QP adaptation based on a psycho-visual model")
-  ("MaxQPAdaptationRange,-aqr", m_iQPAdaptationRange, 6, "QP adaptation range")
-  ("dQPFile,m",     cfg_dQPFile, string(""), "dQP file name")
-  ("RDOQ",          m_bUseRDOQ, true)
+  ("AdaptiveQP,-aq",                m_bUseAdaptiveQP,           false, "QP adaptation based on a psycho-visual model")
+  ("MaxQPAdaptationRange,-aqr",     m_iQPAdaptationRange,           6, "QP adaptation range")
+  ("dQPFile,m",                     cfg_dQPFile,           string(""), "dQP file name")
+  ("RDOQ",                          m_bUseRDOQ,                  true )
   ("TemporalLayerQPOffset_L0,-tq0", m_aiTLayerQPOffset[0], MAX_QP + 1, "QP offset of temporal layer 0")
   ("TemporalLayerQPOffset_L1,-tq1", m_aiTLayerQPOffset[1], MAX_QP + 1, "QP offset of temporal layer 1")
   ("TemporalLayerQPOffset_L2,-tq2", m_aiTLayerQPOffset[2], MAX_QP + 1, "QP offset of temporal layer 2")
   ("TemporalLayerQPOffset_L3,-tq3", m_aiTLayerQPOffset[3], MAX_QP + 1, "QP offset of temporal layer 3")
   
-  /* Entropy coding parameters */
-  ("SBACRD", m_bUseSBACRD, true, "SBAC based RD estimation")
+  // Entropy coding parameters
+  ("SBACRD",                         m_bUseSBACRD,                      true, "SBAC based RD estimation")
   
-  /* Deblocking filter parameters */
-  ("LoopFilterDisable", m_bLoopFilterDisable, false)
-  ("LoopFilterOffsetInAPS", m_loopFilterOffsetInAPS, false)
-  ("LoopFilterBetaOffset_div2", m_loopFilterBetaOffsetDiv2, 0 )
-  ("LoopFilterTcOffset_div2", m_loopFilterTcOffsetDiv2, 0 )
-  ("DeblockingFilterControlPresent", m_DeblockingFilterControlPresent, false)
+  // Deblocking filter parameters
+  ("LoopFilterDisable",              m_bLoopFilterDisable,             false )
+  ("LoopFilterOffsetInAPS",          m_loopFilterOffsetInAPS,          false )
+  ("LoopFilterBetaOffset_div2",      m_loopFilterBetaOffsetDiv2,           0 )
+  ("LoopFilterTcOffset_div2",        m_loopFilterTcOffsetDiv2,             0 )
+  ("DeblockingFilterControlPresent", m_DeblockingFilterControlPresent, false )
 
-  /* Coding tools */
-  ("LMChroma", m_bUseLMChroma, true, "intra chroma prediction based on recontructed luma")
-
-  ("ALF", m_bUseALF, true, "Adaptive Loop Filter")
-  ("SAO", m_bUseSAO, true, "SAO")   
-  ("MaxNumOffsetsPerPic", m_maxNumOffsetsPerPic, 2048, "2048: default")   
-  ("SAOInterleaving", m_saoInterleavingFlag, false, "0: SAO Picture Mode, 1: SAO Interleaving ")   
+  // Coding tools
+  ("NSQT",                    m_enableNSQT,              true, "Enable non-square transforms")
+  ("AMP",                     m_enableAMP,               true, "Enable asymmetric motion partitions")
+  ("LMChroma",                m_bUseLMChroma,            true, "Intra chroma prediction based on reconstructed luma")
+  ("ALF",                     m_bUseALF,                 true, "Enable Adaptive Loop Filter")
+  ("SAO",                     m_bUseSAO,                 true, "Enable Sample Adaptive Offset")   
+  ("MaxNumOffsetsPerPic",     m_maxNumOffsetsPerPic,     2048, "Max number of SAO offset per picture (Default: 2048)")   
+  ("SAOInterleaving",         m_saoInterleavingFlag,    false, "0: SAO Picture Mode, 1: SAO Interleaving ")   
 
   ("ALFEncodePassReduction", m_iALFEncodePassReduction, 0, "0:Original 16-pass, 1: 1-pass, 2: 2-pass encoding")
 
