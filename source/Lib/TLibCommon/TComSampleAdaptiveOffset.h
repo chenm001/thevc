@@ -51,12 +51,8 @@
 #define SAO_MAX_DEPTH                 4
 #define SAO_BO_BITS                   5
 #define LUMA_GROUP_NUM                (1<<SAO_BO_BITS)
-#if SAO_UNIT_INTERLEAVING
 #define MAX_NUM_SAO_OFFSETS           4
 #define MAX_NUM_SAO_CLASS             33
-#else
-#define MAX_NUM_SAO_CLASS             32
-#endif
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -94,12 +90,7 @@ protected:
 
   Pel   *m_pClipTable;
   Pel   *m_pClipTableBase;
-#if SAO_UNIT_INTERLEAVING
   Pel   *m_lumaTableBo;
-#else
-  Pel   *m_ppLumaTableBo0;
-  Pel   *m_ppLumaTableBo1;
-#endif
   Int   *m_iUpBuff1;
   Int   *m_iUpBuff2;
   Int   *m_iUpBufft;
@@ -114,16 +105,8 @@ protected:
   Pel* m_pTmpL1;
   Pel* m_pTmpL2;
   Int* m_iLcuPartIdx;
-#if SAO_UNIT_INTERLEAVING
   Int     m_maxNumOffsetsPerPic;
   Bool    m_saoInterleavingFlag;
-#else
-  Void initTmpSaoQuadTree(SAOQTPart *psQTPart, Int iYCbCr);
-  Void disableSaoOnePart(SAOQTPart *psQTPart, UInt uiPartIdx, Int iYCbCr);
-  Void xSaoQt2Lcu(SAOQTPart *psQTPart,UInt uiPartIdx);
-  Void convertSaoQt2Lcu(SAOQTPart *psQTPart,UInt uiPartIdx);
-  Void xSaoAllPart(SAOQTPart *psQTPart, Int iYCbCr);
-#endif
 public:
   TComSampleAdaptiveOffset         ();
   virtual ~TComSampleAdaptiveOffset();
@@ -150,14 +133,12 @@ public:
   Void destroyPicSaoInfo();
   Void processSaoBlock(Pel* pDec, Pel* pRest, Int stride, Int iSaoType, UInt xPos, UInt yPos, UInt width, UInt height, Bool* pbBorderAvail);
 
-#if SAO_UNIT_INTERLEAVING
   Void resetLcuPart(SaoLcuParam* saoLcuParam);
   Void convertQT2SaoUnit(SAOParam* saoParam, UInt partIdx, Int yCbCr);
   Void convertOnePart2SaoUnit(SAOParam *saoParam, UInt partIdx, Int yCbCr);
   Void processSaoUnitAll(SaoLcuParam* saoLcuParam, Bool oneUnitFlag, Int yCbCr);
   Void setSaoInterleavingFlag (Bool bVal)  {m_saoInterleavingFlag = bVal;}
   Bool getSaoInterleavingFlag ()           {return m_saoInterleavingFlag;}
-#endif
 };
 
 //! \}

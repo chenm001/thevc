@@ -77,9 +77,7 @@ Void TDecGop::create()
 
 Void TDecGop::destroy()
 {
-#if LCU_SYNTAX_ALF
   m_alfParamSetPilot.releaseALFParam();
-#endif
 }
 
 Void TDecGop::init( TDecEntropy*            pcEntropyDecoder, 
@@ -106,7 +104,6 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
 // ====================================================================================================================
 // Private member functions
 // ====================================================================================================================
-#if LCU_SYNTAX_ALF
 Void TDecGop::patchAlfLCUParams(ALFParam*** alfLCUParam, AlfParamSet* alfParamSet, Int firstLCUAddr)
 {
   Int numLCUInWidth = alfParamSet->numLCUInWidth;
@@ -181,7 +178,6 @@ Void TDecGop::patchAlfLCUParams(ALFParam*** alfLCUParam, AlfParamSet* alfParamSe
   } //i (LCU)
 }
 
-#endif
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
@@ -269,7 +265,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       {
         if(pcSlice->getAlfEnabledFlag())
         {
-#if LCU_SYNTAX_ALF
           if(pcSlice->getSPS()->getUseALFCoefInSlice())
           {
             Int numSUinLCU    = 1<< (g_uiMaxCUDepth << 1); 
@@ -279,11 +274,8 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 
           if( !pcSlice->getSPS()->getUseALFCoefInSlice())
           {
-#endif
           vAlfCUCtrlSlices.push_back(m_cAlfCUCtrlOneSlice);
-#if LCU_SYNTAX_ALF
           }
-#endif
         }
       }
     }
@@ -308,10 +300,8 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     // deblocking filter
     Bool bLFCrossTileBoundary = (pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)?
                                 (pcSlice->getPPS()->getLFCrossTileBoundaryFlag()):(pcSlice->getPPS()->getSPS()->getLFCrossTileBoundaryFlag());
-#if DBL_CONTROL
     if (pcSlice->getPPS()->getDeblockingFilterControlPresent())
     {
-#endif
       if(pcSlice->getSPS()->getUseDF())
       {
         if(pcSlice->getInheritDblParamFromAPS())
@@ -324,12 +314,8 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
           }
         }
       }
-#if DBL_CONTROL
     }
     m_pcLoopFilter->setCfg(pcSlice->getPPS()->getDeblockingFilterControlPresent(), pcSlice->getLoopFilterDisable(), pcSlice->getLoopFilterBetaOffset(), pcSlice->getLoopFilterTcOffset(), bLFCrossTileBoundary);
-#else
-    m_pcLoopFilter->setCfg(pcSlice->getLoopFilterDisable(), pcSlice->getLoopFilterBetaOffset(), pcSlice->getLoopFilterTcOffset(), bLFCrossTileBoundary);
-#endif
     m_pcLoopFilter->loopFilterPic( rpcPic );
 
     pcSlice = rpcPic->getSlice(0);
@@ -344,7 +330,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     {
       if(pcSlice->getSaoEnabledFlag())
       {
-#if SAO_UNIT_INTERLEAVING
         if (pcSlice->getSaoInterleavingFlag())
         {
           pcSlice->getAPS()->setSaoInterleavingFlag(pcSlice->getSaoInterleavingFlag());
@@ -354,7 +339,6 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
           pcSlice->getAPS()->getSaoParam()->bSaoFlag[2] = pcSlice->getSaoEnabledFlagCr();
         }
         m_pcSAO->setSaoInterleavingFlag(pcSlice->getAPS()->getSaoInterleavingFlag());
-#endif
         m_pcSAO->createPicSaoInfo(rpcPic, uiILSliceCount);
         m_pcSAO->SAOProcess(rpcPic, pcSlice->getAPS()->getSaoParam());  
         m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
@@ -365,30 +349,19 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     // adaptive loop filter
     if( pcSlice->getSPS()->getUseALF() )
     {
-#if LCU_SYNTAX_ALF
       if( (pcSlice->getSPS()->getUseALFCoefInSlice())?(true):(pcSlice->getAlfEnabledFlag()))
-#else
-      if(pcSlice->getAlfEnabledFlag())
-#endif
       {
 
-#if LCU_SYNTAX_ALF
         if(!pcSlice->getSPS()->getUseALFCoefInSlice())
         {
           patchAlfLCUParams(m_pcAdaptiveLoopFilter->getAlfLCUParam(), pcSlice->getAPS()->getAlfParam());
         }
         m_pcAdaptiveLoopFilter->createPicAlfInfo(rpcPic, uiILSliceCount, pcSlice->getSliceQp());
         m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, vAlfCUCtrlSlices, pcSlice->getSPS()->getUseALFCoefInSlice());
-#else
-        m_pcAdaptiveLoopFilter->createPicAlfInfo(rpcPic, uiILSliceCount);
-      m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, pcSlice->getAPS()->getAlfParam(), vAlfCUCtrlSlices);
-#endif
       m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
       m_pcAdaptiveLoopFilter->destroyPicAlfInfo();
       }
-#if LCU_SYNTAX_ALF
       m_pcAdaptiveLoopFilter->resetLCUAlfInfo(); //reset all LCU ALFParam->alf_flag = 0
-#endif    
     }
     
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())

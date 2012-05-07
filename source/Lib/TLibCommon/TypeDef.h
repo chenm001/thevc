@@ -41,87 +41,26 @@
 //! \ingroup TLibCommon
 //! \{
 
-#define RATECTRL                          1 ///< H0213: a rate control with pixel-based URQ model
-
-#define SKIPFRAME_BUGFIX                  1 ///< bug fix to enable skipFrame at decoder 
-#define START_DECODING_AT_CRA             1 ///< H0496, start decoding at clear random access point 
-#define NO_COMBINED_PARALLEL              1 ///< Disallow any combined usage of parallel tools among Tile, EntropySlice and Wavefont
-
 #define LOSSLESS_CODING                   1  ///< H0530: lossless and lossy (mixed) coding
 #if LOSSLESS_CODING
 #define SEQUENCE_LEVEL_LOSSLESS           0  ///< H0530: used only for sequence or frame-level lossless coding
 #endif
 
-#define PARALLEL_MERGE  1                   //< H0082 parallel merge/skip      
 #define LOG2_PARALLEL_MERGE_LEVEL_MINUS2 0  //< H0082 parallel merge level 0-> 4x4, 1-> 8x8, 2->16x16, 3->32x32, 4->64x64
-#if PARALLEL_MERGE && LOG2_PARALLEL_MERGE_LEVEL_MINUS2
+#if LOG2_PARALLEL_MERGE_LEVEL_MINUS2
 #define CU_BASED_MRG_CAND_LIST           1  //< H0240: single merge candidate list for all PUs inside a 8x8 CU conditioned on LOG2_PARALLEL_MERGE_LEVEL_MINUS2 > 0
 #endif
-#define MVP_AT_ENTROPYSLICE_BOUNDARY  1     //< H0362 enable motion prediction accross entropy slice boundary
 
-#define FAST_DECISION_FOR_MRG_RD_COST  1 ////< H0178: Fast Decision for Merge 2Nx2N RDCost
-
-#define PIC_CROPPING              1 ///< Picture cropping and size constraints
-#define NAL_REF_FLAG              1 ///< Change nal_ref_idc to nal_ref_flag (JCTVC-F463)
-#define REMOVE_DIV_OPERATION      1 ///< H0238: Simplified intra horizontal and vertical filtering
-#define LOGI_INTRA_NAME_3MPM      1  ///< H0407: logical Intra mode naming (sequential angular mode numbering) and 3 MPM mode coding
-
-#define LEVEL_CTX_LUMA_RED        1  ///<H0130: Luma level context reduction
-#define REMOVE_INFER_SIGGRP       1  ///<H0131: Remove inferred significant_coeff_group_flag
-
-#define SET_MERGE_TMVP_REFIDX     1  ///< H0278/H0199: Setting the merge TMVP refidx to 0 for the non-first partition
-
-#define MULTILEVEL_SIGMAP_EXT     1  ///< H0526: multi-level significance map extended to smaller TUs
-#define MULTIBITS_DATA_HIDING     1  ///< H0481: multiple sign bit hiding
-
-#define DEQUANT_CLIPPING           1  ///< H0312/H0541: transformed coefficients clipping before de-quantization
-
-#define REMOVE_NON_SCALED         1 ///< H0164/H0250: Removal of non-scaled merge candidate
-#define MRG_IDX_CTX_RED           1 ///< H0251: Merge index context reduction
-#define SIMP_MRG_PRUN             1 ///< H0252: simplification of merge pruning process
-
-#define AMVP_PRUNING_SIMPLIFICATION         1     ///H0316: simplify the pruning process of AMVP by exempting the temporal candidate
-#define AMVP_ZERO_CHECKING_REMOVAL          1     ///H0239/H0316: remove zero motion vector checking of AMVP
-
-#define H0111_MVD_L1_ZERO         1  ///< H0111: modification of bi-prediction
 #define DISABLING_CLIP_FOR_BIPREDME         1  ///< Ticket #175
   
-#define CLIPSCALEDMVP               1  ///< H0216: Clipping scaled MV to 16 bit
-
-#define UNIFIED_TRANSFORM_TREE      1   ///< H0123: unified tree structure for TU
-
-#define SIGMAP_CTX_SUBBLOCK       1 ///< H0290: 4x4 sub-block based region for significant_flag context selection
-
 #define SIGMAP_CONST_AT_HIGH_FREQUENCY      1      ///< H0095 method2.1: const significance map at high freaquency
 
-#define LAST_CTX_REDUCTION        1  ///< H0537/H514: contexts reduction for last position coding
-
-#define AMP_CTX                   1 ///<H0545: context reduction for asymmetric partition
-
-#define RESTRICT_GR1GR2FLAG_NUMBER    1 ///< H0554: Throughput improvement of CABAC coefficients level coding
-#if RESTRICT_GR1GR2FLAG_NUMBER    // 
 #define C1FLAG_NUMBER               8 // maximum number of largerThan1 flag coded in one chunk :  16 in HM5
 #define C2FLAG_NUMBER               1 // maximum number of largerThan2 flag coded in one chunk:  16 in HM5 
-#endif 
 
-#define EIGHT_BITS_RICE_CODE        1 ///< H0498 : 8 bits rice codes
-
-#define SAO_UNIT_INTERLEAVING      1   ///< H0273
-#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_1 0  ///< disable the encoder constraint that does not test SAO/BO mode for chroma in interleaved mode
-#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_2 0  ///< disable the encoder constraint that reduce the range of SAO/EO for chroma in interleaved mode
-#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_3 0  ///< disable the encoder constraint that conditionally disable SAO for chroma for entire slice in interleaved mode
-
-#define ALF_SINGLE_FILTER_SHAPE    1     //< !!! H0068: Single filter type : 9x7 cross + 3x3 square
-
-#define ALF_16_BA_GROUPS        1     ///< H0409 16 BA groups
-#define LCU_SYNTAX_ALF          1     ///< H0274 LCU-syntax ALF
-#define ALF_CHROMA_COEF_PRED_HARMONIZATION 1 ///< H0483: ALF chroma coeff pred harmonization
-
-#define CABAC_LINEAR_INIT       1     ///< H0535 : linear CABAC initialization
-
-#define COLLOCATED_REF_IDX      1     ///< H0442: signal collocated reference index
-
-#define UNIFIED_TRANSFORM       1     ///< H0492: unify square and non-square transform
+#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_1 1  ///< disable the encoder constraint that does not test SAO/BO mode for chroma in interleaved mode
+#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_2 1  ///< disable the encoder constraint that reduce the range of SAO/EO for chroma in interleaved mode
+#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_3 1  ///< disable the encoder constraint that conditionally disable SAO for chroma for entire slice in interleaved mode
 
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
@@ -138,8 +77,6 @@
 
 #define FAST_BIT_EST                1   ///< G763: Table-based bit estimation for CABAC
 
-#define G519_TU_AMP_NSQT_HARMONIZATION  1   ///< G519: Harmonization of implicit TU, AMP and NSQT
-
 #define MLS_GRP_NUM                         64     ///< G644 : Max number of coefficient groups, max(16, 64)
 #define MLS_CG_SIZE                         4      ///< G644 : Coefficient group size of 4x4
 
@@ -149,28 +86,17 @@
 #define LEVEL_RANGE                         30     ///< G382: max coefficient level in statistics collection
 #endif
 
-
-#define CHROMA_MODE_CODING                   1     //H0326/H0475 : 2-length fixed, bypass coding for chroma intra prediction mode
-
-#define NSQT_LFFIX                           1     ///< Bug fix related to NSQT and deblocking filter
 #define NS_HAD                               1
 
 #define APS_BITS_FOR_SAO_BYTE_LENGTH 12           
 #define APS_BITS_FOR_ALF_BYTE_LENGTH 8
 
-#define H0736_AVC_STYLE_QP_RANGE             1    ///< H0736: AVC style qp range and wrapping.
-#define H0204_QP_PREDICTION                  1    ///< H0204: improved QP prediction
-
 #define HHI_RQT_INTRA_SPEEDUP             1           ///< tests one best mode with full rqt
 #define HHI_RQT_INTRA_SPEEDUP_MOD         0           ///< tests two best modes with full rqt
-
-#define BURST_IPCM                        1           ///< H0051: Burst IPCM
 
 #if HHI_RQT_INTRA_SPEEDUP_MOD && !HHI_RQT_INTRA_SPEEDUP
 #error
 #endif
-
-#define H0137_0138_LIST_MODIFICATION      1           // Enabled reference picture lists combination (H0137) and reference picture list modification (H0138) updates
 
 #define VERBOSE_RATE 0 ///< Print additional rate information in encoder
 
@@ -190,13 +116,12 @@
 #define FIXED_ROUNDING_FRAME_MEMORY    0           ///< enable/disable fixed rounding to 8-bitdepth of frame memory when IBDI is used  
 
 #define WRITE_BACK                      1           ///< Enable/disable the encoder to replace the deltaPOC and Used by current from the config file with the values derived by the refIdc parameter.
+#define AUTO_INTER_RPS                  1           ///< Enable/disable the automatic generation of refIdc from the deltaPOC and Used by current from the config file.
 #define PRINT_RPS_INFO                  0           ///< Enable/disable the printing of bits used to send the RPS.
                                                     // using one nearest frame as reference frame, and the other frames are high quality (POC%4==0) frames (1+X)
                                                     // this should be done with encoder only decision
                                                     // but because of the absence of reference frame management, the related code was hard coded currently
-#define LTRP_MULT                       1           ///< enable/disable multiple long term reference pictures with same POC LSB
 
-#define OL_FLUSH 1          // Set to 1 to enable Wavefront Flush.
 #define OL_FLUSH_ALIGN 0    // Align flush to byte boundary.  This preserves byte operations in CABAC (faster) but at the expense of an average
                             // of 4 bits per flush.
                             // Setting to 0 will slow cabac by an as yet unknown amount.
@@ -205,13 +130,9 @@
 #define RVM_VCEGAM10_M 4
 
 #define PLANAR_IDX             0
-#if LOGI_INTRA_NAME_3MPM
 #define VER_IDX                26                    // index for intra VERTICAL   mode
 #define HOR_IDX                10                    // index for intra HORIZONTAL mode
 #define DC_IDX                 1                     // index for intra DC mode
-#else
-#define DC_IDX                 3                     // index for intra DC mode
-#endif
 #define NUM_CHROMA_MODE        6                     // total number of chroma modes
 #define DM_CHROMA_IDX          36                    // chroma mode index for derived from luma intra mode
 
@@ -222,12 +143,9 @@
 
 #define FULL_NBIT 0 ///< When enabled, does not use g_uiBitIncrement anymore to support > 8 bit data
 
-#define FIXED_NUMBER_OF_TILES_SLICE_MODE                1
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE      1          ///< OPTION IDENTIFIER. mode==1 -> Limit maximum number of largest coding tree blocks in a slice
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE    2          ///< OPTION IDENTIFIER. mode==2 -> Limit maximum number of bins/bits in a slice
-#if FIXED_NUMBER_OF_TILES_SLICE_MODE
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_TILES_IN_SLICE    3
-#endif
 
 // Entropy slice options
 #define SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE            1          ///< OPTION IDENTIFIER. Limit maximum number of largest coding tree blocks in an entropy slice
@@ -251,36 +169,9 @@
 #endif
 
 #define SCALING_LIST_OUTPUT_RESULT    0 //JCTVC-G880/JCTVC-G1016 quantization matrices
-#define SCALING_LIST                  1 //JCTVC-H0230/H0461/H0237
 
-#define DEFAULT_DC                    1 // JCTVC-H0242
-
-#define RPS_IN_SPS                    1 // Adopted during discussion of JCTVC-H0423
-
-#define H0412_REF_PIC_LIST_RESTRICTION 1
-
-#define H0566_TLA                     1
-#if H0566_TLA
-#define H0566_TLA_SET_FOR_SWITCHING_POINTS 1
-#endif
-
-#define H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER 1
-
-#define DBL_H0473_PART_1          1   //Deblocking filtering simplification
-#define DBL_CONTROL               1   //PPS deblocking_filter_control_present_flag (JCTVC-H0398); condition for inherit params flag in SH (JCTVC-H0424)
-#define DBL_STRONG_FILTER_CLIP    1   //Introduction of strong filter clipping in deblocking filter (JCTVC-H0275)
-
-#define CABAC_INIT_FLAG             1 // JCTVC-H0540
 #define CABAC_INIT_PRESENT_FLAG     1
 
-#define H0388                       1 // JCTVC-H0388
-
-#define TILES_WPP_ENTRY_POINT_SIGNALLING        1 // JCTVC-H0556. Assumes either Tiles is ON or WPP is ON (not both simultaneously).
-#define REMOVE_TILE_DEPENDENCE                  1 // remove tile_boundary_independence_flag and dependent tiles
-#define TILES_OR_ENTROPY_SYNC_IDC               1 // tiles_or_entropy_coding_sync_idc flag
-#define COMPLETE_SLICES_IN_TILE     1 // Among the constraints between slices and tiles, all slices within a tile shall be complete (JCTVC-H0348/JCTVC-H0463) for SliceMode 1&2
-#define WPP_SIMPLIFICATION          1 // JCTVC-H0349/JCTVC-0517
-#define EARLY_SKIP_DETECTION               1 // JCTVC-G543
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
@@ -332,12 +223,8 @@ class TComPicSym;
 enum SAOTypeLen
 {
   SAO_EO_LEN    = 4, 
-#if SAO_UNIT_INTERLEAVING
   SAO_BO_LEN    = 4,
   SAO_MAX_BO_CLASSES = 32
-#else
-  SAO_BO_LEN    = 16
-#endif
 };
 
 enum SAOType
@@ -346,28 +233,16 @@ enum SAOType
   SAO_EO_1,
   SAO_EO_2, 
   SAO_EO_3,
-#if SAO_UNIT_INTERLEAVING
   SAO_BO,
-#else
-  SAO_BO_0,
-  SAO_BO_1,
-#endif
   MAX_NUM_SAO_TYPE
 };
 
 typedef struct _SaoQTPart
 {
-#if !SAO_UNIT_INTERLEAVING
-  Bool        bEnableFlag;
-#endif
   Int         iBestType;
   Int         iLength;
-#if SAO_UNIT_INTERLEAVING
   Int         bandPosition ;
   Int         iOffset[4];
-#else
-  Int         iOffset[32];
-#endif
   Int         StartCUX;
   Int         StartCUY;
   Int         EndCUX;
@@ -391,7 +266,6 @@ typedef struct _SaoQTPart
   //---- encoder only end -----//
 } SAOQTPart;
 
-#if SAO_UNIT_INTERLEAVING
 typedef struct _SaoLcuParam
 {
   Bool       mergeUpFlag;
@@ -405,7 +279,6 @@ typedef struct _SaoLcuParam
   Int        partIdxTmp;
   Int        length;
 } SaoLcuParam;
-#endif
 
 struct SAOParam
 {
@@ -413,28 +286,18 @@ struct SAOParam
   SAOQTPart* psSaoPart[3];
   Int        iMaxSplitLevel;
   Int        iNumClass[MAX_NUM_SAO_TYPE];
-#if SAO_UNIT_INTERLEAVING
   Bool         oneUnitFlag[3];
   SaoLcuParam* saoLcuParam[3];
   Int          numCuInHeight;
   Int          numCuInWidth;
-#endif
   ~SAOParam();
 };
 
 struct ALFParam
 {
   Int alf_flag;                           ///< indicates use of ALF
-#if !LCU_SYNTAX_ALF
-  Int chroma_idc;                         ///< indicates use of ALF for chroma
-#endif
   Int num_coeff;                          ///< number of filter coefficients
   Int filter_shape;
-#if !LCU_SYNTAX_ALF
-  Int filter_shape_chroma;
-  Int num_coeff_chroma;                   ///< number of filter coefficients (chroma)
-  Int *coeff_chroma;                      ///< filter coefficient array (chroma)
-#endif
   Int *filterPattern;
   Int startSecondFilter;
   Int filters_per_group;
@@ -442,14 +305,6 @@ struct ALFParam
   Int *nbSPred;
   Int **coeffmulti;
   Int minKStart;
-#if !LCU_SYNTAX_ALF
-  Int maxScanVal;
-  Int kMinTab[42];
-
-  Int alf_pcr_region_flag;
-  ~ALFParam();
-#endif
-#if LCU_SYNTAX_ALF
   Int componentID;
   Int* kMinTab;
   //constructor, operator
@@ -462,10 +317,8 @@ private:
   Void create(Int cID);
   Void destroy();
   Void copy(const ALFParam& src);
-#endif
 };
 
-#if LCU_SYNTAX_ALF
 struct AlfUnitParam
 {
   Int   mergeType;
@@ -498,8 +351,6 @@ struct AlfParamSet
 private:
   Void destroy();
 };
-#endif
-
 
 
 /// parameters for deblocking filter

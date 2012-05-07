@@ -53,9 +53,7 @@ public:
 
   virtual Void  start             ()                                          = 0;
   virtual Void  finish            ()                                          = 0;
-#if OL_FLUSH
   virtual Void  flush            ()                                           = 0;
-#endif
 
   virtual Void  decodeBin         ( UInt& ruiBin, ContextModel& rcCtxModel )  = 0;
   virtual Void  decodeBinEP       ( UInt& ruiBin                           )  = 0;
@@ -63,9 +61,7 @@ public:
   virtual Void  decodeBinTrm      ( UInt& ruiBin                           )  = 0;
   
   virtual Void  resetBac          ()                                          = 0;
-#if BURST_IPCM
   virtual Void  decodeNumSubseqIPCM( Int& numSubseqIPCM )                  = 0;
-#endif
   virtual Void  decodePCMAlignBits()                                          = 0;
   virtual Void  xReadPCMCode      ( UInt uiLength, UInt& ruiCode)              = 0;
 

@@ -185,18 +185,11 @@ Void TComPrediction::xPredIntraAng( Int* pSrc, Int srcStride, Pel*& rpDst, Int d
   Pel* pDst          = rpDst;
 
   // Map the mode index to main prediction direction and angle
-#if LOGI_INTRA_NAME_3MPM
   assert( dirMode > 0 ); //no planar
   Bool modeDC        = dirMode < 2;
   Bool modeHor       = !modeDC && (dirMode < 18);
   Bool modeVer       = !modeDC && !modeHor;
   Int intraPredAngle = modeVer ? (Int)dirMode - VER_IDX : modeHor ? -((Int)dirMode - HOR_IDX) : 0;
-#else
-  Bool modeDC        = dirMode == 0;
-  Bool modeVer       = !modeDC && (dirMode < 18);
-  Bool modeHor       = !modeDC && !modeVer;
-  Int intraPredAngle = modeVer ? dirMode - 9 : modeHor ? dirMode - 25 : 0;
-#endif
   Int absAng         = abs(intraPredAngle);
   Int signAng        = intraPredAngle < 0 ? -1 : 1;
 
@@ -279,11 +272,7 @@ Void TComPrediction::xPredIntraAng( Int* pSrc, Int srcStride, Pel*& rpDst, Int d
       {
         for (k=0;k<blkSize;k++)
         {
-#if REMOVE_DIV_OPERATION
           pDst[k*dstStride] = Clip ( pDst[k*dstStride] + (( refSide[k+1] - refSide[0] ) >> 1) );
-#else
-          pDst[k*dstStride] = Clip ( pDst[k*dstStride] + ( refSide[k+1] - refSide[0] ) / 2 );
-#endif
         }
       }
     }
@@ -358,11 +347,7 @@ Void TComPrediction::predIntraLumaAng(TComPattern* pcTComPattern, UInt uiDirMode
   }
   else
   {
-#if LOGI_INTRA_NAME_3MPM
     xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, uiDirMode, bAbove, bLeft, true );
-#else
-    xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, g_aucAngIntraModeOrder[ uiDirMode ], bAbove, bLeft, true );
-#endif
 
     if( (uiDirMode == DC_IDX ) && bAbove && bLeft )
     {
@@ -387,11 +372,7 @@ Void TComPrediction::predIntraChromaAng( TComPattern* pcTComPattern, Int* piSrc,
   else
   {
     // Create the prediction
-#if LOGI_INTRA_NAME_3MPM
     xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, uiDirMode, bAbove, bLeft, false );
-#else
-    xPredIntraAng( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight, g_aucAngIntraModeOrder[ uiDirMode ], bAbove, bLeft, false );
-#endif
   }
 }
 
@@ -523,7 +504,8 @@ Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidt
     }
     else
     {
-      if ( pcCU->getSlice()->getPPS()->getWPBiPredIdc() )
+      if ( ( pcCU->getSlice()->getPPS()->getUseWP()       && pcCU->getSlice()->getSliceType() == P_SLICE ) || 
+           ( pcCU->getSlice()->getPPS()->getWPBiPredIdc() && pcCU->getSlice()->getSliceType() == B_SLICE ) )
       {
         xPredInterUni ( pcCU, uiPartAddr, iWidth, iHeight, eRefPicList, pcMbYuv, iPartIdx, true );
       }
@@ -534,9 +516,13 @@ Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidt
     }
   }
 
-  if ( pcCU->getSlice()->getPPS()->getWPBiPredIdc() )
+  if ( pcCU->getSlice()->getPPS()->getWPBiPredIdc() && pcCU->getSlice()->getSliceType() == B_SLICE  )
   {
     xWeightedPredictionBi( pcCU, &m_acYuvPred[0], &m_acYuvPred[1], iRefIdx[0], iRefIdx[1], uiPartAddr, iWidth, iHeight, rpcYuvPred );
+  }  
+  else if ( pcCU->getSlice()->getPPS()->getUseWP() && pcCU->getSlice()->getSliceType() == P_SLICE )
+  {
+    xWeightedPredictionUni( pcCU, &m_acYuvPred[0], uiPartAddr, iWidth, iHeight, REF_PIC_LIST_0, rpcYuvPred, iPartIdx ); 
   }
   else
   {

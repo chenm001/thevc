@@ -63,17 +63,12 @@ protected:
   unsigned int m_FrameSkip;                                   ///< number of skipped frames from the beginning
   Int       m_iSourceWidth;                                   ///< source width in pixel
   Int       m_iSourceHeight;                                  ///< source height in pixel
-#if PIC_CROPPING
   Int       m_croppingMode;
   Int       m_cropLeft;
   Int       m_cropRight;
   Int       m_cropTop;
   Int       m_cropBottom;
-#endif
   Int       m_iFrameToBeEncoded;                              ///< number of encoded frames
-#if !PIC_CROPPING
-  Bool      m_bUsePAD;                                        ///< flag for using source padding
-#endif
   Int       m_aiPad[2];                                       ///< number of padded pixels for width and height
   
   // coding structure
@@ -82,13 +77,8 @@ protected:
   Int       m_iGOPSize;                                       ///< GOP size of hierarchical structure
   Int       m_extraRPSs;                                      ///< extra RPSs added to handle CRA
   GOPEntry  m_GOPList[MAX_GOP];                               ///< the coding structure entries from the config file
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   Int       m_numReorderPics[MAX_TLAYER];                     ///< total number of reorder pictures
   Int       m_maxDecPicBuffering[MAX_TLAYER];                 ///< total number of reference pictures needed for decoding
-#else
-  Int       m_numReorderFrames;                               ///< total number of reorder pictures
-  Int       m_maxNumberOfReferencePictures;                   ///< total number of reference pictures needed for decoding
-#endif
   Bool      m_bUseLComb;                                      ///< flag for using combined reference list for uni-prediction in B-slices (JCTVC-D421)
   Bool      m_bLCMod;                                         ///< flag for specifying whether the combined reference list for uni-prediction in B-slices is uploaded explicitly
   Bool      m_bDisInter4x4;
@@ -104,8 +94,8 @@ protected:
   UInt      m_uiDeltaQpRD;                                    ///< dQP range for multi-pass slice QP optimization
   Int       m_iMaxCuDQPDepth;                                 ///< Max. depth for a minimum CuDQPSize (0:default)
 
-  Int       m_iChromaQpOffset;                                 ///< ChromaQpOffset    (0:default) 
-  Int       m_iChromaQpOffset2nd;                              ///< ChromaQpOffset2nd (0:default)
+  Int       m_cbQpOffset;                                     ///< Chroma Cb QP Offset (0:default) 
+  Int       m_crQpOffset;                                     ///< Chroma Cr QP Offset (0:default)
 
 #if ADAPTIVE_QP_SELECTION
   Bool      m_bUseAdaptQpSelect;
@@ -114,12 +104,7 @@ protected:
   Bool      m_bUseAdaptiveQP;                                 ///< Flag for enabling QP adaptation based on a psycho-visual model
   Int       m_iQPAdaptationRange;                             ///< dQP range by QP adaptation
   
-#if H0566_TLA
   Int       m_maxTempLayer;                                  ///< Max temporal layer
-#else
-  Bool      m_bTLayering;                                     ///< indicates whether temporal IDs are set based on the hierarchical coding structure
-  Bool      m_abTLayerSwitchingFlag[MAX_TLAYER];              ///< temporal layer switching flags corresponding to each temporal layer
-#endif
 
   // coding unit (CU) definition
   UInt      m_uiMaxCUWidth;                                   ///< max. CU width in pixel
@@ -147,27 +132,21 @@ protected:
   Bool      m_useLossless;                                    ///< flag for using lossless coding
 #endif
   Bool      m_bUseSAO; 
-#if SAO_UNIT_INTERLEAVING
   Int       m_maxNumOffsetsPerPic;                            ///< SAO maximun number of offset per picture
   Bool      m_saoInterleavingFlag;                            ///< SAO interleaving flag
-#endif
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
   Int       m_iALFEncodePassReduction;                        //!< ALF encoding pass, 0 = original 16-pass, 1 = 1-pass, 2 = 2-pass
   
   Int       m_iALFMaxNumberFilters;                           ///< ALF Max Number Filters in one picture
-#if LCU_SYNTAX_ALF
   Bool      m_bALFParamInSlice;
   Bool      m_bALFPicBasedEncode;
-#endif
 
   Bool      m_bLoopFilterDisable;                             ///< flag for using deblocking filter
   Bool      m_loopFilterOffsetInAPS;                         ///< offset for deblocking filter in 0 = slice header, 1 = APS
   Int       m_loopFilterBetaOffsetDiv2;                     ///< beta offset for deblocking filter
   Int       m_loopFilterTcOffsetDiv2;                       ///< tc offset for deblocking filter
-#if DBL_CONTROL
   Bool      m_DeblockingFilterControlPresent;                 ///< deblocking filter control present flag in PPS
-#endif
  
   Bool      m_bUseLMChroma;                                  ///< JL: Chroma intra prediction based on luma signal
 
@@ -187,13 +166,9 @@ protected:
   Int       m_bipredSearchRange;                              ///< ME search range for bipred refinement
   Bool      m_bUseFastEnc;                                    ///< flag for using fast encoder setting
   Bool      m_bUseEarlyCU;                                    ///< flag for using Early CU setting
-#if FAST_DECISION_FOR_MRG_RD_COST
   Bool      m_useFastDecisionForMerge;                        ///< flag for using Fast Decision Merge RD-Cost 
-#endif
   Bool      m_bUseCbfFastMode;                              ///< flag for using Cbf Fast PU Mode Decision
-#if EARLY_SKIP_DETECTION
   Bool      m_useEarlySkipDetection;                         ///< flag for using Early SKIP Detection
-#endif
   Int       m_iSliceMode;           ///< 0: Disable all Recon slice limits, 1 : Maximum number of largest coding units per slice, 2: Maximum number of bytes in a slice
   Int       m_iSliceArgument;       ///< If m_iSliceMode==1, m_iSliceArgument=max. # of largest coding units. If m_iSliceMode==2, m_iSliceArgument=max. # of bytes.
   Int       m_iEntropySliceMode;    ///< 0: Disable all entropy slice limits, 1 : Maximum number of largest coding units per slice, 2: Constraint based entropy slice
@@ -205,9 +180,6 @@ protected:
   Bool m_bLFCrossTileBoundaryFlag;  //!< 1: Cross-tile-boundary in-loop filtering 0: non-cross-tile-boundary in-loop filtering
   Int       m_iColumnRowInfoPresent;
   Int       m_iUniformSpacingIdr;
-#if !REMOVE_TILE_DEPENDENCE
-  Int       m_iTileBoundaryIndependenceIdr;
-#endif
   Int       m_iNumColumnsMinus1;
   char*     m_pchColumnWidth;
   Int       m_iNumRowsMinus1;
@@ -230,15 +202,11 @@ protected:
   UInt      m_uiBiPredIdc;                                    ///< Use of Bi-Directional Weighting Prediction (B_SLICE): explicit(1) or implicit(2)
 
   Bool      m_enableTMVP;
-#if MULTIBITS_DATA_HIDING
   Int       m_signHideFlag;
   Int       m_signHidingThreshold;
-#endif
-#if RATECTRL
   Bool      m_enableRateCtrl;                                   ///< Flag for using rate control algorithm
   Int       m_targetBitrate;                                 ///< target bitrate
   Int       m_numLCUInUnit;                                  ///< Total number of LCUs in a frame should be completely divided by the NumLCUInUnit
-#endif
   Int       m_useScalingListId;                               ///< using quantization matrix
   char*     m_scalingListFile;                                ///< quantization matrix file name
   // internal member functions

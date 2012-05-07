@@ -82,9 +82,7 @@ public:
   // initialization & copy functions
   Void initBuffer( SliceType eSliceType, Int iQp, UChar* ctxModel );          ///< initialize 3D buffer by slice type & QP
   
-#if CABAC_INIT_FLAG
   UInt calcCost( SliceType sliceType, Int qp, UChar* ctxModel );      ///< determine cost of choosing a probability table based on current probabilities
-#endif
   /** copy from another buffer
    * \param src buffer to copy from
    */

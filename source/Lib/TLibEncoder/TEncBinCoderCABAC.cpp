@@ -104,7 +104,6 @@ Void TEncBinCABAC::finish()
   m_pcTComBitIf->write( m_uiLow >> 8, 24 - m_bitsLeft );
 }
 
-#if OL_FLUSH
 Void TEncBinCABAC::flush()
 {
   encodeBinTrm(1);
@@ -116,7 +115,6 @@ Void TEncBinCABAC::flush()
 
   start();
 }
-#endif
 
 /** Reset BAC register and counter values.
  * \returns Void
@@ -126,7 +124,6 @@ Void TEncBinCABAC::resetBac()
   start();
 }
 
-#if BURST_IPCM
 /** Encode # of subsequent IPCM blocks.
  * \param numSubseqIPCM 
  * \returns Void
@@ -152,17 +149,12 @@ Void TEncBinCABAC::encodeNumSubseqIPCM( Int numSubseqIPCM )
     }
   }
 }
-#endif
 
 /** Encode PCM alignment zero bits.
  * \returns Void
  */
 Void TEncBinCABAC::encodePCMAlignBits()
 {
-#if !BURST_IPCM
-  finish();
-  m_pcTComBitIf->write( 1, 1 ); // stop bit
-#endif
   m_pcTComBitIf->writeAlignZero(); // pcm align zero
 }
 
@@ -226,9 +218,7 @@ Void TEncBinCABAC::encodeBin( UInt binValue, ContextModel &rcCtxModel )
     DTRACE_CABAC_T( "\n" )
   }
   m_uiBinsCoded += m_binCountIncrement;
-#if CABAC_INIT_FLAG
   rcCtxModel.setBinsCoded( 1 );
-#endif
   
   UInt  uiLPS   = TComCABACTables::sm_aucLPSTable[ rcCtxModel.getState() ][ ( m_uiRange >> 6 ) & 3 ];
   m_uiRange    -= uiLPS;

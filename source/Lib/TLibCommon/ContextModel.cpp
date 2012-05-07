@@ -55,29 +55,13 @@ using namespace std;
  */
 Void ContextModel::init( Int qp, Int initValue )
 {
-#if H0736_AVC_STYLE_QP_RANGE
   qp = Clip3(0, 51, qp);
-#endif
 
-#if CABAC_LINEAR_INIT
   Int  slope      = (initValue>>4)*5 - 45;
   Int  offset     = ((initValue&15)<<3)-16;
   Int  initState  =  min( max( 1, ( ( ( slope * qp ) >> 4 ) + offset ) ), 126 );
   UInt mpState    = (initState >= 64 );
   m_ucState       = ( (mpState? (initState - 64):(63 - initState)) <<1) + mpState;
-#else
-  Int m = m_slopes[initValue>>4];
-  Int n = initValue & 15;
-  
-  Int val = max( 0, min( 3839, (n<<8) + m * (qp-26) + 128 ) );
-  val -= 1920;
-  Int valMps = val >= 0;
-  val = ( val ^ (val>>11) ) + 128;
-  Int segmentIdx = val >> 8;
-  Int pStateIdx = m_accumulatedSegOffset[segmentIdx] + ( (val&255) * m_segOffset[segmentIdx] >> 8);
-  
-  m_ucState = (pStateIdx<<1) + valMps;
-#endif
 }
 
 const UChar ContextModel::m_aucNextStateMPS[ 128 ] =
@@ -142,9 +126,4 @@ const Int ContextModel::m_entropyBits[128] =
   0x0050e, 0x29af6, 0x004cc, 0x2a497, 0x0048d, 0x2ae35, 0x00451, 0x2b7d6, 0x00418, 0x2c176, 0x003e2, 0x2cb15, 0x003af, 0x2d4b5, 0x0037f, 0x2de55
 #endif
 };
-#if !CABAC_LINEAR_INIT
-const Int ContextModel::m_slopes[16] = { -239, -143, -85, -51, -31, -19, -11, 0, 11, 19, 31, 51, 85, 143, 239, 399 };
-const Int ContextModel::m_segOffset[8]            = {   6,  7,  5,  7, 10, 14, 16,  1 };
-const Int ContextModel::m_accumulatedSegOffset[8] = {  -3,  3, 10, 15, 22, 32, 46, 62 };
-#endif
 //! \}

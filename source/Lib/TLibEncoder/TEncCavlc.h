@@ -87,20 +87,14 @@ protected:
   Void  xWriteExGolombLevel    ( UInt uiSymbol );
   Void  xWriteUnaryMaxSymbol  ( UInt uiSymbol, UInt uiMaxSymbol );
 
-#if RPS_IN_SPS
   Void codeShortTermRefPicSet              ( TComSPS* pcSPS, TComReferencePictureSet* pcRPS );
-#else
-  Void codeShortTermRefPicSet              ( TComPPS* pcPPS, TComReferencePictureSet* pcRPS );
-#endif
   
   UInt  xConvertToUInt        ( Int iValue ) {  return ( iValue <= 0) ? -iValue<<1 : (iValue<<1)-1; }
   
 public:
   
   Void  resetEntropy          ();
-#if CABAC_INIT_FLAG
   Void  determineCabacInitIdx  () {};
-#endif
 
   Void  setBitstream          ( TComBitIf* p )  { m_pcBitIf = p;  }
   Void  setSlice              ( TComSlice* p )  { m_pcSlice = p;  }
@@ -120,11 +114,7 @@ public:
 
   Void codeTileMarkerFlag(TComSlice* pcSlice);
 
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
   Void  codeTilesWPPEntryPoint( TComSlice* pSlice );
-#else
-  Void  codeSliceHeaderSubstreamTable( TComSlice* pcSlice );
-#endif
   Void  codeTerminatingBit      ( UInt uilsLast );
   Void  codeSliceFinish         ();
   Void  codeFlush               () {}
@@ -135,20 +125,16 @@ public:
   Void codeAlfUvlc       ( UInt uiCode );
   Void codeAlfSvlc       ( Int   iCode );
   Void codeAlfCtrlDepth();
-#if LCU_SYNTAX_ALF
   Void codeAPSAlflag(UInt uiCode);
   Void codeAlfFixedLengthIdx( UInt idx, UInt numFilterSetsInBuffer);
-#endif
   Void codeSaoFlag       ( UInt uiCode );
   Void codeSaoUvlc       ( UInt uiCode );
   Void codeSaoSvlc       ( Int   iCode );
-#if SAO_UNIT_INTERLEAVING
   Void codeSaoRun        ( UInt uiCode, UInt maxValue  );
   Void codeSaoMergeLeft  ( UInt uiCode, UInt compIdx ){;}
   Void codeSaoMergeUp    ( UInt uiCode ){;}
   Void codeSaoTypeIdx    ( UInt uiCode ){ xWriteUvlc(uiCode   );}
   Void codeSaoUflc       ( UInt uiCode ){ assert(uiCode < 32); xWriteCode(uiCode, 5);}
-#endif
 
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
@@ -170,11 +156,7 @@ public:
   Void codePartSize      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void codePredMode      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   
-#if BURST_IPCM
   Void codeIPCMInfo      ( TComDataCU* pcCU, UInt uiAbsPartIdx, Int numIPCM, Bool firstIPCMFlag);
-#else
-  Void codeIPCMInfo      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#endif
 
   Void codeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx );
   Void codeQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );

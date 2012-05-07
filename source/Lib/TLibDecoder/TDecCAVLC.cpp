@@ -146,11 +146,7 @@ void TDecCavlc::parseSEI(SEImessages& seis)
   } while (0x80 != m_pcBitstream->peekBits(8));
   assert(m_pcBitstream->getNumBitsLeft() == 8); /* rsbp_trailing_bits */
 }
-#if RPS_IN_SPS
 void TDecCavlc::parseShortTermRefPicSet( TComSPS* sps, TComReferencePictureSet* rps, Int idx )
-#else
-void TDecCavlc::parseShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet* rps, Int idx )
-#endif
 {
   UInt code;
   UInt interRPSPred;
@@ -161,11 +157,7 @@ void TDecCavlc::parseShortTermRefPicSet( TComPPS* pcPPS, TComReferencePictureSet
     READ_UVLC(code, "delta_idx_minus1" ); // delta index of the Reference Picture Set used for prediction minus 1
     Int rIdx =  idx - 1 - code;
     assert (rIdx <= idx && rIdx >= 0);
-#if RPS_IN_SPS
     TComReferencePictureSet*   rpsRef = sps->getRPSList()->getReferencePictureSet(rIdx);
-#else
-    TComReferencePictureSet*   rpsRef = pcPPS->getRPSList()->getReferencePictureSet(rIdx);
-#endif
     Int k = 0, k0 = 0, k1 = 0;
     READ_CODE(1, bit, "delta_rps_sign"); // delta_RPS_sign
     READ_UVLC(code, "abs_delta_rps_minus1");  // absolute delta RPS minus 1
@@ -242,44 +234,27 @@ Void TDecCavlc::parseAPS(TComAPS* aps)
   READ_UVLC(uiCode, "aps_id");                             aps->setAPSID(uiCode);
   READ_FLAG(uiCode, "aps_scaling_list_data_present_flag"); aps->setScalingListEnabled( (uiCode==1)?true:false );
   READ_FLAG(uiCode, "aps_deblocking_filter_flag");         aps->setLoopFilterOffsetInAPS( (uiCode==1)?true:false );
-#if !SAO_UNIT_INTERLEAVING
-  READ_FLAG(uiCode, "aps_sample_adaptive_offset_flag");    aps->setSaoEnabled( (uiCode==1)?true:false );
-#endif
-#if !LCU_SYNTAX_ALF
-  READ_FLAG(uiCode, "aps_adaptive_loop_filter_flag");      aps->setAlfEnabled( (uiCode==1)?true:false );
-#endif
   if(aps->getScalingListEnabled())
   {
     parseScalingList( aps->getScalingList() );
   }
-#if DBL_CONTROL
   if(aps->getLoopFilterOffsetInAPS())
   {
     xParseDblParam( aps );    
   }
-#endif
-#if SAO_UNIT_INTERLEAVING
   READ_FLAG(uiCode, "aps_sao_interleaving_flag");      aps->setSaoInterleavingFlag( (uiCode==1)?true:false );
   if(!aps->getSaoInterleavingFlag())
   {
     READ_FLAG(uiCode, "aps_sample_adaptive_offset_flag");      aps->setSaoEnabled( (uiCode==1)?true:false );
-#endif
   if(aps->getSaoEnabled())
   {
     aps->getSaoParam()->bSaoFlag[0] = true;
     xParseSaoParam( aps->getSaoParam() );
   }
-#if SAO_UNIT_INTERLEAVING
   }
-#endif
-#if LCU_SYNTAX_ALF
   READ_FLAG(uiCode, "aps_adaptive_loop_filter_flag");      aps->setAlfEnabled( (uiCode==1)?true:false );
-#endif
   if(aps->getAlfEnabled())
   {
-#if !LCU_SYNTAX_ALF
-    aps->getAlfParam()->alf_flag = 1;
-#endif
     xParseAlfParam( aps->getAlfParam());
   }
   READ_FLAG( uiCode, "aps_extension_flag");
@@ -293,7 +268,6 @@ Void TDecCavlc::parseAPS(TComAPS* aps)
 
 }
 
-#if DBL_CONTROL
 Void  TDecCavlc::xParseDblParam       ( TComAPS* aps )
 {
   UInt uiSymbol;
@@ -310,7 +284,6 @@ Void  TDecCavlc::xParseDblParam       ( TComAPS* aps )
     aps->setLoopFilterTcOffset(iSymbol);
   }
 }
-#endif
 /** parse SAO parameters
  * \param pSaoParam
  */
@@ -318,7 +291,6 @@ Void TDecCavlc::xParseSaoParam(SAOParam* pSaoParam)
 {
   UInt uiSymbol;
 
-#if SAO_UNIT_INTERLEAVING
   int i,j, compIdx; 
   int numCuInWidth; 
   int numCuInHeight; 
@@ -370,30 +342,8 @@ Void TDecCavlc::xParseSaoParam(SAOParam* pSaoParam)
       }
     }
   }
-#else
-  if (pSaoParam->bSaoFlag[0])
-  {
-    xParseSaoSplitParam (pSaoParam, 0, 0);
-    xParseSaoOffsetParam(pSaoParam, 0, 0);
-    READ_FLAG (uiSymbol, "sao_flag_cb");
-    pSaoParam->bSaoFlag[1] = uiSymbol? true:false;
-    if (pSaoParam->bSaoFlag[1])
-    {
-      xParseSaoSplitParam (pSaoParam, 0, 1);
-      xParseSaoOffsetParam(pSaoParam, 0, 1);
-    }
-
-    READ_FLAG (uiSymbol, "sao_flag_cr");
-    pSaoParam->bSaoFlag[2] = uiSymbol? true:false;
-    if (pSaoParam->bSaoFlag[2])
-    {
-      xParseSaoSplitParam (pSaoParam, 0, 2);
-      xParseSaoOffsetParam(pSaoParam, 0, 2);
-    }
-  }
-#endif
 }
-#if SAO_UNIT_INTERLEAVING
+
 /** copy SAO parameter
  * \param dst  
  * \param src 
@@ -561,90 +511,6 @@ void TDecCavlc::xParseSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam, B
   }
 }
 
-#else
-/** Decode quadtree split flag
- * \param  pSaoParam, iPartIdx
- */
-Void TDecCavlc::xParseSaoSplitParam(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr)
-{
-  UInt uiSymbol;
-  SAOQTPart*  pSaoPart = NULL;
-  pSaoPart= &(pSaoParam->psSaoPart[iYCbCr][iPartIdx]);
-
-  if(pSaoPart->PartLevel < pSaoParam->iMaxSplitLevel)
-  {
-    READ_FLAG (uiSymbol, "sao_split_flag");
-    pSaoPart->bSplit = uiSymbol? true:false; 
-    if(pSaoPart->bSplit)
-    {
-      for (Int i=0;i<NUM_DOWN_PART;i++)
-      {
-        xParseSaoSplitParam(pSaoParam, pSaoPart->DownPartsIdx[i], iYCbCr);
-      }
-    }
-  }
-  else
-  {
-    pSaoPart->bSplit = false; 
-  }
-}
-
-/** Decode SAO for one partition
- * \param  pSaoParam, iPartIdx
- */
-Void TDecCavlc::xParseSaoOffsetParam(SAOParam* pSaoParam, Int iPartIdx, Int iYCbCr)
-{
-  UInt uiSymbol;
-  Int iSymbol;  
-  SAOQTPart*  pSaoPart = NULL;
-  pSaoPart = &(pSaoParam->psSaoPart[iYCbCr][iPartIdx]);
-
-  static Int iTypeLength[MAX_NUM_SAO_TYPE] = {
-    SAO_EO_LEN,
-    SAO_EO_LEN,
-    SAO_EO_LEN,
-    SAO_EO_LEN,
-    SAO_BO_LEN,
-    SAO_BO_LEN
-  };  
-  if(!pSaoPart->bSplit)
-  {
-    READ_UVLC (uiSymbol, "sao_type_idx");
-    if (uiSymbol)
-    {
-      pSaoPart->iBestType = uiSymbol-1;
-      pSaoPart->bEnableFlag = true;
-    }
-    else
-    {
-      pSaoPart->iBestType = -1;
-      pSaoPart->bEnableFlag = false;
-    }
-
-    if (pSaoPart->bEnableFlag)
-    {
-      pSaoPart->iLength = iTypeLength[pSaoPart->iBestType];
-      for(Int i=0; i< pSaoPart->iLength; i++)
-      {
-        READ_SVLC (iSymbol, "sao_offset");
-        pSaoPart->iOffset[i] = iSymbol;
-      }
-    }
-    return;
-  }
-
-  //split
-  if (pSaoPart->PartLevel < pSaoParam->iMaxSplitLevel)
-  {
-    for(Int i=0;i<NUM_DOWN_PART;i++)
-    {
-      xParseSaoOffsetParam(pSaoParam, pSaoPart->DownPartsIdx[i], iYCbCr);
-    }
-  }
-}
-#endif
-
-#if LCU_SYNTAX_ALF 
 Void TDecCavlc::xParseAlfParam(AlfParamSet* pAlfParamSet, Bool bSentInAPS, Int firstLCUAddr, Bool acrossSlice, Int numLCUInWidth, Int numLCUInHeight)
 {
   Int  numLCU;
@@ -908,19 +774,12 @@ Void TDecCavlc::parseAlfStoredFilterIdx( UInt& idx, UInt numFilterSetsInBuffer )
   }
 }
 
-#endif
-
 Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
 {
   UInt uiSymbol;
   Int iSymbol;
-#if ALF_SINGLE_FILTER_SHAPE
   Int sqrFiltLengthTab[NUM_ALF_FILTER_SHAPE] = {ALF_FILTER_LEN}; 
-#else
-  Int sqrFiltLengthTab[2] = { 9, 9}; 
-#endif
 
-#if LCU_SYNTAX_ALF
   switch(pAlfParam->componentID)
   {
   case ALF_Cb:
@@ -938,19 +797,9 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
     break;
   case ALF_Y:
     {
-#endif
   pAlfParam->filters_per_group = 0;
   memset (pAlfParam->filterPattern, 0 , sizeof(Int)*NO_VAR_BINS);
-#if !LCU_SYNTAX_ALF
-  READ_FLAG (uiSymbol, "alf_region_adaptation_flag");
-  pAlfParam->alf_pcr_region_flag = uiSymbol;  
-#endif
-#if ALF_SINGLE_FILTER_SHAPE  
   pAlfParam->filter_shape = 0;
-#else
-  READ_UVLC (uiSymbol, "alf_length_luma_minus_5_div2");
-  pAlfParam->filter_shape = uiSymbol;
-#endif
   pAlfParam->num_coeff = sqrFiltLengthTab[pAlfParam->filter_shape];
 
   // filters_per_fr
@@ -966,19 +815,7 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
   else if (uiSymbol > 1) // filters_per_group > 2
   {
     pAlfParam->filters_per_group = 1;
-#if LCU_SYNTAX_ALF
-#if ALF_16_BA_GROUPS
     Int numMergeFlags = 16;
-#else
-    Int numMergeFlags = 15;
-#endif
-#else
-#if ALF_16_BA_GROUPS
-    Int numMergeFlags = 16;
-#else
-    Int numMergeFlags = pAlfParam->alf_pcr_region_flag ? 16 : 15;
-#endif
-#endif
     for (Int i=1; i<numMergeFlags; i++) 
     {
       READ_FLAG (uiSymbol,  "alf_filter_pattern");
@@ -998,11 +835,7 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
     pAlfParam->nbSPred[idx] = uiSymbol;
   }
 
-#if ALF_SINGLE_FILTER_SHAPE
   Int minScanVal = MIN_SCAN_POS_CROSS;
-#else
-  Int minScanVal = (pAlfParam->filter_shape == ALF_STAR5x5) ? 0: MIN_SCAN_POS_CROSS;
-#endif
 
   // Determine maxScanVal
   Int maxScanVal = 0;
@@ -1013,10 +846,8 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
   }
 
   // Golomb parameters
-#if LCU_SYNTAX_ALF
   if( pAlfParam->filters_per_group > 1 )
   {
-#endif
   READ_UVLC (uiSymbol, "alf_min_kstart_minus1");
   pAlfParam->minKStart = 1 + uiSymbol;
 
@@ -1028,9 +859,7 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
     pAlfParam->kMinTab[scanPos] = kMin + uiSymbol;
     kMin = pAlfParam->kMinTab[scanPos];
   }
-#if LCU_SYNTAX_ALF
   }
-#endif
 
   Int scanPos;
   for(Int idx = 0; idx < pAlfParam->filters_per_group; ++idx)
@@ -1038,15 +867,10 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
     for(Int i = 0; i < pAlfParam->num_coeff; i++)
     {
       scanPos = pDepthInt[i] - 1;
-#if LCU_SYNTAX_ALF
       Int k = (pAlfParam->filters_per_group == 1) ? kTableTabShapes[ALF_CROSS9x7_SQUARE3x3][i] : pAlfParam->kMinTab[scanPos];
       pAlfParam->coeffmulti[idx][i] = xGolombDecode(k);
-#else
-      pAlfParam->coeffmulti[idx][i] = xGolombDecode(pAlfParam->kMinTab[scanPos]);
-#endif
     }
   }
-#if LCU_SYNTAX_ALF
     }
     break;
   default:
@@ -1056,30 +880,6 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
       exit(-1);
     }
   }
-#else
-  // filter parameters for chroma
-  READ_UVLC (uiSymbol, "alf_chroma_idc");
-  pAlfParam->chroma_idc = uiSymbol;
-
-  if(pAlfParam->chroma_idc)
-  {
-
-#if ALF_SINGLE_FILTER_SHAPE 
-    pAlfParam->filter_shape_chroma  = 0;
-#else
-    READ_UVLC (uiSymbol, "alf_length_chroma_minus_5_div2");
-
-    pAlfParam->filter_shape_chroma = uiSymbol;
-#endif
-    pAlfParam->num_coeff_chroma = sqrFiltLengthTab[pAlfParam->filter_shape_chroma];
-    // filter coefficients for chroma
-    for(Int pos=0; pos<pAlfParam->num_coeff_chroma; pos++)
-    {
-      READ_SVLC (iSymbol, "alf_coeff_chroma");
-      pAlfParam->coeff_chroma[pos] = iSymbol;
-    }
-  }
-#endif
 }
 
 Int TDecCavlc::xGolombDecode(Int k)
@@ -1114,11 +914,7 @@ Int TDecCavlc::xGolombDecode(Int k)
   return nr;
 }
 
-#if TILES_OR_ENTROPY_SYNC_IDC
 Void TDecCavlc::parsePPS(TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet)
-#else
-Void TDecCavlc::parsePPS(TComPPS* pcPPS)
-#endif
 {
 #if ENC_DEC_TRACE  
   xTracePPSHeader (pcPPS);
@@ -1127,63 +923,16 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 
   Int   iCode;
 
-#if !RPS_IN_SPS
-  TComRPSList* rpsList = pcPPS->getRPSList();
-#endif
   READ_UVLC( uiCode, "pic_parameter_set_id");                      pcPPS->setPPSId (uiCode);
   READ_UVLC( uiCode, "seq_parameter_set_id");                      pcPPS->setSPSId (uiCode);
 
-#if MULTIBITS_DATA_HIDING
   READ_FLAG ( uiCode, "sign_data_hiding_flag" ); pcPPS->setSignHideFlag( uiCode );
   if( pcPPS->getSignHideFlag() )
   {
     READ_CODE( 4, uiCode, "sign_hiding_threshold"); pcPPS->setTSIG(uiCode);
   }
-#endif
 
-#if CABAC_INIT_FLAG
   READ_FLAG( uiCode,   "cabac_init_present_flag" );            pcPPS->setCabacInitPresentFlag( uiCode ? true : false );
-#endif
-#if !RPS_IN_SPS
-  // RPS is put before entropy_coding_mode_flag
-  // since entropy_coding_mode_flag will probably be removed from the WD
-  TComReferencePictureSet*      pcRPS;
-
-  READ_UVLC( uiCode, "num_short_term_ref_pic_sets" );
-  rpsList->create(uiCode);
-
-  for(Int i=0; i< rpsList->getNumberOfReferencePictureSets(); i++)
-  {
-    pcRPS = rpsList->getReferencePictureSet(i);
-    parseShortTermRefPicSet(pcPPS,pcRPS,i);
-  }
-  READ_FLAG( uiCode, "long_term_ref_pics_present_flag" );          pcPPS->setLongTermRefsPresent(uiCode);
-#endif
-  // entropy_coding_mode_flag
-  // We code the entropy_coding_mode_flag, it's needed for tests.
-  READ_FLAG( uiCode, "entropy_coding_mode_flag" );                 pcPPS->setEntropyCodingMode( uiCode ? true : false );
-  if (pcPPS->getEntropyCodingMode())
-  {
-#if !WPP_SIMPLIFICATION
-    READ_UVLC( uiCode, "entropy_coding_synchro" );                 pcPPS->setEntropyCodingSynchro( uiCode );
-    READ_FLAG( uiCode, "cabac_istate_reset" );                     pcPPS->setCabacIstateReset( uiCode ? true : false );
-#endif
-#if !TILES_OR_ENTROPY_SYNC_IDC
-#if !WPP_SIMPLIFICATION
-    if ( pcPPS->getEntropyCodingSynchro() )
-#endif
-    {
-      READ_UVLC( uiCode, "num_substreams_minus1" );                pcPPS->setNumSubstreams(uiCode+1);
-    }
-#endif
-  }
-#if !H0566_TLA
-  READ_UVLC( uiCode, "num_temporal_layer_switching_point_flags" ); pcPPS->setNumTLayerSwitchingFlags( uiCode );
-  for ( UInt i = 0; i < pcPPS->getNumTLayerSwitchingFlags(); i++ )
-  {
-    READ_FLAG( uiCode, "temporal_layer_switching_point_flag" );    pcPPS->setTLayerSwitchingFlag( i, uiCode > 0 ? true : false );
-  }
-#endif
   
   READ_CODE(3,uiCode, "num_ref_idx_l0_default_active_minus1");     pcPPS->setNumRefIdxL0DefaultActive(uiCode+1);
   READ_CODE(3,uiCode, "num_ref_idx_l1_default_active_minus1");     pcPPS->setNumRefIdxL1DefaultActive(uiCode+1);
@@ -1207,11 +956,11 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
     pcPPS->setMaxCuDQPDepth(uiCode - 1);
   }
 
-  READ_SVLC( iCode, "chroma_qp_offset");
-  pcPPS->setChromaQpOffset(iCode);
+  READ_SVLC( iCode, "cb_qp_offset");
+  pcPPS->setChromaCbQpOffset(iCode);
 
-  READ_SVLC( iCode, "chroma_qp_offset_2nd");
-  pcPPS->setChromaQpOffset2nd(iCode);
+  READ_SVLC( iCode, "cr_qp_offset");
+  pcPPS->setChromaCrQpOffset(iCode);
 
   READ_FLAG( uiCode, "weighted_pred_flag" );          // Use of Weighting Prediction (P_SLICE)
   pcPPS->setUseWP( uiCode==1 );
@@ -1219,15 +968,11 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   pcPPS->setWPBiPredIdc( uiCode );
   printf("TDecCavlc::parsePPS():\tm_bUseWeightPred=%d\tm_uiBiPredIdc=%d\n", pcPPS->getUseWP(), pcPPS->getWPBiPredIdc());
 
-#if H0388
   READ_FLAG( uiCode, "output_flag_present_flag" );
   pcPPS->setOutputFlagPresentFlag( uiCode==1 );
-#endif
 
-#if TILES_OR_ENTROPY_SYNC_IDC
   if(parameterSet->getPrefetchedSPS(pcPPS->getSPSId())->getTilesOrEntropyCodingSyncIdc()==1)
   {
-#endif
     READ_FLAG ( uiCode, "tile_info_present_flag" );
     pcPPS->setColumnRowInfoPresent(uiCode);
     READ_FLAG ( uiCode, "tile_control_present_flag" );
@@ -1267,45 +1012,26 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
     if(pcPPS->getTileBehaviorControlPresentFlag() == 1)
     {
       Int iNumColTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumColumnsMinus1()):(pcPPS->getSPS()->getNumColumnsMinus1());
-      Int iNumRowTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumColumnsMinus1()):(pcPPS->getSPS()->getNumRowsMinus1());
-#if !REMOVE_TILE_DEPENDENCE
-      pcPPS->setTileBoundaryIndependenceIdr( 1 ); //default
-#endif
+      Int iNumRowTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumRowsMinus1()):(pcPPS->getSPS()->getNumRowsMinus1());
       pcPPS->setLFCrossTileBoundaryFlag(true); //default
 
       if(iNumColTilesMinus1 !=0 || iNumRowTilesMinus1 !=0)
       {
-#if !REMOVE_TILE_DEPENDENCE
-        READ_FLAG ( uiCode, "tile_boundary_independence_flag" );  
-        pcPPS->setTileBoundaryIndependenceIdr( uiCode );
-
-        if(pcPPS->getTileBoundaryIndependenceIdr() == 1)
-        {
-#endif
           READ_FLAG ( uiCode, "loop_filter_across_tile_flag" );  
           pcPPS->setLFCrossTileBoundaryFlag( (uiCode == 1)?true:false );
-#if !REMOVE_TILE_DEPENDENCE
-        }
-#endif
       }
     }
-#if TILES_OR_ENTROPY_SYNC_IDC
   }
   else if(parameterSet->getPrefetchedSPS(pcPPS->getSPSId())->getTilesOrEntropyCodingSyncIdc()==2)
   {
     READ_UVLC( uiCode, "num_substreams_minus1" );                pcPPS->setNumSubstreams(uiCode+1);
   }
-#endif
 
-#if DBL_CONTROL
   READ_FLAG( uiCode, "deblocking_filter_control_present_flag" ); 
   pcPPS->setDeblockingFilterControlPresent( uiCode ? true : false);
-#endif
-#if PARALLEL_MERGE
   READ_UVLC( uiCode, "log2_parallel_merge_level_minus2");
   assert(uiCode == LOG2_PARALLEL_MERGE_LEVEL_MINUS2);
   pcPPS->setLog2ParallelMergeLevelMinus2 (uiCode);
-#endif
 
   READ_FLAG( uiCode, "pps_extension_flag");
   if (uiCode)
@@ -1333,16 +1059,14 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_CODE( 3,  uiCode, "max_temporal_layers_minus1" );         pcSPS->setMaxTLayers( uiCode+1 );
   READ_UVLC (    uiCode, "pic_width_in_luma_samples" );          pcSPS->setPicWidthInLumaSamples ( uiCode    );
   READ_UVLC (    uiCode, "pic_height_in_luma_samples" );         pcSPS->setPicHeightInLumaSamples( uiCode    );
-#if PIC_CROPPING
   READ_FLAG(     uiCode, "pic_cropping_flag");                   pcSPS->setPicCroppingFlag ( uiCode ? true : false );
   if (uiCode != 0)
   {
-    READ_UVLC(   uiCode, "pic_crop_left_offset" );               pcSPS->setPicCropLeftOffset( uiCode );
-    READ_UVLC(   uiCode, "pic_crop_right_offset" );              pcSPS->setPicCropRightOffset( uiCode );
-    READ_UVLC(   uiCode, "pic_crop_top_offset" );                pcSPS->setPicCropTopOffset( uiCode );
-    READ_UVLC(   uiCode, "pic_crop_bottom_offset" );             pcSPS->setPicCropBottomOffset( uiCode );
+    READ_UVLC(   uiCode, "pic_crop_left_offset" );               pcSPS->setPicCropLeftOffset  ( uiCode * TComSPS::getCropUnitX( pcSPS->getChromaFormatIdc() ) );
+    READ_UVLC(   uiCode, "pic_crop_right_offset" );              pcSPS->setPicCropRightOffset ( uiCode * TComSPS::getCropUnitX( pcSPS->getChromaFormatIdc() ) );
+    READ_UVLC(   uiCode, "pic_crop_top_offset" );                pcSPS->setPicCropTopOffset   ( uiCode * TComSPS::getCropUnitY( pcSPS->getChromaFormatIdc() ) );
+    READ_UVLC(   uiCode, "pic_crop_bottom_offset" );             pcSPS->setPicCropBottomOffset( uiCode * TComSPS::getCropUnitY( pcSPS->getChromaFormatIdc() ) );
   }
-#endif
 
 #if FULL_NBIT
   READ_UVLC(     uiCode, "bit_depth_luma_minus8" );
@@ -1357,9 +1081,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   pcSPS->setBitDepth(g_uiBitDepth);
   pcSPS->setBitIncrement(g_uiBitIncrement);
 #endif
-#if H0736_AVC_STYLE_QP_RANGE
   pcSPS->setQpBDOffsetY( (Int) (6*uiCode) );
-#endif
 
   g_uiBASE_MAX  = ((1<<(g_uiBitDepth))-1);
   
@@ -1369,9 +1091,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   g_uiIBDI_MAX  = ((1<<(g_uiBitDepth+g_uiBitIncrement))-1);
 #endif
   READ_UVLC( uiCode,    "bit_depth_chroma_minus8" );
-#if H0736_AVC_STYLE_QP_RANGE
   pcSPS->setQpBDOffsetC( (Int) (6*uiCode) );
-#endif
 
   READ_FLAG( uiCode, "pcm_enabled_flag" ); pcSPS->setUsePCM( uiCode ? true : false );
 
@@ -1386,7 +1106,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #endif
 
   READ_UVLC( uiCode,    "log2_max_pic_order_cnt_lsb_minus4" );   pcSPS->setBitsForPOC( 4 + uiCode );
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   for(UInt i=0; i <= pcSPS->getMaxTLayers()-1; i++)
   {
     READ_UVLC ( uiCode, "max_dec_pic_buffering");
@@ -1396,16 +1115,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     READ_UVLC ( uiCode, "max_latency_increase");
     pcSPS->setMaxLatencyIncrease( uiCode, i );
   }
-#else
-  READ_UVLC( uiCode,    "max_num_ref_pics" );                    pcSPS->setMaxNumberOfReferencePictures(uiCode);
-  READ_UVLC( uiCode,    "num_reorder_frames" );                  pcSPS->setNumReorderFrames(uiCode);
-  READ_UVLC ( uiCode, "max_dec_frame_buffering");
-  pcSPS->setMaxDecFrameBuffering( uiCode );
-  READ_UVLC ( uiCode, "max_latency_increase");
-  pcSPS->setMaxLatencyIncrease( uiCode );
-#endif
 
-#if H0412_REF_PIC_LIST_RESTRICTION
   READ_FLAG( uiCode, "restricted_ref_pic_lists_flag" );
   pcSPS->setRestrictedRefPicListsFlag( uiCode );
   if( pcSPS->getRestrictedRefPicListsFlag() )
@@ -1417,7 +1127,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   {
     pcSPS->setListsModificationPresentFlag(true);
   }
-#endif
   READ_UVLC( uiCode, "log2_min_coding_block_size_minus3" );
   UInt log2MinCUSize = uiCode + 3;
   READ_UVLC( uiCode, "log2_diff_max_min_coding_block_size" );
@@ -1460,12 +1169,10 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_FLAG( uiCode, "non_square_quadtree_enabled_flag" );          pcSPS->setUseNSQT( uiCode );
   READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );       pcSPS->setUseSAO ( uiCode ? true : false );  
   READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );         pcSPS->setUseALF ( uiCode ? true : false );
-#if LCU_SYNTAX_ALF
   if(pcSPS->getUseALF())
   {
     READ_FLAG( uiCode, "alf_coef_in_slice_flag" );      pcSPS->setUseALFCoefInSlice ( uiCode ? true : false );
   }
-#endif
   if( pcSPS->getUsePCM() )
   {
     READ_FLAG( uiCode, "pcm_loop_filter_disable_flag" );           pcSPS->setPCMFilterDisableFlag ( uiCode ? true : false );
@@ -1473,8 +1180,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 
   READ_FLAG( uiCode, "temporal_id_nesting_flag" );               pcSPS->setTemporalIdNestingFlag ( uiCode > 0 ? true : false );
 
-
-#if RPS_IN_SPS
   TComRPSList* rpsList = pcSPS->getRPSList();
   TComReferencePictureSet* rps;
 
@@ -1487,13 +1192,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     parseShortTermRefPicSet(pcSPS,rps,i);
   }
   READ_FLAG( uiCode, "long_term_ref_pics_present_flag" );          pcSPS->setLongTermRefsPresent(uiCode);
-#endif
-#if !PIC_CROPPING
-  //!!!KS: Syntax not in WD !!!
-
-  xReadUvlc ( uiCode ); pcSPS->setPadX        ( uiCode    );
-  xReadUvlc ( uiCode ); pcSPS->setPadY        ( uiCode    );
-#endif
   
   // AMVP mode for each depth (AM_NONE or AM_EXPL)
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
@@ -1502,14 +1200,10 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     pcSPS->setAMVPMode( i, (AMVP_MODE)uiCode );
   }
 
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
   READ_CODE(2, uiCode, "tiles_or_entropy_coding_sync_idc");         pcSPS->setTilesOrEntropyCodingSyncIdc(uiCode);
-#endif
 
-#if TILES_OR_ENTROPY_SYNC_IDC
   if(pcSPS->getTilesOrEntropyCodingSyncIdc() == 1)
   {
-#endif
     READ_UVLC ( uiCode, "num_tile_columns_minus1" );
     pcSPS->setNumColumnsMinus1( uiCode );  
     READ_UVLC ( uiCode, "num_tile_rows_minus1" ); 
@@ -1536,28 +1230,14 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
       pcSPS->setRowHeight(rowHeight);
       free(rowHeight);  
     }
-#if !REMOVE_TILE_DEPENDENCE
-    pcSPS->setTileBoundaryIndependenceIdr( 1 ); //default
-#endif
     pcSPS->setLFCrossTileBoundaryFlag(true); //default
 
     if( pcSPS->getNumColumnsMinus1() !=0 || pcSPS->getNumRowsMinus1() != 0)
     {
-#if !REMOVE_TILE_DEPENDENCE
-      READ_FLAG ( uiCode, "tile_boundary_independence_flag" );  
-      pcSPS->setTileBoundaryIndependenceIdr( uiCode );
-      if(pcSPS->getTileBoundaryIndependenceIdr() == 1)
-      {
-#endif
         READ_FLAG ( uiCode, "loop_filter_across_tile_flag" );  
         pcSPS->setLFCrossTileBoundaryFlag( (uiCode==1)?true:false);
-#if !REMOVE_TILE_DEPENDENCE
-      }
-#endif
     }
-#if TILES_OR_ENTROPY_SYNC_IDC
   }
-#endif
   READ_FLAG( uiCode, "sps_extension_flag");
   if (uiCode)
   {
@@ -1573,11 +1253,7 @@ Void TDecCavlc::readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed )
   xReadCode ( uiBitsUsed, uiTileIdx );
 }
 
-#if LCU_SYNTAX_ALF
 Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl, AlfParamSet& alfParamSet)
-#else
-Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl)
-#endif
 {
   UInt  uiCode;
   Int   iCode;
@@ -1645,7 +1321,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     sps = parameterSetManager->getPrefetchedSPS(pps->getSPSId());
     rpcSlice->setSPS(sps);
     rpcSlice->setPPS(pps);
-#if H0388
     if( pps->getOutputFlagPresentFlag() )
     {
       READ_FLAG( uiCode, "pic_output_flag" );
@@ -1655,7 +1330,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     {
       rpcSlice->setPicOutputFlag( true );
     }
-#endif
     if(rpcSlice->getNalUnitType()==NAL_UNIT_CODED_SLICE_IDR) 
     { 
       READ_UVLC( uiCode, "idr_pic_id" );  //ignored
@@ -1696,41 +1370,26 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       if(uiCode == 0) // use short-term reference picture set explicitly signalled in slice header
       {
         rps = rpcSlice->getLocalRPS();
-#if RPS_IN_SPS
         parseShortTermRefPicSet(sps,rps, sps->getRPSList()->getNumberOfReferencePictureSets());
-#else
-        parseShortTermRefPicSet(pps,rps, pps->getRPSList()->getNumberOfReferencePictureSets());
-#endif
         rpcSlice->setRPS(rps);
       }
       else // use reference to short-term reference picture set in PPS
       {
-#if RPS_IN_SPS
         READ_UVLC( uiCode, "short_term_ref_pic_set_idx"); rpcSlice->setRPS(sps->getRPSList()->getReferencePictureSet(uiCode));
-#else
-        READ_UVLC( uiCode, "short_term_ref_pic_set_idx"); rpcSlice->setRPS(pps->getRPSList()->getReferencePictureSet(uiCode));
-#endif
         rps = rpcSlice->getRPS();
       }
-#if RPS_IN_SPS
       if(sps->getLongTermRefsPresent())
-#else
-      if(pps->getLongTermRefsPresent())
-#endif
       {
         Int offset = rps->getNumberOfNegativePictures()+rps->getNumberOfPositivePictures();
         READ_UVLC( uiCode, "num_long_term_pics");             rps->setNumberOfLongtermPictures(uiCode);
         Int prev = 0;
-#if LTRP_MULT
         Int prevMsb=0;
         Int prevDeltaPocLt=0;
-#endif
         for(Int j=rps->getNumberOfLongtermPictures()+offset-1 ; j > offset-1; j--)
         {
           READ_UVLC(uiCode,"delta_poc_lsb_lt"); 
           prev += uiCode;
 
-#if LTRP_MULT
           READ_FLAG(uiCode,"delta_poc_msb_present_flag");
           Int decDeltaPOCMsbPresent=uiCode;
 
@@ -1752,14 +1411,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
           }
           else
           {
-#endif
             rps->setPOC(j,rpcSlice->getPOC()-prev);          
             rps->setDeltaPOC(j,-(Int)prev);
-#if LTRP_MULT
             rps->setCheckLTMSBPresent(j,false);
           }
           prevDeltaPocLt=prev;
-#endif
           READ_FLAG( uiCode, "used_by_curr_pic_lt_flag");     rps->setUsed(j,uiCode);
         }
         offset += rps->getNumberOfLongtermPictures();
@@ -1776,11 +1432,8 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       }
       if (sps->getUseSAO())
       {
-#if SAO_UNIT_INTERLEAVING
         READ_FLAG(uiCode, "slice_sao_interleaving_flag");        rpcSlice->setSaoInterleavingFlag(uiCode);
-#endif
         READ_FLAG(uiCode, "slice_sample_adaptive_offset_flag");  rpcSlice->setSaoEnabledFlag((Bool)uiCode);
-#if SAO_UNIT_INTERLEAVING
         if (rpcSlice->getSaoEnabledFlag() && rpcSlice->getSaoInterleavingFlag())
         {
           READ_FLAG(uiCode, "sao_cb_enable_flag");  rpcSlice->setSaoEnabledFlagCb((Bool)uiCode);
@@ -1791,7 +1444,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
           rpcSlice->setSaoEnabledFlagCb(0);
           rpcSlice->setSaoEnabledFlagCr(0);
         }
-#endif
       }
       READ_UVLC (    uiCode, "aps_id" );  rpcSlice->setAPSId(uiCode);
     }
@@ -1827,24 +1479,19 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     TComRefPicListModification* refPicListModification = rpcSlice->getRefPicListModification();
     if(!rpcSlice->isIntra())
     {
-#if H0412_REF_PIC_LIST_RESTRICTION
       if( !rpcSlice->getSPS()->getListsModificationPresentFlag() )
       {
         refPicListModification->setRefPicListModificationFlagL0( 0 );
       }
       else
       {
-#endif
         READ_FLAG( uiCode, "ref_pic_list_modification_flag_l0" ); refPicListModification->setRefPicListModificationFlagL0( uiCode ? 1 : 0 );
-#if H0412_REF_PIC_LIST_RESTRICTION
       }
-#endif
       
       if(refPicListModification->getRefPicListModificationFlagL0())
       {
         uiCode = 0;
         Int i = 0;
-#if H0137_0138_LIST_MODIFICATION
         Int numRpsCurrTempList0 = rpcSlice->getNumRpsCurrTempList();
         if ( numRpsCurrTempList0 > 1 )
         {
@@ -1867,54 +1514,26 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
             refPicListModification->setRefPicSetIdxL0(i, 0 );
           }
         }
-#else
-        Int list_modification_idc = 0;
-        while(list_modification_idc != 3)  
-        {
-          READ_UVLC( uiCode, "list_modification_idc" ); refPicListModification->setListIdcL0(i, uiCode );
-          list_modification_idc = uiCode;
-          if(uiCode != 3)
-          {
-            READ_UVLC( uiCode, "ref_pic_set_idx" ); refPicListModification->setRefPicSetIdxL0(i, uiCode );
-          }
-          i++;
-        }
-        refPicListModification->setNumberOfRefPicListModificationsL0(i-1);
-#endif
       }
-#if !H0137_0138_LIST_MODIFICATION
-      else
-      {
-        refPicListModification->setNumberOfRefPicListModificationsL0(0); 
-      }
-#endif
     }
     else
     {
       refPicListModification->setRefPicListModificationFlagL0(0);
-#if !H0137_0138_LIST_MODIFICATION
-      refPicListModification->setNumberOfRefPicListModificationsL0(0);
-#endif
     }
     if(rpcSlice->isInterB())
     {
-#if H0412_REF_PIC_LIST_RESTRICTION
       if( !rpcSlice->getSPS()->getListsModificationPresentFlag() )
       {
         refPicListModification->setRefPicListModificationFlagL1( 0 );
       }
       else
       {
-#endif
         READ_FLAG( uiCode, "ref_pic_list_modification_flag_l1" ); refPicListModification->setRefPicListModificationFlagL1( uiCode ? 1 : 0 );
-#if H0412_REF_PIC_LIST_RESTRICTION
       }
-#endif
       if(refPicListModification->getRefPicListModificationFlagL1())
       {
         uiCode = 0;
         Int i = 0;
-#if H0137_0138_LIST_MODIFICATION
         Int numRpsCurrTempList1 = rpcSlice->getNumRpsCurrTempList();
         if ( numRpsCurrTempList1 > 1 )
         {
@@ -1937,34 +1556,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
             refPicListModification->setRefPicSetIdxL1(i, 0 );
           }
         }
-#else
-        Int list_modification_idc = 0;
-        while(list_modification_idc != 3)  
-        {
-          READ_UVLC( uiCode, "list_modification_idc" ); refPicListModification->setListIdcL1(i, uiCode );
-          list_modification_idc = uiCode;
-          if(uiCode != 3)
-          {
-            READ_UVLC( uiCode, "ref_pic_set_idx" ); refPicListModification->setRefPicSetIdxL1(i, uiCode );
-          }
-          i++;
-        }
-        refPicListModification->setNumberOfRefPicListModificationsL1(i-1);
-#endif
       }
-#if !H0137_0138_LIST_MODIFICATION
-      else
-      {
-        refPicListModification->setNumberOfRefPicListModificationsL1(0);
-      }
-#endif
     }  
     else
     {
       refPicListModification->setRefPicListModificationFlagL1(0);
-#if !H0137_0138_LIST_MODIFICATION
-      refPicListModification->setNumberOfRefPicListModificationsL1(0);
-#endif
     }
   }
   else
@@ -1982,10 +1578,8 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     {
       READ_UVLC( uiCode, "num_ref_idx_lc_active_minus1" );      rpcSlice->setNumRefIdx( REF_PIC_LIST_C, uiCode + 1 );
       
-#if H0412_REF_PIC_LIST_RESTRICTION
       if(rpcSlice->getSPS()->getListsModificationPresentFlag() )
       {
-#endif
         READ_FLAG( uiCode, "ref_pic_list_modification_flag_lc" ); rpcSlice->setRefPicListModificationFlagLC( uiCode ? 1 : 0 );
         if(uiCode)
         {
@@ -1993,7 +1587,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
           {
             READ_FLAG( uiCode, "pic_from_list_0_flag" );
             rpcSlice->setListIdFromIdxOfLC(i, uiCode);
-#if H0137_0138_LIST_MODIFICATION
           if (((rpcSlice->getListIdFromIdxOfLC(i) == REF_PIC_LIST_0) && (rpcSlice->getNumRefIdx( REF_PIC_LIST_0 ) == 1)) || ((rpcSlice->getListIdFromIdxOfLC(i) == REF_PIC_LIST_1) && (rpcSlice->getNumRefIdx( REF_PIC_LIST_1 ) == 1)) )
           {
             uiCode = 0;
@@ -2002,20 +1595,15 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
           {
             READ_UVLC( uiCode, "ref_idx_list_curr" );
           }
-#else
-            READ_UVLC( uiCode, "ref_idx_list_curr" );
-#endif
             rpcSlice->setRefIdxFromIdxOfLC(i, uiCode);
             rpcSlice->setRefIdxOfLC((RefPicList)rpcSlice->getListIdFromIdxOfLC(i), rpcSlice->getRefIdxFromIdxOfLC(i), i);
           }
         }
-#if H0412_REF_PIC_LIST_RESTRICTION
       }
       else
       {
         rpcSlice->setRefPicListModificationFlagLC(false);
       }
-#endif
     }
     else
     {
@@ -2028,43 +1616,26 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     rpcSlice->setRefPicListCombinationFlag(false);      
   }
   
-#if H0111_MVD_L1_ZERO
   if (rpcSlice->isInterB())
   {
     READ_FLAG( uiCode, "mvd_l1_zero_flag" );       rpcSlice->setMvdL1ZeroFlag( (uiCode ? true : false) );
   }
-#endif
 
-#if CABAC_INIT_FLAG
   rpcSlice->setCabacInitFlag( false ); // default
   if(pps->getCabacInitPresentFlag() && !rpcSlice->isIntra())
   {
     READ_FLAG(uiCode, "cabac_init_flag");
     rpcSlice->setCabacInitFlag( uiCode ? true : false );
   }
-#else
-  if(pps->getEntropyCodingMode() && !rpcSlice->isIntra())
-  {
-    READ_UVLC(uiCode, "cabac_init_idc");
-    rpcSlice->setCABACinitIDC(uiCode);
-  }
-  else if (pps->getEntropyCodingMode() && rpcSlice->isIntra())
-  {
-    rpcSlice->setCABACinitIDC(0);
-  }
-#endif
 
   if(!bEntropySlice)
   {
     READ_SVLC( iCode, "slice_qp_delta" ); 
     rpcSlice->setSliceQp (26 + pps->getPicInitQPMinus26() + iCode);
 
-#if H0736_AVC_STYLE_QP_RANGE
     assert( rpcSlice->getSliceQp() >= -sps->getQpBDOffsetY() );
     assert( rpcSlice->getSliceQp() <=  51 );
-#endif
 
-#if DBL_CONTROL
     if (rpcSlice->getPPS()->getDeblockingFilterControlPresent())
     {
       if ( rpcSlice->getSPS()->getUseDF() )
@@ -2074,9 +1645,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       {
         rpcSlice->setInheritDblParamFromAPS(0);
       }
-#else
-    READ_FLAG ( uiCode, "inherit_dbl_param_from_APS_flag" ); rpcSlice->setInheritDblParamFromAPS(uiCode ? 1 : 0);
-#endif
       if(!rpcSlice->getInheritDblParamFromAPS())
       {
         READ_FLAG ( uiCode, "disable_deblocking_filter_flag" );  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
@@ -2086,16 +1654,13 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
           READ_SVLC( iCode, "tc_offset_div2" ); rpcSlice->setLoopFilterTcOffset(iCode);
         }
       }
-#if DBL_CONTROL
    }
-#endif
     if ( rpcSlice->getSliceType() == B_SLICE )
     {
       READ_FLAG( uiCode, "collocated_from_l0_flag" );
       rpcSlice->setColDir(uiCode);
     }
 
-#if COLLOCATED_REF_IDX
     if ( rpcSlice->getSliceType() != I_SLICE &&
       ((rpcSlice->getColDir()==0 && rpcSlice->getNumRefIdx(REF_PIC_LIST_0)>1)||
       (rpcSlice->getColDir() ==1 && rpcSlice->getNumRefIdx(REF_PIC_LIST_1)>1)))
@@ -2103,7 +1668,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       READ_UVLC( uiCode, "collocated_ref_idx" );
       rpcSlice->setColRefIdx(uiCode);
     }
-#endif
     
     if ( (pps->getUseWP() && rpcSlice->getSliceType()==P_SLICE) || (pps->getWPBiPredIdc() && rpcSlice->getSliceType()==B_SLICE) )
     {
@@ -2127,7 +1691,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       uiNumLCUsInHeight += ( sps->getPicHeightInLumaSamples() % g_uiMaxCUHeight ) ? 1 : 0;
 
       Int uiNumCUsInFrame = uiNumLCUsInWidth* uiNumLCUsInHeight; 
-#if LCU_SYNTAX_ALF
       if(sps->getUseALFCoefInSlice())
       {
         alfParamSet.releaseALFParam();
@@ -2140,11 +1703,8 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
 
       if(!sps->getUseALFCoefInSlice())
       {
-#endif
       xParseAlfCuControlParam(alfCUCtrl, uiNumCUsInFrame);
-#if LCU_SYNTAX_ALF
       }
-#endif
 
     }
   }
@@ -2153,18 +1713,10 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   rpcSlice->setTileMarkerFlag ( 0 ); // default
   if (!bEntropySlice)
   {
-#if !REMOVE_TILE_DEPENDENCE
-    if (sps->getTileBoundaryIndependenceIdr())
-    {   
-#endif
     xReadCode(1, uiCode); // read flag indicating if tile markers transmitted
     rpcSlice->setTileMarkerFlag( uiCode );
-#if !REMOVE_TILE_DEPENDENCE
-    }
-#endif
   }
 
-#if TILES_WPP_ENTRY_POINT_SIGNALLING
   Int tilesOrEntropyCodingSyncIdc = rpcSlice->getSPS()->getTilesOrEntropyCodingSyncIdc();
   UInt *entryPointOffset          = NULL;
   UInt numEntryPointOffsets, offsetLenMinus1;
@@ -2225,97 +1777,12 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   {
     delete [] entryPointOffset;
   }
-#else
-#if WPP_SIMPLIFICATION
-  if (pps->getNumSubstreams() > 1)
-#else
-  if (pps->getEntropyCodingSynchro())
-#endif
-  {
-    UInt uiNumSubstreams = pps->getNumSubstreams();
-    rpcSlice->allocSubstreamSizes(uiNumSubstreams);
-    UInt *puiSubstreamSizes = rpcSlice->getSubstreamSizes();
-
-    for (UInt ui = 0; ui+1 < uiNumSubstreams; ui++)
-    {
-      xReadCode(2, uiCode);
-      
-      switch ( uiCode )
-      {
-      case 0:
-        xReadCode(8,  uiCode);
-        break;
-      case 1:
-        xReadCode(16, uiCode);
-        break;
-      case 2:
-        xReadCode(24, uiCode);
-        break;
-      case 3:
-        xReadCode(32, uiCode);
-        break;
-      default:
-        printf("Error in parseSliceHeader\n");
-        exit(-1);
-        break;
-      }
-      puiSubstreamSizes[ui] = uiCode;
-    }
-  }
-#endif
 
   if (!bEntropySlice)
   {
     // Reading location information
-#if !REMOVE_TILE_DEPENDENCE
-    if (sps->getTileBoundaryIndependenceIdr())
-    {   
-#endif
-#if !TILES_WPP_ENTRY_POINT_SIGNALLING
-      xReadCode(1, uiCode); // read flag indicating if location information signaled in slice header
-      Bool bTileLocationInformationInSliceHeaderFlag = (uiCode)? true : false;
-
-      if (bTileLocationInformationInSliceHeaderFlag)
-      {
-        // location count
-        xReadCode(5, uiCode); // number of tiles for which location information signaled
-        rpcSlice->setTileLocationCount ( uiCode + 1 );
-
-        xReadCode(5, uiCode); // number of bits used by diff
-        Int iBitsUsedByDiff = uiCode + 1;
-
-        // read out tile start location
-        Int iLastSize = 0;
-        for (UInt uiIdx=0; uiIdx<rpcSlice->getTileLocationCount(); uiIdx++)
-        {
-          Int iAbsDiff, iCurSize, iCurDiff;
-          if (uiIdx==0)
-          {
-            xReadCode(iBitsUsedByDiff-1, uiCode); iAbsDiff  = uiCode;
-            rpcSlice->setTileLocation( uiIdx, iAbsDiff );
-            iCurDiff  = iAbsDiff;
-            iLastSize = iAbsDiff;
-          }
-          else
-          {
-            xReadCode(1, uiCode); // read sign
-            Int iSign = (uiCode) ? -1 : +1;
-
-            xReadCode(iBitsUsedByDiff-1, uiCode); iAbsDiff  = uiCode;
-            iCurDiff  = (iSign) * iAbsDiff;
-            iCurSize  = iLastSize + iCurDiff;
-            iLastSize = iCurSize;
-            rpcSlice->setTileLocation( uiIdx, rpcSlice->getTileLocation( uiIdx-1 ) + iCurSize ); // calculate byte location
-          }
-        }
-      }
-#endif
-
       // read out trailing bits
     m_pcBitstream->readOutTrailingBits();
-#if !REMOVE_TILE_DEPENDENCE
-    }
-#endif
   }
   return;
 }
@@ -2343,12 +1810,6 @@ Void TDecCavlc::xParseAlfCuControlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInP
     }
   }
 }
-
-#if !CABAC_INIT_FLAG
-Void TDecCavlc::resetEntropy          (TComSlice* pcSlice)
-{
-}
-#endif
 
 Void TDecCavlc::parseTerminatingBit( UInt& ruiBit )
 {
@@ -2399,83 +1860,7 @@ Void TDecCavlc::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
  */
 Void TDecCavlc::parseIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if BURST_IPCM
   assert(0);
-#else
-  UInt uiSymbol;
-
-  xReadFlag( uiSymbol );
-
-  if ( uiSymbol )
-  {
-    Bool bIpcmFlag   = true;
-
-    xReadPCMAlignZero();
-
-    pcCU->setPartSizeSubParts  ( SIZE_2Nx2N, uiAbsPartIdx, uiDepth );
-    pcCU->setSizeSubParts      ( g_uiMaxCUWidth>>uiDepth, g_uiMaxCUHeight>>uiDepth, uiAbsPartIdx, uiDepth );
-    pcCU->setIPCMFlagSubParts  ( bIpcmFlag, uiAbsPartIdx, uiDepth );
-
-    UInt uiMinCoeffSize = pcCU->getPic()->getMinCUWidth()*pcCU->getPic()->getMinCUHeight();
-    UInt uiLumaOffset   = uiMinCoeffSize*uiAbsPartIdx;
-    UInt uiChromaOffset = uiLumaOffset>>2;
-
-    Pel* piPCMSample;
-    UInt uiWidth;
-    UInt uiHeight;
-    UInt uiSampleBits;
-    UInt uiX, uiY;
-
-    piPCMSample = pcCU->getPCMSampleY() + uiLumaOffset;
-    uiWidth = pcCU->getWidth(uiAbsPartIdx);
-    uiHeight = pcCU->getHeight(uiAbsPartIdx);
-    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthLuma();
-
-    for(uiY = 0; uiY < uiHeight; uiY++)
-    {
-      for(uiX = 0; uiX < uiWidth; uiX++)
-      {
-        UInt uiSample;
-        xReadCode(uiSampleBits, uiSample);
-
-        piPCMSample[uiX] = uiSample;
-      }
-      piPCMSample += uiWidth;
-    }
-
-    piPCMSample = pcCU->getPCMSampleCb() + uiChromaOffset;
-    uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
-    uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
-    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
-
-    for(uiY = 0; uiY < uiHeight; uiY++)
-    {
-      for(uiX = 0; uiX < uiWidth; uiX++)
-      {
-        UInt uiSample;
-        xReadCode(uiSampleBits, uiSample);
-        piPCMSample[uiX] = uiSample;
-      }
-      piPCMSample += uiWidth;
-    }
-
-    piPCMSample = pcCU->getPCMSampleCr() + uiChromaOffset;
-    uiWidth = pcCU->getWidth(uiAbsPartIdx)/2;
-    uiHeight = pcCU->getHeight(uiAbsPartIdx)/2;
-    uiSampleBits = pcCU->getSlice()->getSPS()->getPCMBitDepthChroma();
-
-    for(uiY = 0; uiY < uiHeight; uiY++)
-    {
-      for(uiX = 0; uiX < uiWidth; uiX++)
-      {
-        UInt uiSample;
-        xReadCode(uiSampleBits, uiSample);
-        piPCMSample[uiX] = uiSample;
-      }
-      piPCMSample += uiWidth;
-    }
-  }
-#endif
 }
 
 Void TDecCavlc::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
@@ -2505,30 +1890,18 @@ Void TDecCavlc::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, U
 
 Void TDecCavlc::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
-#if H0736_AVC_STYLE_QP_RANGE
   Int qp;
-#else
-  UInt uiQp;
-#endif
   Int  iDQp;
   
   xReadSvlc( iDQp );
 
-#if H0736_AVC_STYLE_QP_RANGE
   Int qpBdOffsetY = pcCU->getSlice()->getSPS()->getQpBDOffsetY();
   qp = (((Int) pcCU->getRefQP( uiAbsPartIdx ) + iDQp + 52 + 2*qpBdOffsetY )%(52+ qpBdOffsetY)) -  qpBdOffsetY;
-#else
-  uiQp = pcCU->getRefQP( uiAbsPartIdx ) + iDQp;
-#endif
 
   UInt uiAbsQpCUPartIdx = (uiAbsPartIdx>>((g_uiMaxCUDepth - pcCU->getSlice()->getPPS()->getMaxCuDQPDepth())<<1))<<((g_uiMaxCUDepth - pcCU->getSlice()->getPPS()->getMaxCuDQPDepth())<<1) ;
   UInt uiQpCUDepth =   min(uiDepth,pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()) ;
 
-#if H0736_AVC_STYLE_QP_RANGE
   pcCU->setQPSubParts( qp, uiAbsQpCUPartIdx, uiQpCUDepth );
-#else
-  pcCU->setQPSubParts( uiQp, uiAbsQpCUPartIdx, uiQpCUDepth );
-#endif
 }
 
 Void TDecCavlc::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType )
@@ -2944,12 +2317,10 @@ Void TDecCavlc::parseScalingList(TComScalingList* scalingList)
         {
           READ_UVLC( code, "scaling_list_pred_matrix_id_delta");
           scalingList->setRefMatrixId (sizeId,listId,(UInt)((Int)(listId)-(code+1)));
-#if SCALING_LIST
           if( sizeId > SCALING_LIST_8x8 )
           {
             scalingList->setScalingListDC(sizeId,listId,scalingList->getScalingListDC(sizeId, scalingList->getRefMatrixId (sizeId,listId)));
           }
-#endif
           scalingList->processRefMatrix( sizeId, listId, scalingList->getRefMatrixId (sizeId,listId));
           
         }
@@ -2970,7 +2341,6 @@ Void TDecCavlc::parseScalingList(TComScalingList* scalingList)
  */
 Void TDecCavlc::xDecodeScalingList(TComScalingList *scalingList, UInt sizeId, UInt listId)
 {
-#if SCALING_LIST
   Int i,coefNum = min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId]);
   Int data;
   Int scalingListDcCoefMinus8 = 0;
@@ -3010,20 +2380,6 @@ Void TDecCavlc::xDecodeScalingList(TComScalingList *scalingList, UInt sizeId, UI
       }
     }
   }
-#else
-  Int i,coefNum = g_scalingListSize[sizeId];
-  Int data;
-  Int nextCoef = SCALING_LIST_START_VALUE;
-  UInt* scan  = g_auiFrameScanXY [ sizeId + 1 ];
-  Int *dst = scalingList->getScalingListAddress(sizeId, listId);
-
-  for(i = 0; i < coefNum; i++)
-  {
-    READ_SVLC( data, "scaling_list_delta_coef");
-    nextCoef = (nextCoef + data + 256 ) % 256;
-    dst[scan[i]] = nextCoef;
-  }
-#endif
 }
 
 Void TDecCavlc::parseDFFlag(UInt& ruiVal, const Char *pSymbolName)

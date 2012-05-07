@@ -126,11 +126,7 @@ protected:
 
   Void      decodeAPS( TComAPS* cAPS) { m_cEntropyDecoder.decodeAPS(cAPS); };
   Void      xActivateParameterSets();
-#if SKIPFRAME_BUGFIX
   Bool      xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisplay);
-#else
-  Bool      xDecodeSlice(InputNALUnit &nalu, Int iSkipFrame, Int iPOCLastDisplay);
-#endif
   Void      xDecodeSPS();
   Void      xDecodePPS();
   Void      xDecodeAPS();

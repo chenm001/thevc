@@ -127,10 +127,6 @@ public:
   UInt        getNumPartition()         { return m_uiNumPartitions;             }
   UInt        getNumPartInWidth()       { return m_uiNumPartInWidth;            }
   UInt        getNumPartInHeight()      { return m_uiNumPartInHeight;           }
-#if !REMOVE_TILE_DEPENDENCE
-  Void         setTileBoundaryIndependenceIdr( Int i )               { m_iTileBoundaryIndependenceIdr = i; }
-  Int          getTileBoundaryIndependenceIdr()                      { return m_iTileBoundaryIndependenceIdr; }
-#endif
   Void         setNumColumnsMinus1( Int i )                          { m_iNumColumnsMinus1 = i; }
   Int          getNumColumnsMinus1()                                 { return m_iNumColumnsMinus1; }  
   Void         setNumRowsMinus1( Int i )                             { m_iNumRowsMinus1 = i; }

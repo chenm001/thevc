@@ -88,7 +88,6 @@ public:
 public:
   Int m_iBits;
     
-#if H0736_AVC_STYLE_QP_RANGE
   Void setQpParam( Int qpScaled, Bool bLowpass, SliceType eSliceType )
   {
     m_iQP   = qpScaled;
@@ -96,21 +95,6 @@ public:
     m_iRem  = qpScaled % 6;
     m_iBits = QP_BITS + m_iPer;
   }
-#else
-  Void setQpParam( Int iQP, Bool bLowpass, SliceType eSliceType )
-  {
-    assert ( iQP >= MIN_QP && iQP <= MAX_QP );
-    m_iQP   = iQP;
-    
-    m_iPer  = (iQP + 6*g_uiBitIncrement)/6;
-#if FULL_NBIT
-    m_iPer += g_uiBitDepth - 8;
-#endif
-    m_iRem  = iQP % 6;
-    
-    m_iBits = QP_BITS + m_iPer;
-  }
-#endif
   
   Void clear()
   {
@@ -164,11 +148,7 @@ public:
                              UInt uiMaxTrMode,  UInt uiTrMode, TCoeff* rpcCoeff );
   
   // Misc functions
-#if H0736_AVC_STYLE_QP_RANGE
   Void setQPforQuant( Int qpy, Bool bLowpass, SliceType eSliceType, TextType eTxtType, Int qpBdOffset, Int chromaQPOffset);
-#else
-  Void setQPforQuant( Int iQP, Bool bLowpass, SliceType eSliceType, TextType eTxtType, Int Shift);
-#endif
 
 #if RDOQ_CHROMA_LAMBDA 
   Void setLambda(Double dLambdaLuma, Double dLambdaChroma) { m_dLambdaLuma = dLambdaLuma; m_dLambdaChroma = dLambdaChroma; }
@@ -191,19 +171,8 @@ public:
   static UInt getSigCoeffGroupCtxInc  ( const UInt*                   uiSigCoeffGroupFlag,
                                        const UInt                       uiCGPosX,
                                        const UInt                       uiCGPosY,
-#if MULTILEVEL_SIGMAP_EXT
                                        const UInt                     scanIdx,
-#endif
                                        Int width, Int height);
-#if !REMOVE_INFER_SIGGRP  
-  static Bool bothCGNeighboursOne  ( const UInt*                      uiSigCoeffGroupFlag,
-                                    const UInt                       uiCGPosX,
-                                    const UInt                       uiCGPosY,
-#if MULTILEVEL_SIGMAP_EXT
-                                    const UInt                       scanIdx,
-#endif
-                                    Int width, Int height);
-#endif
   Void initScalingList                      ();
   Void destroyScalingList                   ();
   Void setErrScaleCoeff    ( UInt list, UInt size, UInt qp, UInt dir);
@@ -258,9 +227,7 @@ private:
   // forward Transform
   Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Int* plCoeff, Int iWidth, Int iHeight );
   
-#if MULTIBITS_DATA_HIDING
   Void signBitHidingHDQ( TComDataCU* pcCU, TCoeff* pQCoef, TCoeff* pCoef, UInt const *scan, Int* deltaU, Int width, Int height );
-#endif
 
   // quantization
   Void xQuant( TComDataCU* pcCU, 
@@ -297,10 +264,8 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
                                              UShort                          ui16CtxNumOne,
                                              UShort                          ui16CtxNumAbs,
                                              UShort                          ui16AbsGoRice,
-#if RESTRICT_GR1GR2FLAG_NUMBER
                                              UInt                            c1Idx,  
                                              UInt                            c2Idx,  
-#endif
                                              Int                             iQBits,
                                              Double                          dTemp,
                                              Bool                            bLast        ) const;
@@ -308,22 +273,16 @@ __inline UInt              xGetCodedLevel  ( Double&                         rd6
                                      UShort                          ui16CtxNumOne,
                                      UShort                          ui16CtxNumAbs,
                                      UShort                          ui16AbsGoRice 
-#if RESTRICT_GR1GR2FLAG_NUMBER
                                    , UInt                            c1Idx,
                                      UInt                            c2Idx
-#endif
                                      ) const;
-#if MULTIBITS_DATA_HIDING
 __inline Int xGetICRate  ( UInt                            uiAbsLevel,
                            UShort                          ui16CtxNumOne,
                            UShort                          ui16CtxNumAbs,
                            UShort                          ui16AbsGoRice
-#if RESTRICT_GR1GR2FLAG_NUMBER
                          , UInt                            c1Idx,
                            UInt                            c2Idx
-#endif
                          ) const;
-#endif
   __inline Double xGetRateLast     ( const UInt                      uiPosX,
                                      const UInt                      uiPosY,
                                      const UInt                      uiBlkWdth     ) const;

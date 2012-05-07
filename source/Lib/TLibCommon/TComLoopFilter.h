@@ -106,11 +106,7 @@ public:
   Void  destroy                   ();
   
   /// set configuration
-#if DBL_CONTROL
   Void setCfg( Bool DeblockingFilterControlPresent, UInt uiDisableDblkIdc, Int betaOffsetDiv2, Int tcOffsetDiv2, Bool bLFCrossTileBoundary);
-#else
-  Void setCfg( UInt uiDisableDblkIdc, Int betaOffsetDiv2, Int tcOffsetDiv2, Bool bLFCrossTileBoundary);
-#endif
   
   /// picture-level deblocking filter
   Void loopFilterPic( TComPic* pcPic );

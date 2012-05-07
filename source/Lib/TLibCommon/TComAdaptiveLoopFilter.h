@@ -48,19 +48,13 @@
 // Constants
 // ====================================================================================================================
 
-#if LCU_SYNTAX_ALF
   #define LCUALF_QP_DEPENDENT_BITS    1  
-#endif
 
-#if ALF_SINGLE_FILTER_SHAPE
 #define ALF_FILTER_LEN       10
 #define ALF_MAX_NUM_COEF     ALF_FILTER_LEN    //!< maximum number of filter coefficients
-#else
-#define ALF_MAX_NUM_COEF      9                                       //!< maximum number of filter coefficients
-#endif
 #define MAX_SQR_FILT_LENGTH   41                                      //!< ((max_horizontal_tap * max_vertical_tap) / 2 + 1) = ((11 * 5) / 2 + 1)
 
-#if LCU_SYNTAX_ALF && LCUALF_QP_DEPENDENT_BITS
+#if LCUALF_QP_DEPENDENT_BITS
 #define ALF_QP1               28 
 #define ALF_QP2               34 
 #define ALF_QP3               39 
@@ -77,7 +71,6 @@
 
 
 
-#if LCU_SYNTAX_ALF
 /// Luma/Chroma component ID
 enum ALFComponentID
 {
@@ -95,50 +88,17 @@ enum ALFLCUMergeType
   ALF_MERGE_FIRST,
   NUM_ALF_MERGE_TYPE
 };
-#else
-///
-/// Chroma component ID
-///
-enum AlfChromaID
-{
-  ALF_Cb = 0,
-  ALF_Cr = 1
-};
-
-
-///
-/// Adaptation mode ID
-///
-enum ALFClassficationMethod
-{
-  ALF_BA =0,
-  ALF_RA,
-  NUM_ALF_CLASS_METHOD
-};
-#endif
 ///
 /// Filter shape
 ///
 enum ALFFilterShape
 {
-#if ALF_SINGLE_FILTER_SHAPE
   ALF_CROSS9x7_SQUARE3x3 = 0,
-#else
-  ALF_STAR5x5 = 0,
-  ALF_CROSS9x9,
-#endif
   NUM_ALF_FILTER_SHAPE
 };
 
-#if LCU_SYNTAX_ALF
 extern Int* kTableTabShapes[NUM_ALF_FILTER_SHAPE];
-#endif
-#if ALF_SINGLE_FILTER_SHAPE
 extern Int depthIntShape1Sym[ALF_MAX_NUM_COEF+1];
-#else
-extern Int depthIntShape0Sym[10];
-extern Int depthIntShape1Sym[10];
-#endif
 extern Int *pDepthIntTabShapes[NUM_ALF_FILTER_SHAPE];
 
 // ====================================================================================================================
@@ -155,9 +115,7 @@ struct AlfCUCtrlInfo
 
   const AlfCUCtrlInfo& operator= (const AlfCUCtrlInfo& src);  //!< "=" operator
   AlfCUCtrlInfo():cu_control_flag(0), num_alf_cu_flag(0), alf_max_depth(0) {} //!< constructor
-#if LCU_SYNTAX_ALF
   Void reset();
-#endif
 };
 
 
@@ -189,12 +147,7 @@ class TComAdaptiveLoopFilter
 protected: //protected member variables
 
   // filter shape information
-#if ALF_SINGLE_FILTER_SHAPE
   static Int weightsShape1Sym[ALF_MAX_NUM_COEF+1];
-#else
-  static Int weightsShape0Sym[10];
-  static Int weightsShape1Sym[10];
-#endif
   static Int *weightsTabShapes[NUM_ALF_FILTER_SHAPE];
   static Int m_sqrFiltLengthTab[NUM_ALF_FILTER_SHAPE];
 
@@ -208,10 +161,6 @@ protected: //protected member variables
 
   //classification
   Int      m_varIndTab[NO_VAR_BINS];
-#if !LCU_SYNTAX_ALF
-  UInt     m_uiVarGenMethod;
-  Pel** m_varImgMethods[NUM_ALF_CLASS_METHOD];
-#endif
   Pel** m_varImg;
 
   //parameters
@@ -236,7 +185,6 @@ protected: //protected member variables
   std::vector< AlfLCUInfo* > *m_pvpAlfLCU;
   std::vector< std::vector< AlfLCUInfo* > > *m_pvpSliceTileAlfLCU;
 
-#if LCU_SYNTAX_ALF
   Int m_suWidth;
   Int m_suHeight;
   Int m_numLCUInPicWidth;
@@ -244,14 +192,12 @@ protected: //protected member variables
   ALFParam** m_alfFiltInfo[NUM_ALF_COMPONENT];
   Bool m_isNonCrossSlice;
   Int m_alfQP;
-#endif
 
 private: //private member variables
 
 
 protected: //protected methods
 
-#if LCU_SYNTAX_ALF
   Void createLCUAlfInfo();
   Void destroyLCUAlfInfo();
   Pel* getPicBuf(TComPicYuv* pPicYuv, Int compIdx);
@@ -265,43 +211,18 @@ protected: //protected methods
   Void filterRegionCUControl(ALFParam** alfLCUParams, std::vector<AlfLCUInfo*>& regionLCUInfo, Pel* pDec, Pel* pRest, Int stride, Bool caculateBAIdx);
   Bool isEnabledComponent(ALFParam** alfLCUParam);
   Int  getAlfPrecisionBit(Int qp);
-#if ALF_SINGLE_FILTER_SHAPE 
   Void filterOneCompRegion(Pel *imgRes, Pel *imgPad, Int stride, Bool isChroma, Int yPos, Int yPosEnd, Int xPos, Int xPosEnd, Int** filterSet, Int* mergeTable, Pel** varImg);  
-#endif
   Void calcOneRegionVar(Pel **imgYvar, Pel *imgYpad, Int stride, Bool isOnlyOneGroup, Int yPos, Int yPosEnd, Int xPos, Int xPosEnd);
-#endif 
 
 
   Void InitAlfLCUInfo(AlfLCUInfo& rAlfLCU, Int sliceID, Int tileID, TComDataCU* pcCU, UInt maxNumSUInLCU);
-#if !LCU_SYNTAX_ALF
-  Void createRegionIndexMap(Pel **imgY_var, Int img_width, Int img_height); //!< create RA index for regions
-  Void calcVar(Pel **imgYvar, Pel *imgYpad, Int stride, Int adaptationMode); //!< Calculate ALF grouping indices for block-based (BA) mode
-  Void filterLuma(Pel *pImgYRes, Pel *pImgYPad, Int stride, Int ypos, Int yposEnd, Int xpos, Int xposEnd, Int filtNo, Int** filterSet, Int* mergeTable, Pel** ppVarImg); //!< filtering operation for luma region
-  Void filterChroma(Pel *pImgRes, Pel *pImgPad, Int stride, Int ypos, Int yposEnd, Int xpos, Int xposEnd, Int filtNo, Int* coef);
-  Void filterChromaRegion(std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* pDec, Pel* pRest, Int stride, Int *coeff, Int filtNo, Int chromaFormatShift); //!< filtering operation for chroma region
-  Void xCUAdaptive   (TComPic* pcPic, Int filtNo, Pel *imgYFilt, Pel *imgYRec, Int Stride);
-  Void xSubCUAdaptive(TComDataCU* pcCU, Int filtNo, Pel *imgYFilt, Pel *imgYRec, UInt uiAbsPartIdx, UInt uiDepth, Int Stride);
-  Void reconstructFilterCoeffs(ALFParam* pcAlfParam,int **pfilterCoeffSym);
-  Void predictALFCoeffLuma  ( ALFParam* pAlfParam );                    //!< prediction of luma ALF coefficients
-#endif
   Void checkFilterCoeffValue( Int *filter, Int filterLength, Bool isChroma );
-#if !LCU_SYNTAX_ALF
-  Void decodeFilterSet(ALFParam* pcAlfParam, Int* varIndTab, Int** filterCoeff);
-  Void xALFChroma   ( ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-  Void xFilterChromaSlices(Int componentID, TComPicYuv* pcPicDecYuv, TComPicYuv* pcPicRestYuv, Int *coeff, Int filtNo, Int chromaFormatShift);
-  Void xFilterChromaOneCmp(Int componentID, TComPicYuv *pDecYuv, TComPicYuv *pRestYuv, Int shape, Int *pCoeff);
-  Void xALFLuma( TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest );
-#endif
   Void setAlfCtrlFlags(AlfCUCtrlInfo* pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx);
   Void transferCtrlFlagsFromAlfParam(std::vector<AlfCUCtrlInfo>& vAlfParamSlices); //!< Copy ALF CU control flags from ALF parameters for slices  
   Void transferCtrlFlagsFromAlfParamOneSlice(std::vector<AlfLCUInfo*> &vpAlfLCU, Bool bCUCtrlEnabled, Int iAlfDepth, std::vector<UInt>& vCtrlFlags); //!< Copy ALF CU control flags from ALF parameter for one slice
   Void extendBorderCoreFunction(Pel* pPel, Int stride, Bool* pbAvail, UInt width, UInt height, UInt extSize); //!< Extend slice boundary border  
   Void copyRegion(std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* pPicDst, Pel* pPicSrc, Int stride, Int formatShift = 0);
   Void extendRegionBorder(std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* pPelSrc, Int stride, Int formatShift = 0);
-#if !LCU_SYNTAX_ALF  
-  Void filterLumaRegion (std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* imgDec, Pel* imgRest, Int stride, Int filtNo, Int** filterCoeff, Int* mergeTable, Pel** varImg);
-  Void xCUAdaptiveRegion(std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* imgDec, Pel* imgRest, Int stride, Int filtNo, Int** filterCoeff, Int* mergeTable, Pel** varImg);
-#endif
   Int  getCtrlFlagsFromAlfParam(AlfLCUInfo* pcAlfLCU, Int iAlfDepth, UInt* puiFlags);
 
   Void xPCMRestoration        (TComPic* pcPic);
@@ -316,30 +237,14 @@ public: //public methods, interface functions
   Void create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth );
   Void destroy ();
 
-#if LCU_SYNTAX_ALF
   Void ALFProcess          (TComPic* pcPic, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam, Bool isAlfCoefInSlice);
   Void resetLCUAlfInfo     ();
   Int  getNumLCUInPicWidth ()  {return m_numLCUInPicWidth;}
   Int  getNumLCUInPicHeight() {return m_numLCUInPicHeight;}
 
   ALFParam*** getAlfLCUParam() {return m_alfFiltInfo;}
-#else
-  Void predictALFCoeffChroma  ( ALFParam* pAlfParam );                  //!< prediction of chroma ALF coefficients
-#if ALF_CHROMA_COEF_PRED_HARMONIZATION
-  Void reconstructALFCoeffChroma( ALFParam* pAlfParam );
-#endif
-  Void ALFProcess             ( TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam ); ///< interface function for ALF process
-
-  Void allocALFParam  ( ALFParam* pAlfParam ); //!< allocate ALF parameters
-  Void freeALFParam   ( ALFParam* pAlfParam ); //!< free ALF parameters
-  Void copyALFParam   ( ALFParam* pDesAlfParam, ALFParam* pSrcAlfParam ); //!< copy ALF parameters
-#endif
   Int  getNumCUsInPic()  {return m_uiNumCUsInFrame;} //!< get number of LCU in picture for ALF process
-#if LCU_SYNTAX_ALF
   Void createPicAlfInfo (TComPic* pcPic, Int uiNumSlicesInPic = 1, Int alfQP = 26);
-#else
-  Void createPicAlfInfo (TComPic* pcPic, Int numSlicesInPic = 1);
-#endif
   Void destroyPicAlfInfo();
 
   Void PCMLFDisableProcess    ( TComPic* pcPic);                        ///< interface function for ALF process 

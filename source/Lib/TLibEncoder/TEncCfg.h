@@ -57,7 +57,11 @@ struct GOPEntry
   Int m_numRefPics;
   Int m_referencePics[MAX_NUM_REF_PICS];
   Int m_usedByCurrPic[MAX_NUM_REF_PICS];
+#if AUTO_INTER_RPS
+  Int m_interRPSPrediction;
+#else
   Bool m_interRPSPrediction;
+#endif
   Int m_deltaRIdxMinus1;
   Int m_deltaRPS;
   Int m_numRefIdc;
@@ -99,13 +103,11 @@ protected:
   Int       m_FrameSkip;
   Int       m_iSourceWidth;
   Int       m_iSourceHeight;
-#if PIC_CROPPING
   Int       m_croppingMode;
   Int       m_cropLeft;
   Int       m_cropRight;
   Int       m_cropTop;
   Int       m_cropBottom;
-#endif
   Int       m_iFrameToBeEncoded;
   Double    m_adLambdaModifier[ MAX_TLAYER ];
 
@@ -115,13 +117,8 @@ protected:
   Int       m_iGOPSize;
   GOPEntry  m_GOPList[MAX_GOP];
   Int       m_extraRPSs;
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   Int       m_maxDecPicBuffering[MAX_TLAYER];
   Int       m_numReorderPics[MAX_TLAYER];
-#else
-  Int       m_maxNumberOfReferencePictures;
-  Int       m_numReorderFrames;
-#endif
   
   Int       m_iQP;                              //  if (AdaptiveQP == OFF)
   
@@ -132,12 +129,7 @@ protected:
   Int       m_iMaxRefPicNum;                     ///< this is used to mimic the sliding mechanism used by the decoder
                                                  // TODO: We need to have a common sliding mechanism used by both the encoder and decoder
 
-#if H0566_TLA
   Int       m_maxTempLayer;                      ///< Max temporal layer
-#else
-  Bool      m_bTLayering;                        ///< indicates whether temporal IDs are set based on the hierarchical coding structure
-  Bool      m_abTLayerSwitchingFlag[MAX_TLAYER]; ///< temporal layer switching flags corresponding to temporal layer
-#endif
   Bool      m_bDisInter4x4;
   Bool m_useAMP;
   //======= Transform =============
@@ -153,14 +145,10 @@ protected:
   Bool      m_loopFilterOffsetInAPS;
   Int       m_loopFilterBetaOffsetDiv2;
   Int       m_loopFilterTcOffsetDiv2;
-#if DBL_CONTROL
   Bool      m_DeblockingFilterControlPresent;
-#endif
   Bool      m_bUseSAO;
-#if SAO_UNIT_INTERLEAVING
   Int       m_maxNumOffsetsPerPic;
   Bool      m_saoInterleavingFlag;
-#endif
 
   //====== Lossless ========
 #if LOSSLESS_CODING
@@ -175,8 +163,8 @@ protected:
   Int       m_iMaxDeltaQP;                      //  Max. absolute delta QP (1:default)
   Int       m_iMaxCuDQPDepth;                   //  Max. depth for a minimum CuDQP (0:default)
 
-  Int       m_iChromaQpOffset  ;                //  ChromaQpOffset    (0:default)
-  Int       m_iChromaQpOffset2nd;               //  ChromaQpOffset2nd (0:default)
+  Int       m_chromaCbQpOffset;                 //  Chroma Cb QP Offset (0:default)
+  Int       m_chromaCrQpOffset;                 //  Chroma Cr Qp Offset (0:default)
 
 #if ADAPTIVE_QP_SELECTION
   Bool      m_bUseAdaptQpSelect;
@@ -191,28 +179,19 @@ protected:
   Int       m_iALFEncodePassReduction;
 
   Int       m_iALFMaxNumberFilters;
-#if LCU_SYNTAX_ALF
   Bool      m_bALFParamInSlice;
   Bool      m_bALFPicBasedEncode;
-#endif
 
   Bool      m_bUseASR;
   Bool      m_bUseHADME;
   Bool      m_bUseLComb;
   Bool      m_bLCMod;
   Bool      m_bUseRDOQ;
-#if !PIC_CROPPING
-  Bool      m_bUsePAD;
-#endif
   Bool      m_bUseFastEnc;
   Bool      m_bUseEarlyCU;
-#if FAST_DECISION_FOR_MRG_RD_COST
   Bool      m_useFastDecisionForMerge;
-#endif
   Bool      m_bUseCbfFastMode;
-#if EARLY_SKIP_DETECTION
   Bool      m_useEarlySkipDetection;
-#endif
   Bool      m_bUseLMChroma; 
 
   Int*      m_aidQP;
@@ -239,9 +218,6 @@ protected:
   Bool      m_bLFCrossTileBoundaryFlag;
   Int       m_iColumnRowInfoPresent;
   Int       m_iUniformSpacingIdr;
-#if !REMOVE_TILE_DEPENDENCE
-  Int       m_iTileBoundaryIndependenceIdr;
-#endif
   Int       m_iNumColumnsMinus1;
   UInt*     m_puiColumnWidth;
   Int       m_iNumRowsMinus1;
@@ -265,47 +241,32 @@ protected:
   char*     m_scalingListFile;          ///< quantization matrix file name
 
   Bool      m_bEnableTMVP;
-#if MULTIBITS_DATA_HIDING
   Int       m_signHideFlag;
   Int       m_signHidingThreshold;
-#endif
-#if RATECTRL
   Bool      m_enableRateCtrl;                                ///< Flag for using rate control algorithm
   Int       m_targetBitrate;                                 ///< target bitrate
   Int       m_numLCUInUnit;                                  ///< Total number of LCUs in a frame should be divided by the NumLCUInUnit
-#endif
 public:
-  TEncCfg()          {}
+  TEncCfg()
+  : m_puiColumnWidth()
+  , m_puiRowHeight()
+  {}
+
   virtual ~TEncCfg()
   {
-    if( m_iUniformSpacingIdr == 0 )
-    {
-      if( m_iNumColumnsMinus1 )
-      { 
-        delete[] m_puiColumnWidth; 
-        m_puiColumnWidth = NULL;
-      }
-      if( m_iNumRowsMinus1 )
-      {
-        delete[] m_puiRowHeight;
-        m_puiRowHeight = NULL;
-      }
-    }
-    m_iTileLocationInSliceHeaderFlag = 0;
-    m_iTileMarkerFlag              = 0;
+    delete[] m_puiColumnWidth;
+    delete[] m_puiRowHeight;
   }
   
   Void      setFrameRate                    ( Int   i )      { m_iFrameRate = i; }
   Void      setFrameSkip                    ( unsigned int i ) { m_FrameSkip = i; }
   Void      setSourceWidth                  ( Int   i )      { m_iSourceWidth = i; }
   Void      setSourceHeight                 ( Int   i )      { m_iSourceHeight = i; }
-#if PIC_CROPPING
   Void      setCroppingMode                 ( Int   i )      { m_croppingMode = i; }
   Void      setCropLeft                     ( Int   i )      { m_cropLeft = i; }
   Void      setCropRight                    ( Int   i )      { m_cropRight = i; }
   Void      setCropTop                      ( Int   i )      { m_cropTop = i; }
   Void      setCropBottom                   ( Int   i )      { m_cropBottom = i; }
-#endif
   Void      setFrameToBeEncoded             ( Int   i )      { m_iFrameToBeEncoded = i; }
   
   //====== Coding Structure ========
@@ -315,13 +276,8 @@ public:
   Void      setGopList                      ( GOPEntry*  GOPList ) {  for ( Int i = 0; i < MAX_GOP; i++ ) m_GOPList[i] = GOPList[i]; }
   Void      setExtraRPSs                    ( Int   i )      { m_extraRPSs = i; }
   GOPEntry  getGOPEntry                     ( Int   i )      { return m_GOPList[i]; }
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   Void      setMaxDecPicBuffering           ( UInt u, UInt tlayer ) { m_maxDecPicBuffering[tlayer] = u;    }
   Void      setNumReorderPics               ( Int  i, UInt tlayer ) { m_numReorderPics[tlayer] = i;    }
-#else
-  Void      setMaxNumberOfReferencePictures ( Int u )       { m_maxNumberOfReferencePictures = u;    }
-  Void      setNumReorderFrames             ( Int  i )       { m_numReorderFrames = i;    }
-#endif
   
   Void      setQP                           ( Int   i )      { m_iQP = i; }
   
@@ -331,15 +287,8 @@ public:
   Int       getMaxRefPicNum                 ()                              { return m_iMaxRefPicNum;           }
   Void      setMaxRefPicNum                 ( Int iMaxRefPicNum )           { m_iMaxRefPicNum = iMaxRefPicNum;  }
 
-#if H0566_TLA
   Bool      getMaxTempLayer                 ()                              { return m_maxTempLayer;              } 
   Void      setMaxTempLayer                 ( Int maxTempLayer )            { m_maxTempLayer = maxTempLayer;      }
-#else
-  Bool      getTLayering                    ()                              { return m_bTLayering;              } 
-  Void      setTLayering                    ( Bool bTLayering )             { m_bTLayering = bTLayering;        }
-  Bool      getTLayerSwitchingFlag          ( UInt uiTLayer )               { assert (uiTLayer < MAX_TLAYER ); return  m_abTLayerSwitchingFlag[uiTLayer];                   }
-  Void      setTLayerSwitchingFlag          ( Bool* pbTLayerSwitchingFlag ) { for ( Int i = 0; i < MAX_TLAYER; i++ ) m_abTLayerSwitchingFlag[i] = pbTLayerSwitchingFlag[i]; }
-#endif
 
   Bool      getDisInter4x4                  ()              { return m_bDisInter4x4;        }
   Void      setDisInter4x4                  ( Bool b )      { m_bDisInter4x4  = b;          }
@@ -357,9 +306,7 @@ public:
   Void      setLoopFilterOffsetInAPS        ( Bool  b )      { m_loopFilterOffsetInAPS      = b; }
   Void      setLoopFilterBetaOffset         ( Int   i )      { m_loopFilterBetaOffsetDiv2  = i; }
   Void      setLoopFilterTcOffset           ( Int   i )      { m_loopFilterTcOffsetDiv2    = i; }
-#if DBL_CONTROL
   Void      setDeblockingFilterControlPresent ( Bool b ) { m_DeblockingFilterControlPresent = b; }
-#endif
 
   //====== Motion search ========
   Void      setFastSearch                   ( Int   i )      { m_iFastSearch = i; }
@@ -370,8 +317,8 @@ public:
   Void      setMaxDeltaQP                   ( Int   i )      { m_iMaxDeltaQP = i; }
   Void      setMaxCuDQPDepth                ( Int   i )      { m_iMaxCuDQPDepth = i; }
 
-  Void      setChromaQpOffset               ( Int   i ) { m_iChromaQpOffset    = i; }
-  Void      setChromaQpOffset2nd            ( Int   i ) { m_iChromaQpOffset2nd = i; }
+  Void      setChromaCbQpOffset             ( Int   i )      { m_chromaCbQpOffset = i; }
+  Void      setChromaCrQpOffset             ( Int   i )      { m_chromaCrQpOffset = i; }
 
 #if ADAPTIVE_QP_SELECTION
   Void      setUseAdaptQpSelect             ( Bool   i ) { m_bUseAdaptQpSelect    = i; }
@@ -390,13 +337,11 @@ public:
   unsigned int getFrameSkip                 ()      { return  m_FrameSkip; }
   Int       getSourceWidth                  ()      { return  m_iSourceWidth; }
   Int       getSourceHeight                 ()      { return  m_iSourceHeight; }
-#if PIC_CROPPING
   Int       getCroppingMode                 ()      { return  m_croppingMode; }
   Int       getCropLeft                     ()      { return  m_cropLeft; }
   Int       getCropRight                    ()      { return  m_cropRight; }
   Int       getCropTop                      ()      { return  m_cropTop; }
   Int       getCropBottom                   ()      { return  m_cropBottom; }
-#endif
   Int       getFrameToBeEncoded             ()      { return  m_iFrameToBeEncoded; }
   void setLambdaModifier                    ( UInt uiIndex, Double dValue ) { m_adLambdaModifier[ uiIndex ] = dValue; }
   Double getLambdaModifier                  ( UInt uiIndex ) const { return m_adLambdaModifier[ uiIndex ]; }
@@ -405,13 +350,8 @@ public:
   UInt      getIntraPeriod                  ()      { return  m_uiIntraPeriod; }
   UInt      getDecodingRefreshType          ()      { return  m_uiDecodingRefreshType; }
   Int       getGOPSize                      ()      { return  m_iGOPSize; }
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   Int       getMaxDecPicBuffering           (UInt tlayer) { return m_maxDecPicBuffering[tlayer]; }
   Int       getNumReorderPics               (UInt tlayer) { return m_numReorderPics[tlayer]; }
-#else
-  Int      getMaxNumberOfReferencePictures ()      { return m_maxNumberOfReferencePictures; }
-  Int       geNumReorderFrames              ()      { return m_numReorderFrames; }
-#endif
   Int       getQP                           ()      { return  m_iQP; }
   
   Int       getTemporalLayerQPOffset        ( Int i )      { assert (i < MAX_TLAYER ); return  m_aiTLayerQPOffset[i]; }
@@ -428,9 +368,7 @@ public:
   Bool      getLoopFilterOffsetInAPS        ()      { return m_loopFilterOffsetInAPS; }
   Int       getLoopFilterBetaOffset         ()      { return m_loopFilterBetaOffsetDiv2; }
   Int       getLoopFilterTcOffset           ()      { return m_loopFilterTcOffsetDiv2; }
-#if DBL_CONTROL
   Bool      getDeblockingFilterControlPresent()  { return  m_DeblockingFilterControlPresent; }
-#endif
 
   //==== Motion search ========
   Int       getFastSearch                   ()      { return  m_iFastSearch; }
@@ -454,18 +392,11 @@ public:
   Void      setUseLComb                     ( Bool  b )     { m_bUseLComb   = b; }
   Void      setLCMod                        ( Bool  b )     { m_bLCMod   = b;    }
   Void      setUseRDOQ                      ( Bool  b )     { m_bUseRDOQ    = b; }
-#if !PIC_CROPPING
-  Void      setUsePAD                       ( Bool  b )     { m_bUsePAD     = b; }
-#endif
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
   Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
-#if FAST_DECISION_FOR_MRG_RD_COST
   Void      setUseFastDecisionForMerge      ( Bool  b )     { m_useFastDecisionForMerge = b; }
-#endif
   Void      setUseCbfFastMode            ( Bool  b )     { m_bUseCbfFastMode = b; }
-#if EARLY_SKIP_DETECTION
   Void      setUseEarlySkipDetection        ( Bool  b )     { m_useEarlySkipDetection = b; }
-#endif
   Void      setUseConstrainedIntraPred      ( Bool  b )     { m_bUseConstrainedIntraPred = b; }
   Void      setPCMInputBitDepthFlag         ( Bool  b )     { m_bPCMInputBitDepthFlag = b; }
   Void      setPCMFilterDisableFlag         ( Bool  b )     {  m_bPCMFilterDisableFlag = b; }
@@ -483,28 +414,19 @@ public:
 
   Void      setALFMaxNumberFilters          (Int i)  { m_iALFMaxNumberFilters = i; } 
   Int       getALFMaxNumberFilters          ()       { return m_iALFMaxNumberFilters; } 
-#if LCU_SYNTAX_ALF
   Void      setALFParamInSlice              (Bool b) {m_bALFParamInSlice = b;}
   Bool      getALFParamInSlice              ()       {return m_bALFParamInSlice;}
   Void      setALFPicBasedEncode            (Bool b) {m_bALFPicBasedEncode = b;}
   Bool      getALFPicBasedEncode            ()       {return m_bALFPicBasedEncode;}
-#endif
 
   Bool      getUseLComb                     ()      { return m_bUseLComb;   }
   Bool      getLCMod                        ()      { return m_bLCMod; }
   Bool      getUseRDOQ                      ()      { return m_bUseRDOQ;    }
-#if !PIC_CROPPING
-  Bool      getUsePAD                       ()      { return m_bUsePAD;     }
-#endif
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
   Bool      getUseEarlyCU                   ()      { return m_bUseEarlyCU; }
-#if FAST_DECISION_FOR_MRG_RD_COST
   Bool      getUseFastDecisionForMerge      ()      { return m_useFastDecisionForMerge; }
-#endif
   Bool      getUseCbfFastMode           ()      { return m_bUseCbfFastMode; }
-#if EARLY_SKIP_DETECTION
   Bool      getUseEarlySkipDetection        ()      { return m_useEarlySkipDetection; }
-#endif
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
 #if NS_HAD
   Bool      getUseNSQT                      ()      { return m_useNSQT; }
@@ -538,12 +460,10 @@ public:
 
   Void      setUseSAO                  (Bool bVal)     {m_bUseSAO = bVal;}
   Bool      getUseSAO                  ()              {return m_bUseSAO;}
-#if SAO_UNIT_INTERLEAVING
   Void  setMaxNumOffsetsPerPic                   (Int iVal)            { m_maxNumOffsetsPerPic = iVal; }
   Int   getMaxNumOffsetsPerPic                   ()                    { return m_maxNumOffsetsPerPic; }
   Void  setSaoInterleavingFlag                   (bool bVal)           { m_saoInterleavingFlag = bVal; }
   Bool  getSaoInterleavingFlag                   ()                    { return m_saoInterleavingFlag; }
-#endif
   Void  setTileBehaviorControlPresentFlag        ( Int i )             { m_iTileBehaviorControlPresentFlag = i;    }
   Int   getTileBehaviorControlPresentFlag        ()                    { return m_iTileBehaviorControlPresentFlag; }
   Void  setLFCrossTileBoundaryFlag               ( Bool   bValue  )    { m_bLFCrossTileBoundaryFlag = bValue; }
@@ -552,10 +472,6 @@ public:
   Int   getColumnRowInfoPresent        ()                  { return m_iColumnRowInfoPresent; }
   Void  setUniformSpacingIdr           ( Int i )           { m_iUniformSpacingIdr = i; }
   Int   getUniformSpacingIdr           ()                  { return m_iUniformSpacingIdr; }
-#if !REMOVE_TILE_DEPENDENCE
-  Void  setTileBoundaryIndependenceIdr ( Int i )           { m_iTileBoundaryIndependenceIdr = i; }
-  Int   getTileBoundaryIndependenceIdr ()                  { return m_iTileBoundaryIndependenceIdr; }
-#endif
   Void  setNumColumnsMinus1            ( Int i )           { m_iNumColumnsMinus1 = i; }
   Int   getNumColumnsMinus1            ()                  { return m_iNumColumnsMinus1; }
   Void  setColumnWidth ( char* str )
@@ -651,20 +567,16 @@ public:
 
   Void      setEnableTMVP ( Bool b ) { m_bEnableTMVP = b;    }
   Bool      getEnableTMVP ()         { return m_bEnableTMVP; }
-#if MULTIBITS_DATA_HIDING
   Void      setSignHideFlag( Int signHideFlag ) { m_signHideFlag = signHideFlag; }
   Void      setTSIG( Int tsig )                 { m_signHidingThreshold = tsig; }
   Int       getSignHideFlag()                    { return m_signHideFlag; }
   Int       getTSIG()                            { return m_signHidingThreshold; }
-#endif
-#if RATECTRL
   Bool      getUseRateCtrl    ()                { return m_enableRateCtrl;    }
   Void      setUseRateCtrl    (Bool flag)       { m_enableRateCtrl = flag;    }
   Int       getTargetBitrate  ()                { return m_targetBitrate;     }
   Void      setTargetBitrate  (Int target)      { m_targetBitrate  = target;  }
   Int       getNumLCUInUnit   ()                { return m_numLCUInUnit;      }
   Void      setNumLCUInUnit   (Int numLCUs)     { m_numLCUInUnit   = numLCUs; }
-#endif
 };
 
 //! \}

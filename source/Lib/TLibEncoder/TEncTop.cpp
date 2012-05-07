@@ -97,10 +97,8 @@ Void TEncTop::create ()
   m_cCuEncoder.         create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
   if (m_bUseSAO)
   {
-#if SAO_UNIT_INTERLEAVING
     m_cEncSAO.setSaoInterleavingFlag(getSaoInterleavingFlag());
     m_cEncSAO.setMaxNumOffsetsPerPic(getMaxNumOffsetsPerPic());
-#endif
     m_cEncSAO.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
     m_cEncSAO.createEncBuffer();
   }
@@ -115,22 +113,15 @@ Void TEncTop::create ()
   
   if(m_bUseALF)
   {
-#if LCU_SYNTAX_ALF
     m_cAdaptiveLoopFilter.setAlfCoefInSlice(m_bALFParamInSlice);
     m_cAdaptiveLoopFilter.createAlfGlobalBuffers();
-#else
-    m_cAdaptiveLoopFilter.setGOPSize( getGOPSize() );
-    m_cAdaptiveLoopFilter.createAlfGlobalBuffers(m_iALFEncodePassReduction);
-#endif
   }
 
   if(m_bUseSAO || m_bUseALF)
   {
     m_vAPS.reserve(MAX_NUM_SUPPORTED_APS);
   }
-#if RATECTRL
   m_cRateCtrl.create(getIntraPeriod(), getGOPSize(), getFrameRate(), getTargetBitrate(), getQP(), getNumLCUInUnit(), getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight);
-#endif
   // if SBAC-based RD optimization is used
   if( m_bUseSBACRD )
   {
@@ -172,7 +163,9 @@ Void TEncTop::create ()
 Void TEncTop::createWPPCoders(Int iNumSubstreams)
 {
   if (m_pcSbacCoders != NULL)
+  {
     return; // already generated.
+  }
 
   m_iNumSubstreams         = iNumSubstreams;
   m_pcSbacCoders           = new TEncSbac       [iNumSubstreams];
@@ -237,9 +230,7 @@ Void TEncTop::destroy ()
   m_cAdaptiveLoopFilter.destroy();
   m_cLoopFilter.        destroy();
   m_RPSList.            destroy();
-#if RATECTRL
   m_cRateCtrl.          destroy();
-#endif
   // SBAC RD
   if( m_bUseSBACRD )
   {
@@ -306,11 +297,7 @@ Void TEncTop::init()
   
   // initialize PPS
   m_cPPS.setSPS(&m_cSPS);
-#if RPS_IN_SPS
   m_cSPS.setRPSList(&m_RPSList);
-#else
-  m_cPPS.setRPSList(&m_RPSList);
-#endif
   xInitPPS();
   xInitRPS();
 
@@ -340,9 +327,7 @@ Void TEncTop::init()
   {
     m_cAdaptiveLoopFilter.setALFEncodePassReduction( m_iALFEncodePassReduction );
     m_cAdaptiveLoopFilter.setALFMaxNumberFilters( m_iALFMaxNumberFilters );
-#if LCU_SYNTAX_ALF
     m_cAdaptiveLoopFilter.initPicQuadTreePartition(m_bALFPicBasedEncode );   
-#endif
   }
 
   m_iMaxRefPicNum = 0;
@@ -426,11 +411,7 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
 {
   TComSlice::sortPicList(m_cListPic);
   
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   if (m_cListPic.size() >= (UInt)(m_iGOPSize + getMaxDecPicBuffering(MAX_TLAYER-1) + 2) )
-#else
-  if (m_cListPic.size() >= (UInt)(m_iGOPSize + getMaxNumberOfReferencePictures() + 2) )
-#endif
   {
     TComList<TComPic*>::iterator iterPic  = m_cListPic.begin();
     Int iSize = Int( m_cListPic.size() );
@@ -438,22 +419,24 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
     {
       rpcPic = *(iterPic++);
       if(rpcPic->getSlice(0)->isReferenced() == false)
-         break;
+      {
+        break;
+      }
     }
   }
   else
   {
-        if ( getUseAdaptiveQP() )
-        {
-          TEncPic* pcEPic = new TEncPic;
-          pcEPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, m_cPPS.getMaxCuDQPDepth()+1 );
-          rpcPic = pcEPic;
-        }
-        else
-        {
-          rpcPic = new TComPic;
-          rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
-        }
+    if ( getUseAdaptiveQP() )
+    {
+      TEncPic* pcEPic = new TEncPic;
+      pcEPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, m_cPPS.getMaxCuDQPDepth()+1 );
+      rpcPic = pcEPic;
+    }
+    else
+    {
+      rpcPic = new TComPic;
+      rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+    }
     m_cListPic.pushBack( rpcPic );
   }
   rpcPic->setReconMark (false);
@@ -470,7 +453,6 @@ Void TEncTop::xInitSPS()
 {
   m_cSPS.setPicWidthInLumaSamples         ( m_iSourceWidth      );
   m_cSPS.setPicHeightInLumaSamples        ( m_iSourceHeight     );
-#if PIC_CROPPING
   m_cSPS.setPicCroppingFlag( m_croppingMode!= 0 );
   if (m_croppingMode != 0)
   {
@@ -479,30 +461,21 @@ Void TEncTop::xInitSPS()
     m_cSPS.setPicCropTopOffset( m_cropTop );
     m_cSPS.setPicCropBottomOffset( m_cropBottom );
   }
-#else
-  m_cSPS.setPad           ( m_aiPad             );
-#endif
   m_cSPS.setMaxCUWidth    ( g_uiMaxCUWidth      );
   m_cSPS.setMaxCUHeight   ( g_uiMaxCUHeight     );
   m_cSPS.setMaxCUDepth    ( g_uiMaxCUDepth      );
   m_cSPS.setMinTrDepth    ( 0                   );
   m_cSPS.setMaxTrDepth    ( 1                   );
   
-#if !H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
-  m_cSPS.setMaxNumberOfReferencePictures(m_maxNumberOfReferencePictures);
-  m_cSPS.setNumReorderFrames(m_numReorderFrames);
-#endif
   m_cSPS.setPCMLog2MinSize (m_uiPCMLog2MinSize);
   m_cSPS.setUsePCM        ( m_usePCM           );
   m_cSPS.setPCMLog2MaxSize( m_pcmLog2MaxSize  );
 
   m_cSPS.setUseALF        ( m_bUseALF           );
-#if LCU_SYNTAX_ALF
   if(m_bUseALF)
   {
     m_cSPS.setUseALFCoefInSlice(m_bALFParamInSlice);
   }
-#endif
   
   m_cSPS.setQuadtreeTULog2MaxSize( m_uiQuadtreeTULog2MaxSize );
   m_cSPS.setQuadtreeTULog2MinSize( m_uiQuadtreeTULog2MinSize );
@@ -511,9 +484,6 @@ Void TEncTop::xInitSPS()
   
 #if LOSSLESS_CODING
   m_cSPS.setUseLossless   ( m_useLossless  );
-#endif
-#if !PIC_CROPPING
-  m_cSPS.setUsePAD        ( m_bUsePAD           );
 #endif
   m_cSPS.setUseLMChroma   ( m_bUseLMChroma           );  
   
@@ -551,66 +521,25 @@ Void TEncTop::xInitSPS()
 
   m_cSPS.setBitDepth    ( g_uiBitDepth        );
   m_cSPS.setBitIncrement( g_uiBitIncrement    );
-#if H0736_AVC_STYLE_QP_RANGE
   m_cSPS.setQpBDOffsetY ( (Int)(6*(g_uiBitDepth + g_uiBitIncrement - 8)) );
   m_cSPS.setQpBDOffsetC ( (Int)(6*(g_uiBitDepth + g_uiBitIncrement - 8)) );
-#endif
 
   m_cSPS.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
   m_cSPS.setUseSAO( m_bUseSAO );
 
-#if !H0566_TLA
-  if ( m_bTLayering )
-  {
-    Int iMaxTLayers = 1;
-    for ( i = 1; ; i++)
-    {
-      iMaxTLayers = i;
-      if ( (m_iGOPSize >> i) == 0 ) 
-      {
-        break;
-      }
-    }
-  
-    m_cSPS.setMaxTLayers( (UInt)iMaxTLayers );
-
-    Bool bTemporalIdNestingFlag = true;
-    for ( i = 0; i < m_cSPS.getMaxTLayers()-1; i++ )
-    {
-      if ( !m_abTLayerSwitchingFlag[i] )
-      {
-        bTemporalIdNestingFlag = false;
-        break;
-      }
-    }
-
-    m_cSPS.setTemporalIdNestingFlag( bTemporalIdNestingFlag );
-  }
-  else
-  {
-    m_cSPS.setMaxTLayers( 1 );
-    m_cSPS.setTemporalIdNestingFlag( false );
-  }
-#else
   m_cSPS.setMaxTLayers( m_maxTempLayer );
   m_cSPS.setTemporalIdNestingFlag( false );
-#endif
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   for ( i = 0; i < m_cSPS.getMaxTLayers(); i++ )
   {
     m_cSPS.setMaxDecPicBuffering(m_maxDecPicBuffering[i], i);
     m_cSPS.setNumReorderPics(m_numReorderPics[i], i);
   }
-#endif
   m_cSPS.setPCMBitDepthLuma (g_uiPCMBitDepthLuma);
   m_cSPS.setPCMBitDepthChroma (g_uiPCMBitDepthChroma);
   m_cSPS.setPCMFilterDisableFlag  ( m_bPCMFilterDisableFlag );
 
   m_cSPS.setLFCrossTileBoundaryFlag( m_bLFCrossTileBoundaryFlag );
   m_cSPS.setUniformSpacingIdr( m_iUniformSpacingIdr );
-#if !REMOVE_TILE_DEPENDENCE
-  m_cSPS.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
-#endif
   m_cSPS.setNumColumnsMinus1( m_iNumColumnsMinus1 );
   m_cSPS.setNumRowsMinus1( m_iNumRowsMinus1 );
   if( m_iUniformSpacingIdr == 0 )
@@ -626,32 +555,10 @@ Void TEncTop::xInitPPS()
 {
   m_cPPS.setConstrainedIntraPred( m_bUseConstrainedIntraPred );
   m_cPPS.setSliceGranularity(m_iSliceGranularity);
-#if !H0566_TLA
-  if ( m_cSPS.getTemporalIdNestingFlag() ) 
-  {
-    m_cPPS.setNumTLayerSwitchingFlags( 0 );
-    for ( UInt i = 0; i < m_cSPS.getMaxTLayers() - 1; i++ )
-    {
-      m_cPPS.setTLayerSwitchingFlag( i, true );
-    }
-  }
-  else
-  {
-    m_cPPS.setNumTLayerSwitchingFlags( m_cSPS.getMaxTLayers() - 1 );
-    for ( UInt i = 0; i < m_cPPS.getNumTLayerSwitchingFlags(); i++ )
-    {
-      m_cPPS.setTLayerSwitchingFlag( i, m_abTLayerSwitchingFlag[i] );
-    }
-  }   
-#endif
   Bool bUseDQP = (getMaxCuDQPDepth() > 0)? true : false;
 
 #if LOSSLESS_CODING
-#if H0736_AVC_STYLE_QP_RANGE
   Int lowestQP = - m_cSPS.getQpBDOffsetY();
-#else
-  Int lowestQP = 0;
-#endif
 
   if(getUseLossless())
   {
@@ -698,34 +605,19 @@ Void TEncTop::xInitPPS()
     m_cPPS.setMinCuDQPSize( m_cPPS.getSPS()->getMaxCUWidth() >> ( m_cPPS.getMaxCuDQPDepth()) );
   }
 
-  m_cPPS.setChromaQpOffset   ( m_iChromaQpOffset    );
-  m_cPPS.setChromaQpOffset2nd( m_iChromaQpOffset2nd );
+  m_cPPS.setChromaCbQpOffset( m_chromaCbQpOffset );
+  m_cPPS.setChromaCrQpOffset( m_chromaCrQpOffset );
 
-  m_cPPS.setEntropyCodingMode( 1 ); // In the PPS now, but also remains in slice header!
-#if !WPP_SIMPLIFICATION
-  m_cPPS.setEntropyCodingSynchro(m_iWaveFrontSynchro);
-  m_cPPS.setCabacIstateReset(m_iWaveFrontFlush != 0);
-#endif
   m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams);
   m_cPPS.setUseWP( m_bUseWeightPred );
   m_cPPS.setWPBiPredIdc( m_uiBiPredIdc );
   m_cPPS.setEnableTMVPFlag( m_bEnableTMVP );
-#if H0388
   m_cPPS.setOutputFlagPresentFlag( false );
-#endif
-#if MULTIBITS_DATA_HIDING
   m_cPPS.setSignHideFlag(getSignHideFlag());
   m_cPPS.setTSIG(getTSIG());
-#endif
-#if DBL_CONTROL
   m_cPPS.setDeblockingFilterControlPresent (m_DeblockingFilterControlPresent );
-#endif
-#if PARALLEL_MERGE
   m_cPPS.setLog2ParallelMergeLevelMinus2      (LOG2_PARALLEL_MERGE_LEVEL_MINUS2);
-#endif
-#if CABAC_INIT_FLAG
   m_cPPS.setCabacInitPresentFlag(CABAC_INIT_PRESENT_FLAG);
-#endif
 
   Int histogram[8];
   for(Int i=0; i<8; i++)
@@ -782,6 +674,106 @@ Void TEncTop::xInitRPS()
     }
     rps->setNumberOfNegativePictures(numNeg);
     rps->setNumberOfPositivePictures(numPos);
+
+    // handle inter RPS intialization from the config file.
+#if AUTO_INTER_RPS
+    rps->setInterRPSPrediction(ge.m_interRPSPrediction > 0);  // not very clean, converting anything > 0 to true.
+    rps->setDeltaRIdxMinus1(ge.m_deltaRIdxMinus1);            // index to the Reference RPS
+    TComReferencePictureSet*     RPSRef = m_RPSList.getReferencePictureSet(i-(ge.m_deltaRIdxMinus1+1));  // get the reference RPS
+
+    if (ge.m_interRPSPrediction == 2)  // Automatic generation of the inter RPS idc based on the RIdx provided.
+    {
+      Int deltaRPS = getGOPEntry(i-(ge.m_deltaRIdxMinus1+1)).m_POC - ge.m_POC;  // the ref POC - current POC
+      Int numRefDeltaPOC = RPSRef->getNumberOfPictures();
+
+      rps->setDeltaRPS(deltaRPS);           // set delta RPS
+      rps->setNumRefIdc(numRefDeltaPOC+1);  // set the numRefIdc to the number of pictures in the reference RPS + 1.
+      Int count=0;
+      for (Int j = 0; j <= numRefDeltaPOC; j++ ) // cycle through pics in reference RPS.
+      {
+        Int RefDeltaPOC = (j<numRefDeltaPOC)? RPSRef->getDeltaPOC(j): 0;  // if it is the last decoded picture, set RefDeltaPOC = 0
+        rps->setRefIdc(j, 0);
+        for (Int k = 0; k < rps->getNumberOfPictures(); k++ )  // cycle through pics in current RPS.
+        {
+          if (rps->getDeltaPOC(k) == ( RefDeltaPOC + deltaRPS))  // if the current RPS has a same picture as the reference RPS. 
+          {
+              rps->setRefIdc(j, (rps->getUsed(k)?1:2));
+              count++;
+              break;
+          }
+        }
+      }
+      if (count != rps->getNumberOfPictures())
+      {
+        printf("Warning: Unable fully predict all delta POCs using the reference RPS index given in the config file.  Setting Inter RPS to false for this RPS.\n");
+        rps->setInterRPSPrediction(0);
+      }
+    }
+    else if (ge.m_interRPSPrediction == 1)  // inter RPS idc based on the RefIdc values provided in config file.
+    {
+      rps->setDeltaRPS(ge.m_deltaRPS);
+      rps->setNumRefIdc(ge.m_numRefIdc);
+      for (Int j = 0; j < ge.m_numRefIdc; j++ )
+      {
+        rps->setRefIdc(j, ge.m_refIdc[j]);
+      }
+#if WRITE_BACK
+      // the folowing code overwrite the deltaPOC and Used by current values read from the config file with the ones
+      // computed from the RefIdc.  A warning is printed if they are not identical.
+      numNeg = 0;
+      numPos = 0;
+      TComReferencePictureSet      RPSTemp;  // temporary variable
+
+      for (Int j = 0; j < ge.m_numRefIdc; j++ )
+      {
+        if (ge.m_refIdc[j])
+        {
+          Int deltaPOC = ge.m_deltaRPS + ((j < RPSRef->getNumberOfPictures())? RPSRef->getDeltaPOC(j) : 0);
+          RPSTemp.setDeltaPOC((numNeg+numPos),deltaPOC);
+          RPSTemp.setUsed((numNeg+numPos),ge.m_refIdc[j]==1?1:0);
+          if (deltaPOC<0)
+          {
+            numNeg++;
+          }
+          else
+          {
+            numPos++;
+          }
+        }
+      }
+      if (numNeg != rps->getNumberOfNegativePictures())
+      {
+        printf("Warning: number of negative pictures in RPS is different between intra and inter RPS specified in the config file.\n");
+        rps->setNumberOfNegativePictures(numNeg);
+        rps->setNumberOfPositivePictures(numNeg+numPos);
+      }
+      if (numPos != rps->getNumberOfPositivePictures())
+      {
+        printf("Warning: number of positive pictures in RPS is different between intra and inter RPS specified in the config file.\n");
+        rps->setNumberOfPositivePictures(numPos);
+        rps->setNumberOfPositivePictures(numNeg+numPos);
+      }
+      RPSTemp.setNumberOfPictures(numNeg+numPos);
+      RPSTemp.setNumberOfNegativePictures(numNeg);
+      RPSTemp.sortDeltaPOC();     // sort the created delta POC before comparing
+      // check if Delta POC and Used are the same 
+      // print warning if they are not.
+      for (Int j = 0; j < ge.m_numRefIdc; j++ )
+      {
+        if (RPSTemp.getDeltaPOC(j) != rps->getDeltaPOC(j))
+        {
+          printf("Warning: delta POC is different between intra RPS and inter RPS specified in the config file.\n");
+          rps->setDeltaPOC(j,RPSTemp.getDeltaPOC(j));
+        }
+        if (RPSTemp.getUsed(j) != rps->getUsed(j))
+        {
+          printf("Warning: Used by Current in RPS is different between intra and inter RPS specified in the config file.\n");
+          rps->setUsed(j,RPSTemp.getUsed(j));
+        }
+      }
+#endif
+    }
+#else
     rps->setInterRPSPrediction(ge.m_interRPSPrediction);
     if (ge.m_interRPSPrediction)
     {
@@ -798,6 +790,7 @@ Void TEncTop::xInitRPS()
       numNeg = 0;
       numPos = 0;
       TComReferencePictureSet*     RPSRef = m_RPSList.getReferencePictureSet(i-(ge.m_deltaRIdxMinus1+1));
+
       for (Int j = 0; j < ge.m_numRefIdc; j++ )
       {
         if (ge.m_refIdc[j])
@@ -820,6 +813,7 @@ Void TEncTop::xInitRPS()
       rps->sortDeltaPOC();
 #endif
     }
+#endif //INTER_RPS_AUTO
   }
   
 }
@@ -856,30 +850,24 @@ Void TEncTop::selectReferencePictureSet(TComSlice* slice, Int POCCurr, Int GOPid
 
 Void  TEncTop::xInitPPSforTiles()
 {
-    m_cPPS.setColumnRowInfoPresent( m_iColumnRowInfoPresent );
-    m_cPPS.setUniformSpacingIdr( m_iUniformSpacingIdr );
-#if !REMOVE_TILE_DEPENDENCE
-    m_cPPS.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
-#endif
-    m_cPPS.setNumColumnsMinus1( m_iNumColumnsMinus1 );
-    m_cPPS.setNumRowsMinus1( m_iNumRowsMinus1 );
-    if( m_iUniformSpacingIdr == 0 )
-    {
-      m_cPPS.setColumnWidth( m_puiColumnWidth );
-      m_cPPS.setRowHeight( m_puiRowHeight );
-    }
-    m_cPPS.setTileBehaviorControlPresentFlag( m_iTileBehaviorControlPresentFlag );
-    m_cPPS.setLFCrossTileBoundaryFlag( m_bLFCrossTileBoundaryFlag );
+  m_cPPS.setColumnRowInfoPresent( m_iColumnRowInfoPresent );
+  m_cPPS.setUniformSpacingIdr( m_iUniformSpacingIdr );
+  m_cPPS.setNumColumnsMinus1( m_iNumColumnsMinus1 );
+  m_cPPS.setNumRowsMinus1( m_iNumRowsMinus1 );
+  if( m_iUniformSpacingIdr == 0 )
+  {
+    m_cPPS.setColumnWidth( m_puiColumnWidth );
+    m_cPPS.setRowHeight( m_puiRowHeight );
+  }
+  m_cPPS.setTileBehaviorControlPresentFlag( m_iTileBehaviorControlPresentFlag );
+  m_cPPS.setLFCrossTileBoundaryFlag( m_bLFCrossTileBoundaryFlag );
 
-    // # substreams is "per tile" when tiles are independent.
-    if (m_iWaveFrontSynchro
-#if !REMOVE_TILE_DEPENDENCE
-        && m_iTileBoundaryIndependenceIdr
-#endif
-        )
-    {
-      m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams * (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1));
-    }
+  // # substreams is "per tile" when tiles are independent.
+  if (m_iWaveFrontSynchro
+    )
+  {
+    m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams * (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1));
+  }
 }
 
 Void  TEncCfg::xCheckGSParameters()
@@ -905,7 +893,9 @@ Void  TEncCfg::xCheckGSParameters()
   if( m_iNumColumnsMinus1 && m_iUniformSpacingIdr==0 )
   {
     for(Int i=0; i<m_iNumColumnsMinus1; i++)
+    {
       uiCummulativeColumnWidth += m_puiColumnWidth[i];
+    }
 
     if( uiCummulativeColumnWidth >= iWidthInCU )
     {

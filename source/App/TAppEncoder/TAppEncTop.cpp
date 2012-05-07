@@ -71,13 +71,11 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setFrameSkip                    ( m_FrameSkip );
   m_cTEncTop.setSourceWidth                  ( m_iSourceWidth );
   m_cTEncTop.setSourceHeight                 ( m_iSourceHeight );
-#if PIC_CROPPING
   m_cTEncTop.setCroppingMode                 ( m_croppingMode );
   m_cTEncTop.setCropLeft                     ( m_cropLeft );
   m_cTEncTop.setCropRight                    ( m_cropRight );
   m_cTEncTop.setCropTop                      ( m_cropTop );
   m_cTEncTop.setCropBottom                   ( m_cropBottom );
-#endif
   m_cTEncTop.setFrameToBeEncoded             ( m_iFrameToBeEncoded );
   
   //====== Coding Structure ========
@@ -86,16 +84,11 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setGOPSize                      ( m_iGOPSize );
   m_cTEncTop.setGopList                      ( m_GOPList );
   m_cTEncTop.setExtraRPSs                    ( m_extraRPSs );
-#if H0567_DPB_PARAMETERS_PER_TEMPORAL_LAYER
   for(Int i = 0; i < MAX_TLAYER; i++)
   {
     m_cTEncTop.setNumReorderPics             ( m_numReorderPics[i], i );
     m_cTEncTop.setMaxDecPicBuffering         ( m_maxDecPicBuffering[i], i );
   }
-#else
-  m_cTEncTop.setNumReorderFrames             ( m_numReorderFrames );
-  m_cTEncTop.setMaxNumberOfReferencePictures ( m_maxNumberOfReferencePictures );
-#endif
   for( UInt uiLoop = 0; uiLoop < MAX_TLAYER; ++uiLoop )
   {
     m_cTEncTop.setLambdaModifier( uiLoop, m_adLambdaModifier[ uiLoop ] );
@@ -105,12 +98,7 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setTemporalLayerQPOffset        ( m_aiTLayerQPOffset );
   m_cTEncTop.setPad                          ( m_aiPad );
     
-#if H0566_TLA
   m_cTEncTop.setMaxTempLayer                 ( m_maxTempLayer );
-#else
-  m_cTEncTop.setTLayering                    ( m_bTLayering );
-  m_cTEncTop.setTLayerSwitchingFlag          ( m_abTLayerSwitchingFlag );
-#endif
 
   m_cTEncTop.setDisInter4x4                  ( m_bDisInter4x4);
   
@@ -124,9 +112,7 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setLoopFilterOffsetInAPS        ( m_loopFilterOffsetInAPS );
   m_cTEncTop.setLoopFilterBetaOffset         ( m_loopFilterBetaOffsetDiv2  );
   m_cTEncTop.setLoopFilterTcOffset           ( m_loopFilterTcOffsetDiv2    );
-#if DBL_CONTROL
   m_cTEncTop.setDeblockingFilterControlPresent( m_DeblockingFilterControlPresent);
-#endif
 
   //====== Motion search ========
   m_cTEncTop.setFastSearch                   ( m_iFastSearch  );
@@ -137,8 +123,8 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setMaxDeltaQP                   ( m_iMaxDeltaQP  );
   m_cTEncTop.setMaxCuDQPDepth                ( m_iMaxCuDQPDepth  );
 
-  m_cTEncTop.setChromaQpOffset               ( m_iChromaQpOffset     );
-  m_cTEncTop.setChromaQpOffset2nd            ( m_iChromaQpOffset2nd  );
+  m_cTEncTop.setChromaCbQpOffset               ( m_cbQpOffset     );
+  m_cTEncTop.setChromaCrQpOffset            ( m_crQpOffset  );
 
 #if ADAPTIVE_QP_SELECTION
   m_cTEncTop.setUseAdaptQpSelect             ( m_bUseAdaptQpSelect   );
@@ -146,11 +132,7 @@ Void TAppEncTop::xInitLibCfg()
 
 #if LOSSLESS_CODING
   Int lowestQP;
-#if H0736_AVC_STYLE_QP_RANGE
   lowestQP =  - ( (Int)(6*(g_uiBitDepth + g_uiBitIncrement - 8)) );
-#else
-  lowestQP = 0;
-#endif
 
   if ((m_iMaxDeltaQP == 0 ) && (m_iQP == lowestQP) && (m_useLossless == true))
   {
@@ -177,22 +159,15 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setLCMod                        ( m_bLCMod         );
   m_cTEncTop.setdQPs                         ( m_aidQP        );
   m_cTEncTop.setUseRDOQ                      ( m_bUseRDOQ     );
-#if !PIC_CROPPING
-  m_cTEncTop.setUsePAD                       ( m_bUsePAD      );
-#endif
   m_cTEncTop.setQuadtreeTULog2MaxSize        ( m_uiQuadtreeTULog2MaxSize );
   m_cTEncTop.setQuadtreeTULog2MinSize        ( m_uiQuadtreeTULog2MinSize );
   m_cTEncTop.setQuadtreeTUMaxDepthInter      ( m_uiQuadtreeTUMaxDepthInter );
   m_cTEncTop.setQuadtreeTUMaxDepthIntra      ( m_uiQuadtreeTUMaxDepthIntra );
   m_cTEncTop.setUseFastEnc                   ( m_bUseFastEnc  );
   m_cTEncTop.setUseEarlyCU                   ( m_bUseEarlyCU  ); 
-#if FAST_DECISION_FOR_MRG_RD_COST
   m_cTEncTop.setUseFastDecisionForMerge      ( m_useFastDecisionForMerge  );
-#endif
   m_cTEncTop.setUseCbfFastMode            ( m_bUseCbfFastMode  );
-#if EARLY_SKIP_DETECTION
   m_cTEncTop.setUseEarlySkipDetection            ( m_useEarlySkipDetection );
-#endif
 
   m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );
@@ -219,12 +194,10 @@ Void TAppEncTop::xInitLibCfg()
   {
     m_cTEncTop.setSliceArgument ( m_iSliceArgument * ( iNumPartInCU >> ( m_iSliceGranularity << 1 ) ) );
   }
-#if FIXED_NUMBER_OF_TILES_SLICE_MODE
   if(m_iSliceMode==AD_HOC_SLICES_FIXED_NUMBER_OF_TILES_IN_SLICE)
   {
     m_cTEncTop.setSliceArgument ( m_iSliceArgument );
   }
-#endif
   
   m_cTEncTop.setSliceGranularity        ( m_iSliceGranularity         );
   if(m_iSliceMode == 0 )
@@ -233,10 +206,8 @@ Void TAppEncTop::xInitLibCfg()
   }
   m_cTEncTop.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
   m_cTEncTop.setUseSAO ( m_bUseSAO );
-#if SAO_UNIT_INTERLEAVING
   m_cTEncTop.setMaxNumOffsetsPerPic (m_maxNumOffsetsPerPic);
   m_cTEncTop.setSaoInterleavingFlag (m_saoInterleavingFlag);
-#endif
   m_cTEncTop.setPCMInputBitDepthFlag  ( m_bPCMInputBitDepthFlag); 
   m_cTEncTop.setPCMFilterDisableFlag  ( m_bPCMFilterDisableFlag); 
 
@@ -244,9 +215,6 @@ Void TAppEncTop::xInitLibCfg()
 
   m_cTEncTop.setColumnRowInfoPresent       ( m_iColumnRowInfoPresent );
   m_cTEncTop.setUniformSpacingIdr          ( m_iUniformSpacingIdr );
-#if !REMOVE_TILE_DEPENDENCE
-  m_cTEncTop.setTileBoundaryIndependenceIdr( m_iTileBoundaryIndependenceIdr );
-#endif
   m_cTEncTop.setNumColumnsMinus1           ( m_iNumColumnsMinus1 );
   m_cTEncTop.setNumRowsMinus1              ( m_iNumRowsMinus1 );
   if(m_iUniformSpacingIdr==0)
@@ -263,11 +231,7 @@ Void TAppEncTop::xInitLibCfg()
   m_dMaxTileMarkerOffset  = ((Double)uiTilesCount) / m_iMaxTileMarkerEntryPoints;
   m_cTEncTop.setMaxTileMarkerOffset         ( m_dMaxTileMarkerOffset );
   m_cTEncTop.setTileBehaviorControlPresentFlag( m_iTileBehaviorControlPresentFlag );
-#if !REMOVE_TILE_DEPENDENCE
-  if(m_iTileBoundaryIndependenceIdr == 0 || uiTilesCount == 1)
-#else
   if(uiTilesCount == 1)
-#endif
   {
     m_bLFCrossTileBoundaryFlag = true; 
   }
@@ -278,12 +242,9 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setEnableTMVP ( m_enableTMVP );
   m_cTEncTop.setUseScalingListId           ( m_useScalingListId  );
   m_cTEncTop.setScalingListFile            ( m_scalingListFile   );
-#if MULTIBITS_DATA_HIDING
   m_cTEncTop.setSignHideFlag(m_signHideFlag);
   m_cTEncTop.setTSIG(m_signHidingThreshold);
-#endif
 
-#if LCU_SYNTAX_ALF
   if(uiTilesCount > 1)
   {
     m_bALFParamInSlice = false;
@@ -291,12 +252,9 @@ Void TAppEncTop::xInitLibCfg()
   }
   m_cTEncTop.setALFParamInSlice              ( m_bALFParamInSlice);
   m_cTEncTop.setALFPicBasedEncode            ( m_bALFPicBasedEncode);
-#endif
-#if RATECTRL
   m_cTEncTop.setUseRateCtrl     ( m_enableRateCtrl);
   m_cTEncTop.setTargetBitrate   ( m_targetBitrate);
   m_cTEncTop.setNumLCUInUnit    ( m_numLCUInUnit);
-#endif
 }
 
 Void TAppEncTop::xCreateLib()
@@ -470,13 +428,9 @@ Void TAppEncTop::xWriteOutput(std::ostream& bitstreamFile, Int iNumEncoded, cons
   {
     TComPicYuv*  pcPicYuvRec  = *(iterPicYuvRec++);
     if (m_pchReconFile)
-#if PIC_CROPPING
     {
       m_cTVideoIOYuvReconFile.write( pcPicYuvRec, m_cropLeft, m_cropRight, m_cropTop, m_cropBottom );
     }
-#else
-      m_cTVideoIOYuvReconFile.write( pcPicYuvRec, m_aiPad );
-#endif
 
     const AccessUnit& au = *(iterBitstream++);
     const vector<unsigned>& stats = writeAnnexB(bitstreamFile, au);
@@ -497,14 +451,8 @@ void TAppEncTop::rateStatsAccum(const AccessUnit& au, const std::vector<unsigned
     switch ((*it_au)->m_nalUnitType)
     {
     case NAL_UNIT_CODED_SLICE:
-#if H0566_TLA
     case NAL_UNIT_CODED_SLICE_TLA:
     case NAL_UNIT_CODED_SLICE_CRA:
-#else
-    case NAL_UNIT_CODED_SLICE_DATAPART_A:
-    case NAL_UNIT_CODED_SLICE_DATAPART_B:
-    case NAL_UNIT_CODED_SLICE_CDR:
-#endif
     case NAL_UNIT_CODED_SLICE_IDR:
     case NAL_UNIT_SPS:
     case NAL_UNIT_PPS:

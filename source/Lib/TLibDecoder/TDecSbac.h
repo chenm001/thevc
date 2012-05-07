@@ -73,38 +73,21 @@ public:
   Void loadContexts                  ( TDecSbac* pScr );
   Void xCopyFrom           ( TDecSbac* pSrc );
   Void xCopyContextsFrom       ( TDecSbac* pSrc );
-#if OL_FLUSH
   Void decodeFlush();
-#endif
 
-#if CABAC_INIT_FLAG
   Void  resetEntropy (TComSlice* pSlice );
-#else
-  Void  resetEntropywithQPandInitIDC ( Int  iQp, Int iID);
-  Void  resetEntropy                 ( Int  iQp, Int iID      ) { resetEntropywithQPandInitIDC(iQp, iID);                                      }
-  Void  resetEntropy                 ( TComSlice* pcSlice     ) { resetEntropywithQPandInitIDC(pcSlice->getSliceQp(), pcSlice->getCABACinitIDC());}
-#endif
   Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
   
   Void  parseSPS                  ( TComSPS* pcSPS         ) {}
-#if TILES_OR_ENTROPY_SYNC_IDC  
   Void  parsePPS                  ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet         ) {}
-#else
-  Void  parsePPS                  ( TComPPS* pcPPS         ) {}
-#endif
   Void  parseAPS                  ( TComAPS* pAPS          ) {}
   void parseSEI(SEImessages&) {}
 
-#if LCU_SYNTAX_ALF
   Void  parseSliceHeader          ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl, AlfParamSet& alfParamSet) {}
-#else
-  Void  parseSliceHeader          ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl ) {}
-#endif
 
   Void  parseTerminatingBit       ( UInt& ruiBit );
   Void  parseMVPIdx               ( Int& riMVPIdx          );
   
-#if SAO_UNIT_INTERLEAVING
   Void  parseSaoUvlc              ( UInt& ruiVal           );
   Void  parseSaoSvlc              ( Int&  riVal            );
   Void  parseSaoMergeLeft         ( UInt&  ruiVal, UInt uiCompIdx   );
@@ -113,7 +96,6 @@ public:
   Void  parseSaoUflc              ( UInt& ruiVal           );
   Void  parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, TComDataCU* pcCU, Int iCUAddrInSlice, Int iCUAddrUpInSlice, Bool bLFCrossSliceBoundaryFlag);
   Void  parseSaoOffset            (SaoLcuParam* psSaoLcuParam);
-#endif
 private:
   Void  xReadUnarySymbol    ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset );
   Void  xReadUnaryMaxSymbol ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );
@@ -201,20 +183,13 @@ private:
   ContextModel3DBuffer m_cALFFlagSCModel;
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;
-#if AMP_CTX
   ContextModel3DBuffer m_cCUAMPSCModel;
-#else
-  ContextModel3DBuffer m_cCUXPosiSCModel;
-  ContextModel3DBuffer m_cCUYPosiSCModel;
-#endif
   ContextModel3DBuffer m_cSaoFlagSCModel;
   ContextModel3DBuffer m_cSaoUvlcSCModel;
   ContextModel3DBuffer m_cSaoSvlcSCModel;
-#if SAO_UNIT_INTERLEAVING
   ContextModel3DBuffer m_cSaoMergeLeftSCModel;
   ContextModel3DBuffer m_cSaoMergeUpSCModel;
   ContextModel3DBuffer m_cSaoTypeIdxSCModel;
-#endif
 
 };
 

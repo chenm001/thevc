@@ -45,41 +45,10 @@
 //! \{
 
 
-#if !LCU_SYNTAX_ALF
-ALFParam::~ALFParam()
-{
-  if (coeff_chroma != NULL)
-  {
-    delete[] coeff_chroma;
-  }
-  if (coeffmulti)
-  {
-    for (Int i=0; i<NO_VAR_BINS; i++)
-    {
-      if (coeffmulti[i] != NULL)
-      {
-        delete[] coeffmulti[i];
-      }
-    }
-    delete[] coeffmulti;
-  }
-
-  if (nbSPred != NULL)
-  {
-    delete[] nbSPred;
-  }
-  if (filterPattern != NULL)
-  {
-    delete[] filterPattern;
-  }
-}
-#endif
-
 // ====================================================================================================================
 // Tables
 // ====================================================================================================================
 
-#if ALF_SINGLE_FILTER_SHAPE
 Int TComAdaptiveLoopFilter::weightsShape1Sym[ALF_MAX_NUM_COEF+1] = 
 { 
               2,
@@ -108,64 +77,7 @@ Int* pDepthIntTabShapes[NUM_ALF_FILTER_SHAPE] =
 { 
   depthIntShape1Sym
 };
-#else
-//Shape0: Star5x5
-Int TComAdaptiveLoopFilter::weightsShape0Sym[10] = 
-{
-  2,    2,    2,    
-  2, 2, 2,        
-  2, 2, 1, 1
-};
 
-
-//Shape1: Cross9x9
-Int TComAdaptiveLoopFilter::weightsShape1Sym[10] = 
-{ 
-              2,
-              2,
-              2,
-              2,
-  2, 2, 2, 2, 1, 
-              1
-};
-
-
-Int* TComAdaptiveLoopFilter::weightsTabShapes[NUM_ALF_FILTER_SHAPE] =
-{
-  weightsShape0Sym, weightsShape1Sym
-};
-
-Int TComAdaptiveLoopFilter::m_sqrFiltLengthTab[NUM_ALF_FILTER_SHAPE] =
-{
-  9, 9
-};
-
-// Shape0
-Int depthIntShape0Sym[10] = 
-{
-  1,    3,    1,
-  3, 4, 3, 
-  3, 4, 5, 5                 
-};
-// Shape1
-Int depthIntShape1Sym[10] = 
-{
-              5,
-              6,
-              7,
-              8,
-  5, 6, 7, 8, 9, 
-              9  
-};
-
-
-Int* pDepthIntTabShapes[NUM_ALF_FILTER_SHAPE] =
-{ 
-  depthIntShape0Sym, depthIntShape1Sym
-};
-#endif
-
-#if LCU_SYNTAX_ALF
 Int kTableShape1[ALF_MAX_NUM_COEF+1] = 
 {      
               2,
@@ -178,7 +90,6 @@ Int* kTableTabShapes[NUM_ALF_FILTER_SHAPE] =
 { 
   kTableShape1
 };
-#endif
 
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
@@ -193,7 +104,6 @@ const AlfCUCtrlInfo& AlfCUCtrlInfo::operator= (const AlfCUCtrlInfo& src)
   return *this;
 }
 
-#if LCU_SYNTAX_ALF
 /// AlfCUCtrlInfo
 Void AlfCUCtrlInfo::reset()
 {
@@ -529,11 +439,6 @@ Void AlfParamSet::destroy()
   }
 }
 
-#endif
-
-
-
-
 TComAdaptiveLoopFilter::TComAdaptiveLoopFilter()
 {
   m_pcTempPicYuv = NULL;
@@ -542,15 +447,12 @@ TComAdaptiveLoopFilter::TComAdaptiveLoopFilter()
   m_ppSliceAlfLCUs = NULL;
   m_pvpAlfLCU    = NULL;
   m_pvpSliceTileAlfLCU = NULL;
-#if LCU_SYNTAX_ALF
   for(Int c=0; c< NUM_ALF_COMPONENT; c++)
   {
     m_alfFiltInfo[c] = NULL;
   }
   m_varImg = NULL;
   m_filterCoeffSym = NULL;
-#endif
-
 }
 
 Void TComAdaptiveLoopFilter:: xError(const char *text, int code)
@@ -754,9 +656,7 @@ Void TComAdaptiveLoopFilter::destroyMatrix4D_double(double ****m4D, int d1, int 
 
 Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth )
 {
-#if LCU_SYNTAX_ALF
   destroy();
-#endif
   if ( !m_pcTempPicYuv )
   {
     m_pcTempPicYuv = new TComPicYuv;
@@ -764,14 +664,7 @@ Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCU
   }
   m_img_height = iPicHeight;
   m_img_width = iPicWidth;
-#if LCU_SYNTAX_ALF
   initMatrix_Pel(&(m_varImg), m_img_height, m_img_width);
-#else
-  for(Int i=0; i< NUM_ALF_CLASS_METHOD; i++)
-  {
-    initMatrix_Pel(&(m_varImgMethods[i]), m_img_height, m_img_width);
-  }
-#endif
   initMatrix_int(&m_filterCoeffSym, NO_VAR_BINS, ALF_MAX_NUM_COEF);
   UInt uiNumLCUsInWidth   = m_img_width  / uiMaxCUWidth;
   UInt uiNumLCUsInHeight  = m_img_height / uiMaxCUHeight;
@@ -781,29 +674,17 @@ Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCU
 
   m_uiNumCUsInFrame = uiNumLCUsInWidth* uiNumLCUsInHeight; 
 
-#if LCU_SYNTAX_ALF
   m_numLCUInPicWidth = uiNumLCUsInWidth;
   m_numLCUInPicHeight= uiNumLCUsInHeight;
   m_lcuHeight = uiMaxCUHeight;
-#if ALF_SINGLE_FILTER_SHAPE
   m_lineIdxPadBot = m_lcuHeight - 4 - 3; // DFRegion, Vertical Taps
-#else
-  m_lineIdxPadBot = m_lcuHeight - 4 - 4; // DFRegion, Vertical Taps
-#endif
   m_lineIdxPadTop = m_lcuHeight - 4; // DFRegion
 
   m_lcuHeightChroma = m_lcuHeight>>1;
-#if ALF_SINGLE_FILTER_SHAPE
   m_lineIdxPadBotChroma = m_lcuHeightChroma - 2 - 3; // DFRegion, Vertical Taps
-#else
-  m_lineIdxPadBotChroma = m_lcuHeightChroma - 2 - 4; // DFRegion, Vertical Taps
-#endif
   m_lineIdxPadTopChroma = m_lcuHeightChroma - 2 ; // DFRegion
 
   createLCUAlfInfo();
-#else
-  createRegionIndexMap(m_varImgMethods[ALF_RA], m_img_width, m_img_height);
-#endif
 }
 
 Void TComAdaptiveLoopFilter::destroy()
@@ -812,11 +693,8 @@ Void TComAdaptiveLoopFilter::destroy()
   {
     m_pcTempPicYuv->destroy();
     delete m_pcTempPicYuv;
-#if LCU_SYNTAX_ALF
     m_pcTempPicYuv = NULL;
-#endif
   }
-#if LCU_SYNTAX_ALF
   if(m_varImg != NULL)
   {
     destroyMatrix_Pel( m_varImg );
@@ -827,133 +705,13 @@ Void TComAdaptiveLoopFilter::destroy()
     destroyMatrix_int(m_filterCoeffSym);
     m_filterCoeffSym = NULL;
   }
-#else
-  for(Int i=0; i< NUM_ALF_CLASS_METHOD; i++)
-  {
-    destroyMatrix_Pel(m_varImgMethods[i]);
-  }
-  destroyMatrix_int(m_filterCoeffSym);
-#endif
-#if LCU_SYNTAX_ALF
   destroyLCUAlfInfo();
-#endif
-
 }
-
-#if !LCU_SYNTAX_ALF
-// --------------------------------------------------------------------------------------------------------------------
-// allocate / free / copy functions
-// --------------------------------------------------------------------------------------------------------------------
-Void TComAdaptiveLoopFilter::allocALFParam(ALFParam* pAlfParam)
-{
-  pAlfParam->alf_flag = 0;
-  pAlfParam->coeff_chroma = new Int[ALF_MAX_NUM_COEF];
-  ::memset(pAlfParam->coeff_chroma, 0, sizeof(Int)*ALF_MAX_NUM_COEF );
-  pAlfParam->coeffmulti = new Int*[NO_VAR_BINS];
-  for (int i=0; i<NO_VAR_BINS; i++)
-  {
-    pAlfParam->coeffmulti[i] = new Int[ALF_MAX_NUM_COEF];
-    ::memset(pAlfParam->coeffmulti[i],        0, sizeof(Int)*ALF_MAX_NUM_COEF );
-  }
-  pAlfParam->nbSPred = new Int[NO_VAR_BINS];
-  ::memset(pAlfParam->nbSPred, 0, sizeof(Int)*NO_VAR_BINS);
-  pAlfParam->filterPattern = new Int[NO_VAR_BINS];
-  ::memset(pAlfParam->filterPattern, 0, sizeof(Int)*NO_VAR_BINS);
-  pAlfParam->alf_pcr_region_flag = 0;
-}
-
-Void TComAdaptiveLoopFilter::freeALFParam(ALFParam* pAlfParam)
-{
-  assert(pAlfParam != NULL);
-  if (pAlfParam->coeff_chroma != NULL)
-  {
-    delete[] pAlfParam->coeff_chroma;
-    pAlfParam->coeff_chroma = NULL;
-  }
-  for (int i=0; i<NO_VAR_BINS; i++)
-  {
-    delete[] pAlfParam->coeffmulti[i];
-    pAlfParam->coeffmulti[i] = NULL;
-  }
-  delete[] pAlfParam->coeffmulti;
-  pAlfParam->coeffmulti = NULL;
-
-  delete[] pAlfParam->nbSPred;
-  pAlfParam->nbSPred = NULL;
-
-  delete[] pAlfParam->filterPattern;
-  pAlfParam->filterPattern = NULL;
-}
-
-
-Void TComAdaptiveLoopFilter::copyALFParam(ALFParam* pDesAlfParam, ALFParam* pSrcAlfParam)
-{
-  pDesAlfParam->alf_flag = pSrcAlfParam->alf_flag;
-  pDesAlfParam->chroma_idc = pSrcAlfParam->chroma_idc;
-  pDesAlfParam->num_coeff = pSrcAlfParam->num_coeff;
-  pDesAlfParam->filter_shape_chroma = pSrcAlfParam->filter_shape_chroma;
-  pDesAlfParam->num_coeff_chroma = pSrcAlfParam->num_coeff_chroma;
-  pDesAlfParam->alf_pcr_region_flag = pSrcAlfParam->alf_pcr_region_flag;
-  ::memcpy(pDesAlfParam->coeff_chroma, pSrcAlfParam->coeff_chroma, sizeof(Int)*ALF_MAX_NUM_COEF);
-  pDesAlfParam->filter_shape = pSrcAlfParam->filter_shape;
-  ::memcpy(pDesAlfParam->filterPattern, pSrcAlfParam->filterPattern, sizeof(Int)*NO_VAR_BINS);
-  pDesAlfParam->startSecondFilter = pSrcAlfParam->startSecondFilter;
-
-  //Coeff send related
-  pDesAlfParam->filters_per_group = pSrcAlfParam->filters_per_group; //this can be updated using codedVarBins
-  pDesAlfParam->predMethod = pSrcAlfParam->predMethod;
-  ::memcpy(pDesAlfParam->nbSPred, pSrcAlfParam->nbSPred, sizeof(Int)*NO_VAR_BINS);
-  for (int i=0; i<NO_VAR_BINS; i++)
-  {
-    ::memcpy(pDesAlfParam->coeffmulti[i], pSrcAlfParam->coeffmulti[i], sizeof(Int)*ALF_MAX_NUM_COEF);
-  }
-}
-// --------------------------------------------------------------------------------------------------------------------
-// prediction of filter coefficients
-// --------------------------------------------------------------------------------------------------------------------
-
-Void TComAdaptiveLoopFilter::predictALFCoeffChroma( ALFParam* pAlfParam )
-{
-  Int i, sum, pred, N;
-  const Int* pFiltMag = NULL;
-  pFiltMag = weightsTabShapes[pAlfParam->filter_shape_chroma];
-  N = pAlfParam->num_coeff_chroma;
-  sum=0;
-  for(i=0; i<N;i++)
-  {
-    sum+=pFiltMag[i]*pAlfParam->coeff_chroma[i];
-  }
-  pred=(1<<ALF_NUM_BIT_SHIFT)-(sum-pAlfParam->coeff_chroma[N-1]);
-#if ALF_CHROMA_COEF_PRED_HARMONIZATION
-  pAlfParam->coeff_chroma[N-1]=pAlfParam->coeff_chroma[N-1] - pred;
-#else
-  pAlfParam->coeff_chroma[N-1]=pred-pAlfParam->coeff_chroma[N-1];
-#endif
-}
-
-#if ALF_CHROMA_COEF_PRED_HARMONIZATION
-Void TComAdaptiveLoopFilter::reconstructALFCoeffChroma( ALFParam* pAlfParam )
-{
-  Int i, sum, pred, N;
-  const Int* pFiltMag = NULL;
-  pFiltMag = weightsTabShapes[pAlfParam->filter_shape_chroma];
-  N = pAlfParam->num_coeff_chroma;
-  sum=0;
-  for(i=0; i<N;i++)
-  {
-    sum+=pFiltMag[i]*pAlfParam->coeff_chroma[i];
-  }
-  pred=(1<<ALF_NUM_BIT_SHIFT)-(sum-pAlfParam->coeff_chroma[N-1]);
-  pAlfParam->coeff_chroma[N-1]=pred+ pAlfParam->coeff_chroma[N-1];
-}
-#endif
-#endif
 
 // --------------------------------------------------------------------------------------------------------------------
 // interface function for actual ALF process
 // --------------------------------------------------------------------------------------------------------------------
 
-#if LCU_SYNTAX_ALF
 /** ALF reconstruction process for one picture
  * \param [in, out] pcPic the decoded/filtered picture (input: decoded picture; output filtered picture)
  * \param [in] vAlfCUCtrlParam ALF CU-on/off control parameters
@@ -1112,75 +870,6 @@ Void TComAdaptiveLoopFilter::assignAlfOnOffControlFlags(TComPic* pcPic, std::vec
 
 }
 
-#else
-
-/**
- \param [in, out] pcPic         picture (TComPic) class (input/output)
- \param [in] pcAlfParam    ALF parameter
- \param [in,out] vAlfCUCtrlParam ALF CU control parameters
- \todo   for temporal buffer, it uses residual picture buffer, which may not be safe. Make it be safer.
- */
-Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam)
-{
-  assert(m_uiNumSlicesInPic == vAlfCUCtrlParam.size());
-  if(!pcAlfParam->alf_flag)
-  {
-    return;
-  }
-
-  m_lcuHeight     = pcPic->getSlice(0)->getSPS()->getMaxCUHeight();
-#if ALF_SINGLE_FILTER_SHAPE
-  m_lineIdxPadBot = m_lcuHeight - 4 - 3;             // DFRegion, Vertical Taps
-#else
-  m_lineIdxPadBot = m_lcuHeight - 4 - 4;             // DFRegion, Vertical Taps
-#endif
-  m_lineIdxPadTop = m_lcuHeight - 4;                 // DFRegion
-
-  m_lcuHeightChroma     = m_lcuHeight>>1;
-#if ALF_SINGLE_FILTER_SHAPE
-  m_lineIdxPadBotChroma = m_lcuHeightChroma - 2 - 3; // DFRegion, Vertical Taps
-#else
-  m_lineIdxPadBotChroma = m_lcuHeightChroma - 2 - 4; // DFRegion, Vertical Taps
-#endif
-  m_lineIdxPadTopChroma = m_lcuHeightChroma - 2 ;    // DFRegion
-
-  TComPicYuv* pcPicYuvRec    = pcPic->getPicYuvRec();
-  TComPicYuv* pcPicYuvExtRec = m_pcTempPicYuv;
-    pcPicYuvRec   ->copyToPic          ( pcPicYuvExtRec );
-    pcPicYuvExtRec->setBorderExtension ( false );
-    pcPicYuvExtRec->extendPicBorder    ();
-
-  if(m_uiNumSlicesInPic == 1)
-  {
-    AlfCUCtrlInfo* pcAlfCtrlParam = &(vAlfCUCtrlParam[0]);
-    if(pcAlfCtrlParam->cu_control_flag)
-    {
-      UInt idx = 0;
-      for(UInt uiCUAddr = 0; uiCUAddr < pcPic->getNumCUsInFrame(); uiCUAddr++)
-      {
-        TComDataCU *pcCU = pcPic->getCU(uiCUAddr);
-        setAlfCtrlFlags(pcAlfCtrlParam, pcCU, 0, 0, idx);
-      }
-    }
-  }
-  else
-  {
-    transferCtrlFlagsFromAlfParam(vAlfCUCtrlParam);
-  }
-  xALFLuma(pcPic, pcAlfParam, vAlfCUCtrlParam, pcPicYuvExtRec, pcPicYuvRec);
-  if(pcAlfParam->chroma_idc)
-  {
-#if ALF_CHROMA_COEF_PRED_HARMONIZATION
-    reconstructALFCoeffChroma(pcAlfParam);
-#else
-    predictALFCoeffChroma(pcAlfParam);
-#endif
-    checkFilterCoeffValue(pcAlfParam->coeff_chroma, pcAlfParam->num_coeff_chroma, true );
-
-    xALFChroma( pcAlfParam, pcPicYuvExtRec, pcPicYuvRec);
-  }
-}
-#endif
 // ====================================================================================================================
 // Protected member functions
 // ====================================================================================================================
@@ -1215,1198 +904,12 @@ Void TComAdaptiveLoopFilter::checkFilterCoeffValue( Int *filter, Int filterLengt
   filter[filterLength-1] = Clip3(minValueCenter, maxValueCenter, filter[filterLength-1]);
 }
 
-#if !LCU_SYNTAX_ALF
-
-Void TComAdaptiveLoopFilter::xALFLuma(TComPic* pcPic, ALFParam* pcAlfParam, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam,TComPicYuv* pcPicDec, TComPicYuv* pcPicRest)
-{
-  Int    LumaStride = pcPicDec->getStride();
-  Pel* pDec = pcPicDec->getLumaAddr();
-  Pel* pRest = pcPicRest->getLumaAddr();
-
-  decodeFilterSet(pcAlfParam, m_varIndTab, m_filterCoeffSym);
-
-  m_uiVarGenMethod = pcAlfParam->alf_pcr_region_flag;
-  m_varImg         = m_varImgMethods[m_uiVarGenMethod];
-  calcVar(m_varImg, pRest, LumaStride, pcAlfParam->alf_pcr_region_flag);
-
-  if(!m_bUseNonCrossALF)
-  {
-    Bool bCUCtrlEnabled = false;
-    for(UInt s=0; s< m_uiNumSlicesInPic; s++)
-    {
-      if(!pcPic->getValidSlice(s))
-      {
-        continue;
-      }
-      if( vAlfCUCtrlParam[s].cu_control_flag == 1)
-      {
-        bCUCtrlEnabled = true;
-      }
-    }
-
-    if(bCUCtrlEnabled)  
-    {
-      xCUAdaptive(pcPic, pcAlfParam->filter_shape, pRest, pDec, LumaStride);
-    }  
-    else
-    {
-      filterLuma(pRest, pDec, LumaStride, 0, m_img_height-1, 0, m_img_width-1,  pcAlfParam->filter_shape, m_filterCoeffSym, m_varIndTab, m_varImg);
-    }
-  }
-  else
-  {
-    Pel* pTemp = m_pcSliceYuvTmp->getLumaAddr();
-    for(UInt s=0; s< m_uiNumSlicesInPic; s++)
-    {
-      if(!pcPic->getValidSlice(s)) 
-      {
-        continue;
-      }
-      std::vector< std::vector<AlfLCUInfo*> > & vpSliceTileAlfLCU = m_pvpSliceTileAlfLCU[s];
-
-      for(Int t=0; t< (Int)vpSliceTileAlfLCU.size(); t++)
-      {
-        std::vector<AlfLCUInfo*> & vpAlfLCU = vpSliceTileAlfLCU[t];
-
-        copyRegion(vpAlfLCU, pTemp, pDec, LumaStride);
-        extendRegionBorder(vpAlfLCU, pTemp, LumaStride);
-        if(vAlfCUCtrlParam[s].cu_control_flag == 1)
-        {
-          xCUAdaptiveRegion(vpAlfLCU, pTemp, pRest, LumaStride, pcAlfParam->filter_shape, m_filterCoeffSym, m_varIndTab, m_varImg);
-        }
-        else
-        {
-          filterLumaRegion(vpAlfLCU, pTemp, pRest, LumaStride, pcAlfParam->filter_shape, m_filterCoeffSym, m_varIndTab, m_varImg);
-        }
-      }
-    }
-  }
-}
-
-Void TComAdaptiveLoopFilter::decodeFilterSet(ALFParam* pcAlfParam, Int* varIndTab, Int** filterCoeff)
-{
-  // reconstruct merge table
-  memset(m_varIndTab, 0, NO_VAR_BINS * sizeof(Int));
-  if(pcAlfParam->filters_per_group > 1)
-  {
-    for(Int i = 1; i < NO_VAR_BINS; ++i)
-    {
-      if(pcAlfParam->filterPattern[i])
-      {
-        varIndTab[i] = varIndTab[i-1] + 1;
-      }
-      else
-      {
-        varIndTab[i] = varIndTab[i-1];
-      }
-    }
-  }
-  predictALFCoeffLuma( pcAlfParam);
-  // reconstruct filter sets
-  reconstructFilterCoeffs( pcAlfParam, filterCoeff);
-
-}
-
-
-Void TComAdaptiveLoopFilter::filterLuma(Pel *pImgRes, Pel *pImgPad, Int stride, 
-  Int ypos, Int yposEnd, Int xpos, Int xposEnd, 
-  Int filtNo, Int** filterSet, Int* mergeTable, Pel** ppVarImg)
-{
-  static Int numBitsMinus1= (Int)ALF_NUM_BIT_SHIFT;
-  static Int offset       = (1<<( (Int)ALF_NUM_BIT_SHIFT-1));
-  static Int shiftHeight  = (Int)(log((double)VAR_SIZE_H)/log(2.0));
-  static Int shiftWidth   = (Int)(log((double)VAR_SIZE_W)/log(2.0));
-
-  Pel *pImgPad1,*pImgPad2,*pImgPad3,*pImgPad4;
-  Pel *pVar;
-  Int i, j, pixelInt;
-  Int *coef = NULL;
-
-  pImgPad    += (ypos*stride);
-  pImgRes    += (ypos*stride);
-
-  Int yLineInLCU;
-  Int paddingLine;
-#if !ALF_SINGLE_FILTER_SHAPE
-  Int varInd = 0;
-#endif
-  Int newCenterCoeff[4][NO_VAR_BINS];
-
-  for(i=0; i< 4; i++)
-  {
-    ::memset(&(newCenterCoeff[i][0]), 0, sizeof(Int)*NO_VAR_BINS);
-  }
-
-#if ALF_SINGLE_FILTER_SHAPE
-  if(filtNo == ALF_CROSS9x7_SQUARE3x3)
-#else
-  if(filtNo == ALF_CROSS9x9)
-#endif
-  {
-    for (i=0; i<NO_VAR_BINS; i++)
-    {
-      coef = filterSet[i];
-      //VB line 1
-      newCenterCoeff[0][i] = coef[8] + ((coef[0] + coef[1] + coef[2] + coef[3])<<1);
-      //VB line 2 
-      newCenterCoeff[1][i] = coef[8] + ((coef[0] + coef[1] + coef[2])<<1);
-      //VB line 3 
-      newCenterCoeff[2][i] = coef[8] + ((coef[0] + coef[1])<<1);
-      //VB line 4 
-      newCenterCoeff[3][i] = coef[8] + ((coef[0])<<1);
-    }
-  }
-
-
-  switch(filtNo)
-  {
-#if !ALF_SINGLE_FILTER_SHAPE
-  case ALF_STAR5x5:
-    {
-      for(i= ypos; i<= yposEnd; i++)
-      {
-
-        yLineInLCU = i % m_lcuHeight;   
-
-        if (yLineInLCU<m_lineIdxPadBot || i-yLineInLCU+m_lcuHeight >= m_img_height)
-        {
-          pImgPad1 = pImgPad +   stride;
-          pImgPad2 = pImgPad -   stride;
-          pImgPad3 = pImgPad + 2*stride;
-          pImgPad4 = pImgPad - 2*stride;
-        }
-        else if (yLineInLCU<m_lineIdxPadTop)
-        {
-          paddingLine = - yLineInLCU + m_lineIdxPadTop - 1;
-          pImgPad1 = pImgPad + min(paddingLine, 1)*stride;
-          pImgPad2 = pImgPad -   stride;
-          pImgPad3 = pImgPad + min(paddingLine, 2)*stride;
-          pImgPad4 = pImgPad - 2*stride;
-        }
-        else
-        {
-          paddingLine = yLineInLCU - m_lineIdxPadTop ;
-          pImgPad1 = pImgPad + stride;
-          pImgPad2 = pImgPad - min(paddingLine, 1)*stride;
-          pImgPad3 = pImgPad + 2*stride;
-          pImgPad4 = pImgPad - min(paddingLine, 2)*stride;
-        } 
-
-        pVar = ppVarImg[i>>shiftHeight] + (xpos>>shiftWidth);
-
-        if ( (yLineInLCU == m_lineIdxPadTop || yLineInLCU == m_lineIdxPadTop-1) && i-yLineInLCU+m_lcuHeight < m_img_height ) 
-        {
-          for(j= xpos; j<= xposEnd; j++)
-          {
-            pImgRes[j] = pImgPad[j];
-          }
-        }
-        else if ( (yLineInLCU == m_lineIdxPadTop+1 || yLineInLCU == m_lineIdxPadTop-2) && i-yLineInLCU+m_lcuHeight < m_img_height ) 
-        {
-          for(j= xpos; j<= xposEnd ; j++)
-          {
-            if (j % VAR_SIZE_W==0) 
-            {
-              coef = filterSet[mergeTable[*(pVar++)]];
-            }
-
-            pixelInt  = 0;
-
-            pixelInt += coef[0]* (pImgPad3[j+2]+pImgPad4[j-2]);
-            pixelInt += coef[1]* (pImgPad3[j  ]+pImgPad4[j  ]);
-            pixelInt += coef[2]* (pImgPad3[j-2]+pImgPad4[j+2]);
-
-            pixelInt += coef[3]* (pImgPad1[j+1]+pImgPad2[j-1]);
-            pixelInt += coef[4]* (pImgPad1[j  ]+pImgPad2[j  ]);
-            pixelInt += coef[5]* (pImgPad1[j-1]+pImgPad2[j+1]);
-
-            pixelInt += coef[6]* (pImgPad[j+2]+pImgPad[j-2]);
-            pixelInt += coef[7]* (pImgPad[j+1]+pImgPad[j-1]);
-            pixelInt += coef[8]* (pImgPad[j  ]);
-
-            pixelInt=(int)((pixelInt+offset) >> numBitsMinus1);
-            pImgRes[j] = ( Clip( pixelInt ) + pImgPad[j] ) >> 1;
-          }
-        }
-        else
-        {
-
-        for(j= xpos; j<= xposEnd ; j++)
-        {
-          if (j % VAR_SIZE_W==0) 
-          {
-            coef = filterSet[mergeTable[*(pVar++)]];
-          }
-
-          pixelInt  = 0;
-
-          pixelInt += coef[0]* (pImgPad3[j+2]+pImgPad4[j-2]);
-          pixelInt += coef[1]* (pImgPad3[j  ]+pImgPad4[j  ]);
-          pixelInt += coef[2]* (pImgPad3[j-2]+pImgPad4[j+2]);
-
-          pixelInt += coef[3]* (pImgPad1[j+1]+pImgPad2[j-1]);
-          pixelInt += coef[4]* (pImgPad1[j  ]+pImgPad2[j  ]);
-          pixelInt += coef[5]* (pImgPad1[j-1]+pImgPad2[j+1]);
-
-          pixelInt += coef[6]* (pImgPad[j+2]+pImgPad[j-2]);
-          pixelInt += coef[7]* (pImgPad[j+1]+pImgPad[j-1]);
-          pixelInt += coef[8]* (pImgPad[j  ]);
-
-          pixelInt=(Int)((pixelInt+offset) >> numBitsMinus1);
-          pImgRes[j] = Clip( pixelInt );
-        }
-
-        }
-
-        pImgPad += stride;
-        pImgRes += stride;
-      }
-    }
-    break;
-  case ALF_CROSS9x9:
-    {
-      Pel *pImgPad5, *pImgPad6, *pImgPad7, *pImgPad8;
-#else
-  case ALF_CROSS9x7_SQUARE3x3:
-    {
-      Pel *pImgPad5, *pImgPad6;
-#endif
-      for(i= ypos; i<= yposEnd; i++)
-      {
-        yLineInLCU = i % m_lcuHeight;   
-
-        if (yLineInLCU<m_lineIdxPadBot || i-yLineInLCU+m_lcuHeight >= m_img_height)
-        {
-          pImgPad1 = pImgPad +   stride;
-          pImgPad2 = pImgPad -   stride;
-          pImgPad3 = pImgPad + 2*stride;
-          pImgPad4 = pImgPad - 2*stride;
-          pImgPad5 = pImgPad + 3*stride;
-          pImgPad6 = pImgPad - 3*stride;
-#if !ALF_SINGLE_FILTER_SHAPE
-          pImgPad7 = pImgPad + 4*stride;
-          pImgPad8 = pImgPad - 4*stride;
-#endif
-        }
-        else if (yLineInLCU<m_lineIdxPadTop)
-        {
-          paddingLine = - yLineInLCU + m_lineIdxPadTop - 1;
-#if ALF_SINGLE_FILTER_SHAPE
-          pImgPad1 = (paddingLine < 1) ? pImgPad : pImgPad + min(paddingLine, 1)*stride;
-          pImgPad2 = (paddingLine < 1) ? pImgPad : pImgPad -   stride;
-          pImgPad3 = (paddingLine < 2) ? pImgPad : pImgPad + min(paddingLine, 2)*stride;
-          pImgPad4 = (paddingLine < 2) ? pImgPad : pImgPad - 2*stride;
-          pImgPad5 = (paddingLine < 3) ? pImgPad : pImgPad + min(paddingLine, 3)*stride;
-          pImgPad6 = (paddingLine < 3) ? pImgPad : pImgPad - 3*stride;
-#else
-          pImgPad1 = pImgPad + min(paddingLine, 1)*stride;
-          pImgPad2 = pImgPad -   stride;
-          pImgPad3 = pImgPad + min(paddingLine, 2)*stride;
-          pImgPad4 = pImgPad - 2*stride;
-          pImgPad5 = pImgPad + min(paddingLine, 3)*stride;
-          pImgPad6 = pImgPad - 3*stride;
-          pImgPad7 = pImgPad + min(paddingLine, 4)*stride;
-          pImgPad8 = pImgPad - 4*stride;
-#endif
-        }
-        else
-        {
-          paddingLine = yLineInLCU - m_lineIdxPadTop ;
-#if ALF_SINGLE_FILTER_SHAPE
-          pImgPad1 = (paddingLine < 1) ? pImgPad : pImgPad +   stride;
-          pImgPad2 = (paddingLine < 1) ? pImgPad : pImgPad - min(paddingLine, 1)*stride;
-          pImgPad3 = (paddingLine < 2) ? pImgPad : pImgPad + 2*stride;
-          pImgPad4 = (paddingLine < 2) ? pImgPad : pImgPad - min(paddingLine, 2)*stride;
-          pImgPad5 = (paddingLine < 3) ? pImgPad : pImgPad + 3*stride;
-          pImgPad6 = (paddingLine < 3) ? pImgPad : pImgPad - min(paddingLine, 3)*stride;
-#else
-          pImgPad1 = pImgPad + stride;
-          pImgPad2 = pImgPad - min(paddingLine, 1)*stride;
-          pImgPad3 = pImgPad + 2*stride;
-          pImgPad4 = pImgPad - min(paddingLine, 2)*stride;
-          pImgPad5 = pImgPad + 3*stride;
-          pImgPad6 = pImgPad - min(paddingLine, 3)*stride;
-          pImgPad7 = pImgPad + 4*stride;
-          pImgPad8 = pImgPad - min(paddingLine, 4)*stride;
-#endif
-        } 
-
-        pVar = ppVarImg[i>>shiftHeight] + (xpos>>shiftWidth);
-
-#if ALF_SINGLE_FILTER_SHAPE
-        {
-          for(j= xpos; j<= xposEnd ; j++)
-          {
-            if (j % VAR_SIZE_W==0) 
-            {
-              coef = filterSet[mergeTable[*(pVar++)]];
-            }
-
-            pixelInt  = 0;
-
-            pixelInt += coef[0]* (pImgPad5[j]+pImgPad6[j]);
-            pixelInt += coef[1]* (pImgPad3[j]+pImgPad4[j]);
-            pixelInt += coef[2]* (pImgPad1[j-1]+pImgPad2[j+1]);
-            pixelInt += coef[3]* (pImgPad1[j]+pImgPad2[j]);
-            pixelInt += coef[4]* (pImgPad1[j+1]+pImgPad2[j-1]);
-            pixelInt += coef[5]* (pImgPad[j+4]+pImgPad[j-4]);
-            pixelInt += coef[6]* (pImgPad[j+3]+pImgPad[j-3]);
-            pixelInt += coef[7]* (pImgPad[j+2]+pImgPad[j-2]);
-            pixelInt += coef[8]* (pImgPad[j+1]+pImgPad[j-1]);
-            pixelInt += coef[9]* (pImgPad[j  ]);
-
-            pixelInt=(Int)((pixelInt+offset) >> numBitsMinus1);
-            pImgRes[j] = Clip( pixelInt );
-          }
-        }
-#else
-        if ( (yLineInLCU == m_lineIdxPadTop || yLineInLCU == m_lineIdxPadTop-1) && i-yLineInLCU+m_lcuHeight < m_img_height ) 
-        {
-          for(j= xpos; j<= xposEnd ; j++)
-          {
-            if (j % VAR_SIZE_W==0) 
-            {
-              varInd = *(pVar++);
-              coef = filterSet[mergeTable[varInd]];
-            }
-
-            pixelInt  = 0;
-
-            pixelInt += coef[4]* (pImgPad[j+4]+pImgPad[j-4]);
-            pixelInt += coef[5]* (pImgPad[j+3]+pImgPad[j-3]);
-            pixelInt += coef[6]* (pImgPad[j+2]+pImgPad[j-2]);
-            pixelInt += coef[7]* (pImgPad[j+1]+pImgPad[j-1]);
-            pixelInt += newCenterCoeff[0][mergeTable[varInd]]* (pImgPad[j]);
-
-            pixelInt=(int)((pixelInt+offset) >> numBitsMinus1);
-            pImgRes[j] = Clip( pixelInt );
-          }
-        }
-        else if ( (yLineInLCU == m_lineIdxPadTop+1 || yLineInLCU == m_lineIdxPadTop-2) && i-yLineInLCU+m_lcuHeight < m_img_height ) 
-        {
-          for(j= xpos; j<= xposEnd ; j++)
-          {
-            if (j % VAR_SIZE_W==0) 
-            {
-              varInd = *(pVar++);
-              coef = filterSet[mergeTable[varInd]];
-            }
-
-            pixelInt  = 0;
-
-            pixelInt += coef[3]* (pImgPad1[j]+pImgPad2[j]);
-
-            pixelInt += coef[4]* (pImgPad[j+4]+pImgPad[j-4]);
-            pixelInt += coef[5]* (pImgPad[j+3]+pImgPad[j-3]);
-            pixelInt += coef[6]* (pImgPad[j+2]+pImgPad[j-2]);
-            pixelInt += coef[7]* (pImgPad[j+1]+pImgPad[j-1]);
-            pixelInt += newCenterCoeff[1][mergeTable[varInd]]* (pImgPad[j]);
-
-            pixelInt=(int)((pixelInt+offset) >> numBitsMinus1);
-            pImgRes[j] = Clip( pixelInt );
-          }
-        }
-        else if ( (yLineInLCU == m_lineIdxPadTop+2 || yLineInLCU == m_lineIdxPadTop-3) && i-yLineInLCU+m_lcuHeight < m_img_height ) 
-        {
-          for(j= xpos; j<= xposEnd ; j++)
-          {
-            if (j % VAR_SIZE_W==0) 
-            {
-              varInd = *(pVar++);
-              coef = filterSet[mergeTable[varInd]];
-            }
-
-            pixelInt  = 0;
-
-            pixelInt += coef[2]* (pImgPad3[j]+pImgPad4[j]);
-
-            pixelInt += coef[3]* (pImgPad1[j]+pImgPad2[j]);
-
-            pixelInt += coef[4]* (pImgPad[j+4]+pImgPad[j-4]);
-            pixelInt += coef[5]* (pImgPad[j+3]+pImgPad[j-3]);
-            pixelInt += coef[6]* (pImgPad[j+2]+pImgPad[j-2]);
-            pixelInt += coef[7]* (pImgPad[j+1]+pImgPad[j-1]);
-            pixelInt += newCenterCoeff[2][mergeTable[varInd]]* (pImgPad[j  ]);
-
-            pixelInt=(int)((pixelInt+offset) >> numBitsMinus1);
-            pImgRes[j] = Clip( pixelInt );
-          }
-        }
-        else if ( (yLineInLCU == m_lineIdxPadTop+3 || yLineInLCU == m_lineIdxPadTop-4) && i-yLineInLCU+m_lcuHeight < m_img_height ) 
-        {
-          for(j= xpos; j<= xposEnd ; j++)
-          {
-            if (j % VAR_SIZE_W==0) 
-            {
-              varInd = *(pVar++);
-              coef = filterSet[mergeTable[varInd]];
-            }
-
-            pixelInt  = 0;
-
-            pixelInt += coef[1]* (pImgPad5[j]+pImgPad6[j]);
-
-            pixelInt += coef[2]* (pImgPad3[j]+pImgPad4[j]);
-
-            pixelInt += coef[3]* (pImgPad1[j]+pImgPad2[j]);
-
-            pixelInt += coef[4]* (pImgPad[j+4]+pImgPad[j-4]);
-            pixelInt += coef[5]* (pImgPad[j+3]+pImgPad[j-3]);
-            pixelInt += coef[6]* (pImgPad[j+2]+pImgPad[j-2]);
-            pixelInt += coef[7]* (pImgPad[j+1]+pImgPad[j-1]);
-            pixelInt += newCenterCoeff[3][mergeTable[varInd]]* (pImgPad[j  ]);
-
-            pixelInt=(int)((pixelInt+offset) >> numBitsMinus1);
-            pImgRes[j] = Clip( pixelInt );
-          }
-        }
-        else
-        {
-          for(j= xpos; j<= xposEnd ; j++)
-          {
-            if (j % VAR_SIZE_W==0) 
-            {
-              coef = filterSet[mergeTable[*(pVar++)]];
-            }
-
-            pixelInt  = 0;
-
-            pixelInt += coef[0]* (pImgPad7[j]+pImgPad8[j]);
-
-            pixelInt += coef[1]* (pImgPad5[j]+pImgPad6[j]);
-
-            pixelInt += coef[2]* (pImgPad3[j]+pImgPad4[j]);
-
-            pixelInt += coef[3]* (pImgPad1[j]+pImgPad2[j]);
-
-            pixelInt += coef[4]* (pImgPad[j+4]+pImgPad[j-4]);
-            pixelInt += coef[5]* (pImgPad[j+3]+pImgPad[j-3]);
-            pixelInt += coef[6]* (pImgPad[j+2]+pImgPad[j-2]);
-            pixelInt += coef[7]* (pImgPad[j+1]+pImgPad[j-1]);
-            pixelInt += coef[8]* (pImgPad[j  ]);
-
-            pixelInt=(Int)((pixelInt+offset) >> numBitsMinus1);
-            pImgRes[j] = Clip( pixelInt );
-          }
-        }
-#endif
-        pImgPad += stride;
-        pImgRes += stride;
-      }
-    }
-    break;
-  default:
-    {
-      printf("Not a supported filter shape\n");
-      assert(0);
-      exit(1);
-    }
-  }
-}
-
-
-
-Void TComAdaptiveLoopFilter::xCUAdaptive(TComPic* pcPic, Int filtNo, Pel *imgYFilt, Pel *imgYRec, Int Stride)
-{
-  // for every CU, call CU-adaptive ALF process
-  for( UInt uiCUAddr = 0; uiCUAddr < pcPic->getNumCUsInFrame() ; uiCUAddr++ )
-  {
-    TComDataCU* pcCU = pcPic->getCU( uiCUAddr );
-    xSubCUAdaptive(pcCU, filtNo, imgYFilt, imgYRec, 0, 0, Stride);
-  }
-}
-
-Void TComAdaptiveLoopFilter::xSubCUAdaptive(TComDataCU* pcCU, Int filtNo, Pel *imgYFilt, Pel *imgYRec, UInt uiAbsPartIdx, UInt uiDepth, Int Stride)
-{
-  TComPic* pcPic = pcCU->getPic();
-
-  if(pcPic==NULL)
-  {
-    return;
-  }
-  Bool bBoundary = false;
-  UInt uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
-  UInt uiRPelX   = uiLPelX + (g_uiMaxCUWidth>>uiDepth)  - 1;
-  UInt uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
-  UInt uiBPelY   = uiTPelY + (g_uiMaxCUHeight>>uiDepth) - 1;
-
-  // check picture boundary
-  if ( ( uiRPelX >= m_img_width ) || ( uiBPelY >= m_img_height ) )
-  {
-    bBoundary = true;
-  }
-
-  if ( ( ( uiDepth < pcCU->getDepth( uiAbsPartIdx ) ) && ( uiDepth < (g_uiMaxCUDepth-g_uiAddCUDepth) ) ) || bBoundary )
-  {
-    UInt uiQNumParts = ( pcPic->getNumPartInCU() >> (uiDepth<<1) )>>2;
-    for ( UInt uiPartUnitIdx = 0; uiPartUnitIdx < 4; uiPartUnitIdx++, uiAbsPartIdx+=uiQNumParts )
-    {
-      uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
-      uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
-
-      if( ( uiLPelX < m_img_width ) && ( uiTPelY < m_img_height ) )
-        xSubCUAdaptive(pcCU, filtNo, imgYFilt, imgYRec, uiAbsPartIdx, uiDepth+1, Stride);
-    }
-    return;
-  }
-
-  if ( pcCU->getAlfCtrlFlag(uiAbsPartIdx) )
-  {
-    filterLuma(imgYFilt, imgYRec, Stride, uiTPelY, min(uiBPelY,(unsigned int)(m_img_height-1)), uiLPelX, min(uiRPelX,(unsigned int)(m_img_width-1))
-      ,filtNo, m_filterCoeffSym, m_varIndTab, m_varImg);
-  }
-}
-
-/** Predict ALF luma filter coefficients. Centre coefficient is always predicted. Left neighbour is predicted according to flag.
- */
-Void TComAdaptiveLoopFilter::predictALFCoeffLuma(ALFParam* pcAlfParam)
-{
-  Int sum, coeffPred, ind;
-  const Int* pFiltMag = NULL;
-  pFiltMag = weightsTabShapes[pcAlfParam->filter_shape];
-  for(ind = 0; ind < pcAlfParam->filters_per_group; ++ind)
-  {
-    sum = 0;
-    for(Int i = 0; i < pcAlfParam->num_coeff-2; i++)
-    {
-      sum +=  pFiltMag[i]*pcAlfParam->coeffmulti[ind][i];
-    }
-    if(pcAlfParam->nbSPred[ind]==0)
-    {
-      if((pcAlfParam->predMethod==0)|(ind==0))
-      {
-        coeffPred = ((1<<ALF_NUM_BIT_SHIFT)-sum) >> 2;
-      }
-      else
-      {
-        coeffPred = (0-sum) >> 2;
-      }
-      pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-2] = coeffPred + pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-2];
-    }
-    sum += pFiltMag[pcAlfParam->num_coeff-2]*pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-2];
-    if((pcAlfParam->predMethod==0)|(ind==0))
-    {
-      coeffPred = (1<<ALF_NUM_BIT_SHIFT)-sum;
-    }
-    else
-    {
-      coeffPred = -sum;
-    }
-    pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-1] = coeffPred + pcAlfParam->coeffmulti[ind][pcAlfParam->num_coeff-1];
-  }
-}
-
-Void TComAdaptiveLoopFilter::reconstructFilterCoeffs(ALFParam* pcAlfParam,int **pfilterCoeffSym)
-{
-  int i, ind;
-
-  // Copy non zero filters in filterCoeffTmp
-  for(ind = 0; ind < pcAlfParam->filters_per_group; ++ind)
-  {
-    for(i = 0; i < pcAlfParam->num_coeff; i++)
-    {
-      pfilterCoeffSym[ind][i] = pcAlfParam->coeffmulti[ind][i];
-    }
-  }
-  // Undo prediction
-  for(ind = 1; ind < pcAlfParam->filters_per_group; ++ind)
-  {
-    if(pcAlfParam->predMethod)
-    {
-      // Prediction
-      for(i = 0; i < pcAlfParam->num_coeff; ++i)
-      {
-        pfilterCoeffSym[ind][i] = (int)(pfilterCoeffSym[ind][i] + pfilterCoeffSym[ind - 1][i]);
-      }
-    }
-  }
-
-  for(ind = 0; ind < pcAlfParam->filters_per_group; ind++)
-  {
-    checkFilterCoeffValue(pfilterCoeffSym[ind], pcAlfParam->num_coeff, false );
-  }
-}
-
-
-#endif
 
 static Pel Clip_post(int high, int val)
 {
   return (Pel)(((val > high)? high: val));
 }
 
-#if !LCU_SYNTAX_ALF
-
-/** Calculate ALF grouping indices for block-based (BA) mode
- * \param [out] imgYvar grouping indices buffer
- * \param [in] imgYpad picture buffer
- * \param [in] stride picture stride size
- * \param [in] adaptationMode  ALF_BA or ALF_RA mode
- */
-Void TComAdaptiveLoopFilter::calcVar(Pel **imgYvar, Pel *imgYpad, Int stride, Int adaptationMode)
-{
-  if(adaptationMode == ALF_RA) 
-  {
-    return;
-  }
-  static Int shiftH = (Int)(log((double)VAR_SIZE_H)/log(2.0));
-  static Int shiftW = (Int)(log((double)VAR_SIZE_W)/log(2.0));
-  static Int varmax = (Int)NO_VAR_BINS-1;
-#if ALF_16_BA_GROUPS
-  static Int th[NO_VAR_BINS] = {0, 1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5}; 
-  static Int avgVarTab[3][6] = { {0,  1,  2,  3,  4,  5,},
-  {0,  6,  7,  8,  9, 10,},
-  {0, 11, 12, 13, 14, 15}   };
-#else
-  static Int step1  = (Int)((Int)(NO_VAR_BINS)/3) - 1;  
-  static Int th[NO_VAR_BINS] = {0, 1, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4}; 
-#endif  
-  Int i, j, avgvar, vertical, horizontal,direction, yoffset;
-  Pel *pimgYpad, *pimgYpadup, *pimgYpaddown;
-
-  for(i = 0; i < m_img_height - 3; i=i+4)
-  {
-    yoffset      = ((i)*stride) + stride;
-    pimgYpad     = &imgYpad [yoffset];
-    pimgYpadup   = &imgYpad [yoffset + stride];
-    pimgYpaddown = &imgYpad [yoffset - stride];
-
-    for(j = 0; j < m_img_width - 3 ; j=j+4)
-    {
-      // Compute at sub-sample by 2
-      vertical   =  abs((pimgYpad[j+1]<<1  ) - pimgYpaddown[j+1]   - pimgYpadup[j+1]);
-      horizontal =  abs((pimgYpad[j+1]<<1  ) - pimgYpad    [j+2]   - pimgYpad  [j  ]);
-
-      vertical   += abs((pimgYpad[j+2]<<1  ) - pimgYpaddown[j+2]   - pimgYpadup[j+2]);
-      horizontal += abs((pimgYpad[j+2]<<1  ) - pimgYpad    [j+3]   - pimgYpad  [j+1]);
-
-      vertical   += abs((pimgYpad[j+1+stride]<<1) - pimgYpaddown[j+1+stride] - pimgYpadup[j+1+stride]);
-      horizontal += abs((pimgYpad[j+1+stride]<<1) - pimgYpad    [j+2+stride] - pimgYpad  [j+stride  ]);
-
-      vertical   += abs((pimgYpad[j+2+stride]<<1) - pimgYpaddown[j+2+stride] - pimgYpadup[j+2+stride]);
-      horizontal += abs((pimgYpad[j+2+stride]<<1) - pimgYpad    [j+3+stride] - pimgYpad  [j+1+stride]);
-
-      direction = 0;
-      if (vertical > 2*horizontal) 
-      {
-        direction = 1; //vertical
-      }
-      if (horizontal > 2*vertical)
-      {
-        direction = 2; //horizontal
-      }
-
-      avgvar = (vertical + horizontal) >> 2;
-      avgvar = (Pel) Clip_post(varmax, avgvar >>(g_uiBitIncrement+1));
-      avgvar = th[avgvar];
-#if ALF_16_BA_GROUPS
-      avgvar = avgVarTab[direction][avgvar];
-#else      
-      avgvar = Clip_post(step1, (Int) avgvar ) + (step1+1)*direction;
-#endif
-      imgYvar[(i )>>shiftH][(j)>>shiftW] = avgvar;
-    }
-  }
-}
-
-Void TComAdaptiveLoopFilter::createRegionIndexMap(Pel **imgYVar, Int imgWidth, Int imgHeight)
-{
-  int varStepSizeWidth = VAR_SIZE_W;
-  int varStepSizeHeight = VAR_SIZE_H;
-  int shiftHeight = (int)(log((double)varStepSizeHeight)/log(2.0));
-  int shiftWidth = (int)(log((double)varStepSizeWidth)/log(2.0));
-
-  int i, j;
-  int regionTable[NO_VAR_BINS] = {0, 1, 4, 5, 15, 2, 3, 6, 14, 11, 10, 7, 13, 12,  9,  8}; 
-  int xInterval;
-  int yInterval;
-  int yIndex;
-  int yIndexOffset;
-  int yStartLine;
-  int yEndLine;
-
-  xInterval = ((( (imgWidth+63)/64) + 1) / 4 * 64)>>shiftWidth;  
-  yInterval = ((((imgHeight+63)/64) + 1) / 4 * 64)>>shiftHeight;
-
-  for (yIndex = 0; yIndex < 4 ; yIndex++)
-  {
-    yIndexOffset = yIndex * 4;
-    yStartLine = yIndex * yInterval;
-    yEndLine   = (yIndex == 3) ? imgHeight>>shiftHeight : (yStartLine+yInterval);
-
-    for(i = yStartLine; i < yEndLine ; i++)
-    {
-      for(j = 0; j < xInterval ; j++)
-      {
-        imgYVar[i][j] = regionTable[yIndexOffset+0];     
-      }
-
-      for(j = xInterval; j < xInterval*2 ; j++)
-      {
-        imgYVar[i][j] = regionTable[yIndexOffset+1];     
-      }
-
-      for(j = xInterval*2; j < xInterval*3 ; j++)
-      {
-        imgYVar[i][j] = regionTable[yIndexOffset+2];     
-      }
-
-      for(j = xInterval*3; j < imgWidth>>shiftWidth ; j++)
-      {
-        imgYVar[i][j] = regionTable[yIndexOffset+3];     
-      }
-    }
-  }
-
-}
-
-// --------------------------------------------------------------------------------------------------------------------
-// ALF for chroma
-// --------------------------------------------------------------------------------------------------------------------
-
-/** 
- \param pcPicDec    picture before ALF
- \param pcPicRest   picture after  ALF
- \param qh          filter coefficient
- \param iTap        filter tap
- \param iColor      0 for Cb and 1 for Cr
- */
-Void TComAdaptiveLoopFilter::filterChroma(Pel *pImgRes, Pel *pImgPad, Int stride, 
-                                          Int ypos, Int yposEnd, Int xpos, Int xposEnd, 
-                                          Int filtNo, Int* coef)
-{
-  static Int numBitsMinus1= (Int)ALF_NUM_BIT_SHIFT;
-  static Int offset       = (1<<( (Int)ALF_NUM_BIT_SHIFT-1));
-
-  Pel *pImgPad1,*pImgPad2,*pImgPad3,*pImgPad4;
-  Int i, j, pixelInt;
-
-  pImgPad    += (ypos*stride);
-  pImgRes    += (ypos*stride);
-
-  Int imgHeightChroma = m_img_height>>1;
-  Int yLineInLCU;
-  Int paddingline;
-  Int newCenterCoeff[4];
-
-  ::memset(newCenterCoeff, 0, sizeof(Int)*4);
-#if ALF_SINGLE_FILTER_SHAPE
-  if(filtNo == ALF_CROSS9x7_SQUARE3x3)
-#else
-  if (filtNo == ALF_CROSS9x9)
-#endif
-  {
-    //VB line 1
-    newCenterCoeff[0] = coef[8] + ((coef[0] + coef[1] + coef[2] + coef[3])<<1);
-    //VB line 2 
-    newCenterCoeff[1] = coef[8] + ((coef[0] + coef[1] + coef[2])<<1);
-    //VB line 3 
-    newCenterCoeff[2] = coef[8] + ((coef[0] + coef[1])<<1);
-    //VB line 4 
-    newCenterCoeff[3] = coef[8] + ((coef[0])<<1);
-  }
-
-  switch(filtNo)
-  {
-#if !ALF_SINGLE_FILTER_SHAPE
-  case ALF_STAR5x5:
-    {
-      for(i= ypos; i<= yposEnd; i++)
-      {
-        yLineInLCU = i % m_lcuHeightChroma;
-
-        if (yLineInLCU < m_lineIdxPadBotChroma || i-yLineInLCU+m_lcuHeightChroma >= imgHeightChroma )
-        {
-          pImgPad1 = pImgPad + stride;
-          pImgPad2 = pImgPad - stride;
-          pImgPad3 = pImgPad + 2*stride;
-          pImgPad4 = pImgPad - 2*stride;
-        }
-        else if (yLineInLCU < m_lineIdxPadTopChroma)
-        {
-          paddingline = - yLineInLCU + m_lineIdxPadTopChroma - 1;
-          pImgPad1 = pImgPad + min(paddingline, 1)*stride;
-          pImgPad2 = pImgPad - stride;
-          pImgPad3 = pImgPad + min(paddingline, 2)*stride;
-          pImgPad4 = pImgPad - 2*stride;
-        }
-        else
-        {
-          paddingline = yLineInLCU - m_lineIdxPadTopChroma ;
-          pImgPad1 = pImgPad + stride;
-          pImgPad2 = pImgPad - min(paddingline, 1)*stride;
-          pImgPad3 = pImgPad + 2*stride;
-          pImgPad4 = pImgPad - min(paddingline, 2)*stride;
-        }
-
-        if ( (yLineInLCU == m_lineIdxPadTopChroma || yLineInLCU == m_lineIdxPadTopChroma-1) && i-yLineInLCU+m_lcuHeightChroma < imgHeightChroma ) 
-        {
-          for(j= xpos; j<= xposEnd ; j++)
-          {
-            pImgRes[j] = pImgPad[j];
-          }
-        }
-        else if ( (yLineInLCU == m_lineIdxPadTopChroma+1 || yLineInLCU == m_lineIdxPadTopChroma-2) && i-yLineInLCU+m_lcuHeightChroma < imgHeightChroma ) 
-        {
-          for(j= xpos; j<= xposEnd ; j++)
-          {
-            pixelInt  = 0;
-
-            pixelInt += coef[0]* (pImgPad3[j+2]+pImgPad4[j-2]);
-            pixelInt += coef[1]* (pImgPad3[j  ]+pImgPad4[j  ]);
-            pixelInt += coef[2]* (pImgPad3[j-2]+pImgPad4[j+2]);
-
-            pixelInt += coef[3]* (pImgPad1[j+1]+pImgPad2[j-1]);
-            pixelInt += coef[4]* (pImgPad1[j  ]+pImgPad2[j  ]);
-            pixelInt += coef[5]* (pImgPad1[j-1]+pImgPad2[j+1]);
-
-            pixelInt += coef[6]* (pImgPad[j+2]+pImgPad[j-2]);
-            pixelInt += coef[7]* (pImgPad[j+1]+pImgPad[j-1]);
-            pixelInt += coef[8]* (pImgPad[j  ]);
-
-            pixelInt=(Int)((pixelInt+offset) >> numBitsMinus1);
-
-            pImgRes[j] = (Clip( pixelInt ) + pImgPad[j]) >> 1;
-          }
-        }
-        else
-        {
-
-        for(j= xpos; j<= xposEnd ; j++)
-        {
-          pixelInt  = 0;
-
-          pixelInt += coef[0]* (pImgPad3[j+2]+pImgPad4[j-2]);
-          pixelInt += coef[1]* (pImgPad3[j  ]+pImgPad4[j  ]);
-          pixelInt += coef[2]* (pImgPad3[j-2]+pImgPad4[j+2]);
-
-          pixelInt += coef[3]* (pImgPad1[j+1]+pImgPad2[j-1]);
-          pixelInt += coef[4]* (pImgPad1[j  ]+pImgPad2[j  ]);
-          pixelInt += coef[5]* (pImgPad1[j-1]+pImgPad2[j+1]);
-
-          pixelInt += coef[6]* (pImgPad[j+2]+pImgPad[j-2]);
-          pixelInt += coef[7]* (pImgPad[j+1]+pImgPad[j-1]);
-          pixelInt += coef[8]* (pImgPad[j  ]);
-
-          pixelInt=(Int)((pixelInt+offset) >> numBitsMinus1);
-
-          pImgRes[j] = Clip( pixelInt );
-        }
-
-        }
-        pImgPad += stride;
-        pImgRes += stride;
-      }
-    }
-    break;
-  case ALF_CROSS9x9:
-    {
-      Pel *pImgPad5, *pImgPad6, *pImgPad7, *pImgPad8;
-#else
-  case ALF_CROSS9x7_SQUARE3x3:
-    {
-      Pel *pImgPad5, *pImgPad6;
-#endif
-      for(i= ypos; i<= yposEnd; i++)
-      {
-        yLineInLCU = i % m_lcuHeightChroma;
-#if ALF_SINGLE_FILTER_SHAPE
-        if (yLineInLCU<2 && i> 2)
-#else
-        if (yLineInLCU<2)
-#endif 
-        {
-          paddingline = yLineInLCU + 2 ;
-          pImgPad1 = pImgPad + stride;
-          pImgPad2 = pImgPad - stride;
-          pImgPad3 = pImgPad + 2*stride;
-          pImgPad4 = pImgPad - 2*stride;
-#if ALF_SINGLE_FILTER_SHAPE
-          pImgPad5 = (paddingline < 3) ? pImgPad : pImgPad + 3*stride;
-          pImgPad6 = (paddingline < 3) ? pImgPad : pImgPad - min(paddingline, 3)*stride; 
-#else
-          pImgPad5 = pImgPad + 3*stride;
-          pImgPad6 = pImgPad - min(paddingline, 3)*stride;
-          pImgPad7 = pImgPad + 4*stride;
-          pImgPad8 = pImgPad - min(paddingline, 4)*stride;
-#endif
-        }
-        else if (yLineInLCU < m_lineIdxPadBotChroma || i-yLineInLCU+m_lcuHeightChroma >= imgHeightChroma )
-        {
-          pImgPad1 = pImgPad + stride;
-          pImgPad2 = pImgPad - stride;
-          pImgPad3 = pImgPad + 2*stride;
-          pImgPad4 = pImgPad - 2*stride;
-          pImgPad5 = pImgPad + 3*stride;
-          pImgPad6 = pImgPad - 3*stride;
-#if !ALF_SINGLE_FILTER_SHAPE
-          pImgPad7 = pImgPad + 4*stride;
-          pImgPad8 = pImgPad - 4*stride;
-#endif
-        }
-        else if (yLineInLCU < m_lineIdxPadTopChroma)
-        {
-          paddingline = - yLineInLCU + m_lineIdxPadTopChroma - 1;
-#if ALF_SINGLE_FILTER_SHAPE
-          pImgPad1 = (paddingline < 1) ? pImgPad : pImgPad + min(paddingline, 1)*stride;
-          pImgPad2 = (paddingline < 1) ? pImgPad : pImgPad -   stride;
-          pImgPad3 = (paddingline < 2) ? pImgPad : pImgPad + min(paddingline, 2)*stride;
-          pImgPad4 = (paddingline < 2) ? pImgPad : pImgPad - 2*stride;
-          pImgPad5 = (paddingline < 3) ? pImgPad : pImgPad + min(paddingline, 3)*stride;
-          pImgPad6 = (paddingline < 3) ? pImgPad : pImgPad - 3*stride;
-#else
-          pImgPad1 = pImgPad + min(paddingline, 1)*stride;
-          pImgPad2 = pImgPad - stride;
-          pImgPad3 = pImgPad + min(paddingline, 2)*stride;
-          pImgPad4 = pImgPad - 2*stride;
-          pImgPad5 = pImgPad + min(paddingline, 3)*stride;
-          pImgPad6 = pImgPad - 3*stride;
-          pImgPad7 = pImgPad + min(paddingline, 4)*stride;
-          pImgPad8 = pImgPad - 4*stride;
-#endif
-        }
-        else
-        {
-          paddingline = yLineInLCU - m_lineIdxPadTopChroma ;
-#if ALF_SINGLE_FILTER_SHAPE
-          pImgPad1 = (paddingline < 1) ? pImgPad : pImgPad +   stride;
-          pImgPad2 = (paddingline < 1) ? pImgPad : pImgPad - min(paddingline, 1)*stride;
-          pImgPad3 = (paddingline < 2) ? pImgPad : pImgPad + 2*stride;
-          pImgPad4 = (paddingline < 2) ? pImgPad : pImgPad - min(paddingline, 2)*stride;
-          pImgPad5 = (paddingline < 3) ? pImgPad : pImgPad + 3*stride;
-          pImgPad6 = (paddingline < 3) ? pImgPad : pImgPad - min(paddingline, 3)*stride;
-#else
-          pImgPad1 = pImgPad + stride;
-          pImgPad2 = pImgPad - min(paddingline, 1)*stride;
-          pImgPad3 = pImgPad + 2*stride;
-          pImgPad4 = pImgPad - min(paddingline, 2)*stride;
-          pImgPad5 = pImgPad + 3*stride;
-          pImgPad6 = pImgPad - min(paddingline, 3)*stride;
-          pImgPad7 = pImgPad + 4*stride;
-          pImgPad8 = pImgPad - min(paddingline, 4)*stride;
-#endif
-        }
-
-#if ALF_SINGLE_FILTER_SHAPE
-          for(j= xpos; j<= xposEnd ; j++)
-          {
-            pixelInt  = 0;
-
-            pixelInt += coef[0]* (pImgPad5[j]+pImgPad6[j]);
-            pixelInt += coef[1]* (pImgPad3[j]+pImgPad4[j]);
-            pixelInt += coef[2]* (pImgPad1[j-1]+pImgPad2[j+1]);
-            pixelInt += coef[3]* (pImgPad1[j]+pImgPad2[j]);
-            pixelInt += coef[4]* (pImgPad1[j+1]+pImgPad2[j-1]);
-            pixelInt += coef[5]* (pImgPad[j+4]+pImgPad[j-4]);
-            pixelInt += coef[6]* (pImgPad[j+3]+pImgPad[j-3]);
-            pixelInt += coef[7]* (pImgPad[j+2]+pImgPad[j-2]);
-            pixelInt += coef[8]* (pImgPad[j+1]+pImgPad[j-1]);
-            pixelInt += coef[9]* (pImgPad[j  ]);
-
-            pixelInt=(Int)((pixelInt+offset) >> numBitsMinus1);
-
-            pImgRes[j] = Clip( pixelInt );
-          }
-#else
-        if ( (yLineInLCU == m_lineIdxPadTopChroma || yLineInLCU == m_lineIdxPadTopChroma-1) && i-yLineInLCU+m_lcuHeightChroma < imgHeightChroma ) 
-        {
-          for(j= xpos; j<= xposEnd ; j++)
-          {
-            pixelInt  = 0;
-
-            pixelInt += coef[4]* (pImgPad[j+4]+pImgPad[j-4]);
-            pixelInt += coef[5]* (pImgPad[j+3]+pImgPad[j-3]);
-            pixelInt += coef[6]* (pImgPad[j+2]+pImgPad[j-2]);
-            pixelInt += coef[7]* (pImgPad[j+1]+pImgPad[j-1]);
-            pixelInt += newCenterCoeff[0]* (pImgPad[j  ]);
-
-            pixelInt=(Int)((pixelInt+offset) >> numBitsMinus1);
-
-            pImgRes[j] = Clip( pixelInt );
-          }
-        }
-        else if ( (yLineInLCU == m_lineIdxPadTopChroma+1 || yLineInLCU == m_lineIdxPadTopChroma-2) && i-yLineInLCU+m_lcuHeightChroma < imgHeightChroma ) 
-        {
-          for(j= xpos; j<= xposEnd ; j++)
-          {
-            pixelInt  = 0;
-            
-            pixelInt += coef[3]* (pImgPad1[j]+pImgPad2[j]);
-
-            pixelInt += coef[4]* (pImgPad[j+4]+pImgPad[j-4]);
-            pixelInt += coef[5]* (pImgPad[j+3]+pImgPad[j-3]);
-            pixelInt += coef[6]* (pImgPad[j+2]+pImgPad[j-2]);
-            pixelInt += coef[7]* (pImgPad[j+1]+pImgPad[j-1]);
-            pixelInt += newCenterCoeff[1]* (pImgPad[j  ]);
-
-            pixelInt=(Int)((pixelInt+offset) >> numBitsMinus1);
-
-            pImgRes[j] = Clip( pixelInt );
-          }
-        }
-        else if ( (yLineInLCU == 0 && i>0) || (yLineInLCU == m_lineIdxPadTopChroma-3 && i-yLineInLCU+m_lcuHeightChroma < imgHeightChroma) )
-        {
-          for(j= xpos; j<= xposEnd ; j++)
-          {
-            pixelInt  = 0;
-
-            pixelInt += coef[2]* (pImgPad3[j]+pImgPad4[j]);
-
-            pixelInt += coef[3]* (pImgPad1[j]+pImgPad2[j]);
-
-            pixelInt += coef[4]* (pImgPad[j+4]+pImgPad[j-4]);
-            pixelInt += coef[5]* (pImgPad[j+3]+pImgPad[j-3]);
-            pixelInt += coef[6]* (pImgPad[j+2]+pImgPad[j-2]);
-            pixelInt += coef[7]* (pImgPad[j+1]+pImgPad[j-1]);
-            pixelInt += newCenterCoeff[2]* (pImgPad[j  ]);
-
-            pixelInt=(Int)((pixelInt+offset) >> numBitsMinus1);
-
-            pImgRes[j] = Clip( pixelInt );
-          }
-        }
-        else if ( (yLineInLCU == 1 && i>1) || (yLineInLCU == m_lineIdxPadTopChroma-4 && i-yLineInLCU+m_lcuHeightChroma < imgHeightChroma) ) 
-        {
-          for(j= xpos; j<= xposEnd ; j++)
-          {
-            pixelInt  = 0;
-
-            pixelInt += coef[1]* (pImgPad5[j]+pImgPad6[j]);
-
-            pixelInt += coef[2]* (pImgPad3[j]+pImgPad4[j]);
-
-            pixelInt += coef[3]* (pImgPad1[j]+pImgPad2[j]);
-
-            pixelInt += coef[4]* (pImgPad[j+4]+pImgPad[j-4]);
-            pixelInt += coef[5]* (pImgPad[j+3]+pImgPad[j-3]);
-            pixelInt += coef[6]* (pImgPad[j+2]+pImgPad[j-2]);
-            pixelInt += coef[7]* (pImgPad[j+1]+pImgPad[j-1]);
-            pixelInt += newCenterCoeff[3]* (pImgPad[j  ]);
-
-            pixelInt=(Int)((pixelInt+offset) >> numBitsMinus1);
-
-            pImgRes[j] = Clip( pixelInt );
-          }
-        }
-        else
-        {          
-          for(j= xpos; j<= xposEnd ; j++)
-          {
-            pixelInt  = 0;
-
-            pixelInt += coef[0]* (pImgPad7[j]+pImgPad8[j]);
-
-            pixelInt += coef[1]* (pImgPad5[j]+pImgPad6[j]);
-
-            pixelInt += coef[2]* (pImgPad3[j]+pImgPad4[j]);
-
-            pixelInt += coef[3]* (pImgPad1[j]+pImgPad2[j]);
-
-            pixelInt += coef[4]* (pImgPad[j+4]+pImgPad[j-4]);
-            pixelInt += coef[5]* (pImgPad[j+3]+pImgPad[j-3]);
-            pixelInt += coef[6]* (pImgPad[j+2]+pImgPad[j-2]);
-            pixelInt += coef[7]* (pImgPad[j+1]+pImgPad[j-1]);
-            pixelInt += coef[8]* (pImgPad[j  ]);
-
-            pixelInt=(Int)((pixelInt+offset) >> numBitsMinus1);
-
-            pImgRes[j] = Clip( pixelInt );
-          }
-        }
-#endif
-        pImgPad += stride;
-        pImgRes += stride;
-
-      }
-    }
-
-    break;
-  default:
-    {
-      printf("Not a supported filter shape\n");
-      assert(0);
-      exit(1);
-    }
-  }
-
-}
-
-/** Chroma filtering for multi-slice picture
- * \param componentID slice parameters
- * \param pcPicDecYuv original picture
- * \param pcPicRestYuv picture before filtering
- * \param coeff filter coefficients
- * \param filtNo  filter shape
- * \param chromaFormatShift size adjustment for chroma (1 for 4:2:0 format)
- */
-Void TComAdaptiveLoopFilter::xFilterChromaSlices(Int componentID, TComPicYuv* pcPicDecYuv, TComPicYuv* pcPicRestYuv, Int *coeff, Int filtNo, Int chromaFormatShift)
-{
-  Pel* pPicDec   = (componentID == ALF_Cb)?(    pcPicDecYuv->getCbAddr()):(    pcPicDecYuv->getCrAddr());
-  Pel* pPicSlice = (componentID == ALF_Cb)?(m_pcSliceYuvTmp->getCbAddr()):(m_pcSliceYuvTmp->getCrAddr());
-  Pel* pRest     = (componentID == ALF_Cb)?(   pcPicRestYuv->getCbAddr()):(   pcPicRestYuv->getCrAddr());
-  Int  stride    = pcPicDecYuv->getCStride();
-
-  for(UInt s=0; s< m_uiNumSlicesInPic; s++)
-  {
-    if(!m_pcPic->getValidSlice(s))
-    {
-      continue;
-    }
-    std::vector< std::vector<AlfLCUInfo*> > & vpSliceTileAlfLCU = m_pvpSliceTileAlfLCU[s];
-
-    for(Int t=0; t< (Int)vpSliceTileAlfLCU.size(); t++)
-    {
-      std::vector<AlfLCUInfo*> & vpAlfLCU = vpSliceTileAlfLCU[t];
-
-      copyRegion(vpAlfLCU, pPicSlice, pPicDec, stride, chromaFormatShift);
-      extendRegionBorder(vpAlfLCU, pPicSlice, stride, chromaFormatShift);
-      filterChromaRegion(vpAlfLCU, pPicSlice, pRest, stride, coeff, filtNo, chromaFormatShift);
-    }
-  }
-}
-
-/** Chroma filtering for one component in multi-slice picture
- * \param componentID slice parameters
- * \param pcPicDecYuv original picture
- * \param pcPicRestYuv picture before filtering
- * \param shape  filter shape
- * \param pCoeff filter coefficients
- */
-Void TComAdaptiveLoopFilter::xFilterChromaOneCmp(Int componentID, TComPicYuv *pDecYuv, TComPicYuv *pRestYuv, Int shape, Int *pCoeff)
-{
-  Int chromaFormatShift = 1;
-  if(!m_bUseNonCrossALF)
-  {
-    Pel* pDec    = (componentID == ALF_Cb)?(pDecYuv->getCbAddr()): (pDecYuv->getCrAddr());
-    Pel* pRest   = (componentID == ALF_Cb)?(pRestYuv->getCbAddr()):(pRestYuv->getCrAddr());
-    Int  iStride = pDecYuv->getCStride();
-    filterChroma(pRest, pDec, iStride, 0, (Int)(m_img_height>>1) -1, 0, (Int)(m_img_width>>1)-1, shape, pCoeff);
-  }
-  else
-  {
-    xFilterChromaSlices(componentID, pDecYuv, pRestYuv, pCoeff, shape, chromaFormatShift);
-  }
-}
-
-/** Chroma filtering for  multi-slice picture
- * \param pcAlfParam ALF parameters
- * \param pcPicDec to-be-filtered picture buffer 
- * \param pcPicRest filtered picture buffer
- */
-Void TComAdaptiveLoopFilter::xALFChroma(ALFParam* pcAlfParam, TComPicYuv* pcPicDec, TComPicYuv* pcPicRest)
-{
-  if((pcAlfParam->chroma_idc>>1)&0x01)
-  {
-    xFilterChromaOneCmp(ALF_Cb, pcPicDec, pcPicRest, pcAlfParam->filter_shape_chroma, pcAlfParam->coeff_chroma);
-  }
-
-  if(pcAlfParam->chroma_idc&0x01)
-  {
-    xFilterChromaOneCmp(ALF_Cr, pcPicDec, pcPicRest, pcAlfParam->filter_shape_chroma, pcAlfParam->coeff_chroma);
-  }
-}
-
-#endif
 
 Void TComAdaptiveLoopFilter::setAlfCtrlFlags(AlfCUCtrlInfo* pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx)
 {
@@ -2497,11 +1000,7 @@ Void TComAdaptiveLoopFilter::InitAlfLCUInfo(AlfLCUInfo& rAlfLCU, Int sliceID, In
  * \param pcPic picture-level data pointer
  * \param numSlicesInPic number of slices in picture
  */
-#if LCU_SYNTAX_ALF
 Void TComAdaptiveLoopFilter::createPicAlfInfo(TComPic* pcPic, Int numSlicesInPic, Int alfQP)
-#else
-Void TComAdaptiveLoopFilter::createPicAlfInfo(TComPic* pcPic, Int numSlicesInPic)
-#endif
 {
   m_uiNumSlicesInPic = numSlicesInPic;
   m_iSGDepth         = pcPic->getSliceGranularityForNDBFilter();
@@ -2509,16 +1008,10 @@ Void TComAdaptiveLoopFilter::createPicAlfInfo(TComPic* pcPic, Int numSlicesInPic
   m_bUseNonCrossALF = ( pcPic->getIndependentSliceBoundaryForNDBFilter() || pcPic->getIndependentTileBoundaryForNDBFilter());
   m_pcPic = pcPic;
 
-#if LCU_SYNTAX_ALF
   m_isNonCrossSlice = pcPic->getIndependentSliceBoundaryForNDBFilter(); 
   m_suWidth = pcPic->getMinCUWidth();
   m_suHeight= pcPic->getMinCUHeight();
   m_alfQP = alfQP; 
-#endif
-#if !LCU_SYNTAX_ALF  
-  if(m_uiNumSlicesInPic > 1 || m_bUseNonCrossALF)
-  {
-#endif
     m_ppSliceAlfLCUs = new AlfLCUInfo*[m_uiNumSlicesInPic];
     m_pvpAlfLCU = new std::vector< AlfLCUInfo* >[m_uiNumSlicesInPic];
     m_pvpSliceTileAlfLCU = new std::vector< std::vector< AlfLCUInfo* > >[m_uiNumSlicesInPic];
@@ -2583,9 +1076,6 @@ Void TComAdaptiveLoopFilter::createPicAlfInfo(TComPic* pcPic, Int numSlicesInPic
     {
       m_pcSliceYuvTmp = pcPic->getYuvPicBufferForIndependentBoundaryProcessing();
     }
-#if !LCU_SYNTAX_ALF
-  }
-#endif
 
 }
 
@@ -2593,10 +1083,6 @@ Void TComAdaptiveLoopFilter::createPicAlfInfo(TComPic* pcPic, Int numSlicesInPic
  */
 Void TComAdaptiveLoopFilter::destroyPicAlfInfo()
 {
-#if !LCU_SYNTAX_ALF
-  if(m_bUseNonCrossALF)
-  {
-#endif
     for(Int s=0; s< m_uiNumSlicesInPic; s++)
     {
       if(m_ppSliceAlfLCUs[s] != NULL)
@@ -2613,117 +1099,8 @@ Void TComAdaptiveLoopFilter::destroyPicAlfInfo()
 
     delete[] m_pvpSliceTileAlfLCU;
     m_pvpSliceTileAlfLCU = NULL;
-#if !LCU_SYNTAX_ALF
-  }
-#endif
 }
 
-#if !LCU_SYNTAX_ALF
-/** ALF for cu-on/off-controlled region
- * \param vpAlfLCU ALF LCU information container
- * \param imgDec to-be-filtered picture buffer
- * \param imgRest filtered picture buffer
- * \param stride picture buffer stride size
- * \param filtNo filter shape
- * \param filterCoeff filter coefficients
- * \param mergeTable merge table for filter set
- * \param varImg BA index 
- */
-Void TComAdaptiveLoopFilter::xCUAdaptiveRegion(std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* imgDec, Pel* imgRest, Int stride, Int filtNo, Int** filterCoeff, Int* mergeTable, Pel** varImg)
-{
-  UInt SUWidth   = m_pcPic->getMinCUWidth();
-  UInt SUHeight  = m_pcPic->getMinCUHeight();
-  UInt idx, startSU, endSU, currSU, LCUX, LCUY, LPelX, TPelY;
-  TComDataCU* pcCU;
-
-  for(idx=0; idx< vpAlfLCU.size(); idx++)
-  {
-    AlfLCUInfo&    rAlfLCU = *(vpAlfLCU[idx]);
-    pcCU                   = rAlfLCU.pcCU;
-    startSU              = rAlfLCU.startSU;
-    endSU                = rAlfLCU.endSU;
-    LCUX                 = pcCU->getCUPelX();
-    LCUY                 = pcCU->getCUPelY();
-
-    for(currSU= startSU; currSU<= endSU; currSU++)
-    {
-      LPelX   = LCUX + g_auiRasterToPelX[ g_auiZscanToRaster[currSU] ];
-      TPelY   = LCUY + g_auiRasterToPelY[ g_auiZscanToRaster[currSU] ];
-      if( !( LPelX < m_img_width )  || !( TPelY < m_img_height )  )
-      {
-        continue;
-      }
-      if(pcCU->getAlfCtrlFlag(currSU))
-      {
-        filterLuma(imgRest, imgDec, stride, TPelY, TPelY+ SUHeight-1, LPelX, LPelX+ SUWidth-1,  filtNo, m_filterCoeffSym, m_varIndTab, m_varImg);
-      }
-    }
-  }
-
-}
-
-/** ALF for "non" cu-on/off-controlled region
- * \param vpAlfLCU ALF LCU information container
- * \param imgDec to-be-filtered picture buffer
- * \param imgRest filtered picture buffer
- * \param stride picture buffer stride size
- * \param filtNo filter shape
- * \param filterCoeff filter coefficients
- * \param mergeTable merge table for filter set
- * \param varImg BA index 
- */
-Void TComAdaptiveLoopFilter::filterLumaRegion(std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* imgDec, Pel* imgRest, Int stride, Int filtNo, Int** filterCoeff, Int* mergeTable, Pel** varImg)
-{
-
-  Int height, width;
-  Int ypos, xpos;
-
-  for(Int i=0; i< vpAlfLCU.size(); i++)
-  {
-    AlfLCUInfo& rAlfLCU = *(vpAlfLCU[i]); 
-    for(UInt j=0; j< rAlfLCU.numSGU; j++)
-    {
-      ypos   = (Int)(rAlfLCU[j].posY  );
-      xpos   = (Int)(rAlfLCU[j].posX  );
-      height = (Int)(rAlfLCU[j].height);
-      width  = (Int)(rAlfLCU[j].width );
-
-      filterLuma(imgRest, imgDec, stride, ypos, ypos+ height-1, xpos, xpos+ width-1,  filtNo, filterCoeff, mergeTable, varImg);
-    }
-  }
-}
-
-
-/** Perform ALF for one chroma region
- * \param vpAlfLCU ALF LCU data container
- * \param pDec to-be-filtered picture buffer
- * \param pRest filtered picture buffer
- * \param stride picture buffer stride
- * \param coeff  filter coefficients
- * \param filtNo filter shape
- * \param chromaFormatShift chroma component size adjustment (1 for 4:2:0)
- */
-Void TComAdaptiveLoopFilter::filterChromaRegion(std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* pDec, Pel* pRest, Int stride, Int *coeff, Int filtNo, Int chromaFormatShift)
-{
-  Int height, width;
-  Int ypos, xpos;
-
-  for(Int i=0; i< vpAlfLCU.size(); i++)
-  {
-    AlfLCUInfo& cAlfLCU = *(vpAlfLCU[i]);
-    for(Int j=0; j< cAlfLCU.numSGU; j++)
-    {
-      ypos   = (Int)(cAlfLCU[j].posY   >> chromaFormatShift);
-      xpos   = (Int)(cAlfLCU[j].posX   >> chromaFormatShift);
-      height = (Int)(cAlfLCU[j].height >> chromaFormatShift);
-      width  = (Int)(cAlfLCU[j].width  >> chromaFormatShift);
-
-      filterChroma(pRest, pDec, stride, ypos, ypos+ height -1, xpos, xpos+ width-1, filtNo, coeff);
-    }
-  }
-}
-
-#endif
 
 /** Copy ALF CU control flags from ALF parameters for slices
  * \param [in] vAlfParamSlices ALF CU control parameters
@@ -2845,12 +1222,10 @@ Void TComAdaptiveLoopFilter::extendRegionBorder(std::vector< AlfLCUInfo* > &vpAl
     for(Int n =0; n < rAlfLCU.numSGU; n++)
     {
       NDBFBlockInfo& rSGU = rAlfLCU[n];
-#if LCU_SYNTAX_ALF
       if(rSGU.allBordersAvailable)
       {
         continue;
       }
-#endif
       posX     = rSGU.posX >> formatShift;
       posY     = rSGU.posY >> formatShift;
       width    = rSGU.width >> formatShift;
@@ -3126,7 +1501,6 @@ Int TComAdaptiveLoopFilter::getCtrlFlagsFromAlfParam(AlfLCUInfo* pcAlfLCU, Int a
   return numCUCtrlFlags;
 }
 
-#if LCU_SYNTAX_ALF
 /** reconstruct ALF luma coefficient
  * \param [in] alfLCUParam ALF parameters 
  * \param [out] filterCoeff reconstructed luma coefficients
@@ -3231,11 +1605,7 @@ Void TComAdaptiveLoopFilter::reconstructChromaCoefficients(ALFParam* alfLCUParam
 #else
   coeffPred = (1<<ALF_NUM_BIT_SHIFT) - sum;
 #endif
-#if ALF_CHROMA_COEF_PRED_HARMONIZATION
   filterCoeff[0][alfLCUParam->num_coeff-1] = coeffPred + alfLCUParam->coeffmulti[0][alfLCUParam->num_coeff-1];
-#else
-  filterCoeff[0][alfLCUParam->num_coeff-1] = coeffPred - alfLCUParam->coeffmulti[0][alfLCUParam->num_coeff-1];
-#endif
 }
 
 
@@ -3443,14 +1813,9 @@ Void TComAdaptiveLoopFilter::predictALFCoeffChroma(Int* coeff, Int numCoef)
 #else
   Int pred = (1<<ALF_NUM_BIT_SHIFT) - (sum);
 #endif
-#if ALF_CHROMA_COEF_PRED_HARMONIZATION
   coeff[numCoef-1] = coeff[numCoef-1] - pred;
-#else
-  coeff[numCoef-1] = pred- coeff[numCoef-1];
-#endif
 }
 
-#if ALF_SINGLE_FILTER_SHAPE 
 /** filtering pixels
  * \param [out] imgRes filtered picture
  * \param [in] imgPad decoded picture 
@@ -3575,7 +1940,6 @@ Void TComAdaptiveLoopFilter::filterOneCompRegion(Pel *imgRes, Pel *imgPad, Int s
     imgRes += stride;
   }  
 }
-#endif
 
 #if LCUALF_QP_DEPENDENT_BITS
 /** filtering pixels
@@ -3622,15 +1986,10 @@ Void TComAdaptiveLoopFilter::calcOneRegionVar(Pel **imgYvar, Pel *imgYpad, Int s
   static Int shiftH = (Int)(log((double)VAR_SIZE_H)/log(2.0));
   static Int shiftW = (Int)(log((double)VAR_SIZE_W)/log(2.0));
   static Int varMax = (Int)NO_VAR_BINS-1;  
-#if ALF_16_BA_GROUPS
   static Int th[NO_VAR_BINS] = {0, 1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5}; 
   static Int avgVarTab[3][6] = { {0,  1,  2,  3,  4,  5,},
   {0,  6,  7,  8,  9, 10,},
   {0, 11, 12, 13, 14, 15}   };
-#else
-  static Int step   = (Int)((Int)(NO_VAR_BINS)/3) - 1;  
-  static Int th[NO_VAR_BINS] = {0, 1, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4}; 
-#endif
 
   Int i, j, avgVar, vertical, horizontal, direction, yOffset;
   Pel *imgYPadCur, *imgYPadUp, *imgYPadDown;
@@ -3682,11 +2041,7 @@ Void TComAdaptiveLoopFilter::calcOneRegionVar(Pel **imgYvar, Pel *imgYpad, Int s
       avgVar = (vertical + horizontal) >> 2;
       avgVar = (Pel) Clip_post( varMax, avgVar>>(g_uiBitIncrement+1) );
       avgVar = th[avgVar];
-#if ALF_16_BA_GROUPS
       avgVar = avgVarTab[direction][avgVar];
-#else      
-      avgVar = Clip_post(step, (Int)avgVar) + (step+1)*direction;
-#endif
       imgYvar[i>>shiftH][j>>shiftW] = avgVar;
     }
   }
@@ -3766,7 +2121,6 @@ Pel* TComAdaptiveLoopFilter::getPicBuf(TComPicYuv* pPicYuv, Int compIdx)
 
   return pBuf;
 }
-#endif
 
 
 
