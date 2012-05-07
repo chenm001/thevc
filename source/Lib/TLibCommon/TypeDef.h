@@ -41,6 +41,11 @@
 //! \ingroup TLibCommon
 //! \{
 
+#define FIXED_SBH_THRESHOLD              1  ///< H0156: use fixed controlling threshold for Multiple Sign Bit Hiding (SBH)
+#if     FIXED_SBH_THRESHOLD
+#define SBH_THRESHOLD                    4  ///< H0156: value of the fixed SBH controlling threshold
+#endif
+
 #define LOSSLESS_CODING                   1  ///< H0530: lossless and lossy (mixed) coding
 #if LOSSLESS_CODING
 #define SEQUENCE_LEVEL_LOSSLESS           0  ///< H0530: used only for sequence or frame-level lossless coding

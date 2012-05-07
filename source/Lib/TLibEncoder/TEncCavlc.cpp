@@ -235,10 +235,12 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   WRITE_UVLC( pcPPS->getSPSId(),                             "seq_parameter_set_id" );
 
   WRITE_FLAG( pcPPS->getSignHideFlag(), "sign_data_hiding_flag" );
+#if !FIXED_SBH_THRESHOLD
   if( pcPPS->getSignHideFlag() )
   {
     WRITE_CODE(pcPPS->getTSIG(), 4, "sign_hiding_threshold");
   }
+#endif
   WRITE_FLAG( pcPPS->getCabacInitPresentFlag() ? 1 : 0,   "cabac_init_present_flag" );
   WRITE_CODE( pcPPS->getNumRefIdxL0DefaultActive()-1, 3, "num_ref_idx_l0_default_active_minus1");
   WRITE_CODE( pcPPS->getNumRefIdxL1DefaultActive()-1, 3, "num_ref_idx_l1_default_active_minus1");
