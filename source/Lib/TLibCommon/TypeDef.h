@@ -43,9 +43,9 @@
 
 #define REMOVE_COMBINED_CAND_LIMIT       1  ///< I0414: Removal of the limit on the number of combined merge candidates
 
-#define FIXED_SBH_THRESHOLD              1  ///< H0156: use fixed controlling threshold for Multiple Sign Bit Hiding (SBH)
+#define FIXED_SBH_THRESHOLD              1  ///< I0156: use fixed controlling threshold for Multiple Sign Bit Hiding (SBH)
 #if     FIXED_SBH_THRESHOLD
-#define SBH_THRESHOLD                    4  ///< H0156: value of the fixed SBH controlling threshold
+#define SBH_THRESHOLD                    4  ///< I0156: value of the fixed SBH controlling threshold
 #endif
 
 #define LOSSLESS_CODING                   1  ///< H0530: lossless and lossy (mixed) coding
