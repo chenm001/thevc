@@ -41,6 +41,8 @@
 //! \ingroup TLibCommon
 //! \{
 
+#define SIMPLE_PARAM_UPDATE              1   ///<I0124 : Simplification of param update
+
 #define FILLUP_EMPTYLIST_AMVP_MERGE      1  ///< I0134/I0314: Fill up empty list for AMVP/Merge
 #define REMOVE_COMBINED_CAND_LIMIT       1  ///< I0414: Removal of the limit on the number of combined merge candidates
 

@@ -488,6 +488,7 @@ const UInt g_auiGoRicePrefixLen[5] =
   8, 7, 6, 5, 4
 };
 
+#if !SIMPLE_PARAM_UPDATE
 const UInt g_aauiGoRiceUpdate[5][24] =
 {
   {
@@ -506,7 +507,7 @@ const UInt g_aauiGoRiceUpdate[5][24] =
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
   }
 };
-
+#endif
 // initialize g_auiFrameScanXY
 Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int iHeight )
 {

@@ -132,7 +132,9 @@ extern const UInt   g_uiLastCtx[ 28 ];
 
 extern const UInt   g_auiGoRiceRange[5];                  //!< maximum value coded with Rice codes
 extern const UInt   g_auiGoRicePrefixLen[5];              //!< prefix length for each maximum value
+#if !SIMPLE_PARAM_UPDATE
 extern const UInt   g_aauiGoRiceUpdate[5][24];            //!< parameter update rules for Rice codes
+#endif
   
 extern const UInt   g_sigLastScan8x8[ 4 ][ 4 ];           //!< coefficient group scan order for 8x8 TUs
 extern       UInt   g_sigLastScanCG32x32[ 64 ];

@@ -419,8 +419,9 @@ Void TEncSbac::xWriteGoRiceExGolomb( UInt uiSymbol, UInt &ruiGoRiceParam )
   }
   
   m_pcBinIf->encodeBinsEP( ( binValues << ruiGoRiceParam ) + uiCodeWord - ( uiQuotient << ruiGoRiceParam ), numBins + ruiGoRiceParam );
-  
+#if !SIMPLE_PARAM_UPDATE  
   ruiGoRiceParam = g_aauiGoRiceUpdate[ ruiGoRiceParam ][ min<UInt>( uiSymbol, 23 ) ];
+#endif
   
   if( bExGolomb )
   {
@@ -1411,6 +1412,10 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           if( absCoeff[ idx ] >= baseLevel)
           {
             xWriteGoRiceExGolomb( absCoeff[ idx ] - baseLevel, uiGoRiceParam ); 
+#if SIMPLE_PARAM_UPDATE
+            if(absCoeff[idx] > 3*(1<<uiGoRiceParam))
+               uiGoRiceParam = min<UInt>(uiGoRiceParam+ 1, 4);
+#endif
           }
           if(absCoeff[ idx ] >= 2)  
           {

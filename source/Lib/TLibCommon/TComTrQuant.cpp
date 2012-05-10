@@ -1765,7 +1765,12 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
           baseLevel = (c1Idx < C1FLAG_NUMBER) ? (2 + (c2Idx < C2FLAG_NUMBER)) : 1;
           if( uiLevel >= baseLevel )
           {
+#if SIMPLE_PARAM_UPDATE
+            if(uiLevel  > 3*(1<<uiGoRiceParam))
+              uiGoRiceParam = min<UInt>(uiGoRiceParam+ 1, 4);
+#else
             uiGoRiceParam = g_aauiGoRiceUpdate[ uiGoRiceParam ][ min<UInt>( uiLevel - baseLevel , 23 ) ];
+#endif
           }
           if ( uiLevel >= 1)
           {

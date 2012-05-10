@@ -347,8 +347,9 @@ Void TDecSbac::xReadGoRiceExGolomb( UInt &ruiSymbol, UInt &ruiGoRiceParam )
     xReadEpExGolomb( uiCodeWord, 0 );
     ruiSymbol += uiCodeWord;
   }
-
-  ruiGoRiceParam = g_aauiGoRiceUpdate[ ruiGoRiceParam ][ min<UInt>( ruiSymbol, 23 ) ];
+#if !SIMPLE_PARAM_UPDATE  
+  ruiGoRiceParam = g_aauiGoRiceUpdate[ ruiGoRiceParam ][ min<UInt>( uiSymbol, 23 ) ];
+#endif
 
   return;
 }
@@ -1315,6 +1316,10 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
             UInt uiLevel;
             xReadGoRiceExGolomb( uiLevel, uiGoRiceParam );
             absCoeff[ idx ] = uiLevel + baseLevel;
+#if SIMPLE_PARAM_UPDATE
+            if(absCoeff[idx]>3*(1<<uiGoRiceParam))
+                uiGoRiceParam = min<UInt>(uiGoRiceParam+ 1, 4);
+#endif
           }
 
           if(absCoeff[ idx ] >= 2)  
