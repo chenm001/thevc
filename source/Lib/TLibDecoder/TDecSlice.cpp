@@ -282,11 +282,35 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
         pcSlice->getAPS()->getSaoParam()->bSaoFlag[2] = pcSlice->getSaoEnabledFlagCr();
       }
       Int numCuInWidth     = pcSlice->getAPS()->getSaoParam()->numCuInWidth;
+#if SAO_NO_MERGE_CROSS_SLICE_TILE
+      Int cuAddrInSlice = iCUAddr - rpcPic->getPicSym()->getCUOrderMap(pcSlice->getSliceCurStartCUAddr()/rpcPic->getNumPartInCU());
+#else
       Int cuAddrInSlice = iCUAddr - pcSlice->getSliceCurStartCUAddr()/rpcPic->getNumPartInCU();
+#endif
       Int cuAddrUpInSlice  = cuAddrInSlice - numCuInWidth;
       Int rx = iCUAddr % numCuInWidth;
       Int ry = iCUAddr / numCuInWidth;
-      pcSbacDecoder->parseSaoOneLcuInterleaving(rx, ry, pcSlice->getAPS()->getSaoParam(),pcCU, cuAddrInSlice, cuAddrUpInSlice, pcSlice->getSPS()->getLFCrossSliceBoundaryFlag() );
+#if SAO_NO_MERGE_CROSS_SLICE_TILE
+      Int allowMergeLeft = 1;
+      Int allowMergeUp   = 1;
+      if (rx!=0)
+      {
+        if (rpcPic->getPicSym()->getTileIdxMap(iCUAddr-1) != rpcPic->getPicSym()->getTileIdxMap(iCUAddr))
+        {
+          allowMergeLeft = 0;
+        }
+      }
+      if (ry!=0)
+      {
+        if (rpcPic->getPicSym()->getTileIdxMap(iCUAddr-numCuInWidth) != rpcPic->getPicSym()->getTileIdxMap(iCUAddr))
+        {
+          allowMergeUp = 0;
+        }
+      }
+      pcSbacDecoder->parseSaoOneLcuInterleaving(rx, ry, pcSlice->getAPS()->getSaoParam(),pcCU, cuAddrInSlice, cuAddrUpInSlice, allowMergeLeft, allowMergeUp);
+#else
+      pcSbacDecoder->parseSaoOneLcuInterleaving(rx, ry, pcSlice->getAPS()->getSaoParam(),pcCU, cuAddrInSlice, cuAddrUpInSlice, pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+#endif
     }
 #if AHG6_ALF_OPTION2
     if(pcSlice->getSPS()->getUseALF())

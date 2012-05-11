@@ -78,6 +78,7 @@
 
 #define SAO_REMOVE_APS                   1  ///< remove SAO APS syntax
 
+#define SAO_NO_MERGE_CROSS_SLICE_TILE    1  ///< disallow merging across slice or tile boundaries
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
 #define MAX_NUM_APS                32         //< !!!KS: number not defined in WD yet

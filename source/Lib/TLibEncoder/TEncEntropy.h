@@ -283,7 +283,11 @@ public:
   Void    encodeSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam, Int repeatedRow);
 #endif
   Void    encodeSaoOffset(SaoLcuParam* saoLcuParam);
+#if SAO_NO_MERGE_CROSS_SLICE_TILE
+  Void    encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, TComDataCU* cu, Int cuAddrInSlice, Int cuAddrUpInSlice, Int allowMergeLeft, Int allowMergeUp);
+#else
   Void    encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, TComDataCU* cu, Int cuAddrInSlice, Int cuAddrUpInSlice, Bool lfCrossSliceBoundaryFlag);
+#endif
 #if !SAO_REMOVE_APS
   Void    encodeSaoParam         (TComAPS*  aps);
 #endif

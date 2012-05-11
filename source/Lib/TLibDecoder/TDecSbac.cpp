@@ -1540,7 +1540,11 @@ Void TDecSbac::parseSaoOffset(SaoLcuParam* psSaoLcuParam)
   }
 }
 
+#if SAO_NO_MERGE_CROSS_SLICE_TILE
+Void TDecSbac::parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, TComDataCU* pcCU, Int iCUAddrInSlice, Int iCUAddrUpInSlice, Int allowMergeLeft, Int allowMergeUp)
+#else
 Void TDecSbac::parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, TComDataCU* pcCU, Int iCUAddrInSlice, Int iCUAddrUpInSlice, Bool bLFCrossSliceBoundaryFlag)
+#endif
 {
   Int iAddr = pcCU->getAddr();
   UInt uiSymbol;
@@ -1557,7 +1561,11 @@ Void TDecSbac::parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, T
 
     if (pSaoParam->bSaoFlag[iCompIdx])
     {
+#if SAO_NO_MERGE_CROSS_SLICE_TILE
+      if (rx>0 && iCUAddrInSlice!=0 && allowMergeLeft)
+#else
       if (rx>0 && iCUAddrInSlice!=0)
+#endif
       {
         parseSaoMergeLeft(uiSymbol,iCompIdx); pSaoParam->saoLcuParam[iCompIdx][iAddr].mergeLeftFlag = (Int)uiSymbol;
       }
@@ -1568,7 +1576,11 @@ Void TDecSbac::parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, T
 
       if (pSaoParam->saoLcuParam[iCompIdx][iAddr].mergeLeftFlag==0)
       {
+#if SAO_NO_MERGE_CROSS_SLICE_TILE
+        if ((ry > 0) && (iCUAddrUpInSlice>0) && allowMergeUp)
+#else
         if ((ry > 0) && (iCUAddrUpInSlice>0||bLFCrossSliceBoundaryFlag))
+#endif
         {
           parseSaoMergeUp(uiSymbol);  pSaoParam->saoLcuParam[iCompIdx][iAddr].mergeUpFlag = uiSymbol;
         }

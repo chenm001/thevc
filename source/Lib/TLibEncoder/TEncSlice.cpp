@@ -1124,11 +1124,35 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
 #endif
     {
       Int iNumCuInWidth     = pcSlice->getAPS()->getSaoParam()->numCuInWidth;
+#if SAO_NO_MERGE_CROSS_SLICE_TILE
+      Int iCUAddrInSlice    = uiCUAddr - rpcPic->getPicSym()->getCUOrderMap(pcSlice->getSliceCurStartCUAddr()/rpcPic->getNumPartInCU());
+#else
       Int iCUAddrInSlice    = uiCUAddr - (pcSlice->getSliceCurStartCUAddr() /rpcPic->getNumPartInCU());
+#endif
       Int iCUAddrUpInSlice  = iCUAddrInSlice - iNumCuInWidth;
       Int rx = uiCUAddr % iNumCuInWidth;
       Int ry = uiCUAddr / iNumCuInWidth;
+#if SAO_NO_MERGE_CROSS_SLICE_TILE
+      Int allowMergeLeft = 1;
+      Int allowMergeUp   = 1;
+      if (rx!=0)
+      {
+        if (rpcPic->getPicSym()->getTileIdxMap(uiCUAddr-1) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr))
+        {
+          allowMergeLeft = 0;
+        }
+      }
+      if (ry!=0)
+      {
+        if (rpcPic->getPicSym()->getTileIdxMap(uiCUAddr-iNumCuInWidth) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr))
+        {
+          allowMergeUp = 0;
+        }
+      }
+      m_pcEntropyCoder->encodeSaoUnitInterleaving( rx, ry, pcSlice->getAPS()->getSaoParam(),pcCU, iCUAddrInSlice, iCUAddrUpInSlice, allowMergeLeft, allowMergeUp);
+#else
       m_pcEntropyCoder->encodeSaoUnitInterleaving( rx, ry, pcSlice->getAPS()->getSaoParam(),pcCU, iCUAddrInSlice, iCUAddrUpInSlice, pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+#endif
     }
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceEnable;

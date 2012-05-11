@@ -1428,14 +1428,22 @@ Void TEncEntropy::encodeSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam,
 * \param  iCUAddrUpInSlice
 * \param  bLFCrossSliceBoundaryFlag
  */
+#if SAO_NO_MERGE_CROSS_SLICE_TILE
+Void TEncEntropy::encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, TComDataCU* cu, Int cuAddrInSlice, Int cuAddrUpInSlice, Int allowMergeLeft, Int allowMergeUp)
+#else
 Void TEncEntropy::encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, TComDataCU* cu, Int cuAddrInSlice, Int cuAddrUpInSlice, Bool lfCrossSliceBoundaryFlag)
+#endif
 {
   Int addr = cu->getAddr();
   for (Int compIdx=0; compIdx<3; compIdx++)
   {
     if (saoParam->bSaoFlag[compIdx])
     {
+#if SAO_NO_MERGE_CROSS_SLICE_TILE
+      if (rx>0 && cuAddrInSlice!=0 && allowMergeLeft)
+#else
       if (rx>0 && cuAddrInSlice!=0)
+#endif
       {
       m_pcEntropyCoderIf->codeSaoMergeLeft(saoParam->saoLcuParam[compIdx][addr].mergeLeftFlag,compIdx);
       }
@@ -1445,7 +1453,11 @@ Void TEncEntropy::encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, 
       }
       if (saoParam->saoLcuParam[compIdx][addr].mergeLeftFlag == 0)
       {
+#if SAO_NO_MERGE_CROSS_SLICE_TILE
+        if ( (ry > 0) && (cuAddrUpInSlice>0) && allowMergeUp )
+#else
         if ( (ry > 0) && (cuAddrUpInSlice>0||lfCrossSliceBoundaryFlag))
+#endif
         {
           m_pcEntropyCoderIf->codeSaoMergeUp(saoParam->saoLcuParam[compIdx][addr].mergeUpFlag);
         }
