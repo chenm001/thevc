@@ -1739,12 +1739,15 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   if (!bEntropySlice)
   {
 #if AHG6_ALF_OPTION2
-    char syntaxString[50];
-    for(Int compIdx=0; compIdx< 3; compIdx++)
+    if(sps->getUseALF())
     {
-      sprintf(syntaxString, "alf_slice_filter_flag[%d]", compIdx);
-      READ_FLAG(uiCode, syntaxString);
-      rpcSlice->setAlfEnabledFlag( (uiCode ==1), compIdx);
+      char syntaxString[50];
+      for(Int compIdx=0; compIdx< 3; compIdx++)
+      {
+        sprintf(syntaxString, "alf_slice_filter_flag[%d]", compIdx);
+        READ_FLAG(uiCode, syntaxString);
+        rpcSlice->setAlfEnabledFlag( (uiCode ==1), compIdx);
+      }
     }
 #else
     if(sps->getUseALF() && rpcSlice->getAlfEnabledFlag())
