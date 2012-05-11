@@ -148,13 +148,15 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseASR                       ( m_bUseASR      );
   m_cTEncTop.setUseHADME                     ( m_bUseHADME    );
   m_cTEncTop.setUseALF                       ( m_bUseALF      );
+#if !AHG6_ALF_OPTION2
   m_cTEncTop.setALFEncodePassReduction       ( m_iALFEncodePassReduction );
-
+#endif
 #if LOSSLESS_CODING
   m_cTEncTop.setUseLossless                  ( m_useLossless );
 #endif
+#if !AHG6_ALF_OPTION2
   m_cTEncTop.setALFMaxNumberFilters          ( m_iALFMaxNumberFilters ) ;
-
+#endif
   m_cTEncTop.setUseLComb                     ( m_bUseLComb    );
   m_cTEncTop.setLCMod                        ( m_bLCMod         );
   m_cTEncTop.setdQPs                         ( m_aidQP        );
@@ -250,7 +252,9 @@ Void TAppEncTop::xInitLibCfg()
 #if !FIXED_SBH_THRESHOLD
   m_cTEncTop.setTSIG(m_signHidingThreshold);
 #endif
-
+#if AHG6_ALF_OPTION2
+  m_cTEncTop.setALFLowLatencyEncoding( m_alfLowLatencyEncoding );
+#else
   if(uiTilesCount > 1)
   {
     m_bALFParamInSlice = false;
@@ -258,6 +262,7 @@ Void TAppEncTop::xInitLibCfg()
   }
   m_cTEncTop.setALFParamInSlice              ( m_bALFParamInSlice);
   m_cTEncTop.setALFPicBasedEncode            ( m_bALFPicBasedEncode);
+#endif
   m_cTEncTop.setUseRateCtrl     ( m_enableRateCtrl);
   m_cTEncTop.setTargetBitrate   ( m_targetBitrate);
   m_cTEncTop.setNumLCUInUnit    ( m_numLCUInUnit);

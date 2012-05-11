@@ -141,6 +141,7 @@ Void TEncEntropy::encodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
   m_pcEntropyCoderIf->codeSkipFlag( pcCU, uiAbsPartIdx );
 }
 
+#if !AHG6_ALF_OPTION2
 Void TEncEntropy::codeFiltCountBit(ALFParam* pAlfParam, Int64* ruiRate)
 {
   resetEntropy();
@@ -372,7 +373,7 @@ Void TEncEntropy::codeFilt(ALFParam* pAlfParam)
   }
   codeFilterCoeff (pAlfParam);
 }
-
+#endif
 /** encode merge flag
  * \param pcCU
  * \param uiAbsPartIdx
@@ -407,6 +408,7 @@ Void TEncEntropy::encodeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   }
 }
 
+#if !AHG6_ALF_OPTION2
 /** parse the fixed length code (smaller than one max value) in ALF
  * \param run: coded value
  * \param rx: cur addr
@@ -748,7 +750,7 @@ Void TEncEntropy::encodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic)
     m_pcEntropyCoderIf->codeAlfCtrlFlag( cAlfParam.alf_cu_flag[i] );
   }
 }
-
+#endif
 /** encode prediction mode
  * \param pcCU
  * \param uiAbsPartIdx

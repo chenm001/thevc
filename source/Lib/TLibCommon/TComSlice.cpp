@@ -719,6 +719,13 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_numEntryPointOffsets  = pSrc->m_numEntryPointOffsets;
 
   m_bLMvdL1Zero = pSrc->m_bLMvdL1Zero;
+#if AHG6_ALF_OPTION2
+  for(Int compIdx=0; compIdx < 3; compIdx++)
+  {
+    m_alfEnabledFlag[compIdx] = pSrc->m_alfEnabledFlag[compIdx];
+  }
+#endif
+
 }
 
 int TComSlice::m_prevPOC = 0;
@@ -1242,7 +1249,9 @@ TComSPS::TComSPS()
 , m_uiPCMLog2MinSize          (  7)
 , m_bDisInter4x4              (  1)
 , m_bUseALF                   (false)
+#if !AHG6_ALF_OPTION2
 , m_bALFCoefInSlice           (false)
+#endif
 , m_bUseLMChroma              (false)
 , m_bUseLComb                 (false)
 , m_bLCMod                    (false)
@@ -1545,12 +1554,18 @@ TComRefPicListModification::~TComRefPicListModification()
 TComAPS::TComAPS()
 {
   m_apsID = 0;
+#if !AHG6_ALF_OPTION2
   m_bAlfEnabled = false;
+#endif
 #if !SAO_REMOVE_APS // APS syntax
   m_bSaoEnabled = false;
 #endif
   m_pSaoParam = NULL;
+#if AHG6_ALF_OPTION2
+  m_alfParam[0] = m_alfParam[1] = m_alfParam[2] = NULL;
+#else
   m_alfParamSet = NULL;
+#endif
   m_scalingList = NULL;
   m_scalingListEnabled = false;
 }
@@ -1558,7 +1573,15 @@ TComAPS::TComAPS()
 TComAPS::~TComAPS()
 {
   delete m_pSaoParam;
+#if AHG6_ALF_OPTION2
+  for(Int compIdx =0; compIdx < 3; compIdx++)
+  {
+    delete m_alfParam[compIdx];
+    m_alfParam[compIdx] = NULL;
+  }
+#else
   delete m_alfParamSet;
+#endif
   delete m_scalingList;
 }
 
@@ -1569,12 +1592,21 @@ TComAPS& TComAPS::operator= (const TComAPS& src)
   m_loopFilterDisable = src.m_loopFilterDisable;
   m_loopFilterBetaOffsetDiv2 = src.m_loopFilterBetaOffsetDiv2;
   m_loopFilterTcOffsetDiv2 = src.m_loopFilterTcOffsetDiv2;
+#if !AHG6_ALF_OPTION2
   m_bAlfEnabled = src.m_bAlfEnabled;
+#endif
 #if !SAO_REMOVE_APS // APS syntax
   m_bSaoEnabled = src.m_bSaoEnabled;
 #endif
   m_pSaoParam   = src.m_pSaoParam; 
+#if AHG6_ALF_OPTION2
+  for(Int compIdx =0; compIdx < 3; compIdx++)
+  {
+    m_alfParam[compIdx] = src.m_alfParam[compIdx];
+  }
+#else
   m_alfParamSet    = src.m_alfParamSet;
+#endif
   m_scalingList = src.m_scalingList;
   m_scalingListEnabled = src.m_scalingListEnabled;
 #if !SAO_REMOVE_APS // APS syntax
@@ -1599,15 +1631,34 @@ Void TComAPS::destroySaoParam()
 
 Void TComAPS::createAlfParam()
 {
+#if AHG6_ALF_OPTION2
+  for(Int compIdx =0; compIdx < 3; compIdx++)
+  {
+    m_alfParam[compIdx] = new ALFParam(compIdx);
+    m_alfParam[compIdx]->alf_flag = 0;
+  }
+#else
   m_alfParamSet = new AlfParamSet;
+#endif
 }
 Void TComAPS::destroyAlfParam()
 {
+#if AHG6_ALF_OPTION2
+  for(Int compIdx=0; compIdx < 3; compIdx++)
+  {
+    if(m_alfParam[compIdx] != NULL)
+    {
+      delete m_alfParam[compIdx];
+      m_alfParam[compIdx] = NULL;
+    }
+  }
+#else
   if(m_alfParamSet != NULL)
   {
     delete m_alfParamSet;
     m_alfParamSet = NULL;
   }
+#endif
 }
 
 Void TComAPS::createScalingList()

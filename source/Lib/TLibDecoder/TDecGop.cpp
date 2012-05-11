@@ -77,7 +77,9 @@ Void TDecGop::create()
 
 Void TDecGop::destroy()
 {
+#if !AHG6_ALF_OPTION2
   m_alfParamSetPilot.releaseALFParam();
+#endif
 }
 
 Void TDecGop::init( TDecEntropy*            pcEntropyDecoder, 
@@ -104,6 +106,7 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
 // ====================================================================================================================
 // Private member functions
 // ====================================================================================================================
+#if !AHG6_ALF_OPTION2
 Void TDecGop::patchAlfLCUParams(ALFParam*** alfLCUParam, AlfParamSet* alfParamSet, Int firstLCUAddr)
 {
   Int numLCUInWidth = alfParamSet->numLCUInWidth;
@@ -177,7 +180,7 @@ Void TDecGop::patchAlfLCUParams(ALFParam*** alfLCUParam, AlfParamSet* alfParamSe
     } //compIdx
   } //i (LCU)
 }
-
+#endif
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
@@ -196,8 +199,11 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
   static Bool  bFirst = true;
   static UInt  uiILSliceCount;
   static UInt* puiILSliceStartLCU;
+#if AHG6_ALF_OPTION2
+  static std::vector<Bool> sliceAlfEnabled[3];
+#else
   static std::vector<AlfCUCtrlInfo> vAlfCUCtrlSlices;
-
+#endif
   if (!bExecuteDeblockAndAlf)
   {
     if(bFirst)
@@ -263,6 +269,12 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     {
       if(pcSlice->getSPS()->getUseALF())
       {
+#if AHG6_ALF_OPTION2
+        for(Int compIdx=0; compIdx < 3; compIdx++)
+        {
+          sliceAlfEnabled[compIdx].push_back(  pcSlice->getAlfEnabledFlag(compIdx) );
+        }
+#else
         if(pcSlice->getAlfEnabledFlag())
         {
           if(pcSlice->getSPS()->getUseALFCoefInSlice())
@@ -277,6 +289,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
           vAlfCUCtrlSlices.push_back(m_cAlfCUCtrlOneSlice);
           }
         }
+#endif
       }
     }
 
@@ -357,6 +370,10 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     // adaptive loop filter
     if( pcSlice->getSPS()->getUseALF() )
     {
+#if AHG6_ALF_OPTION2
+      m_pcAdaptiveLoopFilter->createPicAlfInfo(rpcPic, uiILSliceCount);
+      m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, pcSlice->getAPS()->getAlfParam(), sliceAlfEnabled);
+#else
       if( (pcSlice->getSPS()->getUseALFCoefInSlice())?(true):(pcSlice->getAlfEnabledFlag()))
       {
 
@@ -366,10 +383,13 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
         }
         m_pcAdaptiveLoopFilter->createPicAlfInfo(rpcPic, uiILSliceCount, pcSlice->getSliceQp());
         m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, vAlfCUCtrlSlices, pcSlice->getSPS()->getUseALFCoefInSlice());
+#endif
       m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
       m_pcAdaptiveLoopFilter->destroyPicAlfInfo();
+#if !AHG6_ALF_OPTION2
       }
       m_pcAdaptiveLoopFilter->resetLCUAlfInfo(); //reset all LCU ALFParam->alf_flag = 0
+#endif
     }
     
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
@@ -426,7 +446,14 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     rpcPic->setUsedForTMVP( true );
 
     uiILSliceCount = 0;
+#if AHG6_ALF_OPTION2
+    for(Int compIdx=0; compIdx < 3; compIdx++)
+    {
+      sliceAlfEnabled[compIdx].clear();
+    }
+#else
     vAlfCUCtrlSlices.clear();
+#endif
   }
 }
 

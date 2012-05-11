@@ -125,9 +125,15 @@ INIT_SKIP_FLAG[3][NUM_SKIP_FLAG_CTX] =
 static const UChar 
 INIT_ALF_CTRL_FLAG[3][NUM_ALF_CTRL_FLAG_CTX] = 
 {
+#if AHG6_ALF_OPTION2
+  { 118, }, 
+  { 102, }, 
+  { 102, }, 
+#else
   { 200, }, 
   { 139, }, 
   { 169, }, 
+#endif
 };
 
 static const UChar 

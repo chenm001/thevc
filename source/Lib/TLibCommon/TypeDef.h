@@ -41,6 +41,8 @@
 //! \ingroup TLibCommon
 //! \{
 
+#define AHG6_ALF_OPTION2                 1  ///< I0157: AHG6 ALF baseline Option 2 RA- Variant 2
+
 #define SIMPLE_PARAM_UPDATE              1   ///<I0124 : Simplification of param update
 
 #define FILLUP_EMPTYLIST_AMVP_MERGE      1  ///< I0134/I0314: Fill up empty list for AMVP/Merge
@@ -317,12 +319,18 @@ struct ALFParam
   Int *filterPattern;
   Int startSecondFilter;
   Int filters_per_group;
+#if !AHG6_ALF_OPTION2
   Int predMethod;
   Int *nbSPred;
+#endif
   Int **coeffmulti;
+#if !AHG6_ALF_OPTION2
   Int minKStart;
+#endif
   Int componentID;
+#if !AHG6_ALF_OPTION2
   Int* kMinTab;
+#endif
   //constructor, operator
   ALFParam():componentID(-1){}
   ALFParam(Int cID){create(cID);}
@@ -334,7 +342,7 @@ private:
   Void destroy();
   Void copy(const ALFParam& src);
 };
-
+#if !AHG6_ALF_OPTION2
 struct AlfUnitParam
 {
   Int   mergeType;
@@ -367,7 +375,7 @@ struct AlfParamSet
 private:
   Void destroy();
 };
-
+#endif
 
 /// parameters for deblocking filter
 typedef struct _LFCUParam

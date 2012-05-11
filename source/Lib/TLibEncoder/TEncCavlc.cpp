@@ -121,9 +121,10 @@ TEncCavlc::TEncCavlc()
 {
   m_pcBitIf           = NULL;
   m_uiCoeffCost       = 0;
+#if !AHG6_ALF_OPTION2
   m_bAlfCtrl = false;
   m_uiMaxAlfCtrlDepth = 0;
-  
+#endif  
   m_iSliceGranularity = 0;
 }
 
@@ -161,11 +162,12 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
   //DF flag
   WRITE_FLAG(pcAPS->getLoopFilterOffsetInAPS()?1:0, "aps_deblocking_filter_flag");
 }
+#if !AHG6_ALF_OPTION2
 Void TEncCavlc::codeAPSAlflag(UInt uiCode)
 {
   WRITE_FLAG(uiCode, "aps_adaptive_loop_filter_flag");
 }
-
+#endif
 Void TEncCavlc::codeDFFlag(UInt uiCode, const Char *pSymbolName)
 {
   WRITE_FLAG(uiCode, pSymbolName);
@@ -392,11 +394,12 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_FLAG( pcSPS->getUseNSQT(),                                                   "non_square_quadtree_enabled_flag" );
   WRITE_FLAG( pcSPS->getUseSAO() ? 1 : 0,                                            "sample_adaptive_offset_enabled_flag");
   WRITE_FLAG( pcSPS->getUseALF () ? 1 : 0,                                           "adaptive_loop_filter_enabled_flag");
+#if !AHG6_ALF_OPTION2
   if(pcSPS->getUseALF())
   {
     WRITE_FLAG( (pcSPS->getUseALFCoefInSlice()) ? 1 : 0,                             "alf_coef_in_slice_flag");
   }
-
+#endif
   if( pcSPS->getUsePCM() )
   {
   WRITE_FLAG( pcSPS->getPCMFilterDisableFlag()?1 : 0,                                "pcm_loop_filter_disable_flag");
@@ -587,10 +590,12 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     }
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF()|| pcSlice->getSPS()->getScalingListFlag() || pcSlice->getSPS()->getUseDF())
     {
+#if !AHG6_ALF_OPTION2
       if (pcSlice->getSPS()->getUseALF())
       {
          WRITE_FLAG( pcSlice->getAlfEnabledFlag(), "ALF on/off flag in slice header" );
       }
+#endif
       if (pcSlice->getSPS()->getUseSAO())
       {
 #if !SAO_REMOVE_APS // APS syntax
@@ -769,6 +774,21 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   assert(pcSlice->getMaxNumMergeCand()<=MRG_MAX_NUM_CANDS_SIGNALED);
   assert(MRG_MAX_NUM_CANDS_SIGNALED<=MRG_MAX_NUM_CANDS);
   WRITE_UVLC(MRG_MAX_NUM_CANDS - pcSlice->getMaxNumMergeCand(), "maxNumMergeCand");
+
+#if AHG6_ALF_OPTION2
+  if (!bEntropySlice)
+  {
+    if (pcSlice->getSPS()->getUseALF())
+    {
+      char syntaxString[50];
+      for(Int compIdx=0; compIdx< 3; compIdx++)
+      {
+        sprintf(syntaxString, "alf_slice_filter_flag[%d]", compIdx);
+        WRITE_FLAG( pcSlice->getAlfEnabledFlag(compIdx)?1:0, syntaxString );
+      }
+    }
+  }
+#endif
 }
 
 
@@ -919,6 +939,7 @@ Void TEncCavlc::codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx )
   assert(0);
 }
 
+#if !AHG6_ALF_OPTION2
 Void TEncCavlc::codeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {  
   if (!m_bAlfCtrl)
@@ -936,12 +957,14 @@ Void TEncCavlc::codeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
   
   xWriteFlag( uiSymbol );
 }
+#endif
 
 Void TEncCavlc::codeApsExtensionFlag ()
 {
   WRITE_FLAG(0, "aps_extension_flag");
 }
 
+#if !AHG6_ALF_OPTION2
 Void TEncCavlc::codeAlfCtrlDepth()
 {  
   if (!m_bAlfCtrl)
@@ -953,7 +976,7 @@ Void TEncCavlc::codeAlfCtrlDepth()
   
   xWriteUvlc(uiDepth);
 }
-
+#endif
 Void TEncCavlc::codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiEncMode )
 {
   assert(0);
@@ -1038,6 +1061,91 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
   assert(0);
 }
 
+#if AHG6_ALF_OPTION2
+Void TEncCavlc::xGolombEncode(Int coeff, Int k)
+{
+  Int q, i;
+  Int symbol = abs(coeff);
+  q = symbol >> k;
+  for (i = 0; i < q; i++)
+  {
+    xWriteFlag(1);
+  }
+  xWriteFlag(0);
+  for(i = 0; i < k; i++)
+  {
+    xWriteFlag(symbol & 0x01);
+    symbol >>= 1;
+  }
+  if(coeff != 0)
+  {
+    Int sign = (coeff > 0)? 1: 0;
+    xWriteFlag(sign);
+  }
+#if ENC_DEC_TRACE
+  fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
+  fprintf( g_hTrace, "%-40s ge(v) : %d\n", "alf_filt_coeff", coeff ); 
+#endif
+
+}
+
+Void TEncCavlc::codeAlfParam(ALFParam* alfParam)
+{
+  char syntaxString[50];
+  sprintf(syntaxString, "alf_aps_filter_flag[%d]", alfParam->componentID);
+  WRITE_FLAG(alfParam->alf_flag, syntaxString);
+  if(alfParam->alf_flag == 0)
+  {
+    return;
+  }
+
+  const Int numCoeff = (Int)ALF_MAX_NUM_COEF;
+  switch(alfParam->componentID)
+  {
+  case ALF_Cb:
+  case ALF_Cr:
+    {
+      for(Int pos=0; pos< numCoeff; pos++)
+      {
+        WRITE_SVLC(alfParam->coeffmulti[0][pos], "alf_filt_coeff");
+      }
+    }
+    break;
+  case ALF_Y:
+    {
+      Int noFilters = min(alfParam->filters_per_group-1, 2);
+      WRITE_UVLC(noFilters, "alf_no_filters_minus1");
+      if(noFilters == 1)
+      {
+        WRITE_UVLC(alfParam->startSecondFilter, "alf_start_second_filter");
+      }
+      else if (noFilters == 2)
+      {
+        Int numMergeFlags = 16;
+        for (Int i=1; i<numMergeFlags; i++) 
+        {
+          WRITE_FLAG(alfParam->filterPattern[i], "alf_filter_pattern");
+        }
+      }
+      for(Int f=0; f< alfParam->filters_per_group; f++)
+      {
+        for(Int pos=0; pos< numCoeff; pos++)
+        {
+          xGolombEncode(alfParam->coeffmulti[f][pos], kTableTabShapes[ALF_CROSS9x7_SQUARE3x3][pos]);
+        }
+      }
+    }
+    break;
+  default:
+    {
+      printf("Not a legal component ID\n");
+      assert(0);
+      exit(-1);
+    }
+  }
+
+}
+#else
 Void TEncCavlc::codeAlfFlag( UInt uiCode )
 {  
   xWriteFlag( uiCode );
@@ -1057,6 +1165,7 @@ Void TEncCavlc::codeAlfSvlc( Int iCode )
 {
   xWriteSvlc( iCode );
 }
+
 /** Code the fixed length code (smaller than one max value) in OSALF
  * \param idx:  coded value 
  * \param maxValue: max value
@@ -1081,6 +1190,7 @@ Void TEncCavlc::codeAlfFixedLengthIdx( UInt idx, UInt maxValue)
     xWriteCode( idx, length );
   }
 }
+#endif
 
 Void TEncCavlc::codeSaoFlag( UInt uiCode )
 {

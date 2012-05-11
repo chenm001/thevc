@@ -53,9 +53,13 @@ TEncSbac::TEncSbac()
 : m_pcBitIf                   ( NULL )
 , m_pcSlice                   ( NULL )
 , m_pcBinIf                   ( NULL )
+#if !AHG6_ALF_OPTION2
 , m_bAlfCtrl                  ( false )
+#endif
 , m_uiCoeffCost               ( 0 )
+#if !AHG6_ALF_OPTION2
 , m_uiMaxAlfCtrlDepth         ( 0 )
+#endif
 , m_numContextModels          ( 0 )
 , m_cCUSplitFlagSCModel       ( 1,             1,               NUM_SPLIT_FLAG_CTX            , m_contextModels + m_numContextModels, m_numContextModels )
 , m_cCUSkipFlagSCModel        ( 1,             1,               NUM_SKIP_FLAG_CTX             , m_contextModels + m_numContextModels, m_numContextModels)
@@ -560,6 +564,7 @@ Void TEncSbac::codePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx )
   m_pcBinIf->encodeBin( iPredMode == MODE_INTER ? 0 : 1, m_cCUPredModeSCModel.get( 0, 0, 0 ) );
 }
 
+#if !AHG6_ALF_OPTION2
 Void TEncSbac::codeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   if (!m_bAlfCtrl)
@@ -582,7 +587,7 @@ Void TEncSbac::codeAlfCtrlDepth()
   UInt uiDepth = m_uiMaxAlfCtrlDepth;
   xWriteUnaryMaxSymbol(uiDepth, m_cALFUvlcSCModel.get(0), 1, g_uiMaxCUDepth-1);
 }
-
+#endif
 /** code skip flag
  * \param pcCU
  * \param uiAbsPartIdx 
@@ -1433,7 +1438,20 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 
   return;
 }
+#if AHG6_ALF_OPTION2
+Void TEncSbac::codeAlfCtrlFlag( Int compIdx, UInt code )
+{
+  m_pcBinIf->encodeBin( code, m_cCUAlfCtrlFlagSCModel.get( 0, 0, 0) );
 
+  DTRACE_CABAC_VL( g_nSymbolCounter++ )
+  DTRACE_CABAC_T( "\codeAlfCtrlFlag()" )
+  DTRACE_CABAC_T( "\tsymbol=" )
+  DTRACE_CABAC_V( code )
+  DTRACE_CABAC_T( "\tcompIdx=" )
+  DTRACE_CABAC_V( compIdx )
+  DTRACE_CABAC_T( "\n" )
+}
+#else
 Void TEncSbac::codeAlfFlag       ( UInt uiCode )
 {
   UInt uiSymbol = ( ( uiCode == 0 ) ? 0 : 1 );
@@ -1495,7 +1513,7 @@ Void TEncSbac::codeAlfSvlc       ( Int iCode )
     m_pcBinIf->encodeBin( 0, m_cALFSvlcSCModel.get( 0, 0, 2 ) );
   }
 }
-
+#endif
 Void TEncSbac::codeSaoFlag       ( UInt uiCode )
 {
   UInt uiSymbol = ( ( uiCode == 0 ) ? 0 : 1 );

@@ -176,7 +176,9 @@ private:
   Bool        m_bDisInter4x4;
   Bool        m_useAMP;
   Bool        m_bUseALF;
+#if !AHG6_ALF_OPTION2
   Bool        m_bALFCoefInSlice;
+#endif
   Bool        m_bUseLMChroma; // JL:
 
   Bool        m_bUseLComb;
@@ -309,9 +311,10 @@ public:
   
   // Tool list
   Bool getUseALF      ()         { return m_bUseALF;        }
+#if !AHG6_ALF_OPTION2
   Void setUseALFCoefInSlice(Bool b) {m_bALFCoefInSlice = b;}
   Bool getUseALFCoefInSlice()    {return m_bALFCoefInSlice;}
-
+#endif
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
   Void setUseLComb    (Bool b)   { m_bUseLComb = b;         }
   Bool getUseLComb    ()         { return m_bUseLComb;      }
@@ -647,10 +650,16 @@ public:
   Void      setSaoEnabled (Bool bVal) {m_bSaoEnabled = bVal;     }  //!< set SAO enabled/disabled in APS
   Bool      getSaoEnabled ()          {return m_bSaoEnabled;     }  //!< get SAO enabled/disabled in APS
 #endif
+#if AHG6_ALF_OPTION2
+  ALFParam** getAlfParam  ()                       { return m_alfParam;}
+  Bool       getAlfEnabled(Int compIdx)            { return (m_alfParam[compIdx] == NULL)?(false):(m_alfParam[compIdx]->alf_flag ==1);}
+  Void       setAlfEnabled(Bool bVal, Int compIdx) { m_alfParam[compIdx]->alf_flag= (bVal?1:0); }  //!< set ALF enabled/disabled in APS
+#else
   Void      setAlfEnabled (Bool bVal) {m_bAlfEnabled = bVal;     }  //!< set ALF enabled/disabled in APS
   Bool      getAlfEnabled ()          {return m_bAlfEnabled;     }  //!< get ALF enabled/disabled in APS
 
   AlfParamSet* getAlfParam   ()          {return m_alfParamSet;}
+#endif
   SAOParam* getSaoParam   ()          {return m_pSaoParam;       }  //!< get SAO parameters in APS
 
   Void      createSaoParam();   //!< create SAO parameter object
@@ -683,9 +692,15 @@ private:
 #if !SAO_REMOVE_APS // APS syntax
   Bool        m_bSaoEnabled;  //!< SAO enabled/disabled in APS (true for enabled)
 #endif
+#if !AHG6_ALF_OPTION2
   Bool        m_bAlfEnabled;  //!< ALF enabled/disabled in APS (true for enabled)
+#endif
   SAOParam*   m_pSaoParam;    //!< SAO parameter object pointer 
+#if AHG6_ALF_OPTION2
+  ALFParam*   m_alfParam[3];
+#else
   AlfParamSet*   m_alfParamSet;
+#endif
   Bool        m_loopFilterOffsetInAPS;       //< offset for deblocking filter in 0 = slice header, 1 = APS
   Bool        m_loopFilterDisable;           //< Deblocking filter enabled/disabled in APS
   Int         m_loopFilterBetaOffsetDiv2;    //< beta offset for deblocking filter
@@ -723,7 +738,11 @@ class TComSlice
 private:
   //  Bitstream writing
   Int         m_iAPSId; //!< APS ID in slice header
+#if AHG6_ALF_OPTION2
+  Bool       m_alfEnabledFlag[3];
+#else
   bool       m_alfEnabledFlag;
+#endif
   bool       m_saoEnabledFlag;
 #if !SAO_REMOVE_APS // APS syntax
   bool       m_saoInterleavingFlag;   ///< SAO interleaving flag
@@ -860,8 +879,13 @@ public:
   Int       getAPSId        ()                 { return m_iAPSId; } //!< get APS ID
   Void      setPicOutputFlag( Bool b )         { m_PicOutputFlag = b;    }
   Bool      getPicOutputFlag()                 { return m_PicOutputFlag; }
+#if AHG6_ALF_OPTION2
+  Void      setAlfEnabledFlag(Bool b, Int compIdx) { m_alfEnabledFlag[compIdx] = b;    }
+  Bool      getAlfEnabledFlag(Int compIdx)         { return m_alfEnabledFlag[compIdx]; }
+#else
   Void      setAlfEnabledFlag(Bool s) {m_alfEnabledFlag =s; }
   Bool      getAlfEnabledFlag() { return m_alfEnabledFlag; }
+#endif
   Void      setSaoEnabledFlag(Bool s) {m_saoEnabledFlag =s; }
   Bool      getSaoEnabledFlag() { return m_saoEnabledFlag; }
 #if !SAO_REMOVE_APS // APS syntax

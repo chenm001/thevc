@@ -254,11 +254,18 @@ Void TDecCavlc::parseAPS(TComAPS* aps)
   }
   }
 #endif
+#if AHG6_ALF_OPTION2
+  for(Int compIdx=0; compIdx< 3; compIdx++)
+  {
+    xParseAlfParam( (aps->getAlfParam())[compIdx]);
+  }
+#else
   READ_FLAG(uiCode, "aps_adaptive_loop_filter_flag");      aps->setAlfEnabled( (uiCode==1)?true:false );
   if(aps->getAlfEnabled())
   {
     xParseAlfParam( aps->getAlfParam());
   }
+#endif
   READ_FLAG( uiCode, "aps_extension_flag");
   if (uiCode)
   {
@@ -517,6 +524,7 @@ void TDecCavlc::xParseSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam, B
 }
 #endif
 
+#if !AHG6_ALF_OPTION2
 Void TDecCavlc::xParseAlfParam(AlfParamSet* pAlfParamSet, Bool bSentInAPS, Int firstLCUAddr, Bool acrossSlice, Int numLCUInWidth, Int numLCUInHeight)
 {
   Int  numLCU;
@@ -780,19 +788,36 @@ Void TDecCavlc::parseAlfStoredFilterIdx( UInt& idx, UInt numFilterSetsInBuffer )
   }
 }
 
+#endif
+
 Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
 {
   UInt uiSymbol;
+#if AHG6_ALF_OPTION2
+  char syntaxString[50];
+  sprintf(syntaxString, "alf_aps_filter_flag[%d]", pAlfParam->componentID);
+  READ_FLAG(uiSymbol, syntaxString);
+  pAlfParam->alf_flag = uiSymbol;
+  if(pAlfParam->alf_flag ==0)
+  {
+    return;
+  }
+#endif
   Int iSymbol;
+#if AHG6_ALF_OPTION2
+  pAlfParam->num_coeff = (Int)ALF_MAX_NUM_COEF;
+#else
   Int sqrFiltLengthTab[NUM_ALF_FILTER_SHAPE] = {ALF_FILTER_LEN}; 
-
+#endif
   switch(pAlfParam->componentID)
   {
   case ALF_Cb:
   case ALF_Cr:
     {
       pAlfParam->filter_shape = ALF_CROSS9x7_SQUARE3x3;
+#if !AHG6_ALF_OPTION2
       pAlfParam->num_coeff = sqrFiltLengthTab[pAlfParam->filter_shape];
+#endif
       pAlfParam->filters_per_group = 1;
       for(Int pos=0; pos< pAlfParam->num_coeff; pos++)
       {
@@ -806,8 +831,9 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
   pAlfParam->filters_per_group = 0;
   memset (pAlfParam->filterPattern, 0 , sizeof(Int)*NO_VAR_BINS);
   pAlfParam->filter_shape = 0;
+#if !AHG6_ALF_OPTION2
   pAlfParam->num_coeff = sqrFiltLengthTab[pAlfParam->filter_shape];
-
+#endif
   // filters_per_fr
   READ_UVLC (uiSymbol, "alf_no_filters_minus1");
   pAlfParam->filters_per_group = uiSymbol + 1;
@@ -829,7 +855,7 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
       pAlfParam->filters_per_group += uiSymbol;
     }
   }
-
+#if !AHG6_ALF_OPTION2
   if (pAlfParam->filters_per_group > 1)
   {
     READ_FLAG (uiSymbol, "alf_pred_method");
@@ -868,13 +894,18 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
   }
 
   Int scanPos;
+#endif
   for(Int idx = 0; idx < pAlfParam->filters_per_group; ++idx)
   {
     for(Int i = 0; i < pAlfParam->num_coeff; i++)
     {
+#if AHG6_ALF_OPTION2
+      pAlfParam->coeffmulti[idx][i] = xGolombDecode(kTableTabShapes[ALF_CROSS9x7_SQUARE3x3][i]);
+#else
       scanPos = pDepthInt[i] - 1;
       Int k = (pAlfParam->filters_per_group == 1) ? kTableTabShapes[ALF_CROSS9x7_SQUARE3x3][i] : pAlfParam->kMinTab[scanPos];
       pAlfParam->coeffmulti[idx][i] = xGolombDecode(k);
+#endif
     }
   }
     }
@@ -915,7 +946,11 @@ Int TDecCavlc::xGolombDecode(Int k)
   }
 #if ENC_DEC_TRACE
   fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
+#if AHG6_ALF_OPTION2
+  fprintf( g_hTrace, "%-40s ge(v) : %d\n", "alf_filt_coeff", nr ); 
+#else
   fprintf( g_hTrace, "%-40s ge(v) : %d\n", "alf_coeff_luma", nr ); 
+#endif
 #endif
   return nr;
 }
@@ -1177,10 +1212,12 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_FLAG( uiCode, "non_square_quadtree_enabled_flag" );          pcSPS->setUseNSQT( uiCode );
   READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );       pcSPS->setUseSAO ( uiCode ? true : false );  
   READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );         pcSPS->setUseALF ( uiCode ? true : false );
+#if !AHG6_ALF_OPTION2
   if(pcSPS->getUseALF())
   {
     READ_FLAG( uiCode, "alf_coef_in_slice_flag" );      pcSPS->setUseALFCoefInSlice ( uiCode ? true : false );
   }
+#endif
   if( pcSPS->getUsePCM() )
   {
     READ_FLAG( uiCode, "pcm_loop_filter_disable_flag" );           pcSPS->setPCMFilterDisableFlag ( uiCode ? true : false );
@@ -1260,8 +1297,11 @@ Void TDecCavlc::readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed )
 {
   xReadCode ( uiBitsUsed, uiTileIdx );
 }
-
+#if AHG6_ALF_OPTION2
+Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager)
+#else
 Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl, AlfParamSet& alfParamSet)
+#endif
 {
   UInt  uiCode;
   Int   iCode;
@@ -1432,12 +1472,14 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     }
     if(sps->getUseSAO() || sps->getUseALF() || sps->getScalingListFlag() || sps->getUseDF())
     {
+#if !AHG6_ALF_OPTION2
       //!!!KS: order is different in WD5! 
       if (sps->getUseALF())
       {
         READ_FLAG(uiCode, "slice_adaptive_loop_filter_flag");
         rpcSlice->setAlfEnabledFlag((Bool)uiCode);
       }
+#endif
       if (sps->getUseSAO())
       {
 #if !SAO_REMOVE_APS
@@ -1696,6 +1738,15 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
 
   if (!bEntropySlice)
   {
+#if AHG6_ALF_OPTION2
+    char syntaxString[50];
+    for(Int compIdx=0; compIdx< 3; compIdx++)
+    {
+      sprintf(syntaxString, "alf_slice_filter_flag[%d]", compIdx);
+      READ_FLAG(uiCode, syntaxString);
+      rpcSlice->setAlfEnabledFlag( (uiCode ==1), compIdx);
+    }
+#else
     if(sps->getUseALF() && rpcSlice->getAlfEnabledFlag())
     {
       UInt uiNumLCUsInWidth   = sps->getPicWidthInLumaSamples()  / g_uiMaxCUWidth;
@@ -1721,6 +1772,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       }
 
     }
+#endif
   }
   
   //!!!KS: The following syntax is not aligned with the working draft, TRACE support needs to be added
@@ -1800,7 +1852,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   }
   return;
 }
-
+#if !AHG6_ALF_OPTION2
 Void TDecCavlc::xParseAlfCuControlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic)
 {
   UInt uiSymbol;
@@ -1824,7 +1876,7 @@ Void TDecCavlc::xParseAlfCuControlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInP
     }
   }
 }
-
+#endif
 Void TDecCavlc::parseTerminatingBit( UInt& ruiBit )
 {
   ruiBit = false;

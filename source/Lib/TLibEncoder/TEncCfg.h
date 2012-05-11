@@ -180,12 +180,15 @@ protected:
   //====== Tool list ========
   Bool      m_bUseSBACRD;
   Bool      m_bUseALF;
+#if AHG6_ALF_OPTION2
+  Bool      m_alfLowLatencyEncoding;
+#else
   Int       m_iALFEncodePassReduction;
 
   Int       m_iALFMaxNumberFilters;
   Bool      m_bALFParamInSlice;
   Bool      m_bALFPicBasedEncode;
-
+#endif
   Bool      m_bUseASR;
   Bool      m_bUseHADME;
   Bool      m_bUseLComb;
@@ -415,6 +418,10 @@ public:
   Bool      getUseASR                       ()      { return m_bUseASR;     }
   Bool      getUseHADME                     ()      { return m_bUseHADME;   }
   Bool      getUseALF                       ()      { return m_bUseALF;     }
+#if AHG6_ALF_OPTION2
+  Void      setALFLowLatencyEncoding        (Bool b) {m_alfLowLatencyEncoding = b;    }
+  Bool      getALFLowLatencyEncoding        ()       { return m_alfLowLatencyEncoding;}
+#else
   Void      setALFEncodePassReduction       (Int i)  { m_iALFEncodePassReduction = i; }
   Int       getALFEncodePassReduction       ()       { return m_iALFEncodePassReduction; }
 
@@ -424,7 +431,7 @@ public:
   Bool      getALFParamInSlice              ()       {return m_bALFParamInSlice;}
   Void      setALFPicBasedEncode            (Bool b) {m_bALFPicBasedEncode = b;}
   Bool      getALFPicBasedEncode            ()       {return m_bALFPicBasedEncode;}
-
+#endif
   Bool      getUseLComb                     ()      { return m_bUseLComb;   }
   Bool      getLCMod                        ()      { return m_bLCMod; }
   Bool      getUseRDOQ                      ()      { return m_bUseRDOQ;    }
