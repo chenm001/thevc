@@ -1898,8 +1898,10 @@ Void TComAdaptiveLoopFilter::filterRegion(Int compIdx, ALFParam** alfLCUParams, 
 #endif
 {
   Int height, width;
+#if AHG6_ALF_OPTION2
+  Int ypos =0, xpos=0,  lcuX=0, lcuY=0;
+#else
   Int ypos, xpos,  lcuX, lcuY;
-#if !AHG6_ALF_OPTION2
   Int yposEnd, xposEnd;
 #endif
   for(Int i=0; i< regionLCUInfo.size(); i++)
