@@ -2187,6 +2187,32 @@ Int TComTrQuant::getSigCtxInc    (
                                   ,TextType                        textureType
                                   )
 {
+#if UNIFIED_POS_SIG_CTX
+  const Int ctxIndMap[16] =
+  {
+    0, 1, 4, 5,
+    2, 3, 4, 5,
+    6, 6, 8, 8,
+    7, 7, 8, 8
+  };
+
+  if( posX + posY == 0 )
+  {
+    return 0;
+  }
+
+  if ( blockType == 2 )
+  {
+    return ctxIndMap[ 4 * posY + posX ];
+  }
+
+  if ( blockType == 3 )
+  {
+    return 9 + ctxIndMap[ 4 * (posY >> 1) + (posX >> 1) ];
+  }
+
+  Int offset = 18;
+#else
   if ( blockType == 2 )
   {
     //LUMA map
@@ -2240,6 +2266,7 @@ Int TComTrQuant::getSigCtxInc    (
   {
     return offset;
   }
+#endif
   
 #if POS_BASED_SIG_COEFF_CTX
   Int posXinSubset = posX-((posX>>2)<<2);
@@ -2299,7 +2326,12 @@ Int TComTrQuant::getSigCtxInc    (
 
   cnt = ( cnt + 1 ) >> 1;
 #endif
+
+#if UNIFIED_POS_SIG_CTX
+  return (( textureType == TEXT_LUMA && ((posX>>2) + (posY>>2)) > 0 ) ? 3 : 0) + offset + cnt;
+#else
   return (( textureType == TEXT_LUMA && ((posX>>2) + (posY>>2)) > 0 ) ? 4 : 1) + offset + cnt;
+#endif
 }
 
 /** Get the best level in RD sense
