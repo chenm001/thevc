@@ -1584,9 +1584,9 @@ Void TDecSbac::parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, T
       if (pSaoParam->saoLcuParam[iCompIdx][iAddr].mergeLeftFlag==0)
       {
 #if SAO_NO_MERGE_CROSS_SLICE_TILE
-        if ((ry > 0) && (iCUAddrUpInSlice>0) && allowMergeUp)
+        if ((ry > 0) && (iCUAddrUpInSlice>=0) && allowMergeUp)
 #else
-        if ((ry > 0) && (iCUAddrUpInSlice>0||bLFCrossSliceBoundaryFlag))
+        if ((ry > 0) && (iCUAddrUpInSlice>=0||bLFCrossSliceBoundaryFlag))
 #endif
         {
           parseSaoMergeUp(uiSymbol);  pSaoParam->saoLcuParam[iCompIdx][iAddr].mergeUpFlag = uiSymbol;
