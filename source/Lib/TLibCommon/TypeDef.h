@@ -72,6 +72,8 @@
 #define REMOVE_SAO_LCU_ENC_CONSTRAINTS_2 1  ///< disable the encoder constraint that reduce the range of SAO/EO for chroma in interleaved mode
 #define REMOVE_SAO_LCU_ENC_CONSTRAINTS_3 1  ///< disable the encoder constraint that conditionally disable SAO for chroma for entire slice in interleaved mode
 
+#define SAO_SKIP_RIGHT                   1  ///< disallow using unavailable pixel during RDO
+
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
 #define MAX_NUM_APS                32         //< !!!KS: number not defined in WD yet

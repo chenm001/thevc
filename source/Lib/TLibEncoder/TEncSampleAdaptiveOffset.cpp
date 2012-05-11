@@ -958,6 +958,14 @@ Void TEncSampleAdaptiveOffset::calcSaoStatsCuOrg(Int iAddr, Int iPartIdx, Int iY
     numSkipLine = 0;
   }
 
+#if SAO_SKIP_RIGHT
+  Int numSkipLineRight = iIsChroma? 3:5;
+  if (m_saoInterleavingFlag == 0)
+  {
+    numSkipLineRight = 0;
+  }
+#endif
+
   iPicWidthTmp  = m_iPicWidth  >> iIsChroma;
   iPicHeightTmp = m_iPicHeight >> iIsChroma;
   iLcuWidth     = iLcuWidth    >> iIsChroma;
@@ -981,10 +989,18 @@ Void TEncSampleAdaptiveOffset::calcSaoStatsCuOrg(Int iAddr, Int iPartIdx, Int iY
     pOrg = getPicYuvAddr(m_pcPic->getPicYuvOrg(), iYCbCr, iAddr);
     pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
 
+#if SAO_SKIP_RIGHT
+    iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth : iLcuWidth-numSkipLineRight;
+#endif
+
     iEndY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight : iLcuHeight-numSkipLine;
     for (y=0; y<iEndY; y++)
     {
+#if SAO_SKIP_RIGHT
+      for (x=0; x<iEndX; x++)
+#else
       for (x=0; x<iLcuWidth; x++)
+#endif
       {
         iClassIdx = m_lumaTableBo[pRec[x]];
         if (iClassIdx)
@@ -1017,7 +1033,11 @@ Void TEncSampleAdaptiveOffset::calcSaoStatsCuOrg(Int iAddr, Int iPartIdx, Int iY
       pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
 
       iStartX = (uiLPelX == 0) ? 1 : 0;
+#if SAO_SKIP_RIGHT
+      iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth-numSkipLineRight;
+#else
       iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth;
+#endif
       for (y=0; y<iLcuHeight-numSkipLine; y++)
       {
         iSignLeft = xSign(pRec[iStartX] - pRec[iStartX-1]);
@@ -1044,6 +1064,9 @@ Void TEncSampleAdaptiveOffset::calcSaoStatsCuOrg(Int iAddr, Int iPartIdx, Int iY
       pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
 
       iStartY = (uiTPelY == 0) ? 1 : 0;
+#if SAO_SKIP_RIGHT
+      iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth : iLcuWidth-numSkipLineRight;
+#endif
       iEndY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight-numSkipLine;
       if (uiTPelY == 0)
       {
@@ -1057,7 +1080,11 @@ Void TEncSampleAdaptiveOffset::calcSaoStatsCuOrg(Int iAddr, Int iPartIdx, Int iY
       }
       for (y=iStartY; y<iEndY; y++)
       {
+#if SAO_SKIP_RIGHT
+        for (x=0; x<iEndX; x++)
+#else
         for (x=0; x<iLcuWidth; x++)
+#endif
         {
           iSignDown     =  xSign(pRec[x] - pRec[x+iStride]); 
           uiEdgeType    =  iSignDown + m_iUpBuff1[x] + 2;
@@ -1079,7 +1106,11 @@ Void TEncSampleAdaptiveOffset::calcSaoStatsCuOrg(Int iAddr, Int iPartIdx, Int iY
       pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
 
       iStartX = (uiLPelX == 0) ? 1 : 0;
+#if SAO_SKIP_RIGHT
+      iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth-numSkipLineRight;
+#else
       iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth;
+#endif
 
       iStartY = (uiTPelY == 0) ? 1 : 0;
       iEndY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight-numSkipLine;
@@ -1122,7 +1153,11 @@ Void TEncSampleAdaptiveOffset::calcSaoStatsCuOrg(Int iAddr, Int iPartIdx, Int iY
       pRec = getPicYuvAddr(m_pcPic->getPicYuvRec(), iYCbCr, iAddr);
 
       iStartX = (uiLPelX == 0) ? 1 : 0;
+#if SAO_SKIP_RIGHT
+      iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth-numSkipLineRight;
+#else
       iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth;
+#endif
 
       iStartY = (uiTPelY == 0) ? 1 : 0;
       iEndY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight-numSkipLine;
