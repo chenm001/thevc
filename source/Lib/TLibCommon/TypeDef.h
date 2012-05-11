@@ -74,6 +74,8 @@
 
 #define SAO_SKIP_RIGHT                   1  ///< disallow using unavailable pixel during RDO
 
+#define SAO_REMOVE_APS                   1  ///< remove SAO APS syntax
+
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
 #define MAX_NUM_APS                32         //< !!!KS: number not defined in WD yet

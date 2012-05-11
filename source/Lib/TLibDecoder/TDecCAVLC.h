@@ -138,9 +138,13 @@ public:
   Void parseDFSvlc         ( Int&  riVal,  const Char *pSymbolName  );
 protected:
   Void  xParseDblParam       ( TComAPS* aps );
+#if !SAO_REMOVE_APS
   Void  xParseSaoParam       ( SAOParam* pSaoParam );
+#endif
   Void  xParseSaoOffset      (SaoLcuParam* saoLcuParam);
+#if !SAO_REMOVE_APS
   Void  xParseSaoUnit        (Int rx, Int ry, Int compIdx, SAOParam* saoParam, Bool& repeatedRow );
+#endif
   Void  xParseAlfParam(AlfParamSet* pAlfParamSet, Bool bSentInAPS = true, Int firstLCUAddr = 0, Bool acrossSlice = true, Int numLCUInWidth= -1, Int numLCUInHeight= -1);
   Void  parseAlfParamSet(AlfParamSet* pAlfParamSet, Int firstLCUAddr, Bool alfAcrossSlice);
   Void  parseAlfFixedLengthRun(UInt& idx, UInt rx, UInt numLCUInWidth);

@@ -710,7 +710,9 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
       memcpy(m_weightPredTable[e][n], pSrc->m_weightPredTable[e][n], sizeof(wpScalingParam)*3 );
 
   m_saoEnabledFlag = pSrc->m_saoEnabledFlag; 
+#if !SAO_REMOVE_APS // APS syntax
   m_saoInterleavingFlag = pSrc->m_saoInterleavingFlag;
+#endif
   m_saoEnabledFlagCb = pSrc->m_saoEnabledFlagCb;
   m_saoEnabledFlagCr = pSrc->m_saoEnabledFlagCr; 
   m_cabacInitFlag                = pSrc->m_cabacInitFlag;
@@ -1544,7 +1546,9 @@ TComAPS::TComAPS()
 {
   m_apsID = 0;
   m_bAlfEnabled = false;
+#if !SAO_REMOVE_APS // APS syntax
   m_bSaoEnabled = false;
+#endif
   m_pSaoParam = NULL;
   m_alfParamSet = NULL;
   m_scalingList = NULL;
@@ -1566,13 +1570,16 @@ TComAPS& TComAPS::operator= (const TComAPS& src)
   m_loopFilterBetaOffsetDiv2 = src.m_loopFilterBetaOffsetDiv2;
   m_loopFilterTcOffsetDiv2 = src.m_loopFilterTcOffsetDiv2;
   m_bAlfEnabled = src.m_bAlfEnabled;
+#if !SAO_REMOVE_APS // APS syntax
   m_bSaoEnabled = src.m_bSaoEnabled;
+#endif
   m_pSaoParam   = src.m_pSaoParam; 
   m_alfParamSet    = src.m_alfParamSet;
   m_scalingList = src.m_scalingList;
   m_scalingListEnabled = src.m_scalingListEnabled;
+#if !SAO_REMOVE_APS // APS syntax
   m_saoInterleavingFlag = src.m_saoInterleavingFlag;
-
+#endif
   return *this;
 }
 

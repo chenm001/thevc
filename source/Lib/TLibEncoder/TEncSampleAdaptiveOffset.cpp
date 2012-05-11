@@ -953,14 +953,22 @@ Void TEncSampleAdaptiveOffset::calcSaoStatsCuOrg(Int iAddr, Int iPartIdx, Int iY
 
   Int iIsChroma = (iYCbCr!=0)? 1:0;
   Int numSkipLine = iIsChroma? 2:4;
+#if SAO_REMOVE_APS // encoder renaming
+  if (m_saoLcuBasedOptimization == 0)
+#else
   if (m_saoInterleavingFlag == 0)
+#endif
   {
     numSkipLine = 0;
   }
 
 #if SAO_SKIP_RIGHT
   Int numSkipLineRight = iIsChroma? 3:5;
+#if SAO_REMOVE_APS // encoder renaming
+  if (m_saoLcuBasedOptimization == 0)
+#else
   if (m_saoInterleavingFlag == 0)
+#endif
   {
     numSkipLineRight = 0;
   }
@@ -1331,8 +1339,11 @@ Void TEncSampleAdaptiveOffset::SAOProcess(SAOParam *pcSaoParam, Double dLambda)
 
   Int iY  = 0;
   Double dCostFinal = 0;
-
+#if SAO_REMOVE_APS // encoder renaming
+  if ( m_saoLcuBasedOptimization)
+#else
   if ( m_saoInterleavingFlag)
+#endif
   {
     rdoSaoUnitAll(pcSaoParam, dLambdaLuma, dLambdaChroma);
   }
@@ -1650,8 +1661,11 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnit(SAOParam *saoParam, Int addr, Int addr
   {
     m_pcEntropyCoder->resetEntropy();
     m_pcEntropyCoder->resetBits();
-
+#if SAO_REMOVE_APS // encoder renaming
+    if (m_saoLcuBasedOptimization)
+#else
     if (m_saoInterleavingFlag)
+#endif
     {
 #if !REMOVE_SAO_LCU_ENC_CONSTRAINTS_1
       if(yCbCr>0 && typeIdx>3 )

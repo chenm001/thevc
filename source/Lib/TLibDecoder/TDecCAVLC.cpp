@@ -242,6 +242,7 @@ Void TDecCavlc::parseAPS(TComAPS* aps)
   {
     xParseDblParam( aps );    
   }
+#if !SAO_REMOVE_APS
   READ_FLAG(uiCode, "aps_sao_interleaving_flag");      aps->setSaoInterleavingFlag( (uiCode==1)?true:false );
   if(!aps->getSaoInterleavingFlag())
   {
@@ -252,6 +253,7 @@ Void TDecCavlc::parseAPS(TComAPS* aps)
     xParseSaoParam( aps->getSaoParam() );
   }
   }
+#endif
   READ_FLAG(uiCode, "aps_adaptive_loop_filter_flag");      aps->setAlfEnabled( (uiCode==1)?true:false );
   if(aps->getAlfEnabled())
   {
@@ -284,6 +286,7 @@ Void  TDecCavlc::xParseDblParam       ( TComAPS* aps )
     aps->setLoopFilterTcOffset(iSymbol);
   }
 }
+#if !SAO_REMOVE_APS
 /** parse SAO parameters
  * \param pSaoParam
  */
@@ -343,6 +346,7 @@ Void TDecCavlc::xParseSaoParam(SAOParam* pSaoParam)
     }
   }
 }
+#endif
 
 /** copy SAO parameter
  * \param dst  
@@ -419,6 +423,7 @@ Void TDecCavlc::xParseSaoOffset(SaoLcuParam* saoLcuParam)
   }
 }
 
+#if !SAO_REMOVE_APS
 /** parse SAO unit
  * \param rx x-axis location
  * \param ry y-axis location
@@ -510,6 +515,7 @@ void TDecCavlc::xParseSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam, B
     }
   }
 }
+#endif
 
 Void TDecCavlc::xParseAlfParam(AlfParamSet* pAlfParamSet, Bool bSentInAPS, Int firstLCUAddr, Bool acrossSlice, Int numLCUInWidth, Int numLCUInHeight)
 {
@@ -1434,9 +1440,15 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       }
       if (sps->getUseSAO())
       {
+#if !SAO_REMOVE_APS
         READ_FLAG(uiCode, "slice_sao_interleaving_flag");        rpcSlice->setSaoInterleavingFlag(uiCode);
+#endif
         READ_FLAG(uiCode, "slice_sample_adaptive_offset_flag");  rpcSlice->setSaoEnabledFlag((Bool)uiCode);
+#if SAO_REMOVE_APS
+        if (rpcSlice->getSaoEnabledFlag() )
+#else
         if (rpcSlice->getSaoEnabledFlag() && rpcSlice->getSaoInterleavingFlag())
+#endif
         {
           READ_FLAG(uiCode, "sao_cb_enable_flag");  rpcSlice->setSaoEnabledFlagCb((Bool)uiCode);
           READ_FLAG(uiCode, "sao_cr_enable_flag");  rpcSlice->setSaoEnabledFlagCr((Bool)uiCode);

@@ -261,11 +261,14 @@ public:
                         int **FilterCoeff, int kMinTab[]);
   Int golombEncode(int coeff, int k);
   Int lengthGolomb(int coeffVal, int k);
+#if !SAO_REMOVE_APS
   Void    encodeSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam, Int repeatedRow);
+#endif
   Void    encodeSaoOffset(SaoLcuParam* saoLcuParam);
   Void    encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, TComDataCU* cu, Int cuAddrInSlice, Int cuAddrUpInSlice, Bool lfCrossSliceBoundaryFlag);
+#if !SAO_REMOVE_APS
   Void    encodeSaoParam         (TComAPS*  aps);
-
+#endif
   static Int countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize );
 
 };// END CLASS DEFINITION TEncEntropy

@@ -53,9 +53,15 @@ Void TEncEntropy::encodeSliceHeader ( TComSlice* pcSlice )
 {
   if (pcSlice->getSPS()->getUseSAO())
   {
+#if !SAO_REMOVE_APS
     pcSlice->setSaoInterleavingFlag(pcSlice->getAPS()->getSaoInterleavingFlag());
+#endif
     pcSlice->setSaoEnabledFlag     (pcSlice->getAPS()->getSaoParam()->bSaoFlag[0]);
+#if SAO_REMOVE_APS
+    if (pcSlice->getSaoEnabledFlag())
+#else
     if (pcSlice->getAPS()->getSaoInterleavingFlag())
+#endif
     {
       pcSlice->setSaoEnabledFlagCb   (pcSlice->getAPS()->getSaoParam()->bSaoFlag[1]);
       pcSlice->setSaoEnabledFlagCr   (pcSlice->getAPS()->getSaoParam()->bSaoFlag[2]);
@@ -1369,6 +1375,7 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
       }
   }
 }
+#if !SAO_REMOVE_APS
 /** Encode SAO unit
 * \param  rx
 * \param  ry
@@ -1409,7 +1416,7 @@ Void TEncEntropy::encodeSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam,
     }
   }
 }
-
+#endif
 /** Encode SAO unit interleaving
 * \param  rx
 * \param  ry
@@ -1453,6 +1460,7 @@ Void TEncEntropy::encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, 
   }
 }
 
+#if !SAO_REMOVE_APS
 /** Encode SAO parameter
 * \param  pcAPS
  */
@@ -1524,6 +1532,7 @@ Void TEncEntropy::encodeSaoParam(TComAPS* aps)
     }
   }
 }
+#endif
 
 Int TEncEntropy::countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize )
 {

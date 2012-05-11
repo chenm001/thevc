@@ -1116,8 +1116,11 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
     }
 
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );    
-
+#if SAO_REMOVE_APS
+    if ( pcSlice->getSPS()->getUseSAO() && pcSlice->getSaoEnabledFlag() )
+#else
     if ( pcSlice->getSPS()->getUseSAO() && pcSlice->getAPS()->getSaoInterleavingFlag() && pcSlice->getSaoEnabledFlag() )
+#endif
     {
       Int iNumCuInWidth     = pcSlice->getAPS()->getSaoParam()->numCuInWidth;
       Int iCUAddrInSlice    = uiCUAddr - (pcSlice->getSliceCurStartCUAddr() /rpcPic->getNumPartInCU());

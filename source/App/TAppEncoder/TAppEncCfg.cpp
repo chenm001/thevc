@@ -270,8 +270,11 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("ALF",                     m_bUseALF,                 true, "Enable Adaptive Loop Filter")
   ("SAO",                     m_bUseSAO,                 true, "Enable Sample Adaptive Offset")   
   ("MaxNumOffsetsPerPic",     m_maxNumOffsetsPerPic,     2048, "Max number of SAO offset per picture (Default: 2048)")   
+#if SAO_REMOVE_APS // encoder renaming
+  ("SAOLcuBasedOptimization", m_saoLcuBasedOptimization, true, "0: SAO picture-based optimization, 1: SAO LCU-based optimization ")   
+#else
   ("SAOInterleaving",         m_saoInterleavingFlag,    false, "0: SAO Picture Mode, 1: SAO Interleaving ")   
-
+#endif
   ("ALFEncodePassReduction", m_iALFEncodePassReduction, 0, "0:Original 16-pass, 1: 1-pass, 2: 2-pass encoding")
 
   ("ALFMaxNumFilter,-ALFMNF", m_iALFMaxNumberFilters, 16, "16: No Constrained, 1-15: Constrained max number of filter")
@@ -1019,7 +1022,12 @@ Void TAppEncCfg::xPrintParameter()
   printf("CIP:%d ", m_bUseConstrainedIntraPred);
   printf("SAO:%d ", (m_bUseSAO)?(1):(0));
   printf("PCM:%d ", (m_usePCM && (1<<m_uiPCMLog2MinSize) <= m_uiMaxCUWidth)? 1 : 0);
-  printf("SAOInterleaving:%d ", (m_saoInterleavingFlag)?(1):(0));
+#if SAO_REMOVE_APS // encoder renaming
+  printf("SAOLcuBasedOptimization:%d ", (m_saoLcuBasedOptimization)?(1):(0));
+#else
+  printf("SAOInterleavingFlag:%d ", (m_saoInterleavingFlag)?(1):(0));
+#endif
+
 #if LOSSLESS_CODING
   printf("LosslessCuEnabled:%d ", (m_useLossless)? 1:0 );
 #endif  

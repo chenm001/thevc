@@ -133,7 +133,11 @@ protected:
 #endif
   Bool      m_bUseSAO; 
   Int       m_maxNumOffsetsPerPic;                            ///< SAO maximun number of offset per picture
+#if SAO_REMOVE_APS
+  Bool      m_saoLcuBasedOptimization;                        ///< SAO LCU-based optimization
+#else
   Bool      m_saoInterleavingFlag;                            ///< SAO interleaving flag
+#endif
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
   Int       m_iALFEncodePassReduction;                        //!< ALF encoding pass, 0 = original 16-pass, 1 = 1-pass, 2 = 2-pass

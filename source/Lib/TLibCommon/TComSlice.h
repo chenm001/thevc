@@ -643,8 +643,10 @@ public:
 
   Void      setAPSID      (Int iID)   {m_apsID = iID;            }  //!< set APS ID 
   Int       getAPSID      ()          {return m_apsID;           }  //!< get APS ID
+#if !SAO_REMOVE_APS // APS syntax
   Void      setSaoEnabled (Bool bVal) {m_bSaoEnabled = bVal;     }  //!< set SAO enabled/disabled in APS
   Bool      getSaoEnabled ()          {return m_bSaoEnabled;     }  //!< get SAO enabled/disabled in APS
+#endif
   Void      setAlfEnabled (Bool bVal) {m_bAlfEnabled = bVal;     }  //!< set ALF enabled/disabled in APS
   Bool      getAlfEnabled ()          {return m_bAlfEnabled;     }  //!< get ALF enabled/disabled in APS
 
@@ -671,12 +673,16 @@ public:
   Void      setScalingListEnabled (Bool bVal) { m_scalingListEnabled = bVal; }  //!< set ScalingList enabled/disabled in APS
   Bool      getScalingListEnabled ()          { return m_scalingListEnabled; }  //!< get ScalingList enabled/disabled in APS
   TComScalingList* getScalingList ()          { return m_scalingList; }         //!< get ScalingList class pointer in APS
+#if !SAO_REMOVE_APS // APS syntax
   Bool     getSaoInterleavingFlag() {return m_saoInterleavingFlag;}             //!< get SAO interleaving flag in APS
   Void     setSaoInterleavingFlag(Bool bVal) {m_saoInterleavingFlag = bVal;}    //!< set SAO interleaving flag in APS
+#endif
 
 private:
   Int         m_apsID;        //!< APS ID
+#if !SAO_REMOVE_APS // APS syntax
   Bool        m_bSaoEnabled;  //!< SAO enabled/disabled in APS (true for enabled)
+#endif
   Bool        m_bAlfEnabled;  //!< ALF enabled/disabled in APS (true for enabled)
   SAOParam*   m_pSaoParam;    //!< SAO parameter object pointer 
   AlfParamSet*   m_alfParamSet;
@@ -686,8 +692,9 @@ private:
   Int         m_loopFilterTcOffsetDiv2;      //< tc offset for deblocking filter
   Bool        m_scalingListEnabled;     //!< ScalingList enabled/disabled in APS (true for enabled)
   TComScalingList*     m_scalingList;   //!< ScalingList class pointer
+#if !SAO_REMOVE_APS // APS syntax
   Bool        m_saoInterleavingFlag;    //!< SAO interleaving flag
-
+#endif
 public:
   TComAPS& operator= (const TComAPS& src);  //!< "=" operator for APS object
 };
@@ -718,7 +725,9 @@ private:
   Int         m_iAPSId; //!< APS ID in slice header
   bool       m_alfEnabledFlag;
   bool       m_saoEnabledFlag;
+#if !SAO_REMOVE_APS // APS syntax
   bool       m_saoInterleavingFlag;   ///< SAO interleaving flag
+#endif
   bool       m_saoEnabledFlagCb;      ///< SAO Cb enabled flag
   bool       m_saoEnabledFlagCr;      ///< SAO Cr enabled flag
   Int         m_iPPSId;               ///< picture parameter set ID
@@ -855,8 +864,10 @@ public:
   Bool      getAlfEnabledFlag() { return m_alfEnabledFlag; }
   Void      setSaoEnabledFlag(Bool s) {m_saoEnabledFlag =s; }
   Bool      getSaoEnabledFlag() { return m_saoEnabledFlag; }
+#if !SAO_REMOVE_APS // APS syntax
   Void      setSaoInterleavingFlag(Bool s) {m_saoInterleavingFlag =s; } //!< set SAO interleaving flag
   Bool      getSaoInterleavingFlag() { return m_saoInterleavingFlag;  } //!< get SAO interleaving flag
+#endif
   Void      setSaoEnabledFlagCb(Bool s) {m_saoEnabledFlagCb =s; }       //!< set SAO Cb enabled flag
   Bool      getSaoEnabledFlagCb() { return m_saoEnabledFlagCb; }        //!< get SAO Cb enabled flag
   Void      setSaoEnabledFlagCr(Bool s) {m_saoEnabledFlagCr =s; }       //!< set SAO Cr enabled flag
