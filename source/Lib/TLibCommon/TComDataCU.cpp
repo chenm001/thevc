@@ -3396,6 +3396,22 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   return ;
 }
 
+#if BIPRED_RESTRICT_SMALL_PU
+Bool TComDataCU::isBipredRestriction(UInt puIdx)
+{
+  Int width = 0;
+  Int height = 0;
+  UInt partAddr;
+
+  getPartIndexAndSize( puIdx, partAddr, width, height );
+  if ( getWidth(0) == 8 && (width < 8 || height < 8) )
+  {
+    return true;
+  }
+  return false;
+}
+#endif
+
 Void TComDataCU::clipMv    (TComMv&  rcMv)
 {
   Int  iMvShift = 2;

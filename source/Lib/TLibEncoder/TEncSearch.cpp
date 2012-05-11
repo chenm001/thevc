@@ -2306,6 +2306,9 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
 #else
   pcCU->getInterMergeCandidates( uiAbsPartIdx, iPUIdx, uiDepth, cMvFieldNeighbours,uhInterDirNeighbours, numValidMergeCand );
 #endif
+#if BIPRED_RESTRICT_SMALL_PU
+  xRestrictBipredMergeCand( pcCU, iPUIdx, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand );
+#endif
 
   ruiCost = MAX_UINT;
   for( UInt uiMergeCand = 0; uiMergeCand < numValidMergeCand; ++uiMergeCand )
@@ -2337,6 +2340,31 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
     }
   }
 }
+
+/** convert bi-pred merge candidates to uni-pred
+ * \param pcCU
+ * \param puIdx
+ * \param mvFieldNeighbours
+ * \param interDirNeighbours
+ * \param numValidMergeCand
+ * \returns Void
+ */
+#if BIPRED_RESTRICT_SMALL_PU
+Void TEncSearch::xRestrictBipredMergeCand( TComDataCU* pcCU, UInt puIdx, TComMvField* mvFieldNeighbours, UChar* interDirNeighbours, Int numValidMergeCand )
+{
+  if ( pcCU->isBipredRestriction(puIdx) )
+  {
+    for( UInt mergeCand = 0; mergeCand < numValidMergeCand; ++mergeCand )
+    {
+      if ( interDirNeighbours[mergeCand] == 3 )
+      {
+        interDirNeighbours[mergeCand] = 1;
+        mvFieldNeighbours[(mergeCand << 1) + 1].setMvField(TComMv(0,0), -1);
+      }
+    }
+  }
+}
+#endif
 
 /** search of the best candidate for inter prediction
  * \param pcCU
@@ -2607,7 +2635,11 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       }
     }
     //  Bi-directional prediction
+#if BIPRED_RESTRICT_SMALL_PU
+    if ( (pcCU->getSlice()->isInterB()) && (pcCU->isBipredRestriction(iPartIdx) == false) )
+#else
     if ( pcCU->getSlice()->isInterB() )
+#endif
     {
       
       cMvBi[0] = cMv[0];            cMvBi[1] = cMv[1];
@@ -2741,7 +2773,11 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       } // for loop-iter
     } // if (B_SLICE)
 #if ZERO_MVD_EST
+#if BIPRED_RESTRICT_SMALL_PU
+    if ( (pcCU->getSlice()->isInterB()) && (pcCU->isBipredRestriction(iPartIdx) == false) )
+#else
     if ( pcCU->getSlice()->isInterB() )
+#endif
     {
       m_pcRdCost->getMotionCost( 1, 0 );
 
