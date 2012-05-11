@@ -1899,7 +1899,7 @@ Void TComAdaptiveLoopFilter::filterRegion(Int compIdx, ALFParam** alfLCUParams, 
 {
   Int height, width;
 #if AHG6_ALF_OPTION2
-  Int ypos =0, xpos=0,  lcuX=0, lcuY=0;
+  Int ypos =0, xpos=0;
 #else
   Int ypos, xpos,  lcuX, lcuY;
   Int yposEnd, xposEnd;
@@ -1919,9 +1919,9 @@ Void TComAdaptiveLoopFilter::filterRegion(Int compIdx, ALFParam** alfLCUParams, 
     if(alfParam->alf_flag == 1)
 #endif
     {
+#if !AHG6_ALF_OPTION2
       lcuX    = pcCU->getCUPelX();
       lcuY    = pcCU->getCUPelY();
-#if !AHG6_ALF_OPTION2
       if(caculateBAIdx)
       {
         assert(compIdx == ALF_Y);
