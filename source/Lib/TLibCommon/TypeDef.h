@@ -43,6 +43,7 @@
 
 #define AHG6_ALF_OPTION2                 1  ///< I0157: AHG6 ALF baseline Option 2 RA- Variant 2
 
+#define POS_BASED_SIG_COEFF_CTX          1  ///< I0296: position based context index derivation for significant coeff flag for large TU
 #define SIMPLE_PARAM_UPDATE              1   ///<I0124 : Simplification of param update
 
 #define FILLUP_EMPTYLIST_AMVP_MERGE      1  ///< I0134/I0314: Fill up empty list for AMVP/Merge
@@ -65,7 +66,9 @@
 
 #define DISABLING_CLIP_FOR_BIPREDME         1  ///< Ticket #175
   
+#if !POS_BASED_SIG_COEFF_CTX
 #define SIGMAP_CONST_AT_HIGH_FREQUENCY      1      ///< H0095 method2.1: const significance map at high freaquency
+#endif
 
 #define C1FLAG_NUMBER               8 // maximum number of largerThan1 flag coded in one chunk :  16 in HM5
 #define C2FLAG_NUMBER               1 // maximum number of largerThan2 flag coded in one chunk:  16 in HM5 
