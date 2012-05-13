@@ -189,7 +189,7 @@ Void TComTrQuant::clearSliceARLCnt()
  *
  * return void  
  */
-Void TComTrQuant::setQPforQuant( Int qpy, Bool bLowpass, SliceType eSliceType, TextType eTxtType, Int qpBdOffset, Int chromaQPOffset)
+Void TComTrQuant::setQPforQuant( Int qpy, TextType eTxtType, Int qpBdOffset, Int chromaQPOffset)
 {
   Int qpScaled;
 
@@ -210,7 +210,7 @@ Void TComTrQuant::setQPforQuant( Int qpy, Bool bLowpass, SliceType eSliceType, T
       qpScaled = g_aucChromaScale[ Clip3(0, 51, qpScaled) ] + qpBdOffset;
     }
   }
-  m_cQP.setQpParam( qpScaled, bLowpass, eSliceType );
+  m_cQP.setQpParam( qpScaled );
 }
 
 #if MATRIX_MULT
@@ -1143,7 +1143,7 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
         qpScaled = g_aucChromaScale[ Clip3(0, 51, qpScaled) ] + qpBDOffset;
       }
     }
-    cQpBase.setQpParam(qpScaled, false, pcCU->getSlice()->getSliceType());
+    cQpBase.setQpParam(qpScaled);
 #endif
 
     Bool bNonSqureFlag = ( iWidth != iHeight );

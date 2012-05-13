@@ -1624,7 +1624,7 @@ Void TDecSbac::parseAlfCtrlFlag (Int compIdx, UInt& code)
   code = decodedSymbol;
 
   DTRACE_CABAC_VL( g_nSymbolCounter++ )
-  DTRACE_CABAC_T( "\parseAlfCtrlFlag()" )
+  DTRACE_CABAC_T( "parseAlfCtrlFlag()" )
   DTRACE_CABAC_T( "\tsymbol=" )
   DTRACE_CABAC_V( decodedSymbol )
   DTRACE_CABAC_T( "\tcompIdx=" )

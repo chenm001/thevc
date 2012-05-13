@@ -1451,7 +1451,7 @@ Void TEncSbac::codeAlfCtrlFlag( Int compIdx, UInt code )
   m_pcBinIf->encodeBin( code, m_cCUAlfCtrlFlagSCModel.get( 0, 0, 0) );
 
   DTRACE_CABAC_VL( g_nSymbolCounter++ )
-  DTRACE_CABAC_T( "\codeAlfCtrlFlag()" )
+  DTRACE_CABAC_T( "codeAlfCtrlFlag()" )
   DTRACE_CABAC_T( "\tsymbol=" )
   DTRACE_CABAC_V( code )
   DTRACE_CABAC_T( "\tcompIdx=" )

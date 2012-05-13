@@ -88,7 +88,7 @@ public:
 public:
   Int m_iBits;
     
-  Void setQpParam( Int qpScaled, Bool bLowpass, SliceType eSliceType )
+  Void setQpParam( Int qpScaled )
   {
     m_iQP   = qpScaled;
     m_iPer  = qpScaled / 6;
@@ -148,7 +148,7 @@ public:
                              UInt uiMaxTrMode,  UInt uiTrMode, TCoeff* rpcCoeff );
   
   // Misc functions
-  Void setQPforQuant( Int qpy, Bool bLowpass, SliceType eSliceType, TextType eTxtType, Int qpBdOffset, Int chromaQPOffset);
+  Void setQPforQuant( Int qpy, TextType eTxtType, Int qpBdOffset, Int chromaQPOffset);
 
 #if RDOQ_CHROMA_LAMBDA 
   Void setLambda(Double dLambdaLuma, Double dLambdaChroma) { m_dLambdaLuma = dLambdaLuma; m_dLambdaChroma = dLambdaChroma; }
