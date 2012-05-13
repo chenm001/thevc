@@ -80,6 +80,15 @@ Int* pDepthIntTabShapes[NUM_ALF_FILTER_SHAPE] =
   depthIntShape1Sym
 };
 
+#if ALF_COEFF_EXP_GOLOMB_K
+Int kTableShape1[ALF_MAX_NUM_COEF] = 
+{      
+              1,
+              2,
+           3, 4, 3,
+  1, 3, 3, 5, 0, 
+};
+#else
 Int kTableShape1[ALF_MAX_NUM_COEF+1] = 
 {      
               2,
@@ -88,6 +97,8 @@ Int kTableShape1[ALF_MAX_NUM_COEF+1] =
   1, 2, 3, 4, 1, 
               3
 };
+#endif
+
 Int* kTableTabShapes[NUM_ALF_FILTER_SHAPE] =
 { 
   kTableShape1

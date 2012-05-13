@@ -921,6 +921,23 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
 
 Int TDecCavlc::xGolombDecode(Int k)
 {
+#if ALF_COEFF_EXP_GOLOMB_K
+  Int coeff;
+  UInt symbol;
+  xReadEpExGolomb( symbol, k );
+  coeff = symbol;
+  if(symbol != 0)
+  {
+    xReadFlag(symbol);
+    if(symbol == 0)
+      coeff = -coeff;
+  }
+#if ENC_DEC_TRACE
+  fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
+  fprintf( g_hTrace, "%-40s se(v) : %d\n", "alf_filt_coeff", coeff ); 
+#endif
+  return coeff;
+#else
   UInt uiSymbol;
   Int q = -1;
   Int nr = 0;
@@ -953,6 +970,7 @@ Int TDecCavlc::xGolombDecode(Int k)
 #endif
 #endif
   return nr;
+#endif
 }
 
 Void TDecCavlc::parsePPS(TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet)
