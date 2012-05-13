@@ -1338,7 +1338,7 @@ TComPPS::TComPPS()
 , m_signHidingThreshold(0)
 #endif
 , m_cabacInitPresentFlag        (false)
-, m_encCABACTableIdx            (0)
+, m_encCABACTableIdx            (I_SLICE)
 {
 }
 
