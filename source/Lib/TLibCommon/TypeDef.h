@@ -42,6 +42,7 @@
 //! \{
 
 #define AHG6_ALF_OPTION2                 1  ///< I0157: AHG6 ALF baseline Option 2 RA- Variant 2
+#define SLICE_TYPE_ORDER                 1  ///< I0500: ordering of slice types
 #define ALF_COEFF_EXP_GOLOMB_K           1  ///< I0346: Use EG(k) to code ALF coefficients
 
 #define POS_BASED_SIG_COEFF_CTX          1  ///< I0296: position based context index derivation for significant coeff flag for large TU
@@ -401,12 +402,21 @@ typedef struct _LFCUParam
 // ====================================================================================================================
 
 /// supported slice type
+#if SLICE_TYPE_ORDER
+enum SliceType
+{
+  B_SLICE,
+  P_SLICE,
+  I_SLICE
+};
+#else
 enum SliceType
 {
   I_SLICE,
   P_SLICE,
   B_SLICE
 };
+#endif
 
 /// chroma formats (according to semantics of chroma_format_idc)
 enum ChromaFormat
