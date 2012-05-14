@@ -164,7 +164,6 @@ UInt g_uiMaxCUWidth  = MAX_CU_SIZE;
 UInt g_uiMaxCUHeight = MAX_CU_SIZE;
 UInt g_uiMaxCUDepth  = MAX_CU_DEPTH;
 UInt g_uiAddCUDepth  = 0;
-
 UInt g_auiZscanToRaster [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToZscan [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToPelX  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };

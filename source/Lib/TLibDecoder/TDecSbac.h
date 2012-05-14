@@ -154,7 +154,10 @@ public:
 
   Void parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int width, Int height, TextType eTType, UInt uiScanIdx );
   Void parseCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
-  
+#if INTRA_TS
+  Void parseTSFlags       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType);
+#endif
+
   Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed );
   Void updateContextTables( SliceType eSliceType, Int iQp );
 
@@ -202,7 +205,9 @@ private:
   ContextModel3DBuffer m_cSaoMergeLeftSCModel;
   ContextModel3DBuffer m_cSaoMergeUpSCModel;
   ContextModel3DBuffer m_cSaoTypeIdxSCModel;
-
+#if INTRA_TS
+  ContextModel3DBuffer m_cTSSCModel;
+#endif
 };
 
 //! \}

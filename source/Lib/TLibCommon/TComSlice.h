@@ -181,12 +181,17 @@ private:
 #endif
   Bool        m_bUseLMChroma; // JL:
 
+#if INTRA_TS
+  Bool        m_useTS;
+  Bool        m_useTSFast;
+#endif
+  
   Bool        m_bUseLComb;
 #if !REMOVE_LC
   Bool        m_bLCMod;
 #endif
   Bool        m_useNSQT;
-  
+
   Bool        m_restrictedRefPicListsFlag;
   Bool        m_listsModificationPresentFlag;
 
@@ -326,6 +331,13 @@ public:
 #endif
   Bool getUseLMChroma ()         { return m_bUseLMChroma;        }
   Void setUseLMChroma ( Bool b ) { m_bUseLMChroma  = b;          }
+
+#if INTRA_TS
+  Bool getUseTS       ()         { return m_useTS;          }
+  Void setUseTS       ( Bool b ) { m_useTS  = b;            }
+  Bool getUseTSFast   ()         { return m_useTSFast;      }
+  Void setUseTSFast   ( Bool b ) { m_useTSFast  = b;        }
+#endif
 
 #if LOSSLESS_CODING
   Bool getUseLossless ()         { return m_useLossless; }
@@ -622,6 +634,7 @@ public:
   Int*     getScalingListDefaultAddress   (UInt sizeId, UInt listId);                                                        //!< get default matrix coefficient
   Void     processDefaultMarix            (UInt sizeId, UInt listId);
   Void     setScalingListDC               (UInt sizeId, UInt listId, UInt u)   { m_scalingListDC[sizeId][listId] = u; }      //!< set DC value
+
   Int      getScalingListDC               (UInt sizeId, UInt listId)           { return m_scalingListDC[sizeId][listId]; }   //!< get DC value
   Void     checkDcOfMatrix                ();
   Void     setUseDefaultScalingMatrixFlag (UInt sizeId, UInt listId, Bool b)   { m_useDefaultScalingMatrixFlag[sizeId][listId] = b;    } //!< set default matrix enabled/disabled in each matrix

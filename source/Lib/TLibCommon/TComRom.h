@@ -90,6 +90,11 @@ extern       UInt g_uiMaxCUHeight;
 extern       UInt g_uiMaxCUDepth;
 extern       UInt g_uiAddCUDepth;
 
+#if INTRA_TS
+#define MAX_TS_WIDTH  4
+#define MAX_TS_HEIGHT 4
+#endif
+
 extern       UInt g_auiPUOffset[8];
 
 #define QUANT_IQUANT_SHIFT    20 // Q(QP%6) * IQ(QP%6) = 2^20

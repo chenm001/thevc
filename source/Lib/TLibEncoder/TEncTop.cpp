@@ -496,8 +496,15 @@ Void TEncTop::xInitSPS()
 #if LOSSLESS_CODING
   m_cSPS.setUseLossless   ( m_useLossless  );
 #endif
+
+
   m_cSPS.setUseLMChroma   ( m_bUseLMChroma           );  
   
+#if INTRA_TS
+  m_cSPS.setUseTS         ( m_useTS );
+  m_cSPS.setUseTSFast     ( m_useTSFast );
+#endif
+
   m_cSPS.setMaxTrSize   ( 1 << m_uiQuadtreeTULog2MaxSize );
   
   m_cSPS.setUseLComb    ( m_bUseLComb           );

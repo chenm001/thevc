@@ -272,6 +272,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("NSQT",                    m_enableNSQT,              true, "Enable non-square transforms")
   ("AMP",                     m_enableAMP,               true, "Enable asymmetric motion partitions")
   ("LMChroma",                m_bUseLMChroma,            true, "Intra chroma prediction based on reconstructed luma")
+#if INTRA_TS
+  ("TS",                      m_useTS,                   false, "Intra transform skipping")
+  ("TSFast",                  m_useTSFast,               false, "Fast intra transform skipping")
+#endif
   ("ALF",                     m_bUseALF,                 true, "Enable Adaptive Loop Filter")
   ("SAO",                     m_bUseSAO,                 true, "Enable Sample Adaptive Offset")   
   ("MaxNumOffsetsPerPic",     m_maxNumOffsetsPerPic,     2048, "Max number of SAO offset per picture (Default: 2048)")   
@@ -1025,6 +1029,10 @@ Void TAppEncCfg::xPrintParameter()
   printf("ESD:%d ", m_useEarlySkipDetection  );
   printf("RQT:%d ", 1     );
   printf("LMC:%d ", m_bUseLMChroma        ); 
+#if INTRA_TS
+  printf("TS:%d ",  m_useTS              ); 
+  printf("TSFast:%d ", m_useTSFast       ); 
+#endif
   printf("Slice: G=%d M=%d ", m_iSliceGranularity, m_iSliceMode);
   if (m_iSliceMode!=0)
   {

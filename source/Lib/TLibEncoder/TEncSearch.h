@@ -81,6 +81,19 @@ private:
   
   TComYuv*        m_pcQTTempTComYuv;
   TComYuv         m_tmpYuvPred; // To be used in xGetInterPredictionError() to avoid constant memory allocation/deallocation
+#if INTRA_TS
+  Pel*            m_pPredTS[3];
+  TCoeff*         m_pcQTTempTUCoeffY;
+  TCoeff*         m_pcQTTempTUCoeffCb;
+  TCoeff*         m_pcQTTempTUCoeffCr;
+  UChar*          m_puhQTTempTSFlag[3];
+  TComYuv         m_pcQTTempLCUTComYuv;
+#if ADAPTIVE_QP_SELECTION
+  Int*            m_ppcQTTempTUArlCoeffY;
+  Int*            m_ppcQTTempTUArlCoeffCb;
+  Int*            m_ppcQTTempTUArlCoeffCr;
+#endif
+#endif
 protected:
   // interface to option
   TEncCfg*        m_pcEncCfg;
@@ -212,6 +225,7 @@ protected:
                                     UInt         uiAbsPartIdx,
                                     Bool         bLuma,
                                     Bool         bChroma );
+
   Void  xEncCoeffQT               ( TComDataCU*  pcCU,
                                     UInt         uiTrDepth,
                                     UInt         uiAbsPartIdx,
@@ -228,6 +242,13 @@ protected:
                                     Bool         bLuma,
                                     Bool         bChroma,
                                     Bool         bRealCoeff );
+#if INTRA_TS
+  UInt  xGetIntraBitsQTChroma    ( TComDataCU*   pcCU,
+                                   UInt          uiTrDepth,
+                                   UInt          uiAbsPartIdx,
+                                   UInt          uiChromaId,
+                                   Bool          bRealCoeff );
+#endif
   
   Void  xIntraCodingLumaBlk       ( TComDataCU*  pcCU,
                                     UInt         uiTrDepth,
@@ -235,7 +256,11 @@ protected:
                                     TComYuv*     pcOrgYuv, 
                                     TComYuv*     pcPredYuv, 
                                     TComYuv*     pcResiYuv, 
-                                    UInt&        ruiDist );
+                                    UInt&        ruiDist 
+#if INTRA_TS
+                                    ,Int         default0Save1Load2 = 0
+#endif
+                                    );
   Void  xIntraCodingChromaBlk     ( TComDataCU*  pcCU,
                                     UInt         uiTrDepth,
                                     UInt         uiAbsPartIdx,
@@ -243,7 +268,11 @@ protected:
                                     TComYuv*     pcPredYuv, 
                                     TComYuv*     pcResiYuv, 
                                     UInt&        ruiDist,
-                                    UInt         uiChromaId );
+                                    UInt         uiChromaId 
+#if INTRA_TS
+                                    ,Int         default0Save1Load2 = 0
+#endif
+                                    );
   Void  xRecurIntraCodingQT       ( TComDataCU*  pcCU, 
                                     UInt         uiTrDepth,
                                     UInt         uiAbsPartIdx, 
@@ -276,6 +305,25 @@ protected:
                                     UInt         uiAbsPartIdx,
                                     TComYuv*     pcRecoYuv );
   
+#if INTRA_TS
+  Void  xStoreIntraResultQT       ( TComDataCU*  pcCU,
+                                    UInt         uiTrDepth,
+                                    UInt         uiAbsPartIdx,
+                                    Bool         bLumaOnly);
+  Void  xLoadIntraResultQT        ( TComDataCU*  pcCU,
+                                    UInt         uiTrDepth,
+                                    UInt         uiAbsPartIdx,
+                                    Bool         bLumaOnly);
+  Void xStoreIntraResultChromaQT  ( TComDataCU*  pcCU,
+                                    UInt         uiTrDepth,
+                                    UInt         uiAbsPartIdx,
+                                    UInt         stateU0V1Both2 );
+  Void xLoadIntraResultChromaQT   ( TComDataCU*  pcCU,
+                                    UInt         uiTrDepth,
+                                    UInt         uiAbsPartIdx,
+                                    UInt         stateU0V1Both2 );
+#endif
+
   // -------------------------------------------------------------------------------------------------------------------
   // Inter search (AMP)
   // -------------------------------------------------------------------------------------------------------------------

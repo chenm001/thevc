@@ -138,11 +138,23 @@ public:
                      UInt        uiHeight, 
                      UInt&       uiAbsSum, 
                      TextType    eTType, 
-                     UInt        uiAbsPartIdx );
+                     UInt        uiAbsPartIdx
+#if INTRA_TS
+                     ,Bool       useTS = false
+#endif
+                     );
 #if LOSSLESS_CODING
-  Void invtransformNxN( TComDataCU* pcCU, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType);
+  Void invtransformNxN( TComDataCU* pcCU, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType
+#if INTRA_TS
+    ,Bool useTS = false
+#endif
+    );
 #else
-  Void invtransformNxN(                   TextType eText, UInt uiMode,Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight, Int scalingListType);
+  Void invtransformNxN(                   TextType eText, UInt uiMode,Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight, Int scalingListType
+#if INTRA_TS
+    ,Bool useTS = false
+#endif
+    );
 #endif
   Void invRecurTransformNxN ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel* rpcResidual, UInt uiAddr,   UInt uiStride, UInt uiWidth, UInt uiHeight,
                              UInt uiMaxTrMode,  UInt uiTrMode, TCoeff* rpcCoeff );
@@ -236,6 +248,11 @@ private:
   // forward Transform
   Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Int* plCoeff, Int iWidth, Int iHeight );
   
+#if INTRA_TS
+  // skipping Transform
+  Void xTSkip ( Pel* piBlkResi, UInt uiStride, Int* psCoeff, Int width, Int height );
+#endif
+
   Void signBitHidingHDQ( TComDataCU* pcCU, TCoeff* pQCoef, TCoeff* pCoef, UInt const *scan, Int* deltaU, Int width, Int height );
 
   // quantization
@@ -309,6 +326,11 @@ __inline Int xGetICRate  ( UInt                            uiAbsLevel,
   // inverse transform
   Void xIT    ( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight );
   
+#if INTRA_TS
+  // inverse skipping transform
+  Void xITSkip ( Int* plCoef, Pel* pResidual, UInt uiStride, Int width, Int height );
+#endif
+
 };// END CLASS DEFINITION TComTrQuant
 
 //! \}

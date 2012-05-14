@@ -82,6 +82,9 @@ TDecSbac::TDecSbac()
 , m_cSaoMergeLeftSCModel      ( 1,             1,               NUM_SAO_MERGE_LEFT_FLAG_CTX   , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoMergeUpSCModel        ( 1,             1,               NUM_SAO_MERGE_UP_FLAG_CTX     , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoTypeIdxSCModel        ( 1,             1,               NUM_SAO_TYPE_IDX_CTX          , m_contextModels + m_numContextModels, m_numContextModels)
+#if INTRA_TS
+, m_cTSSCModel                ( 1,             2,               NUM_TS_FLAG_CTX               , m_contextModels + m_numContextModels, m_numContextModels)
+#endif
 {
   assert( m_numContextModels <= MAX_NUM_CTX_MOD );
   m_iSliceGranularity = 0;
@@ -149,6 +152,9 @@ Void TDecSbac::resetEntropy(TComSlice* pSlice)
   m_cSaoTypeIdxSCModel.initBuffer        ( sliceType, qp, (UChar*)INIT_SAO_TYPE_IDX );
 
   m_cCUTransSubdivFlagSCModel.initBuffer ( sliceType, qp, (UChar*)INIT_TRANS_SUBDIV_FLAG );
+#if INTRA_TS
+  m_cTSSCModel.initBuffer                ( sliceType, qp, (UChar*)INIT_TS_FLAG );
+#endif
   m_uiLastDQpNonZero  = 0;
   
   // new structure
@@ -211,6 +217,9 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   m_cSaoMergeUpSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_UP_FLAG );
   m_cSaoTypeIdxSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_TYPE_IDX );
   m_cCUTransSubdivFlagSCModel.initBuffer ( eSliceType, iQp, (UChar*)INIT_TRANS_SUBDIV_FLAG );
+#if INTRA_TS
+  m_cTSSCModel.initBuffer                ( eSliceType, iQp, (UChar*)INIT_TS_FLAG );
+#endif
   m_pcTDecBinIf->start();
 }
 
@@ -967,6 +976,42 @@ Void TDecSbac::parseQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, 
   pcCU->setCbfSubParts( uiSymbol << uiTrDepth, eType, uiAbsPartIdx, uiDepth );
 }
 
+#if INTRA_TS
+void TDecSbac::parseTSFlags (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType)
+{
+  if(!pcCU->isIntra(uiAbsPartIdx))
+  {
+    return;
+  }
+  if(width != 4 || height != 4)
+  {
+    return;
+  }
+  
+  UInt uiSymbol;
+  m_pcTDecBinIf->decodeBin( uiSymbol , m_cTSSCModel.get( 0, eTType? TEXT_CHROMA: TEXT_LUMA, 0 ) );
+  if(eTType!= TEXT_LUMA && uiDepth == 4)
+  {
+    uiDepth --;
+  }
+  DTRACE_CABAC_VL( g_nSymbolCounter++ )
+  DTRACE_CABAC_T("\tparseTS()");
+  DTRACE_CABAC_T( "\tsymbol=" )
+  DTRACE_CABAC_V( uiSymbol )
+  DTRACE_CABAC_T( "\tAddr=" )
+  DTRACE_CABAC_V( pcCU->getAddr() )
+  DTRACE_CABAC_T( "\tctx=" )
+  DTRACE_CABAC_V( uiCtx )
+  DTRACE_CABAC_T( "\tetype=" )
+  DTRACE_CABAC_V( eTType )
+  DTRACE_CABAC_T( "\tuiAbsPartIdx=" )
+  DTRACE_CABAC_V( uiAbsPartIdx )
+  DTRACE_CABAC_T( "\n" )
+
+  pcCU->setTSSubParts( uiSymbol,uiAbsPartIdx, uiDepth, eTType);
+}
+#endif
+
 /** Parse (X,Y) position of the last significant coefficient
  * \param uiPosLastX reference to X component of last coefficient
  * \param uiPosLastY reference to Y component of last coefficient
@@ -1100,7 +1145,14 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     uiWidth  = pcCU->getSlice()->getSPS()->getMaxTrSize();
     uiHeight = pcCU->getSlice()->getSPS()->getMaxTrSize();
   }
-  
+
+#if INTRA_TS
+  if(pcCU->getSlice()->getSPS()->getUseTS())
+  {
+    parseTSFlags( pcCU, uiAbsPartIdx, uiWidth, uiHeight, uiDepth, eTType);
+  }
+#endif
+
   eTType = eTType == TEXT_LUMA ? TEXT_LUMA : ( eTType == TEXT_NONE ? TEXT_NONE : TEXT_CHROMA );
   
   //----- parse significance map -----

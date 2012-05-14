@@ -40,6 +40,7 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define INTRA_TS                         1  ///< I0408: intra transform skipping (TS) 
 
 #define FIX_TMVP_REFIDX0                 1  ///< I0116: Fix the reference picture index to 0 for TMVP derivation in merging list
 #define LM_CLEANUP                       1  ///< I0148: LM (intra chroma prediction based on luma) mode clean-up
@@ -59,7 +60,7 @@
 #if     FIXED_SBH_THRESHOLD
 #define SBH_THRESHOLD                    4  ///< I0156: value of the fixed SBH controlling threshold
 #endif
-
+  
 #define CONSTRAINED_MOTION_DATA_COMPRESSION 1  ///< I0182: Constrained motion data compression, only allow motion data compression when minimum PU width = 4
 
 #define UNIFIED_POS_SIG_CTX              1 // < I0373: use same context assignment for 4x4 and 8x8 TU significance maps, and share ctx for DC conponent among all TU

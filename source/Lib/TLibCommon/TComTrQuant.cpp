@@ -1083,8 +1083,13 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
   Int*   piArlCCoef = pArlDes;
 #endif
   Int   iAdd = 0;
-  
+ 
+#if INTRA_TS
+  Bool satisfyRDOQTS = !(pcCU->getSlice()->getSPS()->getUseTSFast() && pcCU->getTS(uiAbsPartIdx,eTType));
+  if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && satisfyRDOQTS)
+#else
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) )
+#endif
   {
 #if ADAPTIVE_QP_SELECTION
     xRateDistOptQuant( pcCU, piCoef, pDes, pArlDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx );
@@ -1169,6 +1174,7 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
     UInt uiBitDepth = g_uiBitDepth + g_uiBitIncrement;
 #endif
     UInt iTransformShift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize;  // Represents scaling through forward transform
+
     Int iQBits = QUANT_SHIFT + m_cQP.m_iPer + iTransformShift;                // Right shift of non-RDOQ quantizer;  level = (coeff*uiQ + offset)>>q_bits
 
     iAdd = (pcCU->getSlice()->getSliceType()==I_SLICE ? 171 : 85) << (iQBits-9);
@@ -1247,6 +1253,7 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
   UInt uiBitDepth = g_uiBitDepth + g_uiBitIncrement;
 #endif
   UInt iTransformShift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize; 
+
   iShift = QUANT_IQUANT_SHIFT - QUANT_SHIFT - iTransformShift;
 
   TCoeff clipQCoef;
@@ -1325,7 +1332,11 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
                                 UInt        uiHeight, 
                                 UInt&       uiAbsSum, 
                                 TextType    eTType, 
-                                UInt        uiAbsPartIdx )
+                                UInt        uiAbsPartIdx 
+#if INTRA_TS
+                                ,Bool       useTS
+#endif
+                                )
 {
 #if LOSSLESS_CODING
   if((m_cQP.qp() == 0) && (pcCU->getSlice()->getSPS()->getUseLossless()))
@@ -1354,8 +1365,18 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
   
   uiAbsSum = 0;
   assert( (pcCU->getSlice()->getSPS()->getMaxTrSize() >= uiWidth) );
-
+#if INTRA_TS
+  if(useTS)
+  {
+    xTSkip( pcResidual, uiStride, m_plTempCoeff, uiWidth, uiHeight );
+  }
+  else
+  {
+    xT( uiMode, pcResidual, uiStride, m_plTempCoeff, uiWidth, uiHeight );
+  }
+#else
   xT( uiMode, pcResidual, uiStride, m_plTempCoeff, uiWidth, uiHeight );
+#endif
   xQuant( pcCU, m_plTempCoeff, rpcCoeff,
 #if ADAPTIVE_QP_SELECTION
        rpcArlCoeff,
@@ -1364,9 +1385,17 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
 }
 
 #if LOSSLESS_CODING
-Void TComTrQuant::invtransformNxN( TComDataCU* pcCU, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType)
+Void TComTrQuant::invtransformNxN( TComDataCU* pcCU, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType
+#if INTRA_TS
+                                  ,Bool useTS
+#endif
+                                  )
 #else
-Void TComTrQuant::invtransformNxN(                   TextType eText, UInt uiMode,Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight, Int scalingListType)
+Void TComTrQuant::invtransformNxN(                   TextType eText, UInt uiMode,Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight, Int scalingListType
+#if INTRA_TS
+                                  ,Bool useTS
+#endif
+                                  )
 #endif
 {
 #if LOSSLESS_CODING
@@ -1383,7 +1412,18 @@ Void TComTrQuant::invtransformNxN(                   TextType eText, UInt uiMode
   }
 #endif
   xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight, scalingListType);
+#if INTRA_TS
+  if(useTS == true)
+  {
+    xITSkip( m_plTempCoeff, rpcResidual, uiStride, uiWidth, uiHeight );
+  }
+  else
+  {
+    xIT( uiMode, m_plTempCoeff, rpcResidual, uiStride, uiWidth, uiHeight );
+  }
+#else
   xIT( uiMode, m_plTempCoeff, rpcResidual, uiStride, uiWidth, uiHeight );
+#endif
 }
 
 Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel* rpcResidual, UInt uiAddr, UInt uiStride, UInt uiWidth, UInt uiHeight, UInt uiMaxTrMode, UInt uiTrMode, TCoeff* rpcCoeff )
@@ -1501,6 +1541,7 @@ Void TComTrQuant::xT( UInt uiMode, Pel* piBlkResi, UInt uiStride, Int* psCoeff, 
 #endif  
 }
 
+
 /** Wrapper function between HM interface and core NxN inverse transform (2D) 
  *  \param plCoef input data (transform coefficients)
  *  \param pResidual output data (residual)
@@ -1539,6 +1580,61 @@ Void TComTrQuant::xIT( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, 
 #endif  
 }
  
+#if INTRA_TS
+/** Wrapper function between HM interface and core 4x4 transform skipping
+ *  \param piBlkResi input data (residual)
+ *  \param psCoeff output data (transform coefficients)
+ *  \param uiStride stride of input residual data
+ *  \param iSize transform size (iSize x iSize)
+ */
+Void TComTrQuant::xTSkip( Pel* piBlkResi, UInt uiStride, Int* psCoeff, Int width, Int height )
+{
+  assert( width == height );
+  UInt uiLog2TrSize = g_aucConvertToBit[ width ] + 2;
+#if FULL_NBIT
+  UInt uiBitDepth = g_uiBitDepth;
+#else
+  UInt uiBitDepth = g_uiBitDepth + g_uiBitIncrement;
+#endif
+  UInt iTransformShift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize; 
+  Int j,k;
+  for (j = 0; j < height; j++)
+  {    
+    for(k = 0; k < width; k ++)
+    {
+      psCoeff[j*height + k] = piBlkResi[j * uiStride + k] << iTransformShift;      
+    }
+  }
+}
+
+/** Wrapper function between HM interface and core NxN transform skipping 
+ *  \param plCoef input data (coefficients)
+ *  \param pResidual output data (residual)
+ *  \param uiStride stride of input residual data
+ *  \param iSize transform size (iSize x iSize)
+ */
+Void TComTrQuant::xITSkip( Int* plCoef, Pel* pResidual, UInt uiStride, Int width, Int height )
+{
+  assert( width == height );
+  UInt uiLog2TrSize = g_aucConvertToBit[ width ] + 2;
+#if FULL_NBIT
+  UInt uiBitDepth = g_uiBitDepth;
+#else
+  UInt uiBitDepth = g_uiBitDepth + g_uiBitIncrement;
+#endif
+  UInt iTransformShift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize; 
+  UInt iAdd = (1 << (iTransformShift -1));
+  Int j,k;
+  for ( j = 0; j < height; j++ )
+  {    
+    for(k = 0; k < width; k ++)
+    {
+      pResidual[j * uiStride + k] =  (plCoef[j*width+k] + iAdd) >> iTransformShift;
+    }
+  }
+}
+#endif
+
 /** RDOQ with CABAC
  * \param pcCU pointer to coding unit structure
  * \param plSrcCoeff pointer to input buffer

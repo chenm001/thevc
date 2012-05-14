@@ -120,6 +120,9 @@ public:
   virtual Void codeMvd           ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )      = 0;
   virtual Void codeDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
   virtual Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType ) = 0;
+#if INTRA_TS
+  virtual Void codeTSFlags       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType ) = 0;
+#endif
 #if AHG6_ALF_OPTION2  
   virtual Void codeAlfParam      (ALFParam* alfParam) = 0;
 #else
