@@ -428,10 +428,15 @@ Void TDecEntropy::xDecodeTransform( TComDataCU* pcCU, UInt offsetLuma, UInt offs
   }
   
   const UInt uiTrDepth = uiDepth - pcCU->getDepth( uiAbsPartIdx );
-  
+#if !CBF_UV_UNIFICATION
   if( uiLog2TrafoSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
+#endif
   {
+#if CBF_UV_UNIFICATION
+    const Bool bFirstCbfOfCU = uiTrDepth == 0;
+#else
     const Bool bFirstCbfOfCU = uiLog2TrafoSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() || uiTrDepth == 0;
+#endif
     if( bFirstCbfOfCU )
     {
       pcCU->setCbfSubParts( 0, TEXT_CHROMA_U, uiAbsPartIdx, uiDepth );
@@ -441,7 +446,11 @@ Void TDecEntropy::xDecodeTransform( TComDataCU* pcCU, UInt offsetLuma, UInt offs
     {
       if( bFirstCbfOfCU || pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepth - 1 ) )
       {
+#if CBF_UV_UNIFICATION
+        if ( uiInnerQuadIdx == 3 && uiUCbfFront3 == 0 )
+#else
         if ( uiInnerQuadIdx == 3 && uiUCbfFront3 == 0 && uiLog2TrafoSize < pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
+#endif
         {
           uiUCbfFront3++;
           pcCU->setCbfSubParts( 1 << uiTrDepth, TEXT_CHROMA_U, uiAbsPartIdx, uiDepth );
@@ -455,7 +464,11 @@ Void TDecEntropy::xDecodeTransform( TComDataCU* pcCU, UInt offsetLuma, UInt offs
       }
       if( bFirstCbfOfCU || pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepth - 1 ) )
       {
+#if CBF_UV_UNIFICATION
+        if ( uiInnerQuadIdx == 3 && uiVCbfFront3 == 0 )
+#else
         if ( uiInnerQuadIdx == 3 && uiVCbfFront3 == 0 && uiLog2TrafoSize < pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
+#endif
         {
           uiVCbfFront3++;
           pcCU->setCbfSubParts( 1 << uiTrDepth, TEXT_CHROMA_V, uiAbsPartIdx, uiDepth );
