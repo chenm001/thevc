@@ -40,8 +40,8 @@
 
 //! \ingroup TLibCommon
 //! \{
-
-#define COEF_REMAIN_BINARNIZATION        1
+#define INTRAMODE_BYPASSGROUP            1  ///< I0302: group coding of Intra_NxN
+#define COEF_REMAIN_BINARNIZATION        1  ///< I0487: Binarization for coefficient level coding
 
 #define INTRA_TS                         1  ///< I0408: intra transform skipping (TS) 
 

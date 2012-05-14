@@ -1103,11 +1103,17 @@ Void TEncEntropy::xEncodeTransform( TComDataCU* pcCU,UInt offsetLuma, UInt offse
 }
 
 // Intra direction for Luma
+#if INTRAMODE_BYPASSGROUP
+Void TEncEntropy::encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool isMultiplePU )
+{
+  m_pcEntropyCoderIf->codeIntraDirLumaAng( pcCU, uiAbsPartIdx , isMultiplePU);
+}
+#else
 Void TEncEntropy::encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   m_pcEntropyCoderIf->codeIntraDirLumaAng( pcCU, uiAbsPartIdx );
 }
-
+#endif
 // Intra direction for Chroma
 Void TEncEntropy::encodeIntraDirModeChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
@@ -1125,11 +1131,15 @@ Void TEncEntropy::encodePredInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
   {
     uiAbsPartIdx = 0;
   }
-  
+#if !INTRAMODE_BYPASSGROUP  
   PartSize eSize = pcCU->getPartitionSize( uiAbsPartIdx );
-  
+#endif
   if( pcCU->isIntra( uiAbsPartIdx ) )                                 // If it is Intra mode, encode intra prediction mode.
   {
+#if INTRAMODE_BYPASSGROUP
+    encodeIntraDirModeLuma  ( pcCU, uiAbsPartIdx,true );
+    encodeIntraDirModeChroma( pcCU, uiAbsPartIdx, bRD );
+#else
     if( eSize == SIZE_NxN )                                         // if it is NxN size, encode 4 intra directions.
     {
       UInt uiPartOffset = ( pcCU->getPic()->getNumPartInCU() >> ( pcCU->getDepth(uiAbsPartIdx) << 1 ) ) >> 2;
@@ -1145,6 +1155,7 @@ Void TEncEntropy::encodePredInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
       encodeIntraDirModeLuma  ( pcCU, uiAbsPartIdx );
       encodeIntraDirModeChroma( pcCU, uiAbsPartIdx, bRD );
     }
+#endif
   }
   else                                                                // if it is Inter mode, encode motion vector and reference index
   {

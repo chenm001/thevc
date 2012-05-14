@@ -734,6 +734,65 @@ Void TEncSbac::codeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx )
   DTRACE_CABAC_V( uiCtx )
   DTRACE_CABAC_T( "\n" )
 }
+
+#if INTRAMODE_BYPASSGROUP
+Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool isMultiple)
+{
+  UInt uiDir[4],j;
+  Int uiPreds[4][3] = {{-1, -1, -1},{-1, -1, -1},{-1, -1, -1},{-1, -1, -1}};
+  Int uiPredNum[4], uiPredIdx[4] ={ -1,-1,-1,-1};
+  PartSize eMode = pcCU->getPartitionSize( uiAbsPartIdx );
+  UInt PartNum = isMultiple?(eMode==SIZE_NxN?4:1):1;
+  UInt uiPartOffset = ( pcCU->getPic()->getNumPartInCU() >> ( pcCU->getDepth(uiAbsPartIdx) << 1 ) ) >> 2;
+  for (j=0;j<PartNum;j++)
+  {
+     uiDir[j] = pcCU->getLumaIntraDir( uiAbsPartIdx+uiPartOffset*j );
+     uiPredNum[j] = pcCU->getIntraDirLumaPredictor(uiAbsPartIdx+uiPartOffset*j, uiPreds[j]);  
+     for(UInt i = 0; i < uiPredNum[j]; i++)
+     {
+        if(uiDir[j] == uiPreds[j][i])
+        {
+          uiPredIdx[j] = i;
+        }
+     }
+     m_pcBinIf->encodeBin((uiPredIdx[j] != -1)? 1 : 0, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
+  }  
+  for (j=0;j<PartNum;j++)
+  {
+    if(uiPredIdx[j] != -1)
+    {
+        m_pcBinIf->encodeBinEP( uiPredIdx[j] ? 1 : 0 );
+        if (uiPredIdx[j])
+        {
+          m_pcBinIf->encodeBinEP( uiPredIdx[j]-1 );
+        }
+    }
+    else
+    {
+        if (uiPreds[j][0] > uiPreds[j][1])
+        { 
+          std::swap(uiPreds[j][0], uiPreds[j][1]); 
+        }
+        if (uiPreds[j][0] > uiPreds[j][2])
+        {
+          std::swap(uiPreds[j][0], uiPreds[j][2]);
+        }
+        if (uiPreds[j][1] > uiPreds[j][2])
+        {
+          std::swap(uiPreds[j][1], uiPreds[j][2]);
+        }
+        for(Int i = (uiPredNum[j] - 1); i >= 0; i--)
+        {
+          uiDir[j] = uiDir[j] > uiPreds[j][i] ? uiDir[j] - 1 : uiDir[j];
+        }
+        m_pcBinIf->encodeBinsEP( uiDir[j], 5 );
+     }
+  }
+  return;
+}
+#else
+
+
 Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
@@ -786,6 +845,7 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
    }
   return;
 }
+#endif
 Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiIntraDirChroma = pcCU->getChromaIntraDir( uiAbsPartIdx );

@@ -193,8 +193,11 @@ public:
   Void codeTransformSubdivFlag ( UInt uiSymbol, UInt uiCtx );
   Void codeQtCbf               ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   Void codeQtRootCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  
+#if INTRAMODE_BYPASSGROUP
+  Void codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool isMultiple);
+#else
   Void codeIntraDirLumaAng     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+#endif 
   
   Void codeIntraDirChroma      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeInterDir            ( TComDataCU* pcCU, UInt uiAbsPartIdx );

@@ -1031,7 +1031,11 @@ Void TEncCavlc::codeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Int numIPCM, 
   assert(0);
 }
 
+#if INTRAMODE_BYPASSGROUP
+Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool isMultiple)
+#else
 Void TEncCavlc::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
+#endif 
 {
   assert(0);
 }

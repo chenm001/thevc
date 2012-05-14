@@ -718,15 +718,33 @@ Void TDecSbac::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   
 Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
+#if INTRAMODE_BYPASSGROUP
+  PartSize eMode = pcCU->getPartitionSize( uiAbsPartIdx );
+  UInt partNum = eMode==SIZE_NxN?4:1;
+  uiDepth = eMode==SIZE_NxN?uiDepth++:uiDepth;
+  UInt partOffset = ( pcCU->getPic()->getNumPartInCU() >> ( pcCU->getDepth(uiAbsPartIdx) << 1 ) ) >> 2;
+  UInt MPMpred[4];
+  Int j;
+#endif
   UInt uiSymbol;
   Int  intraPredMode;
-
+#if INTRAMODE_BYPASSGROUP
+  for (j=0;j<partNum;j++)
+  {
+    m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 0) );
+    MPMpred[j] = uiSymbol;
+  }
+  for (j=0;j<partNum;j++)
+  {
+    Int uiPreds[3] = {-1, -1, -1};
+    Int uiPredNum = pcCU->getIntraDirLumaPredictor(uiAbsPartIdx+partOffset*j, uiPreds);  
+    if (MPMpred[j])
+#else
   Int uiPreds[3] = {-1, -1, -1};
   Int uiPredNum = pcCU->getIntraDirLumaPredictor(uiAbsPartIdx, uiPreds);  
- 
   m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 0) );
- 
   if ( uiSymbol )
+#endif
   {
     m_pcTDecBinIf->decodeBinEP( uiSymbol );
     if (uiSymbol)
@@ -761,8 +779,12 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
       intraPredMode += ( intraPredMode >= uiPreds[i] );
     }
   }
-  
+#if INTRAMODE_BYPASSGROUP
+      pcCU->setLumaIntraDirSubParts( (UChar)intraPredMode, uiAbsPartIdx+partOffset*j, uiDepth );
+  }
+#else
   pcCU->setLumaIntraDirSubParts( (UChar)intraPredMode, uiAbsPartIdx, uiDepth );
+#endif
 }
 Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
