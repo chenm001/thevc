@@ -335,9 +335,6 @@ struct SAOParam
   SaoLcuParam* saoLcuParam[3];
   Int          numCuInHeight;
   Int          numCuInWidth;
-#if SAO_ENCODING_CHOICE
-  Int          numLcuSaoEnabled;
-#endif
   ~SAOParam();
 };
 
