@@ -1397,8 +1397,8 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
         {
           UInt sign = (saoLcuParam->offset[i] < 0) ? 1 : 0 ;
           m_pcEntropyCoderIf->codeSAOSign(sign);
-      }  
-    }
+        }
+      }
 #endif
     }
     else
