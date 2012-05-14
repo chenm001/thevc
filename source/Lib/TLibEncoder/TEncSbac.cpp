@@ -1055,11 +1055,24 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
   UInt uiGroupIdxX    = g_uiGroupIdx[ uiPosX ];
   UInt uiGroupIdxY    = g_uiGroupIdx[ uiPosY ];
 
+
+#if LAST_CTX_DERIVATION
+  Int blkSizeOffsetX, blkSizeOffsetY, shiftX, shiftY;
+  blkSizeOffsetX = eTType ? 0: (g_aucConvertToBit[ width ] *3 + ((g_aucConvertToBit[ width ] +1)>>2));
+  blkSizeOffsetY = eTType ? 0: (g_aucConvertToBit[ height ]*3 + ((g_aucConvertToBit[ height ]+1)>>2));
+  shiftX= eTType ? g_aucConvertToBit[ width  ] :((g_aucConvertToBit[ width  ]+3)>>2);
+  shiftY= eTType ? g_aucConvertToBit[ height ] :((g_aucConvertToBit[ height ]+3)>>2);
+#endif
   // posX
+#if !LAST_CTX_DERIVATION
   Int widthCtx = eTType? 4: width;
   const UInt *puiCtxIdxX = g_uiLastCtx + ( g_aucConvertToBit[ widthCtx ] * ( g_aucConvertToBit[ widthCtx ] + 3 ) );
+#endif
   for( uiCtxLast = 0; uiCtxLast < uiGroupIdxX; uiCtxLast++ )
   {
+#if LAST_CTX_DERIVATION
+      m_pcBinIf->encodeBin( 1, *( pCtxX + blkSizeOffsetX + (uiCtxLast >>shiftX) ) );
+#else
     if (eTType)
     {
       m_pcBinIf->encodeBin( 1, *( pCtxX + (uiCtxLast>>g_aucConvertToBit[ width ]) ) );
@@ -1068,9 +1081,13 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
     {
       m_pcBinIf->encodeBin( 1, *( pCtxX + puiCtxIdxX[ uiCtxLast ] ) );
     }
+#endif
   }
   if( uiGroupIdxX < g_uiGroupIdx[ width - 1 ])
   {
+#if LAST_CTX_DERIVATION
+      m_pcBinIf->encodeBin( 0, *( pCtxX + blkSizeOffsetX + (uiCtxLast >>shiftX) ) );
+#else
     if ( eTType )
     {
       m_pcBinIf->encodeBin( 0, *( pCtxX + (uiCtxLast>>g_aucConvertToBit[ width ]) ) );
@@ -1079,13 +1096,19 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
     {
       m_pcBinIf->encodeBin( 0, *( pCtxX + puiCtxIdxX[ uiCtxLast ] ) );
     }
+#endif
   }
 
   // posY
+#if !LAST_CTX_DERIVATION
   Int heightCtx = eTType? 4: height;
   const UInt *puiCtxIdxY = g_uiLastCtx + ( g_aucConvertToBit[ heightCtx ] * ( g_aucConvertToBit[ heightCtx ] + 3 ) );
+#endif
   for( uiCtxLast = 0; uiCtxLast < uiGroupIdxY; uiCtxLast++ )
   {
+#if LAST_CTX_DERIVATION
+      m_pcBinIf->encodeBin( 1, *( pCtxY + blkSizeOffsetY + (uiCtxLast >>shiftY) ) );
+#else
     if (eTType)
     {
       m_pcBinIf->encodeBin( 1, *( pCtxY + (uiCtxLast>>g_aucConvertToBit[ height ])));
@@ -1094,9 +1117,13 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
     {
       m_pcBinIf->encodeBin( 1, *( pCtxY + puiCtxIdxY[ uiCtxLast ] ) );
     }
+#endif
   }
   if( uiGroupIdxY < g_uiGroupIdx[ height - 1 ])
   {
+#if LAST_CTX_DERIVATION
+      m_pcBinIf->encodeBin( 0, *( pCtxY + blkSizeOffsetY + (uiCtxLast >>shiftY) ) );
+#else
     if (eTType)
     {
       m_pcBinIf->encodeBin( 0, *( pCtxY + (uiCtxLast>>g_aucConvertToBit[ height ]) ) );
@@ -1105,6 +1132,7 @@ Void TEncSbac::codeLastSignificantXY( UInt uiPosX, UInt uiPosY, Int width, Int h
     {
       m_pcBinIf->encodeBin( 0, *( pCtxY + puiCtxIdxY[ uiCtxLast ] ) );
     }
+#endif
     }
   if ( uiGroupIdxX > 3 )
   {      
@@ -1816,13 +1844,32 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, Int width
     }
   }
   Int iBitsX = 0, iBitsY = 0;
+#if LAST_CTX_DERIVATION
+  Int blkSizeOffsetX, blkSizeOffsetY, shiftX, shiftY;
+#else
   const UInt *puiCtxIdx;
+#endif
+
+#if LAST_CTX_DERIVATION
+  blkSizeOffsetX = eTType ? 0: (g_aucConvertToBit[ width ] *3 + ((g_aucConvertToBit[ width ] +1)>>2));
+  blkSizeOffsetY = eTType ? 0: (g_aucConvertToBit[ height ]*3 + ((g_aucConvertToBit[ height ]+1)>>2));
+  shiftX = eTType ? g_aucConvertToBit[ width  ] :((g_aucConvertToBit[ width  ]+3)>>2);
+  shiftY = eTType ? g_aucConvertToBit[ height ] :((g_aucConvertToBit[ height ]+3)>>2);
+#endif
+
   Int ctx;
+#if !LAST_CTX_DERIVATION
   Int widthCtx = eTType? 4 : width;
   puiCtxIdx = g_uiLastCtx + (g_aucConvertToBit[ widthCtx ]*(g_aucConvertToBit[ widthCtx ]+3));
+#endif
   ContextModel *pCtxX      = m_cCuCtxLastX.get( 0, eTType );
   for (ctx = 0; ctx < g_uiGroupIdx[ width - 1 ]; ctx++)
   {
+#if LAST_CTX_DERIVATION
+    Int ctxOffset = blkSizeOffsetX + (ctx >>shiftX);
+    pcEstBitsSbac->lastXBits[ ctx ] = iBitsX + pCtxX[ ctxOffset ].getEntropyBits( 0 );
+    iBitsX += pCtxX[ ctxOffset ].getEntropyBits( 1 );
+#else
     Int ctxOffset = puiCtxIdx[ ctx ];
     if (eTType)
     {
@@ -1835,14 +1882,21 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, Int width
       pcEstBitsSbac->lastXBits[ ctx ] = iBitsX + pCtxX[ ctxOffset ].getEntropyBits( 0 );
       iBitsX += pCtxX[ ctxOffset ].getEntropyBits( 1 );
     }
+#endif
     }
   pcEstBitsSbac->lastXBits[ctx] = iBitsX;
-
+#if !LAST_CTX_DERIVATION
   Int heightCtx = eTType? 4 : height;
   puiCtxIdx = g_uiLastCtx + (g_aucConvertToBit[ heightCtx ]*(g_aucConvertToBit[ heightCtx ]+3));
+#endif
   ContextModel *pCtxY      = m_cCuCtxLastY.get( 0, eTType );
   for (ctx = 0; ctx < g_uiGroupIdx[ height - 1 ]; ctx++)
   {
+#if LAST_CTX_DERIVATION
+    Int ctxOffset = blkSizeOffsetY + (ctx >>shiftY);
+    pcEstBitsSbac->lastYBits[ ctx ] = iBitsY + pCtxY[ ctxOffset ].getEntropyBits( 0 );
+    iBitsY += pCtxY[ ctxOffset ].getEntropyBits( 1 );
+#else
     Int ctxOffset = puiCtxIdx[ ctx ];
     if (eTType)
     {
@@ -1855,6 +1909,7 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, Int width
       pcEstBitsSbac->lastYBits[ ctx ] = iBitsY + pCtxY[ ctxOffset ].getEntropyBits( 0 );
       iBitsY += pCtxY[ ctxOffset ].getEntropyBits( 1 );
     }
+#endif
     }
   pcEstBitsSbac->lastYBits[ctx] = iBitsY;
 }
