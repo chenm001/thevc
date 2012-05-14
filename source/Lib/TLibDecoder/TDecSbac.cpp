@@ -721,10 +721,13 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
 #if INTRAMODE_BYPASSGROUP
   PartSize eMode = pcCU->getPartitionSize( uiAbsPartIdx );
   UInt partNum = eMode==SIZE_NxN?4:1;
-  uiDepth = eMode==SIZE_NxN?uiDepth++:uiDepth;
   UInt partOffset = ( pcCU->getPic()->getNumPartInCU() >> ( pcCU->getDepth(uiAbsPartIdx) << 1 ) ) >> 2;
   UInt MPMpred[4];
   Int j;
+  if (eMode==SIZE_NxN)
+  {
+    uiDepth++:
+  }
 #endif
   UInt uiSymbol;
   Int  intraPredMode;
