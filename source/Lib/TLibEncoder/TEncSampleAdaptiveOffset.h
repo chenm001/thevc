@@ -76,7 +76,9 @@ private:
   Double *m_dCostPartBest; //[MAX_NUM_SAO_PART]; 
   Int64  *m_iDistOrg;      //[MAX_NUM_SAO_PART]; 
   Int    *m_iTypePartBest; //[MAX_NUM_SAO_PART]; 
+#if !SAO_TRUNCATED_U
   Int     m_iOffsetTh;
+#endif
   Bool    m_bUseSBACRD;
 
 public:

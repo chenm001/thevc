@@ -138,6 +138,12 @@ public:
 #endif
   Void codeSaoFlag       ( UInt uiCode );
   Void codeSaoUvlc       ( UInt uiCode );
+#if SAO_OFFSET_MAG_SIGN_SPLIT
+  Void codeSAOSign       ( UInt code   );
+#endif
+#if SAO_TRUNCATED_U
+  Void codeSaoMaxUvlc    ( UInt   code, UInt maxSymbol ){;}
+#endif
   Void codeSaoSvlc       ( Int   iCode );
   Void codeSaoRun        ( UInt uiCode, UInt maxValue  );
   Void codeSaoMergeLeft  ( UInt uiCode, UInt compIdx ){;}

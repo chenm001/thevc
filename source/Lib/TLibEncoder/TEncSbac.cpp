@@ -1521,6 +1521,17 @@ Void TEncSbac::codeAlfSvlc       ( Int iCode )
   }
 }
 #endif
+
+#if SAO_OFFSET_MAG_SIGN_SPLIT
+/** code SAO offset sign
+ * \param code sign value
+ */
+Void TEncSbac::codeSAOSign( UInt code )
+{
+  m_pcBinIf->encodeBinEP( code );
+}
+#endif
+
 Void TEncSbac::codeSaoFlag       ( UInt uiCode )
 {
   UInt uiSymbol = ( ( uiCode == 0 ) ? 0 : 1 );
@@ -1545,6 +1556,35 @@ Void TEncSbac::codeSaoUvlc       ( UInt uiCode )
     m_pcBinIf->encodeBin( 0, m_cSaoUvlcSCModel.get( 0, 0, 1 ) );
   }
 }
+#if SAO_TRUNCATED_U
+Void TEncSbac::codeSaoMaxUvlc    ( UInt code, UInt maxSymbol )
+{
+  if (maxSymbol == 0)
+  {
+    return;
+  }
+
+  Int i;
+  Bool bCodeLast = ( maxSymbol > code );
+
+  if ( code == 0 )
+  {
+    m_pcBinIf->encodeBin( 0, m_cSaoUvlcSCModel.get( 0, 0, 0 ) );
+  }
+  else
+  {
+    m_pcBinIf->encodeBin( 1, m_cSaoUvlcSCModel.get( 0, 0, 0 ) );
+    for ( i=0; i<code-1; i++ )
+    {
+      m_pcBinIf->encodeBin( 1, m_cSaoUvlcSCModel.get( 0, 0, 1 ) );
+    }
+    if( bCodeLast )
+    {
+      m_pcBinIf->encodeBin( 0, m_cSaoUvlcSCModel.get( 0, 0, 1 ) );
+    }
+  }
+}
+#endif
 
 Void TEncSbac::codeSaoSvlc       ( Int iCode )
 {

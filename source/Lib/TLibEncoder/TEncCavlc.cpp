@@ -1200,6 +1200,16 @@ Void TEncCavlc::codeAlfFixedLengthIdx( UInt idx, UInt maxValue)
 }
 #endif
 
+#if SAO_OFFSET_MAG_SIGN_SPLIT
+/** code SAO offset sign
+ * \param code sign value
+ */
+Void TEncCavlc::codeSAOSign( UInt code )
+{
+  xWriteFlag( code );
+}
+#endif
+
 Void TEncCavlc::codeSaoFlag( UInt uiCode )
 {
   xWriteFlag( uiCode );

@@ -90,7 +90,9 @@ public:
 #endif
   Void  parseTerminatingBit       ( UInt& ruiBit );
   Void  parseMVPIdx               ( Int& riMVPIdx          );
-  
+#if SAO_TRUNCATED_U
+  Void  parseSaoMaxUvlc           ( UInt& val, UInt maxSymbol );
+#endif
   Void  parseSaoUvlc              ( UInt& ruiVal           );
   Void  parseSaoSvlc              ( Int&  riVal            );
   Void  parseSaoMergeLeft         ( UInt&  ruiVal, UInt uiCompIdx   );

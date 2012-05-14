@@ -163,6 +163,9 @@ extern       UInt g_uiIBDI_MAX;
 extern       UInt g_uiBASE_MAX;
 extern       UInt g_uiPCMBitDepthLuma;
 extern       UInt g_uiPCMBitDepthChroma;
+#if SAO_TRUNCATED_U
+extern       Int  g_offsetTh;
+#endif
 
 // ====================================================================================================================
 // Texture type to integer mapping

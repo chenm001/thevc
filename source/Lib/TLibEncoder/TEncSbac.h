@@ -121,12 +121,18 @@ public:
   Void  codeApsExtensionFlag () { assert (0); return; };
   Void  codeSaoFlag       ( UInt uiCode );
   Void  codeSaoUvlc       ( UInt uiCode );
+#if SAO_TRUNCATED_U
+  Void  codeSaoMaxUvlc    ( UInt code, UInt maxSymbol );
+#endif
   Void  codeSaoSvlc       ( Int  uiCode );
   Void  codeSaoRun        ( UInt  uiCode, UInt uiMaxValue  ) {;}
   Void  codeSaoMergeLeft  ( UInt  uiCode, UInt uiCompIdx );
   Void  codeSaoMergeUp    ( UInt  uiCode);
   Void  codeSaoTypeIdx    ( UInt  uiCode);
   Void  codeSaoUflc       ( UInt  uiCode);
+#if SAO_OFFSET_MAG_SIGN_SPLIT
+  Void  codeSAOSign       ( UInt  uiCode);  //<! code SAO offset sign
+#endif
   Void  codeScalingList      ( TComScalingList* scalingList     ){ assert (0);  return;};
 
 private:

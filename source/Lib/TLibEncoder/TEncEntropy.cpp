@@ -1364,16 +1364,42 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
       m_pcEntropyCoderIf->codeSaoUflc(uiSymbol);
       for( i=0; i< saoLcuParam->length; i++)
       {
+#if SAO_OFFSET_MAG_SIGN_SPLIT
+        UInt absOffset = ( (saoLcuParam->offset[i] < 0) ? -saoLcuParam->offset[i] : saoLcuParam->offset[i]);
+#if SAO_TRUNCATED_U
+        m_pcEntropyCoderIf->codeSaoMaxUvlc(absOffset, g_offsetTh-1);
+#else
+        m_pcEntropyCoderIf->codeSaoUvlc(absOffset);
+#endif
+#else
         m_pcEntropyCoderIf->codeSaoSvlc(saoLcuParam->offset[i]);
+#endif
       }  
+#if SAO_OFFSET_MAG_SIGN_SPLIT
+      for( i=0; i< saoLcuParam->length; i++)
+      {
+        if (saoLcuParam->offset[i] != 0)
+        {
+          UInt sign = (saoLcuParam->offset[i] < 0) ? 1 : 0 ;
+          m_pcEntropyCoderIf->codeSAOSign(sign);
+        }        
+      }
+#endif
     }
     else
       if( saoLcuParam->typeIdx < 4 )
       {
+#if SAO_TRUNCATED_U
+        m_pcEntropyCoderIf->codeSaoMaxUvlc( saoLcuParam->offset[0], g_offsetTh-1);
+        m_pcEntropyCoderIf->codeSaoMaxUvlc( saoLcuParam->offset[1], g_offsetTh-1);
+        m_pcEntropyCoderIf->codeSaoMaxUvlc(-saoLcuParam->offset[2], g_offsetTh-1);
+        m_pcEntropyCoderIf->codeSaoMaxUvlc(-saoLcuParam->offset[3], g_offsetTh-1);
+#else
         m_pcEntropyCoderIf->codeSaoUvlc( saoLcuParam->offset[0]);
         m_pcEntropyCoderIf->codeSaoUvlc( saoLcuParam->offset[1]);
         m_pcEntropyCoderIf->codeSaoUvlc(-saoLcuParam->offset[2]);
         m_pcEntropyCoderIf->codeSaoUvlc(-saoLcuParam->offset[3]);
+#endif
       }
   }
 }

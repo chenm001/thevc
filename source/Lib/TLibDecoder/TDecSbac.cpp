@@ -1368,6 +1368,38 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 }
 
 
+#if SAO_TRUNCATED_U
+Void TDecSbac::parseSaoMaxUvlc ( UInt& val, UInt maxSymbol )
+{
+  if (maxSymbol == 0)
+  {
+    val = 0;
+    return;
+  }
+
+  UInt code;
+  Int  i;
+
+  m_pcTDecBinIf->decodeBin( code, m_cSaoUvlcSCModel.get( 0, 0, 0 ) );
+  if ( code == 0 )
+  {
+    val = 0;
+    return;
+  }
+
+  i=1;
+  while (1)
+  {
+    m_pcTDecBinIf->decodeBin( code, m_cSaoUvlcSCModel.get( 0, 0, 1 ) );
+    if ( code == 0 ) break;
+    i++;
+    if (i == maxSymbol) break;
+  }
+
+  val = i;
+}
+#endif
+
 Void TDecSbac::parseSaoUvlc (UInt& ruiVal)
 {
   UInt uiCode;
@@ -1508,7 +1540,9 @@ inline Void copySaoOneLcuParam(SaoLcuParam* psDst,  SaoLcuParam* psSrc)
 Void TDecSbac::parseSaoOffset(SaoLcuParam* psSaoLcuParam)
 {
   UInt uiSymbol;
+#if !SAO_OFFSET_MAG_SIGN_SPLIT
   Int iSymbol;
+#endif
   static Int iTypeLength[MAX_NUM_SAO_TYPE] = {
     SAO_EO_LEN,
     SAO_EO_LEN,
@@ -1529,16 +1563,46 @@ Void TDecSbac::parseSaoOffset(SaoLcuParam* psSaoLcuParam)
       psSaoLcuParam->bandPosition = uiSymbol;
       for(Int i=0; i< psSaoLcuParam->length; i++)
       {
+#if SAO_OFFSET_MAG_SIGN_SPLIT
+#if SAO_TRUNCATED_U
+        parseSaoMaxUvlc(uiSymbol, g_offsetTh -1 );
+        psSaoLcuParam->offset[i] = uiSymbol;
+#else
+        parseSaoUvlc(uiSymbol);
+        psSaoLcuParam->offset[i] = uiSymbol;
+#endif
+#else
         parseSaoSvlc(iSymbol);
         psSaoLcuParam->offset[i] = iSymbol;
+#endif
       }   
+#if SAO_OFFSET_MAG_SIGN_SPLIT
+      for(Int i=0; i< psSaoLcuParam->length; i++)
+      {
+        if (psSaoLcuParam->offset[i] != 0) 
+        {
+          m_pcTDecBinIf->decodeBinEP ( uiSymbol);
+          if (uiSymbol)
+          {
+            psSaoLcuParam->offset[i] = -psSaoLcuParam->offset[i] ;
+          }
+        }
+      }
+#endif
     }
     else if( psSaoLcuParam->typeIdx < 4 )
     {
+#if SAO_TRUNCATED_U
+      parseSaoMaxUvlc(uiSymbol, g_offsetTh -1 ); psSaoLcuParam->offset[0] = uiSymbol;
+      parseSaoMaxUvlc(uiSymbol, g_offsetTh -1 ); psSaoLcuParam->offset[1] = uiSymbol;
+      parseSaoMaxUvlc(uiSymbol, g_offsetTh -1 ); psSaoLcuParam->offset[2] = -(Int)uiSymbol;
+      parseSaoMaxUvlc(uiSymbol, g_offsetTh -1 ); psSaoLcuParam->offset[3] = -(Int)uiSymbol;
+#else
       parseSaoUvlc(uiSymbol); psSaoLcuParam->offset[0] = uiSymbol;
       parseSaoUvlc(uiSymbol); psSaoLcuParam->offset[1] = uiSymbol;
       parseSaoUvlc(uiSymbol); psSaoLcuParam->offset[2] = -(Int)uiSymbol;
       parseSaoUvlc(uiSymbol); psSaoLcuParam->offset[3] = -(Int)uiSymbol;
+#endif
     }
   }
   else

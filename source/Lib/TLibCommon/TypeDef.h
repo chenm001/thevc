@@ -92,6 +92,12 @@
 #define SAO_REMOVE_APS                   1  ///< remove SAO APS syntax
 
 #define SAO_NO_MERGE_CROSS_SLICE_TILE    1  ///< disallow merging across slice or tile boundaries
+
+#define SAO_OFFSET_MAG_SIGN_SPLIT        1  ///< SAO offset magnitudes first, signs only for nonzero magnitudes, signs are bypass coded
+#if SAO_OFFSET_MAG_SIGN_SPLIT
+#define SAO_TRUNCATED_U                  1  ///< SAO offset magnitude using truncated unary binarization
+#endif
+
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
 #define MAX_NUM_APS                32         //< !!!KS: number not defined in WD yet
