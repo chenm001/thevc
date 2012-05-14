@@ -1665,8 +1665,8 @@ Void TDecSbac::parseSaoOffset(SaoLcuParam* psSaoLcuParam)
           {
             psSaoLcuParam->offset[i] = -psSaoLcuParam->offset[i] ;
           }
-      }   
-    }
+        }
+      }
 #endif
     }
     else if( psSaoLcuParam->typeIdx < 4 )
