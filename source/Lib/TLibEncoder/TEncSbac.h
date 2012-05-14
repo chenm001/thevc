@@ -139,7 +139,11 @@ private:
   Void  xWriteUnarySymbol    ( UInt uiSymbol, ContextModel* pcSCModel, Int iOffset );
   Void  xWriteUnaryMaxSymbol ( UInt uiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );
   Void  xWriteEpExGolomb     ( UInt uiSymbol, UInt uiCount );
+#if COEF_REMAIN_BINARNIZATION
+  Void  xWriteCoefRemainExGolomb ( UInt uiSymbol, UInt &ruiParam );
+#else
   Void  xWriteGoRiceExGolomb ( UInt uiSymbol, UInt &ruiGoRiceParam );
+#endif
   Void  xWriteTerminatingBit ( UInt uiBit );
   
   Void  xCopyFrom            ( TEncSbac* pSrc );

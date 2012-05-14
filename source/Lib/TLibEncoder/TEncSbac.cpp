@@ -406,6 +406,39 @@ Void TEncSbac::xWriteEpExGolomb( UInt uiSymbol, UInt uiCount )
   m_pcBinIf->encodeBinsEP( bins, numBins );
 }
 
+
+#if COEF_REMAIN_BINARNIZATION
+/** Coding of coeff_abs_level_minus3
+ * \param uiSymbol value of coeff_abs_level_minus3
+ * \param ruiGoRiceParam reference to Rice parameter
+ * \returns Void
+ */
+Void TEncSbac::xWriteCoefRemainExGolomb ( UInt uiSymbol, UInt &ruiParam )
+{
+  Int iCodeNumber  = (Int)uiSymbol;
+  UInt uiLength;
+  if (iCodeNumber < (8 << ruiParam))
+  {
+    uiLength = iCodeNumber>>ruiParam;
+    m_pcBinIf->encodeBinsEP( (1<<(uiLength+1))-2 , uiLength+1);
+    m_pcBinIf->encodeBinsEP((iCodeNumber%(1<<ruiParam)),ruiParam);
+  }
+  else
+  {
+    uiLength = ruiParam;
+    iCodeNumber  = iCodeNumber - ( 8 << ruiParam);    
+    while (iCodeNumber >= (1<<uiLength))
+    {
+        iCodeNumber -=  1<<(uiLength++);    
+    }
+    m_pcBinIf->encodeBinsEP((1<<(8+uiLength+1-ruiParam))-2,8+uiLength+1-ruiParam);
+    m_pcBinIf->encodeBinsEP(iCodeNumber,uiLength);
+  }
+#if !SIMPLE_PARAM_UPDATE  
+  ruiParam = g_aauiGoRiceUpdate[ ruiParam ][ min<UInt>( uiSymbol, 23 ) ];
+#endif
+}
+#else
 /** Coding of coeff_abs_level_minus3
  * \param uiSymbol value of coeff_abs_level_minus3
  * \param ruiGoRiceParam reference to Rice parameter
@@ -444,7 +477,7 @@ Void TEncSbac::xWriteGoRiceExGolomb( UInt uiSymbol, UInt &ruiGoRiceParam )
     xWriteEpExGolomb( uiSymbol, 0 );
   }
 }
-
+#endif
 // SBAC RD
 Void  TEncSbac::load ( TEncSbac* pSrc)
 {
@@ -1504,7 +1537,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 
           if( absCoeff[ idx ] >= baseLevel)
           {
+#if COEF_REMAIN_BINARNIZATION
+            xWriteCoefRemainExGolomb( absCoeff[ idx ] - baseLevel, uiGoRiceParam );
+#else
             xWriteGoRiceExGolomb( absCoeff[ idx ] - baseLevel, uiGoRiceParam ); 
+#endif
 #if SIMPLE_PARAM_UPDATE
             if(absCoeff[idx] > 3*(1<<uiGoRiceParam))
                uiGoRiceParam = min<UInt>(uiGoRiceParam+ 1, 4);

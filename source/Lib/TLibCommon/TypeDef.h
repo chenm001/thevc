@@ -40,6 +40,9 @@
 
 //! \ingroup TLibCommon
 //! \{
+
+#define COEF_REMAIN_BINARNIZATION        1
+
 #define INTRA_TS                         1  ///< I0408: intra transform skipping (TS) 
 
 #define FIX_TMVP_REFIDX0                 1  ///< I0116: Fix the reference picture index to 0 for TMVP derivation in merging list

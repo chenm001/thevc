@@ -319,6 +319,43 @@ Void TDecSbac::xReadUnarySymbol( UInt& ruiSymbol, ContextModel* pcSCModel, Int i
   ruiSymbol = uiSymbol;
 }
 
+
+
+#if COEF_REMAIN_BINARNIZATION
+/** Parsing of coeff_abs_level_remaing
+ * \param ruiSymbol reference to coeff_abs_level_remaing
+ * \param ruiParam reference to parameter
+ * \returns Void
+ */
+Void TDecSbac::xReadCoefRemainExGolomb ( UInt &ruiSymbol, UInt &ruiParam )
+{
+
+  UInt uiPrefix   = 0;
+  UInt uiCodeWord = 0;
+  do
+  {
+    uiPrefix++;
+    m_pcTDecBinIf->decodeBinEP( uiCodeWord );
+  }
+  while( uiCodeWord);
+  uiCodeWord  = 1 - uiCodeWord;
+  uiPrefix -= uiCodeWord;
+  uiCodeWord=0;
+  if (uiPrefix < 8 )
+  {
+    m_pcTDecBinIf->decodeBinsEP(uiCodeWord,ruiParam);
+    ruiSymbol = (uiPrefix<<ruiParam) + uiCodeWord;
+  }
+  else
+  {
+    m_pcTDecBinIf->decodeBinsEP(uiCodeWord,uiPrefix-8+ruiParam);
+    ruiSymbol = (((1<<(uiPrefix-8))+8-1)<<ruiParam)+uiCodeWord;
+  }
+#if !SIMPLE_PARAM_UPDATE  
+  ruiParam = g_aauiGoRiceUpdate[ ruiParam ][ min<UInt>( uiSymbol, 23 ) ];
+#endif
+}
+#else
 /** Parsing of coeff_abs_level_minus3
  * \param ruiSymbol reference to coeff_abs_level_minus3
  * \param ruiGoRiceParam reference to Rice parameter
@@ -362,7 +399,7 @@ Void TDecSbac::xReadGoRiceExGolomb( UInt &ruiSymbol, UInt &ruiGoRiceParam )
 
   return;
 }
-
+#endif
 
 /** Parse I_PCM information. 
  * \param pcCU
@@ -1400,7 +1437,11 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
           if( absCoeff[ idx ] == baseLevel)
           {
             UInt uiLevel;
+#if COEF_REMAIN_BINARNIZATION
+            xReadCoefRemainExGolomb( uiLevel, uiGoRiceParam );
+#else
             xReadGoRiceExGolomb( uiLevel, uiGoRiceParam );
+#endif
             absCoeff[ idx ] = uiLevel + baseLevel;
 #if SIMPLE_PARAM_UPDATE
             if(absCoeff[idx]>3*(1<<uiGoRiceParam))
