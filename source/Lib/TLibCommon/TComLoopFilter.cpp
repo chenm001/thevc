@@ -592,7 +592,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
       }
 
       iQP_P = pcCUP->getQP(uiPartPIdx);
-      
+#if !DEBLOCK_IPCM_RECY
       if(pcCU->getIPCMFlag(uiPartQIdx)) 
       {
         iQP_Q = 0; 
@@ -601,7 +601,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
       {
         iQP_P = 0; 
       }
-      
+#endif
       iQP = (iQP_P + iQP_Q + 1) >> 1;
       Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
       
@@ -733,7 +733,7 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
       }
 
       iQP_P = pcCUP->getQP(uiPartPIdx);
-      
+#if !DEBLOCK_IPCM_RECY
       if(pcCU->getIPCMFlag(uiPartQIdx)) 
       {
         iQP_Q = 0; 
@@ -742,7 +742,7 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
       {
         iQP_P = 0; 
       }
-      
+#endif
       iQP = QpUV((iQP_P + iQP_Q + 1) >> 1);
       Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
       

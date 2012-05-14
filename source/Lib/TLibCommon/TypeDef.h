@@ -221,6 +221,8 @@
 
 #define DEBLOCK_TC_TAB_I0258  1
 
+#define DEBLOCK_IPCM_RECY             1 // JCTVC-I0035 scheme 1: reconstructed QP for IPCM deblocking
+
 #define REMOVE_LC  1 // JCTVC-I0125
 // ====================================================================================================================
 // Basic type redefinition
