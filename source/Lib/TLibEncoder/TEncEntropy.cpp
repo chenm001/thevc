@@ -1201,7 +1201,7 @@ Void TEncEntropy::encodeInterDirPU( TComDataCU* pcCU, UInt uiAbsPartIdx )
 Void TEncEntropy::encodeRefFrmIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
 {
   assert( !pcCU->isIntra( uiAbsPartIdx ) );
-
+#if !REMOVE_LC
   if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C)>0 && pcCU->getInterDir( uiAbsPartIdx ) != 3)
   {
     if ((eRefList== REF_PIC_LIST_1) || ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_C ) == 1 ) )
@@ -1216,6 +1216,7 @@ Void TEncEntropy::encodeRefFrmIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPic
 
   }
   else
+#endif
   {
     if ( ( pcCU->getSlice()->getNumRefIdx( eRefList ) == 1 ) )
     {
@@ -1382,8 +1383,8 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
         {
           UInt sign = (saoLcuParam->offset[i] < 0) ? 1 : 0 ;
           m_pcEntropyCoderIf->codeSAOSign(sign);
-        }        
-      }
+      }  
+    }
 #endif
     }
     else

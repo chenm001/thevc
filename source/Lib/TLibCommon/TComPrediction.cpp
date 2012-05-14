@@ -996,7 +996,7 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
       iScaleShiftA2 = a2 == 0 ? 0 : GetFloorLog2( abs( a2 ) ) - iShiftA2;
 #else
       iScaleShiftA1 = GetMSB( abs( a1 ) ) - iShiftA1;
-      iScaleShiftA2 = GetMSB( abs( a2 ) ) - iShiftA2;
+      iScaleShiftA2 = GetMSB( abs( a2 ) ) - iShiftA2;  
 #endif
 
       if( iScaleShiftA1 < 0 )
@@ -1034,7 +1034,7 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
       }
       
        a = Clip3(-( 1 << 15 ), ( 1 << 15 ) - 1, a); 
-
+     
 #if LM_CLEANUP
       Short n = 0;
       if (a != 0)

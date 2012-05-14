@@ -1655,6 +1655,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     pps = rpcSlice->getPPS();
     sps = rpcSlice->getSPS();
   }
+#if !REMOVE_LC
   // ref_pic_list_combination( )
   //!!!KS: ref_pic_list_combination() should be conditioned on entropy_slice_flag
   if (rpcSlice->isInterB())
@@ -1701,6 +1702,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   {
     rpcSlice->setRefPicListCombinationFlag(false);      
   }
+#endif
   
   if (rpcSlice->isInterB())
   {
@@ -2224,13 +2226,18 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
   UInt            uiLog2WeightDenomLuma, uiLog2WeightDenomChroma;
   UInt            uiMode      = 0;
 
+#if REMOVE_LC
+  if ( (eSliceType==P_SLICE && pps->getUseWP()) || (eSliceType==B_SLICE && pps->getWPBiPredIdc()==1) )
+#else
   if ( (eSliceType==P_SLICE && pps->getUseWP()) || (eSliceType==B_SLICE && pps->getWPBiPredIdc()==1 && pcSlice->getRefPicListCombinationFlag()==0) )
+#endif
     uiMode = 1; // explicit
   else if ( eSliceType==B_SLICE && pps->getWPBiPredIdc()==2 )
     uiMode = 2; // implicit
+#if !REMOVE_LC
   else if (eSliceType==B_SLICE && pps->getWPBiPredIdc()==1 && pcSlice->getRefPicListCombinationFlag())
     uiMode = 3; // combined explicit
-
+#endif
   if ( uiMode == 1 )  // explicit
   {
     printf("\nTDecCavlc::xParsePredWeightTable(poc=%d) explicit...\n", pcSlice->getPOC());
@@ -2313,6 +2320,7 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
   {
     printf("\nTDecCavlc::xParsePredWeightTable(poc=%d) implicit...\n", pcSlice->getPOC());
   }
+#if !REMOVE_LC
   else if ( uiMode == 3 )  // combined explicit
   {
     printf("\nTDecCavlc::xParsePredWeightTable(poc=%d) combined explicit...\n", pcSlice->getPOC());
@@ -2387,6 +2395,7 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
       wp[2].bPresentFlag = false;
     }
   }
+#endif
   else
   {
     printf("\n wrong weight pred table syntax \n ");

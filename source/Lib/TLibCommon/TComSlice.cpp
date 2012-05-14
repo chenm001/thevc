@@ -74,7 +74,9 @@ TComSlice::TComSlice()
 , m_dLambda                       ( 0.0 )
 #endif
 , m_bNoBackPredFlag               ( false )
+#if !REMOVE_LC
 , m_bRefIdxCombineCoding          ( false )
+#endif
 , m_uiTLayer                      ( 0 )
 , m_bTLayerSwitchingFlag          ( false )
 , m_uiSliceMode                   ( 0 )
@@ -121,7 +123,9 @@ TComSlice::TComSlice()
   }
   m_bCombineWithReferenceFlag = 0;
   resetWpScaling(m_weightPredTable);
+#if !REMOVE_LC
   resetWpScalingLC(m_weightPredTableLC);
+#endif
   initWpAcDcParam();
 }
 
@@ -147,7 +151,9 @@ Void TComSlice::initSlice()
   m_colRefIdx = 0;
   initEqualRef();
   m_bNoBackPredFlag = false;
+#if !REMOVE_LC
   m_bRefIdxCombineCoding = false;
+#endif
   m_bRefPicListCombinationFlag = false;
   m_bRefPicListModificationFlagLC = false;
   m_bCheckLDC = false;
@@ -688,8 +694,9 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   }
 
   m_bNoBackPredFlag      = pSrc->m_bNoBackPredFlag;
+#if !REMOVE_LC
   m_bRefIdxCombineCoding = pSrc->m_bRefIdxCombineCoding;
-
+#endif
   m_uiTLayer                      = pSrc->m_uiTLayer;
   m_bTLayerSwitchingFlag          = pSrc->m_bTLayerSwitchingFlag;
 
@@ -1133,7 +1140,7 @@ Void  TComSlice::initWpScaling(wpScalingParam  wp[2][MAX_NUM_REF][3])
     }
   }
 }
-
+#if !REMOVE_LC
 /** get WP tables for weighted pred of LC
  * \param iRefIdxLC
  * \param *&wpScalingParam
@@ -1213,7 +1220,7 @@ Void TComSlice::copyWPtable(wpScalingParam *&wp_src, wpScalingParam *&wp_dst)
     wp_dst[iComp].iOffset = wp_src[iComp].iOffset;
   }
 }
-
+#endif
 
 // ------------------------------------------------------------------------------------------------
 // Sequence parameter set (SPS)
@@ -1254,7 +1261,9 @@ TComSPS::TComSPS()
 #endif
 , m_bUseLMChroma              (false)
 , m_bUseLComb                 (false)
+#if !REMOVE_LC
 , m_bLCMod                    (false)
+#endif
 , m_restrictedRefPicListsFlag   (  1)
 , m_listsModificationPresentFlag(  0)
 , m_uiBitDepth                (  8)

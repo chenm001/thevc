@@ -686,6 +686,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       }
     }
   }
+#if !REMOVE_LC
   // ref_pic_list_combination( )
   // maybe move to own function?
   if (pcSlice->isInterB())
@@ -712,6 +713,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       }
     }
   }
+#endif
     
   if (pcSlice->isInterB())
   {
@@ -1385,12 +1387,18 @@ Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
   Bool            bDenomCoded  = false;
 
   UInt            uiMode = 0;
+#if REMOVE_LC
+  if ( (pcSlice->getSliceType()==P_SLICE && pcSlice->getPPS()->getUseWP()) || (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==1) )
+#else
   if ( (pcSlice->getSliceType()==P_SLICE && pcSlice->getPPS()->getUseWP()) || (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getRefPicListCombinationFlag()==0 ) )
+#endif
     uiMode = 1; // explicit
   else if ( pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==2 )
     uiMode = 2; // implicit (does not use this mode in this syntax)
+#if !REMOVE_LC
   if (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getRefPicListCombinationFlag())
     uiMode = 3; // combined explicit
+#endif
   if(uiMode == 1)
   {
     for ( Int iNumRef=0 ; iNumRef<iNbRef ; iNumRef++ ) 
@@ -1440,6 +1448,7 @@ Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
       }
     }
   }
+#if !REMOVE_LC
   else if (uiMode == 3)
   {
     for ( Int iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(REF_PIC_LIST_C) ; iRefIdx++ ) 
@@ -1487,6 +1496,7 @@ Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
       }
     }
   }
+#endif
 }
 
 /** code quantization matrix
