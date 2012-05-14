@@ -2806,6 +2806,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 
   if ( getSlice()->getPPS()->getEnableTMVPFlag() )
   {
+#if !FIX_TMVP_REFIDX0
     // col [2]
     Int iRefIdxSkip[2] = {-1, -1};
     for (Int i=0; i<2; i++)
@@ -2822,6 +2823,7 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
       }
       iRefIdxSkip[i] = (iRefIdxTmp != -1) ? iRefIdxTmp : 0;
     }
+#endif
     //>> MTK colocated-RightBottom
     UInt uiPartIdxRB;
     Int uiLCUIdx = getAddr();
@@ -2867,7 +2869,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
         uiLCUIdx = -1 ; 
       }
     }
+#if !FIX_TMVP_REFIDX0
     iRefIdx = iRefIdxSkip[0];
+#else
+    iRefIdx = 0;
+#endif
 
     Bool bExistMV = false;
     UInt uiPartIdxCenter;
@@ -2886,7 +2892,11 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
 
       if ( getSlice()->isInterB() )
       {       
+#if !FIX_TMVP_REFIDX0
         iRefIdx = iRefIdxSkip[1];
+#else
+        iRefIdx = 0;
+#endif
         bExistMV = uiLCUIdx >= 0 && xGetColMVP( REF_PIC_LIST_1, uiLCUIdx, uiAbsPartAddr, cColMv, iRefIdx);
         if( bExistMV == false )
         {

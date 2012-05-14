@@ -41,6 +41,7 @@
 //! \ingroup TLibCommon
 //! \{
 
+#define FIX_TMVP_REFIDX0                 1  ///< I0116: Fix the reference picture index to 0 for TMVP derivation in merging list
 #define LM_CLEANUP                       1  ///< I0148: LM (intra chroma prediction based on luma) mode clean-up
 
 #define AHG6_ALF_OPTION2                 1  ///< I0157: AHG6 ALF baseline Option 2 RA- Variant 2
