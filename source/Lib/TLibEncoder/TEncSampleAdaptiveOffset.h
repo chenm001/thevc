@@ -80,6 +80,9 @@ private:
   Int     m_iOffsetTh;
 #endif
   Bool    m_bUseSBACRD;
+#if SAO_ENCODING_CHOICE
+  Double  m_depth0SaoRate;
+#endif
 
 public:
   TEncSampleAdaptiveOffset         ();
@@ -89,7 +92,11 @@ public:
   Void endSaoEnc();
   Void resetStats();
 #if SAO_CHROMA_LAMBDA
+#if SAO_ENCODING_CHOICE
+  Void SAOProcess(SAOParam *pcSaoParam, Double dLambda, Double dLambdaChroma, Int depth);
+#else
   Void SAOProcess(SAOParam *pcSaoParam, Double dLambda, Double dLambdaChroma);
+#endif
 #else
   Void SAOProcess(SAOParam *pcSaoParam, Double dLambda);
 #endif
@@ -104,7 +111,11 @@ public:
   Void createEncBuffer();
   Void assignSaoUnitSyntax(SaoLcuParam* saoLcuParam,  SAOQTPart* saoPart, Bool &oneUnitFlag, Int yCbCr);
   Void checkMerge(SaoLcuParam * lcuParamCurr,SaoLcuParam * lcuParamCheck, Int dir);
+#if SAO_ENCODING_CHOICE
+  Void rdoSaoUnitAll(SAOParam *saoParam, Double lambda, Double lambdaChroma, Int depth);
+#else
   Void rdoSaoUnitAll(SAOParam *saoParam, Double lambda, Double lambdaChroma);
+#endif
   Void rdoSaoUnit(SAOParam *saoParam, Int addr, Int addrUp, Int addrLeft, Int yCbCr, Double lambda);
   Void setMaxNumOffsetsPerPic(Int iVal) {m_maxNumOffsetsPerPic = iVal; }
   Int  getMaxNumOffsetsPerPic() {return m_maxNumOffsetsPerPic; }

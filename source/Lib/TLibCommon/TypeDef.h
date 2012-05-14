@@ -98,6 +98,11 @@
 #define SAO_TRUNCATED_U                  1  ///< SAO offset magnitude using truncated unary binarization
 #endif
 
+#define SAO_ENCODING_CHOICE              1  ///< I0184: picture early termination
+#if SAO_ENCODING_CHOICE
+#define SAO_ENCODING_RATE                0.75
+#endif
+
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
 #define MAX_NUM_APS                32         //< !!!KS: number not defined in WD yet
@@ -328,6 +333,9 @@ struct SAOParam
   SaoLcuParam* saoLcuParam[3];
   Int          numCuInHeight;
   Int          numCuInWidth;
+#if SAO_ENCODING_CHOICE
+  Int          numLcuSaoEnabled;
+#endif
   ~SAOParam();
 };
 
