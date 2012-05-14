@@ -726,7 +726,7 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
   Int j;
   if (eMode==SIZE_NxN)
   {
-    uiDepth++:
+    uiDepth++;
   }
 #endif
   UInt uiSymbol;
