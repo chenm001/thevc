@@ -41,6 +41,8 @@
 //! \ingroup TLibCommon
 //! \{
 
+#define LM_CLEANUP                       1  ///< I0148: LM (intra chroma prediction based on luma) mode clean-up
+
 #define AHG6_ALF_OPTION2                 1  ///< I0157: AHG6 ALF baseline Option 2 RA- Variant 2
 #define SLICE_TYPE_ORDER                 1  ///< I0500: ordering of slice types
 #define ALF_COEFF_EXP_GOLOMB_K           1  ///< I0346: Use EG(k) to code ALF coefficients
