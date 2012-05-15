@@ -1800,10 +1800,7 @@ Void TEncSbac::codeSaoSvlc       ( Int iCode )
  */
 Void TEncSbac::codeSaoUflc       ( UInt uiCode )
 {
-  for (Int i=0;i<5;i++)
-  {
-    m_pcBinIf->encodeBinEP ( (uiCode>>i) &0x01 );
-  }
+    m_pcBinIf->encodeBinsEP ( uiCode, 5 );
 }
 /** Code SAO merge left flag 
  * \param uiCode

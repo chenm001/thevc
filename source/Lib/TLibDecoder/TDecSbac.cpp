@@ -1614,16 +1614,7 @@ Void TDecSbac::parseSaoSvlc (Int&  riVal)
 
 Void TDecSbac::parseSaoUflc (UInt&  riVal)
 {
-  UInt uiSymbol;
-  riVal = 0;
-  for (Int i=0;i<5;i++)
-  {
-    m_pcTDecBinIf->decodeBinEP ( uiSymbol );
-    if (uiSymbol)
-    {
-      riVal |= (1<<i);
-    }
-  }
+  m_pcTDecBinIf->decodeBinsEP ( riVal, 5 );
 }
 Void TDecSbac::parseSaoMergeLeft (UInt&  ruiVal, UInt uiCompIdx)
 {
