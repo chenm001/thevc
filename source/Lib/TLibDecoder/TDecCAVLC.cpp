@@ -930,7 +930,9 @@ Int TDecCavlc::xGolombDecode(Int k)
   {
     xReadFlag(symbol);
     if(symbol == 0)
+    {
       coeff = -coeff;
+    }
   }
 #if ENC_DEC_TRACE
   fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
