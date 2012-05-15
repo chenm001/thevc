@@ -1604,7 +1604,9 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 #endif
 #if SIMPLE_PARAM_UPDATE
             if(absCoeff[idx] > 3*(1<<uiGoRiceParam))
+            {
                uiGoRiceParam = min<UInt>(uiGoRiceParam+ 1, 4);
+            }
 #endif
           }
           if(absCoeff[ idx ] >= 2)  

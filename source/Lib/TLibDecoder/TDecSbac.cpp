@@ -1470,7 +1470,9 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
             absCoeff[ idx ] = uiLevel + baseLevel;
 #if SIMPLE_PARAM_UPDATE
             if(absCoeff[idx]>3*(1<<uiGoRiceParam))
+            {
                 uiGoRiceParam = min<UInt>(uiGoRiceParam+ 1, 4);
+            }
 #endif
           }
 
