@@ -154,11 +154,7 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
 #else
           m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = (Int64) xRoundIbdi((Double)(m_iOffsetOrg[iPartIdx][iTypeIdx][iClassIdx]<<g_uiBitIncrement) / (Double)(m_iCount [iPartIdx][iTypeIdx][iClassIdx]<<m_uiSaoBitIncrease));
 #endif
-#if SAO_OFFSET_MAG_SIGN_SPLIT
-          m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = Clip3(-g_offsetTh+1, g_offsetTh-1, (Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx]);
-#else
           m_iOffset[iPartIdx][iTypeIdx][iClassIdx] = Clip3(-m_iOffsetTh, m_iOffsetTh-1, (Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx]);
-#endif
           if (iTypeIdx < 4)
           {
             if ( m_iOffset[iPartIdx][iTypeIdx][iClassIdx]<0 && iClassIdx<3 )
@@ -229,7 +225,7 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
             if (iClassIdx<3)
             {
 #if SAO_TRUNCATED_U
-              m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoMaxUvlc((Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx], g_offsetTh-1);
+              m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoMaxUvlc((Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx], m_iOffsetTh-1);
 #else
               m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoUvlc((Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx]);
 #endif
@@ -237,7 +233,7 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
             else
             {
 #if SAO_TRUNCATED_U
-              m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoMaxUvlc((Int)-m_iOffset[iPartIdx][iTypeIdx][iClassIdx], g_offsetTh-1);
+              m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoMaxUvlc((Int)-m_iOffset[iPartIdx][iTypeIdx][iClassIdx], m_iOffsetTh-1);
 #else
               m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoUvlc((Int)-m_iOffset[iPartIdx][iTypeIdx][iClassIdx]);
 #endif
@@ -1349,7 +1345,11 @@ Void TEncSampleAdaptiveOffset::SAOProcess(SAOParam *pcSaoParam, Double dLambda)
   Int iOffsetBitDepth = g_uiBitDepth + g_uiBitIncrement - m_uiSaoBitIncrease;
   Int iOffsetBitRange = iOffsetBitRange8Bit + (iOffsetBitDepth - 8);
 #if SAO_TRUNCATED_U
-  g_offsetTh = 1 << (iOffsetBitRange - 1);
+#if FULL_NBIT
+  m_iOffsetTh = 1 << ( min((Int)(g_uiBitDepth + (g_uiBitDepth-8)-5),5) );
+#else
+  m_iOffsetTh = 1 << ( min((Int)(g_uiBitDepth + g_uiBitIncrement-5),5) );
+#endif
 #else
   m_iOffsetTh = 1 << (iOffsetBitRange - 1);
 #endif
@@ -1692,11 +1692,7 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnit(SAOParam *saoParam, Int addr, Int addr
   Int64 merge_iDist;
   Int   merge_iRate;
   Double merge_dCost;
-#if SAO_TRUNCATED_U
-  Int offsetTh = g_offsetTh;
-#else
   Int offsetTh = m_iOffsetTh;
-#endif
   saoLcuParam = &(saoParam->saoLcuParam[yCbCr][addr]);
 
   saoLcuParam->mergeUpFlag   = 0;
@@ -1739,11 +1735,7 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnit(SAOParam *saoParam, Int addr, Int addr
       else
 #endif
       {
-#if SAO_TRUNCATED_U
-        offsetTh = g_offsetTh;
-#else
         offsetTh = m_iOffsetTh;
-#endif
       }
     }
 

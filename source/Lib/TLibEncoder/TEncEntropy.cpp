@@ -1383,6 +1383,11 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
   m_pcEntropyCoderIf->codeSaoTypeIdx(uiSymbol);
   if (uiSymbol)
   {
+#if FULL_NBIT
+    static Int offsetTh = 1 << ( min((Int)(g_uiBitDepth + (g_uiBitDepth-8)-5),5) );
+#else
+    static Int offsetTh = 1 << ( min((Int)(g_uiBitDepth + g_uiBitIncrement-5),5) );
+#endif
     if( saoLcuParam->typeIdx == SAO_BO )
     {
       // Code Left Band Index
@@ -1393,7 +1398,7 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
 #if SAO_OFFSET_MAG_SIGN_SPLIT
         UInt absOffset = ( (saoLcuParam->offset[i] < 0) ? -saoLcuParam->offset[i] : saoLcuParam->offset[i]);
 #if SAO_TRUNCATED_U
-        m_pcEntropyCoderIf->codeSaoMaxUvlc(absOffset, g_offsetTh-1);
+        m_pcEntropyCoderIf->codeSaoMaxUvlc(absOffset, offsetTh-1);
 #else
         m_pcEntropyCoderIf->codeSaoUvlc(absOffset);
 #endif
@@ -1416,10 +1421,10 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
       if( saoLcuParam->typeIdx < 4 )
       {
 #if SAO_TRUNCATED_U
-        m_pcEntropyCoderIf->codeSaoMaxUvlc( saoLcuParam->offset[0], g_offsetTh-1);
-        m_pcEntropyCoderIf->codeSaoMaxUvlc( saoLcuParam->offset[1], g_offsetTh-1);
-        m_pcEntropyCoderIf->codeSaoMaxUvlc(-saoLcuParam->offset[2], g_offsetTh-1);
-        m_pcEntropyCoderIf->codeSaoMaxUvlc(-saoLcuParam->offset[3], g_offsetTh-1);
+        m_pcEntropyCoderIf->codeSaoMaxUvlc( saoLcuParam->offset[0], offsetTh-1);
+        m_pcEntropyCoderIf->codeSaoMaxUvlc( saoLcuParam->offset[1], offsetTh-1);
+        m_pcEntropyCoderIf->codeSaoMaxUvlc(-saoLcuParam->offset[2], offsetTh-1);
+        m_pcEntropyCoderIf->codeSaoMaxUvlc(-saoLcuParam->offset[3], offsetTh-1);
 #else
         m_pcEntropyCoderIf->codeSaoUvlc( saoLcuParam->offset[0]);
         m_pcEntropyCoderIf->codeSaoUvlc( saoLcuParam->offset[1]);

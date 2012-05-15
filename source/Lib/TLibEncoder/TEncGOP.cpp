@@ -1046,8 +1046,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             cAPS.setSaoInterleavingFlag(m_pcCfg->getSaoInterleavingFlag());
 #endif
             // set entropy coder for RD
+#if SAO_OFFSET_MAG_SIGN_SPLIT
+            m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
+#else
             m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
-
+#endif
             if ( pcSlice->getSPS()->getUseSAO() )
             {
               m_pcEntropyCoder->resetEntropy();

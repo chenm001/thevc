@@ -93,15 +93,15 @@
 #define REMOVE_SAO_LCU_ENC_CONSTRAINTS_2 1  ///< disable the encoder constraint that reduce the range of SAO/EO for chroma in interleaved mode
 #define REMOVE_SAO_LCU_ENC_CONSTRAINTS_3 1  ///< disable the encoder constraint that conditionally disable SAO for chroma for entire slice in interleaved mode
 
-#define SAO_SKIP_RIGHT                   1  ///< disallow using unavailable pixel during RDO
+#define SAO_SKIP_RIGHT                   1  ///< H1101: disallow using unavailable pixel during RDO
 
-#define SAO_REMOVE_APS                   1  ///< remove SAO APS syntax
+#define SAO_REMOVE_APS                   1  ///< USNB37: remove SAO APS syntax
 
-#define SAO_NO_MERGE_CROSS_SLICE_TILE    1  ///< disallow merging across slice or tile boundaries
+#define SAO_NO_MERGE_CROSS_SLICE_TILE    1  ///< I0172: disallow merging across slice or tile boundaries
 
-#define SAO_OFFSET_MAG_SIGN_SPLIT        1  ///< SAO offset magnitudes first, signs only for nonzero magnitudes, signs are bypass coded
+#define SAO_OFFSET_MAG_SIGN_SPLIT        1  ///< I0168: SAO offset magnitudes first, signs only for nonzero magnitudes, signs are bypass coded
 #if SAO_OFFSET_MAG_SIGN_SPLIT
-#define SAO_TRUNCATED_U                  1  ///< SAO offset magnitude using truncated unary binarization
+#define SAO_TRUNCATED_U                  1  ///< I0066: SAO offset magnitude using truncated unary binarization
 #endif
 
 #define SAO_ENCODING_CHOICE              1  ///< I0184: picture early termination

@@ -139,10 +139,10 @@ public:
   Void codeSaoFlag       ( UInt uiCode );
   Void codeSaoUvlc       ( UInt uiCode );
 #if SAO_OFFSET_MAG_SIGN_SPLIT
-  Void codeSAOSign       ( UInt code   );
+  Void codeSAOSign       ( UInt code   ) { printf("Not supported\n"); assert (0); }
 #endif
 #if SAO_TRUNCATED_U
-  Void codeSaoMaxUvlc    ( UInt   code, UInt maxSymbol ){;}
+  Void codeSaoMaxUvlc    ( UInt   code, UInt maxSymbol ){printf("Not supported\n"); assert (0);}
 #endif
   Void codeSaoSvlc       ( Int   iCode );
   Void codeSaoRun        ( UInt uiCode, UInt maxValue  );

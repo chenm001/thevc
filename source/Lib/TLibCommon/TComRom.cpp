@@ -439,9 +439,6 @@ UInt g_uiBASE_MAX     = 255;  // max. value before IBDI
 
 UInt g_uiPCMBitDepthLuma     = 8;    // PCM bit-depth
 UInt g_uiPCMBitDepthChroma   = 8;    // PCM bit-depth
-#if SAO_TRUNCATED_U
-Int  g_offsetTh      = 8;     // SAO offset maximum value
-#endif
 
 // ====================================================================================================================
 // Misc.

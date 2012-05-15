@@ -1146,15 +1146,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   g_uiBitIncrement = uiCode;
   pcSPS->setBitDepth(g_uiBitDepth);
   pcSPS->setBitIncrement(g_uiBitIncrement);
-#if SAO_TRUNCATED_U
-  UInt m_uiSaoBitIncrease = g_uiBitDepth + g_uiBitIncrement - min((Int)(g_uiBitDepth + g_uiBitIncrement), 10);
-#endif
-#endif
-#if SAO_TRUNCATED_U
-  const Int iOffsetBitRange8Bit = 4;
-  Int iOffsetBitDepth = g_uiBitDepth + g_uiBitIncrement - m_uiSaoBitIncrease;
-  Int iOffsetBitRange = iOffsetBitRange8Bit + (iOffsetBitDepth - 8);
-  g_offsetTh = 1 << (iOffsetBitRange - 1);
 #endif
   pcSPS->setQpBDOffsetY( (Int) (6*uiCode) );
 

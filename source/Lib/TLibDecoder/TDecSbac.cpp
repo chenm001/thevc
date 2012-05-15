@@ -1536,9 +1536,15 @@ Void TDecSbac::parseSaoMaxUvlc ( UInt& val, UInt maxSymbol )
   while (1)
   {
     m_pcTDecBinIf->decodeBin( code, m_cSaoUvlcSCModel.get( 0, 0, 1 ) );
-    if ( code == 0 ) break;
+    if ( code == 0 )
+    {
+      break;
+    }
     i++;
-    if (i == maxSymbol) break;
+    if (i == maxSymbol) 
+    {
+      break;
+    }
   }
 
   val = i;
@@ -1695,12 +1701,19 @@ Void TDecSbac::parseSaoOffset(SaoLcuParam* psSaoLcuParam)
     SAO_EO_LEN,
     SAO_BO_LEN
   }; 
-
   parseSaoTypeIdx(uiSymbol);
   psSaoLcuParam->typeIdx = (Int)uiSymbol - 1;
   if (uiSymbol)
   {
     psSaoLcuParam->length = iTypeLength[psSaoLcuParam->typeIdx];
+#if SAO_TRUNCATED_U
+#if FULL_NBIT
+    static Int offsetTh = 1 << ( min((Int)(g_uiBitDepth + (g_uiBitDepth-8)-5),5) );
+#else
+    static Int offsetTh = 1 << ( min((Int)(g_uiBitDepth + g_uiBitIncrement-5),5) );
+#endif
+#endif
+
     if( psSaoLcuParam->typeIdx == SAO_BO )
     {
       // Parse Left Band Index
@@ -1710,7 +1723,7 @@ Void TDecSbac::parseSaoOffset(SaoLcuParam* psSaoLcuParam)
       {
 #if SAO_OFFSET_MAG_SIGN_SPLIT
 #if SAO_TRUNCATED_U
-        parseSaoMaxUvlc(uiSymbol, g_offsetTh -1 );
+        parseSaoMaxUvlc(uiSymbol, offsetTh -1 );
         psSaoLcuParam->offset[i] = uiSymbol;
 #else
         parseSaoUvlc(uiSymbol);
@@ -1738,10 +1751,10 @@ Void TDecSbac::parseSaoOffset(SaoLcuParam* psSaoLcuParam)
     else if( psSaoLcuParam->typeIdx < 4 )
     {
 #if SAO_TRUNCATED_U
-      parseSaoMaxUvlc(uiSymbol, g_offsetTh -1 ); psSaoLcuParam->offset[0] = uiSymbol;
-      parseSaoMaxUvlc(uiSymbol, g_offsetTh -1 ); psSaoLcuParam->offset[1] = uiSymbol;
-      parseSaoMaxUvlc(uiSymbol, g_offsetTh -1 ); psSaoLcuParam->offset[2] = -(Int)uiSymbol;
-      parseSaoMaxUvlc(uiSymbol, g_offsetTh -1 ); psSaoLcuParam->offset[3] = -(Int)uiSymbol;
+      parseSaoMaxUvlc(uiSymbol, offsetTh -1 ); psSaoLcuParam->offset[0] = uiSymbol;
+      parseSaoMaxUvlc(uiSymbol, offsetTh -1 ); psSaoLcuParam->offset[1] = uiSymbol;
+      parseSaoMaxUvlc(uiSymbol, offsetTh -1 ); psSaoLcuParam->offset[2] = -(Int)uiSymbol;
+      parseSaoMaxUvlc(uiSymbol, offsetTh -1 ); psSaoLcuParam->offset[3] = -(Int)uiSymbol;
 #else
       parseSaoUvlc(uiSymbol); psSaoLcuParam->offset[0] = uiSymbol;
       parseSaoUvlc(uiSymbol); psSaoLcuParam->offset[1] = uiSymbol;
