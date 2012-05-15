@@ -391,8 +391,8 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthIntra() - 1,                               "max_transform_hierarchy_depth_intra" );
   WRITE_FLAG( pcSPS->getScalingListFlag() ? 1 : 0,                                   "scaling_list_enabled_flag" ); 
   WRITE_FLAG( pcSPS->getUseLMChroma () ? 1 : 0,                                      "chroma_pred_from_luma_enabled_flag" ); 
-#if INTRA_TS
-  WRITE_FLAG( pcSPS->getUseTS () ? 1 : 0,                                            "transform_skip_enabled_flag" ); 
+#if INTRA_TRANSFORMSKIP
+  WRITE_FLAG( pcSPS->getUseTransformSkip () ? 1 : 0,                                 "transform_skip_enabled_flag" ); 
 #endif
   WRITE_FLAG( pcSPS->getUseDF() ? 1 : 0,                                             "deblocking_filter_in_aps_enabled_flag");
   WRITE_FLAG( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0,                            "seq_loop_filter_across_slices_enabled_flag");
@@ -1015,8 +1015,8 @@ Void TEncCavlc::codeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
   assert(0);
 }
 
-#if INTRA_TS
-Void TEncCavlc::codeTSFlags (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType )
+#if INTRA_TRANSFORMSKIP
+Void TEncCavlc::codeTransformSkipFlags (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType )
 {
   assert(0);
 }

@@ -130,7 +130,7 @@ public:
   Void    copyPartToPartLuma    ( TComYuv*    pcYuvDst, UInt uiPartIdx, UInt uiWidth, UInt uiHeight );
   Void    copyPartToPartChroma  ( TComYuv*    pcYuvDst, UInt uiPartIdx, UInt uiWidth, UInt uiHeight );
   
-#if INTRA_TS
+#if INTRA_TRANSFORMSKIP
   Void    copyPartToPartChroma  ( TComYuv*    pcYuvDst, UInt uiPartIdx, UInt iWidth, UInt iHeight, UInt chromaId);
 #endif
 

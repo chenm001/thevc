@@ -120,13 +120,22 @@ public:
   ~TComTrQuant();
   
   // initialize class
+#if INTRA_TRANSFORMSKIP
+  Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, UInt *aTableLastPosVlcIndex=NULL, Bool bUseRDOQ = false,  Bool bEnc = false, Bool useTransformSkipFast = false
+#if ADAPTIVE_QP_SELECTION
+    , Bool bUseAdaptQpSelect = false
+#endif 
+    );
+#else
   Void init                 ( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode = 0, UInt *aTable4 = NULL, UInt *aTable8 = NULL, UInt *aTableLastPosVlcIndex=NULL, Bool bUseRDOQ = false,  Bool bEnc = false
 #if ADAPTIVE_QP_SELECTION
                        , Bool bUseAdaptQpSelect = false
-#endif    
+#endif 
     );
+#endif
   
   // transform & inverse transform functions
+#if INTRA_TRANSFORMSKIP
   Void transformNxN( TComDataCU* pcCU, 
                      Pel*        pcResidual, 
                      UInt        uiStride, 
@@ -138,23 +147,35 @@ public:
                      UInt        uiHeight, 
                      UInt&       uiAbsSum, 
                      TextType    eTType, 
-                     UInt        uiAbsPartIdx
-#if INTRA_TS
-                     ,Bool       useTS = false
-#endif
-                     );
-#if LOSSLESS_CODING
-  Void invtransformNxN( TComDataCU* pcCU, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType
-#if INTRA_TS
-    ,Bool useTS = false
-#endif
-    );
+                     UInt        uiAbsPartIdx,
+                     Bool        useTransformSkip = false );
 #else
-  Void invtransformNxN(                   TextType eText, UInt uiMode,Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight, Int scalingListType
-#if INTRA_TS
-    ,Bool useTS = false
+  Void transformNxN( TComDataCU* pcCU, 
+                     Pel*        pcResidual, 
+                     UInt        uiStride, 
+                     TCoeff*     rpcCoeff, 
+#if ADAPTIVE_QP_SELECTION
+                     Int*&       rpcArlCoeff, 
 #endif
-    );
+                     UInt        uiWidth, 
+                     UInt        uiHeight, 
+                     UInt&       uiAbsSum, 
+                     TextType    eTType, 
+                     UInt        uiAbsPartIdx );
+#endif
+
+#if INTRA_TRANSFORMSKIP
+#if LOSSLESS_CODING
+  Void invtransformNxN( TComDataCU* pcCU, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType, Bool useTransformSkip = false );
+#else
+  Void invtransformNxN(                   TextType eText, UInt uiMode,Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight, Int scalingListType, Bool useTransformSkip = false );
+#endif
+#else
+#if LOSSLESS_CODING
+  Void invtransformNxN( TComDataCU* pcCU, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType );
+#else
+  Void invtransformNxN(                   TextType eText, UInt uiMode,Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight, Int scalingListType );
+#endif
 #endif
   Void invRecurTransformNxN ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel* rpcResidual, UInt uiAddr,   UInt uiStride, UInt uiWidth, UInt uiHeight,
                              UInt uiMaxTrMode,  UInt uiTrMode, TCoeff* rpcCoeff );
@@ -239,7 +260,9 @@ protected:
 #if ADAPTIVE_QP_SELECTION
   Bool     m_bUseAdaptQpSelect;
 #endif
-
+#if INTRA_TRANSFORMSKIP
+  Bool     m_useTansformSkipFast;
+#endif
   Bool     m_scalingListEnabledFlag;
   Int      *m_quantCoef      [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of quantization matrix coefficient 4x4
   Int      *m_dequantCoef    [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM][SCALING_LIST_REM_NUM][SCALING_LIST_DIR_NUM]; ///< array of dequantization matrix coefficient 4x4
@@ -248,9 +271,9 @@ private:
   // forward Transform
   Void xT   ( UInt uiMode,Pel* pResidual, UInt uiStride, Int* plCoeff, Int iWidth, Int iHeight );
   
-#if INTRA_TS
+#if INTRA_TRANSFORMSKIP
   // skipping Transform
-  Void xTSkip ( Pel* piBlkResi, UInt uiStride, Int* psCoeff, Int width, Int height );
+  Void xTransformSkip ( Pel* piBlkResi, UInt uiStride, Int* psCoeff, Int width, Int height );
 #endif
 
   Void signBitHidingHDQ( TComDataCU* pcCU, TCoeff* pQCoef, TCoeff* pCoef, UInt const *scan, Int* deltaU, Int width, Int height );
@@ -326,9 +349,9 @@ __inline Int xGetICRate  ( UInt                            uiAbsLevel,
   // inverse transform
   Void xIT    ( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, Int iWidth, Int iHeight );
   
-#if INTRA_TS
+#if INTRA_TRANSFORMSKIP
   // inverse skipping transform
-  Void xITSkip ( Int* plCoef, Pel* pResidual, UInt uiStride, Int width, Int height );
+  Void xITransformSkip ( Int* plCoef, Pel* pResidual, UInt uiStride, Int width, Int height );
 #endif
 
 };// END CLASS DEFINITION TComTrQuant

@@ -335,7 +335,7 @@ Void TComYuv::copyPartToPartChroma( TComYuv* pcYuvDst, UInt uiPartIdx, UInt iWid
   }
 }
 
-#if INTRA_TS
+#if INTRA_TRANSFORMSKIP
 Void TComYuv::copyPartToPartChroma( TComYuv* pcYuvDst, UInt uiPartIdx, UInt iWidth, UInt iHeight, UInt chromaId)
 {
   if(chromaId == 0)
@@ -344,8 +344,6 @@ Void TComYuv::copyPartToPartChroma( TComYuv* pcYuvDst, UInt uiPartIdx, UInt iWid
     Pel*  pDstU = pcYuvDst->getCbAddr(uiPartIdx);
     if( pSrcU == pDstU)
     {
-      //th not a good idea
-      //th best would be to fix the caller
       return ;
     }
     UInt   iSrcStride = getCStride();
@@ -363,8 +361,6 @@ Void TComYuv::copyPartToPartChroma( TComYuv* pcYuvDst, UInt uiPartIdx, UInt iWid
     Pel*  pDstV = pcYuvDst->getCrAddr(uiPartIdx);
     if( pSrcV == pDstV)
     {
-      //th not a good idea
-      //th best would be to fix the caller 
       return;
     }
     UInt   iSrcStride = getCStride();

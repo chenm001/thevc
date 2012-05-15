@@ -82,8 +82,8 @@ TDecSbac::TDecSbac()
 , m_cSaoMergeLeftSCModel      ( 1,             1,               NUM_SAO_MERGE_LEFT_FLAG_CTX   , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoMergeUpSCModel        ( 1,             1,               NUM_SAO_MERGE_UP_FLAG_CTX     , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoTypeIdxSCModel        ( 1,             1,               NUM_SAO_TYPE_IDX_CTX          , m_contextModels + m_numContextModels, m_numContextModels)
-#if INTRA_TS
-, m_cTSSCModel                ( 1,             2,               NUM_TS_FLAG_CTX               , m_contextModels + m_numContextModels, m_numContextModels)
+#if INTRA_TRANSFORMSKIP
+, m_cTransformSkipSCModel     ( 1,             2,               NUM_TRANSFORMSKIP_FLAG_CTX    , m_contextModels + m_numContextModels, m_numContextModels)
 #endif
 {
   assert( m_numContextModels <= MAX_NUM_CTX_MOD );
@@ -152,8 +152,8 @@ Void TDecSbac::resetEntropy(TComSlice* pSlice)
   m_cSaoTypeIdxSCModel.initBuffer        ( sliceType, qp, (UChar*)INIT_SAO_TYPE_IDX );
 
   m_cCUTransSubdivFlagSCModel.initBuffer ( sliceType, qp, (UChar*)INIT_TRANS_SUBDIV_FLAG );
-#if INTRA_TS
-  m_cTSSCModel.initBuffer                ( sliceType, qp, (UChar*)INIT_TS_FLAG );
+#if INTRA_TRANSFORMSKIP
+  m_cTransformSkipSCModel.initBuffer     ( sliceType, qp, (UChar*)INIT_TRANSFORMSKIP_FLAG );
 #endif
   m_uiLastDQpNonZero  = 0;
   
@@ -217,8 +217,8 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   m_cSaoMergeUpSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_UP_FLAG );
   m_cSaoTypeIdxSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_TYPE_IDX );
   m_cCUTransSubdivFlagSCModel.initBuffer ( eSliceType, iQp, (UChar*)INIT_TRANS_SUBDIV_FLAG );
-#if INTRA_TS
-  m_cTSSCModel.initBuffer                ( eSliceType, iQp, (UChar*)INIT_TS_FLAG );
+#if INTRA_TRANSFORMSKIP
+  m_cTransformSkipSCModel.initBuffer     ( eSliceType, iQp, (UChar*)INIT_TRANSFORMSKIP_FLAG );
 #endif
   m_pcTDecBinIf->start();
 }
@@ -1038,8 +1038,8 @@ Void TDecSbac::parseQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, 
   pcCU->setCbfSubParts( uiSymbol << uiTrDepth, eType, uiAbsPartIdx, uiDepth );
 }
 
-#if INTRA_TS
-void TDecSbac::parseTSFlags (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType)
+#if INTRA_TRANSFORMSKIP
+void TDecSbac::parseTransformSkipFlags (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType)
 {
   if(!pcCU->isIntra(uiAbsPartIdx))
   {
@@ -1050,27 +1050,25 @@ void TDecSbac::parseTSFlags (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UI
     return;
   }
   
-  UInt uiSymbol;
-  m_pcTDecBinIf->decodeBin( uiSymbol , m_cTSSCModel.get( 0, eTType? TEXT_CHROMA: TEXT_LUMA, 0 ) );
+  UInt useTansformSkip;
+  m_pcTDecBinIf->decodeBin( useTansformSkip , m_cTransformSkipSCModel.get( 0, eTType? TEXT_CHROMA: TEXT_LUMA, 0 ) );
   if(eTType!= TEXT_LUMA && uiDepth == 4)
   {
     uiDepth --;
   }
   DTRACE_CABAC_VL( g_nSymbolCounter++ )
-  DTRACE_CABAC_T("\tparseTS()");
+  DTRACE_CABAC_T("\tparseTransformSkip()");
   DTRACE_CABAC_T( "\tsymbol=" )
-  DTRACE_CABAC_V( uiSymbol )
+  DTRACE_CABAC_V( useTansformSkip )
   DTRACE_CABAC_T( "\tAddr=" )
   DTRACE_CABAC_V( pcCU->getAddr() )
-  DTRACE_CABAC_T( "\tctx=" )
-  DTRACE_CABAC_V( uiCtx )
   DTRACE_CABAC_T( "\tetype=" )
   DTRACE_CABAC_V( eTType )
   DTRACE_CABAC_T( "\tuiAbsPartIdx=" )
   DTRACE_CABAC_V( uiAbsPartIdx )
   DTRACE_CABAC_T( "\n" )
 
-  pcCU->setTSSubParts( uiSymbol,uiAbsPartIdx, uiDepth, eTType);
+  pcCU->setTransformSkipSubParts( useTansformSkip, eTType, uiAbsPartIdx, uiDepth);
 }
 #endif
 
@@ -1208,10 +1206,10 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     uiHeight = pcCU->getSlice()->getSPS()->getMaxTrSize();
   }
 
-#if INTRA_TS
-  if(pcCU->getSlice()->getSPS()->getUseTS())
+#if INTRA_TRANSFORMSKIP
+  if(pcCU->getSlice()->getSPS()->getUseTransformSkip())
   {
-    parseTSFlags( pcCU, uiAbsPartIdx, uiWidth, uiHeight, uiDepth, eTType);
+    parseTransformSkipFlags( pcCU, uiAbsPartIdx, uiWidth, uiHeight, uiDepth, eTType);
   }
 #endif
 

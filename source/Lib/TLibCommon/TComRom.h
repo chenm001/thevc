@@ -90,7 +90,7 @@ extern       UInt g_uiMaxCUHeight;
 extern       UInt g_uiMaxCUDepth;
 extern       UInt g_uiAddCUDepth;
 
-#if INTRA_TS
+#if INTRA_TRANSFORMSKIP
 #define MAX_TS_WIDTH  4
 #define MAX_TS_HEIGHT 4
 #endif

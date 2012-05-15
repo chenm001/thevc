@@ -1260,9 +1260,9 @@ TComSPS::TComSPS()
 , m_bALFCoefInSlice           (false)
 #endif
 , m_bUseLMChroma              (false)
-#if INTRA_TS
-, m_useTS                     (false)
-, m_useTSFast                 (false)
+#if INTRA_TRANSFORMSKIP
+, m_useTansformSkip           (false)
+, m_useTansformSkipFast       (false)
 #endif
 , m_bUseLComb                 (false)
 #if !REMOVE_LC

@@ -110,8 +110,8 @@
 #define NUM_SAO_MERGE_UP_FLAG_CTX     1       ///< number of context models for AO SVLC (filter coeff.)
 #define NUM_SAO_TYPE_IDX_CTX          2       ///< number of context models for AO SVLC (filter coeff.)
 
-#if INTRA_TS
-#define NUM_TS_FLAG_CTX               1       ///< number of context models for transform skipping 
+#if INTRA_TRANSFORMSKIP
+#define NUM_TRANSFORMSKIP_FLAG_CTX    1       ///< number of context models for transform skipping 
 #endif
 #define CNU                          154      ///< dummy initialization value for unused context models 'Context model Not Used'
 
@@ -640,9 +640,9 @@ INIT_TRANS_SUBDIV_FLAG[3][NUM_TRANS_SUBDIV_FLAG_CTX] =
 #endif
 };
 
-#if INTRA_TS
+#if INTRA_TRANSFORMSKIP
 static const UChar
-INIT_TS_FLAG[3][2*NUM_TS_FLAG_CTX] = 
+INIT_TRANSFORMSKIP_FLAG[3][2*NUM_TRANSFORMSKIP_FLAG_CTX] = 
 {
   { 139,  139}, 
   { 139,  139}, 

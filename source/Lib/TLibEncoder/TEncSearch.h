@@ -81,13 +81,13 @@ private:
   
   TComYuv*        m_pcQTTempTComYuv;
   TComYuv         m_tmpYuvPred; // To be used in xGetInterPredictionError() to avoid constant memory allocation/deallocation
-#if INTRA_TS
-  Pel*            m_pPredTS[3];
+#if INTRA_TRANSFORMSKIP
+  Pel*            m_pSharedPredTransformSkip[3];
   TCoeff*         m_pcQTTempTUCoeffY;
   TCoeff*         m_pcQTTempTUCoeffCb;
   TCoeff*         m_pcQTTempTUCoeffCr;
-  UChar*          m_puhQTTempTSFlag[3];
-  TComYuv         m_pcQTTempLCUTComYuv;
+  UChar*          m_puhQTTempTransformSkipFlag[3];
+  TComYuv         m_pcQTTempTransformSkipTComYuv;
 #if ADAPTIVE_QP_SELECTION
   Int*            m_ppcQTTempTUArlCoeffY;
   Int*            m_ppcQTTempTUArlCoeffCb;
@@ -242,7 +242,7 @@ protected:
                                     Bool         bLuma,
                                     Bool         bChroma,
                                     Bool         bRealCoeff );
-#if INTRA_TS
+#if INTRA_TRANSFORMSKIP
   UInt  xGetIntraBitsQTChroma    ( TComDataCU*   pcCU,
                                    UInt          uiTrDepth,
                                    UInt          uiAbsPartIdx,
@@ -250,17 +250,15 @@ protected:
                                    Bool          bRealCoeff );
 #endif
   
+#if INTRA_TRANSFORMSKIP
   Void  xIntraCodingLumaBlk       ( TComDataCU*  pcCU,
                                     UInt         uiTrDepth,
                                     UInt         uiAbsPartIdx,
                                     TComYuv*     pcOrgYuv, 
                                     TComYuv*     pcPredYuv, 
                                     TComYuv*     pcResiYuv, 
-                                    UInt&        ruiDist 
-#if INTRA_TS
-                                    ,Int         default0Save1Load2 = 0
-#endif
-                                    );
+                                    UInt&        ruiDist,
+                                    Int         default0Save1Load2 = 0);
   Void  xIntraCodingChromaBlk     ( TComDataCU*  pcCU,
                                     UInt         uiTrDepth,
                                     UInt         uiAbsPartIdx,
@@ -268,11 +266,27 @@ protected:
                                     TComYuv*     pcPredYuv, 
                                     TComYuv*     pcResiYuv, 
                                     UInt&        ruiDist,
-                                    UInt         uiChromaId 
-#if INTRA_TS
-                                    ,Int         default0Save1Load2 = 0
+                                    UInt         uiChromaId,
+                                    Int          default0Save1Load2 = 0 );
+#else
+  Void  xIntraCodingLumaBlk       ( TComDataCU*  pcCU,
+                                    UInt         uiTrDepth,
+                                    UInt         uiAbsPartIdx,
+                                    TComYuv*     pcOrgYuv, 
+                                    TComYuv*     pcPredYuv, 
+                                    TComYuv*     pcResiYuv, 
+                                    UInt&        ruiDist );
+
+  Void  xIntraCodingChromaBlk     ( TComDataCU*  pcCU,
+                                    UInt         uiTrDepth,
+                                    UInt         uiAbsPartIdx,
+                                    TComYuv*     pcOrgYuv, 
+                                    TComYuv*     pcPredYuv, 
+                                    TComYuv*     pcResiYuv, 
+                                    UInt&        ruiDist,
+                                    UInt         uiChromaId );
 #endif
-                                    );
+
   Void  xRecurIntraCodingQT       ( TComDataCU*  pcCU, 
                                     UInt         uiTrDepth,
                                     UInt         uiAbsPartIdx, 
@@ -305,15 +319,15 @@ protected:
                                     UInt         uiAbsPartIdx,
                                     TComYuv*     pcRecoYuv );
   
-#if INTRA_TS
+#if INTRA_TRANSFORMSKIP
   Void  xStoreIntraResultQT       ( TComDataCU*  pcCU,
                                     UInt         uiTrDepth,
                                     UInt         uiAbsPartIdx,
-                                    Bool         bLumaOnly);
+                                    Bool         bLumaOnly );
   Void  xLoadIntraResultQT        ( TComDataCU*  pcCU,
                                     UInt         uiTrDepth,
                                     UInt         uiAbsPartIdx,
-                                    Bool         bLumaOnly);
+                                    Bool         bLumaOnly );
   Void xStoreIntraResultChromaQT  ( TComDataCU*  pcCU,
                                     UInt         uiTrDepth,
                                     UInt         uiAbsPartIdx,

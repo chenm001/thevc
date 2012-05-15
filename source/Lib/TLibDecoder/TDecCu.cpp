@@ -484,8 +484,8 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
   UInt    uiZOrder          = pcCU->getZorderIdxInCU() + uiAbsPartIdx;
   Pel*    piRecIPred        = pcCU->getPic()->getPicYuvRec()->getLumaAddr( pcCU->getAddr(), uiZOrder );
   UInt    uiRecIPredStride  = pcCU->getPic()->getPicYuvRec()->getStride  ();
-#if INTRA_TS
-  Bool    useTS             = pcCU->getTS(uiAbsPartIdx);
+#if INTRA_TRANSFORMSKIP
+  Bool    useTransformSkip  = pcCU->getTransformSkip(uiAbsPartIdx, TEXT_LUMA);
 #endif
   //===== init availability pattern =====
   Bool  bAboveAvail = false;
@@ -505,18 +505,18 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
 
   Int scalingListType = (pcCU->isIntra(uiAbsPartIdx) ? 0 : 3) + g_eTTable[(Int)TEXT_LUMA];
   assert(scalingListType < 6);
+#if INTRA_TRANSFORMSKIP
 #if LOSSLESS_CODING
-  m_pcTrQuant->invtransformNxN( pcCU, TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType 
-#if INTRA_TS
-  ,useTS
-#endif
-    );
+  m_pcTrQuant->invtransformNxN( pcCU, TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
 #else  
-  m_pcTrQuant->invtransformNxN(       TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType 
-#if INTRA_TS
-  ,useTS
+  m_pcTrQuant->invtransformNxN(       TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
 #endif
-    );
+#else
+#if LOSSLESS_CODING
+  m_pcTrQuant->invtransformNxN( pcCU, TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
+#else  
+  m_pcTrQuant->invtransformNxN(       TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
+#endif
 #endif
 
   
@@ -580,8 +580,8 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   UInt      uiZOrder          = pcCU->getZorderIdxInCU() + uiAbsPartIdx;
   Pel*      piRecIPred        = ( uiChromaId > 0 ? pcCU->getPic()->getPicYuvRec()->getCrAddr( pcCU->getAddr(), uiZOrder ) : pcCU->getPic()->getPicYuvRec()->getCbAddr( pcCU->getAddr(), uiZOrder ) );
   UInt      uiRecIPredStride  = pcCU->getPic()->getPicYuvRec()->getCStride();
-#if INTRA_TS
-  Bool      useTSChroma       = pcCU->getTS(uiAbsPartIdx,(TextType)(uiChromaId + 2));
+#if INTRA_TRANSFORMSKIP
+  Bool      useTransformSkipChroma = pcCU->getTransformSkip(uiAbsPartIdx,eText);
 #endif
   //===== init availability pattern =====
   Bool  bAboveAvail = false;
@@ -633,18 +633,18 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
 
   Int scalingListType = (pcCU->isIntra(uiAbsPartIdx) ? 0 : 3) + g_eTTable[(Int)eText];
   assert(scalingListType < 6);
+#if INTRA_TRANSFORMSKIP
 #if LOSSLESS_CODING
-  m_pcTrQuant->invtransformNxN( pcCU, eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType 
-#if INTRA_TS
-    ,useTSChroma
-#endif
-    );
+  m_pcTrQuant->invtransformNxN( pcCU, eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
 #else  
-  m_pcTrQuant->invtransformNxN(       eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType 
-#if INTRA_TS
-    ,useTSChroma
+  m_pcTrQuant->invtransformNxN(       eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
 #endif
-    );
+#else
+#if LOSSLESS_CODING
+m_pcTrQuant->invtransformNxN( pcCU, eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
+#else  
+m_pcTrQuant->invtransformNxN(       eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
+#endif
 #endif
 
   //===== reconstruction =====

@@ -132,8 +132,8 @@ private:
   Char*         m_pePredMode;         ///< array of prediction modes
   Char*         m_phQP;               ///< array of QP values
   UChar*        m_puhTrIdx;           ///< array of transform indices
-#if INTRA_TS
-  UChar*        m_puhTS[3];           ///< array of transform skipping flags
+#if INTRA_TRANSFORMSKIP
+  UChar*        m_puhTransformSkip[3];///< array of transform skipping flags
 #endif
   UChar*        m_nsqtPartIdx;        ///< array of absPartIdx mapping table, map zigzag to NSQT
   UChar*        m_puhCbf[3];          ///< array of coded block flags (CBF)
@@ -321,11 +321,11 @@ public:
   UChar         getTransformIdx       ( UInt uiIdx )            { return m_puhTrIdx[uiIdx];   }
   Void          setTrIdxSubParts      ( UInt uiTrIdx, UInt uiAbsPartIdx, UInt uiDepth );
 
-#if INTRA_TS
-  UChar*        getTS          ( TextType eType = TEXT_LUMA)    { return m_puhTS[g_aucConvertTxtTypeToIdx[eType]];}
-  UChar         getTS          ( UInt uiIdx,TextType eType = TEXT_LUMA)    { return m_puhTS[g_aucConvertTxtTypeToIdx[eType]][uiIdx];}
-  Void          setTSSubParts  ( UInt useTSFlag, UInt uiAbsPartIdx, UInt uiDepth,TextType eType = TEXT_LUMA); 
-  Void          setTSSubParts  ( UInt useTSY, UInt useTSU, UInt useTSV, UInt uiAbsPartIdx, UInt uiDepth );
+#if INTRA_TRANSFORMSKIP
+  UChar*        getTransformSkip      ( TextType eType)    { return m_puhTransformSkip[g_aucConvertTxtTypeToIdx[eType]];}
+  UChar         getTransformSkip      ( UInt uiIdx,TextType eType)    { return m_puhTransformSkip[g_aucConvertTxtTypeToIdx[eType]][uiIdx];}
+  Void          setTransformSkipSubParts  ( UInt useTransformSkip, TextType eType, UInt uiAbsPartIdx, UInt uiDepth); 
+  Void          setTransformSkipSubParts  ( UInt useTransformSkipY, UInt useTransformSkipU, UInt useTransformSkipV, UInt uiAbsPartIdx, UInt uiDepth );
 #endif
 
   UInt          getQuadtreeTULog2MinSizeInCU( UInt absPartIdx );

@@ -94,8 +94,8 @@ TEncSbac::TEncSbac()
 , m_cSaoMergeLeftSCModel      ( 1,             1,               NUM_SAO_MERGE_LEFT_FLAG_CTX   , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoMergeUpSCModel        ( 1,             1,               NUM_SAO_MERGE_UP_FLAG_CTX     , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoTypeIdxSCModel        ( 1,             1,               NUM_SAO_TYPE_IDX_CTX          , m_contextModels + m_numContextModels, m_numContextModels)
-#if INTRA_TS
-, m_cTSSCModel                ( 1,             2,               NUM_TS_FLAG_CTX               , m_contextModels + m_numContextModels, m_numContextModels)
+#if INTRA_TRANSFORMSKIP
+, m_cTransformSkipSCModel     ( 1,             2,               NUM_TRANSFORMSKIP_FLAG_CTX    , m_contextModels + m_numContextModels, m_numContextModels)
 #endif
 {
   assert( m_numContextModels <= MAX_NUM_CTX_MOD );
@@ -155,8 +155,8 @@ Void TEncSbac::resetEntropy           ()
   m_cSaoMergeLeftSCModel.initBuffer      ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_LEFT_FLAG );
   m_cSaoMergeUpSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_UP_FLAG );
   m_cSaoTypeIdxSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_TYPE_IDX );
-#if INTRA_TS 
-  m_cTSSCModel.initBuffer                ( eSliceType, iQp, (UChar*)INIT_TS_FLAG );
+#if INTRA_TRANSFORMSKIP 
+  m_cTransformSkipSCModel.initBuffer     ( eSliceType, iQp, (UChar*)INIT_TRANSFORMSKIP_FLAG );
 #endif
   // new structure
   m_uiLastQp = iQp;
@@ -218,8 +218,8 @@ Void TEncSbac::determineCabacInitIdx()
       curCost += m_cSaoMergeLeftSCModel.calcCost      ( curSliceType, qp, (UChar*)INIT_SAO_MERGE_LEFT_FLAG );
       curCost += m_cSaoMergeUpSCModel.calcCost        ( curSliceType, qp, (UChar*)INIT_SAO_MERGE_UP_FLAG );
       curCost += m_cSaoTypeIdxSCModel.calcCost        ( curSliceType, qp, (UChar*)INIT_SAO_TYPE_IDX );
-#if INTRA_TS 
-      curCost += m_cTSSCModel.calcCost                ( curSliceType, qp, (UChar*)INIT_TS_FLAG );
+#if INTRA_TRANSFORMSKIP 
+      curCost += m_cTransformSkipSCModel.calcCost     ( curSliceType, qp, (UChar*)INIT_TRANSFORMSKIP_FLAG );
 #endif
       if (curCost < bestCost)
       {
@@ -276,8 +276,8 @@ Void TEncSbac::updateContextTables( SliceType eSliceType, Int iQp, Bool bExecute
   m_cSaoMergeLeftSCModel.initBuffer      ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_LEFT_FLAG );
   m_cSaoMergeUpSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_UP_FLAG );
   m_cSaoTypeIdxSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_TYPE_IDX );
-#if INTRA_TS 
-  m_cTSSCModel.initBuffer                ( eSliceType, iQp, (UChar*)INIT_TS_FLAG );
+#if INTRA_TRANSFORMSKIP 
+  m_cTransformSkipSCModel.initBuffer     ( eSliceType, iQp, (UChar*)INIT_TRANSFORMSKIP_FLAG );
 #endif
   m_pcBinIf->start();
 }
@@ -1030,8 +1030,8 @@ Void TEncSbac::codeQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, U
   DTRACE_CABAC_T( "\n" )
 }
 
-#if INTRA_TS
-void TEncSbac::codeTSFlags (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType )
+#if INTRA_TRANSFORMSKIP
+void TEncSbac::codeTransformSkipFlags (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType )
 {
   if(!pcCU->isIntra(uiAbsPartIdx))
   {
@@ -1042,16 +1042,14 @@ void TEncSbac::codeTSFlags (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UIn
     return;
   }
 
-  UInt uiTSFlag = pcCU->getTS( uiAbsPartIdx,eTType);
-  m_pcBinIf->encodeBin( uiTSFlag, m_cTSSCModel.get( 0, eTType? TEXT_CHROMA: TEXT_LUMA, 0 ) );
+  UInt useTansformSkip = pcCU->getTransformSkip( uiAbsPartIdx,eTType);
+  m_pcBinIf->encodeBin( useTansformSkip, m_cTransformSkipSCModel.get( 0, eTType? TEXT_CHROMA: TEXT_LUMA, 0 ) );
   DTRACE_CABAC_VL( g_nSymbolCounter++ )
-  DTRACE_CABAC_T("\tparseTS()");
+  DTRACE_CABAC_T("\tparseTransformSkip()");
   DTRACE_CABAC_T( "\tsymbol=" )
-  DTRACE_CABAC_V( uiSymbol )
+  DTRACE_CABAC_V( useTansformSkip )
   DTRACE_CABAC_T( "\tAddr=" )
   DTRACE_CABAC_V( pcCU->getAddr() )
-  DTRACE_CABAC_T( "\tctx=" )
-  DTRACE_CABAC_V( uiCtx )
   DTRACE_CABAC_T( "\tetype=" )
   DTRACE_CABAC_V( eTType )
   DTRACE_CABAC_T( "\tuiAbsPartIdx=" )
@@ -1328,10 +1326,10 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   
   if ( uiNumSig == 0 )
     return;
-#if INTRA_TS
-  if(pcCU->getSlice()->getSPS()->getUseTS())
+#if INTRA_TRANSFORMSKIP
+  if(pcCU->getSlice()->getSPS()->getUseTransformSkip())
   {
-    codeTSFlags( pcCU,uiAbsPartIdx, uiWidth, uiHeight, uiDepth, eTType );
+    codeTransformSkipFlags( pcCU,uiAbsPartIdx, uiWidth, uiHeight, uiDepth, eTType );
   }
 #endif
   eTType = eTType == TEXT_LUMA ? TEXT_LUMA : ( eTType == TEXT_NONE ? TEXT_NONE : TEXT_CHROMA );

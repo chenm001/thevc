@@ -43,7 +43,7 @@
 #define INTRAMODE_BYPASSGROUP            1  ///< I0302: group coding of Intra_NxN
 #define COEF_REMAIN_BINARNIZATION        1  ///< I0487: Binarization for coefficient level coding
 
-#define INTRA_TS                         1  ///< I0408: intra transform skipping (TS) 
+#define INTRA_TRANSFORMSKIP              1  ///< I0408: intra transform skipping (TS) 
 
 #define FIX_TMVP_REFIDX0                 1  ///< I0116: Fix the reference picture index to 0 for TMVP derivation in merging list
 
