@@ -1384,9 +1384,9 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
   if (uiSymbol)
   {
 #if FULL_NBIT
-    static Int offsetTh = 1 << ( min((Int)(g_uiBitDepth + (g_uiBitDepth-8)-5),5) );
+    Int offsetTh = 1 << ( min((Int)(g_uiBitDepth + (g_uiBitDepth-8)-5),5) );
 #else
-    static Int offsetTh = 1 << ( min((Int)(g_uiBitDepth + g_uiBitIncrement-5),5) );
+    Int offsetTh = 1 << ( min((Int)(g_uiBitDepth + g_uiBitIncrement-5),5) );
 #endif
     if( saoLcuParam->typeIdx == SAO_BO )
     {

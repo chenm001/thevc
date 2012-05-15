@@ -1343,7 +1343,10 @@ Void TEncSampleAdaptiveOffset::SAOProcess(SAOParam *pcSaoParam, Double dLambda)
 
   const Int iOffsetBitRange8Bit = 4;
   Int iOffsetBitDepth = g_uiBitDepth + g_uiBitIncrement - m_uiSaoBitIncrease;
+
+#if !SAO_TRUNCATED_U
   Int iOffsetBitRange = iOffsetBitRange8Bit + (iOffsetBitDepth - 8);
+#endif
 #if SAO_TRUNCATED_U
 #if FULL_NBIT
   m_iOffsetTh = 1 << ( min((Int)(g_uiBitDepth + (g_uiBitDepth-8)-5),5) );

@@ -1710,9 +1710,9 @@ Void TDecSbac::parseSaoOffset(SaoLcuParam* psSaoLcuParam)
     psSaoLcuParam->length = iTypeLength[psSaoLcuParam->typeIdx];
 #if SAO_TRUNCATED_U
 #if FULL_NBIT
-    static Int offsetTh = 1 << ( min((Int)(g_uiBitDepth + (g_uiBitDepth-8)-5),5) );
+    Int offsetTh = 1 << ( min((Int)(g_uiBitDepth + (g_uiBitDepth-8)-5),5) );
 #else
-    static Int offsetTh = 1 << ( min((Int)(g_uiBitDepth + g_uiBitIncrement-5),5) );
+    Int offsetTh = 1 << ( min((Int)(g_uiBitDepth + g_uiBitIncrement-5),5) );
 #endif
 #endif
 
