@@ -959,6 +959,13 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
     iCountShift -= iTempShift;
   }
 
+#if LM_UNIFORM_MULTIPLIERS
+  Int avgLuma =  x   >> iCountShift;
+  Int avgSrc =  y  >> iCountShift;
+  Int RErrLuma = x & ( ( 1 << iCountShift ) - 1 );
+  Int RErrSrc =  y & ( ( 1 << iCountShift ) - 1 );
+#endif
+
   Int a, b, iShift = 13;
 
   if( iCountShift == 0 )
@@ -973,18 +980,39 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
   }
   else
   {
+#if LM_UNIFORM_MULTIPLIERS
+    Int a1 = xy - ( avgLuma*avgSrc << iCountShift ) - avgLuma*RErrSrc - avgSrc*RErrLuma;
+    Int a2 = xx - ( avgLuma*avgLuma << iCountShift ) - 2*avgLuma*RErrLuma;
+#else
     Int a1 = ( xy << iCountShift ) - y * x;
-    Int a2 = ( xx << iCountShift ) - x * x;              
+    Int a2 = ( xx << iCountShift ) - x * x;
+#endif
 
     {
 #if LM_CLEANUP
+#if LM_UNIFORM_MULTIPLIERS
+      const Int iShiftA1 = uiInternalBitDepth - 2;
+#else
       const Int iShiftA1 = 14;
+#endif
       const Int iShiftA2 = 5;
 #else
       const Int iShiftA2 = 6;
+#if LM_UNIFORM_MULTIPLIERS
+      const Int iShiftA1 = g_uiBitDepth + g_uiBitIncrement - 1;
+#else
       const Int iShiftA1 = 15;
 #endif
+#endif
+#if LM_UNIFORM_MULTIPLIERS
+#if LM_CLEANUP
+      const Int iAccuracyShift = uiInternalBitDepth;
+#else
+      const Int iAccuracyShift = g_uiBitDepth + g_uiBitIncrement;
+#endif
+#else
       const Int iAccuracyShift = 15;
+#endif
 
       Int iScaleShiftA2 = 0;
       Int iScaleShiftA1 = 0;
@@ -1017,7 +1045,17 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
 
       if (a2s >= 1)
       {
+#if LM_UNIFORM_MULTIPLIERS
+#if LM_CLEANUP
+        UInt a2t = ( ( m_uiaShift[ a2s - 1] + ( 1 << ( (15 - uiInternalBitDepth ) - 1 ) ) ) >> (15 - uiInternalBitDepth ) ) ;
+#else
+        UInt a2t = ( ( m_uiaShift[ a2s - 1] + ( 1 << ( (15 - g_uiBitDepth + g_uiBitIncrement ) - 1 ) ) ) >> (15 - g_uiBitDepth + g_uiBitIncrement ) ) ;
+#endif
+        a2t = Clip( a2t );
+        a = a1s * a2t;
+#else
         a = a1s * m_uiaShift[ a2s - 1];
+#endif
       }
       else
       {
@@ -1038,7 +1076,9 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
 #if LM_CLEANUP
       Short n = 0;
       if (a != 0)
+      {
         n = GetFloorLog2(abs( a ) + ( (a < 0 ? -1 : 1) - 1)/2 ) - 5;
+      }
 #endif
       Int minA = -(1 << (6));
       Int maxA = (1 << 6) - 1;
@@ -1060,7 +1100,11 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
       a = a >> ( 13 - iShift );
 #endif
 
+#if LM_UNIFORM_MULTIPLIERS
+      b =  avgSrc - ( (  a * avgLuma ) >> iShift );
+#else
       b = (  y - ( ( a * x ) >> iShift ) + ( 1 << ( iCountShift - 1 ) ) ) >> iCountShift;
+#endif
     }
   }   
 
