@@ -224,6 +224,7 @@
 #define DEBLOCK_IPCM_RECY             1 // JCTVC-I0035 scheme 1: reconstructed QP for IPCM deblocking
 
 #define REMOVE_LC  1 // JCTVC-I0125
+#define CU_QP_DELTA_DEPTH_SYN  1 // JCTVC-I0127, differential coding of max cu qp delta depth
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
