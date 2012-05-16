@@ -1161,7 +1161,7 @@ Void TComSampleAdaptiveOffset::processSaoUnitAll(SaoLcuParam* saoLcuParam, Bool 
   Int isChroma = (yCbCr == 0) ? 0:1;
   Bool mergeLeftFlag;
 
-
+  offset[0] = 0; // ticket 534 
   for (idxY = 0; idxY< frameHeightInCU; idxY++)
   { 
     addr = idxY * frameWidthInCU;
