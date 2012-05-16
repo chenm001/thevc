@@ -40,6 +40,8 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define REMOVE_LASTTU_CBFDERIV           1  ///< I0152: CBF coding for last TU without derivation process 
+
 #define INTRAMODE_BYPASSGROUP            1  ///< I0302: group coding of Intra_NxN
 #define COEF_REMAIN_BINARNIZATION        1  ///< I0487: Binarization for coefficient level coding
 
