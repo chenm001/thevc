@@ -1142,9 +1142,9 @@ Void TEncEntropy::xEncodeTransform( TComDataCU* pcCU,UInt offsetLuma, UInt offse
 
 // Intra direction for Luma
 #if INTRAMODE_BYPASSGROUP
-Void TEncEntropy::encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool isMultiplePU )
+Void TEncEntropy::encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt absPartIdx, Bool isMultiplePU )
 {
-  m_pcEntropyCoderIf->codeIntraDirLumaAng( pcCU, uiAbsPartIdx , isMultiplePU);
+  m_pcEntropyCoderIf->codeIntraDirLumaAng( pcCU, absPartIdx , isMultiplePU);
 }
 #else
 Void TEncEntropy::encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx )

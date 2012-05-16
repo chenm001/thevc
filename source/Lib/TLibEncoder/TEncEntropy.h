@@ -257,7 +257,7 @@ public:
   Void encodeIPCMInfo          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   Void encodePredInfo          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
 #if INTRAMODE_BYPASSGROUP
-  Void encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool isMultiplePU = false );
+  Void encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt absPartIdx, Bool isMultiplePU = false );
 #else
   Void encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #endif

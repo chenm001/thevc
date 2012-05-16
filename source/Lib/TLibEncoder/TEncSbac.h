@@ -142,7 +142,7 @@ private:
   Void  xWriteUnaryMaxSymbol ( UInt uiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );
   Void  xWriteEpExGolomb     ( UInt uiSymbol, UInt uiCount );
 #if COEF_REMAIN_BINARNIZATION
-  Void  xWriteCoefRemainExGolomb ( UInt uiSymbol, UInt &ruiParam );
+  Void  xWriteCoefRemainExGolomb ( UInt symbol, UInt &rParam );
 #else
   Void  xWriteGoRiceExGolomb ( UInt uiSymbol, UInt &ruiGoRiceParam );
 #endif
@@ -196,7 +196,7 @@ public:
   Void codeQtCbf               ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   Void codeQtRootCbf           ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #if INTRAMODE_BYPASSGROUP
-  Void codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool isMultiple);
+  Void codeIntraDirLumaAng     ( TComDataCU* pcCU, UInt absPartIdx, Bool isMultiple);
 #else
   Void codeIntraDirLumaAng     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #endif 

@@ -421,29 +421,29 @@ Void TEncSbac::xWriteEpExGolomb( UInt uiSymbol, UInt uiCount )
  * \param ruiGoRiceParam reference to Rice parameter
  * \returns Void
  */
-Void TEncSbac::xWriteCoefRemainExGolomb ( UInt uiSymbol, UInt &ruiParam )
+Void TEncSbac::xWriteCoefRemainExGolomb ( UInt symbol, UInt &rParam )
 {
-  Int iCodeNumber  = (Int)uiSymbol;
-  UInt uiLength;
-  if (iCodeNumber < (8 << ruiParam))
+  Int codeNumber  = (Int)symbol;
+  UInt length;
+  if (codeNumber < (8 << rParam))
   {
-    uiLength = iCodeNumber>>ruiParam;
-    m_pcBinIf->encodeBinsEP( (1<<(uiLength+1))-2 , uiLength+1);
-    m_pcBinIf->encodeBinsEP((iCodeNumber%(1<<ruiParam)),ruiParam);
+    length = codeNumber>>rParam;
+    m_pcBinIf->encodeBinsEP( (1<<(length+1))-2 , length+1);
+    m_pcBinIf->encodeBinsEP((codeNumber%(1<<rParam)),rParam);
   }
   else
   {
-    uiLength = ruiParam;
-    iCodeNumber  = iCodeNumber - ( 8 << ruiParam);    
-    while (iCodeNumber >= (1<<uiLength))
+    length = rParam;
+    codeNumber  = codeNumber - ( 8 << rParam);    
+    while (codeNumber >= (1<<length))
     {
-        iCodeNumber -=  1<<(uiLength++);    
+      codeNumber -=  (1<<(length++));    
     }
-    m_pcBinIf->encodeBinsEP((1<<(8+uiLength+1-ruiParam))-2,8+uiLength+1-ruiParam);
-    m_pcBinIf->encodeBinsEP(iCodeNumber,uiLength);
+    m_pcBinIf->encodeBinsEP((1<<(8+length+1-rParam))-2,8+length+1-rParam);
+    m_pcBinIf->encodeBinsEP(codeNumber,length);
   }
 #if !SIMPLE_PARAM_UPDATE  
-  ruiParam = g_aauiGoRiceUpdate[ ruiParam ][ min<UInt>( uiSymbol, 23 ) ];
+  rParam = g_aauiGoRiceUpdate[ rParam ][ min<UInt>( symbol, 23 ) ];
 #endif
 }
 #else
@@ -744,57 +744,57 @@ Void TEncSbac::codeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx )
 }
 
 #if INTRAMODE_BYPASSGROUP
-Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool isMultiple)
+Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt absPartIdx, Bool isMultiple)
 {
-  UInt uiDir[4],j;
-  Int uiPreds[4][3] = {{-1, -1, -1},{-1, -1, -1},{-1, -1, -1},{-1, -1, -1}};
-  Int uiPredNum[4], uiPredIdx[4] ={ -1,-1,-1,-1};
-  PartSize eMode = pcCU->getPartitionSize( uiAbsPartIdx );
-  UInt PartNum = isMultiple?(eMode==SIZE_NxN?4:1):1;
-  UInt uiPartOffset = ( pcCU->getPic()->getNumPartInCU() >> ( pcCU->getDepth(uiAbsPartIdx) << 1 ) ) >> 2;
-  for (j=0;j<PartNum;j++)
+  UInt dir[4],j;
+  Int preds[4][3] = {{-1, -1, -1},{-1, -1, -1},{-1, -1, -1},{-1, -1, -1}};
+  Int predNum[4], predIdx[4] ={ -1,-1,-1,-1};
+  PartSize mode = pcCU->getPartitionSize( absPartIdx );
+  UInt partNum = isMultiple?(mode==SIZE_NxN?4:1):1;
+  UInt partOffset = ( pcCU->getPic()->getNumPartInCU() >> ( pcCU->getDepth(absPartIdx) << 1 ) ) >> 2;
+  for (j=0;j<partNum;j++)
   {
-     uiDir[j] = pcCU->getLumaIntraDir( uiAbsPartIdx+uiPartOffset*j );
-     uiPredNum[j] = pcCU->getIntraDirLumaPredictor(uiAbsPartIdx+uiPartOffset*j, uiPreds[j]);  
-     for(UInt i = 0; i < uiPredNum[j]; i++)
-     {
-        if(uiDir[j] == uiPreds[j][i])
-        {
-          uiPredIdx[j] = i;
-        }
-     }
-     m_pcBinIf->encodeBin((uiPredIdx[j] != -1)? 1 : 0, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
-  }  
-  for (j=0;j<PartNum;j++)
-  {
-    if(uiPredIdx[j] != -1)
+    dir[j] = pcCU->getLumaIntraDir( absPartIdx+partOffset*j );
+    predNum[j] = pcCU->getIntraDirLumaPredictor(absPartIdx+partOffset*j, preds[j]);  
+    for(UInt i = 0; i < predNum[j]; i++)
     {
-        m_pcBinIf->encodeBinEP( uiPredIdx[j] ? 1 : 0 );
-        if (uiPredIdx[j])
-        {
-          m_pcBinIf->encodeBinEP( uiPredIdx[j]-1 );
-        }
+      if(dir[j] == preds[j][i])
+      {
+        predIdx[j] = i;
+      }
+    }
+    m_pcBinIf->encodeBin((predIdx[j] != -1)? 1 : 0, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
+  }  
+  for (j=0;j<partNum;j++)
+  {
+    if(predIdx[j] != -1)
+    {
+      m_pcBinIf->encodeBinEP( predIdx[j] ? 1 : 0 );
+      if (predIdx[j])
+      {
+        m_pcBinIf->encodeBinEP( predIdx[j]-1 );
+      }
     }
     else
     {
-        if (uiPreds[j][0] > uiPreds[j][1])
-        { 
-          std::swap(uiPreds[j][0], uiPreds[j][1]); 
-        }
-        if (uiPreds[j][0] > uiPreds[j][2])
-        {
-          std::swap(uiPreds[j][0], uiPreds[j][2]);
-        }
-        if (uiPreds[j][1] > uiPreds[j][2])
-        {
-          std::swap(uiPreds[j][1], uiPreds[j][2]);
-        }
-        for(Int i = (uiPredNum[j] - 1); i >= 0; i--)
-        {
-          uiDir[j] = uiDir[j] > uiPreds[j][i] ? uiDir[j] - 1 : uiDir[j];
-        }
-        m_pcBinIf->encodeBinsEP( uiDir[j], 5 );
-     }
+      if (preds[j][0] > preds[j][1])
+      { 
+        std::swap(preds[j][0], preds[j][1]); 
+      }
+      if (preds[j][0] > preds[j][2])
+      {
+        std::swap(preds[j][0], preds[j][2]);
+      }
+      if (preds[j][1] > preds[j][2])
+      {
+        std::swap(preds[j][1], preds[j][2]);
+      }
+      for(Int i = (predNum[j] - 1); i >= 0; i--)
+      {
+        dir[j] = dir[j] > preds[j][i] ? dir[j] - 1 : dir[j];
+      }
+      m_pcBinIf->encodeBinsEP( dir[j], 5 );
+    }
   }
   return;
 }

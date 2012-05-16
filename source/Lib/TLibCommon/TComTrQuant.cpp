@@ -2548,11 +2548,29 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
   UInt baseLevel  =  (c1Idx < C1FLAG_NUMBER)? (2 + (c2Idx < C2FLAG_NUMBER)) : 1;
 
   if ( uiAbsLevel >= baseLevel )
-  {
+  {    
+#if COEF_REMAIN_BINARNIZATION
+    UInt symbol     = uiAbsLevel - baseLevel;
+    UInt length;
+    if (symbol < (8 << ui16AbsGoRice))
+    {
+      length = symbol>>ui16AbsGoRice;
+      iRate += (length+1+ui16AbsGoRice)<< 15;
+    }
+    else
+    {
+      length = ui16AbsGoRice;
+      symbol  = symbol - ( 8 << ui16AbsGoRice);    
+      while (symbol >= (1<<length))
+      {
+        symbol -=  (1<<(length++));    
+      }
+      iRate += (8+length+1-ui16AbsGoRice+length)<< 15;
+    }
+#else
     UInt uiSymbol     = uiAbsLevel - baseLevel;
     UInt uiMaxVlc     = g_auiGoRiceRange[ ui16AbsGoRice ];
     Bool bExpGolomb   = ( uiSymbol > uiMaxVlc );
-
     if( bExpGolomb )
     {
       uiAbsLevel  = uiSymbol - uiMaxVlc;
@@ -2563,9 +2581,8 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
 
     UShort ui16PrefLen = UShort( uiSymbol >> ui16AbsGoRice ) + 1;
     UShort ui16NumBins = min<UInt>( ui16PrefLen, g_auiGoRicePrefixLen[ ui16AbsGoRice ] ) + ui16AbsGoRice;
-
     iRate += ui16NumBins << 15;
-
+#endif
     if (c1Idx < C1FLAG_NUMBER)
     {
       iRate += m_pcEstBitsSbac->m_greaterOneBits[ ui16CtxNumOne ][ 1 ];
