@@ -1371,4 +1371,24 @@ Void TComSampleAdaptiveOffset::convertOnePart2SaoUnit(SAOParam *saoParam, UInt p
   }
 }
 
+#if SAO_RDO_FIX
+Void TComSampleAdaptiveOffset::resetSaoUnit(SaoLcuParam* saoUnit)
+{
+  saoUnit->partIdx       = 0;
+  saoUnit->partIdxTmp    = 0;
+  saoUnit->run           = 0;
+  saoUnit->runDiff       = 0;
+  saoUnit->mergeLeftFlag = 0;
+  saoUnit->mergeUpFlag   = 0;
+  saoUnit->typeIdx       = -1;
+  saoUnit->length        = 0;
+  saoUnit->bandPosition  = 0;
+
+  for (Int i=0;i<4;i++)
+  {
+    saoUnit->offset[i] = 0;
+  }
+}
+#endif
+
 //! \}

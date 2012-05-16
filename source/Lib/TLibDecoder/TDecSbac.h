@@ -94,7 +94,9 @@ public:
   Void  parseSaoMaxUvlc           ( UInt& val, UInt maxSymbol );
 #endif
   Void  parseSaoUvlc              ( UInt& ruiVal           );
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   Void  parseSaoSvlc              ( Int&  riVal            );
+#endif
   Void  parseSaoMergeLeft         ( UInt&  ruiVal, UInt uiCompIdx   );
   Void  parseSaoMergeUp           ( UInt&  ruiVal  );
   Void  parseSaoTypeIdx           ( UInt&  ruiVal  );
@@ -204,7 +206,9 @@ private:
   ContextModel3DBuffer m_cCUAMPSCModel;
   ContextModel3DBuffer m_cSaoFlagSCModel;
   ContextModel3DBuffer m_cSaoUvlcSCModel;
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   ContextModel3DBuffer m_cSaoSvlcSCModel;
+#endif
   ContextModel3DBuffer m_cSaoMergeLeftSCModel;
   ContextModel3DBuffer m_cSaoMergeUpSCModel;
   ContextModel3DBuffer m_cSaoTypeIdxSCModel;

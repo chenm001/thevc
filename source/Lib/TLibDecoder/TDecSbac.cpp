@@ -78,7 +78,9 @@ TDecSbac::TDecSbac()
 , m_cCUAMPSCModel             ( 1,             1,               NUM_CU_AMP_CTX                , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoFlagSCModel           ( 1,             1,               NUM_SAO_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoUvlcSCModel           ( 1,             1,               NUM_SAO_UVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
 , m_cSaoSvlcSCModel           ( 1,             1,               NUM_SAO_SVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
+#endif
 , m_cSaoMergeLeftSCModel      ( 1,             1,               NUM_SAO_MERGE_LEFT_FLAG_CTX   , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoMergeUpSCModel        ( 1,             1,               NUM_SAO_MERGE_UP_FLAG_CTX     , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoTypeIdxSCModel        ( 1,             1,               NUM_SAO_TYPE_IDX_CTX          , m_contextModels + m_numContextModels, m_numContextModels)
@@ -146,7 +148,9 @@ Void TDecSbac::resetEntropy(TComSlice* pSlice)
   m_cALFSvlcSCModel.initBuffer           ( sliceType, qp, (UChar*)INIT_ALF_SVLC );
   m_cSaoFlagSCModel.initBuffer           ( sliceType, qp, (UChar*)INIT_SAO_FLAG );
   m_cSaoUvlcSCModel.initBuffer           ( sliceType, qp, (UChar*)INIT_SAO_UVLC );
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   m_cSaoSvlcSCModel.initBuffer           ( sliceType, qp, (UChar*)INIT_SAO_SVLC );
+#endif
   m_cSaoMergeLeftSCModel.initBuffer      ( sliceType, qp, (UChar*)INIT_SAO_MERGE_LEFT_FLAG );
   m_cSaoMergeUpSCModel.initBuffer        ( sliceType, qp, (UChar*)INIT_SAO_MERGE_UP_FLAG );
   m_cSaoTypeIdxSCModel.initBuffer        ( sliceType, qp, (UChar*)INIT_SAO_TYPE_IDX );
@@ -212,7 +216,9 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   m_cALFSvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_ALF_SVLC );
   m_cSaoFlagSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_FLAG );
   m_cSaoUvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_UVLC );
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   m_cSaoSvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_SVLC );
+#endif
   m_cSaoMergeLeftSCModel.initBuffer      ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_LEFT_FLAG );
   m_cSaoMergeUpSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_UP_FLAG );
   m_cSaoTypeIdxSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_TYPE_IDX );
@@ -1573,7 +1579,7 @@ Void TDecSbac::parseSaoUvlc (UInt& ruiVal)
 
   ruiVal = i;
 }
-
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
 Void TDecSbac::parseSaoSvlc (Int&  riVal)
 {
   UInt uiCode;
@@ -1611,6 +1617,7 @@ Void TDecSbac::parseSaoSvlc (Int&  riVal)
 
   riVal = i*iSign;
 }
+#endif
 
 Void TDecSbac::parseSaoUflc (UInt&  riVal)
 {

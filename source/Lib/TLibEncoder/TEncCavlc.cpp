@@ -1229,11 +1229,12 @@ Void TEncCavlc::codeSaoUvlc( UInt uiCode )
 {
     xWriteUvlc( uiCode );
 }
-
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
 Void TEncCavlc::codeSaoSvlc( Int iCode )
 {
     xWriteSvlc( iCode );
 }
+#endif
 /** Code SAO run. 
  * \param uiCode
  * \param maxValue

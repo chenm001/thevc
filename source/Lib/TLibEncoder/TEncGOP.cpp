@@ -1055,7 +1055,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             {
               m_pcEntropyCoder->resetEntropy();
               m_pcEntropyCoder->setBitstream( m_pcBitCounter );
+#if SAO_RDO_FIX
+              m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcEncTop->getRDGoOnSbacCoder());
+#else
               m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), NULL);
+#endif
               SAOParam& cSaoParam = *(cAPS.getSaoParam());
 
 #if SAO_CHROMA_LAMBDA 
@@ -1075,7 +1079,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
               m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
             }
-
+#if SAO_RDO
+            m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
+#endif
             // adaptive loop filter
             if ( pcSlice->getSPS()->getUseALF())
             {

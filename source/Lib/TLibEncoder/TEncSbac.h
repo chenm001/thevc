@@ -124,7 +124,9 @@ public:
 #if SAO_TRUNCATED_U
   Void  codeSaoMaxUvlc    ( UInt code, UInt maxSymbol );
 #endif
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   Void  codeSaoSvlc       ( Int  uiCode );
+#endif
   Void  codeSaoRun        ( UInt  uiCode, UInt uiMaxValue  ) {;}
   Void  codeSaoMergeLeft  ( UInt  uiCode, UInt uiCompIdx );
   Void  codeSaoMergeUp    ( UInt  uiCode);
@@ -265,7 +267,9 @@ private:
   ContextModel3DBuffer m_cCUAMPSCModel;
   ContextModel3DBuffer m_cSaoFlagSCModel;
   ContextModel3DBuffer m_cSaoUvlcSCModel;
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   ContextModel3DBuffer m_cSaoSvlcSCModel;
+#endif
   ContextModel3DBuffer m_cSaoMergeLeftSCModel;
   ContextModel3DBuffer m_cSaoMergeUpSCModel;
   ContextModel3DBuffer m_cSaoTypeIdxSCModel;

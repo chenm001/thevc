@@ -1383,10 +1383,12 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
   m_pcEntropyCoderIf->codeSaoTypeIdx(uiSymbol);
   if (uiSymbol)
   {
+#if SAO_TRUNCATED_U 
 #if FULL_NBIT
     Int offsetTh = 1 << ( min((Int)(g_uiBitDepth + (g_uiBitDepth-8)-5),5) );
 #else
     Int offsetTh = 1 << ( min((Int)(g_uiBitDepth + g_uiBitIncrement-5),5) );
+#endif
 #endif
     if( saoLcuParam->typeIdx == SAO_BO )
     {
@@ -1486,11 +1488,51 @@ Void TEncEntropy::encodeSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam,
 * \param  bLFCrossSliceBoundaryFlag
  */
 #if SAO_NO_MERGE_CROSS_SLICE_TILE
+#if SAO_RDO_FIX
+Void TEncEntropy::encodeSaoUnitInterleaving(Int compIdx, Bool saoFlag, Int rx, Int ry, SaoLcuParam* saoLcuParam, Int cuAddrInSlice, Int cuAddrUpInSlice, Int allowMergeLeft, Int allowMergeUp)
+#else
 Void TEncEntropy::encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, TComDataCU* cu, Int cuAddrInSlice, Int cuAddrUpInSlice, Int allowMergeLeft, Int allowMergeUp)
+#endif
 #else
 Void TEncEntropy::encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, TComDataCU* cu, Int cuAddrInSlice, Int cuAddrUpInSlice, Bool lfCrossSliceBoundaryFlag)
 #endif
 {
+#if SAO_RDO_FIX
+  if (saoFlag)
+  {
+#if SAO_NO_MERGE_CROSS_SLICE_TILE
+    if (rx>0 && cuAddrInSlice!=0 && allowMergeLeft)
+#else
+    if (rx>0 && cuAddrInSlice!=0)
+#endif
+    {
+      m_pcEntropyCoderIf->codeSaoMergeLeft(saoLcuParam->mergeLeftFlag,compIdx);
+    }
+    else
+    {
+      saoLcuParam->mergeLeftFlag = 0;
+    }
+    if (saoLcuParam->mergeLeftFlag == 0)
+    {
+#if SAO_NO_MERGE_CROSS_SLICE_TILE
+      if ( (ry > 0) && (cuAddrUpInSlice>=0) && allowMergeUp )
+#else
+      if ( (ry > 0) && (cuAddrUpInSlice>=0||lfCrossSliceBoundaryFlag))
+#endif
+      {
+        m_pcEntropyCoderIf->codeSaoMergeUp(saoLcuParam->mergeUpFlag);
+      }
+      else
+      {
+        saoLcuParam->mergeUpFlag = 0;
+      }
+      if (!saoLcuParam->mergeUpFlag)
+      {
+        encodeSaoOffset(saoLcuParam);
+      }
+    }
+  }
+#else
   Int addr = cu->getAddr();
   for (Int compIdx=0; compIdx<3; compIdx++)
   {
@@ -1529,6 +1571,7 @@ Void TEncEntropy::encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, 
       }
     }
   }
+#endif
 }
 
 #if !SAO_REMOVE_APS

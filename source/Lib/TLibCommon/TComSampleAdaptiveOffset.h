@@ -148,6 +148,9 @@ public:
   Void setSaoInterleavingFlag (Bool bVal)  {m_saoInterleavingFlag = bVal;}
   Bool getSaoInterleavingFlag ()           {return m_saoInterleavingFlag;}
 #endif
+#if SAO_RDO_FIX
+  Void resetSaoUnit(SaoLcuParam* saoUnit);
+#endif
 };
 
 //! \}

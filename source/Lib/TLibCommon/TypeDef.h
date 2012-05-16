@@ -111,6 +111,8 @@
 #define SAO_ENCODING_RATE                0.75
 #endif
 
+#define SAO_RDO_FIX                      1  ///< I0563: SAO RDO bug-fix
+
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
 #define MAX_NUM_APS                32         //< !!!KS: number not defined in WD yet

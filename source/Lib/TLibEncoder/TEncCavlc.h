@@ -144,7 +144,9 @@ public:
 #if SAO_TRUNCATED_U
   Void codeSaoMaxUvlc    ( UInt   code, UInt maxSymbol ){printf("Not supported\n"); assert (0);}
 #endif
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   Void codeSaoSvlc       ( Int   iCode );
+#endif
   Void codeSaoRun        ( UInt uiCode, UInt maxValue  );
   Void codeSaoMergeLeft  ( UInt uiCode, UInt compIdx ){;}
   Void codeSaoMergeUp    ( UInt uiCode ){;}
