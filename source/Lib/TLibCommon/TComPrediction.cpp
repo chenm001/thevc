@@ -106,10 +106,21 @@ Void TComPrediction::initTempBuff()
   m_iLumaRecStride =  (g_uiMaxCUWidth>>1) + 1;
   m_pLumaRecBuffer = new Pel[ m_iLumaRecStride * m_iLumaRecStride ];
 
+#if LM_REDUCED_DIV_TABLE
+
+  Int shift = g_uiBitDepth + g_uiBitIncrement + 4;
+
+  for( Int i = 32; i < 64; i++ )
+  {
+    m_uiaShift[i-32] = ( ( 1 << shift ) + i/2 ) / i;
+  }
+
+#else
   for( Int i = 1; i < 64; i++ )
   {
     m_uiaShift[i-1] = ( (1 << 15) + i/2 ) / i;
   }
+#endif
 }
 
 // ====================================================================================================================
@@ -964,9 +975,13 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
   Int avgSrc =  y  >> iCountShift;
   Int RErrLuma = x & ( ( 1 << iCountShift ) - 1 );
   Int RErrSrc =  y & ( ( 1 << iCountShift ) - 1 );
-#endif
+#endif  
 
+#if LM_REDUCED_DIV_TABLE
+  Int a, b, iShift = g_uiBitDepth + g_uiBitIncrement + 4;
+#else
   Int a, b, iShift = 13;
+#endif
 
   if( iCountShift == 0 )
   {
@@ -1036,18 +1051,30 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
       {
         iScaleShiftA2 = 0;
       }
-      
+ 
+#if LM_REDUCED_DIV_TABLE
+      Int iScaleShiftA = iScaleShiftA2 - iScaleShiftA1;
+#else
       Int iScaleShiftA = iScaleShiftA2 + iAccuracyShift - iShift - iScaleShiftA1;
+#endif
 
       a2s = a2 >> iScaleShiftA2;
 
       a1s = a1 >> iScaleShiftA1;
 
+#if LM_REDUCED_DIV_TABLE
+      if (a2s >= 32)
+#else
       if (a2s >= 1)
+#endif
       {
 #if LM_UNIFORM_MULTIPLIERS
 #if LM_CLEANUP
+#if LM_REDUCED_DIV_TABLE
+        UInt a2t = m_uiaShift[ a2s - 32 ] ;
+#else
         UInt a2t = ( ( m_uiaShift[ a2s - 1] + ( 1 << ( (15 - uiInternalBitDepth ) - 1 ) ) ) >> (15 - uiInternalBitDepth ) ) ;
+#endif
 #else
         UInt a2t = ( ( m_uiaShift[ a2s - 1] + ( 1 << ( (15 - g_uiBitDepth + g_uiBitIncrement ) - 1 ) ) ) >> (15 - g_uiBitDepth + g_uiBitIncrement ) ) ;
 #endif
@@ -1097,7 +1124,11 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
 #endif
       }
 #if LM_CLEANUP
+#if LM_REDUCED_DIV_TABLE
+      a = a >> ( g_uiBitDepth + g_uiBitIncrement + 4 - iShift );
+#else
       a = a >> ( 13 - iShift );
+#endif
 #endif
 
 #if LM_UNIFORM_MULTIPLIERS
