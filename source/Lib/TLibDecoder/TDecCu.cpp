@@ -641,9 +641,9 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
 #endif
 #else
 #if LOSSLESS_CODING
-m_pcTrQuant->invtransformNxN( pcCU, eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
+  m_pcTrQuant->invtransformNxN( pcCU, eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
 #else  
-m_pcTrQuant->invtransformNxN(       eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
+  m_pcTrQuant->invtransformNxN(       eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
 #endif
 #endif
 
