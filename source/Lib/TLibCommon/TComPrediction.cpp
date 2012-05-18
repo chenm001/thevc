@@ -1023,6 +1023,7 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
       const Int iShiftA1 = 15;
 #endif
 #endif
+#if !LM_REDUCED_DIV_TABLE
 #if LM_UNIFORM_MULTIPLIERS
 #if LM_CLEANUP
       const Int iAccuracyShift = uiInternalBitDepth;
@@ -1032,7 +1033,7 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
 #else
       const Int iAccuracyShift = 15;
 #endif
-
+#endif
       Int iScaleShiftA2 = 0;
       Int iScaleShiftA1 = 0;
       Int a1s = a1;
