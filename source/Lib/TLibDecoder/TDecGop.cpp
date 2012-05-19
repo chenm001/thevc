@@ -421,6 +421,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       }
       printf ("] ");
     }
+#if !REMOVE_LC
     if(pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0 && !pcSlice->getNoBackPredFlag())
     {
       printf ("[LC ");
@@ -430,7 +431,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
       }
       printf ("] ");
     }
-
+#endif
     if (m_pictureDigestEnabled)
     {
       calcAndPrintMD5Status(*rpcPic->getPicYuvRec(), rpcPic->getSEIs());

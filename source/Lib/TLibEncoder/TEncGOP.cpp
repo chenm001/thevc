@@ -1800,6 +1800,7 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
     }
     printf("]");
   }
+#if !REMOVE_LC
   if(pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0 && !pcSlice->getNoBackPredFlag())
   {
     printf(" [LC ");
@@ -1809,6 +1810,7 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
     }
     printf("]");
   }
+#endif
 }
 
 /** Function for deciding the nal_unit_type.
