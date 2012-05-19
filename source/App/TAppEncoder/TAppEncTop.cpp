@@ -148,15 +148,19 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseASR                       ( m_bUseASR      );
   m_cTEncTop.setUseHADME                     ( m_bUseHADME    );
   m_cTEncTop.setUseALF                       ( m_bUseALF      );
+#if !AHG6_ALF_OPTION2
   m_cTEncTop.setALFEncodePassReduction       ( m_iALFEncodePassReduction );
-
+#endif
 #if LOSSLESS_CODING
   m_cTEncTop.setUseLossless                  ( m_useLossless );
 #endif
+#if !AHG6_ALF_OPTION2
   m_cTEncTop.setALFMaxNumberFilters          ( m_iALFMaxNumberFilters ) ;
-
+#endif
   m_cTEncTop.setUseLComb                     ( m_bUseLComb    );
+#if !REMOVE_LC
   m_cTEncTop.setLCMod                        ( m_bLCMod         );
+#endif
   m_cTEncTop.setdQPs                         ( m_aidQP        );
   m_cTEncTop.setUseRDOQ                      ( m_bUseRDOQ     );
   m_cTEncTop.setQuadtreeTULog2MaxSize        ( m_uiQuadtreeTULog2MaxSize );
@@ -170,6 +174,10 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseEarlySkipDetection            ( m_useEarlySkipDetection );
 
   m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );
+#if INTRA_TRANSFORMSKIP
+  m_cTEncTop.setUseTransformSkip             ( m_useTansformSkip      );
+  m_cTEncTop.setUseTransformSkipFast         ( m_useTansformSkipFast  );
+#endif
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );
   m_cTEncTop.setPCMLog2MinSize          ( m_uiPCMLog2MinSize);
   m_cTEncTop.setUsePCM                       ( m_usePCM );
@@ -207,7 +215,11 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
   m_cTEncTop.setUseSAO ( m_bUseSAO );
   m_cTEncTop.setMaxNumOffsetsPerPic (m_maxNumOffsetsPerPic);
+#if SAO_REMOVE_APS // encoder renaming
+  m_cTEncTop.setSaoLcuBasedOptimization (m_saoLcuBasedOptimization);
+#else
   m_cTEncTop.setSaoInterleavingFlag (m_saoInterleavingFlag);
+#endif
   m_cTEncTop.setPCMInputBitDepthFlag  ( m_bPCMInputBitDepthFlag); 
   m_cTEncTop.setPCMFilterDisableFlag  ( m_bPCMFilterDisableFlag); 
 
@@ -243,8 +255,12 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseScalingListId           ( m_useScalingListId  );
   m_cTEncTop.setScalingListFile            ( m_scalingListFile   );
   m_cTEncTop.setSignHideFlag(m_signHideFlag);
+#if !FIXED_SBH_THRESHOLD
   m_cTEncTop.setTSIG(m_signHidingThreshold);
-
+#endif
+#if AHG6_ALF_OPTION2
+  m_cTEncTop.setALFLowLatencyEncoding( m_alfLowLatencyEncoding );
+#else
   if(uiTilesCount > 1)
   {
     m_bALFParamInSlice = false;
@@ -252,6 +268,7 @@ Void TAppEncTop::xInitLibCfg()
   }
   m_cTEncTop.setALFParamInSlice              ( m_bALFParamInSlice);
   m_cTEncTop.setALFPicBasedEncode            ( m_bALFPicBasedEncode);
+#endif
   m_cTEncTop.setUseRateCtrl     ( m_enableRateCtrl);
   m_cTEncTop.setTargetBitrate   ( m_targetBitrate);
   m_cTEncTop.setNumLCUInUnit    ( m_numLCUInUnit);

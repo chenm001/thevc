@@ -74,7 +74,9 @@ TComSlice::TComSlice()
 , m_dLambda                       ( 0.0 )
 #endif
 , m_bNoBackPredFlag               ( false )
+#if !REMOVE_LC
 , m_bRefIdxCombineCoding          ( false )
+#endif
 , m_uiTLayer                      ( 0 )
 , m_bTLayerSwitchingFlag          ( false )
 , m_uiSliceMode                   ( 0 )
@@ -121,7 +123,9 @@ TComSlice::TComSlice()
   }
   m_bCombineWithReferenceFlag = 0;
   resetWpScaling(m_weightPredTable);
+#if !REMOVE_LC
   resetWpScalingLC(m_weightPredTableLC);
+#endif
   initWpAcDcParam();
 }
 
@@ -147,7 +151,9 @@ Void TComSlice::initSlice()
   m_colRefIdx = 0;
   initEqualRef();
   m_bNoBackPredFlag = false;
+#if !REMOVE_LC
   m_bRefIdxCombineCoding = false;
+#endif
   m_bRefPicListCombinationFlag = false;
   m_bRefPicListModificationFlagLC = false;
   m_bCheckLDC = false;
@@ -688,8 +694,9 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   }
 
   m_bNoBackPredFlag      = pSrc->m_bNoBackPredFlag;
+#if !REMOVE_LC
   m_bRefIdxCombineCoding = pSrc->m_bRefIdxCombineCoding;
-
+#endif
   m_uiTLayer                      = pSrc->m_uiTLayer;
   m_bTLayerSwitchingFlag          = pSrc->m_bTLayerSwitchingFlag;
 
@@ -710,13 +717,22 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
       memcpy(m_weightPredTable[e][n], pSrc->m_weightPredTable[e][n], sizeof(wpScalingParam)*3 );
 
   m_saoEnabledFlag = pSrc->m_saoEnabledFlag; 
+#if !SAO_REMOVE_APS // APS syntax
   m_saoInterleavingFlag = pSrc->m_saoInterleavingFlag;
+#endif
   m_saoEnabledFlagCb = pSrc->m_saoEnabledFlagCb;
   m_saoEnabledFlagCr = pSrc->m_saoEnabledFlagCr; 
   m_cabacInitFlag                = pSrc->m_cabacInitFlag;
   m_numEntryPointOffsets  = pSrc->m_numEntryPointOffsets;
 
   m_bLMvdL1Zero = pSrc->m_bLMvdL1Zero;
+#if AHG6_ALF_OPTION2
+  for(Int compIdx=0; compIdx < 3; compIdx++)
+  {
+    m_alfEnabledFlag[compIdx] = pSrc->m_alfEnabledFlag[compIdx];
+  }
+#endif
+
 }
 
 int TComSlice::m_prevPOC = 0;
@@ -1124,7 +1140,7 @@ Void  TComSlice::initWpScaling(wpScalingParam  wp[2][MAX_NUM_REF][3])
     }
   }
 }
-
+#if !REMOVE_LC
 /** get WP tables for weighted pred of LC
  * \param iRefIdxLC
  * \param *&wpScalingParam
@@ -1204,7 +1220,7 @@ Void TComSlice::copyWPtable(wpScalingParam *&wp_src, wpScalingParam *&wp_dst)
     wp_dst[iComp].iOffset = wp_src[iComp].iOffset;
   }
 }
-
+#endif
 
 // ------------------------------------------------------------------------------------------------
 // Sequence parameter set (SPS)
@@ -1240,10 +1256,18 @@ TComSPS::TComSPS()
 , m_uiPCMLog2MinSize          (  7)
 , m_bDisInter4x4              (  1)
 , m_bUseALF                   (false)
+#if !AHG6_ALF_OPTION2
 , m_bALFCoefInSlice           (false)
+#endif
 , m_bUseLMChroma              (false)
+#if INTRA_TRANSFORMSKIP
+, m_useTansformSkip           (false)
+, m_useTansformSkipFast       (false)
+#endif
 , m_bUseLComb                 (false)
+#if !REMOVE_LC
 , m_bLCMod                    (false)
+#endif
 , m_restrictedRefPicListsFlag   (  1)
 , m_listsModificationPresentFlag(  0)
 , m_uiBitDepth                (  8)
@@ -1323,9 +1347,11 @@ TComPPS::TComPPS()
 , m_puiRowHeight                 (NULL)
 ,  m_iNumSubstreams             (1)
 , m_signHideFlag(0)
+#if !FIXED_SBH_THRESHOLD
 , m_signHidingThreshold(0)
+#endif
 , m_cabacInitPresentFlag        (false)
-, m_encCABACTableIdx            (0)
+, m_encCABACTableIdx            (I_SLICE)
 {
 }
 
@@ -1541,10 +1567,18 @@ TComRefPicListModification::~TComRefPicListModification()
 TComAPS::TComAPS()
 {
   m_apsID = 0;
+#if !AHG6_ALF_OPTION2
   m_bAlfEnabled = false;
+#endif
+#if !SAO_REMOVE_APS // APS syntax
   m_bSaoEnabled = false;
+#endif
   m_pSaoParam = NULL;
+#if AHG6_ALF_OPTION2
+  m_alfParam[0] = m_alfParam[1] = m_alfParam[2] = NULL;
+#else
   m_alfParamSet = NULL;
+#endif
   m_scalingList = NULL;
   m_scalingListEnabled = false;
 }
@@ -1552,7 +1586,15 @@ TComAPS::TComAPS()
 TComAPS::~TComAPS()
 {
   delete m_pSaoParam;
+#if AHG6_ALF_OPTION2
+  for(Int compIdx =0; compIdx < 3; compIdx++)
+  {
+    delete m_alfParam[compIdx];
+    m_alfParam[compIdx] = NULL;
+  }
+#else
   delete m_alfParamSet;
+#endif
   delete m_scalingList;
 }
 
@@ -1563,14 +1605,26 @@ TComAPS& TComAPS::operator= (const TComAPS& src)
   m_loopFilterDisable = src.m_loopFilterDisable;
   m_loopFilterBetaOffsetDiv2 = src.m_loopFilterBetaOffsetDiv2;
   m_loopFilterTcOffsetDiv2 = src.m_loopFilterTcOffsetDiv2;
+#if !AHG6_ALF_OPTION2
   m_bAlfEnabled = src.m_bAlfEnabled;
+#endif
+#if !SAO_REMOVE_APS // APS syntax
   m_bSaoEnabled = src.m_bSaoEnabled;
+#endif
   m_pSaoParam   = src.m_pSaoParam; 
+#if AHG6_ALF_OPTION2
+  for(Int compIdx =0; compIdx < 3; compIdx++)
+  {
+    m_alfParam[compIdx] = src.m_alfParam[compIdx];
+  }
+#else
   m_alfParamSet    = src.m_alfParamSet;
+#endif
   m_scalingList = src.m_scalingList;
   m_scalingListEnabled = src.m_scalingListEnabled;
+#if !SAO_REMOVE_APS // APS syntax
   m_saoInterleavingFlag = src.m_saoInterleavingFlag;
-
+#endif
   return *this;
 }
 
@@ -1590,15 +1644,34 @@ Void TComAPS::destroySaoParam()
 
 Void TComAPS::createAlfParam()
 {
+#if AHG6_ALF_OPTION2
+  for(Int compIdx =0; compIdx < 3; compIdx++)
+  {
+    m_alfParam[compIdx] = new ALFParam(compIdx);
+    m_alfParam[compIdx]->alf_flag = 0;
+  }
+#else
   m_alfParamSet = new AlfParamSet;
+#endif
 }
 Void TComAPS::destroyAlfParam()
 {
+#if AHG6_ALF_OPTION2
+  for(Int compIdx=0; compIdx < 3; compIdx++)
+  {
+    if(m_alfParam[compIdx] != NULL)
+    {
+      delete m_alfParam[compIdx];
+      m_alfParam[compIdx] = NULL;
+    }
+  }
+#else
   if(m_alfParamSet != NULL)
   {
     delete m_alfParamSet;
     m_alfParamSet = NULL;
   }
+#endif
 }
 
 Void TComAPS::createScalingList()

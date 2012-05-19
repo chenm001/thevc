@@ -176,13 +176,22 @@ private:
   Bool        m_bDisInter4x4;
   Bool        m_useAMP;
   Bool        m_bUseALF;
+#if !AHG6_ALF_OPTION2
   Bool        m_bALFCoefInSlice;
+#endif
   Bool        m_bUseLMChroma; // JL:
 
-  Bool        m_bUseLComb;
-  Bool        m_bLCMod;
-  Bool        m_useNSQT;
+#if INTRA_TRANSFORMSKIP
+  Bool        m_useTansformSkip;
+  Bool        m_useTansformSkipFast;
+#endif
   
+  Bool        m_bUseLComb;
+#if !REMOVE_LC
+  Bool        m_bLCMod;
+#endif
+  Bool        m_useNSQT;
+
   Bool        m_restrictedRefPicListsFlag;
   Bool        m_listsModificationPresentFlag;
 
@@ -309,17 +318,26 @@ public:
   
   // Tool list
   Bool getUseALF      ()         { return m_bUseALF;        }
+#if !AHG6_ALF_OPTION2
   Void setUseALFCoefInSlice(Bool b) {m_bALFCoefInSlice = b;}
   Bool getUseALFCoefInSlice()    {return m_bALFCoefInSlice;}
-
+#endif
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
   Void setUseLComb    (Bool b)   { m_bUseLComb = b;         }
   Bool getUseLComb    ()         { return m_bUseLComb;      }
+#if !REMOVE_LC
   Void setLCMod       (Bool b)   { m_bLCMod = b;     }
   Bool getLCMod       ()         { return m_bLCMod;  }
-
+#endif
   Bool getUseLMChroma ()         { return m_bUseLMChroma;        }
   Void setUseLMChroma ( Bool b ) { m_bUseLMChroma  = b;          }
+
+#if INTRA_TRANSFORMSKIP
+  Bool getUseTransformSkip       ()         { return m_useTansformSkip;     }
+  Void setUseTransformSkip       ( Bool b ) { m_useTansformSkip  = b;       }
+  Bool getUseTransformSkipFast   ()         { return m_useTansformSkipFast; }
+  Void setUseTransformSkipFast   ( Bool b ) { m_useTansformSkipFast  = b;   }
+#endif
 
 #if LOSSLESS_CODING
   Bool getUseLossless ()         { return m_useLossless; }
@@ -486,7 +504,9 @@ private:
   Bool     m_enableTMVPFlag;
 
   Int      m_signHideFlag;
+#if !FIXED_SBH_THRESHOLD
   Int      m_signHidingThreshold;
+#endif
 
   Bool     m_cabacInitPresentFlag;
   UInt     m_encCABACTableIdx;           // Used to transmit table selection across slices
@@ -578,9 +598,13 @@ public:
   Int      getNumSubstreams()                                 { return m_iNumSubstreams; }
 
   Void      setSignHideFlag( Int signHideFlag ) { m_signHideFlag = signHideFlag; }
+#if !FIXED_SBH_THRESHOLD
   Void      setTSIG( Int tsig )                 { m_signHidingThreshold = tsig; }
+#endif
   Int       getSignHideFlag()                    { return m_signHideFlag; }
+#if !FIXED_SBH_THRESHOLD
   Int       getTSIG()                            { return m_signHidingThreshold; }
+#endif
 
   Void     setEnableTMVPFlag( Bool b )  { m_enableTMVPFlag = b;    }
   Bool     getEnableTMVPFlag()          { return m_enableTMVPFlag; }
@@ -610,6 +634,7 @@ public:
   Int*     getScalingListDefaultAddress   (UInt sizeId, UInt listId);                                                        //!< get default matrix coefficient
   Void     processDefaultMarix            (UInt sizeId, UInt listId);
   Void     setScalingListDC               (UInt sizeId, UInt listId, UInt u)   { m_scalingListDC[sizeId][listId] = u; }      //!< set DC value
+
   Int      getScalingListDC               (UInt sizeId, UInt listId)           { return m_scalingListDC[sizeId][listId]; }   //!< get DC value
   Void     checkDcOfMatrix                ();
   Void     setUseDefaultScalingMatrixFlag (UInt sizeId, UInt listId, Bool b)   { m_useDefaultScalingMatrixFlag[sizeId][listId] = b;    } //!< set default matrix enabled/disabled in each matrix
@@ -637,12 +662,20 @@ public:
 
   Void      setAPSID      (Int iID)   {m_apsID = iID;            }  //!< set APS ID 
   Int       getAPSID      ()          {return m_apsID;           }  //!< get APS ID
+#if !SAO_REMOVE_APS // APS syntax
   Void      setSaoEnabled (Bool bVal) {m_bSaoEnabled = bVal;     }  //!< set SAO enabled/disabled in APS
   Bool      getSaoEnabled ()          {return m_bSaoEnabled;     }  //!< get SAO enabled/disabled in APS
+#endif
+#if AHG6_ALF_OPTION2
+  ALFParam** getAlfParam  ()                       { return m_alfParam;}
+  Bool       getAlfEnabled(Int compIdx)            { return (m_alfParam[compIdx] == NULL)?(false):(m_alfParam[compIdx]->alf_flag ==1);}
+  Void       setAlfEnabled(Bool bVal, Int compIdx) { m_alfParam[compIdx]->alf_flag= (bVal?1:0); }  //!< set ALF enabled/disabled in APS
+#else
   Void      setAlfEnabled (Bool bVal) {m_bAlfEnabled = bVal;     }  //!< set ALF enabled/disabled in APS
   Bool      getAlfEnabled ()          {return m_bAlfEnabled;     }  //!< get ALF enabled/disabled in APS
 
   AlfParamSet* getAlfParam   ()          {return m_alfParamSet;}
+#endif
   SAOParam* getSaoParam   ()          {return m_pSaoParam;       }  //!< get SAO parameters in APS
 
   Void      createSaoParam();   //!< create SAO parameter object
@@ -665,23 +698,34 @@ public:
   Void      setScalingListEnabled (Bool bVal) { m_scalingListEnabled = bVal; }  //!< set ScalingList enabled/disabled in APS
   Bool      getScalingListEnabled ()          { return m_scalingListEnabled; }  //!< get ScalingList enabled/disabled in APS
   TComScalingList* getScalingList ()          { return m_scalingList; }         //!< get ScalingList class pointer in APS
+#if !SAO_REMOVE_APS // APS syntax
   Bool     getSaoInterleavingFlag() {return m_saoInterleavingFlag;}             //!< get SAO interleaving flag in APS
   Void     setSaoInterleavingFlag(Bool bVal) {m_saoInterleavingFlag = bVal;}    //!< set SAO interleaving flag in APS
+#endif
 
 private:
   Int         m_apsID;        //!< APS ID
+#if !SAO_REMOVE_APS // APS syntax
   Bool        m_bSaoEnabled;  //!< SAO enabled/disabled in APS (true for enabled)
+#endif
+#if !AHG6_ALF_OPTION2
   Bool        m_bAlfEnabled;  //!< ALF enabled/disabled in APS (true for enabled)
+#endif
   SAOParam*   m_pSaoParam;    //!< SAO parameter object pointer 
+#if AHG6_ALF_OPTION2
+  ALFParam*   m_alfParam[3];
+#else
   AlfParamSet*   m_alfParamSet;
+#endif
   Bool        m_loopFilterOffsetInAPS;       //< offset for deblocking filter in 0 = slice header, 1 = APS
   Bool        m_loopFilterDisable;           //< Deblocking filter enabled/disabled in APS
   Int         m_loopFilterBetaOffsetDiv2;    //< beta offset for deblocking filter
   Int         m_loopFilterTcOffsetDiv2;      //< tc offset for deblocking filter
   Bool        m_scalingListEnabled;     //!< ScalingList enabled/disabled in APS (true for enabled)
   TComScalingList*     m_scalingList;   //!< ScalingList class pointer
+#if !SAO_REMOVE_APS // APS syntax
   Bool        m_saoInterleavingFlag;    //!< SAO interleaving flag
-
+#endif
 public:
   TComAPS& operator= (const TComAPS& src);  //!< "=" operator for APS object
 };
@@ -710,9 +754,15 @@ class TComSlice
 private:
   //  Bitstream writing
   Int         m_iAPSId; //!< APS ID in slice header
+#if AHG6_ALF_OPTION2
+  Bool       m_alfEnabledFlag[3];
+#else
   bool       m_alfEnabledFlag;
+#endif
   bool       m_saoEnabledFlag;
+#if !SAO_REMOVE_APS // APS syntax
   bool       m_saoInterleavingFlag;   ///< SAO interleaving flag
+#endif
   bool       m_saoEnabledFlagCb;      ///< SAO Cb enabled flag
   bool       m_saoEnabledFlagCr;      ///< SAO Cr enabled flag
   Int         m_iPPSId;               ///< picture parameter set ID
@@ -782,8 +832,9 @@ private:
   Bool        m_abEqualRef  [2][MAX_NUM_REF][MAX_NUM_REF];
   
   Bool        m_bNoBackPredFlag;
+#if !REMOVE_LC
   Bool        m_bRefIdxCombineCoding;
-
+#endif
   UInt        m_uiTLayer;
   Bool        m_bTLayerSwitchingFlag;
 
@@ -845,12 +896,19 @@ public:
   Int       getAPSId        ()                 { return m_iAPSId; } //!< get APS ID
   Void      setPicOutputFlag( Bool b )         { m_PicOutputFlag = b;    }
   Bool      getPicOutputFlag()                 { return m_PicOutputFlag; }
+#if AHG6_ALF_OPTION2
+  Void      setAlfEnabledFlag(Bool b, Int compIdx) { m_alfEnabledFlag[compIdx] = b;    }
+  Bool      getAlfEnabledFlag(Int compIdx)         { return m_alfEnabledFlag[compIdx]; }
+#else
   Void      setAlfEnabledFlag(Bool s) {m_alfEnabledFlag =s; }
   Bool      getAlfEnabledFlag() { return m_alfEnabledFlag; }
+#endif
   Void      setSaoEnabledFlag(Bool s) {m_saoEnabledFlag =s; }
   Bool      getSaoEnabledFlag() { return m_saoEnabledFlag; }
+#if !SAO_REMOVE_APS // APS syntax
   Void      setSaoInterleavingFlag(Bool s) {m_saoInterleavingFlag =s; } //!< set SAO interleaving flag
   Bool      getSaoInterleavingFlag() { return m_saoInterleavingFlag;  } //!< get SAO interleaving flag
+#endif
   Void      setSaoEnabledFlagCb(Bool s) {m_saoEnabledFlagCb =s; }       //!< set SAO Cb enabled flag
   Bool      getSaoEnabledFlagCb() { return m_saoEnabledFlagCb; }        //!< get SAO Cb enabled flag
   Void      setSaoEnabledFlagCr(Bool s) {m_saoEnabledFlagCr =s; }       //!< set SAO Cr enabled flag
@@ -902,11 +960,12 @@ public:
   Bool      getRefPicListModificationFlagLC()                   {return m_bRefPicListModificationFlagLC;}
   Void      setRefPicListModificationFlagLC(Bool bflag)         {m_bRefPicListModificationFlagLC=bflag;}     
   Bool      getRefPicListCombinationFlag()                      {return m_bRefPicListCombinationFlag;}
-  Void      setRefPicListCombinationFlag(Bool bflag)            {m_bRefPicListCombinationFlag=bflag;}     
+  Void      setRefPicListCombinationFlag(Bool bflag)            {m_bRefPicListCombinationFlag=bflag;}   
+#if !REMOVE_LC
   Void      setListIdFromIdxOfLC(Int  iRefIdx, UInt uiVal)      { m_eListIdFromIdxOfLC[iRefIdx]=uiVal; }
   Void      setRefIdxFromIdxOfLC(Int  iRefIdx, UInt uiVal)      { m_iRefIdxFromIdxOfLC[iRefIdx]=uiVal; }
   Void      setRefIdxOfLC       (RefPicList e, Int iRefIdx, Int RefIdxLC)     { m_iRefIdxOfLC[e][iRefIdx]=RefIdxLC;}
-
+#endif
   Void      setReferenced(Bool b)                               { m_bRefenced = b; }
   Bool      isReferenced()                                      { return m_bRefenced; }
   
@@ -969,8 +1028,10 @@ public:
   
   Bool getNoBackPredFlag() { return m_bNoBackPredFlag; }
   Void setNoBackPredFlag( Bool b ) { m_bNoBackPredFlag = b; }
+#if !REMOVE_LC
   Bool getRefIdxCombineCoding() { return m_bRefIdxCombineCoding; }
   Void setRefIdxCombineCoding( Bool b ) { m_bRefIdxCombineCoding = b; }
+#endif
   Void generateCombinedList       ();
 
   UInt getTLayer             ()                            { return m_uiTLayer;                      }
@@ -1029,10 +1090,12 @@ public:
   Void  setWpAcDcParam  ( wpACDCParam wp[3] ) { memcpy(m_weightACDCParam, wp, sizeof(wpACDCParam)*3); }
   Void  getWpAcDcParam  ( wpACDCParam *&wp );
   Void  initWpAcDcParam ();
+#if !REMOVE_LC
   Void  copyWPtable     (wpScalingParam *&wp_src, wpScalingParam *&wp_dst);
   Void  getWpScalingLC  ( Int iRefIdx, wpScalingParam *&wp);
   Void  resetWpScalingLC(wpScalingParam  wp[2*MAX_NUM_REF][3]);
   Void  setWpParamforLC();
+#endif
   Void setTileLocationCount             ( UInt uiCount )      { m_uiTileCount = uiCount;                  }
   UInt getTileLocationCount             ()                    { return m_uiTileCount;                     }
   Void setTileLocation                  ( Int i, UInt uiLOC ) { m_uiTileByteLocation[i] = uiLOC;          }

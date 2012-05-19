@@ -335,6 +335,71 @@ Void TComYuv::copyPartToPartChroma( TComYuv* pcYuvDst, UInt uiPartIdx, UInt iWid
   }
 }
 
+#if INTRA_TRANSFORMSKIP
+Void TComYuv::copyPartToPartChroma( TComYuv* pcYuvDst, UInt uiPartIdx, UInt iWidth, UInt iHeight, UInt chromaId)
+{
+  if(chromaId == 0)
+  {
+    Pel*  pSrcU =           getCbAddr(uiPartIdx);
+    Pel*  pDstU = pcYuvDst->getCbAddr(uiPartIdx);
+    if( pSrcU == pDstU)
+    {
+      return ;
+    }
+    UInt   iSrcStride = getCStride();
+    UInt   iDstStride = pcYuvDst->getCStride();
+    for ( UInt y = iHeight; y != 0; y-- )
+    {
+      ::memcpy( pDstU, pSrcU, iWidth * sizeof(Pel) );
+      pSrcU += iSrcStride;
+      pDstU += iDstStride;
+    }
+  }
+  else if (chromaId == 1)
+  {
+    Pel*  pSrcV =           getCrAddr(uiPartIdx);
+    Pel*  pDstV = pcYuvDst->getCrAddr(uiPartIdx);
+    if( pSrcV == pDstV)
+    {
+      return;
+    }
+    UInt   iSrcStride = getCStride();
+    UInt   iDstStride = pcYuvDst->getCStride();
+    for ( UInt y = iHeight; y != 0; y-- )
+    { 
+      ::memcpy( pDstV, pSrcV, iWidth * sizeof(Pel) );
+      pSrcV += iSrcStride;
+      pDstV += iDstStride;
+    }
+  }
+  else
+  {
+    Pel*  pSrcU =           getCbAddr(uiPartIdx);
+    Pel*  pSrcV =           getCrAddr(uiPartIdx);
+    Pel*  pDstU = pcYuvDst->getCbAddr(uiPartIdx);
+    Pel*  pDstV = pcYuvDst->getCrAddr(uiPartIdx);
+    
+    if( pSrcU == pDstU && pSrcV == pDstV)
+    {
+      //th not a good idea
+      //th best would be to fix the caller 
+      return ;
+    }
+    UInt   iSrcStride = getCStride();
+    UInt   iDstStride = pcYuvDst->getCStride();
+    for ( UInt y = iHeight; y != 0; y-- )
+    {
+      ::memcpy( pDstU, pSrcU, iWidth * sizeof(Pel) );
+      ::memcpy( pDstV, pSrcV, iWidth * sizeof(Pel) );
+      pSrcU += iSrcStride;
+      pSrcV += iSrcStride;
+      pDstU += iDstStride;
+      pDstV += iDstStride;
+    }
+  }
+}
+#endif
+
 Void TComYuv::addClip( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, UInt uiTrUnitIdx, UInt uiPartSize )
 {
   addClipLuma   ( pcYuvSrc0, pcYuvSrc1, uiTrUnitIdx, uiPartSize     );

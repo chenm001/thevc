@@ -78,6 +78,9 @@ private:
   Int    *m_iTypePartBest; //[MAX_NUM_SAO_PART]; 
   Int     m_iOffsetTh;
   Bool    m_bUseSBACRD;
+#if SAO_ENCODING_CHOICE
+  Double  m_depth0SaoRate;
+#endif
 
 public:
   TEncSampleAdaptiveOffset         ();
@@ -87,7 +90,11 @@ public:
   Void endSaoEnc();
   Void resetStats();
 #if SAO_CHROMA_LAMBDA
+#if SAO_ENCODING_CHOICE
+  Void SAOProcess(SAOParam *pcSaoParam, Double dLambda, Double dLambdaChroma, Int depth);
+#else
   Void SAOProcess(SAOParam *pcSaoParam, Double dLambda, Double dLambdaChroma);
+#endif
 #else
   Void SAOProcess(SAOParam *pcSaoParam, Double dLambda);
 #endif
@@ -102,8 +109,19 @@ public:
   Void createEncBuffer();
   Void assignSaoUnitSyntax(SaoLcuParam* saoLcuParam,  SAOQTPart* saoPart, Bool &oneUnitFlag, Int yCbCr);
   Void checkMerge(SaoLcuParam * lcuParamCurr,SaoLcuParam * lcuParamCheck, Int dir);
+#if SAO_ENCODING_CHOICE
+  Void rdoSaoUnitAll(SAOParam *saoParam, Double lambda, Double lambdaChroma, Int depth);
+#else
   Void rdoSaoUnitAll(SAOParam *saoParam, Double lambda, Double lambdaChroma);
+#endif
+#if SAO_RDO_FIX
+  Void rdoSaoUnit(Int rx, Int ry, SAOParam *saoParam, Int addr, Int addrUp, Int addrLeft, Int yCbCr, Double lambda);
+  inline Int64 estSaoDist(Int64 count, Int64 offset, Int64 offsetOrg, Int shift);
+  inline Int64 estIterOffset(Int typeIdx, Int classIdx, double lambda, Int64 offsetInput, Int64 count, Int64 offsetOrg, Int shift, Int bitIncrease, Int *currentDistortionTableBo, Double *currentRdCostTableBo );
+  inline Int64 estSaoTypeDist(Int compIdx, Int typeIdx, Int shift, Double lambda, Int *currentDistortionTableBo, Double *currentRdCostTableBo);
+#else
   Void rdoSaoUnit(SAOParam *saoParam, Int addr, Int addrUp, Int addrLeft, Int yCbCr, Double lambda);
+#endif
   Void setMaxNumOffsetsPerPic(Int iVal) {m_maxNumOffsetsPerPic = iVal; }
   Int  getMaxNumOffsetsPerPic() {return m_maxNumOffsetsPerPic; }
 };

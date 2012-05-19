@@ -56,10 +56,17 @@
 // Tables
 // ====================================================================================================================
 
+#if DEBLOCK_TC_TAB_I0258
+const UChar tctable_8x8[54] =
+{
+  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,5,5,6,6,7,8,9,10,11,13,14,16,18,20,22,24
+};
+#else
 const UChar tctable_8x8[56] =
 {
   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,5,5,6,6,7,8,9,9,10,10,11,11,12,12,13,13,14,14
 };
+#endif
 
 const UChar betatable_8x8[52] =
 {
@@ -585,7 +592,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
       }
 
       iQP_P = pcCUP->getQP(uiPartPIdx);
-      
+#if !DEBLOCK_IPCM_RECY
       if(pcCU->getIPCMFlag(uiPartQIdx)) 
       {
         iQP_Q = 0; 
@@ -594,7 +601,7 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
       {
         iQP_P = 0; 
       }
-      
+#endif
       iQP = (iQP_P + iQP_Q + 1) >> 1;
       Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
       
@@ -726,7 +733,7 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
       }
 
       iQP_P = pcCUP->getQP(uiPartPIdx);
-      
+#if !DEBLOCK_IPCM_RECY
       if(pcCU->getIPCMFlag(uiPartQIdx)) 
       {
         iQP_Q = 0; 
@@ -735,7 +742,7 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
       {
         iQP_P = 0; 
       }
-      
+#endif
       iQP = QpUV((iQP_P + iQP_Q + 1) >> 1);
       Int iBitdepthScale = (1<<(g_uiBitIncrement+g_uiBitDepth-8));
       

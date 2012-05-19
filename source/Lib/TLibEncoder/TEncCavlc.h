@@ -67,8 +67,10 @@ protected:
   TComBitIf*    m_pcBitIf;
   TComSlice*    m_pcSlice;
   UInt          m_uiCoeffCost;
+#if !AHG6_ALF_OPTION2
   Bool          m_bAlfCtrl;
   UInt          m_uiMaxAlfCtrlDepth;
+#endif
   Int           m_iSliceGranularity;  //!< slice granularity
   
   Void  xWriteCode            ( UInt uiCode, UInt uiLength );
@@ -98,10 +100,12 @@ public:
 
   Void  setBitstream          ( TComBitIf* p )  { m_pcBitIf = p;  }
   Void  setSlice              ( TComSlice* p )  { m_pcSlice = p;  }
+#if !AHG6_ALF_OPTION2
   Bool getAlfCtrl() {return m_bAlfCtrl;}
   UInt getMaxAlfCtrlDepth() {return m_uiMaxAlfCtrlDepth;}
   Void setAlfCtrl(Bool bAlfCtrl) {m_bAlfCtrl = bAlfCtrl;}
   Void setMaxAlfCtrlDepth(UInt uiMaxAlfCtrlDepth) {m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth;}
+#endif
   Void  resetBits             ()                { m_pcBitIf->resetBits(); }
   Void  resetCoeffCost        ()                { m_uiCoeffCost = 0;  }
   UInt  getNumberOfWrittenBits()                { return  m_pcBitIf->getNumberOfWrittenBits();  }
@@ -121,15 +125,28 @@ public:
   Void  encodeStart             () {}
   
   Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
+#if AHG6_ALF_OPTION2
+  Void xGolombEncode(Int coeff, Int k); 
+  Void codeAlfParam(ALFParam* alfParam);
+#else
   Void codeAlfFlag       ( UInt uiCode );
   Void codeAlfUvlc       ( UInt uiCode );
   Void codeAlfSvlc       ( Int   iCode );
   Void codeAlfCtrlDepth();
   Void codeAPSAlflag(UInt uiCode);
   Void codeAlfFixedLengthIdx( UInt idx, UInt numFilterSetsInBuffer);
+#endif
   Void codeSaoFlag       ( UInt uiCode );
   Void codeSaoUvlc       ( UInt uiCode );
+#if SAO_OFFSET_MAG_SIGN_SPLIT
+  Void codeSAOSign       ( UInt code   ) { printf("Not supported\n"); assert (0); }
+#endif
+#if SAO_TRUNCATED_U
+  Void codeSaoMaxUvlc    ( UInt   code, UInt maxSymbol ){printf("Not supported\n"); assert (0);}
+#endif
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   Void codeSaoSvlc       ( Int   iCode );
+#endif
   Void codeSaoRun        ( UInt uiCode, UInt maxValue  );
   Void codeSaoMergeLeft  ( UInt uiCode, UInt compIdx ){;}
   Void codeSaoMergeUp    ( UInt uiCode ){;}
@@ -139,8 +156,9 @@ public:
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
+#if !AHG6_ALF_OPTION2
   Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-
+#endif
   Void codeApsExtensionFlag ();
 
   /// set slice granularity
@@ -149,7 +167,11 @@ public:
   ///get slice granularity
   Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
 
+#if AHG6_ALF_OPTION2
+  Void codeAlfCtrlFlag   ( Int compIdx, UInt code ) {printf("Not supported\n"); assert(0);}
+#else
   Void codeAlfCtrlFlag   ( UInt uiSymbol );
+#endif
   Void codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiEncMode );
   Void codeSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   
@@ -161,9 +183,11 @@ public:
   Void codeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx );
   Void codeQtCbf         ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth );
   Void codeQtRootCbf     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  
+#if INTRAMODE_BYPASSGROUP
+  Void codeIntraDirLumaAng( TComDataCU* pcCU, UInt absPartIdx, Bool isMultiple);
+#else
   Void codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx );
-  
+#endif 
   Void codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeInterDir      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeRefFrmIdx     ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
@@ -172,7 +196,10 @@ public:
   Void codeDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   
   Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
-  
+#if INTRA_TRANSFORMSKIP
+  Void codeTransformSkipFlags ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType );
+#endif
+
   Void estBit               (estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType);
   
   Void xCodePredWeightTable          ( TComSlice* pcSlice );

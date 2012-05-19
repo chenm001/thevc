@@ -57,6 +57,7 @@ Int TComAdaptiveLoopFilter::weightsShape1Sym[ALF_MAX_NUM_COEF+1] =
   2, 2, 2, 2, 1, 
               1
 };
+#if !AHG6_ALF_OPTION2
 Int* TComAdaptiveLoopFilter::weightsTabShapes[NUM_ALF_FILTER_SHAPE] =
 {
   weightsShape1Sym
@@ -65,6 +66,7 @@ Int TComAdaptiveLoopFilter::m_sqrFiltLengthTab[NUM_ALF_FILTER_SHAPE] =
 {
   ALF_FILTER_LEN
 };
+#endif
 Int depthIntShape1Sym[ALF_MAX_NUM_COEF+1] = 
 {
               6,
@@ -78,6 +80,15 @@ Int* pDepthIntTabShapes[NUM_ALF_FILTER_SHAPE] =
   depthIntShape1Sym
 };
 
+#if ALF_COEFF_EXP_GOLOMB_K
+Int kTableShape1[ALF_MAX_NUM_COEF] = 
+{      
+              1,
+              2,
+           3, 4, 3,
+  1, 3, 3, 5, 0, 
+};
+#else
 Int kTableShape1[ALF_MAX_NUM_COEF+1] = 
 {      
               2,
@@ -86,6 +97,8 @@ Int kTableShape1[ALF_MAX_NUM_COEF+1] =
   1, 2, 3, 4, 1, 
               3
 };
+#endif
+
 Int* kTableTabShapes[NUM_ALF_FILTER_SHAPE] =
 { 
   kTableShape1
@@ -94,7 +107,7 @@ Int* kTableTabShapes[NUM_ALF_FILTER_SHAPE] =
 // ====================================================================================================================
 // Constructor / destructor / create / destroy
 // ====================================================================================================================
-
+#if !AHG6_ALF_OPTION2
 const AlfCUCtrlInfo& AlfCUCtrlInfo::operator= (const AlfCUCtrlInfo& src)
 {
   this->cu_control_flag = src.cu_control_flag;
@@ -112,7 +125,7 @@ Void AlfCUCtrlInfo::reset()
   alf_max_depth = 0;
   alf_cu_flag.clear();
 }
-
+#endif
 /// ALFParam
 const ALFParam& ALFParam::operator= (const ALFParam& src)
 {
@@ -132,11 +145,15 @@ Void ALFParam::create(Int cID)
   this->alf_flag          = 0;
   this->filters_per_group = 1; // this value keeps 1 for chroma componenet
   this->startSecondFilter = -1;
+#if !AHG6_ALF_OPTION2
   this->predMethod        = -1;
   this->minKStart         = -1;
+#endif
   this->filterPattern     = NULL;
+#if !AHG6_ALF_OPTION2
   this->nbSPred           = NULL;
   this->kMinTab           = NULL;
+#endif
   this->coeffmulti        = NULL;
   this->filter_shape      = 0;
   this->num_coeff         = numCoef;
@@ -153,11 +170,12 @@ Void ALFParam::create(Int cID)
       }
       this->filterPattern = new Int[NO_VAR_BINS];
       ::memset(this->filterPattern, 0, sizeof(Int)*NO_VAR_BINS);
-
+#if !AHG6_ALF_OPTION2
       this->nbSPred       = new Int[NO_VAR_BINS];
       ::memset(this->nbSPred, 0, sizeof(Int)*NO_VAR_BINS);
 
       this->kMinTab       = new Int[42];
+#endif
     }
     break;
   case ALF_Cb:
@@ -190,8 +208,10 @@ Void ALFParam::destroy()
         }
         delete[] this->coeffmulti;
         delete[] this->filterPattern;
+#if !AHG6_ALF_OPTION2
         delete[] this->nbSPred;
         delete[] this->kMinTab;
+#endif
       }
       break;
     case ALF_Cb:
@@ -235,12 +255,15 @@ Void ALFParam::copy(const ALFParam& src)
     case ALF_Y:
       {
         this->startSecondFilter = src.startSecondFilter;
+#if !AHG6_ALF_OPTION2
         this->predMethod        = src.predMethod;
         this->minKStart         = src.minKStart;
+#endif
         ::memcpy(this->filterPattern, src.filterPattern, sizeof(Int)*NO_VAR_BINS);
+#if !AHG6_ALF_OPTION2
         ::memcpy(this->nbSPred, src.nbSPred, sizeof(Int)*NO_VAR_BINS);
         ::memcpy(this->kMinTab, src.kMinTab, sizeof(Int)*42);
-
+#endif
         for(Int i=0; i< (Int)NO_VAR_BINS; i++)
         {
           ::memcpy(this->coeffmulti[i], src.coeffmulti[i], sizeof(Int)*numCoef);
@@ -261,11 +284,13 @@ Void ALFParam::copy(const ALFParam& src)
   {
     //reset
     this->filters_per_group = 0;
+#if !AHG6_ALF_OPTION2
     this->filter_shape      = 0;
     this->num_coeff         = 0;
+#endif
   }
 }
-
+#if !AHG6_ALF_OPTION2
 /// AlfUnitParam
 AlfUnitParam::AlfUnitParam()
 {
@@ -438,7 +463,7 @@ Void AlfParamSet::destroy()
     }
   }
 }
-
+#endif
 TComAdaptiveLoopFilter::TComAdaptiveLoopFilter()
 {
   m_pcTempPicYuv = NULL;
@@ -447,14 +472,17 @@ TComAdaptiveLoopFilter::TComAdaptiveLoopFilter()
   m_ppSliceAlfLCUs = NULL;
   m_pvpAlfLCU    = NULL;
   m_pvpSliceTileAlfLCU = NULL;
+#if !AHG6_ALF_OPTION2
   for(Int c=0; c< NUM_ALF_COMPONENT; c++)
   {
     m_alfFiltInfo[c] = NULL;
   }
+#endif
   m_varImg = NULL;
   m_filterCoeffSym = NULL;
 }
 
+#if !AHG6_ALF_OPTION2
 Void TComAdaptiveLoopFilter:: xError(const char *text, int code)
 {
   fprintf(stderr, "%s\n", text);
@@ -653,6 +681,13 @@ Void TComAdaptiveLoopFilter::destroyMatrix4D_double(double ****m4D, int d1, int 
     FATAL_ERROR_0("destroyMatrix4D_double: memory free problem\n", -1);
   }
 }
+#endif
+#if AHG6_ALF_OPTION2
+static Pel Clip_post(int high, int val)
+{
+  return (Pel)(((val > high)? high: val));
+}
+#endif
 
 Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth )
 {
@@ -664,8 +699,23 @@ Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCU
   }
   m_img_height = iPicHeight;
   m_img_width = iPicWidth;
+#if AHG6_ALF_OPTION2
+  m_varImg = new Pel*[m_img_height];
+  m_varImg[0] = new Pel[m_img_height*m_img_width];
+  for(Int j=1; j< m_img_height; j++)
+  {
+    m_varImg[j] = m_varImg[0] + (j*m_img_width);
+  }
+
+  m_filterCoeffSym = new Int*[NO_VAR_BINS];
+  for(Int g=0 ; g< (Int)NO_VAR_BINS; g++)
+  {
+    m_filterCoeffSym[g] = new Int[ALF_MAX_NUM_COEF];
+  }
+#else
   initMatrix_Pel(&(m_varImg), m_img_height, m_img_width);
   initMatrix_int(&m_filterCoeffSym, NO_VAR_BINS, ALF_MAX_NUM_COEF);
+#endif
   UInt uiNumLCUsInWidth   = m_img_width  / uiMaxCUWidth;
   UInt uiNumLCUsInHeight  = m_img_height / uiMaxCUHeight;
 
@@ -684,7 +734,32 @@ Void TComAdaptiveLoopFilter::create( Int iPicWidth, Int iPicHeight, UInt uiMaxCU
   m_lineIdxPadBotChroma = m_lcuHeightChroma - 2 - 3; // DFRegion, Vertical Taps
   m_lineIdxPadTopChroma = m_lcuHeightChroma - 2 ; // DFRegion
 
+#if AHG6_ALF_OPTION2
+  m_lcuWidth = uiMaxCUWidth;
+  m_lcuWidthChroma = (m_lcuWidth >>1);
+
+  //calculate RA filter indexes
+  Int regionTable[NO_VAR_BINS] = {0, 1, 4, 5, 15, 2, 3, 6, 14, 11, 10, 7, 13, 12,  9,  8}; 
+  Int xInterval = ((( (m_img_width +m_lcuWidth -1) / m_lcuWidth) +1) /4 *m_lcuWidth) ;  
+  Int yInterval = ((((m_img_height +m_lcuHeight -1) / m_lcuHeight) +1) /4 *m_lcuHeight) ;
+  Int shiftH = (Int)(log((double)VAR_SIZE_H)/log(2.0));
+  Int shiftW = (Int)(log((double)VAR_SIZE_W)/log(2.0));
+  int yIndex, xIndex;
+  int yIndexOffset;
+
+  for(Int i = 0; i < m_img_height; i=i+4)
+  {
+    yIndex = Clip_post( 3, i / yInterval);
+    yIndexOffset = yIndex * 4 ;
+    for(Int j = 0; j < m_img_width; j=j+4)
+    {
+      xIndex = Clip_post( 3, j / xInterval);
+      m_varImg[i>>shiftH][j>>shiftW] = regionTable[yIndexOffset + xIndex];
+    }
+  }
+#else
   createLCUAlfInfo();
+#endif
 }
 
 Void TComAdaptiveLoopFilter::destroy()
@@ -697,15 +772,30 @@ Void TComAdaptiveLoopFilter::destroy()
   }
   if(m_varImg != NULL)
   {
+#if AHG6_ALF_OPTION2
+    delete[] m_varImg[0];
+    delete[] m_varImg;
+#else
     destroyMatrix_Pel( m_varImg );
+#endif
     m_varImg = NULL;
   }
   if(m_filterCoeffSym != NULL)
   {
+#if AHG6_ALF_OPTION2
+    for(Int g=0 ; g< (Int)NO_VAR_BINS; g++)
+    {
+      delete[] m_filterCoeffSym[g];
+    }
+    delete[] m_filterCoeffSym; 
+#else
     destroyMatrix_int(m_filterCoeffSym);
+#endif
     m_filterCoeffSym = NULL;
   }
+#if !AHG6_ALF_OPTION2
   destroyLCUAlfInfo();
+#endif
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -717,7 +807,11 @@ Void TComAdaptiveLoopFilter::destroy()
  * \param [in] vAlfCUCtrlParam ALF CU-on/off control parameters
  * \param [in] isAlfCoefInSlice ALF coefficient in slice (true) or ALF coefficient in APS (false) 
  */
+#if AHG6_ALF_OPTION2
+Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, ALFParam** alfParam, std::vector<Bool>* sliceAlfEnabled)
+#else
 Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam, Bool isAlfCoefInSlice)
+#endif
 {
   TComPicYuv* pcPicYuvRec    = pcPic->getPicYuvRec();
   TComPicYuv* pcPicYuvExtRec = m_pcTempPicYuv;
@@ -735,6 +829,9 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, std::vector<AlfCUCtrlInf
     Int  stride       = (compIdx == ALF_Y)?(lumaStride):(chromaStride);
     Int  formatShift = (compIdx == ALF_Y)?(0):(1);
 
+#if AHG6_ALF_OPTION2
+    recALF(compIdx, sliceAlfEnabled[compIdx], alfParam[compIdx], pDec, pRest, stride, formatShift);
+#else
     ALFParam** alfLCUParamComp = m_alfFiltInfo[compIdx];
 
     if(!isEnabledComponent(alfLCUParamComp))
@@ -772,10 +869,11 @@ Void TComAdaptiveLoopFilter::ALFProcess(TComPic* pcPic, std::vector<AlfCUCtrlInf
         exit(-1);
       }
     }
+#endif
   }
 
 }
-
+#if !AHG6_ALF_OPTION2
 /** Check the filter process of one component is enable
  * \param [in] alfLCUParam ALF parameters
  */
@@ -792,7 +890,7 @@ Bool TComAdaptiveLoopFilter::isEnabledComponent(ALFParam** alfLCUParam)
   }
   return isEnabled;
 }
-
+#endif
 
 /** ALF Reconstruction for each component
  * \param [in] compIdx color component index
@@ -804,17 +902,30 @@ Bool TComAdaptiveLoopFilter::isEnabledComponent(ALFParam** alfLCUParam)
  * \param [in] alfCUCtrlParam ALF CU-on/off control parameters 
  * \param [in] caculateBAIdx calculate BA filter index (true) or BA filter index array is ready (false)
  */
+#if AHG6_ALF_OPTION2
+Void TComAdaptiveLoopFilter::recALF(Int compIdx, std::vector<Bool>& sliceAlfEnabled, ALFParam* alfParam, Pel* pDec, Pel* pRest, Int stride, Int formatShift)
+#else
 Void TComAdaptiveLoopFilter::recALF(Int compIdx, ALFParam** alfLCUParams,Pel* pDec, Pel* pRest, Int stride, Int formatShift
                                   , std::vector<AlfCUCtrlInfo>* alfCUCtrlParam //default: NULL
                                   , Bool caculateBAIdx //default: false
                                     )
+#endif
 {
   for(Int s=0; s< m_uiNumSlicesInPic; s++)
   {
+#if AHG6_ALF_OPTION2
+    if((!m_pcPic->getValidSlice(s))||(!sliceAlfEnabled[s]))
+#else
     if(!m_pcPic->getValidSlice(s))
+#endif
     {
       continue;
     }
+#if AHG6_ALF_OPTION2
+    assert(alfParam->alf_flag == 1);    
+    reconstructCoefInfo(compIdx, alfParam, m_filterCoeffSym, m_varIndTab); //reconstruct ALF coefficients & related parameters 
+#endif
+
     Int numTilesInSlice = (Int)m_pvpSliceTileAlfLCU[s].size();
     for(Int t=0; t< numTilesInSlice; t++)
     {
@@ -827,7 +938,9 @@ Void TComAdaptiveLoopFilter::recALF(Int compIdx, ALFParam** alfLCUParams,Pel* pD
         copyRegion(vpAlfLCU, pSrc, pDec, stride, formatShift);
         extendRegionBorder(vpAlfLCU, pSrc, stride, formatShift);
       }
-
+#if AHG6_ALF_OPTION2
+      filterRegion(compIdx, (alfParam->filters_per_group == 1), vpAlfLCU, pSrc, pRest, stride, formatShift);
+#else
       Bool isOnOffCtrlEnabled = (alfCUCtrlParam == NULL)?(false):(  (*alfCUCtrlParam)[s].cu_control_flag == 1 );
 
       if(isOnOffCtrlEnabled)
@@ -839,11 +952,12 @@ Void TComAdaptiveLoopFilter::recALF(Int compIdx, ALFParam** alfLCUParams,Pel* pD
       {
         filterRegion(compIdx, alfLCUParams, vpAlfLCU, pSrc, pRest, stride, formatShift, caculateBAIdx);
       }
+#endif
     } //tile
   } //slice
 }
 
-
+#if !AHG6_ALF_OPTION2
 /** assign ALC CU-On/Off Control parameters
  * \param [in, out] pcPic picture data
  * \param [in] vAlfCUCtrlParam ALF CU-on/off control parameters
@@ -869,7 +983,7 @@ Void TComAdaptiveLoopFilter::assignAlfOnOffControlFlags(TComPic* pcPic, std::vec
   }
 
 }
-
+#endif
 // ====================================================================================================================
 // Protected member functions
 // ====================================================================================================================
@@ -881,6 +995,11 @@ Void TComAdaptiveLoopFilter::assignAlfOnOffControlFlags(TComPic* pcPic, std::vec
  */
 Void TComAdaptiveLoopFilter::checkFilterCoeffValue( Int *filter, Int filterLength, Bool isChroma )
 {
+#if AHG6_ALF_OPTION2
+  Int maxValueNonCenter = 1 * (1 << ALF_NUM_BIT_SHIFT) - 1;
+  Int minValueNonCenter = 0 - 1 * (1 << ALF_NUM_BIT_SHIFT);
+  Int maxValueCenter    = 2 * (1 << ALF_NUM_BIT_SHIFT) - 1;
+#else
 #if LCUALF_QP_DEPENDENT_BITS
   Int alfPrecisionBit = getAlfPrecisionBit( m_alfQP );
 
@@ -894,6 +1013,7 @@ Void TComAdaptiveLoopFilter::checkFilterCoeffValue( Int *filter, Int filterLengt
 
   Int maxValueCenter    = 2 * (1 << ALF_NUM_BIT_SHIFT) - 1;
 #endif
+#endif
   Int minValueCenter    = 0 ; 
 
   for(Int i = 0; i < filterLength-1; i++)
@@ -905,11 +1025,11 @@ Void TComAdaptiveLoopFilter::checkFilterCoeffValue( Int *filter, Int filterLengt
 }
 
 
+#if !AHG6_ALF_OPTION2
 static Pel Clip_post(int high, int val)
 {
   return (Pel)(((val > high)? high: val));
 }
-
 
 Void TComAdaptiveLoopFilter::setAlfCtrlFlags(AlfCUCtrlInfo* pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx)
 {
@@ -959,7 +1079,7 @@ Void TComAdaptiveLoopFilter::setAlfCtrlFlags(AlfCUCtrlInfo* pAlfParam, TComDataC
     idx++;
   }
 }
-
+#endif
 /** Initialize the variables for one ALF LCU
  * \param rAlfLCU to-be-initialized ALF LCU
  * \param sliceID slice index
@@ -1000,7 +1120,11 @@ Void TComAdaptiveLoopFilter::InitAlfLCUInfo(AlfLCUInfo& rAlfLCU, Int sliceID, In
  * \param pcPic picture-level data pointer
  * \param numSlicesInPic number of slices in picture
  */
+#if AHG6_ALF_OPTION2
+Void TComAdaptiveLoopFilter::createPicAlfInfo(TComPic* pcPic, Int numSlicesInPic)
+#else
 Void TComAdaptiveLoopFilter::createPicAlfInfo(TComPic* pcPic, Int numSlicesInPic, Int alfQP)
+#endif
 {
   m_uiNumSlicesInPic = numSlicesInPic;
   m_iSGDepth         = pcPic->getSliceGranularityForNDBFilter();
@@ -1008,10 +1132,12 @@ Void TComAdaptiveLoopFilter::createPicAlfInfo(TComPic* pcPic, Int numSlicesInPic
   m_bUseNonCrossALF = ( pcPic->getIndependentSliceBoundaryForNDBFilter() || pcPic->getIndependentTileBoundaryForNDBFilter());
   m_pcPic = pcPic;
 
+#if !AHG6_ALF_OPTION2
   m_isNonCrossSlice = pcPic->getIndependentSliceBoundaryForNDBFilter(); 
   m_suWidth = pcPic->getMinCUWidth();
   m_suHeight= pcPic->getMinCUHeight();
   m_alfQP = alfQP; 
+#endif
     m_ppSliceAlfLCUs = new AlfLCUInfo*[m_uiNumSlicesInPic];
     m_pvpAlfLCU = new std::vector< AlfLCUInfo* >[m_uiNumSlicesInPic];
     m_pvpSliceTileAlfLCU = new std::vector< std::vector< AlfLCUInfo* > >[m_uiNumSlicesInPic];
@@ -1101,7 +1227,7 @@ Void TComAdaptiveLoopFilter::destroyPicAlfInfo()
     m_pvpSliceTileAlfLCU = NULL;
 }
 
-
+#if !AHG6_ALF_OPTION2
 /** Copy ALF CU control flags from ALF parameters for slices
  * \param [in] vAlfParamSlices ALF CU control parameters
  */
@@ -1164,7 +1290,7 @@ Void TComAdaptiveLoopFilter::transferCtrlFlagsFromAlfParamOneSlice(std::vector< 
     uiNumCtrlFlags += (UInt)getCtrlFlagsFromAlfParam(&cAlfLCU, iAlfDepth, &(vCtrlFlags[uiNumCtrlFlags]) );
   }
 }
-
+#endif
 /** Copy region pixels
  * \param vpAlfLCU ALF LCU data container
  * \param pPicDst destination picture buffer
@@ -1382,7 +1508,45 @@ Void TComAdaptiveLoopFilter::extendBorderCoreFunction(Pel* pPel, Int stride, Boo
     }
   }
 }
+#if AHG6_ALF_OPTION2
+Void TComAdaptiveLoopFilter::reconstructCoefficients(ALFParam* alfParam, Int** filterCoeff)
+{
+  for(Int g=0; g< alfParam->filters_per_group; g++)
+  {
+    Int sum = 0;
+    for(Int i=0; i< alfParam->num_coeff-1; i++)
+    {
+      sum += (2 * alfParam->coeffmulti[g][i]);
+      filterCoeff[g][i] = alfParam->coeffmulti[g][i];
+    }
+    Int coeffPred = (1<<ALF_NUM_BIT_SHIFT) - sum;
+    filterCoeff[g][alfParam->num_coeff-1] = coeffPred + alfParam->coeffmulti[g][alfParam->num_coeff-1];
+  }
+}
 
+Void TComAdaptiveLoopFilter::reconstructCoefInfo(Int compIdx, ALFParam* alfParam, Int** filterCoeff, Int* varIndTab)
+{
+  if(compIdx == ALF_Y)
+  {
+    ::memset(varIndTab, 0, NO_VAR_BINS * sizeof(Int));
+    if(alfParam->filters_per_group > 1)
+    {
+      for(Int i = 1; i < NO_VAR_BINS; ++i)
+      {
+        if(alfParam->filterPattern[i])
+        {
+          varIndTab[i] = varIndTab[i-1] + 1;
+        }
+        else
+        {
+          varIndTab[i] = varIndTab[i-1];
+        }
+      }
+    }
+  }
+  reconstructCoefficients(alfParam, filterCoeff);
+}
+#else
 /** Assign ALF on/off-control flags from ALF parameters to CU data
  * \param [in] pcAlfLCU processing ALF LCU data pointer
  * \param [in] alfDepth ALF on/off-control depth
@@ -1728,7 +1892,7 @@ Void TComAdaptiveLoopFilter::filterRegionCUControl(ALFParam** alfLCUParams, std:
 
 }
 
-
+#endif
 /** filter process without CU-On/Off control
  * \param [in] alfLCUParam ALF parameters 
  * \param [in] regionLCUInfo ALF CU-on/off control parameters 
@@ -1738,25 +1902,37 @@ Void TComAdaptiveLoopFilter::filterRegionCUControl(ALFParam** alfLCUParams, std:
  * \param [in] formatShift luma component (0) or chroma component (1)
  * \param [in] caculateBAIdx calculate BA filter index (true) or BA filter index array is ready (false)
  */
+#if AHG6_ALF_OPTION2
+Void TComAdaptiveLoopFilter::filterRegion(Int compIdx, Bool isSingleFilter, std::vector<AlfLCUInfo*>& regionLCUInfo, Pel* pDec, Pel* pRest, Int stride, Int formatShift)
+#else
 Void TComAdaptiveLoopFilter::filterRegion(Int compIdx, ALFParam** alfLCUParams, std::vector<AlfLCUInfo*>& regionLCUInfo, Pel* pDec, Pel* pRest, Int stride, Int formatShift, Bool caculateBAIdx)
+#endif
 {
   Int height, width;
+#if AHG6_ALF_OPTION2
+  Int ypos =0, xpos=0;
+#else
   Int ypos, xpos,  lcuX, lcuY;
   Int yposEnd, xposEnd;
-
+#endif
   for(Int i=0; i< regionLCUInfo.size(); i++)
   {
     AlfLCUInfo& alfLCUinfo = *(regionLCUInfo[i]); 
     TComDataCU* pcCU = alfLCUinfo.pcCU;
+
+#if AHG6_ALF_OPTION2
+    if(pcCU->getAlfLCUEnabled(compIdx))
+#else
     Int addr = pcCU->getAddr();
 
     ALFParam* alfParam = alfLCUParams[addr];
 
     if(alfParam->alf_flag == 1)
+#endif
     {
+#if !AHG6_ALF_OPTION2
       lcuX    = pcCU->getCUPelX();
       lcuY    = pcCU->getCUPelY();
-
       if(caculateBAIdx)
       {
         assert(compIdx == ALF_Y);
@@ -1776,10 +1952,9 @@ Void TComAdaptiveLoopFilter::filterRegion(Int compIdx, ALFParam** alfLCUParams, 
 
         calcOneRegionVar(m_varImg, pDec, stride, (alfParam->filters_per_group == 1), lcuY, yposEnd, lcuX, xposEnd);        
       }
-
       //reconstruct ALF coefficients & related parameters 
       reconstructCoefInfo(compIdx, alfParam, m_filterCoeffSym, m_varIndTab);
-
+#endif
       //filtering process
       for(Int j=0; j< alfLCUinfo.numSGU; j++)
       {
@@ -1794,7 +1969,7 @@ Void TComAdaptiveLoopFilter::filterRegion(Int compIdx, ALFParam** alfLCUParams, 
   }
 }
 
-
+#if !AHG6_ALF_OPTION2
 /** predict chroma center coefficient
  * \param [in] coeff ALF chroma coefficient
  * \param [in] numCoef number of chroma coefficients
@@ -1815,7 +1990,7 @@ Void TComAdaptiveLoopFilter::predictALFCoeffChroma(Int* coeff, Int numCoef)
 #endif
   coeff[numCoef-1] = coeff[numCoef-1] - pred;
 }
-
+#endif
 /** filtering pixels
  * \param [out] imgRes filtered picture
  * \param [in] imgPad decoded picture 
@@ -1834,6 +2009,10 @@ Void TComAdaptiveLoopFilter::filterOneCompRegion(Pel *imgRes, Pel *imgPad, Int s
                                                 , Int** filterSet, Int* mergeTable, Pel** varImg
                                                 )
 {
+#if AHG6_ALF_OPTION2
+  static Int numBitsMinus1= (Int)ALF_NUM_BIT_SHIFT;
+  static Int offset       = (1<<( (Int)ALF_NUM_BIT_SHIFT-1));
+#else
 #if LCUALF_QP_DEPENDENT_BITS  
   Int alfPrecisionBit = getAlfPrecisionBit( m_alfQP );
   Int numBitsMinus1   = alfPrecisionBit;
@@ -1841,6 +2020,7 @@ Void TComAdaptiveLoopFilter::filterOneCompRegion(Pel *imgRes, Pel *imgPad, Int s
 #else
   static Int numBitsMinus1= (Int)ALF_NUM_BIT_SHIFT;
   static Int offset       = (1<<( (Int)ALF_NUM_BIT_SHIFT-1));
+#endif
 #endif
   static Int shiftHeight  = (Int)(log((double)VAR_SIZE_H)/log(2.0));
   static Int shiftWidth   = (Int)(log((double)VAR_SIZE_W)/log(2.0));
@@ -1940,7 +2120,7 @@ Void TComAdaptiveLoopFilter::filterOneCompRegion(Pel *imgRes, Pel *imgPad, Int s
     imgRes += stride;
   }  
 }
-
+#if !AHG6_ALF_OPTION2
 #if LCUALF_QP_DEPENDENT_BITS
 /** filtering pixels
  * \param [in] qp quantization parameter
@@ -2047,7 +2227,6 @@ Void TComAdaptiveLoopFilter::calcOneRegionVar(Pel **imgYvar, Pel *imgYpad, Int s
   }
 }
 
-
 Void TComAdaptiveLoopFilter::resetLCUAlfInfo()
 {
   //reset to all off
@@ -2090,7 +2269,7 @@ Void TComAdaptiveLoopFilter::destroyLCUAlfInfo()
     }
   }
 }
-
+#endif
 Pel* TComAdaptiveLoopFilter::getPicBuf(TComPicYuv* pPicYuv, Int compIdx)
 {
   Pel* pBuf = NULL;

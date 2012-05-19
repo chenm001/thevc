@@ -164,7 +164,6 @@ UInt g_uiMaxCUWidth  = MAX_CU_SIZE;
 UInt g_uiMaxCUHeight = MAX_CU_SIZE;
 UInt g_uiMaxCUDepth  = MAX_CU_DEPTH;
 UInt g_uiAddCUDepth  = 0;
-
 UInt g_auiZscanToRaster [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToZscan [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
 UInt g_auiRasterToPelX  [ MAX_NUM_SPU_W*MAX_NUM_SPU_W ] = { 0, };
@@ -214,16 +213,32 @@ Void initRasterToZscan ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth 
 */
 Void initMotionReferIdx ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth )
 {
+#if CONSTRAINED_MOTION_DATA_COMPRESSION
+  Int  minSUWidth  = (Int)uiMaxCUWidth  >> ( (Int)uiMaxDepth - 1 );
+  Int  minSUHeight = (Int)uiMaxCUHeight >> ( (Int)uiMaxDepth - 1 );
+
+  Int  numPartInWidth  = (Int)uiMaxCUWidth  / (Int)minSUWidth;
+  Int  numPartInHeight = (Int)uiMaxCUHeight / (Int)minSUHeight;
+#else
   Int  minCUWidth  = (Int)uiMaxCUWidth  >> ( (Int)uiMaxDepth - 1 );
   Int  minCUHeight = (Int)uiMaxCUHeight >> ( (Int)uiMaxDepth - 1 );
 
   Int  numPartInWidth  = (Int)uiMaxCUWidth  / (Int)minCUWidth;
   Int  numPartInHeight = (Int)uiMaxCUHeight / (Int)minCUHeight;
+#endif
 
   for ( Int i = 0; i < numPartInWidth*numPartInHeight; i++ )
   {
     g_motionRefer[i] = i;
   }
+
+#if CONSTRAINED_MOTION_DATA_COMPRESSION
+  UInt maxCUDepth = g_uiMaxCUDepth - ( g_uiAddCUDepth - 1);
+  Int  minCUWidth  = (Int)uiMaxCUWidth  >> ( (Int)maxCUDepth - 1);
+
+  if(!(minCUWidth == 8 && minSUWidth == 4)) //check if Minimum PU width == 4
+    return;
+#endif
 
   Int compressionNum = 2;
 
@@ -469,6 +484,7 @@ UInt* g_auiNonSquareSigLastScan[ 4 ];
 
 const UInt g_uiMinInGroup[ 10 ] = {0,1,2,3,4,6,8,12,16,24};
 const UInt g_uiGroupIdx[ 32 ]   = {0,1,2,3,4,4,5,5,6,6,6,6,7,7,7,7,8,8,8,8,8,8,8,8,9,9,9,9,9,9,9,9};
+#if !LAST_CTX_DERIVATION
 const UInt g_uiLastCtx[ 28 ]    = 
 {
   0,   1,  2,  2,                         // 4x4    4
@@ -476,6 +492,7 @@ const UInt g_uiLastCtx[ 28 ]    =
   6,   7,  8,  8, 9,  9, 2, 2,            // 16x16  8
   10, 11, 12, 12, 13, 13, 14, 14, 2, 2    // 32x32  10
 };
+#endif
 
 // Rice parameters for absolute transform levels
 const UInt g_auiGoRiceRange[5] =
@@ -488,6 +505,7 @@ const UInt g_auiGoRicePrefixLen[5] =
   8, 7, 6, 5, 4
 };
 
+#if !SIMPLE_PARAM_UPDATE
 const UInt g_aauiGoRiceUpdate[5][24] =
 {
   {
@@ -506,7 +524,7 @@ const UInt g_aauiGoRiceUpdate[5][24] =
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
   }
 };
-
+#endif
 // initialize g_auiFrameScanXY
 Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int iHeight )
 {

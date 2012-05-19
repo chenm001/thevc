@@ -148,7 +148,11 @@ protected:
   Bool      m_DeblockingFilterControlPresent;
   Bool      m_bUseSAO;
   Int       m_maxNumOffsetsPerPic;
+#if SAO_REMOVE_APS // encoder renaming
+  Bool      m_saoLcuBasedOptimization;
+#else
   Bool      m_saoInterleavingFlag;
+#endif
 
   //====== Lossless ========
 #if LOSSLESS_CODING
@@ -176,16 +180,21 @@ protected:
   //====== Tool list ========
   Bool      m_bUseSBACRD;
   Bool      m_bUseALF;
+#if AHG6_ALF_OPTION2
+  Bool      m_alfLowLatencyEncoding;
+#else
   Int       m_iALFEncodePassReduction;
 
   Int       m_iALFMaxNumberFilters;
   Bool      m_bALFParamInSlice;
   Bool      m_bALFPicBasedEncode;
-
+#endif
   Bool      m_bUseASR;
   Bool      m_bUseHADME;
   Bool      m_bUseLComb;
+#if !REMOVE_LC
   Bool      m_bLCMod;
+#endif
   Bool      m_bUseRDOQ;
   Bool      m_bUseFastEnc;
   Bool      m_bUseEarlyCU;
@@ -193,7 +202,10 @@ protected:
   Bool      m_bUseCbfFastMode;
   Bool      m_useEarlySkipDetection;
   Bool      m_bUseLMChroma; 
-
+#if INTRA_TRANSFORMSKIP
+  Bool      m_useTansformSkip;
+  Bool      m_useTansformSkipFast;
+#endif
   Int*      m_aidQP;
   UInt      m_uiDeltaQpRD;
   
@@ -242,7 +254,9 @@ protected:
 
   Bool      m_bEnableTMVP;
   Int       m_signHideFlag;
+#if !FIXED_SBH_THRESHOLD
   Int       m_signHidingThreshold;
+#endif
   Bool      m_enableRateCtrl;                                ///< Flag for using rate control algorithm
   Int       m_targetBitrate;                                 ///< target bitrate
   Int       m_numLCUInUnit;                                  ///< Total number of LCUs in a frame should be divided by the NumLCUInUnit
@@ -390,7 +404,9 @@ public:
   Void      setUseHADME                     ( Bool  b )     { m_bUseHADME   = b; }
   Void      setUseALF                       ( Bool  b )     { m_bUseALF   = b; }
   Void      setUseLComb                     ( Bool  b )     { m_bUseLComb   = b; }
+#if !REMOVE_LC
   Void      setLCMod                        ( Bool  b )     { m_bLCMod   = b;    }
+#endif
   Void      setUseRDOQ                      ( Bool  b )     { m_bUseRDOQ    = b; }
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
   Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
@@ -409,6 +425,10 @@ public:
   Bool      getUseASR                       ()      { return m_bUseASR;     }
   Bool      getUseHADME                     ()      { return m_bUseHADME;   }
   Bool      getUseALF                       ()      { return m_bUseALF;     }
+#if AHG6_ALF_OPTION2
+  Void      setALFLowLatencyEncoding        (Bool b) {m_alfLowLatencyEncoding = b;    }
+  Bool      getALFLowLatencyEncoding        ()       { return m_alfLowLatencyEncoding;}
+#else
   Void      setALFEncodePassReduction       (Int i)  { m_iALFEncodePassReduction = i; }
   Int       getALFEncodePassReduction       ()       { return m_iALFEncodePassReduction; }
 
@@ -418,9 +438,11 @@ public:
   Bool      getALFParamInSlice              ()       {return m_bALFParamInSlice;}
   Void      setALFPicBasedEncode            (Bool b) {m_bALFPicBasedEncode = b;}
   Bool      getALFPicBasedEncode            ()       {return m_bALFPicBasedEncode;}
-
+#endif
   Bool      getUseLComb                     ()      { return m_bUseLComb;   }
+#if !REMOVE_LC
   Bool      getLCMod                        ()      { return m_bLCMod; }
+#endif
   Bool      getUseRDOQ                      ()      { return m_bUseRDOQ;    }
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
   Bool      getUseEarlyCU                   ()      { return m_bUseEarlyCU; }
@@ -439,7 +461,12 @@ public:
 
   Bool getUseLMChroma                       ()      { return m_bUseLMChroma;        }
   Void setUseLMChroma                       ( Bool b ) { m_bUseLMChroma  = b;       }
-
+#if INTRA_TRANSFORMSKIP
+  Bool getUseTransformSkip                             ()      { return m_useTansformSkip;        }
+  Void setUseTransformSkip                             ( Bool b ) { m_useTansformSkip  = b;       }
+  Bool getUseTransformSkipFast                         ()      { return m_useTansformSkipFast;    }
+  Void setUseTransformSkipFast                         ( Bool b ) { m_useTansformSkipFast  = b;   }
+#endif
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }
 
@@ -462,8 +489,13 @@ public:
   Bool      getUseSAO                  ()              {return m_bUseSAO;}
   Void  setMaxNumOffsetsPerPic                   (Int iVal)            { m_maxNumOffsetsPerPic = iVal; }
   Int   getMaxNumOffsetsPerPic                   ()                    { return m_maxNumOffsetsPerPic; }
+#if SAO_REMOVE_APS // encoder renaming
+  Void  setSaoLcuBasedOptimization               (bool bVal)           { m_saoLcuBasedOptimization = bVal; }
+  Bool  getSaoLcuBasedOptimization               ()                    { return m_saoLcuBasedOptimization; }
+#else
   Void  setSaoInterleavingFlag                   (bool bVal)           { m_saoInterleavingFlag = bVal; }
   Bool  getSaoInterleavingFlag                   ()                    { return m_saoInterleavingFlag; }
+#endif
   Void  setTileBehaviorControlPresentFlag        ( Int i )             { m_iTileBehaviorControlPresentFlag = i;    }
   Int   getTileBehaviorControlPresentFlag        ()                    { return m_iTileBehaviorControlPresentFlag; }
   Void  setLFCrossTileBoundaryFlag               ( Bool   bValue  )    { m_bLFCrossTileBoundaryFlag = bValue; }
@@ -568,9 +600,13 @@ public:
   Void      setEnableTMVP ( Bool b ) { m_bEnableTMVP = b;    }
   Bool      getEnableTMVP ()         { return m_bEnableTMVP; }
   Void      setSignHideFlag( Int signHideFlag ) { m_signHideFlag = signHideFlag; }
+#if !FIXED_SBH_THRESHOLD
   Void      setTSIG( Int tsig )                 { m_signHidingThreshold = tsig; }
+#endif
   Int       getSignHideFlag()                    { return m_signHideFlag; }
+#if !FIXED_SBH_THRESHOLD
   Int       getTSIG()                            { return m_signHidingThreshold; }
+#endif
   Bool      getUseRateCtrl    ()                { return m_enableRateCtrl;    }
   Void      setUseRateCtrl    (Bool flag)       { m_enableRateCtrl = flag;    }
   Int       getTargetBitrate  ()                { return m_targetBitrate;     }

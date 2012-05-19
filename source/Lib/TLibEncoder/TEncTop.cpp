@@ -97,7 +97,11 @@ Void TEncTop::create ()
   m_cCuEncoder.         create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
   if (m_bUseSAO)
   {
+#if SAO_REMOVE_APS // encoder renaming
+    m_cEncSAO.setSaoLcuBasedOptimization(getSaoLcuBasedOptimization());
+#else
     m_cEncSAO.setSaoInterleavingFlag(getSaoInterleavingFlag());
+#endif
     m_cEncSAO.setMaxNumOffsetsPerPic(getMaxNumOffsetsPerPic());
     m_cEncSAO.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
     m_cEncSAO.createEncBuffer();
@@ -113,7 +117,12 @@ Void TEncTop::create ()
   
   if(m_bUseALF)
   {
+#if AHG6_ALF_OPTION2
+    m_cAdaptiveLoopFilter.setALFLowLatencyEncoding( m_alfLowLatencyEncoding );
+    m_cAdaptiveLoopFilter.setGOPSize( getGOPSize() );
+#else
     m_cAdaptiveLoopFilter.setAlfCoefInSlice(m_bALFParamInSlice);
+#endif
     m_cAdaptiveLoopFilter.createAlfGlobalBuffers();
   }
 
@@ -311,25 +320,38 @@ Void TEncTop::init()
   // initialize transform & quantization class
   m_pcCavlcCoder = getCavlcCoder();
   
+#if INTRA_TRANSFORMSKIP
   m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize,
                   0,
                   aTable4, aTable8, 
                   aTableLastPosVlcIndex, m_bUseRDOQ, true 
+                  ,m_useTansformSkipFast
 #if ADAPTIVE_QP_SELECTION                  
                   , m_bUseAdaptQpSelect
 #endif
                   );
+#else
+  m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize,
+    0,
+    aTable4, aTable8, 
+    aTableLastPosVlcIndex, m_bUseRDOQ, true 
+#if ADAPTIVE_QP_SELECTION                  
+    , m_bUseAdaptQpSelect
+#endif
+    );
+#endif
   
   // initialize encoder search class
   m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_bipredSearchRange, m_iFastSearch, 0, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
 
+#if !AHG6_ALF_OPTION2
   if(m_bUseALF)
   {
     m_cAdaptiveLoopFilter.setALFEncodePassReduction( m_iALFEncodePassReduction );
     m_cAdaptiveLoopFilter.setALFMaxNumberFilters( m_iALFMaxNumberFilters );
     m_cAdaptiveLoopFilter.initPicQuadTreePartition(m_bALFPicBasedEncode );   
   }
-
+#endif
   m_iMaxRefPicNum = 0;
 }
 
@@ -472,11 +494,12 @@ Void TEncTop::xInitSPS()
   m_cSPS.setPCMLog2MaxSize( m_pcmLog2MaxSize  );
 
   m_cSPS.setUseALF        ( m_bUseALF           );
+#if !AHG6_ALF_OPTION2
   if(m_bUseALF)
   {
     m_cSPS.setUseALFCoefInSlice(m_bALFParamInSlice);
   }
-  
+#endif  
   m_cSPS.setQuadtreeTULog2MaxSize( m_uiQuadtreeTULog2MaxSize );
   m_cSPS.setQuadtreeTULog2MinSize( m_uiQuadtreeTULog2MinSize );
   m_cSPS.setQuadtreeTUMaxDepthInter( m_uiQuadtreeTUMaxDepthInter    );
@@ -485,12 +508,20 @@ Void TEncTop::xInitSPS()
 #if LOSSLESS_CODING
   m_cSPS.setUseLossless   ( m_useLossless  );
 #endif
+
+
   m_cSPS.setUseLMChroma   ( m_bUseLMChroma           );  
   
+#if INTRA_TRANSFORMSKIP
+  m_cSPS.setUseTransformSkip ( m_useTansformSkip );
+#endif
+
   m_cSPS.setMaxTrSize   ( 1 << m_uiQuadtreeTULog2MaxSize );
   
   m_cSPS.setUseLComb    ( m_bUseLComb           );
+#if !REMOVE_LC
   m_cSPS.setLCMod       ( m_bLCMod   );
+#endif
   m_cSPS.setUseNSQT( m_useNSQT );
   
   Int i;
@@ -614,7 +645,9 @@ Void TEncTop::xInitPPS()
   m_cPPS.setEnableTMVPFlag( m_bEnableTMVP );
   m_cPPS.setOutputFlagPresentFlag( false );
   m_cPPS.setSignHideFlag(getSignHideFlag());
+#if !FIXED_SBH_THRESHOLD
   m_cPPS.setTSIG(getTSIG());
+#endif
   m_cPPS.setDeblockingFilterControlPresent (m_DeblockingFilterControlPresent );
   m_cPPS.setLog2ParallelMergeLevelMinus2      (LOG2_PARALLEL_MERGE_LEVEL_MINUS2);
   m_cPPS.setCabacInitPresentFlag(CABAC_INIT_PRESENT_FLAG);

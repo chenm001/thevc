@@ -86,8 +86,10 @@ private:
   Double                m_dDecTime;
 
   bool m_pictureDigestEnabled; ///< if true, handle picture_digest SEI messages
+#if !AHG6_ALF_OPTION2
   AlfCUCtrlInfo       m_cAlfCUCtrlOneSlice;
   AlfParamSet           m_alfParamSetPilot;
+#endif
 
 public:
   TDecGop();
@@ -108,12 +110,13 @@ public:
   Void  setGopSize( Int i) { m_iGopSize = i; }
 
   void setPictureDigestEnabled(bool enabled) { m_pictureDigestEnabled = enabled; }
+#if !AHG6_ALF_OPTION2
   AlfCUCtrlInfo& getAlfCuCtrlParam() { return m_cAlfCUCtrlOneSlice; }
   AlfParamSet& getAlfParamSet() {return m_alfParamSetPilot;}
 
 private:
   Void patchAlfLCUParams(ALFParam*** alfLCUParam, AlfParamSet* alfParamSet, Int firstLCUAddr = 0);
-
+#endif
 
 };
 

@@ -713,10 +713,11 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     }
   }
 #endif
+#if !AHG6_ALF_OPTION2
   // initialize ALF parameters
   m_pcEntropyCoder->setAlfCtrl(false);
   m_pcEntropyCoder->setMaxAlfCtrlDepth(0); //unnecessary
-  
+#endif  
   TEncTop* pcEncTop = (TEncTop*) m_pcCfg;
   TEncSbac**** ppppcRDSbacCoders    = pcEncTop->getRDSbacCoders();
   TComBitCounter* pcBitCounters     = pcEncTop->getBitCounters();
@@ -1116,18 +1117,64 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
     }
 
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );    
-
+#if SAO_REMOVE_APS
+    if ( pcSlice->getSPS()->getUseSAO() && pcSlice->getSaoEnabledFlag() )
+#else
     if ( pcSlice->getSPS()->getUseSAO() && pcSlice->getAPS()->getSaoInterleavingFlag() && pcSlice->getSaoEnabledFlag() )
+#endif
     {
       Int iNumCuInWidth     = pcSlice->getAPS()->getSaoParam()->numCuInWidth;
+#if SAO_NO_MERGE_CROSS_SLICE_TILE
+      Int iCUAddrInSlice    = uiCUAddr - rpcPic->getPicSym()->getCUOrderMap(pcSlice->getSliceCurStartCUAddr()/rpcPic->getNumPartInCU());
+#else
       Int iCUAddrInSlice    = uiCUAddr - (pcSlice->getSliceCurStartCUAddr() /rpcPic->getNumPartInCU());
+#endif
       Int iCUAddrUpInSlice  = iCUAddrInSlice - iNumCuInWidth;
       Int rx = uiCUAddr % iNumCuInWidth;
       Int ry = uiCUAddr / iNumCuInWidth;
+#if SAO_NO_MERGE_CROSS_SLICE_TILE
+      Int allowMergeLeft = 1;
+      Int allowMergeUp   = 1;
+      if (rx!=0)
+      {
+        if (rpcPic->getPicSym()->getTileIdxMap(uiCUAddr-1) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr))
+        {
+          allowMergeLeft = 0;
+        }
+      }
+      if (ry!=0)
+      {
+        if (rpcPic->getPicSym()->getTileIdxMap(uiCUAddr-iNumCuInWidth) != rpcPic->getPicSym()->getTileIdxMap(uiCUAddr))
+        {
+          allowMergeUp = 0;
+        }
+      }
+#if SAO_RDO_FIX
+      Int addr = pcCU->getAddr();
+      m_pcEntropyCoder->encodeSaoUnitInterleaving(0, pcSlice->getAPS()->getSaoParam()->bSaoFlag[0], rx, ry, &(pcSlice->getAPS()->getSaoParam()->saoLcuParam[0][addr]), iCUAddrInSlice, iCUAddrUpInSlice, allowMergeLeft, allowMergeUp);
+      m_pcEntropyCoder->encodeSaoUnitInterleaving(1, pcSlice->getAPS()->getSaoParam()->bSaoFlag[1], rx, ry, &(pcSlice->getAPS()->getSaoParam()->saoLcuParam[1][addr]), iCUAddrInSlice, iCUAddrUpInSlice, allowMergeLeft, allowMergeUp);
+      m_pcEntropyCoder->encodeSaoUnitInterleaving(2, pcSlice->getAPS()->getSaoParam()->bSaoFlag[2], rx, ry, &(pcSlice->getAPS()->getSaoParam()->saoLcuParam[2][addr]), iCUAddrInSlice, iCUAddrUpInSlice, allowMergeLeft, allowMergeUp);
+#else
+      m_pcEntropyCoder->encodeSaoUnitInterleaving( rx, ry, pcSlice->getAPS()->getSaoParam(),pcCU, iCUAddrInSlice, iCUAddrUpInSlice, allowMergeLeft, allowMergeUp);
+#endif
+#else
       m_pcEntropyCoder->encodeSaoUnitInterleaving( rx, ry, pcSlice->getAPS()->getSaoParam(),pcCU, iCUAddrInSlice, iCUAddrUpInSlice, pcSlice->getSPS()->getLFCrossSliceBoundaryFlag());
+#endif
     }
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceEnable;
+#endif
+#if AHG6_ALF_OPTION2
+    if( pcSlice->getSPS()->getUseALF())
+    {
+      for(Int compIdx=0; compIdx< 3; compIdx++)
+      {
+        if(pcSlice->getAlfEnabledFlag(compIdx))
+        {
+          m_pcEntropyCoder->encodeAlfCtrlFlag(compIdx, pcCU->getAlfLCUEnabled(compIdx)?1:0);
+        }
+      }
+    }
 #endif
     if ( (m_pcCfg->getSliceMode()!=0 || m_pcCfg->getEntropySliceMode()!=0) && 
       uiCUAddr == rpcPic->getPicSym()->getCUOrderMap((uiBoundingCUAddr+rpcPic->getNumPartInCU()-1)/rpcPic->getNumPartInCU()-1) )

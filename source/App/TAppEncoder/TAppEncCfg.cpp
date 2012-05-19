@@ -214,9 +214,14 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("IntraPeriod,-ip",         m_iIntraPeriod,              -1, "Intra period in frames, (-1: only first frame)")
   ("DecodingRefreshType,-dr", m_iDecodingRefreshType,       0, "Intra refresh type (0:none 1:CRA 2:IDR)")
   ("GOPSize,g",               m_iGOPSize,                   1, "GOP size of temporal structure")
+#if REMOVE_LC
+  ("ListCombination,-lc",     m_bUseLComb,               true, "Combined reference list for uni-prediction estimation in B-slices")
+#else
   ("ListCombination,-lc",     m_bUseLComb,               true, "Combined reference list flag for uni-prediction in B-slices")
+#endif
+#if !REMOVE_LC
   ("LCModification",          m_bLCMod,                 false, "Enables signalling of combined reference list derivation")
-  
+#endif  
   // motion options
   ("FastSearch",              m_iFastSearch,                1, "0:Full search  1:Diamond  2:PMVFAST")
   ("SearchRange,-sr",         m_iSearchRange,              96, "Motion search range")
@@ -267,17 +272,27 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("NSQT",                    m_enableNSQT,              true, "Enable non-square transforms")
   ("AMP",                     m_enableAMP,               true, "Enable asymmetric motion partitions")
   ("LMChroma",                m_bUseLMChroma,            true, "Intra chroma prediction based on reconstructed luma")
+#if INTRA_TRANSFORMSKIP
+  ("TS",                      m_useTansformSkip,         false, "Intra transform skipping")
+  ("TSFast",                  m_useTansformSkipFast,     false, "Fast intra transform skipping")
+#endif
   ("ALF",                     m_bUseALF,                 true, "Enable Adaptive Loop Filter")
   ("SAO",                     m_bUseSAO,                 true, "Enable Sample Adaptive Offset")   
   ("MaxNumOffsetsPerPic",     m_maxNumOffsetsPerPic,     2048, "Max number of SAO offset per picture (Default: 2048)")   
+#if SAO_REMOVE_APS // encoder renaming
+  ("SAOLcuBasedOptimization", m_saoLcuBasedOptimization, true, "0: SAO picture-based optimization, 1: SAO LCU-based optimization ")   
+#else
   ("SAOInterleaving",         m_saoInterleavingFlag,    false, "0: SAO Picture Mode, 1: SAO Interleaving ")   
-
+#endif
+#if AHG6_ALF_OPTION2
+  ("ALFLowLatencyEncode", m_alfLowLatencyEncoding, false, "Low-latency ALF encoding, 0: picture latency (trained from current frame), 1: LCU latency(trained from previous frame)")
+#else
   ("ALFEncodePassReduction", m_iALFEncodePassReduction, 0, "0:Original 16-pass, 1: 1-pass, 2: 2-pass encoding")
 
   ("ALFMaxNumFilter,-ALFMNF", m_iALFMaxNumberFilters, 16, "16: No Constrained, 1-15: Constrained max number of filter")
   ("ALFParamInSlice", m_bALFParamInSlice, false, "ALF parameters in 0: APS, 1: slice header")
   ("ALFPicBasedEncode", m_bALFPicBasedEncode, true, "ALF picture-based encoding 0: false, 1: true")
-
+#endif
     ("SliceMode",            m_iSliceMode,           0, "0: Disable all Recon slice limits, 1: Enforce max # of LCUs, 2: Enforce max # of bytes")
     ("SliceArgument",        m_iSliceArgument,       0, "if SliceMode==1 SliceArgument represents max # of LCUs. if SliceMode==2 SliceArgument represents max # of bytes.")
     ("EntropySliceMode",     m_iEntropySliceMode,    0, "0: Disable all entropy slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based entropy slices")
@@ -314,7 +329,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("ScalingList",                 m_useScalingListId,              0,          "0: no scaling list, 1: default scaling lists, 2: scaling lists specified in ScalingListFile")
     ("ScalingListFile",             cfg_ScalingListFile,             string(""), "Scaling list file name")
     ("SignHideFlag,-SBH",                m_signHideFlag, 1)
+#if !FIXED_SBH_THRESHOLD
     ("SignHideThreshold,-TSIG",          m_signHidingThreshold,         4)
+#endif
   /* Misc. */
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
                                               "\t1: use MD5\n"
@@ -497,8 +514,10 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( (m_iIntraPeriod > 0 && m_iIntraPeriod < m_iGOPSize) || m_iIntraPeriod == 0, "Intra period must be more than GOP size, or -1 , not 0" );
   xConfirmPara( m_iDecodingRefreshType < 0 || m_iDecodingRefreshType > 2,                   "Decoding Refresh Type must be equal to 0, 1 or 2" );
   xConfirmPara( m_iQP <  -6 * ((Int)m_uiInternalBitDepth - 8) || m_iQP > 51,                "QP exceeds supported range (-QpBDOffsety to 51)" );
+#if !AHG6_ALF_OPTION2
   xConfirmPara( m_iALFEncodePassReduction < 0 || m_iALFEncodePassReduction > 2,             "ALFEncodePassReduction must be equal to 0, 1 or 2");
   xConfirmPara( m_iALFMaxNumberFilters < 1,                                                 "ALFMaxNumFilter should be larger than 1");  
+#endif
   xConfirmPara( m_loopFilterBetaOffsetDiv2 < -13 || m_loopFilterBetaOffsetDiv2 > 13,          "Loop Filter Beta Offset div. 2 exceeds supported range (-13 to 13)");
   xConfirmPara( m_loopFilterTcOffsetDiv2 < -13 || m_loopFilterTcOffsetDiv2 > 13,              "Loop Filter Tc Offset div. 2 exceeds supported range (-13 to 13)");
   xConfirmPara( m_iFastSearch < 0 || m_iFastSearch > 2,                                     "Fast Search Mode is not supported value (0:Full search  1:Diamond  2:PMVFAST)" );
@@ -986,9 +1005,13 @@ Void TAppEncCfg::xPrintParameter()
   
   printf("TOOL CFG: ");
   printf("ALF:%d ", m_bUseALF             );
+#if AHG6_ALF_OPTION2
+  printf("ALFLowLatencyEncode:%d ", m_alfLowLatencyEncoding?1:0);
+#else
   printf("ALFMNF:%d ", m_iALFMaxNumberFilters);
   printf("ALFInSlice:%d ", m_bALFParamInSlice);
   printf("ALFPicEnc:%d ", m_bALFPicBasedEncode);
+#endif
   printf("IBD:%d ", !!g_uiBitIncrement);
   printf("HAD:%d ", m_bUseHADME           );
   printf("SRD:%d ", m_bUseSBACRD          );
@@ -996,7 +1019,9 @@ Void TAppEncCfg::xPrintParameter()
   printf("SQP:%d ", m_uiDeltaQpRD         );
   printf("ASR:%d ", m_bUseASR             );
   printf("LComb:%d ", m_bUseLComb         );
+#if !REMOVE_LC
   printf("LCMod:%d ", m_bLCMod         );
+#endif
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("ECU:%d ", m_bUseEarlyCU         );
   printf("FDM:%d ", m_useFastDecisionForMerge );
@@ -1004,6 +1029,10 @@ Void TAppEncCfg::xPrintParameter()
   printf("ESD:%d ", m_useEarlySkipDetection  );
   printf("RQT:%d ", 1     );
   printf("LMC:%d ", m_bUseLMChroma        ); 
+#if INTRA_TRANSFORMSKIP
+  printf("TS:%d ",  m_useTansformSkip              ); 
+  printf("TSFast:%d ", m_useTansformSkipFast       ); 
+#endif
   printf("Slice: G=%d M=%d ", m_iSliceGranularity, m_iSliceMode);
   if (m_iSliceMode!=0)
   {
@@ -1017,7 +1046,12 @@ Void TAppEncCfg::xPrintParameter()
   printf("CIP:%d ", m_bUseConstrainedIntraPred);
   printf("SAO:%d ", (m_bUseSAO)?(1):(0));
   printf("PCM:%d ", (m_usePCM && (1<<m_uiPCMLog2MinSize) <= m_uiMaxCUWidth)? 1 : 0);
-  printf("SAOInterleaving:%d ", (m_saoInterleavingFlag)?(1):(0));
+#if SAO_REMOVE_APS // encoder renaming
+  printf("SAOLcuBasedOptimization:%d ", (m_saoLcuBasedOptimization)?(1):(0));
+#else
+  printf("SAOInterleavingFlag:%d ", (m_saoInterleavingFlag)?(1):(0));
+#endif
+
 #if LOSSLESS_CODING
   printf("LosslessCuEnabled:%d ", (m_useLossless)? 1:0 );
 #endif  
@@ -1043,7 +1077,11 @@ Void TAppEncCfg::xPrintParameter()
   printf("AQpS:%d", m_bUseAdaptQpSelect   );
 #endif
 
+#if  FIXED_SBH_THRESHOLD
+  printf(" SignBitHidingFlag:%d ", m_signHideFlag);
+#else
   printf(" SignBitHidingFlag:%d SignBitHidingThreshold:%d", m_signHideFlag, m_signHidingThreshold);
+#endif
   printf("\n\n");
   
   fflush(stdout);

@@ -102,7 +102,11 @@ public:
   Void  parsePPS            ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet);
   Void  parseSEI(SEImessages&);
   Void  parseAPS            ( TComAPS* pAPS );
+#if AHG6_ALF_OPTION2
+  Void  parseSliceHeader    ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager);
+#else
   Void  parseSliceHeader    ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl, AlfParamSet& alfParamSet);
+#endif
   Void  parseTerminatingBit ( UInt& ruiBit );
   
   Void  parseMVPIdx         ( Int& riMVPIdx );
@@ -124,7 +128,10 @@ public:
   
   Void parseDeltaQP         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseCoeffNxN        ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
-  
+#if INTRA_TRANSFORMSKIP
+  Void parseTransformSkipFlags ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType);
+#endif
+
   Void parseIPCMInfo        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
 
   Void readTileMarker     ( UInt& uiTileIdx, UInt uiBitsUsed );
@@ -138,15 +145,23 @@ public:
   Void parseDFSvlc         ( Int&  riVal,  const Char *pSymbolName  );
 protected:
   Void  xParseDblParam       ( TComAPS* aps );
+#if !SAO_REMOVE_APS
   Void  xParseSaoParam       ( SAOParam* pSaoParam );
+#endif
   Void  xParseSaoOffset      (SaoLcuParam* saoLcuParam);
+#if !SAO_REMOVE_APS
   Void  xParseSaoUnit        (Int rx, Int ry, Int compIdx, SAOParam* saoParam, Bool& repeatedRow );
+#endif
+#if !AHG6_ALF_OPTION2
   Void  xParseAlfParam(AlfParamSet* pAlfParamSet, Bool bSentInAPS = true, Int firstLCUAddr = 0, Bool acrossSlice = true, Int numLCUInWidth= -1, Int numLCUInHeight= -1);
   Void  parseAlfParamSet(AlfParamSet* pAlfParamSet, Int firstLCUAddr, Bool alfAcrossSlice);
   Void  parseAlfFixedLengthRun(UInt& idx, UInt rx, UInt numLCUInWidth);
   Void  parseAlfStoredFilterIdx(UInt& idx, UInt numFilterSetsInBuffer);
+#endif
   Void  xParseAlfParam       ( ALFParam* pAlfParam );
+#if !AHG6_ALF_OPTION2
   Void  xParseAlfCuControlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
+#endif
   Int   xGolombDecode        ( Int k );
   Bool  xMoreRbspData();
 };

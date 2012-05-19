@@ -80,7 +80,13 @@ protected:
   Int       m_numReorderPics[MAX_TLAYER];                     ///< total number of reorder pictures
   Int       m_maxDecPicBuffering[MAX_TLAYER];                 ///< total number of reference pictures needed for decoding
   Bool      m_bUseLComb;                                      ///< flag for using combined reference list for uni-prediction in B-slices (JCTVC-D421)
+#if INTRA_TRANSFORMSKIP
+  Bool      m_useTansformSkip;                                ///< flag for enabling intra transform skipping
+  Bool      m_useTansformSkipFast;                            ///< flag for enabling fast intra transform skipping
+#endif
+#if !REMOVE_LC
   Bool      m_bLCMod;                                         ///< flag for specifying whether the combined reference list for uni-prediction in B-slices is uploaded explicitly
+#endif
   Bool      m_bDisInter4x4;
   Bool      m_enableNSQT;                                     ///< flag for enabling NSQT
   Bool      m_enableAMP;
@@ -133,15 +139,22 @@ protected:
 #endif
   Bool      m_bUseSAO; 
   Int       m_maxNumOffsetsPerPic;                            ///< SAO maximun number of offset per picture
+#if SAO_REMOVE_APS
+  Bool      m_saoLcuBasedOptimization;                        ///< SAO LCU-based optimization
+#else
   Bool      m_saoInterleavingFlag;                            ///< SAO interleaving flag
+#endif
   // coding tools (loop filter)
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
+#if AHG6_ALF_OPTION2
+  Bool      m_alfLowLatencyEncoding;
+#else  
   Int       m_iALFEncodePassReduction;                        //!< ALF encoding pass, 0 = original 16-pass, 1 = 1-pass, 2 = 2-pass
   
   Int       m_iALFMaxNumberFilters;                           ///< ALF Max Number Filters in one picture
   Bool      m_bALFParamInSlice;
   Bool      m_bALFPicBasedEncode;
-
+#endif
   Bool      m_bLoopFilterDisable;                             ///< flag for using deblocking filter
   Bool      m_loopFilterOffsetInAPS;                         ///< offset for deblocking filter in 0 = slice header, 1 = APS
   Int       m_loopFilterBetaOffsetDiv2;                     ///< beta offset for deblocking filter
@@ -203,7 +216,9 @@ protected:
 
   Bool      m_enableTMVP;
   Int       m_signHideFlag;
+#if !FIXED_SBH_THRESHOLD
   Int       m_signHidingThreshold;
+#endif
   Bool      m_enableRateCtrl;                                   ///< Flag for using rate control algorithm
   Int       m_targetBitrate;                                 ///< target bitrate
   Int       m_numLCUInUnit;                                  ///< Total number of LCUs in a frame should be completely divided by the NumLCUInUnit
