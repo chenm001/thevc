@@ -538,7 +538,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         {
           xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_2Nx2N );
           rpcTempCU->initEstData( uiDepth, iBaseQP );
-#if !(CHEN_TV)
+#if 1//!(CHEN_TV)
           if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
           {
             if( rpcTempCU->getWidth(0) > ( 1 << rpcTempCU->getSlice()->getSPS()->getQuadtreeTULog2MinSize() ) )

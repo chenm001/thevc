@@ -380,6 +380,9 @@ Void TComPrediction::predIntraChromaAng( TComPattern* pcTComPattern, Int* piSrc,
   // get starting pixel in block
   Int sw = 2 * iWidth + 1;
 
+  assert( iWidth >= 4 );
+//   if ( iWidth == 4 )
+//       printf("");
   if ( uiDirMode == PLANAR_IDX )
   {
     xPredIntraPlanar( ptrSrc+sw+1, sw, pDst, uiStride, iWidth, iHeight );

@@ -387,6 +387,7 @@ Void TComPattern::fillReferenceSamples( TComDataCU* pcCU, Pel* piRoiOrigin, Int*
   Int  i, j;
   Int  iDCValue = ( 1<<7 );
 
+  assert( uiWidth >= 4 );
   if (iNumIntraNeighbor == 0)
   {
     // Fill border with DC value

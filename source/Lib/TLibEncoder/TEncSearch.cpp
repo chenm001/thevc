@@ -46,6 +46,8 @@
 FILE *fp_tv = NULL;
 int do_print = 0;
 int first_chr = 0;
+UInt g_sad[35];
+UInt g_bestSad;
 
 void tPrintMatrix( FILE *fp, char *name, Pel *P, UInt uiStride, Int iSize )
 {
@@ -933,6 +935,9 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
   UInt    uiZOrder          = pcCU->getZorderIdxInCU() + uiAbsPartIdx;
   Pel*    piRecIPred        = pcCU->getPic()->getPicYuvRec()->getLumaAddr( pcCU->getAddr(), uiZOrder );
   UInt    uiRecIPredStride  = pcCU->getPic()->getPicYuvRec()->getStride  ();
+#if (CHEN_TV)
+  UInt    uiSad = 0;
+#endif
   
   //===== init availability pattern =====
   Bool  bAboveAvail = false;
@@ -954,6 +959,9 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
       for( UInt uiX = 0; uiX < uiWidth; uiX++ )
       {
         pResi[ uiX ] = pOrg[ uiX ] - pPred[ uiX ];
+#if (CHEN_TV)
+        uiSad += abs(pResi[ uiX ]);;
+#endif
       }
       pOrg  += uiStride;
       pResi += uiStride;
@@ -963,7 +971,7 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
   
 #if (CHEN_TV)
   if ( do_print ) {
-    fprintf( fp_tv, "\n### BestMode=%d\n", uiLumaPredMode );
+    fprintf( fp_tv, "\n### BestMode=%d, Sad=%d\n", uiLumaPredMode, g_sad[uiLumaPredMode] );
     tPrintMatrix  ( fp_tv, "--- Orig ---\n", piOrg, uiStride, uiWidth);
     tPrintMatrix  ( fp_tv, "--- Pred ---\n", piPred, uiStride, uiWidth);
     tPrintMatrix16( fp_tv, "--- Resi ---\n", piResi, uiStride, uiWidth);
@@ -1031,12 +1039,16 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
   }
 #if (CHEN_TV)
   if ( do_print ) {
-    tPrintMatrix( fp_tv, "--- Recon ---\n", piReco, uiWidth, uiWidth);
+    tPrintMatrix( fp_tv, "--- Recon ---\n", piReco, uiStride, uiWidth);
   }
 #endif
   
   //===== update distortion =====
+#if (CHEN_TV)
+  ruiDist += g_bestSad;
+#else
   ruiDist += m_pcRdCost->getDistPart( piReco, uiStride, piOrg, uiStride, uiWidth, uiHeight );
+#endif
 }
 
 
@@ -1255,7 +1267,7 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
   }
 #if (CHEN_TV)
   if ( do_print ) {
-    tPrintMatrix( fp_tv, "--- Recon ---\n", piReco, uiWidth, uiWidth);
+    tPrintMatrix( fp_tv, "--- Recon ---\n", piReco, uiStride, uiWidth);
   }
 #endif
   
@@ -1306,7 +1318,7 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
   UInt    uiSingleCbfV  = 0;
 
 #if (CHEN_TV)
-  assert( bCheckFull && !bCheckSplit );
+  assert( bCheckFull ^ bCheckSplit );
 #endif
 
   if( bCheckFull )
@@ -1466,6 +1478,8 @@ TEncSearch::xRecurIntraChromaCodingQT( TComDataCU*  pcCU,
 {
   UInt uiFullDepth = pcCU->getDepth( 0 ) +  uiTrDepth;
   UInt uiTrMode    = pcCU->getTransformIdx( uiAbsPartIdx );
+  if (uiTrMode == 1)
+      uiTrMode += 0;
   if(  uiTrMode == uiTrDepth )
   {
     xIntraCodingChromaBlk( pcCU, uiTrDepth, uiAbsPartIdx, pcOrgYuv, pcPredYuv, pcResiYuv, ruiDist, 0 ); 
@@ -1473,9 +1487,6 @@ TEncSearch::xRecurIntraChromaCodingQT( TComDataCU*  pcCU,
   }
   else
   {
-#if (CHEN_TV)
-    assert( 0 );
-#endif
     UInt uiSplitCbfU     = 0;
     UInt uiSplitCbfV     = 0;
     UInt uiQPartsDiv     = pcCU->getPic()->getNumPartInCU() >> ( ( uiFullDepth + 1 ) << 1 );
@@ -1623,10 +1634,10 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
 
       extern FILE *fp_tv;
       extern int do_print;
-      if ( pcCU->getAddr() == 0 )
+      if ( pcCU->getAddr() <= 1 )
           do_print = 1;
       else
-          do_print = 1;
+          do_print = 0;
       if ( pcCU->getSlice()->getSliceType() != I_SLICE )
           do_print = 0;
       if (do_print) {
@@ -1712,6 +1723,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
             ucFiltIdx = 0; //no smoothing for DC or LM chroma
 
           fprintf( fp_tv, "*** Mode=%2d, bFilter=%d, Sad=%6d\n", uiMode, ucFiltIdx, uiSad );
+          g_sad[uiMode] = uiSad;
           {
             Int iWidth = uiWidth;
             Pel *pDst = piPred;
@@ -1799,6 +1811,7 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
     Double  dBestPUCost   = MAX_DOUBLE;
 #if (CHEN_TV)
     uiBestPUMode = uiRdModeList[0];
+    g_bestSad = g_sad[uiBestPUMode];
     if (0)
 #endif
     for( UInt uiMode = 0; uiMode < numModesForFullRD; uiMode++ )

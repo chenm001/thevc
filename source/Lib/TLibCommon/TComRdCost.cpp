@@ -98,7 +98,9 @@ Double TComRdCost::calcRdCost( UInt uiBits, UInt uiDistortion, Bool bFlag, DFunc
       dRdCost = (Double)(UInt)floor(dRdCost);
     }
   }
-  
+#if (CHEN_TV)
+  dRdCost = uiDistortion;
+#endif
   return dRdCost;
 }
 

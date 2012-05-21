@@ -105,9 +105,6 @@ class TEncEntropy
 private:
   UInt    m_uiBakAbsPartIdx;
   UInt    m_uiBakChromaOffset;
-#if UNIFIED_TRANSFORM_TREE
-  UInt    m_bakAbsPartIdxCU;
-#endif
 
 public:
   Void    setEntropyCoder           ( TEncEntropyIf* e, TComSlice* pcSlice );
