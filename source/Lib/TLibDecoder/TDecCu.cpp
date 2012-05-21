@@ -37,6 +37,25 @@
 
 #include "TDecCu.h"
 
+#if (CHEN_TV || CHEN_TV1)
+// Get Interleave Bits
+// Input:  [7 6 5 4 3 2 1 0]
+// Output: [        6 4 2 0]
+UInt getInterleaveBits( UInt x )
+{
+    UInt r = 0;
+#if 1
+    r = ( ((x * 0x01010101) & 0x40100401) * 0x8040201 ) >> 27;
+#else
+    r |= ((x   ) & 1);
+    r |= ((x>>1) & 2);
+    r |= ((x>>2) & 4);
+    r |= ((x>>3) & 8);
+#endif
+    return r;
+}
+#endif
+
 //! \ingroup TLibDecoder
 //! \{
 
@@ -137,7 +156,26 @@ Void TDecCu::decodeCU( TComDataCU* pcCU, UInt& ruiIsLast )
  */
 Void TDecCu::decompressCU( TComDataCU* pcCU )
 {
+#if (CHEN_TV1)
+  myIdxY = 0;
+  myIdxC[0] = 0;
+  myIdxC[1] = 0;
+#endif
   xDecompressCU( pcCU, pcCU, 0,  0 );
+#if (CHEN_TV1)
+  {
+    Pel *piReco   = m_ppcYuvReco[0]->getLumaAddr();
+    UInt uiWidth  = m_ppcYuvReco[0]->getWidth();
+    UInt uiStride = m_ppcYuvReco[0]->getStride();
+    //tPrintMatrix( fp_tv, "--- Recon ---\n", piReco, uiStride, uiWidth );
+    tPrintMatrix( fp_tv, "--- PredY ---\n", myPredY,    32, 32 );
+    tPrintMatrix( fp_tv, "--- PredU ---\n", myPredC[0], 16, 16 );
+    tPrintMatrix( fp_tv, "--- PredV ---\n", myPredC[1], 16, 16 );
+    tPrintMatrix( fp_tv, "--- ReconY ---\n", myRecoY,    32, 32 );
+    tPrintMatrix( fp_tv, "--- ReconU ---\n", myRecoC[0], 16, 16 );
+    tPrintMatrix( fp_tv, "--- ReconV ---\n", myRecoC[1], 16, 16 );
+  }
+#endif
 }
 
 // ====================================================================================================================
@@ -490,6 +528,17 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
   //===== init availability pattern =====
   Bool  bAboveAvail = false;
   Bool  bLeftAvail  = false;
+#if (CHEN_TV1)
+  {
+    int cuWidth = pcRecoYuv->getWidth() / pcCU->getWidth(0);
+    int iCUAddr = pcCU->m_uiCUAddr;
+    int cuY = iCUAddr / cuWidth;
+    int cuX = iCUAddr % cuWidth;
+
+    if ( do_debug )
+        cuX += 0;
+  }
+#endif
   pcCU->getPattern()->initPattern   ( pcCU, uiTrDepth, uiAbsPartIdx );
   pcCU->getPattern()->initAdiPattern( pcCU, uiAbsPartIdx, uiTrDepth, 
                                      m_pcPrediction->getPredicBuf       (),
@@ -521,6 +570,14 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
 
   
   //===== reconstruction =====
+#if (CHEN_TV1)
+  //tPrintMatrix( fp_tv, "--- Pred ---\n", piPred, uiStride, uiWidth );
+      UInt dX = getInterleaveBits( myIdxY      );
+      UInt dY = getInterleaveBits( myIdxY >> 1 );
+      for( UInt uiY = 0; uiY < uiHeight; uiY++ ) {
+        memcpy( &myPredY[ (dY*4+uiY)*32 + dX*4 ], piPred + uiY*uiStride, uiWidth*sizeof(Pel) );
+      }
+#endif
   Pel* pPred      = piPred;
   Pel* pResi      = piResi;
   Pel* pReco      = piReco;
@@ -537,6 +594,15 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
     pReco     += uiStride;
     pRecIPred += uiRecIPredStride;
   }
+#if (CHEN_TV1)
+  //tPrintMatrix( fp_tv, "--- Recon ---\n", piReco, uiStride, uiWidth );
+  {
+      for( UInt uiY = 0; uiY < uiHeight; uiY++ ) {
+        memcpy( &myRecoY[ (dY*4+uiY)*32 + dX*4 ], piReco + uiY*uiStride, uiWidth*sizeof(Pel) );
+      }
+      myIdxY += (uiWidth * uiHeight / 16);
+  }
+#endif
 }
 
 
@@ -647,6 +713,15 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
 #endif
 #endif
 
+#if (CHEN_TV1)
+  assert( uiWidth >= 4 );
+      UInt dX = getInterleaveBits( myIdxC[uiChromaId]      );
+      UInt dY = getInterleaveBits( myIdxC[uiChromaId] >> 1 );
+      for( UInt uiY = 0; uiY < uiHeight; uiY++ ) {
+        memcpy( &myPredC[uiChromaId][ (dY*2+uiY)*16 + dX*2 ], piPred + uiY*uiStride, uiWidth*sizeof(Pel) );
+      }
+#endif
+
   //===== reconstruction =====
   Pel* pPred      = piPred;
   Pel* pResi      = piResi;
@@ -664,6 +739,14 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
     pReco     += uiStride;
     pRecIPred += uiRecIPredStride;
   }
+#if (CHEN_TV1)
+  {
+      for( UInt uiY = 0; uiY < uiHeight; uiY++ ) {
+        memcpy( &myRecoC[uiChromaId][ (dY*2+uiY)*16 + dX*2 ], piReco + uiY*uiStride, uiWidth*sizeof(Pel) );
+      }
+      myIdxC[uiChromaId] += (uiWidth * uiHeight / 4);
+  }
+#endif
 }
 
 Void

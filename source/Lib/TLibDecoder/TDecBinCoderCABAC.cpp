@@ -37,6 +37,10 @@
 
 #include "TDecBinCoderCABAC.h"
 
+#if (CHEN_TV || CHEN_TV1)
+#define RANGE  m_uiRange
+#endif
+
 //! \ingroup TLibDecoder
 //! \{
 
@@ -140,6 +144,9 @@ TDecBinCABAC::decodeBin( UInt& ruiBin, ContextModel &rcCtxModel )
     
     if ( scaledRange >= ( 256 << 7 ) )
     {
+#if (CHEN_TV)
+      fprintf( fp_tv, "[%6d] R=%04X, Bin=%X\n", g_cnt++, RANGE, ruiBin );
+#endif
       return;
     }
     
@@ -179,6 +186,9 @@ TDecBinCABAC::decodeBin( UInt& ruiBin, ContextModel &rcCtxModel )
       m_bitsNeeded -= 8;
     }
   }
+#if (CHEN_TV)
+  fprintf( fp_tv, "[%6d] R=%04X, Bin=%X\n", g_cnt++, RANGE, ruiBin );
+#endif
 }
 
 Void
@@ -204,6 +214,9 @@ TDecBinCABAC::decodeBinEP( UInt& ruiBin )
     ruiBin = 1;
     m_uiValue -= scaledRange;
   }
+#if (CHEN_TV)
+  fprintf( fp_tv, "[%6d] R=%04X, EP=%X\n", g_cnt++, RANGE, ruiBin );
+#endif
 }
 
 Void TDecBinCABAC::decodeBinsEP( UInt& ruiBin, Int numBins )
@@ -260,6 +273,9 @@ Void TDecBinCABAC::decodeBinsEP( UInt& ruiBin, Int numBins )
   }
   
   ruiBin = bins;
+#if (CHEN_TV)
+  fprintf( fp_tv, "[%6d] R=%04X, EP=%X, len=%d\n", g_cnt++, RANGE, ruiBin, numBins );
+#endif
 }
 
 Void
@@ -291,6 +307,9 @@ TDecBinCABAC::decodeBinTrm( UInt& ruiBin )
       }
     }
   }
+#if (CHEN_TV)
+  fprintf( fp_tv, "[%6d] R=%04X, Term=%X\n", g_cnt++, RANGE, ruiBin );
+#endif
 }
 
 /** Reset BAC register values.

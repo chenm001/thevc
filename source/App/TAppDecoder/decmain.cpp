@@ -75,8 +75,15 @@ int main(int argc, char* argv[])
   double dResult;
   long lBefore = clock();
 
+#if (CHEN_TV)
+  extern FILE *fp_tv;
+  fp_tv = fopen("DEC_TV.TXT", "w");
+#endif
   // call decoding function
   cTAppDecTop.decode();
+#if (CHEN_TV)
+  fflush(fp_tv);
+#endif
 
   if (g_md5_mismatch)
   {

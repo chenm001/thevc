@@ -134,6 +134,8 @@ _byteStreamNALUnit(
   &&     (bs.eofBeforeNBytes(32/8) || bs.peekBytes(32/8) != 0x00000001))
   {
     uint8_t trailing_zero_8bits = bs.readByte();
+    if ( trailing_zero_8bits != 0 )
+        printf("%02X, %08X\n", trailing_zero_8bits, bs.peekBytes(4));
     assert(trailing_zero_8bits == 0);
     stats.m_numTrailingZero8BitsBytes++;
   }

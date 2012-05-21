@@ -37,6 +37,7 @@
 
 #include "TDecSlice.h"
 
+
 //! \ingroup TLibDecoder
 //! \{
 
@@ -326,6 +327,17 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
         pcCU->setAlfLCUEnabled((alfEnabledFlag==1)?true:false, compIdx);
       }
     }
+#endif
+
+#if (CHEN_TV || CHEN_TV1)
+    int cuY = iCUAddr/rpcPic->getFrameWidthInCU();
+    int cuX = iCUAddr%rpcPic->getFrameWidthInCU();
+
+    if ( cuY == 0 && cuX == 1 ) {
+        cuX += 0;
+        do_debug = 1;
+    }
+    fprintf( fp_tv, "===== (%3d,%3d)\n", cuY, cuX );
 #endif
 
     m_pcCuDecoder->decodeCU     ( pcCU, uiIsLast );

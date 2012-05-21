@@ -36,6 +36,62 @@
 */
 
 #include "TDecSbac.h"
+#include "TDecBinCoderCabac.h"
+
+// chen_debug
+#if (CHEN_TV || CHEN_TV1)
+#define RANGE m_pcTDecBinIf->getTDecBinCABAC()->getRange()
+
+FILE *fp_tv = NULL;
+unsigned g_cnt = 0;
+int do_print = 0;
+int first_chr = 0;
+int do_debug = 0;
+Pel myPredY[32*32], myRecoY[32*32];
+Pel myPredC[2][16*16], myRecoC[2][16*16];
+int myIdxY, myIdxC[2];
+
+
+void tPrintMatrix( FILE *fp, char *name, Pel *P, UInt uiStride, Int iSize )
+{
+    Int i, j;
+    fprintf( fp, "%s", name );
+    for( i=0; i<iSize; i++ ) {
+        for( j=0; j<iSize; j++ ) {
+            fprintf( fp, "%02X ", P[i*uiStride+j] & 0xFF );
+        }
+        fprintf( fp, "\n" );
+    }
+    fflush( fp );
+}
+
+void tPrintMatrix16( FILE *fp, char *name, Pel *P, UInt uiStride, Int iSize )
+{
+    Int i, j;
+    fprintf( fp, "%s", name );
+    for( i=0; i<iSize; i++ ) {
+        for( j=0; j<iSize; j++ ) {
+            fprintf( fp, "%04X ", P[i*uiStride+j] & 0xFFFF );
+        }
+        fprintf( fp, "\n" );
+    }
+    fflush( fp );
+}
+
+void tPrintMatrix32( FILE *fp, char *name, Int *P, UInt uiStride, Int iSize )
+{
+    Int i, j;
+    fprintf( fp, "%s", name );
+    for( i=0; i<iSize; i++ ) {
+        for( j=0; j<iSize; j++ ) {
+            fprintf( fp, "%04X ", P[i*uiStride+j] & 0xFFFF );
+        }
+        fprintf( fp, "\n" );
+    }
+    fflush( fp );
+}
+#endif
+// ~chen_debug
 
 //! \ingroup TLibDecoder
 //! \{
@@ -246,6 +302,9 @@ Void TDecSbac::readTileMarker( UInt& uiTileIdx, UInt uiBitsUsed )
 Void TDecSbac::parseTerminatingBit( UInt& ruiBit )
 {
   m_pcTDecBinIf->decodeBinTrm( ruiBit );
+#if (CHEN_TV)
+  fprintf( fp_tv, "[%6d] R=%04X, uiIsLast=%d\n", g_cnt++, RANGE, ruiBit );
+#endif
 }
 
 
@@ -388,7 +447,17 @@ Void TDecSbac::xReadGoRiceExGolomb( UInt &ruiSymbol, UInt &ruiGoRiceParam )
 
   if ( ruiGoRiceParam > 0 )
   {
-    m_pcTDecBinIf->decodeBinsEP( uiRemainder, ruiGoRiceParam );    
+#if (CHEN_TV || CHEN_TV1)
+    {
+      int i;
+      for( i=0; i<ruiGoRiceParam; i++ ) {
+        m_pcTDecBinIf->decodeBinEP( uiCodeWord );
+        uiRemainder = (uiRemainder << 1) | uiCodeWord;
+      }
+    }
+#else
+    m_pcTDecBinIf->decodeBinsEP( uiRemainder, ruiGoRiceParam );
+#endif
   }
 
   ruiSymbol      = uiRemainder + ( uiQuotient << ruiGoRiceParam );
@@ -619,9 +688,17 @@ Void TDecSbac::parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   
   UInt uiSymbol;
   m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUSplitFlagSCModel.get( 0, 0, pcCU->getCtxSplitFlag( uiAbsPartIdx, uiDepth ) ) );
+#if (CHEN_TV)
+  UInt uiCtx = pcCU->getCtxSplitFlag( uiAbsPartIdx, uiDepth );
+  fprintf( fp_tv, "[%6d] R=%04X, SplitFlag=%d, uiCtx=%d\n", g_cnt++, RANGE, uiSymbol, uiCtx );
+#endif
   DTRACE_CABAC_VL( g_nSymbolCounter++ )
   DTRACE_CABAC_T( "\tSplitFlag\n" )
   pcCU->setDepthSubParts( uiDepth + uiSymbol, uiAbsPartIdx );
+#if (CHEN_TV)
+  if ( g_cnt == 3326 )
+      g_cnt += 0;
+#endif
   
   return;
 }
@@ -643,7 +720,11 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
     if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth )
     {
       m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUPartSizeSCModel.get( 0, 0, 0) );
+#if (CHEN_TV)
+      fprintf( fp_tv, "[%6d] R=%04X, nPartSize=%d\n", g_cnt++, m_pcTDecBinIf->getTDecBinCABAC()->getRange(), uiSymbol );
+#endif
     }
+
     eMode = uiSymbol ? SIZE_2Nx2N : SIZE_NxN;
     UInt uiTrLevel = 0;    
     UInt uiWidthInBit  = g_aucConvertToBit[pcCU->getWidth(uiAbsPartIdx)]+2;
@@ -729,6 +810,9 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt absPartIdx, UInt d
   UInt partOffset = ( pcCU->getPic()->getNumPartInCU() >> ( pcCU->getDepth(absPartIdx) << 1 ) ) >> 2;
   UInt mpmPred[4],symbol;
   Int j,intraPredMode;    
+#if (CHEN_TV)
+  Int iPredMode[4];
+#endif
   if (mode==SIZE_NxN)
   {
     depth++;
@@ -777,7 +861,16 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt absPartIdx, UInt d
       }
     }
     pcCU->setLumaIntraDirSubParts( (UChar)intraPredMode, absPartIdx+partOffset*j, depth );
+#if (CHEN_TV)
+    iPredMode[j] = intraPredMode;
+#endif
   }
+#if (CHEN_TV)
+  for (j=0;j<partNum;j++)
+  {
+    fprintf( fp_tv, "[%6d] R=%04X, LumaAng=%d\n", g_cnt++, RANGE, iPredMode[j] );
+  }
+#endif
 }
 #else  
 Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
@@ -821,6 +914,9 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
       intraPredMode += ( intraPredMode >= uiPreds[i] );
     }
   }
+#if (CHEN_TV)
+  fprintf( fp_tv, "[%6d] R=%04X, LumaAng=%d\n", g_cnt++, RANGE, intraPredMode );
+#endif
   pcCU->setLumaIntraDirSubParts( (UChar)intraPredMode, uiAbsPartIdx, uiDepth );
 }
 #endif
@@ -858,6 +954,9 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
       uiSymbol = uiAllowedChromaDir[ uiIPredMode ];
     }
   }
+#if (CHEN_TV)
+  fprintf( fp_tv, "[%6d] R=%04X, DirChroma=%d\n", g_cnt++, RANGE, uiSymbol );
+#endif
   pcCU->setChromIntraDirSubParts( uiSymbol, uiAbsPartIdx, uiDepth );
   return;
 }
@@ -1069,7 +1168,10 @@ Void TDecSbac::parseQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, 
   DTRACE_CABAC_T( "\tuiAbsPartIdx=" )
   DTRACE_CABAC_V( uiAbsPartIdx )
   DTRACE_CABAC_T( "\n" )
-  
+
+#if (CHEN_TV)
+  fprintf( fp_tv, "[%6d] R=%04X, nCbf=%d, uiCtx=%d\n", g_cnt++, RANGE, (uiSymbol ? 1 : 0), uiCtx );
+#endif
   pcCU->setCbfSubParts( uiSymbol << uiTrDepth, eType, uiAbsPartIdx, uiDepth );
 }
 
@@ -1267,6 +1369,16 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   parseLastSignificantXY( uiPosLastX, uiPosLastY, uiWidth, uiHeight, eTType, uiScanIdx );
   UInt uiBlkPosLast      = uiPosLastX + (uiPosLastY<<uiLog2BlockSize);
   pcCoef[ uiBlkPosLast ] = 1;
+  assert( uiLog2BlockSize >= 2 );
+#if (CHEN_TV)
+  fprintf( fp_tv, "[%6d] R=%04X, codeLastSignificantXY(%d,%d)\n", g_cnt++, RANGE, uiPosLastY, uiPosLastX );
+//   if ( pcCU->getAddr() == 1 )
+//       printf("");
+#endif
+#if (CHEN_TV)
+            if ( g_cnt == 3326 )
+                g_cnt += 0;
+#endif
 
   //===== decode significance flags =====
   UInt uiScanPosLast   = uiBlkPosLast;
@@ -1400,6 +1512,9 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
           uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
 #endif
           m_pcTDecBinIf->decodeBin( uiSig, baseCtx[ uiCtxSig ] );
+#if (CHEN_TV)
+            fprintf( fp_tv, "[%6d] R=%04X, uiSig=%d, uiCtxSig=%d\n", g_cnt++, RANGE, uiSig, uiCtxSig );
+#endif
         }
         else
         {
@@ -1463,6 +1578,9 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
         absCoeff[ idx ] = uiBin + 1;
       }
       
+#if (CHEN_TV)
+      fprintf( fp_tv, "[%6d] R=%04X\n", g_cnt++, RANGE );
+#endif
       if (c1 == 0)
       {
         baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUAbsSCModel.get( 0, 0 ) + uiCtxSet : m_cCUAbsSCModel.get( 0, 0 ) + NUM_ABS_FLAG_CTX_LUMA + uiCtxSet;
@@ -1546,6 +1664,9 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     }
   }
   
+#if (CHEN_TV)
+  fprintf( fp_tv, "[%6d] R=%04X, parseCoeffNxN\n", g_cnt++, RANGE );
+#endif
   return;
 }
 

@@ -72,6 +72,9 @@ public:
 #if !OL_FLUSH_ALIGN
   Int   getBitsReadAhead() { return -m_bitsNeeded; }
 #endif
+#if (CHEN_TV || CHEN_TV1)
+  UInt getRange() { return m_uiRange; }
+#endif
 
 private:
   TComInputBitstream* m_pcTComBitstream;

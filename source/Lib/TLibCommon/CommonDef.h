@@ -224,6 +224,16 @@ enum NalUnitType
   NAL_UNIT_INVALID,
 };
 
+#define CHEN_TV     1
+#define CHEN_TV1    0
+extern FILE *fp_tv;
+extern unsigned g_cnt;
+extern int do_debug;
+extern void tPrintMatrix( FILE *fp, char *name, Pel *P, UInt uiStride, Int iSize );
+extern Pel myPredY[32*32], myRecoY[32*32];
+extern Pel myPredC[2][16*16], myRecoC[2][16*16];
+extern int myIdxY, myIdxC[2];
+
 //! \}
 
 #endif // end of #ifndef  __COMMONDEF__
