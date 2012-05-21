@@ -977,11 +977,8 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
   Int RErrSrc =  y & ( ( 1 << iCountShift ) - 1 );
 #endif  
 
-#if LM_REDUCED_DIV_TABLE
-  Int a, b, iShift = g_uiBitDepth + g_uiBitIncrement + 4;
-#else
   Int a, b, iShift = 13;
-#endif
+
 #if LM_SIMP_ALPHA
    Int iB = 7;
    iShift -= iB;
@@ -1023,17 +1020,28 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
       const Int iShiftA1 = 15;
 #endif
 #endif
-#if !LM_REDUCED_DIV_TABLE
 #if LM_UNIFORM_MULTIPLIERS
 #if LM_CLEANUP
+#if LM_REDUCED_DIV_TABLE
+      const Int iAccuracyShift = uiInternalBitDepth + 4;
+#else
       const Int iAccuracyShift = uiInternalBitDepth;
+#endif
+#else
+#if LM_REDUCED_DIV_TABLE
+      const Int iAccuracyShift = g_uiBitDepth + g_uiBitIncrement + 4;
 #else
       const Int iAccuracyShift = g_uiBitDepth + g_uiBitIncrement;
 #endif
+#endif
+#else
+#if LM_REDUCED_DIV_TABLE
+      const Int iAccuracyShift = g_uiBitDepth + g_uiBitIncrement + 4;
 #else
       const Int iAccuracyShift = 15;
 #endif
 #endif
+
       Int iScaleShiftA2 = 0;
       Int iScaleShiftA1 = 0;
       Int a1s = a1;
@@ -1057,11 +1065,7 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
         iScaleShiftA2 = 0;
       }
  
-#if LM_REDUCED_DIV_TABLE
-      Int iScaleShiftA = iScaleShiftA2 - iScaleShiftA1;
-#else
       Int iScaleShiftA = iScaleShiftA2 + iAccuracyShift - iShift - iScaleShiftA1;
-#endif
 
       a2s = a2 >> iScaleShiftA2;
 
@@ -1081,12 +1085,20 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
         UInt a2t = ( ( m_uiaShift[ a2s - 1] + ( 1 << ( (15 - uiInternalBitDepth ) - 1 ) ) ) >> (15 - uiInternalBitDepth ) ) ;
 #endif
 #else
+#if LM_REDUCED_DIV_TABLE
+        UInt a2t = m_uiaShift[ a2s - 32 ] ;
+#else
         UInt a2t = ( ( m_uiaShift[ a2s - 1] + ( 1 << ( (15 - g_uiBitDepth + g_uiBitIncrement ) - 1 ) ) ) >> (15 - g_uiBitDepth + g_uiBitIncrement ) ) ;
+#endif
 #endif
         a2t = Clip( a2t );
         a = a1s * a2t;
 #else
+#if LM_REDUCED_DIV_TABLE
+        a = a1s * m_uiaShift[ a2s - 32 ];
+#else
         a = a1s * m_uiaShift[ a2s - 1];
+#endif
 #endif
       }
       else
@@ -1145,13 +1157,9 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
       }
 #if LM_CLEANUP
 #if LM_SIMP_ALPHA
-       a = a>>n;
-#else
-#if LM_REDUCED_DIV_TABLE
-      a = a >> ( g_uiBitDepth + g_uiBitIncrement + 4 - iShift );
+      a = a>>n;
 #else
       a = a >> ( 13 - iShift );
-#endif
 #endif
 #endif
 
