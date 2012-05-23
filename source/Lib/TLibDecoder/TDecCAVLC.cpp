@@ -1936,13 +1936,16 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   {
     delete [] entryPointOffset;
   }
-
+#if BYTE_ALIGNMENT
+  m_pcBitstream->readByteAlignment();
+#else
   if (!bEntropySlice)
   {
     // Reading location information
       // read out trailing bits
     m_pcBitstream->readOutTrailingBits();
   }
+#endif
   return;
 }
 #if !AHG6_ALF_OPTION2

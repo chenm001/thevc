@@ -322,6 +322,7 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   // ALF CU parameters should be part of the slice header -> needs to be fixed 
   m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot, &m_parameterSetManagerDecoder, m_cGopDecoder.getAlfCuCtrlParam(), m_cGopDecoder.getAlfParamSet());
 #endif
+#if !BYTE_ALIGNMENT
   // byte align
   {
     Int numBitsForByteAlignment = nalu.m_Bitstream->getNumBitsUntilByteAligned();
@@ -332,7 +333,7 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
       assert( bitsForByteAlignment == ( ( 1 << numBitsForByteAlignment ) - 1 ) );
     }
   }
-
+#endif
   // exit when a new picture is found
   if (m_apcSlicePilot->isNextSlice() && m_apcSlicePilot->getPOC()!=m_prevPOC && !m_bFirstSliceInSequence)
   {

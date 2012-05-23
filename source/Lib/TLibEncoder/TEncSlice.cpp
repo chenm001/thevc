@@ -1087,8 +1087,13 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
             sliceType = (SliceType) pcSlice->getPPS()->getEncCABACTableIdx();
           }
           m_pcEntropyCoder->updateContextTables( sliceType, pcSlice->getSliceQp() );
+#if BYTE_ALIGNMENT
+          // Byte-alignment in slice_data() when new tile
+          pcSubstreams[uiSubStrm].writeByteAlignment();
+#else
           pcSubstreams[uiSubStrm].write( 1, 1 );
           pcSubstreams[uiSubStrm].writeAlignZero();
+#endif
         }
       }
       {

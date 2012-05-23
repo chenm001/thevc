@@ -953,10 +953,14 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             m_pcEntropyCoder->setBitstream      (  &pcSubstreamsOut[ui] );
             m_pcEntropyCoder->encodeTerminatingBit( 1 );
             m_pcEntropyCoder->encodeSliceFinish();
-
+            
+#if BYTE_ALIGNMENT  
+            pcSubstreamsOut[ui].writeByteAlignment();   // Byte-alignment in slice_data() at end of sub-stream
+#else
             //!KS: The following writes trailing_bits. Should use proper function call to writeRBSPTrailingBits()
             pcSubstreamsOut[ui].write( 1, 1 ); // stop bit.
             pcSubstreamsOut[ui].writeAlignZero();
+#endif
             // Byte alignment is necessary between tiles when tiles are independent.
             uiTotalCodedSize += pcSubstreamsOut[ui].getNumberOfWrittenBits();
 
@@ -1894,7 +1898,11 @@ Double TEncGOP::xCalculateRVM()
 Void TEncGOP::xWriteTileLocationToSliceHeader (OutputNALUnit& rNalu, TComOutputBitstream*& rpcBitstreamRedirect, TComSlice*& rpcSlice)
 {
   // Byte-align
+#if BYTE_ALIGNMENT
+  rNalu.m_Bitstream.writeByteAlignment();   // Slice header byte-alignment
+#else
   rNalu.m_Bitstream.writeAlignOne();
+#endif
 
   // Update tile marker locations
   TComOutputBitstream *pcOut = &rNalu.m_Bitstream;

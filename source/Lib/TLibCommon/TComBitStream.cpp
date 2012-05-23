@@ -180,7 +180,13 @@ Void   TComOutputBitstream::addSubstream( TComOutputBitstream* pcSubstream )
     write(pcSubstream->getHeldBits()>>(8-(uiNumBits&0x7)), uiNumBits&0x7);
   }
 }
-
+#if BYTE_ALIGNMENT
+Void TComOutputBitstream::writeByteAlignment()
+{
+  write( 1, 1);
+  writeAlignZero();
+}
+#endif
 /**
  * read #uiNumberOfBits# from bitstream without updating the bitstream
  * state, storing the result in #ruiBits#.
@@ -343,5 +349,22 @@ Void TComInputBitstream::deleteFifo()
   delete m_fifo;
   m_fifo = NULL;
 }
+
+#if BYTE_ALIGNMENT
+Void TComInputBitstream::readByteAlignment()
+{
+  UInt code = 0;
+  read( 1, code );
+  assert(code == 1);
+
+  UInt numBits = getNumBitsUntilByteAligned();
+  if(numBits)
+  {
+    assert(numBits <= getNumBitsLeft());
+    read( numBits, code );
+    assert(code == 0);
+  }
+}
+#endif
 
 //! \}

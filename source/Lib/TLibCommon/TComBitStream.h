@@ -158,6 +158,9 @@ public:
   std::vector<uint8_t>& getFIFO() const { return *m_fifo; }
 
   Void          addSubstream    ( TComOutputBitstream* pcSubstream );
+#if BYTE_ALIGNMENT
+  Void writeByteAlignment();
+#endif
 };
 
 /**
@@ -226,6 +229,9 @@ public:
   Void                backupByte() { m_fifo_idx--; }
 #endif
   UInt  getNumBitsRead() { return m_numBitsRead; }
+#if BYTE_ALIGNMENT
+  Void readByteAlignment();
+#endif
 };
 
 //! \}
