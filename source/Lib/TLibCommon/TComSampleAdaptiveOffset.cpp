@@ -1150,7 +1150,7 @@ Void TComSampleAdaptiveOffset::processSaoUnitAll(SaoLcuParam* saoLcuParam, Bool 
   Pel* ppLumaTable = NULL;
   Int  typeIdx;
 
-  static Int offset[LUMA_GROUP_NUM+1];
+  Int offset[LUMA_GROUP_NUM+1];
   Int idxX;
   Int idxY;
   Int addr;
@@ -1161,7 +1161,7 @@ Void TComSampleAdaptiveOffset::processSaoUnitAll(SaoLcuParam* saoLcuParam, Bool 
   Int isChroma = (yCbCr == 0) ? 0:1;
   Bool mergeLeftFlag;
 
-  offset[0] = 0; // ticket 534 
+  offset[0] = 0;
   for (idxY = 0; idxY< frameHeightInCU; idxY++)
   { 
     addr = idxY * frameWidthInCU;
