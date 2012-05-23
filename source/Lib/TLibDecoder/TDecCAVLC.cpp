@@ -1347,6 +1347,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
 #if ENC_DEC_TRACE
   xTraceSliceHeader(rpcSlice);
 #endif
+#if !SLICE_ADDRESS_FIX
   Int numCUs = ((rpcSlice->getSPS()->getPicWidthInLumaSamples()+rpcSlice->getSPS()->getMaxCUWidth()-1)/rpcSlice->getSPS()->getMaxCUWidth())*((rpcSlice->getSPS()->getPicHeightInLumaSamples()+rpcSlice->getSPS()->getMaxCUHeight()-1)/rpcSlice->getSPS()->getMaxCUHeight());
   Int maxParts = (1<<(rpcSlice->getSPS()->getMaxCUDepth()<<1));
   Int numParts = (1<<(rpcSlice->getPPS()->getSliceGranularity()<<1));
@@ -1361,18 +1362,59 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   {
     reqBitsInner++;
   }
-
   READ_FLAG( uiCode, "first_slice_in_pic_flag" );
   UInt address;
   UInt innerAddress = 0;
   if(!uiCode)
   {
+
+#else
+  TComPPS* pps = NULL;
+  TComSPS* sps = NULL;
+
+  UInt firstSliceInPic;
+  READ_FLAG( firstSliceInPic, "first_slice_in_pic_flag" );
+
+  READ_UVLC (    uiCode, "pic_parameter_set_id" );  rpcSlice->setPPSId(uiCode);
+  pps = parameterSetManager->getPrefetchedPPS(uiCode);
+  //!KS: need to add error handling code here, if PPS is not available
+  assert(pps!=0);
+  sps = parameterSetManager->getPrefetchedSPS(pps->getSPSId());
+  //!KS: need to add error handling code here, if SPS is not available
+  assert(sps!=0);
+  rpcSlice->setSPS(sps);
+  rpcSlice->setPPS(pps);
+
+  Int numCUs = ((sps->getPicWidthInLumaSamples()+sps->getMaxCUWidth()-1)/sps->getMaxCUWidth())*((sps->getPicHeightInLumaSamples()+sps->getMaxCUHeight()-1)/sps->getMaxCUHeight());
+  Int maxParts = (1<<(sps->getMaxCUDepth()<<1));
+  Int numParts = (1<<(pps->getSliceGranularity()<<1));
+  UInt lCUAddress = 0;
+  Int reqBitsOuter = 0;
+  while(numCUs>(1<<reqBitsOuter))
+  {
+    reqBitsOuter++;
+  }
+  Int reqBitsInner = 0;
+  while((numParts)>(1<<reqBitsInner)) 
+  {
+    reqBitsInner++;
+  }
+
+  UInt innerAddress = 0;
+  if(!firstSliceInPic)
+  {
+    UInt address;
+#endif
     READ_CODE( reqBitsOuter+reqBitsInner, address, "slice_address" );
     lCUAddress = address >> reqBitsInner;
     innerAddress = address - (lCUAddress<<reqBitsInner);
   }
   //set uiCode to equal slice start address (or entropy slice start address)
+#if !SLICE_ADDRESS_FIX
   uiCode=(maxParts*lCUAddress)+(innerAddress*(maxParts>>(rpcSlice->getPPS()->getSliceGranularity()<<1)));
+#else
+  uiCode=(maxParts*lCUAddress)+(innerAddress*(maxParts>>(pps->getSliceGranularity()<<1)));
+#endif
   
   rpcSlice->setEntropySliceCurStartCUAddr( uiCode );
   rpcSlice->setEntropySliceCurEndCUAddr(numCUs*maxParts);
@@ -1393,20 +1435,28 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     rpcSlice->setNextSlice        ( true  );
     rpcSlice->setNextEntropySlice ( false );
     
+#if !SLICE_ADDRESS_FIX
     uiCode=(maxParts*lCUAddress)+(innerAddress*(maxParts>>(rpcSlice->getPPS()->getSliceGranularity()<<1)));
+#else
+    uiCode=(maxParts*lCUAddress)+(innerAddress*(maxParts>>(pps->getSliceGranularity()<<1)));
+#endif
     rpcSlice->setSliceCurStartCUAddr(uiCode);
     rpcSlice->setSliceCurEndCUAddr(numCUs*maxParts);
   }
+#if !SLICE_ADDRESS_FIX
   TComPPS* pps = NULL;
   TComSPS* sps = NULL;
+#endif
 
   if (!bEntropySlice)
   {
+#if !SLICE_ADDRESS_FIX
     READ_UVLC (    uiCode, "pic_parameter_set_id" );  rpcSlice->setPPSId(uiCode);
     pps = parameterSetManager->getPrefetchedPPS(uiCode);
     sps = parameterSetManager->getPrefetchedSPS(pps->getSPSId());
     rpcSlice->setSPS(sps);
     rpcSlice->setPPS(pps);
+#endif
     if( pps->getOutputFlagPresentFlag() )
     {
       READ_FLAG( uiCode, "pic_output_flag" );

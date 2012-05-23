@@ -40,6 +40,7 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define SLICE_ADDRESS_FIX                1  ///< I0113: Slice address parsing fix
 #define REMOVE_LASTTU_CBFDERIV           1  ///< I0152: CBF coding for last TU without derivation process 
 
 #define INTRAMODE_BYPASSGROUP            1  ///< I0302: group coding of Intra_NxN
