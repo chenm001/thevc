@@ -49,9 +49,11 @@ extern bool g_md5_mismatch; ///< top level flag to signal when there is a decode
 
 //! \ingroup TLibDecoder
 //! \{
-
+#if HASH_TYPE
+static void calcAndPrintHashStatus(TComPicYuv& pic, const SEImessages* seis);
+#else
 static void calcAndPrintMD5Status(TComPicYuv& pic, const SEImessages* seis);
-
+#endif
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
 // ====================================================================================================================
@@ -438,7 +440,11 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #endif
     if (m_pictureDigestEnabled)
     {
+#if HASH_TYPE
+      calcAndPrintHashStatus(*rpcPic->getPicYuvRec(), rpcPic->getSEIs());
+#else
       calcAndPrintMD5Status(*rpcPic->getPicYuvRec(), rpcPic->getSEIs());
+#endif
     }
 
 #if FIXED_ROUNDING_FRAME_MEMORY
@@ -461,7 +467,77 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #endif
   }
 }
+#if HASH_TYPE
+/**
+ * Calculate and print hash for pic, compare to picture_digest SEI if
+ * present in seis.  seis may be NULL.  Hash is printed to stdout, in
+ * a manner suitable for the status line. Theformat is:
+ *  [Hash_type:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,(yyy)]
+ * Where, x..x is the hash
+ *        yyy has the following meanings:
+ *            OK          - calculated hash matches the SEI message
+ *            ***ERROR*** - calculated hash does not match the SEI message
+ *            unk         - no SEI message was available for comparison
+ */
+static void calcAndPrintHashStatus(TComPicYuv& pic, const SEImessages* seis)
+{
+  /* calculate MD5sum for entire reconstructed picture */
+  unsigned char recon_digest[3][16];
+  int numChar=0;
+  const char* hashType;
 
+  if(seis->picture_digest->method == SEIpictureDigest::MD5)
+  {
+    hashType = "MD5";
+    calcMD5(pic, recon_digest);
+    numChar = 16;    
+  }
+  else if(seis->picture_digest->method == SEIpictureDigest::CRC)
+  {
+    hashType = "CRC";
+    calcCRC(pic, recon_digest);
+    numChar = 2;
+  }
+  else if(seis->picture_digest->method == SEIpictureDigest::CHECKSUM)
+  {
+    hashType = "Checksum";
+    calcChecksum(pic, recon_digest);
+    numChar = 4;
+  }
+  else
+  {
+    hashType = "\0";
+  }
+
+  /* compare digest against received version */
+  const char* ok = "(unk)";
+  bool mismatch = false;
+
+  if (seis && seis->picture_digest)
+  {
+   ok = "(OK)";
+    for(int yuvIdx = 0; yuvIdx < 3; yuvIdx++)
+    {
+      for (unsigned i = 0; i < numChar; i++)
+      {
+        if (recon_digest[yuvIdx][i] != seis->picture_digest->digest[yuvIdx][i])
+        {
+          ok = "(***ERROR***)";
+          mismatch = true;
+        }
+      }
+    }
+  }
+
+  printf("[%s:%s,%s] ", hashType, digestToString(recon_digest, numChar), ok);
+
+  if (mismatch)
+  {
+    g_md5_mismatch = true;
+    printf("[rx%s:%s] ", hashType, digestToString(seis->picture_digest->digest, numChar));
+  }
+}
+#else
 /**
  * Calculate and print MD5 for pic, compare to picture_digest SEI if
  * present in seis.  seis may be NULL.  MD5 is printed to stdout, in
@@ -503,4 +579,5 @@ static void calcAndPrintMD5Status(TComPicYuv& pic, const SEImessages* seis)
     printf("[rxMD5:%s] ", digestToString(seis->picture_digest->digest));
   }
 }
+#endif
 //! \}

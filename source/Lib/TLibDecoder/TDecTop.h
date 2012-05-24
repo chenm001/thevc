@@ -110,8 +110,12 @@ public:
   Void  create  ();
   Void  destroy ();
 
+#if HASH_TYPE
+  void setPictureDigestEnabled(Int enabled) { m_cGopDecoder.setPictureDigestEnabled(enabled); }
+#else
   void setPictureDigestEnabled(bool enabled) { m_cGopDecoder.setPictureDigestEnabled(enabled); }
-  
+#endif
+
   Void  init();
   Bool  decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay);
   

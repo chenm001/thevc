@@ -337,10 +337,17 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("SignHideThreshold,-TSIG",          m_signHidingThreshold,         4)
 #endif
   /* Misc. */
+#if HASH_TYPE
+  ("SEIpictureDigest", m_pictureDigestEnabled, 1, "Control generation of picture_digest SEI messages\n"
+                                              "\t3: checksum\n"
+                                              "\t2: CRC\n"
+                                              "\t1: use MD5\n"
+                                              "\t0: disable")
+#else
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
                                               "\t1: use MD5\n"
                                               "\t0: disable")
-
+#endif
   ("TMVP", m_enableTMVP, true, "Enable TMVP" )
 
   ("FEN", m_bUseFastEnc, false, "fast encoder setting")
@@ -906,6 +913,10 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iWaveFrontFlush < 0, "WaveFrontFlush cannot be negative" );
   xConfirmPara( m_iWaveFrontSubstreams <= 0, "WaveFrontSubstreams must be positive" );
   xConfirmPara( m_iWaveFrontSubstreams > 1 && !m_iWaveFrontSynchro, "Must have WaveFrontSynchro > 0 in order to have WaveFrontSubstreams > 1" );
+
+#if HASH_TYPE
+  xConfirmPara( m_pictureDigestEnabled<0 || m_pictureDigestEnabled>3, "this hash type is not correct!\n");
+#endif
 
   if(m_enableRateCtrl)
   {
