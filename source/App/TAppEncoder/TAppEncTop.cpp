@@ -225,7 +225,9 @@ Void TAppEncTop::xInitLibCfg()
 
   m_cTEncTop.setPictureDigestEnabled(m_pictureDigestEnabled);
 
+#if !TILES_OR_ENTROPY_FIX
   m_cTEncTop.setColumnRowInfoPresent       ( m_iColumnRowInfoPresent );
+#endif
   m_cTEncTop.setUniformSpacingIdr          ( m_iUniformSpacingIdr );
   m_cTEncTop.setNumColumnsMinus1           ( m_iNumColumnsMinus1 );
   m_cTEncTop.setNumRowsMinus1              ( m_iNumRowsMinus1 );
@@ -242,7 +244,9 @@ Void TAppEncTop::xInitLibCfg()
   Int uiTilesCount          = (m_iNumRowsMinus1+1) * (m_iNumColumnsMinus1+1);
   m_dMaxTileMarkerOffset  = ((Double)uiTilesCount) / m_iMaxTileMarkerEntryPoints;
   m_cTEncTop.setMaxTileMarkerOffset         ( m_dMaxTileMarkerOffset );
+#if !TILES_OR_ENTROPY_FIX
   m_cTEncTop.setTileBehaviorControlPresentFlag( m_iTileBehaviorControlPresentFlag );
+#endif
   if(uiTilesCount == 1)
   {
     m_bLFCrossTileBoundaryFlag = true; 

@@ -219,6 +219,7 @@ private:
   Bool        m_bLFCrossSliceBoundaryFlag;
   Bool        m_bUseSAO; 
 
+#if !TILES_OR_ENTROPY_FIX
   Bool     m_bLFCrossTileBoundaryFlag;
   Int      m_iUniformSpacingIdr;
   Int      m_iTileBoundaryIndependenceIdr;
@@ -226,6 +227,7 @@ private:
   UInt*    m_puiColumnWidth;
   Int      m_iNumRowsMinus1;
   UInt*    m_puiRowHeight;
+#endif
   
   Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
 
@@ -238,8 +240,10 @@ private:
   static const Int   m_cropUnitX[MAX_CHROMA_FORMAT_IDC+1];
   static const Int   m_cropUnitY[MAX_CHROMA_FORMAT_IDC+1];
 
+#if !TILES_OR_ENTROPY_FIX
   UInt        m_tilesOrEntropyCodingSyncIdc;
   Int         m_numSubstreams;
+#endif
 
 public:
   TComSPS();
@@ -390,6 +394,7 @@ public:
   Void      setPCMFilterDisableFlag     ( Bool   bValue  )    { m_bPCMFilterDisableFlag = bValue; }
   Bool      getPCMFilterDisableFlag     ()                    { return m_bPCMFilterDisableFlag;   } 
 
+#if !TILES_OR_ENTROPY_FIX
   Void    setLFCrossTileBoundaryFlag               ( Bool   bValue  )    { m_bLFCrossTileBoundaryFlag = bValue; }
   Bool    getLFCrossTileBoundaryFlag               ()                    { return m_bLFCrossTileBoundaryFlag;   }
   Void     setUniformSpacingIdr             ( Int i )           { m_iUniformSpacingIdr = i; }
@@ -424,16 +429,19 @@ public:
     }
   }
   UInt     getRowHeight           (UInt rowIdx)    { return *( m_puiRowHeight + rowIdx ); }
+#endif
   Bool getScalingListFlag       ()         { return m_scalingListEnabledFlag;     }
   Void setScalingListFlag       ( Bool b ) { m_scalingListEnabledFlag  = b;       }
   UInt getMaxDecPicBuffering  (UInt tlayer)            { return m_uiMaxDecPicBuffering[tlayer]; }
   Void setMaxDecPicBuffering  ( UInt ui, UInt tlayer ) { m_uiMaxDecPicBuffering[tlayer] = ui;   }
   UInt getMaxLatencyIncrease  (UInt tlayer)            { return m_uiMaxLatencyIncrease[tlayer];   }
   Void setMaxLatencyIncrease  ( UInt ui , UInt tlayer) { m_uiMaxLatencyIncrease[tlayer] = ui;      }
+#if !TILES_OR_ENTROPY_FIX
   UInt getTilesOrEntropyCodingSyncIdc ()                    { return m_tilesOrEntropyCodingSyncIdc;   }
   Void setTilesOrEntropyCodingSyncIdc ( UInt val )          { m_tilesOrEntropyCodingSyncIdc = val;    }
   Int  getNumSubstreams               ()                    { return m_numSubstreams;                 }
   Void setNumSubstreams               ( Int numSubstreams ) { m_numSubstreams = numSubstreams;        }
+#endif
 };
 
 /// Reference Picture Lists class
@@ -490,15 +498,22 @@ private:
 
   Bool        m_OutputFlagPresentFlag;   // Indicates the presence of output_flag in slice header
 
+#if TILES_OR_ENTROPY_FIX
+  UInt        m_tilesOrEntropyCodingSyncIdc;
+#endif
+#if !TILES_OR_ENTROPY_FIX
   Int      m_iTileBehaviorControlPresentFlag;
+#endif
   Bool     m_bLFCrossTileBoundaryFlag;
+#if !TILES_OR_ENTROPY_FIX
   Int      m_iColumnRowInfoPresent;
+#endif
   Int      m_iUniformSpacingIdr;
   Int      m_iNumColumnsMinus1;
   UInt*    m_puiColumnWidth;
   Int      m_iNumRowsMinus1;
   UInt*    m_puiRowHeight;
-  
+
   Int      m_iNumSubstreams;
 
   Bool     m_enableTMVPFlag;
@@ -556,12 +571,20 @@ public:
   Void      setOutputFlagPresentFlag( Bool b )  { m_OutputFlagPresentFlag = b;    }
   Bool      getOutputFlagPresentFlag()          { return m_OutputFlagPresentFlag; }
 
+#if !TILES_OR_ENTROPY_FIX
   Void    setTileBehaviorControlPresentFlag        ( Int i )             { m_iTileBehaviorControlPresentFlag = i;    }
   Int     getTileBehaviorControlPresentFlag        ()                    { return m_iTileBehaviorControlPresentFlag; }
+#endif
   Void    setLFCrossTileBoundaryFlag               ( Bool   bValue  )    { m_bLFCrossTileBoundaryFlag = bValue; }
   Bool    getLFCrossTileBoundaryFlag               ()                    { return m_bLFCrossTileBoundaryFlag;   }
+#if !TILES_OR_ENTROPY_FIX
   Void     setColumnRowInfoPresent          ( Int i )           { m_iColumnRowInfoPresent = i; }
   Int      getColumnRowInfoPresent          ()                  { return m_iColumnRowInfoPresent; }
+#endif
+#if TILES_OR_ENTROPY_FIX
+  UInt     getTilesOrEntropyCodingSyncIdc   ()                  { return m_tilesOrEntropyCodingSyncIdc;   }
+  Void     setTilesOrEntropyCodingSyncIdc   ( UInt val )        { m_tilesOrEntropyCodingSyncIdc = val;    }
+#endif
   Void     setUniformSpacingIdr             ( Int i )           { m_iUniformSpacingIdr = i; }
   Int      getUniformSpacingIdr             ()                  { return m_iUniformSpacingIdr; }
   Void     setNumColumnsMinus1              ( Int i )           { m_iNumColumnsMinus1 = i; }

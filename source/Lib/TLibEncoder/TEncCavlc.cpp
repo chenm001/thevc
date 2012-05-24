@@ -262,40 +262,70 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   WRITE_FLAG( pcPPS->getUseWP() ? 1 : 0,  "weighted_pred_flag" );   // Use of Weighting Prediction (P_SLICE)
   WRITE_CODE( pcPPS->getWPBiPredIdc(), 2, "weighted_bipred_idc" );  // Use of Weighting Bi-Prediction (B_SLICE)
   WRITE_FLAG( pcPPS->getOutputFlagPresentFlag() ? 1 : 0,  "output_flag_present_flag" );
-  if(pcPPS->getSPS()->getTilesOrEntropyCodingSyncIdc()==1)
+
+#if TILES_OR_ENTROPY_FIX
+  Int tilesOrEntropyCodingSyncIdc = 0;
+  if ( pcPPS->getNumColumnsMinus1() > 0 || pcPPS->getNumRowsMinus1() > 0)
   {
+    tilesOrEntropyCodingSyncIdc = 1;
+  }
+  else if ( pcPPS->getNumSubstreams() > 1 )
+  {
+    tilesOrEntropyCodingSyncIdc = 2;
+  }
+  pcPPS->setTilesOrEntropyCodingSyncIdc( tilesOrEntropyCodingSyncIdc );
+  WRITE_CODE(tilesOrEntropyCodingSyncIdc, 2, "tiles_or_entropy_coding_sync_idc");
+#endif
+
+#if !TILES_OR_ENTROPY_FIX
+  if(pcPPS->getSPS()->getTilesOrEntropyCodingSyncIdc()==1)
+#else
+  if(pcPPS->getTilesOrEntropyCodingSyncIdc()==1)
+#endif
+  {
+#if !TILES_OR_ENTROPY_FIX
     WRITE_FLAG( pcPPS->getColumnRowInfoPresent(),           "tile_info_present_flag" );
     WRITE_FLAG( pcPPS->getTileBehaviorControlPresentFlag(),  "tile_control_present_flag");
     if( pcPPS->getColumnRowInfoPresent() == 1 )
     {
-      WRITE_UVLC( pcPPS->getNumColumnsMinus1(),                                    "num_tile_columns_minus1" );
-      WRITE_UVLC( pcPPS->getNumRowsMinus1(),                                       "num_tile_rows_minus1" );
-      WRITE_FLAG( pcPPS->getUniformSpacingIdr(),                                   "uniform_spacing_flag" );
-      if( pcPPS->getUniformSpacingIdr() == 0 )
+#endif
+    WRITE_UVLC( pcPPS->getNumColumnsMinus1(),                                    "num_tile_columns_minus1" );
+    WRITE_UVLC( pcPPS->getNumRowsMinus1(),                                       "num_tile_rows_minus1" );
+    WRITE_FLAG( pcPPS->getUniformSpacingIdr(),                                   "uniform_spacing_flag" );
+    if( pcPPS->getUniformSpacingIdr() == 0 )
+    {
+      for(UInt i=0; i<pcPPS->getNumColumnsMinus1(); i++)
       {
-        for(UInt i=0; i<pcPPS->getNumColumnsMinus1(); i++)
-        {
-          WRITE_UVLC( pcPPS->getColumnWidth(i),                                    "column_width" );
-        }
-        for(UInt i=0; i<pcPPS->getNumRowsMinus1(); i++)
-        {
-          WRITE_UVLC( pcPPS->getRowHeight(i),                                      "row_height" );
-        }
+        WRITE_UVLC( pcPPS->getColumnWidth(i),                                    "column_width" );
       }
+      for(UInt i=0; i<pcPPS->getNumRowsMinus1(); i++)
+      {
+        WRITE_UVLC( pcPPS->getRowHeight(i),                                      "row_height" );
+      }
+    }
+#if !TILES_OR_ENTROPY_FIX
     }
 
     if(pcPPS->getTileBehaviorControlPresentFlag() == 1)
     {
-      Int iNumColTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumColumnsMinus1()):(pcPPS->getSPS()->getNumColumnsMinus1());
-      Int iNumRowTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumRowsMinus1()):(pcPPS->getSPS()->getNumRowsMinus1());
-
-      if(iNumColTilesMinus1 !=0 || iNumRowTilesMinus1 !=0)
-      {
-          WRITE_FLAG( pcPPS->getLFCrossTileBoundaryFlag()?1 : 0,            "loop_filter_across_tile_flag");
-      }
+    Int iNumColTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumColumnsMinus1()):(pcPPS->getSPS()->getNumColumnsMinus1());
+    Int iNumRowTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumRowsMinus1()):(pcPPS->getSPS()->getNumRowsMinus1());
+    if(iNumColTilesMinus1 !=0 || iNumRowTilesMinus1 !=0)
+#else
+    if(pcPPS->getNumColumnsMinus1() !=0 || pcPPS->getNumRowsMinus1() !=0)
+#endif
+    {
+        WRITE_FLAG( pcPPS->getLFCrossTileBoundaryFlag()?1 : 0,            "loop_filter_across_tiles_enabled_flag");
     }
+#if !TILES_OR_ENTROPY_FIX
+    }
+#endif
   }
+#if !TILES_OR_ENTROPY_FIX
   else if(pcPPS->getSPS()->getTilesOrEntropyCodingSyncIdc()==2)
+#else
+  else if(pcPPS->getTilesOrEntropyCodingSyncIdc()==2)
+#endif
   {
     WRITE_UVLC( pcPPS->getNumSubstreams()-1,               "num_substreams_minus1" );
   }
@@ -431,6 +461,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
     xWriteFlag( pcSPS->getAMVPMode(i) ? 1 : 0);
   }
 
+#if !TILES_OR_ENTROPY_FIX
   Int tilesOrEntropyCodingSyncIdc = 0;
   if ( pcSPS->getNumColumnsMinus1() > 0 || pcSPS->getNumRowsMinus1() > 0)
   {
@@ -466,6 +497,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
         WRITE_FLAG( pcSPS->getLFCrossTileBoundaryFlag()?1 : 0,            "loop_filter_across_tile_flag");
     }
   }
+#endif
   WRITE_FLAG( 0, "sps_extension_flag" );
 }
 
@@ -821,8 +853,11 @@ Void TEncCavlc::codeTileMarkerFlag(TComSlice* pcSlice)
  */
 Void  TEncCavlc::codeTilesWPPEntryPoint( TComSlice* pSlice )
 {
+#if !TILES_OR_ENTROPY_FIX
   Int tilesOrEntropyCodingSyncIdc = pSlice->getSPS()->getTilesOrEntropyCodingSyncIdc();
-
+#else
+  Int tilesOrEntropyCodingSyncIdc = pSlice->getPPS()->getTilesOrEntropyCodingSyncIdc();
+#endif
   if ( tilesOrEntropyCodingSyncIdc == 0 )
   {
     return;

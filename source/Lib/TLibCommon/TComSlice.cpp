@@ -1284,6 +1284,7 @@ TComSPS::TComSPS()
 , m_uiMaxTrSize               ( 32)
 , m_bLFCrossSliceBoundaryFlag (false)
 , m_bUseSAO                   (false) 
+#if !TILES_OR_ENTROPY_FIX
 , m_bLFCrossTileBoundaryFlag  (false) 
 , m_iUniformSpacingIdr        (  0 )
 , m_iTileBoundaryIndependenceIdr (  0 )
@@ -1291,10 +1292,13 @@ TComSPS::TComSPS()
 , m_puiColumnWidth            ( NULL )
 , m_iNumRowsMinus1            (  0 )
 , m_puiRowHeight              ( NULL )
+#endif
 , m_bTemporalIdNestingFlag    (false)
 , m_scalingListEnabledFlag    (false)
+#if !TILES_OR_ENTROPY_FIX
 ,  m_tilesOrEntropyCodingSyncIdc( 0 )
 ,  m_numSubstreams              ( 0 )
+#endif
 {
   // AMVP parameter
   ::memset( m_aeAMVPMode, 0, sizeof( m_aeAMVPMode ) );
@@ -1308,6 +1312,7 @@ TComSPS::TComSPS()
 
 TComSPS::~TComSPS()
 {
+#if !TILES_OR_ENTROPY_FIX
   if( m_iNumColumnsMinus1 > 0 && m_iUniformSpacingIdr == 0 )
   {
     delete [] m_puiColumnWidth; 
@@ -1318,6 +1323,7 @@ TComSPS::~TComSPS()
     delete [] m_puiRowHeight;
     m_puiRowHeight = NULL;
   }
+#endif
 }
 
 const Int TComSPS::m_cropUnitX[]={1,2,2,1};
@@ -1337,9 +1343,13 @@ TComPPS::TComPPS()
 , m_numRefIdxL0DefaultActive    (1)
 , m_numRefIdxL1DefaultActive    (1)
 , m_iSliceGranularity           (0)
+#if !TILES_OR_ENTROPY_FIX
 , m_iTileBehaviorControlPresentFlag (0)
+#endif
 , m_bLFCrossTileBoundaryFlag     (true)
+#if !TILES_OR_ENTROPY_FIX
 , m_iColumnRowInfoPresent        (0)
+#endif
 , m_iUniformSpacingIdr           (0)
 , m_iNumColumnsMinus1            (0)
 , m_puiColumnWidth               (NULL)

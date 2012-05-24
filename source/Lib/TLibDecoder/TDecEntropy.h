@@ -69,7 +69,11 @@ public:
   virtual Void  decodeFlush()                                                                      = 0;
 
   virtual Void  parseSPS                  ( TComSPS* pcSPS )                                      = 0;
+#if !TILES_OR_ENTROPY_FIX
   virtual Void  parsePPS                  ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet )                                      = 0;
+#else
+  virtual Void  parsePPS                  ( TComPPS* pcPPS )                                      = 0;
+#endif
   virtual Void  parseAPS                  ( TComAPS* pAPS  )                                      = 0;
   virtual void parseSEI(SEImessages&) = 0;
 
@@ -146,7 +150,11 @@ public:
   Void    resetEntropy                ( TComSlice* p)           { m_pcEntropyDecoderIf->resetEntropy(p);                    }
 
   Void    decodeSPS                   ( TComSPS* pcSPS     )    { m_pcEntropyDecoderIf->parseSPS(pcSPS);                    }
+#if !TILES_OR_ENTROPY_FIX
   Void    decodePPS                   ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet    )    { m_pcEntropyDecoderIf->parsePPS(pcPPS, parameterSet);                    }
+#else
+  Void    decodePPS                   ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet    )    { m_pcEntropyDecoderIf->parsePPS(pcPPS);                    }
+#endif
   Void    decodeAPS                   ( TComAPS* pAPS      )    { m_pcEntropyDecoderIf->parseAPS(pAPS);}
   void decodeSEI(SEImessages& seis) { m_pcEntropyDecoderIf->parseSEI(seis); }
 

@@ -99,7 +99,11 @@ public:
   Void  parseQtRootCbf      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf );
 
   Void  parseSPS            ( TComSPS* pcSPS );
+#if !TILES_OR_ENTROPY_FIX
   Void  parsePPS            ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet);
+#else
+  Void  parsePPS            ( TComPPS* pcPPS);
+#endif
   Void  parseSEI(SEImessages&);
   Void  parseAPS            ( TComAPS* pAPS );
 #if AHG6_ALF_OPTION2

@@ -226,9 +226,13 @@ protected:
   UInt      m_uiPCMBitDepthLuma;
   UInt      m_uiPCMBitDepthChroma;
   Bool      m_bPCMFilterDisableFlag;
+#if !TILES_OR_ENTROPY_FIX
   Int       m_iTileBehaviorControlPresentFlag;
+#endif
   Bool      m_bLFCrossTileBoundaryFlag;
+#if !TILES_OR_ENTROPY_FIX
   Int       m_iColumnRowInfoPresent;
+#endif
   Int       m_iUniformSpacingIdr;
   Int       m_iNumColumnsMinus1;
   UInt*     m_puiColumnWidth;
@@ -496,12 +500,16 @@ public:
   Void  setSaoInterleavingFlag                   (bool bVal)           { m_saoInterleavingFlag = bVal; }
   Bool  getSaoInterleavingFlag                   ()                    { return m_saoInterleavingFlag; }
 #endif
+#if !TILES_OR_ENTROPY_FIX
   Void  setTileBehaviorControlPresentFlag        ( Int i )             { m_iTileBehaviorControlPresentFlag = i;    }
   Int   getTileBehaviorControlPresentFlag        ()                    { return m_iTileBehaviorControlPresentFlag; }
+#endif
   Void  setLFCrossTileBoundaryFlag               ( Bool   bValue  )    { m_bLFCrossTileBoundaryFlag = bValue; }
   Bool  getLFCrossTileBoundaryFlag               ()                    { return m_bLFCrossTileBoundaryFlag;   }
+#if !TILES_OR_ENTROPY_FIX
   Void  setColumnRowInfoPresent        ( Int i )           { m_iColumnRowInfoPresent = i; }
   Int   getColumnRowInfoPresent        ()                  { return m_iColumnRowInfoPresent; }
+#endif
   Void  setUniformSpacingIdr           ( Int i )           { m_iUniformSpacingIdr = i; }
   Int   getUniformSpacingIdr           ()                  { return m_iUniformSpacingIdr; }
   Void  setNumColumnsMinus1            ( Int i )           { m_iNumColumnsMinus1 = i; }
