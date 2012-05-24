@@ -1202,9 +1202,11 @@ Void TComDataCU::copyToPic( UChar uhDepth, UInt uiPartIdx, UInt uiPartDepth )
 // Other public functions
 // --------------------------------------------------------------------------------------------------------------------
 
-TComDataCU* TComDataCU::getPULeft( UInt& uiLPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction
-                                 , Bool bEnforceTileRestriction
-                                 )
+TComDataCU* TComDataCU::getPULeft( UInt& uiLPartUnitIdx, 
+                                   UInt uiCurrPartUnitIdx, 
+                                   Bool bEnforceSliceRestriction, 
+                                   Bool bEnforceEntropySliceRestriction,
+                                   Bool bEnforceTileRestriction )
 {
   UInt uiAbsPartIdx       = g_auiZscanToRaster[uiCurrPartUnitIdx];
   UInt uiAbsZorderCUIdx   = g_auiZscanToRaster[m_uiAbsIdxInLCU];
@@ -1251,10 +1253,13 @@ TComDataCU* TComDataCU::getPULeft( UInt& uiLPartUnitIdx, UInt uiCurrPartUnitIdx,
 }
 
 
-TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction, Bool bEnforceEntropySliceRestriction, Bool MotionDataCompresssion
-                                  , Bool planarAtLCUBoundary 
-                                  , Bool bEnforceTileRestriction 
-                                  )
+TComDataCU* TComDataCU::getPUAbove( UInt& uiAPartUnitIdx, 
+                                    UInt uiCurrPartUnitIdx, 
+                                    Bool bEnforceSliceRestriction, 
+                                    Bool bEnforceEntropySliceRestriction, 
+                                    Bool MotionDataCompresssion,
+                                    Bool planarAtLCUBoundary ,
+                                    Bool bEnforceTileRestriction )
 {
   UInt uiAbsPartIdx       = g_auiZscanToRaster[uiCurrPartUnitIdx];
   UInt uiAbsZorderCUIdx   = g_auiZscanToRaster[m_uiAbsIdxInLCU];
