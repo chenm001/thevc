@@ -2556,6 +2556,9 @@ Void TDecCavlc::xDecodeScalingList(TComScalingList *scalingList, UInt sizeId, UI
   {
     READ_SVLC( scalingListDcCoefMinus8, "scaling_list_dc_coef_minus8");
     scalingList->setScalingListDC(sizeId,listId,scalingListDcCoefMinus8 + 8);
+#if SCALING_LIST_DPCM_IMPROVEMENT
+    nextCoef = scalingList->getScalingListDC(sizeId,listId);
+#endif
     if(scalingListDcCoefMinus8 == -8)
     {
       scalingList->processDefaultMarix(sizeId,listId);

@@ -229,6 +229,7 @@
 #endif
 
 #define SCALING_LIST_OUTPUT_RESULT    0 //JCTVC-G880/JCTVC-G1016 quantization matrices
+#define SCALING_LIST_DPCM_IMPROVEMENT   1 //JCTVC-I0059. Improved DPCM coding for 16x16 and 32x32 matrices
 
 #define CABAC_INIT_PRESENT_FLAG     1
 
