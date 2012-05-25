@@ -260,7 +260,11 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   WRITE_SVLC( pcPPS->getChromaCrQpOffset(),                   "cr_qp_offset" );
 
   WRITE_FLAG( pcPPS->getUseWP() ? 1 : 0,  "weighted_pred_flag" );   // Use of Weighting Prediction (P_SLICE)
+#if REMOVE_IMPLICIT_WP
+  WRITE_FLAG( pcPPS->getWPBiPredIdc(), "weighted_bipred_idc" );  // Use of Weighting Bi-Prediction (B_SLICE)
+#else
   WRITE_CODE( pcPPS->getWPBiPredIdc(), 2, "weighted_bipred_idc" );  // Use of Weighting Bi-Prediction (B_SLICE)
+#endif
   WRITE_FLAG( pcPPS->getOutputFlagPresentFlag() ? 1 : 0,  "output_flag_present_flag" );
 
 #if TILES_OR_ENTROPY_FIX
@@ -1442,8 +1446,10 @@ Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
   if ( (pcSlice->getSliceType()==P_SLICE && pcSlice->getPPS()->getUseWP()) || (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getRefPicListCombinationFlag()==0 ) )
 #endif
     uiMode = 1; // explicit
+#if !REMOVE_IMPLICIT_WP
   else if ( pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==2 )
     uiMode = 2; // implicit (does not use this mode in this syntax)
+#endif
 #if !REMOVE_LC
   if (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getRefPicListCombinationFlag())
     uiMode = 3; // combined explicit

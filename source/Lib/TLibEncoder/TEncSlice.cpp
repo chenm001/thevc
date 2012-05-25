@@ -676,9 +676,15 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   }
 
   Bool bWp_explicit = (pcSlice->getSliceType()==P_SLICE && pcSlice->getPPS()->getUseWP()) || (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==1);
+#if !REMOVE_IMPLICIT_WP
   Bool bWp_implicit = (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==2);
+#endif
 
+#if REMOVE_IMPLICIT_WP
+  if ( bWp_explicit )
+#else
   if ( bWp_explicit || bWp_implicit )
+#endif
   {
     //------------------------------------------------------------------------------
     //  Weighted Prediction implemented at Slice level. SliceMode=2 is not supported yet.
@@ -688,18 +694,25 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       printf("Weighted Prediction is not supported with slice mode determined by max number of bins.\n"); exit(0);
     }
 
+#if !REMOVE_IMPLICIT_WP
     if( bWp_explicit )
     {
-      xEstimateWPParamSlice( pcSlice );
+#endif
+    xEstimateWPParamSlice( pcSlice );
+#if !REMOVE_IMPLICIT_WP
     }
-    
+#endif    
     pcSlice->initWpScaling();
 
     // check WP on/off
+#if !REMOVE_IMPLICIT_WP
     if( bWp_explicit )
     {
-      xCheckWPEnable( pcSlice );
+#endif
+    xCheckWPEnable( pcSlice );
+#if !REMOVE_IMPLICIT_WP
     }
+#endif
   }
 
 #if ADAPTIVE_QP_SELECTION

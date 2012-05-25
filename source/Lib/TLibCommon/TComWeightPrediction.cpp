@@ -270,6 +270,7 @@ Void TComWeightPrediction::getWpScaling( TComDataCU* pcCU, Int iRefIdx0, Int iRe
       pcSlice->getWpScaling(REF_PIC_LIST_1, iRefIdx1, wp1);
     }
   }
+#if !REMOVE_IMPLICIT_WP
   else if ( uiWPBiPredIdc == 2 )
   { // implicit --------------------
     Int poc0    = pcSlice->getRefPOC(REF_PIC_LIST_0, iRefIdx0);
@@ -308,6 +309,7 @@ Void TComWeightPrediction::getWpScaling( TComDataCU* pcCU, Int iRefIdx0, Int iRe
     wp0 = m_wp0;
     wp1 = m_wp1;
   }
+#endif
   else
   {
     assert(0);
