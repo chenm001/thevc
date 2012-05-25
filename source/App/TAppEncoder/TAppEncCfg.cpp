@@ -426,7 +426,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
         fprintf(stderr, "Error: picture width is not an integer multiple of the specified chroma subsampling\n");
         exit(EXIT_FAILURE);
       }
-      if (m_aiPad[1] % TComSPS::getCropUnitY(CHROMA_420) != 1)
+      if (m_aiPad[1] % TComSPS::getCropUnitY(CHROMA_420) != 0)
       {
         fprintf(stderr, "Error: picture height is not an integer multiple of the specified chroma subsampling\n");
         exit(EXIT_FAILURE);
