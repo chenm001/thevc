@@ -2518,11 +2518,19 @@ Void TDecCavlc::parseScalingList(TComScalingList* scalingList)
         if(!scalingListPredModeFlag) //Copy Mode
         {
           READ_UVLC( code, "scaling_list_pred_matrix_id_delta");
+#if SCALING_LIST_SIMPLYFY
+          scalingList->setRefMatrixId (sizeId,listId,(UInt)((Int)(listId)-(code)));
+          if( sizeId > SCALING_LIST_8x8 )
+          {
+            scalingList->setScalingListDC(sizeId,listId,((listId == scalingList->getRefMatrixId (sizeId,listId))? 16 :scalingList->getScalingListDC(sizeId, scalingList->getRefMatrixId (sizeId,listId))));
+          }
+#else
           scalingList->setRefMatrixId (sizeId,listId,(UInt)((Int)(listId)-(code+1)));
           if( sizeId > SCALING_LIST_8x8 )
           {
             scalingList->setScalingListDC(sizeId,listId,scalingList->getScalingListDC(sizeId, scalingList->getRefMatrixId (sizeId,listId)));
           }
+#endif
           scalingList->processRefMatrix( sizeId, listId, scalingList->getRefMatrixId (sizeId,listId));
           
         }
@@ -2548,10 +2556,14 @@ Void TDecCavlc::xDecodeScalingList(TComScalingList *scalingList, UInt sizeId, UI
   Int scalingListDcCoefMinus8 = 0;
   Int nextCoef = SCALING_LIST_START_VALUE;
   UInt* scan  = g_auiFrameScanXY [ (sizeId == 0)? 1 : 2 ];
+#if !SCALING_LIST_SIMPLYFY
   Bool stopNow = false;
+#endif
   Int *dst = scalingList->getScalingListAddress(sizeId, listId);
 
+#if !SCALING_LIST_SIMPLYFY
   scalingList->setUseDefaultScalingMatrixFlag(sizeId,listId,false);
+#endif
   if( sizeId > SCALING_LIST_8x8 )
   {
     READ_SVLC( scalingListDcCoefMinus8, "scaling_list_dc_coef_minus8");
@@ -2559,12 +2571,22 @@ Void TDecCavlc::xDecodeScalingList(TComScalingList *scalingList, UInt sizeId, UI
 #if SCALING_LIST_DPCM_IMPROVEMENT
     nextCoef = scalingList->getScalingListDC(sizeId,listId);
 #endif
+#if !SCALING_LIST_SIMPLYFY
     if(scalingListDcCoefMinus8 == -8)
     {
       scalingList->processDefaultMarix(sizeId,listId);
     }
+#endif
   }
 
+#if SCALING_LIST_SIMPLYFY
+  for(i = 0; i < coefNum; i++)
+  {
+    READ_SVLC( data, "scaling_list_delta_coef");
+    nextCoef = (nextCoef + data + 256 ) % 256;
+    dst[scan[i]] = nextCoef;
+  }
+#else
   if( !scalingList->getUseDefaultScalingMatrixFlag(sizeId,listId))
   {
     for(i = 0; i < coefNum && !stopNow ; i++)
@@ -2585,6 +2607,7 @@ Void TDecCavlc::xDecodeScalingList(TComScalingList *scalingList, UInt sizeId, UI
       }
     }
   }
+#endif
 }
 
 Void TDecCavlc::parseDFFlag(UInt& ruiVal, const Char *pSymbolName)
