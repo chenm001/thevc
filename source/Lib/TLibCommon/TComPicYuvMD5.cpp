@@ -143,11 +143,11 @@ void compChecksum(const Pel* plane, unsigned int width, unsigned int height, uns
     for (unsigned x = 0; x < width; x++)
     {
       xor_mask = (x & 0xff) ^ (y & 0xff) ^ (x >> 8) ^ (y >> 8);
-      checksum = (checksum + (plane[y*stride+x] & 0xff) ^ xor_mask) & 0xffffffff;
+      checksum = (checksum + ((plane[y*stride+x] & 0xff) ^ xor_mask)) & 0xffffffff;
 
       if(bitdepth > 8)
       {
-        checksum = (checksum + (plane[y*stride+x]>>8) ^ xor_mask) & 0xffffffff;
+        checksum = (checksum + ((plane[y*stride+x]>>8) ^ xor_mask)) & 0xffffffff;
       }
     }
   }
