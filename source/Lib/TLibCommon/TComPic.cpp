@@ -46,19 +46,27 @@
 // ====================================================================================================================
 
 TComPic::TComPic()
+: m_uiTLayer                              (0)
+, m_bUsedByCurr                           (false)
+, m_bIsLongTerm                           (false)
+, m_apcPicSym                             (NULL)
+, m_pcPicYuvPred                          (NULL)
+, m_pcPicYuvResi                          (NULL)
+, m_bReconstructed                        (false)
+, m_bNeededForOutput                      (false)
+, m_uiCurrSliceIdx                        (0)
+, m_usedForTMVP                           (true)
+, m_pSliceSUMap                           (NULL)
+, m_pbValidSlice                          (NULL)
+, m_sliceGranularityForNDBFilter          (0)
+, m_bIndependentSliceBoundaryForNDBFilter (false)
+, m_bIndependentTileBoundaryForNDBFilter  (false)
+, m_pNDBFilterYuvTmp                      (NULL)
+, m_bCheckLTMSB                           (false)
+, m_SEIs                                  (NULL)
 {
-  m_uiTLayer          = 0;
-
-  m_apcPicSym         = NULL;
   m_apcPicYuv[0]      = NULL;
   m_apcPicYuv[1]      = NULL;
-  m_pcPicYuvPred      = NULL;
-  m_pcPicYuvResi      = NULL;
-  m_bIsLongTerm       = false;
-  m_bReconstructed    = false;
-  m_usedForTMVP      = true;
-  m_bNeededForOutput  = false;
-  m_pSliceSUMap      = NULL;
 }
 
 TComPic::~TComPic()
