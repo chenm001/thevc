@@ -185,7 +185,11 @@ Void TAppEncTop::xInitLibCfg()
 
   //====== Weighted Prediction ========
   m_cTEncTop.setUseWP                   ( m_bUseWeightPred      );
+#if REMOVE_IMPLICIT_WP
+  m_cTEncTop.setWPBiPred                ( m_useWeightedBiPred   );
+#else
   m_cTEncTop.setWPBiPredIdc             ( m_uiBiPredIdc         );
+#endif
   //====== Slice ========
   m_cTEncTop.setSliceMode               ( m_iSliceMode                );
   m_cTEncTop.setSliceArgument           ( m_iSliceArgument            );

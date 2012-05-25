@@ -311,7 +311,11 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("LosslessCuEnabled", m_useLossless, false)
 #endif
     ("weighted_pred_flag,-wpP",     m_bUseWeightPred, false, "weighted prediction flag (P-Slices)")
+#if REMOVE_IMPLICIT_WP
+    ("weighted_bipred_flag,-wpB",   m_useWeightedBiPred,    false,    "weighted bipred flag (B-Slices)")
+#else
     ("weighted_bipred_idc,-wpBidc", m_uiBiPredIdc,    0u,    "weighted bipred idc (B-Slices)")
+#endif
 #if !TILES_OR_ENTROPY_FIX
     ("TileInfoPresentFlag",         m_iColumnRowInfoPresent,         1,          "0: tiles parameters are NOT present in the PPS. 1: tiles parameters are present in the PPS")
 #endif
@@ -1071,7 +1075,11 @@ Void TAppEncCfg::xPrintParameter()
   printf("LosslessCuEnabled:%d ", (m_useLossless)? 1:0 );
 #endif  
   printf("WPP:%d ", (Int)m_bUseWeightPred);
+#if REMOVE_IMPLICIT_WP
+  printf("WPB:%d ", (Int)m_useWeightedBiPred);
+#else
   printf("WPB:%d ", m_uiBiPredIdc);
+#endif
   printf("TileLocationInSliceHdr:%d ", m_iTileLocationInSliceHeaderFlag);
   printf("TileMarker:%d", m_iTileMarkerFlag);
   if (m_iTileMarkerFlag)

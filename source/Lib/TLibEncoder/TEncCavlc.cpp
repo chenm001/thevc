@@ -261,7 +261,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 
   WRITE_FLAG( pcPPS->getUseWP() ? 1 : 0,  "weighted_pred_flag" );   // Use of Weighting Prediction (P_SLICE)
 #if REMOVE_IMPLICIT_WP
-  WRITE_FLAG( pcPPS->getWPBiPredIdc(), "weighted_bipred_idc" );  // Use of Weighting Bi-Prediction (B_SLICE)
+  WRITE_FLAG( pcPPS->getWPBiPred() ? 1 : 0, "weighted_bipred_flag" );  // Use of Weighting Bi-Prediction (B_SLICE)
 #else
   WRITE_CODE( pcPPS->getWPBiPredIdc(), 2, "weighted_bipred_idc" );  // Use of Weighting Bi-Prediction (B_SLICE)
 #endif
@@ -811,8 +811,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     {
       WRITE_UVLC( pcSlice->getColRefIdx(), "collocated_ref_idx" );
     }
-  
+#if REMOVE_IMPLICIT_WP
+    if ( (pcSlice->getPPS()->getUseWP() && pcSlice->getSliceType()==P_SLICE) || (pcSlice->getPPS()->getWPBiPred() && pcSlice->getSliceType()==B_SLICE) )
+#else
     if ( (pcSlice->getPPS()->getUseWP() && pcSlice->getSliceType()==P_SLICE) || (pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getSliceType()==B_SLICE) )
+#endif
     {
       xCodePredWeightTable( pcSlice );
     }
@@ -1441,9 +1444,17 @@ Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
 
   UInt            uiMode = 0;
 #if REMOVE_LC
+#if REMOVE_IMPLICIT_WP
+  if ( (pcSlice->getSliceType()==P_SLICE && pcSlice->getPPS()->getUseWP()) || (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPred()) )
+#else
   if ( (pcSlice->getSliceType()==P_SLICE && pcSlice->getPPS()->getUseWP()) || (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==1) )
+#endif
+#else
+#if REMOVE_IMPLICIT_WP
+  if ( (pcSlice->getSliceType()==P_SLICE && pcSlice->getPPS()->getUseWP()) || (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPred && pcSlice->getRefPicListCombinationFlag()==0 ) )
 #else
   if ( (pcSlice->getSliceType()==P_SLICE && pcSlice->getPPS()->getUseWP()) || (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getRefPicListCombinationFlag()==0 ) )
+#endif
 #endif
     uiMode = 1; // explicit
 #if !REMOVE_IMPLICIT_WP

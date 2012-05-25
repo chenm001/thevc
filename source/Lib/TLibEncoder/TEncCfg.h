@@ -255,7 +255,11 @@ protected:
 #endif
   //====== Weighted Prediction ========
   Bool      m_bUseWeightPred;       //< Use of Weighting Prediction (P_SLICE)
+#if REMOVE_IMPLICIT_WP
+  Bool      m_useWeightedBiPred;    //< Use of Bi-directional Weighting Prediction (B_SLICE)
+#else
   UInt      m_uiBiPredIdc;          //< Use of Bi-Directional Weighting Prediction (B_SLICE)
+#endif
   Int       m_useScalingListId;            ///< Using quantization matrix i.e. 0=off, 1=default, 2=file.
   char*     m_scalingListFile;          ///< quantization matrix file name
 
@@ -605,9 +609,17 @@ public:
 #endif
 
   Void      setUseWP               ( Bool  b )   { m_bUseWeightPred    = b;    }
+#if REMOVE_IMPLICIT_WP
+  Void      setWPBiPred            ( Bool b )    { m_useWeightedBiPred = b;    }
+#else
   Void      setWPBiPredIdc         ( UInt u )    { m_uiBiPredIdc       = u;    }
+#endif
   Bool      getUseWP               ()            { return m_bUseWeightPred;    }
+#if REMOVE_IMPLICIT_WP
+  Bool      getWPBiPred            ()            { return m_useWeightedBiPred; }
+#else
   UInt      getWPBiPredIdc         ()            { return m_uiBiPredIdc;       }
+#endif
   Void      setUseScalingListId    ( Int  u )    { m_useScalingListId       = u;   }
   Int       getUseScalingListId    ()            { return m_useScalingListId;      }
   Void      setScalingListFile     ( char*  pch ){ m_scalingListFile     = pch; }

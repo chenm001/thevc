@@ -643,7 +643,11 @@ Void TEncTop::xInitPPS()
 
   m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams);
   m_cPPS.setUseWP( m_bUseWeightPred );
+#if REMOVE_IMPLICIT_WP
+  m_cPPS.setWPBiPred( m_useWeightedBiPred );
+#else
   m_cPPS.setWPBiPredIdc( m_uiBiPredIdc );
+#endif
   m_cPPS.setEnableTMVPFlag( m_bEnableTMVP );
   m_cPPS.setOutputFlagPresentFlag( false );
   m_cPPS.setSignHideFlag(getSignHideFlag());

@@ -387,7 +387,11 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setEntropySliceMode     ( m_pcCfg->getEntropySliceMode()     );
   rpcSlice->setEntropySliceArgument ( m_pcCfg->getEntropySliceArgument() );
   rpcSlice->setMaxNumMergeCand      (MRG_MAX_NUM_CANDS_SIGNALED);
+#if REMOVE_IMPLICIT_WP
+  xStoreWPparam( pPPS->getUseWP(), pPPS->getWPBiPred() );
+#else
   xStoreWPparam( pPPS->getUseWP(), pPPS->getWPBiPredIdc() );
+#endif
 }
 
 
@@ -670,13 +674,19 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   //  Weighted Prediction parameters estimation.
   //------------------------------------------------------------------------------
   // calculate AC/DC values for current picture
+#if REMOVE_IMPLICIT_WP
+  if( pcSlice->getPPS()->getUseWP() || pcSlice->getPPS()->getWPBiPred() )
+#else
   if( pcSlice->getPPS()->getUseWP() || pcSlice->getPPS()->getWPBiPredIdc() )
+#endif
   {
     xCalcACDCParamSlice(pcSlice);
   }
 
+#if REMOVE_IMPLICIT_WP
+  Bool bWp_explicit = (pcSlice->getSliceType()==P_SLICE && pcSlice->getPPS()->getUseWP()) || (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPred());
+#else
   Bool bWp_explicit = (pcSlice->getSliceType()==P_SLICE && pcSlice->getPPS()->getUseWP()) || (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==1);
-#if !REMOVE_IMPLICIT_WP
   Bool bWp_implicit = (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==2);
 #endif
 
