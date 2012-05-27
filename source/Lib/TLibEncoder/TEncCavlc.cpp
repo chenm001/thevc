@@ -325,6 +325,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
     }
 #endif
   }
+#if !WPP_SUBSTREAM_PER_ROW
 #if !TILES_OR_ENTROPY_FIX
   else if(pcPPS->getSPS()->getTilesOrEntropyCodingSyncIdc()==2)
 #else
@@ -333,7 +334,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   {
     WRITE_UVLC( pcPPS->getNumSubstreams()-1,               "num_substreams_minus1" );
   }
-
+#endif
   WRITE_FLAG( pcPPS->getDeblockingFilterControlPresent()?1 : 0, "deblocking_filter_control_present_flag");
   WRITE_UVLC( pcPPS->getLog2ParallelMergeLevelMinus2(), "log2_parallel_merge_level_minus2");
   WRITE_FLAG( 0, "pps_extension_flag" );

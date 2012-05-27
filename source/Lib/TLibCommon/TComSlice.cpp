@@ -178,6 +178,12 @@ Void TComSlice::initTiles()
   UInt uiNumCUsInFrame   = uiWidthInCU * uiHeightInCU;
 
   if (m_uiTileByteLocation==NULL) m_uiTileByteLocation   = new UInt[uiNumCUsInFrame];
+#if WPP_SUBSTREAM_PER_ROW
+  if (m_pcPPS->getTilesOrEntropyCodingSyncIdc() == 2)
+  {
+    m_pcPPS->setNumSubstreams(uiHeightInCU);
+  }
+#endif
 }
 
 

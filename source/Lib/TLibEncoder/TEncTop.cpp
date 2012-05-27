@@ -642,6 +642,9 @@ Void TEncTop::xInitPPS()
   m_cPPS.setChromaCrQpOffset( m_chromaCrQpOffset );
 
   m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams);
+#if WPP_SUBSTREAM_PER_ROW
+  m_cPPS.setTilesOrEntropyCodingSyncIdc( m_iWaveFrontSynchro ? 2 : ((m_iNumColumnsMinus1 > 0 || m_iNumRowsMinus1 > 0) ? 1 : 0));
+#endif
   m_cPPS.setUseWP( m_bUseWeightPred );
 #if REMOVE_IMPLICIT_WP
   m_cPPS.setWPBiPred( m_useWeightedBiPred );
