@@ -40,6 +40,7 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define TILE_ENTRY_START                 1  ///< I0357: Signal tile entry points from the end of the slice header
 #define WPP_SUBSTREAM_PER_ROW            1  ///< I0360: mandate one substream per CTB row
 #define WPP_SLICE_END_CONSTRAINT         1  ///< I0361: WPP Slice constraint
 #define REMOVE_IMPLICIT_WP               1  ///< I0589: remove implicit weighted prediction
