@@ -232,12 +232,16 @@ Void TDecCavlc::parseAPS(TComAPS* aps)
 
   UInt uiCode;
   READ_UVLC(uiCode, "aps_id");                             aps->setAPSID(uiCode);
+#if !SCALING_LIST_HL_SYNTAX
   READ_FLAG(uiCode, "aps_scaling_list_data_present_flag"); aps->setScalingListEnabled( (uiCode==1)?true:false );
+#endif
   READ_FLAG(uiCode, "aps_deblocking_filter_flag");         aps->setLoopFilterOffsetInAPS( (uiCode==1)?true:false );
+#if !SCALING_LIST_HL_SYNTAX
   if(aps->getScalingListEnabled())
   {
     parseScalingList( aps->getScalingList() );
   }
+#endif
   if(aps->getLoopFilterOffsetInAPS())
   {
     xParseDblParam( aps );    
@@ -1132,6 +1136,13 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 #endif
   READ_FLAG( uiCode, "deblocking_filter_control_present_flag" ); 
   pcPPS->setDeblockingFilterControlPresent( uiCode ? true : false);
+#if SCALING_LIST_HL_SYNTAX
+  READ_FLAG( uiCode, "pps_scaling_list_data_present_flag" );                 pcPPS->setScalingListPresentFlag ( (uiCode==1)?true:false );
+  if(pcPPS->getScalingListPresentFlag ())
+  {
+    parseScalingList( pcPPS->getScalingList() );
+  }
+#endif
   READ_UVLC( uiCode, "log2_parallel_merge_level_minus2");
   assert(uiCode == LOG2_PARALLEL_MERGE_LEVEL_MINUS2);
   pcPPS->setLog2ParallelMergeLevelMinus2 (uiCode);
@@ -1268,6 +1279,16 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   pcSPS->setMinTrDepth( 0 );
   pcSPS->setMaxTrDepth( 1 );
   READ_FLAG( uiCode, "scaling_list_enabled_flag" );                 pcSPS->setScalingListFlag ( uiCode );
+#if SCALING_LIST_HL_SYNTAX
+  if(pcSPS->getScalingListFlag())
+  {
+    READ_FLAG( uiCode, "sps_scaling_list_data_present_flag" );                 pcSPS->setScalingListPresentFlag ( uiCode );
+    if(pcSPS->getScalingListPresentFlag ())
+    {
+      parseScalingList( pcSPS->getScalingList() );
+    }
+  }
+#endif
   READ_FLAG( uiCode, "chroma_pred_from_luma_enabled_flag" );        pcSPS->setUseLMChroma ( uiCode ? true : false ); 
 #if INTRA_TRANSFORMSKIP
   READ_FLAG( uiCode, "transform_skip_enabled_flag" );               pcSPS->setUseTransformSkip ( uiCode ? true : false ); 
@@ -1588,7 +1609,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
         rps->setNumberOfPictures(offset);        
       }  
     }
+#if SCALING_LIST_HL_SYNTAX
+    if(sps->getUseSAO() || sps->getUseALF() || sps->getUseDF())
+#else
     if(sps->getUseSAO() || sps->getUseALF() || sps->getScalingListFlag() || sps->getUseDF())
+#endif
     {
 #if !AHG6_ALF_OPTION2
       //!!!KS: order is different in WD5! 
@@ -2522,10 +2547,12 @@ Void TDecCavlc::parseScalingList(TComScalingList* scalingList)
 {
   UInt  code, sizeId, listId;
   Bool scalingListPredModeFlag;
+#if !SCALING_LIST_HL_SYNTAX
   READ_FLAG( code, "scaling_list_present_flag" );
   scalingList->setScalingListPresentFlag ( (code==1)?true:false );
   if(scalingList->getScalingListPresentFlag() == false)
   {
+#endif
       //for each size
     for(sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
     {
@@ -2558,7 +2585,9 @@ Void TDecCavlc::parseScalingList(TComScalingList* scalingList)
         }
       }
     }
+#if !SCALING_LIST_HL_SYNTAX
   }
+#endif
 
   return;
 }

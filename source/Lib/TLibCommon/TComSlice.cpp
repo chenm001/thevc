@@ -1314,6 +1314,9 @@ TComSPS::TComSPS()
     m_uiMaxDecPicBuffering[i] = 0;
     m_numReorderPics[i]       = 0;
   }
+#if SCALING_LIST_HL_SYNTAX
+  m_scalingList = new TComScalingList;
+#endif
 }
 
 TComSPS::~TComSPS()
@@ -1329,6 +1332,9 @@ TComSPS::~TComSPS()
     delete [] m_puiRowHeight;
     m_puiRowHeight = NULL;
   }
+#endif
+#if SCALING_LIST_HL_SYNTAX
+  delete m_scalingList;
 #endif
 }
 
@@ -1369,6 +1375,9 @@ TComPPS::TComPPS()
 , m_cabacInitPresentFlag        (false)
 , m_encCABACTableIdx            (I_SLICE)
 {
+#if SCALING_LIST_HL_SYNTAX
+  m_scalingList = new TComScalingList;
+#endif
 }
 
 TComPPS::~TComPPS()
@@ -1595,8 +1604,10 @@ TComAPS::TComAPS()
 #else
   m_alfParamSet = NULL;
 #endif
+#if !SCALING_LIST_HL_SYNTAX
   m_scalingList = NULL;
   m_scalingListEnabled = false;
+#endif
 }
 
 TComAPS::~TComAPS()
@@ -1611,7 +1622,9 @@ TComAPS::~TComAPS()
 #else
   delete m_alfParamSet;
 #endif
+#if !SCALING_LIST_HL_SYNTAX
   delete m_scalingList;
+#endif
 }
 
 TComAPS& TComAPS::operator= (const TComAPS& src)
@@ -1636,8 +1649,10 @@ TComAPS& TComAPS::operator= (const TComAPS& src)
 #else
   m_alfParamSet    = src.m_alfParamSet;
 #endif
+#if !SCALING_LIST_HL_SYNTAX
   m_scalingList = src.m_scalingList;
   m_scalingListEnabled = src.m_scalingListEnabled;
+#endif
 #if !SAO_REMOVE_APS // APS syntax
   m_saoInterleavingFlag = src.m_saoInterleavingFlag;
 #endif
@@ -1690,6 +1705,7 @@ Void TComAPS::destroyAlfParam()
 #endif
 }
 
+#if !SCALING_LIST_HL_SYNTAX
 Void TComAPS::createScalingList()
 {
   m_scalingList = new TComScalingList;
@@ -1698,6 +1714,7 @@ Void TComAPS::destroyScalingList()
 {
   delete m_scalingList;
 }
+#endif
 
 TComScalingList::TComScalingList()
 {
@@ -1742,7 +1759,11 @@ Bool TComSlice::checkDefaultScalingList()
       }
     }
   }
+#if SCALING_LIST_HL_SYNTAX
+  return (defaultCounter == (SCALING_LIST_NUM * SCALING_LIST_SIZE_NUM - 4)) ? false : true; // -4 for 32x32
+#else
   return (defaultCounter == (SCALING_LIST_NUM * SCALING_LIST_SIZE_NUM - 4)) ? true : false; // -4 for 32x32
+#endif
 }
 /** get scaling matrix from RefMatrixID
  * \param sizeId size index

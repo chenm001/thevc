@@ -158,7 +158,9 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
   //APS ID
   WRITE_UVLC( pcAPS->getAPSID(), "aps_id" );
 
+#if !SCALING_LIST_HL_SYNTAX
   WRITE_FLAG( pcAPS->getScalingListEnabled()?1:0, "aps_scaling_list_data_present_flag");
+#endif
   //DF flag
   WRITE_FLAG(pcAPS->getLoopFilterOffsetInAPS()?1:0, "aps_deblocking_filter_flag");
 }
@@ -336,6 +338,16 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   }
 #endif
   WRITE_FLAG( pcPPS->getDeblockingFilterControlPresent()?1 : 0, "deblocking_filter_control_present_flag");
+#if SCALING_LIST_HL_SYNTAX
+  WRITE_FLAG( pcPPS->getScalingListPresentFlag() ? 1 : 0,                          "pps_scaling_list_data_present_flag" ); 
+  if( pcPPS->getScalingListPresentFlag() )
+  {
+#if SCALING_LIST_OUTPUT_RESULT
+    printf("PPS\n");
+#endif
+    codeScalingList( m_pcSlice->getScalingList() );
+  }
+#endif
   WRITE_UVLC( pcPPS->getLog2ParallelMergeLevelMinus2(), "log2_parallel_merge_level_minus2");
   WRITE_FLAG( 0, "pps_extension_flag" );
 }
@@ -425,6 +437,19 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthInter() - 1,                               "max_transform_hierarchy_depth_inter" );
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthIntra() - 1,                               "max_transform_hierarchy_depth_intra" );
   WRITE_FLAG( pcSPS->getScalingListFlag() ? 1 : 0,                                   "scaling_list_enabled_flag" ); 
+#if SCALING_LIST_HL_SYNTAX
+  if(pcSPS->getScalingListFlag())
+  {
+    WRITE_FLAG( pcSPS->getScalingListPresentFlag() ? 1 : 0,                          "sps_scaling_list_data_present_flag" ); 
+    if(pcSPS->getScalingListPresentFlag())
+    {
+#if SCALING_LIST_OUTPUT_RESULT
+    printf("SPS\n");
+#endif
+      codeScalingList( m_pcSlice->getScalingList() );
+    }
+  }
+#endif
   WRITE_FLAG( pcSPS->getUseLMChroma () ? 1 : 0,                                      "chroma_pred_from_luma_enabled_flag" ); 
 #if INTRA_TRANSFORMSKIP
   WRITE_FLAG( pcSPS->getUseTransformSkip () ? 1 : 0,                                 "transform_skip_enabled_flag" ); 
@@ -636,7 +661,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
         }
       }
     }
+#if SCALING_LIST_HL_SYNTAX
+    if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF()|| pcSlice->getSPS()->getUseDF())
+#else
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF()|| pcSlice->getSPS()->getScalingListFlag() || pcSlice->getSPS()->getUseDF())
+#endif
     {
 #if !AHG6_ALF_OPTION2
       if (pcSlice->getSPS()->getUseALF())
@@ -1583,12 +1612,14 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
   startTotalBit = m_pcBitIf->getNumberOfWrittenBits();
 #endif
 
+#if !SCALING_LIST_HL_SYNTAX
   WRITE_FLAG( scalingList->getScalingListPresentFlag (), "scaling_list_present_flag" );
 
   if(scalingList->getScalingListPresentFlag () == false)
   {
 #if SCALING_LIST_OUTPUT_RESULT
     printf("Header Bit %d\n",m_pcBitIf->getNumberOfWrittenBits()-startBit);
+#endif
 #endif
     //for each size
     for(sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
@@ -1617,12 +1648,16 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
 #endif
       }
     }
+#if !SCALING_LIST_HL_SYNTAX
   }
+#endif
 #if SCALING_LIST_OUTPUT_RESULT
+#if !SCALING_LIST_HL_SYNTAX
   else
   {
     printf("Header Bit %d\n",m_pcBitIf->getNumberOfWrittenBits()-startTotalBit);
   }
+#endif
   printf("Total Bit %d\n",m_pcBitIf->getNumberOfWrittenBits()-startTotalBit);
 #endif
   return;

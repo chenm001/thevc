@@ -235,11 +235,20 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       {
         m_pcEncTop->getTrQuant()->setFlatScalingList();
         m_pcEncTop->getTrQuant()->setUseScalingList(false);
+#if SCALING_LIST_HL_SYNTAX
+        m_pcEncTop->getSPS()->setScalingListPresentFlag(false);
+        m_pcEncTop->getPPS()->setScalingListPresentFlag(false);
+#endif
       }
       else if(m_pcEncTop->getUseScalingListId() == SCALING_LIST_DEFAULT)
       {
         pcSlice->setDefaultScalingList ();
+#if SCALING_LIST_HL_SYNTAX
+        m_pcEncTop->getSPS()->setScalingListPresentFlag(false);
+        m_pcEncTop->getPPS()->setScalingListPresentFlag(false);
+#else
         pcSlice->getScalingList()->setScalingListPresentFlag(true);
+#endif
         m_pcEncTop->getTrQuant()->setScalingList(pcSlice->getScalingList());
         m_pcEncTop->getTrQuant()->setUseScalingList(true);
       }
@@ -250,7 +259,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           pcSlice->setDefaultScalingList ();
         }
         pcSlice->getScalingList()->checkDcOfMatrix();
+#if SCALING_LIST_HL_SYNTAX
+        m_pcEncTop->getSPS()->setScalingListPresentFlag(pcSlice->checkDefaultScalingList());
+        m_pcEncTop->getPPS()->setScalingListPresentFlag(false);
+#else
         pcSlice->getScalingList()->setScalingListPresentFlag(pcSlice->checkDefaultScalingList());
+#endif
         m_pcEncTop->getTrQuant()->setScalingList(pcSlice->getScalingList());
         m_pcEncTop->getTrQuant()->setUseScalingList(true);
       }
@@ -731,7 +745,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       uiNextCUAddr                 = 0;
       pcSlice = pcPic->getSlice(uiStartCUAddrSliceIdx);
 
+#if SCALING_LIST_HL_SYNTAX
+      Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseDF())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
+#else
       Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getScalingListFlag() || pcSlice->getSPS()->getUseDF())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
+#endif
 
       static Int iCurrAPSIdx = 0;
       Int iCodedAPSIdx = 0;
@@ -1381,6 +1399,7 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
 {
 
   cAPS.setAPSID(apsID);
+#if !SCALING_LIST_HL_SYNTAX
   if(pcSlice->getPOC() == 0)
   {
     cAPS.setScalingListEnabled(pcSlice->getSPS()->getScalingListFlag());
@@ -1389,6 +1408,7 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
   {
     cAPS.setScalingListEnabled(false);
   }
+#endif
 #if !SAO_REMOVE_APS // APS syntax
   cAPS.setSaoEnabled(pcSlice->getSPS()->getUseSAO() ? (cAPS.getSaoParam()->bSaoFlag[0] ):(false));
 #endif
@@ -1425,10 +1445,12 @@ Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* p
   m_pcEntropyCoder->setBitstream(&APSbs);
 
   m_pcEntropyCoder->encodeAPSInitInfo(pcAPS);
+#if !SCALING_LIST_HL_SYNTAX
   if(pcAPS->getScalingListEnabled())
   {
     m_pcEntropyCoder->encodeScalingList( pcSlice->getScalingList() );
   }
+#endif
   if(pcAPS->getLoopFilterOffsetInAPS())
   {
     m_pcEntropyCoder->encodeDFParams(pcAPS);
