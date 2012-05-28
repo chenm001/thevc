@@ -161,8 +161,10 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
 #if !SCALING_LIST_HL_SYNTAX
   WRITE_FLAG( pcAPS->getScalingListEnabled()?1:0, "aps_scaling_list_data_present_flag");
 #endif
+#if !DBL_HL_SYNTAX
   //DF flag
   WRITE_FLAG(pcAPS->getLoopFilterOffsetInAPS()?1:0, "aps_deblocking_filter_flag");
+#endif
 }
 #if !AHG6_ALF_OPTION2
 Void TEncCavlc::codeAPSAlflag(UInt uiCode)
@@ -338,6 +340,21 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   }
 #endif
   WRITE_FLAG( pcPPS->getDeblockingFilterControlPresent()?1 : 0, "deblocking_filter_control_present_flag");
+#if DBL_HL_SYNTAX
+  if(pcPPS->getDeblockingFilterControlPresent())
+  {
+    WRITE_FLAG( pcPPS->getLoopFilterOffsetInPPS() ? 1 : 0,                          "pps_deblocking_filter_flag" ); 
+    if(pcPPS->getLoopFilterOffsetInPPS())
+    {
+      WRITE_FLAG(pcPPS->getLoopFilterDisable(), "loop_filter_disable");  // should be an IDC
+      if(!pcPPS->getLoopFilterDisable())
+      {
+        WRITE_SVLC( pcPPS->getLoopFilterBetaOffset(),                                 "pps_beta_offset_div2");
+        WRITE_SVLC( pcPPS->getLoopFilterTcOffset(),                                   "pps_tc_offset_div2");
+      }
+    }
+  }
+#endif
 #if SCALING_LIST_HL_SYNTAX
   WRITE_FLAG( pcPPS->getScalingListPresentFlag() ? 1 : 0,                          "pps_scaling_list_data_present_flag" ); 
   if( pcPPS->getScalingListPresentFlag() )
@@ -454,7 +471,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if INTRA_TRANSFORMSKIP
   WRITE_FLAG( pcSPS->getUseTransformSkip () ? 1 : 0,                                 "transform_skip_enabled_flag" ); 
 #endif
+#if !DBL_HL_SYNTAX
   WRITE_FLAG( pcSPS->getUseDF() ? 1 : 0,                                             "deblocking_filter_in_aps_enabled_flag");
+#endif
   WRITE_FLAG( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0,                            "seq_loop_filter_across_slices_enabled_flag");
   WRITE_FLAG( pcSPS->getUseAMP(),                                                    "asymmetric_motion_partitions_enabled_flag" );
   WRITE_FLAG( pcSPS->getUseNSQT(),                                                   "non_square_quadtree_enabled_flag" );
@@ -661,10 +680,14 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
         }
       }
     }
+#if DBL_HL_SYNTAX
+    if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
+#else
 #if SCALING_LIST_HL_SYNTAX
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF()|| pcSlice->getSPS()->getUseDF())
 #else
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF()|| pcSlice->getSPS()->getScalingListFlag() || pcSlice->getSPS()->getUseDF())
+#endif
 #endif
     {
 #if !AHG6_ALF_OPTION2
@@ -816,6 +839,21 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     WRITE_SVLC( iCode, "slice_qp_delta" ); 
     if (pcSlice->getPPS()->getDeblockingFilterControlPresent())
     {
+#if DBL_HL_SYNTAX
+      if (pcSlice->getPPS()->getLoopFilterOffsetInPPS() )
+      {
+        WRITE_FLAG(pcSlice->getInheritDblParamFromPPS(), "inherit_dbl_param_from_PPS_flag");
+      }
+      if (!pcSlice->getInheritDblParamFromPPS())
+      {
+        WRITE_FLAG(pcSlice->getLoopFilterDisable(), "loop_filter_disable");  // should be an IDC
+        if(!pcSlice->getLoopFilterDisable())
+        {
+          WRITE_SVLC (pcSlice->getLoopFilterBetaOffset(), "beta_offset_div2");
+          WRITE_SVLC (pcSlice->getLoopFilterTcOffset(), "tc_offset_div2");
+        }
+      }
+#else
       if ( pcSlice->getSPS()->getUseDF() )
       {
         WRITE_FLAG(pcSlice->getInheritDblParamFromAPS(), "inherit_dbl_param_from_APS_flag");
@@ -829,6 +867,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
           WRITE_SVLC (pcSlice->getLoopFilterTcOffset(), "tc_offset_div2");
         }
       }
+#endif
     }
     if ( pcSlice->getSliceType() == B_SLICE )
     {

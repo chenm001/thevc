@@ -321,6 +321,17 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #endif
     if (pcSlice->getPPS()->getDeblockingFilterControlPresent())
     {
+#if DBL_HL_SYNTAX
+      if(pcSlice->getPPS()->getLoopFilterOffsetInPPS())
+      {
+        pcSlice->setLoopFilterDisable(pcSlice->getPPS()->getLoopFilterDisable());
+        if (!pcSlice->getLoopFilterDisable())
+        {
+          pcSlice->setLoopFilterBetaOffset(pcSlice->getPPS()->getLoopFilterBetaOffset());
+          pcSlice->setLoopFilterTcOffset(pcSlice->getPPS()->getLoopFilterTcOffset());
+        }
+      }
+#else
       if(pcSlice->getSPS()->getUseDF())
       {
         if(pcSlice->getInheritDblParamFromAPS())
@@ -333,6 +344,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
           }
         }
       }
+#endif
     }
     m_pcLoopFilter->setCfg(pcSlice->getPPS()->getDeblockingFilterControlPresent(), pcSlice->getLoopFilterDisable(), pcSlice->getLoopFilterBetaOffset(), pcSlice->getLoopFilterTcOffset(), bLFCrossTileBoundary);
     m_pcLoopFilter->loopFilterPic( rpcPic );

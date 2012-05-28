@@ -1710,6 +1710,7 @@ Void TEncEntropy::encodeScalingList( TComScalingList* scalingList )
   m_pcEntropyCoderIf->codeScalingList( scalingList );
 }
 
+#if !DBL_HL_SYNTAX
 Void TEncEntropy::encodeDFParams(TComAPS* pcAPS)
 {
   m_pcEntropyCoderIf->codeDFFlag(pcAPS->getLoopFilterDisable(), "loop_filter_disable");
@@ -1720,5 +1721,6 @@ Void TEncEntropy::encodeDFParams(TComAPS* pcAPS)
     m_pcEntropyCoderIf->codeDFSvlc(pcAPS->getLoopFilterTcOffset(), "tc_offset_div2");
   }
 }
+#endif
 
 //! \}

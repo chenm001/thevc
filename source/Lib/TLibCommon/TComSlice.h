@@ -417,8 +417,10 @@ public:
   Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
   Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   } 
 
+#if !DBL_HL_SYNTAX
   Void setUseDF                   ( Bool b ) { m_useDF = b; }
   Bool getUseDF                   ()         { return m_useDF; }
+#endif
 
   Void setUseSAO                  (Bool bVal)  {m_bUseSAO = bVal;}
   Bool getUseSAO                  ()           {return m_bUseSAO;}
@@ -576,6 +578,12 @@ private:
   Bool     m_cabacInitPresentFlag;
   UInt     m_encCABACTableIdx;           // Used to transmit table selection across slices
   Bool     m_DeblockingFilterControlPresent;
+#if DBL_HL_SYNTAX
+  Bool     m_loopFilterOffsetInPPS;
+  Bool     m_loopFilterDisable;
+  Int      m_loopFilterBetaOffsetDiv2;    //< beta offset for deblocking filter
+  Int      m_loopFilterTcOffsetDiv2;      //< tc offset for deblocking filter
+#endif
 #if SCALING_LIST_HL_SYNTAX
   Bool        m_scalingListPresentFlag;
   TComScalingList*     m_scalingList;   //!< ScalingList class pointer
@@ -698,6 +706,16 @@ public:
   UInt     getEncCABACTableIdx()                    { return m_encCABACTableIdx;        }
   Void setDeblockingFilterControlPresent    ( Bool bValue )       { m_DeblockingFilterControlPresent = bValue; }
   Bool getDeblockingFilterControlPresent    ()                    { return m_DeblockingFilterControlPresent; }
+#if DBL_HL_SYNTAX
+  Void     setLoopFilterDisable(Bool val)      {m_loopFilterDisable = val; }           //!< set offset for deblocking filter disabled
+  Bool     getLoopFilterDisable()              {return m_loopFilterDisable; }          //!< get offset for deblocking filter disabled
+  Void     setLoopFilterOffsetInPPS( Bool b )  { m_loopFilterOffsetInPPS = b;    }
+  Bool     getLoopFilterOffsetInPPS()          { return m_loopFilterOffsetInPPS; }
+  Void     setLoopFilterBetaOffset(Int val)    {m_loopFilterBetaOffsetDiv2 = val; }    //!< set beta offset for deblocking filter
+  Int      getLoopFilterBetaOffset()           {return m_loopFilterBetaOffsetDiv2; }   //!< get beta offset for deblocking filter
+  Void     setLoopFilterTcOffset(Int val)      {m_loopFilterTcOffsetDiv2 = val; }      //!< set tc offset for deblocking filter
+  Int      getLoopFilterTcOffset()             {return m_loopFilterTcOffsetDiv2; }     //!< get tc offset for deblocking filter
+#endif
 #if SCALING_LIST_HL_SYNTAX
   Bool     getScalingListPresentFlag()         { return m_scalingListPresentFlag;     }
   Void     setScalingListPresentFlag( Bool b ) { m_scalingListPresentFlag  = b;       }
@@ -777,6 +795,7 @@ public:
   Void      createAlfParam();   //!< create ALF parameter object
   Void      destroyAlfParam();  //!< destroy ALF parameter object
 
+#if !DBL_HL_SYNTAX
   Void      setLoopFilterOffsetInAPS(Bool val)  {m_loopFilterOffsetInAPS = val; }      //!< set offset for deblocking filter enabled/disabled in APS
   Bool      getLoopFilterOffsetInAPS()          {return m_loopFilterOffsetInAPS; }     //!< get offset for deblocking filter enabled/disabled in APS
   Void      setLoopFilterDisable(Bool val)      {m_loopFilterDisable = val; }          //!< set offset for deblocking filter disabled
@@ -785,6 +804,7 @@ public:
   Int       getLoopFilterBetaOffset()           {return m_loopFilterBetaOffsetDiv2; }   //!< get beta offset for deblocking filter
   Void      setLoopFilterTcOffset(Int val)      {m_loopFilterTcOffsetDiv2 = val; }      //!< set tc offset for deblocking filter
   Int       getLoopFilterTcOffset()             {return m_loopFilterTcOffsetDiv2; }     //!< get tc offset for deblocking filter
+#endif
 
 #if !SCALING_LIST_HL_SYNTAX
   Void      createScalingList();
@@ -812,10 +832,12 @@ private:
 #else
   AlfParamSet*   m_alfParamSet;
 #endif
+#if !DBL_HL_SYNTAX
   Bool        m_loopFilterOffsetInAPS;       //< offset for deblocking filter in 0 = slice header, 1 = APS
   Bool        m_loopFilterDisable;           //< Deblocking filter enabled/disabled in APS
   Int         m_loopFilterBetaOffsetDiv2;    //< beta offset for deblocking filter
   Int         m_loopFilterTcOffsetDiv2;      //< tc offset for deblocking filter
+#endif
 #if !SCALING_LIST_HL_SYNTAX
   Bool        m_scalingListEnabled;     //!< ScalingList enabled/disabled in APS (true for enabled)
   TComScalingList*     m_scalingList;   //!< ScalingList class pointer
@@ -880,8 +902,13 @@ private:
   Int         m_iSliceQpBase;
 #endif
   Bool        m_bLoopFilterDisable;
+#if DBL_HL_SYNTAX
+  Bool        m_loopFilterOffsetInPPS;
+  Bool        m_inheritDblParamFromPPS;      //< offsets for deblocking filter inherit from PPS
+#else
   Bool        m_loopFilterOffsetInAPS;
   Bool        m_inheritDblParamFromAPS;      //< offsets for deblocking filter inherit from APS
+#endif
   Int         m_loopFilterBetaOffsetDiv2;    //< beta offset for deblocking filter
   Int         m_loopFilterTcOffsetDiv2;      //< tc offset for deblocking filter
   
@@ -1033,8 +1060,13 @@ public:
 #endif
   Int       getSliceQpDelta ()                          { return  m_iSliceQpDelta;      }
   Bool      getLoopFilterDisable()                      { return  m_bLoopFilterDisable; }
+#if DBL_HL_SYNTAX
+  Bool      getLoopFilterOffsetInPPS()                  { return  m_loopFilterOffsetInPPS;}
+  Bool      getInheritDblParamFromPPS()                 { return  m_inheritDblParamFromPPS; }
+#else
   Bool      getLoopFilterOffsetInAPS()                  { return  m_loopFilterOffsetInAPS;}
   Bool      getInheritDblParamFromAPS()                 { return  m_inheritDblParamFromAPS; }
+#endif
   Int       getLoopFilterBetaOffset()                   { return  m_loopFilterBetaOffsetDiv2; }
   Int       getLoopFilterTcOffset()                     { return  m_loopFilterTcOffsetDiv2; }
 
@@ -1078,8 +1110,13 @@ public:
 #endif
   Void      setSliceQpDelta     ( Int i )                       { m_iSliceQpDelta     = i;      }
   Void      setLoopFilterDisable( Bool b )                      { m_bLoopFilterDisable= b;      }
+#if DBL_HL_SYNTAX
+  Void      setLoopFilterOffsetInPPS( Bool b )                  { m_loopFilterOffsetInPPS = b;}
+  Void      setInheritDblParamFromPPS( Bool b )                 { m_inheritDblParamFromPPS = b; }
+#else
   Void      setLoopFilterOffsetInAPS( Bool b )                  { m_loopFilterOffsetInAPS = b;}
   Void      setInheritDblParamFromAPS( Bool b )                 { m_inheritDblParamFromAPS = b; }
+#endif
   Void      setLoopFilterBetaOffset( Int i )                    { m_loopFilterBetaOffsetDiv2 = i; }
   Void      setLoopFilterTcOffset( Int i )                      { m_loopFilterTcOffsetDiv2 = i; }
   

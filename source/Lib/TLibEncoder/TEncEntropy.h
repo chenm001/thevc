@@ -275,7 +275,9 @@ public:
   Void encodeAPSInitInfo          (TComAPS* pcAPS) {m_pcEntropyCoderIf->codeAPSInitInfo(pcAPS);}
   Void encodeFinish               (Bool bEnd) {m_pcEntropyCoderIf->codeFinish(bEnd);}
   Void encodeScalingList       ( TComScalingList* scalingList );
+#if !DBL_HL_SYNTAX
   Void encodeDFParams          (TComAPS* pcAPS);
+#endif
 
 private:
 #if REMOVE_LASTTU_CBFDERIV
