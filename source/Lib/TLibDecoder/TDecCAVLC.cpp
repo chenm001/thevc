@@ -1549,7 +1549,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     {
       rpcSlice->setPicOutputFlag( true );
     }
-    if(rpcSlice->getNalUnitType()==NAL_UNIT_CODED_SLICE_IDR) 
+    if(rpcSlice->getNalUnitType()==NAL_UNIT_CODED_SLICE_IDR)
     { 
       READ_UVLC( uiCode, "idr_pic_id" );  //ignored
       READ_FLAG( uiCode, "no_output_of_prior_pics_flag" );  //ignored
