@@ -299,8 +299,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #endif
     ("SliceMode",            m_iSliceMode,           0, "0: Disable all Recon slice limits, 1: Enforce max # of LCUs, 2: Enforce max # of bytes")
     ("SliceArgument",        m_iSliceArgument,       0, "if SliceMode==1 SliceArgument represents max # of LCUs. if SliceMode==2 SliceArgument represents max # of bytes.")
-    ("EntropySliceMode",     m_iEntropySliceMode,    0, "0: Disable all entropy slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based entropy slices")
-    ("EntropySliceArgument", m_iEntropySliceArgument,0, "if EntropySliceMode==1 SliceArgument represents max # of LCUs. if EntropySliceMode==2 EntropySliceArgument represents max # of bins.")
+    ("DependentSliceMode",     m_iDependentSliceMode,    0, "0: Disable all dependent slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based dependent slices")
+    ("DependentSliceArgument", m_iDependentSliceArgument,0, "if DependentSliceMode==1 SliceArgument represents max # of LCUs. if DependentSliceMode==2 DependentSliceArgument represents max # of bins.")
     ("SliceGranularity",     m_iSliceGranularity,    0, "0: Slices always end at LCU borders. 1-3: slices may end at a depth of 1-3 below LCU level.")
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
 
@@ -603,19 +603,19 @@ Void TAppEncCfg::xCheckParameter()
   {
     xConfirmPara( m_iSliceGranularity > 0 ,      "When SliceMode == 3 is chosen, the SliceGranularity must be 0" );
   }
-  xConfirmPara( m_iEntropySliceMode < 0 || m_iEntropySliceMode > 2, "EntropySliceMode exceeds supported range (0 to 2)" );
-  if (m_iEntropySliceMode!=0)
+  xConfirmPara( m_iDependentSliceMode < 0 || m_iDependentSliceMode > 2, "DependentSliceMode exceeds supported range (0 to 2)" );
+  if (m_iDependentSliceMode!=0)
   {
-    xConfirmPara( m_iEntropySliceArgument < 1 ,         "EntropySliceArgument should be larger than or equal to 1" );
+    xConfirmPara( m_iDependentSliceArgument < 1 ,         "DependentSliceArgument should be larger than or equal to 1" );
   }
   xConfirmPara( m_iSliceGranularity >= m_uiMaxCUDepth, "SliceGranularity must be smaller than maximum cu depth");
   xConfirmPara( m_iSliceGranularity <0 || m_iSliceGranularity > 3, "SliceGranularity exceeds supported range (0 to 3)" );
   xConfirmPara( m_iSliceGranularity > m_iMaxCuDQPDepth, "SliceGranularity must be smaller smaller than or equal to maximum dqp depth" );
 
   bool tileFlag = (m_iNumColumnsMinus1 > 0 || m_iNumRowsMinus1 > 0 );
-  xConfirmPara( tileFlag && m_iEntropySliceMode,            "Tile and Entropy Slice can not be applied together");
+  xConfirmPara( tileFlag && m_iDependentSliceMode,            "Tile and Dependent Slice can not be applied together");
   xConfirmPara( tileFlag && m_iWaveFrontSynchro,            "Tile and Wavefront can not be applied together");
-  xConfirmPara( m_iWaveFrontSynchro && m_iEntropySliceMode, "Wavefront and Entropy Slice can not be applied together");  
+  xConfirmPara( m_iWaveFrontSynchro && m_iDependentSliceMode, "Wavefront and Dependent Slice can not be applied together");  
 
   //TODO:ChromaFmt assumes 4:2:0 below
   xConfirmPara( m_iSourceWidth  % TComSPS::getCropUnitX(CHROMA_420) != 0, "Picture width must be an integer multiple of the specified chroma subsampling");
@@ -1070,10 +1070,10 @@ Void TAppEncCfg::xPrintParameter()
   {
     printf("A=%d ", m_iSliceArgument);
   }
-  printf("EntropySlice: M=%d ",m_iEntropySliceMode);
-  if (m_iEntropySliceMode!=0)
+  printf("DependentSlice: M=%d ",m_iDependentSliceMode);
+  if (m_iDependentSliceMode!=0)
   {
-    printf("A=%d ", m_iEntropySliceArgument);
+    printf("A=%d ", m_iDependentSliceArgument);
   }
   printf("CIP:%d ", m_bUseConstrainedIntraPred);
   printf("SAO:%d ", (m_bUseSAO)?(1):(0));

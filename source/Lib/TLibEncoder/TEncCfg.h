@@ -220,9 +220,9 @@ protected:
   //====== Slice ========
   Int       m_iSliceMode;
   Int       m_iSliceArgument; 
-  //====== Entropy Slice ========
-  Int       m_iEntropySliceMode;
-  Int       m_iEntropySliceArgument;
+  //====== Dependent Slice ========
+  Int       m_iDependentSliceMode;
+  Int       m_iDependentSliceArgument;
   Int       m_iSliceGranularity;
   Bool      m_bLFCrossSliceBoundaryFlag;
 
@@ -502,11 +502,11 @@ public:
   Void  setSliceArgument               ( Int  i )       { m_iSliceArgument = i;          }
   Int   getSliceMode                   ()              { return m_iSliceMode;           }
   Int   getSliceArgument               ()              { return m_iSliceArgument;       }
-  //====== Entropy Slice ========
-  Void  setEntropySliceMode            ( Int  i )      { m_iEntropySliceMode = i;       }
-  Void  setEntropySliceArgument        ( Int  i )      { m_iEntropySliceArgument = i;   }
-  Int   getEntropySliceMode            ()              { return m_iEntropySliceMode;    }
-  Int   getEntropySliceArgument        ()              { return m_iEntropySliceArgument;}
+  //====== Dependent Slice ========
+  Void  setDependentSliceMode            ( Int  i )      { m_iDependentSliceMode = i;       }
+  Void  setDependentSliceArgument        ( Int  i )      { m_iDependentSliceArgument = i;   }
+  Int   getDependentSliceMode            ()              { return m_iDependentSliceMode;    }
+  Int   getDependentSliceArgument        ()              { return m_iDependentSliceArgument;}
   Void  setSliceGranularity            ( Int  i )      { m_iSliceGranularity = i;       }
   Int   getSliceGranularity            ()              { return m_iSliceGranularity;    }
   Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }

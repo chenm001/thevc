@@ -976,14 +976,14 @@ private:
   UInt        m_uiSliceCurStartCUAddr;
   UInt        m_uiSliceCurEndCUAddr;
   UInt        m_uiSliceIdx;
-  UInt        m_uiEntropySliceMode;
-  UInt        m_uiEntropySliceArgument;
-  UInt        m_uiEntropySliceCurStartCUAddr;
-  UInt        m_uiEntropySliceCurEndCUAddr;
+  UInt        m_uiDependentSliceMode;
+  UInt        m_uiDependentSliceArgument;
+  UInt        m_uiDependentSliceCurStartCUAddr;
+  UInt        m_uiDependentSliceCurEndCUAddr;
   Bool        m_bNextSlice;
-  Bool        m_bNextEntropySlice;
+  Bool        m_bNextDependentSlice;
   UInt        m_uiSliceBits;
-  UInt        m_uiEntropySliceCounter;
+  UInt        m_uiDependentSliceCounter;
   Bool        m_bFinalized;
 
   wpScalingParam  m_weightPredTable[2][MAX_NUM_REF][3]; // [REF_PIC_LIST_0 or REF_PIC_LIST_1][refIdx][0:Y, 1:U, 2:V]
@@ -1204,22 +1204,22 @@ public:
   Void setSliceIdx                      ( UInt i)           { m_uiSliceIdx = i;                           }
   UInt getSliceIdx                      ()                  { return  m_uiSliceIdx;                       }
   Void copySliceInfo                    (TComSlice *pcSliceSrc);
-  Void setEntropySliceMode              ( UInt uiMode )     { m_uiEntropySliceMode = uiMode;              }
-  UInt getEntropySliceMode              ()                  { return m_uiEntropySliceMode;                }
-  Void setEntropySliceArgument          ( UInt uiArgument ) { m_uiEntropySliceArgument = uiArgument;      }
-  UInt getEntropySliceArgument          ()                  { return m_uiEntropySliceArgument;            }
-  Void setEntropySliceCurStartCUAddr    ( UInt uiAddr )     { m_uiEntropySliceCurStartCUAddr = uiAddr;    }
-  UInt getEntropySliceCurStartCUAddr    ()                  { return m_uiEntropySliceCurStartCUAddr;      }
-  Void setEntropySliceCurEndCUAddr      ( UInt uiAddr )     { m_uiEntropySliceCurEndCUAddr = uiAddr;      }
-  UInt getEntropySliceCurEndCUAddr      ()                  { return m_uiEntropySliceCurEndCUAddr;        }
+  Void setDependentSliceMode              ( UInt uiMode )     { m_uiDependentSliceMode = uiMode;              }
+  UInt getDependentSliceMode              ()                  { return m_uiDependentSliceMode;                }
+  Void setDependentSliceArgument          ( UInt uiArgument ) { m_uiDependentSliceArgument = uiArgument;      }
+  UInt getDependentSliceArgument          ()                  { return m_uiDependentSliceArgument;            }
+  Void setDependentSliceCurStartCUAddr    ( UInt uiAddr )     { m_uiDependentSliceCurStartCUAddr = uiAddr;    }
+  UInt getDependentSliceCurStartCUAddr    ()                  { return m_uiDependentSliceCurStartCUAddr;      }
+  Void setDependentSliceCurEndCUAddr      ( UInt uiAddr )     { m_uiDependentSliceCurEndCUAddr = uiAddr;      }
+  UInt getDependentSliceCurEndCUAddr      ()                  { return m_uiDependentSliceCurEndCUAddr;        }
   Void setNextSlice                     ( Bool b )          { m_bNextSlice = b;                           }
   Bool isNextSlice                      ()                  { return m_bNextSlice;                        }
-  Void setNextEntropySlice              ( Bool b )          { m_bNextEntropySlice = b;                    }
-  Bool isNextEntropySlice               ()                  { return m_bNextEntropySlice;                 }
+  Void setNextDependentSlice              ( Bool b )          { m_bNextDependentSlice = b;                    }
+  Bool isNextDependentSlice               ()                  { return m_bNextDependentSlice;                 }
   Void setSliceBits                     ( UInt uiVal )      { m_uiSliceBits = uiVal;                      }
   UInt getSliceBits                     ()                  { return m_uiSliceBits;                       }  
-  Void setEntropySliceCounter           ( UInt uiVal )      { m_uiEntropySliceCounter = uiVal;            }
-  UInt getEntropySliceCounter           ()                  { return m_uiEntropySliceCounter;             }
+  Void setDependentSliceCounter           ( UInt uiVal )      { m_uiDependentSliceCounter = uiVal;            }
+  UInt getDependentSliceCounter           ()                  { return m_uiDependentSliceCounter;             }
   Void setFinalized                     ( Bool uiVal )      { m_bFinalized = uiVal;                       }
   Bool getFinalized                     ()                  { return m_bFinalized;                        }
   Void  setWpScaling    ( wpScalingParam  wp[2][MAX_NUM_REF][3] ) { memcpy(m_weightPredTable, wp, sizeof(wpScalingParam)*2*MAX_NUM_REF*3); }

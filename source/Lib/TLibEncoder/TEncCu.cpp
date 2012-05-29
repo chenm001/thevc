@@ -459,8 +459,8 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
 
   // If slice start or slice end is within this cu...
   TComSlice * pcSlice = rpcTempCU->getPic()->getSlice(rpcTempCU->getPic()->getCurrSliceIdx());
-  Bool bSliceStart = pcSlice->getEntropySliceCurStartCUAddr()>rpcTempCU->getSCUAddr()&&pcSlice->getEntropySliceCurStartCUAddr()<rpcTempCU->getSCUAddr()+rpcTempCU->getTotalNumPart();
-  Bool bSliceEnd = (pcSlice->getEntropySliceCurEndCUAddr()>rpcTempCU->getSCUAddr()&&pcSlice->getEntropySliceCurEndCUAddr()<rpcTempCU->getSCUAddr()+rpcTempCU->getTotalNumPart());
+  Bool bSliceStart = pcSlice->getDependentSliceCurStartCUAddr()>rpcTempCU->getSCUAddr()&&pcSlice->getDependentSliceCurStartCUAddr()<rpcTempCU->getSCUAddr()+rpcTempCU->getTotalNumPart();
+  Bool bSliceEnd = (pcSlice->getDependentSliceCurEndCUAddr()>rpcTempCU->getSCUAddr()&&pcSlice->getDependentSliceCurEndCUAddr()<rpcTempCU->getSCUAddr()+rpcTempCU->getTotalNumPart());
   Bool bInsidePicture = ( uiRPelX < rpcBestCU->getSlice()->getSPS()->getPicWidthInLumaSamples() ) && ( uiBPelY < rpcBestCU->getSlice()->getSPS()->getPicHeightInLumaSamples() );
   // We need to split, so don't try these modes.
   if(!bSliceEnd && !bSliceStart && bInsidePicture )
@@ -814,13 +814,13 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   else
   {
     Int iStartQP;
-    if( pcPic->getCU( rpcTempCU->getAddr() )->getEntropySliceStartCU(rpcTempCU->getZorderIdxInCU()) == pcSlice->getEntropySliceCurStartCUAddr())
+    if( pcPic->getCU( rpcTempCU->getAddr() )->getDependentSliceStartCU(rpcTempCU->getZorderIdxInCU()) == pcSlice->getDependentSliceCurStartCUAddr())
     {
       iStartQP = rpcTempCU->getQP(0);
     }
     else
     {
-      UInt uiCurSliceStartPartIdx = pcSlice->getEntropySliceCurStartCUAddr() % pcPic->getNumPartInCU() - rpcTempCU->getZorderIdxInCU();
+      UInt uiCurSliceStartPartIdx = pcSlice->getDependentSliceCurStartCUAddr() % pcPic->getNumPartInCU() - rpcTempCU->getZorderIdxInCU();
       iStartQP = rpcTempCU->getQP(uiCurSliceStartPartIdx);
     }
     iMinQP = iStartQP;
@@ -854,7 +854,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         pcSubBestPartCU->initSubCU( rpcTempCU, uiPartUnitIdx, uhNextDepth, iQP );           // clear sub partition datas or init.
         pcSubTempPartCU->initSubCU( rpcTempCU, uiPartUnitIdx, uhNextDepth, iQP );           // clear sub partition datas or init.
 
-        Bool bInSlice = pcSubBestPartCU->getSCUAddr()+pcSubBestPartCU->getTotalNumPart()>pcSlice->getEntropySliceCurStartCUAddr()&&pcSubBestPartCU->getSCUAddr()<pcSlice->getEntropySliceCurEndCUAddr();
+        Bool bInSlice = pcSubBestPartCU->getSCUAddr()+pcSubBestPartCU->getTotalNumPart()>pcSlice->getDependentSliceCurStartCUAddr()&&pcSubBestPartCU->getSCUAddr()<pcSlice->getDependentSliceCurEndCUAddr();
         if(bInSlice && ( pcSubBestPartCU->getCUPelX() < pcSlice->getSPS()->getPicWidthInLumaSamples() ) && ( pcSubBestPartCU->getCUPelY() < pcSlice->getSPS()->getPicHeightInLumaSamples() ) )
         {
           if( m_bUseSBACRD )
@@ -910,7 +910,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         Bool bHasRedisual = false;
         for( UInt uiBlkIdx = 0; uiBlkIdx < rpcTempCU->getTotalNumPart(); uiBlkIdx ++)
         {
-          if( ( pcPic->getCU( rpcTempCU->getAddr() )->getEntropySliceStartCU(uiBlkIdx+rpcTempCU->getZorderIdxInCU()) == rpcTempCU->getSlice()->getEntropySliceCurStartCUAddr() ) && 
+          if( ( pcPic->getCU( rpcTempCU->getAddr() )->getDependentSliceStartCU(uiBlkIdx+rpcTempCU->getZorderIdxInCU()) == rpcTempCU->getSlice()->getDependentSliceCurStartCUAddr() ) && 
               ( rpcTempCU->getCbf( uiBlkIdx, TEXT_LUMA ) || rpcTempCU->getCbf( uiBlkIdx, TEXT_CHROMA_U ) || rpcTempCU->getCbf( uiBlkIdx, TEXT_CHROMA_V ) ) )
           {
             bHasRedisual = true;
@@ -919,9 +919,9 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         }
 
         UInt uiTargetPartIdx;
-        if ( pcPic->getCU( rpcTempCU->getAddr() )->getEntropySliceStartCU(rpcTempCU->getZorderIdxInCU()) != pcSlice->getEntropySliceCurStartCUAddr() )
+        if ( pcPic->getCU( rpcTempCU->getAddr() )->getDependentSliceStartCU(rpcTempCU->getZorderIdxInCU()) != pcSlice->getDependentSliceCurStartCUAddr() )
         {
-          uiTargetPartIdx = pcSlice->getEntropySliceCurStartCUAddr() % pcPic->getNumPartInCU() - rpcTempCU->getZorderIdxInCU();
+          uiTargetPartIdx = pcSlice->getDependentSliceCurStartCUAddr() % pcPic->getNumPartInCU() - rpcTempCU->getZorderIdxInCU();
         }
         else
         {
@@ -959,16 +959,16 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       Bool bEntropyLimit=false;
       Bool bSliceLimit=false;
       bSliceLimit=rpcBestCU->getSlice()->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE&&(rpcBestCU->getTotalBits()>rpcBestCU->getSlice()->getSliceArgument()<<3);
-      if(rpcBestCU->getSlice()->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE&&m_pcEncCfg->getUseSBACRD())
+      if(rpcBestCU->getSlice()->getDependentSliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_DEPENDENT_SLICE&&m_pcEncCfg->getUseSBACRD())
       {
-        if(rpcBestCU->getTotalBins()>rpcBestCU->getSlice()->getEntropySliceArgument())
+        if(rpcBestCU->getTotalBins()>rpcBestCU->getSlice()->getDependentSliceArgument())
         {
           bEntropyLimit=true;
         }
       }
-      else if(rpcBestCU->getSlice()->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE)
+      else if(rpcBestCU->getSlice()->getDependentSliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_DEPENDENT_SLICE)
       {
-        if(rpcBestCU->getTotalBits()>rpcBestCU->getSlice()->getEntropySliceArgument())
+        if(rpcBestCU->getTotalBits()>rpcBestCU->getSlice()->getDependentSliceArgument())
         {
           bEntropyLimit=true;
         }
@@ -1021,8 +1021,8 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   //Calculate end address
   UInt uiCUAddr = pcCU->getSCUAddr()+uiAbsPartIdx;
 
-  UInt uiInternalAddress = pcPic->getPicSym()->getPicSCUAddr(pcSlice->getEntropySliceCurEndCUAddr()-1) % pcPic->getNumPartInCU();
-  UInt uiExternalAddress = pcPic->getPicSym()->getPicSCUAddr(pcSlice->getEntropySliceCurEndCUAddr()-1) / pcPic->getNumPartInCU();
+  UInt uiInternalAddress = pcPic->getPicSym()->getPicSCUAddr(pcSlice->getDependentSliceCurEndCUAddr()-1) % pcPic->getNumPartInCU();
+  UInt uiExternalAddress = pcPic->getPicSym()->getPicSCUAddr(pcSlice->getDependentSliceCurEndCUAddr()-1) / pcPic->getNumPartInCU();
   UInt uiPosX = ( uiExternalAddress % pcPic->getFrameWidthInCU() ) * g_uiMaxCUWidth+ g_auiRasterToPelX[ g_auiZscanToRaster[uiInternalAddress] ];
   UInt uiPosY = ( uiExternalAddress / pcPic->getFrameWidthInCU() ) * g_uiMaxCUHeight+ g_auiRasterToPelY[ g_auiZscanToRaster[uiInternalAddress] ];
   UInt uiWidth = pcSlice->getSPS()->getPicWidthInLumaSamples();
@@ -1069,33 +1069,33 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   // Calculate slice end IF this CU puts us over slice bit size.
   unsigned iGranularitySize = pcCU->getPic()->getNumPartInCU()>>(pcSlice->getPPS()->getSliceGranularity()<<1);
   int iGranularityEnd = ((pcCU->getSCUAddr()+uiAbsPartIdx)/iGranularitySize)*iGranularitySize;
-  if(iGranularityEnd<=pcSlice->getEntropySliceCurStartCUAddr()) 
+  if(iGranularityEnd<=pcSlice->getDependentSliceCurStartCUAddr()) 
   {
     iGranularityEnd+=max(iGranularitySize,(pcCU->getPic()->getNumPartInCU()>>(uiDepth<<1)));
   }
   // Set slice end parameter
   if(pcSlice->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE&&!pcSlice->getFinalized()&&pcSlice->getSliceBits()+numberOfWrittenBits>pcSlice->getSliceArgument()<<3) 
   {
-    pcSlice->setEntropySliceCurEndCUAddr(iGranularityEnd);
+    pcSlice->setDependentSliceCurEndCUAddr(iGranularityEnd);
     pcSlice->setSliceCurEndCUAddr(iGranularityEnd);
     return;
   }
-  // Set entropy slice end parameter
+  // Set dependent slice end parameter
   if(m_pcEncCfg->getUseSBACRD()) 
   {
     TEncBinCABAC *pppcRDSbacCoder = (TEncBinCABAC *) m_pppcRDSbacCoder[0][CI_CURR_BEST]->getEncBinIf();
     UInt uiBinsCoded = pppcRDSbacCoder->getBinsCoded();
-    if(pcSlice->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE&&!pcSlice->getFinalized()&&pcSlice->getEntropySliceCounter()+uiBinsCoded>pcSlice->getEntropySliceArgument())
+    if(pcSlice->getDependentSliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_DEPENDENT_SLICE&&!pcSlice->getFinalized()&&pcSlice->getDependentSliceCounter()+uiBinsCoded>pcSlice->getDependentSliceArgument())
     {
-      pcSlice->setEntropySliceCurEndCUAddr(iGranularityEnd);
+      pcSlice->setDependentSliceCurEndCUAddr(iGranularityEnd);
       return;
     }
   }
   else
   {
-    if(pcSlice->getEntropySliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE&&!pcSlice->getFinalized()&&pcSlice->getEntropySliceCounter()+numberOfWrittenBits>pcSlice->getEntropySliceArgument()) 
+    if(pcSlice->getDependentSliceMode()==SHARP_MULTIPLE_CONSTRAINT_BASED_DEPENDENT_SLICE&&!pcSlice->getFinalized()&&pcSlice->getDependentSliceCounter()+numberOfWrittenBits>pcSlice->getDependentSliceArgument()) 
     {
-      pcSlice->setEntropySliceCurEndCUAddr(iGranularityEnd);
+      pcSlice->setDependentSliceCurEndCUAddr(iGranularityEnd);
       return;
     }
   }
@@ -1105,12 +1105,12 @@ Void TEncCu::finishCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     if(m_pcEncCfg->getUseSBACRD()) 
     {
       TEncBinCABAC *pppcRDSbacCoder = (TEncBinCABAC *) m_pppcRDSbacCoder[0][CI_CURR_BEST]->getEncBinIf();
-      pcSlice->setEntropySliceCounter(pcSlice->getEntropySliceCounter()+pppcRDSbacCoder->getBinsCoded());
+      pcSlice->setDependentSliceCounter(pcSlice->getDependentSliceCounter()+pppcRDSbacCoder->getBinsCoded());
       pppcRDSbacCoder->setBinsCoded( 0 );
     }
     else 
     {
-      pcSlice->setEntropySliceCounter(pcSlice->getEntropySliceCounter()+numberOfWrittenBits);
+      pcSlice->setDependentSliceCounter(pcSlice->getDependentSliceCounter()+numberOfWrittenBits);
     }
     if (m_pcBitCounter)
     {
@@ -1172,8 +1172,8 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 
   TComSlice * pcSlice = pcCU->getPic()->getSlice(pcCU->getPic()->getCurrSliceIdx());
   // If slice start is within this cu...
-  Bool bSliceStart = pcSlice->getEntropySliceCurStartCUAddr() > pcPic->getPicSym()->getInverseCUOrderMap(pcCU->getAddr())*pcCU->getPic()->getNumPartInCU()+uiAbsPartIdx && 
-    pcSlice->getEntropySliceCurStartCUAddr() < pcPic->getPicSym()->getInverseCUOrderMap(pcCU->getAddr())*pcCU->getPic()->getNumPartInCU()+uiAbsPartIdx+( pcPic->getNumPartInCU() >> (uiDepth<<1) );
+  Bool bSliceStart = pcSlice->getDependentSliceCurStartCUAddr() > pcPic->getPicSym()->getInverseCUOrderMap(pcCU->getAddr())*pcCU->getPic()->getNumPartInCU()+uiAbsPartIdx && 
+    pcSlice->getDependentSliceCurStartCUAddr() < pcPic->getPicSym()->getInverseCUOrderMap(pcCU->getAddr())*pcCU->getPic()->getNumPartInCU()+uiAbsPartIdx+( pcPic->getNumPartInCU() >> (uiDepth<<1) );
   // We need to split, so don't try these modes.
   if(!bSliceStart&&( uiRPelX < pcSlice->getSPS()->getPicWidthInLumaSamples() ) && ( uiBPelY < pcSlice->getSPS()->getPicHeightInLumaSamples() ) )
   {
@@ -1197,7 +1197,7 @@ Void TEncCu::xEncodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     {
       uiLPelX   = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[uiAbsPartIdx] ];
       uiTPelY   = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[uiAbsPartIdx] ];
-      Bool bInSlice = pcCU->getSCUAddr()+uiAbsPartIdx+uiQNumParts>pcSlice->getEntropySliceCurStartCUAddr()&&pcCU->getSCUAddr()+uiAbsPartIdx<pcSlice->getEntropySliceCurEndCUAddr();
+      Bool bInSlice = pcCU->getSCUAddr()+uiAbsPartIdx+uiQNumParts>pcSlice->getDependentSliceCurStartCUAddr()&&pcCU->getSCUAddr()+uiAbsPartIdx<pcSlice->getDependentSliceCurEndCUAddr();
       if(bInSlice&&( uiLPelX < pcSlice->getSPS()->getPicWidthInLumaSamples() ) && ( uiTPelY < pcSlice->getSPS()->getPicHeightInLumaSamples() ) )
       {
         xEncodeCU( pcCU, uiAbsPartIdx, uiDepth+1 );
@@ -1627,7 +1627,7 @@ Bool TEncCu::checkLastCUSucIPCM( TComDataCU* pcCU, UInt uiCurAbsPartIdx )
   UInt startPartUnitIdx = ((uiCurAbsPartIdx&(0x03<<shift))>>shift);
 
   TComSlice * pcSlice = pcCU->getPic()->getSlice(pcCU->getPic()->getCurrSliceIdx());
-  if( pcSlice->getEntropySliceCurStartCUAddr() == ( pcCU->getSCUAddr() + uiCurAbsPartIdx ) )
+  if( pcSlice->getDependentSliceCurStartCUAddr() == ( pcCU->getSCUAddr() + uiCurAbsPartIdx ) )
   {
     return false;
   }
@@ -1683,7 +1683,7 @@ Int TEncCu::countNumSucIPCM ( TComDataCU* pcCU, UInt uiCurAbsPartIdx )
       {
         UInt lPelX = pcCU->getCUPelX() + g_auiRasterToPelX[ g_auiZscanToRaster[absPartIdx] ];
         UInt tPelY = pcCU->getCUPelY() + g_auiRasterToPelY[ g_auiZscanToRaster[absPartIdx] ];
-        Bool inSliceFlag = ( pcCU->getSCUAddr()+absPartIdx+qNumParts>pcSlice->getEntropySliceCurStartCUAddr() ) && ( pcCU->getSCUAddr()+absPartIdx < pcSlice->getEntropySliceCurEndCUAddr());
+        Bool inSliceFlag = ( pcCU->getSCUAddr()+absPartIdx+qNumParts>pcSlice->getDependentSliceCurStartCUAddr() ) && ( pcCU->getSCUAddr()+absPartIdx < pcSlice->getDependentSliceCurEndCUAddr());
 
         if( inSliceFlag && ( lPelX < pcSlice->getSPS()->getPicWidthInLumaSamples() ) && ( tPelY < pcSlice->getSPS()->getPicHeightInLumaSamples() ) )
         {
@@ -1718,10 +1718,10 @@ Void TEncCu::xCopyYuv2Pic(TComPic* rpcPic, UInt uiCUAddr, UInt uiAbsPartIdx, UIn
   UInt uiRPelX   = uiLPelX + (g_uiMaxCUWidth>>uiDepth)  - 1;
   UInt uiBPelY   = uiTPelY + (g_uiMaxCUHeight>>uiDepth) - 1;
   TComSlice * pcSlice = pcCU->getPic()->getSlice(pcCU->getPic()->getCurrSliceIdx());
-  Bool bSliceStart = pcSlice->getEntropySliceCurStartCUAddr() > rpcPic->getPicSym()->getInverseCUOrderMap(pcCU->getAddr())*pcCU->getPic()->getNumPartInCU()+uiAbsPartIdx && 
-    pcSlice->getEntropySliceCurStartCUAddr() < rpcPic->getPicSym()->getInverseCUOrderMap(pcCU->getAddr())*pcCU->getPic()->getNumPartInCU()+uiAbsPartIdx+( pcCU->getPic()->getNumPartInCU() >> (uiDepth<<1) );
-  Bool bSliceEnd   = pcSlice->getEntropySliceCurEndCUAddr() > rpcPic->getPicSym()->getInverseCUOrderMap(pcCU->getAddr())*pcCU->getPic()->getNumPartInCU()+uiAbsPartIdx && 
-    pcSlice->getEntropySliceCurEndCUAddr() < rpcPic->getPicSym()->getInverseCUOrderMap(pcCU->getAddr())*pcCU->getPic()->getNumPartInCU()+uiAbsPartIdx+( pcCU->getPic()->getNumPartInCU() >> (uiDepth<<1) );
+  Bool bSliceStart = pcSlice->getDependentSliceCurStartCUAddr() > rpcPic->getPicSym()->getInverseCUOrderMap(pcCU->getAddr())*pcCU->getPic()->getNumPartInCU()+uiAbsPartIdx && 
+    pcSlice->getDependentSliceCurStartCUAddr() < rpcPic->getPicSym()->getInverseCUOrderMap(pcCU->getAddr())*pcCU->getPic()->getNumPartInCU()+uiAbsPartIdx+( pcCU->getPic()->getNumPartInCU() >> (uiDepth<<1) );
+  Bool bSliceEnd   = pcSlice->getDependentSliceCurEndCUAddr() > rpcPic->getPicSym()->getInverseCUOrderMap(pcCU->getAddr())*pcCU->getPic()->getNumPartInCU()+uiAbsPartIdx && 
+    pcSlice->getDependentSliceCurEndCUAddr() < rpcPic->getPicSym()->getInverseCUOrderMap(pcCU->getAddr())*pcCU->getPic()->getNumPartInCU()+uiAbsPartIdx+( pcCU->getPic()->getNumPartInCU() >> (uiDepth<<1) );
   if(!bSliceEnd && !bSliceStart && ( uiRPelX < pcSlice->getSPS()->getPicWidthInLumaSamples() ) && ( uiBPelY < pcSlice->getSPS()->getPicHeightInLumaSamples() ) )
   {
     UInt uiAbsPartIdxInRaster = g_auiZscanToRaster[uiAbsPartIdx];
@@ -1741,8 +1741,8 @@ Void TEncCu::xCopyYuv2Pic(TComPic* rpcPic, UInt uiCUAddr, UInt uiAbsPartIdx, UIn
       UInt uiSubCULPelX   = uiLPelX + ( g_uiMaxCUWidth >>(uiDepth+1) )*( uiPartUnitIdx &  1 );
       UInt uiSubCUTPelY   = uiTPelY + ( g_uiMaxCUHeight>>(uiDepth+1) )*( uiPartUnitIdx >> 1 );
 
-      Bool bInSlice = rpcPic->getPicSym()->getInverseCUOrderMap(pcCU->getAddr())*pcCU->getPic()->getNumPartInCU()+uiAbsPartIdx+uiQNumParts > pcSlice->getEntropySliceCurStartCUAddr() && 
-        rpcPic->getPicSym()->getInverseCUOrderMap(pcCU->getAddr())*pcCU->getPic()->getNumPartInCU()+uiAbsPartIdx < pcSlice->getEntropySliceCurEndCUAddr();
+      Bool bInSlice = rpcPic->getPicSym()->getInverseCUOrderMap(pcCU->getAddr())*pcCU->getPic()->getNumPartInCU()+uiAbsPartIdx+uiQNumParts > pcSlice->getDependentSliceCurStartCUAddr() && 
+        rpcPic->getPicSym()->getInverseCUOrderMap(pcCU->getAddr())*pcCU->getPic()->getNumPartInCU()+uiAbsPartIdx < pcSlice->getDependentSliceCurEndCUAddr();
       if(bInSlice&&( uiSubCULPelX < pcSlice->getSPS()->getPicWidthInLumaSamples() ) && ( uiSubCUTPelY < pcSlice->getSPS()->getPicHeightInLumaSamples() ) )
       {
         xCopyYuv2Pic( rpcPic, uiCUAddr, uiAbsPartIdx, uiDepth+1, uiSrcDepth, pcCU, uiSubCULPelX, uiSubCUTPelY );   // Copy Yuv data to picture Yuv

@@ -591,8 +591,8 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   else
   {
     // Calculate slice address
-    lCUAddress = (pcSlice->getEntropySliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
-    innerAddress = (pcSlice->getEntropySliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+    lCUAddress = (pcSlice->getDependentSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
+    innerAddress = (pcSlice->getDependentSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
     
   }
   //write slice address
@@ -607,10 +607,10 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   }
 
   WRITE_UVLC( pcSlice->getSliceType(),       "slice_type" );
-  Bool bEntropySlice = (!pcSlice->isNextSlice());
-  WRITE_FLAG( bEntropySlice ? 1 : 0, "lightweight_slice_flag" );
+  Bool bDependentSlice = (!pcSlice->isNextSlice());
+  WRITE_FLAG( bDependentSlice ? 1 : 0, "lightweight_slice_flag" );
   
-  if (!bEntropySlice)
+  if (!bDependentSlice)
   {
 #if !SLICE_ADDRESS_FIX
     WRITE_UVLC( pcSlice->getPPS()->getPPSId(), "pic_parameter_set_id" );
@@ -837,7 +837,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   }
 
   // if( !lightweight_slice_flag ) {
-  if (!bEntropySlice)
+  if (!bDependentSlice)
   {
     Int iCode = pcSlice->getSliceQp() - ( pcSlice->getPPS()->getPicInitQPMinus26() + 26 );
     WRITE_SVLC( iCode, "slice_qp_delta" ); 
@@ -901,7 +901,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   WRITE_UVLC(MRG_MAX_NUM_CANDS - pcSlice->getMaxNumMergeCand(), "maxNumMergeCand");
 
 #if AHG6_ALF_OPTION2
-  if (!bEntropySlice)
+  if (!bDependentSlice)
   {
     if (pcSlice->getSPS()->getUseALF())
     {
@@ -919,8 +919,8 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 
 Void TEncCavlc::codeTileMarkerFlag(TComSlice* pcSlice) 
 {
-  Bool bEntropySlice = (!pcSlice->isNextSlice());
-  if (!bEntropySlice)
+  Bool bDependentSlice = (!pcSlice->isNextSlice());
+  if (!bDependentSlice)
   {
     xWriteFlag  (pcSlice->getTileMarkerFlag() ? 1 : 0 );
   }

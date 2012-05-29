@@ -104,7 +104,7 @@ private:
   Bool                    m_bRefreshPending;
   Int                     m_pocCRA;
   UInt*                   m_uiStoredStartCUAddrForEncodingSlice;
-  UInt*                   m_uiStoredStartCUAddrForEncodingEntropySlice;
+  UInt*                   m_uiStoredStartCUAddrForEncodingDependentSlice;
 
   std::vector<Int> m_vRVM_RP;
 

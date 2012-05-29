@@ -198,13 +198,13 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setSliceMode               ( m_iSliceMode                );
   m_cTEncTop.setSliceArgument           ( m_iSliceArgument            );
 
-  //====== Entropy Slice ========
-  m_cTEncTop.setEntropySliceMode        ( m_iEntropySliceMode         );
-  m_cTEncTop.setEntropySliceArgument    ( m_iEntropySliceArgument     );
+  //====== Dependent Slice ========
+  m_cTEncTop.setDependentSliceMode        ( m_iDependentSliceMode         );
+  m_cTEncTop.setDependentSliceArgument    ( m_iDependentSliceArgument     );
   int iNumPartInCU = 1<<(m_uiMaxCUDepth<<1);
-  if(m_iEntropySliceMode==SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE)
+  if(m_iDependentSliceMode==SHARP_FIXED_NUMBER_OF_LCU_IN_DEPENDENT_SLICE)
   {
-    m_cTEncTop.setEntropySliceArgument ( m_iEntropySliceArgument * ( iNumPartInCU >> ( m_iSliceGranularity << 1 ) ) );
+    m_cTEncTop.setDependentSliceArgument ( m_iDependentSliceArgument * ( iNumPartInCU >> ( m_iSliceGranularity << 1 ) ) );
   }
   if(m_iSliceMode==AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE)
   {

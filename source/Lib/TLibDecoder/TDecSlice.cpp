@@ -94,7 +94,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
 {
   TComDataCU* pcCU;
   UInt        uiIsLast = 0;
-  Int   iStartCUEncOrder = max(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr()/rpcPic->getNumPartInCU(), rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getEntropySliceCurStartCUAddr()/rpcPic->getNumPartInCU());
+  Int   iStartCUEncOrder = max(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr()/rpcPic->getNumPartInCU(), rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getDependentSliceCurStartCUAddr()/rpcPic->getNumPartInCU());
   Int   iStartCUAddr = rpcPic->getPicSym()->getCUOrderMap(iStartCUEncOrder);
 
   // decoder don't need prediction & residual frame buffer
@@ -191,9 +191,9 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
              ((pcCUTR->getSCUAddr()+uiMaxParts-1) < pcSlice->getSliceCurStartCUAddr()) ||
              ((rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(iCUAddr)))
              ))||
-             (true/*bEnforceEntropySliceRestriction*/ &&
+             (true/*bEnforceDependentSliceRestriction*/ &&
              ((pcCUTR==NULL) || (pcCUTR->getSlice()==NULL) || 
-             ((pcCUTR->getSCUAddr()+uiMaxParts-1) < pcSlice->getEntropySliceCurStartCUAddr()) ||
+             ((pcCUTR->getSCUAddr()+uiMaxParts-1) < pcSlice->getDependentSliceCurStartCUAddr()) ||
              ((rpcPic->getPicSym()->getTileIdxMap( pcCUTR->getAddr() ) != rpcPic->getPicSym()->getTileIdxMap(iCUAddr)))
              ))
            )

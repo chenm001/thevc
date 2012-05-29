@@ -1492,31 +1492,31 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     lCUAddress = address >> reqBitsInner;
     innerAddress = address - (lCUAddress<<reqBitsInner);
   }
-  //set uiCode to equal slice start address (or entropy slice start address)
+  //set uiCode to equal slice start address (or dependent slice start address)
 #if !SLICE_ADDRESS_FIX
   uiCode=(maxParts*lCUAddress)+(innerAddress*(maxParts>>(rpcSlice->getPPS()->getSliceGranularity()<<1)));
 #else
   uiCode=(maxParts*lCUAddress)+(innerAddress*(maxParts>>(pps->getSliceGranularity()<<1)));
 #endif
   
-  rpcSlice->setEntropySliceCurStartCUAddr( uiCode );
-  rpcSlice->setEntropySliceCurEndCUAddr(numCUs*maxParts);
+  rpcSlice->setDependentSliceCurStartCUAddr( uiCode );
+  rpcSlice->setDependentSliceCurEndCUAddr(numCUs*maxParts);
 
   //   slice_type
   READ_UVLC (    uiCode, "slice_type" );            rpcSlice->setSliceType((SliceType)uiCode);
   // lightweight_slice_flag
-  READ_FLAG( uiCode, "entropy_slice_flag" );
-  Bool bEntropySlice = uiCode ? true : false;
+  READ_FLAG( uiCode, "dependent_slice_flag" );
+  Bool bDependentSlice = uiCode ? true : false;
 
-  if (bEntropySlice)
+  if (bDependentSlice)
   {
     rpcSlice->setNextSlice        ( false );
-    rpcSlice->setNextEntropySlice ( true  );
+    rpcSlice->setNextDependentSlice ( true  );
   }
   else
   {
     rpcSlice->setNextSlice        ( true  );
-    rpcSlice->setNextEntropySlice ( false );
+    rpcSlice->setNextDependentSlice ( false );
     
 #if !SLICE_ADDRESS_FIX
     uiCode=(maxParts*lCUAddress)+(innerAddress*(maxParts>>(rpcSlice->getPPS()->getSliceGranularity()<<1)));
@@ -1531,7 +1531,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   TComSPS* sps = NULL;
 #endif
 
-  if (!bEntropySlice)
+  if (!bDependentSlice)
   {
 #if !SLICE_ADDRESS_FIX
     READ_UVLC (    uiCode, "pic_parameter_set_id" );  rpcSlice->setPPSId(uiCode);
@@ -1806,7 +1806,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   }
 #if !REMOVE_LC
   // ref_pic_list_combination( )
-  //!!!KS: ref_pic_list_combination() should be conditioned on entropy_slice_flag
+  //!!!KS: ref_pic_list_combination() should be conditioned on dependent_slice_flag
   if (rpcSlice->isInterB())
   {
     READ_FLAG( uiCode, "ref_pic_list_combination_flag" );       rpcSlice->setRefPicListCombinationFlag( uiCode ? 1 : 0 );
@@ -1865,7 +1865,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     rpcSlice->setCabacInitFlag( uiCode ? true : false );
   }
 
-  if(!bEntropySlice)
+  if(!bDependentSlice)
   {
     READ_SVLC( iCode, "slice_qp_delta" ); 
     rpcSlice->setSliceQp (26 + pps->getPicInitQPMinus26() + iCode);
@@ -1941,7 +1941,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   rpcSlice->setMaxNumMergeCand(MRG_MAX_NUM_CANDS - uiCode);
   assert(rpcSlice->getMaxNumMergeCand()==MRG_MAX_NUM_CANDS_SIGNALED);
 
-  if (!bEntropySlice)
+  if (!bDependentSlice)
   {
 #if AHG6_ALF_OPTION2
     if(sps->getUseALF())
@@ -1985,7 +1985,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   
   //!!!KS: The following syntax is not aligned with the working draft, TRACE support needs to be added
   rpcSlice->setTileMarkerFlag ( 0 ); // default
-  if (!bEntropySlice)
+  if (!bDependentSlice)
   {
     xReadCode(1, uiCode); // read flag indicating if tile markers transmitted
     rpcSlice->setTileMarkerFlag( uiCode );
@@ -2058,7 +2058,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
 #if BYTE_ALIGNMENT
   m_pcBitstream->readByteAlignment();
 #else
-  if (!bEntropySlice)
+  if (!bDependentSlice)
   {
     // Reading location information
       // read out trailing bits

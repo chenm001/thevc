@@ -197,7 +197,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
   //-- For time output for each slice
   long iBeforeTime = clock();
   
-  UInt uiStartCUAddr   = pcSlice->getEntropySliceCurStartCUAddr();
+  UInt uiStartCUAddr   = pcSlice->getDependentSliceCurStartCUAddr();
   static Bool  bFirst = true;
   static UInt  uiILSliceCount;
   static UInt* puiILSliceStartLCU;

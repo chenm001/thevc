@@ -88,14 +88,14 @@ TComSlice::TComSlice()
 , m_uiSliceCurStartCUAddr         ( 0 )
 , m_uiSliceCurEndCUAddr           ( 0 )
 , m_uiSliceIdx                    ( 0 )
-, m_uiEntropySliceMode            ( 0 )
-, m_uiEntropySliceArgument        ( 0 )
-, m_uiEntropySliceCurStartCUAddr  ( 0 )
-, m_uiEntropySliceCurEndCUAddr    ( 0 )
+, m_uiDependentSliceMode            ( 0 )
+, m_uiDependentSliceArgument        ( 0 )
+, m_uiDependentSliceCurStartCUAddr  ( 0 )
+, m_uiDependentSliceCurEndCUAddr    ( 0 )
 , m_bNextSlice                    ( false )
-, m_bNextEntropySlice             ( false )
+, m_bNextDependentSlice             ( false )
 , m_uiSliceBits                   ( 0 )
-, m_uiEntropySliceCounter         ( 0 )
+, m_uiDependentSliceCounter         ( 0 )
 , m_bFinalized                    ( false )
 , m_uiTileByteLocation            ( NULL )
 , m_uiTileCount                   ( 0 )
@@ -719,12 +719,12 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_uiSliceCurStartCUAddr         = pSrc->m_uiSliceCurStartCUAddr;
   m_uiSliceCurEndCUAddr           = pSrc->m_uiSliceCurEndCUAddr;
   m_uiSliceIdx                    = pSrc->m_uiSliceIdx;
-  m_uiEntropySliceMode            = pSrc->m_uiEntropySliceMode;
-  m_uiEntropySliceArgument        = pSrc->m_uiEntropySliceArgument; 
-  m_uiEntropySliceCurStartCUAddr  = pSrc->m_uiEntropySliceCurStartCUAddr;
-  m_uiEntropySliceCurEndCUAddr    = pSrc->m_uiEntropySliceCurEndCUAddr;
+  m_uiDependentSliceMode            = pSrc->m_uiDependentSliceMode;
+  m_uiDependentSliceArgument        = pSrc->m_uiDependentSliceArgument; 
+  m_uiDependentSliceCurStartCUAddr  = pSrc->m_uiDependentSliceCurStartCUAddr;
+  m_uiDependentSliceCurEndCUAddr    = pSrc->m_uiDependentSliceCurEndCUAddr;
   m_bNextSlice                    = pSrc->m_bNextSlice;
-  m_bNextEntropySlice             = pSrc->m_bNextEntropySlice;
+  m_bNextDependentSlice             = pSrc->m_bNextDependentSlice;
   m_iTileMarkerFlag             = pSrc->m_iTileMarkerFlag;
   for ( int e=0 ; e<2 ; e++ )
     for ( int n=0 ; n<MAX_NUM_REF ; n++ )

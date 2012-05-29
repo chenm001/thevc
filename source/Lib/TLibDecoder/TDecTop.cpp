@@ -541,9 +541,9 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   pcPic->getPicSym()->setCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());
   pcPic->getPicSym()->setInverseCUOrderMap(pcPic->getPicSym()->getNumberOfCUsInFrame(), pcPic->getPicSym()->getNumberOfCUsInFrame());
 
-  //convert the start and end CU addresses of the slice and entropy slice into encoding order
-  pcSlice->setEntropySliceCurStartCUAddr( pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getEntropySliceCurStartCUAddr()) );
-  pcSlice->setEntropySliceCurEndCUAddr( pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getEntropySliceCurEndCUAddr()) );
+  //convert the start and end CU addresses of the slice and dependent slice into encoding order
+  pcSlice->setDependentSliceCurStartCUAddr( pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getDependentSliceCurStartCUAddr()) );
+  pcSlice->setDependentSliceCurEndCUAddr( pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getDependentSliceCurEndCUAddr()) );
   if(pcSlice->isNextSlice())
   {
     pcSlice->setSliceCurStartCUAddr(pcPic->getPicSym()->getPicSCUEncOrder(pcSlice->getSliceCurStartCUAddr()));

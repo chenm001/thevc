@@ -213,9 +213,9 @@
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE    2          ///< OPTION IDENTIFIER. mode==2 -> Limit maximum number of bins/bits in a slice
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_TILES_IN_SLICE    3
 
-// Entropy slice options
-#define SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE            1          ///< OPTION IDENTIFIER. Limit maximum number of largest coding tree blocks in an entropy slice
-#define SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE         2          ///< OPTION IDENTIFIER. Limit maximum number of bins/bits in an entropy slice
+// Dependent slice options
+#define SHARP_FIXED_NUMBER_OF_LCU_IN_DEPENDENT_SLICE            1          ///< OPTION IDENTIFIER. Limit maximum number of largest coding tree blocks in an dependent slice
+#define SHARP_MULTIPLE_CONSTRAINT_BASED_DEPENDENT_SLICE         2          ///< OPTION IDENTIFIER. Limit maximum number of bins/bits in an dependent slice
 
 #define LOG2_MAX_NUM_COLUMNS_MINUS1        7
 #define LOG2_MAX_NUM_ROWS_MINUS1           7
