@@ -902,7 +902,7 @@ TEncSearch::xEncIntraHeader( TComDataCU*  pcCU,
     {
       if( !pcCU->getSlice()->isIntra() )
       {
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
         if (pcCU->getSlice()->getPPS()->getTransquantBypassEnableFlag())
           m_pcEntropyCoder->encodeCUTransquantBypassFlag( pcCU, 0, true );
 #endif
@@ -1161,7 +1161,7 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
     Int scalingListType = 0 + g_eTTable[(Int)TEXT_LUMA];
     assert(scalingListType < 6);
 #if INTRA_TRANSFORMSKIP
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
     m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_LUMA,pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
 #elif LOSSLESS_CODING
     m_pcTrQuant->invtransformNxN( pcCU, TEXT_LUMA,pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
@@ -1169,7 +1169,7 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
     m_pcTrQuant->invtransformNxN( TEXT_LUMA,pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
 #endif
 #else
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
     m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_LUMA,pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
 #elif LOSSLESS_CODING
     m_pcTrQuant->invtransformNxN( pcCU, TEXT_LUMA,pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
@@ -1429,7 +1429,7 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
       Int scalingListType = 0 + g_eTTable[(Int)eText];
       assert(scalingListType < 6);
 #if INTRA_TRANSFORMSKIP
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
       m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
 #elif LOSSLESS_CODING
       m_pcTrQuant->invtransformNxN( pcCU, TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
@@ -1437,7 +1437,7 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
       m_pcTrQuant->invtransformNxN( TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
 #endif
 #else
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
       m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
 #elif LOSSLESS_CODING
       m_pcTrQuant->invtransformNxN( pcCU, TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
@@ -1530,7 +1530,7 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
   Int     bestModeId    = 0;
   Int     bestModeIdUV[2] = {0, 0};
   checkTransformSkip         &= (widthTransformSkip == 4 && heightTransformSkip == 4);
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
   checkTransformSkip         &= (!pcCU->getCUTransquantBypass(0));
 #endif
 #if LOSSLESS_CODING
@@ -4704,7 +4704,7 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
       m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[pcCU->getDepth(0)][CI_CURR_BEST]);
     
     m_pcEntropyCoder->resetBits();
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
     if (pcCU->getSlice()->getPPS()->getTransquantBypassEnableFlag())
       m_pcEntropyCoder->encodeCUTransquantBypassFlag(pcCU, 0, true);
 #endif
@@ -5068,7 +5068,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
 
       Int scalingListType = 3 + g_eTTable[(Int)TEXT_LUMA];
       assert(scalingListType < 6);     
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
       m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_LUMA,REG_DCT, pcResiCurrY, m_pcQTTempTComYuv[uiQTTempAccessLayer].getStride(),  pcCoeffCurrY, trWidth, trHeight, scalingListType );//this is for inter mode only
 #elif LOSSLESS_CODING
       m_pcTrQuant->invtransformNxN( pcCU, TEXT_LUMA,REG_DCT, pcResiCurrY, m_pcQTTempTComYuv[uiQTTempAccessLayer].getStride(),  pcCoeffCurrY, trWidth, trHeight, scalingListType );//this is for inter mode only
@@ -5152,7 +5152,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
 
         Int scalingListType = 3 + g_eTTable[(Int)TEXT_CHROMA_U];
         assert(scalingListType < 6);
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
         m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_CHROMA,REG_DCT, pcResiCurrU, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrU, trWidthC, trHeightC, scalingListType  );
 #elif LOSSLESS_CODING
         m_pcTrQuant->invtransformNxN( pcCU, TEXT_CHROMA,REG_DCT, pcResiCurrU, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrU, trWidthC, trHeightC, scalingListType  );
@@ -5237,7 +5237,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
         }
         Int scalingListType = 3 + g_eTTable[(Int)TEXT_CHROMA_V];
         assert(scalingListType < 6);
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
         m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_CHROMA,REG_DCT, pcResiCurrV, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrV, trWidthC, trHeightC, scalingListType );
 #elif LOSSLESS_CODING
         m_pcTrQuant->invtransformNxN( pcCU, TEXT_CHROMA,REG_DCT, pcResiCurrV, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrV, trWidthC, trHeightC, scalingListType );
@@ -5682,7 +5682,7 @@ Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMod
   if ( pcCU->isSkipped( 0 ) )
   {
     m_pcEntropyCoder->resetBits();
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
     if(pcCU->getSlice()->getPPS()->getTransquantBypassEnableFlag())
       m_pcEntropyCoder->encodeCUTransquantBypassFlag(pcCU, 0, true);
 #endif
@@ -5693,7 +5693,7 @@ Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMod
   else
   {
     m_pcEntropyCoder->resetBits();
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
     if(pcCU->getSlice()->getPPS()->getTransquantBypassEnableFlag())
       m_pcEntropyCoder->encodeCUTransquantBypassFlag(pcCU, 0, true);
 #endif

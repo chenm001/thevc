@@ -1066,7 +1066,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   READ_FLAG( uiCode, "output_flag_present_flag" );
   pcPPS->setOutputFlagPresentFlag( uiCode==1 );
 
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
   READ_FLAG( uiCode, "transquant_bypass_enable_flag");
   pcPPS->setTransquantBypassEnableFlag(uiCode ? true : false);
 #endif
@@ -2111,7 +2111,7 @@ Void TDecCavlc::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   assert(0);
 }
 
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
 Void TDecCavlc::parseCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   assert(0);

@@ -38,7 +38,7 @@
 #ifndef _TYPEDEF__
 #define _TYPEDEF__
 
-#define OL_QUICKLOSSLESS 0 // I0529
+#define CU_LEVEL_TRANSQUANT_BYPASS 0 ///< I0529: CU level flag for transquant bypass
 
 //! \ingroup TLibCommon
 //! \{

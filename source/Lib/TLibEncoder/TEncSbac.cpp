@@ -99,7 +99,7 @@ TEncSbac::TEncSbac()
 #if INTRA_TRANSFORMSKIP
 , m_cTransformSkipSCModel     ( 1,             2,               NUM_TRANSFORMSKIP_FLAG_CTX    , m_contextModels + m_numContextModels, m_numContextModels)
 #endif
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
 , m_CUTransquantBypassFlagSCModel( 1,          1,               NUM_CU_TRANSQUANT_BYPASS_FLAG_CTX, m_contextModels + m_numContextModels, m_numContextModels)
 #endif
 {
@@ -165,7 +165,7 @@ Void TEncSbac::resetEntropy           ()
 #if INTRA_TRANSFORMSKIP 
   m_cTransformSkipSCModel.initBuffer     ( eSliceType, iQp, (UChar*)INIT_TRANSFORMSKIP_FLAG );
 #endif
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
   m_CUTransquantBypassFlagSCModel.initBuffer( eSliceType, iQp, (UChar*)INIT_CU_TRANSQUANT_BYPASS_FLAG );
 #endif
   // new structure
@@ -233,7 +233,7 @@ Void TEncSbac::determineCabacInitIdx()
 #if INTRA_TRANSFORMSKIP 
       curCost += m_cTransformSkipSCModel.calcCost     ( curSliceType, qp, (UChar*)INIT_TRANSFORMSKIP_FLAG );
 #endif
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
       curCost += m_CUTransquantBypassFlagSCModel.calcCost( curSliceType, qp, (UChar*)INIT_CU_TRANSQUANT_BYPASS_FLAG );
 #endif
       if (curCost < bestCost)
@@ -296,7 +296,7 @@ Void TEncSbac::updateContextTables( SliceType eSliceType, Int iQp, Bool bExecute
 #if INTRA_TRANSFORMSKIP 
   m_cTransformSkipSCModel.initBuffer     ( eSliceType, iQp, (UChar*)INIT_TRANSFORMSKIP_FLAG );
 #endif
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
   m_CUTransquantBypassFlagSCModel.initBuffer( eSliceType, iQp, (UChar*)INIT_CU_TRANSQUANT_BYPASS_FLAG );
 #endif
   m_pcBinIf->start();
@@ -653,7 +653,7 @@ Void TEncSbac::codeAlfCtrlDepth()
 }
 #endif
 
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
 Void TEncSbac::codeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiSymbol = pcCU->getCUTransquantBypass(uiAbsPartIdx);
@@ -1062,7 +1062,7 @@ Void TEncSbac::codeQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, U
 #if INTRA_TRANSFORMSKIP
 void TEncSbac::codeTransformSkipFlags (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType )
 {
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
   if (pcCU->getCUTransquantBypass(uiAbsPartIdx))
   {
     return;
@@ -1397,9 +1397,9 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 #if !FIXED_SBH_THRESHOLD
   UInt const tsig = pcCU->getSlice()->getPPS()->getTSIG();
 #endif
-#if LOSSLESS_CODING || OL_QUICKLOSSLESS
+#if LOSSLESS_CODING || CU_LEVEL_TRANSQUANT_BYPASS
   Bool beValid; 
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
   if (pcCU->getCUTransquantBypass(uiAbsPartIdx))
 #else // LOSSLESS_CODING
   if (pcCU->isLosslessCoded(uiAbsPartIdx))

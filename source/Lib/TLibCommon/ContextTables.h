@@ -115,7 +115,7 @@
 #if INTRA_TRANSFORMSKIP
 #define NUM_TRANSFORMSKIP_FLAG_CTX    1       ///< number of context models for transform skipping 
 #endif
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
 #define NUM_CU_TRANSQUANT_BYPASS_FLAG_CTX  1 
 #endif
 #define CNU                          154      ///< dummy initialization value for unused context models 'Context model Not Used'
@@ -124,7 +124,7 @@
 // Tables
 // ====================================================================================================================
 
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
 // initial probability for cu_transquant_bypass flag
 static const UChar
 INIT_CU_TRANSQUANT_BYPASS_FLAG[3][NUM_CU_TRANSQUANT_BYPASS_FLAG_CTX] =

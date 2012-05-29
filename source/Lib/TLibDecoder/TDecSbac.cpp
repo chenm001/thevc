@@ -87,7 +87,7 @@ TDecSbac::TDecSbac()
 #if INTRA_TRANSFORMSKIP
 , m_cTransformSkipSCModel     ( 1,             2,               NUM_TRANSFORMSKIP_FLAG_CTX    , m_contextModels + m_numContextModels, m_numContextModels)
 #endif
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
 , m_CUTransquantBypassFlagSCModel( 1,          1,               NUM_CU_TRANSQUANT_BYPASS_FLAG_CTX, m_contextModels + m_numContextModels, m_numContextModels)
 #endif
 {
@@ -162,7 +162,7 @@ Void TDecSbac::resetEntropy(TComSlice* pSlice)
 #if INTRA_TRANSFORMSKIP
   m_cTransformSkipSCModel.initBuffer     ( sliceType, qp, (UChar*)INIT_TRANSFORMSKIP_FLAG );
 #endif
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
   m_CUTransquantBypassFlagSCModel.initBuffer( sliceType, qp, (UChar*)INIT_CU_TRANSQUANT_BYPASS_FLAG );
 #endif
   m_uiLastDQpNonZero  = 0;
@@ -232,7 +232,7 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
 #if INTRA_TRANSFORMSKIP
   m_cTransformSkipSCModel.initBuffer     ( eSliceType, iQp, (UChar*)INIT_TRANSFORMSKIP_FLAG );
 #endif
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
   m_CUTransquantBypassFlagSCModel.initBuffer( eSliceType, iQp, (UChar*)INIT_CU_TRANSQUANT_BYPASS_FLAG );
 #endif
   m_pcTDecBinIf->start();
@@ -522,7 +522,7 @@ Void TDecSbac::parseIPCMInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   }
 }
 
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
 Void TDecSbac::parseCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;
@@ -1094,7 +1094,7 @@ Void TDecSbac::parseQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, 
 #if INTRA_TRANSFORMSKIP
 void TDecSbac::parseTransformSkipFlags (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType)
 {
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
   if (pcCU->getCUTransquantBypass(uiAbsPartIdx))
   {
     return;
@@ -1327,9 +1327,9 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 #if !FIXED_SBH_THRESHOLD
   UInt const tsig = pcCU->getSlice()->getPPS()->getTSIG();
 #endif
-#if LOSSLESS_CODING || OL_QUICKLOSSLESS
+#if LOSSLESS_CODING || CU_LEVEL_TRANSQUANT_BYPASS
   Bool beValid; 
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
   if (pcCU->getCUTransquantBypass(uiAbsPartIdx))
 #else // LOSSLESS_CODING
   if (pcCU->isLosslessCoded(uiAbsPartIdx))

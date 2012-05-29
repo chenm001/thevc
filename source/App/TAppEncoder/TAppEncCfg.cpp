@@ -370,7 +370,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("1", doOldStyleCmdlineOn, "turn option <name> on")
   ("0", doOldStyleCmdlineOff, "turn option <name> off")
 
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
   ("TransquantBypassEnableFlag", m_TransquantBypassEnableFlag, false, "transquant_bypass_enable_flag indicator in PPS")
   ("CUTransquantBypassFlagValue", m_CUTransquantBypassFlagValue, false, "Fixed cu_transquant_bypass_flag value, when transquant_bypass_enable_flag is enabled")
 #endif
@@ -943,7 +943,7 @@ Void TAppEncCfg::xCheckParameter()
     m_iMaxCuDQPDepth    = MAX_CUDQP_DEPTH;
   }
 
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
   xConfirmPara(!m_TransquantBypassEnableFlag && m_CUTransquantBypassFlagValue, "CUTransquantBypassFlagValue cannot be 1 when TransquantBypassEnableFlag is 0");
 #endif
 

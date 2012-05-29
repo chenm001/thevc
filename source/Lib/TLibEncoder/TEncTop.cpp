@@ -687,7 +687,7 @@ Void TEncTop::xInitPPS()
   }
   m_cPPS.setNumRefIdxL0DefaultActive(bestPos);
   m_cPPS.setNumRefIdxL1DefaultActive(bestPos);
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
   m_cPPS.setTransquantBypassEnableFlag(getTransquantBypassEnableFlag());
 #endif
 }

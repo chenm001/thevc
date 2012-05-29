@@ -183,7 +183,7 @@ public:
 #if !AHG6_ALF_OPTION2
   Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #endif
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
   Void codeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #endif
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
@@ -279,7 +279,7 @@ private:
 #if INTRA_TRANSFORMSKIP
   ContextModel3DBuffer m_cTransformSkipSCModel;
 #endif
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
   ContextModel3DBuffer m_CUTransquantBypassFlagSCModel;
 #endif
 };

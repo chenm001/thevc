@@ -139,7 +139,7 @@ public:
   Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
 
   Void parseSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
   Void parseCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
 #endif
   Void parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
@@ -222,7 +222,7 @@ private:
 #if INTRA_TRANSFORMSKIP
   ContextModel3DBuffer m_cTransformSkipSCModel;
 #endif
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
   ContextModel3DBuffer m_CUTransquantBypassFlagSCModel;
 #endif
 };

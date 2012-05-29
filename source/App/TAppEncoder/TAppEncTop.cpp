@@ -284,7 +284,7 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseRateCtrl     ( m_enableRateCtrl);
   m_cTEncTop.setTargetBitrate   ( m_targetBitrate);
   m_cTEncTop.setNumLCUInUnit    ( m_numLCUInUnit);
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
   m_cTEncTop.setTransquantBypassEnableFlag(m_TransquantBypassEnableFlag);
   m_cTEncTop.setCUTransquantBypassFlagValue(m_CUTransquantBypassFlagValue);
 #endif

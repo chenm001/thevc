@@ -153,7 +153,7 @@ public:
   Void codeSaoTypeIdx    ( UInt uiCode ){ xWriteUvlc(uiCode   );}
   Void codeSaoUflc       ( UInt uiCode ){ assert(uiCode < 32); xWriteCode(uiCode, 5);}
 
-#if OL_QUICKLOSSLESS
+#if CU_LEVEL_TRANSQUANT_BYPASS
   Void codeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #endif
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
