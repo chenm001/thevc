@@ -369,6 +369,11 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   /* Compatability with old style -1 FOO or -0 FOO options. */
   ("1", doOldStyleCmdlineOn, "turn option <name> on")
   ("0", doOldStyleCmdlineOff, "turn option <name> off")
+
+#if OL_QUICKLOSSLESS
+  ("TransquantBypassEnableFlag", m_TransquantBypassEnableFlag, false, "transquant_bypass_enable_flag indicator in PPS")
+  ("CUTransquantBypassFlagValue", m_CUTransquantBypassFlagValue, false, "Fixed cu_transquant_bypass_flag value, when transquant_bypass_enable_flag is enabled")
+#endif
   ;
   
   for(Int i=1; i<MAX_GOP+1; i++) {
@@ -937,6 +942,10 @@ Void TAppEncCfg::xCheckParameter()
     m_iMaxDeltaQP       = MAX_DELTA_QP;
     m_iMaxCuDQPDepth    = MAX_CUDQP_DEPTH;
   }
+
+#if OL_QUICKLOSSLESS
+  xConfirmPara(!m_TransquantBypassEnableFlag && m_CUTransquantBypassFlagValue, "CUTransquantBypassFlagValue cannot be 1 when TransquantBypassEnableFlag is 0");
+#endif
 
 #undef xConfirmPara
   if (check_failed)

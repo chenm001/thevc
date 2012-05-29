@@ -87,6 +87,9 @@ TDecSbac::TDecSbac()
 #if INTRA_TRANSFORMSKIP
 , m_cTransformSkipSCModel     ( 1,             2,               NUM_TRANSFORMSKIP_FLAG_CTX    , m_contextModels + m_numContextModels, m_numContextModels)
 #endif
+#if OL_QUICKLOSSLESS
+, m_CUTransquantBypassFlagSCModel( 1,          1,               NUM_CU_TRANSQUANT_BYPASS_FLAG_CTX, m_contextModels + m_numContextModels, m_numContextModels)
+#endif
 {
   assert( m_numContextModels <= MAX_NUM_CTX_MOD );
   m_iSliceGranularity = 0;
@@ -159,6 +162,9 @@ Void TDecSbac::resetEntropy(TComSlice* pSlice)
 #if INTRA_TRANSFORMSKIP
   m_cTransformSkipSCModel.initBuffer     ( sliceType, qp, (UChar*)INIT_TRANSFORMSKIP_FLAG );
 #endif
+#if OL_QUICKLOSSLESS
+  m_CUTransquantBypassFlagSCModel.initBuffer( sliceType, qp, (UChar*)INIT_CU_TRANSQUANT_BYPASS_FLAG );
+#endif
   m_uiLastDQpNonZero  = 0;
   
   // new structure
@@ -225,6 +231,9 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   m_cCUTransSubdivFlagSCModel.initBuffer ( eSliceType, iQp, (UChar*)INIT_TRANS_SUBDIV_FLAG );
 #if INTRA_TRANSFORMSKIP
   m_cTransformSkipSCModel.initBuffer     ( eSliceType, iQp, (UChar*)INIT_TRANSFORMSKIP_FLAG );
+#endif
+#if OL_QUICKLOSSLESS
+  m_CUTransquantBypassFlagSCModel.initBuffer( eSliceType, iQp, (UChar*)INIT_CU_TRANSQUANT_BYPASS_FLAG );
 #endif
   m_pcTDecBinIf->start();
 }
@@ -512,6 +521,15 @@ Void TDecSbac::parseIPCMInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     }
   }
 }
+
+#if OL_QUICKLOSSLESS
+Void TDecSbac::parseCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  UInt uiSymbol;
+  m_pcTDecBinIf->decodeBin( uiSymbol, m_CUTransquantBypassFlagSCModel.get( 0, 0, 0 ) );
+  pcCU->setCUTransquantBypassSubParts(uiSymbol ? true : false, uiAbsPartIdx, uiDepth);
+}
+#endif
 
 /** parse skip flag
  * \param pcCU
@@ -1076,6 +1094,12 @@ Void TDecSbac::parseQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, 
 #if INTRA_TRANSFORMSKIP
 void TDecSbac::parseTransformSkipFlags (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType)
 {
+#if OL_QUICKLOSSLESS
+  if (pcCU->getCUTransquantBypass(uiAbsPartIdx))
+  {
+    return;
+  }
+#endif
   if(!pcCU->isIntra(uiAbsPartIdx))
   {
     return;
@@ -1303,9 +1327,13 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 #if !FIXED_SBH_THRESHOLD
   UInt const tsig = pcCU->getSlice()->getPPS()->getTSIG();
 #endif
-#if LOSSLESS_CODING
+#if LOSSLESS_CODING || OL_QUICKLOSSLESS
   Bool beValid; 
+#if OL_QUICKLOSSLESS
+  if (pcCU->getCUTransquantBypass(uiAbsPartIdx))
+#else // LOSSLESS_CODING
   if (pcCU->isLosslessCoded(uiAbsPartIdx))
+#endif
   {
     beValid = false;
   }

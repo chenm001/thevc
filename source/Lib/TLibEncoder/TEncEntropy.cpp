@@ -121,6 +121,13 @@ Void TEncEntropy::encodeSPS( TComSPS* pcSPS )
   return;
 }
 
+#if OL_QUICKLOSSLESS
+Void TEncEntropy::encodeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
+{
+  m_pcEntropyCoderIf->codeCUTransquantBypassFlag( pcCU, uiAbsPartIdx );
+}
+#endif
+
 Void TEncEntropy::encodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
   if ( pcCU->getSlice()->isIntra() )

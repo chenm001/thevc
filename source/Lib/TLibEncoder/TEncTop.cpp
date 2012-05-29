@@ -687,6 +687,9 @@ Void TEncTop::xInitPPS()
   }
   m_cPPS.setNumRefIdxL0DefaultActive(bestPos);
   m_cPPS.setNumRefIdxL1DefaultActive(bestPos);
+#if OL_QUICKLOSSLESS
+  m_cPPS.setTransquantBypassEnableFlag(getTransquantBypassEnableFlag());
+#endif
 }
 
 //Function for initializing m_RPSList, a list of TComReferencePictureSet, based on the GOPEntry objects read from the config file.

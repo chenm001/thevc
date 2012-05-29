@@ -60,6 +60,9 @@ TComDataCU::TComDataCU()
   
   m_pePartSize         = NULL;
   m_pePredMode         = NULL;
+#if OL_QUICKLOSSLESS
+  m_CUTransquantBypass = NULL;
+#endif
 #if !AHG6_ALF_OPTION2
   m_puiAlfCtrlFlag     = NULL;
   m_puiTmpAlfCtrlFlag  = NULL;
@@ -150,6 +153,9 @@ Void TComDataCU::create(UInt uiNumPartition, UInt uiWidth, UInt uiHeight, Bool b
     m_pePartSize         = new Char[ uiNumPartition ];
     memset( m_pePartSize, SIZE_NONE,uiNumPartition * sizeof( *m_pePartSize ) );
     m_pePredMode         = new Char[ uiNumPartition ];
+#if OL_QUICKLOSSLESS
+    m_CUTransquantBypass = new Bool[ uiNumPartition ];
+#endif
 #if !AHG6_ALF_OPTION2
     m_puiAlfCtrlFlag     = new Bool[ uiNumPartition ];
 #endif    
@@ -258,6 +264,9 @@ Void TComDataCU::destroy()
     if ( m_puhHeight          ) { xFree(m_puhHeight);           m_puhHeight         = NULL; }
     if ( m_pePartSize         ) { delete[] m_pePartSize;        m_pePartSize        = NULL; }
     if ( m_pePredMode         ) { delete[] m_pePredMode;        m_pePredMode        = NULL; }
+#if OL_QUICKLOSSLESS
+    if ( m_CUTransquantBypass ) { delete[] m_CUTransquantBypass;m_CUTransquantBypass = NULL; }
+#endif
     if ( m_puhCbf[0]          ) { xFree(m_puhCbf[0]);           m_puhCbf[0]         = NULL; }
     if ( m_puhCbf[1]          ) { xFree(m_puhCbf[1]);           m_puhCbf[1]         = NULL; }
     if ( m_puhCbf[2]          ) { xFree(m_puhCbf[2]);           m_puhCbf[2]         = NULL; }
@@ -407,6 +416,9 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
     TComDataCU * pcFrom = pcPic->getCU(getAddr());
     m_pePartSize[ui] = pcFrom->getPartitionSize(ui);
     m_pePredMode[ui] = pcFrom->getPredictionMode(ui);
+#if OL_QUICKLOSSLESS
+    m_CUTransquantBypass[ui] = pcFrom->getCUTransquantBypass(ui);
+#endif
     m_puhDepth[ui] = pcFrom->getDepth(ui);
     m_puhWidth  [ui] = pcFrom->getWidth(ui);
     m_puhHeight [ui] = pcFrom->getHeight(ui);
@@ -447,6 +459,9 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
   {
     memset( m_pePartSize        + firstElement, SIZE_NONE,                numElements * sizeof( *m_pePartSize ) );
     memset( m_pePredMode        + firstElement, MODE_NONE,                numElements * sizeof( *m_pePredMode ) );
+#if OL_QUICKLOSSLESS
+    memset( m_CUTransquantBypass+ firstElement, false,                    numElements * sizeof( *m_CUTransquantBypass) );
+#endif
     memset( m_puhDepth          + firstElement, 0,                        numElements * sizeof( *m_puhDepth ) );
     memset( m_puhTrIdx          + firstElement, 0,                        numElements * sizeof( *m_puhTrIdx ) );
     memset( m_nsqtPartIdx       + firstElement, 0,                        numElements * sizeof( *m_nsqtPartIdx) );
@@ -605,6 +620,9 @@ Void TComDataCU::initEstData( UInt uiDepth, Int qp )
 #endif
       m_pePartSize[ui] = SIZE_NONE;
       m_pePredMode[ui] = MODE_NONE;
+#if OL_QUICKLOSSLESS
+      m_CUTransquantBypass[ui] = false;
+#endif
       m_pbIPCMFlag[ui] = 0;
       m_phQP[ui] = qp;
 #if !AHG6_ALF_OPTION2
@@ -710,6 +728,9 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, 
   {
     m_pePartSize[ui] = SIZE_NONE;
     m_pePredMode[ui] = MODE_NONE;
+#if OL_QUICKLOSSLESS
+    m_CUTransquantBypass[ui] = false;
+#endif
     m_apiMVPIdx[0][ui] = -1;
     m_apiMVPIdx[1][ui] = -1;
     m_apiMVPNum[0][ui] = -1;
@@ -732,6 +753,9 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, 
 #endif
       m_pePartSize[ui] = pcCU->getPartitionSize(uiPartOffset+ui);
       m_pePredMode[ui] = pcCU->getPredictionMode(uiPartOffset+ui);
+#if OL_QUICKLOSSLESS
+      m_CUTransquantBypass[ui] = pcCU->getCUTransquantBypass(uiPartOffset+ui);
+#endif
       m_pbIPCMFlag[ui]=pcCU->m_pbIPCMFlag[uiPartOffset+ui];
       m_phQP[ui] = pcCU->m_phQP[uiPartOffset+ui];
 #if !AHG6_ALF_OPTION2
@@ -846,6 +870,9 @@ Void TComDataCU::copySubCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   m_phQP=pcCU->getQP()                    + uiPart;
   m_pePartSize = pcCU->getPartitionSize() + uiPart;
   m_pePredMode=pcCU->getPredictionMode()  + uiPart;
+#if OL_QUICKLOSSLESS
+  m_CUTransquantBypass  = pcCU->getCUTransquantBypass()+uiPart;
+#endif
   
   m_pbMergeFlag         = pcCU->getMergeFlag()        + uiPart;
   m_puhMergeIndex       = pcCU->getMergeIndex()       + uiPart;
@@ -935,6 +962,9 @@ Void TComDataCU::copyInterPredInfoFrom    ( TComDataCU* pcCU, UInt uiAbsPartIdx,
   
   m_pePartSize         = pcCU->getPartitionSize ()        + uiAbsPartIdx;
   m_pePredMode         = pcCU->getPredictionMode()        + uiAbsPartIdx;
+#if OL_QUICKLOSSLESS
+  m_CUTransquantBypass = pcCU->getCUTransquantBypass()    + uiAbsPartIdx;
+#endif
   m_puhInterDir        = pcCU->getInterDir      ()        + uiAbsPartIdx;
   
   m_puhDepth           = pcCU->getDepth ()                + uiAbsPartIdx;
@@ -973,6 +1003,9 @@ Void TComDataCU::copyPartFrom( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDept
   memcpy( m_phQP       + uiOffset, pcCU->getQP(),             sizeInChar                        );
   memcpy( m_pePartSize + uiOffset, pcCU->getPartitionSize(),  sizeof( *m_pePartSize ) * uiNumPartition );
   memcpy( m_pePredMode + uiOffset, pcCU->getPredictionMode(), sizeof( *m_pePredMode ) * uiNumPartition );
+#if OL_QUICKLOSSLESS
+  memcpy( m_CUTransquantBypass + uiOffset, pcCU->getCUTransquantBypass(), sizeof( *m_CUTransquantBypass ) * uiNumPartition );
+#endif
 #if AHG6_ALF_OPTION2
   m_lcuAlfEnabled[0] = pcCU->m_lcuAlfEnabled[0];
   m_lcuAlfEnabled[1] = pcCU->m_lcuAlfEnabled[1];
@@ -1059,6 +1092,9 @@ Void TComDataCU::copyToPic( UChar uhDepth )
 
   memcpy( rpcCU->getPartitionSize()  + m_uiAbsIdxInLCU, m_pePartSize, sizeof( *m_pePartSize ) * m_uiNumPartition );
   memcpy( rpcCU->getPredictionMode() + m_uiAbsIdxInLCU, m_pePredMode, sizeof( *m_pePredMode ) * m_uiNumPartition );
+#if OL_QUICKLOSSLESS
+  memcpy( rpcCU->getCUTransquantBypass()+ m_uiAbsIdxInLCU, m_CUTransquantBypass, sizeof( *m_CUTransquantBypass ) * m_uiNumPartition );
+#endif
 #if AHG6_ALF_OPTION2
   rpcCU->m_lcuAlfEnabled[0] = m_lcuAlfEnabled[0];
   rpcCU->m_lcuAlfEnabled[1] = m_lcuAlfEnabled[1];
@@ -1138,6 +1174,9 @@ Void TComDataCU::copyToPic( UChar uhDepth, UInt uiPartIdx, UInt uiPartDepth )
   memcpy( rpcCU->getQP() + uiPartOffset, m_phQP, sizeInChar );
   memcpy( rpcCU->getPartitionSize()  + uiPartOffset, m_pePartSize, sizeof( *m_pePartSize ) * uiQNumPart );
   memcpy( rpcCU->getPredictionMode() + uiPartOffset, m_pePredMode, sizeof( *m_pePredMode ) * uiQNumPart );
+#if OL_QUICKLOSSLESS
+  memcpy( rpcCU->getCUTransquantBypass()+ uiPartOffset, m_CUTransquantBypass, sizeof( *m_CUTransquantBypass ) * uiQNumPart );
+#endif
 #if AHG6_ALF_OPTION2
   rpcCU->m_lcuAlfEnabled[0] = m_lcuAlfEnabled[0];
   rpcCU->m_lcuAlfEnabled[1] = m_lcuAlfEnabled[1];
@@ -2132,6 +2171,13 @@ Void TComDataCU::setPartSizeSubParts( PartSize eMode, UInt uiAbsPartIdx, UInt ui
   assert( sizeof( *m_pePartSize) == 1 );
   memset( m_pePartSize + uiAbsPartIdx, eMode, m_pcPic->getNumPartInCU() >> ( 2 * uiDepth ) );
 }
+
+#if OL_QUICKLOSSLESS
+Void TComDataCU::setCUTransquantBypassSubParts( bool flag, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  memset( m_CUTransquantBypass + uiAbsPartIdx, flag, m_pcPic->getNumPartInCU() >> ( 2 * uiDepth ) );
+}
+#endif
 
 Void TComDataCU::setPredModeSubParts( PredMode eMode, UInt uiAbsPartIdx, UInt uiDepth )
 {

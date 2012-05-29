@@ -183,6 +183,9 @@ public:
 #if !AHG6_ALF_OPTION2
   Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #endif
+#if OL_QUICKLOSSLESS
+  Void codeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx );
+#endif
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
@@ -275,6 +278,9 @@ private:
   ContextModel3DBuffer m_cSaoTypeIdxSCModel;
 #if INTRA_TRANSFORMSKIP
   ContextModel3DBuffer m_cTransformSkipSCModel;
+#endif
+#if OL_QUICKLOSSLESS
+  ContextModel3DBuffer m_CUTransquantBypassFlagSCModel;
 #endif
 };
 

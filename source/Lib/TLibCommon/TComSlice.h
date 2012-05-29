@@ -550,6 +550,10 @@ private:
 #endif
   Bool        m_OutputFlagPresentFlag;   // Indicates the presence of output_flag in slice header
 
+#if OL_QUICKLOSSLESS
+  Bool        m_TransquantBypassEnableFlag; // Indicates presence of cu_transquant_bypass_flag in CUs.
+#endif
+
 #if TILES_OR_ENTROPY_FIX
   UInt        m_tilesOrEntropyCodingSyncIdc;
 #endif
@@ -638,6 +642,11 @@ public:
 #endif
   Void      setOutputFlagPresentFlag( Bool b )  { m_OutputFlagPresentFlag = b;    }
   Bool      getOutputFlagPresentFlag()          { return m_OutputFlagPresentFlag; }
+
+#if OL_QUICKLOSSLESS
+  Void      setTransquantBypassEnableFlag( Bool b ) { m_TransquantBypassEnableFlag = b; }
+  Bool      getTransquantBypassEnableFlag()         { return m_TransquantBypassEnableFlag; }
+#endif
 
 #if !TILES_OR_ENTROPY_FIX
   Void    setTileBehaviorControlPresentFlag        ( Int i )             { m_iTileBehaviorControlPresentFlag = i;    }

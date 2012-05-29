@@ -271,6 +271,10 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #endif
   WRITE_FLAG( pcPPS->getOutputFlagPresentFlag() ? 1 : 0,  "output_flag_present_flag" );
 
+#if OL_QUICKLOSSLESS
+  WRITE_FLAG( pcPPS->getTransquantBypassEnableFlag() ? 1 : 0, "transquant_bypass_enable_flag" );
+#endif
+
 #if TILES_OR_ENTROPY_FIX
   Int tilesOrEntropyCodingSyncIdc = 0;
   if ( pcPPS->getNumColumnsMinus1() > 0 || pcPPS->getNumRowsMinus1() > 0)
@@ -1107,6 +1111,13 @@ Void TEncCavlc::codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
 {
   assert(0);
 }
+
+#if OL_QUICKLOSSLESS
+Void TEncCavlc::codeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  assert(0);
+}
+#endif
 
 Void TEncCavlc::codeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {

@@ -38,6 +38,8 @@
 #ifndef _TYPEDEF__
 #define _TYPEDEF__
 
+#define OL_QUICKLOSSLESS 0 // I0529
+
 //! \ingroup TLibCommon
 //! \{
 #define TILE_ENTRY_START                 1  ///< I0357: Signal tile entry points from the end of the slice header

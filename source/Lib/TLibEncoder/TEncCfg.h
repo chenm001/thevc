@@ -275,6 +275,10 @@ protected:
   Bool      m_enableRateCtrl;                                ///< Flag for using rate control algorithm
   Int       m_targetBitrate;                                 ///< target bitrate
   Int       m_numLCUInUnit;                                  ///< Total number of LCUs in a frame should be divided by the NumLCUInUnit
+#if OL_QUICKLOSSLESS
+  Bool      m_TransquantBypassEnableFlag;                     ///< transquant_bypass_enable_flag setting in PPS.
+  Bool      m_CUTransquantBypassFlagValue;                    ///< if transquant_bypass_enable_flag, the fixed value to use for the per-CU cu_transquant_bypass_flag.
+#endif
 public:
   TEncCfg()
   : m_puiColumnWidth()
@@ -653,6 +657,12 @@ public:
   Void      setTargetBitrate  (Int target)      { m_targetBitrate  = target;  }
   Int       getNumLCUInUnit   ()                { return m_numLCUInUnit;      }
   Void      setNumLCUInUnit   (Int numLCUs)     { m_numLCUInUnit   = numLCUs; }
+#if OL_QUICKLOSSLESS
+  Bool      getTransquantBypassEnableFlag()           { return m_TransquantBypassEnableFlag; }
+  Void      setTransquantBypassEnableFlag(Bool flag)  { m_TransquantBypassEnableFlag = flag; }
+  Bool      getCUTransquantBypassFlagValue()          { return m_CUTransquantBypassFlagValue; }
+  Void      setCUTransquantBypassFlagValue(Bool flag) { m_CUTransquantBypassFlagValue = flag; }
+#endif
 };
 
 //! \}
