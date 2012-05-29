@@ -42,6 +42,7 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define PRED_QP_DERIVATION               1  ///< I0219: Changing cu_qp_delta parsing to enable CU-level processing 
 #define NEW_NAL_UNIT_TYPES               1  ///< I0607: Definition of new NAL unit types
 #if NEW_NAL_UNIT_TYPES
 #define CRA_BLA_TFD_MODIFICATIONS        1  ///< I0404, I0278, I0275: Modifications for CRA, BLA and TFD pictures

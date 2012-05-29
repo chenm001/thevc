@@ -1753,6 +1753,32 @@ TComDataCU* TComDataCU::getPUAboveRightAdi(UInt&  uiARPartUnitIdx, UInt uiPuWidt
 */
 TComDataCU* TComDataCU::getQpMinCuLeft( UInt& uiLPartUnitIdx, UInt uiCurrAbsIdxInLCU, Bool bEnforceSliceRestriction, Bool bEnforceDependentSliceRestriction)
 {
+#if PRED_QP_DERIVATION
+  UInt numPartInCUWidth = m_pcPic->getNumPartInWidth();
+  UInt absZorderQpMinCUIdx = (uiCurrAbsIdxInLCU>>((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1))<<((g_uiMaxCUDepth -getSlice()->getPPS()->getMaxCuDQPDepth())<<1);
+  UInt absRorderQpMinCUIdx = g_auiZscanToRaster[absZorderQpMinCUIdx];
+
+  // check for left LCU boundary
+  if ( RasterAddress::isZeroCol(absRorderQpMinCUIdx, numPartInCUWidth) )
+  {
+    return NULL;
+  }
+
+  // get index of left-CU relative to top-left corner of current quantization group
+  uiLPartUnitIdx = g_auiRasterToZscan[absRorderQpMinCUIdx - 1];
+
+  // check for fine-grain slice boundaries
+  if ((bEnforceSliceRestriction        && (m_pcPic->getCU( getAddr() )->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (absZorderQpMinCUIdx)))
+    ||(bEnforceDependentSliceRestriction && (m_pcPic->getCU( getAddr() )->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getDependentSliceStartCU(absZorderQpMinCUIdx))))
+  {
+    return NULL;
+  }
+
+  // return pointer to current LCU
+  return m_pcPic->getCU( getAddr() );
+
+#else
+
   UInt uiNumPartInCUWidth = m_pcPic->getNumPartInWidth();
 
   UInt uiAbsRorderQpMinCUIdx   = g_auiZscanToRaster[(uiCurrAbsIdxInLCU>>((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1))<<((g_uiMaxCUDepth -getSlice()->getPPS()->getMaxCuDQPDepth())<<1)];
@@ -1799,6 +1825,7 @@ TComDataCU* TComDataCU::getQpMinCuLeft( UInt& uiLPartUnitIdx, UInt uiCurrAbsIdxI
   }
 
   return m_pcCULeft;
+#endif
 }
 
 /** Get Above QpMinCu
@@ -1810,6 +1837,30 @@ TComDataCU* TComDataCU::getQpMinCuLeft( UInt& uiLPartUnitIdx, UInt uiCurrAbsIdxI
 */
 TComDataCU* TComDataCU::getQpMinCuAbove( UInt& aPartUnitIdx, UInt currAbsIdxInLCU, Bool enforceSliceRestriction, Bool enforceDependentSliceRestriction )
 {
+#if PRED_QP_DERIVATION
+  UInt numPartInCUWidth = m_pcPic->getNumPartInWidth();
+  UInt absZorderQpMinCUIdx = (currAbsIdxInLCU>>((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1))<<((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1);
+  UInt absRorderQpMinCUIdx = g_auiZscanToRaster[absZorderQpMinCUIdx];
+
+  // check for top LCU boundary
+  if ( RasterAddress::isZeroRow( absRorderQpMinCUIdx, numPartInCUWidth) )
+  {
+    return NULL;
+  }
+
+  // get index of top-CU relative to top-left corner of current quantization group
+  aPartUnitIdx = g_auiRasterToZscan[absRorderQpMinCUIdx - numPartInCUWidth];
+
+  // check for fine-grain slice boundaries
+  if ((enforceSliceRestriction        && (m_pcPic->getCU( getAddr() )->getSCUAddr()+aPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (absZorderQpMinCUIdx)))
+    ||(enforceDependentSliceRestriction && (m_pcPic->getCU( getAddr() )->getSCUAddr()+aPartUnitIdx < m_pcPic->getCU( getAddr() )->getDependentSliceStartCU(absZorderQpMinCUIdx))))
+  {
+    return NULL;
+  }
+
+  // return pointer to current LCU
+  return m_pcPic->getCU( getAddr() );
+#else
   UInt numPartInCUWidth = m_pcPic->getNumPartInWidth();
 
   UInt absRorderQpMinCUIdx   = g_auiZscanToRaster[(currAbsIdxInLCU>>((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1))<<((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1)];
@@ -1855,6 +1906,7 @@ TComDataCU* TComDataCU::getQpMinCuAbove( UInt& aPartUnitIdx, UInt currAbsIdxInLC
   }
 
   return m_pcCUAbove;
+#endif
 }
 
 /** Get reference QP from left QpMinCu or latest coded QP
@@ -2184,6 +2236,35 @@ Void TComDataCU::setPredModeSubParts( PredMode eMode, UInt uiAbsPartIdx, UInt ui
   assert( sizeof( *m_pePartSize) == 1 );
   memset( m_pePredMode + uiAbsPartIdx, eMode, m_pcPic->getNumPartInCU() >> ( 2 * uiDepth ) );
 }
+#if PRED_QP_DERIVATION
+Void TComDataCU::setQPSubCUs( Int qp, TComDataCU* pcCU, UInt absPartIdx, UInt depth, Bool &foundNonZeroCbf )
+{
+  UInt currPartNumb = m_pcPic->getNumPartInCU() >> (depth << 1);
+  UInt currPartNumQ = currPartNumb >> 2;
+
+  if(!foundNonZeroCbf)
+  {
+    if(pcCU->getDepth(absPartIdx) > depth)
+    {
+      for ( UInt partUnitIdx = 0; partUnitIdx < 4; partUnitIdx++ )
+      {
+        pcCU->setQPSubCUs( qp, pcCU, absPartIdx+partUnitIdx*currPartNumQ, depth+1, foundNonZeroCbf );
+      }
+    }
+    else
+    {
+      if(pcCU->getCbf( absPartIdx, TEXT_LUMA ) || pcCU->getCbf( absPartIdx, TEXT_CHROMA_U ) || pcCU->getCbf( absPartIdx, TEXT_CHROMA_V ) )
+      {
+        foundNonZeroCbf = true;
+      }
+      else
+      {
+        setQPSubParts(qp, absPartIdx, depth);
+      }
+    }
+  }
+}
+#endif
 
 Void TComDataCU::setQPSubParts( Int qp, UInt uiAbsPartIdx, UInt uiDepth )
 {
