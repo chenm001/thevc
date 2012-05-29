@@ -194,13 +194,13 @@ static const UChar
 INIT_MERGE_FLAG_EXT[3][NUM_MERGE_FLAG_EXT_CTX] = 
 {
 #if SLICE_TYPE_ORDER
-  { CNU, }, 
-  { 110, }, 
   { 154, }, 
+  { 110, }, 
+  { CNU, }, 
 #else
-  { 154, }, 
-  { 110, }, 
   { CNU, }, 
+  { 110, }, 
+  { 154, }, 
 #endif
 };
 
