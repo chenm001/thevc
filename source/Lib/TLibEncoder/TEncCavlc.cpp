@@ -619,12 +619,25 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     {
       WRITE_FLAG( pcSlice->getPicOutputFlag() ? 1 : 0, "pic_output_flag" );
     }
+#if CRA_BLA_TFD_MODIFICATIONS
+    if(   pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_IDR
+       || pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLANT
+       || pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLA
+       || pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_CRANT
+       || pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_CRA )
+    {
+      WRITE_UVLC( 0, "rap_pic_id" );
+      WRITE_FLAG( 0, "no_output_of_prior_pics_flag" );
+    }
+    if( pcSlice->getNalUnitType() != NAL_UNIT_CODED_SLICE_IDR )
+#else
     if(pcSlice->getNalUnitType()==NAL_UNIT_CODED_SLICE_IDR) 
     {
       WRITE_UVLC( 0, "idr_pic_id" );
       WRITE_FLAG( 0, "no_output_of_prior_pics_flag" );
     }
     else
+#endif
     {
       WRITE_CODE( (pcSlice->getPOC()-pcSlice->getLastIDR()+(1<<pcSlice->getSPS()->getBitsForPOC()))%(1<<pcSlice->getSPS()->getBitsForPOC()), pcSlice->getSPS()->getBitsForPOC(), "pic_order_cnt_lsb");
       TComReferencePictureSet* rps = pcSlice->getRPS();

@@ -71,6 +71,9 @@ private:
   
   Bool                    m_bRefreshPending;    ///< refresh pending flag
   Int                     m_pocCRA;            ///< POC number of the latest CRA picture
+#if CRA_BLA_TFD_MODIFICATIONS
+  Bool                    m_prevRAPisBLA;      ///< true if the previous RAP (CRA/CRANT/BLA/BLANT/IDR) picture is a BLA/BLANT picture
+#endif
   Int                     m_pocRandomAccess;   ///< POC number of the random access point (the first IDR or CRA picture)
 
   UInt                    m_uiValidPS;
@@ -95,6 +98,9 @@ private:
   TComAdaptiveLoopFilter  m_cAdaptiveLoopFilter;
   TComSampleAdaptiveOffset m_cSAO;
 
+#if CRA_BLA_TFD_MODIFICATIONS
+  Bool isSkipPictureForBLA(Int& iPOCLastDisplay);
+#endif
   Bool isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay);
   TComPic*                m_pcPic;
   UInt                    m_uiSliceIdx;

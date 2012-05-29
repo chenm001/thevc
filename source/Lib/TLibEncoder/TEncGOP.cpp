@@ -1942,6 +1942,20 @@ NalUnitType TEncGOP::getNalUnitType(UInt uiPOCCurr)
       return NAL_UNIT_CODED_SLICE_IDR;
     }
   }
+#if CRA_BLA_TFD_MODIFICATIONS
+  if(m_pocCRA>0)
+  {
+    if(uiPOCCurr<m_pocCRA)
+    {
+      // All leading pictures are being marked as TFD pictures here since current encoder uses all 
+      // reference pictures while encoding leading pictures. An encoder can ensure that a leading 
+      // picture can be still decodable when random accessing to a CRA/CRANT/BLA/BLANT picture by 
+      // controlling the reference pictures used for encoding that leading picture. Such a leading 
+      // picture need not be marked as a TFD picture.
+      return NAL_UNIT_CODED_SLICE_TFD;
+    }
+  }
+#endif
   return NAL_UNIT_CODED_SLICE;
 }
 

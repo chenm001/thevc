@@ -1549,6 +1549,28 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     {
       rpcSlice->setPicOutputFlag( true );
     }
+#if CRA_BLA_TFD_MODIFICATIONS
+    if(   rpcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_IDR
+       || rpcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLANT
+       || rpcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLA
+       || rpcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_CRANT
+       || rpcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_CRA )
+    { 
+      READ_UVLC( uiCode, "rap_pic_id" );  //ignored
+      READ_FLAG( uiCode, "no_output_of_prior_pics_flag" );  //ignored
+    }
+    if( rpcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_IDR )
+    {
+      rpcSlice->setPOC(0);
+      TComReferencePictureSet* rps = rpcSlice->getLocalRPS();
+      rps->setNumberOfNegativePictures(0);
+      rps->setNumberOfPositivePictures(0);
+      rps->setNumberOfLongtermPictures(0);
+      rps->setNumberOfPictures(0);
+      rpcSlice->setRPS(rps);
+    }
+    else
+#else
     if(rpcSlice->getNalUnitType()==NAL_UNIT_CODED_SLICE_IDR)
     { 
       READ_UVLC( uiCode, "idr_pic_id" );  //ignored
@@ -1562,6 +1584,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       rpcSlice->setRPS(rps);
     }
     else
+#endif
     {
       READ_CODE(sps->getBitsForPOC(), uiCode, "pic_order_cnt_lsb");  
       Int iPOClsb = uiCode;
@@ -1582,6 +1605,14 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       {
         iPOCmsb = iPrevPOCmsb;
       }
+#if CRA_BLA_TFD_MODIFICATIONS
+      if(   rpcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLA
+         || rpcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLANT )
+      {
+        // For BLA/BLANT, POCmsb is set to 0.
+        iPOCmsb = 0;
+      }
+#endif
       rpcSlice->setPOC              (iPOCmsb+iPOClsb);
 
       TComReferencePictureSet* rps;
@@ -1640,6 +1671,19 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
         offset += rps->getNumberOfLongtermPictures();
         rps->setNumberOfPictures(offset);        
       }  
+#if CRA_BLA_TFD_MODIFICATIONS
+      if(   rpcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLA
+         || rpcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLANT )
+      {
+        // In the case of BLA/BLANT, rps data is read from slice header but ignored
+        rps = rpcSlice->getLocalRPS();
+        rps->setNumberOfNegativePictures(0);
+        rps->setNumberOfPositivePictures(0);
+        rps->setNumberOfLongtermPictures(0);
+        rps->setNumberOfPictures(0);
+        rpcSlice->setRPS(rps);
+      }
+#endif
     }
 #if DBL_HL_SYNTAX
     if(sps->getUseSAO() || sps->getUseALF())
