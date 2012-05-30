@@ -152,7 +152,20 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
   UInt uiTileWidth;
   UInt uiTileHeight;
   Int iNumSubstreamsPerTile = 1; // if independent.
-
+#if DEPENDENT_SLICES
+  Bool bAllowDependence = false;
+  if( rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getPPS()->getDependentSlicesEnabledFlag()&& (!rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getPPS()->getCabacIndependentFlag()) )
+   bAllowDependence = true;
+  if( bAllowDependence )
+  {
+    if( !rpcPic->getSlice(rpcPic->getCurrSliceIdx())->isNextSlice() )
+    {
+      uiTileCol = 0;
+      m_pcBufferSbacDecoders[uiTileCol].loadContexts( rpcPic->getSlice(rpcPic->getCurrSliceIdx()-1)->getCTXMem_dec( 0 ) );//2.LCU
+      pcSbacDecoder->loadContexts( rpcPic->getSlice( rpcPic->getCurrSliceIdx() )->getCTXMem_dec( 1 ) ); //end of depSlice-1
+    }
+  }
+#endif
   for( Int iCUAddr = iStartCUAddr; !uiIsLast && iCUAddr < rpcPic->getNumCUsInFrame(); iCUAddr = rpcPic->getPicSym()->xCalculateNxtCUAddr(iCUAddr) )
   {
     pcCU = rpcPic->getCU( iCUAddr );
@@ -166,7 +179,11 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
     uiCol     = iCUAddr % uiWidthInLCUs;
     uiLin     = iCUAddr / uiWidthInLCUs;
     // inherit from TR if necessary, select substream to use.
+#if DEPENDENT_SLICES
+    if( (pcSlice->getPPS()->getNumSubstreams() > 1) || bAllowDependence )
+#else
     if( pcSlice->getPPS()->getNumSubstreams() > 1 )
+#endif
     {
       // independent tiles => substreams are "per tile".  iNumSubstreams has already been multiplied.
       iNumSubstreamsPerTile = iNumSubstreams/rpcPic->getPicSym()->getNumTiles();
@@ -174,7 +191,11 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
                   + uiLin%iNumSubstreamsPerTile;
       m_pcEntropyDecoder->setBitstream( ppcSubstreams[uiSubStrm] );
       // Synchronize cabac probabilities with upper-right LCU if it's available and we're at the start of a line.
+#if DEPENDENT_SLICES
+      if (((pcSlice->getPPS()->getNumSubstreams() > 1) || bAllowDependence ) && (uiCol == uiTileLCUX))
+#else
       if (pcSlice->getPPS()->getNumSubstreams() > 1 && uiCol == uiTileLCUX)
+#endif
       {
         // We'll sync if the TR is available.
         TComDataCU *pcCUUp = pcCU->getCUAbove();
@@ -198,6 +219,12 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
              ))
            )
         {
+#if DEPENDENT_SLICES
+          if( (iCUAddr!=0) && ((pcCUTR->getSCUAddr()+uiMaxParts-1) >= pcSlice->getSliceCurStartCUAddr()) && bAllowDependence)
+          {
+             pcSbacDecoders[uiSubStrm].loadContexts( &m_pcBufferSbacDecoders[uiTileCol] ); 
+          }
+#endif
           // TR not available.
         }
         else
@@ -345,10 +372,22 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
     pcSbacDecoders[uiSubStrm].load(pcSbacDecoder);
 
     //Store probabilities of second LCU in line into buffer
+#if DEPENDENT_SLICES
+    if ( (uiCol == uiTileLCUX+1)&& (bAllowDependence || (pcSlice->getPPS()->getNumSubstreams() > 1)) )
+#else
     if (pcSlice->getPPS()->getNumSubstreams() > 1 && (uiCol == uiTileLCUX+1))
+#endif
     {
       m_pcBufferSbacDecoders[uiTileCol].loadContexts( &pcSbacDecoders[uiSubStrm] );
     }
+#if DEPENDENT_SLICES
+    if( uiIsLast && bAllowDependence )
+    {
+      rpcPic->getSlice( rpcPic->getCurrSliceIdx() )->getCTXMem_dec( 0 )->loadContexts( &m_pcBufferSbacDecoders[uiTileCol] );//ctx 2.LCU
+      rpcPic->getSlice( rpcPic->getCurrSliceIdx() )->getCTXMem_dec( 1 )->loadContexts( pcSbacDecoder );//ctx end of dep.slice
+      return;
+    }
+#endif
   }
 }
 

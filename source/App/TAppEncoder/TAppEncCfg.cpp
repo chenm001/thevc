@@ -301,6 +301,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("SliceArgument",        m_iSliceArgument,       0, "if SliceMode==1 SliceArgument represents max # of LCUs. if SliceMode==2 SliceArgument represents max # of bytes.")
     ("DependentSliceMode",     m_iDependentSliceMode,    0, "0: Disable all dependent slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based dependent slices")
     ("DependentSliceArgument", m_iDependentSliceArgument,0, "if DependentSliceMode==1 SliceArgument represents max # of LCUs. if DependentSliceMode==2 DependentSliceArgument represents max # of bins.")
+#if DEPENDENT_SLICES
+    ("CabacIndependentFlag", m_bCabacIndependentFlag, true)
+#endif
     ("SliceGranularity",     m_iSliceGranularity,    0, "0: Slices always end at LCU borders. 1-3: slices may end at a depth of 1-3 below LCU level.")
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
 

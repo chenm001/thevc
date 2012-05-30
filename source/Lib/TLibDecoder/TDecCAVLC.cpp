@@ -1066,6 +1066,11 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   READ_FLAG( uiCode, "output_flag_present_flag" );
   pcPPS->setOutputFlagPresentFlag( uiCode==1 );
 
+#if DEPENDENT_SLICES
+  READ_FLAG( uiCode, "dependent_slices_enabled_flag" );
+  pcPPS->setDependentSlicesEnabledFlag( uiCode==1 );
+#endif
+
 #if CU_LEVEL_TRANSQUANT_BYPASS
   READ_FLAG( uiCode, "transquant_bypass_enable_flag");
   pcPPS->setTransquantBypassEnableFlag(uiCode ? true : false);
@@ -1143,6 +1148,13 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 #endif
   {
     READ_UVLC( uiCode, "num_substreams_minus1" );                pcPPS->setNumSubstreams(uiCode+1);
+  }
+#endif
+#if DEPENDENT_SLICES
+  else if( pcPPS->getTilesOrEntropyCodingSyncIdc()==3 )
+  {
+    READ_FLAG ( uiCode, "cabac_independent_flag" );
+    pcPPS->setCabacIndependentFlag( (uiCode == 1)? true : false );
   }
 #endif
   READ_FLAG( uiCode, "deblocking_filter_control_present_flag" ); 
@@ -1507,6 +1519,18 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   // lightweight_slice_flag
   READ_FLAG( uiCode, "dependent_slice_flag" );
   Bool bDependentSlice = uiCode ? true : false;
+#if DEPENDENT_SLICES
+  if( rpcSlice->getPPS()->getDependentSlicesEnabledFlag())
+  {
+    if(bDependentSlice)
+    {
+      rpcSlice->setNextSlice        ( false );
+      rpcSlice->setNextDependentSlice( true  );
+      m_pcBitstream->readOutTrailingBits();
+      return;
+    }
+  }
+#endif
 
   if (bDependentSlice)
   {
@@ -2045,7 +2069,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
 
   rpcSlice->setNumEntryPointOffsets ( 0 ); // default
   
+#if DEPENDENT_SLICES
+  if( (tilesOrEntropyCodingSyncIdc == 1) || (tilesOrEntropyCodingSyncIdc == 2) )
+#else
   if (tilesOrEntropyCodingSyncIdc>0)
+#endif
   {
     READ_UVLC(numEntryPointOffsets, "num_entry_point_offsets"); rpcSlice->setNumEntryPointOffsets ( numEntryPointOffsets );
     if (numEntryPointOffsets>0)

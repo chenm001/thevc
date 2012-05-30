@@ -294,6 +294,20 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #endif
       }
     }
+#if DEPENDENT_SLICES
+    if( pcSlice->getPPS()->getDependentSlicesEnabledFlag() && (!pcSlice->getPPS()->getCabacIndependentFlag()) )
+    {
+      pcSlice->initCTXMem_dec( 2 );
+      for ( UInt st = 0; st < 2; st++ )
+      {
+        TDecSbac* ctx = NULL;
+        ctx = new TDecSbac;
+        ctx->init( (TDecBinIf*)m_pcBinCABAC );
+        ctx->load( m_pcSbacDecoder );
+        pcSlice->setCTXMem_dec( ctx, st );
+      }
+    }
+#endif
 
     m_pcSbacDecoders[0].load(m_pcSbacDecoder);
     m_pcSliceDecoder->decompressSlice( pcBitstream, ppcSubstreams, rpcPic, m_pcSbacDecoder, m_pcSbacDecoders);

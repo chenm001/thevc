@@ -53,7 +53,7 @@
 #define WPP_SLICE_END_CONSTRAINT         1  ///< I0361: WPP Slice constraint
 #define REMOVE_IMPLICIT_WP               1  ///< I0589: remove implicit weighted prediction
 #define HASH_TYPE                        1  ///< I0218: changes to the Hash SEI calculation for improved usability
-#define BYTE_ALIGNMENT                   1  ///< I0330: Add byte_alignment() procedure to end of slice header
+#define BYTE_ALIGNMENT                   0  ///< I0330: Add byte_alignment() procedure to end of slice header
 #define TEMPORALNESTINGFLAG_TLA          1  ///< I0330: Mark picture as TLA when temporal_nesting flag is 1 and when temporal_id greater than 0
 #define SLICE_ADDRESS_FIX                1  ///< I0113: Slice address parsing fix
 #define TILES_OR_ENTROPY_FIX             1  ///< I0113: tiles_or_entropy_coding_sync_idc parsing fix
@@ -254,6 +254,8 @@
 
 #define REMOVE_LC  1 // JCTVC-I0125
 #define CU_QP_DELTA_DEPTH_SYN  1 // JCTVC-I0127, differential coding of max cu qp delta depth
+
+#define DEPENDENT_SLICES       1 // JCTVC-I0229
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================

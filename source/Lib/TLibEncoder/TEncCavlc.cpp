@@ -270,7 +270,9 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   WRITE_CODE( pcPPS->getWPBiPredIdc(), 2, "weighted_bipred_idc" );  // Use of Weighting Bi-Prediction (B_SLICE)
 #endif
   WRITE_FLAG( pcPPS->getOutputFlagPresentFlag() ? 1 : 0,  "output_flag_present_flag" );
-
+#if DEPENDENT_SLICES
+  WRITE_FLAG( pcPPS->getDependentSlicesEnabledFlag() ? 1 : 0, "dependent_slices_enabled_flag" );
+#endif
 #if CU_LEVEL_TRANSQUANT_BYPASS
   WRITE_FLAG( pcPPS->getTransquantBypassEnableFlag() ? 1 : 0, "transquant_bypass_enable_flag" );
 #endif
@@ -285,6 +287,12 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   {
     tilesOrEntropyCodingSyncIdc = 2;
   }
+#if DEPENDENT_SLICES
+  else if( pcPPS->getDependentSlicesEnabledFlag() )
+  {
+    tilesOrEntropyCodingSyncIdc = 3;
+  }
+#endif
   pcPPS->setTilesOrEntropyCodingSyncIdc( tilesOrEntropyCodingSyncIdc );
   WRITE_CODE(tilesOrEntropyCodingSyncIdc, 2, "tiles_or_entropy_coding_sync_idc");
 #endif
@@ -341,6 +349,12 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #endif
   {
     WRITE_UVLC( pcPPS->getNumSubstreams()-1,               "num_substreams_minus1" );
+  }
+#endif
+#if DEPENDENT_SLICES
+  else if( pcPPS->getTilesOrEntropyCodingSyncIdc()==3 )
+  {
+    WRITE_FLAG( pcPPS->getCabacIndependentFlag()? 1 : 0,            "cabac_independent_flag" );
   }
 #endif
   WRITE_FLAG( pcPPS->getDeblockingFilterControlPresent()?1 : 0, "deblocking_filter_control_present_flag");
@@ -608,8 +622,13 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 
   WRITE_UVLC( pcSlice->getSliceType(),       "slice_type" );
   Bool bDependentSlice = (!pcSlice->isNextSlice());
-  WRITE_FLAG( bDependentSlice ? 1 : 0, "lightweight_slice_flag" );
+  WRITE_FLAG( bDependentSlice ? 1 : 0, "dependent_slice_flag" );
   
+#if DEPENDENT_SLICES
+  if( pcSlice->getPPS()->getDependentSlicesEnabledFlag() && bDependentSlice )
+    return;
+#endif
+
   if (!bDependentSlice)
   {
 #if !SLICE_ADDRESS_FIX
@@ -951,7 +970,11 @@ Void  TEncCavlc::codeTilesWPPEntryPoint( TComSlice* pSlice )
 #else
   Int tilesOrEntropyCodingSyncIdc = pSlice->getPPS()->getTilesOrEntropyCodingSyncIdc();
 #endif
+#if DEPENDENT_SLICES
+  if ( (tilesOrEntropyCodingSyncIdc == 0) || pSlice->getPPS()->getDependentSlicesEnabledFlag() )
+#else
   if ( tilesOrEntropyCodingSyncIdc == 0 )
+#endif
   {
     return;
   }

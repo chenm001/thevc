@@ -800,7 +800,31 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   UInt uiTileCol      = 0;
   UInt uiTileStartLCU = 0;
   UInt uiTileLCUX     = 0;
-
+#if DEPENDENT_SLICES
+  Bool bAllowDependence = false;
+  if( pcSlice->getPPS()->getDependentSlicesEnabledFlag()&&(!pcSlice->getPPS()->getCabacIndependentFlag()) )
+    bAllowDependence = true;
+  if( bAllowDependence )
+  {
+    if(rpcPic->getCurrDepSliceIdx())
+    {
+      m_pcBufferSbacCoders[uiTileCol].loadContexts( pcSlice->getCTXMem_enc(0) );
+      m_pppcRDSbacCoder[0][CI_CURR_BEST]->loadContexts( pcSlice->getCTXMem_enc( 1 ) );
+    }
+    else
+    {
+      pcSlice->initCTXMem_enc( 2 );
+      for ( UInt st = 0; st < 2; st++ )
+      {
+        TEncSbac* ctx = NULL;
+        ctx = new TEncSbac;
+        ctx->init( (TEncBinIf*)m_pcBinCABAC );
+        ctx->load( m_pcSbacCoder );
+        pcSlice->setCTXMem_enc( ctx, st );
+      }
+    }
+  }
+#endif
   // for every CU in slice
   UInt uiEncCUOrder;
   uiCUAddr = rpcPic->getPicSym()->getCUOrderMap( uiStartCUAddr /rpcPic->getNumPartInCU()); 
@@ -840,7 +864,11 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
         // dependent tiles => substreams are "per frame".
         uiSubStrm = uiLin % iNumSubstreams;
       }
+#if DEPENDENT_SLICES
+      if ( ((pcSlice->getPPS()->getNumSubstreams() > 1) || bAllowDependence ) && (uiCol == uiTileLCUX) )
+#else
       if ( pcSlice->getPPS()->getNumSubstreams() > 1 && (uiCol == uiTileLCUX) )
+#endif
       {
         // We'll sync if the TR is available.
         TComDataCU *pcCUUp = pcCU->getCUAbove();
@@ -861,6 +889,12 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
              )
            )
         {
+#if DEPENDENT_SLICES
+          if ( (uiCUAddr != 0) && (pcCUTR->getSCUAddr()+uiMaxParts-1 >= pcSlice->getSliceCurStartCUAddr())  && bAllowDependence)
+          {
+            ppppcRDSbacCoders[uiSubStrm][0][CI_CURR_BEST]->loadContexts( &m_pcBufferSbacCoders[uiTileCol] );
+          }
+#endif
           // TR not available.
         }
         else
@@ -924,7 +958,11 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
          ppppcRDSbacCoders[uiSubStrm][0][CI_CURR_BEST]->load( m_pppcRDSbacCoder[0][CI_CURR_BEST] );
        
          //Store probabilties of second LCU in line into buffer
+#if DEPENDENT_SLICES
+         if ( ( uiCol == uiTileLCUX+1) && (bAllowDependence || (pcSlice->getPPS()->getNumSubstreams() > 1)) )
+#else
         if (pcSlice->getPPS()->getNumSubstreams() > 1 && uiCol == uiTileLCUX+1)
+#endif
         {
           m_pcBufferSbacCoders[uiTileCol].loadContexts(ppppcRDSbacCoders[uiSubStrm][0][CI_CURR_BEST]);
         }
@@ -960,6 +998,14 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   if (pcSlice->getPPS()->getNumSubstreams() > 1)
   {
     pcSlice->setNextSlice( true );
+  }
+#endif
+#if DEPENDENT_SLICES
+  if( bAllowDependence )
+  {
+    pcSlice->getCTXMem_enc(0)->loadContexts( &m_pcBufferSbacCoders[uiTileCol] );//ctx 2.LCU
+    pcSlice->getCTXMem_enc(1)->loadContexts( m_pppcRDSbacCoder[0][CI_CURR_BEST] );//ctx end of dep.slice
+    rpcPic->setCurrDepSliceIdx( rpcPic->getCurrDepSliceIdx() + 1 );
   }
 #endif
   xRestoreWPparam( pcSlice );
@@ -1030,6 +1076,31 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
   UInt uiTileCol      = 0;
   UInt uiTileStartLCU = 0;
   UInt uiTileLCUX     = 0;
+#if DEPENDENT_SLICES
+  Bool bAllowDependence = false;
+  if( pcSlice->getPPS()->getDependentSlicesEnabledFlag()&&(!pcSlice->getPPS()->getCabacIndependentFlag()) )
+    bAllowDependence = true;
+  if( bAllowDependence )
+  {
+    if(pcSlice->isNextSlice())
+    {
+      pcSlice->initCTXMem_enc( 2 );
+      for ( UInt st = 0; st < 2; st++ )
+      {
+        TEncSbac* ctx = NULL;
+        ctx = new TEncSbac;
+        ctx->init( (TEncBinIf*)m_pcBinCABAC );
+        ctx->load( m_pcSbacCoder );
+        pcSlice->setCTXMem_enc( ctx, st );
+      }
+    }
+    else
+    {
+      m_pcBufferSbacCoders[uiTileCol].loadContexts( pcSlice->getCTXMem_enc(0) );
+      pcSbacCoders[uiSubStrm].loadContexts( pcSlice->getCTXMem_enc(1) );
+    }
+  }
+#endif
 
   UInt uiEncCUOrder;
   uiCUAddr = rpcPic->getPicSym()->getCUOrderMap( uiStartCUAddr /rpcPic->getNumPartInCU());  /*for tiles, uiStartCUAddr is NOT the real raster scan address, it is actually
@@ -1061,9 +1132,12 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
       }
 
       m_pcEntropyCoder->setBitstream( &pcSubstreams[uiSubStrm] );
-
       // Synchronize cabac probabilities with upper-right LCU if it's available and we're at the start of a line.
+#if DEPENDENT_SLICES
+      if (((pcSlice->getPPS()->getNumSubstreams() > 1) || bAllowDependence) && (uiCol == uiTileLCUX))
+#else
       if (pcSlice->getPPS()->getNumSubstreams() > 1 && (uiCol == uiTileLCUX))
+#endif
       {
         // We'll sync if the TR is available.
         TComDataCU *pcCUUp = rpcPic->getCU( uiCUAddr )->getCUAbove();
@@ -1086,6 +1160,12 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
              ))
            )
         {
+#if DEPENDENT_SLICES
+          if ( (uiCUAddr != 0) && ( pcCUTR->getSCUAddr()+uiMaxParts-1 >= pcSlice->getSliceCurStartCUAddr() ) && bAllowDependence)
+          {
+            pcSbacCoders[uiSubStrm].loadContexts( &m_pcBufferSbacCoders[uiTileCol] );
+          }
+#endif
           // TR not available.
         }
         else
@@ -1274,13 +1354,23 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
        
 
        //Store probabilties of second LCU in line into buffer
+#if DEPENDENT_SLICES
+       if ( (bAllowDependence || (pcSlice->getPPS()->getNumSubstreams() > 1)) && (uiCol == uiTileLCUX+1) )
+#else
       if (pcSlice->getPPS()->getNumSubstreams() > 1 && (uiCol == uiTileLCUX+1))
+#endif
       {
         m_pcBufferSbacCoders[uiTileCol].loadContexts( &pcSbacCoders[uiSubStrm] );
       }
     }
   }
-
+#if DEPENDENT_SLICES
+  if( bAllowDependence )
+  {
+    pcSlice->getCTXMem_enc(0)->loadContexts( &m_pcBufferSbacCoders[uiTileCol] );//ctx 2.LCU
+    pcSlice->getCTXMem_enc(1)->loadContexts( m_pcSbacCoder );//ctx end of dep.slice
+  }
+#endif
 #if ADAPTIVE_QP_SELECTION
   if( m_pcCfg->getUseAdaptQpSelect() )
   {

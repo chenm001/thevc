@@ -142,6 +142,10 @@ TComSlice::~TComSlice()
   }
   delete[] m_puiSubstreamSizes;
   m_puiSubstreamSizes = NULL;
+#if DEPENDENT_SLICES
+  CTXMem_enc.clear();
+  CTXMem_dec.clear();
+#endif
 }
 
 
@@ -171,6 +175,10 @@ Void TComSlice::initSlice()
   m_uiTileCount          = 0;
   m_cabacInitFlag        = false;
   m_numEntryPointOffsets = 0;
+#if DEPENDENT_SLICES
+  CTXMem_enc.clear();
+  CTXMem_dec.clear();
+#endif
 }
 
 Void TComSlice::initTiles()

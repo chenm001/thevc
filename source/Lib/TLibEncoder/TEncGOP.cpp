@@ -615,6 +615,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       UInt uiNextCUAddr = 0;
       m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx++]                = uiNextCUAddr;
       m_uiStoredStartCUAddrForEncodingDependentSlice[uiStartCUAddrDependentSliceIdx++]  = uiNextCUAddr;
+#if DEPENDENT_SLICES
+      pcPic->setCurrDepSliceIdx( 0 );
+#endif
 
       while(uiNextCUAddr<uiRealEndAddress) // determine slice boundaries
       {
@@ -627,6 +630,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         Bool bNoBinBitConstraintViolated = (!pcSlice->isNextSlice() && !pcSlice->isNextDependentSlice());
         if (pcSlice->isNextSlice() || (bNoBinBitConstraintViolated && m_pcCfg->getSliceMode()==AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE))
         {
+#if DEPENDENT_SLICES
+          pcPic->setCurrDepSliceIdx( 0 );
+#endif
           uiStartCUAddrSlice                                              = pcSlice->getSliceCurEndCUAddr();
           // Reconstruction slice
           m_uiStoredStartCUAddrForEncodingSlice[uiStartCUAddrSliceIdx++]  = uiStartCUAddrSlice;

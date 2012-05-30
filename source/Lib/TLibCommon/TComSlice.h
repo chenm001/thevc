@@ -46,6 +46,11 @@
 
 //! \ingroup TLibCommon
 //! \{
+#if DEPENDENT_SLICES
+#include<vector>
+class TDecSbac;
+class TEncSbac;
+#endif
 
 class TComPic;
 class TComTrQuant;
@@ -553,7 +558,10 @@ private:
 #if CU_LEVEL_TRANSQUANT_BYPASS
   Bool        m_TransquantBypassEnableFlag; // Indicates presence of cu_transquant_bypass_flag in CUs.
 #endif
-
+#if DEPENDENT_SLICES
+  Bool        m_bDependentSlicesEnabledFlag;   // Indicates the presence of dependent_slices_flag in slice header
+  Bool        m_bCabacIndependentFlag;   // Indicates the presence of dependent_slices_flag in slice header
+#endif
 #if TILES_OR_ENTROPY_FIX
   UInt        m_tilesOrEntropyCodingSyncIdc;
 #endif
@@ -642,7 +650,12 @@ public:
 #endif
   Void      setOutputFlagPresentFlag( Bool b )  { m_OutputFlagPresentFlag = b;    }
   Bool      getOutputFlagPresentFlag()          { return m_OutputFlagPresentFlag; }
-
+#if DEPENDENT_SLICES
+  Void      setDependentSlicesEnabledFlag( Bool b )  { m_bDependentSlicesEnabledFlag = b;    }
+  Bool      getDependentSlicesEnabledFlag()          { return m_bDependentSlicesEnabledFlag; }
+  Void      setCabacIndependentFlag( Bool b )  { m_bCabacIndependentFlag = b;    }
+  Bool      getCabacIndependentFlag()          { return m_bCabacIndependentFlag; }
+#endif
 #if CU_LEVEL_TRANSQUANT_BYPASS
   Void      setTransquantBypassEnableFlag( Bool b ) { m_TransquantBypassEnableFlag = b; }
   Bool      getTransquantBypassEnableFlag()         { return m_TransquantBypassEnableFlag; }
@@ -1001,6 +1014,10 @@ private:
 
   Bool       m_bLMvdL1Zero;
   Int         m_numEntryPointOffsets;
+#if DEPENDENT_SLICES
+  std::vector<TDecSbac*> CTXMem_dec;
+  std::vector<TEncSbac*> CTXMem_enc;
+#endif
 
 public:
   TComSlice();
@@ -1265,6 +1282,14 @@ public:
   Bool      getCabacInitFlag  ()           { return m_cabacInitFlag;     }  //!< get CABAC initial flag 
   Void      setNumEntryPointOffsets(Int val)  { m_numEntryPointOffsets = val;     }
   Int       getNumEntryPointOffsets()         { return m_numEntryPointOffsets;    }
+#if DEPENDENT_SLICES
+  Void      initCTXMem_dec(  UInt i )                { CTXMem_dec.resize(i); }
+  TDecSbac* getCTXMem_dec( int b )                 { return CTXMem_dec[b]; }
+  Void      setCTXMem_dec( TDecSbac* sb, int b )   { CTXMem_dec[b] = sb; }
+  Void      initCTXMem_enc( UInt i )                 { CTXMem_enc.resize(i); }
+  TEncSbac* getCTXMem_enc( int b )                 { return CTXMem_enc[b]; }
+  Void      setCTXMem_enc( TEncSbac* sb, int b )   { CTXMem_enc[b] = sb; }
+#endif
 
 protected:
   TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,

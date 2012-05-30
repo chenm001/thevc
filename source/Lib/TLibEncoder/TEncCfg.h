@@ -223,6 +223,9 @@ protected:
   //====== Dependent Slice ========
   Int       m_iDependentSliceMode;
   Int       m_iDependentSliceArgument;
+#if DEPENDENT_SLICES
+  Bool      m_bCabacIndependentFlag;
+#endif
   Int       m_iSliceGranularity;
   Bool      m_bLFCrossSliceBoundaryFlag;
 
@@ -507,6 +510,10 @@ public:
   Void  setDependentSliceArgument        ( Int  i )      { m_iDependentSliceArgument = i;   }
   Int   getDependentSliceMode            ()              { return m_iDependentSliceMode;    }
   Int   getDependentSliceArgument        ()              { return m_iDependentSliceArgument;}
+#if DEPENDENT_SLICES
+  Void  setCabacIndependentFlag            ( Bool  i )      { m_bCabacIndependentFlag = i;       }
+  Bool  getCabacIndependentFlag     ()                    { return m_bCabacIndependentFlag;   }
+#endif
   Void  setSliceGranularity            ( Int  i )      { m_iSliceGranularity = i;       }
   Int   getSliceGranularity            ()              { return m_iSliceGranularity;    }
   Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
