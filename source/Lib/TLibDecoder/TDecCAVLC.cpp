@@ -2073,6 +2073,10 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     rpcSlice->setTileMarkerFlag( uiCode );
   }
 
+#if DEPENDENT_SLICES
+  if( pps->getDependentSlicesEnabledFlag()== false )
+#endif
+  {
 #if ! TILES_OR_ENTROPY_FIX
   Int tilesOrEntropyCodingSyncIdc = rpcSlice->getSPS()->getTilesOrEntropyCodingSyncIdc();
 #else
@@ -2083,11 +2087,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
 
   rpcSlice->setNumEntryPointOffsets ( 0 ); // default
   
-#if DEPENDENT_SLICES
-  if( (tilesOrEntropyCodingSyncIdc == 1) || (tilesOrEntropyCodingSyncIdc == 2) )
-#else
   if (tilesOrEntropyCodingSyncIdc>0)
-#endif
   {
     READ_UVLC(numEntryPointOffsets, "num_entry_point_offsets"); rpcSlice->setNumEntryPointOffsets ( numEntryPointOffsets );
     if (numEntryPointOffsets>0)
@@ -2142,6 +2142,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   if (entryPointOffset)
   {
     delete [] entryPointOffset;
+  }
   }
 #if BYTE_ALIGNMENT
   m_pcBitstream->readByteAlignment();
