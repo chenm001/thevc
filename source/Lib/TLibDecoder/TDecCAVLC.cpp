@@ -2049,6 +2049,20 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
 
     }
 #endif
+#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+    Bool isAlfEnabled = (!rpcSlice->getSPS()->getUseALF())?(false):(rpcSlice->getAlfEnabledFlag(0)||rpcSlice->getAlfEnabledFlag(1)||rpcSlice->getAlfEnabledFlag(2));
+    Bool isSAOEnabled = (!rpcSlice->getSPS()->getUseSAO())?(false):(rpcSlice->getSaoEnabledFlag());
+    Bool isDBFEnabled = (!rpcSlice->getLoopFilterDisable());
+    if(rpcSlice->getSPS()->getLFCrossSliceBoundaryFlag() && ( isAlfEnabled || isSAOEnabled || isDBFEnabled ))
+    {
+      READ_FLAG( uiCode, "slice_loop_filter_across_slices_enabled_flag");
+    }
+    else
+    {
+      uiCode = rpcSlice->getSPS()->getLFCrossSliceBoundaryFlag()?1:0;
+    }
+    rpcSlice->setLFCrossSliceBoundaryFlag( (uiCode==1)?true:false);
+#endif    
   }
   
   //!!!KS: The following syntax is not aligned with the working draft, TRACE support needs to be added

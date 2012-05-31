@@ -206,6 +206,10 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #else
   static std::vector<AlfCUCtrlInfo> vAlfCUCtrlSlices;
 #endif
+#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+  static std::vector<Bool> LFCrossSliceBoundaryFlag;
+#endif
+
   if (!bExecuteDeblockAndAlf)
   {
     if(bFirst)
@@ -269,6 +273,9 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 
     if(uiSliceStartCuAddr == uiStartCUAddr)
     {
+#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+      LFCrossSliceBoundaryFlag.push_back( pcSlice->getLFCrossSliceBoundaryFlag());
+#endif
       if(pcSlice->getSPS()->getUseALF())
       {
 #if AHG6_ALF_OPTION2
@@ -368,7 +375,11 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     {
       Int sliceGranularity = pcSlice->getPPS()->getSliceGranularity();
       puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU();
+#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+      rpcPic->createNonDBFilterInfo(puiILSliceStartLCU, uiILSliceCount,sliceGranularity,&LFCrossSliceBoundaryFlag,rpcPic->getPicSym()->getNumTiles() ,bLFCrossTileBoundary);
+#else
       rpcPic->createNonDBFilterInfo(puiILSliceStartLCU, uiILSliceCount,sliceGranularity,pcSlice->getSPS()->getLFCrossSliceBoundaryFlag(),rpcPic->getPicSym()->getNumTiles() ,bLFCrossTileBoundary);
+#endif
     }
 
     if( pcSlice->getSPS()->getUseSAO() )
@@ -490,6 +501,9 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     }
 #else
     vAlfCUCtrlSlices.clear();
+#endif
+#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+    LFCrossSliceBoundaryFlag.clear();
 #endif
   }
 }

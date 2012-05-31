@@ -946,6 +946,18 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     }
   }
 #endif
+#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+  if(!bDependentSlice)
+  {
+    Bool isAlfEnabled = (!pcSlice->getSPS()->getUseALF())?(false):(pcSlice->getAlfEnabledFlag(0)||pcSlice->getAlfEnabledFlag(1)||pcSlice->getAlfEnabledFlag(2));
+    Bool isSAOEnabled = (!pcSlice->getSPS()->getUseSAO())?(false):(pcSlice->getSaoEnabledFlag());
+    Bool isDBFEnabled = (!pcSlice->getLoopFilterDisable());
+    if(pcSlice->getSPS()->getLFCrossSliceBoundaryFlag() && ( isAlfEnabled || isSAOEnabled || isDBFEnabled ))
+    {
+      WRITE_FLAG(pcSlice->getLFCrossSliceBoundaryFlag()?1:0, "slice_loop_filter_across_slices_enabled_flag");
+    }
+  }
+#endif
 }
 
 

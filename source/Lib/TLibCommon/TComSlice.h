@@ -1018,6 +1018,9 @@ private:
   std::vector<TDecSbac*> CTXMem_dec;
   std::vector<TEncSbac*> CTXMem_enc;
 #endif
+#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+  Bool       m_LFCrossSliceBoundaryFlag;
+#endif
 
 public:
   TComSlice();
@@ -1289,6 +1292,10 @@ public:
   Void      initCTXMem_enc( UInt i )                 { CTXMem_enc.resize(i); }
   TEncSbac* getCTXMem_enc( int b )                 { return CTXMem_enc[b]; }
   Void      setCTXMem_enc( TEncSbac* sb, int b )   { CTXMem_enc[b] = sb; }
+#endif
+#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+  Void      setLFCrossSliceBoundaryFlag     ( Bool   val )    { m_LFCrossSliceBoundaryFlag = val; }
+  Bool      getLFCrossSliceBoundaryFlag     ()                { return m_LFCrossSliceBoundaryFlag;} 
 #endif
 
 protected:

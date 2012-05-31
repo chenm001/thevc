@@ -256,6 +256,9 @@
 #define CU_QP_DELTA_DEPTH_SYN  1 // JCTVC-I0127, differential coding of max cu qp delta depth
 
 #define DEPENDENT_SLICES       1 // JCTVC-I0229
+
+#define H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL 1 ///< H0391: Loop filtering across/non-across slice boundaries control
+
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================

@@ -146,11 +146,18 @@ public:
   UInt          getNumAllocatedSlice()       {return m_apcPicSym->getNumAllocatedSlice();}
   Void          allocateNewSlice()           {m_apcPicSym->allocateNewSlice();         }
   Void          clearSliceBuffer()           {m_apcPicSym->clearSliceBuffer();         }
-  
+
+#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+  Void          createNonDBFilterInfo   (UInt* pSliceStartAddress , Int numSlices, Int sliceGranularityDepth
+                                        ,std::vector<Bool>* LFCrossSliceBoundary
+                                        ,Int  numTiles = 1
+                                        ,Bool bNDBFilterCrossTileBoundary = true);
+#else
   Void          createNonDBFilterInfo   (UInt* pSliceStartAddress = NULL, Int numSlices = 1, Int sliceGranularityDepth= 0
                                         ,Bool bNDBFilterCrossSliceBoundary = true
                                         ,Int  numTiles = 1
                                         ,Bool bNDBFilterCrossTileBoundary = true);
+#endif
   Void          createNonDBFilterInfoLCU(Int tileID, Int sliceID, TComDataCU* pcCU, UInt startSU, UInt endSU, Int sliceGranularyDepth, UInt picWidth, UInt picHeight);
   Void          destroyNonDBFilterInfo();
 

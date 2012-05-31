@@ -136,7 +136,11 @@ Void TComPic::compressMotion()
  * \param bNDBFilterCrossTileBoundary cross-tile-boundary in-loop filtering; true for "cross".
  */
 Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int sliceGranularityDepth
+#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+                                    ,std::vector<Bool>* LFCrossSliceBoundary
+#else
                                     ,Bool bNDBFilterCrossSliceBoundary
+#endif
                                     ,Int numTiles
                                     ,Bool bNDBFilterCrossTileBoundary)
 {
@@ -148,8 +152,21 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
   Int  numLCUsInPicHeight= getFrameHeightInCU();
   UInt maxNumSUInLCUWidth = getNumPartInWidth();
   UInt maxNumSUInLCUHeight= getNumPartInHeight();
-
+#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+  m_bIndependentSliceBoundaryForNDBFilter = false;
+  if(numSlices > 1)
+  {
+    for(Int s=0; s< numSlices; s++)
+    {
+      if((*LFCrossSliceBoundary)[s] == false)
+      {
+        m_bIndependentSliceBoundaryForNDBFilter = true;
+      }
+    }
+  }
+#else
   m_bIndependentSliceBoundaryForNDBFilter = (bNDBFilterCrossSliceBoundary)?(false):((numSlices > 1)?(true):(false)) ;
+#endif
   m_sliceGranularityForNDBFilter = sliceGranularityDepth;
   m_bIndependentTileBoundaryForNDBFilter  = (bNDBFilterCrossTileBoundary)?(false) :((numTiles > 1)?(true):(false));
 
@@ -311,7 +328,11 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
       }
 
       pcCU->setNDBFilterBlockBorderAvailability(numLCUsInPicWidth, numLCUsInPicHeight, maxNumSUInLCUWidth, maxNumSUInLCUHeight,picWidth, picHeight
+#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+        , *LFCrossSliceBoundary
+#else
         ,m_bIndependentSliceBoundaryForNDBFilter
+#endif
         ,bTopTileBoundary, bDownTileBoundary, bLeftTileBoundary, bRightTileBoundary
         ,m_bIndependentTileBoundaryForNDBFilter);
 
