@@ -1332,7 +1332,9 @@ TComSPS::TComSPS()
 , m_usePCM                   (false)
 , m_pcmLog2MaxSize            (  5)
 , m_uiPCMLog2MinSize          (  7)
+#if !REMOVE_INTER_4X4
 , m_bDisInter4x4              (  1)
+#endif
 , m_bUseALF                   (false)
 #if !AHG6_ALF_OPTION2
 , m_bALFCoefInSlice           (false)

@@ -42,6 +42,7 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define REMOVE_INTER_4X4                 1  ///< I0216: Removal of Inter 4x4 mode
 #define PRED_QP_DERIVATION               1  ///< I0219: Changing cu_qp_delta parsing to enable CU-level processing 
 #define NEW_NAL_UNIT_TYPES               1  ///< I0607: Definition of new NAL unit types
 #if NEW_NAL_UNIT_TYPES

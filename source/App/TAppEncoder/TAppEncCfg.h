@@ -87,7 +87,9 @@ protected:
 #if !REMOVE_LC
   Bool      m_bLCMod;                                         ///< flag for specifying whether the combined reference list for uni-prediction in B-slices is uploaded explicitly
 #endif
+#if !REMOVE_INTER_4X4
   Bool      m_bDisInter4x4;
+#endif
   Bool      m_enableNSQT;                                     ///< flag for enabling NSQT
   Bool      m_enableAMP;
   // coding quality
