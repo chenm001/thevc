@@ -921,7 +921,11 @@ Void  TEncTop::xInitPPSforTiles()
   if (m_iWaveFrontSynchro
     )
   {
+#if WPP_SUBSTREAM_PER_ROW
+    m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams * (m_iNumColumnsMinus1+1));
+#else
     m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams * (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1));
+#endif
   }
 }
 

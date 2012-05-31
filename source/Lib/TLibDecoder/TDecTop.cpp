@@ -272,7 +272,9 @@ Void TDecTop::xActivateParameterSets()
   m_apcSlicePilot->setPPS(pps);
   m_apcSlicePilot->setSPS(sps);
   pps->setSPS(sps);
-
+#if WPP_SUBSTREAM_PER_ROW
+  pps->setNumSubstreams(pps->getTilesOrEntropyCodingSyncIdc() == 2 ? ((sps->getPicHeightInLumaSamples() + sps->getMaxCUHeight() - 1) / sps->getMaxCUHeight()) * (pps->getNumColumnsMinus1() + 1) : 1);
+#endif
 #if DBL_HL_SYNTAX
   if(sps->getUseSAO() || sps->getUseALF())
 #else
