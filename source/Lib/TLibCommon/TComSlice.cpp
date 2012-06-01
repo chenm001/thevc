@@ -387,6 +387,9 @@ Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic )
     {
       pcRefPic = xGetRefPic(rcListPic, getPOC()+m_pcRPS->getDeltaPOC(i));
       pcRefPic->setIsLongTerm(0);
+#if NO_MV_SCALING_IF_LONG_TERM_REF
+      pcRefPic->setIsUsedAsLongTerm(0);
+#endif
       pcRefPic->getPicYuvRec()->extendPicBorder();
       RefPicSetStCurr0[NumPocStCurr0] = pcRefPic;
       NumPocStCurr0++;
@@ -399,6 +402,9 @@ Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic )
     {
       pcRefPic = xGetRefPic(rcListPic, getPOC()+m_pcRPS->getDeltaPOC(i));
       pcRefPic->setIsLongTerm(0);
+#if NO_MV_SCALING_IF_LONG_TERM_REF
+      pcRefPic->setIsUsedAsLongTerm(0);
+#endif
       pcRefPic->getPicYuvRec()->extendPicBorder();
       RefPicSetStCurr1[NumPocStCurr1] = pcRefPic;
       NumPocStCurr1++;
@@ -411,6 +417,9 @@ Void TComSlice::setRefPicList( TComList<TComPic*>& rcListPic )
     {
       pcRefPic = xGetLongTermRefPic(rcListPic, m_pcRPS->getPOC(i));
       pcRefPic->setIsLongTerm(1);
+#if NO_MV_SCALING_IF_LONG_TERM_REF
+      pcRefPic->setIsUsedAsLongTerm(1);
+#endif
       pcRefPic->getPicYuvRec()->extendPicBorder();
       RefPicSetLtCurr[NumPocLtCurr] = pcRefPic;
       NumPocLtCurr++;
@@ -871,6 +880,9 @@ Void TComSlice::applyReferencePictureSet( TComList<TComPic*>& rcListPic, TComRef
         isReference = 1;
         rpcPic->setUsedByCurr(pReferencePictureSet->getUsed(i));
         rpcPic->setIsLongTerm(0);
+#if NO_MV_SCALING_IF_LONG_TERM_REF
+        rpcPic->setIsUsedAsLongTerm(0);
+#endif
       }
     }
     for(;i<pReferencePictureSet->getNumberOfPictures();i++)
@@ -953,6 +965,9 @@ Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, T
         {
           isAvailable = 1;
           rpcPic->setIsLongTerm(1);
+#if NO_MV_SCALING_IF_LONG_TERM_REF
+          rpcPic->setIsUsedAsLongTerm(1);
+#endif
           break;
         }
       }
