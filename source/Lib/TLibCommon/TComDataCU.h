@@ -326,7 +326,7 @@ public:
   Char          getCodedQP            ()                        { return m_codedQP;           }
 #endif
 
-#if LOSSLESS_CODING
+#if LOSSLESS_CODING || CU_LEVEL_TRANSQUANT_BYPASS
   Bool          isLosslessCoded(UInt absPartIdx);
 #endif
   UChar*        getNSQTPartIdx        ()                        { return m_nsqtPartIdx;        }

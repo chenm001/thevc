@@ -952,10 +952,12 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         else
         {
 #if LOSSLESS_CODING
+#if !CU_LEVEL_TRANSQUANT_BYPASS
           if (((rpcTempCU->getQP(uiTargetPartIdx) != rpcTempCU->getRefQP(uiTargetPartIdx)) ) && (rpcTempCU->getSlice()->getSPS()->getUseLossless()))
           {
             rpcTempCU->getTotalCost() = MAX_DOUBLE;
           }
+#endif
 #endif
           rpcTempCU->setQPSubParts( rpcTempCU->getRefQP( uiTargetPartIdx ), 0, uiDepth ); // set QP to default QP
         }
@@ -1612,10 +1614,12 @@ Void TEncCu::xCheckDQP( TComDataCU* pcCU )
     else
     {
 #if LOSSLESS_CODING
+#if !CU_LEVEL_TRANSQUANT_BYPASS
       if ((  ( pcCU->getRefQP( 0 ) != pcCU->getQP( 0 )) ) && (pcCU->getSlice()->getSPS()->getUseLossless()))
       {
         pcCU->getTotalCost() = MAX_DOUBLE;
       }
+#endif
 #endif
       pcCU->setQPSubParts( pcCU->getRefQP( 0 ), 0, uiDepth ); // set QP to default QP
     }

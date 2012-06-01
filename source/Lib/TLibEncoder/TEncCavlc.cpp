@@ -429,7 +429,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   }
 
 #if LOSSLESS_CODING
+#if !CU_LEVEL_TRANSQUANT_BYPASS
   WRITE_FLAG( (pcSPS->getUseLossless ()) ? 1 : 0,                                    "qpprime_y_zero_transquant_bypass_flag" );
+#endif
 #endif
 
   WRITE_UVLC( pcSPS->getBitsForPOC()-4,                 "log2_max_pic_order_cnt_lsb_minus4" );

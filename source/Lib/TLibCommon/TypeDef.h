@@ -38,8 +38,6 @@
 #ifndef _TYPEDEF__
 #define _TYPEDEF__
 
-#define CU_LEVEL_TRANSQUANT_BYPASS 0 ///< I0529: CU level flag for transquant bypass
-
 //! \ingroup TLibCommon
 //! \{
 #define REMOVE_INTER_4X4                 1  ///< I0216: Removal of Inter 4x4 mode
@@ -96,6 +94,8 @@
 #define LOSSLESS_CODING                   1  ///< H0530: lossless and lossy (mixed) coding
 #if LOSSLESS_CODING
 #define SEQUENCE_LEVEL_LOSSLESS           0  ///< H0530: used only for sequence or frame-level lossless coding
+#define CU_LEVEL_TRANSQUANT_BYPASS        1  ///< I0529: CU level flag for transquant bypass
+#define IPCM_LOSSLESS_LOOP_FILTERING_UNIFICATION  1  ///< I0586: I_PCM/lossless loop filtering unification
 #endif
 
 #define LOG2_PARALLEL_MERGE_LEVEL_MINUS2 0  //< H0082 parallel merge level 0-> 4x4, 1-> 8x8, 2->16x16, 3->32x32, 4->64x64
