@@ -271,8 +271,11 @@ protected:
 #endif
   Int       m_useScalingListId;            ///< Using quantization matrix i.e. 0=off, 1=default, 2=file.
   char*     m_scalingListFile;          ///< quantization matrix file name
-
+#if SLICE_TMVP_ENABLE
+  Int       m_TMVPModeId;
+#else
   Bool      m_bEnableTMVP;
+#endif
   Int       m_signHideFlag;
 #if !FIXED_SBH_THRESHOLD
   Int       m_signHidingThreshold;
@@ -650,9 +653,13 @@ public:
   Int       getUseScalingListId    ()            { return m_useScalingListId;      }
   Void      setScalingListFile     ( char*  pch ){ m_scalingListFile     = pch; }
   char*     getScalingListFile     ()            { return m_scalingListFile;    }
-
+#if SLICE_TMVP_ENABLE
+  Void      setTMVPModeId ( Int  u ) { m_TMVPModeId = u;    }
+  Int       getTMVPModeId ()         { return m_TMVPModeId; }
+#else
   Void      setEnableTMVP ( Bool b ) { m_bEnableTMVP = b;    }
   Bool      getEnableTMVP ()         { return m_bEnableTMVP; }
+#endif
   Void      setSignHideFlag( Int signHideFlag ) { m_signHideFlag = signHideFlag; }
 #if !FIXED_SBH_THRESHOLD
   Void      setTSIG( Int tsig )                 { m_signHidingThreshold = tsig; }

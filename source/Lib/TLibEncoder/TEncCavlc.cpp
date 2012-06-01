@@ -253,7 +253,9 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 
   WRITE_SVLC( pcPPS->getPicInitQPMinus26(),                  "pic_init_qp_minus26");
   WRITE_FLAG( pcPPS->getConstrainedIntraPred() ? 1 : 0,      "constrained_intra_pred_flag" );
+#if !SLICE_TMVP_ENABLE
   WRITE_FLAG( pcPPS->getEnableTMVPFlag() ? 1 : 0,            "enable_temporal_mvp_flag" );
+#endif
   WRITE_CODE( pcPPS->getSliceGranularity(), 2,               "slice_granularity");
 #if CU_QP_DELTA_DEPTH_SYN
   WRITE_UVLC( pcPPS->getMaxCuDQPDepth() - pcPPS->getSliceGranularity() + pcPPS->getUseDQP(),                   "diff_cu_qp_delta_depth" );
@@ -524,6 +526,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
     codeShortTermRefPicSet(pcSPS,rps);
   }    
   WRITE_FLAG( pcSPS->getLongTermRefsPresent() ? 1 : 0,         "long_term_ref_pics_present_flag" );
+#if SLICE_TMVP_ENABLE
+  WRITE_FLAG( pcSPS->getTMVPFlagsPresent()  ? 1 : 0,           "sps_temporal_mvp_enable_flag" );
+#endif
   // AMVP mode for each depth
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
   {
@@ -757,6 +762,12 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     //check if numrefidxes match the defaults. If not, override
     if (!pcSlice->isIntra())
     {
+#if SLICE_TMVP_ENABLE
+      if (pcSlice->getSPS()->getTMVPFlagsPresent())
+      {
+        WRITE_FLAG( pcSlice->getEnableTMVPFlag(), "enable_temporal_mvp_flag" );
+      }
+#endif
       Bool overrideFlag = (pcSlice->getNumRefIdx( REF_PIC_LIST_0 )!=pcSlice->getPPS()->getNumRefIdxL0DefaultActive()||(pcSlice->isInterB()&&pcSlice->getNumRefIdx( REF_PIC_LIST_1 )!=pcSlice->getPPS()->getNumRefIdxL1DefaultActive()));
       WRITE_FLAG( overrideFlag ? 1 : 0,                               "num_ref_idx_active_override_flag");
       if (overrideFlag) 
@@ -907,6 +918,10 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       }
 #endif
     }
+#if SLICE_TMVP_ENABLE
+    if ( pcSlice->getEnableTMVPFlag() )
+    {
+#endif
     if ( pcSlice->getSliceType() == B_SLICE )
     {
       WRITE_FLAG( pcSlice->getColDir(), "collocated_from_l0_flag" );
@@ -918,6 +933,9 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     {
       WRITE_UVLC( pcSlice->getColRefIdx(), "collocated_ref_idx" );
     }
+#if SLICE_TMVP_ENABLE
+    }
+#endif
 #if REMOVE_IMPLICIT_WP
     if ( (pcSlice->getPPS()->getUseWP() && pcSlice->getSliceType()==P_SLICE) || (pcSlice->getPPS()->getWPBiPred() && pcSlice->getSliceType()==B_SLICE) )
 #else

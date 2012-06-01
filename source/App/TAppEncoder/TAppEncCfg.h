@@ -235,7 +235,11 @@ protected:
   UInt      m_uiBiPredIdc;                                    ///< Use of Bi-Directional Weighting Prediction (B_SLICE): explicit(1) or implicit(2)
 #endif
 
+#if SLICE_TMVP_ENABLE
+  Int       m_TMVPModeId;
+# else
   Bool      m_enableTMVP;
+#endif
   Int       m_signHideFlag;
 #if !FIXED_SBH_THRESHOLD
   Int       m_signHidingThreshold;

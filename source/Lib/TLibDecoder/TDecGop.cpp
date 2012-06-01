@@ -490,9 +490,9 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 
     rpcPic->setOutputMark(true);
     rpcPic->setReconMark(true);
-
+#if !SLICE_TMVP_ENABLE
     rpcPic->setUsedForTMVP( true );
-
+#endif
     uiILSliceCount = 0;
 #if AHG6_ALF_OPTION2
     for(Int compIdx=0; compIdx < 3; compIdx++)

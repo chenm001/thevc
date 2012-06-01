@@ -104,6 +104,9 @@ TComSlice::TComSlice()
 , m_puiSubstreamSizes             ( NULL )
 , m_cabacInitFlag                 ( false )
 , m_numEntryPointOffsets          ( 0 )
+#if SLICE_TMVP_ENABLE
+, m_enableTMVPFlag                ( true )
+#endif
 {
   m_aiNumRefIdx[0] = m_aiNumRefIdx[1] = m_aiNumRefIdx[2] = 0;
   
@@ -179,6 +182,9 @@ Void TComSlice::initSlice()
   m_uiTileCount          = 0;
   m_cabacInitFlag        = false;
   m_numEntryPointOffsets = 0;
+#if SLICE_TMVP_ENABLE
+  m_enableTMVPFlag = true;
+#endif
 #if DEPENDENT_SLICES
   CTXMem_enc.clear();
   CTXMem_dec.clear();
@@ -820,6 +826,9 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
 #if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
   m_LFCrossSliceBoundaryFlag = pSrc->m_LFCrossSliceBoundaryFlag;
 #endif
+#if SLICE_TMVP_ENABLE
+  m_enableTMVPFlag                = pSrc->m_enableTMVPFlag;
+#endif
 }
 
 int TComSlice::m_prevPOC = 0;
@@ -1130,7 +1139,7 @@ Void TComSlice::createExplicitReferencePictureSetFromReference( TComList<TComPic
   this->setRPS(pcRPS);
   this->setRPSidx(-1);
 }
-
+#if !SLICE_TMVP_ENABLE
 Void TComSlice::decodingMarkingForNoTMVP( TComList<TComPic*>& rcListPic, Int currentPOC )
 {
   TComList<TComPic*>::iterator it;
@@ -1142,7 +1151,7 @@ Void TComSlice::decodingMarkingForNoTMVP( TComList<TComPic*>& rcListPic, Int cur
     }
   }
 }
-
+#endif
 /** get AC and DC values for weighted pred
  * \param *wp
  * \returns Void
