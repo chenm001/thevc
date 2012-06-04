@@ -1953,7 +1953,11 @@ Char TComDataCU::getLastCodedQP( UInt uiAbsPartIdx )
     {
       return getPic()->getCU( getAddr() )->getLastCodedQP( getZorderIdxInCU() );
     }
+#if H0226
+    else if ( ( getAddr() > 0 ) && ( !( getSlice()->getPPS()->getTilesOrEntropyCodingSyncIdc() == 2 ) || !(getAddr() % getPic()->getFrameWidthInCU() == 0 )) )
+#else
     else if ( getAddr() > 0 )
+#endif
     {
       return getPic()->getCU( getAddr()-1 )->getLastCodedQP( getPic()->getNumPartInCU() );
     }
