@@ -661,8 +661,8 @@ Void TComLoopFilter::xEdgeFilterLuma( TComDataCU* pcCU, UInt uiAbsZorderIdx, UIn
 #if LOSSLESS_CODING
         // check if each of PUs is lossless coded
 #if IPCM_LOSSLESS_LOOP_FILTERING_UNIFICATION
-        bPartPNoFilter = bPartPNoFilter || (pcCUP->isLosslessCoded(uiAbsZorderIdx) );
-        bPartQNoFilter = bPartQNoFilter || (pcCUQ->isLosslessCoded(uiAbsZorderIdx) );
+        bPartPNoFilter = bPartPNoFilter || (pcCUP->isLosslessCoded(uiPartPIdx) );
+        bPartQNoFilter = bPartQNoFilter || (pcCUQ->isLosslessCoded(uiPartQIdx) );
 #else
         bPartPNoFilter = bPartPNoFilter || (pcCU->isLosslessCoded(uiAbsZorderIdx) );
         bPartQNoFilter = bPartQNoFilter || (pcCU->isLosslessCoded(uiAbsZorderIdx) );
@@ -800,8 +800,8 @@ Void TComLoopFilter::xEdgeFilterChroma( TComDataCU* pcCU, UInt uiAbsZorderIdx, U
 #if LOSSLESS_CODING
       // check if each of PUs is lossless coded
 #if IPCM_LOSSLESS_LOOP_FILTERING_UNIFICATION
-      bPartPNoFilter = bPartPNoFilter || (pcCUP->isLosslessCoded(uiAbsZorderIdx) );
-      bPartQNoFilter = bPartQNoFilter || (pcCUQ->isLosslessCoded(uiAbsZorderIdx) );
+      bPartPNoFilter = bPartPNoFilter || (pcCUP->isLosslessCoded(uiPartPIdx));
+      bPartQNoFilter = bPartQNoFilter || (pcCUQ->isLosslessCoded(uiPartQIdx));
 #else
       bPartPNoFilter = bPartPNoFilter || (pcCU->isLosslessCoded(uiAbsZorderIdx) );
       bPartQNoFilter = bPartQNoFilter || (pcCU->isLosslessCoded(uiAbsZorderIdx) );
