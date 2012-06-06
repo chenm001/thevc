@@ -1432,10 +1432,13 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   }
 }
 
+#if !REMOVE_TILE_MARKERS
 Void TDecCavlc::readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed )
 {
   xReadCode ( uiBitsUsed, uiTileIdx );
 }
+#endif
+
 #if AHG6_ALF_OPTION2
 Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager)
 #else
@@ -2089,6 +2092,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
 #endif    
   }
 
+#if !REMOVE_TILE_MARKERS
   //!!!KS: The following syntax is not aligned with the working draft, TRACE support needs to be added
   rpcSlice->setTileMarkerFlag ( 0 ); // default
   if (!bDependentSlice)
@@ -2096,6 +2100,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     xReadCode(1, uiCode); // read flag indicating if tile markers transmitted
     rpcSlice->setTileMarkerFlag( uiCode );
   }
+#endif
 
 #if DEPENDENT_SLICES
   if( pps->getDependentSlicesEnabledFlag()== false )

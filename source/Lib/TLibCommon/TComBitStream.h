@@ -85,8 +85,10 @@ class TComOutputBitstream : public TComBitIf
   unsigned int m_num_held_bits; /// number of bits not flushed to bytestream.
   unsigned char m_held_bits; /// the bits held and not flushed to bytestream.
                              /// this value is always msb-aligned, bigendian.
+#if !REMOVE_TILE_MARKERS
   UInt m_uiTileMarkerLocationCount;
   UInt *m_puiTileMarkerLocation;
+#endif
 
 public:
   // create / destroy
@@ -150,10 +152,12 @@ public:
   UChar getHeldBits  ()          { return m_held_bits;          }
 
   TComOutputBitstream& operator= (const TComOutputBitstream& src);
+#if !REMOVE_TILE_MARKERS
   UInt  getTileMarkerLocationCount   ( )                     { return m_uiTileMarkerLocationCount   ; }
   Void  setTileMarkerLocationCount   ( UInt i )              { m_uiTileMarkerLocationCount = i      ; }  
   UInt  getTileMarkerLocation        ( UInt i)               { return m_puiTileMarkerLocation[i]    ; }
   Void  setTileMarkerLocation        ( UInt i, UInt uiLOC )  { m_puiTileMarkerLocation[i] = uiLOC   ; }
+#endif
   /** Return a reference to the internal fifo */
   std::vector<uint8_t>& getFIFO() const { return *m_fifo; }
 
@@ -176,8 +180,10 @@ protected:
 
   unsigned int m_num_held_bits;
   unsigned char m_held_bits;
+#if !REMOVE_TILE_MARKERS
   UInt m_uiTileMarkerLocationCount;
   UInt *m_puiTileMarkerLocation;
+#endif
   UInt  m_numBitsRead;
 
 public:
@@ -209,10 +215,12 @@ public:
   Void        readOutTrailingBits ();
   UChar getHeldBits  ()          { return m_held_bits;          }
   TComOutputBitstream& operator= (const TComOutputBitstream& src);
+#if !REMOVE_TILE_MARKERS
   UInt  getTileMarkerLocationCount   ( )                     { return m_uiTileMarkerLocationCount   ; }
   Void  setTileMarkerLocationCount   ( UInt i )              { m_uiTileMarkerLocationCount = i      ; }  
   UInt  getTileMarkerLocation        ( UInt i)               { return m_puiTileMarkerLocation[i]    ; }
   Void  setTileMarkerLocation        ( UInt i, UInt uiLOC )  { m_puiTileMarkerLocation[i] = uiLOC   ; }
+#endif
   UInt  getByteLocation              ( )                     { return m_fifo_idx                    ; }
 
   // Peek at bits in word-storage. Used in determining if we have completed reading of current bitstream and therefore slice in LCEC.

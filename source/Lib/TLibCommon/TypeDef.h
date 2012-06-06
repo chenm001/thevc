@@ -40,6 +40,9 @@
 
 //! \ingroup TLibCommon
 //! \{
+
+#define REMOVE_TILE_MARKERS              1
+
 #define SLICE_TMVP_ENABLE                1  ///< I0420: Enable Temporal MVP for certain slices only
 #define NO_MV_SCALING_IF_LONG_TERM_REF   1  ///< I0422: Disable MV scaling for long term reference
 #define REMOVE_INTER_4X4                 1  ///< I0216: Removal of Inter 4x4 mode
@@ -231,7 +234,9 @@
 #define LOG2_MAX_COLUMN_WIDTH              13
 #define LOG2_MAX_ROW_HEIGHT                13
 
+#if !REMOVE_TILE_MARKERS
 #define MAX_MARKER_PER_NALU                 1000
+#endif
 
 #define MATRIX_MULT                             0   // Brute force matrix multiplication instead of partial butterfly
 

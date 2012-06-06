@@ -575,10 +575,12 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_FLAG( 0, "sps_extension_flag" );
 }
 
+#if !REMOVE_TILE_MARKERS
 Void TEncCavlc::writeTileMarker( UInt uiTileIdx, UInt uiBitsUsed )
 {
   xWriteCode( uiTileIdx, uiBitsUsed );
 }
+#endif
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 {
@@ -980,7 +982,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #endif
 }
 
-
+#if !REMOVE_TILE_MARKERS
 Void TEncCavlc::codeTileMarkerFlag(TComSlice* pcSlice) 
 {
   Bool bDependentSlice = (!pcSlice->isNextSlice());
@@ -989,6 +991,7 @@ Void TEncCavlc::codeTileMarkerFlag(TComSlice* pcSlice)
     xWriteFlag  (pcSlice->getTileMarkerFlag() ? 1 : 0 );
   }
 }
+#endif
 
 /**
  - write wavefront substreams sizes for the slice header.

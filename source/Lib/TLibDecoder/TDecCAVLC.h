@@ -141,7 +141,10 @@ public:
 
   Void parseIPCMInfo        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
 
+#if !REMOVE_TILE_MARKERS
   Void readTileMarker     ( UInt& uiTileIdx, UInt uiBitsUsed );
+#endif
+
   Void updateContextTables  ( SliceType eSliceType, Int iQp ) { return; }
   Void decodeFlush() {};
 

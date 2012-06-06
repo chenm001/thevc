@@ -1019,7 +1019,9 @@ private:
 
   UInt        *m_uiTileByteLocation;
   UInt        m_uiTileCount;
+#if !REMOVE_TILE_MARKERS
   Int         m_iTileMarkerFlag;
+#endif
   UInt        m_uiTileOffstForMultES;
 
   UInt*       m_puiSubstreamSizes;
@@ -1290,8 +1292,10 @@ public:
   UInt getTileLocationCount             ()                    { return m_uiTileCount;                     }
   Void setTileLocation                  ( Int i, UInt uiLOC ) { m_uiTileByteLocation[i] = uiLOC;          }
   UInt getTileLocation                  ( Int i )             { return m_uiTileByteLocation[i];           }
+#if !REMOVE_TILE_MARKERS
   Void setTileMarkerFlag                ( Int iFlag )         { m_iTileMarkerFlag = iFlag;                }
   Int  getTileMarkerFlag                ()                    { return m_iTileMarkerFlag;                 }
+#endif
   Void setTileOffstForMultES            (UInt uiOffset )      { m_uiTileOffstForMultES = uiOffset;        }
   UInt getTileOffstForMultES            ()                    { return m_uiTileOffstForMultES;            }
   Void allocSubstreamSizes              ( UInt uiNumSubstreams );

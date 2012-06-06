@@ -272,6 +272,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
         m_pcEntropyDecoder->updateContextTables( sliceType, pcSlice->getSliceQp() );
       }
       
+#if !REMOVE_TILE_MARKERS
       Bool bTileMarkerFoundFlag = false;
       TComInputBitstream *pcTmpPtr;
       pcTmpPtr = ppcSubstreams[uiSubStrm]; // for CABAC
@@ -291,6 +292,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
         // Read tile index
         m_pcEntropyDecoder->readTileMarker( uiTileIdx, rpcPic->getPicSym()->getBitsUsedByTileIdx() );
       }
+#endif
     }
 
 #if ENC_DEC_TRACE

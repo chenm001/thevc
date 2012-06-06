@@ -170,7 +170,9 @@ public:
   Void parseTransformSkipFlags ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType);
 #endif
 
+#if !REMOVE_TILE_MARKERS
   Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed );
+#endif
   Void updateContextTables( SliceType eSliceType, Int iQp );
 
   Void  parseScalingList ( TComScalingList* scalingList ) {}

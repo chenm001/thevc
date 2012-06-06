@@ -334,8 +334,10 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("NumTileRowsMinus1",           m_iNumRowsMinus1,                0,          "Number of rows in a picture minus 1")
     ("RowHeightArray",              cfg_RowHeight,                   string(""), "Array containing RowHeight values in units of LCU")
     ("TileLocationInSliceHeaderFlag", m_iTileLocationInSliceHeaderFlag, 0,       "0: Disable transmission of tile location in slice header. 1: Transmit tile locations in slice header.")
+#if !REMOVE_TILE_MARKERS
     ("TileMarkerFlag",                m_iTileMarkerFlag,                0,       "0: Disable transmission of lightweight tile marker. 1: Transmit light weight tile marker.")
     ("MaxTileMarkerEntryPoints",    m_iMaxTileMarkerEntryPoints,    4,       "Maximum number of uniformly-spaced tile entry points (using light weigh tile markers). Default=4. If number of tiles < MaxTileMarkerEntryPoints then all tiles have entry points.")
+#endif
 #if !TILES_OR_ENTROPY_FIX
     ("TileControlPresentFlag",       m_iTileBehaviorControlPresentFlag,         1,          "0: tiles behavior control parameters are NOT present in the PPS. 1: tiles behavior control parameters are present in the PPS")
 #endif
@@ -1108,6 +1110,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("WPB:%d ", m_uiBiPredIdc);
 #endif
   printf("TileLocationInSliceHdr:%d ", m_iTileLocationInSliceHeaderFlag);
+#if !REMOVE_TILE_MARKERS
   printf("TileMarker:%d", m_iTileMarkerFlag);
   if (m_iTileMarkerFlag)
   {
@@ -1117,6 +1120,7 @@ Void TAppEncCfg::xPrintParameter()
   {
     printf(" ");
   }
+#endif
   printf(" WaveFrontSynchro:%d WaveFrontFlush:%d WaveFrontSubstreams:%d",
           m_iWaveFrontSynchro, m_iWaveFrontFlush, m_iWaveFrontSubstreams);
   printf(" ScalingList:%d ", m_useScalingListId );
