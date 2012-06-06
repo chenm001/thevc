@@ -247,7 +247,9 @@ protected:
   UInt*     m_puiColumnWidth;
   Int       m_iNumRowsMinus1;
   UInt*     m_puiRowHeight;
+#if !EXPLICITLY_SIGNAL_ENTRY_POINTS
   Int       m_iTileLocationInSliceHeaderFlag; //< enable(1)/disable(0) transmitssion of tile location in slice header
+#endif
 
 #if !REMOVE_TILE_MARKERS
   Int       m_iTileMarkerFlag;              //< enable(1)/disable(0) transmitssion of light weight tile marker
@@ -617,8 +619,10 @@ public:
   }
   UInt  getRowHeight                   ( UInt rowIdx )     { return *( m_puiRowHeight + rowIdx ); }
   Void  xCheckGSParameters();
+#if !EXPLICITLY_SIGNAL_ENTRY_POINTS
   Int  getTileLocationInSliceHeaderFlag ()                 { return m_iTileLocationInSliceHeaderFlag; }
   Void setTileLocationInSliceHeaderFlag ( Int iFlag )      { m_iTileLocationInSliceHeaderFlag = iFlag;}
+#endif
 #if !REMOVE_TILE_MARKERS
   Int  getTileMarkerFlag              ()                 { return m_iTileMarkerFlag;              }
   Void setTileMarkerFlag              ( Int iFlag )      { m_iTileMarkerFlag = iFlag;             }

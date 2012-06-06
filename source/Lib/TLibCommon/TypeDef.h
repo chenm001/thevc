@@ -42,6 +42,7 @@
 //! \{
 
 #define REMOVE_TILE_MARKERS              1
+#define EXPLICITLY_SIGNAL_ENTRY_POINTS   1  ///< I0273: Explicitly signal all tiles/wavefront entry points
 
 #define SLICE_TMVP_ENABLE                1  ///< I0420: Enable Temporal MVP for certain slices only
 #define NO_MV_SCALING_IF_LONG_TERM_REF   1  ///< I0422: Disable MV scaling for long term reference

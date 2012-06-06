@@ -210,7 +210,9 @@ protected:
   char*     m_pchColumnWidth;
   Int       m_iNumRowsMinus1;
   char*     m_pchRowHeight;
+#if !EXPLICITLY_SIGNAL_ENTRY_POINTS
   Int       m_iTileLocationInSliceHeaderFlag; //< enable(1)/disable(0) transmitssion of tile location in slice header
+#endif
 #if !REMOVE_TILE_MARKERS
   Int       m_iTileMarkerFlag;              //< enable(1)/disable(0) transmitssion of light weight tile marker
   Int       m_iMaxTileMarkerEntryPoints;    //< maximum number of tile markers allowed in a slice (controls degree of parallelism)

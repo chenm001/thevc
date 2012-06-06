@@ -1054,8 +1054,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
                   uiTotalCodedSize++;
                 }
               }
+#if !EXPLICITLY_SIGNAL_ENTRY_POINTS
               Bool bRecordOffsetNext = m_pcCfg->getTileLocationInSliceHeaderFlag()
                                             && bNextSubstreamInNewTile;
+#else
+              Bool bRecordOffsetNext = bNextSubstreamInNewTile;
+#endif
               if (bRecordOffsetNext)
                 pcSlice->setTileLocation(ui/uiNumSubstreamsPerTile, pcSlice->getTileOffstForMultES()+(uiTotalCodedSize>>3));
             }
@@ -1066,10 +1070,12 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           // Complete the slice header info.
           m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
           m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
+#if !EXPLICITLY_SIGNAL_ENTRY_POINTS
           if (m_pcCfg->getTileLocationInSliceHeaderFlag()==0) 
           {
             pcSlice->setTileLocationCount( 0 );
           }
+#endif
           m_pcEntropyCoder->encodeTilesWPPEntryPoint( pcSlice );
 
           // Substreams...
