@@ -218,6 +218,9 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   // ------------------------------------------------------------------------------------------------------------------
   
   rpcSlice->setReferenced(m_pcCfg->getGOPEntry(iGOPid).m_refPic);
+#if CODE_POCLSBLT_FIXEDLEN
+  rpcSlice->setNalRefFlag(m_pcCfg->getGOPEntry(iGOPid).m_refPic);
+#endif
   if(eSliceType==I_SLICE)
   {
     rpcSlice->setReferenced(true);

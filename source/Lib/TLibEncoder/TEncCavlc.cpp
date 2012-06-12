@@ -667,7 +667,12 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     else
 #endif
     {
+#if CODE_POCLSBLT_FIXEDLEN
+      Int picOrderCntLSB = (pcSlice->getPOC()-pcSlice->getLastIDR()+(1<<pcSlice->getSPS()->getBitsForPOC()))%(1<<pcSlice->getSPS()->getBitsForPOC());
+      WRITE_CODE( picOrderCntLSB, pcSlice->getSPS()->getBitsForPOC(), "pic_order_cnt_lsb");
+#else
       WRITE_CODE( (pcSlice->getPOC()-pcSlice->getLastIDR()+(1<<pcSlice->getSPS()->getBitsForPOC()))%(1<<pcSlice->getSPS()->getBitsForPOC()), pcSlice->getSPS()->getBitsForPOC(), "pic_order_cnt_lsb");
+#endif
       TComReferencePictureSet* rps = pcSlice->getRPS();
       if(pcSlice->getRPSidx() < 0)
       {
@@ -682,12 +687,48 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       if(pcSlice->getSPS()->getLongTermRefsPresent())
       {
         WRITE_UVLC( rps->getNumberOfLongtermPictures(), "num_long_term_pics");
+#if CODE_POCLSBLT_FIXEDLEN
+        // Note that the LSBs of the LT ref. pic. POCs must be sorted before.
+        // Not sorted here because LT ref indices will be used in setRefPicList()
+        Int prevDeltaMSB = 0, prevLSB = 0;
+        Int offset = rps->getNumberOfNegativePictures() + rps->getNumberOfPositivePictures();
+        for(Int i=rps->getNumberOfPictures()-1 ; i > offset-1; i--)
+        {
+          WRITE_CODE( rps->getPocLSBLT(i), pcSlice->getSPS()->getBitsForPOC(), "poc_lsb_lt");
+          WRITE_FLAG( rps->getDeltaPocMSBPresentFlag(i), "delta_poc_msb_present_flag");
+
+          if(rps->getDeltaPocMSBPresentFlag(i))
+          {
+            Bool deltaFlag = false;
+            //   First LTRP                         ||  curr LSB            != prev LSB
+            if( (i == rps->getNumberOfPictures()-1) || (rps->getPocLSBLT(i) != prevLSB) )
+            {
+              deltaFlag = true;
+            }
+            if(deltaFlag)
+            {
+              WRITE_UVLC( rps->getDeltaPocMSBCycleLT(i), "delta_poc_msb_cycle_lt[i]" );
+            }
+            else
+            {              
+              Int differenceInDeltaMSB = rps->getDeltaPocMSBCycleLT(i) - prevDeltaMSB;
+              assert(differenceInDeltaMSB >= 0);
+              WRITE_UVLC( differenceInDeltaMSB, "delta_poc_msb_cycle_lt[i]" );
+            }
+            prevLSB = rps->getPocLSBLT(i);
+            prevDeltaMSB = rps->getDeltaPocMSBCycleLT(i);
+          }
+          WRITE_FLAG( rps->getUsed(i), "used_by_curr_pic_lt_flag"); 
+        }
+
+#else
         Int maxPocLsb = 1<<pcSlice->getSPS()->getBitsForPOC();
         Int prev = 0;
         Int prevDeltaPocLt=0;
         Int currDeltaPocLt=0;
         for(Int i=rps->getNumberOfPictures()-1 ; i > rps->getNumberOfPictures()-rps->getNumberOfLongtermPictures()-1; i--)
         {
+
           WRITE_UVLC((maxPocLsb-rps->getDeltaPOC(i)+prev)%maxPocLsb, "delta_poc_lsb_lt");
           
           currDeltaPocLt=((maxPocLsb-rps->getDeltaPOC(i)+prev)%maxPocLsb)+prevDeltaPocLt;
@@ -723,6 +764,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
           prev = rps->getDeltaPOC(i);
           WRITE_FLAG( rps->getUsed(i), "used_by_curr_pic_lt_flag"); 
         }
+#endif
       }
     }
 #if DBL_HL_SYNTAX

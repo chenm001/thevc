@@ -50,14 +50,28 @@
 #include <math.h>
 
 using namespace std;
-
+#if CODE_POCLSBLT_FIXEDLEN
+#define SWAP(a,b) {a = a+b; b = a-b; a = a-b;}
+#endif
 //! \ingroup TLibEncoder
 //! \{
 
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
 // ====================================================================================================================
-
+#if CODE_POCLSBLT_FIXEDLEN
+Int getLSB(Int poc, Int maxLSB)
+{
+  if (poc >= 0)
+  {
+    return poc % maxLSB;
+  }
+  else
+  {
+    return (maxLSB - ((-poc) % maxLSB)) % maxLSB;
+  }
+}
+#endif
 TEncGOP::TEncGOP()
 {
   m_iLastIDR            = 0;
@@ -313,7 +327,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           pcSlice->setNalUnitType(NAL_UNIT_CODED_SLICE_TLA);
         }
       }
-
+#if CODE_POCLSBLT_FIXEDLEN
+      arrangeLongtermPicturesInRPS(pcSlice, rcListPic);
+#endif
       TComRefPicListModification* refPicListModification = pcSlice->getRefPicListModification();
       refPicListModification->setRefPicListModificationFlagL0(0);
       refPicListModification->setRefPicListModificationFlagL1(0);
@@ -323,6 +339,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #if ADAPTIVE_QP_SELECTION
       pcSlice->setTrQuant( m_pcEncTop->getTrQuant() );
 #endif      
+
       //  Set reference list
       pcSlice->setRefPicList ( rcListPic );
       
@@ -2122,4 +2139,127 @@ Void TEncGOP::xWriteTileLocationToSliceHeader (OutputNALUnit& rNalu, TComOutputB
   delete rpcBitstreamRedirect;
   rpcBitstreamRedirect = new TComOutputBitstream;
 }
+#if CODE_POCLSBLT_FIXEDLEN
+// Function will arrange the long-term pictures in the decreasing order of poc_lsb_lt, 
+// and among the pictures with the same lsb, it arranges them in increasing delta_poc_msb_cycle_lt value
+Void TEncGOP::arrangeLongtermPicturesInRPS(TComSlice *pcSlice, TComList<TComPic*>& rcListPic)
+{
+  TComReferencePictureSet *rps = pcSlice->getRPS();
+  if(!rps->getNumberOfLongtermPictures())
+  {
+    return;
+  }
+
+  // Arrange long-term reference pictures in the correct order of LSB and MSB,
+  // and assign values for pocLSBLT and MSB present flag
+  Int longtermPicsPoc[MAX_NUM_REF_PICS], longtermPicsLSB[MAX_NUM_REF_PICS], indices[MAX_NUM_REF_PICS];
+  Bool mSBPresentFlag[MAX_NUM_REF_PICS];
+  ::memset(longtermPicsPoc, 0, sizeof(longtermPicsPoc));    // Store POC values of LTRP
+  ::memset(longtermPicsLSB, 0, sizeof(longtermPicsLSB));    // Store POC LSB values of LTRP
+  ::memset(indices        , 0, sizeof(indices));            // Indices to aid in tracking sorted LTRPs
+  ::memset(mSBPresentFlag , 0, sizeof(mSBPresentFlag));     // Indicate if MSB needs to be present
+
+  // Get the long-term reference pictures 
+  Int offset = rps->getNumberOfNegativePictures() + rps->getNumberOfPositivePictures();
+  Int i, ctr = 0;
+  Int maxPicOrderCntLSB = 1 << pcSlice->getSPS()->getBitsForPOC();
+  for(i = rps->getNumberOfPictures() - 1; i >= offset; i--, ctr++)
+  {
+    longtermPicsPoc[ctr] = rps->getPOC(i);                                  // LTRP POC
+    longtermPicsLSB[ctr] = getLSB(longtermPicsPoc[ctr], maxPicOrderCntLSB); // LTRP POC LSB
+    indices[ctr]      = i; 
+  }
+  Int numLongPics = rps->getNumberOfLongtermPictures();
+  assert(ctr == numLongPics);
+
+  // Arrange LTR pictures in decreasing order of LSB
+  for(i = 0; i < numLongPics; i++)
+  {
+    for(Int j = 0; j < numLongPics - 1; j++)
+    {
+      if(longtermPicsLSB[j] < longtermPicsLSB[j+1])
+      {
+        SWAP(longtermPicsPoc[j], longtermPicsPoc[j+1]);
+        SWAP(longtermPicsLSB[j], longtermPicsLSB[j+1]);
+        SWAP(indices[j]        , indices[j+1]        );
+      }
+    }
+  }
+  // Now for those pictures that have the same LSB, arrange them 
+  // in increasing MSB cycle, or equivalently decreasing MSB
+  for(i = 0; i < numLongPics;)    // i incremented using j
+  {
+    Int j = i + 1;
+    Int pocLSB = longtermPicsLSB[i];
+    for(; j < numLongPics; j++)
+    {
+      if(pocLSB != longtermPicsLSB[j])
+      {
+        break;
+      }
+    }
+    // Last index upto which lsb equals pocLSB is j - 1 
+    // Now sort based on the MSB values
+    Int sta, end;
+    for(sta = i; sta < j; sta++)
+    {
+      for(end = i; end < j - 1; end++)
+      {
+      // longtermPicsMSB = longtermPicsPoc - longtermPicsLSB
+        if(longtermPicsPoc[end] - longtermPicsLSB[end] < longtermPicsPoc[end+1] - longtermPicsLSB[end+1])
+        {
+          SWAP(longtermPicsPoc[end], longtermPicsPoc[end+1]);
+          SWAP(longtermPicsLSB[end], longtermPicsLSB[end+1]);
+          SWAP(indices[end]        , indices[end+1]        );
+        }
+      }
+    }
+    i = j;
+  }
+  for(i = 0; i < numLongPics; i++)
+  {
+    // Check if MSB present flag should be enabled.
+    // Check if the buffer contains any pictures that have the same LSB.
+    TComList<TComPic*>::iterator  iterPic = rcListPic.begin();  
+    TComPic*                      pcPic;
+    while ( iterPic != rcListPic.end() )
+    {
+      pcPic = *iterPic;
+      if( (getLSB(pcPic->getPOC(), maxPicOrderCntLSB) == longtermPicsLSB[i])   &&     // Same LSB
+                                      (pcPic->getSlice(0)->getNalRefFlag())     &&    // Reference picture
+                                        (pcPic->getPOC() != longtermPicsPoc[i])    )  // Not the LTRP itself
+      {
+        mSBPresentFlag[i] = true;
+        break;
+      }
+      iterPic++;      
+    }
+  }
+
+  // tempArray for usedByCurr flag
+  Bool tempArray[MAX_NUM_REF_PICS]; ::memset(tempArray, 0, sizeof(tempArray));
+  for(i = 0; i < numLongPics; i++)
+  {
+    tempArray[i] = rps->getUsed(indices[i]);
+  }
+  // Now write the final values;
+  ctr = 0;
+  Int currMSB = 0, currLSB = 0;
+  // currPicPoc = currMSB + currLSB
+  currLSB = getLSB(pcSlice->getPOC(), maxPicOrderCntLSB);  
+  currMSB = pcSlice->getPOC() - currLSB;
+
+  for(i = rps->getNumberOfPictures() - 1; i >= offset; i--, ctr++)
+  {
+    rps->setPOC                   (i, longtermPicsPoc[ctr]);
+    rps->setDeltaPOC              (i, - pcSlice->getPOC() + longtermPicsPoc[ctr]);
+    rps->setUsed                  (i, tempArray[ctr]);
+    rps->setPocLSBLT              (i, longtermPicsLSB[ctr]);
+    rps->setDeltaPocMSBCycleLT    (i, (currMSB - (longtermPicsPoc[ctr] - longtermPicsLSB[ctr])) / maxPicOrderCntLSB);
+    rps->setDeltaPocMSBPresentFlag(i, mSBPresentFlag[ctr]);     
+
+    assert(rps->getDeltaPocMSBCycleLT(i) >= 0);   // Non-negative value
+  }
+}
+#endif
 //! \}

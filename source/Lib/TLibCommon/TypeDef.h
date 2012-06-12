@@ -40,6 +40,7 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define CODE_POCLSBLT_FIXEDLEN      1       ///< I0342: code the LSB bits of LTRPs as u(v)
 
 #define REMOVE_TILE_MARKERS              1
 #define EXPLICITLY_SIGNAL_ENTRY_POINTS   1  ///< I0273: Explicitly signal all tiles/wavefront entry points
