@@ -50,9 +50,6 @@
 #include <math.h>
 
 using namespace std;
-#if CODE_POCLSBLT_FIXEDLEN
-#define SWAP(a,b) {a = a+b; b = a-b; a = a-b;}
-#endif
 //! \ingroup TLibEncoder
 //! \{
 
@@ -2179,9 +2176,9 @@ Void TEncGOP::arrangeLongtermPicturesInRPS(TComSlice *pcSlice, TComList<TComPic*
     {
       if(longtermPicsLSB[j] < longtermPicsLSB[j+1])
       {
-        SWAP(longtermPicsPoc[j], longtermPicsPoc[j+1]);
-        SWAP(longtermPicsLSB[j], longtermPicsLSB[j+1]);
-        SWAP(indices[j]        , indices[j+1]        );
+        std::swap(longtermPicsPoc[j], longtermPicsPoc[j+1]);
+        std::swap(longtermPicsLSB[j], longtermPicsLSB[j+1]);
+        std::swap(indices[j]        , indices[j+1]        );
       }
     }
   }
@@ -2208,9 +2205,9 @@ Void TEncGOP::arrangeLongtermPicturesInRPS(TComSlice *pcSlice, TComList<TComPic*
       // longtermPicsMSB = longtermPicsPoc - longtermPicsLSB
         if(longtermPicsPoc[end] - longtermPicsLSB[end] < longtermPicsPoc[end+1] - longtermPicsLSB[end+1])
         {
-          SWAP(longtermPicsPoc[end], longtermPicsPoc[end+1]);
-          SWAP(longtermPicsLSB[end], longtermPicsLSB[end+1]);
-          SWAP(indices[end]        , indices[end+1]        );
+          std::swap(longtermPicsPoc[end], longtermPicsPoc[end+1]);
+          std::swap(longtermPicsLSB[end], longtermPicsLSB[end+1]);
+          std::swap(indices[end]        , indices[end+1]        );
         }
       }
     }
