@@ -40,6 +40,7 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define  TEMPORAL_ID_RESTRICTION         1  ///< I0600: Semantics of temporal_id changed
 #define PREVREFPIC_DEFN                    1   ///< I0345: prevRefPic defined as previous reference picture that is at same or lower 
                                             ///< temporal layer.
 #define CODE_POCLSBLT_FIXEDLEN      1       ///< I0342: code the LSB bits of LTRPs as u(v)
