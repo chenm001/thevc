@@ -2102,9 +2102,9 @@ Void TComAdaptiveLoopFilter::filterOneCompRegion(Pel *imgRes, Pel *imgPad, Int s
 
       pixelInt += coef[1]* (imgPad3[j  ] + imgPad4[j  ]);
 
-      pixelInt += coef[2]* (imgPad1[j-1] + imgPad2[j+1]);
+      pixelInt += coef[2]* (imgPad1[j+1] + imgPad2[j-1]);
       pixelInt += coef[3]* (imgPad1[j  ] + imgPad2[j  ]);
-      pixelInt += coef[4]* (imgPad1[j+1] + imgPad2[j-1]);
+      pixelInt += coef[4]* (imgPad1[j-1] + imgPad2[j+1]);
 
       pixelInt += coef[5]* (imgPad[j+4] + imgPad[j-4]);
       pixelInt += coef[6]* (imgPad[j+3] + imgPad[j-3]);
