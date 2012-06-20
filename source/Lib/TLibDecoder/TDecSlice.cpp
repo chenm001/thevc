@@ -162,7 +162,8 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
     {
       uiTileCol = 0;
       m_pcBufferSbacDecoders[uiTileCol].loadContexts( rpcPic->getSlice(rpcPic->getCurrSliceIdx()-1)->getCTXMem_dec( 0 ) );//2.LCU
-      pcSbacDecoder->loadContexts( rpcPic->getSlice( rpcPic->getCurrSliceIdx() )->getCTXMem_dec( 1 ) ); //end of depSlice-1
+      pcSbacDecoder->loadContexts( rpcPic->getSlice( rpcPic->getCurrSliceIdx() - 1 )->getCTXMem_dec( 1 ) ); //end of depSlice-1
+      pcSbacDecoders[uiSubStrm].loadContexts(pcSbacDecoder);
     }
   }
 #endif

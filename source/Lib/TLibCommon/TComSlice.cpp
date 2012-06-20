@@ -1490,6 +1490,10 @@ TComPPS::TComPPS()
 #if SCALING_LIST_HL_SYNTAX
   m_scalingList = new TComScalingList;
 #endif
+#if DEPENDENT_SLICES
+  m_bDependentSlicesEnabledFlag = false;
+  m_bCabacIndependentFlag = true;
+#endif
 }
 
 TComPPS::~TComPPS()
