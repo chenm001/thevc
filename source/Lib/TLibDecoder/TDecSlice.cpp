@@ -395,7 +395,12 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
 }
 
 ParameterSetManagerDecoder::ParameterSetManagerDecoder()
+#if VIDYO_VPS_INTEGRATION 
+: m_vpsBuffer(MAX_NUM_VPS)
+,m_spsBuffer(256)
+#else
 : m_spsBuffer(256)
+#endif
 , m_ppsBuffer(16)
 , m_apsBuffer(64)
 {
@@ -406,6 +411,21 @@ ParameterSetManagerDecoder::~ParameterSetManagerDecoder()
 {
 
 }
+
+#if VIDYO_VPS_INTEGRATION
+TComVPS* ParameterSetManagerDecoder::getPrefetchedVPS  (Int vpsId)
+{
+  if (m_vpsBuffer.getPS(vpsId) != NULL )
+  {
+    return m_vpsBuffer.getPS(vpsId);
+  }
+  else
+  {
+    return getVPS(vpsId);
+  }
+}
+#endif
+
 
 TComSPS* ParameterSetManagerDecoder::getPrefetchedSPS  (Int spsId)
 {
@@ -445,6 +465,9 @@ TComAPS* ParameterSetManagerDecoder::getPrefetchedAPS  (Int apsId)
 
 Void     ParameterSetManagerDecoder::applyPrefetchedPS()
 {
+#if VIDYO_VPS_INTEGRATION
+  m_vpsMap.mergePSList(m_vpsBuffer);
+#endif
   m_apsMap.mergePSList(m_apsBuffer);
   m_ppsMap.mergePSList(m_ppsBuffer);
   m_spsMap.mergePSList(m_spsBuffer);

@@ -273,6 +273,14 @@
 #define H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL 1 ///< H0391: Loop filtering across/non-across slice boundaries control
 
 #define H0226                       1 // JCTVC-H0226
+// ====================================================================================================================
+// VPS constants
+// ====================================================================================================================
+#define VIDYO_VPS_INTEGRATION             1 // VPS 
+#if VIDYO_VPS_INTEGRATION
+#define MAX_LAYER_NUM                     10
+#define MAX_NUM_VPS                16
+#endif
 
 // ====================================================================================================================
 // Basic type redefinition

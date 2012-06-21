@@ -1213,6 +1213,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_CODE( 8,  uiCode, "reserved_zero_8bits" );
   READ_CODE( 8,  uiCode, "level_idc" );                          pcSPS->setLevelIdc( uiCode );
   READ_UVLC(     uiCode, "seq_parameter_set_id" );               pcSPS->setSPSId( uiCode );
+#if VIDYO_VPS_INTEGRATION
+  READ_UVLC(     uiCode, "video_parameter_set_id" );             pcSPS->setVPSId( uiCode );
+#endif
   READ_UVLC(     uiCode, "chroma_format_idc" );                  pcSPS->setChromaFormatIdc( uiCode );
   READ_CODE( 3,  uiCode, "max_temporal_layers_minus1" );         pcSPS->setMaxTLayers( uiCode+1 );
   READ_UVLC (    uiCode, "pic_width_in_luma_samples" );          pcSPS->setPicWidthInLumaSamples ( uiCode    );
@@ -1431,6 +1434,30 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     }
   }
 }
+
+#if VIDYO_VPS_INTEGRATION
+Void TDecCavlc::parseVPS(TComVPS* pcVPS)
+{
+  UInt  uiCode;
+  
+  READ_CODE( 3, uiCode, "vps_max_temporal_layers_minus1" );   pcVPS->setMaxTLayers( uiCode + 1 );
+  READ_CODE( 5, uiCode, "vps_max_layers_minus1" );            pcVPS->setMaxLayers( uiCode + 1 );
+  READ_UVLC( uiCode,  "video_parameter_set_id" );             pcVPS->setVPSId( uiCode );
+  READ_FLAG( uiCode,  "vps_temporal_id_nesting_flag" );       pcVPS->setTemporalNestingFlag( uiCode ? true:false );
+  for(UInt i = 0; i <= pcVPS->getMaxTLayers()-1; i++)
+  {
+    READ_UVLC( uiCode,  "vps_max_dec_pic_buffering[i]" );     pcVPS->setMaxDecPicBuffering( uiCode, i );
+    READ_UVLC( uiCode,  "vps_num_reorder_pics[i]" );          pcVPS->setNumReorderPics( uiCode, i );
+    READ_UVLC( uiCode,  "vps_max_latency_increase[i]" );      pcVPS->setMaxLatencyIncrease( uiCode, i );
+  }
+  
+  READ_FLAG( uiCode,  "vps_extension_flag" );          assert(!uiCode);
+  //future extensions go here..
+  
+  return;
+}
+
+#endif
 
 #if !REMOVE_TILE_MARKERS
 Void TDecCavlc::readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed )

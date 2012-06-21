@@ -77,7 +77,9 @@ public:
 
   Void  resetEntropy (TComSlice* pSlice );
   Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
-  
+#if VIDYO_VPS_INTEGRATION
+  Void  parseVPS                  ( TComVPS* pcVPS )  {}
+#endif
   Void  parseSPS                  ( TComSPS* pcSPS         ) {}
 #if !TILES_OR_ENTROPY_FIX
   Void  parsePPS                  ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet         ) {}

@@ -398,6 +398,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_CODE( 0,                           8,       "reserved_zero_8bits" );
   WRITE_CODE( pcSPS->getLevelIdc (),       8,       "level_idc" );
   WRITE_UVLC( pcSPS->getSPSId (),                   "seq_parameter_set_id" );
+#if VIDYO_VPS_INTEGRATION
+  WRITE_UVLC( pcSPS->getVPSId (),                   "video_parameter_set_id" );
+#endif
   WRITE_UVLC( pcSPS->getChromaFormatIdc (),         "chroma_format_idc" );
   WRITE_CODE( pcSPS->getMaxTLayers() - 1,  3,       "max_temporal_layers_minus1" );
   WRITE_UVLC( pcSPS->getPicWidthInLumaSamples (),   "pic_width_in_luma_samples" );
@@ -579,6 +582,28 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 Void TEncCavlc::writeTileMarker( UInt uiTileIdx, UInt uiBitsUsed )
 {
   xWriteCode( uiTileIdx, uiBitsUsed );
+}
+#endif
+
+#if VIDYO_VPS_INTEGRATION
+Void TEncCavlc::codeVPS( TComVPS* pcVPS )
+{
+  WRITE_CODE( pcVPS->getMaxTLayers() - 1,     3,        "vps_max_temporal_layers_minus1" );
+  WRITE_CODE( pcVPS->getMaxLayers() - 1,      5,        "vps_max_layers_minus1" );
+  WRITE_UVLC( pcVPS->getVPSId(),                        "video_parameter_set_id" );
+  WRITE_FLAG( pcVPS->getTemporalNestingFlag() - 1,      "vps_temporal_id_nesting_flag" );
+  for(UInt i=0; i <= pcVPS->getMaxTLayers()-1; i++)
+  {
+    WRITE_UVLC( pcVPS->getMaxDecPicBuffering(i),           "vps_max_dec_pic_buffering[i]" );
+    WRITE_UVLC( pcVPS->getNumReorderPics(i),               "vps_num_reorder_pics[i]" );
+    WRITE_UVLC( pcVPS->getMaxLatencyIncrease(i),           "vps_max_latency_increase[i]" );
+  }
+  
+  WRITE_FLAG( 0,                     "vps_extension_flag" );
+  
+  //future extensions here..
+  
+  return;
 }
 #endif
 

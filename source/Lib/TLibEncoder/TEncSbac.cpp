@@ -317,6 +317,14 @@ void TEncSbac::codeSEI(const SEI&)
   assert(0);
 }
 
+#if VIDYO_VPS_INTEGRATION
+Void TEncSbac::codeVPS( TComVPS* pcVPS )
+{
+  assert (0);
+  return;
+}
+#endif
+
 Void TEncSbac::codeSPS( TComSPS* pcSPS )
 {
   assert (0);

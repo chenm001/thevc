@@ -1336,6 +1336,33 @@ Void TComSlice::copyWPtable(wpScalingParam *&wp_src, wpScalingParam *&wp_dst)
 #endif
 
 // ------------------------------------------------------------------------------------------------
+// Video parameter set (VPS)
+// ------------------------------------------------------------------------------------------------
+#if VIDYO_VPS_INTEGRATION
+TComVPS::TComVPS()
+: m_VPSId                     (  0)
+, m_uiMaxTLayers              (  1)
+, m_uiMaxLayers               (  1)
+, m_bTemporalIdNestingFlag    (false)
+{
+
+  for( Int i = 0; i < MAX_TLAYER; i++)
+  {
+    m_numReorderPics[i] = 0;
+    m_uiMaxDecPicBuffering[i] = 0; 
+    m_uiMaxLatencyIncrease[i] = 0;
+  }
+}
+
+TComVPS::~TComVPS()
+{
+
+
+}
+
+#endif
+
+// ------------------------------------------------------------------------------------------------
 // Sequence parameter set (SPS)
 // ------------------------------------------------------------------------------------------------
 
@@ -2062,7 +2089,12 @@ Void TComScalingList::checkDcOfMatrix()
 }
 
 ParameterSetManager::ParameterSetManager()
+#if VIDYO_VPS_INTEGRATION 
+: m_vpsMap(MAX_NUM_VPS)
+, m_spsMap(MAX_NUM_SPS)
+#else
 : m_spsMap(MAX_NUM_SPS)
+#endif
 , m_ppsMap(MAX_NUM_PPS)
 , m_apsMap(MAX_NUM_APS)
 {

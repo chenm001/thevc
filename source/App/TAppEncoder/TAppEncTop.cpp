@@ -67,6 +67,15 @@ TAppEncTop::~TAppEncTop()
 
 Void TAppEncTop::xInitLibCfg()
 {
+#if VIDYO_VPS_INTEGRATION
+  m_cVPS.setMaxTLayers                       ( m_maxTempLayer );
+  m_cVPS.setMaxLayers                        ( 1 );
+  for(Int i = 0; i < MAX_TLAYER; i++)
+  {
+    m_cVPS.setNumReorderPics                 ( m_numReorderPics[i], i );
+    m_cVPS.setMaxDecPicBuffering             ( m_maxDecPicBuffering[i], i );
+  }
+#endif
   m_cTEncTop.setFrameRate                    ( m_iFrameRate );
   m_cTEncTop.setFrameSkip                    ( m_FrameSkip );
   m_cTEncTop.setSourceWidth                  ( m_iSourceWidth );
@@ -327,7 +336,11 @@ Void TAppEncTop::xDestroyLib()
 
 Void TAppEncTop::xInitLib()
 {
+#if VIDYO_VPS_INTEGRATION
+  m_cTEncTop.init( this );
+#else
   m_cTEncTop.init();
+#endif
 }
 
 // ====================================================================================================================
@@ -504,6 +517,9 @@ void TAppEncTop::rateStatsAccum(const AccessUnit& au, const std::vector<unsigned
     case NAL_UNIT_CODED_SLICE_BLA:
     case NAL_UNIT_CODED_SLICE_BLANT:
     case NAL_UNIT_CODED_SLICE_IDR:
+#if VIDYO_VPS_INTEGRATION
+    case NAL_UNIT_VPS:
+#endif
     case NAL_UNIT_SPS:
     case NAL_UNIT_PPS:
 #else
@@ -511,6 +527,9 @@ void TAppEncTop::rateStatsAccum(const AccessUnit& au, const std::vector<unsigned
     case NAL_UNIT_CODED_SLICE_TLA:
     case NAL_UNIT_CODED_SLICE_CRA:
     case NAL_UNIT_CODED_SLICE_IDR:
+#if VIDYO_VPS_INTEGRATION
+    case NAL_UNIT_VPS:
+#endif
     case NAL_UNIT_SPS:
     case NAL_UNIT_PPS:
 #endif

@@ -45,7 +45,9 @@
 #include "TLibCommon/SEI.h"
 #include "TLibCommon/NAL.h"
 #include "NALwrite.h"
-
+#if VIDYO_VPS_INTEGRATION
+#include "../../App/TAppEncoder/TAppEncTop.h"
+#endif
 #include <time.h>
 #include <math.h>
 
@@ -775,7 +777,17 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       /* write various header sets. */
       if ( m_bSeqFirst )
       {
+#if VIDYO_VPS_INTEGRATION
+        OutputNALUnit nalu(NAL_UNIT_VPS, true);
+        m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
+        m_pcEntropyCoder->encodeVPS(m_pcEncTop->getAppEncTop()->getVPS());
+        writeRBSPTrailingBits(nalu.m_Bitstream);
+        accessUnit.push_back(new NALUnitEBSP(nalu));
+        
+        nalu = NALUnit(NAL_UNIT_SPS, true);
+#else
         OutputNALUnit nalu(NAL_UNIT_SPS, true);
+#endif
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
 #if !TILES_OR_ENTROPY_FIX
         pcSlice->getSPS()->setNumSubstreams( pcSlice->getPPS()->getNumSubstreams() );

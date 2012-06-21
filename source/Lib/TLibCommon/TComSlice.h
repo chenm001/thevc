@@ -191,10 +191,58 @@ private:
   Int      *m_scalingListCoef            [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< quantization matrix
 };
 #endif
+
+#if VIDYO_VPS_INTEGRATION
+/// VPS class
+
+class TComVPS
+{
+private:
+  Int         m_VPSId;
+  UInt        m_uiMaxTLayers;
+  UInt        m_uiMaxLayers;
+  Bool        m_bTemporalIdNestingFlag;
+  
+  UInt        m_numReorderPics[MAX_TLAYER];
+  UInt        m_uiMaxDecPicBuffering[MAX_TLAYER]; 
+  UInt        m_uiMaxLatencyIncrease[MAX_TLAYER];
+  
+public:
+  TComVPS();
+  virtual ~TComVPS();
+
+  Int     getVPSId       ()                   { return m_VPSId;          }
+  Void    setVPSId       (Int i)              { m_VPSId = i;             }
+
+  UInt    getMaxTLayers  ()                   { return m_uiMaxTLayers;   }
+  Void    setMaxTLayers  (UInt t)             { m_uiMaxTLayers = t; }
+  
+  UInt    getMaxLayers   ()                   { return m_uiMaxLayers;   }
+  Void    setMaxLayers   (UInt l)             { m_uiMaxLayers = l; }
+
+  Bool    getTemporalNestingFlag   ()         { return m_uiMaxLayers;   }
+  Void    setTemporalNestingFlag   (UInt t)   { m_bTemporalIdNestingFlag = t; }
+  
+  Void    setNumReorderPics(UInt v, UInt tLayer)                { m_numReorderPics[tLayer] = v;    }
+  UInt    getNumReorderPics(UInt tLayer)                        { return m_numReorderPics[tLayer]; }
+  
+  Void    setMaxDecPicBuffering(UInt v, UInt tLayer)            { m_uiMaxDecPicBuffering[tLayer] = v;    }
+  UInt    getMaxDecPicBuffering(UInt tLayer)                    { return m_uiMaxDecPicBuffering[tLayer]; }
+  
+  Void    setMaxLatencyIncrease(UInt v, UInt tLayer)            { m_uiMaxLatencyIncrease[tLayer] = v;    }
+  UInt    getMaxLatencyIncrease(UInt tLayer)                    { return m_uiMaxLatencyIncrease[tLayer]; }
+  
+};
+
+#endif
+
 /// SPS class
 class TComSPS
 {
 private:
+#if VIDYO_VPS_INTEGRATION
+  Int         m_VPSId;
+#endif
   Int         m_SPSId;
   Int         m_ProfileIdc;
   Int         m_LevelIdc;
@@ -312,6 +360,10 @@ public:
   TComSPS();
   virtual ~TComSPS();
 
+#if VIDYO_VPS_INTEGRATION
+  Int  getVPSId       ()         { return m_VPSId;          }
+  Void setVPSId       (Int i)    { m_VPSId = i;             }
+#endif
   Int  getSPSId       ()         { return m_SPSId;          }
   Void setSPSId       (Int i)    { m_SPSId = i;             }
   Int  getProfileIdc  ()         { return m_ProfileIdc;     }
@@ -986,6 +1038,9 @@ private:
   Bool        m_bRefenced;
   
   // access channel
+#if VIDYO_VPS_INTEGRATION
+  TComVPS*    m_pcVPS;
+#endif
   TComSPS*    m_pcSPS;
   TComPPS*    m_pcPPS;
   TComPic*    m_pcPic;
@@ -1066,7 +1121,10 @@ public:
   Void      initSlice       ();
   Void      initTiles();
 
-  
+#if VIDYO_VPS_INTEGRATION
+  Void      setVPS          ( TComVPS* pcVPS ) { m_pcVPS = pcVPS; }
+  TComVPS*  getVPS          () { return m_pcVPS; }
+#endif
   Void      setSPS          ( TComSPS* pcSPS ) { m_pcSPS = pcSPS; }
   TComSPS*  getSPS          () { return m_pcSPS; }
   
@@ -1428,6 +1486,13 @@ public:
   ParameterSetManager();
   virtual ~ParameterSetManager();
 
+#if VIDYO_VPS_INTEGRATION
+  //! store sequence parameter set and take ownership of it 
+  Void storeVPS(TComVPS *vps) { m_vpsMap.storePS( vps->getVPSId(), vps); };
+  //! get pointer to existing video parameter set  
+  TComVPS* getVPS(Int vpsId)  { return m_vpsMap.getPS(vpsId); };
+  TComVPS* getFirstVPS()      { return m_vpsMap.getFirstPS(); };
+#endif
   //! store sequence parameter set and take ownership of it 
   Void storeSPS(TComSPS *sps) { m_spsMap.storePS( sps->getSPSId(), sps); };
   //! get pointer to existing sequence parameter set  
@@ -1446,6 +1511,10 @@ public:
   TComAPS* getAPS(Int apsId)  { return m_apsMap.getPS(apsId); };
 
 protected:
+  
+#if VIDYO_VPS_INTEGRATION
+  ParameterSetMap<TComVPS> m_vpsMap;
+#endif
   ParameterSetMap<TComSPS> m_spsMap; 
   ParameterSetMap<TComPPS> m_ppsMap; 
   ParameterSetMap<TComAPS> m_apsMap; 

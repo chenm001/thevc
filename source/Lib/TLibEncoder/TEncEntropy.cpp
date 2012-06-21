@@ -128,6 +128,14 @@ Void TEncEntropy::encodeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPart
 }
 #endif
 
+#if VIDYO_VPS_INTEGRATION
+Void TEncEntropy::encodeVPS( TComVPS* pcVPS )
+{
+  m_pcEntropyCoderIf->codeVPS( pcVPS );
+  return;
+}
+#endif
+
 Void TEncEntropy::encodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
   if ( pcCU->getSlice()->isIntra() )

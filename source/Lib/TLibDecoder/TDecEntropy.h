@@ -67,7 +67,9 @@ public:
   virtual Void  setBitstream          ( TComInputBitstream* p )  = 0;
 
   virtual Void  decodeFlush()                                                                      = 0;
-
+#if VIDYO_VPS_INTEGRATION
+  virtual Void  parseVPS                  ( TComVPS* pcVPS )                       = 0;
+#endif
   virtual Void  parseSPS                  ( TComSPS* pcSPS )                                      = 0;
 #if !TILES_OR_ENTROPY_FIX
   virtual Void  parsePPS                  ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet )                                      = 0;
@@ -154,7 +156,9 @@ public:
   Void    setEntropyDecoder           ( TDecEntropyIf* p );
   Void    setBitstream                ( TComInputBitstream* p ) { m_pcEntropyDecoderIf->setBitstream(p);                    }
   Void    resetEntropy                ( TComSlice* p)           { m_pcEntropyDecoderIf->resetEntropy(p);                    }
-
+#if VIDYO_VPS_INTEGRATION
+  Void    decodeVPS                   ( TComVPS* pcVPS ) { m_pcEntropyDecoderIf->parseVPS(pcVPS); }
+#endif
   Void    decodeSPS                   ( TComSPS* pcSPS     )    { m_pcEntropyDecoderIf->parseSPS(pcSPS);                    }
 #if !TILES_OR_ENTROPY_FIX
   Void    decodePPS                   ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet    )    { m_pcEntropyDecoderIf->parsePPS(pcPPS, parameterSet);                    }

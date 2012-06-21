@@ -709,6 +709,15 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   return false;
 }
 
+#if VIDYO_VPS_INTEGRATION
+Void TDecTop::xDecodeVPS()
+{
+  TComVPS* vps = new TComVPS();
+  
+  m_cEntropyDecoder.decodeVPS( vps );
+  m_parameterSetManagerDecoder.storePrefetchedVPS(vps);  
+}
+#endif
 
 Void TDecTop::xDecodeSPS()
 {
@@ -754,6 +763,11 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 
   switch (nalu.m_nalUnitType)
   {
+#if VIDYO_VPS_INTEGRATION
+    case NAL_UNIT_VPS:
+      xDecodeVPS();
+      return false;
+#endif
     case NAL_UNIT_SPS:
       xDecodeSPS();
       return false;

@@ -110,7 +110,9 @@ public:
   Void  resetCoeffCost        ()                { m_uiCoeffCost = 0;  }
   UInt  getNumberOfWrittenBits()                { return  m_pcBitIf->getNumberOfWrittenBits();  }
   UInt  getCoeffCost          ()                { return  m_uiCoeffCost;  }
-  
+#if VIDYO_VPS_INTEGRATION
+  Void  codeVPS                 ( TComVPS* pcVPS );
+#endif 
   Void  codeSPS                 ( TComSPS* pcSPS );
   Void  codePPS                 ( TComPPS* pcPPS );
   void codeSEI(const SEI&);
