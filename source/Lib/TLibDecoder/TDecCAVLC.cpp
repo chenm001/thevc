@@ -2028,6 +2028,12 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
           READ_SVLC( iCode, "tc_offset_div2" ); rpcSlice->setLoopFilterTcOffset(iCode);
         }
       }
+      else
+      {
+        rpcSlice->setLoopFilterDisable(rpcSlice->getPPS()->getLoopFilterDisable());
+        rpcSlice->setLoopFilterBetaOffset(rpcSlice->getPPS()->getLoopFilterBetaOffset());
+        rpcSlice->setLoopFilterTcOffset(rpcSlice->getPPS()->getLoopFilterTcOffset());
+      }
 #else
       if ( rpcSlice->getSPS()->getUseDF() )
       {
