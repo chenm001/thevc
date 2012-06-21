@@ -63,6 +63,7 @@ TComSampleAdaptiveOffset::TComSampleAdaptiveOffset()
 {
   m_pClipTable = NULL;
   m_pClipTableBase = NULL;
+  m_iOffsetBo = NULL;
   m_lumaTableBo = NULL;
   m_iUpBuff1 = NULL;
   m_iUpBuff2 = NULL;
@@ -313,20 +314,19 @@ Void TComSampleAdaptiveOffset::destroy()
     delete[] m_lumaTableBo; m_lumaTableBo = NULL;
   }
 
-  m_iUpBuff1--;
-  m_iUpBuff2--;
-  m_iUpBufft--;
-
   if (m_iUpBuff1)
   {
+    m_iUpBuff1--;
     delete [] m_iUpBuff1; m_iUpBuff1 = NULL;
   }
   if (m_iUpBuff2)
   {
+    m_iUpBuff2--;
     delete [] m_iUpBuff2; m_iUpBuff2 = NULL;
   }
   if (m_iUpBufft)
   {
+    m_iUpBufft--;
     delete [] m_iUpBufft; m_iUpBufft = NULL;
   }
   if (m_pTmpL1)

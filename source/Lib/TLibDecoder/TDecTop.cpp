@@ -299,6 +299,7 @@ Void TDecTop::xActivateParameterSets()
     sps->setAMPAcc( i, 0 );
   }
 
+  m_cSAO.destroy();
   m_cSAO.create( sps->getPicWidthInLumaSamples(), sps->getPicHeightInLumaSamples(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
   m_cLoopFilter.        create( g_uiMaxCUDepth );
 }
