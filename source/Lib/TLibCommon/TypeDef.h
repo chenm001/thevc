@@ -205,11 +205,6 @@
                                                     // this should be done with encoder only decision
                                                     // but because of the absence of reference frame management, the related code was hard coded currently
 
-#define OL_FLUSH_ALIGN 0    // Align flush to byte boundary.  This preserves byte operations in CABAC (faster) but at the expense of an average
-                            // of 4 bits per flush.
-                            // Setting to 0 will slow cabac by an as yet unknown amount.
-                            // This is here just to perform timing tests -- OL_FLUSH_ALIGN should be 0 for WPP.
-
 #define RVM_VCEGAM10_M 4
 
 #define PLANAR_IDX             0

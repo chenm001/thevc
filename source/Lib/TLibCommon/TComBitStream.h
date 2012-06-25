@@ -198,19 +198,11 @@ public:
   // interface for decoding
   Void        pseudoRead      ( UInt uiNumberOfBits, UInt& ruiBits );
   Void        read            ( UInt uiNumberOfBits, UInt& ruiBits );
-#if !OL_FLUSH_ALIGN
-  Void        readByte        ( UInt &ruiBits )
-  {
-    // More expensive, but reads "bytes" that are not aligned.
-    read(8, ruiBits);
-  }
-#else
   Void        readByte        ( UInt &ruiBits )
   {
     assert(m_fifo_idx < m_fifo->size());
     ruiBits = (*m_fifo)[m_fifo_idx++];
   }
-#endif // !OL_FLUSH_ALIGN
 
   Void        readOutTrailingBits ();
   UChar getHeldBits  ()          { return m_held_bits;          }
@@ -233,9 +225,6 @@ public:
   unsigned getNumBitsLeft() { return 8*((unsigned)m_fifo->size() - m_fifo_idx) + m_num_held_bits; }
   TComInputBitstream *extractSubstream( UInt uiNumBits ); // Read the nominated number of bits, and return as a bitstream.
   Void                deleteFifo(); // Delete internal fifo of bitstream.
-#if !OL_FLUSH_ALIGN
-  Void                backupByte() { m_fifo_idx--; }
-#endif
   UInt  getNumBitsRead() { return m_numBitsRead; }
 #if BYTE_ALIGNMENT
   Void readByteAlignment();

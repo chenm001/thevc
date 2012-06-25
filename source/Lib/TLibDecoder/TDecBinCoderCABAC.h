@@ -69,17 +69,11 @@ public:
   
   Void  copyState         ( TDecBinIf* pcTDecBinIf );
   TDecBinCABAC* getTDecBinCABAC()  { return this; }
-#if !OL_FLUSH_ALIGN
-  Int   getBitsReadAhead() { return -m_bitsNeeded; }
-#endif
 
 private:
   TComInputBitstream* m_pcTComBitstream;
   UInt                m_uiRange;
   UInt                m_uiValue;
-#if !OL_FLUSH_ALIGN
-  UInt                m_uiLastByte;
-#endif
   Int                 m_bitsNeeded;
 };
 

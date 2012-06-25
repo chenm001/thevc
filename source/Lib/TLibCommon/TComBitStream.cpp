@@ -347,9 +347,6 @@ TComInputBitstream *TComInputBitstream::extractSubstream( UInt uiNumBits )
     uiByte <<= 8-(uiNumBits&0x7);
     buf->push_back(uiByte);
   }
-#if !OL_FLUSH_ALIGN
-  buf->push_back(0); // The final chunk might not start byte aligned.
-#endif
   return new TComInputBitstream(buf);
 }
 
