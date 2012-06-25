@@ -4237,7 +4237,7 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
   {
     uiDirMode = getLumaIntraDir(uiAbsPartIdx);
     uiScanIdx = SCAN_ZIGZAG;
-    if (uiCTXIdx >3 && uiCTXIdx < 6) //if multiple scans supported for PU size
+    if (uiCTXIdx >3 && uiCTXIdx < 6) //if multiple scans supported for transform size
     {
       uiScanIdx = abs((Int) uiDirMode - VER_IDX) < 5 ? 1 : (abs((Int)uiDirMode - HOR_IDX) < 5 ? 2 : 0);
     }
@@ -4255,7 +4255,7 @@ UInt TComDataCU::getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, B
       uiDirMode = getLumaIntraDir((uiAbsPartIdx/numParts)*numParts);
     }
     uiScanIdx = SCAN_ZIGZAG;
-    if (uiCTXIdx >4 && uiCTXIdx < 7) //if multiple scans supported for PU size
+    if (uiCTXIdx >4 && uiCTXIdx < 7) //if multiple scans supported for transform size
     {
       uiScanIdx = abs((Int) uiDirMode - VER_IDX) < 5 ? 1 : (abs((Int)uiDirMode - HOR_IDX) < 5 ? 2 : 0);
     }
