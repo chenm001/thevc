@@ -1782,7 +1782,7 @@ TComDataCU* TComDataCU::getQpMinCuLeft( UInt& uiLPartUnitIdx, UInt uiCurrAbsIdxI
   UInt uiNumPartInCUWidth = m_pcPic->getNumPartInWidth();
 
   UInt uiAbsRorderQpMinCUIdx   = g_auiZscanToRaster[(uiCurrAbsIdxInLCU>>((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1))<<((g_uiMaxCUDepth -getSlice()->getPPS()->getMaxCuDQPDepth())<<1)];
-  UInt uiNumPartInQpMinCUWidth = getSlice()->getPPS()->getMinCuDQPSize()>>2;
+  UInt uiNumPartInQpMinCUWidth = (m_pcPic->getNumPartInWidth() >> getSlice()->getPPS()->getMaxCuDQPDepth());
 
   UInt uiAbsZorderQpMinCUIdx   = (uiCurrAbsIdxInLCU>>((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1))<<((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1);
   if( (uiCurrAbsIdxInLCU != uiAbsZorderQpMinCUIdx) && 
