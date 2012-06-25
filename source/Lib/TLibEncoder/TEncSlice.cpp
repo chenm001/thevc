@@ -314,7 +314,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   
   if( rpcSlice->getSliceType( ) != I_SLICE )
   {
-    dLambda *= m_pcCfg->getLambdaModifier( iDepth );
+    dLambda *= m_pcCfg->getLambdaModifier( m_pcCfg->getGOPEntry(iGOPid).m_temporalId );
   }
 
   // store lambda
