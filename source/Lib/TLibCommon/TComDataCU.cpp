@@ -1975,7 +1975,7 @@ Char TComDataCU::getLastCodedQP( UInt uiAbsPartIdx )
 Bool TComDataCU::isLosslessCoded(UInt absPartIdx)
 {
 #if CU_LEVEL_TRANSQUANT_BYPASS
-  return getCUTransquantBypass (absPartIdx);
+  return (getSlice()->getPPS()->getTransquantBypassEnableFlag() && getCUTransquantBypass (absPartIdx));
 #else
   return ( getSlice()->getSPS()->getUseLossless() && ((getQP(absPartIdx) + getSlice()->getSPS()->getQpBDOffsetY()) == 0) );
 #endif
