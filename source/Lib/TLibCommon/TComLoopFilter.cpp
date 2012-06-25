@@ -166,7 +166,8 @@ Void TComLoopFilter::loopFilterPic( TComPic* pcPic )
   {
     TComDataCU* pcCU = pcPic->getCU( uiCUAddr );
 
-      ::memset( m_aapucBS       [EDGE_HOR], 0, sizeof( UChar ) * m_uiNumPartitions );
+    ::memset( m_aapucBS       [EDGE_HOR], 0, sizeof( UChar ) * m_uiNumPartitions );
+    
     for( Int iPlane = 0; iPlane < 3; iPlane++ )
     {
       ::memset( m_aapbEdgeFilter[EDGE_HOR][iPlane], 0, sizeof( bool  ) * m_uiNumPartitions );
