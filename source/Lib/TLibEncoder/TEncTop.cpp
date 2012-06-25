@@ -894,9 +894,14 @@ Void TEncTop::selectReferencePictureSet(TComSlice* slice, Int POCCurr, Int GOPid
 
   for(Int extraNum=m_iGOPSize; extraNum<m_extraRPSs+m_iGOPSize; extraNum++)
   {    
-    if(m_uiIntraPeriod > 0)
+    if(m_uiIntraPeriod > 0 && getDecodingRefreshType() > 0)
     {
-      if(POCCurr%m_uiIntraPeriod==m_GOPList[extraNum].m_POC)
+      Int POCIndex = POCCurr%m_uiIntraPeriod;
+      if(POCIndex == 0)
+      {
+        POCIndex = m_uiIntraPeriod;
+      }
+      if(POCIndex == m_GOPList[extraNum].m_POC)
       {
         slice->setRPSidx(extraNum);
       }
