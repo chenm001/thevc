@@ -1136,20 +1136,10 @@ Void  TEncCavlc::codeTilesWPPEntryPoint( TComSlice* pSlice )
 #endif
   // Determine number of bits "offsetLenMinus1+1" required for entry point information
   offsetLenMinus1 = 0;
-  while (1)
+  while (maxOffset >= (1u << (offsetLenMinus1 + 1)))
   {
-    if (maxOffset >= (1 << offsetLenMinus1) )
-    {
-      offsetLenMinus1++;
-      if ( offsetLenMinus1 > 32 )
-      {
-        FATAL_ERROR_0("exceeded 32-bits", -1);
-      }
-    }
-    else
-    {
-      break;
-    }
+    offsetLenMinus1++;
+    assert(offsetLenMinus1 + 1 < 32);    
   }
 
   WRITE_UVLC(numEntryPointOffsets, "num_entry_point_offsets");
