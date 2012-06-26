@@ -99,7 +99,9 @@ public:
 #if SAO_TRUNCATED_U
   Void  parseSaoMaxUvlc           ( UInt& val, UInt maxSymbol );
 #endif
+#if !SAO_CODE_CLEAN_UP
   Void  parseSaoUvlc              ( UInt& ruiVal           );
+#endif
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   Void  parseSaoSvlc              ( Int&  riVal            );
 #endif
@@ -215,7 +217,9 @@ private:
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;
   ContextModel3DBuffer m_cCUAMPSCModel;
+#if !SAO_CODE_CLEAN_UP
   ContextModel3DBuffer m_cSaoFlagSCModel;
+#endif
   ContextModel3DBuffer m_cSaoUvlcSCModel;
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   ContextModel3DBuffer m_cSaoSvlcSCModel;

@@ -399,6 +399,7 @@ inline Void copySaoOneLcuParam(SaoLcuParam* dst,  SaoLcuParam* src)
     }
   }
 }
+#if !SAO_CODE_CLEAN_UP
 /** parse SAO offset
 * \param saoLcuParam SAO LCU parameters
 */
@@ -439,7 +440,7 @@ Void TDecCavlc::xParseSaoOffset(SaoLcuParam* saoLcuParam)
     saoLcuParam->length = 0;
   }
 }
-
+#endif
 #if !SAO_REMOVE_APS
 /** parse SAO unit
 * \param rx x-axis location

@@ -164,7 +164,9 @@ protected:
 #if !SAO_REMOVE_APS
   Void  xParseSaoParam       ( SAOParam* pSaoParam );
 #endif
+#if !SAO_CODE_CLEAN_UP
   Void  xParseSaoOffset      (SaoLcuParam* saoLcuParam);
+#endif
 #if !SAO_REMOVE_APS
   Void  xParseSaoUnit        (Int rx, Int ry, Int compIdx, SAOParam* saoParam, Bool& repeatedRow );
 #endif

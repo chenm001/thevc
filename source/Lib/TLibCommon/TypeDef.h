@@ -144,6 +144,9 @@
 #endif
 
 #define SAO_RDO_FIX                      1  ///< I0563: SAO RDO bug-fix
+#if SAO_OFFSET_MAG_SIGN_SPLIT && SAO_OFFSET_MAG_SIGN_SPLIT && SAO_REMOVE_APS && SAO_TRUNCATED_U
+#define SAO_CODE_CLEAN_UP                1 /// redundant code removal
+#endif
 
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
@@ -378,8 +381,10 @@ typedef struct _SaoLcuParam
   Int        typeIdx;
   Int        bandPosition;
   Int        offset[4];
+#if !SAO_CODE_CLEAN_UP
   Int        runDiff;
   Int        run;
+#endif
   Int        partIdx;
   Int        partIdxTmp;
   Int        length;

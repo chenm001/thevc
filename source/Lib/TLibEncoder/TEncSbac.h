@@ -124,15 +124,19 @@ public:
   Void codeAlfCtrlFlag       ( UInt uiSymbol );
 #endif
   Void  codeApsExtensionFlag () { assert (0); return; };
+#if !SAO_CODE_CLEAN_UP
   Void  codeSaoFlag       ( UInt uiCode );
   Void  codeSaoUvlc       ( UInt uiCode );
+#endif
 #if SAO_TRUNCATED_U
   Void  codeSaoMaxUvlc    ( UInt code, UInt maxSymbol );
 #endif
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   Void  codeSaoSvlc       ( Int  uiCode );
 #endif
+#if !SAO_CODE_CLEAN_UP
   Void  codeSaoRun        ( UInt  uiCode, UInt uiMaxValue  ) {;}
+#endif
   Void  codeSaoMergeLeft  ( UInt  uiCode, UInt uiCompIdx );
   Void  codeSaoMergeUp    ( UInt  uiCode);
   Void  codeSaoTypeIdx    ( UInt  uiCode);
@@ -274,7 +278,9 @@ private:
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;
   ContextModel3DBuffer m_cCUAMPSCModel;
+#if !SAO_CODE_CLEAN_UP
   ContextModel3DBuffer m_cSaoFlagSCModel;
+#endif
   ContextModel3DBuffer m_cSaoUvlcSCModel;
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   ContextModel3DBuffer m_cSaoSvlcSCModel;

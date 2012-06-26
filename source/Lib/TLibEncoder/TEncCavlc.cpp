@@ -1476,7 +1476,7 @@ Void TEncCavlc::codeAlfFixedLengthIdx( UInt idx, UInt maxValue)
 }
 #endif
 
-
+#if !SAO_CODE_CLEAN_UP
 Void TEncCavlc::codeSaoFlag( UInt uiCode )
 {
   xWriteFlag( uiCode );
@@ -1486,12 +1486,14 @@ Void TEncCavlc::codeSaoUvlc( UInt uiCode )
 {
     xWriteUvlc( uiCode );
 }
+#endif
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
 Void TEncCavlc::codeSaoSvlc( Int iCode )
 {
     xWriteSvlc( iCode );
 }
 #endif
+#if !SAO_CODE_CLEAN_UP
 /** Code SAO run. 
  * \param uiCode
  * \param maxValue
@@ -1515,6 +1517,7 @@ Void TEncCavlc::codeSaoRun( UInt uiCode, UInt maxValue)
   }
   WRITE_CODE( uiCode, uiLength, "sao_run_diff");
 }
+#endif
 
 Void TEncCavlc::estBit( estBitsSbacStruct* pcEstBitsCabac, Int width, Int height, TextType eTType )
 {

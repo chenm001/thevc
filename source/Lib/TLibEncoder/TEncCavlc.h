@@ -140,8 +140,10 @@ public:
   Void codeAPSAlflag(UInt uiCode);
   Void codeAlfFixedLengthIdx( UInt idx, UInt numFilterSetsInBuffer);
 #endif
+#if !SAO_CODE_CLEAN_UP
   Void codeSaoFlag       ( UInt uiCode );
   Void codeSaoUvlc       ( UInt uiCode );
+#endif
 #if SAO_OFFSET_MAG_SIGN_SPLIT
   Void codeSAOSign       ( UInt code   ) { printf("Not supported\n"); assert (0); }
 #endif
@@ -151,11 +153,18 @@ public:
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   Void codeSaoSvlc       ( Int   iCode );
 #endif
+#if SAO_CODE_CLEAN_UP
+  Void codeSaoMergeLeft  ( UInt uiCode, UInt compIdx ){printf("Not supported\n"); assert (0);}
+  Void codeSaoMergeUp    ( UInt uiCode ){printf("Not supported\n"); assert (0);}
+  Void codeSaoTypeIdx    ( UInt uiCode ){printf("Not supported\n"); assert (0);}
+  Void codeSaoUflc       ( UInt uiCode ){ assert(uiCode < 32); printf("Not supported\n"); assert (0);}
+#else
   Void codeSaoRun        ( UInt uiCode, UInt maxValue  );
   Void codeSaoMergeLeft  ( UInt uiCode, UInt compIdx ){;}
   Void codeSaoMergeUp    ( UInt uiCode ){;}
   Void codeSaoTypeIdx    ( UInt uiCode ){ xWriteUvlc(uiCode   );}
   Void codeSaoUflc       ( UInt uiCode ){ assert(uiCode < 32); xWriteCode(uiCode, 5);}
+#endif
 
 #if CU_LEVEL_TRANSQUANT_BYPASS
   Void codeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx );
