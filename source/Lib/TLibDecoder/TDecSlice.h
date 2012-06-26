@@ -88,7 +88,7 @@ class ParameterSetManagerDecoder:public ParameterSetManager
 public:
   ParameterSetManagerDecoder();
   virtual ~ParameterSetManagerDecoder();
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
   Void     storePrefetchedVPS(TComVPS *vps)  { m_vpsBuffer.storePS( vps->getVPSId(), vps); };
   TComVPS* getPrefetchedVPS  (Int vpsId);
 #endif
@@ -102,7 +102,7 @@ public:
   Void     applyPrefetchedPS();
 
 private:
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
   ParameterSetMap<TComVPS> m_vpsBuffer;
 #endif
   ParameterSetMap<TComSPS> m_spsBuffer; 

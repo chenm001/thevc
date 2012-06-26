@@ -271,8 +271,8 @@
 // ====================================================================================================================
 // VPS constants
 // ====================================================================================================================
-#define VIDYO_VPS_INTEGRATION             1 // VPS 
-#if VIDYO_VPS_INTEGRATION
+#define VPS_INTEGRATION             1 // VPS 
+#if VPS_INTEGRATION
 #define MAX_LAYER_NUM                     10
 #define MAX_NUM_VPS                16
 #endif

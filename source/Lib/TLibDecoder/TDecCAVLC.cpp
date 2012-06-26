@@ -1213,7 +1213,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_CODE( 8,  uiCode, "reserved_zero_8bits" );
   READ_CODE( 8,  uiCode, "level_idc" );                          pcSPS->setLevelIdc( uiCode );
   READ_UVLC(     uiCode, "seq_parameter_set_id" );               pcSPS->setSPSId( uiCode );
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
   READ_UVLC(     uiCode, "video_parameter_set_id" );             pcSPS->setVPSId( uiCode );
 #endif
   READ_UVLC(     uiCode, "chroma_format_idc" );                  pcSPS->setChromaFormatIdc( uiCode );
@@ -1435,7 +1435,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   }
 }
 
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
 Void TDecCavlc::parseVPS(TComVPS* pcVPS)
 {
   UInt  uiCode;

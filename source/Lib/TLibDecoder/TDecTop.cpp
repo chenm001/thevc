@@ -709,7 +709,7 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   return false;
 }
 
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
 Void TDecTop::xDecodeVPS()
 {
   TComVPS* vps = new TComVPS();
@@ -763,7 +763,7 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 
   switch (nalu.m_nalUnitType)
   {
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
     case NAL_UNIT_VPS:
       xDecodeVPS();
       return false;

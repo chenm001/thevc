@@ -137,7 +137,7 @@ protected:
   Void      decodeAPS( TComAPS* cAPS) { m_cEntropyDecoder.decodeAPS(cAPS); };
   Void      xActivateParameterSets();
   Bool      xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisplay);
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
   Void      xDecodeVPS();
 #endif
   Void      xDecodeSPS();

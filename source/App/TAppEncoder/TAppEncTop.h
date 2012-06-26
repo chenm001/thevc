@@ -68,7 +68,7 @@ private:
   
   unsigned m_essentialBytes;
   unsigned m_totalBytes;
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
   TComVPS                    m_cVPS;
 #endif
 protected:
@@ -95,7 +95,7 @@ public:
   
   Void        encode      ();                               ///< main encoding function
   TEncTop&    getTEncTop  ()   { return  m_cTEncTop; }      ///< return encoder class pointer reference
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
   TComVPS*          getVPS()  { return &m_cVPS; }
 #endif
 };// END CLASS DEFINITION TAppEncTop

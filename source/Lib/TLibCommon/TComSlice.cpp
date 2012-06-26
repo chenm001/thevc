@@ -1338,7 +1338,7 @@ Void TComSlice::copyWPtable(wpScalingParam *&wp_src, wpScalingParam *&wp_dst)
 // ------------------------------------------------------------------------------------------------
 // Video parameter set (VPS)
 // ------------------------------------------------------------------------------------------------
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
 TComVPS::TComVPS()
 : m_VPSId                     (  0)
 , m_uiMaxTLayers              (  1)
@@ -2089,7 +2089,7 @@ Void TComScalingList::checkDcOfMatrix()
 }
 
 ParameterSetManager::ParameterSetManager()
-#if VIDYO_VPS_INTEGRATION 
+#if VPS_INTEGRATION 
 : m_vpsMap(MAX_NUM_VPS)
 , m_spsMap(MAX_NUM_SPS)
 #else

@@ -192,7 +192,7 @@ private:
 };
 #endif
 
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
 /// VPS class
 
 class TComVPS
@@ -240,7 +240,7 @@ public:
 class TComSPS
 {
 private:
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
   Int         m_VPSId;
 #endif
   Int         m_SPSId;
@@ -360,7 +360,7 @@ public:
   TComSPS();
   virtual ~TComSPS();
 
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
   Int  getVPSId       ()         { return m_VPSId;          }
   Void setVPSId       (Int i)    { m_VPSId = i;             }
 #endif
@@ -1038,7 +1038,7 @@ private:
   Bool        m_bRefenced;
   
   // access channel
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
   TComVPS*    m_pcVPS;
 #endif
   TComSPS*    m_pcSPS;
@@ -1121,7 +1121,7 @@ public:
   Void      initSlice       ();
   Void      initTiles();
 
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
   Void      setVPS          ( TComVPS* pcVPS ) { m_pcVPS = pcVPS; }
   TComVPS*  getVPS          () { return m_pcVPS; }
 #endif
@@ -1486,7 +1486,7 @@ public:
   ParameterSetManager();
   virtual ~ParameterSetManager();
 
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
   //! store sequence parameter set and take ownership of it 
   Void storeVPS(TComVPS *vps) { m_vpsMap.storePS( vps->getVPSId(), vps); };
   //! get pointer to existing video parameter set  
@@ -1512,7 +1512,7 @@ public:
 
 protected:
   
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
   ParameterSetMap<TComVPS> m_vpsMap;
 #endif
   ParameterSetMap<TComSPS> m_spsMap; 

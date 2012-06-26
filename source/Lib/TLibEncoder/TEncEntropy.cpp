@@ -128,7 +128,7 @@ Void TEncEntropy::encodeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPart
 }
 #endif
 
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
 Void TEncEntropy::encodeVPS( TComVPS* pcVPS )
 {
   m_pcEntropyCoderIf->codeVPS( pcVPS );

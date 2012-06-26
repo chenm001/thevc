@@ -63,7 +63,7 @@
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
 class TAppEncTop;
 #endif
 
@@ -129,7 +129,7 @@ private:
   TComScalingList         m_scalingList;                 ///< quantization matrix information
   TEncRateCtrl            m_cRateCtrl;                    ///< Rate control class
   
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
   TAppEncTop*             m_pcAppEncTop;
 #endif
 protected:
@@ -146,7 +146,7 @@ public:
   
   Void      create          ();
   Void      destroy         ();
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
   Void      init            ( TAppEncTop* pcAppEncTop );
 #else
   Void      init            ();
@@ -200,7 +200,7 @@ public:
   Void encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut,
               std::list<AccessUnit>& accessUnitsOut, Int& iNumEncoded );
   
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
   TAppEncTop*             getAppEncTop          () { return m_pcAppEncTop; }
 #endif
 };

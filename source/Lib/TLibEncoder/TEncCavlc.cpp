@@ -398,7 +398,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_CODE( 0,                           8,       "reserved_zero_8bits" );
   WRITE_CODE( pcSPS->getLevelIdc (),       8,       "level_idc" );
   WRITE_UVLC( pcSPS->getSPSId (),                   "seq_parameter_set_id" );
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
   WRITE_UVLC( pcSPS->getVPSId (),                   "video_parameter_set_id" );
 #endif
   WRITE_UVLC( pcSPS->getChromaFormatIdc (),         "chroma_format_idc" );
@@ -585,7 +585,7 @@ Void TEncCavlc::writeTileMarker( UInt uiTileIdx, UInt uiBitsUsed )
 }
 #endif
 
-#if VIDYO_VPS_INTEGRATION
+#if VPS_INTEGRATION
 Void TEncCavlc::codeVPS( TComVPS* pcVPS )
 {
   WRITE_CODE( pcVPS->getMaxTLayers() - 1,     3,        "vps_max_temporal_layers_minus1" );
