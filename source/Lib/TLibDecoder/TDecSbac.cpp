@@ -76,7 +76,9 @@ TDecSbac::TDecSbac()
 , m_cALFUvlcSCModel           ( 1,             1,               NUM_ALF_UVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cALFSvlcSCModel           ( 1,             1,               NUM_ALF_SVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUAMPSCModel             ( 1,             1,               NUM_CU_AMP_CTX                , m_contextModels + m_numContextModels, m_numContextModels)
+#if !SAO_CODE_CLEAN_UP
 , m_cSaoFlagSCModel           ( 1,             1,               NUM_SAO_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
+#endif
 , m_cSaoUvlcSCModel           ( 1,             1,               NUM_SAO_UVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
 , m_cSaoSvlcSCModel           ( 1,             1,               NUM_SAO_SVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
@@ -86,6 +88,9 @@ TDecSbac::TDecSbac()
 , m_cSaoTypeIdxSCModel        ( 1,             1,               NUM_SAO_TYPE_IDX_CTX          , m_contextModels + m_numContextModels, m_numContextModels)
 #if INTRA_TRANSFORMSKIP
 , m_cTransformSkipSCModel     ( 1,             2,               NUM_TRANSFORMSKIP_FLAG_CTX    , m_contextModels + m_numContextModels, m_numContextModels)
+#endif
+#if CU_LEVEL_TRANSQUANT_BYPASS
+, m_CUTransquantBypassFlagSCModel( 1,          1,               NUM_CU_TRANSQUANT_BYPASS_FLAG_CTX, m_contextModels + m_numContextModels, m_numContextModels)
 #endif
 {
   assert( m_numContextModels <= MAX_NUM_CTX_MOD );
@@ -146,7 +151,9 @@ Void TDecSbac::resetEntropy(TComSlice* pSlice)
   m_cALFFlagSCModel.initBuffer           ( sliceType, qp, (UChar*)INIT_ALF_FLAG );
   m_cALFUvlcSCModel.initBuffer           ( sliceType, qp, (UChar*)INIT_ALF_UVLC );
   m_cALFSvlcSCModel.initBuffer           ( sliceType, qp, (UChar*)INIT_ALF_SVLC );
+#if !SAO_CODE_CLEAN_UP
   m_cSaoFlagSCModel.initBuffer           ( sliceType, qp, (UChar*)INIT_SAO_FLAG );
+#endif
   m_cSaoUvlcSCModel.initBuffer           ( sliceType, qp, (UChar*)INIT_SAO_UVLC );
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   m_cSaoSvlcSCModel.initBuffer           ( sliceType, qp, (UChar*)INIT_SAO_SVLC );
@@ -158,6 +165,9 @@ Void TDecSbac::resetEntropy(TComSlice* pSlice)
   m_cCUTransSubdivFlagSCModel.initBuffer ( sliceType, qp, (UChar*)INIT_TRANS_SUBDIV_FLAG );
 #if INTRA_TRANSFORMSKIP
   m_cTransformSkipSCModel.initBuffer     ( sliceType, qp, (UChar*)INIT_TRANSFORMSKIP_FLAG );
+#endif
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  m_CUTransquantBypassFlagSCModel.initBuffer( sliceType, qp, (UChar*)INIT_CU_TRANSQUANT_BYPASS_FLAG );
 #endif
   m_uiLastDQpNonZero  = 0;
   
@@ -175,18 +185,6 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   UInt uiBit;
   m_pcTDecBinIf->decodeBinTrm(uiBit);
   m_pcTDecBinIf->finish();  
-#if !OL_FLUSH_ALIGN
-  // Account for misaligned CABAC.
-  Int iCABACReadAhead = m_pcTDecBinIf->getBitsReadAhead();
-  iCABACReadAhead--;
-  Int iStreamBits = 8-m_pcBitstream->getNumBitsUntilByteAligned();
-  if (iCABACReadAhead >= iStreamBits)
-  {
-    // Misaligned CABAC has read into the 1st byte of the next tile.
-    // Back up a byte prior to alignment.
-    m_pcBitstream->backupByte();
-  }
-#endif
   m_pcBitstream->readOutTrailingBits();
   m_cCUSplitFlagSCModel.initBuffer       ( eSliceType, iQp, (UChar*)INIT_SPLIT_FLAG );
   m_cCUSkipFlagSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SKIP_FLAG );
@@ -214,7 +212,9 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   m_cALFFlagSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_ALF_FLAG );
   m_cALFUvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_ALF_UVLC );
   m_cALFSvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_ALF_SVLC );
+#if !SAO_CODE_CLEAN_UP
   m_cSaoFlagSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_FLAG );
+#endif
   m_cSaoUvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_UVLC );
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   m_cSaoSvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_SVLC );
@@ -226,9 +226,13 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
 #if INTRA_TRANSFORMSKIP
   m_cTransformSkipSCModel.initBuffer     ( eSliceType, iQp, (UChar*)INIT_TRANSFORMSKIP_FLAG );
 #endif
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  m_CUTransquantBypassFlagSCModel.initBuffer( eSliceType, iQp, (UChar*)INIT_CU_TRANSQUANT_BYPASS_FLAG );
+#endif
   m_pcTDecBinIf->start();
 }
 
+#if !REMOVE_TILE_MARKERS
 Void TDecSbac::readTileMarker( UInt& uiTileIdx, UInt uiBitsUsed )
 {
   UInt uiSymbol;
@@ -242,6 +246,7 @@ Void TDecSbac::readTileMarker( UInt& uiTileIdx, UInt uiBitsUsed )
     }
   }
 }
+#endif
 
 Void TDecSbac::parseTerminatingBit( UInt& ruiBit )
 {
@@ -513,6 +518,15 @@ Void TDecSbac::parseIPCMInfo ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   }
 }
 
+#if CU_LEVEL_TRANSQUANT_BYPASS
+Void TDecSbac::parseCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
+{
+  UInt uiSymbol;
+  m_pcTDecBinIf->decodeBin( uiSymbol, m_CUTransquantBypassFlagSCModel.get( 0, 0, 0 ) );
+  pcCU->setCUTransquantBypassSubParts(uiSymbol ? true : false, uiAbsPartIdx, uiDepth);
+}
+#endif
+
 /** parse skip flag
  * \param pcCU
  * \param uiAbsPartIdx 
@@ -661,7 +675,11 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   else
   {
     UInt uiMaxNumBits = 2;
+#if REMOVE_INTER_4X4
+    if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth && !( (g_uiMaxCUWidth>>uiDepth) == 8 && (g_uiMaxCUHeight>>uiDepth) == 8 ) )
+#else
     if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth && !( pcCU->getSlice()->getSPS()->getDisInter4x4() && (g_uiMaxCUWidth>>uiDepth) == 8 && (g_uiMaxCUHeight>>uiDepth) == 8 ) )
+#endif
     {
       uiMaxNumBits ++;
     }
@@ -1046,10 +1064,15 @@ Void TDecSbac::parseDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 
     qp = (((Int) pcCU->getRefQP( uiAbsPartIdx ) + iDQp + 52 + 2*qpBdOffsetY )%(52+qpBdOffsetY)) - qpBdOffsetY;
   }
-  
+#if PRED_QP_DERIVATION
+  pcCU->setQPSubParts(qp, uiAbsPartIdx, uiDepth);  
+  pcCU->setCodedQP(qp);
+
+#else
   UInt uiAbsQpCUPartIdx = (uiAbsPartIdx>>((g_uiMaxCUDepth - pcCU->getSlice()->getPPS()->getMaxCuDQPDepth())<<1))<<((g_uiMaxCUDepth - pcCU->getSlice()->getPPS()->getMaxCuDQPDepth())<<1) ;
   UInt uiQpCUDepth =   min(uiDepth,pcCU->getSlice()->getPPS()->getMaxCuDQPDepth()) ;
   pcCU->setQPSubParts( qp, uiAbsQpCUPartIdx, uiQpCUDepth );
+#endif
 }
 
 Void TDecSbac::parseQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth )
@@ -1076,6 +1099,12 @@ Void TDecSbac::parseQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, 
 #if INTRA_TRANSFORMSKIP
 void TDecSbac::parseTransformSkipFlags (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType)
 {
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  if (pcCU->getCUTransquantBypass(uiAbsPartIdx))
+  {
+    return;
+  }
+#endif
   if(!pcCU->isIntra(uiAbsPartIdx))
   {
     return;
@@ -1303,9 +1332,13 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 #if !FIXED_SBH_THRESHOLD
   UInt const tsig = pcCU->getSlice()->getPPS()->getTSIG();
 #endif
-#if LOSSLESS_CODING
+#if LOSSLESS_CODING || CU_LEVEL_TRANSQUANT_BYPASS
   Bool beValid; 
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  if (pcCU->getCUTransquantBypass(uiAbsPartIdx))
+#else // LOSSLESS_CODING
   if (pcCU->isLosslessCoded(uiAbsPartIdx))
+#endif
   {
     beValid = false;
   }
@@ -1587,7 +1620,7 @@ Void TDecSbac::parseSaoMaxUvlc ( UInt& val, UInt maxSymbol )
   val = i;
 }
 #endif
-
+#if !SAO_CODE_CLEAN_UP
 Void TDecSbac::parseSaoUvlc (UInt& ruiVal)
 {
   UInt uiCode;
@@ -1613,6 +1646,7 @@ Void TDecSbac::parseSaoUvlc (UInt& ruiVal)
 
   ruiVal = i;
 }
+#endif
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
 Void TDecSbac::parseSaoSvlc (Int&  riVal)
 {

@@ -3032,9 +3032,9 @@ Void TEncAdaptiveLoopFilter::calcCorrOneCompRegionChma(Pel* imgOrg, Pel* imgPad,
 
       ELocal[1] = (imgPad3[j] + imgPad4[j]);
 
-      ELocal[2] = (imgPad1[j-1] + imgPad2[j+1]);
+      ELocal[2] = (imgPad1[j+1] + imgPad2[j-1]);
       ELocal[3] = (imgPad1[j  ] + imgPad2[j  ]);
-      ELocal[4] = (imgPad1[j+1] + imgPad2[j-1]);
+      ELocal[4] = (imgPad1[j-1] + imgPad2[j+1]);
 
       ELocal[5] = (imgPad[j+4] + imgPad[j-4]);
       ELocal[6] = (imgPad[j+3] + imgPad[j-3]);
@@ -3161,9 +3161,9 @@ Void TEncAdaptiveLoopFilter::calcCorrOneCompRegionLuma(Pel* imgOrg, Pel* imgPad,
         ELocal[0] = (imgPad5[j] + imgPad6[j]);
         ELocal[1] = (imgPad3[j] + imgPad4[j]);
 
-        ELocal[2] = (imgPad1[j-1] + imgPad2[j+1]);
+        ELocal[2] = (imgPad1[j+1] + imgPad2[j-1]);
         ELocal[3] = (imgPad1[j  ] + imgPad2[j  ]);
-        ELocal[4] = (imgPad1[j+1] + imgPad2[j-1]);
+        ELocal[4] = (imgPad1[j-1] + imgPad2[j+1]);
 
         ELocal[5] = (imgPad[j+4] + imgPad[j-4]);
         ELocal[6] = (imgPad[j+3] + imgPad[j-3]);

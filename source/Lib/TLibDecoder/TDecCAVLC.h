@@ -97,9 +97,15 @@ public:
   Void  parseTransformSubdivFlag( UInt& ruiSubdivFlag, UInt uiLog2TransformBlockSize );
   Void  parseQtCbf          ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
   Void  parseQtRootCbf      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf );
-
+#if VPS_INTEGRATION
+  Void  parseVPS            ( TComVPS* pcVPS );
+#endif
   Void  parseSPS            ( TComSPS* pcSPS );
+#if !TILES_OR_ENTROPY_FIX
   Void  parsePPS            ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet);
+#else
+  Void  parsePPS            ( TComPPS* pcPPS);
+#endif
   Void  parseSEI(SEImessages&);
   Void  parseAPS            ( TComAPS* pAPS );
 #if AHG6_ALF_OPTION2
@@ -112,6 +118,9 @@ public:
   Void  parseMVPIdx         ( Int& riMVPIdx );
   
   Void  parseSkipFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  Void  parseCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+#endif
   Void parseMergeFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx );
   Void parseMergeIndex      ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseSplitFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
@@ -134,21 +143,30 @@ public:
 
   Void parseIPCMInfo        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
 
+#if !REMOVE_TILE_MARKERS
   Void readTileMarker     ( UInt& uiTileIdx, UInt uiBitsUsed );
+#endif
+
   Void updateContextTables  ( SliceType eSliceType, Int iQp ) { return; }
   Void decodeFlush() {};
 
   Void xParsePredWeightTable ( TComSlice* pcSlice );
   Void  parseScalingList               ( TComScalingList* scalingList );
   Void xDecodeScalingList    ( TComScalingList *scalingList, UInt sizeId, UInt listId);
+#if !DBL_HL_SYNTAX
   Void parseDFFlag         ( UInt& ruiVal, const Char *pSymbolName );
   Void parseDFSvlc         ( Int&  riVal,  const Char *pSymbolName  );
+#endif
 protected:
+#if !DBL_HL_SYNTAX
   Void  xParseDblParam       ( TComAPS* aps );
+#endif
 #if !SAO_REMOVE_APS
   Void  xParseSaoParam       ( SAOParam* pSaoParam );
 #endif
+#if !SAO_CODE_CLEAN_UP
   Void  xParseSaoOffset      (SaoLcuParam* saoLcuParam);
+#endif
 #if !SAO_REMOVE_APS
   Void  xParseSaoUnit        (Int rx, Int ry, Int compIdx, SAOParam* saoParam, Bool& repeatedRow );
 #endif

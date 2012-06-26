@@ -109,9 +109,7 @@ Void TEncBinCABAC::flush()
   encodeBinTrm(1);
   finish();
   m_pcTComBitIf->write(1, 1);
-#if OL_FLUSH_ALIGN
   m_pcTComBitIf->writeAlignZero();
-#endif
 
   start();
 }

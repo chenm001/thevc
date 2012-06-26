@@ -83,6 +83,130 @@ static void md5_plane(MD5& md5, const Pel* plane, unsigned width, unsigned heigh
   }
 }
 
+
+#if HASH_TYPE
+void compCRC(const Pel* plane, unsigned int width, unsigned int height, unsigned int stride, unsigned char digest[16])
+{
+  unsigned int bitdepth = g_uiBitDepth + g_uiBitIncrement;
+  unsigned int dataMsbIdx = bitdepth - 1;
+  unsigned int crcMsb;
+  unsigned int bitVal;
+  unsigned int crcVal = 0xffff;
+  unsigned int bitIdx;
+  for (unsigned y = 0; y < height; y++)
+  {
+    for (unsigned x = 0; x < width; x++)
+    {     
+      for(bitIdx=0; bitIdx<bitdepth; bitIdx++)
+      {
+        crcMsb = (crcVal >> 15) & 1;
+        bitVal = (plane[y*stride+x]>> (dataMsbIdx - (bitIdx&dataMsbIdx))) & 1;
+        crcVal = (((crcVal << 1) + bitVal) & 0xffff) ^ (crcMsb * 0x1021);
+      }
+    }
+  }
+  for(bitIdx=0; bitIdx<16; bitIdx++)
+  {
+    crcMsb = (crcVal >> 15) & 1;
+    crcVal = ((crcVal << 1) & 0xffff) ^ (crcMsb * 0x1021);
+  }
+
+  digest[0] = (crcVal>>8)  & 0xff;
+  digest[1] =  crcVal      & 0xff;
+}
+
+void calcCRC(TComPicYuv& pic, unsigned char digest[3][16])
+{
+  unsigned width = pic.getWidth();
+  unsigned height = pic.getHeight();
+  unsigned stride = pic.getStride();
+
+  compCRC(pic.getLumaAddr(), width, height, stride, digest[0]);
+
+  width >>= 1;
+  height >>= 1;
+  stride >>= 1;
+
+  compCRC(pic.getCbAddr(), width, height, stride, digest[1]);
+  compCRC(pic.getCrAddr(), width, height, stride, digest[2]);
+}
+
+void compChecksum(const Pel* plane, unsigned int width, unsigned int height, unsigned int stride, unsigned char digest[16])
+{
+  unsigned int bitdepth = g_uiBitDepth + g_uiBitIncrement;
+
+  unsigned int checksum = 0;
+  unsigned char xor_mask;
+
+  for (unsigned y = 0; y < height; y++)
+  {
+    for (unsigned x = 0; x < width; x++)
+    {
+      xor_mask = (x & 0xff) ^ (y & 0xff) ^ (x >> 8) ^ (y >> 8);
+      checksum = (checksum + ((plane[y*stride+x] & 0xff) ^ xor_mask)) & 0xffffffff;
+
+      if(bitdepth > 8)
+      {
+        checksum = (checksum + ((plane[y*stride+x]>>8) ^ xor_mask)) & 0xffffffff;
+      }
+    }
+  }
+
+  digest[0] = (checksum>>24) & 0xff;
+  digest[1] = (checksum>>16) & 0xff;
+  digest[2] = (checksum>>8)  & 0xff;
+  digest[3] =  checksum      & 0xff;
+}
+
+void calcChecksum(TComPicYuv& pic, unsigned char digest[3][16])
+{
+  unsigned width = pic.getWidth();
+  unsigned height = pic.getHeight();
+  unsigned stride = pic.getStride();
+
+  compChecksum(pic.getLumaAddr(), width, height, stride, digest[0]);
+
+  width >>= 1;
+  height >>= 1;
+  stride >>= 1;
+
+  compChecksum(pic.getCbAddr(), width, height, stride, digest[1]);
+  compChecksum(pic.getCrAddr(), width, height, stride, digest[2]);
+}
+/**
+ * Calculate the MD5sum of pic, storing the result in digest.
+ * MD5 calculation is performed on Y' then Cb, then Cr; each in raster order.
+ * Pel data is inserted into the MD5 function in little-endian byte order,
+ * using sufficient bytes to represent the picture bitdepth.  Eg, 10bit data
+ * uses little-endian two byte words; 8bit data uses single byte words.
+ */
+void calcMD5(TComPicYuv& pic, unsigned char digest[3][16])
+{
+  unsigned bitdepth = g_uiBitDepth + g_uiBitIncrement;
+  /* choose an md5_plane packing function based on the system bitdepth */
+  typedef void (*MD5PlaneFunc)(MD5&, const Pel*, unsigned, unsigned, unsigned);
+  MD5PlaneFunc md5_plane_func;
+  md5_plane_func = bitdepth <= 8 ? (MD5PlaneFunc)md5_plane<1> : (MD5PlaneFunc)md5_plane<2>;
+
+  MD5 md5Y, md5U, md5V;
+  unsigned width = pic.getWidth();
+  unsigned height = pic.getHeight();
+  unsigned stride = pic.getStride();
+
+  md5_plane_func(md5Y, pic.getLumaAddr(), width, height, stride);
+  md5Y.finalize(digest[0]);
+
+  width >>= 1;
+  height >>= 1;
+  stride >>= 1;
+
+  md5_plane_func(md5U, pic.getCbAddr(), width, height, stride);
+  md5U.finalize(digest[1]);
+
+  md5_plane_func(md5V, pic.getCrAddr(), width, height, stride);
+  md5V.finalize(digest[2]);
+}
+#else
 /**
  * Calculate the MD5sum of pic, storing the result in digest.
  * MD5 calculation is performed on Y' then Cb, then Cr; each in raster order.
@@ -114,4 +238,5 @@ void calcMD5(TComPicYuv& pic, unsigned char digest[16])
 
   md5.finalize(digest);
 }
+#endif
 //! \}

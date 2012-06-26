@@ -902,6 +902,10 @@ TEncSearch::xEncIntraHeader( TComDataCU*  pcCU,
     {
       if( !pcCU->getSlice()->isIntra() )
       {
+#if CU_LEVEL_TRANSQUANT_BYPASS
+        if (pcCU->getSlice()->getPPS()->getTransquantBypassEnableFlag())
+          m_pcEntropyCoder->encodeCUTransquantBypassFlag( pcCU, 0, true );
+#endif
         m_pcEntropyCoder->encodeSkipFlag( pcCU, 0, true );
         m_pcEntropyCoder->encodePredMode( pcCU, 0, true );
       }
@@ -1157,13 +1161,17 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
     Int scalingListType = 0 + g_eTTable[(Int)TEXT_LUMA];
     assert(scalingListType < 6);
 #if INTRA_TRANSFORMSKIP
-#if LOSSLESS_CODING
+#if CU_LEVEL_TRANSQUANT_BYPASS
+    m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_LUMA,pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
+#elif LOSSLESS_CODING
     m_pcTrQuant->invtransformNxN( pcCU, TEXT_LUMA,pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
 #else
     m_pcTrQuant->invtransformNxN( TEXT_LUMA,pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
 #endif
 #else
-#if LOSSLESS_CODING
+#if CU_LEVEL_TRANSQUANT_BYPASS
+    m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_LUMA,pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
+#elif LOSSLESS_CODING
     m_pcTrQuant->invtransformNxN( pcCU, TEXT_LUMA,pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
 #else
     m_pcTrQuant->invtransformNxN( TEXT_LUMA,pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
@@ -1421,13 +1429,17 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
       Int scalingListType = 0 + g_eTTable[(Int)eText];
       assert(scalingListType < 6);
 #if INTRA_TRANSFORMSKIP
-#if LOSSLESS_CODING
+#if CU_LEVEL_TRANSQUANT_BYPASS
+      m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
+#elif LOSSLESS_CODING
       m_pcTrQuant->invtransformNxN( pcCU, TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
 #else
       m_pcTrQuant->invtransformNxN( TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
 #endif
 #else
-#if LOSSLESS_CODING
+#if CU_LEVEL_TRANSQUANT_BYPASS
+      m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
+#elif LOSSLESS_CODING
       m_pcTrQuant->invtransformNxN( pcCU, TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
 #else
       m_pcTrQuant->invtransformNxN( TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
@@ -1518,6 +1530,9 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
   Int     bestModeId    = 0;
   Int     bestModeIdUV[2] = {0, 0};
   checkTransformSkip         &= (widthTransformSkip == 4 && heightTransformSkip == 4);
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  checkTransformSkip         &= (!pcCU->getCUTransquantBypass(0));
+#endif
 #if LOSSLESS_CODING
   checkTransformSkip         &= (!((pcCU->getQP( 0 ) == 0) && (pcCU->getSlice()->getSPS()->getUseLossless())));
 #endif
@@ -4689,6 +4704,10 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
       m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[pcCU->getDepth(0)][CI_CURR_BEST]);
     
     m_pcEntropyCoder->resetBits();
+#if CU_LEVEL_TRANSQUANT_BYPASS
+    if (pcCU->getSlice()->getPPS()->getTransquantBypassEnableFlag())
+      m_pcEntropyCoder->encodeCUTransquantBypassFlag(pcCU, 0, true);
+#endif
     m_pcEntropyCoder->encodeSkipFlag(pcCU, 0, true);
     m_pcEntropyCoder->encodeMergeIndex( pcCU, 0, 0, true );
     
@@ -5049,7 +5068,9 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
 
       Int scalingListType = 3 + g_eTTable[(Int)TEXT_LUMA];
       assert(scalingListType < 6);     
-#if LOSSLESS_CODING
+#if CU_LEVEL_TRANSQUANT_BYPASS
+      m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_LUMA,REG_DCT, pcResiCurrY, m_pcQTTempTComYuv[uiQTTempAccessLayer].getStride(),  pcCoeffCurrY, trWidth, trHeight, scalingListType );//this is for inter mode only
+#elif LOSSLESS_CODING
       m_pcTrQuant->invtransformNxN( pcCU, TEXT_LUMA,REG_DCT, pcResiCurrY, m_pcQTTempTComYuv[uiQTTempAccessLayer].getStride(),  pcCoeffCurrY, trWidth, trHeight, scalingListType );//this is for inter mode only
 #else     
       m_pcTrQuant->invtransformNxN( TEXT_LUMA,REG_DCT, pcResiCurrY, m_pcQTTempTComYuv[uiQTTempAccessLayer].getStride(),  pcCoeffCurrY, trWidth, trHeight, scalingListType );//this is for inter mode only
@@ -5131,7 +5152,9 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
 
         Int scalingListType = 3 + g_eTTable[(Int)TEXT_CHROMA_U];
         assert(scalingListType < 6);
-#if LOSSLESS_CODING
+#if CU_LEVEL_TRANSQUANT_BYPASS
+        m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_CHROMA,REG_DCT, pcResiCurrU, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrU, trWidthC, trHeightC, scalingListType  );
+#elif LOSSLESS_CODING
         m_pcTrQuant->invtransformNxN( pcCU, TEXT_CHROMA,REG_DCT, pcResiCurrU, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrU, trWidthC, trHeightC, scalingListType  );
 #else
         m_pcTrQuant->invtransformNxN( TEXT_CHROMA,REG_DCT, pcResiCurrU, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrU, trWidthC, trHeightC, scalingListType );
@@ -5214,7 +5237,9 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
         }
         Int scalingListType = 3 + g_eTTable[(Int)TEXT_CHROMA_V];
         assert(scalingListType < 6);
-#if LOSSLESS_CODING
+#if CU_LEVEL_TRANSQUANT_BYPASS
+        m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_CHROMA,REG_DCT, pcResiCurrV, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrV, trWidthC, trHeightC, scalingListType );
+#elif LOSSLESS_CODING
         m_pcTrQuant->invtransformNxN( pcCU, TEXT_CHROMA,REG_DCT, pcResiCurrV, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrV, trWidthC, trHeightC, scalingListType );
 #else
         m_pcTrQuant->invtransformNxN( TEXT_CHROMA,REG_DCT, pcResiCurrV, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrV, trWidthC, trHeightC, scalingListType );
@@ -5657,6 +5682,10 @@ Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMod
   if ( pcCU->isSkipped( 0 ) )
   {
     m_pcEntropyCoder->resetBits();
+#if CU_LEVEL_TRANSQUANT_BYPASS
+    if(pcCU->getSlice()->getPPS()->getTransquantBypassEnableFlag())
+      m_pcEntropyCoder->encodeCUTransquantBypassFlag(pcCU, 0, true);
+#endif
     m_pcEntropyCoder->encodeSkipFlag(pcCU, 0, true);
     m_pcEntropyCoder->encodeMergeIndex(pcCU, 0, 0, true);
     ruiBits += m_pcEntropyCoder->getNumberOfWrittenBits();
@@ -5664,6 +5693,10 @@ Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMod
   else
   {
     m_pcEntropyCoder->resetBits();
+#if CU_LEVEL_TRANSQUANT_BYPASS
+    if(pcCU->getSlice()->getPPS()->getTransquantBypassEnableFlag())
+      m_pcEntropyCoder->encodeCUTransquantBypassFlag(pcCU, 0, true);
+#endif
     m_pcEntropyCoder->encodeSkipFlag ( pcCU, 0, true );
     m_pcEntropyCoder->encodePredMode( pcCU, 0, true );
     m_pcEntropyCoder->encodePartSize( pcCU, 0, pcCU->getDepth(0), true );
@@ -5893,9 +5926,11 @@ Void  TEncSearch::setWpScalingDistParam( TComDataCU* pcCU, Int iRefIdx, RefPicLi
   TComSlice       *pcSlice  = pcCU->getSlice();
   TComPPS         *pps      = pcCU->getSlice()->getPPS();
   wpScalingParam  *wp0 , *wp1;
-
+#if REMOVE_IMPLICIT_WP
+  m_cDistParam.bApplyWeight = ( pcSlice->getSliceType()==P_SLICE && pps->getUseWP() ) || ( pcSlice->getSliceType()==B_SLICE && pps->getWPBiPred() ) ;
+#else
   m_cDistParam.bApplyWeight = ( pcSlice->getSliceType()==P_SLICE && pps->getUseWP() ) || ( pcSlice->getSliceType()==B_SLICE && pps->getWPBiPredIdc() ) ;
-
+#endif
   if ( !m_cDistParam.bApplyWeight ) return;
 
   Int iRefIdx0 = ( eRefPicListCur == REF_PIC_LIST_0 ) ? iRefIdx : (-1);

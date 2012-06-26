@@ -40,6 +40,32 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define  TEMPORAL_ID_RESTRICTION         1  ///< I0600: Semantics of temporal_id changed
+#define PREVREFPIC_DEFN                    1   ///< I0345: prevRefPic defined as previous reference picture that is at same or lower 
+                                            ///< temporal layer.
+#define CODE_POCLSBLT_FIXEDLEN      1       ///< I0342: code the LSB bits of LTRPs as u(v)
+
+#define REMOVE_TILE_MARKERS              1
+#define EXPLICITLY_SIGNAL_ENTRY_POINTS   1  ///< I0273: Explicitly signal all tiles/wavefront entry points
+
+#define SLICE_TMVP_ENABLE                1  ///< I0420: Enable Temporal MVP for certain slices only
+#define NO_MV_SCALING_IF_LONG_TERM_REF   1  ///< I0422: Disable MV scaling for long term reference
+#define REMOVE_INTER_4X4                 1  ///< I0216: Removal of Inter 4x4 mode
+#define PRED_QP_DERIVATION               1  ///< I0219: Changing cu_qp_delta parsing to enable CU-level processing 
+#define NEW_NAL_UNIT_TYPES               1  ///< I0607: Definition of new NAL unit types
+#if NEW_NAL_UNIT_TYPES
+#define CRA_BLA_TFD_MODIFICATIONS        1  ///< I0404, I0278, I0275: Modifications for CRA, BLA and TFD pictures
+#endif
+
+#define TILE_ENTRY_START                 1  ///< I0357: Signal tile entry points from the end of the slice header
+#define WPP_SUBSTREAM_PER_ROW            1  ///< I0360: mandate one substream per CTB row
+#define WPP_SLICE_END_CONSTRAINT         1  ///< I0361: WPP Slice constraint
+#define REMOVE_IMPLICIT_WP               1  ///< I0589: remove implicit weighted prediction
+#define HASH_TYPE                        1  ///< I0218: changes to the Hash SEI calculation for improved usability
+#define BYTE_ALIGNMENT                   0  ///< I0330: Add byte_alignment() procedure to end of slice header
+#define TEMPORALNESTINGFLAG_TLA          1  ///< I0330: Mark picture as TLA when temporal_nesting flag is 1 and when temporal_id greater than 0
+#define SLICE_ADDRESS_FIX                1  ///< I0113: Slice address parsing fix
+#define TILES_OR_ENTROPY_FIX             1  ///< I0113: tiles_or_entropy_coding_sync_idc parsing fix
 #define REMOVE_LASTTU_CBFDERIV           1  ///< I0152: CBF coding for last TU without derivation process 
 
 #define INTRAMODE_BYPASSGROUP            1  ///< I0302: group coding of Intra_NxN
@@ -78,6 +104,8 @@
 #define LOSSLESS_CODING                   1  ///< H0530: lossless and lossy (mixed) coding
 #if LOSSLESS_CODING
 #define SEQUENCE_LEVEL_LOSSLESS           0  ///< H0530: used only for sequence or frame-level lossless coding
+#define CU_LEVEL_TRANSQUANT_BYPASS        1  ///< I0529: CU level flag for transquant bypass
+#define IPCM_LOSSLESS_LOOP_FILTERING_UNIFICATION  1  ///< I0586: I_PCM/lossless loop filtering unification
 #endif
 
 #define LOG2_PARALLEL_MERGE_LEVEL_MINUS2 0  //< H0082 parallel merge level 0-> 4x4, 1-> 8x8, 2->16x16, 3->32x32, 4->64x64
@@ -116,6 +144,9 @@
 #endif
 
 #define SAO_RDO_FIX                      1  ///< I0563: SAO RDO bug-fix
+#if SAO_OFFSET_MAG_SIGN_SPLIT && SAO_OFFSET_MAG_SIGN_SPLIT && SAO_REMOVE_APS && SAO_TRUNCATED_U
+#define SAO_CODE_CLEAN_UP                1 /// redundant code removal
+#endif
 
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
@@ -177,11 +208,6 @@
                                                     // this should be done with encoder only decision
                                                     // but because of the absence of reference frame management, the related code was hard coded currently
 
-#define OL_FLUSH_ALIGN 0    // Align flush to byte boundary.  This preserves byte operations in CABAC (faster) but at the expense of an average
-                            // of 4 bits per flush.
-                            // Setting to 0 will slow cabac by an as yet unknown amount.
-                            // This is here just to perform timing tests -- OL_FLUSH_ALIGN should be 0 for WPP.
-
 #define RVM_VCEGAM10_M 4
 
 #define PLANAR_IDX             0
@@ -202,16 +228,18 @@
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE    2          ///< OPTION IDENTIFIER. mode==2 -> Limit maximum number of bins/bits in a slice
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_TILES_IN_SLICE    3
 
-// Entropy slice options
-#define SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE            1          ///< OPTION IDENTIFIER. Limit maximum number of largest coding tree blocks in an entropy slice
-#define SHARP_MULTIPLE_CONSTRAINT_BASED_ENTROPY_SLICE         2          ///< OPTION IDENTIFIER. Limit maximum number of bins/bits in an entropy slice
+// Dependent slice options
+#define SHARP_FIXED_NUMBER_OF_LCU_IN_DEPENDENT_SLICE            1          ///< OPTION IDENTIFIER. Limit maximum number of largest coding tree blocks in an dependent slice
+#define SHARP_MULTIPLE_CONSTRAINT_BASED_DEPENDENT_SLICE         2          ///< OPTION IDENTIFIER. Limit maximum number of bins/bits in an dependent slice
 
 #define LOG2_MAX_NUM_COLUMNS_MINUS1        7
 #define LOG2_MAX_NUM_ROWS_MINUS1           7
 #define LOG2_MAX_COLUMN_WIDTH              13
 #define LOG2_MAX_ROW_HEIGHT                13
 
+#if !REMOVE_TILE_MARKERS
 #define MAX_MARKER_PER_NALU                 1000
+#endif
 
 #define MATRIX_MULT                             0   // Brute force matrix multiplication instead of partial butterfly
 
@@ -224,15 +252,34 @@
 #endif
 
 #define SCALING_LIST_OUTPUT_RESULT    0 //JCTVC-G880/JCTVC-G1016 quantization matrices
+#define SCALING_LIST_DPCM_IMPROVEMENT   1 //JCTVC-I0059. Improved DPCM coding for 16x16 and 32x32 matrices
+#define SCALING_LIST_SIMPLYFY         1 //JCTVC-I0059/I0101. Simplification of Default matrices coding
+#define SCALING_LIST_HL_SYNTAX        1 //JCTVC-I0465. Signalling of quantization matrices in SPS and PPS
 
 #define CABAC_INIT_PRESENT_FLAG     1
 
 #define DEBLOCK_TC_TAB_I0258  1
 
 #define DEBLOCK_IPCM_RECY             1 // JCTVC-I0035 scheme 1: reconstructed QP for IPCM deblocking
+#define DBL_HL_SYNTAX                 1 // Signalling of deblocking filter in PPS and Slice header instead of in APS
 
 #define REMOVE_LC  1 // JCTVC-I0125
 #define CU_QP_DELTA_DEPTH_SYN  1 // JCTVC-I0127, differential coding of max cu qp delta depth
+
+#define DEPENDENT_SLICES       1 // JCTVC-I0229
+
+#define H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL 1 ///< H0391: Loop filtering across/non-across slice boundaries control
+
+#define H0226                       1 // JCTVC-H0226
+// ====================================================================================================================
+// VPS constants
+// ====================================================================================================================
+#define VPS_INTEGRATION             1 // VPS 
+#if VPS_INTEGRATION
+#define MAX_LAYER_NUM                     10
+#define MAX_NUM_VPS                16
+#endif
+
 // ====================================================================================================================
 // Basic type redefinition
 // ====================================================================================================================
@@ -334,8 +381,10 @@ typedef struct _SaoLcuParam
   Int        typeIdx;
   Int        bandPosition;
   Int        offset[4];
+#if !SAO_CODE_CLEAN_UP
   Int        runDiff;
   Int        run;
+#endif
   Int        partIdx;
   Int        partIdxTmp;
   Int        length;

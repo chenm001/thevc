@@ -88,7 +88,9 @@ TEncSbac::TEncSbac()
 , m_cALFUvlcSCModel           ( 1,             1,               NUM_ALF_UVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cALFSvlcSCModel           ( 1,             1,               NUM_ALF_SVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUAMPSCModel             ( 1,             1,               NUM_CU_AMP_CTX                , m_contextModels + m_numContextModels, m_numContextModels)
+#if !SAO_CODE_CLEAN_UP
 , m_cSaoFlagSCModel           ( 1,             1,               NUM_SAO_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
+#endif
 , m_cSaoUvlcSCModel           ( 1,             1,               NUM_SAO_UVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
 , m_cSaoSvlcSCModel           ( 1,             1,               NUM_SAO_SVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
@@ -98,6 +100,9 @@ TEncSbac::TEncSbac()
 , m_cSaoTypeIdxSCModel        ( 1,             1,               NUM_SAO_TYPE_IDX_CTX          , m_contextModels + m_numContextModels, m_numContextModels)
 #if INTRA_TRANSFORMSKIP
 , m_cTransformSkipSCModel     ( 1,             2,               NUM_TRANSFORMSKIP_FLAG_CTX    , m_contextModels + m_numContextModels, m_numContextModels)
+#endif
+#if CU_LEVEL_TRANSQUANT_BYPASS
+, m_CUTransquantBypassFlagSCModel( 1,          1,               NUM_CU_TRANSQUANT_BYPASS_FLAG_CTX, m_contextModels + m_numContextModels, m_numContextModels)
 #endif
 {
   assert( m_numContextModels <= MAX_NUM_CTX_MOD );
@@ -151,7 +156,9 @@ Void TEncSbac::resetEntropy           ()
   m_cALFUvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_ALF_UVLC );
   m_cALFSvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_ALF_SVLC );
   m_cCUTransSubdivFlagSCModel.initBuffer ( eSliceType, iQp, (UChar*)INIT_TRANS_SUBDIV_FLAG );
+#if !SAO_CODE_CLEAN_UP
   m_cSaoFlagSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_FLAG );
+#endif
   m_cSaoUvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_UVLC );
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   m_cSaoSvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_SVLC );
@@ -161,6 +168,9 @@ Void TEncSbac::resetEntropy           ()
   m_cSaoTypeIdxSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_TYPE_IDX );
 #if INTRA_TRANSFORMSKIP 
   m_cTransformSkipSCModel.initBuffer     ( eSliceType, iQp, (UChar*)INIT_TRANSFORMSKIP_FLAG );
+#endif
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  m_CUTransquantBypassFlagSCModel.initBuffer( eSliceType, iQp, (UChar*)INIT_CU_TRANSQUANT_BYPASS_FLAG );
 #endif
   // new structure
   m_uiLastQp = iQp;
@@ -216,7 +226,9 @@ Void TEncSbac::determineCabacInitIdx()
       curCost += m_cALFUvlcSCModel.calcCost           ( curSliceType, qp, (UChar*)INIT_ALF_UVLC );
       curCost += m_cALFSvlcSCModel.calcCost           ( curSliceType, qp, (UChar*)INIT_ALF_SVLC );
       curCost += m_cCUTransSubdivFlagSCModel.calcCost ( curSliceType, qp, (UChar*)INIT_TRANS_SUBDIV_FLAG );
+#if !SAO_CODE_CLEAN_UP
       curCost += m_cSaoFlagSCModel.calcCost           ( curSliceType, qp, (UChar*)INIT_SAO_FLAG );
+#endif
       curCost += m_cSaoUvlcSCModel.calcCost           ( curSliceType, qp, (UChar*)INIT_SAO_UVLC );
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
       curCost += m_cSaoSvlcSCModel.calcCost           ( curSliceType, qp, (UChar*)INIT_SAO_SVLC );
@@ -226,6 +238,9 @@ Void TEncSbac::determineCabacInitIdx()
       curCost += m_cSaoTypeIdxSCModel.calcCost        ( curSliceType, qp, (UChar*)INIT_SAO_TYPE_IDX );
 #if INTRA_TRANSFORMSKIP 
       curCost += m_cTransformSkipSCModel.calcCost     ( curSliceType, qp, (UChar*)INIT_TRANSFORMSKIP_FLAG );
+#endif
+#if CU_LEVEL_TRANSQUANT_BYPASS
+      curCost += m_CUTransquantBypassFlagSCModel.calcCost( curSliceType, qp, (UChar*)INIT_CU_TRANSQUANT_BYPASS_FLAG );
 #endif
       if (curCost < bestCost)
       {
@@ -276,7 +291,9 @@ Void TEncSbac::updateContextTables( SliceType eSliceType, Int iQp, Bool bExecute
   m_cALFUvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_ALF_UVLC );
   m_cALFSvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_ALF_SVLC );
   m_cCUTransSubdivFlagSCModel.initBuffer ( eSliceType, iQp, (UChar*)INIT_TRANS_SUBDIV_FLAG );
+#if !SAO_CODE_CLEAN_UP
   m_cSaoFlagSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_FLAG );
+#endif
   m_cSaoUvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_UVLC );
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   m_cSaoSvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_SVLC );
@@ -287,9 +304,13 @@ Void TEncSbac::updateContextTables( SliceType eSliceType, Int iQp, Bool bExecute
 #if INTRA_TRANSFORMSKIP 
   m_cTransformSkipSCModel.initBuffer     ( eSliceType, iQp, (UChar*)INIT_TRANSFORMSKIP_FLAG );
 #endif
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  m_CUTransquantBypassFlagSCModel.initBuffer( eSliceType, iQp, (UChar*)INIT_CU_TRANSQUANT_BYPASS_FLAG );
+#endif
   m_pcBinIf->start();
 }
 
+#if !REMOVE_TILE_MARKERS
 Void TEncSbac::writeTileMarker( UInt uiTileIdx, UInt uiBitsUsed )
 {
   for (Int iShift=uiBitsUsed-1; iShift>=0; iShift--)
@@ -297,11 +318,20 @@ Void TEncSbac::writeTileMarker( UInt uiTileIdx, UInt uiBitsUsed )
     m_pcBinIf->encodeBinEP ( (uiTileIdx & (1 << iShift)) >> iShift );
   }
 }
+#endif
 
 void TEncSbac::codeSEI(const SEI&)
 {
   assert(0);
 }
+
+#if VPS_INTEGRATION
+Void TEncSbac::codeVPS( TComVPS* pcVPS )
+{
+  assert (0);
+  return;
+}
+#endif
 
 Void TEncSbac::codeSPS( TComSPS* pcSPS )
 {
@@ -569,7 +599,11 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     {
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
       m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
+#if REMOVE_INTER_4X4
+      if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth && !( pcCU->getWidth(uiAbsPartIdx) == 8 && pcCU->getHeight(uiAbsPartIdx) == 8 ) )
+#else
       if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth && !( pcCU->getSlice()->getSPS()->getDisInter4x4() && pcCU->getWidth(uiAbsPartIdx) == 8 && pcCU->getHeight(uiAbsPartIdx) == 8 ) )
+#endif
       {
         m_pcBinIf->encodeBin( 1, m_cCUPartSizeSCModel.get( 0, 0, 2) );
       }
@@ -589,7 +623,11 @@ Void TEncSbac::codePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     }
     case SIZE_NxN:
     {
+#if REMOVE_INTER_4X4
+      if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth && !( pcCU->getWidth(uiAbsPartIdx) == 8 && pcCU->getHeight(uiAbsPartIdx) == 8 ) )
+#else
       if( uiDepth == g_uiMaxCUDepth - g_uiAddCUDepth && !( pcCU->getSlice()->getSPS()->getDisInter4x4() && pcCU->getWidth(uiAbsPartIdx) == 8 && pcCU->getHeight(uiAbsPartIdx) == 8 ) )
+#endif
       {
         m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 0) );
         m_pcBinIf->encodeBin( 0, m_cCUPartSizeSCModel.get( 0, 0, 1) );
@@ -640,6 +678,15 @@ Void TEncSbac::codeAlfCtrlDepth()
   xWriteUnaryMaxSymbol(uiDepth, m_cALFUvlcSCModel.get(0), 1, g_uiMaxCUDepth-1);
 }
 #endif
+
+#if CU_LEVEL_TRANSQUANT_BYPASS
+Void TEncSbac::codeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  UInt uiSymbol = pcCU->getCUTransquantBypass(uiAbsPartIdx);
+  m_pcBinIf->encodeBin( uiSymbol, m_CUTransquantBypassFlagSCModel.get( 0, 0, 0 ) );
+}
+#endif
+
 /** code skip flag
  * \param pcCU
  * \param uiAbsPartIdx 
@@ -1041,6 +1088,12 @@ Void TEncSbac::codeQtCbf( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, U
 #if INTRA_TRANSFORMSKIP
 void TEncSbac::codeTransformSkipFlags (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType )
 {
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  if (pcCU->getCUTransquantBypass(uiAbsPartIdx))
+  {
+    return;
+  }
+#endif
   if(!pcCU->isIntra(uiAbsPartIdx))
   {
     return;
@@ -1370,9 +1423,13 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 #if !FIXED_SBH_THRESHOLD
   UInt const tsig = pcCU->getSlice()->getPPS()->getTSIG();
 #endif
-#if LOSSLESS_CODING
+#if LOSSLESS_CODING || CU_LEVEL_TRANSQUANT_BYPASS
   Bool beValid; 
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  if (pcCU->getCUTransquantBypass(uiAbsPartIdx))
+#else // LOSSLESS_CODING
   if (pcCU->isLosslessCoded(uiAbsPartIdx))
+#endif
   {
     beValid = false;
   }
@@ -1717,7 +1774,7 @@ Void TEncSbac::codeSAOSign( UInt code )
   m_pcBinIf->encodeBinEP( code );
 }
 #endif
-
+#if !SAO_CODE_CLEAN_UP
 Void TEncSbac::codeSaoFlag       ( UInt uiCode )
 {
   UInt uiSymbol = ( ( uiCode == 0 ) ? 0 : 1 );
@@ -1742,6 +1799,7 @@ Void TEncSbac::codeSaoUvlc       ( UInt uiCode )
     m_pcBinIf->encodeBin( 0, m_cSaoUvlcSCModel.get( 0, 0, 1 ) );
   }
 }
+#endif
 #if SAO_TRUNCATED_U
 Void TEncSbac::codeSaoMaxUvlc    ( UInt code, UInt maxSymbol )
 {

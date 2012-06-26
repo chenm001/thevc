@@ -130,6 +130,9 @@ private:
   
   Char*         m_pePartSize;         ///< array of partition sizes
   Char*         m_pePredMode;         ///< array of prediction modes
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  Bool*         m_CUTransquantBypass;   ///< array of cu_transquant_bypass flags
+#endif
   Char*         m_phQP;               ///< array of QP values
   UChar*        m_puhTrIdx;           ///< array of transform indices
 #if INTRA_TRANSFORMSKIP
@@ -208,8 +211,10 @@ private:
   UInt          m_uiTotalBits;        ///< sum of partition bits
   UInt          m_uiTotalBins;       ///< sum of partition bins
   UInt*         m_uiSliceStartCU;    ///< Start CU address of current slice
-  UInt*         m_uiEntropySliceStartCU; ///< Start CU address of current slice
-  
+  UInt*         m_uiDependentSliceStartCU; ///< Start CU address of current slice
+#if PRED_QP_DERIVATION
+  Char          m_codedQP;
+#endif
 protected:
   
   /// add possible motion vector predictor candidates
@@ -286,9 +291,16 @@ public:
   PartSize      getPartitionSize      ( UInt uiIdx )            { return static_cast<PartSize>( m_pePartSize[uiIdx] ); }
   Void          setPartitionSize      ( UInt uiIdx, PartSize uh){ m_pePartSize[uiIdx] = uh;   }
   Void          setPartSizeSubParts   ( PartSize eMode, UInt uiAbsPartIdx, UInt uiDepth );
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  Void          setCUTransquantBypassSubParts( bool flag, UInt uiAbsPartIdx, UInt uiDepth );
+#endif
   
   Char*         getPredictionMode     ()                        { return m_pePredMode;        }
   PredMode      getPredictionMode     ( UInt uiIdx )            { return static_cast<PredMode>( m_pePredMode[uiIdx] ); }
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  Bool*         getCUTransquantBypass ()                        { return m_CUTransquantBypass;        }
+  Bool          getCUTransquantBypass( UInt uiIdx )             { return m_CUTransquantBypass[uiIdx]; }
+#endif
   Void          setPredictionMode     ( UInt uiIdx, PredMode uh){ m_pePredMode[uiIdx] = uh;   }
   Void          setPredModeSubParts   ( PredMode eMode, UInt uiAbsPartIdx, UInt uiDepth );
   
@@ -308,8 +320,13 @@ public:
   Void          setQPSubParts         ( Int qp,   UInt uiAbsPartIdx, UInt uiDepth );
   Int           getLastValidPartIdx   ( Int iAbsPartIdx );
   Char          getLastCodedQP        ( UInt uiAbsPartIdx );
+#if PRED_QP_DERIVATION
+  Void          setQPSubCUs           ( Int qp, TComDataCU* pcCU, UInt absPartIdx, UInt depth, Bool &foundNonZeroCbf );
+  Void          setCodedQP            ( Char qp )               { m_codedQP = qp;             }
+  Char          getCodedQP            ()                        { return m_codedQP;           }
+#endif
 
-#if LOSSLESS_CODING
+#if LOSSLESS_CODING || CU_LEVEL_TRANSQUANT_BYPASS
   Bool          isLosslessCoded(UInt absPartIdx);
 #endif
   UChar*        getNSQTPartIdx        ()                        { return m_nsqtPartIdx;        }
@@ -426,7 +443,11 @@ public:
 
   std::vector<NDBFBlockInfo>* getNDBFilterBlocks()      {return &m_vNDFBlock;}
   Void setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt numLCUInPicHeight, UInt numSUInLCUWidth, UInt numSUInLCUHeight, UInt picWidth, UInt picHeight
+#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+                                          ,std::vector<Bool>& LFCrossSliceBoundary
+#else
                                           ,Bool bIndependentSliceBoundaryEnabled
+#endif
                                           ,Bool bTopTileBoundary, Bool bDownTileBoundary, Bool bLeftTileBoundary, Bool bRightTileBoundary
                                           ,Bool bIndependentTileBoundaryEnabled );
   // -------------------------------------------------------------------------------------------------------------------
@@ -476,25 +497,30 @@ public:
   TComDataCU*   getCUColocated              ( RefPicList eRefPicList ) { return m_apcCUColocated[eRefPicList]; }
 
 
-  TComDataCU*   getPULeft                   ( UInt&  uiLPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true
-                                            , Bool bEnforceTileRestriction=true 
-                                            );
+  TComDataCU*   getPULeft                   ( UInt&  uiLPartUnitIdx, 
+                                              UInt uiCurrPartUnitIdx, 
+                                              Bool bEnforceSliceRestriction=true, 
+                                              Bool bEnforceDependentSliceRestriction=true,
+                                              Bool bEnforceTileRestriction=true );
 
-  TComDataCU*   getPUAbove                  ( UInt&  uiAPartUnitIdx , UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false
-                                            , Bool planarAtLCUBoundary = false 
-                                            , Bool bEnforceTileRestriction=true 
-                                            );
+  TComDataCU*   getPUAbove                  ( UInt&  uiAPartUnitIdx, 
+                                              UInt uiCurrPartUnitIdx, 
+                                              Bool bEnforceSliceRestriction=true, 
+                                              Bool bEnforceDependentSliceRestriction=true, 
+                                              Bool MotionDataCompresssion = false,
+                                              Bool planarAtLCUBoundary = false,
+                                              Bool bEnforceTileRestriction=true );
 
-  TComDataCU*   getPUAboveLeft              ( UInt&  uiALPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false );
-  TComDataCU*   getPUAboveRight             ( UInt&  uiARPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true, Bool MotionDataCompresssion = false );
-  TComDataCU*   getPUBelowLeft              ( UInt& uiBLPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
+  TComDataCU*   getPUAboveLeft              ( UInt&  uiALPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceDependentSliceRestriction=true, Bool MotionDataCompresssion = false );
+  TComDataCU*   getPUAboveRight             ( UInt&  uiARPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceDependentSliceRestriction=true, Bool MotionDataCompresssion = false );
+  TComDataCU*   getPUBelowLeft              ( UInt&  uiBLPartUnitIdx, UInt uiCurrPartUnitIdx, Bool bEnforceSliceRestriction=true, Bool bEnforceDependentSliceRestriction=true );
 
-  TComDataCU*   getQpMinCuLeft              ( UInt&  uiLPartUnitIdx , UInt uiCurrAbsIdxInLCU, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
-  TComDataCU*   getQpMinCuAbove             ( UInt&  aPartUnitIdx , UInt currAbsIdxInLCU, Bool enforceSliceRestriction=true, Bool enforceEntropySliceRestriction=true );
+  TComDataCU*   getQpMinCuLeft              ( UInt&  uiLPartUnitIdx , UInt uiCurrAbsIdxInLCU, Bool bEnforceSliceRestriction=true, Bool bEnforceDependentSliceRestriction=true );
+  TComDataCU*   getQpMinCuAbove             ( UInt&  aPartUnitIdx , UInt currAbsIdxInLCU, Bool enforceSliceRestriction=true, Bool enforceDependentSliceRestriction=true );
   Char          getRefQP                    ( UInt   uiCurrAbsIdxInLCU                       );
 
-  TComDataCU*   getPUAboveRightAdi          ( UInt&  uiARPartUnitIdx, UInt uiPuWidth, UInt uiCurrPartUnitIdx, UInt uiPartUnitOffset = 1, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
-  TComDataCU*   getPUBelowLeftAdi           ( UInt& uiBLPartUnitIdx, UInt uiPuHeight, UInt uiCurrPartUnitIdx, UInt uiPartUnitOffset = 1, Bool bEnforceSliceRestriction=true, Bool bEnforceEntropySliceRestriction=true );
+  TComDataCU*   getPUAboveRightAdi          ( UInt&  uiARPartUnitIdx, UInt uiPuWidth, UInt uiCurrPartUnitIdx, UInt uiPartUnitOffset = 1, Bool bEnforceSliceRestriction=true, Bool bEnforceDependentSliceRestriction=true );
+  TComDataCU*   getPUBelowLeftAdi           ( UInt&  uiBLPartUnitIdx, UInt uiPuHeight, UInt uiCurrPartUnitIdx, UInt uiPartUnitOffset = 1, Bool bEnforceSliceRestriction=true, Bool bEnforceDependentSliceRestriction=true );
   
   Void          deriveLeftRightTopIdx       ( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxLT, UInt& ruiPartIdxRT );
   Void          deriveLeftBottomIdx         ( PartSize eCUMode, UInt uiPartIdx, UInt& ruiPartIdxLB );
@@ -539,7 +565,7 @@ public:
   UInt          getCtxInterDir                  ( UInt   uiAbsPartIdx                                 );
   
   UInt          getSliceStartCU         ( UInt pos )                  { return m_uiSliceStartCU[pos-m_uiAbsIdxInLCU];                                                                                          }
-  UInt          getEntropySliceStartCU  ( UInt pos )                  { return m_uiEntropySliceStartCU[pos-m_uiAbsIdxInLCU];                                                                                   }
+  UInt          getDependentSliceStartCU  ( UInt pos )                  { return m_uiDependentSliceStartCU[pos-m_uiAbsIdxInLCU];                                                                                   }
   UInt&         getTotalBins            ()                            { return m_uiTotalBins;                                                                                                  }
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for RD cost storage

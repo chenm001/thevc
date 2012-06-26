@@ -84,8 +84,12 @@ private:
   TComAdaptiveLoopFilter*       m_pcAdaptiveLoopFilter;
   TComSampleAdaptiveOffset*     m_pcSAO;
   Double                m_dDecTime;
-
+#if HASH_TYPE
+  Int m_pictureDigestEnabled;  ///< Checksum(3)/CRC(2)/MD5(1)/disable(0) acting on SEI picture_digest message
+#else
   bool m_pictureDigestEnabled; ///< if true, handle picture_digest SEI messages
+#endif
+
 #if !AHG6_ALF_OPTION2
   AlfCUCtrlInfo       m_cAlfCUCtrlOneSlice;
   AlfParamSet           m_alfParamSetPilot;
@@ -109,7 +113,11 @@ public:
   Void  decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf );
   Void  setGopSize( Int i) { m_iGopSize = i; }
 
+#if HASH_TYPE
+  void setPictureDigestEnabled(Int enabled) { m_pictureDigestEnabled = enabled; }
+#else
   void setPictureDigestEnabled(bool enabled) { m_pictureDigestEnabled = enabled; }
+#endif
 #if !AHG6_ALF_OPTION2
   AlfCUCtrlInfo& getAlfCuCtrlParam() { return m_cAlfCUCtrlOneSlice; }
   AlfParamSet& getAlfParamSet() {return m_alfParamSetPilot;}

@@ -54,14 +54,18 @@ TComOutputBitstream::TComOutputBitstream()
 {
   m_fifo = new vector<uint8_t>;
   clear();
+#if !REMOVE_TILE_MARKERS
   m_puiTileMarkerLocation     = new UInt[MAX_MARKER_PER_NALU];
   m_uiTileMarkerLocationCount = 0;
+#endif
 }
 
 TComOutputBitstream::~TComOutputBitstream()
 {
   delete m_fifo;
+#if !REMOVE_TILE_MARKERS
   delete [] m_puiTileMarkerLocation;
+#endif
 }
 
 TComInputBitstream::TComInputBitstream(std::vector<uint8_t>* buf)
@@ -70,14 +74,18 @@ TComInputBitstream::TComInputBitstream(std::vector<uint8_t>* buf)
   m_fifo_idx = 0;
   m_held_bits = 0;
   m_num_held_bits = 0;
+#if !REMOVE_TILE_MARKERS
   m_puiTileMarkerLocation     = new UInt[MAX_MARKER_PER_NALU];
   m_uiTileMarkerLocationCount = 0;
+#endif
   m_numBitsRead = 0;
 }
 
 TComInputBitstream::~TComInputBitstream()
 {
+#if !REMOVE_TILE_MARKERS
   delete [] m_puiTileMarkerLocation;
+#endif
 }
 
 // ====================================================================================================================
@@ -99,7 +107,9 @@ void TComOutputBitstream::clear()
   m_fifo->clear();
   m_held_bits = 0;
   m_num_held_bits = 0;
+#if !REMOVE_TILE_MARKERS
   m_uiTileMarkerLocationCount = 0;
+#endif
 }
 
 Void TComOutputBitstream::write   ( UInt uiBits, UInt uiNumberOfBits )
@@ -180,7 +190,13 @@ Void   TComOutputBitstream::addSubstream( TComOutputBitstream* pcSubstream )
     write(pcSubstream->getHeldBits()>>(8-(uiNumBits&0x7)), uiNumBits&0x7);
   }
 }
-
+#if BYTE_ALIGNMENT
+Void TComOutputBitstream::writeByteAlignment()
+{
+  write( 1, 1);
+  writeAlignZero();
+}
+#endif
 /**
  * read #uiNumberOfBits# from bitstream without updating the bitstream
  * state, storing the result in #ruiBits#.
@@ -297,11 +313,13 @@ TComOutputBitstream& TComOutputBitstream::operator= (const TComOutputBitstream& 
 
   this->m_num_held_bits             = src.m_num_held_bits;
   this->m_held_bits                 = src.m_held_bits;
+#if !REMOVE_TILE_MARKERS
   this->m_uiTileMarkerLocationCount = src.m_uiTileMarkerLocationCount;
   for (Int uiIdx=0; uiIdx<m_uiTileMarkerLocationCount; uiIdx++)
   {
     this->m_puiTileMarkerLocation[uiIdx] = src.m_puiTileMarkerLocation[uiIdx];
   }
+#endif
 
   return *this;
 }
@@ -329,9 +347,6 @@ TComInputBitstream *TComInputBitstream::extractSubstream( UInt uiNumBits )
     uiByte <<= 8-(uiNumBits&0x7);
     buf->push_back(uiByte);
   }
-#if !OL_FLUSH_ALIGN
-  buf->push_back(0); // The final chunk might not start byte aligned.
-#endif
   return new TComInputBitstream(buf);
 }
 
@@ -343,5 +358,22 @@ Void TComInputBitstream::deleteFifo()
   delete m_fifo;
   m_fifo = NULL;
 }
+
+#if BYTE_ALIGNMENT
+Void TComInputBitstream::readByteAlignment()
+{
+  UInt code = 0;
+  read( 1, code );
+  assert(code == 1);
+
+  UInt numBits = getNumBitsUntilByteAligned();
+  if(numBits)
+  {
+    assert(numBits <= getNumBitsLeft());
+    read( numBits, code );
+    assert(code == 0);
+  }
+}
+#endif
 
 //! \}

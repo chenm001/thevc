@@ -191,7 +191,7 @@ namespace df
             /* newline found, print substring (newline needn't be stripped) */
             newline_pos++;
             line << opt_desc.substr(cur_pos, newline_pos - cur_pos);
-            cur_pos = newline_pos = newline_pos;
+            cur_pos = newline_pos;
             continue;
           }
           if (cur_pos + desc_width > opt_desc.size())

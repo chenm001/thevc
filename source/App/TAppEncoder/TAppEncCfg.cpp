@@ -230,11 +230,17 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("ASR",                     m_bUseASR,                false, "Adaptive motion search range")
 
   // Mode decision parameters
+#if !REMOVE_INTER_4X4
   ("DisableInter4x4",         m_bDisInter4x4,            true, "Disable Inter 4x4")
+#endif
   ("LambdaModifier0,-LM0", m_adLambdaModifier[ 0 ], ( double )1.0, "Lambda modifier for temporal layer 0")
   ("LambdaModifier1,-LM1", m_adLambdaModifier[ 1 ], ( double )1.0, "Lambda modifier for temporal layer 1")
   ("LambdaModifier2,-LM2", m_adLambdaModifier[ 2 ], ( double )1.0, "Lambda modifier for temporal layer 2")
   ("LambdaModifier3,-LM3", m_adLambdaModifier[ 3 ], ( double )1.0, "Lambda modifier for temporal layer 3")
+  ("LambdaModifier4,-LM4", m_adLambdaModifier[ 4 ], ( double )1.0, "Lambda modifier for temporal layer 4")
+  ("LambdaModifier5,-LM5", m_adLambdaModifier[ 5 ], ( double )1.0, "Lambda modifier for temporal layer 5")
+  ("LambdaModifier6,-LM6", m_adLambdaModifier[ 6 ], ( double )1.0, "Lambda modifier for temporal layer 6")
+  ("LambdaModifier7,-LM7", m_adLambdaModifier[ 7 ], ( double )1.0, "Lambda modifier for temporal layer 7")
 
   /* Quantization parameters */
   ("QP,q",          m_fQP,             30.0, "Qp value, if value is float, QP is switched once during encoding")
@@ -263,7 +269,11 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   
   // Deblocking filter parameters
   ("LoopFilterDisable",              m_bLoopFilterDisable,             false )
+#if DBL_HL_SYNTAX
+  ("LoopFilterOffsetInPPS",          m_loopFilterOffsetInPPS,          false )
+#else
   ("LoopFilterOffsetInAPS",          m_loopFilterOffsetInAPS,          false )
+#endif
   ("LoopFilterBetaOffset_div2",      m_loopFilterBetaOffsetDiv2,           0 )
   ("LoopFilterTcOffset_div2",        m_loopFilterTcOffsetDiv2,             0 )
   ("DeblockingFilterControlPresent", m_DeblockingFilterControlPresent, false )
@@ -295,8 +305,11 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #endif
     ("SliceMode",            m_iSliceMode,           0, "0: Disable all Recon slice limits, 1: Enforce max # of LCUs, 2: Enforce max # of bytes")
     ("SliceArgument",        m_iSliceArgument,       0, "if SliceMode==1 SliceArgument represents max # of LCUs. if SliceMode==2 SliceArgument represents max # of bytes.")
-    ("EntropySliceMode",     m_iEntropySliceMode,    0, "0: Disable all entropy slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based entropy slices")
-    ("EntropySliceArgument", m_iEntropySliceArgument,0, "if EntropySliceMode==1 SliceArgument represents max # of LCUs. if EntropySliceMode==2 EntropySliceArgument represents max # of bins.")
+    ("DependentSliceMode",     m_iDependentSliceMode,    0, "0: Disable all dependent slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based dependent slices")
+    ("DependentSliceArgument", m_iDependentSliceArgument,0, "if DependentSliceMode==1 SliceArgument represents max # of LCUs. if DependentSliceMode==2 DependentSliceArgument represents max # of bins.")
+#if DEPENDENT_SLICES
+    ("CabacIndependentFlag", m_bCabacIndependentFlag, true)
+#endif
     ("SliceGranularity",     m_iSliceGranularity,    0, "0: Slices always end at LCU borders. 1-3: slices may end at a depth of 1-3 below LCU level.")
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
 
@@ -311,21 +324,35 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("LosslessCuEnabled", m_useLossless, false)
 #endif
     ("weighted_pred_flag,-wpP",     m_bUseWeightPred, false, "weighted prediction flag (P-Slices)")
+#if REMOVE_IMPLICIT_WP
+    ("weighted_bipred_flag,-wpB",   m_useWeightedBiPred,    false,    "weighted bipred flag (B-Slices)")
+#else
     ("weighted_bipred_idc,-wpBidc", m_uiBiPredIdc,    0u,    "weighted bipred idc (B-Slices)")
+#endif
+#if !TILES_OR_ENTROPY_FIX
     ("TileInfoPresentFlag",         m_iColumnRowInfoPresent,         1,          "0: tiles parameters are NOT present in the PPS. 1: tiles parameters are present in the PPS")
+#endif
     ("UniformSpacingIdc",           m_iUniformSpacingIdr,            0,          "Indicates if the column and row boundaries are distributed uniformly")
     ("NumTileColumnsMinus1",        m_iNumColumnsMinus1,             0,          "Number of columns in a picture minus 1")
     ("ColumnWidthArray",            cfg_ColumnWidth,                 string(""), "Array containing ColumnWidth values in units of LCU")
     ("NumTileRowsMinus1",           m_iNumRowsMinus1,                0,          "Number of rows in a picture minus 1")
     ("RowHeightArray",              cfg_RowHeight,                   string(""), "Array containing RowHeight values in units of LCU")
+#if !EXPLICITLY_SIGNAL_ENTRY_POINTS
     ("TileLocationInSliceHeaderFlag", m_iTileLocationInSliceHeaderFlag, 0,       "0: Disable transmission of tile location in slice header. 1: Transmit tile locations in slice header.")
+#endif
+#if !REMOVE_TILE_MARKERS
     ("TileMarkerFlag",                m_iTileMarkerFlag,                0,       "0: Disable transmission of lightweight tile marker. 1: Transmit light weight tile marker.")
     ("MaxTileMarkerEntryPoints",    m_iMaxTileMarkerEntryPoints,    4,       "Maximum number of uniformly-spaced tile entry points (using light weigh tile markers). Default=4. If number of tiles < MaxTileMarkerEntryPoints then all tiles have entry points.")
+#endif
+#if !TILES_OR_ENTROPY_FIX
     ("TileControlPresentFlag",       m_iTileBehaviorControlPresentFlag,         1,          "0: tiles behavior control parameters are NOT present in the PPS. 1: tiles behavior control parameters are present in the PPS")
+#endif
     ("LFCrossTileBoundaryFlag",      m_bLFCrossTileBoundaryFlag,             true,          "1: cross-tile-boundary loop filtering. 0:non-cross-tile-boundary loop filtering")
     ("WaveFrontSynchro",            m_iWaveFrontSynchro,             0,          "0: no synchro; 1 synchro with TR; 2 TRR etc")
     ("WaveFrontFlush",              m_iWaveFrontFlush,               0,          "Flush and terminate CABAC coding for each LCU line")
+#if !WPP_SUBSTREAM_PER_ROW
     ("WaveFrontSubstreams",         m_iWaveFrontSubstreams,          1,          "# coded substreams wanted; per tile if TileBoundaryIndependenceIdc is 1, otherwise per frame")
+#endif
     ("ScalingList",                 m_useScalingListId,              0,          "0: no scaling list, 1: default scaling lists, 2: scaling lists specified in ScalingListFile")
     ("ScalingListFile",             cfg_ScalingListFile,             string(""), "Scaling list file name")
     ("SignHideFlag,-SBH",                m_signHideFlag, 1)
@@ -333,12 +360,22 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("SignHideThreshold,-TSIG",          m_signHidingThreshold,         4)
 #endif
   /* Misc. */
+#if HASH_TYPE
+  ("SEIpictureDigest", m_pictureDigestEnabled, 1, "Control generation of picture_digest SEI messages\n"
+                                              "\t3: checksum\n"
+                                              "\t2: CRC\n"
+                                              "\t1: use MD5\n"
+                                              "\t0: disable")
+#else
   ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
                                               "\t1: use MD5\n"
                                               "\t0: disable")
-
+#endif
+#if SLICE_TMVP_ENABLE
+  ("TMVPMode", m_TMVPModeId, 1, "TMVP mode 0: TMVP disable for all slices. 1: TMVP enable for all slices (default) 2: TMVP enable for certain slices only")
+#else
   ("TMVP", m_enableTMVP, true, "Enable TMVP" )
-
+#endif
   ("FEN", m_bUseFastEnc, false, "fast encoder setting")
   ("ECU", m_bUseEarlyCU, false, "Early CU setting") 
   ("FDM", m_useFastDecisionForMerge, true, "Fast decision for Merge RD Cost") 
@@ -350,6 +387,11 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   /* Compatability with old style -1 FOO or -0 FOO options. */
   ("1", doOldStyleCmdlineOn, "turn option <name> on")
   ("0", doOldStyleCmdlineOff, "turn option <name> off")
+
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  ("TransquantBypassEnableFlag", m_TransquantBypassEnableFlag, false, "transquant_bypass_enable_flag indicator in PPS")
+  ("CUTransquantBypassFlagValue", m_CUTransquantBypassFlagValue, false, "Fixed cu_transquant_bypass_flag value, when transquant_bypass_enable_flag is enabled")
+#endif
   ;
   
   for(Int i=1; i<MAX_GOP+1; i++) {
@@ -415,7 +457,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
         fprintf(stderr, "Error: picture width is not an integer multiple of the specified chroma subsampling\n");
         exit(EXIT_FAILURE);
       }
-      if (m_aiPad[1] % TComSPS::getCropUnitY(CHROMA_420) != 1)
+      if (m_aiPad[1] % TComSPS::getCropUnitY(CHROMA_420) != 0)
       {
         fprintf(stderr, "Error: picture height is not an integer multiple of the specified chroma subsampling\n");
         exit(EXIT_FAILURE);
@@ -482,7 +524,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
       fclose(fpt);
     }
   }
-
+#if WPP_SUBSTREAM_PER_ROW
+  m_iWaveFrontSubstreams = m_iWaveFrontSynchro ? (m_iSourceHeight + m_uiMaxCUHeight - 1) / m_uiMaxCUHeight : 1;
+#endif
   // check validity of input parameters
   xCheckParameter();
   
@@ -579,19 +623,19 @@ Void TAppEncCfg::xCheckParameter()
   {
     xConfirmPara( m_iSliceGranularity > 0 ,      "When SliceMode == 3 is chosen, the SliceGranularity must be 0" );
   }
-  xConfirmPara( m_iEntropySliceMode < 0 || m_iEntropySliceMode > 2, "EntropySliceMode exceeds supported range (0 to 2)" );
-  if (m_iEntropySliceMode!=0)
+  xConfirmPara( m_iDependentSliceMode < 0 || m_iDependentSliceMode > 2, "DependentSliceMode exceeds supported range (0 to 2)" );
+  if (m_iDependentSliceMode!=0)
   {
-    xConfirmPara( m_iEntropySliceArgument < 1 ,         "EntropySliceArgument should be larger than or equal to 1" );
+    xConfirmPara( m_iDependentSliceArgument < 1 ,         "DependentSliceArgument should be larger than or equal to 1" );
   }
   xConfirmPara( m_iSliceGranularity >= m_uiMaxCUDepth, "SliceGranularity must be smaller than maximum cu depth");
   xConfirmPara( m_iSliceGranularity <0 || m_iSliceGranularity > 3, "SliceGranularity exceeds supported range (0 to 3)" );
   xConfirmPara( m_iSliceGranularity > m_iMaxCuDQPDepth, "SliceGranularity must be smaller smaller than or equal to maximum dqp depth" );
 
   bool tileFlag = (m_iNumColumnsMinus1 > 0 || m_iNumRowsMinus1 > 0 );
-  xConfirmPara( tileFlag && m_iEntropySliceMode,            "Tile and Entropy Slice can not be applied together");
+  xConfirmPara( tileFlag && m_iDependentSliceMode,            "Tile and Dependent Slice can not be applied together");
   xConfirmPara( tileFlag && m_iWaveFrontSynchro,            "Tile and Wavefront can not be applied together");
-  xConfirmPara( m_iWaveFrontSynchro && m_iEntropySliceMode, "Wavefront and Entropy Slice can not be applied together");  
+  xConfirmPara( m_iWaveFrontSynchro && m_iDependentSliceMode, "Wavefront and Dependent Slice can not be applied together");  
 
   //TODO:ChromaFmt assumes 4:2:0 below
   xConfirmPara( m_iSourceWidth  % TComSPS::getCropUnitX(CHROMA_420) != 0, "Picture width must be an integer multiple of the specified chroma subsampling");
@@ -903,6 +947,10 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iWaveFrontSubstreams <= 0, "WaveFrontSubstreams must be positive" );
   xConfirmPara( m_iWaveFrontSubstreams > 1 && !m_iWaveFrontSynchro, "Must have WaveFrontSynchro > 0 in order to have WaveFrontSubstreams > 1" );
 
+#if HASH_TYPE
+  xConfirmPara( m_pictureDigestEnabled<0 || m_pictureDigestEnabled>3, "this hash type is not correct!\n");
+#endif
+
   if(m_enableRateCtrl)
   {
     Int numLCUInWidth  = (m_iSourceWidth  / m_uiMaxCUWidth) + (( m_iSourceWidth  %  m_uiMaxCUWidth ) ? 1 : 0);
@@ -914,6 +962,10 @@ Void TAppEncCfg::xCheckParameter()
     m_iMaxDeltaQP       = MAX_DELTA_QP;
     m_iMaxCuDQPDepth    = MAX_CUDQP_DEPTH;
   }
+
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  xConfirmPara(!m_TransquantBypassEnableFlag && m_CUTransquantBypassFlagValue, "CUTransquantBypassFlagValue cannot be 1 when TransquantBypassEnableFlag is 0");
+#endif
 
 #undef xConfirmPara
   if (check_failed)
@@ -991,10 +1043,12 @@ Void TAppEncCfg::xPrintParameter()
   printf("GOP size                     : %d\n", m_iGOPSize );
   printf("Internal bit depth           : %d\n", m_uiInternalBitDepth );
   printf("PCM sample bit depth         : %d\n", m_uiPCMBitDepthLuma );
+#if !REMOVE_INTER_4X4
   if((m_uiMaxCUWidth >> m_uiMaxCUDepth) == 4)
   {
     printf("DisableInter4x4              : %d\n", m_bDisInter4x4);  
   }
+#endif
   printf("RateControl                  : %d\n", m_enableRateCtrl);
   if(m_enableRateCtrl)
   {
@@ -1038,10 +1092,10 @@ Void TAppEncCfg::xPrintParameter()
   {
     printf("A=%d ", m_iSliceArgument);
   }
-  printf("EntropySlice: M=%d ",m_iEntropySliceMode);
-  if (m_iEntropySliceMode!=0)
+  printf("DependentSlice: M=%d ",m_iDependentSliceMode);
+  if (m_iDependentSliceMode!=0)
   {
-    printf("A=%d ", m_iEntropySliceArgument);
+    printf("A=%d ", m_iDependentSliceArgument);
   }
   printf("CIP:%d ", m_bUseConstrainedIntraPred);
   printf("SAO:%d ", (m_bUseSAO)?(1):(0));
@@ -1056,8 +1110,15 @@ Void TAppEncCfg::xPrintParameter()
   printf("LosslessCuEnabled:%d ", (m_useLossless)? 1:0 );
 #endif  
   printf("WPP:%d ", (Int)m_bUseWeightPred);
+#if REMOVE_IMPLICIT_WP
+  printf("WPB:%d ", (Int)m_useWeightedBiPred);
+#else
   printf("WPB:%d ", m_uiBiPredIdc);
+#endif
+#if !EXPLICITLY_SIGNAL_ENTRY_POINTS
   printf("TileLocationInSliceHdr:%d ", m_iTileLocationInSliceHeaderFlag);
+#endif
+#if !REMOVE_TILE_MARKERS
   printf("TileMarker:%d", m_iTileMarkerFlag);
   if (m_iTileMarkerFlag)
   {
@@ -1067,12 +1128,15 @@ Void TAppEncCfg::xPrintParameter()
   {
     printf(" ");
   }
+#endif
   printf(" WaveFrontSynchro:%d WaveFrontFlush:%d WaveFrontSubstreams:%d",
           m_iWaveFrontSynchro, m_iWaveFrontFlush, m_iWaveFrontSubstreams);
   printf(" ScalingList:%d ", m_useScalingListId );
-
+#if SLICE_TMVP_ENABLE
+  printf("TMVPMode:%d ", m_TMVPModeId     );
+#else
   printf("TMVP:%d ", m_enableTMVP     );
-
+#endif
 #if ADAPTIVE_QP_SELECTION
   printf("AQpS:%d", m_bUseAdaptQpSelect   );
 #endif

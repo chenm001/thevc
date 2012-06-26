@@ -77,9 +77,15 @@ public:
 
   Void  resetEntropy (TComSlice* pSlice );
   Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
-  
+#if VPS_INTEGRATION
+  Void  parseVPS                  ( TComVPS* pcVPS )  {}
+#endif
   Void  parseSPS                  ( TComSPS* pcSPS         ) {}
+#if !TILES_OR_ENTROPY_FIX
   Void  parsePPS                  ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet         ) {}
+#else
+  Void  parsePPS                  ( TComPPS* pcPPS         ) {}
+#endif
   Void  parseAPS                  ( TComAPS* pAPS          ) {}
   void parseSEI(SEImessages&) {}
 
@@ -93,7 +99,9 @@ public:
 #if SAO_TRUNCATED_U
   Void  parseSaoMaxUvlc           ( UInt& val, UInt maxSymbol );
 #endif
+#if !SAO_CODE_CLEAN_UP
   Void  parseSaoUvlc              ( UInt& ruiVal           );
+#endif
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   Void  parseSaoSvlc              ( Int&  riVal            );
 #endif
@@ -135,6 +143,9 @@ public:
   Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
 
   Void parseSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  Void parseCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
+#endif
   Void parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx );
   Void parseMergeIndex    ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth );
@@ -163,7 +174,9 @@ public:
   Void parseTransformSkipFlags ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType);
 #endif
 
+#if !REMOVE_TILE_MARKERS
   Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed );
+#endif
   Void updateContextTables( SliceType eSliceType, Int iQp );
 
   Void  parseScalingList ( TComScalingList* scalingList ) {}
@@ -204,7 +217,9 @@ private:
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;
   ContextModel3DBuffer m_cCUAMPSCModel;
+#if !SAO_CODE_CLEAN_UP
   ContextModel3DBuffer m_cSaoFlagSCModel;
+#endif
   ContextModel3DBuffer m_cSaoUvlcSCModel;
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   ContextModel3DBuffer m_cSaoSvlcSCModel;
@@ -214,6 +229,9 @@ private:
   ContextModel3DBuffer m_cSaoTypeIdxSCModel;
 #if INTRA_TRANSFORMSKIP
   ContextModel3DBuffer m_cTransformSkipSCModel;
+#endif
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  ContextModel3DBuffer m_CUTransquantBypassFlagSCModel;
 #endif
 };
 

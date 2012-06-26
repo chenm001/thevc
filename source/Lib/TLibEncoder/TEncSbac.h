@@ -95,11 +95,16 @@ public:
   UInt  getNumberOfWrittenBits ()                { return m_pcBinIf->getNumWrittenBits(); }
   //--SBAC RD
 
+#if VPS_INTEGRATION
+  Void  codeVPS                 ( TComVPS* pcVPS );
+#endif
   Void  codeSPS                 ( TComSPS* pcSPS     );
   Void  codePPS                 ( TComPPS* pcPPS     );
   void codeSEI(const SEI&);
   Void  codeSliceHeader         ( TComSlice* pcSlice );
+#if !REMOVE_TILE_MARKERS
   Void codeTileMarkerFlag(TComSlice* pcSlice) {printf("Not supported\n"); assert(0); exit(1);}
+#endif
   Void  codeTilesWPPEntryPoint( TComSlice* pSlice );
   Void  codeTerminatingBit      ( UInt uilsLast      );
   Void  codeSliceFinish         ();
@@ -119,15 +124,19 @@ public:
   Void codeAlfCtrlFlag       ( UInt uiSymbol );
 #endif
   Void  codeApsExtensionFlag () { assert (0); return; };
+#if !SAO_CODE_CLEAN_UP
   Void  codeSaoFlag       ( UInt uiCode );
   Void  codeSaoUvlc       ( UInt uiCode );
+#endif
 #if SAO_TRUNCATED_U
   Void  codeSaoMaxUvlc    ( UInt code, UInt maxSymbol );
 #endif
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   Void  codeSaoSvlc       ( Int  uiCode );
 #endif
+#if !SAO_CODE_CLEAN_UP
   Void  codeSaoRun        ( UInt  uiCode, UInt uiMaxValue  ) {;}
+#endif
   Void  codeSaoMergeLeft  ( UInt  uiCode, UInt uiCompIdx );
   Void  codeSaoMergeUp    ( UInt  uiCode);
   Void  codeSaoTypeIdx    ( UInt  uiCode);
@@ -183,6 +192,9 @@ public:
 #if !AHG6_ALF_OPTION2
   Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #endif
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  Void codeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx );
+#endif
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
@@ -226,8 +238,9 @@ public:
   
   Void updateContextTables           ( SliceType eSliceType, Int iQp, Bool bExecuteFinish=true  );
   Void updateContextTables           ( SliceType eSliceType, Int iQp  ) { this->updateContextTables( eSliceType, iQp, true); };
+#if !REMOVE_TILE_MARKERS
   Void writeTileMarker               ( UInt uiTileIdx, UInt uiBitsUsed );
-
+#endif
   
   TEncBinIf* getEncBinIf()  { return m_pcBinIf; }
 private:
@@ -265,7 +278,9 @@ private:
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;
   ContextModel3DBuffer m_cCUAMPSCModel;
+#if !SAO_CODE_CLEAN_UP
   ContextModel3DBuffer m_cSaoFlagSCModel;
+#endif
   ContextModel3DBuffer m_cSaoUvlcSCModel;
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   ContextModel3DBuffer m_cSaoSvlcSCModel;
@@ -275,6 +290,9 @@ private:
   ContextModel3DBuffer m_cSaoTypeIdxSCModel;
 #if INTRA_TRANSFORMSKIP
   ContextModel3DBuffer m_cTransformSkipSCModel;
+#endif
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  ContextModel3DBuffer m_CUTransquantBypassFlagSCModel;
 #endif
 };
 

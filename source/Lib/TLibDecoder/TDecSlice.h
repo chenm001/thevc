@@ -88,7 +88,10 @@ class ParameterSetManagerDecoder:public ParameterSetManager
 public:
   ParameterSetManagerDecoder();
   virtual ~ParameterSetManagerDecoder();
-
+#if VPS_INTEGRATION
+  Void     storePrefetchedVPS(TComVPS *vps)  { m_vpsBuffer.storePS( vps->getVPSId(), vps); };
+  TComVPS* getPrefetchedVPS  (Int vpsId);
+#endif
   Void     storePrefetchedSPS(TComSPS *sps)  { m_spsBuffer.storePS( sps->getSPSId(), sps); };
   TComSPS* getPrefetchedSPS  (Int spsId);
   Void     storePrefetchedPPS(TComPPS *pps)  { m_ppsBuffer.storePS( pps->getPPSId(), pps); };
@@ -99,6 +102,9 @@ public:
   Void     applyPrefetchedPS();
 
 private:
+#if VPS_INTEGRATION
+  ParameterSetMap<TComVPS> m_vpsBuffer;
+#endif
   ParameterSetMap<TComSPS> m_spsBuffer; 
   ParameterSetMap<TComPPS> m_ppsBuffer; 
   ParameterSetMap<TComAPS> m_apsBuffer; 

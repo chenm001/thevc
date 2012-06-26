@@ -49,9 +49,11 @@ extern bool g_md5_mismatch; ///< top level flag to signal when there is a decode
 
 //! \ingroup TLibDecoder
 //! \{
-
+#if HASH_TYPE
+static void calcAndPrintHashStatus(TComPicYuv& pic, const SEImessages* seis);
+#else
 static void calcAndPrintMD5Status(TComPicYuv& pic, const SEImessages* seis);
-
+#endif
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
 // ====================================================================================================================
@@ -195,7 +197,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
   //-- For time output for each slice
   long iBeforeTime = clock();
   
-  UInt uiStartCUAddr   = pcSlice->getEntropySliceCurStartCUAddr();
+  UInt uiStartCUAddr   = pcSlice->getDependentSliceCurStartCUAddr();
   static Bool  bFirst = true;
   static UInt  uiILSliceCount;
   static UInt* puiILSliceStartLCU;
@@ -204,6 +206,10 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #else
   static std::vector<AlfCUCtrlInfo> vAlfCUCtrlSlices;
 #endif
+#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+  static std::vector<Bool> LFCrossSliceBoundaryFlag;
+#endif
+
   if (!bExecuteDeblockAndAlf)
   {
     if(bFirst)
@@ -230,12 +236,17 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     ppcSubstreams    = new TComInputBitstream*[uiNumSubstreams];
     m_pcSbacDecoders = new TDecSbac[uiNumSubstreams];
     m_pcBinCABACs    = new TDecBinCABAC[uiNumSubstreams];
+#if !REMOVE_TILE_MARKERS
     UInt uiBitsRead = pcBitstream->getByteLocation()<<3;
+#endif
     for ( UInt ui = 0 ; ui < uiNumSubstreams ; ui++ )
     {
       m_pcSbacDecoders[ui].init(&m_pcBinCABACs[ui]);
+#if !REMOVE_TILE_MARKERS
       UInt uiSubstreamSizeBits = (ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
+#endif
       ppcSubstreams[ui] = pcBitstream->extractSubstream(ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
+#if !REMOVE_TILE_MARKERS
       // update location information from where tile markers were extracted
       {
         UInt uiDestIdx       = 0;
@@ -252,6 +263,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
         ppcSubstreams[ui]->setTileMarkerLocationCount( uiDestIdx );
         uiBitsRead += uiSubstreamSizeBits;
       }
+#endif
     }
 
     for ( UInt ui = 0 ; ui+1 < uiNumSubstreams; ui++ )
@@ -267,6 +279,9 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 
     if(uiSliceStartCuAddr == uiStartCUAddr)
     {
+#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+      LFCrossSliceBoundaryFlag.push_back( pcSlice->getLFCrossSliceBoundaryFlag());
+#endif
       if(pcSlice->getSPS()->getUseALF())
       {
 #if AHG6_ALF_OPTION2
@@ -292,6 +307,20 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #endif
       }
     }
+#if DEPENDENT_SLICES
+    if( pcSlice->getPPS()->getDependentSlicesEnabledFlag() && (!pcSlice->getPPS()->getCabacIndependentFlag()) )
+    {
+      pcSlice->initCTXMem_dec( 2 );
+      for ( UInt st = 0; st < 2; st++ )
+      {
+        TDecSbac* ctx = NULL;
+        ctx = new TDecSbac;
+        ctx->init( (TDecBinIf*)m_pcBinCABAC );
+        ctx->load( m_pcSbacDecoder );
+        pcSlice->setCTXMem_dec( ctx, st );
+      }
+    }
+#endif
 
     m_pcSbacDecoders[0].load(m_pcSbacDecoder);
     m_pcSliceDecoder->decompressSlice( pcBitstream, ppcSubstreams, rpcPic, m_pcSbacDecoder, m_pcSbacDecoders);
@@ -311,10 +340,25 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
   else
   {
     // deblocking filter
+#if !TILES_OR_ENTROPY_FIX
     Bool bLFCrossTileBoundary = (pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)?
                                 (pcSlice->getPPS()->getLFCrossTileBoundaryFlag()):(pcSlice->getPPS()->getSPS()->getLFCrossTileBoundaryFlag());
+#else
+    Bool bLFCrossTileBoundary = pcSlice->getPPS()->getLFCrossTileBoundaryFlag();
+#endif
     if (pcSlice->getPPS()->getDeblockingFilterControlPresent())
     {
+#if DBL_HL_SYNTAX
+      if(pcSlice->getPPS()->getLoopFilterOffsetInPPS())
+      {
+        pcSlice->setLoopFilterDisable(pcSlice->getPPS()->getLoopFilterDisable());
+        if (!pcSlice->getLoopFilterDisable())
+        {
+          pcSlice->setLoopFilterBetaOffset(pcSlice->getPPS()->getLoopFilterBetaOffset());
+          pcSlice->setLoopFilterTcOffset(pcSlice->getPPS()->getLoopFilterTcOffset());
+        }
+      }
+#else
       if(pcSlice->getSPS()->getUseDF())
       {
         if(pcSlice->getInheritDblParamFromAPS())
@@ -327,6 +371,7 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
           }
         }
       }
+#endif
     }
     m_pcLoopFilter->setCfg(pcSlice->getPPS()->getDeblockingFilterControlPresent(), pcSlice->getLoopFilterDisable(), pcSlice->getLoopFilterBetaOffset(), pcSlice->getLoopFilterTcOffset(), bLFCrossTileBoundary);
     m_pcLoopFilter->loopFilterPic( rpcPic );
@@ -336,7 +381,11 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
     {
       Int sliceGranularity = pcSlice->getPPS()->getSliceGranularity();
       puiILSliceStartLCU[uiILSliceCount] = rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU();
+#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+      rpcPic->createNonDBFilterInfo(puiILSliceStartLCU, uiILSliceCount,sliceGranularity,&LFCrossSliceBoundaryFlag,rpcPic->getPicSym()->getNumTiles() ,bLFCrossTileBoundary);
+#else
       rpcPic->createNonDBFilterInfo(puiILSliceStartLCU, uiILSliceCount,sliceGranularity,pcSlice->getSPS()->getLFCrossSliceBoundaryFlag(),rpcPic->getPicSym()->getNumTiles() ,bLFCrossTileBoundary);
+#endif
     }
 
     if( pcSlice->getSPS()->getUseSAO() )
@@ -434,7 +483,11 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #endif
     if (m_pictureDigestEnabled)
     {
+#if HASH_TYPE
+      calcAndPrintHashStatus(*rpcPic->getPicYuvRec(), rpcPic->getSEIs());
+#else
       calcAndPrintMD5Status(*rpcPic->getPicYuvRec(), rpcPic->getSEIs());
+#endif
     }
 
 #if FIXED_ROUNDING_FRAME_MEMORY
@@ -443,9 +496,9 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 
     rpcPic->setOutputMark(true);
     rpcPic->setReconMark(true);
-
+#if !SLICE_TMVP_ENABLE
     rpcPic->setUsedForTMVP( true );
-
+#endif
     uiILSliceCount = 0;
 #if AHG6_ALF_OPTION2
     for(Int compIdx=0; compIdx < 3; compIdx++)
@@ -455,9 +508,82 @@ Void TDecGop::decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, B
 #else
     vAlfCUCtrlSlices.clear();
 #endif
+#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+    LFCrossSliceBoundaryFlag.clear();
+#endif
   }
 }
+#if HASH_TYPE
+/**
+ * Calculate and print hash for pic, compare to picture_digest SEI if
+ * present in seis.  seis may be NULL.  Hash is printed to stdout, in
+ * a manner suitable for the status line. Theformat is:
+ *  [Hash_type:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,(yyy)]
+ * Where, x..x is the hash
+ *        yyy has the following meanings:
+ *            OK          - calculated hash matches the SEI message
+ *            ***ERROR*** - calculated hash does not match the SEI message
+ *            unk         - no SEI message was available for comparison
+ */
+static void calcAndPrintHashStatus(TComPicYuv& pic, const SEImessages* seis)
+{
+  /* calculate MD5sum for entire reconstructed picture */
+  unsigned char recon_digest[3][16];
+  int numChar=0;
+  const char* hashType;
 
+  if(seis->picture_digest->method == SEIpictureDigest::MD5)
+  {
+    hashType = "MD5";
+    calcMD5(pic, recon_digest);
+    numChar = 16;    
+  }
+  else if(seis->picture_digest->method == SEIpictureDigest::CRC)
+  {
+    hashType = "CRC";
+    calcCRC(pic, recon_digest);
+    numChar = 2;
+  }
+  else if(seis->picture_digest->method == SEIpictureDigest::CHECKSUM)
+  {
+    hashType = "Checksum";
+    calcChecksum(pic, recon_digest);
+    numChar = 4;
+  }
+  else
+  {
+    hashType = "\0";
+  }
+
+  /* compare digest against received version */
+  const char* ok = "(unk)";
+  bool mismatch = false;
+
+  if (seis && seis->picture_digest)
+  {
+   ok = "(OK)";
+    for(int yuvIdx = 0; yuvIdx < 3; yuvIdx++)
+    {
+      for (unsigned i = 0; i < numChar; i++)
+      {
+        if (recon_digest[yuvIdx][i] != seis->picture_digest->digest[yuvIdx][i])
+        {
+          ok = "(***ERROR***)";
+          mismatch = true;
+        }
+      }
+    }
+  }
+
+  printf("[%s:%s,%s] ", hashType, digestToString(recon_digest, numChar), ok);
+
+  if (mismatch)
+  {
+    g_md5_mismatch = true;
+    printf("[rx%s:%s] ", hashType, digestToString(seis->picture_digest->digest, numChar));
+  }
+}
+#else
 /**
  * Calculate and print MD5 for pic, compare to picture_digest SEI if
  * present in seis.  seis may be NULL.  MD5 is printed to stdout, in
@@ -499,4 +625,5 @@ static void calcAndPrintMD5Status(TComPicYuv& pic, const SEImessages* seis)
     printf("[rxMD5:%s] ", digestToString(seis->picture_digest->digest));
   }
 }
+#endif
 //! \}

@@ -71,6 +71,9 @@ private:
   
   Bool                    m_bRefreshPending;    ///< refresh pending flag
   Int                     m_pocCRA;            ///< POC number of the latest CRA picture
+#if CRA_BLA_TFD_MODIFICATIONS
+  Bool                    m_prevRAPisBLA;      ///< true if the previous RAP (CRA/CRANT/BLA/BLANT/IDR) picture is a BLA/BLANT picture
+#endif
   Int                     m_pocRandomAccess;   ///< POC number of the random access point (the first IDR or CRA picture)
 
   UInt                    m_uiValidPS;
@@ -95,6 +98,9 @@ private:
   TComAdaptiveLoopFilter  m_cAdaptiveLoopFilter;
   TComSampleAdaptiveOffset m_cSAO;
 
+#if CRA_BLA_TFD_MODIFICATIONS
+  Bool isSkipPictureForBLA(Int& iPOCLastDisplay);
+#endif
   Bool isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay);
   TComPic*                m_pcPic;
   UInt                    m_uiSliceIdx;
@@ -110,8 +116,12 @@ public:
   Void  create  ();
   Void  destroy ();
 
+#if HASH_TYPE
+  void setPictureDigestEnabled(Int enabled) { m_cGopDecoder.setPictureDigestEnabled(enabled); }
+#else
   void setPictureDigestEnabled(bool enabled) { m_cGopDecoder.setPictureDigestEnabled(enabled); }
-  
+#endif
+
   Void  init();
   Bool  decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay);
   
@@ -127,6 +137,9 @@ protected:
   Void      decodeAPS( TComAPS* cAPS) { m_cEntropyDecoder.decodeAPS(cAPS); };
   Void      xActivateParameterSets();
   Bool      xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisplay);
+#if VPS_INTEGRATION
+  Void      xDecodeVPS();
+#endif
   Void      xDecodeSPS();
   Void      xDecodePPS();
   Void      xDecodeAPS();

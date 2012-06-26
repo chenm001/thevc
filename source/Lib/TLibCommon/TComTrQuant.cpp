@@ -1364,8 +1364,12 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
                                 )
 #endif
 {
-#if LOSSLESS_CODING
+#if LOSSLESS_CODING || CU_LEVEL_TRANSQUANT_BYPASS
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  if (pcCU->getCUTransquantBypass(uiAbsPartIdx))
+#else // LOSSLESS_CODING
   if((m_cQP.qp() == 0) && (pcCU->getSlice()->getSPS()->getUseLossless()))
+#endif
   {
     uiAbsSum=0;
     for (UInt k = 0; k<uiHeight; k++)
@@ -1411,21 +1415,29 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
 }
 
 #if INTRA_TRANSFORMSKIP
-#if LOSSLESS_CODING
+#if CU_LEVEL_TRANSQUANT_BYPASS
+Void TComTrQuant::invtransformNxN( Bool transQuantBypass, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType, Bool useTransformSkip )
+#elif LOSSLESS_CODING
 Void TComTrQuant::invtransformNxN( TComDataCU* pcCU, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType, Bool useTransformSkip )
 #else
 Void TComTrQuant::invtransformNxN(                   TextType eText, UInt uiMode,Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight, Int scalingListType, Bool useTransformSkip )
 #endif
 #else
-#if LOSSLESS_CODING
+#if CU_LEVEL_TRANSQUANT_BYPASS
+Void TComTrQuant::invtransformNxN( Bool transQuantBypass, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType )
+#elif LOSSLESS_CODING
 Void TComTrQuant::invtransformNxN( TComDataCU* pcCU, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType )
 #else
 Void TComTrQuant::invtransformNxN(                   TextType eText, UInt uiMode,Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight, Int scalingListType )
 #endif
 #endif
 {
-#if LOSSLESS_CODING
+#if LOSSLESS_CODING || CU_LEVEL_TRANSQUANT_BYPASS
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  if(transQuantBypass)
+#else
   if((m_cQP.qp() == 0) && (pcCU->getSlice()->getSPS()->getUseLossless()))
+#endif
   {
     for (UInt k = 0; k<uiHeight; k++)
     {
@@ -1489,7 +1501,9 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
     }
     Int scalingListType = (pcCU->isIntra(uiAbsPartIdx) ? 0 : 3) + g_eTTable[(Int)eTxt];
     assert(scalingListType < 6);
-#if LOSSLESS_CODING
+#if CU_LEVEL_TRANSQUANT_BYPASS
+    invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, scalingListType );
+#elif LOSSLESS_CODING
     invtransformNxN( pcCU, eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, scalingListType );
 #else  
     invtransformNxN(       eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, scalingListType );
@@ -1688,7 +1702,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 {
   Int    iQBits      = m_cQP.m_iBits;
   Double dTemp       = 0;
-  
   UInt dir         = SCALING_LIST_SQT;
   UInt uiLog2TrSize = g_aucConvertToBit[ uiWidth ] + 2;
   Int uiQ = g_quantScales[m_cQP.rem()];

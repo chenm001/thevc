@@ -60,6 +60,9 @@ private:
   UInt                  m_uiTLayer;               //  Temporal layer
   Bool                  m_bUsedByCurr;            //  Used by current picture
   Bool                  m_bIsLongTerm;            //  IS long term picture
+#if NO_MV_SCALING_IF_LONG_TERM_REF
+  Bool                  m_bIsUsedAsLongTerm;      //  long term picture is used as reference before
+#endif
   TComPicSym*           m_apcPicSym;              //  Symbol
   
   TComPicYuv*           m_apcPicYuv[2];           //  Texture,  0:org / 1:rec
@@ -69,9 +72,9 @@ private:
   Bool                  m_bReconstructed;
   Bool                  m_bNeededForOutput;
   UInt                  m_uiCurrSliceIdx;         // Index of current slice
-
+#if !SLICE_TMVP_ENABLE
   Bool                  m_usedForTMVP;
-  
+#endif
   Int*                  m_pSliceSUMap;
   Bool*                 m_pbValidSlice;
   Int                   m_sliceGranularityForNDBFilter;
@@ -82,6 +85,9 @@ private:
   std::vector<std::vector<TComDataCU*> > m_vSliceCUDataLink;
 
   SEImessages* m_SEIs; ///< Any SEI messages that have been received.  If !NULL we own the object.
+#if DEPENDENT_SLICES
+  UInt m_uiCurrDepSliceIdx;
+#endif
 
 public:
   TComPic();
@@ -97,6 +103,10 @@ public:
   Void          setUsedByCurr( Bool bUsed ) { m_bUsedByCurr = bUsed; }
   Bool          getIsLongTerm()             { return m_bIsLongTerm; }
   Void          setIsLongTerm( Bool lt ) { m_bIsLongTerm = lt; }
+#if NO_MV_SCALING_IF_LONG_TERM_REF
+  Bool          getIsUsedAsLongTerm()          { return m_bIsUsedAsLongTerm; }
+  Void          setIsUsedAsLongTerm( Bool lt ) { m_bIsUsedAsLongTerm = lt; }
+#endif
   Void          setCheckLTMSBPresent     (Bool b ) {m_bCheckLTMSB=b;}
   Bool          getCheckLTMSBPresent     () { return m_bCheckLTMSB;}
 
@@ -130,10 +140,10 @@ public:
   
   Void          setReconMark (Bool b) { m_bReconstructed = b;     }
   Bool          getReconMark ()       { return m_bReconstructed;  }
-
+#if !SLICE_TMVP_ENABLE
   Void          setUsedForTMVP( Bool b ) { m_usedForTMVP = b;    }
   Bool          getUsedForTMVP()         { return m_usedForTMVP; }
-
+#endif
   Void          setOutputMark (Bool b) { m_bNeededForOutput = b;     }
   Bool          getOutputMark ()       { return m_bNeededForOutput;  }
  
@@ -143,11 +153,18 @@ public:
   UInt          getNumAllocatedSlice()       {return m_apcPicSym->getNumAllocatedSlice();}
   Void          allocateNewSlice()           {m_apcPicSym->allocateNewSlice();         }
   Void          clearSliceBuffer()           {m_apcPicSym->clearSliceBuffer();         }
-  
+
+#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+  Void          createNonDBFilterInfo   (UInt* pSliceStartAddress , Int numSlices, Int sliceGranularityDepth
+                                        ,std::vector<Bool>* LFCrossSliceBoundary
+                                        ,Int  numTiles = 1
+                                        ,Bool bNDBFilterCrossTileBoundary = true);
+#else
   Void          createNonDBFilterInfo   (UInt* pSliceStartAddress = NULL, Int numSlices = 1, Int sliceGranularityDepth= 0
                                         ,Bool bNDBFilterCrossSliceBoundary = true
                                         ,Int  numTiles = 1
                                         ,Bool bNDBFilterCrossTileBoundary = true);
+#endif
   Void          createNonDBFilterInfoLCU(Int tileID, Int sliceID, TComDataCU* pcCU, UInt startSU, UInt endSU, Int sliceGranularyDepth, UInt picWidth, UInt picHeight);
   Void          destroyNonDBFilterInfo();
 
@@ -170,6 +187,10 @@ public:
    * return the current list of SEI messages associated with this picture.
    * Pointer is valid until this->destroy() is called */
   const SEImessages* getSEIs() const { return m_SEIs; }
+#if DEPENDENT_SLICES
+  UInt          getCurrDepSliceIdx()              { return m_uiCurrDepSliceIdx; }
+  Void          setCurrDepSliceIdx( UInt i )      { m_uiCurrDepSliceIdx = i; }
+#endif
 
 };// END CLASS DEFINITION TComPic
 

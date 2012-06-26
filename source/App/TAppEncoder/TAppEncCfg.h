@@ -87,7 +87,9 @@ protected:
 #if !REMOVE_LC
   Bool      m_bLCMod;                                         ///< flag for specifying whether the combined reference list for uni-prediction in B-slices is uploaded explicitly
 #endif
+#if !REMOVE_INTER_4X4
   Bool      m_bDisInter4x4;
+#endif
   Bool      m_enableNSQT;                                     ///< flag for enabling NSQT
   Bool      m_enableAMP;
   // coding quality
@@ -156,7 +158,11 @@ protected:
   Bool      m_bALFPicBasedEncode;
 #endif
   Bool      m_bLoopFilterDisable;                             ///< flag for using deblocking filter
+#if DBL_HL_SYNTAX
+  Bool      m_loopFilterOffsetInPPS;                         ///< offset for deblocking filter in 0 = slice header, 1 = PPS
+#else
   Bool      m_loopFilterOffsetInAPS;                         ///< offset for deblocking filter in 0 = slice header, 1 = APS
+#endif
   Int       m_loopFilterBetaOffsetDiv2;                     ///< beta offset for deblocking filter
   Int       m_loopFilterTcOffsetDiv2;                       ///< tc offset for deblocking filter
   Bool      m_DeblockingFilterControlPresent;                 ///< deblocking filter control present flag in PPS
@@ -184,37 +190,59 @@ protected:
   Bool      m_useEarlySkipDetection;                         ///< flag for using Early SKIP Detection
   Int       m_iSliceMode;           ///< 0: Disable all Recon slice limits, 1 : Maximum number of largest coding units per slice, 2: Maximum number of bytes in a slice
   Int       m_iSliceArgument;       ///< If m_iSliceMode==1, m_iSliceArgument=max. # of largest coding units. If m_iSliceMode==2, m_iSliceArgument=max. # of bytes.
-  Int       m_iEntropySliceMode;    ///< 0: Disable all entropy slice limits, 1 : Maximum number of largest coding units per slice, 2: Constraint based entropy slice
-  Int       m_iEntropySliceArgument;///< If m_iEntropySliceMode==1, m_iEntropySliceArgument=max. # of largest coding units. If m_iEntropySliceMode==2, m_iEntropySliceArgument=max. # of bins.
+  Int       m_iDependentSliceMode;    ///< 0: Disable all dependent slice limits, 1 : Maximum number of largest coding units per slice, 2: Constraint based dependent slice
+  Int       m_iDependentSliceArgument;///< If m_iDependentSliceMode==1, m_iEDependentSliceArgument=max. # of largest coding units. If m_iDependnetSliceMode==2, m_iDependnetSliceArgument=max. # of bins.
+#if DEPENDENT_SLICES
+  Bool       m_bCabacIndependentFlag;  // 0: CABAC dependence between slices, 1:CABAC independence between slices
+#endif
 
   Int       m_iSliceGranularity;///< 0: Slices always end at LCU borders. 1-3: slices may end at a depth of 1-3 below LCU level.
-  Bool m_bLFCrossSliceBoundaryFlag;  ///< 0: Cross-slice-boundary in-loop filtering 1: non-cross-slice-boundary in-loop filtering
+  Bool      m_bLFCrossSliceBoundaryFlag;  ///< 0: Cross-slice-boundary in-loop filtering 1: non-cross-slice-boundary in-loop filtering
+#if !TILES_OR_ENTROPY_FIX
   Int  m_iTileBehaviorControlPresentFlag; //!< 1: tile behavior control parameters are in PPS 0: tile behavior control parameters are not in PPS
-  Bool m_bLFCrossTileBoundaryFlag;  //!< 1: Cross-tile-boundary in-loop filtering 0: non-cross-tile-boundary in-loop filtering
+#endif
+  Bool      m_bLFCrossTileBoundaryFlag;  //!< 1: Cross-tile-boundary in-loop filtering 0: non-cross-tile-boundary in-loop filtering
+#if !TILES_OR_ENTROPY_FIX
   Int       m_iColumnRowInfoPresent;
+#endif
   Int       m_iUniformSpacingIdr;
   Int       m_iNumColumnsMinus1;
   char*     m_pchColumnWidth;
   Int       m_iNumRowsMinus1;
   char*     m_pchRowHeight;
+#if !EXPLICITLY_SIGNAL_ENTRY_POINTS
   Int       m_iTileLocationInSliceHeaderFlag; //< enable(1)/disable(0) transmitssion of tile location in slice header
+#endif
+#if !REMOVE_TILE_MARKERS
   Int       m_iTileMarkerFlag;              //< enable(1)/disable(0) transmitssion of light weight tile marker
   Int       m_iMaxTileMarkerEntryPoints;    //< maximum number of tile markers allowed in a slice (controls degree of parallelism)
   Double    m_dMaxTileMarkerOffset;         //< Calculated offset. Light weight tile markers will be transmitted for TileIdx= Offset, 2*Offset, 3*Offset ... 
-
+#endif
   Int       m_iWaveFrontSynchro; //< 0: no WPP. >= 1: WPP is enabled, the "Top right" from which inheritance occurs is this LCU offset in the line above the current.
   Int       m_iWaveFrontFlush; //< enable(1)/disable(0) the CABAC flush at the end of each line of LCUs.
   Int       m_iWaveFrontSubstreams; //< If iWaveFrontSynchro, this is the number of substreams per frame (dependent tiles) or per tile (independent tiles).
 
   Bool      m_bUseConstrainedIntraPred;                       ///< flag for using constrained intra prediction
   
+#if HASH_TYPE
+  Int       m_pictureDigestEnabled;                          ///< Checksum(3)/CRC(2)/MD5(1)/disable(0) acting on SEI picture_digest message
+#else
   bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
+#endif
 
   // weighted prediction
   Bool      m_bUseWeightPred;                                 ///< Use of explicit Weighting Prediction for P_SLICE
+#if REMOVE_IMPLICIT_WP
+  Bool      m_useWeightedBiPred;                                    ///< Use of Bi-Directional Weighting Prediction (B_SLICE)
+#else
   UInt      m_uiBiPredIdc;                                    ///< Use of Bi-Directional Weighting Prediction (B_SLICE): explicit(1) or implicit(2)
+#endif
 
+#if SLICE_TMVP_ENABLE
+  Int       m_TMVPModeId;
+# else
   Bool      m_enableTMVP;
+#endif
   Int       m_signHideFlag;
 #if !FIXED_SBH_THRESHOLD
   Int       m_signHidingThreshold;
@@ -224,6 +252,12 @@ protected:
   Int       m_numLCUInUnit;                                  ///< Total number of LCUs in a frame should be completely divided by the NumLCUInUnit
   Int       m_useScalingListId;                               ///< using quantization matrix
   char*     m_scalingListFile;                                ///< quantization matrix file name
+
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  Bool      m_TransquantBypassEnableFlag;                     ///< transquant_bypass_enable_flag setting in PPS.
+  Bool      m_CUTransquantBypassFlagValue;                    ///< if transquant_bypass_enable_flag, the fixed value to use for the per-CU cu_transquant_bypass_flag.
+#endif
+
   // internal member functions
   Void  xSetGlobal      ();                                   ///< set global variables
   Void  xCheckParameter ();                                   ///< check validity of configuration values

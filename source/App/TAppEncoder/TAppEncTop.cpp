@@ -67,6 +67,18 @@ TAppEncTop::~TAppEncTop()
 
 Void TAppEncTop::xInitLibCfg()
 {
+#if VPS_INTEGRATION
+  TComVPS vps;
+  
+  vps.setMaxTLayers                       ( m_maxTempLayer );
+  vps.setMaxLayers                        ( 1 );
+  for(Int i = 0; i < MAX_TLAYER; i++)
+  {
+    vps.setNumReorderPics                 ( m_numReorderPics[i], i );
+    vps.setMaxDecPicBuffering             ( m_maxDecPicBuffering[i], i );
+  }
+  m_cTEncTop.setVPS(&vps);
+#endif
   m_cTEncTop.setFrameRate                    ( m_iFrameRate );
   m_cTEncTop.setFrameSkip                    ( m_FrameSkip );
   m_cTEncTop.setSourceWidth                  ( m_iSourceWidth );
@@ -99,9 +111,9 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setPad                          ( m_aiPad );
     
   m_cTEncTop.setMaxTempLayer                 ( m_maxTempLayer );
-
+#if !REMOVE_INTER_4X4
   m_cTEncTop.setDisInter4x4                  ( m_bDisInter4x4);
-  
+#endif
   m_cTEncTop.setUseNSQT( m_enableNSQT );
   m_cTEncTop.setUseAMP( m_enableAMP );
   
@@ -109,7 +121,11 @@ Void TAppEncTop::xInitLibCfg()
   
   //====== Loop/Deblock Filter ========
   m_cTEncTop.setLoopFilterDisable            ( m_bLoopFilterDisable       );
+#if DBL_HL_SYNTAX
+  m_cTEncTop.setLoopFilterOffsetInPPS        ( m_loopFilterOffsetInPPS );
+#else
   m_cTEncTop.setLoopFilterOffsetInAPS        ( m_loopFilterOffsetInAPS );
+#endif
   m_cTEncTop.setLoopFilterBetaOffset         ( m_loopFilterBetaOffsetDiv2  );
   m_cTEncTop.setLoopFilterTcOffset           ( m_loopFilterTcOffsetDiv2    );
   m_cTEncTop.setDeblockingFilterControlPresent( m_DeblockingFilterControlPresent);
@@ -185,18 +201,25 @@ Void TAppEncTop::xInitLibCfg()
 
   //====== Weighted Prediction ========
   m_cTEncTop.setUseWP                   ( m_bUseWeightPred      );
+#if REMOVE_IMPLICIT_WP
+  m_cTEncTop.setWPBiPred                ( m_useWeightedBiPred   );
+#else
   m_cTEncTop.setWPBiPredIdc             ( m_uiBiPredIdc         );
+#endif
   //====== Slice ========
   m_cTEncTop.setSliceMode               ( m_iSliceMode                );
   m_cTEncTop.setSliceArgument           ( m_iSliceArgument            );
 
-  //====== Entropy Slice ========
-  m_cTEncTop.setEntropySliceMode        ( m_iEntropySliceMode         );
-  m_cTEncTop.setEntropySliceArgument    ( m_iEntropySliceArgument     );
+  //====== Dependent Slice ========
+  m_cTEncTop.setDependentSliceMode        ( m_iDependentSliceMode         );
+  m_cTEncTop.setDependentSliceArgument    ( m_iDependentSliceArgument     );
+#if DEPENDENT_SLICES
+  m_cTEncTop.setCabacIndependentFlag      ( m_bCabacIndependentFlag   );
+#endif
   int iNumPartInCU = 1<<(m_uiMaxCUDepth<<1);
-  if(m_iEntropySliceMode==SHARP_FIXED_NUMBER_OF_LCU_IN_ENTROPY_SLICE)
+  if(m_iDependentSliceMode==SHARP_FIXED_NUMBER_OF_LCU_IN_DEPENDENT_SLICE)
   {
-    m_cTEncTop.setEntropySliceArgument ( m_iEntropySliceArgument * ( iNumPartInCU >> ( m_iSliceGranularity << 1 ) ) );
+    m_cTEncTop.setDependentSliceArgument ( m_iDependentSliceArgument * ( iNumPartInCU >> ( m_iSliceGranularity << 1 ) ) );
   }
   if(m_iSliceMode==AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE)
   {
@@ -225,7 +248,9 @@ Void TAppEncTop::xInitLibCfg()
 
   m_cTEncTop.setPictureDigestEnabled(m_pictureDigestEnabled);
 
+#if !TILES_OR_ENTROPY_FIX
   m_cTEncTop.setColumnRowInfoPresent       ( m_iColumnRowInfoPresent );
+#endif
   m_cTEncTop.setUniformSpacingIdr          ( m_iUniformSpacingIdr );
   m_cTEncTop.setNumColumnsMinus1           ( m_iNumColumnsMinus1 );
   m_cTEncTop.setNumRowsMinus1              ( m_iNumRowsMinus1 );
@@ -235,14 +260,21 @@ Void TAppEncTop::xInitLibCfg()
     m_cTEncTop.setRowHeight                ( m_pchRowHeight );
   }
   m_cTEncTop.xCheckGSParameters();
+#if !EXPLICITLY_SIGNAL_ENTRY_POINTS
   m_cTEncTop.setTileLocationInSliceHeaderFlag ( m_iTileLocationInSliceHeaderFlag );
+#endif
+#if !REMOVE_TILE_MARKERS
   m_cTEncTop.setTileMarkerFlag              ( m_iTileMarkerFlag );
   m_cTEncTop.setMaxTileMarkerEntryPoints    ( m_iMaxTileMarkerEntryPoints );
-  
+#endif
   Int uiTilesCount          = (m_iNumRowsMinus1+1) * (m_iNumColumnsMinus1+1);
+#if !REMOVE_TILE_MARKERS
   m_dMaxTileMarkerOffset  = ((Double)uiTilesCount) / m_iMaxTileMarkerEntryPoints;
   m_cTEncTop.setMaxTileMarkerOffset         ( m_dMaxTileMarkerOffset );
+#endif
+#if !TILES_OR_ENTROPY_FIX
   m_cTEncTop.setTileBehaviorControlPresentFlag( m_iTileBehaviorControlPresentFlag );
+#endif
   if(uiTilesCount == 1)
   {
     m_bLFCrossTileBoundaryFlag = true; 
@@ -251,7 +283,11 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setWaveFrontSynchro           ( m_iWaveFrontSynchro );
   m_cTEncTop.setWaveFrontFlush             ( m_iWaveFrontFlush );
   m_cTEncTop.setWaveFrontSubstreams        ( m_iWaveFrontSubstreams );
+#if SLICE_TMVP_ENABLE
+  m_cTEncTop.setTMVPModeId ( m_TMVPModeId );
+#else
   m_cTEncTop.setEnableTMVP ( m_enableTMVP );
+#endif
   m_cTEncTop.setUseScalingListId           ( m_useScalingListId  );
   m_cTEncTop.setScalingListFile            ( m_scalingListFile   );
   m_cTEncTop.setSignHideFlag(m_signHideFlag);
@@ -272,6 +308,10 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseRateCtrl     ( m_enableRateCtrl);
   m_cTEncTop.setTargetBitrate   ( m_targetBitrate);
   m_cTEncTop.setNumLCUInUnit    ( m_numLCUInUnit);
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  m_cTEncTop.setTransquantBypassEnableFlag(m_TransquantBypassEnableFlag);
+  m_cTEncTop.setCUTransquantBypassFlagValue(m_CUTransquantBypassFlagValue);
+#endif
 }
 
 Void TAppEncTop::xCreateLib()
@@ -467,12 +507,31 @@ void TAppEncTop::rateStatsAccum(const AccessUnit& au, const std::vector<unsigned
   {
     switch ((*it_au)->m_nalUnitType)
     {
+#if NEW_NAL_UNIT_TYPES
+    case NAL_UNIT_CODED_SLICE:
+    case NAL_UNIT_CODED_SLICE_TFD:
+    case NAL_UNIT_CODED_SLICE_TLA:
+    case NAL_UNIT_CODED_SLICE_CRA:
+    case NAL_UNIT_CODED_SLICE_CRANT:
+    case NAL_UNIT_CODED_SLICE_BLA:
+    case NAL_UNIT_CODED_SLICE_BLANT:
+    case NAL_UNIT_CODED_SLICE_IDR:
+#if VPS_INTEGRATION
+    case NAL_UNIT_VPS:
+#endif
+    case NAL_UNIT_SPS:
+    case NAL_UNIT_PPS:
+#else
     case NAL_UNIT_CODED_SLICE:
     case NAL_UNIT_CODED_SLICE_TLA:
     case NAL_UNIT_CODED_SLICE_CRA:
     case NAL_UNIT_CODED_SLICE_IDR:
+#if VPS_INTEGRATION
+    case NAL_UNIT_VPS:
+#endif
     case NAL_UNIT_SPS:
     case NAL_UNIT_PPS:
+#endif
       m_essentialBytes += *it_stats;
       break;
     default:

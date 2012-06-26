@@ -69,9 +69,6 @@ public:
 
   virtual Void  copyState         ( TDecBinIf* pcTDecBinIf )                  = 0;
   virtual TDecBinCABAC*   getTDecBinCABAC   ()  { return 0; }
-#if !OL_FLUSH_ALIGN
-  virtual Int   getBitsReadAhead() { return 0; }
-#endif
 };
 
 //! \}

@@ -63,6 +63,7 @@ TComSampleAdaptiveOffset::TComSampleAdaptiveOffset()
 {
   m_pClipTable = NULL;
   m_pClipTableBase = NULL;
+  m_iOffsetBo = NULL;
   m_lumaTableBo = NULL;
   m_iUpBuff1 = NULL;
   m_iUpBuff2 = NULL;
@@ -313,20 +314,19 @@ Void TComSampleAdaptiveOffset::destroy()
     delete[] m_lumaTableBo; m_lumaTableBo = NULL;
   }
 
-  m_iUpBuff1--;
-  m_iUpBuff2--;
-  m_iUpBufft--;
-
   if (m_iUpBuff1)
   {
+    m_iUpBuff1--;
     delete [] m_iUpBuff1; m_iUpBuff1 = NULL;
   }
   if (m_iUpBuff2)
   {
+    m_iUpBuff2--;
     delete [] m_iUpBuff2; m_iUpBuff2 = NULL;
   }
   if (m_iUpBufft)
   {
+    m_iUpBufft--;
     delete [] m_iUpBufft; m_iUpBufft = NULL;
   }
   if (m_pTmpL1)
@@ -1150,7 +1150,7 @@ Void TComSampleAdaptiveOffset::processSaoUnitAll(SaoLcuParam* saoLcuParam, Bool 
   Pel* ppLumaTable = NULL;
   Int  typeIdx;
 
-  static Int offset[LUMA_GROUP_NUM+1];
+  Int offset[LUMA_GROUP_NUM+1];
   Int idxX;
   Int idxY;
   Int addr;
@@ -1161,7 +1161,7 @@ Void TComSampleAdaptiveOffset::processSaoUnitAll(SaoLcuParam* saoLcuParam, Bool 
   Int isChroma = (yCbCr == 0) ? 0:1;
   Bool mergeLeftFlag;
 
-  offset[0] = 0; // ticket 534 
+  offset[0] = 0;
   for (idxY = 0; idxY< frameHeightInCU; idxY++)
   { 
     addr = idxY * frameWidthInCU;
@@ -1376,8 +1376,10 @@ Void TComSampleAdaptiveOffset::resetSaoUnit(SaoLcuParam* saoUnit)
 {
   saoUnit->partIdx       = 0;
   saoUnit->partIdxTmp    = 0;
+#if !SAO_CODE_CLEAN_UP
   saoUnit->run           = 0;
   saoUnit->runDiff       = 0;
+#endif
   saoUnit->mergeLeftFlag = 0;
   saoUnit->mergeUpFlag   = 0;
   saoUnit->typeIdx       = -1;

@@ -74,11 +74,16 @@ public:
   virtual UInt  getNumberOfWrittenBits()                = 0;
   virtual UInt  getCoeffCost          ()                = 0;
 
+#if VPS_INTEGRATION
+  virtual Void  codeVPS                 ( TComVPS* pcVPS )                                      = 0;
+#endif
   virtual Void  codeSPS                 ( TComSPS* pcSPS )                                      = 0;
   virtual Void  codePPS                 ( TComPPS* pcPPS )                                      = 0;
   virtual void codeSEI(const SEI&) = 0;
   virtual Void  codeSliceHeader         ( TComSlice* pcSlice )                                  = 0;
+#if !REMOVE_TILE_MARKERS
   virtual Void codeTileMarkerFlag      ( TComSlice* pcSlice )                                  = 0;
+#endif
 
   virtual Void  codeTilesWPPEntryPoint  ( TComSlice* pSlice )     = 0;
   virtual Void  codeTerminatingBit      ( UInt uilsLast )                                       = 0;
@@ -99,6 +104,9 @@ public:
 #endif
   virtual Void codeApsExtensionFlag () = 0;
   
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  virtual Void codeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
+#endif
   virtual Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
   virtual Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
   virtual Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
@@ -144,8 +152,10 @@ public:
 #if !AHG6_ALF_OPTION2
   virtual Void codeAlfCtrlFlag      ( UInt uiSymbol ) = 0;
 #endif
+#if !SAO_CODE_CLEAN_UP
   virtual Void codeSaoFlag          ( UInt uiCode ) = 0;
   virtual Void codeSaoUvlc          ( UInt uiCode ) = 0;
+#endif
 #if SAO_OFFSET_MAG_SIGN_SPLIT
   virtual Void codeSAOSign          ( UInt code   ) = 0;
 #endif
@@ -155,7 +165,9 @@ public:
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   virtual Void codeSaoSvlc          ( Int   iCode ) = 0;
 #endif
+#if !SAO_CODE_CLEAN_UP
   virtual Void codeSaoRun          ( UInt   uiCode, UInt uiMaxValue  ) = 0;
+#endif
   virtual Void codeSaoMergeLeft    ( UInt   uiCode, UInt uiCompIdx  ) = 0;
   virtual Void codeSaoMergeUp      ( UInt   uiCode) = 0;
   virtual Void codeSaoTypeIdx      ( UInt   uiCode) = 0;
@@ -164,7 +176,9 @@ public:
   
   virtual Void updateContextTables ( SliceType eSliceType, Int iQp, Bool bExecuteFinish )   = 0;
   virtual Void updateContextTables ( SliceType eSliceType, Int iQp )   = 0;
+#if !REMOVE_TILE_MARKERS
   virtual Void writeTileMarker             ( UInt uiTileIdx, UInt uiBitsUsed ) = 0;
+#endif
 
   virtual Void codeAPSInitInfo  (TComAPS* pcAPS)= 0;
   virtual Void codeFinish       (Bool bEnd)= 0;
@@ -195,7 +209,9 @@ public:
   Void    determineCabacInitIdx     ()                        { m_pcEntropyCoderIf->determineCabacInitIdx(); }
   
   Void    encodeSliceHeader         ( TComSlice* pcSlice );
+#if !REMOVE_TILE_MARKERS
   Void    encodeTileMarkerFlag       (TComSlice* pcSlice) {m_pcEntropyCoderIf->codeTileMarkerFlag(pcSlice);}
+#endif
   Void    encodeTilesWPPEntryPoint( TComSlice* pSlice );
   Void    encodeTerminatingBit      ( UInt uiIsLast );
   Void    encodeSliceFinish         ();
@@ -217,6 +233,9 @@ public:
   TEncEntropyIf*      m_pcEntropyCoderIf;
   
 public:
+#if VPS_INTEGRATION
+  Void encodeVPS               ( TComVPS* pcVPS);
+#endif
   // SPS
   Void encodeSPS               ( TComSPS* pcSPS );
   Void encodePPS               ( TComPPS* pcPPS );
@@ -228,6 +247,9 @@ public:
   Void setMaxAlfCtrlDepth(UInt uiMaxAlfCtrlDepth) {m_pcEntropyCoderIf->setMaxAlfCtrlDepth(uiMaxAlfCtrlDepth);}
 #endif  
   Void encodeSplitFlag         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD = false );
+#if CU_LEVEL_TRANSQUANT_BYPASS
+  Void encodeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
+#endif
   Void encodeSkipFlag          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   Void encodePUWise       ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   Void encodeInterDirPU   ( TComDataCU* pcSubCU, UInt uiAbsPartIdx  );
@@ -270,12 +292,16 @@ public:
   Void encodeQP                ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   Void updateContextTables     ( SliceType eSliceType, Int iQp, Bool bExecuteFinish )   { m_pcEntropyCoderIf->updateContextTables( eSliceType, iQp, bExecuteFinish );     }
   Void updateContextTables     ( SliceType eSliceType, Int iQp )                        { m_pcEntropyCoderIf->updateContextTables( eSliceType, iQp, true );               }
+#if !REMOVE_TILE_MARKERS
   Void writeTileMarker              ( UInt uiTileIdx, UInt uiBitsUsed ) { m_pcEntropyCoderIf->writeTileMarker( uiTileIdx, uiBitsUsed ); }
-  
+#endif
+
   Void encodeAPSInitInfo          (TComAPS* pcAPS) {m_pcEntropyCoderIf->codeAPSInitInfo(pcAPS);}
   Void encodeFinish               (Bool bEnd) {m_pcEntropyCoderIf->codeFinish(bEnd);}
   Void encodeScalingList       ( TComScalingList* scalingList );
+#if !DBL_HL_SYNTAX
   Void encodeDFParams          (TComAPS* pcAPS);
+#endif
 
 private:
 #if REMOVE_LASTTU_CBFDERIV
