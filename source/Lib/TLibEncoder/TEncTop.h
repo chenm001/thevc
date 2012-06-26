@@ -63,9 +63,6 @@
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
-#if VPS_INTEGRATION
-class TAppEncTop;
-#endif
 
 /// encoder class
 class TEncTop : public TEncCfg
@@ -129,9 +126,6 @@ private:
   TComScalingList         m_scalingList;                 ///< quantization matrix information
   TEncRateCtrl            m_cRateCtrl;                    ///< Rate control class
   
-#if VPS_INTEGRATION
-  TAppEncTop*             m_pcAppEncTop;
-#endif
 protected:
   Void  xGetNewPicBuffer  ( TComPic*& rpcPic );           ///< get picture buffer which will be processed
   Void  xInitSPS          ();                             ///< initialize SPS from encoder options
@@ -146,11 +140,7 @@ public:
   
   Void      create          ();
   Void      destroy         ();
-#if VPS_INTEGRATION
-  Void      init            ( TAppEncTop* pcAppEncTop );
-#else
   Void      init            ();
-#endif
   Void      deletePicBuffer ();
 
   Void      createWPPCoders(Int iNumSubstreams);
@@ -198,11 +188,7 @@ public:
 
   /// encode several number of pictures until end-of-sequence
   Void encode( bool bEos, TComPicYuv* pcPicYuvOrg, TComList<TComPicYuv*>& rcListPicYuvRecOut,
-              std::list<AccessUnit>& accessUnitsOut, Int& iNumEncoded );
-  
-#if VPS_INTEGRATION
-  TAppEncTop*             getAppEncTop          () { return m_pcAppEncTop; }
-#endif
+              std::list<AccessUnit>& accessUnitsOut, Int& iNumEncoded );  
 };
 
 //! \}

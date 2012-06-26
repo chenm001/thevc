@@ -36,9 +36,6 @@
 */
 
 #include "TLibCommon/CommonDef.h"
-#if VPS_INTEGRATION
-#include "../../App/TAppEncoder/TAppEncTop.h"
-#endif
 #include "TEncTop.h"
 #include "TEncPic.h"
 #if FAST_BIT_EST
@@ -300,18 +297,11 @@ Void TEncTop::destroy ()
   return;
 }
 
-#if VPS_INTEGRATION
-Void TEncTop::init( TAppEncTop* pcAppEncTop )
-#else
 Void TEncTop::init()
-#endif
 {
   UInt *aTable4=NULL, *aTable8=NULL;
   UInt* aTableLastPosVlcIndex=NULL; 
   
-#if VPS_INTEGRATION
-  m_pcAppEncTop = pcAppEncTop;
-#endif
   // initialize SPS
   xInitSPS();
   

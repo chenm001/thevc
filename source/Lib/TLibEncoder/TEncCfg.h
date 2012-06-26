@@ -43,6 +43,9 @@
 #endif // _MSC_VER > 1000
 
 #include "TLibCommon/CommonDef.h"
+#if VPS_INTEGRATION
+#include "TLibCommon/TComSlice.h"
+#endif
 #include <assert.h>
 
 struct GOPEntry
@@ -291,6 +294,10 @@ protected:
   Bool      m_TransquantBypassEnableFlag;                     ///< transquant_bypass_enable_flag setting in PPS.
   Bool      m_CUTransquantBypassFlagValue;                    ///< if transquant_bypass_enable_flag, the fixed value to use for the per-CU cu_transquant_bypass_flag.
 #endif
+#if VPS_INTEGRATION
+  TComVPS                    m_cVPS;
+#endif
+  
 public:
   TEncCfg()
   : m_puiColumnWidth()
@@ -687,6 +694,10 @@ public:
   Void      setTransquantBypassEnableFlag(Bool flag)  { m_TransquantBypassEnableFlag = flag; }
   Bool      getCUTransquantBypassFlagValue()          { return m_CUTransquantBypassFlagValue; }
   Void      setCUTransquantBypassFlagValue(Bool flag) { m_CUTransquantBypassFlagValue = flag; }
+#endif
+#if VPS_INTEGRATION
+  Void setVPS(TComVPS *p) { m_cVPS = *p; }
+  TComVPS *getVPS() { return &m_cVPS; }
 #endif
 };
 

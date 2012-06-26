@@ -68,9 +68,6 @@ private:
   
   unsigned m_essentialBytes;
   unsigned m_totalBytes;
-#if VPS_INTEGRATION
-  TComVPS                    m_cVPS;
-#endif
 protected:
   // initialization
   Void  xCreateLib        ();                               ///< create files & encoder class
@@ -95,9 +92,6 @@ public:
   
   Void        encode      ();                               ///< main encoding function
   TEncTop&    getTEncTop  ()   { return  m_cTEncTop; }      ///< return encoder class pointer reference
-#if VPS_INTEGRATION
-  TComVPS*          getVPS()  { return &m_cVPS; }
-#endif
 };// END CLASS DEFINITION TAppEncTop
 
 //! \}

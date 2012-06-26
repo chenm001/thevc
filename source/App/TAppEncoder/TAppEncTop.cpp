@@ -68,13 +68,16 @@ TAppEncTop::~TAppEncTop()
 Void TAppEncTop::xInitLibCfg()
 {
 #if VPS_INTEGRATION
-  m_cVPS.setMaxTLayers                       ( m_maxTempLayer );
-  m_cVPS.setMaxLayers                        ( 1 );
+  TComVPS vps;
+  
+  vps.setMaxTLayers                       ( m_maxTempLayer );
+  vps.setMaxLayers                        ( 1 );
   for(Int i = 0; i < MAX_TLAYER; i++)
   {
-    m_cVPS.setNumReorderPics                 ( m_numReorderPics[i], i );
-    m_cVPS.setMaxDecPicBuffering             ( m_maxDecPicBuffering[i], i );
+    vps.setNumReorderPics                 ( m_numReorderPics[i], i );
+    vps.setMaxDecPicBuffering             ( m_maxDecPicBuffering[i], i );
   }
+  m_cTEncTop.setVPS(&vps);
 #endif
   m_cTEncTop.setFrameRate                    ( m_iFrameRate );
   m_cTEncTop.setFrameSkip                    ( m_FrameSkip );
@@ -336,11 +339,7 @@ Void TAppEncTop::xDestroyLib()
 
 Void TAppEncTop::xInitLib()
 {
-#if VPS_INTEGRATION
-  m_cTEncTop.init( this );
-#else
   m_cTEncTop.init();
-#endif
 }
 
 // ====================================================================================================================
