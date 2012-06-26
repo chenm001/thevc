@@ -1954,12 +1954,15 @@ Char TComDataCU::getLastCodedQP( UInt uiAbsPartIdx )
       return getPic()->getCU( getAddr() )->getLastCodedQP( getZorderIdxInCU() );
     }
 #if H0226
-    else if ( ( getAddr() > 0 ) && ( !( getSlice()->getPPS()->getTilesOrEntropyCodingSyncIdc() == 2 ) || !(getAddr() % getPic()->getFrameWidthInCU() == 0 )) )
+    else if ( getPic()->getPicSym()->getInverseCUOrderMap(getAddr()) > 0
+      && getPic()->getPicSym()->getTileIdxMap(getAddr()) == getPic()->getPicSym()->getTileIdxMap(getPic()->getPicSym()->getCUOrderMap(getPic()->getPicSym()->getInverseCUOrderMap(getAddr())-1))
+      && !( getSlice()->getPPS()->getTilesOrEntropyCodingSyncIdc() == 2 && getAddr() % getPic()->getFrameWidthInCU() == 0 ) )
 #else
-    else if ( getAddr() > 0 )
+    else if ( getPic()->getPicSym()->getInverseCUOrderMap(getAddr()) > 0
+      && getPic()->getPicSym()->getTileIdxMap(getAddr()) == getPic()->getPicSym()->getTileIdxMap(getPic()->getPicSym()->getCUOrderMap(getPic()->getPicSym()->getInverseCUOrderMap(getAddr())-1)) )
 #endif
     {
-      return getPic()->getCU( getAddr()-1 )->getLastCodedQP( getPic()->getNumPartInCU() );
+      return getPic()->getCU( getPic()->getPicSym()->getCUOrderMap(getPic()->getPicSym()->getInverseCUOrderMap(getAddr())-1) )->getLastCodedQP( getPic()->getNumPartInCU() );
     }
     else
     {
