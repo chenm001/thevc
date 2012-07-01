@@ -2127,7 +2127,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
   if( pcCU->getSlice()->getPPS()->getSignHideFlag() && uiAbsSum>=2)
   {
-    Int rdFactor = (Int)((Double)(g_invQuantScales[m_cQP.rem()]*g_invQuantScales[m_cQP.rem()]<<(2*m_cQP.m_iPer))/m_dLambda/16 + 0.5) ;
+    Int rdFactor = (Int)((Double)(g_invQuantScales[m_cQP.rem()])*(Double)(g_invQuantScales[m_cQP.rem()])*(Double)(1<<(2*m_cQP.m_iPer))/m_dLambda/16/(Double)(1<<(2*g_uiBitIncrement)) + 0.5);
 #if !FIXED_SBH_THRESHOLD
     Int tsig = pcCU->getSlice()->getPPS()->getTSIG() ;
 #endif
