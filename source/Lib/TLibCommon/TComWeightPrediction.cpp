@@ -79,7 +79,7 @@ Void TComWeightPrediction::addWeightBi( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, 
   Int offset  = wp0[0].offset;
   Int shiftNum = IF_INTERNAL_PREC - ( g_uiBitDepth + g_uiBitIncrement );
   Int shift   = wp0[0].shift + shiftNum;
-  Int round   = (1<<(shift-1)) * bRound;
+  Int round   = shift?(1<<(shift-1)) * bRound:0;
   Int w1      = wp1[0].w;
 
   UInt  iSrc0Stride = pcYuvSrc0->getStride();
@@ -105,7 +105,7 @@ Void TComWeightPrediction::addWeightBi( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, 
   w0      = wp0[1].w;
   offset  = wp0[1].offset;
   shift   = wp0[1].shift + shiftNum;
-  round   = (1<<(shift-1));
+  round   = shift?(1<<(shift-1)):0;
   w1      = wp1[1].w;
 
   iSrc0Stride = pcYuvSrc0->getCStride();
@@ -132,7 +132,7 @@ Void TComWeightPrediction::addWeightBi( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, 
   w0      = wp0[2].w;
   offset  = wp0[2].offset;
   shift   = wp0[2].shift + shiftNum;
-  round   = (1<<(shift-1));
+  round   = shift?(1<<(shift-1)):0;
   w1      = wp1[2].w;
 
   for ( y = iHeight-1; y >= 0; y-- )
@@ -175,7 +175,7 @@ Void TComWeightPrediction::addWeightUni( TComYuv* pcYuvSrc0, UInt iPartUnitIdx, 
   Int offset  = wp0[0].offset;
   Int shiftNum = IF_INTERNAL_PREC - ( g_uiBitDepth + g_uiBitIncrement );
   Int shift   = wp0[0].shift + shiftNum;
-  Int round   = (1<<(shift-1));
+  Int round   = shift?(1<<(shift-1)):0;
   UInt  iSrc0Stride = pcYuvSrc0->getStride();
   UInt  iDstStride  = rpcYuvDst->getStride();
   
@@ -197,7 +197,7 @@ Void TComWeightPrediction::addWeightUni( TComYuv* pcYuvSrc0, UInt iPartUnitIdx, 
   w0      = wp0[1].w;
   offset  = wp0[1].offset;
   shift   = wp0[1].shift + shiftNum;
-  round   = (1<<(shift-1));
+  round   = shift?(1<<(shift-1)):0;
 
   iSrc0Stride = pcYuvSrc0->getCStride();
   iDstStride  = rpcYuvDst->getCStride();
@@ -221,7 +221,7 @@ Void TComWeightPrediction::addWeightUni( TComYuv* pcYuvSrc0, UInt iPartUnitIdx, 
   w0      = wp0[2].w;
   offset  = wp0[2].offset;
   shift   = wp0[2].shift + shiftNum;
-  round   = (1<<(shift-1));
+  round   = shift?(1<<(shift-1)):0;
 
   for ( y = iHeight-1; y >= 0; y-- )
   {
