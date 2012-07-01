@@ -1114,16 +1114,20 @@ void TDecSbac::parseTransformSkipFlags (TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
     return;
   }
   
-  UInt useTansformSkip;
-  m_pcTDecBinIf->decodeBin( useTansformSkip , m_cTransformSkipSCModel.get( 0, eTType? TEXT_CHROMA: TEXT_LUMA, 0 ) );
-  if(eTType!= TEXT_LUMA && uiDepth == 4)
+  UInt useTransformSkip;
+  m_pcTDecBinIf->decodeBin( useTransformSkip , m_cTransformSkipSCModel.get( 0, eTType? TEXT_CHROMA: TEXT_LUMA, 0 ) );
+  if(eTType!= TEXT_LUMA)
   {
-    uiDepth --;
+    const UInt uiLog2TrafoSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth()] + 2 - uiDepth;
+    if(uiLog2TrafoSize == 2) 
+    { 
+      uiDepth --;
+    }
   }
   DTRACE_CABAC_VL( g_nSymbolCounter++ )
   DTRACE_CABAC_T("\tparseTransformSkip()");
   DTRACE_CABAC_T( "\tsymbol=" )
-  DTRACE_CABAC_V( useTansformSkip )
+  DTRACE_CABAC_V( useTransformSkip )
   DTRACE_CABAC_T( "\tAddr=" )
   DTRACE_CABAC_V( pcCU->getAddr() )
   DTRACE_CABAC_T( "\tetype=" )
@@ -1132,7 +1136,7 @@ void TDecSbac::parseTransformSkipFlags (TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
   DTRACE_CABAC_V( uiAbsPartIdx )
   DTRACE_CABAC_T( "\n" )
 
-  pcCU->setTransformSkipSubParts( useTansformSkip, eTType, uiAbsPartIdx, uiDepth);
+  pcCU->setTransformSkipSubParts( useTransformSkip, eTType, uiAbsPartIdx, uiDepth);
 }
 #endif
 

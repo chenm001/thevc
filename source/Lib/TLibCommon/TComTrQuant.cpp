@@ -1173,7 +1173,7 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
 #else
     UInt uiBitDepth = g_uiBitDepth + g_uiBitIncrement;
 #endif
-    UInt iTransformShift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize;  // Represents scaling through forward transform
+    Int iTransformShift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize;  // Represents scaling through forward transform
 
     Int iQBits = QUANT_SHIFT + m_cQP.m_iPer + iTransformShift;                // Right shift of non-RDOQ quantizer;  level = (coeff*uiQ + offset)>>q_bits
 
@@ -1252,7 +1252,7 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
 #else
   UInt uiBitDepth = g_uiBitDepth + g_uiBitIncrement;
 #endif
-  UInt iTransformShift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize; 
+  Int iTransformShift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize; 
 
   iShift = QUANT_IQUANT_SHIFT - QUANT_SHIFT - iTransformShift;
 
@@ -1636,13 +1636,32 @@ Void TComTrQuant::xTransformSkip( Pel* piBlkResi, UInt uiStride, Int* psCoeff, I
 #else
   UInt uiBitDepth = g_uiBitDepth + g_uiBitIncrement;
 #endif
-  UInt iTransformShift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize; 
-  Int j,k;
-  for (j = 0; j < height; j++)
-  {    
-    for(k = 0; k < width; k ++)
-    {
-      psCoeff[j*height + k] = piBlkResi[j * uiStride + k] << iTransformShift;      
+  Int  shift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize;
+  UInt transformSkipShift;
+  Int  j,k;
+  if(shift >= 0)
+  {
+    transformSkipShift = shift;
+    for (j = 0; j < height; j++)
+    {    
+      for(k = 0; k < width; k ++)
+      {
+        psCoeff[j*height + k] = piBlkResi[j * uiStride + k] << transformSkipShift;      
+      }
+    }
+  }
+  else
+  {
+    //The case when uiBitDepth > 13
+    Int offset;
+    transformSkipShift = -shift;
+    offset = (1 << (transformSkipShift - 1));
+    for (j = 0; j < height; j++)
+    {    
+      for(k = 0; k < width; k ++)
+      {
+        psCoeff[j*height + k] = (piBlkResi[j * uiStride + k] + offset) >> transformSkipShift;      
+      }
     }
   }
 }
@@ -1662,14 +1681,32 @@ Void TComTrQuant::xITransformSkip( Int* plCoef, Pel* pResidual, UInt uiStride, I
 #else
   UInt uiBitDepth = g_uiBitDepth + g_uiBitIncrement;
 #endif
-  UInt iTransformShift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize; 
-  UInt iAdd = (1 << (iTransformShift -1));
-  Int j,k;
-  for ( j = 0; j < height; j++ )
-  {    
-    for(k = 0; k < width; k ++)
-    {
-      pResidual[j * uiStride + k] =  (plCoef[j*width+k] + iAdd) >> iTransformShift;
+  Int  shift = MAX_TR_DYNAMIC_RANGE - uiBitDepth - uiLog2TrSize; 
+  UInt transformSkipShift; 
+  Int  j,k;
+  if(shift > 0)
+  {
+    Int offset;
+    transformSkipShift = shift;
+    offset = (1 << (transformSkipShift -1));
+    for ( j = 0; j < height; j++ )
+    {    
+      for(k = 0; k < width; k ++)
+      {
+        pResidual[j * uiStride + k] =  (plCoef[j*width+k] + offset) >> transformSkipShift;
+      } 
+    }
+  }
+  else
+  {
+    //The case when uiBitDepth >= 13
+    transformSkipShift = - shift;
+    for ( j = 0; j < height; j++ )
+    {    
+      for(k = 0; k < width; k ++)
+      {
+        pResidual[j * uiStride + k] =  plCoef[j*width+k] << transformSkipShift;
+      }
     }
   }
 }
