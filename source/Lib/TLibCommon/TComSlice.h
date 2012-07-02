@@ -240,12 +240,12 @@ public:
 class TComSPS
 {
 private:
-#if VPS_INTEGRATION
-  Int         m_VPSId;
-#endif
   Int         m_SPSId;
   Int         m_ProfileIdc;
   Int         m_LevelIdc;
+#if VPS_INTEGRATION
+  Int         m_VPSId;
+#endif
   Int         m_chromaFormatIdc;
 
   UInt        m_uiMaxTLayers;           // maximum number of temporal layers
