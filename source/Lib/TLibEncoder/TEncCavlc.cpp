@@ -1719,7 +1719,13 @@ Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
               Int iDeltaWeight = (wp[j].iWeight - (1<<wp[1].uiLog2WeightDenom));
               WRITE_SVLC( iDeltaWeight, "delta_chroma_weight_lX" );            // se(v): delta_chroma_weight_lX
 
+#if BUGFIX_TICKET603
+              Int Shift = ((1<<(g_uiBitDepth+g_uiBitIncrement-1)));
+              Int Pred = ( Shift - ( ( Shift*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) );
+              Int iDeltaChroma = (wp[j].iOffset - Pred);
+#else
               Int iDeltaChroma = (wp[j].iOffset + ( ( (g_uiIBDI_MAX>>1)*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) - (g_uiIBDI_MAX>>1));
+#endif
               WRITE_SVLC( iDeltaChroma, "delta_chroma_offset_lX" );            // se(v): delta_chroma_offset_lX
             }
           }

@@ -2691,7 +2691,13 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
 
               Int iDeltaChroma;
               READ_SVLC( iDeltaChroma, "delta_chroma_offset_lX" );  // se(v): delta_chroma_offset_l0[i][j]
+#if BUGFIX_TICKET603
+              Int Shift = ((1<<(g_uiBitDepth+g_uiBitIncrement-1)));
+              Int Pred = ( Shift - ( ( Shift*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) );
+              wp[j].iOffset = iDeltaChroma + Pred;
+#else
               wp[j].iOffset = iDeltaChroma - ( ( (g_uiIBDI_MAX>>1)*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) + (g_uiIBDI_MAX>>1);
+#endif
             }
           }
           else 
