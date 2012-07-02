@@ -2164,7 +2164,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
   if( pcCU->getSlice()->getPPS()->getSignHideFlag() && uiAbsSum>=2)
   {
-    Int rdFactor = (Int)((Double)(g_invQuantScales[m_cQP.rem()])*(Double)(g_invQuantScales[m_cQP.rem()])*(Double)(1<<(2*m_cQP.m_iPer))/m_dLambda/16/(Double)(1<<(2*g_uiBitIncrement)) + 0.5);
+    Int64 rdFactor = (Int64)((Double)(g_invQuantScales[m_cQP.rem()])*(Double)(g_invQuantScales[m_cQP.rem()])*(Double)(1<<(2*m_cQP.m_iPer))/m_dLambda/16/(Double)(1<<(2*g_uiBitIncrement)) + 0.5);
 #if !FIXED_SBH_THRESHOLD
     Int tsig = pcCU->getSlice()->getPPS()->getTSIG() ;
 #endif
@@ -2213,15 +2213,16 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         if( signbit!=(absSum&0x1) )  // hide but need tune
         {
           // calculate the cost 
-          Int minCostInc = MAX_INT,  minPos =-1, finalChange=0, curCost=MAX_INT, curChange=0;
+          Int64 minCostInc = MAX_INT64, curCost=MAX_INT64;
+          Int minPos =-1, finalChange=0, curChange=0;
 
           for( n = (lastCG==1?lastNZPosInCG:SCAN_SET_SIZE-1) ; n >= 0; --n )
           {
             UInt uiBlkPos   = scan[ n + subPos ];
             if(piDstCoeff[ uiBlkPos ] != 0 )
             {
-              Int costUp   = rdFactor * ( - deltaU[uiBlkPos] ) + rateIncUp[uiBlkPos] ;
-              Int costDown = rdFactor * (   deltaU[uiBlkPos] ) + rateIncDown[uiBlkPos] 
+              Int64 costUp   = rdFactor * ( - deltaU[uiBlkPos] ) + rateIncUp[uiBlkPos] ;
+              Int64 costDown = rdFactor * (   deltaU[uiBlkPos] ) + rateIncDown[uiBlkPos] 
                 -   ( abs(piDstCoeff[uiBlkPos])==1?((1<<15)+sigRateDelta[uiBlkPos]):0 );
 
               if(lastCG==1 && lastNZPosInCG==n && abs(piDstCoeff[uiBlkPos])==1)
@@ -2239,7 +2240,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
                 curChange = -1 ;
                 if(n==firstNZPosInCG && abs(piDstCoeff[uiBlkPos])==1)
                 {
-                  curCost = MAX_INT ;
+                  curCost = MAX_INT64 ;
                 }
                 else
                 {
@@ -2257,7 +2258,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
                 UInt thissignbit = (plSrcCoeff[uiBlkPos]>=0?0:1);
                 if(thissignbit != signbit )
                 {
-                  curCost = MAX_INT;
+                  curCost = MAX_INT64;
                 }
               }
             }
