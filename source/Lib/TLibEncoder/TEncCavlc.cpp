@@ -1720,9 +1720,9 @@ Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
               WRITE_SVLC( iDeltaWeight, "delta_chroma_weight_lX" );            // se(v): delta_chroma_weight_lX
 
 #if BUGFIX_TICKET603
-              Int Shift = ((1<<(g_uiBitDepth+g_uiBitIncrement-1)));
-              Int Pred = ( Shift - ( ( Shift*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) );
-              Int iDeltaChroma = (wp[j].iOffset - Pred);
+              Int shift = ((1<<(g_uiBitDepth+g_uiBitIncrement-1)));
+              Int pred = ( shift - ( ( shift*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) );
+              Int iDeltaChroma = (wp[j].iOffset - pred);
 #else
               Int iDeltaChroma = (wp[j].iOffset + ( ( (g_uiIBDI_MAX>>1)*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) - (g_uiIBDI_MAX>>1));
 #endif
