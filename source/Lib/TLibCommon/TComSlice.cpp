@@ -1370,6 +1370,9 @@ TComSPS::TComSPS()
 : m_SPSId                     (  0)
 , m_ProfileIdc                (  0)
 , m_LevelIdc                  (  0)
+#if VPS_INTEGRATION
+, m_VPSId                     (  0)
+#endif
 , m_chromaFormatIdc           (CHROMA_420)
 , m_uiMaxTLayers              (  1)
 // Structure
