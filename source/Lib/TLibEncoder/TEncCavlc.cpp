@@ -394,9 +394,11 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if ENC_DEC_TRACE  
   xTraceSPSHeader (pcSPS);
 #endif
-  WRITE_CODE( pcSPS->getProfileIdc (),     8,       "profile_idc" );
-  WRITE_CODE( 0,                           8,       "reserved_zero_8bits" );
+  WRITE_CODE( pcSPS->getProfileSpace (),   3,       "profile_space" );
+  WRITE_CODE( pcSPS->getProfileIdc (),     5,       "profile_idc" );
+  WRITE_CODE( pcSPS->getRsvdIndFlags(),   16,       "reserved_indicator_flags" );
   WRITE_CODE( pcSPS->getLevelIdc (),       8,       "level_idc" );
+  WRITE_CODE( pcSPS->getProfileCompat (), 32,       "profile_compatibility" );
   WRITE_UVLC( pcSPS->getSPSId (),                   "seq_parameter_set_id" );
 #if VPS_INTEGRATION
   WRITE_UVLC( pcSPS->getVPSId (),                   "video_parameter_set_id" );

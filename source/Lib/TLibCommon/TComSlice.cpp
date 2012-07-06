@@ -1368,8 +1368,11 @@ TComVPS::~TComVPS()
 
 TComSPS::TComSPS()
 : m_SPSId                     (  0)
+, m_ProfileSpace              (  0)
 , m_ProfileIdc                (  0)
+, m_ReservedIndicatorFlags    (  0)
 , m_LevelIdc                  (  0)
+, m_ProfileCompatibility      (  0)
 #if VPS_INTEGRATION
 , m_VPSId                     (  0)
 #endif

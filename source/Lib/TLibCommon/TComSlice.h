@@ -241,8 +241,11 @@ class TComSPS
 {
 private:
   Int         m_SPSId;
+  Int         m_ProfileSpace;
   Int         m_ProfileIdc;
+  Int         m_ReservedIndicatorFlags;
   Int         m_LevelIdc;
+  UInt        m_ProfileCompatibility;
 #if VPS_INTEGRATION
   Int         m_VPSId;
 #endif
@@ -366,10 +369,16 @@ public:
 #endif
   Int  getSPSId       ()         { return m_SPSId;          }
   Void setSPSId       (Int i)    { m_SPSId = i;             }
+  Int  getProfileSpace  ()       { return m_ProfileSpace;   }
+  Void setProfileSpace  (Int i)  { m_ProfileSpace = i;      }
   Int  getProfileIdc  ()         { return m_ProfileIdc;     }
-  Void setProfileIdc  (Int i)    { m_ProfileIdc = i;        }
+  Void setProfileIdc  (Int i)    { m_ProfileIdc = i; if (m_ProfileSpace == 0) m_ProfileCompatibility |= (1 << (i - 1));    }
+  Int  getRsvdIndFlags  ()       { return m_ReservedIndicatorFlags;     }
+  Void setRsvdIndFlags  (Int i)  { m_ReservedIndicatorFlags = i;        }
   Int  getLevelIdc    ()         { return m_LevelIdc;       }
   Void setLevelIdc    (Int i)    { m_LevelIdc = i;          }
+  UInt getProfileCompat ()       { return m_ProfileCompatibility;       }
+  Void setProfileCompat (UInt i) { m_ProfileCompatibility = i; if (m_ProfileIdc != 0 && m_ProfileSpace == 0) m_ProfileCompatibility |= (1 << (m_ProfileIdc - 1));          }
 
   Int  getChromaFormatIdc ()         { return m_chromaFormatIdc;       }
   Void setChromaFormatIdc (Int i)    { m_chromaFormatIdc = i;          }

@@ -1210,9 +1210,11 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 
   UInt  uiCode;
 
-  READ_CODE( 8,  uiCode, "profile_idc" );                        pcSPS->setProfileIdc( uiCode );
-  READ_CODE( 8,  uiCode, "reserved_zero_8bits" );
+  READ_CODE( 3,  uiCode, "profile_space" );                      pcSPS->setProfileSpace( uiCode );
+  READ_CODE( 5,  uiCode, "profile_idc" );                        pcSPS->setProfileIdc( uiCode );
+  READ_CODE(16,  uiCode, "reserved_indicator_flags" );           pcSPS->setRsvdIndFlags( uiCode );
   READ_CODE( 8,  uiCode, "level_idc" );                          pcSPS->setLevelIdc( uiCode );
+  READ_CODE(32,  uiCode, "profile_compatibility");               pcSPS->setProfileCompat( uiCode );
   READ_UVLC(     uiCode, "seq_parameter_set_id" );               pcSPS->setSPSId( uiCode );
 #if VPS_INTEGRATION
   READ_UVLC(     uiCode, "video_parameter_set_id" );             pcSPS->setVPSId( uiCode );
