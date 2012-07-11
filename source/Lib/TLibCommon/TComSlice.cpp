@@ -107,7 +107,7 @@ TComSlice::TComSlice()
 , m_cabacInitFlag                 ( false )
 , m_numEntryPointOffsets          ( 0 )
 #if CODE_POCLSBLT_FIXEDLEN
-, m_nalRefFlag (0)
+, m_nalRefFlag                    ( 0 )
 #endif
 #if SLICE_TMVP_ENABLE
 , m_enableTMVPFlag                ( true )

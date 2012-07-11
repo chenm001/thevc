@@ -42,9 +42,9 @@
 //! \{
 
 #define  TEMPORAL_ID_RESTRICTION         1  ///< I0600: Semantics of temporal_id changed
-#define PREVREFPIC_DEFN                    1   ///< I0345: prevRefPic defined as previous reference picture that is at same or lower 
+#define PREVREFPIC_DEFN                  1  ///< I0345: prevRefPic defined as previous reference picture that is at same or lower 
                                             ///< temporal layer.
-#define CODE_POCLSBLT_FIXEDLEN      1       ///< I0342: code the LSB bits of LTRPs as u(v)
+#define CODE_POCLSBLT_FIXEDLEN           1  ///< I0342: code the LSB bits of LTRPs as u(v)
 
 #define REMOVE_TILE_MARKERS              1
 #define EXPLICITLY_SIGNAL_ENTRY_POINTS   1  ///< I0273: Explicitly signal all tiles/wavefront entry points

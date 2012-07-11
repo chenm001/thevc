@@ -84,28 +84,28 @@ private:
   Int  m_refIdc[MAX_NUM_REF_PICS+1];
   Bool m_bCheckLTMSB[MAX_NUM_REF_PICS];
 #if CODE_POCLSBLT_FIXEDLEN
-  Int         m_pocLSBLT[MAX_NUM_REF_PICS];
-  Int         m_deltaPOCMSBCycleLT[MAX_NUM_REF_PICS];
-  Bool        m_deltaPocMSBPresentFlag[MAX_NUM_REF_PICS];
+  Int  m_pocLSBLT[MAX_NUM_REF_PICS];
+  Int  m_deltaPOCMSBCycleLT[MAX_NUM_REF_PICS];
+  Bool m_deltaPocMSBPresentFlag[MAX_NUM_REF_PICS];
 #endif
 
 public:
   TComReferencePictureSet();
   virtual ~TComReferencePictureSet();
 #if CODE_POCLSBLT_FIXEDLEN
-  Int         getPocLSBLT(Int i)  {return m_pocLSBLT[i];}
-  Void        setPocLSBLT(Int i, Int x) { m_pocLSBLT[i] = x;}
-  Int         getDeltaPocMSBCycleLT(Int i) {return m_deltaPOCMSBCycleLT[i];}
-  Void        setDeltaPocMSBCycleLT(Int i, Int x) {m_deltaPOCMSBCycleLT[i] = x;}
-  Bool        getDeltaPocMSBPresentFlag(Int i) {return m_deltaPocMSBPresentFlag[i];}
-  Void        setDeltaPocMSBPresentFlag(Int i, Bool x) {m_deltaPocMSBPresentFlag[i] = x;}
+  Int   getPocLSBLT(Int i)                       { return m_pocLSBLT[i]; }
+  Void  setPocLSBLT(Int i, Int x)                { m_pocLSBLT[i] = x; }
+  Int   getDeltaPocMSBCycleLT(Int i)             { return m_deltaPOCMSBCycleLT[i]; }
+  Void  setDeltaPocMSBCycleLT(Int i, Int x)      { m_deltaPOCMSBCycleLT[i] = x; }
+  Bool  getDeltaPocMSBPresentFlag(Int i)         { return m_deltaPocMSBPresentFlag[i]; }
+  Void  setDeltaPocMSBPresentFlag(Int i, Bool x) { m_deltaPocMSBPresentFlag[i] = x;    }
 #endif 
   Void setUsed(Int bufferNum, Bool used);
   Void setDeltaPOC(Int bufferNum, Int deltaPOC);
   Void setPOC(Int bufferNum, Int deltaPOC);
   Void setNumberOfPictures(Int numberOfPictures);
-  Void      setCheckLTMSBPresent     (Int bufferNum, Bool b );
-  Bool      getCheckLTMSBPresent     (Int bufferNum);
+  Void setCheckLTMSBPresent(Int bufferNum, Bool b );
+  Bool getCheckLTMSBPresent(Int bufferNum);
 
   Int  getUsed(Int bufferNum);
   Int  getDeltaPOC(Int bufferNum);
@@ -1410,8 +1410,8 @@ public:
   Void      setNumEntryPointOffsets(Int val)  { m_numEntryPointOffsets = val;     }
   Int       getNumEntryPointOffsets()         { return m_numEntryPointOffsets;    }
 #if CODE_POCLSBLT_FIXEDLEN
-  Bool getNalRefFlag()       { return m_nalRefFlag;}
-  Void setNalRefFlag(Bool x) { m_nalRefFlag = x;}
+  Bool      getNalRefFlag()       { return m_nalRefFlag;}
+  Void      setNalRefFlag(Bool x) { m_nalRefFlag = x;}
 #endif
 #if DEPENDENT_SLICES
   Void      initCTXMem_dec(  UInt i )                { CTXMem_dec.resize(i); }
