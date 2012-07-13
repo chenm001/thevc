@@ -1565,7 +1565,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     {
       rpcSlice->setNextSlice        ( false );
       rpcSlice->setNextDependentSlice( true  );
+#if BYTE_ALIGNMENT
+       m_pcBitstream->readByteAlignment();
+#else
       m_pcBitstream->readOutTrailingBits();
+#endif
       return;
     }
   }

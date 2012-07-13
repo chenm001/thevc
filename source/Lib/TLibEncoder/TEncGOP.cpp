@@ -1103,6 +1103,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
           // Substreams...
           TComOutputBitstream *pcOut = pcBitstreamRedirect;
+#if !BYTE_ALIGNMENT
           // xWriteTileLocation will perform byte-alignment...
           {
             if (bDependentSlice)
@@ -1112,6 +1113,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
               pcOut->writeAlignOne();
             }
           }
+#endif
 #if !REMOVE_TILE_MARKERS
           UInt uiAccumulatedLength = 0;
 #endif
