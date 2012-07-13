@@ -41,6 +41,8 @@
 //! \ingroup TLibCommon
 //! \{
 
+#define SLICE_HEADER_EXTENSION       1
+
 #define  TEMPORAL_ID_RESTRICTION         1  ///< I0600: Semantics of temporal_id changed
 #define PREVREFPIC_DEFN                  1  ///< I0345: prevRefPic defined as previous reference picture that is at same or lower 
                                             ///< temporal layer.

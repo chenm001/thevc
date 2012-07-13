@@ -1519,6 +1519,9 @@ TComPPS::TComPPS()
 #endif
 , m_cabacInitPresentFlag        (false)
 , m_encCABACTableIdx            (I_SLICE)
+#if SLICE_HEADER_EXTENSION
+, m_sliceHeaderExtensionPresentFlag    (false)
+#endif
 {
 #if SCALING_LIST_HL_SYNTAX
   m_scalingList = new TComScalingList;

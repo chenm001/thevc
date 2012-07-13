@@ -393,6 +393,9 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   }
 #endif
   WRITE_UVLC( pcPPS->getLog2ParallelMergeLevelMinus2(), "log2_parallel_merge_level_minus2");
+#if SLICE_HEADER_EXTENSION
+  WRITE_FLAG( pcPPS->getSliceHeaderExtensionPresentFlag(), "slice_header_extension_present_flag");
+#endif
   WRITE_FLAG( 0, "pps_extension_flag" );
 }
 
@@ -1055,6 +1058,12 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       WRITE_FLAG(pcSlice->getLFCrossSliceBoundaryFlag()?1:0, "slice_loop_filter_across_slices_enabled_flag");
     }
   }
+#if SLICE_HEADER_EXTENSION
+  if(pcSlice->getPPS()->getSliceHeaderExtensionPresentFlag())
+  {
+    WRITE_UVLC(0,"slice_header_extension_length");
+  }
+#endif
 #endif
 }
 

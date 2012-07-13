@@ -1192,6 +1192,11 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   assert(uiCode == LOG2_PARALLEL_MERGE_LEVEL_MINUS2);
   pcPPS->setLog2ParallelMergeLevelMinus2 (uiCode);
 
+#if SLICE_HEADER_EXTENSION
+  READ_FLAG( uiCode, "slice_header_extension_present_flag");
+  pcPPS->setSliceHeaderExtensionPresentFlag(uiCode);
+#endif
+
   READ_FLAG( uiCode, "pps_extension_flag");
   if (uiCode)
   {
@@ -2261,6 +2266,18 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       delete [] entryPointOffset;
     }
   }
+
+#if SLICE_HEADER_EXTENSION
+  if(pps->getSliceHeaderExtensionPresentFlag())
+  {
+    READ_UVLC(uiCode,"slice_header_extension_length");
+    for(Int i=0; i<uiCode; i++)
+    {
+      UInt ignore;
+      READ_CODE(8,ignore,"slice_header_extension_data_byte");
+    }
+  }
+#endif
 #if BYTE_ALIGNMENT
   m_pcBitstream->readByteAlignment();
 #else

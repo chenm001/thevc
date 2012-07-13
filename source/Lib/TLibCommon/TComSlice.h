@@ -674,6 +674,11 @@ private:
 
   Bool     m_cabacInitPresentFlag;
   UInt     m_encCABACTableIdx;           // Used to transmit table selection across slices
+
+#if SLICE_HEADER_EXTENSION
+  Bool     m_sliceHeaderExtensionPresentFlag;
+#endif
+
   Bool     m_DeblockingFilterControlPresent;
 #if DBL_HL_SYNTAX
   Bool     m_loopFilterOffsetInPPS;
@@ -833,6 +838,11 @@ public:
 #endif
   UInt getLog2ParallelMergeLevelMinus2      ()                    { return m_log2ParallelMergeLevelMinus2; }
   Void setLog2ParallelMergeLevelMinus2      (UInt mrgLevel)       { m_log2ParallelMergeLevelMinus2 = mrgLevel; }
+
+#if SLICE_HEADER_EXTENSION
+  Bool getSliceHeaderExtensionPresentFlag   ()                    { return m_sliceHeaderExtensionPresentFlag; }
+  Void setSliceHeaderExtensionPresentFlag   (Bool val)            { m_sliceHeaderExtensionPresentFlag = val; }
+#endif
 };
 
 #if !SCALING_LIST_HL_SYNTAX
