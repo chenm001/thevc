@@ -292,7 +292,14 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #if DEPENDENT_SLICES
   else if( pcPPS->getDependentSlicesEnabledFlag() )
   {
-    tilesOrEntropyCodingSyncIdc = 3;
+    if(pcPPS->getTilesOrEntropyCodingSyncIdc() != 2)
+    {
+      tilesOrEntropyCodingSyncIdc = 3;
+    }
+    else
+    {
+      tilesOrEntropyCodingSyncIdc = 2;
+    }
   }
 #endif
   pcPPS->setTilesOrEntropyCodingSyncIdc( tilesOrEntropyCodingSyncIdc );

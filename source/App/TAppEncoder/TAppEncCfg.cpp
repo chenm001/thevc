@@ -308,7 +308,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("DependentSliceMode",     m_iDependentSliceMode,    0, "0: Disable all dependent slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based dependent slices")
     ("DependentSliceArgument", m_iDependentSliceArgument,0, "if DependentSliceMode==1 SliceArgument represents max # of LCUs. if DependentSliceMode==2 DependentSliceArgument represents max # of bins.")
 #if DEPENDENT_SLICES
-    ("CabacIndependentFlag", m_bCabacIndependentFlag, true)
+    ("CabacIndependentFlag", m_bCabacIndependentFlag, false)
 #endif
     ("SliceGranularity",     m_iSliceGranularity,    0, "0: Slices always end at LCU borders. 1-3: slices may end at a depth of 1-3 below LCU level.")
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
@@ -527,6 +527,12 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if WPP_SUBSTREAM_PER_ROW
   m_iWaveFrontSubstreams = m_iWaveFrontSynchro ? (m_iSourceHeight + m_uiMaxCUHeight - 1) / m_uiMaxCUHeight : 1;
 #endif
+#if DEPENDENT_SLICES
+  if( m_iDependentSliceMode )
+  {
+    m_iWaveFrontSubstreams = 1;
+  }
+#endif
   // check validity of input parameters
   xCheckParameter();
   
@@ -635,7 +641,12 @@ Void TAppEncCfg::xCheckParameter()
   bool tileFlag = (m_iNumColumnsMinus1 > 0 || m_iNumRowsMinus1 > 0 );
   xConfirmPara( tileFlag && m_iDependentSliceMode,            "Tile and Dependent Slice can not be applied together");
   xConfirmPara( tileFlag && m_iWaveFrontSynchro,            "Tile and Wavefront can not be applied together");
-  xConfirmPara( m_iWaveFrontSynchro && m_iDependentSliceMode, "Wavefront and Dependent Slice can not be applied together");  
+#if !DEPENDENT_SLICES
+  xConfirmPara( m_iWaveFrontSynchro && m_iDependentSliceMode, "Wavefront and Dependent Slice can not be applied together");
+#endif
+#if DEPENDENT_SLICES
+  xConfirmPara( m_iWaveFrontSynchro && m_bCabacIndependentFlag, "Wavefront and CabacIndependentFlag can not be applied together");
+#endif
 
   //TODO:ChromaFmt assumes 4:2:0 below
   xConfirmPara( m_iSourceWidth  % TComSPS::getCropUnitX(CHROMA_420) != 0, "Picture width must be an integer multiple of the specified chroma subsampling");

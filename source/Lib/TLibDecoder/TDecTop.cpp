@@ -275,6 +275,12 @@ Void TDecTop::xActivateParameterSets()
 #if WPP_SUBSTREAM_PER_ROW
   pps->setNumSubstreams(pps->getTilesOrEntropyCodingSyncIdc() == 2 ? ((sps->getPicHeightInLumaSamples() + sps->getMaxCUHeight() - 1) / sps->getMaxCUHeight()) * (pps->getNumColumnsMinus1() + 1) : 1);
 #endif
+#if DEPENDENT_SLICES
+  if( pps->getDependentSlicesEnabledFlag() )
+  {
+    pps->setNumSubstreams(1);
+  }
+#endif
 #if DBL_HL_SYNTAX
   if(sps->getUseSAO() || sps->getUseALF())
 #else

@@ -1525,7 +1525,7 @@ TComPPS::TComPPS()
 #endif
 #if DEPENDENT_SLICES
   m_bDependentSlicesEnabledFlag = false;
-  m_bCabacIndependentFlag = true;
+  m_bCabacIndependentFlag = false;
 #endif
 }
 

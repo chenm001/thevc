@@ -229,9 +229,13 @@
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE    2          ///< OPTION IDENTIFIER. mode==2 -> Limit maximum number of bins/bits in a slice
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_TILES_IN_SLICE    3
 
+#define DEPENDENT_SLICES       1 // JCTVC-I0229
 // Dependent slice options
 #define SHARP_FIXED_NUMBER_OF_LCU_IN_DEPENDENT_SLICE            1          ///< OPTION IDENTIFIER. Limit maximum number of largest coding tree blocks in an dependent slice
 #define SHARP_MULTIPLE_CONSTRAINT_BASED_DEPENDENT_SLICE         2          ///< OPTION IDENTIFIER. Limit maximum number of bins/bits in an dependent slice
+#if DEPENDENT_SLICES
+#define FIXED_NUMBER_OF_TILES_IN_DEPENDENT_SLICE          3 // JCTVC-I0229
+#endif
 
 #define LOG2_MAX_NUM_COLUMNS_MINUS1        7
 #define LOG2_MAX_NUM_ROWS_MINUS1           7
@@ -266,8 +270,6 @@
 
 #define REMOVE_LC  1 // JCTVC-I0125
 #define CU_QP_DELTA_DEPTH_SYN  1 // JCTVC-I0127, differential coding of max cu qp delta depth
-
-#define DEPENDENT_SLICES       1 // JCTVC-I0229
 
 #define H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL 1 ///< H0391: Loop filtering across/non-across slice boundaries control
 
