@@ -1371,11 +1371,11 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 
   READ_FLAG( uiCode, "temporal_id_nesting_flag" );               pcSPS->setTemporalIdNestingFlag ( uiCode > 0 ? true : false );
 
+  READ_UVLC( uiCode, "num_short_term_ref_pic_sets" );
+  pcSPS->createRPSList(uiCode);
+
   TComRPSList* rpsList = pcSPS->getRPSList();
   TComReferencePictureSet* rps;
-
-  READ_UVLC( uiCode, "num_short_term_ref_pic_sets" );
-  rpsList->create(uiCode);
 
   for(UInt i=0; i< rpsList->getNumberOfReferencePictureSets(); i++)
   {

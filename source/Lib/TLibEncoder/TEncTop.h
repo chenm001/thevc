@@ -98,7 +98,6 @@ private:
   TComSPS                 m_cSPS;                         ///< SPS
   TComPPS                 m_cPPS;                         ///< PPS
   std::vector<TComAPS>    m_vAPS;  //!< APS container
-  TComRPSList             m_RPSList;                         ///< RPS
   
   // RD cost computation
   TComBitCounter          m_cBitCounter;                  ///< bit counter for RD optimization
@@ -178,7 +177,6 @@ public:
   TComSPS*                getSPS                () { return  &m_cSPS;                 }
   TComPPS*                getPPS                () { return  &m_cPPS;                 }
   std::vector<TComAPS>&   getAPS                () { return m_vAPS; }
-  TComRPSList*            getRPSList            () { return  &m_RPSList;                 }
   
   Void selectReferencePictureSet(TComSlice* slice, Int POCCurr, Int GOPid,TComList<TComPic*>& listPic );
   TComScalingList*        getScalingList        () { return  &m_scalingList;         }

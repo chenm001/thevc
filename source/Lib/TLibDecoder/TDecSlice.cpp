@@ -117,6 +117,16 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
   TComSlice*  pcSlice = rpcPic->getSlice(rpcPic->getCurrSliceIdx());
   Int  iNumSubstreams = pcSlice->getPPS()->getNumSubstreams();
 
+  // delete decoders if already allocated in previous slice
+  if (m_pcBufferSbacDecoders)
+  {
+    delete [] m_pcBufferSbacDecoders;
+  }
+  if (m_pcBufferBinCABACs) 
+  {
+    delete [] m_pcBufferBinCABACs;
+  }
+  // allocate new decoders based on tile numbaer
   m_pcBufferSbacDecoders = new TDecSbac    [uiTilesAcross];  
   m_pcBufferBinCABACs    = new TDecBinCABAC[uiTilesAcross];
   for (UInt ui = 0; ui < uiTilesAcross; ui++)
@@ -129,6 +139,15 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
     m_pcBufferSbacDecoders[ui].load(pcSbacDecoder);
   }
 
+  // free memory if already allocated in previous call
+  if (m_pcBufferLowLatSbacDecoders)
+  {
+    delete [] m_pcBufferLowLatSbacDecoders;
+  }
+  if (m_pcBufferLowLatBinCABACs)
+  {
+    delete [] m_pcBufferLowLatBinCABACs;
+  }
   m_pcBufferLowLatSbacDecoders = new TDecSbac    [uiTilesAcross];  
   m_pcBufferLowLatBinCABACs    = new TDecBinCABAC[uiTilesAcross];
   for (UInt ui = 0; ui < uiTilesAcross; ui++)

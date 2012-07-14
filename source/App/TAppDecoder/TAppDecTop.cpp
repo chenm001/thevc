@@ -64,6 +64,16 @@ Void TAppDecTop::create()
 
 Void TAppDecTop::destroy()
 {
+  if (m_pchBitstreamFile)
+  {
+    free (m_pchBitstreamFile);
+    m_pchBitstreamFile = NULL;
+  }
+  if (m_pchReconFile)
+  {
+    free (m_pchReconFile);
+    m_pchReconFile = NULL;
+  }
 }
 
 // ====================================================================================================================
@@ -340,7 +350,14 @@ Void TAppDecTop::xFlushOutput( TComList<TComPic*>* pcListPic )
       }
       pcPic->setOutputMark(false);
     }
-    
+#if !DYN_REF_FREE
+    if(pcPic)
+    {
+      pcPic->destroy();
+      delete pcPic;
+      pcPic = NULL;
+    }
+#endif    
     iterPic++;
   }
   pcListPic->clear();

@@ -82,6 +82,15 @@ TComLoopFilter::TComLoopFilter()
 {
   m_uiDisableDeblockingFilterIdc = 0;
   m_bLFCrossTileBoundary = true;
+ 
+  for( UInt uiDir = 0; uiDir < 2; uiDir++ )
+  {
+    m_aapucBS       [uiDir] = NULL;
+    for( UInt uiPlane = 0; uiPlane < 3; uiPlane++ )
+    {
+      m_aapbEdgeFilter[uiDir][uiPlane] = NULL;
+    }
+  }
 }
 
 TComLoopFilter::~TComLoopFilter()
@@ -111,6 +120,7 @@ Void TComLoopFilter::setCfg( Bool DeblockingFilterControlPresent, UInt uiDisable
 
 Void TComLoopFilter::create( UInt uiMaxCUDepth )
 {
+  destroy();
   m_uiNumPartitions = 1 << ( uiMaxCUDepth<<1 );
   for( UInt uiDir = 0; uiDir < 2; uiDir++ )
   {
@@ -126,10 +136,18 @@ Void TComLoopFilter::destroy()
 {
   for( UInt uiDir = 0; uiDir < 2; uiDir++ )
   {
-    delete [] m_aapucBS       [uiDir];
+    if (m_aapucBS)
+    {
+      delete [] m_aapucBS       [uiDir];
+      m_aapucBS [uiDir] = NULL;
+    }
     for( UInt uiPlane = 0; uiPlane < 3; uiPlane++ )
     {
-      delete [] m_aapbEdgeFilter[uiDir][uiPlane];
+      if (m_aapbEdgeFilter[uiDir][uiPlane])
+      {
+        delete [] m_aapbEdgeFilter[uiDir][uiPlane];
+        m_aapbEdgeFilter[uiDir][uiPlane] = NULL;
+      }
     }
   }
 }

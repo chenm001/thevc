@@ -266,7 +266,7 @@ private:
   UInt        m_uiMaxCUDepth;
   UInt        m_uiMinTrDepth;
   UInt        m_uiMaxTrDepth;
-  TComRPSList* m_RPSList;
+  TComRPSList m_RPSList;
   Bool        m_bLongTermRefsPresent;
 #if SLICE_TMVP_ENABLE
   Bool        m_TMVPFlagsPresent;
@@ -437,8 +437,8 @@ public:
   UInt getQuadtreeTUMaxDepthIntra()         { return m_uiQuadtreeTUMaxDepthIntra; }
   Void setNumReorderPics(Int i, UInt tlayer)              { m_numReorderPics[tlayer] = i;    }
   Int  getNumReorderPics(UInt tlayer)                     { return m_numReorderPics[tlayer]; }
-  Void      setRPSList( TComRPSList* RPSList )   { m_RPSList = RPSList;       }
-  TComRPSList* getRPSList()                      { return m_RPSList;          }
+  Void         createRPSList( Int numRPS );
+  TComRPSList* getRPSList()                      { return &m_RPSList;          }
   Bool      getLongTermRefsPresent()         { return m_bLongTermRefsPresent; }
   Void      setLongTermRefsPresent(Bool b)   { m_bLongTermRefsPresent=b;      }
 #if SLICE_TMVP_ENABLE

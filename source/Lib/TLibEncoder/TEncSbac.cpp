@@ -1993,7 +1993,7 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, Int width
 {
 #if UNIFIED_POS_SIG_CTX
   Int firstCtx = 1, numCtx = 8;
-  if (std::max(width, height) >= 16)
+  if (max(width, height) >= 16)
   {
     firstCtx = 18;
     numCtx = (eTType == TEXT_LUMA) ? 6 : 3;

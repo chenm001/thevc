@@ -238,7 +238,6 @@ Void TEncTop::destroy ()
   }
   m_cAdaptiveLoopFilter.destroy();
   m_cLoopFilter.        destroy();
-  m_RPSList.            destroy();
   m_cRateCtrl.          destroy();
   // SBAC RD
   if( m_bUseSBACRD )
@@ -307,7 +306,6 @@ Void TEncTop::init()
   
   // initialize PPS
   m_cPPS.setSPS(&m_cSPS);
-  m_cSPS.setRPSList(&m_RPSList);
   xInitPPS();
   xInitRPS();
 
@@ -707,11 +705,13 @@ Void TEncTop::xInitRPS()
 {
   TComReferencePictureSet*      rps;
   
-  m_RPSList.create(getGOPSize()+m_extraRPSs);
+  m_cSPS.createRPSList(getGOPSize()+m_extraRPSs);
+  TComRPSList* rpsList = m_cSPS.getRPSList();
+
   for( Int i = 0; i < getGOPSize()+m_extraRPSs; i++) 
   {
     GOPEntry ge = getGOPEntry(i);
-    rps = m_RPSList.getReferencePictureSet(i);
+    rps = rpsList->getReferencePictureSet(i);
     rps->setNumberOfPictures(ge.m_numRefPics);
     rps->setNumRefIdc(ge.m_numRefIdc);
     Int numNeg = 0;
@@ -736,7 +736,7 @@ Void TEncTop::xInitRPS()
 #if AUTO_INTER_RPS
     rps->setInterRPSPrediction(ge.m_interRPSPrediction > 0);  // not very clean, converting anything > 0 to true.
     rps->setDeltaRIdxMinus1(ge.m_deltaRIdxMinus1);            // index to the Reference RPS
-    TComReferencePictureSet*     RPSRef = m_RPSList.getReferencePictureSet(i-(ge.m_deltaRIdxMinus1+1));  // get the reference RPS
+    TComReferencePictureSet*     RPSRef = rpsList->getReferencePictureSet(i-(ge.m_deltaRIdxMinus1+1));  // get the reference RPS
 
     if (ge.m_interRPSPrediction == 2)  // Automatic generation of the inter RPS idc based on the RIdx provided.
     {
@@ -905,7 +905,7 @@ Void TEncTop::selectReferencePictureSet(TComSlice* slice, Int POCCurr, Int GOPid
     }
   }
 
-  slice->setRPS(getRPSList()->getReferencePictureSet(slice->getRPSidx()));
+  slice->setRPS(getSPS()->getRPSList()->getReferencePictureSet(slice->getRPSidx()));
   slice->getRPS()->setNumberOfPictures(slice->getRPS()->getNumberOfNegativePictures()+slice->getRPS()->getNumberOfPositivePictures());
 
 }

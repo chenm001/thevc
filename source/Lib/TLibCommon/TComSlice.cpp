@@ -1478,6 +1478,13 @@ TComSPS::~TComSPS()
 #if SCALING_LIST_HL_SYNTAX
   delete m_scalingList;
 #endif
+  m_RPSList.destroy();
+}
+
+Void  TComSPS::createRPSList( Int numRPS )
+{ 
+  m_RPSList.destroy();
+  m_RPSList.create(numRPS);
 }
 
 const Int TComSPS::m_cropUnitX[]={1,2,2,1};
@@ -1544,6 +1551,9 @@ TComPPS::~TComPPS()
     if (m_puiRowHeight) delete [] m_puiRowHeight;
     m_puiRowHeight = NULL;
   }
+#if SCALING_LIST_HL_SYNTAX
+  delete m_scalingList;
+#endif
 }
 
 TComReferencePictureSet::TComReferencePictureSet()
@@ -1692,6 +1702,7 @@ Void TComReferencePictureSet::printDeltaPOC()
 }
 
 TComRPSList::TComRPSList()
+:m_referencePictureSets (NULL)
 {
 }
 
@@ -1707,7 +1718,10 @@ Void TComRPSList::create( Int numberOfReferencePictureSets)
 
 Void TComRPSList::destroy()
 {
-  delete [] m_referencePictureSets;
+  if (m_referencePictureSets)
+  {
+    delete [] m_referencePictureSets;
+  }
   m_numberOfReferencePictureSets = 0;
   m_referencePictureSets = NULL;
 }

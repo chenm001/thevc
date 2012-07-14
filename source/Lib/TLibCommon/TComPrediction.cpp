@@ -47,6 +47,7 @@
 
 TComPrediction::TComPrediction()
 : m_pLumaRecBuffer(0)
+, m_iLumaRecStride(0)
 {
   m_piYuvExt = NULL;
 }
@@ -103,8 +104,14 @@ Void TComPrediction::initTempBuff()
     m_cYuvPredTemp.create( g_uiMaxCUWidth, g_uiMaxCUHeight );
   }
 
-  m_iLumaRecStride =  (g_uiMaxCUWidth>>1) + 1;
-  m_pLumaRecBuffer = new Pel[ m_iLumaRecStride * m_iLumaRecStride ];
+  if (m_iLumaRecStride != (g_uiMaxCUWidth>>1) + 1)
+  {
+    m_iLumaRecStride =  (g_uiMaxCUWidth>>1) + 1;
+    if (!m_pLumaRecBuffer)
+    {
+      m_pLumaRecBuffer = new Pel[ m_iLumaRecStride * m_iLumaRecStride ];
+    }
+  }
 
 #if LM_REDUCED_DIV_TABLE
 
