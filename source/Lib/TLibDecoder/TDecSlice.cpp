@@ -203,7 +203,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
     uiLin     = iCUAddr / uiWidthInLCUs;
     // inherit from TR if necessary, select substream to use.
 #if DEPENDENT_SLICES
-    if( (pcSlice->getPPS()->getNumSubstreams() > 1) || bAllowDependence  && (uiCol == uiTileLCUX)&&(pcSlice->getPPS()->getTilesOrEntropyCodingSyncIdc()==2))
+    if( (pcSlice->getPPS()->getNumSubstreams() > 1) || ( bAllowDependence  && (uiCol == uiTileLCUX)&&(pcSlice->getPPS()->getTilesOrEntropyCodingSyncIdc()==2) ))
 #else
     if( pcSlice->getPPS()->getNumSubstreams() > 1 )
 #endif
