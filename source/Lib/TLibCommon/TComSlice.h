@@ -1424,10 +1424,10 @@ public:
   Void      setNalRefFlag(Bool x) { m_nalRefFlag = x;}
 #endif
 #if DEPENDENT_SLICES
-  Void      initCTXMem_dec(  UInt i )                { CTXMem_dec.resize(i); }
+  Void      initCTXMem_dec(  UInt i );                
   TDecSbac* getCTXMem_dec( int b )                 { return CTXMem_dec[b]; }
   Void      setCTXMem_dec( TDecSbac* sb, int b )   { CTXMem_dec[b] = sb; }
-  Void      initCTXMem_enc( UInt i )                 { CTXMem_enc.resize(i); }
+  Void      initCTXMem_enc( UInt i );
   TEncSbac* getCTXMem_enc( int b )                 { return CTXMem_enc[b]; }
   Void      setCTXMem_enc( TEncSbac* sb, int b )   { CTXMem_enc[b] = sb; }
 #endif
