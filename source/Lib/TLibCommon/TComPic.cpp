@@ -140,7 +140,7 @@ Void TComPic::compressMotion()
  * \param numTiles number of tiles in picture
  * \param bNDBFilterCrossTileBoundary cross-tile-boundary in-loop filtering; true for "cross".
  */
-Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int sliceGranularityDepth
+Void TComPic::createNonDBFilterInfo(std::vector<Int> sliceStartAddress, Int sliceGranularityDepth
 #if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
                                     ,std::vector<Bool>* LFCrossSliceBoundary
 #else
@@ -157,6 +157,7 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
   Int  numLCUsInPicHeight= getFrameHeightInCU();
   UInt maxNumSUInLCUWidth = getNumPartInWidth();
   UInt maxNumSUInLCUHeight= getNumPartInHeight();
+  Int  numSlices = (Int) sliceStartAddress.size() - 1;
 #if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
   m_bIndependentSliceBoundaryForNDBFilter = false;
   if(numSlices > 1)
@@ -205,8 +206,8 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
   for(Int s=0; s< numSlices; s++)
   {
     //1st step: decide the real start address
-    startAddr = pSliceStartAddress[s];
-    endAddr   = pSliceStartAddress[s+1] -1;
+    startAddr = sliceStartAddress[s];
+    endAddr   = sliceStartAddress[s+1] -1;
 
     startLCU            = startAddr / maxNumSUInLCU;
     firstCUInStartLCU   = startAddr % maxNumSUInLCU;

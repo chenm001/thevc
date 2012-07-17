@@ -155,7 +155,7 @@ public:
   Void          clearSliceBuffer()           {m_apcPicSym->clearSliceBuffer();         }
 
 #if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
-  Void          createNonDBFilterInfo   (UInt* pSliceStartAddress , Int numSlices, Int sliceGranularityDepth
+  Void          createNonDBFilterInfo   (std::vector<Int> sliceStartAddress, Int sliceGranularityDepth
                                         ,std::vector<Bool>* LFCrossSliceBoundary
                                         ,Int  numTiles = 1
                                         ,Bool bNDBFilterCrossTileBoundary = true);

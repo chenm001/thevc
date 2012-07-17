@@ -71,7 +71,7 @@ public:
   
   Void  init                   ( TEncBinIf* p )  { m_pcBinIf = p; }
   Void  uninit                 ()                { m_pcBinIf = 0; }
-  
+
   //  Virtual list
   Void  resetEntropy           ();
   Void  determineCabacInitIdx  ();

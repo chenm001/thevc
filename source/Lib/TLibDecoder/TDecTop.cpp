@@ -194,7 +194,7 @@ Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic
 
   // Execute Deblock and ALF only + Cleanup
 
-  m_cGopDecoder.decompressGop(NULL, pcPic, true);
+  m_cGopDecoder.filterPicture(pcPic);
 
   TComSlice::sortPicList( m_cListPic ); // sorting for application output
   ruiPOC              = pcPic->getSlice(m_uiSliceIdx-1)->getPOC();
@@ -707,7 +707,7 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   }
 
   //  Decode a picture
-  m_cGopDecoder.decompressGop(nalu.m_Bitstream, pcPic, false);
+  m_cGopDecoder.decompressSlice(nalu.m_Bitstream, pcPic);
 
   m_bFirstSliceInPicture = false;
   m_uiSliceIdx++;

@@ -95,6 +95,18 @@ private:
   AlfParamSet           m_alfParamSetPilot;
 #endif
 
+  //! list that contains the CU address of each slice plus the end address 
+  std::vector<Int> m_sliceStartCUAddress;
+#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+  std::vector<Bool> m_LFCrossSliceBoundaryFlag;
+#endif
+#if AHG6_ALF_OPTION2
+  std::vector<Bool> m_sliceAlfEnabled[3];
+#else
+  std::vector<AlfCUCtrlInfo> m_vAlfCUCtrlSlices;
+#endif
+
+
 public:
   TDecGop();
   virtual ~TDecGop();
@@ -110,7 +122,9 @@ public:
                  );
   Void  create  ();
   Void  destroy ();
-  Void  decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf );
+//  Void  decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf );
+  Void  decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPic );
+  Void  filterPicture  (TComPic*& rpcPic );
   Void  setGopSize( Int i) { m_iGopSize = i; }
 
 #if HASH_TYPE

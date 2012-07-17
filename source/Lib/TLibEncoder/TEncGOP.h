@@ -103,8 +103,8 @@ private:
   // clean decoding refresh
   Bool                    m_bRefreshPending;
   Int                     m_pocCRA;
-  UInt*                   m_uiStoredStartCUAddrForEncodingSlice;
-  UInt*                   m_uiStoredStartCUAddrForEncodingDependentSlice;
+  std::vector<Int>        m_storedStartCUAddrForEncodingSlice;
+  std::vector<Int>        m_storedStartCUAddrForEncodingDependentSlice;
 
   std::vector<Int> m_vRVM_RP;
 
