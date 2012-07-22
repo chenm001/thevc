@@ -5420,17 +5420,9 @@ Void TEncSearch::xEncodeResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, const U
 
   {
     assert( pcCU->getPredictionMode(uiAbsPartIdx) != MODE_INTRA );
-#if CBF_UV_UNIFICATION
     if( bSubdivAndCbf )
-#else
-    if( bSubdivAndCbf && uiLog2TrSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
-#endif
     {
-#if CBF_UV_UNIFICATION
       const Bool bFirstCbfOfCU = uiCurrTrMode == 0;
-#else
-      const Bool bFirstCbfOfCU = uiLog2TrSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() || uiCurrTrMode == 0;
-#endif
       if( bFirstCbfOfCU || uiLog2TrSize > 2 )
       {
         if( bFirstCbfOfCU || pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiCurrTrMode - 1 ) )

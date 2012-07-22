@@ -939,16 +939,9 @@ Void TEncEntropy::xEncodeTransform( TComDataCU* pcCU,UInt offsetLuma, UInt offse
   }
 
   {
-#if !CBF_UV_UNIFICATION
-    if( uiLog2TrafoSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
-#endif
     {
       const UInt uiTrDepthCurr = uiDepth - pcCU->getDepth( uiAbsPartIdx );
-#if CBF_UV_UNIFICATION
       const Bool bFirstCbfOfCU = uiTrDepthCurr == 0;
-#else
-      const Bool bFirstCbfOfCU = uiLog2TrafoSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() || uiTrDepthCurr == 0;
-#endif
       if( bFirstCbfOfCU || uiLog2TrafoSize > 2 )
       {
         if( bFirstCbfOfCU || pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr - 1 ) )
@@ -956,11 +949,7 @@ Void TEncEntropy::xEncodeTransform( TComDataCU* pcCU,UInt offsetLuma, UInt offse
 #if REMOVE_LASTTU_CBFDERIV
           m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr );
 #else
-#if CBF_UV_UNIFICATION
           if ( uiInnerQuadIdx == 3 && uiUCbfFront3 == 0 )
-#else
-          if ( uiInnerQuadIdx == 3 && uiUCbfFront3 == 0 && uiLog2TrafoSize < pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
-#endif
           {
             uiUCbfFront3++;
           }
@@ -977,11 +966,7 @@ Void TEncEntropy::xEncodeTransform( TComDataCU* pcCU,UInt offsetLuma, UInt offse
 #if REMOVE_LASTTU_CBFDERIV
           m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepthCurr );
 #else
-#if CBF_UV_UNIFICATION
           if ( uiInnerQuadIdx == 3 && uiVCbfFront3 == 0 )
-#else
-          if ( uiInnerQuadIdx == 3 && uiVCbfFront3 == 0 && uiLog2TrafoSize < pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize()  )
-#endif
           {
             uiVCbfFront3++;
           }
