@@ -357,9 +357,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("ScalingList",                 m_useScalingListId,              0,          "0: no scaling list, 1: default scaling lists, 2: scaling lists specified in ScalingListFile")
     ("ScalingListFile",             cfg_ScalingListFile,             string(""), "Scaling list file name")
     ("SignHideFlag,-SBH",                m_signHideFlag, 1)
-#if !FIXED_SBH_THRESHOLD
-    ("SignHideThreshold,-TSIG",          m_signHidingThreshold,         4)
-#endif
   /* Misc. */
 #if HASH_TYPE
   ("SEIpictureDigest", m_pictureDigestEnabled, 1, "Control generation of picture_digest SEI messages\n"
@@ -1156,11 +1153,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("AQpS:%d", m_bUseAdaptQpSelect   );
 #endif
 
-#if  FIXED_SBH_THRESHOLD
   printf(" SignBitHidingFlag:%d ", m_signHideFlag);
-#else
-  printf(" SignBitHidingFlag:%d SignBitHidingThreshold:%d", m_signHideFlag, m_signHidingThreshold);
-#endif
   printf("\n\n");
   
   fflush(stdout);

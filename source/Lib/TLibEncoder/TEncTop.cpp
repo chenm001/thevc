@@ -660,9 +660,6 @@ Void TEncTop::xInitPPS()
 #endif
   m_cPPS.setOutputFlagPresentFlag( false );
   m_cPPS.setSignHideFlag(getSignHideFlag());
-#if !FIXED_SBH_THRESHOLD
-  m_cPPS.setTSIG(getTSIG());
-#endif
   m_cPPS.setDeblockingFilterControlPresent (m_DeblockingFilterControlPresent );
   m_cPPS.setLog2ParallelMergeLevelMinus2   (m_log2ParallelMergeLevelMinus2 );
   m_cPPS.setCabacInitPresentFlag(CABAC_INIT_PRESENT_FLAG);

@@ -1552,9 +1552,6 @@ TComPPS::TComPPS()
 , m_puiRowHeight                 (NULL)
 ,  m_iNumSubstreams             (1)
 , m_signHideFlag(0)
-#if !FIXED_SBH_THRESHOLD
-, m_signHidingThreshold(0)
-#endif
 , m_cabacInitPresentFlag        (false)
 , m_encCABACTableIdx            (I_SLICE)
 #if SLICE_HEADER_EXTENSION

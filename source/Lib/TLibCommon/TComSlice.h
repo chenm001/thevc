@@ -668,9 +668,6 @@ private:
 #endif
 
   Int      m_signHideFlag;
-#if !FIXED_SBH_THRESHOLD
-  Int      m_signHidingThreshold;
-#endif
 
   Bool     m_cabacInitPresentFlag;
   UInt     m_encCABACTableIdx;           // Used to transmit table selection across slices
@@ -801,13 +798,7 @@ public:
   Int      getNumSubstreams()                                 { return m_iNumSubstreams; }
 
   Void      setSignHideFlag( Int signHideFlag ) { m_signHideFlag = signHideFlag; }
-#if !FIXED_SBH_THRESHOLD
-  Void      setTSIG( Int tsig )                 { m_signHidingThreshold = tsig; }
-#endif
   Int       getSignHideFlag()                    { return m_signHideFlag; }
-#if !FIXED_SBH_THRESHOLD
-  Int       getTSIG()                            { return m_signHidingThreshold; }
-#endif
 
 #if !SLICE_TMVP_ENABLE
   Void     setEnableTMVPFlag( Bool b )  { m_enableTMVPFlag = b;    }

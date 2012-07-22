@@ -935,9 +935,6 @@ void xITrMxN(short *coeff,short *block, int iWidth, int iHeight, UInt uiMode)
 // To minimize the distortion only. No rate is considered. 
 Void TComTrQuant::signBitHidingHDQ( TComDataCU* pcCU, TCoeff* pQCoef, TCoeff* pCoef, UInt const *scan, Int* deltaU, Int width, Int height )
 {
-#if !FIXED_SBH_THRESHOLD
-  Int tsig = pcCU->getSlice()->getPPS()->getTSIG() ;
-#endif
   Int lastCG = -1;
   Int absSum = 0 ;
   Int n ;
@@ -976,11 +973,7 @@ Void TComTrQuant::signBitHidingHDQ( TComDataCU* pcCU, TCoeff* pQCoef, TCoeff* pC
       lastCG = 1 ; 
     }
 
-#if FIXED_SBH_THRESHOLD
     if( lastNZPosInCG-firstNZPosInCG>=SBH_THRESHOLD )
-#else
-    if( lastNZPosInCG-firstNZPosInCG>=tsig )
-#endif
     {
       UInt signbit = (pQCoef[scan[subPos+firstNZPosInCG]]>0?0:1) ;
       if( signbit!=(absSum&0x1) )  //compare signbit with sum_parity
@@ -2161,9 +2154,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   if( pcCU->getSlice()->getPPS()->getSignHideFlag() && uiAbsSum>=2)
   {
     Int64 rdFactor = (Int64)((Double)(g_invQuantScales[m_cQP.rem()])*(Double)(g_invQuantScales[m_cQP.rem()])*(Double)(1<<(2*m_cQP.m_iPer))/m_dLambda/16/(Double)(1<<(2*g_uiBitIncrement)) + 0.5);
-#if !FIXED_SBH_THRESHOLD
-    Int tsig = pcCU->getSlice()->getPPS()->getTSIG() ;
-#endif
     Int lastCG = -1;
     Int absSum = 0 ;
     Int n ;
@@ -2199,11 +2189,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
 
       if(lastNZPosInCG>=0 && lastCG==-1) lastCG =1 ; 
       
-#if FIXED_SBH_THRESHOLD
       if( lastNZPosInCG-firstNZPosInCG>=SBH_THRESHOLD )
-#else
-      if( lastNZPosInCG-firstNZPosInCG>=tsig )
-#endif
       {
         UInt signbit = (piDstCoeff[scan[subPos+firstNZPosInCG]]>0?0:1);
         if( signbit!=(absSum&0x1) )  // hide but need tune

@@ -285,9 +285,6 @@ protected:
   Bool      m_bEnableTMVP;
 #endif
   Int       m_signHideFlag;
-#if !FIXED_SBH_THRESHOLD
-  Int       m_signHidingThreshold;
-#endif
   Bool      m_enableRateCtrl;                                ///< Flag for using rate control algorithm
   Int       m_targetBitrate;                                 ///< target bitrate
   Int       m_numLCUInUnit;                                  ///< Total number of LCUs in a frame should be divided by the NumLCUInUnit
@@ -679,13 +676,7 @@ public:
   Bool      getEnableTMVP ()         { return m_bEnableTMVP; }
 #endif
   Void      setSignHideFlag( Int signHideFlag ) { m_signHideFlag = signHideFlag; }
-#if !FIXED_SBH_THRESHOLD
-  Void      setTSIG( Int tsig )                 { m_signHidingThreshold = tsig; }
-#endif
   Int       getSignHideFlag()                    { return m_signHideFlag; }
-#if !FIXED_SBH_THRESHOLD
-  Int       getTSIG()                            { return m_signHidingThreshold; }
-#endif
   Bool      getUseRateCtrl    ()                { return m_enableRateCtrl;    }
   Void      setUseRateCtrl    (Bool flag)       { m_enableRateCtrl = flag;    }
   Int       getTargetBitrate  ()                { return m_targetBitrate;     }

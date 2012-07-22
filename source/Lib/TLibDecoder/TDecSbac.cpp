@@ -1207,9 +1207,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   UInt uiNumOne                = 0;
   UInt uiGoRiceParam           = 0;
 
-#if !FIXED_SBH_THRESHOLD
-  UInt const tsig = pcCU->getSlice()->getPPS()->getTSIG();
-#endif
 #if LOSSLESS_CODING || CU_LEVEL_TRANSQUANT_BYPASS
   Bool beValid; 
 #if CU_LEVEL_TRANSQUANT_BYPASS
@@ -1332,11 +1329,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     
     if( numNonZero )
     {
-#if FIXED_SBH_THRESHOLD
       Bool signHidden = ( lastNZPosInCG - firstNZPosInCG >= SBH_THRESHOLD );
-#else
-      Bool signHidden = ( lastNZPosInCG - firstNZPosInCG >= (Int)tsig );
-#endif
       absSum = 0;
 
       UInt c1 = 1;

@@ -294,9 +294,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseScalingListId           ( m_useScalingListId  );
   m_cTEncTop.setScalingListFile            ( m_scalingListFile   );
   m_cTEncTop.setSignHideFlag(m_signHideFlag);
-#if !FIXED_SBH_THRESHOLD
-  m_cTEncTop.setTSIG(m_signHidingThreshold);
-#endif
 #if AHG6_ALF_OPTION2
   m_cTEncTop.setALFLowLatencyEncoding( m_alfLowLatencyEncoding );
 #else

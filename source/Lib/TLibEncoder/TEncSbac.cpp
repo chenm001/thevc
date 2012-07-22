@@ -1266,9 +1266,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     scan = g_sigScanNSQT[ uiLog2BlockSize - 2 ];
   }
   
-#if !FIXED_SBH_THRESHOLD
-  UInt const tsig = pcCU->getSlice()->getPPS()->getTSIG();
-#endif
 #if LOSSLESS_CODING || CU_LEVEL_TRANSQUANT_BYPASS
   Bool beValid; 
 #if CU_LEVEL_TRANSQUANT_BYPASS
@@ -1439,11 +1436,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 
     if( numNonZero > 0 )
     {
-#if FIXED_SBH_THRESHOLD
       Bool signHidden = ( lastNZPosInCG - firstNZPosInCG >= SBH_THRESHOLD );
-#else
-      Bool signHidden = ( lastNZPosInCG - firstNZPosInCG >= (Int)tsig );
-#endif
 
       UInt c1 = 1;
       UInt uiCtxSet = (iSubSet > 0 && eTType==TEXT_LUMA) ? 2 : 0;
