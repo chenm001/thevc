@@ -81,8 +81,6 @@
 
 #define SBH_THRESHOLD                    4  ///< I0156: value of the fixed SBH controlling threshold
   
-#define CONSTRAINED_MOTION_DATA_COMPRESSION 1  ///< I0182: Constrained motion data compression, only allow motion data compression when minimum PU width = 4
-
 #define LOSSLESS_CODING                   1  ///< H0530: lossless and lossy (mixed) coding
 #if LOSSLESS_CODING
 #define SEQUENCE_LEVEL_LOSSLESS           0  ///< H0530: used only for sequence or frame-level lossless coding

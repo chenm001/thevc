@@ -213,33 +213,25 @@ Void initRasterToZscan ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth 
 */
 Void initMotionReferIdx ( UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxDepth )
 {
-#if CONSTRAINED_MOTION_DATA_COMPRESSION
   Int  minSUWidth  = (Int)uiMaxCUWidth  >> ( (Int)uiMaxDepth - 1 );
   Int  minSUHeight = (Int)uiMaxCUHeight >> ( (Int)uiMaxDepth - 1 );
 
   Int  numPartInWidth  = (Int)uiMaxCUWidth  / (Int)minSUWidth;
   Int  numPartInHeight = (Int)uiMaxCUHeight / (Int)minSUHeight;
-#else
-  Int  minCUWidth  = (Int)uiMaxCUWidth  >> ( (Int)uiMaxDepth - 1 );
-  Int  minCUHeight = (Int)uiMaxCUHeight >> ( (Int)uiMaxDepth - 1 );
-
-  Int  numPartInWidth  = (Int)uiMaxCUWidth  / (Int)minCUWidth;
-  Int  numPartInHeight = (Int)uiMaxCUHeight / (Int)minCUHeight;
-#endif
 
   for ( Int i = 0; i < numPartInWidth*numPartInHeight; i++ )
   {
     g_motionRefer[i] = i;
   }
 
-#if CONSTRAINED_MOTION_DATA_COMPRESSION
   UInt maxCUDepth = g_uiMaxCUDepth - ( g_uiAddCUDepth - 1);
   Int  minCUWidth  = (Int)uiMaxCUWidth  >> ( (Int)maxCUDepth - 1);
 
   if(!(minCUWidth == 8 && minSUWidth == 4)) //check if Minimum PU width == 4
+  {
     return;
-#endif
-
+  }
+  
   Int compressionNum = 2;
 
   for ( Int i = numPartInWidth*(numPartInHeight-1); i < numPartInWidth*numPartInHeight; i += compressionNum*2)
