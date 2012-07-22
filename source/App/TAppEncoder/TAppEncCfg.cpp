@@ -223,9 +223,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("ASR",                     m_bUseASR,                false, "Adaptive motion search range")
 
   // Mode decision parameters
-#if !REMOVE_INTER_4X4
-  ("DisableInter4x4",         m_bDisInter4x4,            true, "Disable Inter 4x4")
-#endif
   ("LambdaModifier0,-LM0", m_adLambdaModifier[ 0 ], ( double )1.0, "Lambda modifier for temporal layer 0")
   ("LambdaModifier1,-LM1", m_adLambdaModifier[ 1 ], ( double )1.0, "Lambda modifier for temporal layer 1")
   ("LambdaModifier2,-LM2", m_adLambdaModifier[ 2 ], ( double )1.0, "Lambda modifier for temporal layer 2")
@@ -1012,12 +1009,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("GOP size                     : %d\n", m_iGOPSize );
   printf("Internal bit depth           : %d\n", m_uiInternalBitDepth );
   printf("PCM sample bit depth         : %d\n", m_uiPCMBitDepthLuma );
-#if !REMOVE_INTER_4X4
-  if((m_uiMaxCUWidth >> m_uiMaxCUDepth) == 4)
-  {
-    printf("DisableInter4x4              : %d\n", m_bDisInter4x4);  
-  }
-#endif
   printf("RateControl                  : %d\n", m_enableRateCtrl);
   if(m_enableRateCtrl)
   {

@@ -717,12 +717,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 
   READ_UVLC( uiCode, "log2_diff_max_min_transform_block_size" ); pcSPS->setQuadtreeTULog2MaxSize( uiCode + pcSPS->getQuadtreeTULog2MinSize() );
   pcSPS->setMaxTrSize( 1<<(uiCode + pcSPS->getQuadtreeTULog2MinSize()) );
-#if !REMOVE_INTER_4X4
-  if(log2MinCUSize == 3)
-  {
-    xReadFlag( uiCode ); pcSPS->setDisInter4x4( uiCode ? true : false );
-  }
-#endif
   if( pcSPS->getUsePCM() )
   {
     READ_UVLC( uiCode, "log2_min_pcm_coding_block_size_minus3" );  pcSPS->setPCMLog2MinSize (uiCode+3); 

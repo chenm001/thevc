@@ -133,9 +133,6 @@ protected:
                                                  // TODO: We need to have a common sliding mechanism used by both the encoder and decoder
 
   Int       m_maxTempLayer;                      ///< Max temporal layer
-#if !REMOVE_INTER_4X4
-  Bool      m_bDisInter4x4;
-#endif
   Bool m_useAMP;
   //======= Transform =============
   UInt      m_uiQuadtreeTULog2MaxSize;
@@ -305,10 +302,6 @@ public:
 
   Bool      getMaxTempLayer                 ()                              { return m_maxTempLayer;              } 
   Void      setMaxTempLayer                 ( Int maxTempLayer )            { m_maxTempLayer = maxTempLayer;      }
-#if !REMOVE_INTER_4X4
-  Bool      getDisInter4x4                  ()              { return m_bDisInter4x4;        }
-  Void      setDisInter4x4                  ( Bool b )      { m_bDisInter4x4  = b;          }
-#endif
   //======== Transform =============
   Void      setQuadtreeTULog2MaxSize        ( UInt  u )      { m_uiQuadtreeTULog2MaxSize = u; }
   Void      setQuadtreeTULog2MinSize        ( UInt  u )      { m_uiQuadtreeTULog2MinSize = u; }

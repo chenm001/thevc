@@ -111,9 +111,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setPad                          ( m_aiPad );
     
   m_cTEncTop.setMaxTempLayer                 ( m_maxTempLayer );
-#if !REMOVE_INTER_4X4
-  m_cTEncTop.setDisInter4x4                  ( m_bDisInter4x4);
-#endif
   m_cTEncTop.setUseNSQT( m_enableNSQT );
   m_cTEncTop.setUseAMP( m_enableAMP );
   

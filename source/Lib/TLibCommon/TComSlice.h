@@ -275,9 +275,6 @@ private:
   Bool        m_usePCM;
   UInt        m_pcmLog2MaxSize;
   UInt        m_uiPCMLog2MinSize;
-#if !REMOVE_INTER_4X4
-  Bool        m_bDisInter4x4;
-#endif
   Bool        m_useAMP;
   Bool        m_bUseALF;
   Bool        m_bUseLMChroma; // JL:
@@ -401,10 +398,6 @@ public:
   UInt getPCMLog2MinSize  ()         { return  m_uiPCMLog2MinSize;  }
   Void setBitsForPOC  ( UInt u ) { m_uiBitsForPOC = u;      }
   UInt getBitsForPOC  ()         { return m_uiBitsForPOC;   }
-#if !REMOVE_INTER_4X4
-  Bool getDisInter4x4()         { return m_bDisInter4x4;        }
-  Void setDisInter4x4      ( Bool b ) { m_bDisInter4x4  = b;          }
-#endif
   Bool getUseAMP() { return m_useAMP; }
   Void setUseAMP( Bool b ) { m_useAMP = b; }
   Void setMinTrDepth  ( UInt u ) { m_uiMinTrDepth = u;      }
