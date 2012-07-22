@@ -227,7 +227,7 @@ Bool  WeightPredAnalysis::xEstimateWPParamSlice(TComSlice *slice)
         Int64 iRefAC = RefWeightACDCParam[iComp].iAC;
 
         // calculating iWeight and iOffset params
-        Double dWeight = (iRefAC==0) ? (Double)1.0 : ( (Double)(iCurrAC) / (Double)iRefAC);
+        Double dWeight = (iRefAC==0) ? (Double)1.0 : Clip3( -16.0, 15.0, ((Double)iCurrAC / (Double)iRefAC) );
         Int iWeight = (Int)( 0.5 + dWeight * (Double)(1<<iDenom) );
         Int iOffset = (Int)( ((iCurrDC<<iDenom) - ((Int64)iWeight * iRefDC) + (Int64)iRealOffset) >> iRealDenom );
 
