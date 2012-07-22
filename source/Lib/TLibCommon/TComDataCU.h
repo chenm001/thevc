@@ -203,9 +203,7 @@ private:
   UInt          m_uiTotalBins;       ///< sum of partition bins
   UInt*         m_uiSliceStartCU;    ///< Start CU address of current slice
   UInt*         m_uiDependentSliceStartCU; ///< Start CU address of current slice
-#if PRED_QP_DERIVATION
   Char          m_codedQP;
-#endif
 protected:
   
   /// add possible motion vector predictor candidates
@@ -307,11 +305,9 @@ public:
   Void          setQPSubParts         ( Int qp,   UInt uiAbsPartIdx, UInt uiDepth );
   Int           getLastValidPartIdx   ( Int iAbsPartIdx );
   Char          getLastCodedQP        ( UInt uiAbsPartIdx );
-#if PRED_QP_DERIVATION
   Void          setQPSubCUs           ( Int qp, TComDataCU* pcCU, UInt absPartIdx, UInt depth, Bool &foundNonZeroCbf );
   Void          setCodedQP            ( Char qp )               { m_codedQP = qp;             }
   Char          getCodedQP            ()                        { return m_codedQP;           }
-#endif
 
   Bool          isLosslessCoded(UInt absPartIdx);
   UChar*        getNSQTPartIdx        ()                        { return m_nsqtPartIdx;        }

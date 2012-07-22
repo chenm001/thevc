@@ -1659,7 +1659,6 @@ TComDataCU* TComDataCU::getPUAboveRightAdi(UInt&  uiARPartUnitIdx, UInt uiPuWidt
 */
 TComDataCU* TComDataCU::getQpMinCuLeft( UInt& uiLPartUnitIdx, UInt uiCurrAbsIdxInLCU, Bool bEnforceSliceRestriction, Bool bEnforceDependentSliceRestriction)
 {
-#if PRED_QP_DERIVATION
   UInt numPartInCUWidth = m_pcPic->getNumPartInWidth();
   UInt absZorderQpMinCUIdx = (uiCurrAbsIdxInLCU>>((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1))<<((g_uiMaxCUDepth -getSlice()->getPPS()->getMaxCuDQPDepth())<<1);
   UInt absRorderQpMinCUIdx = g_auiZscanToRaster[absZorderQpMinCUIdx];
@@ -1682,56 +1681,6 @@ TComDataCU* TComDataCU::getQpMinCuLeft( UInt& uiLPartUnitIdx, UInt uiCurrAbsIdxI
 
   // return pointer to current LCU
   return m_pcPic->getCU( getAddr() );
-
-#else
-
-  UInt uiNumPartInCUWidth = m_pcPic->getNumPartInWidth();
-
-  UInt uiAbsRorderQpMinCUIdx   = g_auiZscanToRaster[(uiCurrAbsIdxInLCU>>((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1))<<((g_uiMaxCUDepth -getSlice()->getPPS()->getMaxCuDQPDepth())<<1)];
-  UInt uiNumPartInQpMinCUWidth = (m_pcPic->getNumPartInWidth() >> getSlice()->getPPS()->getMaxCuDQPDepth());
-
-  UInt uiAbsZorderQpMinCUIdx   = (uiCurrAbsIdxInLCU>>((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1))<<((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1);
-  if( (uiCurrAbsIdxInLCU != uiAbsZorderQpMinCUIdx) && 
-    ((bEnforceSliceRestriction && (m_pcPic->getCU( getAddr() )->getSliceStartCU(uiCurrAbsIdxInLCU) != m_pcPic->getCU( getAddr() )->getSliceStartCU (uiAbsZorderQpMinCUIdx))) ||
-    (bEnforceDependentSliceRestriction &&(m_pcPic->getCU( getAddr() )->getDependentSliceStartCU(uiCurrAbsIdxInLCU) != m_pcPic->getCU( getAddr() )->getDependentSliceStartCU (uiAbsZorderQpMinCUIdx)) )) )
-  {
-    return NULL;
-  }
-
-  if ( !RasterAddress::isZeroCol( uiAbsRorderQpMinCUIdx, uiNumPartInCUWidth ) )
-  {
-    uiLPartUnitIdx = g_auiRasterToZscan[ uiAbsRorderQpMinCUIdx - uiNumPartInQpMinCUWidth ];
-    TComDataCU* pcTempReconCU = m_pcPic->getCU( getAddr() );
-    if ((bEnforceSliceRestriction        && (pcTempReconCU==NULL || pcTempReconCU->getSlice() == NULL || pcTempReconCU->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (uiAbsZorderQpMinCUIdx)))
-      ||(bEnforceDependentSliceRestriction && (pcTempReconCU==NULL || pcTempReconCU->getSlice() == NULL || pcTempReconCU->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getDependentSliceStartCU(uiAbsZorderQpMinCUIdx))))
-    {
-      return NULL;
-    }
-    return m_pcPic->getCU( getAddr() );
-  }
-
-  uiLPartUnitIdx = g_auiRasterToZscan[ uiAbsRorderQpMinCUIdx + uiNumPartInCUWidth - uiNumPartInQpMinCUWidth ];
-
-  if ( (bEnforceSliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || 
-       m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(uiAbsZorderQpMinCUIdx)||
-       (m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
-       ))||
-       (bEnforceDependentSliceRestriction && (m_pcCULeft==NULL || m_pcCULeft->getSlice()==NULL || 
-       m_pcCULeft->getSCUAddr()+uiLPartUnitIdx < m_pcPic->getCU( getAddr() )->getDependentSliceStartCU(uiAbsZorderQpMinCUIdx)||
-       (m_pcPic->getPicSym()->getTileIdxMap( m_pcCULeft->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
-       ))
-     )
-  {
-    return NULL;
-  }
-
-  if ( m_pcCULeft && m_pcCULeft->getAddr() != getAddr() )
-  {
-    return NULL;
-  }
-
-  return m_pcCULeft;
-#endif
 }
 
 /** Get Above QpMinCu
@@ -1743,7 +1692,6 @@ TComDataCU* TComDataCU::getQpMinCuLeft( UInt& uiLPartUnitIdx, UInt uiCurrAbsIdxI
 */
 TComDataCU* TComDataCU::getQpMinCuAbove( UInt& aPartUnitIdx, UInt currAbsIdxInLCU, Bool enforceSliceRestriction, Bool enforceDependentSliceRestriction )
 {
-#if PRED_QP_DERIVATION
   UInt numPartInCUWidth = m_pcPic->getNumPartInWidth();
   UInt absZorderQpMinCUIdx = (currAbsIdxInLCU>>((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1))<<((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1);
   UInt absRorderQpMinCUIdx = g_auiZscanToRaster[absZorderQpMinCUIdx];
@@ -1766,53 +1714,6 @@ TComDataCU* TComDataCU::getQpMinCuAbove( UInt& aPartUnitIdx, UInt currAbsIdxInLC
 
   // return pointer to current LCU
   return m_pcPic->getCU( getAddr() );
-#else
-  UInt numPartInCUWidth = m_pcPic->getNumPartInWidth();
-
-  UInt absRorderQpMinCUIdx   = g_auiZscanToRaster[(currAbsIdxInLCU>>((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1))<<((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1)];
- 
-  UInt absZorderQpMinCUIdx   = (currAbsIdxInLCU>>((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1))<<((g_uiMaxCUDepth - getSlice()->getPPS()->getMaxCuDQPDepth())<<1);
-  if( (currAbsIdxInLCU != absZorderQpMinCUIdx) && 
-     ((enforceSliceRestriction        && (m_pcPic->getCU( getAddr() )->getSliceStartCU(currAbsIdxInLCU) != m_pcPic->getCU( getAddr() )->getSliceStartCU (absZorderQpMinCUIdx)))
-    ||(enforceDependentSliceRestriction && (m_pcPic->getCU( getAddr() )->getDependentSliceStartCU(currAbsIdxInLCU) != m_pcPic->getCU( getAddr() )->getDependentSliceStartCU (absZorderQpMinCUIdx)) )) )
-  {
-    return NULL;
-  }
-
-  if ( !RasterAddress::isZeroRow( absRorderQpMinCUIdx, numPartInCUWidth ) )
-  {
-    aPartUnitIdx = g_auiRasterToZscan[ absRorderQpMinCUIdx - numPartInCUWidth ];
-    TComDataCU* pcTempReconCU = m_pcPic->getCU( getAddr() );
-    if ((enforceSliceRestriction        && (pcTempReconCU==NULL || pcTempReconCU->getSlice() == NULL || pcTempReconCU->getSCUAddr()+aPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU       (absZorderQpMinCUIdx)))
-      ||(enforceDependentSliceRestriction && (pcTempReconCU==NULL || pcTempReconCU->getSlice() == NULL || pcTempReconCU->getSCUAddr()+aPartUnitIdx < m_pcPic->getCU( getAddr() )->getDependentSliceStartCU(absZorderQpMinCUIdx))))
-    {
-      return NULL;
-    }
-    return m_pcPic->getCU( getAddr() );
-  }
-  
-  aPartUnitIdx = g_auiRasterToZscan[ absRorderQpMinCUIdx + m_pcPic->getNumPartInCU() - numPartInCUWidth ];
-
-  if ( (enforceSliceRestriction && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || 
-       m_pcCUAbove->getSCUAddr()+aPartUnitIdx < m_pcPic->getCU( getAddr() )->getSliceStartCU(absZorderQpMinCUIdx)||
-       (m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
-       ))||
-       (enforceDependentSliceRestriction && (m_pcCUAbove==NULL || m_pcCUAbove->getSlice()==NULL || 
-       m_pcCUAbove->getSCUAddr()+aPartUnitIdx < m_pcPic->getCU( getAddr() )->getDependentSliceStartCU(absZorderQpMinCUIdx)||
-       (m_pcPic->getPicSym()->getTileIdxMap( m_pcCUAbove->getAddr() ) != m_pcPic->getPicSym()->getTileIdxMap(getAddr()))
-       ))
-     )
-  {
-    return NULL;
-  }
-
-  if ( m_pcCUAbove && m_pcCUAbove->getAddr() != getAddr() )
-  {
-    return NULL;
-  }
-
-  return m_pcCUAbove;
-#endif
 }
 
 /** Get reference QP from left QpMinCu or latest coded QP
@@ -2136,7 +2037,7 @@ Void TComDataCU::setPredModeSubParts( PredMode eMode, UInt uiAbsPartIdx, UInt ui
   assert( sizeof( *m_pePartSize) == 1 );
   memset( m_pePredMode + uiAbsPartIdx, eMode, m_pcPic->getNumPartInCU() >> ( 2 * uiDepth ) );
 }
-#if PRED_QP_DERIVATION
+
 Void TComDataCU::setQPSubCUs( Int qp, TComDataCU* pcCU, UInt absPartIdx, UInt depth, Bool &foundNonZeroCbf )
 {
   UInt currPartNumb = m_pcPic->getNumPartInCU() >> (depth << 1);
@@ -2164,7 +2065,6 @@ Void TComDataCU::setQPSubCUs( Int qp, TComDataCU* pcCU, UInt absPartIdx, UInt de
     }
   }
 }
-#endif
 
 Void TComDataCU::setQPSubParts( Int qp, UInt uiAbsPartIdx, UInt uiDepth )
 {
