@@ -2358,7 +2358,6 @@ Int TComTrQuant::getSigCtxInc    (
                                   ,TextType                        textureType
                                   )
 {
-#if UNIFIED_POS_SIG_CTX
   const Int ctxIndMap[16] =
   {
     0, 1, 4, 5,
@@ -2383,61 +2382,6 @@ Int TComTrQuant::getSigCtxInc    (
   }
 
   Int offset = 18;
-#else
-  if ( blockType == 2 )
-  {
-    //LUMA map
-    const Int ctxIndMap4x4Luma[15] =
-    {
-      0, 1, 4, 5,
-      2, 3, 4, 5,
-      6, 6, 8, 8,
-      7, 7, 8
-    };
-    //CHROMA map
-    const Int ctxIndMap4x4Chroma[15] =
-    {
-      0, 1, 2, 4,
-      1, 1, 2, 4,
-      3, 3, 5, 5,
-      4, 4, 5
-    };
-
-    if (textureType == TEXT_LUMA)
-    {
-      return ctxIndMap4x4Luma[ 4 * posY + posX ];
-    }
-    else
-    {
-      return ctxIndMap4x4Chroma[ 4 * posY + posX ];
-    }
-  }
-  
-  if ( blockType == 3 )
-  {
-    const Int map8x8[16] =
-    {
-      0,  1,  2,  3,
-      4,  5,  6,  3,
-      8,  6,  6,  7,
-      9,  9,  7,  7
-    };
-    
-    Int offset = (textureType == TEXT_LUMA) ? 9 : 6;
-
-    if ( posX + posY == 0 )
-    {
-      return offset + 10;
-    }
-    return offset + map8x8[4 * (posY >> 1) + (posX >> 1)];
-  }
-
-  Int offset = (textureType == TEXT_LUMA) ? 20 : 17;
-  if( posX + posY == 0 )
-  {
-    return offset;
-  }
-#endif
   
 #if POS_BASED_SIG_COEFF_CTX
   Int posXinSubset = posX-((posX>>2)<<2);
@@ -2498,11 +2442,7 @@ Int TComTrQuant::getSigCtxInc    (
   cnt = ( cnt + 1 ) >> 1;
 #endif
 
-#if UNIFIED_POS_SIG_CTX
   return (( textureType == TEXT_LUMA && ((posX>>2) + (posY>>2)) > 0 ) ? 3 : 0) + offset + cnt;
-#else
-  return (( textureType == TEXT_LUMA && ((posX>>2) + (posY>>2)) > 0 ) ? 4 : 1) + offset + cnt;
-#endif
 }
 
 /** Get the best level in RD sense

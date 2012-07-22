@@ -1831,7 +1831,6 @@ Void TEncSbac::estSignificantCoeffGroupMapBit( estBitsSbacStruct* pcEstBitsSbac,
  */
 Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType )
 {
-#if UNIFIED_POS_SIG_CTX
   Int firstCtx = 1, numCtx = 8;
   if (max(width, height) >= 16)
   {
@@ -1843,28 +1842,13 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, Int width
     firstCtx = 9;
     numCtx = 9;
   }
-#else
-  Int firstCtx = 0, numCtx = (eTType == TEXT_LUMA) ? 9 : 6;
-  if (std::max(width, height) >= 16)
-  {
-    firstCtx = (eTType == TEXT_LUMA) ? 20 : 17;
-    numCtx = (eTType == TEXT_LUMA) ? 7 : 4;    
-  }
-  else if (width == 8)
-  {
-    firstCtx = (eTType == TEXT_LUMA) ? 9 : 6;
-    numCtx = 11;
-  }
-#endif
   
   if (eTType == TEXT_LUMA )
   {
-#if UNIFIED_POS_SIG_CTX
     for( UInt bin = 0; bin < 2; bin++ )
     {
       pcEstBitsSbac->significantBits[ 0 ][ bin ] = m_cCUSigSCModel.get(  0, 0, 0 ).getEntropyBits( bin );
     }
-#endif
 
     for ( Int ctxIdx = firstCtx; ctxIdx < firstCtx + numCtx; ctxIdx++ )
     {
@@ -1876,12 +1860,10 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, Int width
   }
   else
   {
-#if UNIFIED_POS_SIG_CTX
     for( UInt bin = 0; bin < 2; bin++ )
     {
       pcEstBitsSbac->significantBits[ 0 ][ bin ] = m_cCUSigSCModel.get(  0, 0, NUM_SIG_FLAG_CTX_LUMA + 0 ).getEntropyBits( bin );
     }
-#endif
     for ( Int ctxIdx = firstCtx; ctxIdx < firstCtx + numCtx; ctxIdx++ )
     {
       for( UInt uiBin = 0; uiBin < 2; uiBin++ )

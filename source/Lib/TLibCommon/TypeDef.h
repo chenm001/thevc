@@ -92,8 +92,6 @@
   
 #define CONSTRAINED_MOTION_DATA_COMPRESSION 1  ///< I0182: Constrained motion data compression, only allow motion data compression when minimum PU width = 4
 
-#define UNIFIED_POS_SIG_CTX              1 // < I0373: use same context assignment for 4x4 and 8x8 TU significance maps, and share ctx for DC conponent among all TU
-
 #define LOSSLESS_CODING                   1  ///< H0530: lossless and lossy (mixed) coding
 #if LOSSLESS_CODING
 #define SEQUENCE_LEVEL_LOSSLESS           0  ///< H0530: used only for sequence or frame-level lossless coding
