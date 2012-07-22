@@ -101,7 +101,6 @@
 #define IPCM_LOSSLESS_LOOP_FILTERING_UNIFICATION  1  ///< I0586: I_PCM/lossless loop filtering unification
 #endif
 
-#define LAST_CTX_DERIVATION              1  //< I0331: table removal of LAST context derivation
 #define DISABLING_CLIP_FOR_BIPREDME         1  ///< Ticket #175
   
 #if !POS_BASED_SIG_COEFF_CTX

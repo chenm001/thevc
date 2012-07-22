@@ -133,9 +133,6 @@ extern       UInt*  g_auiNonSquareSigLastScan[ 4 ];      // raster index from sc
 
 extern const UInt   g_uiGroupIdx[ 32 ];
 extern const UInt   g_uiMinInGroup[ 10 ];
-#if !LAST_CTX_DERIVATION
-extern const UInt   g_uiLastCtx[ 28 ];
-#endif
 
 extern const UInt   g_auiGoRiceRange[5];                  //!< maximum value coded with Rice codes
 extern const UInt   g_auiGoRicePrefixLen[5];              //!< prefix length for each maximum value

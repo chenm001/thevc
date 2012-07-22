@@ -1062,32 +1062,15 @@ Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int w
   ContextModel *pCtxX = m_cCuCtxLastX.get( 0, eTType );
   ContextModel *pCtxY = m_cCuCtxLastY.get( 0, eTType );
 
-#if LAST_CTX_DERIVATION
   Int blkSizeOffsetX, blkSizeOffsetY, shiftX, shiftY;
   blkSizeOffsetX = eTType ? 0: (g_aucConvertToBit[ width ] *3 + ((g_aucConvertToBit[ width ] +1)>>2));
   blkSizeOffsetY = eTType ? 0: (g_aucConvertToBit[ height ]*3 + ((g_aucConvertToBit[ height ]+1)>>2));
   shiftX= eTType ? g_aucConvertToBit[ width  ] :((g_aucConvertToBit[ width  ]+3)>>2);
   shiftY= eTType ? g_aucConvertToBit[ height ] :((g_aucConvertToBit[ height ]+3)>>2);
-#endif
   // posX
-#if !LAST_CTX_DERIVATION
-  Int widthCtx = eTType ? 4 : width;
-  const UInt *puiCtxIdxX = g_uiLastCtx + ( g_aucConvertToBit[ widthCtx ] * ( g_aucConvertToBit[ widthCtx ] + 3 ) );
-#endif
   for( uiPosLastX = 0; uiPosLastX < g_uiGroupIdx[ width - 1 ]; uiPosLastX++ )
   {
-#if LAST_CTX_DERIVATION
     m_pcTDecBinIf->decodeBin( uiLast, *( pCtxX + blkSizeOffsetX + (uiPosLastX >>shiftX) ) );
-#else
-    if ( eTType  )
-    {
-      m_pcTDecBinIf->decodeBin( uiLast, *( pCtxX + (uiPosLastX>>g_aucConvertToBit[ width ])  ) );
-    }
-    else
-    {
-      m_pcTDecBinIf->decodeBin( uiLast, *( pCtxX + puiCtxIdxX[ uiPosLastX ] ) );
-    }
-#endif
     if( !uiLast )
     {
       break;
@@ -1095,24 +1078,9 @@ Void TDecSbac::parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int w
   }
 
   // posY
-#if !LAST_CTX_DERIVATION
-  Int heightCtx = eTType? 4 : height;
-  const UInt *puiCtxIdxY = g_uiLastCtx + ( g_aucConvertToBit[ heightCtx ] * ( g_aucConvertToBit[ heightCtx ] + 3 ) );
-#endif
   for( uiPosLastY = 0; uiPosLastY < g_uiGroupIdx[ height - 1 ]; uiPosLastY++ )
   {
-#if LAST_CTX_DERIVATION
     m_pcTDecBinIf->decodeBin( uiLast, *( pCtxY + blkSizeOffsetY + (uiPosLastY >>shiftY)) );
-#else
-    if (eTType)
-    {
-      m_pcTDecBinIf->decodeBin( uiLast, *( pCtxY + (uiPosLastY>>g_aucConvertToBit[ height ]) ) );
-    }
-    else
-    {
-      m_pcTDecBinIf->decodeBin( uiLast, *( pCtxY + puiCtxIdxY[ uiPosLastY ] ) );
-    }
-#endif
     if( !uiLast )
     {
       break;
