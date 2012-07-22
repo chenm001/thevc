@@ -937,11 +937,7 @@ private:
   Bool        m_PicOutputFlag;        ///< pic_output_flag 
   Int         m_iPOC;
   Int         m_iLastIDR;
-#if PREVREFPIC_DEFN 
   static Int  m_prevPOC[MAX_TLAYER];
-#else
-  static Int  m_prevPOC;
-#endif
   TComReferencePictureSet *m_pcRPS;
   TComReferencePictureSet m_LocalRPS;
   Int         m_iBDidx; 
@@ -1108,11 +1104,7 @@ public:
   Int       getCombinationBDidx          () { return m_iCombinationBDidx; }
   Void      setCombineWithReferenceFlag          ( Bool bCombineWithReferenceFlag ) { m_bCombineWithReferenceFlag = bCombineWithReferenceFlag; }
   Bool      getCombineWithReferenceFlag          () { return m_bCombineWithReferenceFlag; }
-#if PREVREFPIC_DEFN 
   Int       getPrevPOC      ()                          { return  m_prevPOC[getTLayer()];       }
-#else
-  Int       getPrevPOC      ()                          { return  m_prevPOC;       }
-#endif
   TComRefPicListModification* getRefPicListModification() { return &m_RefPicListModification; }
   Void      setLastIDR(Int iIDRPOC)                       { m_iLastIDR = iIDRPOC; }
   Int       getLastIDR()                                  { return m_iLastIDR; }
@@ -1156,7 +1148,6 @@ public:
   Void      setRefPicListCombinationFlag(Bool bflag)            {m_bRefPicListCombinationFlag=bflag;}   
   Void      setReferenced(Bool b)                               { m_bRefenced = b; }
   Bool      isReferenced()                                      { return m_bRefenced; }
-#if PREVREFPIC_DEFN 
   Void      setPOC              ( Int i )
   {
     m_iPOC = i;
@@ -1168,9 +1159,6 @@ public:
       }
     }
   }
-#else  
-  Void      setPOC              ( Int i )                       { m_iPOC              = i; if(getTLayer()==0) m_prevPOC=i; }
-#endif
   Void      setNalUnitType      ( NalUnitType e )               { m_eNalUnitType      = e;      }
   NalUnitType getNalUnitType    ()                              { return m_eNalUnitType;        }
 #if CRA_BLA_TFD_MODIFICATIONS
