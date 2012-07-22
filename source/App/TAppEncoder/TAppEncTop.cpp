@@ -146,7 +146,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseAdaptQpSelect             ( m_bUseAdaptQpSelect   );
 #endif
 
-#if LOSSLESS_CODING
   Int lowestQP;
   lowestQP =  - ( (Int)(6*(g_uiBitDepth + g_uiBitIncrement - 8)) );
 
@@ -154,7 +153,6 @@ Void TAppEncTop::xInitLibCfg()
   {
     m_bUseAdaptiveQP = false;
   }
-#endif
   m_cTEncTop.setUseAdaptiveQP                ( m_bUseAdaptiveQP  );
   m_cTEncTop.setQPAdaptationRange            ( m_iQPAdaptationRange );
   
@@ -167,9 +165,7 @@ Void TAppEncTop::xInitLibCfg()
 #if !AHG6_ALF_OPTION2
   m_cTEncTop.setALFEncodePassReduction       ( m_iALFEncodePassReduction );
 #endif
-#if LOSSLESS_CODING
   m_cTEncTop.setUseLossless                  ( m_useLossless );
-#endif
 #if !AHG6_ALF_OPTION2
   m_cTEncTop.setALFMaxNumberFilters          ( m_iALFMaxNumberFilters ) ;
 #endif

@@ -76,12 +76,9 @@
 
 #define SBH_THRESHOLD                    4  ///< I0156: value of the fixed SBH controlling threshold
   
-#define LOSSLESS_CODING                   1  ///< H0530: lossless and lossy (mixed) coding
-#if LOSSLESS_CODING
 #define SEQUENCE_LEVEL_LOSSLESS           0  ///< H0530: used only for sequence or frame-level lossless coding
 #define CU_LEVEL_TRANSQUANT_BYPASS        1  ///< I0529: CU level flag for transquant bypass
 #define IPCM_LOSSLESS_LOOP_FILTERING_UNIFICATION  1  ///< I0586: I_PCM/lossless loop filtering unification
-#endif
 
 #define DISABLING_CLIP_FOR_BIPREDME         1  ///< Ticket #175
   

@@ -114,9 +114,7 @@ protected:
 
   Bool getdQPFlag               ()                        { return m_bDecodeDQP;        }
   Void setdQPFlag               ( Bool b )                { m_bDecodeDQP = b;           }
-#if LOSSLESS_CODING 
   Void xFillPCMBuffer           (TComDataCU* pCU, UInt absPartIdx, UInt depth);
-#endif
 };
 
 //! \}

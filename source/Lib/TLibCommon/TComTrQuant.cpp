@@ -1326,7 +1326,6 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
                                Bool        useTransformSkip
                                )
 {
-#if LOSSLESS_CODING || CU_LEVEL_TRANSQUANT_BYPASS
 #if CU_LEVEL_TRANSQUANT_BYPASS
   if (pcCU->getCUTransquantBypass(uiAbsPartIdx))
 #else // LOSSLESS_CODING
@@ -1344,7 +1343,6 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
     }
     return;
   }
-#endif
   UInt uiMode;  //luma intra pred
   if(eTType == TEXT_LUMA && pcCU->getPredictionMode(uiAbsPartIdx) == MODE_INTRA )
   {
@@ -1374,13 +1372,10 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
 
 #if CU_LEVEL_TRANSQUANT_BYPASS
 Void TComTrQuant::invtransformNxN( Bool transQuantBypass, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType, Bool useTransformSkip )
-#elif LOSSLESS_CODING
-Void TComTrQuant::invtransformNxN( TComDataCU* pcCU, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType, Bool useTransformSkip )
 #else
-Void TComTrQuant::invtransformNxN(                   TextType eText, UInt uiMode,Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight, Int scalingListType, Bool useTransformSkip )
+Void TComTrQuant::invtransformNxN( TComDataCU* pcCU, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType, Bool useTransformSkip )
 #endif
 {
-#if LOSSLESS_CODING || CU_LEVEL_TRANSQUANT_BYPASS
 #if CU_LEVEL_TRANSQUANT_BYPASS
   if(transQuantBypass)
 #else
@@ -1396,7 +1391,6 @@ Void TComTrQuant::invtransformNxN(                   TextType eText, UInt uiMode
     } 
     return;
   }
-#endif
   xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight, scalingListType);
   if(useTransformSkip == true)
   {
@@ -1447,10 +1441,8 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
     assert(scalingListType < 6);
 #if CU_LEVEL_TRANSQUANT_BYPASS
     invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, scalingListType );
-#elif LOSSLESS_CODING
+#else
     invtransformNxN( pcCU, eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, scalingListType );
-#else  
-    invtransformNxN(       eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, scalingListType );
 #endif
   }
   else

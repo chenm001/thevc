@@ -442,12 +442,10 @@ Void TDecCu::xDecompressCU( TComDataCU* pcCU, TComDataCU* pcCUCur, UInt uiAbsPar
       assert(0);
       break;
   }
-#if LOSSLESS_CODING 
   if ( m_ppcCU[uiDepth]->isLosslessCoded(0) && (m_ppcCU[uiDepth]->getIPCMFlag(0) == false))
   {
     xFillPCMBuffer(m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth);    
   }
-#endif
   
   xCopyToPic( m_ppcCU[uiDepth], pcPic, uiAbsPartIdx, uiDepth );
 }
@@ -516,10 +514,8 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
   assert(scalingListType < 6);
 #if CU_LEVEL_TRANSQUANT_BYPASS
   m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
-#elif LOSSLESS_CODING
+#else
   m_pcTrQuant->invtransformNxN( pcCU, TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
-#else  
-  m_pcTrQuant->invtransformNxN(       TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
 #endif
 
   
@@ -636,10 +632,8 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   assert(scalingListType < 6);
 #if CU_LEVEL_TRANSQUANT_BYPASS
   m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
-#elif LOSSLESS_CODING
+#else
   m_pcTrQuant->invtransformNxN( pcCU, eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
-#else  
-  m_pcTrQuant->invtransformNxN(       eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
 #endif
 
   //===== reconstruction =====
@@ -909,7 +903,6 @@ Void TDecCu::xReconPCM( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   xDecodePCMTexture( pcCU, 0, piPcmCr, pRecoCr, uiCStride, uiCWidth, uiCHeight, TEXT_CHROMA_V);
 }
 
-#if LOSSLESS_CODING 
 /** Function for filling the PCM buffer of a CU using its reconstructed sample array 
  * \param pcCU pointer to current CU
  * \param uiAbsPartIdx CU index
@@ -962,6 +955,5 @@ Void TDecCu::xFillPCMBuffer(TComDataCU* pCU, UInt absPartIdx, UInt depth)
   }
 
 }
-#endif
 
 //! \}

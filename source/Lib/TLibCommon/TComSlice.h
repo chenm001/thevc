@@ -307,9 +307,7 @@ private:
   Int         m_qpBDOffsetY;
   Int         m_qpBDOffsetC;
 
-#if LOSSLESS_CODING
   Bool        m_useLossless;
-#endif
 
   UInt        m_uiPCMBitDepthLuma;
   UInt        m_uiPCMBitDepthChroma;
@@ -461,10 +459,8 @@ public:
   Bool getUseTransformSkipFast   ()         { return m_useTansformSkipFast; }
   Void setUseTransformSkipFast   ( Bool b ) { m_useTansformSkipFast  = b;   }
 
-#if LOSSLESS_CODING
   Bool getUseLossless ()         { return m_useLossless; }
   Void setUseLossless ( Bool b ) { m_useLossless  = b; }
-#endif
   Bool getUseNSQT() { return m_useNSQT; }
   Void setUseNSQT( Bool b ) { m_useNSQT = b; }
   

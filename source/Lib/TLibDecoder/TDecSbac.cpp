@@ -1162,7 +1162,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   UInt uiNumOne                = 0;
   UInt uiGoRiceParam           = 0;
 
-#if LOSSLESS_CODING || CU_LEVEL_TRANSQUANT_BYPASS
   Bool beValid; 
 #if CU_LEVEL_TRANSQUANT_BYPASS
   if (pcCU->getCUTransquantBypass(uiAbsPartIdx))
@@ -1176,9 +1175,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
   {
     beValid = pcCU->getSlice()->getPPS()->getSignHideFlag() > 0;
   }
-#else
-  Bool beValid = pcCU->getSlice()->getPPS()->getSignHideFlag() > 0;
-#endif
   UInt absSum = 0;
 
   UInt uiSigCoeffGroupFlag[ MLS_GRP_NUM ];

@@ -1946,7 +1946,6 @@ Char TComDataCU::getLastCodedQP( UInt uiAbsPartIdx )
     }
   }
 }
-#if LOSSLESS_CODING || CU_LEVEL_TRANSQUANT_BYPASS
 /** Check whether the CU is coded in lossless coding mode
  * \param   uiAbsPartIdx
  * \returns true if the CU is coded in lossless coding mode; false if otherwise 
@@ -1959,7 +1958,6 @@ Bool TComDataCU::isLosslessCoded(UInt absPartIdx)
   return ( getSlice()->getSPS()->getUseLossless() && ((getQP(absPartIdx) + getSlice()->getSPS()->getQpBDOffsetY()) == 0) );
 #endif
 }
-#endif
 
 /** Get allowed chroma intra modes
 *\param   uiAbsPartIdx

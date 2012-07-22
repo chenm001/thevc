@@ -307,9 +307,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 
     ("PCMInputBitDepthFlag", m_bPCMInputBitDepthFlag, true)
     ("PCMFilterDisableFlag", m_bPCMFilterDisableFlag, false)
-#if LOSSLESS_CODING
     ("LosslessCuEnabled", m_useLossless, false)
-#endif
     ("weighted_pred_flag,-wpP",     m_bUseWeightPred, false, "weighted prediction flag (P-Slices)")
 #if REMOVE_IMPLICIT_WP
     ("weighted_bipred_flag,-wpB",   m_useWeightedBiPred,    false,    "weighted bipred flag (B-Slices)")
@@ -1095,9 +1093,7 @@ Void TAppEncCfg::xPrintParameter()
   printf("PCM:%d ", (m_usePCM && (1<<m_uiPCMLog2MinSize) <= m_uiMaxCUWidth)? 1 : 0);
   printf("SAOLcuBasedOptimization:%d ", (m_saoLcuBasedOptimization)?(1):(0));
 
-#if LOSSLESS_CODING
   printf("LosslessCuEnabled:%d ", (m_useLossless)? 1:0 );
-#endif  
   printf("WPP:%d ", (Int)m_bUseWeightPred);
 #if REMOVE_IMPLICIT_WP
   printf("WPB:%d ", (Int)m_useWeightedBiPred);

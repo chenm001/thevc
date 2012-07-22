@@ -131,9 +131,7 @@ protected:
   UInt      m_uiPCMBitDepthLuma;                              ///< PCM bit-depth for luma
 
   // coding tool (lossless)
-#if LOSSLESS_CODING
   Bool      m_useLossless;                                    ///< flag for using lossless coding
-#endif
   Bool      m_bUseSAO; 
   Int       m_maxNumOffsetsPerPic;                            ///< SAO maximun number of offset per picture
   Bool      m_saoLcuBasedOptimization;                        ///< SAO LCU-based optimization

@@ -425,24 +425,20 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   Int iBaseQP = xComputeQP( rpcBestCU, uiDepth );
   Int iMinQP;
   Int iMaxQP;
-#if LOSSLESS_CODING
   Bool isAddLowestQP = false;
   Int lowestQP = -rpcTempCU->getSlice()->getSPS()->getQpBDOffsetY();
-#endif
 
   if( (g_uiMaxCUWidth>>uiDepth) >= rpcTempCU->getSlice()->getPPS()->getMinCuDQPSize() )
   {
     Int idQP = m_pcEncCfg->getMaxDeltaQP();
     iMinQP = Clip3( -rpcTempCU->getSlice()->getSPS()->getQpBDOffsetY(), MAX_QP, iBaseQP-idQP );
     iMaxQP = Clip3( -rpcTempCU->getSlice()->getSPS()->getQpBDOffsetY(), MAX_QP, iBaseQP+idQP );
-#if LOSSLESS_CODING
     if ( (rpcTempCU->getSlice()->getSPS()->getUseLossless()) && (lowestQP < iMinQP) && rpcTempCU->getSlice()->getPPS()->getUseDQP() )
     {
       isAddLowestQP = true; 
       iMinQP = iMinQP - 1;
        
     }
-#endif
   }
   else
   {
@@ -467,12 +463,10 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   {
     for (Int iQP=iMinQP; iQP<=iMaxQP; iQP++)
     {
-#if LOSSLESS_CODING
       if (isAddLowestQP && (iQP == iMinQP))
       {
         iQP = lowestQP;
       }
-#endif
       // variables for fast encoder decision
       bEarlySkip  = false;
       bTrySplit    = true;
@@ -529,24 +523,20 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       {
         bTrySplitDQP = bTrySplit;
       }
-#if LOSSLESS_CODING
       if (isAddLowestQP && (iQP == lowestQP))
       {
         iQP = iMinQP;
       }
-#endif
     }
 
   if(!earlyDetectionSkipMode)
   {
     for (Int iQP=iMinQP; iQP<=iMaxQP; iQP++)
     {
-#if LOSSLESS_CODING
       if (isAddLowestQP && (iQP == iMinQP))
       {
         iQP = lowestQP;
       }
-#endif
       rpcTempCU->initEstData( uiDepth, iQP );
 
       // do inter modes, NxN, 2NxN, and Nx2N
@@ -744,12 +734,10 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
           rpcTempCU->initEstData( uiDepth, iQP );
         }
       }
-#if LOSSLESS_CODING
       if (isAddLowestQP && (iQP == lowestQP))
       {
         iQP = iMinQP;
       }
-#endif
     }
 
   }
@@ -789,25 +777,21 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
     bBoundary = true;
   }
 
-#if LOSSLESS_CODING 
   // copy orginal YUV samples to PCM buffer
   if( rpcBestCU->isLosslessCoded(0) && (rpcBestCU->getIPCMFlag(0) == false))
   {
     xFillPCMBuffer(rpcBestCU, m_ppcOrigYuv[uiDepth]);
   }
-#endif
   if( (g_uiMaxCUWidth>>uiDepth) == rpcTempCU->getSlice()->getPPS()->getMinCuDQPSize() )
   {
     Int idQP = m_pcEncCfg->getMaxDeltaQP();
     iMinQP = Clip3( -rpcTempCU->getSlice()->getSPS()->getQpBDOffsetY(), MAX_QP, iBaseQP-idQP );
     iMaxQP = Clip3( -rpcTempCU->getSlice()->getSPS()->getQpBDOffsetY(), MAX_QP, iBaseQP+idQP );
-#if LOSSLESS_CODING
     if ( (rpcTempCU->getSlice()->getSPS()->getUseLossless()) && (lowestQP < iMinQP) && rpcTempCU->getSlice()->getPPS()->getUseDQP() )
     {
       isAddLowestQP = true;
       iMinQP = iMinQP - 1;      
     }
-#endif
   }
   else if( (g_uiMaxCUWidth>>uiDepth) > rpcTempCU->getSlice()->getPPS()->getMinCuDQPSize() )
   {
@@ -837,12 +821,10 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
   }
   for (Int iQP=iMinQP; iQP<=iMaxQP; iQP++)
   {
-#if LOSSLESS_CODING
       if (isAddLowestQP && (iQP == iMinQP))
       {
         iQP = lowestQP;
       }
-#endif
     rpcTempCU->initEstData( uiDepth, iQP );
 
     // further split
@@ -951,13 +933,11 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
         }
         else
         {
-#if LOSSLESS_CODING
 #if !CU_LEVEL_TRANSQUANT_BYPASS
           if (((rpcTempCU->getQP(uiTargetPartIdx) != rpcTempCU->getRefQP(uiTargetPartIdx)) ) && (rpcTempCU->getSlice()->getSPS()->getUseLossless()))
           {
             rpcTempCU->getTotalCost() = MAX_DOUBLE;
           }
-#endif
 #endif
           rpcTempCU->setQPSubParts( rpcTempCU->getRefQP( uiTargetPartIdx ), 0, uiDepth ); // set QP to default QP
         }
@@ -995,12 +975,10 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
       }
       xCheckBestMode( rpcBestCU, rpcTempCU, uiDepth);                                  // RD compare current larger prediction
     }                                                                                  // with sub partitioned prediction.
-#if LOSSLESS_CODING
       if (isAddLowestQP && (iQP == lowestQP))
       {
         iQP = iMinQP;
       }
-#endif
   }
 
   rpcBestCU->copyToPic(uiDepth);                                                     // Copy Best data to Picture for next partition prediction.
@@ -1291,7 +1269,6 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
 
   Bool bestIsSkip = false;
 
-#if LOSSLESS_CODING
   UInt iteration;
   if ( rpcTempCU->isLosslessCoded(0))
   {
@@ -1303,9 +1280,6 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
   }
 
   for( UInt uiNoResidual = 0; uiNoResidual < iteration; ++uiNoResidual )
-#else
-  for( UInt uiNoResidual = 0; uiNoResidual < 2; ++uiNoResidual )
-#endif
   {
     for( UInt uiMergeCand = 0; uiMergeCand < numValidMergeCand; ++uiMergeCand )
     {
@@ -1616,13 +1590,11 @@ Void TEncCu::xCheckDQP( TComDataCU* pcCU )
     }
     else
     {
-#if LOSSLESS_CODING
 #if !CU_LEVEL_TRANSQUANT_BYPASS
       if ((  ( pcCU->getRefQP( 0 ) != pcCU->getQP( 0 )) ) && (pcCU->getSlice()->getSPS()->getUseLossless()))
       {
         pcCU->getTotalCost() = MAX_DOUBLE;
       }
-#endif
 #endif
       pcCU->setQPSubParts( pcCU->getRefQP( 0 ), 0, uiDepth ); // set QP to default QP
     }
@@ -1773,7 +1745,6 @@ Void TEncCu::xCopyYuv2Tmp( UInt uiPartUnitIdx, UInt uiNextDepth )
   m_ppcRecoYuvBest[uiNextDepth]->copyToPartYuv( m_ppcRecoYuvTemp[uiCurrDepth], uiPartUnitIdx );
 }
 
-#if LOSSLESS_CODING 
 /** Function for filling the PCM buffer of a CU using its original sample array 
  * \param pcCU pointer to current CU
  * \param pcOrgYuv pointer to original sample array
@@ -1822,7 +1793,6 @@ Void TEncCu::xFillPCMBuffer     ( TComDataCU*& pCU, TComYuv* pOrgYuv )
     pSrcCr += srcStrideC;
   }
 }
-#endif
 
 #if ADAPTIVE_QP_SELECTION
 /** Collect ARL statistics from one block

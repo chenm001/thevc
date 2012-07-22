@@ -1021,10 +1021,8 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     READ_CODE( 4, uiCode, "pcm_bit_depth_chroma_minus1" );         pcSPS->setPCMBitDepthChroma ( 1 + uiCode );
   }
 
-#if LOSSLESS_CODING
 #if !CU_LEVEL_TRANSQUANT_BYPASS
   READ_FLAG( uiCode, "qpprime_y_zero_transquant_bypass_flag" );    pcSPS->setUseLossless ( uiCode ? true : false );
-#endif
 #endif
 
   READ_UVLC( uiCode,    "log2_max_pic_order_cnt_lsb_minus4" );   pcSPS->setBitsForPOC( 4 + uiCode );

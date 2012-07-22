@@ -1213,7 +1213,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     scan = g_sigScanNSQT[ uiLog2BlockSize - 2 ];
   }
   
-#if LOSSLESS_CODING || CU_LEVEL_TRANSQUANT_BYPASS
   Bool beValid; 
 #if CU_LEVEL_TRANSQUANT_BYPASS
   if (pcCU->getCUTransquantBypass(uiAbsPartIdx))
@@ -1227,9 +1226,6 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   {
     beValid = pcCU->getSlice()->getPPS()->getSignHideFlag() > 0;
   }
-#else
-  Bool beValid = pcCU->getSlice()->getPPS()->getSignHideFlag() > 0;
-#endif
 
   // Find position of last coefficient
   Int scanPosLast = -1;

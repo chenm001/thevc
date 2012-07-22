@@ -492,9 +492,7 @@ Void TEncTop::xInitSPS()
 #if SLICE_TMVP_ENABLE
   m_cSPS.setTMVPFlagsPresent(false);
 #endif  
-#if LOSSLESS_CODING
   m_cSPS.setUseLossless   ( m_useLossless  );
-#endif
 
 
   m_cSPS.setUseLMChroma   ( m_bUseLMChroma           );  
@@ -574,7 +572,6 @@ Void TEncTop::xInitPPS()
   m_cPPS.setSliceGranularity(m_iSliceGranularity);
   Bool bUseDQP = (getMaxCuDQPDepth() > 0)? true : false;
 
-#if LOSSLESS_CODING
   Int lowestQP = - m_cSPS.getQpBDOffsetY();
 
   if(getUseLossless())
@@ -598,16 +595,6 @@ Void TEncTop::xInitPPS()
       }
     }
   }
-
-#else
-  if(bUseDQP == false)
-  {
-    if((getMaxDeltaQP() != 0 )|| getUseAdaptiveQP())
-    {
-      bUseDQP = true;
-    }
-  }
-#endif
 
   if(bUseDQP)
   {

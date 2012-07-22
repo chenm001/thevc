@@ -1121,10 +1121,8 @@ TEncSearch::xIntraCodingLumaBlk( TComDataCU* pcCU,
     assert(scalingListType < 6);
 #if CU_LEVEL_TRANSQUANT_BYPASS
     m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_LUMA,pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
-#elif LOSSLESS_CODING
-    m_pcTrQuant->invtransformNxN( pcCU, TEXT_LUMA,pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
 #else
-    m_pcTrQuant->invtransformNxN( TEXT_LUMA,pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
+    m_pcTrQuant->invtransformNxN( pcCU, TEXT_LUMA,pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
 #endif
   }
   else
@@ -1330,10 +1328,8 @@ TEncSearch::xIntraCodingChromaBlk( TComDataCU* pcCU,
       assert(scalingListType < 6);
 #if CU_LEVEL_TRANSQUANT_BYPASS
       m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
-#elif LOSSLESS_CODING
-      m_pcTrQuant->invtransformNxN( pcCU, TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
 #else
-      m_pcTrQuant->invtransformNxN( TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
+      m_pcTrQuant->invtransformNxN( pcCU, TEXT_CHROMA, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
 #endif
     }
     else
@@ -1422,9 +1418,7 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
 #if CU_LEVEL_TRANSQUANT_BYPASS
   checkTransformSkip         &= (!pcCU->getCUTransquantBypass(0));
 #endif
-#if LOSSLESS_CODING
   checkTransformSkip         &= (!((pcCU->getQP( 0 ) == 0) && (pcCU->getSlice()->getSPS()->getUseLossless())));
-#endif
   if( bCheckFull )
   {
     if(checkTransformSkip == true)
@@ -4560,12 +4554,10 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
 #endif
     
     double dZeroCost = m_pcRdCost->calcRdCost( 0, uiZeroDistortion );
-#if LOSSLESS_CODING
     if(pcCU->isLosslessCoded( 0 ))
     {  
       dZeroCost = dCost + 1;
     }
-#endif
     if ( dZeroCost < dCost )
     {
       dCost        = dZeroCost;
@@ -4869,15 +4861,12 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
       assert(scalingListType < 6);     
 #if CU_LEVEL_TRANSQUANT_BYPASS
       m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_LUMA,REG_DCT, pcResiCurrY, m_pcQTTempTComYuv[uiQTTempAccessLayer].getStride(),  pcCoeffCurrY, trWidth, trHeight, scalingListType );//this is for inter mode only
-#elif LOSSLESS_CODING
+#else
       m_pcTrQuant->invtransformNxN( pcCU, TEXT_LUMA,REG_DCT, pcResiCurrY, m_pcQTTempTComYuv[uiQTTempAccessLayer].getStride(),  pcCoeffCurrY, trWidth, trHeight, scalingListType );//this is for inter mode only
-#else     
-      m_pcTrQuant->invtransformNxN( TEXT_LUMA,REG_DCT, pcResiCurrY, m_pcQTTempTComYuv[uiQTTempAccessLayer].getStride(),  pcCoeffCurrY, trWidth, trHeight, scalingListType );//this is for inter mode only
 #endif
       
       const UInt uiNonzeroDistY = m_pcRdCost->getDistPart( m_pcQTTempTComYuv[uiQTTempAccessLayer].getLumaAddr( absTUPartIdx ), m_pcQTTempTComYuv[uiQTTempAccessLayer].getStride(),
       pcResi->getLumaAddr( absTUPartIdx ), pcResi->getStride(), trWidth,trHeight );
-#if LOSSLESS_CODING
       if (pcCU->isLosslessCoded(0)) 
       {
         uiDistY = uiNonzeroDistY;
@@ -4896,19 +4885,6 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
           uiDistY = uiNonzeroDistY;
         }
       }
-#else
-      const Double dSingleCostY = m_pcRdCost->calcRdCost( uiSingleBitsY, uiNonzeroDistY );
-      const Double dNullCostY   = m_pcRdCost->calcRdCost( 0, uiDistY );
-      if( dNullCostY < dSingleCostY )
-      {
-        uiAbsSumY = 0;
-        ::memset( pcCoeffCurrY, 0, sizeof( TCoeff ) * uiNumSamplesLuma );
-      }
-      else
-      {
-        uiDistY = uiNonzeroDistY;
-      }
-#endif
     }
     
     if( !uiAbsSumY )
@@ -4953,10 +4929,8 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
         assert(scalingListType < 6);
 #if CU_LEVEL_TRANSQUANT_BYPASS
         m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_CHROMA,REG_DCT, pcResiCurrU, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrU, trWidthC, trHeightC, scalingListType  );
-#elif LOSSLESS_CODING
-        m_pcTrQuant->invtransformNxN( pcCU, TEXT_CHROMA,REG_DCT, pcResiCurrU, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrU, trWidthC, trHeightC, scalingListType  );
 #else
-        m_pcTrQuant->invtransformNxN( TEXT_CHROMA,REG_DCT, pcResiCurrU, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrU, trWidthC, trHeightC, scalingListType );
+        m_pcTrQuant->invtransformNxN( pcCU, TEXT_CHROMA,REG_DCT, pcResiCurrU, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrU, trWidthC, trHeightC, scalingListType  );
 #endif       
         
         const UInt uiNonzeroDistU = m_pcRdCost->getDistPart( m_pcQTTempTComYuv[uiQTTempAccessLayer].getCbAddr( absTUPartIdxC), m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(),
@@ -4966,7 +4940,6 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
 #endif
           );
 
-#if LOSSLESS_CODING
         if(pcCU->isLosslessCoded(0))  
         {
           uiDistU = uiNonzeroDistU;
@@ -4985,19 +4958,6 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
             uiDistU = uiNonzeroDistU;
           }
         }
-#else
-        const Double dSingleCostU = m_pcRdCost->calcRdCost( uiSingleBitsU, uiNonzeroDistU );
-        const Double dNullCostU   = m_pcRdCost->calcRdCost( 0, uiDistU );
-        if( dNullCostU < dSingleCostU )
-        {
-          uiAbsSumU = 0;
-          ::memset( pcCoeffCurrU, 0, sizeof( TCoeff ) * uiNumSamplesChro );
-        }
-        else
-        {
-          uiDistU = uiNonzeroDistU;
-        }
-#endif
       }
       if( !uiAbsSumU )
       {
@@ -5038,10 +4998,8 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
         assert(scalingListType < 6);
 #if CU_LEVEL_TRANSQUANT_BYPASS
         m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_CHROMA,REG_DCT, pcResiCurrV, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrV, trWidthC, trHeightC, scalingListType );
-#elif LOSSLESS_CODING
-        m_pcTrQuant->invtransformNxN( pcCU, TEXT_CHROMA,REG_DCT, pcResiCurrV, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrV, trWidthC, trHeightC, scalingListType );
 #else
-        m_pcTrQuant->invtransformNxN( TEXT_CHROMA,REG_DCT, pcResiCurrV, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrV, trWidthC, trHeightC, scalingListType );
+        m_pcTrQuant->invtransformNxN( pcCU, TEXT_CHROMA,REG_DCT, pcResiCurrV, m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(), pcCoeffCurrV, trWidthC, trHeightC, scalingListType );
 #endif
         
         const UInt uiNonzeroDistV = m_pcRdCost->getDistPart( m_pcQTTempTComYuv[uiQTTempAccessLayer].getCrAddr( absTUPartIdxC ), m_pcQTTempTComYuv[uiQTTempAccessLayer].getCStride(),
@@ -5050,7 +5008,6 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
                                                    , true
 #endif
                                                    );
-#if LOSSLESS_CODING
         if (pcCU->isLosslessCoded(0)) 
         {
           uiDistV = uiNonzeroDistV;
@@ -5069,19 +5026,6 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
             uiDistV = uiNonzeroDistV;
           }
         }
-#else
-        const Double dSingleCostV = m_pcRdCost->calcRdCost( uiSingleBitsV, uiNonzeroDistV );
-        const Double dNullCostV   = m_pcRdCost->calcRdCost( 0, uiDistV );
-        if( dNullCostV < dSingleCostV )
-        {
-          uiAbsSumV = 0;
-          ::memset( pcCoeffCurrV, 0, sizeof( TCoeff ) * uiNumSamplesChro );
-        }
-        else
-        {
-          uiDistV = uiNonzeroDistV;
-        }
-#endif
       }
       if( !uiAbsSumV )
       {

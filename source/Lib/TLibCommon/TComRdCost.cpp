@@ -83,7 +83,7 @@ Double TComRdCost::calcRdCost( UInt uiBits, UInt uiDistortion, Bool bFlag, DFunc
   if (bFlag)
   {
     // Intra8x8, Intra4x4 Block only...
-#if LOSSLESS_CODING && SEQUENCE_LEVEL_LOSSLESS
+#if SEQUENCE_LEVEL_LOSSLESS
     dRdCost = (Double)(uiBits);
 #else
     dRdCost = (((Double)uiDistortion) + ((Double)uiBits * dLambda));
@@ -98,7 +98,7 @@ Double TComRdCost::calcRdCost( UInt uiBits, UInt uiDistortion, Bool bFlag, DFunc
     }
     else
     {
-#if LOSSLESS_CODING && SEQUENCE_LEVEL_LOSSLESS
+#if SEQUENCE_LEVEL_LOSSLESS
       dRdCost = (Double)(uiBits);
 #else
       dRdCost = ((Double)uiDistortion + (Double)((Int)(uiBits * dLambda+.5)));
@@ -137,7 +137,7 @@ Double TComRdCost::calcRdCost64( UInt64 uiBits, UInt64 uiDistortion, Bool bFlag,
   if (bFlag)
   {
     // Intra8x8, Intra4x4 Block only...
-#if LOSSLESS_CODING && SEQUENCE_LEVEL_LOSSLESS
+#if SEQUENCE_LEVEL_LOSSLESS
     dRdCost = (Double)(uiBits);
 #else
     dRdCost = (((Double)(Int64)uiDistortion) + ((Double)(Int64)uiBits * dLambda));
@@ -152,7 +152,7 @@ Double TComRdCost::calcRdCost64( UInt64 uiBits, UInt64 uiDistortion, Bool bFlag,
     }
     else
     {
-#if LOSSLESS_CODING && SEQUENCE_LEVEL_LOSSLESS
+#if SEQUENCE_LEVEL_LOSSLESS
       dRdCost = (Double)(uiBits);
 #else
       dRdCost = ((Double)(Int64)uiDistortion + (Double)((Int)((Int64)uiBits * dLambda+.5)));

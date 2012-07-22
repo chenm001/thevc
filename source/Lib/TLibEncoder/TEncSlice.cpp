@@ -233,9 +233,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   dQP = m_pcCfg->getQP();
   if(eSliceType!=I_SLICE)
   {
-#if LOSSLESS_CODING
     if (!(( m_pcCfg->getMaxDeltaQP() == 0 ) && (dQP == -rpcSlice->getSPS()->getQpBDOffsetY() ) && (rpcSlice->getSPS()->getUseLossless()))) 
-#endif
     {
       dQP += m_pcCfg->getGOPEntry(iGOPid).m_QPOffset;
     }

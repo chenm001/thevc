@@ -160,9 +160,7 @@ protected:
   Bool      m_saoLcuBasedOptimization;
 
   //====== Lossless ========
-#if LOSSLESS_CODING
   Bool      m_useLossless;
-#endif
   //====== Motion search ========
   Int       m_iFastSearch;                      //  0:Full search  1:Diamond  2:PMVFAST
   Int       m_iSearchRange;                     //  0:Full frame
@@ -375,9 +373,7 @@ public:
   Void      setQPAdaptationRange            ( Int   i )      { m_iQPAdaptationRange = i; }
   
   //====== Lossless ========
-#if LOSSLESS_CODING
   Void      setUseLossless                  (Bool    b  )        { m_useLossless = b;  }
-#endif
   //====== Sequence ========
   Int       getFrameRate                    ()      { return  m_iFrameRate; }
   unsigned int getFrameSkip                 ()      { return  m_FrameSkip; }
@@ -430,9 +426,7 @@ public:
   Bool      getUseAdaptiveQP                ()      { return  m_bUseAdaptiveQP; }
   Int       getQPAdaptationRange            ()      { return  m_iQPAdaptationRange; }
   //====== Lossless ========
-#if LOSSLESS_CODING
   Bool      getUseLossless                  ()      { return  m_useLossless;  }
-#endif
   
   //==== Tool list ========
   Void      setUseSBACRD                    ( Bool  b )     { m_bUseSBACRD  = b; }
