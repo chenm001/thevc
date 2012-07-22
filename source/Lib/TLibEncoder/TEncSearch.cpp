@@ -3224,9 +3224,7 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
   {
     pcCU->getInterMergeCandidates( uiAbsPartIdx, iPUIdx, uiDepth, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand );
   }
-#if BIPRED_RESTRICT_SMALL_PU
   xRestrictBipredMergeCand( pcCU, iPUIdx, cMvFieldNeighbours, uhInterDirNeighbours, numValidMergeCand );
-#endif
 
   ruiCost = MAX_UINT;
   for( UInt uiMergeCand = 0; uiMergeCand < numValidMergeCand; ++uiMergeCand )
@@ -3267,7 +3265,6 @@ Void TEncSearch::xMergeEstimation( TComDataCU* pcCU, TComYuv* pcYuvOrg, Int iPUI
  * \param numValidMergeCand
  * \returns Void
  */
-#if BIPRED_RESTRICT_SMALL_PU
 Void TEncSearch::xRestrictBipredMergeCand( TComDataCU* pcCU, UInt puIdx, TComMvField* mvFieldNeighbours, UChar* interDirNeighbours, Int numValidMergeCand )
 {
   if ( pcCU->isBipredRestriction(puIdx) )
@@ -3282,7 +3279,6 @@ Void TEncSearch::xRestrictBipredMergeCand( TComDataCU* pcCU, UInt puIdx, TComMvF
     }
   }
 }
-#endif
 
 /** search of the best candidate for inter prediction
  * \param pcCU
@@ -3551,11 +3547,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       }
     }
     //  Bi-directional prediction
-#if BIPRED_RESTRICT_SMALL_PU
     if ( (pcCU->getSlice()->isInterB()) && (pcCU->isBipredRestriction(iPartIdx) == false) )
-#else
-    if ( pcCU->getSlice()->isInterB() )
-#endif
     {
       
       cMvBi[0] = cMv[0];            cMvBi[1] = cMv[1];
@@ -3689,11 +3681,7 @@ Void TEncSearch::predInterSearch( TComDataCU* pcCU, TComYuv* pcOrgYuv, TComYuv*&
       } // for loop-iter
     } // if (B_SLICE)
 #if ZERO_MVD_EST
-#if BIPRED_RESTRICT_SMALL_PU
     if ( (pcCU->getSlice()->isInterB()) && (pcCU->isBipredRestriction(iPartIdx) == false) )
-#else
-    if ( pcCU->getSlice()->isInterB() )
-#endif
     {
       m_pcRdCost->getMotionCost( 1, 0 );
 

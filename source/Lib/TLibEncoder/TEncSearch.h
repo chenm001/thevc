@@ -397,13 +397,11 @@ protected:
                                     Int& numValidMergeCand
                                    );
 
-#if BIPRED_RESTRICT_SMALL_PU
   Void xRestrictBipredMergeCand   ( TComDataCU*     pcCU,
                                     UInt            puIdx,
                                     TComMvField*    mvFieldNeighbours, 
                                     UChar*          interDirNeighbours, 
                                     Int             numValidMergeCand );
-#endif
 
   // -------------------------------------------------------------------------------------------------------------------
   // motion estimation
