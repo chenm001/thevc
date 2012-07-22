@@ -96,8 +96,6 @@
 #define C1FLAG_NUMBER               8 // maximum number of largerThan1 flag coded in one chunk :  16 in HM5
 #define C2FLAG_NUMBER               1 // maximum number of largerThan2 flag coded in one chunk:  16 in HM5 
 
-#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_1 1  ///< disable the encoder constraint that does not test SAO/BO mode for chroma in interleaved mode
-#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_2 1  ///< disable the encoder constraint that reduce the range of SAO/EO for chroma in interleaved mode
 #define REMOVE_SAO_LCU_ENC_CONSTRAINTS_3 1  ///< disable the encoder constraint that conditionally disable SAO for chroma for entire slice in interleaved mode
 
 #define SAO_SKIP_RIGHT                   1  ///< H1101: disallow using unavailable pixel during RDO
