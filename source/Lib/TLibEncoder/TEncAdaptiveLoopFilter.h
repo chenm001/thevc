@@ -304,11 +304,7 @@ private:
 #if AHG6_ALF_OPTION2
   UInt uvlcBitrateEstimate(Int val);
   UInt svlcBitrateEsitmate(Int val) {  return uvlcBitrateEstimate (( val <= 0) ? (-val<<1) : ((val<<1)-1));}
-#if ALF_COEFF_EXP_GOLOMB_K
   UInt golombBitrateEstimate(Int coeff, Int k);
-#else
-  UInt golombBitrateEstimate(Int coeff, Int k) { return (UInt)(((((Int)abs(coeff) )>> k) + 1+ k) + ((coeff !=0)?1:0));}
-#endif
   UInt ALFParamBitrateEstimate(ALFParam* alfParam);
   UInt filterCoeffBitrateEstimate(Int compIdx, Int* coeff);
   Void predictALFCoeff(Int** coeff, Int numCoef, Int numFilters);

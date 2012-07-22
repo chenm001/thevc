@@ -1320,23 +1320,7 @@ Void TEncCavlc::codeCoeffNxN    ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPa
 #if AHG6_ALF_OPTION2
 Void TEncCavlc::xGolombEncode(Int coeff, Int k)
 {
-#if ALF_COEFF_EXP_GOLOMB_K
   xWriteEpExGolomb((UInt)abs(coeff), k);
-#else
-  Int q, i;
-  Int symbol = abs(coeff);
-  q = symbol >> k;
-  for (i = 0; i < q; i++)
-  {
-    xWriteFlag(1);
-  }
-  xWriteFlag(0);
-  for(i = 0; i < k; i++)
-  {
-    xWriteFlag(symbol & 0x01);
-    symbol >>= 1;
-  }
-#endif
   if(coeff != 0)
   {
     Int sign = (coeff > 0)? 1: 0;
@@ -1344,11 +1328,7 @@ Void TEncCavlc::xGolombEncode(Int coeff, Int k)
   }
 #if ENC_DEC_TRACE
   fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
-#if ALF_COEFF_EXP_GOLOMB_K
   fprintf( g_hTrace, "%-40s se(v) : %d\n", "alf_filt_coeff", coeff ); 
-#else
-  fprintf( g_hTrace, "%-40s ge(v) : %d\n", "alf_filt_coeff", coeff ); 
-#endif
 #endif
 
 }

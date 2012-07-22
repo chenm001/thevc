@@ -5140,7 +5140,6 @@ UInt TEncAdaptiveLoopFilter::uvlcBitrateEstimate(Int val)
   return ((length >> 1) + ((length+1) >> 1));
 }
 
-#if ALF_COEFF_EXP_GOLOMB_K
 UInt TEncAdaptiveLoopFilter::golombBitrateEstimate(Int coeff, Int k)
 {
   UInt symbol = (UInt)abs(coeff);
@@ -5163,7 +5162,6 @@ UInt TEncAdaptiveLoopFilter::golombBitrateEstimate(Int coeff, Int k)
   }
   return bitcnt;
 }
-#endif
 
 UInt TEncAdaptiveLoopFilter::filterCoeffBitrateEstimate(Int compIdx, Int* coeff)
 {

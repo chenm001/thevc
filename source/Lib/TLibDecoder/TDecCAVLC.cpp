@@ -932,7 +932,6 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
 
 Int TDecCavlc::xGolombDecode(Int k)
 {
-#if ALF_COEFF_EXP_GOLOMB_K
   Int coeff;
   UInt symbol;
   xReadEpExGolomb( symbol, k );
@@ -950,40 +949,6 @@ Int TDecCavlc::xGolombDecode(Int k)
   fprintf( g_hTrace, "%-40s se(v) : %d\n", "alf_filt_coeff", coeff ); 
 #endif
   return coeff;
-#else
-  UInt uiSymbol;
-  Int q = -1;
-  Int nr = 0;
-  Int a;
-
-  uiSymbol = 1;
-  while (uiSymbol)
-  {
-    xReadFlag(uiSymbol);
-    q++;
-  }
-  for(a = 0; a < k; ++a)          // read out the sequential log2(M) bits
-  {
-    xReadFlag(uiSymbol);
-    if(uiSymbol)
-      nr += 1 << a;
-  }
-  nr += q << k;
-  if(nr != 0)
-  {
-    xReadFlag(uiSymbol);
-    nr = (uiSymbol)? nr: -nr;
-  }
-#if ENC_DEC_TRACE
-  fprintf( g_hTrace, "%8lld  ", g_nSymbolCounter++ );
-#if AHG6_ALF_OPTION2
-  fprintf( g_hTrace, "%-40s ge(v) : %d\n", "alf_filt_coeff", nr ); 
-#else
-  fprintf( g_hTrace, "%-40s ge(v) : %d\n", "alf_coeff_luma", nr ); 
-#endif
-#endif
-  return nr;
-#endif
 }
 
 #if !TILES_OR_ENTROPY_FIX
