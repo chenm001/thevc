@@ -187,14 +187,10 @@ Void TAppDecTop::decode()
         m_cTVideoIOYuvReconFile.open( m_pchReconFile, true, m_outputBitDepth, g_uiBitDepth + g_uiBitIncrement ); // write mode
         recon_opened = true;
       }
-#if CRA_BLA_TFD_MODIFICATIONS
       if ( bNewPicture && 
            (   nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR
             || nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_BLANT
             || nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_BLA ) )
-#else
-      if (bNewPicture && (nalu.m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR))
-#endif
       {
         xFlushOutput( pcListPic );
       }

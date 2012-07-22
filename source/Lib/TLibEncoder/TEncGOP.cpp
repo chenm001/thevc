@@ -1803,7 +1803,6 @@ NalUnitType TEncGOP::getNalUnitType(UInt uiPOCCurr)
       return NAL_UNIT_CODED_SLICE_IDR;
     }
   }
-#if CRA_BLA_TFD_MODIFICATIONS
   if(m_pocCRA>0)
   {
     if(uiPOCCurr<m_pocCRA)
@@ -1816,7 +1815,6 @@ NalUnitType TEncGOP::getNalUnitType(UInt uiPOCCurr)
       return NAL_UNIT_CODED_SLICE_TFD;
     }
   }
-#endif
   return NAL_UNIT_CODED_SLICE;
 }
 

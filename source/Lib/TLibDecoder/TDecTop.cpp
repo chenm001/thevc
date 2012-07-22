@@ -56,9 +56,7 @@ TDecTop::TDecTop()
 #endif
   m_bRefreshPending = 0;
   m_pocCRA = 0;
-#if CRA_BLA_TFD_MODIFICATIONS
   m_prevRAPisBLA = false;
-#endif
   m_pocRandomAccess = MAX_INT;          
   m_prevPOC                = MAX_INT;
   m_bFirstSliceInPicture    = true;
@@ -375,13 +373,11 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
     {
       return false;
     }
-#if CRA_BLA_TFD_MODIFICATIONS
     // Skip TFD pictures associated with BLA/BLANT pictures
     if (isSkipPictureForBLA(iPOCLastDisplay))
     {
       return false;
     }
-#endif
   }
   //detect lost reference picture and insert copy of earlier frame.
   Int lostPoc;
@@ -583,11 +579,7 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
 
   if (bNextSlice)
   {
-#if CRA_BLA_TFD_MODIFICATIONS
     pcSlice->checkCRA(pcSlice->getRPS(), m_pocCRA, m_prevRAPisBLA, m_cListPic);
-#else
-    pcSlice->checkCRA(pcSlice->getRPS(), m_pocCRA, m_cListPic); 
-#endif
     // Set reference list
     pcSlice->setRefPicList( m_cListPic );
 
@@ -778,7 +770,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
   return false;
 }
 
-#if CRA_BLA_TFD_MODIFICATIONS
 /** Function for checking if picture should be skipped because of association with a previous BLA picture
  * \param iPOCLastDisplay POC of last picture displayed
  * \returns true if the picture should be skipped
@@ -794,7 +785,6 @@ Bool TDecTop::isSkipPictureForBLA(Int& iPOCLastDisplay)
   }
   return false;
 }
-#endif
 
 /** Function for checking if picture should be skipped because of random access
  * \param iSkipFrame skip frame counter
@@ -803,19 +793,11 @@ Bool TDecTop::isSkipPictureForBLA(Int& iPOCLastDisplay)
  * This function checks the skipping of pictures in the case of -s option random access.
  * All pictures prior to the random access point indicated by the counter iSkipFrame are skipped.
  * It also checks the type of Nal unit type at the random access point.
-#if CRA_BLA_TFD_MODIFICATIONS
  * If the random access point is CRA/CRANT/BLA/BLANT, TFD pictures with POC less than the POC of the random access point are skipped.
  * If the random access point is IDR all pictures after the random access point are decoded.
  * If the random access point is none of the above, a warning is issues, and decoding of pictures with POC 
  * equal to or greater than the random access point POC is attempted. For non IDR/CRA/BLA random 
  * access point there is no guarantee that the decoder will not crash.
-#else
- * If the random access point is CRA, pictures with POC equal to or greater than the CRA POC are decoded.
- * If the random access point is IDR all pictures after the random access point are decoded.
- * If the random access point is not IDR or CRA, a warning is issues, and decoding of pictures with POC 
- * equal to or greater than the random access point POC is attempted. For non IDR/CRA random 
- * access point there is no guarantee that the decoder will not crash.
-#endif
  */
 Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
 {
@@ -826,7 +808,6 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
   }
   else if (m_pocRandomAccess == MAX_INT) // start of random access point, m_pocRandomAccess has not been set yet.
   {
-#if CRA_BLA_TFD_MODIFICATIONS
     if (   m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_CRA
         || m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_CRANT
         || m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLA
@@ -835,12 +816,6 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
       // set the POC random access since we need to skip the reordered pictures in the case of CRA/CRANT/BLA/BLANT.
       m_pocRandomAccess = m_apcSlicePilot->getPOC();
     }
-#else
-    if (m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_CRA)
-    {
-      m_pocRandomAccess = m_apcSlicePilot->getPOC(); // set the POC random access since we need to skip the reordered pictures in CRA.
-    }
-#endif
     else if (m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_IDR)
     {
       m_pocRandomAccess = 0; // no need to skip the reordered pictures in IDR, they are decodable.
@@ -856,20 +831,12 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
       return true;
     }
   }
-#if CRA_BLA_TFD_MODIFICATIONS
   // skip the reordered pictures, if necessary
   else if (m_apcSlicePilot->getPOC() < m_pocRandomAccess && m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_TFD)
   {
     iPOCLastDisplay++;
     return true;
   }
-#else
-  else if (m_apcSlicePilot->getPOC() < m_pocRandomAccess)  // skip the reordered pictures if necessary
-  {
-    iPOCLastDisplay++;
-    return true;
-  }
-#endif
   // if we reach here, then the picture is not skipped.
   return false; 
 }
