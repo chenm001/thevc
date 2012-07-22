@@ -88,9 +88,6 @@ TEncSbac::TEncSbac()
 , m_cALFUvlcSCModel           ( 1,             1,               NUM_ALF_UVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cALFSvlcSCModel           ( 1,             1,               NUM_ALF_SVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cCUAMPSCModel             ( 1,             1,               NUM_CU_AMP_CTX                , m_contextModels + m_numContextModels, m_numContextModels)
-#if !SAO_CODE_CLEAN_UP
-, m_cSaoFlagSCModel           ( 1,             1,               NUM_SAO_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
-#endif
 , m_cSaoUvlcSCModel           ( 1,             1,               NUM_SAO_UVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoMergeLeftSCModel      ( 1,             1,               NUM_SAO_MERGE_LEFT_FLAG_CTX   , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoMergeUpSCModel        ( 1,             1,               NUM_SAO_MERGE_UP_FLAG_CTX     , m_contextModels + m_numContextModels, m_numContextModels)
@@ -153,9 +150,6 @@ Void TEncSbac::resetEntropy           ()
   m_cALFUvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_ALF_UVLC );
   m_cALFSvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_ALF_SVLC );
   m_cCUTransSubdivFlagSCModel.initBuffer ( eSliceType, iQp, (UChar*)INIT_TRANS_SUBDIV_FLAG );
-#if !SAO_CODE_CLEAN_UP
-  m_cSaoFlagSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_FLAG );
-#endif
   m_cSaoUvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_UVLC );
   m_cSaoMergeLeftSCModel.initBuffer      ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_LEFT_FLAG );
   m_cSaoMergeUpSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_UP_FLAG );
@@ -220,9 +214,6 @@ Void TEncSbac::determineCabacInitIdx()
       curCost += m_cALFUvlcSCModel.calcCost           ( curSliceType, qp, (UChar*)INIT_ALF_UVLC );
       curCost += m_cALFSvlcSCModel.calcCost           ( curSliceType, qp, (UChar*)INIT_ALF_SVLC );
       curCost += m_cCUTransSubdivFlagSCModel.calcCost ( curSliceType, qp, (UChar*)INIT_TRANS_SUBDIV_FLAG );
-#if !SAO_CODE_CLEAN_UP
-      curCost += m_cSaoFlagSCModel.calcCost           ( curSliceType, qp, (UChar*)INIT_SAO_FLAG );
-#endif
       curCost += m_cSaoUvlcSCModel.calcCost           ( curSliceType, qp, (UChar*)INIT_SAO_UVLC );
       curCost += m_cSaoMergeLeftSCModel.calcCost      ( curSliceType, qp, (UChar*)INIT_SAO_MERGE_LEFT_FLAG );
       curCost += m_cSaoMergeUpSCModel.calcCost        ( curSliceType, qp, (UChar*)INIT_SAO_MERGE_UP_FLAG );
@@ -282,9 +273,6 @@ Void TEncSbac::updateContextTables( SliceType eSliceType, Int iQp, Bool bExecute
   m_cALFUvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_ALF_UVLC );
   m_cALFSvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_ALF_SVLC );
   m_cCUTransSubdivFlagSCModel.initBuffer ( eSliceType, iQp, (UChar*)INIT_TRANS_SUBDIV_FLAG );
-#if !SAO_CODE_CLEAN_UP
-  m_cSaoFlagSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_FLAG );
-#endif
   m_cSaoUvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_UVLC );
   m_cSaoMergeLeftSCModel.initBuffer      ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_LEFT_FLAG );
   m_cSaoMergeUpSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_UP_FLAG );
@@ -1577,32 +1565,6 @@ Void TEncSbac::codeSAOSign( UInt code )
   m_pcBinIf->encodeBinEP( code );
 }
 
-#if !SAO_CODE_CLEAN_UP
-Void TEncSbac::codeSaoFlag       ( UInt uiCode )
-{
-  UInt uiSymbol = ( ( uiCode == 0 ) ? 0 : 1 );
-  m_pcBinIf->encodeBin( uiSymbol, m_cSaoFlagSCModel.get( 0, 0, 0 ) );
-}
-
-Void TEncSbac::codeSaoUvlc       ( UInt uiCode )
-{
-  Int i;
-
-  if ( uiCode == 0 )
-  {
-    m_pcBinIf->encodeBin( 0, m_cSaoUvlcSCModel.get( 0, 0, 0 ) );
-  }
-  else
-  {
-    m_pcBinIf->encodeBin( 1, m_cSaoUvlcSCModel.get( 0, 0, 0 ) );
-    for ( i=0; i<uiCode-1; i++ )
-    {
-      m_pcBinIf->encodeBin( 1, m_cSaoUvlcSCModel.get( 0, 0, 1 ) );
-    }
-    m_pcBinIf->encodeBin( 0, m_cSaoUvlcSCModel.get( 0, 0, 1 ) );
-  }
-}
-#endif
 Void TEncSbac::codeSaoMaxUvlc    ( UInt code, UInt maxSymbol )
 {
   if (maxSymbol == 0)

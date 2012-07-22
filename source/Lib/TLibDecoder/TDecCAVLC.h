@@ -161,9 +161,6 @@ protected:
 #if !DBL_HL_SYNTAX
   Void  xParseDblParam       ( TComAPS* aps );
 #endif
-#if !SAO_CODE_CLEAN_UP
-  Void  xParseSaoOffset      (SaoLcuParam* saoLcuParam);
-#endif
 #if !AHG6_ALF_OPTION2
   Void  xParseAlfParam(AlfParamSet* pAlfParamSet, Bool bSentInAPS = true, Int firstLCUAddr = 0, Bool acrossSlice = true, Int numLCUInWidth= -1, Int numLCUInHeight= -1);
   Void  parseAlfParamSet(AlfParamSet* pAlfParamSet, Int firstLCUAddr, Bool alfAcrossSlice);

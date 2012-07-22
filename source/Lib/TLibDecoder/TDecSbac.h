@@ -97,9 +97,6 @@ public:
   Void  parseTerminatingBit       ( UInt& ruiBit );
   Void  parseMVPIdx               ( Int& riMVPIdx          );
   Void  parseSaoMaxUvlc           ( UInt& val, UInt maxSymbol );
-#if !SAO_CODE_CLEAN_UP
-  Void  parseSaoUvlc              ( UInt& ruiVal           );
-#endif
   Void  parseSaoMergeLeft         ( UInt&  ruiVal, UInt uiCompIdx   );
   Void  parseSaoMergeUp           ( UInt&  ruiVal  );
   Void  parseSaoTypeIdx           ( UInt&  ruiVal  );
@@ -204,9 +201,6 @@ private:
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;
   ContextModel3DBuffer m_cCUAMPSCModel;
-#if !SAO_CODE_CLEAN_UP
-  ContextModel3DBuffer m_cSaoFlagSCModel;
-#endif
   ContextModel3DBuffer m_cSaoUvlcSCModel;
   ContextModel3DBuffer m_cSaoMergeLeftSCModel;
   ContextModel3DBuffer m_cSaoMergeUpSCModel;

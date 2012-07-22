@@ -1428,43 +1428,6 @@ Void TEncCavlc::codeAlfFixedLengthIdx( UInt idx, UInt maxValue)
 }
 #endif
 
-#if !SAO_CODE_CLEAN_UP
-Void TEncCavlc::codeSaoFlag( UInt uiCode )
-{
-  xWriteFlag( uiCode );
-}
-
-Void TEncCavlc::codeSaoUvlc( UInt uiCode )
-{
-    xWriteUvlc( uiCode );
-}
-#endif
-#if !SAO_CODE_CLEAN_UP
-/** Code SAO run. 
- * \param uiCode
- * \param maxValue
- */
-Void TEncCavlc::codeSaoRun( UInt uiCode, UInt maxValue)
-{
-  UInt uiLength = 0;
-  if (!maxValue)
-  {
-    return;
-  }
-  assert(uiCode<=maxValue);              
-
-  for(UInt i=0; i<32; i++)                                     
-  {                                                            
-    if(maxValue&0x1)                                               
-    {                                                          
-      uiLength = i+1;                                          
-    }                                                          
-    maxValue = (maxValue >> 1);                                        
-  }
-  WRITE_CODE( uiCode, uiLength, "sao_run_diff");
-}
-#endif
-
 Void TEncCavlc::estBit( estBitsSbacStruct* pcEstBitsCabac, Int width, Int height, TextType eTType )
 {
   // printf("error : no VLC mode support in this version\n");

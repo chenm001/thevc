@@ -1371,10 +1371,6 @@ Void TComSampleAdaptiveOffset::resetSaoUnit(SaoLcuParam* saoUnit)
 {
   saoUnit->partIdx       = 0;
   saoUnit->partIdxTmp    = 0;
-#if !SAO_CODE_CLEAN_UP
-  saoUnit->run           = 0;
-  saoUnit->runDiff       = 0;
-#endif
   saoUnit->mergeLeftFlag = 0;
   saoUnit->mergeUpFlag   = 0;
   saoUnit->typeIdx       = -1;

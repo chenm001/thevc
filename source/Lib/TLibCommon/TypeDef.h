@@ -107,8 +107,6 @@
 #define SAO_ENCODING_RATE                0.75
 #endif
 
-#define SAO_CODE_CLEAN_UP                1 /// redundant code removal
-
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256
 #define MAX_NUM_APS                32         //< !!!KS: number not defined in WD yet
@@ -341,10 +339,6 @@ typedef struct _SaoLcuParam
   Int        typeIdx;
   Int        bandPosition;
   Int        offset[4];
-#if !SAO_CODE_CLEAN_UP
-  Int        runDiff;
-  Int        run;
-#endif
   Int        partIdx;
   Int        partIdxTmp;
   Int        length;

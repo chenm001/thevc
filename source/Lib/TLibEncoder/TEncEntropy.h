@@ -148,15 +148,8 @@ public:
 #if !AHG6_ALF_OPTION2
   virtual Void codeAlfCtrlFlag      ( UInt uiSymbol ) = 0;
 #endif
-#if !SAO_CODE_CLEAN_UP
-  virtual Void codeSaoFlag          ( UInt uiCode ) = 0;
-  virtual Void codeSaoUvlc          ( UInt uiCode ) = 0;
-#endif
   virtual Void codeSAOSign          ( UInt code   ) = 0;
   virtual Void codeSaoMaxUvlc       ( UInt code, UInt maxSymbol ) = 0;
-#if !SAO_CODE_CLEAN_UP
-  virtual Void codeSaoRun          ( UInt   uiCode, UInt uiMaxValue  ) = 0;
-#endif
   virtual Void codeSaoMergeLeft    ( UInt   uiCode, UInt uiCompIdx  ) = 0;
   virtual Void codeSaoMergeUp      ( UInt   uiCode) = 0;
   virtual Void codeSaoTypeIdx      ( UInt   uiCode) = 0;

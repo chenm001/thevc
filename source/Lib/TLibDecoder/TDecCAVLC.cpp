@@ -326,48 +326,6 @@ inline Void copySaoOneLcuParam(SaoLcuParam* dst,  SaoLcuParam* src)
     }
   }
 }
-#if !SAO_CODE_CLEAN_UP
-/** parse SAO offset
-* \param saoLcuParam SAO LCU parameters
-*/
-Void TDecCavlc::xParseSaoOffset(SaoLcuParam* saoLcuParam)
-{
-  UInt uiSymbol;
-  Int iSymbol;
-  static Int typeLength[MAX_NUM_SAO_TYPE] = {
-    SAO_EO_LEN,
-    SAO_EO_LEN,
-    SAO_EO_LEN,
-    SAO_EO_LEN,
-    SAO_BO_LEN
-  }; 
-
-  READ_UVLC (uiSymbol, "sao_type_idx");   saoLcuParam->typeIdx = (Int)uiSymbol - 1;       
-  if (uiSymbol)
-  {
-    saoLcuParam->length = typeLength[saoLcuParam->typeIdx];
-    if( saoLcuParam->typeIdx == SAO_BO )
-    {
-      READ_CODE( 5, uiSymbol, "sao_band_position"); saoLcuParam->bandPosition = uiSymbol; 
-      for(Int i=0; i< saoLcuParam->length; i++)
-      {
-        READ_SVLC (iSymbol, "sao_offset");    saoLcuParam->offset[i] = iSymbol;   
-      }   
-    }
-    else if( saoLcuParam->typeIdx < 4 )
-    {
-      READ_UVLC (uiSymbol, "sao_offset");  saoLcuParam->offset[0] = uiSymbol;
-      READ_UVLC (uiSymbol, "sao_offset");  saoLcuParam->offset[1] = uiSymbol;
-      READ_UVLC (uiSymbol, "sao_offset");  saoLcuParam->offset[2] = -(Int)uiSymbol;
-      READ_UVLC (uiSymbol, "sao_offset");  saoLcuParam->offset[3] = -(Int)uiSymbol;
-    }
-  }
-  else
-  {
-    saoLcuParam->length = 0;
-  }
-}
-#endif
 
 #if !AHG6_ALF_OPTION2
 Void TDecCavlc::xParseAlfParam(AlfParamSet* pAlfParamSet, Bool bSentInAPS, Int firstLCUAddr, Bool acrossSlice, Int numLCUInWidth, Int numLCUInHeight)

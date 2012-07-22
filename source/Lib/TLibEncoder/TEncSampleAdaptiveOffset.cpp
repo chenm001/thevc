@@ -1348,12 +1348,6 @@ Void TEncSampleAdaptiveOffset::assignSaoUnitSyntax(SaoLcuParam* saoLcuParam,  SA
   else
   {
     Int i,j, addr, addrUp, addrLeft,  idx, idxUp, idxLeft,  idxCount;
-#if !SAO_CODE_CLEAN_UP
-    Int run;
-    Int runPartBeginAddr=0;
-    Int runPart;
-    Int runPartPrevious;
-#endif
 
     oneUnitFlag = 0;
 
@@ -1363,10 +1357,6 @@ Void TEncSampleAdaptiveOffset::assignSaoUnitSyntax(SaoLcuParam* saoLcuParam,  SA
 
     for (j=0;j<m_iNumCuInHeight;j++)
     {
-#if !SAO_CODE_CLEAN_UP
-      run = 0;
-      runPartPrevious = -1;
-#endif
       for (i=0;i<m_iNumCuInWidth;i++)
       {
         addr     = i + j*m_iNumCuInWidth;
@@ -1402,51 +1392,8 @@ Void TEncSampleAdaptiveOffset::assignSaoUnitSyntax(SaoLcuParam* saoLcuParam,  SA
         {
           checkMerge(&saoLcuParam[addr], &saoLcuParam[addrLeft], 0);
         }
-#if !SAO_CODE_CLEAN_UP
-        runPart = saoLcuParam[addr].partIdx;
-        if (runPart == runPartPrevious)
-        {
-          run ++;
-          saoLcuParam[addr].run = -1;
-          saoLcuParam[runPartBeginAddr].run = run;
-        }
-        else
-        {
-          runPartBeginAddr = addr;
-          run = 0;
-          saoLcuParam[addr].run = run;
-        }
-        runPartPrevious = runPart;
-#endif
       }
     }
-#if !SAO_CODE_CLEAN_UP
-    for (j=0;j<m_iNumCuInHeight;j++)
-    {
-      for (i=0;i<m_iNumCuInWidth;i++)
-      {
-        addr     =  i + j*m_iNumCuInWidth;
-        addrLeft =  (addr%m_iNumCuInWidth == 0) ? -1 : addr - 1;
-        addrUp  =  (addr<m_iNumCuInWidth)      ? -1 : addr - m_iNumCuInWidth;
-
-        if (saoLcuParam[addr].run == -1)
-        {
-          if (addrLeft != -1)
-          {
-            saoLcuParam[addr].run = saoLcuParam[addrLeft].run-1;
-          }
-        }
-        if (addrUp>=0)
-        {
-          saoLcuParam[addr].runDiff = saoLcuParam[addr].run - saoLcuParam[addrUp].run;
-        }
-        else
-        {
-          saoLcuParam[addr].runDiff = saoLcuParam[addr].run ;
-        }
-      }
-    }
-#endif
   }
 }
 /** rate distortion optimization of all SAO units
@@ -1511,10 +1458,6 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnitAll(SAOParam *saoParam, Double lambda, 
         }
         saoParam->saoLcuParam[compIdx][addr].typeIdx       =  -1;
         saoParam->saoLcuParam[compIdx][addr].mergeUpFlag   = 0;
-#if !SAO_CODE_CLEAN_UP
-        saoParam->saoLcuParam[compIdx][addr].run           = 0;
-        saoParam->saoLcuParam[compIdx][addr].runDiff       = 0;
-#endif
         saoParam->saoLcuParam[compIdx][addr].mergeLeftFlag = 0;
         saoParam->saoLcuParam[compIdx][addr].bandPosition  = 0;
         lambdaComp = compIdx==0 ? lambda : lambdaChroma;
@@ -1654,9 +1597,6 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnit(Int rx, Int ry, SAOParam *saoParam, In
   Int classIdx;
   Int shift = g_uiBitIncrement << 1;
   //   Double dAreaWeight =  0;
-#if !SAO_CODE_CLEAN_UP
-  Double complexityCost = 0;
-#endif
   SaoLcuParam*  saoLcuParam = NULL;   
   SaoLcuParam*  saoLcuParamNeighbor = NULL; 
   Int   merge_iOffset [33];
@@ -1664,17 +1604,9 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnit(Int rx, Int ry, SAOParam *saoParam, In
   saoLcuParam = &(saoParam->saoLcuParam[yCbCr][addr]);
   saoLcuParam->mergeUpFlag   = 0;
   saoLcuParam->mergeLeftFlag = 0;
-#if !SAO_CODE_CLEAN_UP
-  saoLcuParam->run    = 0;
-  saoLcuParam->runDiff= 0;
-#endif
-
 
   m_iTypePartBest[yCbCr] = -1;
   m_dCostPartBest[yCbCr] = MAX_DOUBLE;
-#if !SAO_CODE_CLEAN_UP
-  m_iDistOrg[yCbCr] = 0;
-#endif
 
   Double  bestRDCostTableBo = MAX_DOUBLE;
   Int     bestClassTableBo    = 0;
@@ -1811,9 +1743,6 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnit(Int rx, Int ry, SAOParam *saoParam, In
 
         if(merge_dCost < m_dCostPartBest[yCbCr])
         {
-#if !SAO_CODE_CLEAN_UP
-          m_iDistOrg [yCbCr] = (Int64)complexityCost;
-#endif
           m_dCostPartBest[yCbCr] = merge_dCost;
           m_iTypePartBest[yCbCr] = typeIdx;
           if (typeIdx>=0)
