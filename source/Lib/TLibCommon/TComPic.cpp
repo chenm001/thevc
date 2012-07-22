@@ -49,9 +49,7 @@ TComPic::TComPic()
 : m_uiTLayer                              (0)
 , m_bUsedByCurr                           (false)
 , m_bIsLongTerm                           (false)
-#if NO_MV_SCALING_IF_LONG_TERM_REF
 , m_bIsUsedAsLongTerm                     (false)
-#endif
 , m_apcPicSym                             (NULL)
 , m_pcPicYuvPred                          (NULL)
 , m_pcPicYuvResi                          (NULL)

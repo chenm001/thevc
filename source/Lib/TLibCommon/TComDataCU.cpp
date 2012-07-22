@@ -3697,10 +3697,8 @@ Bool TComDataCU::xAddMVPCandOrder( AMVPInfo* pInfo, RefPicList eRefPicList, Int 
   Int iNeibPOC = iCurrPOC;
   Int iNeibRefPOC;
 
-#if NO_MV_SCALING_IF_LONG_TERM_REF
   Bool bIsCurrRefLongTerm = m_pcSlice->getRefPic( eRefPicList, iRefIdx)->getIsLongTerm();
   Bool bIsNeibRefLongTerm = false;
-#endif
   //---------------  V1 (END) ------------------//
   if( pcTmpCU->getCUMvField(eRefPicList)->getRefIdx(uiIdx) >= 0)
   {
@@ -3708,7 +3706,6 @@ Bool TComDataCU::xAddMVPCandOrder( AMVPInfo* pInfo, RefPicList eRefPicList, Int 
     TComMv cMvPred = pcTmpCU->getCUMvField(eRefPicList)->getMv(uiIdx);
     TComMv rcMv;
 
-#if NO_MV_SCALING_IF_LONG_TERM_REF
     bIsNeibRefLongTerm = pcTmpCU->getSlice()->getRefPic( eRefPicList, pcTmpCU->getCUMvField(eRefPicList)->getRefIdx(uiIdx) )->getIsLongTerm();
     if ( bIsCurrRefLongTerm || bIsNeibRefLongTerm )
     {
@@ -3726,17 +3723,6 @@ Bool TComDataCU::xAddMVPCandOrder( AMVPInfo* pInfo, RefPicList eRefPicList, Int 
         rcMv = cMvPred.scaleMv( iScale );
       }
     }
-#else
-    Int iScale = xGetDistScaleFactor( iCurrPOC, iCurrRefPOC, iNeibPOC, iNeibRefPOC );
-    if ( iScale == 4096 )
-    {
-      rcMv = cMvPred;
-    }
-    else
-    {
-      rcMv = cMvPred.scaleMv( iScale );
-    }
-#endif
     pInfo->m_acMvCand[ pInfo->iN++] = rcMv;
     return true;
   }
@@ -3747,7 +3733,6 @@ Bool TComDataCU::xAddMVPCandOrder( AMVPInfo* pInfo, RefPicList eRefPicList, Int 
     TComMv cMvPred = pcTmpCU->getCUMvField(eRefPicList2nd)->getMv(uiIdx);
     TComMv rcMv;
 
-#if NO_MV_SCALING_IF_LONG_TERM_REF
     bIsNeibRefLongTerm = pcTmpCU->getSlice()->getRefPic( eRefPicList2nd, pcTmpCU->getCUMvField(eRefPicList2nd)->getRefIdx(uiIdx) )->getIsLongTerm();
     if ( bIsCurrRefLongTerm || bIsNeibRefLongTerm )
     {
@@ -3765,17 +3750,6 @@ Bool TComDataCU::xAddMVPCandOrder( AMVPInfo* pInfo, RefPicList eRefPicList, Int 
         rcMv = cMvPred.scaleMv( iScale );
       }
     }
-#else
-    Int iScale = xGetDistScaleFactor( iCurrPOC, iCurrRefPOC, iNeibPOC, iNeibRefPOC );
-    if ( iScale == 4096 )
-    {
-      rcMv = cMvPred;
-    }
-    else
-    {
-      rcMv = cMvPred.scaleMv( iScale );
-    }
-#endif
     pInfo->m_acMvCand[ pInfo->iN++] = rcMv;
     return true;
   }
@@ -3833,7 +3807,6 @@ Bool TComDataCU::xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUni
   cColMv = pColCU->getCUMvField(eColRefPicList)->getMv(uiAbsPartAddr);
 
   iCurrRefPOC = m_pcSlice->getRefPic(eRefPicList, riRefIdx)->getPOC();
-#if NO_MV_SCALING_IF_LONG_TERM_REF
   Bool bIsCurrRefLongTerm = m_pcSlice->getRefPic(eRefPicList, riRefIdx)->getIsLongTerm();
   Bool bIsColRefLongTerm = pColCU->getSlice()->getRefPic(eColRefPicList, iColRefIdx)->getIsUsedAsLongTerm();
   if ( bIsCurrRefLongTerm || bIsColRefLongTerm )
@@ -3852,17 +3825,6 @@ Bool TComDataCU::xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUni
       rcMv = cColMv.scaleMv( iScale );
     }
   }
-#else
-  iScale = xGetDistScaleFactor(iCurrPOC, iCurrRefPOC, iColPOC, iColRefPOC);
-  if ( iScale == 4096 )
-  {
-    rcMv = cColMv;
-  }
-  else
-  {
-    rcMv = cColMv.scaleMv( iScale );
-  }
-#endif
   return true;
 }
 
@@ -3993,7 +3955,6 @@ Bool TComDataCU::xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRef
   TComMv cColMv = pColCU->getCUMvField(eColRefPicList)->getMv(uiPartIdxCenter);
   
   Int iCurrRefPOC = m_pcSlice->getRefPic(eRefPicList, iRefIdx)->getPOC();
-#if NO_MV_SCALING_IF_LONG_TERM_REF
   Bool bIsCurrRefLongTerm = m_pcSlice->getRefPic(eRefPicList, iRefIdx)->getIsLongTerm();
   Bool bIsColRefLongTerm = pColCU->getSlice()->getRefPic(eColRefPicList, pColCU->getCUMvField(eColRefPicList)->getRefIdx(uiPartIdxCenter))->getIsUsedAsLongTerm();
   if ( bIsCurrRefLongTerm || bIsColRefLongTerm )
@@ -4012,17 +3973,6 @@ Bool TComDataCU::xGetCenterCol( UInt uiPartIdx, RefPicList eRefPicList, int iRef
       pcMv[0] = cColMv.scaleMv( iScale );
     }
   }
-#else
-  Int iScale = xGetDistScaleFactor(iCurrPOC, iCurrRefPOC, iColPOC, iColRefPOC);
-  if ( iScale == 4096 )
-  {
-    pcMv[0] = cColMv;
-  }
-  else
-  {
-    pcMv[0] = cColMv.scaleMv( iScale );
-  }
-#endif
   return true;
 }
 
