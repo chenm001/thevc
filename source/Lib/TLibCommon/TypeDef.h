@@ -43,7 +43,6 @@
 
 #define SLICE_HEADER_EXTENSION           1  ///< II0235: Slice header extension mechanism
 
-#define WPP_SLICE_END_CONSTRAINT         1  ///< I0361: WPP Slice constraint
 #define REMOVE_IMPLICIT_WP               1  ///< I0589: remove implicit weighted prediction
 #define HASH_TYPE                        1  ///< I0218: changes to the Hash SEI calculation for improved usability
 #define BYTE_ALIGNMENT                   0  ///< I0330: Add byte_alignment() procedure to end of slice header
