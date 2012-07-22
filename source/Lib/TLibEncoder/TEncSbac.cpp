@@ -444,8 +444,6 @@ Void TEncSbac::xWriteEpExGolomb( UInt uiSymbol, UInt uiCount )
   m_pcBinIf->encodeBinsEP( bins, numBins );
 }
 
-
-#if COEF_REMAIN_BINARNIZATION
 /** Coding of coeff_abs_level_minus3
  * \param uiSymbol value of coeff_abs_level_minus3
  * \param ruiGoRiceParam reference to Rice parameter
@@ -476,46 +474,7 @@ Void TEncSbac::xWriteCoefRemainExGolomb ( UInt symbol, UInt &rParam )
   rParam = g_aauiGoRiceUpdate[ rParam ][ min<UInt>( symbol, 23 ) ];
 #endif
 }
-#else
-/** Coding of coeff_abs_level_minus3
- * \param uiSymbol value of coeff_abs_level_minus3
- * \param ruiGoRiceParam reference to Rice parameter
- * \returns Void
- */
-Void TEncSbac::xWriteGoRiceExGolomb( UInt uiSymbol, UInt &ruiGoRiceParam )
-{
-  UInt uiMaxVlc     = g_auiGoRiceRange[ ruiGoRiceParam ];
-  Bool bExGolomb    = ( uiSymbol > uiMaxVlc );
-  UInt uiCodeWord   = min<UInt>( uiSymbol, ( uiMaxVlc + 1 ) );
-  UInt uiQuotient   = uiCodeWord >> ruiGoRiceParam;
-  UInt uiMaxPreLen  = g_auiGoRicePrefixLen[ ruiGoRiceParam ];
-  
-  UInt binValues;
-  Int numBins;
-  
-  if ( uiQuotient >= uiMaxPreLen )
-  {
-    numBins = uiMaxPreLen;
-    binValues = ( 1 << numBins ) - 1;
-  }
-  else
-  {
-    numBins = uiQuotient + 1;
-    binValues = ( 1 << numBins ) - 2;
-  }
-  
-  m_pcBinIf->encodeBinsEP( ( binValues << ruiGoRiceParam ) + uiCodeWord - ( uiQuotient << ruiGoRiceParam ), numBins + ruiGoRiceParam );
-#if !SIMPLE_PARAM_UPDATE  
-  ruiGoRiceParam = g_aauiGoRiceUpdate[ ruiGoRiceParam ][ min<UInt>( uiSymbol, 23 ) ];
-#endif
-  
-  if( bExGolomb )
-  {
-    uiSymbol -= uiMaxVlc + 1;
-    xWriteEpExGolomb( uiSymbol, 0 );
-  }
-}
-#endif
+
 // SBAC RD
 Void  TEncSbac::load ( TEncSbac* pSrc)
 {
@@ -1604,11 +1563,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 
           if( absCoeff[ idx ] >= baseLevel)
           {
-#if COEF_REMAIN_BINARNIZATION
             xWriteCoefRemainExGolomb( absCoeff[ idx ] - baseLevel, uiGoRiceParam );
-#else
-            xWriteGoRiceExGolomb( absCoeff[ idx ] - baseLevel, uiGoRiceParam ); 
-#endif
 #if SIMPLE_PARAM_UPDATE
             if(absCoeff[idx] > 3*(1<<uiGoRiceParam))
             {

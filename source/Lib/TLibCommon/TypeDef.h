@@ -71,8 +71,6 @@
 #define TILES_OR_ENTROPY_FIX             1  ///< I0113: tiles_or_entropy_coding_sync_idc parsing fix
 #define REMOVE_LASTTU_CBFDERIV           1  ///< I0152: CBF coding for last TU without derivation process 
 
-#define COEF_REMAIN_BINARNIZATION        1  ///< I0487: Binarization for coefficient level coding
-
 #define INTRA_TRANSFORMSKIP              1  ///< I0408: intra transform skipping (TS) 
 
 #define FIX_TMVP_REFIDX0                 1  ///< I0116: Fix the reference picture index to 0 for TMVP derivation in merging list

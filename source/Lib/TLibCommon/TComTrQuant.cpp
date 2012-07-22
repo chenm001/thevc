@@ -2600,7 +2600,6 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
 
   if ( uiAbsLevel >= baseLevel )
   {    
-#if COEF_REMAIN_BINARNIZATION
     UInt symbol     = uiAbsLevel - baseLevel;
     UInt length;
     if (symbol < (8 << ui16AbsGoRice))
@@ -2618,22 +2617,6 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
       }
       iRate += (8+length+1-ui16AbsGoRice+length)<< 15;
     }
-#else
-    UInt uiSymbol     = uiAbsLevel - baseLevel;
-    UInt uiMaxVlc     = g_auiGoRiceRange[ ui16AbsGoRice ];
-    Bool bExpGolomb   = ( uiSymbol > uiMaxVlc );
-    if( bExpGolomb )
-    {
-      uiAbsLevel  = uiSymbol - uiMaxVlc;
-      int iEGS    = 1;  for( UInt uiMax = 2; uiAbsLevel >= uiMax; uiMax <<= 1, iEGS += 2 );
-      iRate      += iEGS << 15;
-      uiSymbol    = min<UInt>( uiSymbol, ( uiMaxVlc + 1 ) );
-    }
-
-    UShort ui16PrefLen = UShort( uiSymbol >> ui16AbsGoRice ) + 1;
-    UShort ui16NumBins = min<UInt>( ui16PrefLen, g_auiGoRicePrefixLen[ ui16AbsGoRice ] ) + ui16AbsGoRice;
-    iRate += ui16NumBins << 15;
-#endif
     if (c1Idx < C1FLAG_NUMBER)
     {
       iRate += m_pcEstBitsSbac->m_greaterOneBits[ ui16CtxNumOne ][ 1 ];

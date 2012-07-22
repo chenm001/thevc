@@ -331,8 +331,6 @@ Void TDecSbac::xReadUnarySymbol( UInt& ruiSymbol, ContextModel* pcSCModel, Int i
 }
 
 
-
-#if COEF_REMAIN_BINARNIZATION
 /** Parsing of coeff_abs_level_remaing
  * \param ruiSymbol reference to coeff_abs_level_remaing
  * \param ruiParam reference to parameter
@@ -366,51 +364,6 @@ Void TDecSbac::xReadCoefRemainExGolomb ( UInt &rSymbol, UInt &rParam )
   rParam = g_aauiGoRiceUpdate[ rParam ][ min<UInt>( rSymbol, 23 ) ];
 #endif
 }
-#else
-/** Parsing of coeff_abs_level_minus3
- * \param ruiSymbol reference to coeff_abs_level_minus3
- * \param ruiGoRiceParam reference to Rice parameter
- * \returns Void
- */
-Void TDecSbac::xReadGoRiceExGolomb( UInt &ruiSymbol, UInt &ruiGoRiceParam )
-{
-  Bool bExGolomb    = false;
-  UInt uiCodeWord   = 0;
-  UInt uiQuotient   = 0;
-  UInt uiRemainder  = 0;
-  UInt uiMaxVlc     = g_auiGoRiceRange[ ruiGoRiceParam ];
-  UInt uiMaxPreLen  = g_auiGoRicePrefixLen[ ruiGoRiceParam ];
-
-  do
-  {
-    uiQuotient++;
-    m_pcTDecBinIf->decodeBinEP( uiCodeWord );
-  }
-  while( uiCodeWord && uiQuotient < uiMaxPreLen );
-
-  uiCodeWord  = 1 - uiCodeWord;
-  uiQuotient -= uiCodeWord;
-
-  if ( ruiGoRiceParam > 0 )
-  {
-    m_pcTDecBinIf->decodeBinsEP( uiRemainder, ruiGoRiceParam );    
-  }
-
-  ruiSymbol      = uiRemainder + ( uiQuotient << ruiGoRiceParam );
-  bExGolomb      = ruiSymbol == ( uiMaxVlc + 1 );
-
-  if( bExGolomb )
-  {
-    xReadEpExGolomb( uiCodeWord, 0 );
-    ruiSymbol += uiCodeWord;
-  }
-#if !SIMPLE_PARAM_UPDATE  
-  ruiGoRiceParam = g_aauiGoRiceUpdate[ ruiGoRiceParam ][ min<UInt>( uiSymbol, 23 ) ];
-#endif
-
-  return;
-}
-#endif
 
 /** Parse I_PCM information. 
  * \param pcCU
@@ -1488,11 +1441,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
           if( absCoeff[ idx ] == baseLevel)
           {
             UInt uiLevel;
-#if COEF_REMAIN_BINARNIZATION
             xReadCoefRemainExGolomb( uiLevel, uiGoRiceParam );
-#else
-            xReadGoRiceExGolomb( uiLevel, uiGoRiceParam );
-#endif
             absCoeff[ idx ] = uiLevel + baseLevel;
 #if SIMPLE_PARAM_UPDATE
             if(absCoeff[idx]>3*(1<<uiGoRiceParam))
