@@ -197,16 +197,10 @@ public:
   
   estBitsSbacStruct* m_pcEstBitsSbac;
   
-#if POS_BASED_SIG_COEFF_CTX
   static Int      calcPatternSigCtx( const UInt* sigCoeffGroupFlag, UInt posXCG, UInt posYCG, Int width, Int height );
-#endif
 
   static Int      getSigCtxInc     (
-#if POS_BASED_SIG_COEFF_CTX
                                      Int                             patternSigCtx,
-#else
-                                     TCoeff*                         pcCoeff,
-#endif
                                      Int                             posX,
                                      Int                             posY,
                                      Int                             blockType,

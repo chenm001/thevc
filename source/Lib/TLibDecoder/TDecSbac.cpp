@@ -1252,9 +1252,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     }
 
     // decode significant_coeff_flag
-#if POS_BASED_SIG_COEFF_CTX
     Int patternSigCtx = TComTrQuant::calcPatternSigCtx( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiWidth, uiHeight );
-#endif
     UInt uiBlkPos, uiPosY, uiPosX, uiSig, uiCtxSig;
     for( ; iScanPosSig >= iSubPos; iScanPosSig-- )
     {
@@ -1267,11 +1265,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       {
         if( iScanPosSig > iSubPos || iSubSet == 0  || numNonZero )
         {
-#if POS_BASED_SIG_COEFF_CTX
           uiCtxSig  = TComTrQuant::getSigCtxInc( patternSigCtx, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
-#else
-          uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
-#endif
           m_pcTDecBinIf->decodeBin( uiSig, baseCtx[ uiCtxSig ] );
         }
         else

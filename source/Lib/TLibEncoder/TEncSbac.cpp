@@ -1356,9 +1356,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       // encode significant_coeff_flag
       if( uiSigCoeffGroupFlag[ iCGBlkPos ] )
       {
-#if POS_BASED_SIG_COEFF_CTX
         Int patternSigCtx = TComTrQuant::calcPatternSigCtx( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiWidth, uiHeight );
-#endif
         UInt uiBlkPos, uiPosY, uiPosX, uiSig, uiCtxSig;
         for( ; iScanPosSig >= iSubPos; iScanPosSig-- )
         {
@@ -1368,11 +1366,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           uiSig     = (pcCoef[ uiBlkPos ] != 0);
           if( iScanPosSig > iSubPos || iSubSet == 0 || numNonZero )
           {
-#if POS_BASED_SIG_COEFF_CTX
             uiCtxSig  = TComTrQuant::getSigCtxInc( patternSigCtx, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
-#else
-            uiCtxSig  = TComTrQuant::getSigCtxInc( pcCoef, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
-#endif
             m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
           }
           if( uiSig )

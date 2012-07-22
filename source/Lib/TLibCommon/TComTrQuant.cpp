@@ -1859,9 +1859,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       }
       ::memset( &rdStats, 0, sizeof (coeffGroupRDStats));
         
-#if POS_BASED_SIG_COEFF_CTX
       const Int patternSigCtx = TComTrQuant::calcPatternSigCtx(uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY, uiWidth, uiHeight);
-#endif
       for (Int iScanPosinCG = uiCGSize-1; iScanPosinCG >= 0; iScanPosinCG--)
       {
         iScanPos = iCGScanPos*uiCGSize + iScanPosinCG;
@@ -1909,11 +1907,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
           {
             UInt   uiPosY        = uiBlkPos >> uiLog2BlkSize;
             UInt   uiPosX        = uiBlkPos - ( uiPosY << uiLog2BlkSize );
-#if POS_BASED_SIG_COEFF_CTX
             UShort uiCtxSig      = getSigCtxInc( patternSigCtx, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
-#else
-            UShort uiCtxSig      = getSigCtxInc( piDstCoeff, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
-#endif
             uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ],
                                                    lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, 
                                                    c1Idx, c2Idx, iQBits, dTemp, 0 );
@@ -2277,7 +2271,6 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   }
 }
 
-#if POS_BASED_SIG_COEFF_CTX
 /** Pattern decision for context derivation process of significant_coeff_flag
  * \param sigCoeffGroupFlag pointer to prior coded significant coeff group
  * \param posXCG column of current coefficient group
@@ -2305,9 +2298,7 @@ Int  TComTrQuant::calcPatternSigCtx( const UInt* sigCoeffGroupFlag, UInt posXCG,
   }
   return sigRight + (sigLower<<1);
 }
-#endif
 
-#if POS_BASED_SIG_COEFF_CTX
 /** Context derivation process of coeff_abs_significant_flag
  * \param patternSigCtx pattern for current coefficient group
  * \param posX column of current scan position
@@ -2318,24 +2309,8 @@ Int  TComTrQuant::calcPatternSigCtx( const UInt* sigCoeffGroupFlag, UInt posXCG,
  * \param textureType texture type (TEXT_LUMA...)
  * \returns ctxInc for current scan position
  */
-#else
-/** Context derivation process of coeff_abs_significant_flag
- * \param pcCoeff pointer to prior coded transform coefficients
- * \param posX column of current scan position
- * \param posY row of current scan position
- * \param blockType log2 value of block size if square block, or 4 otherwise
- * \param width width of the block
- * \param height height of the block
- * \param textureType texture type (TEXT_LUMA...)
- * \returns ctxInc for current scan position
- */
-#endif
 Int TComTrQuant::getSigCtxInc    (
-#if POS_BASED_SIG_COEFF_CTX
                                    Int                             patternSigCtx,
-#else
-                                   TCoeff*                         pcCoeff,
-#endif
                                    Int                             posX,
                                    Int                             posY,
                                    Int                             blockType,
@@ -2369,7 +2344,6 @@ Int TComTrQuant::getSigCtxInc    (
 
   Int offset = 18;
   
-#if POS_BASED_SIG_COEFF_CTX
   Int posXinSubset = posX-((posX>>2)<<2);
   Int posYinSubset = posY-((posY>>2)<<2);
   Int cnt = 0;
@@ -2389,44 +2363,6 @@ Int TComTrQuant::getSigCtxInc    (
   {
     cnt = posXinSubset+posYinSubset<=4 ? 2 : 1;
   }
-#else
-#if SIGMAP_CONST_AT_HIGH_FREQUENCY
-  Int thredHighFreq = 3*(std::max(width, height)>>4);
-  if ((posX>>2) + (posY>>2) >= thredHighFreq)
-  {
-    return (textureType == TEXT_LUMA) ? 24 : 18;
-  }
-#endif
-  
-  const TCoeff *pData = pcCoeff + posX + posY * width;
-  
-  Int cnt = 0;
-  if( posX < width - 1 )
-  {
-    cnt += pData[1] != 0;
-    if( posY < height - 1 )
-    {
-      cnt += pData[width+1] != 0;
-    }
-    if( posX < width - 2 )
-    {
-      cnt += pData[2] != 0;
-    }
-  }
-  if ( posY < height - 1 )
-  {
-    if( ( ( posX & 3 ) || ( posY & 3 ) ) && ( ( (posX+1) & 3 ) || ( (posY+2) & 3 ) ) )
-    {
-      cnt += pData[width] != 0;
-    }
-    if ( posY < height - 2 && cnt < 4 )
-    {
-      cnt += pData[2*width] != 0;
-    }
-  }
-
-  cnt = ( cnt + 1 ) >> 1;
-#endif
 
   return (( textureType == TEXT_LUMA && ((posX>>2) + (posY>>2)) > 0 ) ? 3 : 0) + offset + cnt;
 }
