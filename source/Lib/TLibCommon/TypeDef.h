@@ -104,8 +104,6 @@
 
 #define SAO_REMOVE_APS                   1  ///< USNB37: remove SAO APS syntax
 
-#define SAO_NO_MERGE_CROSS_SLICE_TILE    1  ///< I0172: disallow merging across slice or tile boundaries
-
 #define SAO_OFFSET_MAG_SIGN_SPLIT        1  ///< I0168: SAO offset magnitudes first, signs only for nonzero magnitudes, signs are bypass coded
 
 #define SAO_ENCODING_CHOICE              1  ///< I0184: picture early termination

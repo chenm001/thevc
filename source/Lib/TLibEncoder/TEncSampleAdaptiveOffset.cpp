@@ -1702,7 +1702,6 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnit(Int rx, Int ry, SAOParam *saoParam, In
 
   m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[0][CI_CURR_BEST]);
   m_pcRDGoOnSbacCoder->resetBits();
-#if SAO_NO_MERGE_CROSS_SLICE_TILE
   Int allowMergeLeft = 1;
   Int allowMergeUp   = 1;
   if (rx!=0)
@@ -1721,9 +1720,6 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnit(Int rx, Int ry, SAOParam *saoParam, In
     }
   }
   m_pcEntropyCoder->encodeSaoUnitInterleaving(yCbCr, 1, rx, ry,  &saoLcuParamRdo, 1,  1,  allowMergeLeft, allowMergeUp);
-#else
-  m_pcEntropyCoder->encodeSaoUnitInterleaving(yCbCr, 1, rx, ry,  &saoLcuParamRdo, 1,  1,  1, 1);
-#endif
   m_dCostPartBest[yCbCr] = m_pcEntropyCoder->getNumberOfWrittenBits()*lambda ; 
   m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[0][CI_TEMP_BEST] );
 
@@ -1771,11 +1767,7 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnit(Int rx, Int ry, SAOParam *saoParam, In
     }
     m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[0][CI_CURR_BEST]);
     m_pcRDGoOnSbacCoder->resetBits();
-#if SAO_NO_MERGE_CROSS_SLICE_TILE
     m_pcEntropyCoder->encodeSaoUnitInterleaving(yCbCr, 1, rx, ry,  &saoLcuParamRdo, 1,  1,  allowMergeLeft, allowMergeUp);
-#else
-    m_pcEntropyCoder->encodeSaoUnitInterleaving(yCbCr, 1, rx, ry,  &saoLcuParamRdo, 1,  1,  1, 1);
-#endif
     estRate = m_pcEntropyCoder->getNumberOfWrittenBits();
     m_dCost[yCbCr][typeIdx] = (Double)((Double)estDist + lambda * (Double) estRate);
 
@@ -1824,11 +1816,7 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnit(Int rx, Int ry, SAOParam *saoParam, In
         m_pcRDGoOnSbacCoder->resetBits();
         saoLcuParamRdo.mergeUpFlag   = idxNeighbor;
         saoLcuParamRdo.mergeLeftFlag = !idxNeighbor;
-#if SAO_NO_MERGE_CROSS_SLICE_TILE
         m_pcEntropyCoder->encodeSaoUnitInterleaving(yCbCr, 1, rx, ry,  &saoLcuParamRdo, 1,  1,  allowMergeLeft, allowMergeUp);
-#else
-        m_pcEntropyCoder->encodeSaoUnitInterleaving(yCbCr, 1, rx, ry,  &saoLcuParamRdo, 1,  1,  1, 1);
-#endif
         estRate = m_pcEntropyCoder->getNumberOfWrittenBits();
 
         merge_dCost = (Double)((Double)estDist + m_dLambdaLuma * estRate) ;
