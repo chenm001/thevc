@@ -599,9 +599,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   //write slice address
   Int address = (pcSlice->getPic()->getPicSym()->getCUOrderMap(lCUAddress) << reqBitsInner) + innerAddress;
   WRITE_FLAG( address==0, "first_slice_in_pic_flag" );
-#if SLICE_ADDRESS_FIX
   WRITE_UVLC( pcSlice->getPPS()->getPPSId(), "pic_parameter_set_id" );
-#endif
   if(address>0) 
   {
     WRITE_CODE( address, reqBitsOuter+reqBitsInner, "slice_address" );
@@ -618,9 +616,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 
   if (!bDependentSlice)
   {
-#if !SLICE_ADDRESS_FIX
-    WRITE_UVLC( pcSlice->getPPS()->getPPSId(), "pic_parameter_set_id" );
-#endif
     if( pcSlice->getPPS()->getOutputFlagPresentFlag() )
     {
       WRITE_FLAG( pcSlice->getPicOutputFlag() ? 1 : 0, "pic_output_flag" );

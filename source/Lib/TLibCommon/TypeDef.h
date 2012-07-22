@@ -47,7 +47,6 @@
 #define HASH_TYPE                        1  ///< I0218: changes to the Hash SEI calculation for improved usability
 #define BYTE_ALIGNMENT                   0  ///< I0330: Add byte_alignment() procedure to end of slice header
 #define TEMPORALNESTINGFLAG_TLA          1  ///< I0330: Mark picture as TLA when temporal_nesting flag is 1 and when temporal_id greater than 0
-#define SLICE_ADDRESS_FIX                1  ///< I0113: Slice address parsing fix
 #define TILES_OR_ENTROPY_FIX             1  ///< I0113: tiles_or_entropy_coding_sync_idc parsing fix
 #define REMOVE_LASTTU_CBFDERIV           1  ///< I0152: CBF coding for last TU without derivation process 
 
