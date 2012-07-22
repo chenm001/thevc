@@ -761,7 +761,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       xDecodeSEI();
       return false;
 
-#if NEW_NAL_UNIT_TYPES
     case NAL_UNIT_CODED_SLICE:
     case NAL_UNIT_CODED_SLICE_TFD:
     case NAL_UNIT_CODED_SLICE_TLA:
@@ -770,12 +769,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
     case NAL_UNIT_CODED_SLICE_BLA:
     case NAL_UNIT_CODED_SLICE_BLANT:
     case NAL_UNIT_CODED_SLICE_IDR:
-#else
-    case NAL_UNIT_CODED_SLICE:
-    case NAL_UNIT_CODED_SLICE_IDR:
-    case NAL_UNIT_CODED_SLICE_CRA:
-    case NAL_UNIT_CODED_SLICE_TLA:
-#endif
       return xDecodeSlice(nalu, iSkipFrame, iPOCLastDisplay);
       break;
     default:

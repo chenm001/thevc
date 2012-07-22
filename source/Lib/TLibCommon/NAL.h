@@ -64,7 +64,6 @@ struct NALUnit
   /** returns true if the NALunit is a slice NALunit */
   bool isSlice()
   {
-#if NEW_NAL_UNIT_TYPES
     return m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR
         || m_nalUnitType == NAL_UNIT_CODED_SLICE_BLANT
         || m_nalUnitType == NAL_UNIT_CODED_SLICE_BLA
@@ -73,12 +72,6 @@ struct NALUnit
         || m_nalUnitType == NAL_UNIT_CODED_SLICE_TLA
         || m_nalUnitType == NAL_UNIT_CODED_SLICE_TFD
         || m_nalUnitType == NAL_UNIT_CODED_SLICE;
-#else
-    return m_nalUnitType == NAL_UNIT_CODED_SLICE_IDR
-        || m_nalUnitType == NAL_UNIT_CODED_SLICE_CRA
-        || m_nalUnitType == NAL_UNIT_CODED_SLICE_TLA
-        || m_nalUnitType == NAL_UNIT_CODED_SLICE;
-#endif
   }
 };
 

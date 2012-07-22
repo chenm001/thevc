@@ -458,7 +458,6 @@ void TAppEncTop::rateStatsAccum(const AccessUnit& au, const std::vector<unsigned
   {
     switch ((*it_au)->m_nalUnitType)
     {
-#if NEW_NAL_UNIT_TYPES
     case NAL_UNIT_CODED_SLICE:
     case NAL_UNIT_CODED_SLICE_TFD:
     case NAL_UNIT_CODED_SLICE_TLA:
@@ -472,17 +471,6 @@ void TAppEncTop::rateStatsAccum(const AccessUnit& au, const std::vector<unsigned
 #endif
     case NAL_UNIT_SPS:
     case NAL_UNIT_PPS:
-#else
-    case NAL_UNIT_CODED_SLICE:
-    case NAL_UNIT_CODED_SLICE_TLA:
-    case NAL_UNIT_CODED_SLICE_CRA:
-    case NAL_UNIT_CODED_SLICE_IDR:
-#if VPS_INTEGRATION
-    case NAL_UNIT_VPS:
-#endif
-    case NAL_UNIT_SPS:
-    case NAL_UNIT_PPS:
-#endif
       m_essentialBytes += *it_stats;
       break;
     default:

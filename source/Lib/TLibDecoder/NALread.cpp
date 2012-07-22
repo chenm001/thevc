@@ -87,15 +87,11 @@ void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
   assert(reserved_one_5bits == 1);
   if ( nalu.m_temporalId )
   {
-#if NEW_NAL_UNIT_TYPES
     assert( nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_CRA
          && nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_CRANT
          && nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_BLA
          && nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_BLANT
          && nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_IDR );
-#else
-    assert(nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_CRA && nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_IDR);
-#endif
   }
 }
 //! \}

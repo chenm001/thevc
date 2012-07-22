@@ -1620,7 +1620,6 @@ static const char* nalUnitTypeToString(NalUnitType type)
 {
   switch (type)
   {
-#if NEW_NAL_UNIT_TYPES
     case NAL_UNIT_CODED_SLICE: return "SLICE";
     case NAL_UNIT_CODED_SLICE_TFD: return "TFD";
     case NAL_UNIT_CODED_SLICE_TLA: return "TLA";
@@ -1637,17 +1636,6 @@ static const char* nalUnitTypeToString(NalUnitType type)
     case NAL_UNIT_FILLER_DATA: return "FILLER";
     case NAL_UNIT_SEI: return "SEI";
     default: return "UNK";
-#else
-  case NAL_UNIT_CODED_SLICE: return "SLICE";
-  case NAL_UNIT_CODED_SLICE_CRA: return "CRA";
-  case NAL_UNIT_CODED_SLICE_TLA: return "TLA";
-  case NAL_UNIT_CODED_SLICE_IDR: return "IDR";
-  case NAL_UNIT_SEI: return "SEI";
-  case NAL_UNIT_SPS: return "SPS";
-  case NAL_UNIT_PPS: return "PPS";
-  case NAL_UNIT_FILLER_DATA: return "FILLER";
-  default: return "UNK";
-#endif
   }
 }
 #endif

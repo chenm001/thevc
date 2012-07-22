@@ -43,10 +43,7 @@
 
 #define SLICE_HEADER_EXTENSION           1  ///< II0235: Slice header extension mechanism
 
-#define NEW_NAL_UNIT_TYPES               1  ///< I0607: Definition of new NAL unit types
-#if NEW_NAL_UNIT_TYPES
 #define CRA_BLA_TFD_MODIFICATIONS        1  ///< I0404, I0278, I0275: Modifications for CRA, BLA and TFD pictures
-#endif
 
 #define TILE_ENTRY_START                 1  ///< I0357: Signal tile entry points from the end of the slice header
 #define WPP_SUBSTREAM_PER_ROW            1  ///< I0360: mandate one substream per CTB row
