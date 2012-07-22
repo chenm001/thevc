@@ -235,16 +235,6 @@ Void TComPicSym::xInitTiles()
     m_puiTileIdxMap[i] = uiRowIdx * (m_iNumColumnsMinus1 + 1) + uiColumnIdx;
   }
 
-#if !REMOVE_TILE_MARKERS
-  // Determine bits required for tile index
-  Int uiTilesCount = (m_iNumRowsMinus1+1) * (m_iNumColumnsMinus1+1);
-  m_uiBitsUsedByTileIdx = 0;
-  while (uiTilesCount)
-  {
-    m_uiBitsUsedByTileIdx++;
-    uiTilesCount >>= 1;
-  }
-#endif
 }
 
 UInt TComPicSym::xCalculateNxtCUAddr( UInt uiCurrCUAddr )

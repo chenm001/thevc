@@ -43,7 +43,6 @@
 
 #define SLICE_HEADER_EXTENSION           1  ///< II0235: Slice header extension mechanism
 
-#define REMOVE_TILE_MARKERS              1
 #define EXPLICITLY_SIGNAL_ENTRY_POINTS   1  ///< I0273: Explicitly signal all tiles/wavefront entry points
 
 #define SLICE_TMVP_ENABLE                1  ///< I0420: Enable Temporal MVP for certain slices only
@@ -177,10 +176,6 @@
 #define LOG2_MAX_NUM_ROWS_MINUS1           7
 #define LOG2_MAX_COLUMN_WIDTH              13
 #define LOG2_MAX_ROW_HEIGHT                13
-
-#if !REMOVE_TILE_MARKERS
-#define MAX_MARKER_PER_NALU                 1000
-#endif
 
 #define MATRIX_MULT                             0   // Brute force matrix multiplication instead of partial butterfly
 

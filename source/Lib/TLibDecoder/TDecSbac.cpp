@@ -202,22 +202,6 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   m_pcTDecBinIf->start();
 }
 
-#if !REMOVE_TILE_MARKERS
-Void TDecSbac::readTileMarker( UInt& uiTileIdx, UInt uiBitsUsed )
-{
-  UInt uiSymbol;
-  uiTileIdx = 0;
-  for (Int iShift=uiBitsUsed-1; iShift>=0; iShift--)
-  {
-    m_pcTDecBinIf->decodeBinEP ( uiSymbol );
-    if (uiSymbol)
-    {
-      uiTileIdx |= (1<<iShift);
-    }
-  }
-}
-#endif
-
 Void TDecSbac::parseTerminatingBit( UInt& ruiBit )
 {
   m_pcTDecBinIf->decodeBinTrm( ruiBit );

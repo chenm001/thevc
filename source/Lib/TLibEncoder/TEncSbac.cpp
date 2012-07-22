@@ -264,16 +264,6 @@ Void TEncSbac::updateContextTables( SliceType eSliceType, Int iQp, Bool bExecute
   m_pcBinIf->start();
 }
 
-#if !REMOVE_TILE_MARKERS
-Void TEncSbac::writeTileMarker( UInt uiTileIdx, UInt uiBitsUsed )
-{
-  for (Int iShift=uiBitsUsed-1; iShift>=0; iShift--)
-  {
-    m_pcBinIf->encodeBinEP ( (uiTileIdx & (1 << iShift)) >> iShift );
-  }
-}
-#endif
-
 void TEncSbac::codeSEI(const SEI&)
 {
   assert(0);

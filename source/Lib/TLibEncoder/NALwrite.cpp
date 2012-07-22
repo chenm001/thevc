@@ -82,9 +82,6 @@ void write(ostream& out, OutputNALUnit& nalu)
    *  - 0x00000303
    */
   vector<uint8_t>& rbsp   = nalu.m_Bitstream.getFIFO();
-#if !REMOVE_TILE_MARKERS
-  UInt uiTileMarkerCount  = nalu.m_Bitstream.getTileMarkerLocationCount();
-#endif
 
   for (vector<uint8_t>::iterator it = rbsp.begin(); it != rbsp.end();)
   {
@@ -106,17 +103,6 @@ void write(ostream& out, OutputNALUnit& nalu)
         break;
     } while (true);
 
-#if !REMOVE_TILE_MARKERS
-    UInt uiDistance = (UInt)(found - rbsp.begin());
-    for ( UInt uiMrkrIdx = 0; uiMrkrIdx < uiTileMarkerCount ; uiMrkrIdx++ )
-    {    
-      UInt uiByteLocation   = nalu.m_Bitstream.getTileMarkerLocation( uiMrkrIdx );
-      if (found != rbsp.end() && uiByteLocation > (uiDistance - 2) )
-      {
-        nalu.m_Bitstream.setTileMarkerLocation( uiMrkrIdx, uiByteLocation+1 );
-      }
-    }
-#endif
     it = found;
     if (found != rbsp.end())
     {
@@ -124,24 +110,6 @@ void write(ostream& out, OutputNALUnit& nalu)
     }
   }
 
-#if !REMOVE_TILE_MARKERS
-  // Insert tile markers
-  TComOutputBitstream cTileMarker;
-  UInt uiMarker = 0x000002;
-  cTileMarker.write(uiMarker, 24);
-  for ( UInt uiInsertIdx   = 0; uiInsertIdx < uiTileMarkerCount ; uiInsertIdx++ )
-  {
-    UInt uiByteLocation   = nalu.m_Bitstream.getTileMarkerLocation( uiInsertIdx );
-    nalu.m_Bitstream.insertAt( cTileMarker, uiByteLocation ); // 0x000002
-
-    // update tile marker byte locations of yet to be written markers
-    for ( UInt uiUpdateLOCIdx = uiInsertIdx+1; uiUpdateLOCIdx < uiTileMarkerCount; uiUpdateLOCIdx++ )
-    {
-      UInt uiLocation = nalu.m_Bitstream.getTileMarkerLocation( uiUpdateLOCIdx );
-      nalu.m_Bitstream.setTileMarkerLocation( uiUpdateLOCIdx, uiLocation + 3 );
-    }
-  }
-#endif
   out.write((char*)&(*rbsp.begin()), rbsp.end() - rbsp.begin());
 
   /* 7.4.1.1

@@ -247,15 +247,7 @@ Void TAppEncTop::xInitLibCfg()
 #if !EXPLICITLY_SIGNAL_ENTRY_POINTS
   m_cTEncTop.setTileLocationInSliceHeaderFlag ( m_iTileLocationInSliceHeaderFlag );
 #endif
-#if !REMOVE_TILE_MARKERS
-  m_cTEncTop.setTileMarkerFlag              ( m_iTileMarkerFlag );
-  m_cTEncTop.setMaxTileMarkerEntryPoints    ( m_iMaxTileMarkerEntryPoints );
-#endif
   Int uiTilesCount          = (m_iNumRowsMinus1+1) * (m_iNumColumnsMinus1+1);
-#if !REMOVE_TILE_MARKERS
-  m_dMaxTileMarkerOffset  = ((Double)uiTilesCount) / m_iMaxTileMarkerEntryPoints;
-  m_cTEncTop.setMaxTileMarkerOffset         ( m_dMaxTileMarkerOffset );
-#endif
 #if !TILES_OR_ENTROPY_FIX
   m_cTEncTop.setTileBehaviorControlPresentFlag( m_iTileBehaviorControlPresentFlag );
 #endif

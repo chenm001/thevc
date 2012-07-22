@@ -118,10 +118,6 @@ public:
   /// get slice granularity
   virtual Int  getSliceGranularity()                      = 0;
 
-#if !REMOVE_TILE_MARKERS
-  virtual Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed ) = 0;
-#endif
-
   virtual Void updateContextTables( SliceType eSliceType, Int iQp ) = 0;
   
   virtual ~TDecEntropyIf() {}
@@ -184,9 +180,6 @@ public:
   
   Void decodeQP                ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   
-#if !REMOVE_TILE_MARKERS
-  Void readTileMarker         ( UInt& uiTileIdx, UInt uiBitsUsed )  {  m_pcEntropyDecoderIf->readTileMarker( uiTileIdx, uiBitsUsed ); }
-#endif
   Void updateContextTables    ( SliceType eSliceType, Int iQp ) { m_pcEntropyDecoderIf->updateContextTables( eSliceType, iQp ); }
   
   

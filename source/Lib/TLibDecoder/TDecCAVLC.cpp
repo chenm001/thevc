@@ -868,13 +868,6 @@ Void TDecCavlc::parseVPS(TComVPS* pcVPS)
 
 #endif
 
-#if !REMOVE_TILE_MARKERS
-Void TDecCavlc::readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed )
-{
-  xReadCode ( uiBitsUsed, uiTileIdx );
-}
-#endif
-
 Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager)
 {
   UInt  uiCode;
@@ -1448,16 +1441,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     rpcSlice->setLFCrossSliceBoundaryFlag( (uiCode==1)?true:false);
 #endif    
   }
-
-#if !REMOVE_TILE_MARKERS
-  //!!!KS: The following syntax is not aligned with the working draft, TRACE support needs to be added
-  rpcSlice->setTileMarkerFlag ( 0 ); // default
-  if (!bDependentSlice)
-  {
-    xReadCode(1, uiCode); // read flag indicating if tile markers transmitted
-    rpcSlice->setTileMarkerFlag( uiCode );
-  }
-#endif
 
 #if DEPENDENT_SLICES
   if( pps->getDependentSlicesEnabledFlag()== false )

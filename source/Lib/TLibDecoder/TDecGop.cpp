@@ -137,34 +137,10 @@ Void TDecGop::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPic)
   ppcSubstreams    = new TComInputBitstream*[uiNumSubstreams];
   m_pcSbacDecoders = new TDecSbac[uiNumSubstreams];
   m_pcBinCABACs    = new TDecBinCABAC[uiNumSubstreams];
-#if !REMOVE_TILE_MARKERS
-  UInt uiBitsRead = pcBitstream->getByteLocation()<<3;
-#endif
   for ( UInt ui = 0 ; ui < uiNumSubstreams ; ui++ )
   {
     m_pcSbacDecoders[ui].init(&m_pcBinCABACs[ui]);
-#if !REMOVE_TILE_MARKERS
-    UInt uiSubstreamSizeBits = (ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
-#endif
     ppcSubstreams[ui] = pcBitstream->extractSubstream(ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
-#if !REMOVE_TILE_MARKERS
-    // update location information from where tile markers were extracted
-    {
-      UInt uiDestIdx       = 0;
-      for (UInt uiSrcIdx = 0; uiSrcIdx<pcBitstream->getTileMarkerLocationCount(); uiSrcIdx++)
-      {
-        UInt uiLocation = pcBitstream->getTileMarkerLocation(uiSrcIdx);
-        if ((uiBitsRead>>3)<=uiLocation  &&  uiLocation<((uiBitsRead+uiSubstreamSizeBits)>>3))
-        {
-          ppcSubstreams[ui]->setTileMarkerLocation( uiDestIdx, uiLocation - (uiBitsRead>>3) );
-          ppcSubstreams[ui]->setTileMarkerLocationCount( uiDestIdx+1 );
-          uiDestIdx++;
-        }
-      }
-      ppcSubstreams[ui]->setTileMarkerLocationCount( uiDestIdx );
-      uiBitsRead += uiSubstreamSizeBits;
-    }
-#endif
   }
 
   for ( UInt ui = 0 ; ui+1 < uiNumSubstreams; ui++ )

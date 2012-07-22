@@ -99,9 +99,6 @@ TComSlice::TComSlice()
 , m_bFinalized                    ( false )
 , m_uiTileByteLocation            ( NULL )
 , m_uiTileCount                   ( 0 )
-#if !REMOVE_TILE_MARKERS
-, m_iTileMarkerFlag               ( 0 )
-#endif
 , m_uiTileOffstForMultES          ( 0 )
 , m_puiSubstreamSizes             ( NULL )
 , m_cabacInitFlag                 ( false )
@@ -824,13 +821,13 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_uiDependentSliceCurEndCUAddr    = pSrc->m_uiDependentSliceCurEndCUAddr;
   m_bNextSlice                    = pSrc->m_bNextSlice;
   m_bNextDependentSlice             = pSrc->m_bNextDependentSlice;
-#if !REMOVE_TILE_MARKERS
-  m_iTileMarkerFlag             = pSrc->m_iTileMarkerFlag;
-#endif
   for ( int e=0 ; e<2 ; e++ )
+  {
     for ( int n=0 ; n<MAX_NUM_REF ; n++ )
+    {
       memcpy(m_weightPredTable[e][n], pSrc->m_weightPredTable[e][n], sizeof(wpScalingParam)*3 );
-
+    }
+  }
   m_saoEnabledFlag = pSrc->m_saoEnabledFlag; 
   m_saoEnabledFlagCb = pSrc->m_saoEnabledFlagCb;
   m_saoEnabledFlagCr = pSrc->m_saoEnabledFlagCr; 

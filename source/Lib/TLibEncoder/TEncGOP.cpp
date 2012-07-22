@@ -912,16 +912,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         {
           uiOneBitstreamPerSliceLength = 0; // start of a new slice
         }
-#if !REMOVE_TILE_MARKERS
-        // used while writing slice header
-        Int iTransmitLWHeader = (m_pcCfg->getTileMarkerFlag()==0) ? 0 : 1;
-        pcSlice->setTileMarkerFlag ( iTransmitLWHeader );
-#endif
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodeSliceHeader(pcSlice);
-#if !REMOVE_TILE_MARKERS
-        m_pcEntropyCoder->encodeTileMarkerFlag(pcSlice);
-#endif
 
         // is it needed?
         {
@@ -1063,23 +1055,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             }
           }
 #endif
-#if !REMOVE_TILE_MARKERS
-          UInt uiAccumulatedLength = 0;
-#endif
           for ( UInt ui = 0 ; ui < pcSlice->getPPS()->getNumSubstreams(); ui++ )
           {
             pcOut->addSubstream(&pcSubstreamsOut[ui]);
-
-#if !REMOVE_TILE_MARKERS
-            // Update tile marker location information
-            for (Int uiMrkIdx = 0; uiMrkIdx < pcSubstreamsOut[ui].getTileMarkerLocationCount(); uiMrkIdx++)
-            {
-              UInt uiBottom = pcOut->getTileMarkerLocationCount();
-              pcOut->setTileMarkerLocation      ( uiBottom, uiAccumulatedLength + pcSubstreamsOut[ui].getTileMarkerLocation( uiMrkIdx ) );
-              pcOut->setTileMarkerLocationCount ( uiBottom + 1 );
-            }
-            uiAccumulatedLength = (pcOut->getNumberOfWrittenBits() >> 3);
-#endif
           }
         }
 
@@ -1935,18 +1913,6 @@ Void TEncGOP::xWriteTileLocationToSliceHeader (OutputNALUnit& rNalu, TComOutputB
   rNalu.m_Bitstream.writeByteAlignment();   // Slice header byte-alignment
 #else
   rNalu.m_Bitstream.writeAlignOne();
-#endif
-
-#if !REMOVE_TILE_MARKERS
-  // Update tile marker locations
-  TComOutputBitstream *pcOut = &rNalu.m_Bitstream;
-  UInt uiAccumulatedLength   = pcOut->getNumberOfWrittenBits() >> 3;
-  for (Int uiMrkIdx = 0; uiMrkIdx < rpcBitstreamRedirect->getTileMarkerLocationCount(); uiMrkIdx++)
-  {
-    UInt uiBottom = pcOut->getTileMarkerLocationCount();
-    pcOut->setTileMarkerLocation      ( uiBottom, uiAccumulatedLength + rpcBitstreamRedirect->getTileMarkerLocation( uiMrkIdx ) );
-    pcOut->setTileMarkerLocationCount ( uiBottom + 1 );
-  }
 #endif
 
   // Perform bitstream concatenation

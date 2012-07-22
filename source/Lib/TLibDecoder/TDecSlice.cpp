@@ -299,27 +299,6 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
         m_pcEntropyDecoder->updateContextTables( sliceType, pcSlice->getSliceQp() );
       }
       
-#if !REMOVE_TILE_MARKERS
-      Bool bTileMarkerFoundFlag = false;
-      TComInputBitstream *pcTmpPtr;
-      pcTmpPtr = ppcSubstreams[uiSubStrm]; // for CABAC
-
-      for (UInt uiIdx=0; uiIdx<pcTmpPtr->getTileMarkerLocationCount(); uiIdx++)
-      {
-        if ( pcTmpPtr->getByteLocation() == (pcTmpPtr->getTileMarkerLocation( uiIdx )+2) )
-        {
-          bTileMarkerFoundFlag = true;
-          break;
-        }
-      }
-
-      if (bTileMarkerFoundFlag)
-      {
-        UInt uiTileIdx;
-        // Read tile index
-        m_pcEntropyDecoder->readTileMarker( uiTileIdx, rpcPic->getPicSym()->getBitsUsedByTileIdx() );
-      }
-#endif
     }
 
 #if ENC_DEC_TRACE

@@ -1191,19 +1191,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
 #endif
         uiCUAddr!=rpcPic->getPicSym()->getPicSCUAddr(rpcPic->getSlice(rpcPic->getCurrSliceIdx())->getSliceCurStartCUAddr())/rpcPic->getNumPartInCU())     // cannot be first CU of slice
     {
-#if !REMOVE_TILE_MARKERS
-      Int iTileIdx            = rpcPic->getPicSym()->getTileIdxMap(uiCUAddr);
-      Bool bWriteTileMarker   = false;
-      // check if current iTileIdx should have a marker
-      for (Int iEntryIdx=0; iEntryIdx<m_pcCfg->getMaxTileMarkerEntryPoints()-1; iEntryIdx++)
-      {
-        bWriteTileMarker = ( (((Int)((iEntryIdx+1)*m_pcCfg->getMaxTileMarkerOffset()+0.5)) == iTileIdx ) && iEntryIdx < (m_pcCfg->getMaxTileMarkerEntryPoints()-1)) ? true : false;
-        if (bWriteTileMarker)
-        {
-          break;
-        }
-      }
-#endif
       {
         // We're crossing into another tile, tiles are independent.
         // When tiles are independent, we have "substreams per tile".  Each substream has already been terminated, and we no longer
@@ -1230,18 +1217,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         }
       }
       {
-#if !REMOVE_TILE_MARKERS
-        // Write TileMarker into the appropriate substream (nothing has been written to it yet).
-        if (m_pcCfg->getTileMarkerFlag() && bWriteTileMarker)
-        {
-          // Log locations where tile markers are to be inserted during emulation prevention
-          UInt uiMarkerCount = pcSubstreams[uiSubStrm].getTileMarkerLocationCount();
-          pcSubstreams[uiSubStrm].setTileMarkerLocation     ( uiMarkerCount, pcSubstreams[uiSubStrm].getNumberOfWrittenBits() >> 3 );
-          pcSubstreams[uiSubStrm].setTileMarkerLocationCount( uiMarkerCount + 1 );
-          // Write tile index
-          m_pcEntropyCoder->writeTileMarker(iTileIdx, rpcPic->getPicSym()->getBitsUsedByTileIdx()); // Tile index
-        }
-#endif
 #if TILE_ENTRY_START
           UInt uiCounter = 0;
           vector<uint8_t>& rbsp   = pcSubstreams[uiSubStrm].getFIFO();

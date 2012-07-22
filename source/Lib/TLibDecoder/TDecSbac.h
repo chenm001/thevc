@@ -146,9 +146,6 @@ public:
   Void parseCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
   Void parseTransformSkipFlags ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType);
 
-#if !REMOVE_TILE_MARKERS
-  Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed );
-#endif
   Void updateContextTables( SliceType eSliceType, Int iQp );
 
   Void  parseScalingList ( TComScalingList* scalingList ) {}
