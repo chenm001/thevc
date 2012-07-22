@@ -909,10 +909,8 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
 
   Int a, b, iShift = 13;
 
-#if LM_SIMP_ALPHA
    Int iB = 7;
    iShift -= iB;
-#endif
 
   if( iCountShift == 0 )
   {
@@ -973,39 +971,18 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
       {
         a = a >> iScaleShiftA;
       }
-#if LM_SIMP_ALPHA
       a = Clip3(-( 1 << (15-iB) ), ( 1 << (15-iB )) - 1, a);
       a = a << iB;
-#else
-      a = Clip3(-( 1 << 15 ), ( 1 << 15 ) - 1, a);
-#endif
      
       Short n = 0;
       if (a != 0)
       {
         n = GetFloorLog2(abs( a ) + ( (a < 0 ? -1 : 1) - 1)/2 ) - 5;
       }
-#if !LM_SIMP_ALPHA
-      Int minA = -(1 << (6));
-      Int maxA = (1 << 6) - 1;
-      if( a <= maxA && a >= minA )
       {
-        // do nothing
-      }
-      else
-#endif
-      {
-#if LM_SIMP_ALPHA
         iShift =(iShift+iB)-n;
-#else
-        iShift -= n;
-#endif
       }
-#if LM_SIMP_ALPHA
       a = a>>n;
-#else
-      a = a >> ( 13 - iShift );
-#endif
 
       b =  avgSrc - ( (  a * avgLuma ) >> iShift );
     }

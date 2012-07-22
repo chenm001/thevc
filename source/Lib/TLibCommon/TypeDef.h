@@ -75,8 +75,6 @@
 
 #define FIX_TMVP_REFIDX0                 1  ///< I0116: Fix the reference picture index to 0 for TMVP derivation in merging list
 
-#define LM_SIMP_ALPHA                    1  ///< I0178: LM mode with simplified alpha bit-depth restriction
-
 #define AHG6_ALF_OPTION2                 1  ///< I0157: AHG6 ALF baseline Option 2 RA- Variant 2
 #define SLICE_TYPE_ORDER                 1  ///< I0500: ordering of slice types
 #define ALF_COEFF_EXP_GOLOMB_K           1  ///< I0346: Use EG(k) to code ALF coefficients
