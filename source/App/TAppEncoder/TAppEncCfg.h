@@ -80,10 +80,8 @@ protected:
   Int       m_numReorderPics[MAX_TLAYER];                     ///< total number of reorder pictures
   Int       m_maxDecPicBuffering[MAX_TLAYER];                 ///< total number of reference pictures needed for decoding
   Bool      m_bUseLComb;                                      ///< flag for using combined reference list for uni-prediction in B-slices (JCTVC-D421)
-#if INTRA_TRANSFORMSKIP
   Bool      m_useTansformSkip;                                ///< flag for enabling intra transform skipping
   Bool      m_useTansformSkipFast;                            ///< flag for enabling fast intra transform skipping
-#endif
 #if !REMOVE_INTER_4X4
   Bool      m_bDisInter4x4;
 #endif

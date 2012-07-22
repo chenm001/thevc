@@ -187,10 +187,8 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseEarlySkipDetection            ( m_useEarlySkipDetection );
 
   m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );
-#if INTRA_TRANSFORMSKIP
   m_cTEncTop.setUseTransformSkip             ( m_useTansformSkip      );
   m_cTEncTop.setUseTransformSkipFast         ( m_useTansformSkipFast  );
-#endif
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );
   m_cTEncTop.setPCMLog2MinSize          ( m_uiPCMLog2MinSize);
   m_cTEncTop.setUsePCM                       ( m_usePCM );

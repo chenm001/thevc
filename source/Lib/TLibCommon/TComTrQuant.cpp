@@ -1077,12 +1077,8 @@ Void TComTrQuant::xQuant( TComDataCU* pcCU,
 #endif
   Int   iAdd = 0;
  
-#if INTRA_TRANSFORMSKIP
   Bool useRDOQForTransformSkip = !(m_useTansformSkipFast && pcCU->getTransformSkip(uiAbsPartIdx,eTType));
   if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) && useRDOQForTransformSkip)
-#else
-  if ( m_bUseRDOQ && (eTType == TEXT_LUMA || RDOQ_CHROMA) )
-#endif
   {
 #if ADAPTIVE_QP_SELECTION
     xRateDistOptQuant( pcCU, piCoef, pDes, pArlDes, iWidth, iHeight, uiAcSum, eTType, uiAbsPartIdx );
@@ -1299,21 +1295,12 @@ Void TComTrQuant::xDeQuant( const TCoeff* pSrc, Int* pDes, Int iWidth, Int iHeig
   }
 }
 
-#if INTRA_TRANSFORMSKIP
 Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode, UInt *aTableLP4, UInt *aTableLP8, UInt *aTableLastPosVlcIndex,
                        Bool bUseRDOQ,  Bool bEnc, Bool useTransformSkipFast
 #if ADAPTIVE_QP_SELECTION
                        , Bool bUseAdaptQpSelect
 #endif
                        )
-#else
-Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int iSymbolMode, UInt *aTableLP4, UInt *aTableLP8, UInt *aTableLastPosVlcIndex,
-                       Bool bUseRDOQ,  Bool bEnc
-#if ADAPTIVE_QP_SELECTION
-                       , Bool bUseAdaptQpSelect
-#endif
-                       )
-#endif
 {
   m_uiMaxTrSize  = uiMaxTrSize;
   m_bEnc         = bEnc;
@@ -1321,12 +1308,9 @@ Void TComTrQuant::init( UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxTrSize, Int
 #if ADAPTIVE_QP_SELECTION
   m_bUseAdaptQpSelect = bUseAdaptQpSelect;
 #endif
-#if INTRA_TRANSFORMSKIP
   m_useTansformSkipFast = useTransformSkipFast;
-#endif
 }
 
-#if INTRA_TRANSFORMSKIP
 Void TComTrQuant::transformNxN( TComDataCU* pcCU, 
                                Pel*        pcResidual, 
                                UInt        uiStride, 
@@ -1341,21 +1325,6 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
                                UInt        uiAbsPartIdx,
                                Bool        useTransformSkip
                                )
-#else
-Void TComTrQuant::transformNxN( TComDataCU* pcCU, 
-                                Pel*        pcResidual, 
-                                UInt        uiStride, 
-                                TCoeff*     rpcCoeff, 
-#if ADAPTIVE_QP_SELECTION
-                                Int*&       rpcArlCoeff, 
-#endif
-                                UInt        uiWidth, 
-                                UInt        uiHeight, 
-                                UInt&       uiAbsSum, 
-                                TextType    eTType, 
-                                UInt        uiAbsPartIdx
-                                )
-#endif
 {
 #if LOSSLESS_CODING || CU_LEVEL_TRANSQUANT_BYPASS
 #if CU_LEVEL_TRANSQUANT_BYPASS
@@ -1388,7 +1357,6 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
   
   uiAbsSum = 0;
   assert( (pcCU->getSlice()->getSPS()->getMaxTrSize() >= uiWidth) );
-#if INTRA_TRANSFORMSKIP
   if(useTransformSkip)
   {
     xTransformSkip( pcResidual, uiStride, m_plTempCoeff, uiWidth, uiHeight );
@@ -1397,9 +1365,6 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
   {
     xT( uiMode, pcResidual, uiStride, m_plTempCoeff, uiWidth, uiHeight );
   }
-#else
-  xT( uiMode, pcResidual, uiStride, m_plTempCoeff, uiWidth, uiHeight );
-#endif
   xQuant( pcCU, m_plTempCoeff, rpcCoeff,
 #if ADAPTIVE_QP_SELECTION
        rpcArlCoeff,
@@ -1407,22 +1372,12 @@ Void TComTrQuant::transformNxN( TComDataCU* pcCU,
        uiWidth, uiHeight, uiAbsSum, eTType, uiAbsPartIdx );
 }
 
-#if INTRA_TRANSFORMSKIP
 #if CU_LEVEL_TRANSQUANT_BYPASS
 Void TComTrQuant::invtransformNxN( Bool transQuantBypass, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType, Bool useTransformSkip )
 #elif LOSSLESS_CODING
 Void TComTrQuant::invtransformNxN( TComDataCU* pcCU, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType, Bool useTransformSkip )
 #else
 Void TComTrQuant::invtransformNxN(                   TextType eText, UInt uiMode,Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight, Int scalingListType, Bool useTransformSkip )
-#endif
-#else
-#if CU_LEVEL_TRANSQUANT_BYPASS
-Void TComTrQuant::invtransformNxN( Bool transQuantBypass, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType )
-#elif LOSSLESS_CODING
-Void TComTrQuant::invtransformNxN( TComDataCU* pcCU, TextType eText, UInt uiMode,Pel* rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight,  Int scalingListType )
-#else
-Void TComTrQuant::invtransformNxN(                   TextType eText, UInt uiMode,Pel*& rpcResidual, UInt uiStride, TCoeff*   pcCoeff, UInt uiWidth, UInt uiHeight, Int scalingListType )
-#endif
 #endif
 {
 #if LOSSLESS_CODING || CU_LEVEL_TRANSQUANT_BYPASS
@@ -1443,7 +1398,6 @@ Void TComTrQuant::invtransformNxN(                   TextType eText, UInt uiMode
   }
 #endif
   xDeQuant( pcCoeff, m_plTempCoeff, uiWidth, uiHeight, scalingListType);
-#if INTRA_TRANSFORMSKIP
   if(useTransformSkip == true)
   {
     xITransformSkip( m_plTempCoeff, rpcResidual, uiStride, uiWidth, uiHeight );
@@ -1452,9 +1406,6 @@ Void TComTrQuant::invtransformNxN(                   TextType eText, UInt uiMode
   {
     xIT( uiMode, m_plTempCoeff, rpcResidual, uiStride, uiWidth, uiHeight );
   }
-#else
-  xIT( uiMode, m_plTempCoeff, rpcResidual, uiStride, uiWidth, uiHeight );
-#endif
 }
 
 Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eTxt, Pel* rpcResidual, UInt uiAddr, UInt uiStride, UInt uiWidth, UInt uiHeight, UInt uiMaxTrMode, UInt uiTrMode, TCoeff* rpcCoeff )
@@ -1613,7 +1564,6 @@ Void TComTrQuant::xIT( UInt uiMode, Int* plCoef, Pel* pResidual, UInt uiStride, 
 #endif  
 }
  
-#if INTRA_TRANSFORMSKIP
 /** Wrapper function between HM interface and core 4x4 transform skipping
  *  \param piBlkResi input data (residual)
  *  \param psCoeff output data (transform coefficients)
@@ -1703,7 +1653,6 @@ Void TComTrQuant::xITransformSkip( Int* plCoef, Pel* pResidual, UInt uiStride, I
     }
   }
 }
-#endif
 
 /** RDOQ with CABAC
  * \param pcCU pointer to coding unit structure

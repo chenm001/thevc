@@ -1343,10 +1343,8 @@ TComSPS::TComSPS()
 , m_bALFCoefInSlice           (false)
 #endif
 , m_bUseLMChroma              (false)
-#if INTRA_TRANSFORMSKIP
 , m_useTansformSkip           (false)
 , m_useTansformSkipFast       (false)
-#endif
 , m_bUseLComb                 (false)
 , m_restrictedRefPicListsFlag   (  1)
 , m_listsModificationPresentFlag(  0)

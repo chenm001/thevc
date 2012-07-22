@@ -71,8 +71,6 @@
 #define TILES_OR_ENTROPY_FIX             1  ///< I0113: tiles_or_entropy_coding_sync_idc parsing fix
 #define REMOVE_LASTTU_CBFDERIV           1  ///< I0152: CBF coding for last TU without derivation process 
 
-#define INTRA_TRANSFORMSKIP              1  ///< I0408: intra transform skipping (TS) 
-
 #define AHG6_ALF_OPTION2                 1  ///< I0157: AHG6 ALF baseline Option 2 RA- Variant 2
 #define SLICE_TYPE_ORDER                 1  ///< I0500: ordering of slice types
 

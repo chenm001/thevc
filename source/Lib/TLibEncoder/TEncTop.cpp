@@ -315,7 +315,6 @@ Void TEncTop::init()
   // initialize transform & quantization class
   m_pcCavlcCoder = getCavlcCoder();
   
-#if INTRA_TRANSFORMSKIP
   m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize,
                   0,
                   aTable4, aTable8, 
@@ -325,16 +324,6 @@ Void TEncTop::init()
                   , m_bUseAdaptQpSelect
 #endif
                   );
-#else
-  m_cTrQuant.init( g_uiMaxCUWidth, g_uiMaxCUHeight, 1 << m_uiQuadtreeTULog2MaxSize,
-    0,
-    aTable4, aTable8, 
-    aTableLastPosVlcIndex, m_bUseRDOQ, true 
-#if ADAPTIVE_QP_SELECTION                  
-    , m_bUseAdaptQpSelect
-#endif
-    );
-#endif
   
   // initialize encoder search class
   m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_bipredSearchRange, m_iFastSearch, 0, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
@@ -510,9 +499,7 @@ Void TEncTop::xInitSPS()
 
   m_cSPS.setUseLMChroma   ( m_bUseLMChroma           );  
   
-#if INTRA_TRANSFORMSKIP
   m_cSPS.setUseTransformSkip ( m_useTansformSkip );
-#endif
 
   m_cSPS.setMaxTrSize   ( 1 << m_uiQuadtreeTULog2MaxSize );
   

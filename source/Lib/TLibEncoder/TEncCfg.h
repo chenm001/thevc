@@ -204,10 +204,8 @@ protected:
   Bool      m_bUseCbfFastMode;
   Bool      m_useEarlySkipDetection;
   Bool      m_bUseLMChroma; 
-#if INTRA_TRANSFORMSKIP
   Bool      m_useTansformSkip;
   Bool      m_useTansformSkipFast;
-#endif
   Int*      m_aidQP;
   UInt      m_uiDeltaQpRD;
   
@@ -493,12 +491,10 @@ public:
 
   Bool getUseLMChroma                       ()      { return m_bUseLMChroma;        }
   Void setUseLMChroma                       ( Bool b ) { m_bUseLMChroma  = b;       }
-#if INTRA_TRANSFORMSKIP
   Bool getUseTransformSkip                             ()      { return m_useTansformSkip;        }
   Void setUseTransformSkip                             ( Bool b ) { m_useTansformSkip  = b;       }
   Bool getUseTransformSkipFast                         ()      { return m_useTansformSkipFast;    }
   Void setUseTransformSkipFast                         ( Bool b ) { m_useTansformSkipFast  = b;   }
-#endif
   Int*      getdQPs                         ()      { return m_aidQP;       }
   UInt      getDeltaQpRD                    ()      { return m_uiDeltaQpRD; }
 
