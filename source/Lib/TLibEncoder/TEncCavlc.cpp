@@ -330,16 +330,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
     }
 #endif
   }
-#if !WPP_SUBSTREAM_PER_ROW
-#if !TILES_OR_ENTROPY_FIX
-  else if(pcPPS->getSPS()->getTilesOrEntropyCodingSyncIdc()==2)
-#else
-  else if(pcPPS->getTilesOrEntropyCodingSyncIdc()==2)
-#endif
-  {
-    WRITE_UVLC( pcPPS->getNumSubstreams()-1,               "num_substreams_minus1" );
-  }
-#endif
 #if DEPENDENT_SLICES
   else if( pcPPS->getTilesOrEntropyCodingSyncIdc()==3 )
   {

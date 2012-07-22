@@ -558,16 +558,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 }
 #endif
   }
-#if !WPP_SUBSTREAM_PER_ROW
-#if !TILES_OR_ENTROPY_FIX
-  else if(parameterSet->getPrefetchedSPS(pcPPS->getSPSId())->getTilesOrEntropyCodingSyncIdc()==2)
-#else
-  else if(pcPPS->getTilesOrEntropyCodingSyncIdc()==2)
-#endif
-  {
-    READ_UVLC( uiCode, "num_substreams_minus1" );                pcPPS->setNumSubstreams(uiCode+1);
-  }
-#endif
 #if DEPENDENT_SLICES
   else if( pcPPS->getTilesOrEntropyCodingSyncIdc()==3 )
   {
