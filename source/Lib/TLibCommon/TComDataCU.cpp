@@ -3153,17 +3153,10 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     
   if ( getSlice()->isInterB() )
   {
-#if !REMOVE_COMBINED_CAND_LIMIT
-    Int iCombinedCount = 0;
-#endif
     UInt uiPriorityList0[12] = {0 , 1, 0, 2, 1, 2, 0, 3, 1, 3, 2, 3};
     UInt uiPriorityList1[12] = {1 , 0, 2, 0, 2, 1, 3, 0, 3, 1, 3, 2};
 
-#if REMOVE_COMBINED_CAND_LIMIT
     for (Int idx=0; idx<uiCutoff*(uiCutoff-1) && uiArrayAddr!=MRG_MAX_NUM_CANDS; idx++)
-#else
-    for (Int idx=0; idx<uiCutoff*(uiCutoff-1) && uiArrayAddr!=MRG_MAX_NUM_CANDS && iCombinedCount<5; idx++)
-#endif
     {
       Int i = uiPriorityList0[idx]; Int j = uiPriorityList1[idx];
       if (abCandIsInter[i] && abCandIsInter[j]&& (puhInterDirNeighbours[i]&0x1)&&(puhInterDirNeighbours[j]&0x2))
@@ -3184,9 +3177,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
         else
         {
           uiArrayAddr++;
-#if !REMOVE_COMBINED_CAND_LIMIT
-          iCombinedCount++;
-#endif
         }
       }
     }

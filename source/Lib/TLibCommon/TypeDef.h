@@ -79,7 +79,6 @@
 
 #define POS_BASED_SIG_COEFF_CTX          1  ///< I0296: position based context index derivation for significant coeff flag for large TU
 
-#define REMOVE_COMBINED_CAND_LIMIT       1  ///< I0414: Removal of the limit on the number of combined merge candidates
 #define BIPRED_RESTRICT_SMALL_PU         1  ///< I0297: bi-prediction restriction by 4x8/8x4 PU
 
 #define SBH_THRESHOLD                    4  ///< I0156: value of the fixed SBH controlling threshold
