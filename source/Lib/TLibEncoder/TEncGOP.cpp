@@ -1262,11 +1262,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         digestStr = digestToString(sei_recon_picture_digest.digest);
 #endif
 
-#if TEMPORAL_ID_RESTRICTION
         OutputNALUnit nalu(NAL_UNIT_SEI, false, pcSlice->getTLayer());
-#else
-        OutputNALUnit nalu(NAL_UNIT_SEI, false);
-#endif
 
         /* write the SEI messages */
         m_pcEntropyCoder->setEntropyCoder(m_pcCavlcCoder, pcSlice);

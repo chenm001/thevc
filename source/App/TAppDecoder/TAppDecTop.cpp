@@ -138,12 +138,10 @@ Void TAppDecTop::decode()
     else
     {
       read(nalu, nalUnit);
-#if TEMPORAL_ID_RESTRICTION
       if(nalu.m_nalUnitType == NAL_UNIT_SPS)
       {
         assert(nalu.m_temporalId == 0);
       }
-#endif
       if(m_iMaxTemporalLayer >= 0 && nalu.m_temporalId > m_iMaxTemporalLayer)
       {
         if(bPreviousPictureDecoded)
