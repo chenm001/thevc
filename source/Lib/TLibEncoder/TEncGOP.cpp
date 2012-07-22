@@ -289,12 +289,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcSlice->setNalUnitType(getNalUnitType(uiPOCCurr));
       // Do decoding refresh marking if any 
       pcSlice->decodingRefreshMarking(m_pocCRA, m_bRefreshPending, rcListPic);
-#if !SLICE_TMVP_ENABLE
-      if ( !pcSlice->getPPS()->getEnableTMVPFlag() && pcPic->getTLayer() == 0 )
-      {
-        pcSlice->decodingMarkingForNoTMVP( rcListPic, pcSlice->getPOC() );
-      }
-#endif
       m_pcEncTop->selectReferencePictureSet(pcSlice, uiPOCCurr, iGOPid,rcListPic);
       pcSlice->getRPS()->setNumberOfLongtermPictures(0);
 
@@ -401,7 +395,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       }
       pcSlice->generateCombinedList();
       
-#if SLICE_TMVP_ENABLE
       if (m_pcEncTop->getTMVPModeId() == 2)
       {
         if (iGOPid == 0) // first picture in SOP (i.e. forward B)
@@ -425,7 +418,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         pcSlice->getSPS()->setTMVPFlagsPresent(0);
         pcSlice->setEnableTMVPFlag(0);
       }
-#endif
       /////////////////////////////////////////////////////////////////////////////////////////////////// Compress a slice
       //  Slice compression
       if (m_pcCfg->getUseASR())
@@ -1274,9 +1266,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcPic->getPicYuvRec()->copyToPic(pcPicYuvRecOut);
       
       pcPic->setReconMark   ( true );
-#if !SLICE_TMVP_ENABLE
-      pcPic->setUsedForTMVP ( true );
-#endif
       m_bFirst = false;
       m_iNumPicCoded++;
 

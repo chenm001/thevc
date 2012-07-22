@@ -58,9 +58,6 @@ TComPic::TComPic()
 , m_bReconstructed                        (false)
 , m_bNeededForOutput                      (false)
 , m_uiCurrSliceIdx                        (0)
-#if !SLICE_TMVP_ENABLE
-, m_usedForTMVP                           (true)
-#endif
 , m_pSliceSUMap                           (NULL)
 , m_pbValidSlice                          (NULL)
 , m_sliceGranularityForNDBFilter          (0)

@@ -323,9 +323,6 @@ Void TDecGop::filterPicture(TComPic*& rpcPic)
 
   rpcPic->setOutputMark(true);
   rpcPic->setReconMark(true);
-#if !SLICE_TMVP_ENABLE
-  rpcPic->setUsedForTMVP( true );
-#endif
   m_sliceStartCUAddress.clear();
   for(Int compIdx=0; compIdx < 3; compIdx++)
   {

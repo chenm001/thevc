@@ -588,12 +588,6 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
 #else
     pcSlice->checkCRA(pcSlice->getRPS(), m_pocCRA, m_cListPic); 
 #endif
-#if !SLICE_TMVP_ENABLE
-    if ( !pcSlice->getPPS()->getEnableTMVPFlag() && pcPic->getTLayer() == 0 )
-    {
-      pcSlice->decodingMarkingForNoTMVP( m_cListPic, pcSlice->getPOC() );
-    }
-#endif
     // Set reference list
     pcSlice->setRefPicList( m_cListPic );
 

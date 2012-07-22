@@ -256,11 +256,7 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setWaveFrontSynchro           ( m_iWaveFrontSynchro );
   m_cTEncTop.setWaveFrontFlush             ( m_iWaveFrontFlush );
   m_cTEncTop.setWaveFrontSubstreams        ( m_iWaveFrontSubstreams );
-#if SLICE_TMVP_ENABLE
   m_cTEncTop.setTMVPModeId ( m_TMVPModeId );
-#else
-  m_cTEncTop.setEnableTMVP ( m_enableTMVP );
-#endif
   m_cTEncTop.setUseScalingListId           ( m_useScalingListId  );
   m_cTEncTop.setScalingListFile            ( m_scalingListFile   );
   m_cTEncTop.setSignHideFlag(m_signHideFlag);

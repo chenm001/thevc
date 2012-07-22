@@ -2911,13 +2911,8 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
     }
   }
 
-#if SLICE_TMVP_ENABLE
   if ( getSlice()->getEnableTMVPFlag() )
   {
-#else
-  if ( getSlice()->getPPS()->getEnableTMVPFlag() )
-  {
-#endif
     //>> MTK colocated-RightBottom
     UInt uiPartIdxRB;
     Int uiLCUIdx = getAddr();
@@ -3396,13 +3391,8 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
     }
   }
 
-#if SLICE_TMVP_ENABLE
   if ( getSlice()->getEnableTMVPFlag() )
   {
-#else 
-  if ( getSlice()->getPPS()->getEnableTMVPFlag() )
-  {
-#endif
     // Get Temporal Motion Predictor
     int iRefIdx_Col = iRefIdx;
     TComMv cColMv;
@@ -3823,12 +3813,6 @@ Bool TComDataCU::xGetColMVP( RefPicList eRefPicList, Int uiCUAddr, Int uiPartUni
   {
     return false;
   }
-#if !SLICE_TMVP_ENABLE
-  if ( !pColPic->getUsedForTMVP() )
-  {
-    return false;
-  }
-#endif
   eColRefPicList = getSlice()->getCheckLDC() ? eRefPicList : RefPicList(1-getSlice()->getColDir());
 
   Int iColRefIdx = pColCU->getCUMvField(RefPicList(eColRefPicList))->getRefIdx(uiAbsPartAddr);

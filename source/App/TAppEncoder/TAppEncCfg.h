@@ -213,11 +213,7 @@ protected:
   
   UInt      m_log2ParallelMergeLevel;                 ///< Parallel merge estimation region
 
-#if SLICE_TMVP_ENABLE
   Int       m_TMVPModeId;
-# else
-  Bool      m_enableTMVP;
-#endif
   Int       m_signHideFlag;
   Bool      m_enableRateCtrl;                                   ///< Flag for using rate control algorithm
   Int       m_targetBitrate;                                 ///< target bitrate

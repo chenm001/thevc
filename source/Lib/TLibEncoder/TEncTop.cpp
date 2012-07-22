@@ -471,9 +471,7 @@ Void TEncTop::xInitSPS()
   m_cSPS.setQuadtreeTUMaxDepthInter( m_uiQuadtreeTUMaxDepthInter    );
   m_cSPS.setQuadtreeTUMaxDepthIntra( m_uiQuadtreeTUMaxDepthIntra    );
   
-#if SLICE_TMVP_ENABLE
   m_cSPS.setTMVPFlagsPresent(false);
-#endif  
   m_cSPS.setUseLossless   ( m_useLossless  );
 
 
@@ -603,9 +601,6 @@ Void TEncTop::xInitPPS()
   m_cPPS.setWPBiPred( m_useWeightedBiPred );
 #else
   m_cPPS.setWPBiPredIdc( m_uiBiPredIdc );
-#endif
-#if !SLICE_TMVP_ENABLE
-  m_cPPS.setEnableTMVPFlag( m_bEnableTMVP );
 #endif
   m_cPPS.setOutputFlagPresentFlag( false );
   m_cPPS.setSignHideFlag(getSignHideFlag());

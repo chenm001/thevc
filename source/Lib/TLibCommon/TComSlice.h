@@ -264,9 +264,7 @@ private:
   UInt        m_uiMaxTrDepth;
   TComRPSList m_RPSList;
   Bool        m_bLongTermRefsPresent;
-#if SLICE_TMVP_ENABLE
   Bool        m_TMVPFlagsPresent;
-#endif
   Int         m_numReorderPics[MAX_TLAYER];
   
   // Tool list
@@ -427,10 +425,8 @@ public:
   TComRPSList* getRPSList()                      { return &m_RPSList;          }
   Bool      getLongTermRefsPresent()         { return m_bLongTermRefsPresent; }
   Void      setLongTermRefsPresent(Bool b)   { m_bLongTermRefsPresent=b;      }
-#if SLICE_TMVP_ENABLE
   Bool      getTMVPFlagsPresent()         { return m_TMVPFlagsPresent; }
   Void      setTMVPFlagsPresent(Bool b)   { m_TMVPFlagsPresent=b;      }  
-#endif
   // physical transform
   Void setMaxTrSize   ( UInt u ) { m_uiMaxTrSize = u;       }
   UInt getMaxTrSize   ()         { return  m_uiMaxTrSize;   }
@@ -635,10 +631,6 @@ private:
 
   Int      m_iNumSubstreams;
 
-#if !SLICE_TMVP_ENABLE
-  Bool     m_enableTMVPFlag;
-#endif
-
   Int      m_signHideFlag;
 
   Bool     m_cabacInitPresentFlag;
@@ -769,11 +761,6 @@ public:
 
   Void      setSignHideFlag( Int signHideFlag ) { m_signHideFlag = signHideFlag; }
   Int       getSignHideFlag()                    { return m_signHideFlag; }
-
-#if !SLICE_TMVP_ENABLE
-  Void     setEnableTMVPFlag( Bool b )  { m_enableTMVPFlag = b;    }
-  Bool     getEnableTMVPFlag()          { return m_enableTMVPFlag; }
-#endif
 
   Void     setCabacInitPresentFlag( Bool flag )     { m_cabacInitPresentFlag = flag;    }
   Void     setEncCABACTableIdx( Int idx )           { m_encCABACTableIdx = idx;         }
@@ -1045,9 +1032,7 @@ private:
   Bool       m_LFCrossSliceBoundaryFlag;
 #endif
 
-#if SLICE_TMVP_ENABLE
   Bool       m_enableTMVPFlag;
-#endif
 public:
   TComSlice();
   virtual ~TComSlice(); 
@@ -1229,10 +1214,6 @@ public:
   Int       checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet, Bool printErrors, Int pocRandomAccess = 0);
   Void      createExplicitReferencePictureSetFromReference( TComList<TComPic*>& rcListPic, TComReferencePictureSet *pReferencePictureSet);
 
-#if !SLICE_TMVP_ENABLE
-  Void decodingMarkingForNoTMVP( TComList<TComPic*>& rcListPic, Int currentPOC );
-#endif
-
   UInt m_uiMaxNumMergeCand;
   Void setMaxNumMergeCand               (UInt maxNumMergeCand ) { m_uiMaxNumMergeCand = maxNumMergeCand;  }
   UInt getMaxNumMergeCand               ()                  {return m_uiMaxNumMergeCand;                  }
@@ -1312,10 +1293,8 @@ public:
   Bool      getLFCrossSliceBoundaryFlag     ()                { return m_LFCrossSliceBoundaryFlag;} 
 #endif
 
-#if SLICE_TMVP_ENABLE
   Void      setEnableTMVPFlag     ( Bool   b )    { m_enableTMVPFlag = b; }
   Bool      getEnableTMVPFlag     ()              { return m_enableTMVPFlag;}
-#endif
 
 protected:
   TComPic*  xGetRefPic  (TComList<TComPic*>& rcListPic,

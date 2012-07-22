@@ -72,9 +72,6 @@ private:
   Bool                  m_bReconstructed;
   Bool                  m_bNeededForOutput;
   UInt                  m_uiCurrSliceIdx;         // Index of current slice
-#if !SLICE_TMVP_ENABLE
-  Bool                  m_usedForTMVP;
-#endif
   Int*                  m_pSliceSUMap;
   Bool*                 m_pbValidSlice;
   Int                   m_sliceGranularityForNDBFilter;
@@ -140,10 +137,6 @@ public:
   
   Void          setReconMark (Bool b) { m_bReconstructed = b;     }
   Bool          getReconMark ()       { return m_bReconstructed;  }
-#if !SLICE_TMVP_ENABLE
-  Void          setUsedForTMVP( Bool b ) { m_usedForTMVP = b;    }
-  Bool          getUsedForTMVP()         { return m_usedForTMVP; }
-#endif
   Void          setOutputMark (Bool b) { m_bNeededForOutput = b;     }
   Bool          getOutputMark ()       { return m_bNeededForOutput;  }
  

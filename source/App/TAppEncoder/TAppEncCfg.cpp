@@ -339,11 +339,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
                                               "\t1: use MD5\n"
                                               "\t0: disable")
 #endif
-#if SLICE_TMVP_ENABLE
   ("TMVPMode", m_TMVPModeId, 1, "TMVP mode 0: TMVP disable for all slices. 1: TMVP enable for all slices (default) 2: TMVP enable for certain slices only")
-#else
-  ("TMVP", m_enableTMVP, true, "Enable TMVP" )
-#endif
   ("FEN", m_bUseFastEnc, false, "fast encoder setting")
   ("ECU", m_bUseEarlyCU, false, "Early CU setting") 
   ("FDM", m_useFastDecisionForMerge, true, "Fast decision for Merge RD Cost") 
@@ -1075,11 +1071,7 @@ Void TAppEncCfg::xPrintParameter()
   printf(" WaveFrontSynchro:%d WaveFrontFlush:%d WaveFrontSubstreams:%d",
           m_iWaveFrontSynchro, m_iWaveFrontFlush, m_iWaveFrontSubstreams);
   printf(" ScalingList:%d ", m_useScalingListId );
-#if SLICE_TMVP_ENABLE
   printf("TMVPMode:%d ", m_TMVPModeId     );
-#else
-  printf("TMVP:%d ", m_enableTMVP     );
-#endif
 #if ADAPTIVE_QP_SELECTION
   printf("AQpS:%d", m_bUseAdaptQpSelect   );
 #endif

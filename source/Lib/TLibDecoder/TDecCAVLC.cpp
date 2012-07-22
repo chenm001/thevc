@@ -437,9 +437,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 
   READ_SVLC(iCode, "pic_init_qp_minus26" );                        pcPPS->setPicInitQPMinus26(iCode);
   READ_FLAG( uiCode, "constrained_intra_pred_flag" );              pcPPS->setConstrainedIntraPred( uiCode ? true : false );
-#if !SLICE_TMVP_ENABLE
-  READ_FLAG( uiCode, "enable_temporal_mvp_flag" );                 pcPPS->setEnableTMVPFlag( uiCode ? true : false );
-#endif
   READ_CODE( 2, uiCode, "slice_granularity" );                     pcPPS->setSliceGranularity(uiCode);
 
   // alf_param() ?
@@ -784,9 +781,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     parseShortTermRefPicSet(pcSPS,rps,i);
   }
   READ_FLAG( uiCode, "long_term_ref_pics_present_flag" );          pcSPS->setLongTermRefsPresent(uiCode);
-#if SLICE_TMVP_ENABLE
   READ_FLAG( uiCode, "sps_temporal_mvp_enable_flag" );            pcSPS->setTMVPFlagsPresent(uiCode);
-#endif
   // AMVP mode for each depth (AM_NONE or AM_EXPL)
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
   {
@@ -1181,7 +1176,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     }
     if (!rpcSlice->isIntra())
     {
-#if SLICE_TMVP_ENABLE
       if (rpcSlice->getSPS()->getTMVPFlagsPresent())
       {
         READ_FLAG( uiCode, "enable_temporal_mvp_flag" );
@@ -1191,7 +1185,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       {
         rpcSlice->setEnableTMVPFlag(false);
       }
-#endif
       READ_FLAG( uiCode, "num_ref_idx_active_override_flag");
       if (uiCode)
       {
@@ -1379,10 +1372,8 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       }
 #endif
     }
-#if SLICE_TMVP_ENABLE
     if ( rpcSlice->getEnableTMVPFlag() )
     {
-#endif
       if ( rpcSlice->getSliceType() == B_SLICE )
       {
         READ_FLAG( uiCode, "collocated_from_l0_flag" );
@@ -1396,9 +1387,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
         READ_UVLC( uiCode, "collocated_ref_idx" );
         rpcSlice->setColRefIdx(uiCode);
       }
-#if SLICE_TMVP_ENABLE
     }
-#endif
 #if REMOVE_IMPLICIT_WP
     if ( (pps->getUseWP() && rpcSlice->getSliceType()==P_SLICE) || (pps->getWPBiPred() && rpcSlice->getSliceType()==B_SLICE) )
 #else
