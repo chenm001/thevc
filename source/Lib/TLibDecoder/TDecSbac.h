@@ -100,7 +100,7 @@ public:
 #if !SAO_CODE_CLEAN_UP
   Void  parseSaoUvlc              ( UInt& ruiVal           );
 #endif
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
   Void  parseSaoSvlc              ( Int&  riVal            );
 #endif
   Void  parseSaoMergeLeft         ( UInt&  ruiVal, UInt uiCompIdx   );
@@ -215,7 +215,7 @@ private:
   ContextModel3DBuffer m_cSaoFlagSCModel;
 #endif
   ContextModel3DBuffer m_cSaoUvlcSCModel;
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
   ContextModel3DBuffer m_cSaoSvlcSCModel;
 #endif
   ContextModel3DBuffer m_cSaoMergeLeftSCModel;

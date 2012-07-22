@@ -1371,7 +1371,6 @@ Void TComSampleAdaptiveOffset::convertOnePart2SaoUnit(SAOParam *saoParam, UInt p
   }
 }
 
-#if SAO_RDO_FIX
 Void TComSampleAdaptiveOffset::resetSaoUnit(SaoLcuParam* saoUnit)
 {
   saoUnit->partIdx       = 0;
@@ -1391,6 +1390,5 @@ Void TComSampleAdaptiveOffset::resetSaoUnit(SaoLcuParam* saoUnit)
     saoUnit->offset[i] = 0;
   }
 }
-#endif
 
 //! \}

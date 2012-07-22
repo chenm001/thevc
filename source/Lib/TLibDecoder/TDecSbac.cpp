@@ -80,7 +80,7 @@ TDecSbac::TDecSbac()
 , m_cSaoFlagSCModel           ( 1,             1,               NUM_SAO_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 #endif
 , m_cSaoUvlcSCModel           ( 1,             1,               NUM_SAO_UVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
 , m_cSaoSvlcSCModel           ( 1,             1,               NUM_SAO_SVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 #endif
 , m_cSaoMergeLeftSCModel      ( 1,             1,               NUM_SAO_MERGE_LEFT_FLAG_CTX   , m_contextModels + m_numContextModels, m_numContextModels)
@@ -155,7 +155,7 @@ Void TDecSbac::resetEntropy(TComSlice* pSlice)
   m_cSaoFlagSCModel.initBuffer           ( sliceType, qp, (UChar*)INIT_SAO_FLAG );
 #endif
   m_cSaoUvlcSCModel.initBuffer           ( sliceType, qp, (UChar*)INIT_SAO_UVLC );
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
   m_cSaoSvlcSCModel.initBuffer           ( sliceType, qp, (UChar*)INIT_SAO_SVLC );
 #endif
   m_cSaoMergeLeftSCModel.initBuffer      ( sliceType, qp, (UChar*)INIT_SAO_MERGE_LEFT_FLAG );
@@ -216,7 +216,7 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   m_cSaoFlagSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_FLAG );
 #endif
   m_cSaoUvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_UVLC );
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
   m_cSaoSvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_SVLC );
 #endif
   m_cSaoMergeLeftSCModel.initBuffer      ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_LEFT_FLAG );
@@ -1493,7 +1493,7 @@ Void TDecSbac::parseSaoUvlc (UInt& ruiVal)
   ruiVal = i;
 }
 #endif
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
 Void TDecSbac::parseSaoSvlc (Int&  riVal)
 {
   UInt uiCode;

@@ -129,7 +129,7 @@ public:
   Void  codeSaoUvlc       ( UInt uiCode );
 #endif
   Void  codeSaoMaxUvlc    ( UInt code, UInt maxSymbol );
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
   Void  codeSaoSvlc       ( Int  uiCode );
 #endif
 #if !SAO_CODE_CLEAN_UP
@@ -272,7 +272,7 @@ private:
   ContextModel3DBuffer m_cSaoFlagSCModel;
 #endif
   ContextModel3DBuffer m_cSaoUvlcSCModel;
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
   ContextModel3DBuffer m_cSaoSvlcSCModel;
 #endif
   ContextModel3DBuffer m_cSaoMergeLeftSCModel;

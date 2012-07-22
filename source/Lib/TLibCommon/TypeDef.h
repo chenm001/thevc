@@ -113,7 +113,6 @@
 #define SAO_ENCODING_RATE                0.75
 #endif
 
-#define SAO_RDO_FIX                      1  ///< I0563: SAO RDO bug-fix
 #if SAO_OFFSET_MAG_SIGN_SPLIT && SAO_OFFSET_MAG_SIGN_SPLIT && SAO_REMOVE_APS
 #define SAO_CODE_CLEAN_UP                1 /// redundant code removal
 #endif

@@ -156,7 +156,7 @@ public:
   virtual Void codeSAOSign          ( UInt code   ) = 0;
 #endif
   virtual Void codeSaoMaxUvlc       ( UInt code, UInt maxSymbol ) = 0;
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
   virtual Void codeSaoSvlc          ( Int   iCode ) = 0;
 #endif
 #if !SAO_CODE_CLEAN_UP
@@ -323,11 +323,7 @@ public:
 #endif
   Void    encodeSaoOffset(SaoLcuParam* saoLcuParam);
 #if SAO_NO_MERGE_CROSS_SLICE_TILE
-#if SAO_RDO_FIX
   Void    encodeSaoUnitInterleaving(Int compIdx, Bool saoFlag, Int rx, Int ry, SaoLcuParam* saoLcuParam, Int cuAddrInSlice, Int cuAddrUpInSlice, Int allowMergeLeft, Int allowMergeUp);
-#else
-  Void    encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, TComDataCU* cu, Int cuAddrInSlice, Int cuAddrUpInSlice, Int allowMergeLeft, Int allowMergeUp);
-#endif
 #else
   Void    encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, TComDataCU* cu, Int cuAddrInSlice, Int cuAddrUpInSlice, Bool lfCrossSliceBoundaryFlag);
 #endif

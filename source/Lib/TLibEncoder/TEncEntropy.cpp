@@ -1474,16 +1474,11 @@ Void TEncEntropy::encodeSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam,
 * \param  bLFCrossSliceBoundaryFlag
  */
 #if SAO_NO_MERGE_CROSS_SLICE_TILE
-#if SAO_RDO_FIX
 Void TEncEntropy::encodeSaoUnitInterleaving(Int compIdx, Bool saoFlag, Int rx, Int ry, SaoLcuParam* saoLcuParam, Int cuAddrInSlice, Int cuAddrUpInSlice, Int allowMergeLeft, Int allowMergeUp)
-#else
-Void TEncEntropy::encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, TComDataCU* cu, Int cuAddrInSlice, Int cuAddrUpInSlice, Int allowMergeLeft, Int allowMergeUp)
-#endif
 #else
 Void TEncEntropy::encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, TComDataCU* cu, Int cuAddrInSlice, Int cuAddrUpInSlice, Bool lfCrossSliceBoundaryFlag)
 #endif
 {
-#if SAO_RDO_FIX
   if (saoFlag)
   {
 #if SAO_NO_MERGE_CROSS_SLICE_TILE
@@ -1518,46 +1513,6 @@ Void TEncEntropy::encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, 
       }
     }
   }
-#else
-  Int addr = cu->getAddr();
-  for (Int compIdx=0; compIdx<3; compIdx++)
-  {
-    if (saoParam->bSaoFlag[compIdx])
-    {
-#if SAO_NO_MERGE_CROSS_SLICE_TILE
-      if (rx>0 && cuAddrInSlice!=0 && allowMergeLeft)
-#else
-      if (rx>0 && cuAddrInSlice!=0)
-#endif
-      {
-      m_pcEntropyCoderIf->codeSaoMergeLeft(saoParam->saoLcuParam[compIdx][addr].mergeLeftFlag,compIdx);
-      }
-      else
-      {
-        saoParam->saoLcuParam[compIdx][addr].mergeLeftFlag = 0;
-      }
-      if (saoParam->saoLcuParam[compIdx][addr].mergeLeftFlag == 0)
-      {
-#if SAO_NO_MERGE_CROSS_SLICE_TILE
-        if ( (ry > 0) && (cuAddrUpInSlice>=0) && allowMergeUp )
-#else
-        if ( (ry > 0) && (cuAddrUpInSlice>=0||lfCrossSliceBoundaryFlag))
-#endif
-        {
-          m_pcEntropyCoderIf->codeSaoMergeUp(saoParam->saoLcuParam[compIdx][addr].mergeUpFlag);
-        }
-        else
-        {
-          saoParam->saoLcuParam[compIdx][addr].mergeUpFlag = 0;
-        }
-        if (!saoParam->saoLcuParam[compIdx][addr].mergeUpFlag)
-        {
-          encodeSaoOffset(&(saoParam->saoLcuParam[compIdx][addr]));
-        }
-      }
-    }
-  }
-#endif
 }
 
 #if !SAO_REMOVE_APS

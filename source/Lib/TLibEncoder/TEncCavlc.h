@@ -148,7 +148,7 @@ public:
   Void codeSAOSign       ( UInt code   ) { printf("Not supported\n"); assert (0); }
 #endif
   Void codeSaoMaxUvlc    ( UInt   code, UInt maxSymbol ){printf("Not supported\n"); assert (0);}
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
+#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
   Void codeSaoSvlc       ( Int   iCode );
 #endif
 #if SAO_CODE_CLEAN_UP
