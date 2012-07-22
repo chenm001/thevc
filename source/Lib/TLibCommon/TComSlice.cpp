@@ -834,9 +834,6 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
       memcpy(m_weightPredTable[e][n], pSrc->m_weightPredTable[e][n], sizeof(wpScalingParam)*3 );
 
   m_saoEnabledFlag = pSrc->m_saoEnabledFlag; 
-#if !SAO_REMOVE_APS // APS syntax
-  m_saoInterleavingFlag = pSrc->m_saoInterleavingFlag;
-#endif
   m_saoEnabledFlagCb = pSrc->m_saoEnabledFlagCb;
   m_saoEnabledFlagCr = pSrc->m_saoEnabledFlagCr; 
   m_cabacInitFlag                = pSrc->m_cabacInitFlag;
@@ -1693,9 +1690,6 @@ TComAPS::TComAPS()
 #if !AHG6_ALF_OPTION2
   m_bAlfEnabled = false;
 #endif
-#if !SAO_REMOVE_APS // APS syntax
-  m_bSaoEnabled = false;
-#endif
   m_pSaoParam = NULL;
 #if AHG6_ALF_OPTION2
   m_alfParam[0] = m_alfParam[1] = m_alfParam[2] = NULL;
@@ -1737,9 +1731,6 @@ TComAPS& TComAPS::operator= (const TComAPS& src)
 #if !AHG6_ALF_OPTION2
   m_bAlfEnabled = src.m_bAlfEnabled;
 #endif
-#if !SAO_REMOVE_APS // APS syntax
-  m_bSaoEnabled = src.m_bSaoEnabled;
-#endif
   m_pSaoParam   = src.m_pSaoParam; 
 #if AHG6_ALF_OPTION2
   for(Int compIdx =0; compIdx < 3; compIdx++)
@@ -1752,9 +1743,6 @@ TComAPS& TComAPS::operator= (const TComAPS& src)
 #if !SCALING_LIST_HL_SYNTAX
   m_scalingList = src.m_scalingList;
   m_scalingListEnabled = src.m_scalingListEnabled;
-#endif
-#if !SAO_REMOVE_APS // APS syntax
-  m_saoInterleavingFlag = src.m_saoInterleavingFlag;
 #endif
   return *this;
 }

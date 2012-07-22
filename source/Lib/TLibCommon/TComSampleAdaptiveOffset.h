@@ -106,11 +106,7 @@ protected:
   Pel* m_pTmpL2;
   Int* m_iLcuPartIdx;
   Int     m_maxNumOffsetsPerPic;
-#if SAO_REMOVE_APS // encoder renaming
   Bool    m_saoLcuBasedOptimization;
-#else
-  Bool    m_saoInterleavingFlag;
-#endif
 public:
   TComSampleAdaptiveOffset         ();
   virtual ~TComSampleAdaptiveOffset();
@@ -141,13 +137,8 @@ public:
   Void convertQT2SaoUnit(SAOParam* saoParam, UInt partIdx, Int yCbCr);
   Void convertOnePart2SaoUnit(SAOParam *saoParam, UInt partIdx, Int yCbCr);
   Void processSaoUnitAll(SaoLcuParam* saoLcuParam, Bool oneUnitFlag, Int yCbCr);
-#if SAO_REMOVE_APS // encoder renaming
   Void setSaoLcuBasedOptimization (Bool bVal)  {m_saoLcuBasedOptimization = bVal;}
   Bool getSaoLcuBasedOptimization ()           {return m_saoLcuBasedOptimization;}
-#else
-  Void setSaoInterleavingFlag (Bool bVal)  {m_saoInterleavingFlag = bVal;}
-  Bool getSaoInterleavingFlag ()           {return m_saoInterleavingFlag;}
-#endif
   Void resetSaoUnit(SaoLcuParam* saoUnit);
 };
 

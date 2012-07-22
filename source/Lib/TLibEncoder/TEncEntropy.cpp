@@ -53,15 +53,8 @@ Void TEncEntropy::encodeSliceHeader ( TComSlice* pcSlice )
 {
   if (pcSlice->getSPS()->getUseSAO())
   {
-#if !SAO_REMOVE_APS
-    pcSlice->setSaoInterleavingFlag(pcSlice->getAPS()->getSaoInterleavingFlag());
-#endif
     pcSlice->setSaoEnabledFlag     (pcSlice->getAPS()->getSaoParam()->bSaoFlag[0]);
-#if SAO_REMOVE_APS
     if (pcSlice->getSaoEnabledFlag())
-#else
-    if (pcSlice->getAPS()->getSaoInterleavingFlag())
-#endif
     {
       pcSlice->setSaoEnabledFlagCb   (pcSlice->getAPS()->getSaoParam()->bSaoFlag[1]);
       pcSlice->setSaoEnabledFlagCr   (pcSlice->getAPS()->getSaoParam()->bSaoFlag[2]);
@@ -1416,48 +1409,7 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
       }
   }
 }
-#if !SAO_REMOVE_APS
-/** Encode SAO unit
-* \param  rx
-* \param  ry
-* \param  iCompIdx
-* \param  pSaoParam
-* \param  bRepeatedRow
- */
-Void TEncEntropy::encodeSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam, Int repeatedRow )
-{
-  int addr, addrLeft; 
-  int numCuInWidth  = saoParam->numCuInWidth;
-  SaoLcuParam* saoOneLcu;
-  Int runLeft;
 
-  addr      =  rx + ry*numCuInWidth;
-  addrLeft  =  (addr%numCuInWidth == 0) ? -1 : addr - 1;
-
-  if (!repeatedRow)
-  {
-    saoOneLcu = &(saoParam->saoLcuParam[compIdx][addr]);    
-    runLeft = (addrLeft>=0 ) ? saoParam->saoLcuParam[compIdx][addrLeft].run : -1;
-    if (rx == 0 || runLeft==0)
-    {
-      if (ry == 0)
-      {
-        m_pcEntropyCoderIf->codeSaoRun(saoOneLcu->runDiff, numCuInWidth-rx-1); 
-        saoOneLcu->mergeUpFlag = 0;
-      }
-      else 
-      {
-        m_pcEntropyCoderIf->codeSaoSvlc(saoOneLcu->runDiff); 
-        m_pcEntropyCoderIf->codeSaoFlag(saoOneLcu->mergeUpFlag);  
-      }
-      if (!saoOneLcu->mergeUpFlag)
-      {
-        encodeSaoOffset(saoOneLcu);
-      }
-    }
-  }
-}
-#endif
 /** Encode SAO unit interleaving
 * \param  rx
 * \param  ry
@@ -1496,80 +1448,6 @@ Void TEncEntropy::encodeSaoUnitInterleaving(Int compIdx, Bool saoFlag, Int rx, I
     }
   }
 }
-
-#if !SAO_REMOVE_APS
-/** Encode SAO parameter
-* \param  pcAPS
- */
-Void TEncEntropy::encodeSaoParam(TComAPS* aps)
-{
-  SaoLcuParam* psSaoOneLcu;
-  int i,j,k, compIdx; 
-  int numCuInWidth  ;
-  int numCuInHeight ;
-  Bool repeatedRow[3];
-  Int addr;
-  m_pcEntropyCoderIf->codeSaoFlag(aps->getSaoInterleavingFlag());  
-  if(!aps->getSaoInterleavingFlag())
-  {
-    m_pcEntropyCoderIf->codeSaoFlag(aps->getSaoEnabled());  
-    if (aps->getSaoEnabled())
-    {
-      SAOParam* pSaoParam = aps->getSaoParam();
-      numCuInWidth  = pSaoParam->numCuInWidth;
-      numCuInHeight = pSaoParam->numCuInHeight;
-      m_pcEntropyCoderIf->codeSaoFlag(pSaoParam->bSaoFlag[1]); 
-      m_pcEntropyCoderIf->codeSaoFlag(pSaoParam->bSaoFlag[2]); 
-      m_pcEntropyCoderIf->codeSaoUvlc(numCuInWidth-1); 
-      m_pcEntropyCoderIf->codeSaoUvlc(numCuInHeight-1); 
-      for (compIdx=0;compIdx<3;compIdx++)
-      {
-        if (pSaoParam->bSaoFlag[compIdx])
-        {
-          m_pcEntropyCoderIf->codeSaoFlag(pSaoParam->oneUnitFlag[compIdx]); 
-          if (pSaoParam->oneUnitFlag[compIdx])
-          {
-            psSaoOneLcu = &(pSaoParam->saoLcuParam[compIdx][0]);   
-            encodeSaoOffset(psSaoOneLcu);
-          }
-        }
-      }
-
-      for (j=0;j<numCuInHeight;j++)
-      {
-        for (compIdx=0; compIdx<3; compIdx++)
-        {
-          repeatedRow[compIdx] = true;
-          for (k=0;k<numCuInWidth;k++)
-          {
-            addr       =  k + j*numCuInWidth;
-            psSaoOneLcu = &(pSaoParam->saoLcuParam[compIdx][addr]);    
-            if (!psSaoOneLcu->mergeUpFlag || psSaoOneLcu->runDiff)
-            {
-              repeatedRow[compIdx] = false;
-              break;
-            }
-          }
-        }
-        for (i=0;i<numCuInWidth;i++)
-        {
-          for (compIdx=0; compIdx<3; compIdx++)
-          {
-            if (pSaoParam->bSaoFlag[compIdx]  && !pSaoParam->oneUnitFlag[compIdx]) 
-            {
-              if (j>0 && i==0) 
-              {
-                m_pcEntropyCoderIf->codeSaoFlag(repeatedRow[compIdx]); 
-              }
-              encodeSaoUnit (i,j, compIdx, pSaoParam, repeatedRow[compIdx]);
-            }
-          }
-        }
-      }
-    }
-  }
-}
-#endif
 
 Int TEncEntropy::countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize )
 {

@@ -250,18 +250,6 @@ Void TDecCavlc::parseAPS(TComAPS* aps)
     xParseDblParam( aps );    
   }
 #endif
-#if !SAO_REMOVE_APS
-  READ_FLAG(uiCode, "aps_sao_interleaving_flag");      aps->setSaoInterleavingFlag( (uiCode==1)?true:false );
-  if(!aps->getSaoInterleavingFlag())
-  {
-    READ_FLAG(uiCode, "aps_sample_adaptive_offset_flag");      aps->setSaoEnabled( (uiCode==1)?true:false );
-    if(aps->getSaoEnabled())
-    {
-      aps->getSaoParam()->bSaoFlag[0] = true;
-      xParseSaoParam( aps->getSaoParam() );
-    }
-  }
-#endif
 #if AHG6_ALF_OPTION2
   for(Int compIdx=0; compIdx< 3; compIdx++)
   {
@@ -300,67 +288,6 @@ Void  TDecCavlc::xParseDblParam       ( TComAPS* aps )
     aps->setLoopFilterBetaOffset(iSymbol);
     parseDFSvlc(iSymbol, "tc_offset_div2");
     aps->setLoopFilterTcOffset(iSymbol);
-  }
-}
-#endif
-#if !SAO_REMOVE_APS
-/** parse SAO parameters
-* \param pSaoParam
-*/
-Void TDecCavlc::xParseSaoParam(SAOParam* pSaoParam)
-{
-  UInt uiSymbol;
-
-  int i,j, compIdx; 
-  int numCuInWidth; 
-  int numCuInHeight; 
-  Bool repeatedRow[3];
-  if (pSaoParam->bSaoFlag[0])                                                                    
-  {     
-    READ_FLAG (uiSymbol, "sao_cb_enable_flag");            pSaoParam->bSaoFlag[1]   = uiSymbol? true:false;  
-    READ_FLAG (uiSymbol, "sao_cr_enable_flag");            pSaoParam->bSaoFlag[2]   = uiSymbol? true:false;  
-    READ_UVLC (uiSymbol, "sao_num_lcu_in_width_minus1");   pSaoParam->numCuInWidth  = uiSymbol + 1;                          
-    READ_UVLC (uiSymbol, "sao_num_lcu_in_height_minus1");  pSaoParam->numCuInHeight = uiSymbol + 1;                          
-    numCuInWidth  = pSaoParam->numCuInWidth;
-    numCuInHeight = pSaoParam->numCuInHeight;
-
-    READ_FLAG (uiSymbol, "sao_one_luma_unit_flag");  pSaoParam->oneUnitFlag[0] = uiSymbol? true:false;  
-    if (pSaoParam->oneUnitFlag[0] )
-      xParseSaoOffset(&(pSaoParam->saoLcuParam[0][0]));
-
-    if (pSaoParam->bSaoFlag[1])
-    {
-      READ_FLAG (uiSymbol, "sao_one_cb_unit_flag");  pSaoParam->oneUnitFlag[1] = uiSymbol? true:false;  
-      if (pSaoParam->oneUnitFlag[1] )
-        xParseSaoOffset(&(pSaoParam->saoLcuParam[1][0]));
-    }
-    if (pSaoParam->bSaoFlag[2])
-    {
-      READ_FLAG (uiSymbol, "sao_one_cr_unit_flag");  pSaoParam->oneUnitFlag[2] = uiSymbol? true:false;  
-      if (pSaoParam->oneUnitFlag[2] )
-        xParseSaoOffset(&(pSaoParam->saoLcuParam[2][0]));
-    }
-    for (j=0;j<numCuInHeight;j++)
-    {
-      for (compIdx=0;compIdx<3;compIdx++)
-      {
-        repeatedRow[compIdx] = 0;
-      }
-      for (i=0;i<numCuInWidth;i++)
-      {
-        for (compIdx=0; compIdx<3; compIdx++)
-        {
-          if (pSaoParam->bSaoFlag[compIdx]  && !pSaoParam->oneUnitFlag[compIdx]) 
-          {
-            if (j>0 && i==0) 
-            {
-              READ_FLAG (uiSymbol, "sao_repeat_row_flag");  repeatedRow[compIdx] = uiSymbol? true:false; 
-            }
-            xParseSaoUnit (i,j, compIdx, pSaoParam, repeatedRow[compIdx]);
-          }
-        }
-      }
-    }
   }
 }
 #endif
@@ -438,99 +365,6 @@ Void TDecCavlc::xParseSaoOffset(SaoLcuParam* saoLcuParam)
   else
   {
     saoLcuParam->length = 0;
-  }
-}
-#endif
-#if !SAO_REMOVE_APS
-/** parse SAO unit
-* \param rx x-axis location
-* \param ry y-axis location
-* \param compIdx color component index
-* \param saoParam SAO parameters
-* \param repeatedRow repeat row flag
-*/
-void TDecCavlc::xParseSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam, Bool& repeatedRow )
-{
-  int addr, addrUp, addrLeft; 
-  int numCuInWidth  = saoParam->numCuInWidth;
-  SaoLcuParam* saoOneLcu;
-  SaoLcuParam* saoOneLcuUp;
-  SaoLcuParam* saoOneLcuLeft;
-  UInt uiSymbol;
-  Int  iSymbol;
-  Int  runLeft;
-  UInt maxValue;
-
-  addr      =  rx + ry*numCuInWidth;
-  addrLeft  =  (addr%numCuInWidth == 0) ? -1 : addr - 1;
-  addrUp    =  (addr<numCuInWidth)      ? -1 : addr - numCuInWidth;
-
-  saoOneLcu = &(saoParam->saoLcuParam[compIdx][addr]);      
-  if (!repeatedRow)
-  {
-    runLeft = (addrLeft>=0 )  ? saoParam->saoLcuParam[compIdx][addrLeft].run : -1;
-    if (rx == 0 || runLeft==0)
-    {
-      saoOneLcu->mergeLeftFlag = 0;
-      if (ry == 0)
-      {
-        maxValue = numCuInWidth-rx-1;
-        UInt length = 0;
-        UInt val = 0;
-        if (maxValue)
-        {
-          for(UInt i=0; i<32; i++)
-          {
-            if(maxValue&0x1)
-            {
-              length = i+1;
-            }
-            maxValue = (maxValue >> 1);
-          }
-          if(length)
-          {
-            READ_CODE(length, val, "sao_run_diff");
-          }
-        }
-        uiSymbol = val;
-        saoOneLcu->runDiff = uiSymbol; 
-        xParseSaoOffset(saoOneLcu);
-        saoOneLcu->run = saoOneLcu->runDiff;
-      }
-      else 
-      {
-        saoOneLcuUp = &(saoParam->saoLcuParam[compIdx][addrUp]);
-        READ_SVLC (iSymbol , "sao_run_diff"     );  saoOneLcu->runDiff = iSymbol; 
-        READ_FLAG (uiSymbol, "sao_merge_up_flag");  saoOneLcu->mergeUpFlag   = uiSymbol? true:false;
-        if (!saoOneLcu->mergeUpFlag)
-        {
-          xParseSaoOffset(saoOneLcu);
-        }
-        else
-        {
-          saoOneLcuUp = &(saoParam->saoLcuParam[compIdx][addrUp]);
-          copySaoOneLcuParam(saoOneLcu, saoOneLcuUp);
-        }
-        saoOneLcu->run = saoOneLcu->runDiff + saoOneLcuUp->run;
-      }
-    }
-    else
-    {
-      saoOneLcuLeft = &(saoParam->saoLcuParam[compIdx][addrLeft]);
-      copySaoOneLcuParam(saoOneLcu, saoOneLcuLeft);
-      saoOneLcu->mergeLeftFlag = 1;
-      saoOneLcu->run = saoOneLcuLeft->run-1;
-    }
-  }
-  else
-  {
-    if (ry > 0)
-    {
-      saoOneLcuUp = &(saoParam->saoLcuParam[compIdx][addrUp]);
-      copySaoOneLcuParam(saoOneLcu, saoOneLcuUp);
-      saoOneLcu->mergeLeftFlag = 0;
-      saoOneLcu->run = saoOneLcuUp->run;
-    }
   }
 }
 #endif
@@ -1779,15 +1613,8 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
 #endif
       if (sps->getUseSAO())
       {
-#if !SAO_REMOVE_APS
-        READ_FLAG(uiCode, "slice_sao_interleaving_flag");        rpcSlice->setSaoInterleavingFlag(uiCode);
-#endif
         READ_FLAG(uiCode, "slice_sample_adaptive_offset_flag");  rpcSlice->setSaoEnabledFlag((Bool)uiCode);
-#if SAO_REMOVE_APS
         if (rpcSlice->getSaoEnabledFlag() )
-#else
-        if (rpcSlice->getSaoEnabledFlag() && rpcSlice->getSaoInterleavingFlag())
-#endif
         {
           READ_FLAG(uiCode, "sao_cb_enable_flag");  rpcSlice->setSaoEnabledFlagCb((Bool)uiCode);
           READ_FLAG(uiCode, "sao_cr_enable_flag");  rpcSlice->setSaoEnabledFlagCr((Bool)uiCode);

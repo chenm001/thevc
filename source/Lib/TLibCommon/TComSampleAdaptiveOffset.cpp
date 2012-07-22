@@ -1072,11 +1072,7 @@ Void TComSampleAdaptiveOffset::SAOProcess(TComPic* pcPic, SAOParam* pcSaoParam)
     {
       m_pcPic->getPicYuvRec()->copyToPic(m_pcYuvTmp);
     }
-#if SAO_REMOVE_APS // encoder renaming
     if (m_saoLcuBasedOptimization)
-#else
-    if (m_saoInterleavingFlag)
-#endif
     {
       pcSaoParam->oneUnitFlag[0] = 0;  
       pcSaoParam->oneUnitFlag[1] = 0;  

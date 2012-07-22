@@ -97,11 +97,7 @@ Void TEncTop::create ()
   m_cCuEncoder.         create( g_uiMaxCUDepth, g_uiMaxCUWidth, g_uiMaxCUHeight );
   if (m_bUseSAO)
   {
-#if SAO_REMOVE_APS // encoder renaming
     m_cEncSAO.setSaoLcuBasedOptimization(getSaoLcuBasedOptimization());
-#else
-    m_cEncSAO.setSaoInterleavingFlag(getSaoInterleavingFlag());
-#endif
     m_cEncSAO.setMaxNumOffsetsPerPic(getMaxNumOffsetsPerPic());
     m_cEncSAO.create( getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
     m_cEncSAO.createEncBuffer();

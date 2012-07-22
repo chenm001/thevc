@@ -377,23 +377,12 @@ Void TDecGop::filterPicture(TComPic*& rpcPic)
   {
     if(pcSlice->getSaoEnabledFlag())
     {
-#if !SAO_REMOVE_APS
-      if (pcSlice->getSaoInterleavingFlag())
-#endif
       {
-#if !SAO_REMOVE_APS // APS syntax
-        pcSlice->getAPS()->setSaoInterleavingFlag(pcSlice->getSaoInterleavingFlag());
-        pcSlice->getAPS()->setSaoEnabled(pcSlice->getSaoEnabledFlag());
-#endif
         pcSlice->getAPS()->getSaoParam()->bSaoFlag[0] = pcSlice->getSaoEnabledFlag();
         pcSlice->getAPS()->getSaoParam()->bSaoFlag[1] = pcSlice->getSaoEnabledFlagCb();
         pcSlice->getAPS()->getSaoParam()->bSaoFlag[2] = pcSlice->getSaoEnabledFlagCr();
       }
-#if SAO_REMOVE_APS // encoder renaming
       m_pcSAO->setSaoLcuBasedOptimization(1);
-#else
-      m_pcSAO->setSaoInterleavingFlag(pcSlice->getAPS()->getSaoInterleavingFlag());
-#endif
       m_pcSAO->createPicSaoInfo(rpcPic, (Int) m_sliceStartCUAddress.size() - 1);
       m_pcSAO->SAOProcess(rpcPic, pcSlice->getAPS()->getSaoParam());  
       m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);

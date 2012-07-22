@@ -157,11 +157,7 @@ protected:
   Bool      m_DeblockingFilterControlPresent;
   Bool      m_bUseSAO;
   Int       m_maxNumOffsetsPerPic;
-#if SAO_REMOVE_APS // encoder renaming
   Bool      m_saoLcuBasedOptimization;
-#else
-  Bool      m_saoInterleavingFlag;
-#endif
 
   //====== Lossless ========
 #if LOSSLESS_CODING
@@ -529,13 +525,8 @@ public:
   Bool      getUseSAO                  ()              {return m_bUseSAO;}
   Void  setMaxNumOffsetsPerPic                   (Int iVal)            { m_maxNumOffsetsPerPic = iVal; }
   Int   getMaxNumOffsetsPerPic                   ()                    { return m_maxNumOffsetsPerPic; }
-#if SAO_REMOVE_APS // encoder renaming
   Void  setSaoLcuBasedOptimization               (bool bVal)           { m_saoLcuBasedOptimization = bVal; }
   Bool  getSaoLcuBasedOptimization               ()                    { return m_saoLcuBasedOptimization; }
-#else
-  Void  setSaoInterleavingFlag                   (bool bVal)           { m_saoInterleavingFlag = bVal; }
-  Bool  getSaoInterleavingFlag                   ()                    { return m_saoInterleavingFlag; }
-#endif
 #if !TILES_OR_ENTROPY_FIX
   Void  setTileBehaviorControlPresentFlag        ( Int i )             { m_iTileBehaviorControlPresentFlag = i;    }
   Int   getTileBehaviorControlPresentFlag        ()                    { return m_iTileBehaviorControlPresentFlag; }

@@ -102,16 +102,12 @@
 
 #define SAO_SKIP_RIGHT                   1  ///< H1101: disallow using unavailable pixel during RDO
 
-#define SAO_REMOVE_APS                   1  ///< USNB37: remove SAO APS syntax
-
 #define SAO_ENCODING_CHOICE              1  ///< I0184: picture early termination
 #if SAO_ENCODING_CHOICE
 #define SAO_ENCODING_RATE                0.75
 #endif
 
-#if SAO_REMOVE_APS
 #define SAO_CODE_CLEAN_UP                1 /// redundant code removal
-#endif
 
 #define MAX_NUM_SPS                32
 #define MAX_NUM_PPS                256

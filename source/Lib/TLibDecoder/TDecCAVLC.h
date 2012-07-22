@@ -161,14 +161,8 @@ protected:
 #if !DBL_HL_SYNTAX
   Void  xParseDblParam       ( TComAPS* aps );
 #endif
-#if !SAO_REMOVE_APS
-  Void  xParseSaoParam       ( SAOParam* pSaoParam );
-#endif
 #if !SAO_CODE_CLEAN_UP
   Void  xParseSaoOffset      (SaoLcuParam* saoLcuParam);
-#endif
-#if !SAO_REMOVE_APS
-  Void  xParseSaoUnit        (Int rx, Int ry, Int compIdx, SAOParam* saoParam, Bool& repeatedRow );
 #endif
 #if !AHG6_ALF_OPTION2
   Void  xParseAlfParam(AlfParamSet* pAlfParamSet, Bool bSentInAPS = true, Int firstLCUAddr = 0, Bool acrossSlice = true, Int numLCUInWidth= -1, Int numLCUInHeight= -1);

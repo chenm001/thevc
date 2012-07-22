@@ -816,16 +816,8 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #endif
       if (pcSlice->getSPS()->getUseSAO())
       {
-#if !SAO_REMOVE_APS // APS syntax
-        WRITE_FLAG( pcSlice->getSaoInterleavingFlag(), "SAO interleaving flag" );
-         assert (pcSlice->getSaoEnabledFlag() == pcSlice->getAPS()->getSaoEnabled());
-#endif
          WRITE_FLAG( pcSlice->getSaoEnabledFlag(), "SAO on/off flag in slice header" );
-#if SAO_REMOVE_APS
          if (pcSlice->getSaoEnabledFlag() )
-#else
-         if (pcSlice->getSaoInterleavingFlag()&&pcSlice->getSaoEnabledFlag() )
-#endif
          {
            WRITE_FLAG( pcSlice->getAPS()->getSaoParam()->bSaoFlag[1], "SAO on/off flag for Cb in slice header" );
            WRITE_FLAG( pcSlice->getAPS()->getSaoParam()->bSaoFlag[2], "SAO on/off flag for Cr in slice header" );
