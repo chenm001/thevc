@@ -980,9 +980,6 @@ Void  TEncCavlc::codeTilesWPPEntryPoint( TComSlice* pSlice )
       }
     }
   }
-#if !TILE_ENTRY_START
-  maxOffset += ((m_pcBitIf->getNumberOfWrittenBits() + 16) >> 3) + 8 + 2; // allowing for NALU header, slice header, bytes added for "offset_len_minus1" and "num_entry_point_offsets"
-#endif
   // Determine number of bits "offsetLenMinus1+1" required for entry point information
   offsetLenMinus1 = 0;
   while (maxOffset >= (1u << (offsetLenMinus1 + 1)))
@@ -999,14 +996,6 @@ Void  TEncCavlc::codeTilesWPPEntryPoint( TComSlice* pSlice )
 
   for (UInt idx=0; idx<numEntryPointOffsets; idx++)
   {
-#if !TILE_ENTRY_START
-    if ( idx == 0 )
-    {
-      // Adding sizes of NALU header and slice header information to entryPointOffset[ 0 ]
-      Int bitDistFromNALUHdrStart    = m_pcBitIf->getNumberOfWrittenBits() + 16;
-      entryPointOffset[ idx ] += ( bitDistFromNALUHdrStart + numEntryPointOffsets*(offsetLenMinus1+1) ) >> 3;
-    }
-#endif
     WRITE_CODE(entryPointOffset[ idx ], offsetLenMinus1+1, "entry_point_offset");
   }
 

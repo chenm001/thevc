@@ -1429,18 +1429,8 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       entryPointOffset = new UInt[numEntryPointOffsets];
       for (UInt idx=0; idx<numEntryPointOffsets; idx++)
       {
-#if !TILE_ENTRY_START
-        Int bitsRead = m_pcBitstream->getNumBitsRead();
-#endif
         READ_CODE(offsetLenMinus1+1, uiCode, "entry_point_offset");
         entryPointOffset[ idx ] = uiCode;
-#if !TILE_ENTRY_START
-        if ( idx == 0 && tilesOrEntropyCodingSyncIdc == 2 )
-        {
-          // Subtract distance from NALU header start to provide WPP 0-th substream the correct size.
-          entryPointOffset[ idx ] -= ( bitsRead + numEntryPointOffsets*(offsetLenMinus1+1) ) >> 3;
-        }
-#endif
       }
     }
 

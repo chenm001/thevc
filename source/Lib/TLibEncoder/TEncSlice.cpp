@@ -1217,7 +1217,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         }
       }
       {
-#if TILE_ENTRY_START
           UInt uiCounter = 0;
           vector<uint8_t>& rbsp   = pcSubstreams[uiSubStrm].getFIFO();
           for (vector<uint8_t>::iterator it = rbsp.begin(); it != rbsp.end();)
@@ -1235,9 +1234,13 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
               found++;
               /* if not found, found == end, otherwise found = second zero byte */
               if (found == rbsp.end())
+              {
                 break;
+              }
               if (*(++found) <= 3)
+              {
                 break;
+              }
             } while (true);
             it = found;
             if (found != rbsp.end())
@@ -1246,7 +1249,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
               uiCounter++;
             }
           }
-#endif
         
         UInt uiAccumulatedSubstreamLength = 0;
         for (Int iSubstrmIdx=0; iSubstrmIdx < iNumSubstreams; iSubstrmIdx++)
@@ -1255,12 +1257,8 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         }
         UInt uiLocationCount = pcSlice->getTileLocationCount();
         // add bits coded in previous dependent slices + bits coded so far
-#if TILE_ENTRY_START
         // add number of emulation prevention byte count in the tile
         pcSlice->setTileLocation( uiLocationCount, ((pcSlice->getTileOffstForMultES() + uiAccumulatedSubstreamLength - uiBitsOriginallyInSubstreams) >> 3) + uiCounter );
-#else
-        pcSlice->setTileLocation( uiLocationCount, (pcSlice->getTileOffstForMultES() + uiAccumulatedSubstreamLength - uiBitsOriginallyInSubstreams) >> 3 ); 
-#endif
         pcSlice->setTileLocationCount( uiLocationCount + 1 );
       }
     }
