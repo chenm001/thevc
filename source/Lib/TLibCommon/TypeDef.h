@@ -72,7 +72,6 @@
 #define REMOVE_LASTTU_CBFDERIV           1  ///< I0152: CBF coding for last TU without derivation process 
 
 #define AHG6_ALF_OPTION2                 1  ///< I0157: AHG6 ALF baseline Option 2 RA- Variant 2
-#define SLICE_TYPE_ORDER                 1  ///< I0500: ordering of slice types
 
 #define SBH_THRESHOLD                    4  ///< I0156: value of the fixed SBH controlling threshold
   
@@ -422,21 +421,12 @@ typedef struct _LFCUParam
 // ====================================================================================================================
 
 /// supported slice type
-#if SLICE_TYPE_ORDER
 enum SliceType
 {
   B_SLICE,
   P_SLICE,
   I_SLICE
 };
-#else
-enum SliceType
-{
-  I_SLICE,
-  P_SLICE,
-  B_SLICE
-};
-#endif
 
 /// chroma formats (according to semantics of chroma_format_idc)
 enum ChromaFormat
