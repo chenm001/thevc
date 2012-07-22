@@ -454,17 +454,6 @@ Void TDecGop::filterPicture(TComPic*& rpcPic)
     }
     printf ("] ");
   }
-#if !REMOVE_LC
-  if(pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0 && !pcSlice->getNoBackPredFlag())
-  {
-    printf ("[LC ");
-    for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(REF_PIC_LIST_C); iRefIndex++)
-    {
-      printf ("%d ", pcSlice->getRefPOC((RefPicList)pcSlice->getListIdFromIdxOfLC(iRefIndex), pcSlice->getRefIdxFromIdxOfLC(iRefIndex)));
-    }
-    printf ("] ");
-  }
-#endif
   if (m_pictureDigestEnabled)
   {
 #if HASH_TYPE

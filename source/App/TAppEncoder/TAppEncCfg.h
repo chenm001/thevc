@@ -84,9 +84,6 @@ protected:
   Bool      m_useTansformSkip;                                ///< flag for enabling intra transform skipping
   Bool      m_useTansformSkipFast;                            ///< flag for enabling fast intra transform skipping
 #endif
-#if !REMOVE_LC
-  Bool      m_bLCMod;                                         ///< flag for specifying whether the combined reference list for uni-prediction in B-slices is uploaded explicitly
-#endif
 #if !REMOVE_INTER_4X4
   Bool      m_bDisInter4x4;
 #endif

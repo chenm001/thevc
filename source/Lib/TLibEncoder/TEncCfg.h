@@ -201,9 +201,6 @@ protected:
   Bool      m_bUseASR;
   Bool      m_bUseHADME;
   Bool      m_bUseLComb;
-#if !REMOVE_LC
-  Bool      m_bLCMod;
-#endif
   Bool      m_bUseRDOQ;
   Bool      m_bUseFastEnc;
   Bool      m_bUseEarlyCU;
@@ -449,9 +446,6 @@ public:
   Void      setUseHADME                     ( Bool  b )     { m_bUseHADME   = b; }
   Void      setUseALF                       ( Bool  b )     { m_bUseALF   = b; }
   Void      setUseLComb                     ( Bool  b )     { m_bUseLComb   = b; }
-#if !REMOVE_LC
-  Void      setLCMod                        ( Bool  b )     { m_bLCMod   = b;    }
-#endif
   Void      setUseRDOQ                      ( Bool  b )     { m_bUseRDOQ    = b; }
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
   Void      setUseEarlyCU                   ( Bool  b )     { m_bUseEarlyCU = b; }
@@ -485,9 +479,6 @@ public:
   Bool      getALFPicBasedEncode            ()       {return m_bALFPicBasedEncode;}
 #endif
   Bool      getUseLComb                     ()      { return m_bUseLComb;   }
-#if !REMOVE_LC
-  Bool      getLCMod                        ()      { return m_bLCMod; }
-#endif
   Bool      getUseRDOQ                      ()      { return m_bUseRDOQ;    }
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
   Bool      getUseEarlyCU                   ()      { return m_bUseEarlyCU; }

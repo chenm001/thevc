@@ -1970,54 +1970,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     pps = rpcSlice->getPPS();
     sps = rpcSlice->getSPS();
   }
-#if !REMOVE_LC
-  // ref_pic_list_combination( )
-  //!!!KS: ref_pic_list_combination() should be conditioned on dependent_slice_flag
-  if (rpcSlice->isInterB())
-  {
-    READ_FLAG( uiCode, "ref_pic_list_combination_flag" );       rpcSlice->setRefPicListCombinationFlag( uiCode ? 1 : 0 );
-    if(uiCode)
-    {
-      READ_UVLC( uiCode, "num_ref_idx_lc_active_minus1" );      rpcSlice->setNumRefIdx( REF_PIC_LIST_C, uiCode + 1 );
-
-      if(rpcSlice->getSPS()->getListsModificationPresentFlag() )
-      {
-        READ_FLAG( uiCode, "ref_pic_list_modification_flag_lc" ); rpcSlice->setRefPicListModificationFlagLC( uiCode ? 1 : 0 );
-        if(uiCode)
-        {
-          for (UInt i=0;i<rpcSlice->getNumRefIdx(REF_PIC_LIST_C);i++)
-          {
-            READ_FLAG( uiCode, "pic_from_list_0_flag" );
-            rpcSlice->setListIdFromIdxOfLC(i, uiCode);
-            if (((rpcSlice->getListIdFromIdxOfLC(i) == REF_PIC_LIST_0) && (rpcSlice->getNumRefIdx( REF_PIC_LIST_0 ) == 1)) || ((rpcSlice->getListIdFromIdxOfLC(i) == REF_PIC_LIST_1) && (rpcSlice->getNumRefIdx( REF_PIC_LIST_1 ) == 1)) )
-            {
-              uiCode = 0;
-            }
-            else
-            {
-              READ_UVLC( uiCode, "ref_idx_list_curr" );
-            }
-            rpcSlice->setRefIdxFromIdxOfLC(i, uiCode);
-            rpcSlice->setRefIdxOfLC((RefPicList)rpcSlice->getListIdFromIdxOfLC(i), rpcSlice->getRefIdxFromIdxOfLC(i), i);
-          }
-        }
-      }
-      else
-      {
-        rpcSlice->setRefPicListModificationFlagLC(false);
-      }
-    }
-    else
-    {
-      rpcSlice->setRefPicListModificationFlagLC(false);
-      rpcSlice->setNumRefIdx(REF_PIC_LIST_C, 0);
-    }
-  }
-  else
-  {
-    rpcSlice->setRefPicListCombinationFlag(false);      
-  }
-#endif
 
   if (rpcSlice->isInterB())
   {
@@ -2635,23 +2587,15 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
   UInt            uiLog2WeightDenomLuma, uiLog2WeightDenomChroma;
   UInt            uiMode      = 0;
 
-#if REMOVE_LC
 #if REMOVE_IMPLICIT_WP
   if ( (eSliceType==P_SLICE && pps->getUseWP()) || (eSliceType==B_SLICE && pps->getWPBiPred()) )
 #else
   if ( (eSliceType==P_SLICE && pps->getUseWP()) || (eSliceType==B_SLICE && pps->getWPBiPredIdc()==1) )
 #endif
-#else
-  if ( (eSliceType==P_SLICE && pps->getUseWP()) || (eSliceType==B_SLICE && pps->getWPBiPredIdc()==1 && pcSlice->getRefPicListCombinationFlag()==0) )
-#endif
     uiMode = 1; // explicit
 #if !REMOVE_IMPLICIT_WP
   else if ( eSliceType==B_SLICE && pps->getWPBiPredIdc()==2 )
     uiMode = 2; // implicit
-#endif
-#if !REMOVE_LC
-  else if (eSliceType==B_SLICE && pps->getWPBiPredIdc()==1 && pcSlice->getRefPicListCombinationFlag())
-    uiMode = 3; // combined explicit
 #endif
   if ( uiMode == 1 )  // explicit
   {
@@ -2737,82 +2681,6 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
   else if ( uiMode == 2 )  // implicit
   {
     printf("\nTDecCavlc::xParsePredWeightTable(poc=%d) implicit...\n", pcSlice->getPOC());
-  }
-#endif
-#if !REMOVE_LC
-  else if ( uiMode == 3 )  // combined explicit
-  {
-    printf("\nTDecCavlc::xParsePredWeightTable(poc=%d) combined explicit...\n", pcSlice->getPOC());
-    Int iDeltaDenom;
-    // decode delta_luma_log2_weight_denom :
-    READ_UVLC ( uiLog2WeightDenomLuma, "luma_log2_weight_denom" );     // ue(v): luma_log2_weight_denom
-    if( bChroma ) 
-    {
-      READ_SVLC( iDeltaDenom, "delta_chroma_log2_weight_denom" );      // ue(v): delta_chroma_log2_weight_denom
-      assert((iDeltaDenom + (Int)uiLog2WeightDenomLuma)>=0);
-      uiLog2WeightDenomChroma = (UInt)(iDeltaDenom + uiLog2WeightDenomLuma);
-    }
-
-    for ( Int iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(REF_PIC_LIST_C) ; iRefIdx++ ) 
-    {
-      pcSlice->getWpScalingLC(iRefIdx, wp);
-
-      wp[0].uiLog2WeightDenom = uiLog2WeightDenomLuma;
-      wp[1].uiLog2WeightDenom = uiLog2WeightDenomChroma;
-      wp[2].uiLog2WeightDenom = uiLog2WeightDenomChroma;
-
-      UInt  uiCode;
-      READ_FLAG( uiCode, "luma_weight_lc_flag" );                  // u(1): luma_weight_lc_flag
-      wp[0].bPresentFlag = ( uiCode == 1 );
-      if ( wp[0].bPresentFlag ) 
-      {
-        Int iDeltaWeight;
-        READ_SVLC( iDeltaWeight, "delta_luma_weight_lc" );          // se(v): delta_luma_weight_lc
-        wp[0].iWeight = (iDeltaWeight + (1<<wp[0].uiLog2WeightDenom));
-        READ_SVLC( wp[0].iOffset, "luma_offset_lc" );               // se(v): luma_offset_lc
-      }
-      else 
-      {
-        wp[0].iWeight = (1 << wp[0].uiLog2WeightDenom);
-        wp[0].iOffset = 0;
-      }
-      if ( bChroma ) 
-      {
-        READ_FLAG( uiCode, "chroma_weight_lc_flag" );                // u(1): chroma_weight_lc_flag
-        wp[1].bPresentFlag = ( uiCode == 1 );
-        wp[2].bPresentFlag = ( uiCode == 1 );
-        if ( wp[1].bPresentFlag ) 
-        {
-          for ( Int j=1 ; j<3 ; j++ ) 
-          {
-            Int iDeltaWeight;
-            READ_SVLC( iDeltaWeight, "delta_chroma_weight_lc" );      // se(v): delta_chroma_weight_lc
-            wp[j].iWeight = (iDeltaWeight + (1<<wp[1].uiLog2WeightDenom));
-
-            Int iDeltaChroma;
-            READ_SVLC( iDeltaChroma, "delta_chroma_offset_lc" );      // se(v): delta_chroma_offset_lc
-            wp[j].iOffset = iDeltaChroma - ( ( (g_uiIBDI_MAX>>1)*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) + (g_uiIBDI_MAX>>1);
-          }
-        }
-        else 
-        {
-          for ( Int j=1 ; j<3 ; j++ ) 
-          {
-            wp[j].iWeight = (1 << wp[j].uiLog2WeightDenom);
-            wp[j].iOffset = 0;
-          }
-        }
-      }
-    }
-
-    for ( Int iRefIdx=pcSlice->getNumRefIdx(REF_PIC_LIST_C) ; iRefIdx<2*MAX_NUM_REF ; iRefIdx++ ) 
-    {
-      pcSlice->getWpScalingLC(iRefIdx, wp);
-
-      wp[0].bPresentFlag = false;
-      wp[1].bPresentFlag = false;
-      wp[2].bPresentFlag = false;
-    }
   }
 #endif
   else

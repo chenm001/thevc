@@ -174,9 +174,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setALFMaxNumberFilters          ( m_iALFMaxNumberFilters ) ;
 #endif
   m_cTEncTop.setUseLComb                     ( m_bUseLComb    );
-#if !REMOVE_LC
-  m_cTEncTop.setLCMod                        ( m_bLCMod         );
-#endif
   m_cTEncTop.setdQPs                         ( m_aidQP        );
   m_cTEncTop.setUseRDOQ                      ( m_bUseRDOQ     );
   m_cTEncTop.setQuadtreeTULog2MaxSize        ( m_uiQuadtreeTULog2MaxSize );

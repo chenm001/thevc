@@ -214,14 +214,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("IntraPeriod,-ip",         m_iIntraPeriod,              -1, "Intra period in frames, (-1: only first frame)")
   ("DecodingRefreshType,-dr", m_iDecodingRefreshType,       0, "Intra refresh type (0:none 1:CRA 2:IDR)")
   ("GOPSize,g",               m_iGOPSize,                   1, "GOP size of temporal structure")
-#if REMOVE_LC
   ("ListCombination,-lc",     m_bUseLComb,               true, "Combined reference list for uni-prediction estimation in B-slices")
-#else
-  ("ListCombination,-lc",     m_bUseLComb,               true, "Combined reference list flag for uni-prediction in B-slices")
-#endif
-#if !REMOVE_LC
-  ("LCModification",          m_bLCMod,                 false, "Enables signalling of combined reference list derivation")
-#endif  
   // motion options
   ("FastSearch",              m_iFastSearch,                1, "0:Full search  1:Diamond  2:PMVFAST")
   ("SearchRange,-sr",         m_iSearchRange,              96, "Motion search range")
@@ -1084,9 +1077,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("SQP:%d ", m_uiDeltaQpRD         );
   printf("ASR:%d ", m_bUseASR             );
   printf("LComb:%d ", m_bUseLComb         );
-#if !REMOVE_LC
-  printf("LCMod:%d ", m_bLCMod         );
-#endif
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("ECU:%d ", m_bUseEarlyCU         );
   printf("FDM:%d ", m_useFastDecisionForMerge );

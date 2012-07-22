@@ -347,9 +347,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       else
       {
         pcSlice->setRefPicListCombinationFlag(pcSlice->getSPS()->getUseLComb());
-#if !REMOVE_LC
-        pcSlice->setRefPicListModificationFlagLC(pcSlice->getSPS()->getLCMod());
-#endif
         pcSlice->setNumRefIdx(REF_PIC_LIST_C, pcSlice->getNumRefIdx(REF_PIC_LIST_0));
       }
       
@@ -2001,17 +1998,6 @@ Void TEncGOP::xCalculateAddPSNR( TComPic* pcPic, TComPicYuv* pcPicD, const Acces
     }
     printf("]");
   }
-#if !REMOVE_LC
-  if(pcSlice->getNumRefIdx(REF_PIC_LIST_C)>0 && !pcSlice->getNoBackPredFlag())
-  {
-    printf(" [LC ");
-    for (Int iRefIndex = 0; iRefIndex < pcSlice->getNumRefIdx(REF_PIC_LIST_C); iRefIndex++)
-    {
-      printf ("%d ", pcSlice->getRefPOC((RefPicList)pcSlice->getListIdFromIdxOfLC(iRefIndex), pcSlice->getRefIdxFromIdxOfLC(iRefIndex))-pcSlice->getLastIDR());
-    }
-    printf("]");
-  }
-#endif
 }
 
 /** Function for deciding the nal_unit_type.

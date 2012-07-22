@@ -640,23 +640,8 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
 
     //---------------
     pcSlice->setRefPOCList();
-#if !REMOVE_LC
-    if(!pcSlice->getRefPicListModificationFlagLC())
-    {
-      pcSlice->generateCombinedList();
-    }
-
-    if( pcSlice->getRefPicListCombinationFlag() && pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getSliceType()==B_SLICE )
-    {
-      pcSlice->setWpParamforLC();
-    }
-#endif
     pcSlice->setNoBackPredFlag( false );
-#if REMOVE_LC
     if ( pcSlice->getSliceType() == B_SLICE )
-#else
-    if ( pcSlice->getSliceType() == B_SLICE && !pcSlice->getRefPicListCombinationFlag())
-#endif
     {
       if ( pcSlice->getNumRefIdx(RefPicList( 0 ) ) == pcSlice->getNumRefIdx(RefPicList( 1 ) ) )
       {

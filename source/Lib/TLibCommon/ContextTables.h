@@ -62,11 +62,7 @@
 #define NUM_ADI_CTX                   1       ///< number of context models for intra prediction
 
 #define NUM_CHROMA_PRED_CTX           2       ///< number of context models for intra prediction (chroma)
-#if REMOVE_LC
 #define NUM_INTER_DIR_CTX             5       ///< number of context models for inter prediction direction
-#else
-#define NUM_INTER_DIR_CTX             4       ///< number of context models for inter prediction direction
-#endif
 #define NUM_MV_RES_CTX                2       ///< number of context models for motion vector difference
 
 #define NUM_REF_NO_CTX                4       ///< number of context models for reference index
@@ -290,25 +286,13 @@ static const UChar
 INIT_INTER_DIR[3][NUM_INTER_DIR_CTX] = 
 {
 #if SLICE_TYPE_ORDER
-#if REMOVE_LC
   {  95,   79,   63,   31,  31, }, 
   {  95,   79,   63,   31,  31, }, 
   { CNU,  CNU,  CNU,  CNU, CNU, }, 
 #else
-  {  95,   79,   63,   31, }, 
-  {  95,   79,   63,   31, }, 
-  { CNU,  CNU,  CNU,  CNU, }, 
-#endif
-#else
-#if REMOVE_LC
   { CNU,  CNU,  CNU,  CNU,  CNU, }, 
   {  95,   79,   63,   31,   31, }, 
   {  95,   79,   63,   31,   31, }, 
-#else
-  { CNU,  CNU,  CNU,  CNU, }, 
-  {  95,   79,   63,   31, }, 
-  {  95,   79,   63,   31, }, 
-#endif
 #endif
 };
 

@@ -297,9 +297,6 @@ private:
 #endif
   
   Bool        m_bUseLComb;
-#if !REMOVE_LC
-  Bool        m_bLCMod;
-#endif
   Bool        m_useNSQT;
 
   Bool        m_restrictedRefPicListsFlag;
@@ -458,10 +455,6 @@ public:
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
   Void setUseLComb    (Bool b)   { m_bUseLComb = b;         }
   Bool getUseLComb    ()         { return m_bUseLComb;      }
-#if !REMOVE_LC
-  Void setLCMod       (Bool b)   { m_bLCMod = b;     }
-  Bool getLCMod       ()         { return m_bLCMod;  }
-#endif
   Bool getUseLMChroma ()         { return m_bUseLMChroma;        }
   Void setUseLMChroma ( Bool b ) { m_bUseLMChroma  = b;          }
 
@@ -1073,9 +1066,6 @@ private:
   Bool        m_abEqualRef  [2][MAX_NUM_REF][MAX_NUM_REF];
   
   Bool        m_bNoBackPredFlag;
-#if !REMOVE_LC
-  Bool        m_bRefIdxCombineCoding;
-#endif
   UInt        m_uiTLayer;
   Bool        m_bTLayerSwitchingFlag;
 
@@ -1227,11 +1217,6 @@ public:
   Void      setRefPicListModificationFlagLC(Bool bflag)         {m_bRefPicListModificationFlagLC=bflag;}     
   Bool      getRefPicListCombinationFlag()                      {return m_bRefPicListCombinationFlag;}
   Void      setRefPicListCombinationFlag(Bool bflag)            {m_bRefPicListCombinationFlag=bflag;}   
-#if !REMOVE_LC
-  Void      setListIdFromIdxOfLC(Int  iRefIdx, UInt uiVal)      { m_eListIdFromIdxOfLC[iRefIdx]=uiVal; }
-  Void      setRefIdxFromIdxOfLC(Int  iRefIdx, UInt uiVal)      { m_iRefIdxFromIdxOfLC[iRefIdx]=uiVal; }
-  Void      setRefIdxOfLC       (RefPicList e, Int iRefIdx, Int RefIdxLC)     { m_iRefIdxOfLC[e][iRefIdx]=RefIdxLC;}
-#endif
   Void      setReferenced(Bool b)                               { m_bRefenced = b; }
   Bool      isReferenced()                                      { return m_bRefenced; }
 #if PREVREFPIC_DEFN 
@@ -1316,10 +1301,6 @@ public:
   
   Bool getNoBackPredFlag() { return m_bNoBackPredFlag; }
   Void setNoBackPredFlag( Bool b ) { m_bNoBackPredFlag = b; }
-#if !REMOVE_LC
-  Bool getRefIdxCombineCoding() { return m_bRefIdxCombineCoding; }
-  Void setRefIdxCombineCoding( Bool b ) { m_bRefIdxCombineCoding = b; }
-#endif
   Void generateCombinedList       ();
 
   UInt getTLayer             ()                            { return m_uiTLayer;                      }
@@ -1384,12 +1365,6 @@ public:
   Void  setWpAcDcParam  ( wpACDCParam wp[3] ) { memcpy(m_weightACDCParam, wp, sizeof(wpACDCParam)*3); }
   Void  getWpAcDcParam  ( wpACDCParam *&wp );
   Void  initWpAcDcParam ();
-#if !REMOVE_LC
-  Void  copyWPtable     (wpScalingParam *&wp_src, wpScalingParam *&wp_dst);
-  Void  getWpScalingLC  ( Int iRefIdx, wpScalingParam *&wp);
-  Void  resetWpScalingLC(wpScalingParam  wp[2*MAX_NUM_REF][3]);
-  Void  setWpParamforLC();
-#endif
   Void setTileLocationCount             ( UInt uiCount )      { m_uiTileCount = uiCount;                  }
   UInt getTileLocationCount             ()                    { return m_uiTileCount;                     }
   Void setTileLocation                  ( Int i, UInt uiLOC ) { m_uiTileByteLocation[i] = uiLOC;          }

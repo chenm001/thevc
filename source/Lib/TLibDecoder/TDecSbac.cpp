@@ -797,13 +797,11 @@ Void TDecSbac::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPar
   {
     uiSymbol = 2;
   }
-#if REMOVE_LC
   else
   {
     m_pcTDecBinIf->decodeBin( uiSymbol, *( pCtx + 4 ) );
     assert(uiSymbol == 0 || uiSymbol == 1);
   }
-#endif
 
   uiSymbol++;
   ruiInterDir = uiSymbol;
@@ -813,21 +811,6 @@ Void TDecSbac::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPar
 Void TDecSbac::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPartIdx, UInt uiDepth, RefPicList eRefList )
 {
   UInt uiSymbol;
-#if !REMOVE_LC
-  if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C ) > 0 && eRefList==REF_PIC_LIST_C)
-  {
-    ContextModel *pCtx = m_cCURefPicSCModel.get( 0 );
-    m_pcTDecBinIf->decodeBin( uiSymbol, *pCtx );
-
-    if( uiSymbol )
-    {
-      xReadUnaryMaxSymbol( uiSymbol, pCtx + 1, 1, pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_C )-2 );
-      uiSymbol++;
-    }
-    riRefFrmIdx = uiSymbol;
-  }
-  else
-#endif
   {
     ContextModel *pCtx = m_cCURefPicSCModel.get( 0 );
     m_pcTDecBinIf->decodeBin( uiSymbol, *pCtx );

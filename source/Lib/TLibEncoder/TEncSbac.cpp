@@ -844,32 +844,15 @@ Void TEncSbac::codeInterDir( TComDataCU* pcCU, UInt uiAbsPartIdx )
   const UInt uiCtx      = pcCU->getCtxInterDir( uiAbsPartIdx );
   ContextModel *pCtx    = m_cCUInterDirSCModel.get( 0 );
   m_pcBinIf->encodeBin( uiInterDir == 2 ? 1 : 0, *( pCtx + uiCtx ) );
-#if REMOVE_LC
   if (uiInterDir < 2)
   {
     m_pcBinIf->encodeBin( uiInterDir, *( pCtx + 4 ) );
   }
-#endif
   return;
 }
 
 Void TEncSbac::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
 {
-#if !REMOVE_LC
-  if ( pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C) > 0 && pcCU->getInterDir( uiAbsPartIdx ) != 3)
-  {
-    Int iRefFrame = pcCU->getSlice()->getRefIdxOfLC(eRefList, pcCU->getCUMvField( eRefList )->getRefIdx( uiAbsPartIdx ));
-
-    ContextModel *pCtx = m_cCURefPicSCModel.get( 0 );
-    m_pcBinIf->encodeBin( ( iRefFrame == 0 ? 0 : 1 ), *pCtx );
-
-    if( iRefFrame > 0 )
-    {
-      xWriteUnaryMaxSymbol( iRefFrame - 1, pCtx + 1, 1, pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_C )-2 );
-    }
-  }
-  else
-#endif
   {
     Int iRefFrame = pcCU->getCUMvField( eRefList )->getRefIdx( uiAbsPartIdx );
     ContextModel *pCtx = m_cCURefPicSCModel.get( 0 );
