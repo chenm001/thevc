@@ -1432,9 +1432,7 @@ TComPPS::TComPPS()
 , m_numRefIdxL0DefaultActive    (1)
 , m_numRefIdxL1DefaultActive    (1)
 , m_iSliceGranularity           (0)
-#if CU_LEVEL_TRANSQUANT_BYPASS
 , m_TransquantBypassEnableFlag  (false)
-#endif
 #if !TILES_OR_ENTROPY_FIX
 , m_iTileBehaviorControlPresentFlag (0)
 #endif

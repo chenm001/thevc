@@ -269,9 +269,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #if DEPENDENT_SLICES
   WRITE_FLAG( pcPPS->getDependentSlicesEnabledFlag() ? 1 : 0, "dependent_slices_enabled_flag" );
 #endif
-#if CU_LEVEL_TRANSQUANT_BYPASS
   WRITE_FLAG( pcPPS->getTransquantBypassEnableFlag() ? 1 : 0, "transquant_bypass_enable_flag" );
-#endif
 
 #if TILES_OR_ENTROPY_FIX
   Int tilesOrEntropyCodingSyncIdc = 0;
@@ -438,10 +436,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_CODE( pcSPS->getPCMBitDepthLuma() - 1, 4,   "pcm_bit_depth_luma_minus1" );
   WRITE_CODE( pcSPS->getPCMBitDepthChroma() - 1, 4, "pcm_bit_depth_chroma_minus1" );
   }
-
-#if !CU_LEVEL_TRANSQUANT_BYPASS
-  WRITE_FLAG( (pcSPS->getUseLossless ()) ? 1 : 0,                                    "qpprime_y_zero_transquant_bypass_flag" );
-#endif
 
   WRITE_UVLC( pcSPS->getBitsForPOC()-4,                 "log2_max_pic_order_cnt_lsb_minus4" );
   for(UInt i=0; i <= pcSPS->getMaxTLayers()-1; i++)
@@ -1212,12 +1206,10 @@ Void TEncCavlc::codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiD
   assert(0);
 }
 
-#if CU_LEVEL_TRANSQUANT_BYPASS
 Void TEncCavlc::codeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   assert(0);
 }
-#endif
 
 Void TEncCavlc::codeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {

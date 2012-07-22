@@ -174,9 +174,7 @@ public:
 #if !AHG6_ALF_OPTION2
   Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
 #endif
-#if CU_LEVEL_TRANSQUANT_BYPASS
   Void codeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#endif
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
@@ -259,9 +257,7 @@ private:
   ContextModel3DBuffer m_cSaoMergeUpSCModel;
   ContextModel3DBuffer m_cSaoTypeIdxSCModel;
   ContextModel3DBuffer m_cTransformSkipSCModel;
-#if CU_LEVEL_TRANSQUANT_BYPASS
   ContextModel3DBuffer m_CUTransquantBypassFlagSCModel;
-#endif
 };
 
 //! \}

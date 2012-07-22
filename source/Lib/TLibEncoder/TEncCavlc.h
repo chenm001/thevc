@@ -147,9 +147,7 @@ public:
   Void codeSaoTypeIdx    ( UInt uiCode ){printf("Not supported\n"); assert (0);}
   Void codeSaoUflc       ( UInt uiCode ){ assert(uiCode < 32); printf("Not supported\n"); assert (0);}
 
-#if CU_LEVEL_TRANSQUANT_BYPASS
   Void codeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#endif
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx );

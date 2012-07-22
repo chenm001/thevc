@@ -825,10 +825,8 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   pcPPS->setDependentSlicesEnabledFlag( uiCode==1 );
 #endif
 
-#if CU_LEVEL_TRANSQUANT_BYPASS
   READ_FLAG( uiCode, "transquant_bypass_enable_flag");
   pcPPS->setTransquantBypassEnableFlag(uiCode ? true : false);
-#endif
 
 #if !TILES_OR_ENTROPY_FIX
   if(parameterSet->getPrefetchedSPS(pcPPS->getSPSId())->getTilesOrEntropyCodingSyncIdc()==1)
@@ -1020,10 +1018,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     READ_CODE( 4, uiCode, "pcm_bit_depth_luma_minus1" );           pcSPS->setPCMBitDepthLuma   ( 1 + uiCode );
     READ_CODE( 4, uiCode, "pcm_bit_depth_chroma_minus1" );         pcSPS->setPCMBitDepthChroma ( 1 + uiCode );
   }
-
-#if !CU_LEVEL_TRANSQUANT_BYPASS
-  READ_FLAG( uiCode, "qpprime_y_zero_transquant_bypass_flag" );    pcSPS->setUseLossless ( uiCode ? true : false );
-#endif
 
   READ_UVLC( uiCode,    "log2_max_pic_order_cnt_lsb_minus4" );   pcSPS->setBitsForPOC( 4 + uiCode );
   for(UInt i=0; i <= pcSPS->getMaxTLayers()-1; i++)
@@ -2023,12 +2017,10 @@ Void TDecCavlc::parseSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
   assert(0);
 }
 
-#if CU_LEVEL_TRANSQUANT_BYPASS
 Void TDecCavlc::parseCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   assert(0);
 }
-#endif
 
 Void TDecCavlc::parseMVPIdx( Int& riMVPIdx )
 {

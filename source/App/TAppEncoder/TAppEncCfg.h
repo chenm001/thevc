@@ -241,10 +241,8 @@ protected:
   Int       m_useScalingListId;                               ///< using quantization matrix
   char*     m_scalingListFile;                                ///< quantization matrix file name
 
-#if CU_LEVEL_TRANSQUANT_BYPASS
   Bool      m_TransquantBypassEnableFlag;                     ///< transquant_bypass_enable_flag setting in PPS.
   Bool      m_CUTransquantBypassFlagValue;                    ///< if transquant_bypass_enable_flag, the fixed value to use for the per-CU cu_transquant_bypass_flag.
-#endif
 
   // internal member functions
   Void  xSetGlobal      ();                                   ///< set global variables

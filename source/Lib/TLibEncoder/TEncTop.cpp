@@ -655,9 +655,7 @@ Void TEncTop::xInitPPS()
   }
   m_cPPS.setNumRefIdxL0DefaultActive(bestPos);
   m_cPPS.setNumRefIdxL1DefaultActive(bestPos);
-#if CU_LEVEL_TRANSQUANT_BYPASS
   m_cPPS.setTransquantBypassEnableFlag(getTransquantBypassEnableFlag());
-#endif
 #if DEPENDENT_SLICES
   m_cPPS.setDependentSlicesEnabledFlag( m_iDependentSliceMode );
   m_cPPS.setCabacIndependentFlag( m_bCabacIndependentFlag ? 1 : 0 );

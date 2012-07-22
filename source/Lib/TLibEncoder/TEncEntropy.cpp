@@ -114,12 +114,10 @@ Void TEncEntropy::encodeSPS( TComSPS* pcSPS )
   return;
 }
 
-#if CU_LEVEL_TRANSQUANT_BYPASS
 Void TEncEntropy::encodeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
   m_pcEntropyCoderIf->codeCUTransquantBypassFlag( pcCU, uiAbsPartIdx );
 }
-#endif
 
 #if VPS_INTEGRATION
 Void TEncEntropy::encodeVPS( TComVPS* pcVPS )

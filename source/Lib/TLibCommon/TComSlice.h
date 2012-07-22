@@ -623,9 +623,7 @@ private:
 #endif
   Bool        m_OutputFlagPresentFlag;   // Indicates the presence of output_flag in slice header
 
-#if CU_LEVEL_TRANSQUANT_BYPASS
   Bool        m_TransquantBypassEnableFlag; // Indicates presence of cu_transquant_bypass_flag in CUs.
-#endif
 #if DEPENDENT_SLICES
   Bool        m_bDependentSlicesEnabledFlag;   // Indicates the presence of dependent_slices_flag in slice header
   Bool        m_bCabacIndependentFlag;   // Indicates the presence of dependent_slices_flag in slice header
@@ -728,10 +726,8 @@ public:
   Void      setCabacIndependentFlag( Bool b )  { m_bCabacIndependentFlag = b;    }
   Bool      getCabacIndependentFlag()          { return m_bCabacIndependentFlag; }
 #endif
-#if CU_LEVEL_TRANSQUANT_BYPASS
   Void      setTransquantBypassEnableFlag( Bool b ) { m_TransquantBypassEnableFlag = b; }
   Bool      getTransquantBypassEnableFlag()         { return m_TransquantBypassEnableFlag; }
-#endif
 
 #if !TILES_OR_ENTROPY_FIX
   Void    setTileBehaviorControlPresentFlag        ( Int i )             { m_iTileBehaviorControlPresentFlag = i;    }

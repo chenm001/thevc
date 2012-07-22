@@ -2311,11 +2311,7 @@ Void TComAdaptiveLoopFilter::xPCMRestoration(TComPic* pcPic)
 {
   Bool  bPCMFilter = (pcPic->getSlice(0)->getSPS()->getUsePCM() && pcPic->getSlice(0)->getSPS()->getPCMFilterDisableFlag())? true : false;
 
-#if CU_LEVEL_TRANSQUANT_BYPASS
   if(bPCMFilter || pcPic->getSlice(0)->getPPS()->getTransquantBypassEnableFlag())
-#else
-  if(bPCMFilter || pcPic->getSlice(0)->getSPS()->getUseLossless())
-#endif
   {
     for( UInt uiCUAddr = 0; uiCUAddr < pcPic->getNumCUsInFrame() ; uiCUAddr++ )
     {
