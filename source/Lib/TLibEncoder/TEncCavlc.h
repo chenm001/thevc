@@ -67,10 +67,6 @@ protected:
   TComBitIf*    m_pcBitIf;
   TComSlice*    m_pcSlice;
   UInt          m_uiCoeffCost;
-#if !AHG6_ALF_OPTION2
-  Bool          m_bAlfCtrl;
-  UInt          m_uiMaxAlfCtrlDepth;
-#endif
   Int           m_iSliceGranularity;  //!< slice granularity
   
   Void  xWriteCode            ( UInt uiCode, UInt uiLength );
@@ -100,12 +96,6 @@ public:
 
   Void  setBitstream          ( TComBitIf* p )  { m_pcBitIf = p;  }
   Void  setSlice              ( TComSlice* p )  { m_pcSlice = p;  }
-#if !AHG6_ALF_OPTION2
-  Bool getAlfCtrl() {return m_bAlfCtrl;}
-  UInt getMaxAlfCtrlDepth() {return m_uiMaxAlfCtrlDepth;}
-  Void setAlfCtrl(Bool bAlfCtrl) {m_bAlfCtrl = bAlfCtrl;}
-  Void setMaxAlfCtrlDepth(UInt uiMaxAlfCtrlDepth) {m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth;}
-#endif
   Void  resetBits             ()                { m_pcBitIf->resetBits(); }
   Void  resetCoeffCost        ()                { m_uiCoeffCost = 0;  }
   UInt  getNumberOfWrittenBits()                { return  m_pcBitIf->getNumberOfWrittenBits();  }
@@ -129,17 +119,8 @@ public:
   Void  encodeStart             () {}
   
   Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList );
-#if AHG6_ALF_OPTION2
   Void xGolombEncode(Int coeff, Int k); 
   Void codeAlfParam(ALFParam* alfParam);
-#else
-  Void codeAlfFlag       ( UInt uiCode );
-  Void codeAlfUvlc       ( UInt uiCode );
-  Void codeAlfSvlc       ( Int   iCode );
-  Void codeAlfCtrlDepth();
-  Void codeAPSAlflag(UInt uiCode);
-  Void codeAlfFixedLengthIdx( UInt idx, UInt numFilterSetsInBuffer);
-#endif
   Void codeSAOSign       ( UInt code   ) { printf("Not supported\n"); assert (0); }
   Void codeSaoMaxUvlc    ( UInt   code, UInt maxSymbol ){printf("Not supported\n"); assert (0);}
   Void codeSaoMergeLeft  ( UInt uiCode, UInt compIdx ){printf("Not supported\n"); assert (0);}
@@ -151,9 +132,6 @@ public:
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#if !AHG6_ALF_OPTION2
-  Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#endif
   Void codeApsExtensionFlag ();
 
   /// set slice granularity
@@ -162,11 +140,7 @@ public:
   ///get slice granularity
   Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
 
-#if AHG6_ALF_OPTION2
   Void codeAlfCtrlFlag   ( Int compIdx, UInt code ) {printf("Not supported\n"); assert(0);}
-#else
-  Void codeAlfCtrlFlag   ( UInt uiSymbol );
-#endif
   Void codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiEncMode );
   Void codeSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   

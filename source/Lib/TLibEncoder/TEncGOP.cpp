@@ -749,20 +749,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcSAO->createPicSaoInfo(pcPic, uiNumSlices);
       }
 
-#if !AHG6_ALF_OPTION2
-      AlfParamSet* alfSliceParams = NULL;
-      std::vector<AlfCUCtrlInfo>* alfCUCtrlParam = NULL;
-#endif
       pcSlice = pcPic->getSlice(0);
 
       if(pcSlice->getSPS()->getUseALF())
       {
-#if AHG6_ALF_OPTION2
         m_pcAdaptiveLoopFilter->createPicAlfInfo(pcPic, uiNumSlices);
-#else
-        m_pcAdaptiveLoopFilter->createPicAlfInfo(pcPic, uiNumSlices, pcSlice->getSliceQp());
-        m_pcAdaptiveLoopFilter->initALFEnc(m_pcCfg->getALFParamInSlice(), m_pcCfg->getALFPicBasedEncode(), uiNumSlices, alfSliceParams, alfCUCtrlParam);
-#endif
       }
 
       /////////////////////////////////////////////////////////////////////////////////////////////////// File writing
@@ -931,43 +922,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodeSliceHeader(pcSlice);
-#if !AHG6_ALF_OPTION2
-        if(pcSlice->isNextSlice())
-        {
-          if (pcSlice->getSPS()->getUseALF())
-          {
-            if(pcSlice->getAlfEnabledFlag())
-            {
-
-              if( pcSlice->getSPS()->getUseALFCoefInSlice())
-              {
-                Int iNumSUinLCU    = 1<< (g_uiMaxCUDepth << 1); 
-                Int firstLCUAddr   = pcSlice->getSliceCurStartCUAddr() / iNumSUinLCU;  
-                Bool isAcrossSlice = pcSlice->getSPS()->getLFCrossSliceBoundaryFlag();
-                m_pcEntropyCoder->encodeAlfParam( &(alfSliceParams[pcSlice->getSliceIdx()]), false, firstLCUAddr, isAcrossSlice);
-              }
-
-              if( !pcSlice->getSPS()->getUseALFCoefInSlice())
-              {
-                AlfCUCtrlInfo& cAlfCUCtrlParam = (*alfCUCtrlParam)[pcSlice->getSliceIdx()];
-              if(cAlfCUCtrlParam.cu_control_flag)
-              {
-                m_pcEntropyCoder->setAlfCtrl( true );
-                m_pcEntropyCoder->setMaxAlfCtrlDepth(cAlfCUCtrlParam.alf_max_depth);
-                m_pcCavlcCoder->setAlfCtrl(true);
-                m_pcCavlcCoder->setMaxAlfCtrlDepth(cAlfCUCtrlParam.alf_max_depth); 
-              }
-              else
-              {
-                m_pcEntropyCoder->setAlfCtrl(false);
-              }
-              m_pcEntropyCoder->encodeAlfCtrlParam(cAlfCUCtrlParam, m_pcAdaptiveLoopFilter->getNumCUsInPic());
-            
-              }
-            }
-          }
-        }
-#endif
 #if !REMOVE_TILE_MARKERS
         m_pcEntropyCoder->encodeTileMarkerFlag(pcSlice);
 #endif
@@ -1193,7 +1147,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             // adaptive loop filter
             if ( pcSlice->getSPS()->getUseALF())
             {
-#if AHG6_ALF_OPTION2
 #if ALF_CHROMA_LAMBDA 
               m_pcAdaptiveLoopFilter->ALFProcess(cAPS.getAlfParam(), pcPic->getSlice(0)->getLambdaLuma(), pcPic->getSlice(0)->getLambdaChroma() );
 #else
@@ -1202,23 +1155,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #else
               m_pcAdaptiveLoopFilter->ALFProcess(cAPS.getAlfParam(), pcPic->getSlice(0)->getLambda());
 #endif
-#endif
-#else
-              m_pcEntropyCoder->resetEntropy    ();
-              m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
-              m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder );
-              AlfParamSet* pAlfEncParam = (pcSlice->getSPS()->getUseALFCoefInSlice())?( alfSliceParams ):( cAPS.getAlfParam());
-#if ALF_CHROMA_LAMBDA 
-              m_pcAdaptiveLoopFilter->ALFProcess(pAlfEncParam, alfCUCtrlParam, pcPic->getSlice(0)->getLambdaLuma(), pcPic->getSlice(0)->getLambdaChroma() );
-#else
-#if SAO_CHROMA_LAMBDA
-              m_pcAdaptiveLoopFilter->ALFProcess(pAlfEncParam, alfCUCtrlParam, pcPic->getSlice(0)->getLambdaLuma());
-#else
-              m_pcAdaptiveLoopFilter->ALFProcess(pAlfEncParam, alfCUCtrlParam, pcPic->getSlice(0)->getLambda());
-#endif
-#endif
-
-              m_pcAdaptiveLoopFilter->endALFEnc();
 #endif
               m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
             }
@@ -1234,14 +1170,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             {
               if (pcSlice->getSPS()->getUseALF())
               {
-#if AHG6_ALF_OPTION2
                 for(Int compIdx =0; compIdx< 3; compIdx++)
                 {
                   pcPic->getSlice(s)->setAlfEnabledFlag( cAPS.getAlfEnabled(compIdx), compIdx);
                 }
-#else
-                pcPic->getSlice(s)->setAlfEnabledFlag(  (pcSlice->getSPS()->getUseALFCoefInSlice())?(alfSliceParams[s].isEnabled[ALF_Y]):(cAPS.getAlfEnabled())   );
-#endif
               }
               if (pcSlice->getSPS()->getUseSAO())
               {
@@ -1289,9 +1221,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
         if(pcSlice->getSPS()->getUseALF())
         {
-#if !AHG6_ALF_OPTION2
-          m_pcAdaptiveLoopFilter->uninitALFEnc(alfSliceParams, alfCUCtrlParam);
-#endif
           m_pcAdaptiveLoopFilter->destroyPicAlfInfo();
         }
 
@@ -1417,20 +1346,7 @@ Void TEncGOP::allocAPS (TComAPS* pAPS, TComSPS* pSPS)
     pAPS->createSaoParam();
     m_pcSAO->allocSaoParam(pAPS->getSaoParam());
   }
-#if AHG6_ALF_OPTION2
   pAPS->createAlfParam();
-#else
-  if(pSPS->getUseALF())
-  {
-    pAPS->createAlfParam();
-    //alf Enabled flag in APS is false after pAPS->createAlfParam();
-    if(!pSPS->getUseALFCoefInSlice())
-    {
-      pAPS->getAlfParam()->create(m_pcAdaptiveLoopFilter->getNumLCUInPicWidth(), m_pcAdaptiveLoopFilter->getNumLCUInPicHeight(), m_pcAdaptiveLoopFilter->getNumCUsInPic());
-      pAPS->getAlfParam()->createALFParam();
-    }
-  }
-#endif
 }
 
 /** Memory deallocation for APS
@@ -1448,21 +1364,7 @@ Void TEncGOP::freeAPS (TComAPS* pAPS, TComSPS* pSPS)
 
     }
   }
-#if AHG6_ALF_OPTION2
   pAPS->destroyAlfParam();
-#else
-  if(pSPS->getUseALF())
-  {
-    if(pAPS->getAlfParam() != NULL)
-    {
-      if(!pSPS->getUseALFCoefInSlice())
-      {
-        pAPS->getAlfParam()->releaseALFParam();
-      }
-      pAPS->destroyAlfParam();
-    }
-  }
-#endif
 }
 
 /** Assign APS object into APS container according to APS ID
@@ -1484,9 +1386,6 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
   {
     cAPS.setScalingListEnabled(false);
   }
-#endif
-#if !AHG6_ALF_OPTION2
-  cAPS.setAlfEnabled(pcSlice->getSPS()->getUseALF() ? (cAPS.getAlfParam()->isEnabled[0]):(false));
 #endif
 #if !DBL_HL_SYNTAX
   cAPS.setLoopFilterOffsetInAPS(m_pcCfg->getLoopFilterOffsetInAPS());
@@ -1532,18 +1431,10 @@ Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* p
     m_pcEntropyCoder->encodeDFParams(pcAPS);
   }
 #endif
-#if AHG6_ALF_OPTION2
   for(Int compIdx=0; compIdx < 3; compIdx++)
   {
     m_pcEntropyCoder->encodeAlfParam( (pcAPS->getAlfParam())[compIdx]);
   }
-#else
-  m_pcEntropyCoder->encodeAPSAlfFlag( pcAPS->getAlfEnabled()?1:0);
-  if(pcAPS->getAlfEnabled())
-  {
-    m_pcEntropyCoder->encodeAlfParam(pcAPS->getAlfParam());
-  }
-#endif
   m_pcEntropyCoder->encodeApsExtensionFlag();
   //neither SAO and ALF is enabled
   writeRBSPTrailingBits(APSbs);
@@ -1614,7 +1505,6 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
   {
     m_pcAdaptiveLoopFilter->createPicAlfInfo(pcPic);
 
-#if AHG6_ALF_OPTION2
     ALFParam* alfPicParam[3];
     for(Int compIdx=0; compIdx < 3; compIdx++)
     {
@@ -1634,32 +1524,6 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
     {
       delete alfPicParam[compIdx]; alfPicParam[compIdx] = NULL;
     }
-#else
-    AlfParamSet* alfParamSet;
-    std::vector<AlfCUCtrlInfo>* alfCUCtrlParam = NULL;
-    alfParamSet= new AlfParamSet;
-    alfParamSet->create( m_pcAdaptiveLoopFilter->getNumLCUInPicWidth(), m_pcAdaptiveLoopFilter->getNumLCUInPicHeight(), m_pcAdaptiveLoopFilter->getNumCUsInPic());
-    alfParamSet->createALFParam();
-    m_pcAdaptiveLoopFilter->initALFEnc(false, true, 1, alfParamSet, alfCUCtrlParam);
-    m_pcAdaptiveLoopFilter->startALFEnc(pcPic, m_pcEntropyCoder);
-    
-
-#if ALF_CHROMA_LAMBDA 
-    m_pcAdaptiveLoopFilter->ALFProcess(alfParamSet, NULL, pcPic->getSlice(0)->getLambdaLuma(), pcPic->getSlice(0)->getLambdaChroma() );
-#else
-#if SAO_CHROMA_LAMBDA
-    m_pcAdaptiveLoopFilter->ALFProcess(alfParamSet, NULL, pcPic->getSlice(0)->getLambdaLuma());
-#else
-    m_pcAdaptiveLoopFilter->ALFProcess(alfParamSet, NULL, pcPic->getSlice(0)->getLambda());
-#endif
-#endif
-
-    m_pcAdaptiveLoopFilter->endALFEnc();
-
-    alfParamSet->releaseALFParam();
-    delete alfParamSet;
-    delete alfCUCtrlParam;
-#endif
     m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
     m_pcAdaptiveLoopFilter->destroyPicAlfInfo();
   }

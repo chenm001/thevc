@@ -71,8 +71,6 @@
 #define TILES_OR_ENTROPY_FIX             1  ///< I0113: tiles_or_entropy_coding_sync_idc parsing fix
 #define REMOVE_LASTTU_CBFDERIV           1  ///< I0152: CBF coding for last TU without derivation process 
 
-#define AHG6_ALF_OPTION2                 1  ///< I0157: AHG6 ALF baseline Option 2 RA- Variant 2
-
 #define SBH_THRESHOLD                    4  ///< I0156: value of the fixed SBH controlling threshold
   
 #define SEQUENCE_LEVEL_LOSSLESS           0  ///< H0530: used only for sequence or frame-level lossless coding
@@ -350,18 +348,8 @@ struct ALFParam
   Int *filterPattern;
   Int startSecondFilter;
   Int filters_per_group;
-#if !AHG6_ALF_OPTION2
-  Int predMethod;
-  Int *nbSPred;
-#endif
   Int **coeffmulti;
-#if !AHG6_ALF_OPTION2
-  Int minKStart;
-#endif
   Int componentID;
-#if !AHG6_ALF_OPTION2
-  Int* kMinTab;
-#endif
   //constructor, operator
   ALFParam():componentID(-1){}
   ALFParam(Int cID){create(cID);}
@@ -373,40 +361,6 @@ private:
   Void destroy();
   Void copy(const ALFParam& src);
 };
-#if !AHG6_ALF_OPTION2
-struct AlfUnitParam
-{
-  Int   mergeType;
-  Bool  isEnabled;
-  Bool  isNewFilt;
-  Int   storedFiltIdx;
-  ALFParam* alfFiltParam;
-  //constructor, operator 
-  AlfUnitParam();
-  AlfUnitParam(const AlfUnitParam& src){ *this = src;}
-  const AlfUnitParam& operator= (const AlfUnitParam& src);
-  Bool operator == (const AlfUnitParam& cmp);
-};
-
-struct AlfParamSet
-{
-  Bool isEnabled[3];
-  Bool isUniParam[3];
-  Int  numLCUInWidth;
-  Int  numLCUInHeight;
-  Int  numLCU;
-  AlfUnitParam* alfUnitParam[3];
-  //constructor, operator 
-  AlfParamSet(){create();}
-  ~AlfParamSet(){destroy();}
-  Void create(Int width =0, Int height=0, Int num=0);
-  Void init();
-  Void releaseALFParam();
-  Void createALFParam();
-private:
-  Void destroy();
-};
-#endif
 
 /// parameters for deblocking filter
 typedef struct _LFCUParam

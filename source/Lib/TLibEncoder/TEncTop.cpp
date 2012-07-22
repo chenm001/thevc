@@ -113,12 +113,8 @@ Void TEncTop::create ()
   
   if(m_bUseALF)
   {
-#if AHG6_ALF_OPTION2
     m_cAdaptiveLoopFilter.setALFLowLatencyEncoding( m_alfLowLatencyEncoding );
     m_cAdaptiveLoopFilter.setGOPSize( getGOPSize() );
-#else
-    m_cAdaptiveLoopFilter.setAlfCoefInSlice(m_bALFParamInSlice);
-#endif
     m_cAdaptiveLoopFilter.createAlfGlobalBuffers();
   }
 
@@ -328,14 +324,6 @@ Void TEncTop::init()
   // initialize encoder search class
   m_cSearch.init( this, &m_cTrQuant, m_iSearchRange, m_bipredSearchRange, m_iFastSearch, 0, &m_cEntropyCoder, &m_cRdCost, getRDSbacCoder(), getRDGoOnSbacCoder() );
 
-#if !AHG6_ALF_OPTION2
-  if(m_bUseALF)
-  {
-    m_cAdaptiveLoopFilter.setALFEncodePassReduction( m_iALFEncodePassReduction );
-    m_cAdaptiveLoopFilter.setALFMaxNumberFilters( m_iALFMaxNumberFilters );
-    m_cAdaptiveLoopFilter.initPicQuadTreePartition(m_bALFPicBasedEncode );   
-  }
-#endif
   m_iMaxRefPicNum = 0;
 }
 
@@ -478,12 +466,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setPCMLog2MaxSize( m_pcmLog2MaxSize  );
 
   m_cSPS.setUseALF        ( m_bUseALF           );
-#if !AHG6_ALF_OPTION2
-  if(m_bUseALF)
-  {
-    m_cSPS.setUseALFCoefInSlice(m_bALFParamInSlice);
-  }
-#endif  
   m_cSPS.setQuadtreeTULog2MaxSize( m_uiQuadtreeTULog2MaxSize );
   m_cSPS.setQuadtreeTULog2MinSize( m_uiQuadtreeTULog2MinSize );
   m_cSPS.setQuadtreeTUMaxDepthInter( m_uiQuadtreeTUMaxDepthInter    );

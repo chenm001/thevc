@@ -89,11 +89,7 @@ public:
   Void  parseAPS                  ( TComAPS* pAPS          ) {}
   void parseSEI(SEImessages&) {}
 
-#if AHG6_ALF_OPTION2
   Void  parseSliceHeader          ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager) {}
-#else
-  Void  parseSliceHeader          ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl, AlfParamSet& alfParamSet) {}
-#endif
   Void  parseTerminatingBit       ( UInt& ruiBit );
   Void  parseMVPIdx               ( Int& riMVPIdx          );
   Void  parseSaoMaxUvlc           ( UInt& val, UInt maxSymbol );
@@ -115,11 +111,7 @@ private:
   Int           m_iSliceGranularity; //!< slice granularity
 
 public:
-#if AHG6_ALF_OPTION2
   Void parseAlfCtrlFlag   (Int compIdx, UInt& code);
-#else
-  Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag );
-#endif
   /// set slice granularity
   Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
 

@@ -1600,7 +1600,6 @@ Void TDecSbac::parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, T
     }
   }
 }
-#if AHG6_ALF_OPTION2
 Void TDecSbac::parseAlfCtrlFlag (Int compIdx, UInt& code)
 {
   UInt decodedSymbol;
@@ -1615,7 +1614,6 @@ Void TDecSbac::parseAlfCtrlFlag (Int compIdx, UInt& code)
   DTRACE_CABAC_V( compIdx )
   DTRACE_CABAC_T( "\n" )
 }
-#endif
 
 /**
  - Initialize our contexts from the nominated source.

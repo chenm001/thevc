@@ -162,13 +162,7 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseASR                       ( m_bUseASR      );
   m_cTEncTop.setUseHADME                     ( m_bUseHADME    );
   m_cTEncTop.setUseALF                       ( m_bUseALF      );
-#if !AHG6_ALF_OPTION2
-  m_cTEncTop.setALFEncodePassReduction       ( m_iALFEncodePassReduction );
-#endif
   m_cTEncTop.setUseLossless                  ( m_useLossless );
-#if !AHG6_ALF_OPTION2
-  m_cTEncTop.setALFMaxNumberFilters          ( m_iALFMaxNumberFilters ) ;
-#endif
   m_cTEncTop.setUseLComb                     ( m_bUseLComb    );
   m_cTEncTop.setdQPs                         ( m_aidQP        );
   m_cTEncTop.setUseRDOQ                      ( m_bUseRDOQ     );
@@ -281,17 +275,7 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseScalingListId           ( m_useScalingListId  );
   m_cTEncTop.setScalingListFile            ( m_scalingListFile   );
   m_cTEncTop.setSignHideFlag(m_signHideFlag);
-#if AHG6_ALF_OPTION2
   m_cTEncTop.setALFLowLatencyEncoding( m_alfLowLatencyEncoding );
-#else
-  if(uiTilesCount > 1)
-  {
-    m_bALFParamInSlice = false;
-    m_bALFPicBasedEncode = true;
-  }
-  m_cTEncTop.setALFParamInSlice              ( m_bALFParamInSlice);
-  m_cTEncTop.setALFPicBasedEncode            ( m_bALFPicBasedEncode);
-#endif
   m_cTEncTop.setUseRateCtrl     ( m_enableRateCtrl);
   m_cTEncTop.setTargetBitrate   ( m_targetBitrate);
   m_cTEncTop.setNumLCUInUnit    ( m_numLCUInUnit);

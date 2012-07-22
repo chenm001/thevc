@@ -77,12 +77,6 @@ public:
   Void  determineCabacInitIdx  ();
   Void  setBitstream           ( TComBitIf* p )  { m_pcBitIf = p; m_pcBinIf->init( p ); }
   Void  setSlice               ( TComSlice* p )  { m_pcSlice = p;                       }
-#if !AHG6_ALF_OPTION2
-  Bool  getAlfCtrl             ()                         { return m_bAlfCtrl;          }
-  UInt  getMaxAlfCtrlDepth     ()                         { return m_uiMaxAlfCtrlDepth; }
-  Void  setAlfCtrl             ( Bool bAlfCtrl          ) { m_bAlfCtrl          = bAlfCtrl;          }
-  Void  setMaxAlfCtrlDepth     ( UInt uiMaxAlfCtrlDepth ) { m_uiMaxAlfCtrlDepth = uiMaxAlfCtrlDepth; }
-#endif  
   // SBAC RD
   Void  resetCoeffCost         ()                { m_uiCoeffCost = 0;  }
   UInt  getCoeffCost           ()                { return  m_uiCoeffCost;  }
@@ -110,19 +104,8 @@ public:
   Void  codeSliceFinish         ();
   Void  codeFlush               ();
   Void  encodeStart             ();
-#if AHG6_ALF_OPTION2
   Void codeAlfParam(ALFParam* alfParam){printf("Not supported\n"); assert(0); exit(1);}
   Void codeAlfCtrlFlag( Int compIdx, UInt code );
-#else
-  Void  codeAlfFlag       ( UInt uiCode );
-  Void  codeAlfUvlc       ( UInt uiCode );
-  Void  codeAlfSvlc       ( Int  uiCode );
-  Void  codeAlfCtrlDepth  ();
-  Void codeAPSAlflag(UInt uiCode) {assert (0);  return;}
-  Void codeAlfFixedLengthIdx( UInt idx, UInt maxValue){ assert (0);  return;}
-
-  Void codeAlfCtrlFlag       ( UInt uiSymbol );
-#endif
   Void  codeApsExtensionFlag () { assert (0); return; };
   Void  codeSaoMaxUvlc    ( UInt code, UInt maxSymbol );
   Void  codeSaoMergeLeft  ( UInt  uiCode, UInt uiCompIdx );
@@ -151,16 +134,9 @@ protected:
   TComBitIf*    m_pcBitIf;
   TComSlice*    m_pcSlice;
   TEncBinIf*    m_pcBinIf;
-#if !AHG6_ALF_OPTION2
-  Bool          m_bAlfCtrl;
-#endif  
   //SBAC RD
   UInt          m_uiCoeffCost;
 
-#if !AHG6_ALF_OPTION2
-  // Adaptive loop filter
-  UInt          m_uiMaxAlfCtrlDepth;
-#endif
   Int           m_iSliceGranularity; //!< slice granularity
   //--Adaptive loop filter
   
@@ -171,9 +147,6 @@ public:
 
   /// get slice granularity
   Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
-#if !AHG6_ALF_OPTION2
-  Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx );
-#endif
   Void codeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );

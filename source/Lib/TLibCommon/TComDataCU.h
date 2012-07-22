@@ -186,12 +186,7 @@ private:
   UChar*        m_puhInterDir;        ///< array of inter directions
   Char*         m_apiMVPIdx[2];       ///< array of motion vector predictor candidates
   Char*         m_apiMVPNum[2];       ///< array of number of possible motion vectors predictors
-#if AHG6_ALF_OPTION2
   Bool          m_lcuAlfEnabled[3];
-#else
-  Bool*         m_puiAlfCtrlFlag;     ///< array of ALF flags
-  Bool*         m_puiTmpAlfCtrlFlag;  ///< temporal array of ALF flags
-#endif
   Bool*         m_pbIPCMFlag;         ///< array of intra_pcm flags
 
   Int           m_numSucIPCM;         ///< the number of succesive IPCM blocks associated with the current log2CUSize
@@ -396,20 +391,8 @@ public:
   UChar         getInterDir           ( UInt uiIdx )            { return m_puhInterDir[uiIdx];        }
   Void          setInterDir           ( UInt uiIdx, UChar  uh ) { m_puhInterDir[uiIdx] = uh;          }
   Void          setInterDirSubParts   ( UInt uiDir,  UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
-#if AHG6_ALF_OPTION2
   Bool          getAlfLCUEnabled      (Int compIdx)             {return m_lcuAlfEnabled[compIdx];     }
   Void          setAlfLCUEnabled      (Bool b, Int compIdx)     {m_lcuAlfEnabled[compIdx] = b;        }
-#else  
-  Bool*         getAlfCtrlFlag        ()                        { return m_puiAlfCtrlFlag;            }
-  Bool          getAlfCtrlFlag        ( UInt uiIdx )            { return m_puiAlfCtrlFlag[uiIdx];     }
-  Void          setAlfCtrlFlag        ( UInt uiIdx, Bool uiFlag){ m_puiAlfCtrlFlag[uiIdx] = uiFlag;   }
-  Void          setAlfCtrlFlagSubParts( Bool uiFlag, UInt uiAbsPartIdx, UInt uiDepth );
-  
-  Void          createTmpAlfCtrlFlag  ();
-  Void          destroyTmpAlfCtrlFlag ();
-  Void          copyAlfCtrlFlagToTmp  ();
-  Void          copyAlfCtrlFlagFromTmp();
-#endif
   Bool*         getIPCMFlag           ()                        { return m_pbIPCMFlag;               }
   Bool          getIPCMFlag           (UInt uiIdx )             { return m_pbIPCMFlag[uiIdx];        }
   Void          setIPCMFlag           (UInt uiIdx, Bool b )     { m_pbIPCMFlag[uiIdx] = b;           }

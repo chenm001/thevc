@@ -79,9 +79,6 @@ Void TDecGop::create()
 
 Void TDecGop::destroy()
 {
-#if !AHG6_ALF_OPTION2
-  m_alfParamSetPilot.releaseALFParam();
-#endif
 }
 
 Void TDecGop::init( TDecEntropy*            pcEntropyDecoder, 
@@ -108,81 +105,6 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
 // ====================================================================================================================
 // Private member functions
 // ====================================================================================================================
-#if !AHG6_ALF_OPTION2
-Void TDecGop::patchAlfLCUParams(ALFParam*** alfLCUParam, AlfParamSet* alfParamSet, Int firstLCUAddr)
-{
-  Int numLCUInWidth = alfParamSet->numLCUInWidth;
-  Int numLCU        = alfParamSet->numLCU;
-
-  Int rx, ry, pos, posUp;
-  std::vector<ALFParam*> storedFilters[NUM_ALF_COMPONENT];
-  storedFilters[ALF_Y].clear();
-  storedFilters[ALF_Cb].clear();
-  storedFilters[ALF_Cr].clear();
-
-  for(Int i=0; i< numLCU; i++)
-  {
-    rx     = (i+ firstLCUAddr)% numLCUInWidth;
-    ry     = (i+ firstLCUAddr)/ numLCUInWidth;
-    pos    = (ry*numLCUInWidth) + rx;
-    posUp  = pos-numLCUInWidth;
-
-    for(Int compIdx =0; compIdx < NUM_ALF_COMPONENT; compIdx++)
-    {
-      AlfUnitParam& alfUnitParam = alfParamSet->alfUnitParam[compIdx][i];
-      ALFParam&     alfFiltParam = *(alfLCUParam[compIdx][pos]);
-
-      switch( alfUnitParam.mergeType )
-      {
-      case ALF_MERGE_DISABLED:
-        {
-          if(alfUnitParam.isEnabled)
-          {
-            if(alfUnitParam.isNewFilt)
-            {
-              alfFiltParam = *alfUnitParam.alfFiltParam;
-              storedFilters[compIdx].push_back( &alfFiltParam );
-            }
-            else //stored filter
-            {
-              alfFiltParam = *(storedFilters[compIdx][alfUnitParam.storedFiltIdx]);
-              assert(alfFiltParam.alf_flag == 1);
-            }
-          }
-          else
-          {
-            alfFiltParam.alf_flag = 0;
-          }
-        }
-        break;
-      case ALF_MERGE_UP:
-        {
-          assert(posUp >= 0);
-          alfFiltParam = *(alfLCUParam[compIdx][posUp]);
-        }
-        break;
-      case ALF_MERGE_LEFT:
-        {
-          assert(pos-1 >= 0);
-          alfFiltParam = *(alfLCUParam[compIdx][pos-1]);
-        }
-        break;
-      case ALF_MERGE_FIRST:
-        {
-          alfFiltParam = *(alfLCUParam[compIdx][firstLCUAddr]);
-        }
-        break;
-      default:
-        {
-          printf("not a supported ALF merge type\n");
-          assert(0);
-          exit(-1);
-        }
-      }
-    } //compIdx
-  } //i (LCU)
-}
-#endif
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
@@ -263,27 +185,10 @@ Void TDecGop::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPic)
 #endif
     if(pcSlice->getSPS()->getUseALF())
     {
-#if AHG6_ALF_OPTION2
       for(Int compIdx=0; compIdx < 3; compIdx++)
       {
         m_sliceAlfEnabled[compIdx].push_back(  pcSlice->getAlfEnabledFlag(compIdx) );
       }
-#else
-      if(pcSlice->getAlfEnabledFlag())
-      {
-        if(pcSlice->getSPS()->getUseALFCoefInSlice())
-        {
-          Int numSUinLCU    = 1<< (g_uiMaxCUDepth << 1); 
-          Int firstLCUAddr   = pcSlice->getSliceCurStartCUAddr() / numSUinLCU;  
-          patchAlfLCUParams(m_pcAdaptiveLoopFilter->getAlfLCUParam(), &m_alfParamSetPilot, firstLCUAddr);
-        }
-
-        if( !pcSlice->getSPS()->getUseALFCoefInSlice())
-        {
-          m_vAlfCUCtrlSlices.push_back(m_cAlfCUCtrlOneSlice);
-        }
-      }
-#endif
     }
   }
 #if DEPENDENT_SLICES
@@ -393,26 +298,10 @@ Void TDecGop::filterPicture(TComPic*& rpcPic)
   // adaptive loop filter
   if( pcSlice->getSPS()->getUseALF() )
   {
-#if AHG6_ALF_OPTION2
     m_pcAdaptiveLoopFilter->createPicAlfInfo(rpcPic, (Int) m_sliceStartCUAddress.size()-1);
     m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, pcSlice->getAPS()->getAlfParam(), m_sliceAlfEnabled);
-#else
-    if( (pcSlice->getSPS()->getUseALFCoefInSlice())?(true):(pcSlice->getAlfEnabledFlag()))
-    {
-
-      if(!pcSlice->getSPS()->getUseALFCoefInSlice())
-      {
-        patchAlfLCUParams(m_pcAdaptiveLoopFilter->getAlfLCUParam(), pcSlice->getAPS()->getAlfParam());
-      }
-      m_pcAdaptiveLoopFilter->createPicAlfInfo(rpcPic, uiILSliceCount, pcSlice->getSliceQp());
-      m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, m_vAlfCUCtrlSlices, pcSlice->getSPS()->getUseALFCoefInSlice());
-#endif
       m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
       m_pcAdaptiveLoopFilter->destroyPicAlfInfo();
-#if !AHG6_ALF_OPTION2
-    }
-    m_pcAdaptiveLoopFilter->resetLCUAlfInfo(); //reset all LCU ALFParam->alf_flag = 0
-#endif
   }
 
   if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
@@ -462,14 +351,10 @@ Void TDecGop::filterPicture(TComPic*& rpcPic)
   rpcPic->setUsedForTMVP( true );
 #endif
   m_sliceStartCUAddress.clear();
-#if AHG6_ALF_OPTION2
   for(Int compIdx=0; compIdx < 3; compIdx++)
   {
     m_sliceAlfEnabled[compIdx].clear();
   }
-#else
-  m_vAlfCUCtrlSlices.clear();
-#endif
 #if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
   m_LFCrossSliceBoundaryFlag.clear();
 #endif

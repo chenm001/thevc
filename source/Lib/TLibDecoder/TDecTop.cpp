@@ -336,12 +336,7 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   m_apcSlicePilot->setReferenced(nalu.m_nalRefFlag);
   m_apcSlicePilot->setTLayerInfo(nalu.m_temporalId);
 
-#if AHG6_ALF_OPTION2
   m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot, &m_parameterSetManagerDecoder);
-#else
-  // ALF CU parameters should be part of the slice header -> needs to be fixed 
-  m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot, &m_parameterSetManagerDecoder, m_cGopDecoder.getAlfCuCtrlParam(), m_cGopDecoder.getAlfParamSet());
-#endif
 #if !BYTE_ALIGNMENT
   // byte align
   {

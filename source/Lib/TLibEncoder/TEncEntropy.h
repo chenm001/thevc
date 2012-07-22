@@ -59,12 +59,6 @@ class SEI;
 class TEncEntropyIf
 {
 public:
-#if !AHG6_ALF_OPTION2
-  virtual Bool getAlfCtrl()                = 0;
-  virtual UInt getMaxAlfCtrlDepth()                = 0;
-  virtual Void setAlfCtrl(Bool bAlfCtrl)                = 0;
-  virtual Void setMaxAlfCtrlDepth(UInt uiMaxAlfCtrlDepth)                = 0;
-#endif  
   virtual Void  resetEntropy          ()                = 0;
   virtual Void  determineCabacInitIdx ()                = 0;
   virtual Void  setBitstream          ( TComBitIf* p )  = 0;
@@ -90,18 +84,11 @@ public:
   virtual Void  codeSliceFinish         ()                                                      = 0;
   virtual Void  codeFlush               ()                                                      = 0;
   virtual Void  encodeStart             ()                                                      = 0;
-#if !AHG6_ALF_OPTION2
-  virtual Void codeAlfCtrlDepth() = 0;
-#endif
   virtual Void codeMVPIdx ( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList ) = 0;
   virtual Void codeScalingList   ( TComScalingList* scalingList )      = 0;
   
 public:
-#if AHG6_ALF_OPTION2
   virtual Void codeAlfCtrlFlag   ( Int compIdx, UInt code ) = 0;
-#else
-  virtual Void codeAlfCtrlFlag   ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
-#endif
   virtual Void codeApsExtensionFlag () = 0;
   
   virtual Void codeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
@@ -127,23 +114,12 @@ public:
   virtual Void codeDeltaQP       ( TComDataCU* pcCU, UInt uiAbsPartIdx ) = 0;
   virtual Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType ) = 0;
   virtual Void codeTransformSkipFlags ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType ) = 0;
-#if AHG6_ALF_OPTION2  
   virtual Void codeAlfParam      (ALFParam* alfParam) = 0;
-#else
-  virtual Void codeAlfFlag          ( UInt uiCode ) = 0;
-  virtual Void codeAlfUvlc          ( UInt uiCode ) = 0;
-  virtual Void codeAlfSvlc          ( Int   iCode ) = 0;
-  virtual Void codeAlfFixedLengthIdx( UInt idx, UInt numFilterSetsInBuffer) = 0;
-  virtual Void codeAPSAlflag(UInt uiCode) = 0;
-#endif
   /// set slice granularity
   virtual Void setSliceGranularity(Int iSliceGranularity) = 0;
 
   /// get slice granularity
   virtual Int  getSliceGranularity()                      = 0;
-#if !AHG6_ALF_OPTION2
-  virtual Void codeAlfCtrlFlag      ( UInt uiSymbol ) = 0;
-#endif
   virtual Void codeSAOSign          ( UInt code   ) = 0;
   virtual Void codeSaoMaxUvlc       ( UInt code, UInt maxSymbol ) = 0;
   virtual Void codeSaoMergeLeft    ( UInt   uiCode, UInt uiCompIdx  ) = 0;
@@ -195,19 +171,7 @@ public:
   Void    encodeSliceFinish         ();
   Void    encodeFlush               ();
   Void    encodeStart               ();
-#if AHG6_ALF_OPTION2
   Void encodeAlfParam(ALFParam* alfParam) {m_pcEntropyCoderIf->codeAlfParam(alfParam);}
-#else
-  Void encodeAlfFlag(UInt code) {m_pcEntropyCoderIf->codeAlfFlag(code);}
-  Void encodeAlfStoredFilterSetIdx(UInt idx, UInt numFilterSetsInBuffer);
-  Void encodeAlfFixedLengthRun(UInt run, UInt rx, UInt numLCUInWidth);
-  Void encodeAlfParam(AlfParamSet* pAlfParamSet, Bool bSentInAPS = true, Int firstLCUAddr = 0, Bool alfAcrossSlice= true);
-  Void encodeAlfParamSet(AlfParamSet* pAlfParamSet, Int numLCUInWidth, Int numLCU, Int firstLCUAddr, Bool alfAcrossSlice, Int startCompIdx, Int endCompIdx);
-  Bool getAlfRepeatRowFlag(Int compIdx, AlfParamSet* pAlfParamSet, Int lcuIdx, Int lcuPos, Int startlcuPosX, Int endlcuPosX, Int numLCUInWidth);
-  Int  getAlfRun(Int compIdx, AlfParamSet* pAlfParamSet, Int lcuIdxInSlice, Int lcuPos, Int startlcuPosX, Int endlcuPosX);
-  Void encodeAPSAlfFlag(UInt code) {m_pcEntropyCoderIf->codeAPSAlflag(code);}
-  Void encodeAlfParam(ALFParam* pAlfParam);
-#endif
   TEncEntropyIf*      m_pcEntropyCoderIf;
   
 public:
@@ -218,12 +182,6 @@ public:
   Void encodeSPS               ( TComSPS* pcSPS );
   Void encodePPS               ( TComPPS* pcPPS );
   void encodeSEI(const SEI&);
-#if !AHG6_ALF_OPTION2
-  Bool getAlfCtrl() {return m_pcEntropyCoderIf->getAlfCtrl();}
-  UInt getMaxAlfCtrlDepth() {return m_pcEntropyCoderIf->getMaxAlfCtrlDepth();}
-  Void setAlfCtrl(Bool bAlfCtrl) {m_pcEntropyCoderIf->setAlfCtrl(bAlfCtrl);}
-  Void setMaxAlfCtrlDepth(UInt uiMaxAlfCtrlDepth) {m_pcEntropyCoderIf->setMaxAlfCtrlDepth(uiMaxAlfCtrlDepth);}
-#endif  
   Void encodeSplitFlag         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD = false );
   Void encodeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   Void encodeSkipFlag          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
@@ -234,22 +192,11 @@ public:
   Void encodeMVPIdxPU     ( TComDataCU* pcSubCU, UInt uiAbsPartIdx, RefPicList eRefList );
   Void encodeMergeFlag    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPUIdx );
   Void encodeMergeIndex   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPUIdx, Bool bRD = false );
-#if !AHG6_ALF_OPTION2
-  Void encodeAlfCtrlFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
-#endif
   /// set slice granularity
   Void setSliceGranularity (Int iSliceGranularity) {m_pcEntropyCoderIf->setSliceGranularity(iSliceGranularity);}
-#if AHG6_ALF_OPTION2
   /// encode ALF LCU control flag
   Void encodeAlfCtrlFlag( Int compIdx, UInt code ) {m_pcEntropyCoderIf->codeAlfCtrlFlag(compIdx, code);}
-#else
-  /// encode ALF CU control flag
-  Void encodeAlfCtrlFlag(UInt uiFlag);
-#endif  
   Void encodeApsExtensionFlag() {m_pcEntropyCoderIf->codeApsExtensionFlag();};
-#if !AHG6_ALF_OPTION2
-  Void encodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
-#endif
   Void encodePredMode          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
   Void encodePartSize          ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, Bool bRD = false );
   Void encodeIPCMInfo          ( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD = false );
@@ -287,19 +234,6 @@ public:
   Void encodeCoeffNxN         ( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPartIdx, UInt uiTrWidth, UInt uiTrHeight, UInt uiDepth, TextType eType );
   
   Void estimateBit             ( estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType);
-#if !AHG6_ALF_OPTION2
-  // ALF-related
-  Void codeAuxCountBit(ALFParam* pAlfParam, Int64* ruiRate);
-  Void codeFiltCountBit(ALFParam* pAlfParam, Int64* ruiRate);
-  Void codeAux (ALFParam* pAlfParam);
-  Void codeFilt (ALFParam* pAlfParam);
-  Int codeFilterCoeff(ALFParam* ALFp);
-  Int writeFilterCodingParams(int minKStart, int minScanVal, int maxScanVal, int kMinTab[]);
-  Int writeFilterCoeffs(int sqrFiltLength, int filters_per_group, int pDepthInt[], 
-                        int **FilterCoeff, int kMinTab[]);
-  Int golombEncode(int coeff, int k);
-  Int lengthGolomb(int coeffVal, int k);
-#endif
   Void    encodeSaoOffset(SaoLcuParam* saoLcuParam);
   Void    encodeSaoUnitInterleaving(Int compIdx, Bool saoFlag, Int rx, Int ry, SaoLcuParam* saoLcuParam, Int cuAddrInSlice, Int cuAddrUpInSlice, Int allowMergeLeft, Int allowMergeUp);
   static Int countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize );

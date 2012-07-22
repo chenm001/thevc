@@ -749,11 +749,6 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
     }
   }
 #endif
-#if !AHG6_ALF_OPTION2
-  // initialize ALF parameters
-  m_pcEntropyCoder->setAlfCtrl(false);
-  m_pcEntropyCoder->setMaxAlfCtrlDepth(0); //unnecessary
-#endif  
   TEncTop* pcEncTop = (TEncTop*) m_pcCfg;
   TEncSbac**** ppppcRDSbacCoders    = pcEncTop->getRDSbacCoders();
   TComBitCounter* pcBitCounters     = pcEncTop->getBitCounters();
@@ -1329,7 +1324,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceEnable;
 #endif
-#if AHG6_ALF_OPTION2
     if( pcSlice->getSPS()->getUseALF())
     {
       for(Int compIdx=0; compIdx< 3; compIdx++)
@@ -1340,7 +1334,6 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         }
       }
     }
-#endif
     if ( (m_pcCfg->getSliceMode()!=0 || m_pcCfg->getDependentSliceMode()!=0) && 
       uiCUAddr == rpcPic->getPicSym()->getCUOrderMap((uiBoundingCUAddr+rpcPic->getNumPartInCU()-1)/rpcPic->getNumPartInCU()-1) )
     {

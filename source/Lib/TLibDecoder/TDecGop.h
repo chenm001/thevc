@@ -90,21 +90,12 @@ private:
   bool m_pictureDigestEnabled; ///< if true, handle picture_digest SEI messages
 #endif
 
-#if !AHG6_ALF_OPTION2
-  AlfCUCtrlInfo       m_cAlfCUCtrlOneSlice;
-  AlfParamSet           m_alfParamSetPilot;
-#endif
-
   //! list that contains the CU address of each slice plus the end address 
   std::vector<Int> m_sliceStartCUAddress;
 #if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
   std::vector<Bool> m_LFCrossSliceBoundaryFlag;
 #endif
-#if AHG6_ALF_OPTION2
   std::vector<Bool> m_sliceAlfEnabled[3];
-#else
-  std::vector<AlfCUCtrlInfo> m_vAlfCUCtrlSlices;
-#endif
 
 
 public:
@@ -131,13 +122,6 @@ public:
   void setPictureDigestEnabled(Int enabled) { m_pictureDigestEnabled = enabled; }
 #else
   void setPictureDigestEnabled(bool enabled) { m_pictureDigestEnabled = enabled; }
-#endif
-#if !AHG6_ALF_OPTION2
-  AlfCUCtrlInfo& getAlfCuCtrlParam() { return m_cAlfCUCtrlOneSlice; }
-  AlfParamSet& getAlfParamSet() {return m_alfParamSetPilot;}
-
-private:
-  Void patchAlfLCUParams(ALFParam*** alfLCUParam, AlfParamSet* alfParamSet, Int firstLCUAddr = 0);
 #endif
 
 };

@@ -47,24 +47,8 @@
 // ====================================================================================================================
 // Constants
 // ====================================================================================================================
-#if AHG6_ALF_OPTION2
 #define ALF_MAX_NUM_COEF     10    //!< maximum number of filter coefficients
 #define ALF_NUM_BIT_SHIFT     8    ///< bit shift parameter for quantization of ALF param.
-#else
-  #define LCUALF_QP_DEPENDENT_BITS    1  
-
-#define ALF_FILTER_LEN       10
-#define ALF_MAX_NUM_COEF     ALF_FILTER_LEN    //!< maximum number of filter coefficients
-#define MAX_SQR_FILT_LENGTH   41                                      //!< ((max_horizontal_tap * max_vertical_tap) / 2 + 1) = ((11 * 5) / 2 + 1)
-
-#if LCUALF_QP_DEPENDENT_BITS
-#define ALF_QP1               28 
-#define ALF_QP2               34 
-#define ALF_QP3               39 
-#else
-#define ALF_NUM_BIT_SHIFT     8                                       ///< bit shift parameter for quantization of ALF param.
-#endif
-#endif
 
 #define VAR_SIZE_H            4
 #define VAR_SIZE_W            4
@@ -83,17 +67,6 @@ enum ALFComponentID
   ALF_Cr,
   NUM_ALF_COMPONENT
 };
-#if !AHG6_ALF_OPTION2
-/// ALF LCU merge type
-enum ALFLCUMergeType
-{
-  ALF_MERGE_DISABLED = 0,
-  ALF_MERGE_UP,
-  ALF_MERGE_LEFT,
-  ALF_MERGE_FIRST,
-  NUM_ALF_MERGE_TYPE
-};
-#endif
 ///
 /// Filter shape
 ///
@@ -110,20 +83,6 @@ extern Int *pDepthIntTabShapes[NUM_ALF_FILTER_SHAPE];
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
-#if !AHG6_ALF_OPTION2
-/// ALF CU control parameters
-struct AlfCUCtrlInfo
-{
-  Int  cu_control_flag;                    //!< slice-level ALF CU control enabled/disabled flag 
-  UInt num_alf_cu_flag;                    //!< number of ALF CU control flags
-  UInt alf_max_depth;                      //!< ALF CU control depth
-  std::vector<UInt> alf_cu_flag;           //!< ALF CU control flags (container)
-
-  const AlfCUCtrlInfo& operator= (const AlfCUCtrlInfo& src);  //!< "=" operator
-  AlfCUCtrlInfo():cu_control_flag(0), num_alf_cu_flag(0), alf_max_depth(0) {} //!< constructor
-  Void reset();
-};
-#endif
 
 ///
 /// LCU-based ALF processing info
@@ -154,10 +113,6 @@ protected: //protected member variables
 
   // filter shape information
   static Int weightsShape1Sym[ALF_MAX_NUM_COEF+1];
-#if !AHG6_ALF_OPTION2
-  static Int *weightsTabShapes[NUM_ALF_FILTER_SHAPE];
-  static Int m_sqrFiltLengthTab[NUM_ALF_FILTER_SHAPE];
-#endif
   // temporary buffer
   TComPicYuv*   m_pcTempPicYuv;                          ///< temporary picture buffer for ALF processing
   TComPicYuv* m_pcSliceYuvTmp;    //!< temporary picture buffer pointer when non-across slice boundary ALF is enabled
@@ -177,10 +132,8 @@ protected: //protected member variables
   UInt  m_uiNumSlicesInPic;      //!< number of slices in picture
   Int   m_iSGDepth;              //!< slice granularity depth
   UInt  m_uiNumCUsInFrame;
-#if AHG6_ALF_OPTION2
   Int m_lcuWidth;
   Int m_lcuWidthChroma;
-#endif
   Int m_lcuHeight;
   Int m_lineIdxPadBot;
   Int m_lineIdxPadTop;
@@ -194,63 +147,24 @@ protected: //protected member variables
   AlfLCUInfo** m_ppSliceAlfLCUs;
   std::vector< AlfLCUInfo* > *m_pvpAlfLCU;
   std::vector< std::vector< AlfLCUInfo* > > *m_pvpSliceTileAlfLCU;
-#if !AHG6_ALF_OPTION2
-  Int m_suWidth;
-  Int m_suHeight;
-#endif
   Int m_numLCUInPicWidth;
   Int m_numLCUInPicHeight;
-#if !AHG6_ALF_OPTION2
-  ALFParam** m_alfFiltInfo[NUM_ALF_COMPONENT];
-  Bool m_isNonCrossSlice;
-  Int m_alfQP;
-#endif
 private: //private member variables
 
 
 protected: //protected methods
-#if !AHG6_ALF_OPTION2
-  Void createLCUAlfInfo();
-  Void destroyLCUAlfInfo();
-#endif
   Pel* getPicBuf(TComPicYuv* pPicYuv, Int compIdx);
-#if AHG6_ALF_OPTION2
   Void recALF(Int compIdx, std::vector<Bool>& sliceAlfEnabled, ALFParam* alfParam, Pel* pDec, Pel* pRest, Int stride, Int formatShift);
-#else
-  Void predictALFCoeffChroma(Int* coeff, Int numCoef= ALF_MAX_NUM_COEF);
-  Void assignAlfOnOffControlFlags(TComPic* pcPic, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam);
-  Void recALF(Int compIdx, ALFParam** alfLCUParams, Pel* pDec, Pel* pRest, Int stride, Int formatShift, std::vector<AlfCUCtrlInfo>* alfCUCtrlParam, Bool caculateBAIdx);
-#endif
   Void reconstructCoefInfo(Int compIdx, ALFParam* alfLCUParam, Int** filterCoeff, Int* varIndTab= NULL);
-#if AHG6_ALF_OPTION2
   Void reconstructCoefficients(ALFParam* alfLCUParam, Int** filterCoeff);
   Void filterRegion(Int compIdx, Bool isSingleFilter, std::vector<AlfLCUInfo*>& regionLCUInfo, Pel* pDec, Pel* pRest, Int stride, Int formatShift);
-#else
-  Void reconstructLumaCoefficients(ALFParam* alfLCUParam, Int** filterCoeff);
-  Void reconstructChromaCoefficients(ALFParam* alfLCUParam, Int** filterCoeff);
-  Void filterRegion(Int compIdx, ALFParam** alfLCUParams, std::vector<AlfLCUInfo*>& regionLCUInfo, Pel* pDec, Pel* pRest, Int stride, Int formatShift, Bool caculateBAIdx);
-  Void filterRegionCUControl(ALFParam** alfLCUParams, std::vector<AlfLCUInfo*>& regionLCUInfo, Pel* pDec, Pel* pRest, Int stride, Bool caculateBAIdx);
-  Bool isEnabledComponent(ALFParam** alfLCUParam);
-  Int  getAlfPrecisionBit(Int qp);
-#endif
   Void filterOneCompRegion(Pel *imgRes, Pel *imgPad, Int stride, Bool isChroma, Int yPos, Int yPosEnd, Int xPos, Int xPosEnd, Int** filterSet, Int* mergeTable, Pel** varImg);  
-#if !AHG6_ALF_OPTION2
-  Void calcOneRegionVar(Pel **imgYvar, Pel *imgYpad, Int stride, Bool isOnlyOneGroup, Int yPos, Int yPosEnd, Int xPos, Int xPosEnd);
-#endif
 
   Void InitAlfLCUInfo(AlfLCUInfo& rAlfLCU, Int sliceID, Int tileID, TComDataCU* pcCU, UInt maxNumSUInLCU);
   Void checkFilterCoeffValue( Int *filter, Int filterLength, Bool isChroma );
-#if !AHG6_ALF_OPTION2
-  Void setAlfCtrlFlags(AlfCUCtrlInfo* pAlfParam, TComDataCU *pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt &idx);
-  Void transferCtrlFlagsFromAlfParam(std::vector<AlfCUCtrlInfo>& vAlfParamSlices); //!< Copy ALF CU control flags from ALF parameters for slices  
-  Void transferCtrlFlagsFromAlfParamOneSlice(std::vector<AlfLCUInfo*> &vpAlfLCU, Bool bCUCtrlEnabled, Int iAlfDepth, std::vector<UInt>& vCtrlFlags); //!< Copy ALF CU control flags from ALF parameter for one slice
-#endif
   Void extendBorderCoreFunction(Pel* pPel, Int stride, Bool* pbAvail, UInt width, UInt height, UInt extSize); //!< Extend slice boundary border  
   Void copyRegion(std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* pPicDst, Pel* pPicSrc, Int stride, Int formatShift = 0);
   Void extendRegionBorder(std::vector<AlfLCUInfo*> &vpAlfLCU, Pel* pPelSrc, Int stride, Int formatShift = 0);
-#if !AHG6_ALF_OPTION2
-  Int  getCtrlFlagsFromAlfParam(AlfLCUInfo* pcAlfLCU, Int iAlfDepth, UInt* puiFlags);
-#endif
   Void xPCMRestoration        (TComPic* pcPic);
   Void xPCMCURestoration      (TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth);
   Void xPCMSampleRestoration  (TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, TextType ttText);
@@ -263,43 +177,16 @@ public: //public methods, interface functions
   Void create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxCUWidth, UInt uiMaxCUHeight, UInt uiMaxCUDepth );
   Void destroy ();
 
-#if AHG6_ALF_OPTION2
   Void ALFProcess          (TComPic* pcPic, ALFParam** alfParam, std::vector<Bool>* sliceAlfEnabled);
-#else
-  Void ALFProcess          (TComPic* pcPic, std::vector<AlfCUCtrlInfo>& vAlfCUCtrlParam, Bool isAlfCoefInSlice);
-  Void resetLCUAlfInfo     ();
-#endif
   Int  getNumLCUInPicWidth ()  {return m_numLCUInPicWidth;}
   Int  getNumLCUInPicHeight() {return m_numLCUInPicHeight;}
 
-#if !AHG6_ALF_OPTION2
-  ALFParam*** getAlfLCUParam() {return m_alfFiltInfo;}
-#endif
   Int  getNumCUsInPic()  {return m_uiNumCUsInFrame;} //!< get number of LCU in picture for ALF process
-#if AHG6_ALF_OPTION2
   Void createPicAlfInfo (TComPic* pcPic, Int numSlicesInPic = 1);
-#else
-  Void createPicAlfInfo (TComPic* pcPic, Int uiNumSlicesInPic = 1, Int alfQP = 26);
-#endif
   Void destroyPicAlfInfo();
 
   Void PCMLFDisableProcess    ( TComPic* pcPic);                        ///< interface function for ALF process 
 
-#if !AHG6_ALF_OPTION2
-protected: //memory allocation
-  Void destroyMatrix_Pel(Pel **m2D);
-  Void destroyMatrix_int(int **m2D);
-  Void initMatrix_int(int ***m2D, int d1, int d2);
-  Void initMatrix_Pel(Pel ***m2D, int d1, int d2);
-  Void destroyMatrix4D_double(double ****m4D, int d1, int d2);
-  Void destroyMatrix3D_double(double ***m3D, int d1);
-  Void destroyMatrix_double(double **m2D);
-  Void initMatrix4D_double(double *****m4D, int d1, int d2, int d3, int d4);
-  Void initMatrix3D_double(double ****m3D, int d1, int d2, int d3);
-  Void initMatrix_double(double ***m2D, int d1, int d2);
-  Void no_mem_exit(const char *where);
-  Void xError(const char *text, int code);
-#endif
 };
 
 //! \}

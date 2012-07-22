@@ -53,13 +53,7 @@ TEncSbac::TEncSbac()
 : m_pcBitIf                   ( NULL )
 , m_pcSlice                   ( NULL )
 , m_pcBinIf                   ( NULL )
-#if !AHG6_ALF_OPTION2
-, m_bAlfCtrl                  ( false )
-#endif
 , m_uiCoeffCost               ( 0 )
-#if !AHG6_ALF_OPTION2
-, m_uiMaxAlfCtrlDepth         ( 0 )
-#endif
 , m_numContextModels          ( 0 )
 , m_cCUSplitFlagSCModel       ( 1,             1,               NUM_SPLIT_FLAG_CTX            , m_contextModels + m_numContextModels, m_numContextModels )
 , m_cCUSkipFlagSCModel        ( 1,             1,               NUM_SKIP_FLAG_CTX             , m_contextModels + m_numContextModels, m_numContextModels)
@@ -569,31 +563,6 @@ Void TEncSbac::codePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx )
   Int iPredMode = pcCU->getPredictionMode( uiAbsPartIdx );
   m_pcBinIf->encodeBin( iPredMode == MODE_INTER ? 0 : 1, m_cCUPredModeSCModel.get( 0, 0, 0 ) );
 }
-
-#if !AHG6_ALF_OPTION2
-Void TEncSbac::codeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  if (!m_bAlfCtrl)
-    return;
-  
-  if( pcCU->getDepth(uiAbsPartIdx) > m_uiMaxAlfCtrlDepth && !pcCU->isFirstAbsZorderIdxInDepth(uiAbsPartIdx, m_uiMaxAlfCtrlDepth))
-  {
-    return;
-  }
-  
-  const UInt uiSymbol = pcCU->getAlfCtrlFlag( uiAbsPartIdx ) ? 1 : 0;
-  m_pcBinIf->encodeBin( uiSymbol, *m_cCUAlfCtrlFlagSCModel.get( 0 ) );
-}
-
-Void TEncSbac::codeAlfCtrlDepth()
-{
-  if (!m_bAlfCtrl)
-    return;
-  
-  UInt uiDepth = m_uiMaxAlfCtrlDepth;
-  xWriteUnaryMaxSymbol(uiDepth, m_cALFUvlcSCModel.get(0), 1, g_uiMaxCUDepth-1);
-}
-#endif
 
 Void TEncSbac::codeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
@@ -1442,7 +1411,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 
   return;
 }
-#if AHG6_ALF_OPTION2
+
 Void TEncSbac::codeAlfCtrlFlag( Int compIdx, UInt code )
 {
   m_pcBinIf->encodeBin( code, m_cCUAlfCtrlFlagSCModel.get( 0, 0, 0) );
@@ -1455,69 +1424,6 @@ Void TEncSbac::codeAlfCtrlFlag( Int compIdx, UInt code )
   DTRACE_CABAC_V( compIdx )
   DTRACE_CABAC_T( "\n" )
 }
-#else
-Void TEncSbac::codeAlfFlag       ( UInt uiCode )
-{
-  UInt uiSymbol = ( ( uiCode == 0 ) ? 0 : 1 );
-  m_pcBinIf->encodeBin( uiSymbol, m_cALFFlagSCModel.get( 0, 0, 0 ) );
-}
-
-Void TEncSbac::codeAlfCtrlFlag( UInt uiSymbol )
-{
-  m_pcBinIf->encodeBin( uiSymbol, m_cCUAlfCtrlFlagSCModel.get( 0, 0, 0) );
-}
-
-Void TEncSbac::codeAlfUvlc       ( UInt uiCode )
-{
-  Int i;
-  
-  if ( uiCode == 0 )
-  {
-    m_pcBinIf->encodeBin( 0, m_cALFUvlcSCModel.get( 0, 0, 0 ) );
-  }
-  else
-  {
-    m_pcBinIf->encodeBin( 1, m_cALFUvlcSCModel.get( 0, 0, 0 ) );
-    for ( i=0; i<uiCode-1; i++ )
-    {
-      m_pcBinIf->encodeBin( 1, m_cALFUvlcSCModel.get( 0, 0, 1 ) );
-    }
-    m_pcBinIf->encodeBin( 0, m_cALFUvlcSCModel.get( 0, 0, 1 ) );
-  }
-}
-
-Void TEncSbac::codeAlfSvlc       ( Int iCode )
-{
-  Int i;
-  
-  if ( iCode == 0 )
-  {
-    m_pcBinIf->encodeBin( 0, m_cALFSvlcSCModel.get( 0, 0, 0 ) );
-  }
-  else
-  {
-    m_pcBinIf->encodeBin( 1, m_cALFSvlcSCModel.get( 0, 0, 0 ) );
-    
-    // write sign
-    if ( iCode > 0 )
-    {
-      m_pcBinIf->encodeBin( 0, m_cALFSvlcSCModel.get( 0, 0, 1 ) );
-    }
-    else
-    {
-      m_pcBinIf->encodeBin( 1, m_cALFSvlcSCModel.get( 0, 0, 1 ) );
-      iCode = -iCode;
-    }
-    
-    // write magnitude
-    for ( i=0; i<iCode-1; i++ )
-    {
-      m_pcBinIf->encodeBin( 1, m_cALFSvlcSCModel.get( 0, 0, 2 ) );
-    }
-    m_pcBinIf->encodeBin( 0, m_cALFSvlcSCModel.get( 0, 0, 2 ) );
-  }
-}
-#endif
 
 /** code SAO offset sign
  * \param code sign value
