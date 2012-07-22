@@ -1616,7 +1616,6 @@ Void TEncSbac::codeSaoUvlc       ( UInt uiCode )
   }
 }
 #endif
-#if SAO_TRUNCATED_U
 Void TEncSbac::codeSaoMaxUvlc    ( UInt code, UInt maxSymbol )
 {
   if (maxSymbol == 0)
@@ -1644,7 +1643,6 @@ Void TEncSbac::codeSaoMaxUvlc    ( UInt code, UInt maxSymbol )
     }
   }
 }
-#endif
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
 Void TEncSbac::codeSaoSvlc       ( Int iCode )
 {

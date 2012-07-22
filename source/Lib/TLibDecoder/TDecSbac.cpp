@@ -1431,7 +1431,6 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
 }
 
 
-#if SAO_TRUNCATED_U
 Void TDecSbac::parseSaoMaxUvlc ( UInt& val, UInt maxSymbol )
 {
   if (maxSymbol == 0)
@@ -1467,7 +1466,6 @@ Void TDecSbac::parseSaoMaxUvlc ( UInt& val, UInt maxSymbol )
 
   val = i;
 }
-#endif
 #if !SAO_CODE_CLEAN_UP
 Void TDecSbac::parseSaoUvlc (UInt& ruiVal)
 {
@@ -1627,12 +1625,10 @@ Void TDecSbac::parseSaoOffset(SaoLcuParam* psSaoLcuParam)
   if (uiSymbol)
   {
     psSaoLcuParam->length = iTypeLength[psSaoLcuParam->typeIdx];
-#if SAO_TRUNCATED_U
 #if FULL_NBIT
     Int offsetTh = 1 << ( min((Int)(g_uiBitDepth + (g_uiBitDepth-8)-5),5) );
 #else
     Int offsetTh = 1 << ( min((Int)(g_uiBitDepth + g_uiBitIncrement-5),5) );
-#endif
 #endif
 
     if( psSaoLcuParam->typeIdx == SAO_BO )
@@ -1643,13 +1639,8 @@ Void TDecSbac::parseSaoOffset(SaoLcuParam* psSaoLcuParam)
       for(Int i=0; i< psSaoLcuParam->length; i++)
       {
 #if SAO_OFFSET_MAG_SIGN_SPLIT
-#if SAO_TRUNCATED_U
         parseSaoMaxUvlc(uiSymbol, offsetTh -1 );
         psSaoLcuParam->offset[i] = uiSymbol;
-#else
-        parseSaoUvlc(uiSymbol);
-        psSaoLcuParam->offset[i] = uiSymbol;
-#endif
 #else
         parseSaoSvlc(iSymbol);
         psSaoLcuParam->offset[i] = iSymbol;
@@ -1671,17 +1662,10 @@ Void TDecSbac::parseSaoOffset(SaoLcuParam* psSaoLcuParam)
     }
     else if( psSaoLcuParam->typeIdx < 4 )
     {
-#if SAO_TRUNCATED_U
       parseSaoMaxUvlc(uiSymbol, offsetTh -1 ); psSaoLcuParam->offset[0] = uiSymbol;
       parseSaoMaxUvlc(uiSymbol, offsetTh -1 ); psSaoLcuParam->offset[1] = uiSymbol;
       parseSaoMaxUvlc(uiSymbol, offsetTh -1 ); psSaoLcuParam->offset[2] = -(Int)uiSymbol;
       parseSaoMaxUvlc(uiSymbol, offsetTh -1 ); psSaoLcuParam->offset[3] = -(Int)uiSymbol;
-#else
-      parseSaoUvlc(uiSymbol); psSaoLcuParam->offset[0] = uiSymbol;
-      parseSaoUvlc(uiSymbol); psSaoLcuParam->offset[1] = uiSymbol;
-      parseSaoUvlc(uiSymbol); psSaoLcuParam->offset[2] = -(Int)uiSymbol;
-      parseSaoUvlc(uiSymbol); psSaoLcuParam->offset[3] = -(Int)uiSymbol;
-#endif
     }
   }
   else

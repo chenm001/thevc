@@ -155,9 +155,7 @@ public:
 #if SAO_OFFSET_MAG_SIGN_SPLIT
   virtual Void codeSAOSign          ( UInt code   ) = 0;
 #endif
-#if SAO_TRUNCATED_U
   virtual Void codeSaoMaxUvlc       ( UInt code, UInt maxSymbol ) = 0;
-#endif
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   virtual Void codeSaoSvlc          ( Int   iCode ) = 0;
 #endif

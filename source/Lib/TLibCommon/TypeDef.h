@@ -107,9 +107,6 @@
 #define SAO_NO_MERGE_CROSS_SLICE_TILE    1  ///< I0172: disallow merging across slice or tile boundaries
 
 #define SAO_OFFSET_MAG_SIGN_SPLIT        1  ///< I0168: SAO offset magnitudes first, signs only for nonzero magnitudes, signs are bypass coded
-#if SAO_OFFSET_MAG_SIGN_SPLIT
-#define SAO_TRUNCATED_U                  1  ///< I0066: SAO offset magnitude using truncated unary binarization
-#endif
 
 #define SAO_ENCODING_CHOICE              1  ///< I0184: picture early termination
 #if SAO_ENCODING_CHOICE
@@ -117,7 +114,7 @@
 #endif
 
 #define SAO_RDO_FIX                      1  ///< I0563: SAO RDO bug-fix
-#if SAO_OFFSET_MAG_SIGN_SPLIT && SAO_OFFSET_MAG_SIGN_SPLIT && SAO_REMOVE_APS && SAO_TRUNCATED_U
+#if SAO_OFFSET_MAG_SIGN_SPLIT && SAO_OFFSET_MAG_SIGN_SPLIT && SAO_REMOVE_APS
 #define SAO_CODE_CLEAN_UP                1 /// redundant code removal
 #endif
 

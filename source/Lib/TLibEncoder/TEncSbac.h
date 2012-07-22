@@ -128,9 +128,7 @@ public:
   Void  codeSaoFlag       ( UInt uiCode );
   Void  codeSaoUvlc       ( UInt uiCode );
 #endif
-#if SAO_TRUNCATED_U
   Void  codeSaoMaxUvlc    ( UInt code, UInt maxSymbol );
-#endif
 #if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
   Void  codeSaoSvlc       ( Int  uiCode );
 #endif

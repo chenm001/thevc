@@ -96,9 +96,7 @@ public:
 #endif
   Void  parseTerminatingBit       ( UInt& ruiBit );
   Void  parseMVPIdx               ( Int& riMVPIdx          );
-#if SAO_TRUNCATED_U
   Void  parseSaoMaxUvlc           ( UInt& val, UInt maxSymbol );
-#endif
 #if !SAO_CODE_CLEAN_UP
   Void  parseSaoUvlc              ( UInt& ruiVal           );
 #endif
