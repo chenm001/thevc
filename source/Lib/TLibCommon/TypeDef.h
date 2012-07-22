@@ -85,7 +85,6 @@
 #define ALF_COEFF_EXP_GOLOMB_K           1  ///< I0346: Use EG(k) to code ALF coefficients
 
 #define POS_BASED_SIG_COEFF_CTX          1  ///< I0296: position based context index derivation for significant coeff flag for large TU
-#define SIMPLE_PARAM_UPDATE              1   ///<I0124 : Simplification of param update
 
 #define FILLUP_EMPTYLIST_AMVP_MERGE      1  ///< I0134/I0314: Fill up empty list for AMVP/Merge
 #define REMOVE_COMBINED_CAND_LIMIT       1  ///< I0414: Removal of the limit on the number of combined merge candidates

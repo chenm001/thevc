@@ -470,9 +470,6 @@ Void TEncSbac::xWriteCoefRemainExGolomb ( UInt symbol, UInt &rParam )
     m_pcBinIf->encodeBinsEP((1<<(8+length+1-rParam))-2,8+length+1-rParam);
     m_pcBinIf->encodeBinsEP(codeNumber,length);
   }
-#if !SIMPLE_PARAM_UPDATE  
-  rParam = g_aauiGoRiceUpdate[ rParam ][ min<UInt>( symbol, 23 ) ];
-#endif
 }
 
 // SBAC RD
@@ -1564,12 +1561,10 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           if( absCoeff[ idx ] >= baseLevel)
           {
             xWriteCoefRemainExGolomb( absCoeff[ idx ] - baseLevel, uiGoRiceParam );
-#if SIMPLE_PARAM_UPDATE
             if(absCoeff[idx] > 3*(1<<uiGoRiceParam))
             {
                uiGoRiceParam = min<UInt>(uiGoRiceParam+ 1, 4);
             }
-#endif
           }
           if(absCoeff[ idx ] >= 2)  
           {

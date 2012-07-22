@@ -360,9 +360,6 @@ Void TDecSbac::xReadCoefRemainExGolomb ( UInt &rSymbol, UInt &rParam )
     m_pcTDecBinIf->decodeBinsEP(codeWord,prefix-8+rParam);
     rSymbol = (((1<<(prefix-8))+8-1)<<rParam)+codeWord;
   }
-#if !SIMPLE_PARAM_UPDATE  
-  rParam = g_aauiGoRiceUpdate[ rParam ][ min<UInt>( rSymbol, 23 ) ];
-#endif
 }
 
 /** Parse I_PCM information. 
@@ -1443,12 +1440,10 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
             UInt uiLevel;
             xReadCoefRemainExGolomb( uiLevel, uiGoRiceParam );
             absCoeff[ idx ] = uiLevel + baseLevel;
-#if SIMPLE_PARAM_UPDATE
             if(absCoeff[idx]>3*(1<<uiGoRiceParam))
             {
               uiGoRiceParam = min<UInt>(uiGoRiceParam+ 1, 4);
             }
-#endif
           }
 
           if(absCoeff[ idx ] >= 2)  
