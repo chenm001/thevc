@@ -297,11 +297,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
       if(pcSlice->getTLayer() > 0)
       {
-#if TEMPORALNESTINGFLAG_TLA
         if(pcSlice->isTemporalLayerSwitchingPoint(rcListPic, pcSlice->getRPS()) || pcSlice->getSPS()->getTemporalIdNestingFlag())
-#else
-        if(pcSlice->isTemporalLayerSwitchingPoint(rcListPic, pcSlice->getRPS()))
-#endif
         {
           pcSlice->setNalUnitType(NAL_UNIT_CODED_SLICE_TLA);
         }
