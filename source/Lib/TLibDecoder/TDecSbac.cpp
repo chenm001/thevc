@@ -739,7 +739,7 @@ Void TDecSbac::parsePredMode( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
   iPredMode += uiSymbol;
   pcCU->setPredModeSubParts( (PredMode)iPredMode, uiAbsPartIdx, uiDepth );
 }
-#if INTRAMODE_BYPASSGROUP
+
 Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt absPartIdx, UInt depth )
 {
   PartSize mode = pcCU->getPartitionSize( absPartIdx );
@@ -797,51 +797,7 @@ Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt absPartIdx, UInt d
     pcCU->setLumaIntraDirSubParts( (UChar)intraPredMode, absPartIdx+partOffset*j, depth );
   }
 }
-#else  
-Void TDecSbac::parseIntraDirLumaAng  ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
-{
-  UInt uiSymbol;
-  Int  intraPredMode;
-  Int uiPreds[3] = {-1, -1, -1};
-  Int uiPredNum = pcCU->getIntraDirLumaPredictor(uiAbsPartIdx, uiPreds);  
-  m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUIntraPredSCModel.get( 0, 0, 0) );
-  if ( uiSymbol )
-  {
-    m_pcTDecBinIf->decodeBinEP( uiSymbol );
-    if (uiSymbol)
-    {
-      m_pcTDecBinIf->decodeBinEP( uiSymbol );
-      uiSymbol++;
-    }
-    intraPredMode = uiPreds[uiSymbol];
-  }
-  else
-  {
-    intraPredMode = 0;
 
-    m_pcTDecBinIf->decodeBinsEP( uiSymbol, 5 );
-    intraPredMode = uiSymbol;
-    //postponed sorting of MPMs (only in remaining branch)
-    if (uiPreds[0] > uiPreds[1])
-    {  
-      std::swap(uiPreds[0], uiPreds[1]); 
-    }
-    if (uiPreds[0] > uiPreds[2])
-    {
-      std::swap(uiPreds[0], uiPreds[2]);
-    }
-    if (uiPreds[1] > uiPreds[2])
-    {
-      std::swap(uiPreds[1], uiPreds[2]);
-    }
-    for ( Int i = 0; i < uiPredNum; i++ )
-    {
-      intraPredMode += ( intraPredMode >= uiPreds[i] );
-    }
-  }
-  pcCU->setLumaIntraDirSubParts( (UChar)intraPredMode, uiAbsPartIdx, uiDepth );
-}
-#endif
 Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
 {
   UInt uiSymbol;

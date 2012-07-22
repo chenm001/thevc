@@ -790,7 +790,6 @@ Void TEncSbac::codeTransformSubdivFlag( UInt uiSymbol, UInt uiCtx )
   DTRACE_CABAC_T( "\n" )
 }
 
-#if INTRAMODE_BYPASSGROUP
 Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt absPartIdx, Bool isMultiple)
 {
   UInt dir[4],j;
@@ -845,62 +844,7 @@ Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt absPartIdx, Bool isMu
   }
   return;
 }
-#else
 
-
-Void TEncSbac::codeIntraDirLumaAng( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  UInt uiDir         = pcCU->getLumaIntraDir( uiAbsPartIdx );
-  
-  Int uiPreds[3] = {-1, -1, -1};
-  Int uiPredNum = pcCU->getIntraDirLumaPredictor(uiAbsPartIdx, uiPreds);  
-
-  Int uiPredIdx = -1;
-
-  for(UInt i = 0; i < uiPredNum; i++)
-  {
-    if(uiDir == uiPreds[i])
-    {
-      uiPredIdx = i;
-    }
-  }
- 
-  if(uiPredIdx != -1)
-  {
-    m_pcBinIf->encodeBin( 1, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
-    m_pcBinIf->encodeBinEP( uiPredIdx ? 1 : 0 );
-    if (uiPredIdx)
-    {
-      m_pcBinIf->encodeBinEP( uiPredIdx-1 );
-    }
-  }
-  else
-  {
-    m_pcBinIf->encodeBin( 0, m_cCUIntraPredSCModel.get( 0, 0, 0 ) );
-  
-    if (uiPreds[0] > uiPreds[1])
-    { 
-      std::swap(uiPreds[0], uiPreds[1]); 
-    }
-    if (uiPreds[0] > uiPreds[2])
-    {
-      std::swap(uiPreds[0], uiPreds[2]);
-    }
-    if (uiPreds[1] > uiPreds[2])
-    {
-      std::swap(uiPreds[1], uiPreds[2]);
-    }
-
-    for(Int i = (uiPredNum - 1); i >= 0; i--)
-    {
-      uiDir = uiDir > uiPreds[i] ? uiDir - 1 : uiDir;
-    }
-
-    m_pcBinIf->encodeBinsEP( uiDir, 5 );
-   }
-  return;
-}
-#endif
 Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
 {
   UInt uiIntraDirChroma = pcCU->getChromaIntraDir( uiAbsPartIdx );

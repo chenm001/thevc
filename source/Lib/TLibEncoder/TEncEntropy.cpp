@@ -1156,17 +1156,11 @@ Void TEncEntropy::xEncodeTransform( TComDataCU* pcCU,UInt offsetLuma, UInt offse
 }
 
 // Intra direction for Luma
-#if INTRAMODE_BYPASSGROUP
 Void TEncEntropy::encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt absPartIdx, Bool isMultiplePU )
 {
   m_pcEntropyCoderIf->codeIntraDirLumaAng( pcCU, absPartIdx , isMultiplePU);
 }
-#else
-Void TEncEntropy::encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  m_pcEntropyCoderIf->codeIntraDirLumaAng( pcCU, uiAbsPartIdx );
-}
-#endif
+
 // Intra direction for Chroma
 Void TEncEntropy::encodeIntraDirModeChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
@@ -1184,31 +1178,10 @@ Void TEncEntropy::encodePredInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
   {
     uiAbsPartIdx = 0;
   }
-#if !INTRAMODE_BYPASSGROUP  
-  PartSize eSize = pcCU->getPartitionSize( uiAbsPartIdx );
-#endif
   if( pcCU->isIntra( uiAbsPartIdx ) )                                 // If it is Intra mode, encode intra prediction mode.
   {
-#if INTRAMODE_BYPASSGROUP
     encodeIntraDirModeLuma  ( pcCU, uiAbsPartIdx,true );
     encodeIntraDirModeChroma( pcCU, uiAbsPartIdx, bRD );
-#else
-    if( eSize == SIZE_NxN )                                         // if it is NxN size, encode 4 intra directions.
-    {
-      UInt uiPartOffset = ( pcCU->getPic()->getNumPartInCU() >> ( pcCU->getDepth(uiAbsPartIdx) << 1 ) ) >> 2;
-      // if it is NxN size, this size might be the smallest partition size.
-      encodeIntraDirModeLuma( pcCU, uiAbsPartIdx                  );
-      encodeIntraDirModeLuma( pcCU, uiAbsPartIdx + uiPartOffset   );
-      encodeIntraDirModeLuma( pcCU, uiAbsPartIdx + uiPartOffset*2 );
-      encodeIntraDirModeLuma( pcCU, uiAbsPartIdx + uiPartOffset*3 );
-      encodeIntraDirModeChroma( pcCU, uiAbsPartIdx, bRD );
-    }
-    else                                                              // if it is not NxN size, encode 1 intra directions
-    {
-      encodeIntraDirModeLuma  ( pcCU, uiAbsPartIdx );
-      encodeIntraDirModeChroma( pcCU, uiAbsPartIdx, bRD );
-    }
-#endif
   }
   else                                                                // if it is Inter mode, encode motion vector and reference index
   {

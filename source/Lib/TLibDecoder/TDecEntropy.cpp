@@ -106,31 +106,10 @@ Void TDecEntropy::decodePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDe
 
 Void TDecEntropy::decodePredInfo    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, TComDataCU* pcSubCU )
 {
-#if !INTRAMODE_BYPASSGROUP
-  PartSize eMode = pcCU->getPartitionSize( uiAbsPartIdx );
-#endif
   if( pcCU->isIntra( uiAbsPartIdx ) )                                 // If it is Intra mode, encode intra prediction mode.
   {
-#if INTRAMODE_BYPASSGROUP
     decodeIntraDirModeLuma  ( pcCU, uiAbsPartIdx, uiDepth );
     decodeIntraDirModeChroma( pcCU, uiAbsPartIdx, uiDepth );
-#else
-    if( eMode == SIZE_NxN )                                         // if it is NxN size, encode 4 intra directions.
-    {
-      UInt uiPartOffset = ( pcCU->getPic()->getNumPartInCU() >> ( pcCU->getDepth(uiAbsPartIdx) << 1 ) ) >> 2;
-      // if it is NxN size, this size might be the smallest partition size.                                                         // if it is NxN size, this size might be the smallest partition size.
-      decodeIntraDirModeLuma( pcCU, uiAbsPartIdx,                  uiDepth+1 );
-      decodeIntraDirModeLuma( pcCU, uiAbsPartIdx + uiPartOffset,   uiDepth+1 );
-      decodeIntraDirModeLuma( pcCU, uiAbsPartIdx + uiPartOffset*2, uiDepth+1 );
-      decodeIntraDirModeLuma( pcCU, uiAbsPartIdx + uiPartOffset*3, uiDepth+1 );
-      decodeIntraDirModeChroma( pcCU, uiAbsPartIdx, uiDepth );
-    }
-    else                                                                // if it is not NxN size, encode 1 intra directions
-    {
-      decodeIntraDirModeLuma  ( pcCU, uiAbsPartIdx, uiDepth );
-      decodeIntraDirModeChroma( pcCU, uiAbsPartIdx, uiDepth );
-    }
-#endif
   }
   else                                                                // if it is Inter mode, encode motion vector and reference index
   {
