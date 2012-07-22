@@ -104,14 +104,12 @@
 
 #define SAO_REMOVE_APS                   1  ///< USNB37: remove SAO APS syntax
 
-#define SAO_OFFSET_MAG_SIGN_SPLIT        1  ///< I0168: SAO offset magnitudes first, signs only for nonzero magnitudes, signs are bypass coded
-
 #define SAO_ENCODING_CHOICE              1  ///< I0184: picture early termination
 #if SAO_ENCODING_CHOICE
 #define SAO_ENCODING_RATE                0.75
 #endif
 
-#if SAO_OFFSET_MAG_SIGN_SPLIT && SAO_OFFSET_MAG_SIGN_SPLIT && SAO_REMOVE_APS
+#if SAO_REMOVE_APS
 #define SAO_CODE_CLEAN_UP                1 /// redundant code removal
 #endif
 

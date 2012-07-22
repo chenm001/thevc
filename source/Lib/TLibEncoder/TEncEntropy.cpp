@@ -1394,14 +1394,9 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
       m_pcEntropyCoderIf->codeSaoUflc(uiSymbol);
       for( i=0; i< saoLcuParam->length; i++)
       {
-#if SAO_OFFSET_MAG_SIGN_SPLIT
         UInt absOffset = ( (saoLcuParam->offset[i] < 0) ? -saoLcuParam->offset[i] : saoLcuParam->offset[i]);
         m_pcEntropyCoderIf->codeSaoMaxUvlc(absOffset, offsetTh-1);
-#else
-        m_pcEntropyCoderIf->codeSaoSvlc(saoLcuParam->offset[i]);
-#endif
       }  
-#if SAO_OFFSET_MAG_SIGN_SPLIT
       for( i=0; i< saoLcuParam->length; i++)
       {
         if (saoLcuParam->offset[i] != 0)
@@ -1410,7 +1405,6 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
           m_pcEntropyCoderIf->codeSAOSign(sign);
         }
       }
-#endif
     }
     else
       if( saoLcuParam->typeIdx < 4 )

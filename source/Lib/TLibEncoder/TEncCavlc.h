@@ -144,13 +144,8 @@ public:
   Void codeSaoFlag       ( UInt uiCode );
   Void codeSaoUvlc       ( UInt uiCode );
 #endif
-#if SAO_OFFSET_MAG_SIGN_SPLIT
   Void codeSAOSign       ( UInt code   ) { printf("Not supported\n"); assert (0); }
-#endif
   Void codeSaoMaxUvlc    ( UInt   code, UInt maxSymbol ){printf("Not supported\n"); assert (0);}
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
-  Void codeSaoSvlc       ( Int   iCode );
-#endif
 #if SAO_CODE_CLEAN_UP
   Void codeSaoMergeLeft  ( UInt uiCode, UInt compIdx ){printf("Not supported\n"); assert (0);}
   Void codeSaoMergeUp    ( UInt uiCode ){printf("Not supported\n"); assert (0);}

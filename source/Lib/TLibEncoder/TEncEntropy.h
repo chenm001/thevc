@@ -152,13 +152,8 @@ public:
   virtual Void codeSaoFlag          ( UInt uiCode ) = 0;
   virtual Void codeSaoUvlc          ( UInt uiCode ) = 0;
 #endif
-#if SAO_OFFSET_MAG_SIGN_SPLIT
   virtual Void codeSAOSign          ( UInt code   ) = 0;
-#endif
   virtual Void codeSaoMaxUvlc       ( UInt code, UInt maxSymbol ) = 0;
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
-  virtual Void codeSaoSvlc          ( Int   iCode ) = 0;
-#endif
 #if !SAO_CODE_CLEAN_UP
   virtual Void codeSaoRun          ( UInt   uiCode, UInt uiMaxValue  ) = 0;
 #endif

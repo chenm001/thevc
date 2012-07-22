@@ -96,9 +96,6 @@
 #define NUM_SAO_FLAG_CTX              1       ///< number of context models for SAO flag
 #endif
 #define NUM_SAO_UVLC_CTX              2       ///< number of context models for SAO UVLC
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
-#define NUM_SAO_SVLC_CTX              3       ///< number of context models for SAO SVLC
-#endif
 #if !SAO_CODE_CLEAN_UP
 #define NUM_SAO_RUN_CTX               3       ///< number of context models for AO SVLC (filter coeff.)
 #endif
@@ -537,21 +534,7 @@ INIT_SAO_UVLC[3][NUM_SAO_UVLC_CTX] =
   { 200,  140, }, 
 #endif
 };
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
-static const UChar 
-INIT_SAO_SVLC[3][NUM_SAO_SVLC_CTX] = 
-{
-#if SLICE_TYPE_ORDER
-  { 215,  154,  169, }, 
-  { 215,  154,  169, }, 
-  { 247,  154,  244, }, 
-#else
-  { 247,  154,  244, }, 
-  { 215,  154,  169, }, 
-  { 215,  154,  169, }, 
-#endif
-};
-#endif
+
 static const UChar 
 INIT_SAO_MERGE_LEFT_FLAG[3][NUM_SAO_MERGE_LEFT_FLAG_CTX] = 
 {

@@ -1447,12 +1447,6 @@ Void TEncCavlc::codeSaoUvlc( UInt uiCode )
     xWriteUvlc( uiCode );
 }
 #endif
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
-Void TEncCavlc::codeSaoSvlc( Int iCode )
-{
-    xWriteSvlc( iCode );
-}
-#endif
 #if !SAO_CODE_CLEAN_UP
 /** Code SAO run. 
  * \param uiCode

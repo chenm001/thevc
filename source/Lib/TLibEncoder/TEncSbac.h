@@ -129,9 +129,6 @@ public:
   Void  codeSaoUvlc       ( UInt uiCode );
 #endif
   Void  codeSaoMaxUvlc    ( UInt code, UInt maxSymbol );
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
-  Void  codeSaoSvlc       ( Int  uiCode );
-#endif
 #if !SAO_CODE_CLEAN_UP
   Void  codeSaoRun        ( UInt  uiCode, UInt uiMaxValue  ) {;}
 #endif
@@ -139,9 +136,7 @@ public:
   Void  codeSaoMergeUp    ( UInt  uiCode);
   Void  codeSaoTypeIdx    ( UInt  uiCode);
   Void  codeSaoUflc       ( UInt  uiCode);
-#if SAO_OFFSET_MAG_SIGN_SPLIT
   Void  codeSAOSign       ( UInt  uiCode);  //<! code SAO offset sign
-#endif
   Void  codeScalingList      ( TComScalingList* scalingList     ){ assert (0);  return;};
 
 private:
@@ -272,9 +267,6 @@ private:
   ContextModel3DBuffer m_cSaoFlagSCModel;
 #endif
   ContextModel3DBuffer m_cSaoUvlcSCModel;
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
-  ContextModel3DBuffer m_cSaoSvlcSCModel;
-#endif
   ContextModel3DBuffer m_cSaoMergeLeftSCModel;
   ContextModel3DBuffer m_cSaoMergeUpSCModel;
   ContextModel3DBuffer m_cSaoTypeIdxSCModel;

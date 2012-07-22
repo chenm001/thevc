@@ -80,9 +80,6 @@ TDecSbac::TDecSbac()
 , m_cSaoFlagSCModel           ( 1,             1,               NUM_SAO_FLAG_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
 #endif
 , m_cSaoUvlcSCModel           ( 1,             1,               NUM_SAO_UVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
-, m_cSaoSvlcSCModel           ( 1,             1,               NUM_SAO_SVLC_CTX              , m_contextModels + m_numContextModels, m_numContextModels)
-#endif
 , m_cSaoMergeLeftSCModel      ( 1,             1,               NUM_SAO_MERGE_LEFT_FLAG_CTX   , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoMergeUpSCModel        ( 1,             1,               NUM_SAO_MERGE_UP_FLAG_CTX     , m_contextModels + m_numContextModels, m_numContextModels)
 , m_cSaoTypeIdxSCModel        ( 1,             1,               NUM_SAO_TYPE_IDX_CTX          , m_contextModels + m_numContextModels, m_numContextModels)
@@ -155,9 +152,6 @@ Void TDecSbac::resetEntropy(TComSlice* pSlice)
   m_cSaoFlagSCModel.initBuffer           ( sliceType, qp, (UChar*)INIT_SAO_FLAG );
 #endif
   m_cSaoUvlcSCModel.initBuffer           ( sliceType, qp, (UChar*)INIT_SAO_UVLC );
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
-  m_cSaoSvlcSCModel.initBuffer           ( sliceType, qp, (UChar*)INIT_SAO_SVLC );
-#endif
   m_cSaoMergeLeftSCModel.initBuffer      ( sliceType, qp, (UChar*)INIT_SAO_MERGE_LEFT_FLAG );
   m_cSaoMergeUpSCModel.initBuffer        ( sliceType, qp, (UChar*)INIT_SAO_MERGE_UP_FLAG );
   m_cSaoTypeIdxSCModel.initBuffer        ( sliceType, qp, (UChar*)INIT_SAO_TYPE_IDX );
@@ -216,9 +210,6 @@ Void TDecSbac::updateContextTables( SliceType eSliceType, Int iQp )
   m_cSaoFlagSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_FLAG );
 #endif
   m_cSaoUvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_UVLC );
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
-  m_cSaoSvlcSCModel.initBuffer           ( eSliceType, iQp, (UChar*)INIT_SAO_SVLC );
-#endif
   m_cSaoMergeLeftSCModel.initBuffer      ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_LEFT_FLAG );
   m_cSaoMergeUpSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_MERGE_UP_FLAG );
   m_cSaoTypeIdxSCModel.initBuffer        ( eSliceType, iQp, (UChar*)INIT_SAO_TYPE_IDX );
@@ -1493,48 +1484,6 @@ Void TDecSbac::parseSaoUvlc (UInt& ruiVal)
   ruiVal = i;
 }
 #endif
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT)
-Void TDecSbac::parseSaoSvlc (Int&  riVal)
-{
-  UInt uiCode;
-  Int  iSign;
-  Int  i;
-
-  m_pcTDecBinIf->decodeBin( uiCode, m_cSaoSvlcSCModel.get( 0, 0, 0 ) );
-
-  if ( uiCode == 0 )
-  {
-    riVal = 0;
-    return;
-  }
-
-  // read sign
-  m_pcTDecBinIf->decodeBin( uiCode, m_cSaoSvlcSCModel.get( 0, 0, 1 ) );
-
-  if ( uiCode == 0 )
-  {
-    iSign =  1;
-  }
-  else
-  {
-    iSign = -1;
-  }
-
-  // read magnitude
-  i=1;
-  while (1)
-  {
-    m_pcTDecBinIf->decodeBin( uiCode, m_cSaoSvlcSCModel.get( 0, 0, 2 ) );
-    if ( uiCode == 0 )
-    {
-      break;
-    }
-    i++;
-  }
-
-  riVal = i*iSign;
-}
-#endif
 
 Void TDecSbac::parseSaoUflc (UInt&  riVal)
 {
@@ -1609,9 +1558,6 @@ inline Void copySaoOneLcuParam(SaoLcuParam* psDst,  SaoLcuParam* psSrc)
 Void TDecSbac::parseSaoOffset(SaoLcuParam* psSaoLcuParam)
 {
   UInt uiSymbol;
-#if !SAO_OFFSET_MAG_SIGN_SPLIT
-  Int iSymbol;
-#endif
   static Int iTypeLength[MAX_NUM_SAO_TYPE] =
   {
     SAO_EO_LEN,
@@ -1638,15 +1584,9 @@ Void TDecSbac::parseSaoOffset(SaoLcuParam* psSaoLcuParam)
       psSaoLcuParam->bandPosition = uiSymbol;
       for(Int i=0; i< psSaoLcuParam->length; i++)
       {
-#if SAO_OFFSET_MAG_SIGN_SPLIT
         parseSaoMaxUvlc(uiSymbol, offsetTh -1 );
         psSaoLcuParam->offset[i] = uiSymbol;
-#else
-        parseSaoSvlc(iSymbol);
-        psSaoLcuParam->offset[i] = iSymbol;
-#endif
       }   
-#if SAO_OFFSET_MAG_SIGN_SPLIT
       for(Int i=0; i< psSaoLcuParam->length; i++)
       {
         if (psSaoLcuParam->offset[i] != 0) 
@@ -1658,7 +1598,6 @@ Void TDecSbac::parseSaoOffset(SaoLcuParam* psSaoLcuParam)
           }
         }
       }
-#endif
     }
     else if( psSaoLcuParam->typeIdx < 4 )
     {
