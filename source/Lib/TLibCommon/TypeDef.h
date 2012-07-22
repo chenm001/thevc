@@ -236,8 +236,6 @@
 
 #define CABAC_INIT_PRESENT_FLAG     1
 
-#define DEBLOCK_TC_TAB_I0258  1
-
 #define DEBLOCK_IPCM_RECY             1 // JCTVC-I0035 scheme 1: reconstructed QP for IPCM deblocking
 #define DBL_HL_SYNTAX                 1 // Signalling of deblocking filter in PPS and Slice header instead of in APS
 
