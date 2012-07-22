@@ -1101,7 +1101,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       {
         Int offset = rps->getNumberOfNegativePictures()+rps->getNumberOfPositivePictures();
         READ_UVLC( uiCode, "num_long_term_pics");             rps->setNumberOfLongtermPictures(uiCode);
-#if CODE_POCLSBLT_FIXEDLEN
         Int maxPicOrderCntLSB = 1 << rpcSlice->getSPS()->getBitsForPOC();
         Int prevLSB = 0, prevDeltaMSB = 0, deltaPocMSBCycleLT = 0;;
         for(Int j=offset+rps->getNumberOfLongtermPictures()-1 ; j > offset-1; j--)
@@ -1144,45 +1143,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
           prevLSB = poc_lsb_lt;
           prevDeltaMSB = deltaPocMSBCycleLT;
         }
-#else
-        Int prev = 0;
-        Int prevMsb=0;
-        Int prevDeltaPocLt=0;
-        for(Int j=rps->getNumberOfLongtermPictures()+offset-1 ; j > offset-1; j--)
-        {
-          READ_UVLC(uiCode,"delta_poc_lsb_lt"); 
-
-          prev += uiCode;
-
-          READ_FLAG(uiCode,"delta_poc_msb_present_flag");
-          Int decDeltaPOCMsbPresent=uiCode;
-
-          if(decDeltaPOCMsbPresent==1)
-          {
-            READ_UVLC(uiCode, "delta_poc_msb_cycle_lt_minus1");
-            if(  (j==(rps->getNumberOfLongtermPictures()+offset-1)) || (prev!=prevDeltaPocLt) )
-            {
-              prevMsb=(1+uiCode); 
-            }
-            else
-            {
-              prevMsb+=(1+uiCode); 
-            }
-            Int decMaxPocLsb = 1<<rpcSlice->getSPS()->getBitsForPOC();
-            rps->setPOC(j,rpcSlice->getPOC()-prev-(prevMsb)*decMaxPocLsb); 
-            rps->setDeltaPOC(j,-(Int)(prev+(prevMsb)*decMaxPocLsb));
-            rps->setCheckLTMSBPresent(j,true);  
-          }
-          else
-          {
-            rps->setPOC(j,rpcSlice->getPOC()-prev);          
-            rps->setDeltaPOC(j,-(Int)prev);
-            rps->setCheckLTMSBPresent(j,false);
-          }
-          prevDeltaPocLt=prev;
-          READ_FLAG( uiCode, "used_by_curr_pic_lt_flag");     rps->setUsed(j,uiCode);
-        }
-#endif
         offset += rps->getNumberOfLongtermPictures();
         rps->setNumberOfPictures(offset);        
       }  

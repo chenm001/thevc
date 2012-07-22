@@ -83,23 +83,19 @@ private:
   Int  m_numRefIdc; 
   Int  m_refIdc[MAX_NUM_REF_PICS+1];
   Bool m_bCheckLTMSB[MAX_NUM_REF_PICS];
-#if CODE_POCLSBLT_FIXEDLEN
   Int  m_pocLSBLT[MAX_NUM_REF_PICS];
   Int  m_deltaPOCMSBCycleLT[MAX_NUM_REF_PICS];
   Bool m_deltaPocMSBPresentFlag[MAX_NUM_REF_PICS];
-#endif
 
 public:
   TComReferencePictureSet();
   virtual ~TComReferencePictureSet();
-#if CODE_POCLSBLT_FIXEDLEN
   Int   getPocLSBLT(Int i)                       { return m_pocLSBLT[i]; }
   Void  setPocLSBLT(Int i, Int x)                { m_pocLSBLT[i] = x; }
   Int   getDeltaPocMSBCycleLT(Int i)             { return m_deltaPOCMSBCycleLT[i]; }
   Void  setDeltaPocMSBCycleLT(Int i, Int x)      { m_deltaPOCMSBCycleLT[i] = x; }
   Bool  getDeltaPocMSBPresentFlag(Int i)         { return m_deltaPocMSBPresentFlag[i]; }
   Void  setDeltaPocMSBPresentFlag(Int i, Bool x) { m_deltaPocMSBPresentFlag[i] = x;    }
-#endif 
   Void setUsed(Int bufferNum, Bool used);
   Void setDeltaPOC(Int bufferNum, Int deltaPOC);
   Void setPOC(Int bufferNum, Int deltaPOC);
@@ -1043,9 +1039,7 @@ private:
 
   Bool       m_bLMvdL1Zero;
   Int         m_numEntryPointOffsets;
-#if CODE_POCLSBLT_FIXEDLEN
   Bool        m_nalRefFlag;
-#endif
 #if DEPENDENT_SLICES
   std::vector<TDecSbac*> CTXMem_dec;
   std::vector<TEncSbac*> CTXMem_enc;
@@ -1310,10 +1304,8 @@ public:
   Bool      getCabacInitFlag  ()           { return m_cabacInitFlag;     }  //!< get CABAC initial flag 
   Void      setNumEntryPointOffsets(Int val)  { m_numEntryPointOffsets = val;     }
   Int       getNumEntryPointOffsets()         { return m_numEntryPointOffsets;    }
-#if CODE_POCLSBLT_FIXEDLEN
   Bool      getNalRefFlag()       { return m_nalRefFlag;}
   Void      setNalRefFlag(Bool x) { m_nalRefFlag = x;}
-#endif
 #if DEPENDENT_SLICES
   Void      initCTXMem_dec(  UInt i );                
   TDecSbac* getCTXMem_dec( int b )                 { return CTXMem_dec[b]; }

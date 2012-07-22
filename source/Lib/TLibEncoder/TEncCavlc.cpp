@@ -673,12 +673,8 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     else
 #endif
     {
-#if CODE_POCLSBLT_FIXEDLEN
       Int picOrderCntLSB = (pcSlice->getPOC()-pcSlice->getLastIDR()+(1<<pcSlice->getSPS()->getBitsForPOC()))%(1<<pcSlice->getSPS()->getBitsForPOC());
       WRITE_CODE( picOrderCntLSB, pcSlice->getSPS()->getBitsForPOC(), "pic_order_cnt_lsb");
-#else
-      WRITE_CODE( (pcSlice->getPOC()-pcSlice->getLastIDR()+(1<<pcSlice->getSPS()->getBitsForPOC()))%(1<<pcSlice->getSPS()->getBitsForPOC()), pcSlice->getSPS()->getBitsForPOC(), "pic_order_cnt_lsb");
-#endif
       TComReferencePictureSet* rps = pcSlice->getRPS();
       if(pcSlice->getRPSidx() < 0)
       {
@@ -693,7 +689,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       if(pcSlice->getSPS()->getLongTermRefsPresent())
       {
         WRITE_UVLC( rps->getNumberOfLongtermPictures(), "num_long_term_pics");
-#if CODE_POCLSBLT_FIXEDLEN
         // Note that the LSBs of the LT ref. pic. POCs must be sorted before.
         // Not sorted here because LT ref indices will be used in setRefPicList()
         Int prevDeltaMSB = 0, prevLSB = 0;
@@ -726,51 +721,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
           }
           WRITE_FLAG( rps->getUsed(i), "used_by_curr_pic_lt_flag"); 
         }
-
-#else
-        Int maxPocLsb = 1<<pcSlice->getSPS()->getBitsForPOC();
-        Int prev = 0;
-        Int prevDeltaPocLt=0;
-        Int currDeltaPocLt=0;
-        for(Int i=rps->getNumberOfPictures()-1 ; i > rps->getNumberOfPictures()-rps->getNumberOfLongtermPictures()-1; i--)
-        {
-
-          WRITE_UVLC((maxPocLsb-rps->getDeltaPOC(i)+prev)%maxPocLsb, "delta_poc_lsb_lt");
-          
-          currDeltaPocLt=((maxPocLsb-rps->getDeltaPOC(i)+prev)%maxPocLsb)+prevDeltaPocLt;
-
-          Int deltaMsbCycle=0;
-          if( (i==(rps->getNumberOfPictures()-1)) )
-          {
-            deltaMsbCycle=((-rps->getDeltaPOC(i))/maxPocLsb)-1;
-          }
-          else if( prevDeltaPocLt!=currDeltaPocLt )
-          {
-            deltaMsbCycle=((-rps->getDeltaPOC(i))/maxPocLsb)-1;
-            if( ((prevDeltaPocLt==maxPocLsb-1) && (currDeltaPocLt==maxPocLsb+1)) ||  ((prevDeltaPocLt==maxPocLsb-2) && (currDeltaPocLt==maxPocLsb)))
-            {
-              deltaMsbCycle=deltaMsbCycle-1;
-            }
-          }
-          else
-          {
-            deltaMsbCycle=((rps->getDeltaPOC(i+1)-rps->getDeltaPOC(i))/maxPocLsb)-1;
-          }
-
-          if(deltaMsbCycle>=0)
-          {
-            WRITE_FLAG( 1, "delta_poc_msb_present_flag");
-            WRITE_UVLC(deltaMsbCycle, "delta_poc_msb_cycle_lt_minus1");
-          }
-          else
-          {
-            WRITE_FLAG( 0, "delta_poc_msb_present_flag");
-          }
-          prevDeltaPocLt=currDeltaPocLt;
-          prev = rps->getDeltaPOC(i);
-          WRITE_FLAG( rps->getUsed(i), "used_by_curr_pic_lt_flag"); 
-        }
-#endif
       }
     }
 #if DBL_HL_SYNTAX

@@ -55,7 +55,6 @@ using namespace std;
 // ====================================================================================================================
 // Constructor / destructor / initialization / destroy
 // ====================================================================================================================
-#if CODE_POCLSBLT_FIXEDLEN
 Int getLSB(Int poc, Int maxLSB)
 {
   if (poc >= 0)
@@ -67,7 +66,7 @@ Int getLSB(Int poc, Int maxLSB)
     return (maxLSB - ((-poc) % maxLSB)) % maxLSB;
   }
 }
-#endif
+
 TEncGOP::TEncGOP()
 {
   m_iLastIDR            = 0;
@@ -316,9 +315,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           pcSlice->setNalUnitType(NAL_UNIT_CODED_SLICE_TLA);
         }
       }
-#if CODE_POCLSBLT_FIXEDLEN
       arrangeLongtermPicturesInRPS(pcSlice, rcListPic);
-#endif
       TComRefPicListModification* refPicListModification = pcSlice->getRefPicListModification();
       refPicListModification->setRefPicListModificationFlagL0(0);
       refPicListModification->setRefPicListModificationFlagL1(0);
@@ -1980,7 +1977,7 @@ Void TEncGOP::xWriteTileLocationToSliceHeader (OutputNALUnit& rNalu, TComOutputB
   delete rpcBitstreamRedirect;
   rpcBitstreamRedirect = new TComOutputBitstream;
 }
-#if CODE_POCLSBLT_FIXEDLEN
+
 // Function will arrange the long-term pictures in the decreasing order of poc_lsb_lt, 
 // and among the pictures with the same lsb, it arranges them in increasing delta_poc_msb_cycle_lt value
 Void TEncGOP::arrangeLongtermPicturesInRPS(TComSlice *pcSlice, TComList<TComPic*>& rcListPic)
@@ -2102,5 +2099,4 @@ Void TEncGOP::arrangeLongtermPicturesInRPS(TComSlice *pcSlice, TComList<TComPic*
     assert(rps->getDeltaPocMSBCycleLT(i) >= 0);   // Non-negative value
   }
 }
-#endif
 //! \}

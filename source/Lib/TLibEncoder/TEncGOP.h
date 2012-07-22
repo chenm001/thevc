@@ -131,9 +131,7 @@ public:
   NalUnitType getNalUnitType( UInt uiPOCCurr );
   Void freeAPS     (TComAPS* pAPS, TComSPS* pSPS);
   Void allocAPS    (TComAPS* pAPS, TComSPS* pSPS);
-#if CODE_POCLSBLT_FIXEDLEN
   Void arrangeLongtermPicturesInRPS(TComSlice *, TComList<TComPic*>& );
-#endif
 protected:
   Void encodeAPS   (TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* pcSlice);            //!< encode APS syntax elements
   Void assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS, TComSlice* pcSlice);  //!< Assign APS object into APS container
