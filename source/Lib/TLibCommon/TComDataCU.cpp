@@ -3193,13 +3193,9 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
   }
 
   Int iNumRefIdx = (getSlice()->isInterB()) ? min(m_pcSlice->getNumRefIdx(REF_PIC_LIST_0), m_pcSlice->getNumRefIdx(REF_PIC_LIST_1)) : m_pcSlice->getNumRefIdx(REF_PIC_LIST_0);
-#if FILLUP_EMPTYLIST_AMVP_MERGE
   Int r = 0;
   Int refcnt = 0;
   while (uiArrayAddr < MRG_MAX_NUM_CANDS)
-#else
-  for (int r=0; r<iNumRefIdx && uiArrayAddr!=MRG_MAX_NUM_CANDS; r++)
-#endif
   {
     abCandIsInter[uiArrayAddr] = true;
     puhInterDirNeighbours[uiArrayAddr] = 1;
@@ -3211,7 +3207,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
       pcMvFieldNeighbours[(uiArrayAddr << 1) + 1].setMvField(TComMv(0, 0), r);
     }
     uiArrayAddr++;
-#if FILLUP_EMPTYLIST_AMVP_MERGE
     if ( refcnt == iNumRefIdx - 1 )
     {
       r = 0;
@@ -3221,7 +3216,6 @@ Void TComDataCU::getInterMergeCandidates( UInt uiAbsPartIdx, UInt uiPUIdx, UInt 
       ++r;
       ++refcnt;
     }
-#endif
   }
   if (uiArrayAddr > MRG_MAX_NUM_CANDS_SIGNALED)
   {
@@ -3621,11 +3615,7 @@ Void TComDataCU::fillMvpCand ( UInt uiPartIdx, UInt uiPartAddr, RefPicList eRefP
   {
     pInfo->iN = AMVP_MAX_NUM_CANDS;
   }
-#if FILLUP_EMPTYLIST_AMVP_MERGE
   while (pInfo->iN < AMVP_MAX_NUM_CANDS)
-#else
-  else if (pInfo->iN < AMVP_MAX_NUM_CANDS)
-#endif
   {
       pInfo->m_acMvCand[pInfo->iN].set(0,0);
       pInfo->iN++;
