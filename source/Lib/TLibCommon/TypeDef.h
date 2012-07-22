@@ -75,7 +75,6 @@
 
 #define FIX_TMVP_REFIDX0                 1  ///< I0116: Fix the reference picture index to 0 for TMVP derivation in merging list
 
-#define LM_CLEANUP                       1  ///< I0148: LM (intra chroma prediction based on luma) mode clean-up
 #define LM_UNIFORM_MULTIPLIERS           1  ///< I0151: LM mode with uniform bit-width multipliers
 #define LM_REDUCED_DIV_TABLE             1  ///< I0166: LM mode with uniform bit-width multipliers and reduced look-up table for division approximation
 #define LM_SIMP_ALPHA                    1  ///< I0178: LM mode with simplified alpha bit-depth restriction

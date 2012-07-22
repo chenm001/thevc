@@ -833,7 +833,6 @@ Void TComPrediction::getLumaRecPixels( TComPattern* pcPattern, UInt uiCWidth, UI
  *
  * This function derives the positon of first non-zero binary bit of a value
  */
-#if LM_CLEANUP
 Int GetFloorLog2( UInt x )
 {
   int bits = -1;
@@ -844,70 +843,6 @@ Int GetFloorLog2( UInt x )
   }
   return bits;
 }
-#else
-Int GetMSB( UInt x )
-{
-  Int iMSB = 0, bits = ( sizeof( Int ) << 3 ), y = 1;
-
-  while( x > 1 )
-  {
-    bits >>= 1;
-    y = x >> bits;
-
-    if( y )
-    {
-      x = y;
-      iMSB += bits;
-    }
-  }
-
-  iMSB+=y;
-
-  return iMSB;
-}
-
-/** Function for counting leading number of zeros/ones
- * \param x input value
- \ This function counts leading number of zeros for positive numbers and
- \ leading number of ones for negative numbers. This can be implemented in
- \ single instructure cycle on many processors.
- */
-
-Short CountLeadingZerosOnes (Short x)
-{
-  Short clz;
-  Short i;
-
-  if(x == 0)
-  {
-    clz = 0;
-  }
-  else
-  {
-    if (x == -1)
-    {
-      clz = 15;
-    }
-    else
-    {
-      if(x < 0)
-      {
-        x = ~x;
-      }
-      clz = 15;
-      for(i = 0;i < 15;++i)
-      {
-        if(x) 
-        {
-          clz --;
-        }
-        x = x >> 1;
-      }
-    }
-  }
-  return clz;
-}
-#endif
 
 /** Function for deriving LM intra prediction.
  * \param pcPattern pointer to neighbouring pixel access pattern
@@ -931,9 +866,7 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
   Pel* pLuma0 = m_pLumaRecBuffer + uiExt0 * iLumaStride + uiExt0;
 
   Int i, j, iCountShift = 0;
-#if LM_CLEANUP
   UInt uiInternalBitDepth = g_uiBitDepth + g_uiBitIncrement;
-#endif
 
   UInt uiExt = uiExt0;
 
@@ -951,9 +884,6 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
     xx += pLuma[j] * pLuma[j];
     xy += pLuma[j] * pSrc[j];
   }
-#if !LM_CLEANUP
-  iCountShift += g_aucConvertToBit[ uiWidth ] + 2;
-#endif
 
   pSrc  = pSrc0 - uiExt;
   pLuma = pLuma0 - uiExt;
@@ -968,17 +898,9 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
     pSrc  += iSrcStride;
     pLuma += iLumaStride;
   }
-#if LM_CLEANUP
   iCountShift = g_aucConvertToBit[ uiWidth ] + 3;
-#else
-  iCountShift += iCountShift > 0 ? 1 : ( g_aucConvertToBit[ uiWidth ] + 2 );
-#endif
 
-#if LM_CLEANUP
   Int iTempShift = uiInternalBitDepth + iCountShift - 15;
-#else
-  Int iTempShift = ( g_uiBitDepth + g_uiBitIncrement ) + g_aucConvertToBit[ uiWidth ] + 3 - 15;
-#endif
 
   if(iTempShift > 0)
   {
@@ -1006,11 +928,7 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
   if( iCountShift == 0 )
   {
     a = 0;
-#if LM_CLEANUP
     b = 1 << (uiInternalBitDepth - 1);
-#else
-    b = 1 << (g_uiBitDepth + g_uiBitIncrement - 1);
-#endif
     iShift = 0;
   }
   else
@@ -1024,34 +942,17 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
 #endif
 
     {
-#if LM_CLEANUP
 #if LM_UNIFORM_MULTIPLIERS
       const Int iShiftA1 = uiInternalBitDepth - 2;
 #else
       const Int iShiftA1 = 14;
 #endif
       const Int iShiftA2 = 5;
-#else
-      const Int iShiftA2 = 6;
 #if LM_UNIFORM_MULTIPLIERS
-      const Int iShiftA1 = g_uiBitDepth + g_uiBitIncrement - 1;
-#else
-      const Int iShiftA1 = 15;
-#endif
-#endif
-#if LM_UNIFORM_MULTIPLIERS
-#if LM_CLEANUP
 #if LM_REDUCED_DIV_TABLE
       const Int iAccuracyShift = uiInternalBitDepth + 4;
 #else
       const Int iAccuracyShift = uiInternalBitDepth;
-#endif
-#else
-#if LM_REDUCED_DIV_TABLE
-      const Int iAccuracyShift = g_uiBitDepth + g_uiBitIncrement + 4;
-#else
-      const Int iAccuracyShift = g_uiBitDepth + g_uiBitIncrement;
-#endif
 #endif
 #else
 #if LM_REDUCED_DIV_TABLE
@@ -1066,13 +967,8 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
       Int a1s = a1;
       Int a2s = a2;
 
-#if LM_CLEANUP
       iScaleShiftA1 = a1 == 0 ? 0 : GetFloorLog2( abs( a1 ) ) - iShiftA1;
       iScaleShiftA2 = a2 == 0 ? 0 : GetFloorLog2( abs( a2 ) ) - iShiftA2;
-#else
-      iScaleShiftA1 = GetMSB( abs( a1 ) ) - iShiftA1;
-      iScaleShiftA2 = GetMSB( abs( a2 ) ) - iShiftA2;  
-#endif
 
       if( iScaleShiftA1 < 0 )
       {
@@ -1097,18 +993,10 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
 #endif
       {
 #if LM_UNIFORM_MULTIPLIERS
-#if LM_CLEANUP
 #if LM_REDUCED_DIV_TABLE
         UInt a2t = m_uiaShift[ a2s - 32 ] ;
 #else
         UInt a2t = ( ( m_uiaShift[ a2s - 1] + ( 1 << ( (15 - uiInternalBitDepth ) - 1 ) ) ) >> (15 - uiInternalBitDepth ) ) ;
-#endif
-#else
-#if LM_REDUCED_DIV_TABLE
-        UInt a2t = m_uiaShift[ a2s - 32 ] ;
-#else
-        UInt a2t = ( ( m_uiaShift[ a2s - 1] + ( 1 << ( (15 - g_uiBitDepth + g_uiBitIncrement ) - 1 ) ) ) >> (15 - g_uiBitDepth + g_uiBitIncrement ) ) ;
-#endif
 #endif
         a2t = Clip( a2t );
         a = a1s * a2t;
@@ -1140,13 +1028,11 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
       a = Clip3(-( 1 << 15 ), ( 1 << 15 ) - 1, a);
 #endif
      
-#if LM_CLEANUP
       Short n = 0;
       if (a != 0)
       {
         n = GetFloorLog2(abs( a ) + ( (a < 0 ? -1 : 1) - 1)/2 ) - 5;
       }
-#endif
 #if !LM_SIMP_ALPHA
       Int minA = -(1 << (6));
       Int maxA = (1 << 6) - 1;
@@ -1157,29 +1043,16 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
       else
 #endif
       {
-#if LM_CLEANUP
 #if LM_SIMP_ALPHA
         iShift =(iShift+iB)-n;
 #else
         iShift -= n;
 #endif
-#else
-        Short n = CountLeadingZerosOnes(a);
-        a = a >> (9-n);
-#if LM_SIMP_ALPHA
-        iShift = (iShift+iB)-(9-n);
-#else
-        iShift -= (9-n);
-#endif
-
-#endif
       }
-#if LM_CLEANUP
 #if LM_SIMP_ALPHA
       a = a>>n;
 #else
       a = a >> ( 13 - iShift );
-#endif
 #endif
 
 #if LM_UNIFORM_MULTIPLIERS
