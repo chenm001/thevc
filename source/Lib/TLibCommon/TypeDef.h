@@ -43,8 +43,6 @@
 
 #define SLICE_HEADER_EXTENSION           1  ///< II0235: Slice header extension mechanism
 
-#define EXPLICITLY_SIGNAL_ENTRY_POINTS   1  ///< I0273: Explicitly signal all tiles/wavefront entry points
-
 #define SLICE_TMVP_ENABLE                1  ///< I0420: Enable Temporal MVP for certain slices only
 #define NO_MV_SCALING_IF_LONG_TERM_REF   1  ///< I0422: Disable MV scaling for long term reference
 #define REMOVE_INTER_4X4                 1  ///< I0216: Removal of Inter 4x4 mode

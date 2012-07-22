@@ -191,9 +191,6 @@ protected:
   char*     m_pchColumnWidth;
   Int       m_iNumRowsMinus1;
   char*     m_pchRowHeight;
-#if !EXPLICITLY_SIGNAL_ENTRY_POINTS
-  Int       m_iTileLocationInSliceHeaderFlag; //< enable(1)/disable(0) transmitssion of tile location in slice header
-#endif
   Int       m_iWaveFrontSynchro; //< 0: no WPP. >= 1: WPP is enabled, the "Top right" from which inheritance occurs is this LCU offset in the line above the current.
   Int       m_iWaveFrontFlush; //< enable(1)/disable(0) the CABAC flush at the end of each line of LCUs.
   Int       m_iWaveFrontSubstreams; //< If iWaveFrontSynchro, this is the number of substreams per frame (dependent tiles) or per tile (independent tiles).

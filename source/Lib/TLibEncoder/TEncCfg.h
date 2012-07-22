@@ -231,9 +231,6 @@ protected:
   UInt*     m_puiColumnWidth;
   Int       m_iNumRowsMinus1;
   UInt*     m_puiRowHeight;
-#if !EXPLICITLY_SIGNAL_ENTRY_POINTS
-  Int       m_iTileLocationInSliceHeaderFlag; //< enable(1)/disable(0) transmitssion of tile location in slice header
-#endif
 
   Int       m_iWaveFrontSynchro;
   Int       m_iWaveFrontFlush;
@@ -568,10 +565,6 @@ public:
   }
   UInt  getRowHeight                   ( UInt rowIdx )     { return *( m_puiRowHeight + rowIdx ); }
   Void  xCheckGSParameters();
-#if !EXPLICITLY_SIGNAL_ENTRY_POINTS
-  Int  getTileLocationInSliceHeaderFlag ()                 { return m_iTileLocationInSliceHeaderFlag; }
-  Void setTileLocationInSliceHeaderFlag ( Int iFlag )      { m_iTileLocationInSliceHeaderFlag = iFlag;}
-#endif
   Void  setWaveFrontSynchro(Int iWaveFrontSynchro)       { m_iWaveFrontSynchro = iWaveFrontSynchro; }
   Int   getWaveFrontsynchro()                            { return m_iWaveFrontSynchro; }
   Void  setWaveFrontFlush(Int iWaveFrontFlush)           { m_iWaveFrontFlush = iWaveFrontFlush; }

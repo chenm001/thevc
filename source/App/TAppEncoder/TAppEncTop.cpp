@@ -244,9 +244,6 @@ Void TAppEncTop::xInitLibCfg()
     m_cTEncTop.setRowHeight                ( m_pchRowHeight );
   }
   m_cTEncTop.xCheckGSParameters();
-#if !EXPLICITLY_SIGNAL_ENTRY_POINTS
-  m_cTEncTop.setTileLocationInSliceHeaderFlag ( m_iTileLocationInSliceHeaderFlag );
-#endif
   Int uiTilesCount          = (m_iNumRowsMinus1+1) * (m_iNumColumnsMinus1+1);
 #if !TILES_OR_ENTROPY_FIX
   m_cTEncTop.setTileBehaviorControlPresentFlag( m_iTileBehaviorControlPresentFlag );
