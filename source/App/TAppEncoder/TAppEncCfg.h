@@ -237,6 +237,8 @@ protected:
 #else
   UInt      m_uiBiPredIdc;                                    ///< Use of Bi-Directional Weighting Prediction (B_SLICE): explicit(1) or implicit(2)
 #endif
+  
+  UInt      m_log2ParallelMergeLevel;                 ///< Parallel merge estimation region
 
 #if SLICE_TMVP_ENABLE
   Int       m_TMVPModeId;

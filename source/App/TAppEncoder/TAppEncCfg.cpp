@@ -329,6 +329,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #else
     ("weighted_bipred_idc,-wpBidc", m_uiBiPredIdc,    0u,    "weighted bipred idc (B-Slices)")
 #endif
+    ("Log2ParallelMergeLevel",      m_log2ParallelMergeLevel,     2u,          "Parallel merge estimation region")
 #if !TILES_OR_ENTROPY_FIX
     ("TileInfoPresentFlag",         m_iColumnRowInfoPresent,         1,          "0: tiles parameters are NOT present in the PPS. 1: tiles parameters are present in the PPS")
 #endif
@@ -978,6 +979,8 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara(!m_TransquantBypassEnableFlag && m_CUTransquantBypassFlagValue, "CUTransquantBypassFlagValue cannot be 1 when TransquantBypassEnableFlag is 0");
 #endif
 
+  xConfirmPara(m_log2ParallelMergeLevel < 2, "Log2ParallelMergeLevel should be larger than or equal to 2");
+
 #undef xConfirmPara
   if (check_failed)
   {
@@ -1126,6 +1129,7 @@ Void TAppEncCfg::xPrintParameter()
 #else
   printf("WPB:%d ", m_uiBiPredIdc);
 #endif
+  printf("PME:%d ", m_log2ParallelMergeLevel);
 #if !EXPLICITLY_SIGNAL_ENTRY_POINTS
   printf("TileLocationInSliceHdr:%d ", m_iTileLocationInSliceHeaderFlag);
 #endif

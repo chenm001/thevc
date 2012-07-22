@@ -392,11 +392,9 @@ protected:
                                     TComMvField*    pacMvField,
                                     UInt&           uiMergeIndex,
                                     UInt&           ruiCost
-#if CU_BASED_MRG_CAND_LIST
                                   , TComMvField* cMvFieldNeighbours,  
                                     UChar* uhInterDirNeighbours,
                                     Int& numValidMergeCand
-#endif
                                    );
 
 #if BIPRED_RESTRICT_SMALL_PU

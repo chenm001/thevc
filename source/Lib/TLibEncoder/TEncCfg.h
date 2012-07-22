@@ -276,6 +276,7 @@ protected:
 #else
   UInt      m_uiBiPredIdc;          //< Use of Bi-Directional Weighting Prediction (B_SLICE)
 #endif
+  UInt      m_log2ParallelMergeLevelMinus2;       // Parallel merge estimation region
   Int       m_useScalingListId;            ///< Using quantization matrix i.e. 0=off, 1=default, 2=file.
   char*     m_scalingListFile;          ///< quantization matrix file name
 #if SLICE_TMVP_ENABLE
@@ -664,6 +665,8 @@ public:
 #else
   UInt      getWPBiPredIdc         ()            { return m_uiBiPredIdc;       }
 #endif
+  Void      setLog2ParallelMergeLevelMinus2   ( UInt u )    { m_log2ParallelMergeLevelMinus2       = u;    }
+  UInt      getLog2ParallelMergeLevelMinus2   ()            { return m_log2ParallelMergeLevelMinus2;       }
   Void      setUseScalingListId    ( Int  u )    { m_useScalingListId       = u;   }
   Int       getUseScalingListId    ()            { return m_useScalingListId;      }
   Void      setScalingListFile     ( char*  pch ){ m_scalingListFile     = pch; }

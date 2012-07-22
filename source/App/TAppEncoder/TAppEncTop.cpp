@@ -206,6 +206,9 @@ Void TAppEncTop::xInitLibCfg()
 #else
   m_cTEncTop.setWPBiPredIdc             ( m_uiBiPredIdc         );
 #endif
+  //====== Parallel Merge Estimation ========
+  m_cTEncTop.setLog2ParallelMergeLevelMinus2 ( m_log2ParallelMergeLevel - 2 );
+
   //====== Slice ========
   m_cTEncTop.setSliceMode               ( m_iSliceMode                );
   m_cTEncTop.setSliceArgument           ( m_iSliceArgument            );

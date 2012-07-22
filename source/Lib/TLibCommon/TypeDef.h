@@ -111,11 +111,6 @@
 #define IPCM_LOSSLESS_LOOP_FILTERING_UNIFICATION  1  ///< I0586: I_PCM/lossless loop filtering unification
 #endif
 
-#define LOG2_PARALLEL_MERGE_LEVEL_MINUS2 0  //< H0082 parallel merge level 0-> 4x4, 1-> 8x8, 2->16x16, 3->32x32, 4->64x64
-#if LOG2_PARALLEL_MERGE_LEVEL_MINUS2
-#define CU_BASED_MRG_CAND_LIST           1  //< H0240: single merge candidate list for all PUs inside a 8x8 CU conditioned on LOG2_PARALLEL_MERGE_LEVEL_MINUS2 > 0
-#endif
-
 #define LAST_CTX_DERIVATION              1  //< I0331: table removal of LAST context derivation
 #define DISABLING_CLIP_FOR_BIPREDME         1  ///< Ticket #175
   
