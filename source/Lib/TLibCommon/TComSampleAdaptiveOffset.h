@@ -64,12 +64,8 @@ protected:
   TComPic*          m_pcPic;
 
   static UInt m_uiMaxDepth;
-  static const Int m_aiNumPartsInRow[5];
-  static const Int m_aiNumPartsLevel[5];
   static const Int m_aiNumCulPartsLevel[5];
   static const UInt m_auiEoTable[9];
-  static const UInt m_auiEoTable2D[9];
-  static const UInt m_iWeightSao[MAX_NUM_SAO_TYPE];
   Int *m_iOffsetBo;
   Int m_iOffsetEo[LUMA_GROUP_NUM];
 
@@ -115,7 +111,6 @@ public:
   Void destroy ();
 
   Int  convertLevelRowCol2Idx(int level, int row, int col);
-  void convertIdx2LevelRowCol(int idx, int *level, int *row, int *col);
 
   Void initSAOParam   (SAOParam *pcSaoParam, Int iPartLevel, Int iPartRow, Int iPartCol, Int iParentPartIdx, Int StartCUX, Int EndCUX, Int StartCUY, Int EndCUY, Int iYCbCr);
   Void allocSaoParam  (SAOParam* pcSaoParam);
@@ -124,8 +119,6 @@ public:
 
   Void SAOProcess(TComPic* pcPic, SAOParam* pcSaoParam);
   Void processSaoCu(Int iAddr, Int iSaoType, Int iYCbCr);
-  Void processSaoOnePart(SAOQTPart *psQTPart, UInt uiPartIdx, Int iYCbCr);
-  Void processSaoQuadTree(SAOQTPart *psQTPart, UInt uiPartIdx, Int iYCbCr);
   Pel* getPicYuvAddr(TComPicYuv* pcPicYuv, Int iYCbCr,Int iAddr = 0);
 
   Void processSaoCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process without slice granularity 

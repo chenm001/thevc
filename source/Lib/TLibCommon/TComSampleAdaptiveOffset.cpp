@@ -82,24 +82,6 @@ TComSampleAdaptiveOffset::~TComSampleAdaptiveOffset()
 
 }
 
-const Int TComSampleAdaptiveOffset::m_aiNumPartsInRow[5] =
-{
-  1,   //level 0
-  2,   //level 1
-  4,   //level 2
-  8,   //level 3
-  16   //level 4
-};
-
-const Int TComSampleAdaptiveOffset::m_aiNumPartsLevel[5] =
-{
-  1,   //level 0
-  4,   //level 1
-  16,  //level 2
-  64,  //level 3
-  256  //level 4
-};
-
 const Int TComSampleAdaptiveOffset::m_aiNumCulPartsLevel[5] =
 {
   1,   //level 0
@@ -120,28 +102,6 @@ const UInt TComSampleAdaptiveOffset::m_auiEoTable[9] =
   0, //6  
   0, //7 
   0
-};
-
-const UInt TComSampleAdaptiveOffset::m_iWeightSao[MAX_NUM_SAO_TYPE] =
-{
-  2,
-  2,
-  2,
-  2,
-  1
-};
-
-const UInt TComSampleAdaptiveOffset::m_auiEoTable2D[9] =
-{
-  1, //0    
-  2, //1   
-  3, //2
-  0, //3
-  0, //4
-  0, //5  
-  4, //6  
-  5, //7 
-  6
 };
 
 Int TComSampleAdaptiveOffset::m_iNumClass[MAX_NUM_SAO_TYPE] =
@@ -184,42 +144,7 @@ Int  TComSampleAdaptiveOffset::convertLevelRowCol2Idx(int level, int row, int co
   }
   return idx;
 }
-/** convert quadtree Idx to Level, Row, and Col
- * \param  idx,  *level,  *row,  *col
- */
-void TComSampleAdaptiveOffset::convertIdx2LevelRowCol(int idx, int *level, int *row, int *col)
-{
-  if (idx == 0)
-  {
-    *level = 0;
-    *row = 0;
-    *col = 0;
-  }
-  else if (idx>=1 && idx<=4)
-  {
-    *level = 1;
-    *row = (idx-1) / 2;
-    *col = (idx-1) % 2;
-  }
-  else if (idx>=5 && idx<=20)
-  {
-    *level = 2;
-    *row = (idx-5) / 4;
-    *col = (idx-5) % 4;
-  }
-  else if (idx>=21 && idx<=84)
-  {
-    *level = 3;
-    *row = (idx-21) / 8;
-    *col = (idx-21) % 8;
-  }
-  else // (idx>=85 && idx<=340)
-  {
-    *level = 4;
-    *row = (idx-85) / 16;
-    *col = (idx-85) % 16;
-  }
-}
+
 /** create SampleAdaptiveOffset memory.
  * \param 
  */

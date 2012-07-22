@@ -269,7 +269,6 @@ private:
   Void creatPQTPart               (Int partLevel, Int partRow, Int partCol, Int parentPartIdx, Int partCUXS, Int partCUXE, Int partCUYS, Int partCUYE);
   Void resetPQTPart               ();
   Int  convertLevelRowCol2Idx     (Int level, Int row, Int col);
-  Void convertIdx2LevelRowCol     (Int idx, Int *level, Int *row, Int *col);
   Void executeModeDecisionOnePart (AlfPicQTPart *alfPicQTPart, AlfCorrData** alfPicLCUCorr, Int partIdx, Int partLevel);
   Void decideQTPartition          (AlfPicQTPart* alfPicQTPart, AlfCorrData** alfPicLCUCorr, Int partIdx, Int partLevel, Double &cost, Int64 &dist, Int64 &rate);
   Void patchAlfUnitParams(AlfPicQTPart* alfPicQTPart, Int partIdx, AlfUnitParam* alfUnitPic);

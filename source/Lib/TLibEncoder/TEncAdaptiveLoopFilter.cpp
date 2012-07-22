@@ -417,43 +417,6 @@ Int TEncAdaptiveLoopFilter::convertLevelRowCol2Idx(Int level, Int row, Int col)
   return idx;
 }
 
-/** convert quadtree Idx to Level, Row, and Col
- * \param  idx,  *level,  *row,  *col
- */
-Void TEncAdaptiveLoopFilter::convertIdx2LevelRowCol(Int idx, Int *level, Int *row, Int *col)
-{
-  if (idx == 0)
-  {
-    *level = 0;
-    *row = 0;
-    *col = 0;
-  }
-  else if (idx>=1 && idx<=4)
-  {
-    *level = 1;
-    *row = (idx-1) / 2;
-    *col = (idx-1) % 2;
-  }
-  else if (idx>=5 && idx<=20)
-  {
-    *level = 2;
-    *row = (idx-5) / 4;
-    *col = (idx-5) % 4;
-  }
-  else if (idx>=21 && idx<=84)
-  {
-    *level = 3;
-    *row = (idx-21) / 8;
-    *col = (idx-21) % 8;
-  }
-  else // (idx>=85 && idx<=340)
-  {
-    *level = 4;
-    *row = (idx-85) / 16;
-    *col = (idx-85) % 16;
-  }
-}
-
 /** Initial picture quad-tree
  * \param [in] isPicBasedEncode picture quad-tree encoding is enabled or disabled
  */
