@@ -48,7 +48,6 @@
 #define SBH_THRESHOLD                    4  ///< I0156: value of the fixed SBH controlling threshold
   
 #define SEQUENCE_LEVEL_LOSSLESS           0  ///< H0530: used only for sequence or frame-level lossless coding
-#define IPCM_LOSSLESS_LOOP_FILTERING_UNIFICATION  1  ///< I0586: I_PCM/lossless loop filtering unification
 
 #define DISABLING_CLIP_FOR_BIPREDME         1  ///< Ticket #175
   
