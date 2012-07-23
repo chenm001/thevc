@@ -235,19 +235,10 @@ Void TDecCavlc::parseAPS(TComAPS* aps)
 #if !SCALING_LIST_HL_SYNTAX
   READ_FLAG(uiCode, "aps_scaling_list_data_present_flag"); aps->setScalingListEnabled( (uiCode==1)?true:false );
 #endif
-#if !DBL_HL_SYNTAX
-  READ_FLAG(uiCode, "aps_deblocking_filter_flag");         aps->setLoopFilterOffsetInAPS( (uiCode==1)?true:false );
-#endif
 #if !SCALING_LIST_HL_SYNTAX
   if(aps->getScalingListEnabled())
   {
     parseScalingList( aps->getScalingList() );
-  }
-#endif
-#if !DBL_HL_SYNTAX
-  if(aps->getLoopFilterOffsetInAPS())
-  {
-    xParseDblParam( aps );    
   }
 #endif
   for(Int compIdx=0; compIdx< 3; compIdx++)
@@ -264,25 +255,6 @@ Void TDecCavlc::parseAPS(TComAPS* aps)
   }
 
 }
-
-#if !DBL_HL_SYNTAX
-Void  TDecCavlc::xParseDblParam       ( TComAPS* aps )
-{
-  UInt uiSymbol;
-  Int iSymbol;
-
-  parseDFFlag(uiSymbol, "loop_filter_disable");
-  aps->setLoopFilterDisable(uiSymbol?true:false);
-
-  if (!aps->getLoopFilterDisable())
-  {
-    parseDFSvlc(iSymbol, "beta_offset_div2");
-    aps->setLoopFilterBetaOffset(iSymbol);
-    parseDFSvlc(iSymbol, "tc_offset_div2");
-    aps->setLoopFilterTcOffset(iSymbol);
-  }
-}
-#endif
 
 /** copy SAO parameter
 * \param dst  
@@ -530,7 +502,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 #endif
   READ_FLAG( uiCode, "deblocking_filter_control_present_flag" ); 
   pcPPS->setDeblockingFilterControlPresent( uiCode ? true : false);
-#if DBL_HL_SYNTAX
   if(pcPPS->getDeblockingFilterControlPresent())
   {
     READ_FLAG( uiCode, "pps_deblocking_filter_flag" );
@@ -548,7 +519,6 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
       }
     }
   }
-#endif
 #if SCALING_LIST_HL_SYNTAX
   READ_FLAG( uiCode, "pps_scaling_list_data_present_flag" );                 pcPPS->setScalingListPresentFlag ( (uiCode==1)?true:false );
   if(pcPPS->getScalingListPresentFlag ())
@@ -701,9 +671,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #endif
   READ_FLAG( uiCode, "chroma_pred_from_luma_enabled_flag" );        pcSPS->setUseLMChroma ( uiCode ? true : false ); 
   READ_FLAG( uiCode, "transform_skip_enabled_flag" );               pcSPS->setUseTransformSkip ( uiCode ? true : false ); 
-#if !DBL_HL_SYNTAX
-  READ_FLAG( uiCode, "deblocking_filter_in_aps_enabled_flag" );     pcSPS->setUseDF ( uiCode ? true : false );  
-#endif
   READ_FLAG( uiCode, "loop_filter_across_slice_flag" );             pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
   READ_FLAG( uiCode, "asymmetric_motion_partitions_enabled_flag" ); pcSPS->setUseAMP( uiCode );
   READ_FLAG( uiCode, "non_square_quadtree_enabled_flag" );          pcSPS->setUseNSQT( uiCode );
@@ -993,15 +960,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
         rpcSlice->setRPS(rps);
       }
     }
-#if DBL_HL_SYNTAX
     if(sps->getUseSAO() || sps->getUseALF())
-#else
-#if SCALING_LIST_HL_SYNTAX
-    if(sps->getUseSAO() || sps->getUseALF() || sps->getUseDF())
-#else
-    if(sps->getUseSAO() || sps->getUseALF() || sps->getScalingListFlag() || sps->getUseDF())
-#endif
-#endif
     {
       if (sps->getUseSAO())
       {
@@ -1173,7 +1132,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
 
     if (rpcSlice->getPPS()->getDeblockingFilterControlPresent())
     {
-#if DBL_HL_SYNTAX
       if(rpcSlice->getPPS()->getLoopFilterOffsetInPPS())
       {
         READ_FLAG ( uiCode, "inherit_dbl_param_from_PPS_flag" );
@@ -1198,24 +1156,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
         rpcSlice->setLoopFilterBetaOffset(rpcSlice->getPPS()->getLoopFilterBetaOffset());
         rpcSlice->setLoopFilterTcOffset(rpcSlice->getPPS()->getLoopFilterTcOffset());
       }
-#else
-      if ( rpcSlice->getSPS()->getUseDF() )
-      {
-        READ_FLAG ( uiCode, "inherit_dbl_param_from_APS_flag" ); rpcSlice->setInheritDblParamFromAPS(uiCode ? 1 : 0);
-      } else
-      {
-        rpcSlice->setInheritDblParamFromAPS(0);
-      }
-      if(!rpcSlice->getInheritDblParamFromAPS())
-      {
-        READ_FLAG ( uiCode, "disable_deblocking_filter_flag" );  rpcSlice->setLoopFilterDisable(uiCode ? 1 : 0);
-        if(!rpcSlice->getLoopFilterDisable())
-        {
-          READ_SVLC( iCode, "beta_offset_div2" ); rpcSlice->setLoopFilterBetaOffset(iCode);
-          READ_SVLC( iCode, "tc_offset_div2" ); rpcSlice->setLoopFilterTcOffset(iCode);
-        }
-      }
-#endif
     }
     if ( rpcSlice->getEnableTMVPFlag() )
     {
@@ -1841,17 +1781,6 @@ Void TDecCavlc::xDecodeScalingList(TComScalingList *scalingList, UInt sizeId, UI
     dst[scan[i]] = nextCoef;
   }
 }
-
-#if !DBL_HL_SYNTAX
-Void TDecCavlc::parseDFFlag(UInt& ruiVal, const Char *pSymbolName)
-{
-  READ_FLAG(ruiVal, pSymbolName);
-}
-Void TDecCavlc::parseDFSvlc(Int&  riVal, const Char *pSymbolName)
-{
-  READ_SVLC(riVal, pSymbolName);
-}
-#endif
 
 Bool TDecCavlc::xMoreRbspData()
 { 

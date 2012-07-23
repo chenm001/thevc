@@ -137,14 +137,7 @@ public:
   Void xParsePredWeightTable ( TComSlice* pcSlice );
   Void  parseScalingList               ( TComScalingList* scalingList );
   Void xDecodeScalingList    ( TComScalingList *scalingList, UInt sizeId, UInt listId);
-#if !DBL_HL_SYNTAX
-  Void parseDFFlag         ( UInt& ruiVal, const Char *pSymbolName );
-  Void parseDFSvlc         ( Int&  riVal,  const Char *pSymbolName  );
-#endif
 protected:
-#if !DBL_HL_SYNTAX
-  Void  xParseDblParam       ( TComAPS* aps );
-#endif
   Void  xParseAlfParam       ( ALFParam* pAlfParam );
   Int   xGolombDecode        ( Int k );
   Bool  xMoreRbspData();

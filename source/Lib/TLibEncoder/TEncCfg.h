@@ -144,11 +144,7 @@ protected:
   
   //====== Loop/Deblock Filter ========
   Bool      m_bLoopFilterDisable;
-#if DBL_HL_SYNTAX
   Bool      m_loopFilterOffsetInPPS;
-#else
-  Bool      m_loopFilterOffsetInAPS;
-#endif
   Int       m_loopFilterBetaOffsetDiv2;
   Int       m_loopFilterTcOffsetDiv2;
   Bool      m_DeblockingFilterControlPresent;
@@ -299,11 +295,7 @@ public:
   
   //====== Loop/Deblock Filter ========
   Void      setLoopFilterDisable            ( Bool  b )      { m_bLoopFilterDisable       = b; }
-#if DBL_HL_SYNTAX
   Void      setLoopFilterOffsetInPPS        ( Bool  b )      { m_loopFilterOffsetInPPS      = b; }
-#else
-  Void      setLoopFilterOffsetInAPS        ( Bool  b )      { m_loopFilterOffsetInAPS      = b; }
-#endif
   Void      setLoopFilterBetaOffset         ( Int   i )      { m_loopFilterBetaOffsetDiv2  = i; }
   Void      setLoopFilterTcOffset           ( Int   i )      { m_loopFilterTcOffsetDiv2    = i; }
   Void      setDeblockingFilterControlPresent ( Bool b ) { m_DeblockingFilterControlPresent = b; }
@@ -363,11 +355,7 @@ public:
   
   //==== Loop/Deblock Filter ========
   Bool      getLoopFilterDisable            ()      { return  m_bLoopFilterDisable;       }
-#if DBL_HL_SYNTAX
   Bool      getLoopFilterOffsetInPPS        ()      { return m_loopFilterOffsetInPPS; }
-#else
-  Bool      getLoopFilterOffsetInAPS        ()      { return m_loopFilterOffsetInAPS; }
-#endif
   Int       getLoopFilterBetaOffset         ()      { return m_loopFilterBetaOffsetDiv2; }
   Int       getLoopFilterTcOffset           ()      { return m_loopFilterTcOffsetDiv2; }
   Bool      getDeblockingFilterControlPresent()  { return  m_DeblockingFilterControlPresent; }

@@ -171,8 +171,6 @@
 
 #define CABAC_INIT_PRESENT_FLAG     1
 
-#define DBL_HL_SYNTAX                 1 // Signalling of deblocking filter in PPS and Slice header instead of in APS
-
 #define CU_QP_DELTA_DEPTH_SYN  1 // JCTVC-I0127, differential coding of max cu qp delta depth
 
 #define H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL 1 ///< H0391: Loop filtering across/non-across slice boundaries control

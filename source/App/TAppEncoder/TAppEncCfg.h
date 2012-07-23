@@ -136,11 +136,7 @@ protected:
   Bool      m_bUseALF;                                        ///< flag for using adaptive loop filter
   Bool      m_alfLowLatencyEncoding;
   Bool      m_bLoopFilterDisable;                             ///< flag for using deblocking filter
-#if DBL_HL_SYNTAX
   Bool      m_loopFilterOffsetInPPS;                         ///< offset for deblocking filter in 0 = slice header, 1 = PPS
-#else
-  Bool      m_loopFilterOffsetInAPS;                         ///< offset for deblocking filter in 0 = slice header, 1 = APS
-#endif
   Int       m_loopFilterBetaOffsetDiv2;                     ///< beta offset for deblocking filter
   Int       m_loopFilterTcOffsetDiv2;                       ///< tc offset for deblocking filter
   Bool      m_DeblockingFilterControlPresent;                 ///< deblocking filter control present flag in PPS

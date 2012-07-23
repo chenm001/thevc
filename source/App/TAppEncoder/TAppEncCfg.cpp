@@ -259,11 +259,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   
   // Deblocking filter parameters
   ("LoopFilterDisable",              m_bLoopFilterDisable,             false )
-#if DBL_HL_SYNTAX
   ("LoopFilterOffsetInPPS",          m_loopFilterOffsetInPPS,          false )
-#else
-  ("LoopFilterOffsetInAPS",          m_loopFilterOffsetInAPS,          false )
-#endif
   ("LoopFilterBetaOffset_div2",      m_loopFilterBetaOffsetDiv2,           0 )
   ("LoopFilterTcOffset_div2",        m_loopFilterTcOffsetDiv2,             0 )
   ("DeblockingFilterControlPresent", m_DeblockingFilterControlPresent, false )

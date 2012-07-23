@@ -708,15 +708,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       uiNextCUAddr                 = 0;
       pcSlice = pcPic->getSlice(uiStartCUAddrSliceIdx);
 
-#if DBL_HL_SYNTAX
       Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
-#else
-#if SCALING_LIST_HL_SYNTAX
-      Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseDF())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
-#else
-      Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getScalingListFlag() || pcSlice->getSPS()->getUseDF())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
-#endif
-#endif
 
       static Int iCurrAPSIdx = 0;
       Int iCodedAPSIdx = 0;
@@ -1242,12 +1234,6 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
     cAPS.setScalingListEnabled(false);
   }
 #endif
-#if !DBL_HL_SYNTAX
-  cAPS.setLoopFilterOffsetInAPS(m_pcCfg->getLoopFilterOffsetInAPS());
-  cAPS.setLoopFilterDisable(m_pcCfg->getLoopFilterDisable());
-  cAPS.setLoopFilterBetaOffset(m_pcCfg->getLoopFilterBetaOffset());
-  cAPS.setLoopFilterTcOffset(m_pcCfg->getLoopFilterTcOffset());
-#endif
 
   //assign new APS into APS container
   Int apsBufSize= (Int)vAPS.size();
@@ -1278,12 +1264,6 @@ Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* p
   if(pcAPS->getScalingListEnabled())
   {
     m_pcEntropyCoder->encodeScalingList( pcSlice->getScalingList() );
-  }
-#endif
-#if !DBL_HL_SYNTAX
-  if(pcAPS->getLoopFilterOffsetInAPS())
-  {
-    m_pcEntropyCoder->encodeDFParams(pcAPS);
   }
 #endif
   for(Int compIdx=0; compIdx < 3; compIdx++)

@@ -277,15 +277,7 @@ Void TDecTop::xActivateParameterSets()
     pps->setNumSubstreams(1);
   }
 #endif
-#if DBL_HL_SYNTAX
   if(sps->getUseSAO() || sps->getUseALF())
-#else
-#if SCALING_LIST_HL_SYNTAX
-  if(sps->getUseSAO() || sps->getUseALF()|| sps->getUseDF())
-#else
-  if(sps->getUseSAO() || sps->getUseALF()|| sps->getScalingListFlag() || sps->getUseDF())
-#endif
-#endif
   {
     m_apcSlicePilot->setAPS( m_parameterSetManagerDecoder.getAPS(m_apcSlicePilot->getAPSId())  );
   }

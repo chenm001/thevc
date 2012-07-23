@@ -157,10 +157,6 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
 #if !SCALING_LIST_HL_SYNTAX
   WRITE_FLAG( pcAPS->getScalingListEnabled()?1:0, "aps_scaling_list_data_present_flag");
 #endif
-#if !DBL_HL_SYNTAX
-  //DF flag
-  WRITE_FLAG(pcAPS->getLoopFilterOffsetInAPS()?1:0, "aps_deblocking_filter_flag");
-#endif
 }
 
 Void TEncCavlc::codeDFFlag(UInt uiCode, const Char *pSymbolName)
@@ -308,7 +304,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   }
 #endif
   WRITE_FLAG( pcPPS->getDeblockingFilterControlPresent()?1 : 0, "deblocking_filter_control_present_flag");
-#if DBL_HL_SYNTAX
   if(pcPPS->getDeblockingFilterControlPresent())
   {
     WRITE_FLAG( pcPPS->getLoopFilterOffsetInPPS() ? 1 : 0,                          "pps_deblocking_filter_flag" ); 
@@ -322,7 +317,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
       }
     }
   }
-#endif
 #if SCALING_LIST_HL_SYNTAX
   WRITE_FLAG( pcPPS->getScalingListPresentFlag() ? 1 : 0,                          "pps_scaling_list_data_present_flag" ); 
   if( pcPPS->getScalingListPresentFlag() )
@@ -435,9 +429,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #endif
   WRITE_FLAG( pcSPS->getUseLMChroma () ? 1 : 0,                                      "chroma_pred_from_luma_enabled_flag" ); 
   WRITE_FLAG( pcSPS->getUseTransformSkip () ? 1 : 0,                                 "transform_skip_enabled_flag" ); 
-#if !DBL_HL_SYNTAX
-  WRITE_FLAG( pcSPS->getUseDF() ? 1 : 0,                                             "deblocking_filter_in_aps_enabled_flag");
-#endif
   WRITE_FLAG( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0,                            "seq_loop_filter_across_slices_enabled_flag");
   WRITE_FLAG( pcSPS->getUseAMP(),                                                    "asymmetric_motion_partitions_enabled_flag" );
   WRITE_FLAG( pcSPS->getUseNSQT(),                                                   "non_square_quadtree_enabled_flag" );
@@ -615,15 +606,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
         }
       }
     }
-#if DBL_HL_SYNTAX
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
-#else
-#if SCALING_LIST_HL_SYNTAX
-    if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF()|| pcSlice->getSPS()->getUseDF())
-#else
-    if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF()|| pcSlice->getSPS()->getScalingListFlag() || pcSlice->getSPS()->getUseDF())
-#endif
-#endif
     {
       if (pcSlice->getSPS()->getUseSAO())
       {
@@ -736,7 +719,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     WRITE_SVLC( iCode, "slice_qp_delta" ); 
     if (pcSlice->getPPS()->getDeblockingFilterControlPresent())
     {
-#if DBL_HL_SYNTAX
       if (pcSlice->getPPS()->getLoopFilterOffsetInPPS() )
       {
         WRITE_FLAG(pcSlice->getInheritDblParamFromPPS(), "inherit_dbl_param_from_PPS_flag");
@@ -750,21 +732,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
           WRITE_SVLC (pcSlice->getLoopFilterTcOffset(), "tc_offset_div2");
         }
       }
-#else
-      if ( pcSlice->getSPS()->getUseDF() )
-      {
-        WRITE_FLAG(pcSlice->getInheritDblParamFromAPS(), "inherit_dbl_param_from_APS_flag");
-      }
-      if (!pcSlice->getInheritDblParamFromAPS())
-      {
-        WRITE_FLAG(pcSlice->getLoopFilterDisable(), "loop_filter_disable");  // should be an IDC
-        if(!pcSlice->getLoopFilterDisable())
-        {
-          WRITE_SVLC (pcSlice->getLoopFilterBetaOffset(), "beta_offset_div2");
-          WRITE_SVLC (pcSlice->getLoopFilterTcOffset(), "tc_offset_div2");
-        }
-      }
-#endif
     }
     if ( pcSlice->getEnableTMVPFlag() )
     {

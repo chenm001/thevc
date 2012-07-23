@@ -118,11 +118,7 @@ Void TAppEncTop::xInitLibCfg()
   
   //====== Loop/Deblock Filter ========
   m_cTEncTop.setLoopFilterDisable            ( m_bLoopFilterDisable       );
-#if DBL_HL_SYNTAX
   m_cTEncTop.setLoopFilterOffsetInPPS        ( m_loopFilterOffsetInPPS );
-#else
-  m_cTEncTop.setLoopFilterOffsetInAPS        ( m_loopFilterOffsetInAPS );
-#endif
   m_cTEncTop.setLoopFilterBetaOffset         ( m_loopFilterBetaOffsetDiv2  );
   m_cTEncTop.setLoopFilterTcOffset           ( m_loopFilterTcOffsetDiv2    );
   m_cTEncTop.setDeblockingFilterControlPresent( m_DeblockingFilterControlPresent);

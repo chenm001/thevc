@@ -530,9 +530,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setPCMFilterDisableFlag  ( m_bPCMFilterDisableFlag );
 
   m_cSPS.setScalingListFlag ( (m_useScalingListId == 0) ? 0 : 1 );
-#if !DBL_HL_SYNTAX
-  m_cSPS.setUseDF( m_loopFilterOffsetInAPS );
-#endif
 }
 
 Void TEncTop::xInitPPS()
