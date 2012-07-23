@@ -230,10 +230,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       m_pcSliceEncoder->initEncSlice ( pcPic, iPOCLast, uiPOCCurr, iNumPicRcvd, iGOPid, pcSlice, m_pcEncTop->getSPS(), m_pcEncTop->getPPS() );
       pcSlice->setLastIDR(m_iLastIDR);
       pcSlice->setSliceIdx(0);
-#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
       //set default slice level flag to the same as SPS level flag
       pcSlice->setLFCrossSliceBoundaryFlag(  pcSlice->getSPS()->getLFCrossSliceBoundaryFlag()  );
-#endif
       pcSlice->setScalingList ( m_pcEncTop->getScalingList()  );
       if(m_pcEncTop->getUseScalingListId() == SCALING_LIST_OFF)
       {
@@ -627,7 +625,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
       {
         Int sliceGranularity = pcSlice->getPPS()->getSliceGranularity();
-#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
         std::vector<Bool> LFCrossSliceBoundaryFlag;
         for(Int s=0; s< uiNumSlices; s++)
         {
@@ -635,9 +632,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
         m_storedStartCUAddrForEncodingSlice.resize(uiNumSlices+1);
         pcPic->createNonDBFilterInfo(m_storedStartCUAddrForEncodingSlice, sliceGranularity, &LFCrossSliceBoundaryFlag ,pcPic->getPicSym()->getNumTiles() ,bLFCrossTileBoundary);
-#else
-        pcPic->createNonDBFilterInfo(m_uiStoredStartCUAddrForEncodingSlice, uiNumSlices, sliceGranularity, pcSlice->getSPS()->getLFCrossSliceBoundaryFlag(),pcPic->getPicSym()->getNumTiles() ,bLFCrossTileBoundary);
-#endif
       }
 
 
@@ -1298,15 +1292,11 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
   pcSlice = pcPic->getSlice(0);
   if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
   {
-#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
     std::vector<Bool> LFCrossSliceBoundaryFlag(1, true);
     std::vector<Int>  sliceStartAddress;
     sliceStartAddress.push_back(0);
     sliceStartAddress.push_back(pcPic->getNumCUsInFrame()* pcPic->getNumPartInCU());
     pcPic->createNonDBFilterInfo(sliceStartAddress, 0, &LFCrossSliceBoundaryFlag);
-#else
-    pcPic->createNonDBFilterInfo();
-#endif
   }
   
   // Adaptive Loop filter

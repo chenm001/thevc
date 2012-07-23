@@ -125,10 +125,8 @@ TComSlice::TComSlice()
   m_bCombineWithReferenceFlag = 0;
   resetWpScaling(m_weightPredTable);
   initWpAcDcParam();
-#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
   m_saoEnabledFlag = false;
   m_alfEnabledFlag[0] = m_alfEnabledFlag[1] = m_alfEnabledFlag[2] = false;
-#endif
 }
 
 TComSlice::~TComSlice()
@@ -780,9 +778,7 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   {
     m_alfEnabledFlag[compIdx] = pSrc->m_alfEnabledFlag[compIdx];
   }
-#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
   m_LFCrossSliceBoundaryFlag = pSrc->m_LFCrossSliceBoundaryFlag;
-#endif
   m_enableTMVPFlag                = pSrc->m_enableTMVPFlag;
 }
 

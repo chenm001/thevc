@@ -759,7 +759,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       }
     }
   }
-#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
   if(!bDependentSlice)
   {
     Bool isAlfEnabled = (!pcSlice->getSPS()->getUseALF())?(false):(pcSlice->getAlfEnabledFlag(0)||pcSlice->getAlfEnabledFlag(1)||pcSlice->getAlfEnabledFlag(2));
@@ -775,7 +774,6 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   {
     WRITE_UVLC(0,"slice_header_extension_length");
   }
-#endif
 #endif
 }
 

@@ -170,8 +170,6 @@
 
 #define CABAC_INIT_PRESENT_FLAG     1
 
-#define H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL 1 ///< H0391: Loop filtering across/non-across slice boundaries control
-
 #define H0226                       1 // JCTVC-H0226
 // ====================================================================================================================
 // VPS constants

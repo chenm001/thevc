@@ -152,9 +152,7 @@ Void TDecGop::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPic)
 
   if(uiSliceStartCuAddr == uiStartCUAddr)
   {
-#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
     m_LFCrossSliceBoundaryFlag.push_back( pcSlice->getLFCrossSliceBoundaryFlag());
-#endif
     if(pcSlice->getSPS()->getUseALF())
     {
       for(Int compIdx=0; compIdx < 3; compIdx++)
@@ -223,11 +221,7 @@ Void TDecGop::filterPicture(TComPic*& rpcPic)
   {
     Int sliceGranularity = pcSlice->getPPS()->getSliceGranularity();
     m_sliceStartCUAddress.push_back(rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU());
-#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
     rpcPic->createNonDBFilterInfo(m_sliceStartCUAddress, sliceGranularity, &m_LFCrossSliceBoundaryFlag, rpcPic->getPicSym()->getNumTiles(), bLFCrossTileBoundary);
-#else
-    rpcPic->createNonDBFilterInfo(puiILSliceStartLCU, uiILSliceCount,sliceGranularity,pcSlice->getSPS()->getLFCrossSliceBoundaryFlag(),rpcPic->getPicSym()->getNumTiles() ,bLFCrossTileBoundary);
-#endif
   }
 
   if( pcSlice->getSPS()->getUseSAO() )
@@ -300,9 +294,7 @@ Void TDecGop::filterPicture(TComPic*& rpcPic)
   {
     m_sliceAlfEnabled[compIdx].clear();
   }
-#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
   m_LFCrossSliceBoundaryFlag.clear();
-#endif
 }
 
 /**

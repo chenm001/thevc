@@ -4083,11 +4083,7 @@ UInt TComDataCU::getSCUAddr()
  * \param bIndependentTileBoundaryEnabled true for independent tile boundary enabled
  */
 Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt numLCUInPicHeight, UInt numSUInLCUWidth, UInt numSUInLCUHeight, UInt picWidth, UInt picHeight
-#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
                                                     ,std::vector<Bool>& LFCrossSliceBoundary
-#else
-                                                    ,Bool bIndependentSliceBoundaryEnabled
-#endif
                                                     ,Bool bTopTileBoundary, Bool bDownTileBoundary, Bool bLeftTileBoundary, Bool bRightTileBoundary
                                                     ,Bool bIndependentTileBoundaryEnabled)
 {
@@ -4121,9 +4117,7 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
     uiTPelY = rSGU.posY;
     width   = rSGU.width;
     height  = rSGU.height;
-#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
     Bool bIndependentSliceBoundaryEnabled = !(LFCrossSliceBoundary[sliceID]);
-#endif
 
     rTLSU     = g_auiZscanToRaster[ rSGU.startSU ];
     rBRSU     = g_auiZscanToRaster[ rSGU.endSU   ];

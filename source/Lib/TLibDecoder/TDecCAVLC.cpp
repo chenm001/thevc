@@ -1169,7 +1169,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
         rpcSlice->setAlfEnabledFlag( (uiCode ==1), compIdx);
       }
     }
-#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
     Bool isAlfEnabled = (!rpcSlice->getSPS()->getUseALF())?(false):(rpcSlice->getAlfEnabledFlag(0)||rpcSlice->getAlfEnabledFlag(1)||rpcSlice->getAlfEnabledFlag(2));
     Bool isSAOEnabled = (!rpcSlice->getSPS()->getUseSAO())?(false):(rpcSlice->getSaoEnabledFlag());
     Bool isDBFEnabled = (!rpcSlice->getLoopFilterDisable());
@@ -1182,7 +1181,6 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       uiCode = rpcSlice->getSPS()->getLFCrossSliceBoundaryFlag()?1:0;
     }
     rpcSlice->setLFCrossSliceBoundaryFlag( (uiCode==1)?true:false);
-#endif    
   }
 
 #if DEPENDENT_SLICES

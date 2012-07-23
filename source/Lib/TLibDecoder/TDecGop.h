@@ -88,9 +88,7 @@ private:
 
   //! list that contains the CU address of each slice plus the end address 
   std::vector<Int> m_sliceStartCUAddress;
-#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
   std::vector<Bool> m_LFCrossSliceBoundaryFlag;
-#endif
   std::vector<Bool> m_sliceAlfEnabled[3];
 
 
