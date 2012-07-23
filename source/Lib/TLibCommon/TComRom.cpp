@@ -664,7 +664,9 @@ Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)
 
       // termination condition
       if ( c >= uiWidth * uiHeight ) 
+      {
         break;
+      }
     }
   }
   else
@@ -697,8 +699,10 @@ Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)
       y=0;
 
       // termination condition
-      if ( c >= uiWidth * uiHeight ) 
+      if ( c >= uiWidth * uiHeight )
+      {
         break;
+      }
     }
   }
 }

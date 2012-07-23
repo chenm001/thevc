@@ -144,7 +144,6 @@ Void TComPicSym::allocateNewSlice()
     m_apcTComSlice[m_uiNumAllocatedSlice-1]->copySliceInfo( m_apcTComSlice[m_uiNumAllocatedSlice-2] );
     m_apcTComSlice[m_uiNumAllocatedSlice-1]->initSlice();
     m_apcTComSlice[m_uiNumAllocatedSlice-1]->initTiles();
-
   }
 }
 
@@ -188,6 +187,7 @@ Void TComPicSym::xInitTiles()
 
   //initialize each tile of the current picture
   for( uiRowIdx=0; uiRowIdx < m_iNumRowsMinus1+1; uiRowIdx++ )
+  {
     for( uiColumnIdx=0; uiColumnIdx < m_iNumColumnsMinus1+1; uiColumnIdx++ )
     {
       uiTileIdx = uiRowIdx * (m_iNumColumnsMinus1+1) + uiColumnIdx;
@@ -212,6 +212,7 @@ Void TComPicSym::xInitTiles()
       this->getTComTile(uiTileIdx)->setFirstCUAddr( (this->getTComTile(uiTileIdx)->getBottomEdgePosInCU() - this->getTComTile(uiTileIdx)->getTileHeight() +1)*m_uiWidthInCU + 
         this->getTComTile(uiTileIdx)->getRightEdgePosInCU() - this->getTComTile(uiTileIdx)->getTileWidth() + 1);
     }
+  }
 
   //initialize the TileIdxMap
   for( i=0; i<m_uiNumCUsInFrame; i++)

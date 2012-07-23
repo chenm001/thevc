@@ -211,7 +211,10 @@ Void TComSlice::initTiles()
   UInt uiHeightInCU      = ( iHeight%g_uiMaxCUHeight ) ? iHeight/g_uiMaxCUHeight + 1 : iHeight/g_uiMaxCUHeight;
   UInt uiNumCUsInFrame   = uiWidthInCU * uiHeightInCU;
 
-  if (m_uiTileByteLocation==NULL) m_uiTileByteLocation   = new UInt[uiNumCUsInFrame];
+  if (m_uiTileByteLocation==NULL)
+  {
+    m_uiTileByteLocation   = new UInt[uiNumCUsInFrame];
+  }
 }
 
 
@@ -271,7 +274,9 @@ TComPic* TComSlice::xGetRefPic (TComList<TComPic*>& rcListPic,
   while ( iterPic != rcListPic.end() )
   {
     if(pcPic->getPOC() == uiPOC)
+    {
       break;
+    }
     iterPic++;
     pcPic = *(iterPic);
   }
@@ -291,9 +296,13 @@ TComPic* TComSlice::xGetLongTermRefPic (TComList<TComPic*>& rcListPic,
     if(pcPic && (pcPic->getPOC()%(1<<getSPS()->getBitsForPOC())) == (uiPOC%(1<<getSPS()->getBitsForPOC())))
     {
       if(pcPic->getIsLongTerm())
+      {
         return pcPic;
+      }
       else
+      {
         pcStPic = pcPic;
+      }
       break;
     }
 
@@ -937,13 +946,17 @@ Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, T
         if(!pReferencePictureSet->getUsed(i) )
         {
           if(printErrors)
+          {
             printf("\nLong-term reference picture with POC = %3d seems to have been removed or not correctly decoded.", this->getPOC() + pReferencePictureSet->getDeltaPOC(i));
+          }
           atLeastOneRemoved = 1;
         }
         else
         {
           if(printErrors)
+          {
             printf("\nLong-term reference picture with POC = %3d is lost or not correctly decoded!", this->getPOC() + pReferencePictureSet->getDeltaPOC(i));
+          }
           atLeastOneLost = 1;
           iPocLost=this->getPOC() + pReferencePictureSet->getDeltaPOC(i);
         }
@@ -999,7 +1012,9 @@ Int TComSlice::checkThatAllRefPicsAreAvailable( TComList<TComPic*>& rcListPic, T
     return -2;
   }
   else
+  {
     return 0;
+  }
 }
 
 /** Function for constructing an explicit Reference Picture Set out of the available pictures in a referenced Reference Picture Set
@@ -1031,9 +1046,13 @@ Void TComSlice::createExplicitReferencePictureSetFromReference( TComList<TComPic
         pcRPS->setDeltaPOC(k, pReferencePictureSet->getDeltaPOC(i));
         pcRPS->setUsed(k, pReferencePictureSet->getUsed(i));
         if(pcRPS->getDeltaPOC(k) < 0)
+        {
           nrOfNegativePictures++;
+        }
         else
+        {
           nrOfPositivePictures++;
+        }
         k++;
       }
     }
@@ -1712,14 +1731,14 @@ Bool TComScalingList::xParseScalingList(char* pchFile)
           }
         }
         while (strstr(line, MatrixType_DC[sizeIdc][listIdc]) == NULL);
-          retval = fscanf(fp, "%d,", &data);
-          if (retval!=1)
-          {
-            printf("Error: can't read Matrix :: set Default Matrix\n");
-            return true;
-          }
-          //overwrite DC value when size of matrix is larger than 16x16
-          setScalingListDC(sizeIdc,listIdc,data);
+        retval = fscanf(fp, "%d,", &data);
+        if (retval!=1)
+        {
+          printf("Error: can't read Matrix :: set Default Matrix\n");
+          return true;
+        }
+        //overwrite DC value when size of matrix is larger than 16x16
+        setScalingListDC(sizeIdc,listIdc,data);
       }
     }
   }

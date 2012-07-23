@@ -73,12 +73,16 @@ void writeSEImessage(TComBitIf& bs, const SEI& sei)
 
   unsigned payloadType = sei.payloadType();
   for (; payloadType >= 0xff; payloadType -= 0xff)
+  {
     bs.write(0xff, 8);
+  }
   bs.write(payloadType, 8);
 
   unsigned payloadSize = payload_data_num_bits/8;
   for (; payloadSize >= 0xff; payloadSize -= 0xff)
+  {
     bs.write(0xff, 8);
+  }
   bs.write(payloadSize, 8);
 
   /* payloadData */

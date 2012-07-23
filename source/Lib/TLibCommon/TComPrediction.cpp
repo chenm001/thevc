@@ -897,8 +897,8 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
 
   Int a, b, iShift = 13;
 
-   Int iB = 7;
-   iShift -= iB;
+  Int iB = 7;
+  iShift -= iB;
 
   if( iCountShift == 0 )
   {
@@ -911,69 +911,66 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
     Int a1 = xy - ( avgLuma*avgSrc << iCountShift ) - avgLuma*RErrSrc - avgSrc*RErrLuma;
     Int a2 = xx - ( avgLuma*avgLuma << iCountShift ) - 2*avgLuma*RErrLuma;
 
+    const Int iShiftA1 = uiInternalBitDepth - 2;
+    const Int iShiftA2 = 5;
+    const Int iAccuracyShift = uiInternalBitDepth + 4;
+
+    Int iScaleShiftA2 = 0;
+    Int iScaleShiftA1 = 0;
+    Int a1s = a1;
+    Int a2s = a2;
+
+    iScaleShiftA1 = a1 == 0 ? 0 : GetFloorLog2( abs( a1 ) ) - iShiftA1;
+    iScaleShiftA2 = a2 == 0 ? 0 : GetFloorLog2( abs( a2 ) ) - iShiftA2;
+
+    if( iScaleShiftA1 < 0 )
     {
-      const Int iShiftA1 = uiInternalBitDepth - 2;
-      const Int iShiftA2 = 5;
-      const Int iAccuracyShift = uiInternalBitDepth + 4;
-
-      Int iScaleShiftA2 = 0;
-      Int iScaleShiftA1 = 0;
-      Int a1s = a1;
-      Int a2s = a2;
-
-      iScaleShiftA1 = a1 == 0 ? 0 : GetFloorLog2( abs( a1 ) ) - iShiftA1;
-      iScaleShiftA2 = a2 == 0 ? 0 : GetFloorLog2( abs( a2 ) ) - iShiftA2;
-
-      if( iScaleShiftA1 < 0 )
-      {
-        iScaleShiftA1 = 0;
-      }
-      
-      if( iScaleShiftA2 < 0 )
-      {
-        iScaleShiftA2 = 0;
-      }
- 
-      Int iScaleShiftA = iScaleShiftA2 + iAccuracyShift - iShift - iScaleShiftA1;
-
-      a2s = a2 >> iScaleShiftA2;
-
-      a1s = a1 >> iScaleShiftA1;
-
-      if (a2s >= 32)
-      {
-        UInt a2t = m_uiaShift[ a2s - 32 ] ;
-        a2t = Clip( a2t );
-        a = a1s * a2t;
-      }
-      else
-      {
-        a = 0;
-      }
-      
-      if( iScaleShiftA < 0 )
-      {
-        a = a << -iScaleShiftA;
-      }
-      else
-      {
-        a = a >> iScaleShiftA;
-      }
-      a = Clip3(-( 1 << (15-iB) ), ( 1 << (15-iB )) - 1, a);
-      a = a << iB;
-     
-      Short n = 0;
-      if (a != 0)
-      {
-        n = GetFloorLog2(abs( a ) + ( (a < 0 ? -1 : 1) - 1)/2 ) - 5;
-      }
-      {
-        iShift =(iShift+iB)-n;
-      }
-      a = a>>n;
-
-      b =  avgSrc - ( (  a * avgLuma ) >> iShift );
+      iScaleShiftA1 = 0;
     }
+    
+    if( iScaleShiftA2 < 0 )
+    {
+      iScaleShiftA2 = 0;
+    }
+
+    Int iScaleShiftA = iScaleShiftA2 + iAccuracyShift - iShift - iScaleShiftA1;
+
+    a2s = a2 >> iScaleShiftA2;
+
+    a1s = a1 >> iScaleShiftA1;
+
+    if (a2s >= 32)
+    {
+      UInt a2t = m_uiaShift[ a2s - 32 ] ;
+      a2t = Clip( a2t );
+      a = a1s * a2t;
+    }
+    else
+    {
+      a = 0;
+    }
+    
+    if( iScaleShiftA < 0 )
+    {
+      a = a << -iScaleShiftA;
+    }
+    else
+    {
+      a = a >> iScaleShiftA;
+    }
+    a = Clip3(-( 1 << (15-iB) ), ( 1 << (15-iB )) - 1, a);
+    a = a << iB;
+   
+    Short n = 0;
+    if (a != 0)
+    {
+      n = GetFloorLog2(abs( a ) + ( (a < 0 ? -1 : 1) - 1)/2 ) - 5;
+    }
+    
+    iShift =(iShift+iB)-n;
+    a = a>>n;
+
+    b =  avgSrc - ( (  a * avgLuma ) >> iShift );
   }   
 
   // <-- end of LLS parameters estimation

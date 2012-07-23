@@ -471,93 +471,92 @@ Void TComAdaptiveLoopFilter::createPicAlfInfo(TComPic* pcPic, Int numSlicesInPic
   m_bUseNonCrossALF = ( pcPic->getIndependentSliceBoundaryForNDBFilter() || pcPic->getIndependentTileBoundaryForNDBFilter());
   m_pcPic = pcPic;
 
-    m_ppSliceAlfLCUs = new AlfLCUInfo*[m_uiNumSlicesInPic];
-    m_pvpAlfLCU = new std::vector< AlfLCUInfo* >[m_uiNumSlicesInPic];
-    m_pvpSliceTileAlfLCU = new std::vector< std::vector< AlfLCUInfo* > >[m_uiNumSlicesInPic];
+  m_ppSliceAlfLCUs = new AlfLCUInfo*[m_uiNumSlicesInPic];
+  m_pvpAlfLCU = new std::vector< AlfLCUInfo* >[m_uiNumSlicesInPic];
+  m_pvpSliceTileAlfLCU = new std::vector< std::vector< AlfLCUInfo* > >[m_uiNumSlicesInPic];
 
-    for(Int s=0; s< m_uiNumSlicesInPic; s++)
+  for(Int s=0; s< m_uiNumSlicesInPic; s++)
+  {
+    m_ppSliceAlfLCUs[s] = NULL;
+    if(!pcPic->getValidSlice(s))
     {
-      m_ppSliceAlfLCUs[s] = NULL;
-      if(!pcPic->getValidSlice(s))
+      continue;
+    }
+
+    std::vector< TComDataCU* >& vSliceLCUPointers = pcPic->getOneSliceCUDataForNDBFilter(s);
+    Int                         numLCU           = (Int)vSliceLCUPointers.size();
+
+    //create Alf LCU info
+    m_ppSliceAlfLCUs[s] = new AlfLCUInfo[numLCU];
+    for(Int i=0; i< numLCU; i++)
+    {
+      TComDataCU* pcCU       = vSliceLCUPointers[i];
+      if(pcCU->getPic()==0)
       {
         continue;
       }
+      Int         currTileID = pcPic->getPicSym()->getTileIdxMap(pcCU->getAddr());
 
-      std::vector< TComDataCU* >& vSliceLCUPointers = pcPic->getOneSliceCUDataForNDBFilter(s);
-      Int                         numLCU           = (Int)vSliceLCUPointers.size();
-
-      //create Alf LCU info
-      m_ppSliceAlfLCUs[s] = new AlfLCUInfo[numLCU];
-      for(Int i=0; i< numLCU; i++)
-      {
-        TComDataCU* pcCU       = vSliceLCUPointers[i];
-        if(pcCU->getPic()==0)
-        {
-          continue;
-        }
-        Int         currTileID = pcPic->getPicSym()->getTileIdxMap(pcCU->getAddr());
-
-        InitAlfLCUInfo(m_ppSliceAlfLCUs[s][i], s, currTileID, pcCU, pcPic->getNumPartInCU());
-      }
-
-      //distribute Alf LCU info pointers to slice container
-      std::vector< AlfLCUInfo* >&    vpSliceAlfLCU     = m_pvpAlfLCU[s]; 
-      vpSliceAlfLCU.reserve(numLCU);
-      vpSliceAlfLCU.resize(0);
-      std::vector< std::vector< AlfLCUInfo* > > &vpSliceTileAlfLCU = m_pvpSliceTileAlfLCU[s];
-      Int prevTileID = -1;
-      Int numValidTilesInSlice = 0;
-
-      for(Int i=0; i< numLCU; i++)
-      {
-        AlfLCUInfo* pcAlfLCU = &(m_ppSliceAlfLCUs[s][i]);
-
-        //container of Alf LCU pointers for slice processing
-        vpSliceAlfLCU.push_back( pcAlfLCU);
-
-        if(pcAlfLCU->tileID != prevTileID)
-        {
-          if(prevTileID == -1 || pcPic->getIndependentTileBoundaryForNDBFilter())
-          {
-            prevTileID = pcAlfLCU->tileID;
-            numValidTilesInSlice ++;
-            vpSliceTileAlfLCU.resize(numValidTilesInSlice);
-          }
-        }
-        //container of Alf LCU pointers for tile processing 
-        vpSliceTileAlfLCU[numValidTilesInSlice-1].push_back(pcAlfLCU);
-      }
-
-      assert( vpSliceAlfLCU.size() == numLCU);
+      InitAlfLCUInfo(m_ppSliceAlfLCUs[s][i], s, currTileID, pcCU, pcPic->getNumPartInCU());
     }
- 
-    if(m_bUseNonCrossALF)
+
+    //distribute Alf LCU info pointers to slice container
+    std::vector< AlfLCUInfo* >&    vpSliceAlfLCU     = m_pvpAlfLCU[s]; 
+    vpSliceAlfLCU.reserve(numLCU);
+    vpSliceAlfLCU.resize(0);
+    std::vector< std::vector< AlfLCUInfo* > > &vpSliceTileAlfLCU = m_pvpSliceTileAlfLCU[s];
+    Int prevTileID = -1;
+    Int numValidTilesInSlice = 0;
+
+    for(Int i=0; i< numLCU; i++)
     {
-      m_pcSliceYuvTmp = pcPic->getYuvPicBufferForIndependentBoundaryProcessing();
+      AlfLCUInfo* pcAlfLCU = &(m_ppSliceAlfLCUs[s][i]);
+
+      //container of Alf LCU pointers for slice processing
+      vpSliceAlfLCU.push_back( pcAlfLCU);
+
+      if(pcAlfLCU->tileID != prevTileID)
+      {
+        if(prevTileID == -1 || pcPic->getIndependentTileBoundaryForNDBFilter())
+        {
+          prevTileID = pcAlfLCU->tileID;
+          numValidTilesInSlice ++;
+          vpSliceTileAlfLCU.resize(numValidTilesInSlice);
+        }
+      }
+      //container of Alf LCU pointers for tile processing 
+      vpSliceTileAlfLCU[numValidTilesInSlice-1].push_back(pcAlfLCU);
     }
 
+    assert( vpSliceAlfLCU.size() == numLCU);
+  }
+
+  if(m_bUseNonCrossALF)
+  {
+    m_pcSliceYuvTmp = pcPic->getYuvPicBufferForIndependentBoundaryProcessing();
+  }
 }
 
 /** Destroy ALF slice units
  */
 Void TComAdaptiveLoopFilter::destroyPicAlfInfo()
 {
-    for(Int s=0; s< m_uiNumSlicesInPic; s++)
+  for(Int s=0; s< m_uiNumSlicesInPic; s++)
+  {
+    if(m_ppSliceAlfLCUs[s] != NULL)
     {
-      if(m_ppSliceAlfLCUs[s] != NULL)
-      {
-        delete[] m_ppSliceAlfLCUs[s];
-        m_ppSliceAlfLCUs[s] = NULL;
-      }
+      delete[] m_ppSliceAlfLCUs[s];
+      m_ppSliceAlfLCUs[s] = NULL;
     }
-    delete[] m_ppSliceAlfLCUs;
-    m_ppSliceAlfLCUs = NULL;
+  }
+  delete[] m_ppSliceAlfLCUs;
+  m_ppSliceAlfLCUs = NULL;
 
-    delete[] m_pvpAlfLCU;
-    m_pvpAlfLCU = NULL;
+  delete[] m_pvpAlfLCU;
+  m_pvpAlfLCU = NULL;
 
-    delete[] m_pvpSliceTileAlfLCU;
-    m_pvpSliceTileAlfLCU = NULL;
+  delete[] m_pvpSliceTileAlfLCU;
+  m_pvpSliceTileAlfLCU = NULL;
 }
 
 /** Copy region pixels

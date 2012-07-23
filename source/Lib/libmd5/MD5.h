@@ -36,7 +36,8 @@
 //! \ingroup libMD5
 //! \{
 
-class MD5 {
+class MD5
+{
 public:
   /**
    * initialize digest state

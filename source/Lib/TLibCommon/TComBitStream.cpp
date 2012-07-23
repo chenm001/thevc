@@ -148,7 +148,9 @@ Void TComOutputBitstream::writeAlignOne()
 Void TComOutputBitstream::writeAlignZero()
 {
   if (0 == m_num_held_bits)
+  {
     return;
+  }
   m_fifo->push_back(m_held_bits);
   m_held_bits = 0;
   m_num_held_bits = 0;

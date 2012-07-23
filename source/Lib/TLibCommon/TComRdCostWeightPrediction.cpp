@@ -412,7 +412,9 @@ UInt TComRdCostWeightPrediction::xCalcHADs8x8w( Pel *piOrg, Pel *piCur, Int iStr
   for (j=0; j < 8; j++)
   {
     for (i=0; i < 8; i++)
+    {
       sad += (abs(m2[j][i]));
+    }
   }
   
   sad=((sad+2)>>2);
