@@ -318,17 +318,11 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("ScalingListFile",             cfg_ScalingListFile,             string(""), "Scaling list file name")
     ("SignHideFlag,-SBH",                m_signHideFlag, 1)
   /* Misc. */
-#if HASH_TYPE
   ("SEIpictureDigest", m_pictureDigestEnabled, 1, "Control generation of picture_digest SEI messages\n"
                                               "\t3: checksum\n"
                                               "\t2: CRC\n"
                                               "\t1: use MD5\n"
                                               "\t0: disable")
-#else
-  ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
-                                              "\t1: use MD5\n"
-                                              "\t0: disable")
-#endif
   ("TMVPMode", m_TMVPModeId, 1, "TMVP mode 0: TMVP disable for all slices. 1: TMVP enable for all slices (default) 2: TMVP enable for certain slices only")
   ("FEN", m_bUseFastEnc, false, "fast encoder setting")
   ("ECU", m_bUseEarlyCU, false, "Early CU setting") 
@@ -904,9 +898,7 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iWaveFrontSubstreams <= 0, "WaveFrontSubstreams must be positive" );
   xConfirmPara( m_iWaveFrontSubstreams > 1 && !m_iWaveFrontSynchro, "Must have WaveFrontSynchro > 0 in order to have WaveFrontSubstreams > 1" );
 
-#if HASH_TYPE
   xConfirmPara( m_pictureDigestEnabled<0 || m_pictureDigestEnabled>3, "this hash type is not correct!\n");
-#endif
 
   if(m_enableRateCtrl)
   {

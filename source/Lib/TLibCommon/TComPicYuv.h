@@ -164,13 +164,9 @@ public:
 #endif  
 };// END CLASS DEFINITION TComPicYuv
 
-#if HASH_TYPE
 void calcChecksum(TComPicYuv& pic, unsigned char digest[3][16]);
 void calcCRC(TComPicYuv& pic, unsigned char digest[3][16]);
 void calcMD5(TComPicYuv& pic, unsigned char digest[3][16]);
-#else
-void calcMD5(TComPicYuv& pic, unsigned char digest[16]);
-#endif
 //! \}
 
 #endif // __TCOMPICYUV__

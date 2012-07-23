@@ -1186,7 +1186,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       {
         /* calculate MD5sum for entire reconstructed picture */
         SEIpictureDigest sei_recon_picture_digest;
-#if HASH_TYPE
         if(m_pcCfg->getPictureDigestEnabled() == 1)
         {
           sei_recon_picture_digest.method = SEIpictureDigest::MD5;
@@ -1205,11 +1204,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           calcChecksum(*pcPic->getPicYuvRec(), sei_recon_picture_digest.digest);
           digestStr = digestToString(sei_recon_picture_digest.digest, 4);
         }
-#else
-        sei_recon_picture_digest.method = SEIpictureDigest::MD5;
-        calcMD5(*pcPic->getPicYuvRec(), sei_recon_picture_digest.digest);
-        digestStr = digestToString(sei_recon_picture_digest.digest);
-#endif
 
         OutputNALUnit nalu(NAL_UNIT_SEI, false, pcSlice->getTLayer());
 
@@ -1226,7 +1220,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 
       xCalculateAddPSNR( pcPic, pcPic->getPicYuvRec(), accessUnit, dEncTime );
 
-#if HASH_TYPE
       if (digestStr)
       {
         if(m_pcCfg->getPictureDigestEnabled() == 1)
@@ -1242,10 +1235,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           printf(" [Checksum:%s]", digestStr);
         }
       }
-#else
-      if (digestStr)
-        printf(" [MD5:%s]", digestStr);
-#endif
       if(m_pcCfg->getUseRateCtrl())
       {
         unsigned  frameBits = m_vRVM_RP[m_vRVM_RP.size()-1];

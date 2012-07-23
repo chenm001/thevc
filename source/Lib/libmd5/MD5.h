@@ -68,7 +68,6 @@ private:
 };
 
 
-#if HASH_TYPE
 /**
  * Produce an ascii(hex) representation of picture digest.
  *
@@ -93,23 +92,4 @@ digestToString(unsigned char digest[3][16], int numChar)
   string[cnt-1] = '\0';
   return string;
 }
-#else
-/**
- * Produce an ascii(hex) representation of the 128bit digest.
- *
- * Returns: a statically allocated null-terminated string.  DO NOT FREE.
- */
-inline const char*
-digestToString(unsigned char digest[16])
-{
-  const char* hex = "0123456789abcdef";
-  static char string[33];
-  for (int i = 0; i < 16; i++)
-  {
-    string[i*2+0] = hex[digest[i] >> 4];
-    string[i*2+1] = hex[digest[i] & 0xf];
-  }
-  return string;
-}
-#endif
 //! \}

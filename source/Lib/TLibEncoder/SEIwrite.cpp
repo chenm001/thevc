@@ -108,8 +108,6 @@ static void writeSEIuserDataUnregistered(TComBitIf& bs, const SEIuserDataUnregis
  */
 static void writeSEIpictureDigest(TComBitIf& bs, const SEIpictureDigest& sei)
 {
-
-#if HASH_TYPE
   int numChar=0;
   bs.write(sei.method, 8);
   if(sei.method == SEIpictureDigest::MD5)
@@ -131,12 +129,5 @@ static void writeSEIpictureDigest(TComBitIf& bs, const SEIpictureDigest& sei)
       bs.write(sei.digest[yuvIdx][i], 8);
     }
   }
-#else
-  bs.write(sei.method, 8);
-  for (unsigned i = 0; i < 16; i++)
-  {
-    bs.write(sei.digest[i], 8);
-  }
-#endif
 }
 //! \}

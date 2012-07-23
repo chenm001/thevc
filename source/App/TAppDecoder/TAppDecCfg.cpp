@@ -73,19 +73,12 @@ Bool TAppDecCfg::parseCfg( Int argc, Char* argv[] )
   ("SkipFrames,s", m_iSkipFrame, 0, "number of frames to skip before random access")
   ("OutputBitDepth,d", m_outputBitDepth, 0u, "bit depth of YUV output file (use 0 for native depth)")
   ("MaxTemporalLayer,t", m_iMaxTemporalLayer, -1, "Maximum Temporal Layer to be decoded. -1 to decode all layers")
-#if HASH_TYPE
   ("SEIpictureDigest", m_pictureDigestEnabled, 1, "Control handling of picture_digest SEI messages\n"
                                               "\t3: checksum\n"
                                               "\t2: CRC\n"
                                               "\t1: MD5\n"
                                               "\t0: ignore")
   ;
-#else
-  ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control handling of picture_digest SEI messages\n"
-                                              "\t1: check\n"
-                                              "\t0: ignore")
-  ;
-#endif
   po::setDefaults(opts);
   const list<const char*>& argv_unhandled = po::scanArgv(opts, argc, (const char**) argv);
 

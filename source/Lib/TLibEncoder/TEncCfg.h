@@ -233,11 +233,7 @@ protected:
   Int       m_iWaveFrontFlush;
   Int       m_iWaveFrontSubstreams;
 
-#if HASH_TYPE
   Int m_pictureDigestEnabled;              ///< Checksum(3)/CRC(2)/MD5(1)/disable(0) acting on SEI picture_digest message
-#else
-  bool m_pictureDigestEnabled; ///< enable(1)/disable(0) md5 computation and SEI signalling
-#endif
   //====== Weighted Prediction ========
   Bool      m_bUseWeightPred;       //< Use of Weighting Prediction (P_SLICE)
   Bool      m_useWeightedBiPred;    //< Use of Bi-directional Weighting Prediction (B_SLICE)
@@ -556,13 +552,8 @@ public:
   Int   getWaveFrontFlush()                              { return m_iWaveFrontFlush; }
   Void  setWaveFrontSubstreams(Int iWaveFrontSubstreams) { m_iWaveFrontSubstreams = iWaveFrontSubstreams; }
   Int   getWaveFrontSubstreams()                         { return m_iWaveFrontSubstreams; }
-#if HASH_TYPE
   void setPictureDigestEnabled(Int b) { m_pictureDigestEnabled = b; }
   Int getPictureDigestEnabled() { return m_pictureDigestEnabled; }
-#else
-  void setPictureDigestEnabled(bool b) { m_pictureDigestEnabled = b; }
-  bool getPictureDigestEnabled() { return m_pictureDigestEnabled; }
-#endif
 
   Void      setUseWP               ( Bool  b )   { m_bUseWeightPred    = b;    }
   Void      setWPBiPred            ( Bool b )    { m_useWeightedBiPred = b;    }
