@@ -171,8 +171,6 @@
 
 #define CABAC_INIT_PRESENT_FLAG     1
 
-#define CU_QP_DELTA_DEPTH_SYN  1 // JCTVC-I0127, differential coding of max cu qp delta depth
-
 #define H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL 1 ///< H0391: Loop filtering across/non-across slice boundaries control
 
 #define H0226                       1 // JCTVC-H0226
