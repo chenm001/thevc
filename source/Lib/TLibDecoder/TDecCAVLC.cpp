@@ -412,11 +412,7 @@ Int TDecCavlc::xGolombDecode(Int k)
   return coeff;
 }
 
-#if !TILES_OR_ENTROPY_FIX
-Void TDecCavlc::parsePPS(TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet)
-#else
 Void TDecCavlc::parsePPS(TComPPS* pcPPS)
-#endif
 {
 #if ENC_DEC_TRACE  
   xTracePPSHeader (pcPPS);
@@ -488,20 +484,9 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   READ_FLAG( uiCode, "transquant_bypass_enable_flag");
   pcPPS->setTransquantBypassEnableFlag(uiCode ? true : false);
 
-#if !TILES_OR_ENTROPY_FIX
-  if(parameterSet->getPrefetchedSPS(pcPPS->getSPSId())->getTilesOrEntropyCodingSyncIdc()==1)
-  {
-    READ_FLAG ( uiCode, "tile_info_present_flag" );
-    pcPPS->setColumnRowInfoPresent(uiCode);
-    READ_FLAG ( uiCode, "tile_control_present_flag" );
-    pcPPS->setTileBehaviorControlPresentFlag(uiCode);
-    if( pcPPS->getColumnRowInfoPresent() == 1 )
-    {
-#else
   READ_CODE(2, uiCode, "tiles_or_entropy_coding_sync_idc");         pcPPS->setTilesOrEntropyCodingSyncIdc(uiCode);
   if(pcPPS->getTilesOrEntropyCodingSyncIdc() == 1)
   {
-#endif
     READ_UVLC ( uiCode, "num_tile_columns_minus1" );   
     pcPPS->setNumColumnsMinus1( uiCode );  
     READ_UVLC ( uiCode, "num_tile_rows_minus1" );  
@@ -529,28 +514,12 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
       pcPPS->setRowHeight(rowHeight);
       free(rowHeight);  
     }
-#if !TILES_OR_ENTROPY_FIX
-  }
-#endif
 
-#if !TILES_OR_ENTROPY_FIX
-  if(pcPPS->getTileBehaviorControlPresentFlag() == 1)
-  {
-    Int iNumColTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumColumnsMinus1()):(pcPPS->getSPS()->getNumColumnsMinus1());
-    Int iNumRowTilesMinus1 = (pcPPS->getColumnRowInfoPresent() == 1)?(pcPPS->getNumRowsMinus1()):(pcPPS->getSPS()->getNumRowsMinus1());
-    pcPPS->setLFCrossTileBoundaryFlag(true); //default
-
-    if(iNumColTilesMinus1 !=0 || iNumRowTilesMinus1 !=0)
-#else
   if(pcPPS->getNumColumnsMinus1() !=0 || pcPPS->getNumRowsMinus1() !=0)
-#endif
   {
     READ_FLAG ( uiCode, "loop_filter_across_tiles_enabled_flag" );  
     pcPPS->setLFCrossTileBoundaryFlag( (uiCode == 1)?true:false );
   }
-#if !TILES_OR_ENTROPY_FIX
-}
-#endif
   }
 #if DEPENDENT_SLICES
   else if( pcPPS->getTilesOrEntropyCodingSyncIdc()==3 )
@@ -767,46 +736,6 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     pcSPS->setAMVPMode( i, (AMVP_MODE)uiCode );
   }
 
-#if !TILES_OR_ENTROPY_FIX
-  READ_CODE(2, uiCode, "tiles_or_entropy_coding_sync_idc");         pcSPS->setTilesOrEntropyCodingSyncIdc(uiCode);
-
-  if(pcSPS->getTilesOrEntropyCodingSyncIdc() == 1)
-  {
-    READ_UVLC ( uiCode, "num_tile_columns_minus1" );
-    pcSPS->setNumColumnsMinus1( uiCode );  
-    READ_UVLC ( uiCode, "num_tile_rows_minus1" ); 
-    pcSPS->setNumRowsMinus1( uiCode ); 
-    READ_FLAG ( uiCode, "uniform_spacing_flag" ); 
-    pcSPS->setUniformSpacingIdr( uiCode );
-    if( pcSPS->getUniformSpacingIdr() == 0 )
-    {
-      UInt* columnWidth = (UInt*)malloc(pcSPS->getNumColumnsMinus1()*sizeof(UInt));
-      for(UInt i=0; i<pcSPS->getNumColumnsMinus1(); i++)
-      { 
-        READ_UVLC( uiCode, "column_width" );
-        columnWidth[i] = uiCode;  
-      }
-      pcSPS->setColumnWidth(columnWidth);
-      free(columnWidth);
-
-      UInt* rowHeight = (UInt*)malloc(pcSPS->getNumRowsMinus1()*sizeof(UInt));
-      for(UInt i=0; i<pcSPS->getNumRowsMinus1(); i++)
-      {
-        READ_UVLC( uiCode, "row_height" );
-        rowHeight[i] = uiCode;  
-      }
-      pcSPS->setRowHeight(rowHeight);
-      free(rowHeight);  
-    }
-    pcSPS->setLFCrossTileBoundaryFlag(true); //default
-
-    if( pcSPS->getNumColumnsMinus1() !=0 || pcSPS->getNumRowsMinus1() != 0)
-    {
-      READ_FLAG ( uiCode, "loop_filter_across_tile_flag" );  
-      pcSPS->setLFCrossTileBoundaryFlag( (uiCode==1)?true:false);
-    }
-  }
-#endif
   READ_FLAG( uiCode, "sps_extension_flag");
   if (uiCode)
   {
@@ -1347,11 +1276,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
   if( pps->getDependentSlicesEnabledFlag()== false )
 #endif
   {
-#if ! TILES_OR_ENTROPY_FIX
-    Int tilesOrEntropyCodingSyncIdc = rpcSlice->getSPS()->getTilesOrEntropyCodingSyncIdc();
-#else
     Int tilesOrEntropyCodingSyncIdc = pps->getTilesOrEntropyCodingSyncIdc();
-#endif
     UInt *entryPointOffset          = NULL;
     UInt numEntryPointOffsets, offsetLenMinus1;
 

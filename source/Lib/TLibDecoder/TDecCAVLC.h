@@ -101,11 +101,7 @@ public:
   Void  parseVPS            ( TComVPS* pcVPS );
 #endif
   Void  parseSPS            ( TComSPS* pcSPS );
-#if !TILES_OR_ENTROPY_FIX
-  Void  parsePPS            ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet);
-#else
   Void  parsePPS            ( TComPPS* pcPPS);
-#endif
   Void  parseSEI(SEImessages&);
   Void  parseAPS            ( TComAPS* pAPS );
   Void  parseSliceHeader    ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager);

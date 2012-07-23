@@ -472,10 +472,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
     Int  p, j;
     UInt uiEncCUAddr;
 
-#if !TILES_OR_ENTROPY_FIX
-    if( pcSlice->getPPS()->getColumnRowInfoPresent() == 1 )    //derive the tile parameters from PPS
-    {
-#endif
     //set NumColumnsMinus1 and NumRowsMinus1
     pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getPPS()->getNumColumnsMinus1() );
     pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getPPS()->getNumRowsMinus1() );
@@ -533,70 +529,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         pcPic->getPicSym()->getTComTile(p * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + j)->setTileHeight( pcPic->getPicSym()->getFrameHeightInCU()-uiCummulativeTileHeight );
       }
     }
-#if !TILES_OR_ENTROPY_FIX
-    }
-    else //derive the tile parameters from SPS
-    {
-      //set NumColumnsMins1 and NumRowsMinus1
-      pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getSPS()->getNumColumnsMinus1() );
-      pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getSPS()->getNumRowsMinus1() );
-
-      //create the TComTileArray
-      pcPic->getPicSym()->xCreateTComTileArray();
-
-      if( pcSlice->getSPS()->getUniformSpacingIdr() == 1 )
-      {
-        //set the width for each tile
-        for(j=0; j < pcPic->getPicSym()->getNumRowsMinus1()+1; j++)
-        {
-          for(p=0; p < pcPic->getPicSym()->getNumColumnsMinus1()+1; p++)
-          {
-            pcPic->getPicSym()->getTComTile( j * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + p )->
-              setTileWidth( (p+1)*pcPic->getPicSym()->getFrameWidthInCU()/(pcPic->getPicSym()->getNumColumnsMinus1()+1) 
-              - (p*pcPic->getPicSym()->getFrameWidthInCU())/(pcPic->getPicSym()->getNumColumnsMinus1()+1) );
-          }
-        }
-
-        //set the height for each tile
-        for(j=0; j < pcPic->getPicSym()->getNumColumnsMinus1()+1; j++)
-        {
-          for(p=0; p < pcPic->getPicSym()->getNumRowsMinus1()+1; p++)
-          {
-            pcPic->getPicSym()->getTComTile( p * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + j )->
-              setTileHeight( (p+1)*pcPic->getPicSym()->getFrameHeightInCU()/(pcPic->getPicSym()->getNumRowsMinus1()+1) 
-              - (p*pcPic->getPicSym()->getFrameHeightInCU())/(pcPic->getPicSym()->getNumRowsMinus1()+1) );   
-          }
-        }
-      }
-
-      else
-      {
-        //set the width for each tile
-        for(j=0; j < pcPic->getPicSym()->getNumRowsMinus1()+1; j++)
-        {
-          uiCummulativeTileWidth = 0;
-          for(p=0; p < pcPic->getPicSym()->getNumColumnsMinus1(); p++)
-          {
-            pcPic->getPicSym()->getTComTile( j * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + p )->setTileWidth( pcSlice->getSPS()->getColumnWidth(p) );
-            uiCummulativeTileWidth += pcSlice->getSPS()->getColumnWidth(p);
-          }
-          pcPic->getPicSym()->getTComTile(j * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + p)->setTileWidth( pcPic->getPicSym()->getFrameWidthInCU()-uiCummulativeTileWidth );
-        }
-
-        //set the height for each tile
-        for(j=0; j < pcPic->getPicSym()->getNumColumnsMinus1()+1; j++)
-        {
-          uiCummulativeTileHeight = 0;
-          for(p=0; p < pcPic->getPicSym()->getNumRowsMinus1(); p++)
-          {
-            pcPic->getPicSym()->getTComTile( p * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + j )->setTileHeight( pcSlice->getSPS()->getRowHeight(p) );
-            uiCummulativeTileHeight += pcSlice->getSPS()->getRowHeight(p);
-          }
-          pcPic->getPicSym()->getTComTile(p * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + j)->setTileHeight( pcPic->getPicSym()->getFrameHeightInCU()-uiCummulativeTileHeight );
-        }
-      }
-    }
-#endif
     //intialize each tile of the current picture
     pcPic->getPicSym()->xInitTiles();
 
@@ -697,12 +629,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       
       pcSlice = pcPic->getSlice(0);
       //-- Loop filter
-#if !TILES_OR_ENTROPY_FIX
-      Bool bLFCrossTileBoundary = (pcSlice->getPPS()->getTileBehaviorControlPresentFlag() == 1)?
-                                  (pcSlice->getPPS()->getLFCrossTileBoundaryFlag()):(pcSlice->getPPS()->getSPS()->getLFCrossTileBoundaryFlag());
-#else
       Bool bLFCrossTileBoundary = pcSlice->getPPS()->getLFCrossTileBoundaryFlag();
-#endif
       m_pcLoopFilter->setCfg(pcSlice->getPPS()->getDeblockingFilterControlPresent(), pcSlice->getLoopFilterDisable(), pcSlice->getLoopFilterBetaOffset(), pcSlice->getLoopFilterTcOffset(), bLFCrossTileBoundary);
       m_pcLoopFilter->loopFilterPic( pcPic );
 
@@ -757,9 +684,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         OutputNALUnit nalu(NAL_UNIT_SPS, true);
 #endif
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
-#if !TILES_OR_ENTROPY_FIX
-        pcSlice->getSPS()->setNumSubstreams( pcSlice->getPPS()->getNumSubstreams() );
-#endif
         m_pcEntropyCoder->encodeSPS(pcSlice->getSPS());
         writeRBSPTrailingBits(nalu.m_Bitstream);
         accessUnit.push_back(new NALUnitEBSP(nalu));

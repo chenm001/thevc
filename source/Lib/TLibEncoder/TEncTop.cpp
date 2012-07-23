@@ -529,17 +529,6 @@ Void TEncTop::xInitSPS()
   m_cSPS.setPCMBitDepthChroma (g_uiPCMBitDepthChroma);
   m_cSPS.setPCMFilterDisableFlag  ( m_bPCMFilterDisableFlag );
 
-#if !TILES_OR_ENTROPY_FIX
-  m_cSPS.setLFCrossTileBoundaryFlag( m_bLFCrossTileBoundaryFlag );
-  m_cSPS.setUniformSpacingIdr( m_iUniformSpacingIdr );
-  m_cSPS.setNumColumnsMinus1( m_iNumColumnsMinus1 );
-  m_cSPS.setNumRowsMinus1( m_iNumRowsMinus1 );
-  if( m_iUniformSpacingIdr == 0 )
-  {
-    m_cSPS.setColumnWidth( m_puiColumnWidth );
-    m_cSPS.setRowHeight( m_puiRowHeight );
-  }
-#endif
   m_cSPS.setScalingListFlag ( (m_useScalingListId == 0) ? 0 : 1 );
 #if !DBL_HL_SYNTAX
   m_cSPS.setUseDF( m_loopFilterOffsetInAPS );
@@ -845,9 +834,6 @@ Void TEncTop::selectReferencePictureSet(TComSlice* slice, Int POCCurr, Int GOPid
 
 Void  TEncTop::xInitPPSforTiles()
 {
-#if !TILES_OR_ENTROPY_FIX
-  m_cPPS.setColumnRowInfoPresent( m_iColumnRowInfoPresent );
-#endif
   m_cPPS.setUniformSpacingIdr( m_iUniformSpacingIdr );
   m_cPPS.setNumColumnsMinus1( m_iNumColumnsMinus1 );
   m_cPPS.setNumRowsMinus1( m_iNumRowsMinus1 );
@@ -856,9 +842,6 @@ Void  TEncTop::xInitPPSforTiles()
     m_cPPS.setColumnWidth( m_puiColumnWidth );
     m_cPPS.setRowHeight( m_puiRowHeight );
   }
-#if !TILES_OR_ENTROPY_FIX
-  m_cPPS.setTileBehaviorControlPresentFlag( m_iTileBehaviorControlPresentFlag );
-#endif
   m_cPPS.setLFCrossTileBoundaryFlag( m_bLFCrossTileBoundaryFlag );
 
   // # substreams is "per tile" when tiles are independent.

@@ -411,10 +411,6 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   UInt uiCummulativeTileHeight;
   UInt i, j, p;
 
-#if !TILES_OR_ENTROPY_FIX
-  if( pcSlice->getPPS()->getColumnRowInfoPresent() == 1 )
-  {
-#endif
   //set NumColumnsMins1 and NumRowsMinus1
   pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getPPS()->getNumColumnsMinus1() );
   pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getPPS()->getNumRowsMinus1() );
@@ -472,70 +468,6 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
       pcPic->getPicSym()->getTComTile(i * (pcSlice->getPPS()->getNumColumnsMinus1()+1) + j)->setTileHeight( pcPic->getPicSym()->getFrameHeightInCU()-uiCummulativeTileHeight );
     }
   }
-#if !TILES_OR_ENTROPY_FIX
-  }
-  else
-  {
-    //set NumColumnsMins1 and NumRowsMinus1
-    pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getSPS()->getNumColumnsMinus1() );
-    pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getSPS()->getNumRowsMinus1() );
-
-    //create the TComTileArray
-    pcPic->getPicSym()->xCreateTComTileArray();
-
-    //automatically set the column and row boundary if UniformSpacingIdr = 1
-    if( pcSlice->getSPS()->getUniformSpacingIdr() == 1 )
-    {
-      //set the width for each tile
-      for(j=0; j < pcPic->getPicSym()->getNumRowsMinus1()+1; j++)
-      {
-        for(p=0; p < pcPic->getPicSym()->getNumColumnsMinus1()+1; p++)
-        {
-          pcPic->getPicSym()->getTComTile( j * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + p )->
-            setTileWidth( (p+1)*pcPic->getPicSym()->getFrameWidthInCU()/(pcPic->getPicSym()->getNumColumnsMinus1()+1) 
-            - (p*pcPic->getPicSym()->getFrameWidthInCU())/(pcPic->getPicSym()->getNumColumnsMinus1()+1) );
-        }
-      }
-
-      //set the height for each tile
-      for(j=0; j < pcPic->getPicSym()->getNumColumnsMinus1()+1; j++)
-      {
-        for(p=0; p < pcPic->getPicSym()->getNumRowsMinus1()+1; p++)
-        {
-          pcPic->getPicSym()->getTComTile( p * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + j )->
-            setTileHeight( (p+1)*pcPic->getPicSym()->getFrameHeightInCU()/(pcPic->getPicSym()->getNumRowsMinus1()+1) 
-            - (p*pcPic->getPicSym()->getFrameHeightInCU())/(pcPic->getPicSym()->getNumRowsMinus1()+1) );   
-        }
-      }
-    }
-    else
-    {
-      //set the width for each tile
-      for(j=0; j < pcSlice->getSPS()->getNumRowsMinus1()+1; j++)
-      {
-        uiCummulativeTileWidth = 0;
-        for(i=0; i < pcSlice->getSPS()->getNumColumnsMinus1(); i++)
-        {
-          pcPic->getPicSym()->getTComTile(j * (pcSlice->getSPS()->getNumColumnsMinus1()+1) + i)->setTileWidth( pcSlice->getSPS()->getColumnWidth(i) );
-          uiCummulativeTileWidth += pcSlice->getSPS()->getColumnWidth(i);
-        }
-        pcPic->getPicSym()->getTComTile(j * (pcSlice->getSPS()->getNumColumnsMinus1()+1) + i)->setTileWidth( pcPic->getPicSym()->getFrameWidthInCU()-uiCummulativeTileWidth );
-      }
-
-      //set the height for each tile
-      for(j=0; j < pcSlice->getSPS()->getNumColumnsMinus1()+1; j++)
-      {
-        uiCummulativeTileHeight = 0;
-        for(i=0; i < pcSlice->getSPS()->getNumRowsMinus1(); i++)
-        { 
-          pcPic->getPicSym()->getTComTile(i * (pcSlice->getSPS()->getNumColumnsMinus1()+1) + j)->setTileHeight( pcSlice->getSPS()->getRowHeight(i) );
-          uiCummulativeTileHeight += pcSlice->getSPS()->getRowHeight(i);
-        }
-        pcPic->getPicSym()->getTComTile(i * (pcSlice->getSPS()->getNumColumnsMinus1()+1) + j)->setTileHeight( pcPic->getPicSym()->getFrameHeightInCU()-uiCummulativeTileHeight );
-      }
-    }
-  }
-#endif
 
   pcPic->getPicSym()->xInitTiles();
 
