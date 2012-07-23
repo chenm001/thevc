@@ -43,6 +43,8 @@
 
 #define SLICE_HEADER_EXTENSION           1  ///< II0235: Slice header extension mechanism
 
+#define PREVREFPIC_DEFN                  1  ///< I0345: prevRefPic defined as previous reference picture that is at same or lower 
+                                            ///< temporal layer.
 #define BYTE_ALIGNMENT                   0  ///< I0330: Add byte_alignment() procedure to end of slice header
 
 #define SBH_THRESHOLD                    4  ///< I0156: value of the fixed SBH controlling threshold

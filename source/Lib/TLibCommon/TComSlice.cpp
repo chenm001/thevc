@@ -791,7 +791,11 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_enableTMVPFlag                = pSrc->m_enableTMVPFlag;
 }
 
+#if PREVREFPIC_DEFN
 int TComSlice::m_prevPOC[MAX_TLAYER] = {0};
+#else
+int TComSlice::m_prevPOC = 0;
+#endif
 /** Function for setting the slice's temporal layer ID and corresponding temporal_layer_switching_point_flag.
  * \param uiTLayer Temporal layer ID of the current slice
  * The decoder calls this function to set temporal_layer_switching_point_flag for each temporal layer based on 
