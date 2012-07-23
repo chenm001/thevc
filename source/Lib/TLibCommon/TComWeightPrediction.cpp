@@ -79,7 +79,7 @@ Void TComWeightPrediction::addWeightBi( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, 
   Int offset  = wp0[0].offset;
   Int shiftNum = IF_INTERNAL_PREC - ( g_uiBitDepth + g_uiBitIncrement );
   Int shift   = wp0[0].shift + shiftNum;
-  Int round   = (1<<(shift-1)) * bRound;
+  Int round   = shift?(1<<(shift-1)) * bRound:0;
   Int w1      = wp1[0].w;
 
   UInt  iSrc0Stride = pcYuvSrc0->getStride();
@@ -105,7 +105,7 @@ Void TComWeightPrediction::addWeightBi( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, 
   w0      = wp0[1].w;
   offset  = wp0[1].offset;
   shift   = wp0[1].shift + shiftNum;
-  round   = (1<<(shift-1));
+  round   = shift?(1<<(shift-1)):0;
   w1      = wp1[1].w;
 
   iSrc0Stride = pcYuvSrc0->getCStride();
@@ -132,7 +132,7 @@ Void TComWeightPrediction::addWeightBi( TComYuv* pcYuvSrc0, TComYuv* pcYuvSrc1, 
   w0      = wp0[2].w;
   offset  = wp0[2].offset;
   shift   = wp0[2].shift + shiftNum;
-  round   = (1<<(shift-1));
+  round   = shift?(1<<(shift-1)):0;
   w1      = wp1[2].w;
 
   for ( y = iHeight-1; y >= 0; y-- )
@@ -175,7 +175,7 @@ Void TComWeightPrediction::addWeightUni( TComYuv* pcYuvSrc0, UInt iPartUnitIdx, 
   Int offset  = wp0[0].offset;
   Int shiftNum = IF_INTERNAL_PREC - ( g_uiBitDepth + g_uiBitIncrement );
   Int shift   = wp0[0].shift + shiftNum;
-  Int round   = (1<<(shift-1));
+  Int round   = shift?(1<<(shift-1)):0;
   UInt  iSrc0Stride = pcYuvSrc0->getStride();
   UInt  iDstStride  = rpcYuvDst->getStride();
   
@@ -197,7 +197,7 @@ Void TComWeightPrediction::addWeightUni( TComYuv* pcYuvSrc0, UInt iPartUnitIdx, 
   w0      = wp0[1].w;
   offset  = wp0[1].offset;
   shift   = wp0[1].shift + shiftNum;
-  round   = (1<<(shift-1));
+  round   = shift?(1<<(shift-1)):0;
 
   iSrc0Stride = pcYuvSrc0->getCStride();
   iDstStride  = rpcYuvDst->getCStride();
@@ -221,7 +221,7 @@ Void TComWeightPrediction::addWeightUni( TComYuv* pcYuvSrc0, UInt iPartUnitIdx, 
   w0      = wp0[2].w;
   offset  = wp0[2].offset;
   shift   = wp0[2].shift + shiftNum;
-  round   = (1<<(shift-1));
+  round   = shift?(1<<(shift-1)):0;
 
   for ( y = iHeight-1; y >= 0; y-- )
   {
@@ -252,21 +252,13 @@ Void TComWeightPrediction::getWpScaling( TComDataCU* pcCU, Int iRefIdx0, Int iRe
 {
   TComSlice*      pcSlice       = pcCU->getSlice();
   TComPPS*        pps           = pcCU->getSlice()->getPPS();
-#if REMOVE_IMPLICIT_WP
   Bool            wpBiPred = pps->getWPBiPred();
-#else
-  UInt            uiWPBiPredIdc = pps->getWPBiPredIdc();
-#endif
   wpScalingParam* pwp;
   Bool            bBiDir        = (iRefIdx0>=0 && iRefIdx1>=0);
   Bool            bUniDir       = !bBiDir;
 
   m_ibdi = ibdi;
-#if REMOVE_IMPLICIT_WP
   if ( bUniDir || wpBiPred )
-#else
-  if ( bUniDir || (uiWPBiPredIdc==1) )
-#endif
   { // explicit --------------------
     if ( iRefIdx0 >= 0 )
     {
@@ -277,46 +269,6 @@ Void TComWeightPrediction::getWpScaling( TComDataCU* pcCU, Int iRefIdx0, Int iRe
       pcSlice->getWpScaling(REF_PIC_LIST_1, iRefIdx1, wp1);
     }
   }
-#if !REMOVE_IMPLICIT_WP
-  else if ( uiWPBiPredIdc == 2 )
-  { // implicit --------------------
-    Int poc0    = pcSlice->getRefPOC(REF_PIC_LIST_0, iRefIdx0);
-    Int poc1    = pcSlice->getRefPOC(REF_PIC_LIST_1, iRefIdx1);
-    Int pocCur  = pcSlice->getPOC();
-    Int td      = Clip3(-128,127,poc1 - poc0);
-    Int tb      = Clip3(-128,127,pocCur - poc0);
-    Int tx      = ( td != 0 ) ? ( ( 16384 + abs( td / 2 ) ) / td ) : (0);
-    Int DistScaleFactor = Clip3( -1024, 1023, ( tb * tx + 32 ) >> 6 );
-
-    Bool  implicitScale=true;
-    if ( poc1==poc0 || (DistScaleFactor>>2)<(-64) || (DistScaleFactor>>2)>128 )
-    {
-      implicitScale = false;
-    }
-
-    for ( int e=0 ; e<2 ; e++ )
-    {
-      pwp = (e==0) ? m_wp0 : m_wp1;
-      for ( int k=0 ; k<3 ; k++ ) // 3 components: Y,U,V
-      {   
-        pwp->uiLog2WeightDenom = 5;  pwp->iOffset = 0;  pwp->bPresentFlag = true;  
-        if ( implicitScale )
-        {
-          pwp->iWeight = (e==0) ? (64 - (DistScaleFactor >> 2)) : (DistScaleFactor >> 2);
-        }
-        else
-        {
-          pwp->iWeight = 32;
-        }
-        pwp++;
-      }
-
-    }
-
-    wp0 = m_wp0;
-    wp1 = m_wp1;
-  }
-#endif
   else
   {
     assert(0);
@@ -350,19 +302,6 @@ Void TComWeightPrediction::getWpScaling( TComDataCU* pcCU, Int iRefIdx0, Int iRe
   else
   {  // Unidir
     pwp = (iRefIdx0>=0) ? wp0 : wp1 ;
-#if !REMOVE_IMPLICIT_WP
-    if ( uiWPBiPredIdc == 2 )
-    {
-      for ( int yuv=0 ; yuv<3 ; yuv++ )
-      {
-        pwp[yuv].w      = 1;
-        pwp[yuv].offset = 0;
-        pwp[yuv].shift  = 0;
-        pwp[yuv].round  = 0;
-      }
-    }
-    else {
-#endif
     for ( int yuv=0 ; yuv<3 ; yuv++ )
     {
       pwp[yuv].w      = pwp[yuv].iWeight;
@@ -370,9 +309,6 @@ Void TComWeightPrediction::getWpScaling( TComDataCU* pcCU, Int iRefIdx0, Int iRe
       pwp[yuv].shift  = pwp[yuv].uiLog2WeightDenom;
       pwp[yuv].round  = (pwp[yuv].uiLog2WeightDenom>=1) ? (1 << (pwp[yuv].uiLog2WeightDenom-1)) : (0);
     }
-#if !REMOVE_IMPLICIT_WP
-    }
-#endif
   }
 }
 
@@ -392,11 +328,7 @@ Void TComWeightPrediction::xWeightedPredictionBi( TComDataCU* pcCU, TComYuv* pcY
 {
   wpScalingParam  *pwp0, *pwp1;
   TComPPS         *pps = pcCU->getSlice()->getPPS();
-#if REMOVE_IMPLICIT_WP
   assert( pps->getWPBiPred());
-#else
-  assert( pps->getWPBiPredIdc() != 0 );
-#endif
 
   Int ibdi = (g_uiBitDepth+g_uiBitIncrement);
   getWpScaling(pcCU, iRefIdx0, iRefIdx1, pwp0, pwp1, ibdi);

@@ -114,14 +114,10 @@ public:
 #else
   Void rdoSaoUnitAll(SAOParam *saoParam, Double lambda, Double lambdaChroma);
 #endif
-#if SAO_RDO_FIX
   Void rdoSaoUnit(Int rx, Int ry, SAOParam *saoParam, Int addr, Int addrUp, Int addrLeft, Int yCbCr, Double lambda);
   inline Int64 estSaoDist(Int64 count, Int64 offset, Int64 offsetOrg, Int shift);
   inline Int64 estIterOffset(Int typeIdx, Int classIdx, double lambda, Int64 offsetInput, Int64 count, Int64 offsetOrg, Int shift, Int bitIncrease, Int *currentDistortionTableBo, Double *currentRdCostTableBo );
   inline Int64 estSaoTypeDist(Int compIdx, Int typeIdx, Int shift, Double lambda, Int *currentDistortionTableBo, Double *currentRdCostTableBo);
-#else
-  Void rdoSaoUnit(SAOParam *saoParam, Int addr, Int addrUp, Int addrLeft, Int yCbCr, Double lambda);
-#endif
   Void setMaxNumOffsetsPerPic(Int iVal) {m_maxNumOffsetsPerPic = iVal; }
   Int  getMaxNumOffsetsPerPic() {return m_maxNumOffsetsPerPic; }
 };

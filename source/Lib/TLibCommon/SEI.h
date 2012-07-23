@@ -84,18 +84,12 @@ public:
   enum Method
   {
     MD5,
-#if HASH_TYPE
     CRC,
     CHECKSUM,
-#endif
     RESERVED,
   } method;
 
-#if HASH_TYPE
   unsigned char digest[3][16];
-#else
-  unsigned char digest[16];
-#endif
 };
 
 /**

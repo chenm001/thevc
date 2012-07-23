@@ -90,10 +90,8 @@ extern       UInt g_uiMaxCUHeight;
 extern       UInt g_uiMaxCUDepth;
 extern       UInt g_uiAddCUDepth;
 
-#if INTRA_TRANSFORMSKIP
 #define MAX_TS_WIDTH  4
 #define MAX_TS_HEIGHT 4
-#endif
 
 extern       UInt g_auiPUOffset[8];
 
@@ -133,15 +131,9 @@ extern       UInt*  g_auiNonSquareSigLastScan[ 4 ];      // raster index from sc
 
 extern const UInt   g_uiGroupIdx[ 32 ];
 extern const UInt   g_uiMinInGroup[ 10 ];
-#if !LAST_CTX_DERIVATION
-extern const UInt   g_uiLastCtx[ 28 ];
-#endif
 
 extern const UInt   g_auiGoRiceRange[5];                  //!< maximum value coded with Rice codes
 extern const UInt   g_auiGoRicePrefixLen[5];              //!< prefix length for each maximum value
-#if !SIMPLE_PARAM_UPDATE
-extern const UInt   g_aauiGoRiceUpdate[5][24];            //!< parameter update rules for Rice codes
-#endif
   
 extern const UInt   g_sigLastScan8x8[ 4 ][ 4 ];           //!< coefficient group scan order for 8x8 TUs
 extern       UInt   g_sigLastScanCG32x32[ 64 ];

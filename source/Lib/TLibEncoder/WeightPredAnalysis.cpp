@@ -46,13 +46,8 @@
 
 WeightPredAnalysis::WeightPredAnalysis()
 {
-#if REMOVE_IMPLICIT_WP
   m_weighted_pred_flag = false;
   m_weighted_bipred_flag = false;
-#else
-  m_weighted_pred_flag = 0;
-  m_weighted_bipred_idc = 0;
-#endif
   for ( Int iList =0 ; iList<2 ; iList++ )
   {
     for ( Int iRefIdx=0 ; iRefIdx<MAX_NUM_REF ; iRefIdx++ ) 
@@ -117,19 +112,11 @@ Bool  WeightPredAnalysis::xCalcACDCParamSlice(TComSlice *slice)
  * \param weighted_bipred_idc
  * \returns Void
  */
-#if REMOVE_IMPLICIT_WP
 Void  WeightPredAnalysis::xStoreWPparam(Bool weighted_pred_flag, Bool weighted_bipred_flag)
 {
   m_weighted_pred_flag = weighted_pred_flag;
   m_weighted_bipred_flag = weighted_bipred_flag;
 }
-#else
-Void  WeightPredAnalysis::xStoreWPparam(Bool weighted_pred_flag, Int weighted_bipred_idc)
-{
-  m_weighted_pred_flag = weighted_pred_flag;
-  m_weighted_bipred_idc = weighted_bipred_idc;
-}
-#endif
 
 /** restore weighted_pred_flag and weighted_bipred_idc values
  * \param TComSlice *slice
@@ -138,11 +125,7 @@ Void  WeightPredAnalysis::xStoreWPparam(Bool weighted_pred_flag, Int weighted_bi
 Void  WeightPredAnalysis::xRestoreWPparam(TComSlice *slice)
 {
   slice->getPPS()->setUseWP(m_weighted_pred_flag);
-#if REMOVE_IMPLICIT_WP
   slice->getPPS()->setWPBiPred(m_weighted_bipred_flag);
-#else
-  slice->getPPS()->setWPBiPredIdc(m_weighted_bipred_idc);
-#endif
 }
 
 /** check weighted pred or non-weighted pred
@@ -167,11 +150,7 @@ Void  WeightPredAnalysis::xCheckWPEnable(TComSlice *slice)
   if(iPresentCnt==0)
   {
     slice->getPPS()->setUseWP(false);
-#if REMOVE_IMPLICIT_WP
     slice->getPPS()->setWPBiPred(false);
-#else
-    slice->getPPS()->setWPBiPredIdc(0);
-#endif
     for ( Int iList=0 ; iList<2 ; iList++ )
     {
       for ( Int iRefIdx=0 ; iRefIdx<MAX_NUM_REF ; iRefIdx++ ) 
@@ -227,7 +206,7 @@ Bool  WeightPredAnalysis::xEstimateWPParamSlice(TComSlice *slice)
         Int64 iRefAC = RefWeightACDCParam[iComp].iAC;
 
         // calculating iWeight and iOffset params
-        Double dWeight = (iRefAC==0) ? (Double)1.0 : ( (Double)(iCurrAC) / (Double)iRefAC);
+        Double dWeight = (iRefAC==0) ? (Double)1.0 : Clip3( -16.0, 15.0, ((Double)iCurrAC / (Double)iRefAC) );
         Int iWeight = (Int)( 0.5 + dWeight * (Double)(1<<iDenom) );
         Int iOffset = (Int)( ((iCurrDC<<iDenom) - ((Int64)iWeight * iRefDC) + (Int64)iRealOffset) >> iRealDenom );
 

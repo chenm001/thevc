@@ -130,14 +130,10 @@ private:
   
   Char*         m_pePartSize;         ///< array of partition sizes
   Char*         m_pePredMode;         ///< array of prediction modes
-#if CU_LEVEL_TRANSQUANT_BYPASS
   Bool*         m_CUTransquantBypass;   ///< array of cu_transquant_bypass flags
-#endif
   Char*         m_phQP;               ///< array of QP values
   UChar*        m_puhTrIdx;           ///< array of transform indices
-#if INTRA_TRANSFORMSKIP
   UChar*        m_puhTransformSkip[3];///< array of transform skipping flags
-#endif
   UChar*        m_nsqtPartIdx;        ///< array of absPartIdx mapping table, map zigzag to NSQT
   UChar*        m_puhCbf[3];          ///< array of coded block flags (CBF)
   TComCUMvField m_acCUMvField[2];     ///< array of motion vectors
@@ -190,12 +186,7 @@ private:
   UChar*        m_puhInterDir;        ///< array of inter directions
   Char*         m_apiMVPIdx[2];       ///< array of motion vector predictor candidates
   Char*         m_apiMVPNum[2];       ///< array of number of possible motion vectors predictors
-#if AHG6_ALF_OPTION2
   Bool          m_lcuAlfEnabled[3];
-#else
-  Bool*         m_puiAlfCtrlFlag;     ///< array of ALF flags
-  Bool*         m_puiTmpAlfCtrlFlag;  ///< temporal array of ALF flags
-#endif
   Bool*         m_pbIPCMFlag;         ///< array of intra_pcm flags
 
   Int           m_numSucIPCM;         ///< the number of succesive IPCM blocks associated with the current log2CUSize
@@ -212,9 +203,7 @@ private:
   UInt          m_uiTotalBins;       ///< sum of partition bins
   UInt*         m_uiSliceStartCU;    ///< Start CU address of current slice
   UInt*         m_uiDependentSliceStartCU; ///< Start CU address of current slice
-#if PRED_QP_DERIVATION
   Char          m_codedQP;
-#endif
 protected:
   
   /// add possible motion vector predictor candidates
@@ -291,16 +280,12 @@ public:
   PartSize      getPartitionSize      ( UInt uiIdx )            { return static_cast<PartSize>( m_pePartSize[uiIdx] ); }
   Void          setPartitionSize      ( UInt uiIdx, PartSize uh){ m_pePartSize[uiIdx] = uh;   }
   Void          setPartSizeSubParts   ( PartSize eMode, UInt uiAbsPartIdx, UInt uiDepth );
-#if CU_LEVEL_TRANSQUANT_BYPASS
   Void          setCUTransquantBypassSubParts( bool flag, UInt uiAbsPartIdx, UInt uiDepth );
-#endif
   
   Char*         getPredictionMode     ()                        { return m_pePredMode;        }
   PredMode      getPredictionMode     ( UInt uiIdx )            { return static_cast<PredMode>( m_pePredMode[uiIdx] ); }
-#if CU_LEVEL_TRANSQUANT_BYPASS
   Bool*         getCUTransquantBypass ()                        { return m_CUTransquantBypass;        }
   Bool          getCUTransquantBypass( UInt uiIdx )             { return m_CUTransquantBypass[uiIdx]; }
-#endif
   Void          setPredictionMode     ( UInt uiIdx, PredMode uh){ m_pePredMode[uiIdx] = uh;   }
   Void          setPredModeSubParts   ( PredMode eMode, UInt uiAbsPartIdx, UInt uiDepth );
   
@@ -320,15 +305,11 @@ public:
   Void          setQPSubParts         ( Int qp,   UInt uiAbsPartIdx, UInt uiDepth );
   Int           getLastValidPartIdx   ( Int iAbsPartIdx );
   Char          getLastCodedQP        ( UInt uiAbsPartIdx );
-#if PRED_QP_DERIVATION
   Void          setQPSubCUs           ( Int qp, TComDataCU* pcCU, UInt absPartIdx, UInt depth, Bool &foundNonZeroCbf );
   Void          setCodedQP            ( Char qp )               { m_codedQP = qp;             }
   Char          getCodedQP            ()                        { return m_codedQP;           }
-#endif
 
-#if LOSSLESS_CODING || CU_LEVEL_TRANSQUANT_BYPASS
   Bool          isLosslessCoded(UInt absPartIdx);
-#endif
   UChar*        getNSQTPartIdx        ()                        { return m_nsqtPartIdx;        }
   UChar         getNSQTPartIdx        ( UInt idx )              { return m_nsqtPartIdx[idx];   }
   Void          setNSQTIdxSubParts    ( UInt absPartIdx, UInt depth );
@@ -338,12 +319,10 @@ public:
   UChar         getTransformIdx       ( UInt uiIdx )            { return m_puhTrIdx[uiIdx];   }
   Void          setTrIdxSubParts      ( UInt uiTrIdx, UInt uiAbsPartIdx, UInt uiDepth );
 
-#if INTRA_TRANSFORMSKIP
   UChar*        getTransformSkip      ( TextType eType)    { return m_puhTransformSkip[g_aucConvertTxtTypeToIdx[eType]];}
   UChar         getTransformSkip      ( UInt uiIdx,TextType eType)    { return m_puhTransformSkip[g_aucConvertTxtTypeToIdx[eType]][uiIdx];}
   Void          setTransformSkipSubParts  ( UInt useTransformSkip, TextType eType, UInt uiAbsPartIdx, UInt uiDepth); 
   Void          setTransformSkipSubParts  ( UInt useTransformSkipY, UInt useTransformSkipU, UInt useTransformSkipV, UInt uiAbsPartIdx, UInt uiDepth );
-#endif
 
   UInt          getQuadtreeTULog2MinSizeInCU( UInt absPartIdx );
   
@@ -408,20 +387,8 @@ public:
   UChar         getInterDir           ( UInt uiIdx )            { return m_puhInterDir[uiIdx];        }
   Void          setInterDir           ( UInt uiIdx, UChar  uh ) { m_puhInterDir[uiIdx] = uh;          }
   Void          setInterDirSubParts   ( UInt uiDir,  UInt uiAbsPartIdx, UInt uiPartIdx, UInt uiDepth );
-#if AHG6_ALF_OPTION2
   Bool          getAlfLCUEnabled      (Int compIdx)             {return m_lcuAlfEnabled[compIdx];     }
   Void          setAlfLCUEnabled      (Bool b, Int compIdx)     {m_lcuAlfEnabled[compIdx] = b;        }
-#else  
-  Bool*         getAlfCtrlFlag        ()                        { return m_puiAlfCtrlFlag;            }
-  Bool          getAlfCtrlFlag        ( UInt uiIdx )            { return m_puiAlfCtrlFlag[uiIdx];     }
-  Void          setAlfCtrlFlag        ( UInt uiIdx, Bool uiFlag){ m_puiAlfCtrlFlag[uiIdx] = uiFlag;   }
-  Void          setAlfCtrlFlagSubParts( Bool uiFlag, UInt uiAbsPartIdx, UInt uiDepth );
-  
-  Void          createTmpAlfCtrlFlag  ();
-  Void          destroyTmpAlfCtrlFlag ();
-  Void          copyAlfCtrlFlagToTmp  ();
-  Void          copyAlfCtrlFlagFromTmp();
-#endif
   Bool*         getIPCMFlag           ()                        { return m_pbIPCMFlag;               }
   Bool          getIPCMFlag           (UInt uiIdx )             { return m_pbIPCMFlag[uiIdx];        }
   Void          setIPCMFlag           (UInt uiIdx, Bool b )     { m_pbIPCMFlag[uiIdx] = b;           }
@@ -443,11 +410,7 @@ public:
 
   std::vector<NDBFBlockInfo>* getNDBFilterBlocks()      {return &m_vNDFBlock;}
   Void setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt numLCUInPicHeight, UInt numSUInLCUWidth, UInt numSUInLCUHeight, UInt picWidth, UInt picHeight
-#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
                                           ,std::vector<Bool>& LFCrossSliceBoundary
-#else
-                                          ,Bool bIndependentSliceBoundaryEnabled
-#endif
                                           ,Bool bTopTileBoundary, Bool bDownTileBoundary, Bool bLeftTileBoundary, Bool bRightTileBoundary
                                           ,Bool bIndependentTileBoundaryEnabled );
   // -------------------------------------------------------------------------------------------------------------------
@@ -540,9 +503,7 @@ public:
   
   Bool          isIntra   ( UInt uiPartIdx )  { return m_pePredMode[ uiPartIdx ] == MODE_INTRA; }
   Bool          isSkipped ( UInt uiPartIdx );                                                     ///< SKIP (no residual)
-#if BIPRED_RESTRICT_SMALL_PU
   Bool          isBipredRestriction( UInt puIdx );
-#endif
 
   // -------------------------------------------------------------------------------------------------------------------
   // member functions for symbol prediction (most probable / mode conversion)

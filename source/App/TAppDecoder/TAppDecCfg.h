@@ -61,11 +61,7 @@ protected:
   UInt          m_outputBitDepth;                     ///< bit depth used for writing output
 
   Int           m_iMaxTemporalLayer;                  ///< maximum temporal layer to be decoded
-#if HASH_TYPE
   Int m_pictureDigestEnabled;                         ///< Checksum(3)/CRC(2)/MD5(1)/disable(0) acting on SEI picture_digest message
-#else
-  bool m_pictureDigestEnabled; ///< enable(1)/disable(0) acting on SEI picture_digest message
-#endif
   
 public:
   TAppDecCfg()          {}

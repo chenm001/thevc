@@ -282,11 +282,11 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt&
     pcCU->setQPSubParts( pcCU->getRefQP(uiAbsPartIdx), uiAbsPartIdx, uiDepth ); // set QP to default QP
   }
 
-#if CU_LEVEL_TRANSQUANT_BYPASS
   if (pcCU->getSlice()->getPPS()->getTransquantBypassEnableFlag())
+  {
     m_pcEntropyDecoder->decodeCUTransquantBypassFlag( pcCU, uiAbsPartIdx, uiDepth );
-#endif
-
+  }
+  
   // decode CU mode and the partition size
   if( !pcCU->getSlice()->isIntra() && pcCU->getNumSucIPCM() == 0 )
   {
@@ -363,20 +363,10 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt&
 
 Void TDecCu::xFinishDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& ruiIsLast)
 {
-#if PRED_QP_DERIVATION
   if(  pcCU->getSlice()->getPPS()->getUseDQP())
   {
     pcCU->setQPSubParts( getdQPFlag()?pcCU->getRefQP(uiAbsPartIdx):pcCU->getCodedQP(), uiAbsPartIdx, uiDepth ); // set QP
   }
-#else
-  if( (g_uiMaxCUWidth>>uiDepth) >= pcCU->getSlice()->getPPS()->getMinCuDQPSize() && pcCU->getSlice()->getPPS()->getUseDQP())
-  {
-    if( getdQPFlag() )
-    {
-      pcCU->setQPSubParts( pcCU->getRefQP(uiAbsPartIdx), uiAbsPartIdx, uiDepth ); // set QP to default QP
-    }
-  }
-#endif
   if( pcCU->getNumSucIPCM() > 0 )
   {
     ruiIsLast = 0;
@@ -442,12 +432,10 @@ Void TDecCu::xDecompressCU( TComDataCU* pcCU, TComDataCU* pcCUCur, UInt uiAbsPar
       assert(0);
       break;
   }
-#if LOSSLESS_CODING 
   if ( m_ppcCU[uiDepth]->isLosslessCoded(0) && (m_ppcCU[uiDepth]->getIPCMFlag(0) == false))
   {
     xFillPCMBuffer(m_ppcCU[uiDepth], uiAbsPartIdx, uiDepth);    
   }
-#endif
   
   xCopyToPic( m_ppcCU[uiDepth], pcPic, uiAbsPartIdx, uiDepth );
 }
@@ -495,9 +483,7 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
   UInt    uiZOrder          = pcCU->getZorderIdxInCU() + uiAbsPartIdx;
   Pel*    piRecIPred        = pcCU->getPic()->getPicYuvRec()->getLumaAddr( pcCU->getAddr(), uiZOrder );
   UInt    uiRecIPredStride  = pcCU->getPic()->getPicYuvRec()->getStride  ();
-#if INTRA_TRANSFORMSKIP
   Bool    useTransformSkip  = pcCU->getTransformSkip(uiAbsPartIdx, TEXT_LUMA);
-#endif
   //===== init availability pattern =====
   Bool  bAboveAvail = false;
   Bool  bLeftAvail  = false;
@@ -516,23 +502,7 @@ TDecCu::xIntraRecLumaBlk( TComDataCU* pcCU,
 
   Int scalingListType = (pcCU->isIntra(uiAbsPartIdx) ? 0 : 3) + g_eTTable[(Int)TEXT_LUMA];
   assert(scalingListType < 6);
-#if INTRA_TRANSFORMSKIP
-#if CU_LEVEL_TRANSQUANT_BYPASS
   m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
-#elif LOSSLESS_CODING
-  m_pcTrQuant->invtransformNxN( pcCU, TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
-#else  
-  m_pcTrQuant->invtransformNxN(       TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkip );
-#endif
-#else
-#if CU_LEVEL_TRANSQUANT_BYPASS
-  m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
-#elif LOSSLESS_CODING
-  m_pcTrQuant->invtransformNxN( pcCU, TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
-#else  
-  m_pcTrQuant->invtransformNxN(       TEXT_LUMA, pcCU->getLumaIntraDir( uiAbsPartIdx ), piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
-#endif
-#endif
 
   
   //===== reconstruction =====
@@ -595,9 +565,7 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
   UInt      uiZOrder          = pcCU->getZorderIdxInCU() + uiAbsPartIdx;
   Pel*      piRecIPred        = ( uiChromaId > 0 ? pcCU->getPic()->getPicYuvRec()->getCrAddr( pcCU->getAddr(), uiZOrder ) : pcCU->getPic()->getPicYuvRec()->getCbAddr( pcCU->getAddr(), uiZOrder ) );
   UInt      uiRecIPredStride  = pcCU->getPic()->getPicYuvRec()->getCStride();
-#if INTRA_TRANSFORMSKIP
   Bool      useTransformSkipChroma = pcCU->getTransformSkip(uiAbsPartIdx,eText);
-#endif
   //===== init availability pattern =====
   Bool  bAboveAvail = false;
   Bool  bLeftAvail  = false;
@@ -648,23 +616,7 @@ TDecCu::xIntraRecChromaBlk( TComDataCU* pcCU,
 
   Int scalingListType = (pcCU->isIntra(uiAbsPartIdx) ? 0 : 3) + g_eTTable[(Int)eText];
   assert(scalingListType < 6);
-#if INTRA_TRANSFORMSKIP
-#if CU_LEVEL_TRANSQUANT_BYPASS
   m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
-#elif LOSSLESS_CODING
-  m_pcTrQuant->invtransformNxN( pcCU, eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
-#else  
-  m_pcTrQuant->invtransformNxN(       eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType, useTransformSkipChroma );
-#endif
-#else
-#if CU_LEVEL_TRANSQUANT_BYPASS
-  m_pcTrQuant->invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
-#elif LOSSLESS_CODING
-  m_pcTrQuant->invtransformNxN( pcCU, eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
-#else  
-  m_pcTrQuant->invtransformNxN(       eText, REG_DCT, piResi, uiStride, pcCoeff, uiWidth, uiHeight, scalingListType );
-#endif
-#endif
 
   //===== reconstruction =====
   Pel* pPred      = piPred;
@@ -933,7 +885,6 @@ Void TDecCu::xReconPCM( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
   xDecodePCMTexture( pcCU, 0, piPcmCr, pRecoCr, uiCStride, uiCWidth, uiCHeight, TEXT_CHROMA_V);
 }
 
-#if LOSSLESS_CODING 
 /** Function for filling the PCM buffer of a CU using its reconstructed sample array 
  * \param pcCU pointer to current CU
  * \param uiAbsPartIdx CU index
@@ -986,6 +937,5 @@ Void TDecCu::xFillPCMBuffer(TComDataCU* pCU, UInt absPartIdx, UInt depth)
   }
 
 }
-#endif
 
 //! \}

@@ -84,16 +84,13 @@ private:
   TComAdaptiveLoopFilter*       m_pcAdaptiveLoopFilter;
   TComSampleAdaptiveOffset*     m_pcSAO;
   Double                m_dDecTime;
-#if HASH_TYPE
   Int m_pictureDigestEnabled;  ///< Checksum(3)/CRC(2)/MD5(1)/disable(0) acting on SEI picture_digest message
-#else
-  bool m_pictureDigestEnabled; ///< if true, handle picture_digest SEI messages
-#endif
 
-#if !AHG6_ALF_OPTION2
-  AlfCUCtrlInfo       m_cAlfCUCtrlOneSlice;
-  AlfParamSet           m_alfParamSetPilot;
-#endif
+  //! list that contains the CU address of each slice plus the end address 
+  std::vector<Int> m_sliceStartCUAddress;
+  std::vector<Bool> m_LFCrossSliceBoundaryFlag;
+  std::vector<Bool> m_sliceAlfEnabled[3];
+
 
 public:
   TDecGop();
@@ -110,21 +107,12 @@ public:
                  );
   Void  create  ();
   Void  destroy ();
-  Void  decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf );
+//  Void  decompressGop(TComInputBitstream* pcBitstream, TComPic*& rpcPic, Bool bExecuteDeblockAndAlf );
+  Void  decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPic );
+  Void  filterPicture  (TComPic*& rpcPic );
   Void  setGopSize( Int i) { m_iGopSize = i; }
 
-#if HASH_TYPE
   void setPictureDigestEnabled(Int enabled) { m_pictureDigestEnabled = enabled; }
-#else
-  void setPictureDigestEnabled(bool enabled) { m_pictureDigestEnabled = enabled; }
-#endif
-#if !AHG6_ALF_OPTION2
-  AlfCUCtrlInfo& getAlfCuCtrlParam() { return m_cAlfCUCtrlOneSlice; }
-  AlfParamSet& getAlfParamSet() {return m_alfParamSetPilot;}
-
-private:
-  Void patchAlfLCUParams(ALFParam*** alfLCUParam, AlfParamSet* alfParamSet, Int firstLCUAddr = 0);
-#endif
 
 };
 

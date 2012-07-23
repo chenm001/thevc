@@ -105,14 +105,9 @@ static void parseSEIuserDataUnregistered(TComInputBitstream& bs, SEIuserDataUnre
  */
 static void parseSEIpictureDigest(TComInputBitstream& bs, SEIpictureDigest& sei, unsigned payloadSize)
 {
-#if HASH_TYPE
   int numChar=0;
-#else
-  assert(payloadSize >= 17);
-#endif
 
   sei.method = static_cast<SEIpictureDigest::Method>(bs.read(8));
-#if HASH_TYPE
   if(SEIpictureDigest::MD5 == sei.method)
   {
     numChar = 16;
@@ -133,13 +128,6 @@ static void parseSEIpictureDigest(TComInputBitstream& bs, SEIpictureDigest& sei,
       sei.digest[yuvIdx][i] = bs.read(8);
     }
   }
-#else
-  assert(SEIpictureDigest::MD5 == sei.method);
-  for (unsigned i = 0; i < 16; i++)
-  {
-    sei.digest[i] = bs.read(8);
-  }
-#endif
 }
 
 //! \}

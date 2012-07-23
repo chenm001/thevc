@@ -80,9 +80,13 @@ protected:
     TComPic* const pcPic = pcCU->getPic();
     const UInt uiLCUWidthInBaseUnits = pcPic->getNumPartInWidth();
     if( iDir == 0 )
+    {
       return g_auiRasterToZscan[g_auiZscanToRaster[uiAbsZorderIdx] + iBaseUnitIdx * uiLCUWidthInBaseUnits + iEdgeIdx ];
+    }
     else
+    {
       return g_auiRasterToZscan[g_auiZscanToRaster[uiAbsZorderIdx] + iEdgeIdx * uiLCUWidthInBaseUnits + iBaseUnitIdx ];
+    }
   } 
   
   Void xSetEdgefilterMultiple( TComDataCU* pcCU, UInt uiAbsZorderIdx, UInt uiDepth, Int iDir, Int iEdgeIdx, Bool bValue ,UInt uiWidthInBaseUnits = 0, UInt uiHeightInBaseUnits = 0, Bool nonSquare = false );

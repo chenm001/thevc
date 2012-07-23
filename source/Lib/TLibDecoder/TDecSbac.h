@@ -77,53 +77,27 @@ public:
 
   Void  resetEntropy (TComSlice* pSlice );
   Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
-#if VPS_INTEGRATION
   Void  parseVPS                  ( TComVPS* pcVPS )  {}
-#endif
   Void  parseSPS                  ( TComSPS* pcSPS         ) {}
-#if !TILES_OR_ENTROPY_FIX
-  Void  parsePPS                  ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet         ) {}
-#else
   Void  parsePPS                  ( TComPPS* pcPPS         ) {}
-#endif
   Void  parseAPS                  ( TComAPS* pAPS          ) {}
   void parseSEI(SEImessages&) {}
 
-#if AHG6_ALF_OPTION2
   Void  parseSliceHeader          ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager) {}
-#else
-  Void  parseSliceHeader          ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl, AlfParamSet& alfParamSet) {}
-#endif
   Void  parseTerminatingBit       ( UInt& ruiBit );
   Void  parseMVPIdx               ( Int& riMVPIdx          );
-#if SAO_TRUNCATED_U
   Void  parseSaoMaxUvlc           ( UInt& val, UInt maxSymbol );
-#endif
-#if !SAO_CODE_CLEAN_UP
-  Void  parseSaoUvlc              ( UInt& ruiVal           );
-#endif
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
-  Void  parseSaoSvlc              ( Int&  riVal            );
-#endif
   Void  parseSaoMergeLeft         ( UInt&  ruiVal, UInt uiCompIdx   );
   Void  parseSaoMergeUp           ( UInt&  ruiVal  );
   Void  parseSaoTypeIdx           ( UInt&  ruiVal  );
   Void  parseSaoUflc              ( UInt& ruiVal           );
-#if SAO_NO_MERGE_CROSS_SLICE_TILE
   Void  parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, TComDataCU* pcCU, Int iCUAddrInSlice, Int iCUAddrUpInSlice, Int allowMergeLeft, Int allowMergeUp);
-#else
-  Void  parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, TComDataCU* pcCU, Int iCUAddrInSlice, Int iCUAddrUpInSlice, Bool bLFCrossSliceBoundaryFlag);
-#endif
   Void  parseSaoOffset            (SaoLcuParam* psSaoLcuParam);
 private:
   Void  xReadUnarySymbol    ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset );
   Void  xReadUnaryMaxSymbol ( UInt& ruiSymbol, ContextModel* pcSCModel, Int iOffset, UInt uiMaxSymbol );
   Void  xReadEpExGolomb     ( UInt& ruiSymbol, UInt uiCount );
-#if COEF_REMAIN_BINARNIZATION
   Void  xReadCoefRemainExGolomb ( UInt &rSymbol, UInt &rParam );
-#else
-  Void  xReadGoRiceExGolomb ( UInt &ruiSymbol, UInt &ruiGoRiceParam );
-#endif
 private:
   TComInputBitstream* m_pcBitstream;
   TDecBinIf*        m_pcTDecBinIf;
@@ -131,11 +105,7 @@ private:
   Int           m_iSliceGranularity; //!< slice granularity
 
 public:
-#if AHG6_ALF_OPTION2
   Void parseAlfCtrlFlag   (Int compIdx, UInt& code);
-#else
-  Void parseAlfCtrlFlag   ( UInt &ruiAlfCtrlFlag );
-#endif
   /// set slice granularity
   Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
 
@@ -143,9 +113,7 @@ public:
   Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
 
   Void parseSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-#if CU_LEVEL_TRANSQUANT_BYPASS
   Void parseCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-#endif
   Void parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx );
   Void parseMergeIndex    ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth );
@@ -170,13 +138,8 @@ public:
 
   Void parseLastSignificantXY( UInt& uiPosLastX, UInt& uiPosLastY, Int width, Int height, TextType eTType, UInt uiScanIdx );
   Void parseCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
-#if INTRA_TRANSFORMSKIP
   Void parseTransformSkipFlags ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType);
-#endif
 
-#if !REMOVE_TILE_MARKERS
-  Void readTileMarker   ( UInt& uiTileIdx, UInt uiBitsUsed );
-#endif
   Void updateContextTables( SliceType eSliceType, Int iQp );
 
   Void  parseScalingList ( TComScalingList* scalingList ) {}
@@ -217,22 +180,12 @@ private:
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;
   ContextModel3DBuffer m_cCUAMPSCModel;
-#if !SAO_CODE_CLEAN_UP
-  ContextModel3DBuffer m_cSaoFlagSCModel;
-#endif
   ContextModel3DBuffer m_cSaoUvlcSCModel;
-#if !(SAO_OFFSET_MAG_SIGN_SPLIT && SAO_RDO_FIX)
-  ContextModel3DBuffer m_cSaoSvlcSCModel;
-#endif
   ContextModel3DBuffer m_cSaoMergeLeftSCModel;
   ContextModel3DBuffer m_cSaoMergeUpSCModel;
   ContextModel3DBuffer m_cSaoTypeIdxSCModel;
-#if INTRA_TRANSFORMSKIP
   ContextModel3DBuffer m_cTransformSkipSCModel;
-#endif
-#if CU_LEVEL_TRANSQUANT_BYPASS
   ContextModel3DBuffer m_CUTransquantBypassFlagSCModel;
-#endif
 };
 
 //! \}

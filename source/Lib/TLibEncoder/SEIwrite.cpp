@@ -73,12 +73,16 @@ void writeSEImessage(TComBitIf& bs, const SEI& sei)
 
   unsigned payloadType = sei.payloadType();
   for (; payloadType >= 0xff; payloadType -= 0xff)
+  {
     bs.write(0xff, 8);
+  }
   bs.write(payloadType, 8);
 
   unsigned payloadSize = payload_data_num_bits/8;
   for (; payloadSize >= 0xff; payloadSize -= 0xff)
+  {
     bs.write(0xff, 8);
+  }
   bs.write(payloadSize, 8);
 
   /* payloadData */
@@ -108,8 +112,6 @@ static void writeSEIuserDataUnregistered(TComBitIf& bs, const SEIuserDataUnregis
  */
 static void writeSEIpictureDigest(TComBitIf& bs, const SEIpictureDigest& sei)
 {
-
-#if HASH_TYPE
   int numChar=0;
   bs.write(sei.method, 8);
   if(sei.method == SEIpictureDigest::MD5)
@@ -131,12 +133,5 @@ static void writeSEIpictureDigest(TComBitIf& bs, const SEIpictureDigest& sei)
       bs.write(sei.digest[yuvIdx][i], 8);
     }
   }
-#else
-  bs.write(sei.method, 8);
-  for (unsigned i = 0; i < 16; i++)
-  {
-    bs.write(sei.digest[i], 8);
-  }
-#endif
 }
 //! \}

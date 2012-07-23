@@ -67,7 +67,6 @@ TAppEncTop::~TAppEncTop()
 
 Void TAppEncTop::xInitLibCfg()
 {
-#if VPS_INTEGRATION
   TComVPS vps;
   
   vps.setMaxTLayers                       ( m_maxTempLayer );
@@ -78,7 +77,6 @@ Void TAppEncTop::xInitLibCfg()
     vps.setMaxDecPicBuffering             ( m_maxDecPicBuffering[i], i );
   }
   m_cTEncTop.setVPS(&vps);
-#endif
   m_cTEncTop.setFrameRate                    ( m_iFrameRate );
   m_cTEncTop.setFrameSkip                    ( m_FrameSkip );
   m_cTEncTop.setSourceWidth                  ( m_iSourceWidth );
@@ -111,9 +109,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setPad                          ( m_aiPad );
     
   m_cTEncTop.setMaxTempLayer                 ( m_maxTempLayer );
-#if !REMOVE_INTER_4X4
-  m_cTEncTop.setDisInter4x4                  ( m_bDisInter4x4);
-#endif
   m_cTEncTop.setUseNSQT( m_enableNSQT );
   m_cTEncTop.setUseAMP( m_enableAMP );
   
@@ -121,11 +116,7 @@ Void TAppEncTop::xInitLibCfg()
   
   //====== Loop/Deblock Filter ========
   m_cTEncTop.setLoopFilterDisable            ( m_bLoopFilterDisable       );
-#if DBL_HL_SYNTAX
   m_cTEncTop.setLoopFilterOffsetInPPS        ( m_loopFilterOffsetInPPS );
-#else
-  m_cTEncTop.setLoopFilterOffsetInAPS        ( m_loopFilterOffsetInAPS );
-#endif
   m_cTEncTop.setLoopFilterBetaOffset         ( m_loopFilterBetaOffsetDiv2  );
   m_cTEncTop.setLoopFilterTcOffset           ( m_loopFilterTcOffsetDiv2    );
   m_cTEncTop.setDeblockingFilterControlPresent( m_DeblockingFilterControlPresent);
@@ -146,7 +137,6 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseAdaptQpSelect             ( m_bUseAdaptQpSelect   );
 #endif
 
-#if LOSSLESS_CODING
   Int lowestQP;
   lowestQP =  - ( (Int)(6*(g_uiBitDepth + g_uiBitIncrement - 8)) );
 
@@ -154,7 +144,6 @@ Void TAppEncTop::xInitLibCfg()
   {
     m_bUseAdaptiveQP = false;
   }
-#endif
   m_cTEncTop.setUseAdaptiveQP                ( m_bUseAdaptiveQP  );
   m_cTEncTop.setQPAdaptationRange            ( m_iQPAdaptationRange );
   
@@ -164,19 +153,8 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseASR                       ( m_bUseASR      );
   m_cTEncTop.setUseHADME                     ( m_bUseHADME    );
   m_cTEncTop.setUseALF                       ( m_bUseALF      );
-#if !AHG6_ALF_OPTION2
-  m_cTEncTop.setALFEncodePassReduction       ( m_iALFEncodePassReduction );
-#endif
-#if LOSSLESS_CODING
   m_cTEncTop.setUseLossless                  ( m_useLossless );
-#endif
-#if !AHG6_ALF_OPTION2
-  m_cTEncTop.setALFMaxNumberFilters          ( m_iALFMaxNumberFilters ) ;
-#endif
   m_cTEncTop.setUseLComb                     ( m_bUseLComb    );
-#if !REMOVE_LC
-  m_cTEncTop.setLCMod                        ( m_bLCMod         );
-#endif
   m_cTEncTop.setdQPs                         ( m_aidQP        );
   m_cTEncTop.setUseRDOQ                      ( m_bUseRDOQ     );
   m_cTEncTop.setQuadtreeTULog2MaxSize        ( m_uiQuadtreeTULog2MaxSize );
@@ -190,10 +168,8 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseEarlySkipDetection            ( m_useEarlySkipDetection );
 
   m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );
-#if INTRA_TRANSFORMSKIP
   m_cTEncTop.setUseTransformSkip             ( m_useTansformSkip      );
   m_cTEncTop.setUseTransformSkipFast         ( m_useTansformSkipFast  );
-#endif
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );
   m_cTEncTop.setPCMLog2MinSize          ( m_uiPCMLog2MinSize);
   m_cTEncTop.setUsePCM                       ( m_usePCM );
@@ -201,11 +177,10 @@ Void TAppEncTop::xInitLibCfg()
 
   //====== Weighted Prediction ========
   m_cTEncTop.setUseWP                   ( m_bUseWeightPred      );
-#if REMOVE_IMPLICIT_WP
   m_cTEncTop.setWPBiPred                ( m_useWeightedBiPred   );
-#else
-  m_cTEncTop.setWPBiPredIdc             ( m_uiBiPredIdc         );
-#endif
+  //====== Parallel Merge Estimation ========
+  m_cTEncTop.setLog2ParallelMergeLevelMinus2 ( m_log2ParallelMergeLevel - 2 );
+
   //====== Slice ========
   m_cTEncTop.setSliceMode               ( m_iSliceMode                );
   m_cTEncTop.setSliceArgument           ( m_iSliceArgument            );
@@ -238,19 +213,12 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
   m_cTEncTop.setUseSAO ( m_bUseSAO );
   m_cTEncTop.setMaxNumOffsetsPerPic (m_maxNumOffsetsPerPic);
-#if SAO_REMOVE_APS // encoder renaming
   m_cTEncTop.setSaoLcuBasedOptimization (m_saoLcuBasedOptimization);
-#else
-  m_cTEncTop.setSaoInterleavingFlag (m_saoInterleavingFlag);
-#endif
   m_cTEncTop.setPCMInputBitDepthFlag  ( m_bPCMInputBitDepthFlag); 
   m_cTEncTop.setPCMFilterDisableFlag  ( m_bPCMFilterDisableFlag); 
 
   m_cTEncTop.setPictureDigestEnabled(m_pictureDigestEnabled);
 
-#if !TILES_OR_ENTROPY_FIX
-  m_cTEncTop.setColumnRowInfoPresent       ( m_iColumnRowInfoPresent );
-#endif
   m_cTEncTop.setUniformSpacingIdr          ( m_iUniformSpacingIdr );
   m_cTEncTop.setNumColumnsMinus1           ( m_iNumColumnsMinus1 );
   m_cTEncTop.setNumRowsMinus1              ( m_iNumRowsMinus1 );
@@ -260,21 +228,7 @@ Void TAppEncTop::xInitLibCfg()
     m_cTEncTop.setRowHeight                ( m_pchRowHeight );
   }
   m_cTEncTop.xCheckGSParameters();
-#if !EXPLICITLY_SIGNAL_ENTRY_POINTS
-  m_cTEncTop.setTileLocationInSliceHeaderFlag ( m_iTileLocationInSliceHeaderFlag );
-#endif
-#if !REMOVE_TILE_MARKERS
-  m_cTEncTop.setTileMarkerFlag              ( m_iTileMarkerFlag );
-  m_cTEncTop.setMaxTileMarkerEntryPoints    ( m_iMaxTileMarkerEntryPoints );
-#endif
   Int uiTilesCount          = (m_iNumRowsMinus1+1) * (m_iNumColumnsMinus1+1);
-#if !REMOVE_TILE_MARKERS
-  m_dMaxTileMarkerOffset  = ((Double)uiTilesCount) / m_iMaxTileMarkerEntryPoints;
-  m_cTEncTop.setMaxTileMarkerOffset         ( m_dMaxTileMarkerOffset );
-#endif
-#if !TILES_OR_ENTROPY_FIX
-  m_cTEncTop.setTileBehaviorControlPresentFlag( m_iTileBehaviorControlPresentFlag );
-#endif
   if(uiTilesCount == 1)
   {
     m_bLFCrossTileBoundaryFlag = true; 
@@ -283,35 +237,16 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setWaveFrontSynchro           ( m_iWaveFrontSynchro );
   m_cTEncTop.setWaveFrontFlush             ( m_iWaveFrontFlush );
   m_cTEncTop.setWaveFrontSubstreams        ( m_iWaveFrontSubstreams );
-#if SLICE_TMVP_ENABLE
   m_cTEncTop.setTMVPModeId ( m_TMVPModeId );
-#else
-  m_cTEncTop.setEnableTMVP ( m_enableTMVP );
-#endif
   m_cTEncTop.setUseScalingListId           ( m_useScalingListId  );
   m_cTEncTop.setScalingListFile            ( m_scalingListFile   );
   m_cTEncTop.setSignHideFlag(m_signHideFlag);
-#if !FIXED_SBH_THRESHOLD
-  m_cTEncTop.setTSIG(m_signHidingThreshold);
-#endif
-#if AHG6_ALF_OPTION2
   m_cTEncTop.setALFLowLatencyEncoding( m_alfLowLatencyEncoding );
-#else
-  if(uiTilesCount > 1)
-  {
-    m_bALFParamInSlice = false;
-    m_bALFPicBasedEncode = true;
-  }
-  m_cTEncTop.setALFParamInSlice              ( m_bALFParamInSlice);
-  m_cTEncTop.setALFPicBasedEncode            ( m_bALFPicBasedEncode);
-#endif
   m_cTEncTop.setUseRateCtrl     ( m_enableRateCtrl);
   m_cTEncTop.setTargetBitrate   ( m_targetBitrate);
   m_cTEncTop.setNumLCUInUnit    ( m_numLCUInUnit);
-#if CU_LEVEL_TRANSQUANT_BYPASS
   m_cTEncTop.setTransquantBypassEnableFlag(m_TransquantBypassEnableFlag);
   m_cTEncTop.setCUTransquantBypassFlagValue(m_CUTransquantBypassFlagValue);
-#endif
 }
 
 Void TAppEncTop::xCreateLib()
@@ -507,7 +442,6 @@ void TAppEncTop::rateStatsAccum(const AccessUnit& au, const std::vector<unsigned
   {
     switch ((*it_au)->m_nalUnitType)
     {
-#if NEW_NAL_UNIT_TYPES
     case NAL_UNIT_CODED_SLICE:
     case NAL_UNIT_CODED_SLICE_TFD:
     case NAL_UNIT_CODED_SLICE_TLA:
@@ -516,22 +450,9 @@ void TAppEncTop::rateStatsAccum(const AccessUnit& au, const std::vector<unsigned
     case NAL_UNIT_CODED_SLICE_BLA:
     case NAL_UNIT_CODED_SLICE_BLANT:
     case NAL_UNIT_CODED_SLICE_IDR:
-#if VPS_INTEGRATION
     case NAL_UNIT_VPS:
-#endif
     case NAL_UNIT_SPS:
     case NAL_UNIT_PPS:
-#else
-    case NAL_UNIT_CODED_SLICE:
-    case NAL_UNIT_CODED_SLICE_TLA:
-    case NAL_UNIT_CODED_SLICE_CRA:
-    case NAL_UNIT_CODED_SLICE_IDR:
-#if VPS_INTEGRATION
-    case NAL_UNIT_VPS:
-#endif
-    case NAL_UNIT_SPS:
-    case NAL_UNIT_PPS:
-#endif
       m_essentialBytes += *it_stats;
       break;
     default:

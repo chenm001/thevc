@@ -49,18 +49,13 @@ TComPic::TComPic()
 : m_uiTLayer                              (0)
 , m_bUsedByCurr                           (false)
 , m_bIsLongTerm                           (false)
-#if NO_MV_SCALING_IF_LONG_TERM_REF
 , m_bIsUsedAsLongTerm                     (false)
-#endif
 , m_apcPicSym                             (NULL)
 , m_pcPicYuvPred                          (NULL)
 , m_pcPicYuvResi                          (NULL)
 , m_bReconstructed                        (false)
 , m_bNeededForOutput                      (false)
 , m_uiCurrSliceIdx                        (0)
-#if !SLICE_TMVP_ENABLE
-, m_usedForTMVP                           (true)
-#endif
 , m_pSliceSUMap                           (NULL)
 , m_pbValidSlice                          (NULL)
 , m_sliceGranularityForNDBFilter          (0)
@@ -140,12 +135,8 @@ Void TComPic::compressMotion()
  * \param numTiles number of tiles in picture
  * \param bNDBFilterCrossTileBoundary cross-tile-boundary in-loop filtering; true for "cross".
  */
-Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int sliceGranularityDepth
-#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+Void TComPic::createNonDBFilterInfo(std::vector<Int> sliceStartAddress, Int sliceGranularityDepth
                                     ,std::vector<Bool>* LFCrossSliceBoundary
-#else
-                                    ,Bool bNDBFilterCrossSliceBoundary
-#endif
                                     ,Int numTiles
                                     ,Bool bNDBFilterCrossTileBoundary)
 {
@@ -157,7 +148,7 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
   Int  numLCUsInPicHeight= getFrameHeightInCU();
   UInt maxNumSUInLCUWidth = getNumPartInWidth();
   UInt maxNumSUInLCUHeight= getNumPartInHeight();
-#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
+  Int  numSlices = (Int) sliceStartAddress.size() - 1;
   m_bIndependentSliceBoundaryForNDBFilter = false;
   if(numSlices > 1)
   {
@@ -169,9 +160,6 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
       }
     }
   }
-#else
-  m_bIndependentSliceBoundaryForNDBFilter = (bNDBFilterCrossSliceBoundary)?(false):((numSlices > 1)?(true):(false)) ;
-#endif
   m_sliceGranularityForNDBFilter = sliceGranularityDepth;
   m_bIndependentTileBoundaryForNDBFilter  = (bNDBFilterCrossTileBoundary)?(false) :((numTiles > 1)?(true):(false));
 
@@ -205,8 +193,8 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
   for(Int s=0; s< numSlices; s++)
   {
     //1st step: decide the real start address
-    startAddr = pSliceStartAddress[s];
-    endAddr   = pSliceStartAddress[s+1] -1;
+    startAddr = sliceStartAddress[s];
+    endAddr   = sliceStartAddress[s+1] -1;
 
     startLCU            = startAddr / maxNumSUInLCU;
     firstCUInStartLCU   = startAddr % maxNumSUInLCU;
@@ -333,11 +321,7 @@ Void TComPic::createNonDBFilterInfo(UInt* pSliceStartAddress, Int numSlices, Int
       }
 
       pcCU->setNDBFilterBlockBorderAvailability(numLCUsInPicWidth, numLCUsInPicHeight, maxNumSUInLCUWidth, maxNumSUInLCUHeight,picWidth, picHeight
-#if H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL
         , *LFCrossSliceBoundary
-#else
-        ,m_bIndependentSliceBoundaryForNDBFilter
-#endif
         ,bTopTileBoundary, bDownTileBoundary, bLeftTileBoundary, bRightTileBoundary
         ,m_bIndependentTileBoundaryForNDBFilter);
 

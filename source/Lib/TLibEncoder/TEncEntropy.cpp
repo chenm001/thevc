@@ -53,15 +53,8 @@ Void TEncEntropy::encodeSliceHeader ( TComSlice* pcSlice )
 {
   if (pcSlice->getSPS()->getUseSAO())
   {
-#if !SAO_REMOVE_APS
-    pcSlice->setSaoInterleavingFlag(pcSlice->getAPS()->getSaoInterleavingFlag());
-#endif
     pcSlice->setSaoEnabledFlag     (pcSlice->getAPS()->getSaoParam()->bSaoFlag[0]);
-#if SAO_REMOVE_APS
     if (pcSlice->getSaoEnabledFlag())
-#else
-    if (pcSlice->getAPS()->getSaoInterleavingFlag())
-#endif
     {
       pcSlice->setSaoEnabledFlagCb   (pcSlice->getAPS()->getSaoParam()->bSaoFlag[1]);
       pcSlice->setSaoEnabledFlagCr   (pcSlice->getAPS()->getSaoParam()->bSaoFlag[2]);
@@ -121,20 +114,16 @@ Void TEncEntropy::encodeSPS( TComSPS* pcSPS )
   return;
 }
 
-#if CU_LEVEL_TRANSQUANT_BYPASS
 Void TEncEntropy::encodeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
   m_pcEntropyCoderIf->codeCUTransquantBypassFlag( pcCU, uiAbsPartIdx );
 }
-#endif
 
-#if VPS_INTEGRATION
 Void TEncEntropy::encodeVPS( TComVPS* pcVPS )
 {
   m_pcEntropyCoderIf->codeVPS( pcVPS );
   return;
 }
-#endif
 
 Void TEncEntropy::encodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
@@ -156,239 +145,6 @@ Void TEncEntropy::encodeSkipFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
   m_pcEntropyCoderIf->codeSkipFlag( pcCU, uiAbsPartIdx );
 }
 
-#if !AHG6_ALF_OPTION2
-Void TEncEntropy::codeFiltCountBit(ALFParam* pAlfParam, Int64* ruiRate)
-{
-  resetEntropy();
-  resetBits();
-  codeFilt(pAlfParam);
-  *ruiRate = getNumberOfWrittenBits();
-  resetEntropy();
-  resetBits();
-}
-
-Void TEncEntropy::codeAuxCountBit(ALFParam* pAlfParam, Int64* ruiRate)
-{
-  resetEntropy();
-  resetBits();
-  codeAux(pAlfParam);
-  *ruiRate = getNumberOfWrittenBits();
-  resetEntropy();
-  resetBits();
-}
-
-Void TEncEntropy::codeAux(ALFParam* pAlfParam)
-{
-  //  m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->realfiltNo); 
-
-  Int noFilters = min(pAlfParam->filters_per_group-1, 2);
-  m_pcEntropyCoderIf->codeAlfUvlc(noFilters);
-
-  if(noFilters == 1)
-  {
-    m_pcEntropyCoderIf->codeAlfUvlc(pAlfParam->startSecondFilter);
-  }
-  else if (noFilters == 2)
-  {
-    Int numMergeFlags = 16;
-    for (Int i=1; i<numMergeFlags; i++) 
-    {
-      m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->filterPattern[i]);
-    }
-  }
-}
-
-Int TEncEntropy::lengthGolomb(int coeffVal, int k)
-{
-  int m = 2 << (k - 1);
-  int q = coeffVal / m;
-  if(coeffVal != 0)
-  {
-    return(q + 2 + k);
-  }
-  else
-  {
-    return(q + 1 + k);
-  }
-}
-
-Int TEncEntropy::codeFilterCoeff(ALFParam* ALFp)
-{
-  Int filters_per_group = ALFp->filters_per_group;
-  int sqrFiltLength = ALFp->num_coeff;
-  int i, k, kMin, kStart, minBits, ind, scanPos, maxScanVal, coeffVal, len = 0,
-    *pDepthInt=NULL, kMinTab[MAX_SCAN_VAL], bitsCoeffScan[MAX_SCAN_VAL][MAX_EXP_GOLOMB],
-    minKStart, minBitsKStart, bitsKStart;
-  
-  pDepthInt = pDepthIntTabShapes[ALFp->filter_shape];
-  maxScanVal = 0;
-  int minScanVal = MIN_SCAN_POS_CROSS;
-
-  for(i = 0; i < sqrFiltLength; i++)
-  {
-    maxScanVal = max(maxScanVal, pDepthInt[i]);
-  }
-  
-  // vlc for all
-  memset(bitsCoeffScan, 0, MAX_SCAN_VAL * MAX_EXP_GOLOMB * sizeof(int));
-  for(ind=0; ind<filters_per_group; ++ind)
-  {
-    for(i = 0; i < sqrFiltLength; i++)
-    {
-      scanPos=pDepthInt[i]-1;
-      coeffVal=abs(ALFp->coeffmulti[ind][i]);
-      for (k=1; k<15; k++)
-      {
-        bitsCoeffScan[scanPos][k]+=lengthGolomb(coeffVal, k);
-      }
-    }
-  }
-  
-  minBitsKStart = 0;
-  minKStart = -1;
-  for(k = 1; k < 8; k++)
-  { 
-    bitsKStart = 0; 
-    kStart = k;
-    for(scanPos = minScanVal; scanPos < maxScanVal; scanPos++)
-    {
-      kMin = kStart; 
-      minBits = bitsCoeffScan[scanPos][kMin];
-      
-      if(bitsCoeffScan[scanPos][kStart+1] < minBits)
-      {
-        kMin = kStart + 1; 
-        minBits = bitsCoeffScan[scanPos][kMin];
-      }
-      kStart = kMin;
-      bitsKStart += minBits;
-    }
-    if((bitsKStart < minBitsKStart) || (k == 1))
-    {
-      minBitsKStart = bitsKStart;
-      minKStart = k;
-    }
-  }
-  
-  kStart = minKStart; 
-  for(scanPos = minScanVal; scanPos < maxScanVal; scanPos++)
-  {
-    kMin = kStart; 
-    minBits = bitsCoeffScan[scanPos][kMin];
-    
-    if(bitsCoeffScan[scanPos][kStart+1] < minBits)
-    {
-      kMin = kStart + 1; 
-      minBits = bitsCoeffScan[scanPos][kMin];
-    }
-    
-    kMinTab[scanPos] = kMin;
-    kStart = kMin;
-  }
-  
-  // Coding parameters
-  ALFp->minKStart = minKStart;
-  for(scanPos = minScanVal; scanPos < maxScanVal; scanPos++)
-  {
-    ALFp->kMinTab[scanPos] = kMinTab[scanPos];
-  }
-
-  if (ALFp->filters_per_group == 1)
-  {
-    len += writeFilterCoeffs(sqrFiltLength, filters_per_group, pDepthInt, ALFp->coeffmulti, kTableTabShapes[ALF_CROSS9x7_SQUARE3x3]);
-  }
-  else
-  {
-  len += writeFilterCodingParams(minKStart, minScanVal, maxScanVal, kMinTab);
-
-  // Filter coefficients
-  len += writeFilterCoeffs(sqrFiltLength, filters_per_group, pDepthInt, ALFp->coeffmulti, kMinTab);
-  }
-  
-  return len;
-}
-
-Int TEncEntropy::writeFilterCodingParams(int minKStart, int minScanVal, int maxScanVal, int kMinTab[])
-{
-  int scanPos;
-  int golombIndexBit;
-  int kMin;
-
-  // Golomb parameters
-  m_pcEntropyCoderIf->codeAlfUvlc(minKStart - 1);
-  
-  kMin = minKStart; 
-  for(scanPos = minScanVal; scanPos < maxScanVal; scanPos++)
-  {
-    golombIndexBit = (kMinTab[scanPos] != kMin)? 1: 0;
-    
-    assert(kMinTab[scanPos] <= kMin + 1);
-    
-    m_pcEntropyCoderIf->codeAlfFlag(golombIndexBit);
-    kMin = kMinTab[scanPos];
-  }    
-  
-  return 0;
-}
-
-Int TEncEntropy::writeFilterCoeffs(int sqrFiltLength, int filters_per_group, int pDepthInt[], 
-                                   int **FilterCoeff, int kMinTab[])
-{
-  int ind, scanPos, i;
-  
-  for(ind = 0; ind < filters_per_group; ++ind)
-  {
-    for(i = 0; i < sqrFiltLength; i++)
-    {
-      scanPos = pDepthInt[i] - 1;
-      Int k = (filters_per_group == 1) ? kMinTab[i] : kMinTab[scanPos];
-      golombEncode(FilterCoeff[ind][i], k);
-    }
-  }
-  return 0;
-}
-
-Int TEncEntropy::golombEncode(int coeff, int k)
-{
-  int q, i;
-  int symbol = abs(coeff);
-  
-  q = symbol >> k;
-  
-  for (i = 0; i < q; i++)
-  {
-    m_pcEntropyCoderIf->codeAlfFlag(1);
-  }
-  m_pcEntropyCoderIf->codeAlfFlag(0);
-  // write one zero
-  
-  for(i = 0; i < k; i++)
-  {
-    m_pcEntropyCoderIf->codeAlfFlag(symbol & 0x01);
-    symbol >>= 1;
-  }
-  
-  if(coeff != 0)
-  {
-    int sign = (coeff > 0)? 1: 0;
-    m_pcEntropyCoderIf->codeAlfFlag(sign);
-  }
-  return 0;
-}
-
-Void TEncEntropy::codeFilt(ALFParam* pAlfParam)
-{
-  if(pAlfParam->filters_per_group > 1)
-  {
-    m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->predMethod);
-  }
-  for(Int ind = 0; ind < pAlfParam->filters_per_group; ++ind)
-  {
-    m_pcEntropyCoderIf->codeAlfFlag (pAlfParam->nbSPred[ind]);
-  }
-  codeFilterCoeff (pAlfParam);
-}
-#endif
 /** encode merge flag
  * \param pcCU
  * \param uiAbsPartIdx
@@ -423,349 +179,6 @@ Void TEncEntropy::encodeMergeIndex( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   }
 }
 
-#if !AHG6_ALF_OPTION2
-/** parse the fixed length code (smaller than one max value) in ALF
- * \param run: coded value
- * \param rx: cur addr
- * \param numLCUInWidth: # of LCU in one LCU 
- * \returns Void
- */
-Void TEncEntropy::encodeAlfFixedLengthRun(UInt run, UInt rx, UInt numLCUInWidth)
-{
-  assert(numLCUInWidth > rx);
-  UInt maxValue = numLCUInWidth - rx - 1;
-  m_pcEntropyCoderIf->codeAlfFixedLengthIdx(run, maxValue);
-}
-
-/** parse the fixed length code (smaller than one max value) in ALF
- * \param idx: coded value
- * \param numFilterSetsInBuffer: max value 
- * \returns Void
- */
-Void TEncEntropy::encodeAlfStoredFilterSetIdx(UInt idx, UInt numFilterSetsInBuffer)
-{
-  assert(numFilterSetsInBuffer > 0);
-  UInt maxValue = numFilterSetsInBuffer - 1;
-  m_pcEntropyCoderIf->codeAlfFixedLengthIdx(idx, maxValue);
-}
-
-Void TEncEntropy::encodeAlfParam(AlfParamSet* pAlfParamSet, Bool bSentInAPS, Int firstLCUAddr, Bool alfAcrossSlice)
-{
-  Bool isEnabled[NUM_ALF_COMPONENT];
-  Bool isUniParam[NUM_ALF_COMPONENT];
-
-  isEnabled[ALF_Y] = true;
-  isEnabled[ALF_Cb]= pAlfParamSet->isEnabled[ALF_Cb];
-  isEnabled[ALF_Cr]= pAlfParamSet->isEnabled[ALF_Cr];
-
-  isUniParam[ALF_Y]= pAlfParamSet->isUniParam[ALF_Y];
-  isUniParam[ALF_Cb]= pAlfParamSet->isUniParam[ALF_Cb];
-  isUniParam[ALF_Cr]= pAlfParamSet->isUniParam[ALF_Cr]; 
-
-
-  //alf_cb_enable_flag
-  m_pcEntropyCoderIf->codeAlfFlag(isEnabled[ALF_Cb]?1:0);
-  //alf_cr_enable_flag
-  m_pcEntropyCoderIf->codeAlfFlag(isEnabled[ALF_Cr]?1:0);  
-
-  for(Int compIdx = 0; compIdx< NUM_ALF_COMPONENT; compIdx++)
-  {
-    if(isEnabled[compIdx])
-    {
-      //alf_one_{luma, cb, cr}_unit_per_slice_flag
-      m_pcEntropyCoderIf->codeAlfFlag(isUniParam[compIdx]?1:0);
-    }
-  }
-  if(bSentInAPS)
-  {
-    //alf_num_lcu_in_width_minus1
-    m_pcEntropyCoderIf->codeAlfUvlc(pAlfParamSet->numLCUInWidth-1);
-    //alf_num_lcu_in_height_minus1
-    m_pcEntropyCoderIf->codeAlfUvlc(pAlfParamSet->numLCUInHeight-1);
-  }
-  else //sent in slice header
-  {
-    //alf_num_lcu_in_slice_minus1
-    m_pcEntropyCoderIf->codeAlfUvlc(pAlfParamSet->numLCU-1);
-  }
-
-
-  encodeAlfParamSet(pAlfParamSet, pAlfParamSet->numLCUInWidth, pAlfParamSet->numLCU, firstLCUAddr, alfAcrossSlice, 0, (Int)NUM_ALF_COMPONENT-1);
-
-}
-
-Bool TEncEntropy::getAlfRepeatRowFlag(Int compIdx, AlfParamSet* pAlfParamSet
-                                    , Int lcuIdxInSlice, Int lcuPos
-                                    , Int startlcuPosX, Int endlcuPosX
-                                    , Int numLCUInWidth
-                                    )
-{
-  assert(startlcuPosX == 0); //only the beginning of one LCU row needs to send repeat_row_flag
-  
-  Int len = endlcuPosX - startlcuPosX +1;
-  Bool isRepeatRow = true;
-  Int curPos;
-
-  for(Int i= 0; i < len; i++)
-  {
-    curPos = lcuIdxInSlice +i;
-    AlfUnitParam& alfUnitParam = pAlfParamSet->alfUnitParam[compIdx][curPos];
-    AlfUnitParam& alfUpUnitParam = pAlfParamSet->alfUnitParam[compIdx][curPos-numLCUInWidth];
-
-    if ( !(alfUnitParam == alfUpUnitParam) )
-    {
-      isRepeatRow = false;
-      break;
-    }
-  }
-
-  return isRepeatRow;
-}
-
-
-Int TEncEntropy::getAlfRun(Int compIdx, AlfParamSet* pAlfParamSet
-                          , Int lcuIdxInSlice, Int lcuPos
-                          , Int startlcuPosX, Int endlcuPosX
-                          )
-{
-  Int alfRun = 0;
-  Int len = endlcuPosX - startlcuPosX +1;
-  AlfUnitParam& alfLeftUnitParam = pAlfParamSet->alfUnitParam[compIdx][lcuIdxInSlice];
-
-
-
-  for(Int i= 1; i < len; i++)
-  {
-    AlfUnitParam& alfUnitParam = pAlfParamSet->alfUnitParam[compIdx][lcuIdxInSlice+ i];
-
-    if (alfUnitParam == alfLeftUnitParam)
-    {
-      alfRun++;
-    }
-    else
-    {
-      break;
-    }
-  }
-
-  return alfRun;
-
-}
-
-
-
-Void TEncEntropy::encodeAlfParamSet(AlfParamSet* pAlfParamSet, Int numLCUInWidth, Int numLCU, Int firstLCUAddr, Bool alfAcrossSlice, Int startCompIdx, Int endCompIdx)
-{
-  Int endLCUY       = (numLCU -1 + firstLCUAddr)/numLCUInWidth;
-  Int endLCUX       = (numLCU -1 + firstLCUAddr)%numLCUInWidth;
-
-  static Bool isRepeatedRow   [NUM_ALF_COMPONENT];
-  static Int  numStoredFilters[NUM_ALF_COMPONENT];
-  static Int* run             [NUM_ALF_COMPONENT];
-
-  for(Int compIdx =startCompIdx; compIdx <= endCompIdx; compIdx++)
-  {
-    isRepeatedRow[compIdx]    = false;
-    numStoredFilters[compIdx] = 0;
-
-    run[compIdx] = new Int[numLCU+1];
-    run[compIdx][0] = -1; 
-  }
-
-  Int  ry, rx, addrUp, endrX, lcuPos;
-
-  for(Int i=0; i< numLCU; i++)
-  {
-    lcuPos= firstLCUAddr+ i;
-    rx    = lcuPos% numLCUInWidth;
-    ry    = lcuPos/ numLCUInWidth;
-    endrX = ( ry == endLCUY)?( endLCUX ):(numLCUInWidth-1);
-
-    for(Int compIdx =startCompIdx; compIdx <= endCompIdx; compIdx++)
-    {
-      AlfUnitParam& alfUnitParam = pAlfParamSet->alfUnitParam[compIdx][i];
-      if(pAlfParamSet->isEnabled[compIdx])
-      {
-        if(!pAlfParamSet->isUniParam[compIdx])
-        {
-          addrUp = i-numLCUInWidth;
-          if(rx ==0 && addrUp >=0)
-          {
-            isRepeatedRow[compIdx] = getAlfRepeatRowFlag(compIdx, pAlfParamSet, i, lcuPos, rx, endrX, numLCUInWidth);
-
-            //alf_repeat_row_flag
-            m_pcEntropyCoderIf->codeAlfFlag(isRepeatedRow[compIdx]?1:0);
-          }
-
-          if(isRepeatedRow[compIdx])
-          {
-            assert(addrUp >=0);
-            run[compIdx][i] = run[compIdx][addrUp];
-          }
-          else
-          {
-            if(rx == 0 || run[compIdx][i] < 0)
-            {             
-              run[compIdx][i] = getAlfRun(compIdx, pAlfParamSet, i, lcuPos, rx, endrX);
-
-              if(addrUp < 0)
-              {
-                //alf_run_diff u(v)
-                encodeAlfFixedLengthRun(run[compIdx][i], rx, numLCUInWidth);                
-              }
-              else
-              {
-                //alf_run_diff s(v)
-                m_pcEntropyCoderIf->codeAlfSvlc(run[compIdx][i]- run[compIdx][addrUp]);
-
-              }
-
-              if(ry > 0 && (addrUp >=0 || alfAcrossSlice))
-              {
-                //alf_merge_up_flag
-                m_pcEntropyCoderIf->codeAlfFlag(  (alfUnitParam.mergeType == ALF_MERGE_UP)?1:0   );  
-              }
-
-              if(alfUnitParam.mergeType != ALF_MERGE_UP)
-              {
-                assert(alfUnitParam.mergeType == ALF_MERGE_DISABLED);
-
-                //alf_lcu_enable_flag
-                m_pcEntropyCoderIf->codeAlfFlag(alfUnitParam.isEnabled ? 1 : 0);
-
-                if(alfUnitParam.isEnabled)
-                {
-                  if(numStoredFilters[compIdx] > 0)
-                  {
-                    //alf_new_filter_set_flag
-                    m_pcEntropyCoderIf->codeAlfFlag(alfUnitParam.isNewFilt ? 1:0);
-
-                    if(!alfUnitParam.isNewFilt)
-                    {
-                      //alf_stored_filter_set_idx
-                      encodeAlfStoredFilterSetIdx(alfUnitParam.storedFiltIdx, numStoredFilters[compIdx]);
-
-                    }
-                  }
-                  else
-                  {
-                    assert(alfUnitParam.isNewFilt);
-                  }
-
-                  if(alfUnitParam.isNewFilt)
-                  {
-                    assert(alfUnitParam.alfFiltParam->alf_flag == 1);
-                    encodeAlfParam(alfUnitParam.alfFiltParam);
-                    numStoredFilters[compIdx]++;
-                  }
-                }
-
-              }
-            }
-
-            run[compIdx][i+1] = run[compIdx][i] -1;
-          }
-
-        }
-        else // uni-param
-        {
-          if(i == 0)
-          {
-            //alf_lcu_enable_flag
-            m_pcEntropyCoderIf->codeAlfFlag(alfUnitParam.isEnabled?1:0);
-            if(alfUnitParam.isEnabled)
-            {
-              encodeAlfParam(alfUnitParam.alfFiltParam);
-            }
-          }
-        }
-      } // component enabled/disable
-    } //comp
-
-  }
-
-  for(Int compIdx =startCompIdx; compIdx <= endCompIdx; compIdx++)
-  {
-    delete[] run[compIdx];
-  }
-
-}
-
-Void TEncEntropy::encodeAlfParam(ALFParam* pAlfParam)
-{
-  const Int numCoeff = (Int)ALF_MAX_NUM_COEF;
-
-  switch(pAlfParam->componentID)
-  {
-  case ALF_Cb:
-  case ALF_Cr:
-    {
-      for(Int pos=0; pos< numCoeff; pos++)
-      {
-        m_pcEntropyCoderIf->codeAlfSvlc(  pAlfParam->coeffmulti[0][pos]);
-
-      }
-    }
-    break;
-  case ALF_Y:
-    {
-      codeAux(pAlfParam);
-      codeFilt(pAlfParam);
-    }
-    break;
-  default:
-    {
-      printf("Not a legal component ID\n");
-      assert(0);
-      exit(-1);
-    }
-  }
-}
-
-Void TEncEntropy::encodeAlfCtrlFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
-{
-  if( bRD )
-  {
-    uiAbsPartIdx = 0;
-  }
-  m_pcEntropyCoderIf->codeAlfCtrlFlag( pcCU, uiAbsPartIdx );
-}
-
-
-/** Encode ALF CU control flag
- * \param uiFlag ALF CU control flag: 0 or 1
- */
-Void TEncEntropy::encodeAlfCtrlFlag(UInt uiFlag)
-{
-  assert(uiFlag == 0 || uiFlag == 1);
-  m_pcEntropyCoderIf->codeAlfCtrlFlag( uiFlag );
-}
-
-
-/** Encode ALF CU control flag parameters
- * \param pAlfParam ALF parameters
- */
-Void TEncEntropy::encodeAlfCtrlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic)
-{
-  // region control parameters for luma
-  m_pcEntropyCoderIf->codeAlfFlag(cAlfParam.cu_control_flag);
-
-  if (cAlfParam.cu_control_flag == 0)
-  { 
-    return;
-  }
-
-  m_pcEntropyCoderIf->codeAlfCtrlDepth();
-
-  Int iSymbol    = ((Int)cAlfParam.num_alf_cu_flag - iNumCUsInPic);
-  m_pcEntropyCoderIf->codeAlfSvlc(iSymbol);
-
-  for(UInt i=0; i< cAlfParam.num_alf_cu_flag; i++)
-  {
-    m_pcEntropyCoderIf->codeAlfCtrlFlag( cAlfParam.alf_cu_flag[i] );
-  }
-}
-#endif
 /** encode prediction mode
  * \param pcCU
  * \param uiAbsPartIdx
@@ -873,11 +286,7 @@ Void TEncEntropy::encodeIPCMInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
 
 }
 
-#if REMOVE_LASTTU_CBFDERIV
 Void TEncEntropy::xEncodeTransform( TComDataCU* pcCU,UInt offsetLuma, UInt offsetChroma, UInt uiAbsPartIdx, UInt absTUPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, Bool& bCodeDQP )
-#else
-Void TEncEntropy::xEncodeTransform( TComDataCU* pcCU,UInt offsetLuma, UInt offsetChroma, UInt uiAbsPartIdx, UInt absTUPartIdx, UInt uiDepth, UInt width, UInt height, UInt uiTrIdx, UInt uiInnerQuadIdx, UInt& uiYCbfFront3, UInt& uiUCbfFront3, UInt& uiVCbfFront3, Bool& bCodeDQP )
-#endif
 {
   const UInt uiSubdiv = pcCU->getTransformIdx( uiAbsPartIdx ) + pcCU->getDepth( uiAbsPartIdx ) > uiDepth;
   const UInt uiLog2TrafoSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth()]+2 - uiDepth;
@@ -939,69 +348,24 @@ Void TEncEntropy::xEncodeTransform( TComDataCU* pcCU,UInt offsetLuma, UInt offse
   }
 
   {
-#if !CBF_UV_UNIFICATION
-    if( uiLog2TrafoSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
-#endif
     {
       const UInt uiTrDepthCurr = uiDepth - pcCU->getDepth( uiAbsPartIdx );
-#if CBF_UV_UNIFICATION
       const Bool bFirstCbfOfCU = uiTrDepthCurr == 0;
-#else
-      const Bool bFirstCbfOfCU = uiLog2TrafoSize == pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() || uiTrDepthCurr == 0;
-#endif
       if( bFirstCbfOfCU || uiLog2TrafoSize > 2 )
       {
         if( bFirstCbfOfCU || pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr - 1 ) )
         {
-#if REMOVE_LASTTU_CBFDERIV
           m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr );
-#else
-#if CBF_UV_UNIFICATION
-          if ( uiInnerQuadIdx == 3 && uiUCbfFront3 == 0 )
-#else
-          if ( uiInnerQuadIdx == 3 && uiUCbfFront3 == 0 && uiLog2TrafoSize < pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() )
-#endif
-          {
-            uiUCbfFront3++;
-          }
-          else
-
-          {
-            m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr );
-            uiUCbfFront3 += pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr );
-          }
-#endif
         }
         if( bFirstCbfOfCU || pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepthCurr - 1 ) )
         {
-#if REMOVE_LASTTU_CBFDERIV
           m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepthCurr );
-#else
-#if CBF_UV_UNIFICATION
-          if ( uiInnerQuadIdx == 3 && uiVCbfFront3 == 0 )
-#else
-          if ( uiInnerQuadIdx == 3 && uiVCbfFront3 == 0 && uiLog2TrafoSize < pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize()  )
-#endif
-          {
-            uiVCbfFront3++;
-          }
-          else
-          {
-            m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepthCurr );
-            uiVCbfFront3 += pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepthCurr );
-          }
-#endif
         }
       }
       else if( uiLog2TrafoSize == 2 )
       {
         assert( pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr ) == pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr - 1 ) );
         assert( pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepthCurr ) == pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepthCurr - 1 ) );
-        
-#if !REMOVE_LASTTU_CBFDERIV
-        uiUCbfFront3 += pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrDepthCurr );
-        uiVCbfFront3 += pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_V, uiTrDepthCurr );
-#endif
       }
     }
     
@@ -1015,46 +379,21 @@ Void TEncEntropy::xEncodeTransform( TComDataCU* pcCU,UInt offsetLuma, UInt offse
       ++uiDepth;
       const UInt partNum = pcCU->getPic()->getNumPartInCU() >> (uiDepth << 1);
       
-#if !REMOVE_LASTTU_CBFDERIV
-      UInt uiCurrentCbfY = 0;
-      UInt uiCurrentCbfU = 0;
-      UInt uiCurrentCbfV = 0;
-#endif
-
       UInt nsAddr = 0;
       nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, absTUPartIdx, 0, uiDepth - pcCU->getDepth( uiAbsPartIdx ) );
-#if REMOVE_LASTTU_CBFDERIV
       xEncodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, nsAddr, uiDepth, width, height, uiTrIdx, 0, bCodeDQP );
-#else
-      xEncodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, nsAddr, uiDepth, width, height, uiTrIdx, 0, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV, bCodeDQP );
-#endif
 
       uiAbsPartIdx += partNum;  offsetLuma += size;  offsetChroma += (size>>2);
       nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, absTUPartIdx, 1, uiDepth - pcCU->getDepth( uiAbsPartIdx ) );
-#if REMOVE_LASTTU_CBFDERIV
       xEncodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, nsAddr, uiDepth, width, height, uiTrIdx, 1, bCodeDQP );
-#else
-      xEncodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, nsAddr, uiDepth, width, height, uiTrIdx, 1, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV, bCodeDQP );
-#endif
 
       uiAbsPartIdx += partNum;  offsetLuma += size;  offsetChroma += (size>>2);
       nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, absTUPartIdx, 2, uiDepth - pcCU->getDepth( uiAbsPartIdx ) );
-#if REMOVE_LASTTU_CBFDERIV
       xEncodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, nsAddr, uiDepth, width, height, uiTrIdx, 2, bCodeDQP );
-#else
-      xEncodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, nsAddr, uiDepth, width, height, uiTrIdx, 2, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV, bCodeDQP );
-#endif
 
       uiAbsPartIdx += partNum;  offsetLuma += size;  offsetChroma += (size>>2);
       nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrafoSize-1, uiAbsPartIdx, absTUPartIdx, 3, uiDepth - pcCU->getDepth( uiAbsPartIdx ) );
-#if REMOVE_LASTTU_CBFDERIV
       xEncodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, nsAddr, uiDepth, width, height, uiTrIdx, 3, bCodeDQP );
-#else
-      xEncodeTransform( pcCU, offsetLuma, offsetChroma, uiAbsPartIdx, nsAddr, uiDepth, width, height, uiTrIdx, 3, uiCurrentCbfY, uiCurrentCbfU, uiCurrentCbfV, bCodeDQP );      
-      uiYCbfFront3 += uiCurrentCbfY;
-      uiUCbfFront3 += uiCurrentCbfU;
-      uiVCbfFront3 += uiCurrentCbfV;
-#endif
     }
     else
     {
@@ -1082,21 +421,7 @@ Void TEncEntropy::xEncodeTransform( TComDataCU* pcCU,UInt offsetLuma, UInt offse
       }
       else
       {
-#if REMOVE_LASTTU_CBFDERIV
         m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_LUMA, uiLumaTrMode );
-#else
-        const UInt uiLog2CUSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth()] + 2 - pcCU->getDepth( uiAbsPartIdx );
-        if ( pcCU->getPredictionMode( uiAbsPartIdx ) != MODE_INTRA && uiInnerQuadIdx == 3 && uiYCbfFront3 == 0 && uiUCbfFront3 == 0 && uiVCbfFront3 == 0
-            && ( uiLog2CUSize <= pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() + 1 || uiLog2TrafoSize < pcCU->getSlice()->getSPS()->getQuadtreeTULog2MaxSize() ) )
-        {   
-          uiYCbfFront3++;
-        }    
-        else
-        {
-          m_pcEntropyCoderIf->codeQtCbf( pcCU, uiAbsPartIdx, TEXT_LUMA, uiLumaTrMode );
-          uiYCbfFront3 += pcCU->getCbf( uiAbsPartIdx, TEXT_LUMA, uiLumaTrMode );
-        }
-#endif
       }
 
 
@@ -1156,17 +481,11 @@ Void TEncEntropy::xEncodeTransform( TComDataCU* pcCU,UInt offsetLuma, UInt offse
 }
 
 // Intra direction for Luma
-#if INTRAMODE_BYPASSGROUP
 Void TEncEntropy::encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt absPartIdx, Bool isMultiplePU )
 {
   m_pcEntropyCoderIf->codeIntraDirLumaAng( pcCU, absPartIdx , isMultiplePU);
 }
-#else
-Void TEncEntropy::encodeIntraDirModeLuma  ( TComDataCU* pcCU, UInt uiAbsPartIdx )
-{
-  m_pcEntropyCoderIf->codeIntraDirLumaAng( pcCU, uiAbsPartIdx );
-}
-#endif
+
 // Intra direction for Chroma
 Void TEncEntropy::encodeIntraDirModeChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
@@ -1184,31 +503,10 @@ Void TEncEntropy::encodePredInfo( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD 
   {
     uiAbsPartIdx = 0;
   }
-#if !INTRAMODE_BYPASSGROUP  
-  PartSize eSize = pcCU->getPartitionSize( uiAbsPartIdx );
-#endif
   if( pcCU->isIntra( uiAbsPartIdx ) )                                 // If it is Intra mode, encode intra prediction mode.
   {
-#if INTRAMODE_BYPASSGROUP
     encodeIntraDirModeLuma  ( pcCU, uiAbsPartIdx,true );
     encodeIntraDirModeChroma( pcCU, uiAbsPartIdx, bRD );
-#else
-    if( eSize == SIZE_NxN )                                         // if it is NxN size, encode 4 intra directions.
-    {
-      UInt uiPartOffset = ( pcCU->getPic()->getNumPartInCU() >> ( pcCU->getDepth(uiAbsPartIdx) << 1 ) ) >> 2;
-      // if it is NxN size, this size might be the smallest partition size.
-      encodeIntraDirModeLuma( pcCU, uiAbsPartIdx                  );
-      encodeIntraDirModeLuma( pcCU, uiAbsPartIdx + uiPartOffset   );
-      encodeIntraDirModeLuma( pcCU, uiAbsPartIdx + uiPartOffset*2 );
-      encodeIntraDirModeLuma( pcCU, uiAbsPartIdx + uiPartOffset*3 );
-      encodeIntraDirModeChroma( pcCU, uiAbsPartIdx, bRD );
-    }
-    else                                                              // if it is not NxN size, encode 1 intra directions
-    {
-      encodeIntraDirModeLuma  ( pcCU, uiAbsPartIdx );
-      encodeIntraDirModeChroma( pcCU, uiAbsPartIdx, bRD );
-    }
-#endif
   }
   else                                                                // if it is Inter mode, encode motion vector and reference index
   {
@@ -1279,22 +577,6 @@ Void TEncEntropy::encodeInterDirPU( TComDataCU* pcCU, UInt uiAbsPartIdx )
 Void TEncEntropy::encodeRefFrmIdxPU( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eRefList )
 {
   assert( !pcCU->isIntra( uiAbsPartIdx ) );
-#if !REMOVE_LC
-  if(pcCU->getSlice()->getNumRefIdx(REF_PIC_LIST_C)>0 && pcCU->getInterDir( uiAbsPartIdx ) != 3)
-  {
-    if ((eRefList== REF_PIC_LIST_1) || ( pcCU->getSlice()->getNumRefIdx( REF_PIC_LIST_C ) == 1 ) )
-    {
-      return;
-    }
-
-    if ( pcCU->getSlice()->getNumRefIdx ( REF_PIC_LIST_C ) > 1 )
-    {
-      m_pcEntropyCoderIf->codeRefFrmIdx( pcCU, uiAbsPartIdx, RefPicList(pcCU->getInterDir( uiAbsPartIdx )-1) );
-    }
-
-  }
-  else
-#endif
   {
     if ( ( pcCU->getSlice()->getNumRefIdx( eRefList ) == 1 ) )
     {
@@ -1406,14 +688,7 @@ Void TEncEntropy::encodeCoeff( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth
     }
   }
   
-#if REMOVE_LASTTU_CBFDERIV
   xEncodeTransform( pcCU, uiLumaOffset, uiChromaOffset, uiAbsPartIdx, uiAbsPartIdx, uiDepth, uiWidth, uiHeight, 0, 0, bCodeDQP);
-#else
-  UInt temp = 0;
-  UInt temp1 = 0;
-  UInt temp2 = 0;
-  xEncodeTransform( pcCU, uiLumaOffset, uiChromaOffset, uiAbsPartIdx, uiAbsPartIdx, uiDepth, uiWidth, uiHeight, 0, 0, temp, temp1, temp2, bCodeDQP );
-#endif
 }
 
 Void TEncEntropy::encodeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPartIdx, UInt uiTrWidth, UInt uiTrHeight, UInt uiDepth, TextType eType )
@@ -1440,12 +715,10 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
   m_pcEntropyCoderIf->codeSaoTypeIdx(uiSymbol);
   if (uiSymbol)
   {
-#if SAO_TRUNCATED_U 
 #if FULL_NBIT
     Int offsetTh = 1 << ( min((Int)(g_uiBitDepth + (g_uiBitDepth-8)-5),5) );
 #else
     Int offsetTh = 1 << ( min((Int)(g_uiBitDepth + g_uiBitIncrement-5),5) );
-#endif
 #endif
     if( saoLcuParam->typeIdx == SAO_BO )
     {
@@ -1454,18 +727,9 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
       m_pcEntropyCoderIf->codeSaoUflc(uiSymbol);
       for( i=0; i< saoLcuParam->length; i++)
       {
-#if SAO_OFFSET_MAG_SIGN_SPLIT
         UInt absOffset = ( (saoLcuParam->offset[i] < 0) ? -saoLcuParam->offset[i] : saoLcuParam->offset[i]);
-#if SAO_TRUNCATED_U
         m_pcEntropyCoderIf->codeSaoMaxUvlc(absOffset, offsetTh-1);
-#else
-        m_pcEntropyCoderIf->codeSaoUvlc(absOffset);
-#endif
-#else
-        m_pcEntropyCoderIf->codeSaoSvlc(saoLcuParam->offset[i]);
-#endif
       }  
-#if SAO_OFFSET_MAG_SIGN_SPLIT
       for( i=0; i< saoLcuParam->length; i++)
       {
         if (saoLcuParam->offset[i] != 0)
@@ -1474,67 +738,18 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
           m_pcEntropyCoderIf->codeSAOSign(sign);
         }
       }
-#endif
     }
     else
       if( saoLcuParam->typeIdx < 4 )
       {
-#if SAO_TRUNCATED_U
         m_pcEntropyCoderIf->codeSaoMaxUvlc( saoLcuParam->offset[0], offsetTh-1);
         m_pcEntropyCoderIf->codeSaoMaxUvlc( saoLcuParam->offset[1], offsetTh-1);
         m_pcEntropyCoderIf->codeSaoMaxUvlc(-saoLcuParam->offset[2], offsetTh-1);
         m_pcEntropyCoderIf->codeSaoMaxUvlc(-saoLcuParam->offset[3], offsetTh-1);
-#else
-        m_pcEntropyCoderIf->codeSaoUvlc( saoLcuParam->offset[0]);
-        m_pcEntropyCoderIf->codeSaoUvlc( saoLcuParam->offset[1]);
-        m_pcEntropyCoderIf->codeSaoUvlc(-saoLcuParam->offset[2]);
-        m_pcEntropyCoderIf->codeSaoUvlc(-saoLcuParam->offset[3]);
-#endif
       }
   }
 }
-#if !SAO_REMOVE_APS
-/** Encode SAO unit
-* \param  rx
-* \param  ry
-* \param  iCompIdx
-* \param  pSaoParam
-* \param  bRepeatedRow
- */
-Void TEncEntropy::encodeSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam, Int repeatedRow )
-{
-  int addr, addrLeft; 
-  int numCuInWidth  = saoParam->numCuInWidth;
-  SaoLcuParam* saoOneLcu;
-  Int runLeft;
 
-  addr      =  rx + ry*numCuInWidth;
-  addrLeft  =  (addr%numCuInWidth == 0) ? -1 : addr - 1;
-
-  if (!repeatedRow)
-  {
-    saoOneLcu = &(saoParam->saoLcuParam[compIdx][addr]);    
-    runLeft = (addrLeft>=0 ) ? saoParam->saoLcuParam[compIdx][addrLeft].run : -1;
-    if (rx == 0 || runLeft==0)
-    {
-      if (ry == 0)
-      {
-        m_pcEntropyCoderIf->codeSaoRun(saoOneLcu->runDiff, numCuInWidth-rx-1); 
-        saoOneLcu->mergeUpFlag = 0;
-      }
-      else 
-      {
-        m_pcEntropyCoderIf->codeSaoSvlc(saoOneLcu->runDiff); 
-        m_pcEntropyCoderIf->codeSaoFlag(saoOneLcu->mergeUpFlag);  
-      }
-      if (!saoOneLcu->mergeUpFlag)
-      {
-        encodeSaoOffset(saoOneLcu);
-      }
-    }
-  }
-}
-#endif
 /** Encode SAO unit interleaving
 * \param  rx
 * \param  ry
@@ -1544,24 +759,11 @@ Void TEncEntropy::encodeSaoUnit(Int rx, Int ry, Int compIdx, SAOParam* saoParam,
 * \param  iCUAddrUpInSlice
 * \param  bLFCrossSliceBoundaryFlag
  */
-#if SAO_NO_MERGE_CROSS_SLICE_TILE
-#if SAO_RDO_FIX
 Void TEncEntropy::encodeSaoUnitInterleaving(Int compIdx, Bool saoFlag, Int rx, Int ry, SaoLcuParam* saoLcuParam, Int cuAddrInSlice, Int cuAddrUpInSlice, Int allowMergeLeft, Int allowMergeUp)
-#else
-Void TEncEntropy::encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, TComDataCU* cu, Int cuAddrInSlice, Int cuAddrUpInSlice, Int allowMergeLeft, Int allowMergeUp)
-#endif
-#else
-Void TEncEntropy::encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, TComDataCU* cu, Int cuAddrInSlice, Int cuAddrUpInSlice, Bool lfCrossSliceBoundaryFlag)
-#endif
 {
-#if SAO_RDO_FIX
   if (saoFlag)
   {
-#if SAO_NO_MERGE_CROSS_SLICE_TILE
     if (rx>0 && cuAddrInSlice!=0 && allowMergeLeft)
-#else
-    if (rx>0 && cuAddrInSlice!=0)
-#endif
     {
       m_pcEntropyCoderIf->codeSaoMergeLeft(saoLcuParam->mergeLeftFlag,compIdx);
     }
@@ -1571,11 +773,7 @@ Void TEncEntropy::encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, 
     }
     if (saoLcuParam->mergeLeftFlag == 0)
     {
-#if SAO_NO_MERGE_CROSS_SLICE_TILE
       if ( (ry > 0) && (cuAddrUpInSlice>=0) && allowMergeUp )
-#else
-      if ( (ry > 0) && (cuAddrUpInSlice>=0||lfCrossSliceBoundaryFlag))
-#endif
       {
         m_pcEntropyCoderIf->codeSaoMergeUp(saoLcuParam->mergeUpFlag);
       }
@@ -1589,121 +787,7 @@ Void TEncEntropy::encodeSaoUnitInterleaving(Int rx, Int ry, SAOParam* saoParam, 
       }
     }
   }
-#else
-  Int addr = cu->getAddr();
-  for (Int compIdx=0; compIdx<3; compIdx++)
-  {
-    if (saoParam->bSaoFlag[compIdx])
-    {
-#if SAO_NO_MERGE_CROSS_SLICE_TILE
-      if (rx>0 && cuAddrInSlice!=0 && allowMergeLeft)
-#else
-      if (rx>0 && cuAddrInSlice!=0)
-#endif
-      {
-      m_pcEntropyCoderIf->codeSaoMergeLeft(saoParam->saoLcuParam[compIdx][addr].mergeLeftFlag,compIdx);
-      }
-      else
-      {
-        saoParam->saoLcuParam[compIdx][addr].mergeLeftFlag = 0;
-      }
-      if (saoParam->saoLcuParam[compIdx][addr].mergeLeftFlag == 0)
-      {
-#if SAO_NO_MERGE_CROSS_SLICE_TILE
-        if ( (ry > 0) && (cuAddrUpInSlice>=0) && allowMergeUp )
-#else
-        if ( (ry > 0) && (cuAddrUpInSlice>=0||lfCrossSliceBoundaryFlag))
-#endif
-        {
-          m_pcEntropyCoderIf->codeSaoMergeUp(saoParam->saoLcuParam[compIdx][addr].mergeUpFlag);
-        }
-        else
-        {
-          saoParam->saoLcuParam[compIdx][addr].mergeUpFlag = 0;
-        }
-        if (!saoParam->saoLcuParam[compIdx][addr].mergeUpFlag)
-        {
-          encodeSaoOffset(&(saoParam->saoLcuParam[compIdx][addr]));
-        }
-      }
-    }
-  }
-#endif
 }
-
-#if !SAO_REMOVE_APS
-/** Encode SAO parameter
-* \param  pcAPS
- */
-Void TEncEntropy::encodeSaoParam(TComAPS* aps)
-{
-  SaoLcuParam* psSaoOneLcu;
-  int i,j,k, compIdx; 
-  int numCuInWidth  ;
-  int numCuInHeight ;
-  Bool repeatedRow[3];
-  Int addr;
-  m_pcEntropyCoderIf->codeSaoFlag(aps->getSaoInterleavingFlag());  
-  if(!aps->getSaoInterleavingFlag())
-  {
-    m_pcEntropyCoderIf->codeSaoFlag(aps->getSaoEnabled());  
-    if (aps->getSaoEnabled())
-    {
-      SAOParam* pSaoParam = aps->getSaoParam();
-      numCuInWidth  = pSaoParam->numCuInWidth;
-      numCuInHeight = pSaoParam->numCuInHeight;
-      m_pcEntropyCoderIf->codeSaoFlag(pSaoParam->bSaoFlag[1]); 
-      m_pcEntropyCoderIf->codeSaoFlag(pSaoParam->bSaoFlag[2]); 
-      m_pcEntropyCoderIf->codeSaoUvlc(numCuInWidth-1); 
-      m_pcEntropyCoderIf->codeSaoUvlc(numCuInHeight-1); 
-      for (compIdx=0;compIdx<3;compIdx++)
-      {
-        if (pSaoParam->bSaoFlag[compIdx])
-        {
-          m_pcEntropyCoderIf->codeSaoFlag(pSaoParam->oneUnitFlag[compIdx]); 
-          if (pSaoParam->oneUnitFlag[compIdx])
-          {
-            psSaoOneLcu = &(pSaoParam->saoLcuParam[compIdx][0]);   
-            encodeSaoOffset(psSaoOneLcu);
-          }
-        }
-      }
-
-      for (j=0;j<numCuInHeight;j++)
-      {
-        for (compIdx=0; compIdx<3; compIdx++)
-        {
-          repeatedRow[compIdx] = true;
-          for (k=0;k<numCuInWidth;k++)
-          {
-            addr       =  k + j*numCuInWidth;
-            psSaoOneLcu = &(pSaoParam->saoLcuParam[compIdx][addr]);    
-            if (!psSaoOneLcu->mergeUpFlag || psSaoOneLcu->runDiff)
-            {
-              repeatedRow[compIdx] = false;
-              break;
-            }
-          }
-        }
-        for (i=0;i<numCuInWidth;i++)
-        {
-          for (compIdx=0; compIdx<3; compIdx++)
-          {
-            if (pSaoParam->bSaoFlag[compIdx]  && !pSaoParam->oneUnitFlag[compIdx]) 
-            {
-              if (j>0 && i==0) 
-              {
-                m_pcEntropyCoderIf->codeSaoFlag(repeatedRow[compIdx]); 
-              }
-              encodeSaoUnit (i,j, compIdx, pSaoParam, repeatedRow[compIdx]);
-            }
-          }
-        }
-      }
-    }
-  }
-}
-#endif
 
 Int TEncEntropy::countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize )
 {
@@ -1724,18 +808,5 @@ Void TEncEntropy::encodeScalingList( TComScalingList* scalingList )
 {
   m_pcEntropyCoderIf->codeScalingList( scalingList );
 }
-
-#if !DBL_HL_SYNTAX
-Void TEncEntropy::encodeDFParams(TComAPS* pcAPS)
-{
-  m_pcEntropyCoderIf->codeDFFlag(pcAPS->getLoopFilterDisable(), "loop_filter_disable");
-
-  if (!pcAPS->getLoopFilterDisable())
-  {
-    m_pcEntropyCoderIf->codeDFSvlc(pcAPS->getLoopFilterBetaOffset(), "beta_offset_div2");
-    m_pcEntropyCoderIf->codeDFSvlc(pcAPS->getLoopFilterTcOffset(), "tc_offset_div2");
-  }
-}
-#endif
 
 //! \}

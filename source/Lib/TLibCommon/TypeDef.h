@@ -40,112 +40,29 @@
 
 //! \ingroup TLibCommon
 //! \{
-#define  TEMPORAL_ID_RESTRICTION         1  ///< I0600: Semantics of temporal_id changed
-#define PREVREFPIC_DEFN                    1   ///< I0345: prevRefPic defined as previous reference picture that is at same or lower 
+
+#define SLICE_HEADER_EXTENSION           1  ///< II0235: Slice header extension mechanism
+
+#define PREVREFPIC_DEFN                  1  ///< I0345: prevRefPic defined as previous reference picture that is at same or lower 
                                             ///< temporal layer.
-#define CODE_POCLSBLT_FIXEDLEN      1       ///< I0342: code the LSB bits of LTRPs as u(v)
-
-#define REMOVE_TILE_MARKERS              1
-#define EXPLICITLY_SIGNAL_ENTRY_POINTS   1  ///< I0273: Explicitly signal all tiles/wavefront entry points
-
-#define SLICE_TMVP_ENABLE                1  ///< I0420: Enable Temporal MVP for certain slices only
-#define NO_MV_SCALING_IF_LONG_TERM_REF   1  ///< I0422: Disable MV scaling for long term reference
-#define REMOVE_INTER_4X4                 1  ///< I0216: Removal of Inter 4x4 mode
-#define PRED_QP_DERIVATION               1  ///< I0219: Changing cu_qp_delta parsing to enable CU-level processing 
-#define NEW_NAL_UNIT_TYPES               1  ///< I0607: Definition of new NAL unit types
-#if NEW_NAL_UNIT_TYPES
-#define CRA_BLA_TFD_MODIFICATIONS        1  ///< I0404, I0278, I0275: Modifications for CRA, BLA and TFD pictures
-#endif
-
-#define TILE_ENTRY_START                 1  ///< I0357: Signal tile entry points from the end of the slice header
-#define WPP_SUBSTREAM_PER_ROW            1  ///< I0360: mandate one substream per CTB row
-#define WPP_SLICE_END_CONSTRAINT         1  ///< I0361: WPP Slice constraint
-#define REMOVE_IMPLICIT_WP               1  ///< I0589: remove implicit weighted prediction
-#define HASH_TYPE                        1  ///< I0218: changes to the Hash SEI calculation for improved usability
 #define BYTE_ALIGNMENT                   0  ///< I0330: Add byte_alignment() procedure to end of slice header
-#define TEMPORALNESTINGFLAG_TLA          1  ///< I0330: Mark picture as TLA when temporal_nesting flag is 1 and when temporal_id greater than 0
-#define SLICE_ADDRESS_FIX                1  ///< I0113: Slice address parsing fix
-#define TILES_OR_ENTROPY_FIX             1  ///< I0113: tiles_or_entropy_coding_sync_idc parsing fix
-#define REMOVE_LASTTU_CBFDERIV           1  ///< I0152: CBF coding for last TU without derivation process 
 
-#define INTRAMODE_BYPASSGROUP            1  ///< I0302: group coding of Intra_NxN
-#define COEF_REMAIN_BINARNIZATION        1  ///< I0487: Binarization for coefficient level coding
-
-#define INTRA_TRANSFORMSKIP              1  ///< I0408: intra transform skipping (TS) 
-
-#define FIX_TMVP_REFIDX0                 1  ///< I0116: Fix the reference picture index to 0 for TMVP derivation in merging list
-
-#define LM_CLEANUP                       1  ///< I0148: LM (intra chroma prediction based on luma) mode clean-up
-#define LM_UNIFORM_MULTIPLIERS           1  ///< I0151: LM mode with uniform bit-width multipliers
-#define LM_REDUCED_DIV_TABLE             1  ///< I0166: LM mode with uniform bit-width multipliers and reduced look-up table for division approximation
-#define LM_SIMP_ALPHA                    1  ///< I0178: LM mode with simplified alpha bit-depth restriction
-
-#define AHG6_ALF_OPTION2                 1  ///< I0157: AHG6 ALF baseline Option 2 RA- Variant 2
-#define SLICE_TYPE_ORDER                 1  ///< I0500: ordering of slice types
-#define ALF_COEFF_EXP_GOLOMB_K           1  ///< I0346: Use EG(k) to code ALF coefficients
-
-#define POS_BASED_SIG_COEFF_CTX          1  ///< I0296: position based context index derivation for significant coeff flag for large TU
-#define SIMPLE_PARAM_UPDATE              1   ///<I0124 : Simplification of param update
-
-#define FILLUP_EMPTYLIST_AMVP_MERGE      1  ///< I0134/I0314: Fill up empty list for AMVP/Merge
-#define REMOVE_COMBINED_CAND_LIMIT       1  ///< I0414: Removal of the limit on the number of combined merge candidates
-#define BIPRED_RESTRICT_SMALL_PU         1  ///< I0297: bi-prediction restriction by 4x8/8x4 PU
-
-#define FIXED_SBH_THRESHOLD              1  ///< I0156: use fixed controlling threshold for Multiple Sign Bit Hiding (SBH)
-#if     FIXED_SBH_THRESHOLD
 #define SBH_THRESHOLD                    4  ///< I0156: value of the fixed SBH controlling threshold
-#endif
   
-#define CONSTRAINED_MOTION_DATA_COMPRESSION 1  ///< I0182: Constrained motion data compression, only allow motion data compression when minimum PU width = 4
-
-#define UNIFIED_POS_SIG_CTX              1 // < I0373: use same context assignment for 4x4 and 8x8 TU significance maps, and share ctx for DC conponent among all TU
-#define CBF_UV_UNIFICATION               1 // < I0332: Unified CBFU and CBFV coding
-
-#define LOSSLESS_CODING                   1  ///< H0530: lossless and lossy (mixed) coding
-#if LOSSLESS_CODING
 #define SEQUENCE_LEVEL_LOSSLESS           0  ///< H0530: used only for sequence or frame-level lossless coding
-#define CU_LEVEL_TRANSQUANT_BYPASS        1  ///< I0529: CU level flag for transquant bypass
-#define IPCM_LOSSLESS_LOOP_FILTERING_UNIFICATION  1  ///< I0586: I_PCM/lossless loop filtering unification
-#endif
 
-#define LOG2_PARALLEL_MERGE_LEVEL_MINUS2 0  //< H0082 parallel merge level 0-> 4x4, 1-> 8x8, 2->16x16, 3->32x32, 4->64x64
-#if LOG2_PARALLEL_MERGE_LEVEL_MINUS2
-#define CU_BASED_MRG_CAND_LIST           1  //< H0240: single merge candidate list for all PUs inside a 8x8 CU conditioned on LOG2_PARALLEL_MERGE_LEVEL_MINUS2 > 0
-#endif
-
-#define LAST_CTX_DERIVATION              1  //< I0331: table removal of LAST context derivation
 #define DISABLING_CLIP_FOR_BIPREDME         1  ///< Ticket #175
   
-#if !POS_BASED_SIG_COEFF_CTX
-#define SIGMAP_CONST_AT_HIGH_FREQUENCY      1      ///< H0095 method2.1: const significance map at high freaquency
-#endif
-
 #define C1FLAG_NUMBER               8 // maximum number of largerThan1 flag coded in one chunk :  16 in HM5
 #define C2FLAG_NUMBER               1 // maximum number of largerThan2 flag coded in one chunk:  16 in HM5 
 
-#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_1 1  ///< disable the encoder constraint that does not test SAO/BO mode for chroma in interleaved mode
-#define REMOVE_SAO_LCU_ENC_CONSTRAINTS_2 1  ///< disable the encoder constraint that reduce the range of SAO/EO for chroma in interleaved mode
 #define REMOVE_SAO_LCU_ENC_CONSTRAINTS_3 1  ///< disable the encoder constraint that conditionally disable SAO for chroma for entire slice in interleaved mode
 
 #define SAO_SKIP_RIGHT                   1  ///< H1101: disallow using unavailable pixel during RDO
 
-#define SAO_REMOVE_APS                   1  ///< USNB37: remove SAO APS syntax
-
-#define SAO_NO_MERGE_CROSS_SLICE_TILE    1  ///< I0172: disallow merging across slice or tile boundaries
-
-#define SAO_OFFSET_MAG_SIGN_SPLIT        1  ///< I0168: SAO offset magnitudes first, signs only for nonzero magnitudes, signs are bypass coded
-#if SAO_OFFSET_MAG_SIGN_SPLIT
-#define SAO_TRUNCATED_U                  1  ///< I0066: SAO offset magnitude using truncated unary binarization
-#endif
-
 #define SAO_ENCODING_CHOICE              1  ///< I0184: picture early termination
 #if SAO_ENCODING_CHOICE
 #define SAO_ENCODING_RATE                0.75
-#endif
-
-#define SAO_RDO_FIX                      1  ///< I0563: SAO RDO bug-fix
-#if SAO_OFFSET_MAG_SIGN_SPLIT && SAO_OFFSET_MAG_SIGN_SPLIT && SAO_REMOVE_APS && SAO_TRUNCATED_U
-#define SAO_CODE_CLEAN_UP                1 /// redundant code removal
 #endif
 
 #define MAX_NUM_SPS                32
@@ -228,18 +145,18 @@
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_BYTES_IN_SLICE    2          ///< OPTION IDENTIFIER. mode==2 -> Limit maximum number of bins/bits in a slice
 #define AD_HOC_SLICES_FIXED_NUMBER_OF_TILES_IN_SLICE    3
 
+#define DEPENDENT_SLICES       1 ///< JCTVC-I0229
 // Dependent slice options
 #define SHARP_FIXED_NUMBER_OF_LCU_IN_DEPENDENT_SLICE            1          ///< OPTION IDENTIFIER. Limit maximum number of largest coding tree blocks in an dependent slice
 #define SHARP_MULTIPLE_CONSTRAINT_BASED_DEPENDENT_SLICE         2          ///< OPTION IDENTIFIER. Limit maximum number of bins/bits in an dependent slice
+#if DEPENDENT_SLICES
+#define FIXED_NUMBER_OF_TILES_IN_DEPENDENT_SLICE          3 // JCTVC-I0229
+#endif
 
 #define LOG2_MAX_NUM_COLUMNS_MINUS1        7
 #define LOG2_MAX_NUM_ROWS_MINUS1           7
 #define LOG2_MAX_COLUMN_WIDTH              13
 #define LOG2_MAX_ROW_HEIGHT                13
-
-#if !REMOVE_TILE_MARKERS
-#define MAX_MARKER_PER_NALU                 1000
-#endif
 
 #define MATRIX_MULT                             0   // Brute force matrix multiplication instead of partial butterfly
 
@@ -252,33 +169,14 @@
 #endif
 
 #define SCALING_LIST_OUTPUT_RESULT    0 //JCTVC-G880/JCTVC-G1016 quantization matrices
-#define SCALING_LIST_DPCM_IMPROVEMENT   1 //JCTVC-I0059. Improved DPCM coding for 16x16 and 32x32 matrices
-#define SCALING_LIST_SIMPLYFY         1 //JCTVC-I0059/I0101. Simplification of Default matrices coding
-#define SCALING_LIST_HL_SYNTAX        1 //JCTVC-I0465. Signalling of quantization matrices in SPS and PPS
 
 #define CABAC_INIT_PRESENT_FLAG     1
 
-#define DEBLOCK_TC_TAB_I0258  1
-
-#define DEBLOCK_IPCM_RECY             1 // JCTVC-I0035 scheme 1: reconstructed QP for IPCM deblocking
-#define DBL_HL_SYNTAX                 1 // Signalling of deblocking filter in PPS and Slice header instead of in APS
-
-#define REMOVE_LC  1 // JCTVC-I0125
-#define CU_QP_DELTA_DEPTH_SYN  1 // JCTVC-I0127, differential coding of max cu qp delta depth
-
-#define DEPENDENT_SLICES       1 // JCTVC-I0229
-
-#define H0391_LF_ACROSS_SLICE_BOUNDARY_CONTROL 1 ///< H0391: Loop filtering across/non-across slice boundaries control
-
-#define H0226                       1 // JCTVC-H0226
 // ====================================================================================================================
 // VPS constants
 // ====================================================================================================================
-#define VPS_INTEGRATION             1 // VPS 
-#if VPS_INTEGRATION
 #define MAX_LAYER_NUM                     10
 #define MAX_NUM_VPS                16
-#endif
 
 // ====================================================================================================================
 // Basic type redefinition
@@ -381,10 +279,6 @@ typedef struct _SaoLcuParam
   Int        typeIdx;
   Int        bandPosition;
   Int        offset[4];
-#if !SAO_CODE_CLEAN_UP
-  Int        runDiff;
-  Int        run;
-#endif
   Int        partIdx;
   Int        partIdxTmp;
   Int        length;
@@ -411,18 +305,8 @@ struct ALFParam
   Int *filterPattern;
   Int startSecondFilter;
   Int filters_per_group;
-#if !AHG6_ALF_OPTION2
-  Int predMethod;
-  Int *nbSPred;
-#endif
   Int **coeffmulti;
-#if !AHG6_ALF_OPTION2
-  Int minKStart;
-#endif
   Int componentID;
-#if !AHG6_ALF_OPTION2
-  Int* kMinTab;
-#endif
   //constructor, operator
   ALFParam():componentID(-1){}
   ALFParam(Int cID){create(cID);}
@@ -434,40 +318,6 @@ private:
   Void destroy();
   Void copy(const ALFParam& src);
 };
-#if !AHG6_ALF_OPTION2
-struct AlfUnitParam
-{
-  Int   mergeType;
-  Bool  isEnabled;
-  Bool  isNewFilt;
-  Int   storedFiltIdx;
-  ALFParam* alfFiltParam;
-  //constructor, operator 
-  AlfUnitParam();
-  AlfUnitParam(const AlfUnitParam& src){ *this = src;}
-  const AlfUnitParam& operator= (const AlfUnitParam& src);
-  Bool operator == (const AlfUnitParam& cmp);
-};
-
-struct AlfParamSet
-{
-  Bool isEnabled[3];
-  Bool isUniParam[3];
-  Int  numLCUInWidth;
-  Int  numLCUInHeight;
-  Int  numLCU;
-  AlfUnitParam* alfUnitParam[3];
-  //constructor, operator 
-  AlfParamSet(){create();}
-  ~AlfParamSet(){destroy();}
-  Void create(Int width =0, Int height=0, Int num=0);
-  Void init();
-  Void releaseALFParam();
-  Void createALFParam();
-private:
-  Void destroy();
-};
-#endif
 
 /// parameters for deblocking filter
 typedef struct _LFCUParam
@@ -482,21 +332,12 @@ typedef struct _LFCUParam
 // ====================================================================================================================
 
 /// supported slice type
-#if SLICE_TYPE_ORDER
 enum SliceType
 {
   B_SLICE,
   P_SLICE,
   I_SLICE
 };
-#else
-enum SliceType
-{
-  I_SLICE,
-  P_SLICE,
-  B_SLICE
-};
-#endif
 
 /// chroma formats (according to semantics of chroma_format_idc)
 enum ChromaFormat

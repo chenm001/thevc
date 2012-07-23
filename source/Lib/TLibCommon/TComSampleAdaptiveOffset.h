@@ -64,12 +64,8 @@ protected:
   TComPic*          m_pcPic;
 
   static UInt m_uiMaxDepth;
-  static const Int m_aiNumPartsInRow[5];
-  static const Int m_aiNumPartsLevel[5];
   static const Int m_aiNumCulPartsLevel[5];
   static const UInt m_auiEoTable[9];
-  static const UInt m_auiEoTable2D[9];
-  static const UInt m_iWeightSao[MAX_NUM_SAO_TYPE];
   Int *m_iOffsetBo;
   Int m_iOffsetEo[LUMA_GROUP_NUM];
 
@@ -106,11 +102,7 @@ protected:
   Pel* m_pTmpL2;
   Int* m_iLcuPartIdx;
   Int     m_maxNumOffsetsPerPic;
-#if SAO_REMOVE_APS // encoder renaming
   Bool    m_saoLcuBasedOptimization;
-#else
-  Bool    m_saoInterleavingFlag;
-#endif
 public:
   TComSampleAdaptiveOffset         ();
   virtual ~TComSampleAdaptiveOffset();
@@ -119,7 +111,6 @@ public:
   Void destroy ();
 
   Int  convertLevelRowCol2Idx(int level, int row, int col);
-  void convertIdx2LevelRowCol(int idx, int *level, int *row, int *col);
 
   Void initSAOParam   (SAOParam *pcSaoParam, Int iPartLevel, Int iPartRow, Int iPartCol, Int iParentPartIdx, Int StartCUX, Int EndCUX, Int StartCUY, Int EndCUY, Int iYCbCr);
   Void allocSaoParam  (SAOParam* pcSaoParam);
@@ -128,8 +119,6 @@ public:
 
   Void SAOProcess(TComPic* pcPic, SAOParam* pcSaoParam);
   Void processSaoCu(Int iAddr, Int iSaoType, Int iYCbCr);
-  Void processSaoOnePart(SAOQTPart *psQTPart, UInt uiPartIdx, Int iYCbCr);
-  Void processSaoQuadTree(SAOQTPart *psQTPart, UInt uiPartIdx, Int iYCbCr);
   Pel* getPicYuvAddr(TComPicYuv* pcPicYuv, Int iYCbCr,Int iAddr = 0);
 
   Void processSaoCuOrg(Int iAddr, Int iPartIdx, Int iYCbCr);  //!< LCU-basd SAO process without slice granularity 
@@ -141,16 +130,9 @@ public:
   Void convertQT2SaoUnit(SAOParam* saoParam, UInt partIdx, Int yCbCr);
   Void convertOnePart2SaoUnit(SAOParam *saoParam, UInt partIdx, Int yCbCr);
   Void processSaoUnitAll(SaoLcuParam* saoLcuParam, Bool oneUnitFlag, Int yCbCr);
-#if SAO_REMOVE_APS // encoder renaming
   Void setSaoLcuBasedOptimization (Bool bVal)  {m_saoLcuBasedOptimization = bVal;}
   Bool getSaoLcuBasedOptimization ()           {return m_saoLcuBasedOptimization;}
-#else
-  Void setSaoInterleavingFlag (Bool bVal)  {m_saoInterleavingFlag = bVal;}
-  Bool getSaoInterleavingFlag ()           {return m_saoInterleavingFlag;}
-#endif
-#if SAO_RDO_FIX
   Void resetSaoUnit(SaoLcuParam* saoUnit);
-#endif
 };
 
 //! \}

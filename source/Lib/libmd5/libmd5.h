@@ -39,7 +39,10 @@
 typedef struct _context_md5_t {
   uint32_t buf[4];
   uint32_t bits[2];
-  unsigned char in[64];
+  union {
+    unsigned char b8[64];
+    uint32_t b32[16];
+  } in;
 } context_md5_t;
 
 #ifdef __cplusplus

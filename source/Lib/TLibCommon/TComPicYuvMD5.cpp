@@ -83,8 +83,6 @@ static void md5_plane(MD5& md5, const Pel* plane, unsigned width, unsigned heigh
   }
 }
 
-
-#if HASH_TYPE
 void compCRC(const Pel* plane, unsigned int width, unsigned int height, unsigned int stride, unsigned char digest[16])
 {
   unsigned int bitdepth = g_uiBitDepth + g_uiBitIncrement;
@@ -206,37 +204,4 @@ void calcMD5(TComPicYuv& pic, unsigned char digest[3][16])
   md5_plane_func(md5V, pic.getCrAddr(), width, height, stride);
   md5V.finalize(digest[2]);
 }
-#else
-/**
- * Calculate the MD5sum of pic, storing the result in digest.
- * MD5 calculation is performed on Y' then Cb, then Cr; each in raster order.
- * Pel data is inserted into the MD5 function in little-endian byte order,
- * using sufficient bytes to represent the picture bitdepth.  Eg, 10bit data
- * uses little-endian two byte words; 8bit data uses single byte words.
- */
-void calcMD5(TComPicYuv& pic, unsigned char digest[16])
-{
-  unsigned bitdepth = g_uiBitDepth + g_uiBitIncrement;
-  /* choose an md5_plane packing function based on the system bitdepth */
-  typedef void (*MD5PlaneFunc)(MD5&, const Pel*, unsigned, unsigned, unsigned);
-  MD5PlaneFunc md5_plane_func;
-  md5_plane_func = bitdepth <= 8 ? (MD5PlaneFunc)md5_plane<1> : (MD5PlaneFunc)md5_plane<2>;
-
-  MD5 md5;
-  unsigned width = pic.getWidth();
-  unsigned height = pic.getHeight();
-  unsigned stride = pic.getStride();
-
-  md5_plane_func(md5, pic.getLumaAddr(), width, height, stride);
-
-  width >>= 1;
-  height >>= 1;
-  stride >>= 1;
-
-  md5_plane_func(md5, pic.getCbAddr(), width, height, stride);
-  md5_plane_func(md5, pic.getCrAddr(), width, height, stride);
-
-  md5.finalize(digest);
-}
-#endif
 //! \}

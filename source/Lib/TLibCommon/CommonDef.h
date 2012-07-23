@@ -112,6 +112,7 @@
 
 #define MAX_UINT                    0xFFFFFFFFU ///< max. value of unsigned 32-bit integer
 #define MAX_INT                     2147483647  ///< max. value of signed 32-bit integer
+#define MAX_INT64                   0x7FFFFFFFFFFFFFFF  ///< max. value of signed 64-bit integer
 #define MAX_DOUBLE                  1.7e+308    ///< max. value of double-type value
 
 #define MIN_QP                      0
@@ -189,7 +190,6 @@ template <typename T> inline T Clip3( T minVal, T maxVal, T a) { return std::min
 
 enum NalUnitType
 {
-#if NEW_NAL_UNIT_TYPES
   NAL_UNIT_UNSPECIFIED_0 = 0,
   NAL_UNIT_CODED_SLICE,           // 1
   NAL_UNIT_CODED_SLICE_TFD,       // 2
@@ -255,41 +255,6 @@ enum NalUnitType
   NAL_UNIT_UNSPECIFIED_62,
   NAL_UNIT_UNSPECIFIED_63,
   NAL_UNIT_INVALID,
-#else
-  NAL_UNIT_UNSPECIFIED_0 = 0,
-  NAL_UNIT_CODED_SLICE,
-  NAL_UNIT_RESERVED_2,
-  NAL_UNIT_CODED_SLICE_TLA,
-  NAL_UNIT_CODED_SLICE_CRA,
-  NAL_UNIT_CODED_SLICE_IDR,
-  NAL_UNIT_SEI,
-  NAL_UNIT_SPS,
-  NAL_UNIT_PPS,
-  NAL_UNIT_ACCESS_UNIT_DELIMITER,
-  NAL_UNIT_RESERVED_10,
-  NAL_UNIT_RESERVED_11,
-  NAL_UNIT_FILLER_DATA,
-  NAL_UNIT_RESERVED_13,
-  NAL_UNIT_APS,
-  NAL_UNIT_RESERVED_15,
-  NAL_UNIT_RESERVED_16,
-  NAL_UNIT_RESERVED_17,
-  NAL_UNIT_RESERVED_18,
-  NAL_UNIT_RESERVED_19,
-  NAL_UNIT_RESERVED_20,
-  NAL_UNIT_RESERVED_21,
-  NAL_UNIT_RESERVED_22,
-  NAL_UNIT_RESERVED_23,
-  NAL_UNIT_UNSPECIFIED_24,
-  NAL_UNIT_UNSPECIFIED_25,
-  NAL_UNIT_UNSPECIFIED_26,
-  NAL_UNIT_UNSPECIFIED_27,
-  NAL_UNIT_UNSPECIFIED_28,
-  NAL_UNIT_UNSPECIFIED_29,
-  NAL_UNIT_UNSPECIFIED_30,
-  NAL_UNIT_UNSPECIFIED_31,
-  NAL_UNIT_INVALID,
-#endif
 };
 
 //! \}

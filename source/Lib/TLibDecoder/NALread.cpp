@@ -48,51 +48,10 @@ static void convertPayloadToRBSP(vector<uint8_t>& nalUnitBuf, TComInputBitstream
   unsigned zeroCount = 0;
   vector<uint8_t>::iterator it_read, it_write;
 
-#if !REMOVE_TILE_MARKERS
-  UInt *auiStoredTileMarkerLocation = new UInt[MAX_MARKER_PER_NALU];
-  // Remove tile markers and note the bitstream location
-  for (it_read = it_write = nalUnitBuf.begin(); it_read != nalUnitBuf.end(); it_read++ )
-  {
-    Bool bTileMarkerFound = false;
-    if ( ( it_read - nalUnitBuf.begin() ) < ( nalUnitBuf.size() - 2 ) )
-    {
-      if ( (*(it_read) == 0x00) && (*(it_read+1) == 0x00) && (*(it_read+2) == 0x02) ) // tile marker detected
-      {
-        it_read += 2;
-        UInt uiDistance  = (UInt) (it_write - nalUnitBuf.begin());
-        UInt uiCount     = pcBitstream->getTileMarkerLocationCount();
-        bTileMarkerFound = true;
-        pcBitstream->setTileMarkerLocation( uiCount, uiDistance );
-        auiStoredTileMarkerLocation[uiCount] = uiDistance;
-        pcBitstream->setTileMarkerLocationCount( uiCount + 1 );
-        
-      }
-    }
-
-    if (!bTileMarkerFound)
-    {
-      *it_write = *it_read;
-      it_write++;
-    }
-  }
-  nalUnitBuf.resize(it_write - nalUnitBuf.begin());
-#endif
-
   for (it_read = it_write = nalUnitBuf.begin(); it_read != nalUnitBuf.end(); it_read++, it_write++)
   {
     if (zeroCount == 2 && *it_read == 0x03)
     {
-#if !REMOVE_TILE_MARKERS
-      // update tile marker location
-      UInt uiDistance = (UInt) (it_read - nalUnitBuf.begin());
-      for (UInt uiIdx=0; uiIdx<pcBitstream->getTileMarkerLocationCount(); uiIdx++)
-      {
-        if (auiStoredTileMarkerLocation[ uiIdx ] >= uiDistance)
-        {
-          pcBitstream->setTileMarkerLocation( uiIdx, pcBitstream->getTileMarkerLocation( uiIdx )-1 );
-        }
-      }
-#endif
       it_read++;
       zeroCount = 0;
     }
@@ -101,9 +60,6 @@ static void convertPayloadToRBSP(vector<uint8_t>& nalUnitBuf, TComInputBitstream
   }
 
   nalUnitBuf.resize(it_write - nalUnitBuf.begin());
-#if !REMOVE_TILE_MARKERS
-  delete [] auiStoredTileMarkerLocation;
-#endif
 }
 
 /**
@@ -117,14 +73,6 @@ void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
   convertPayloadToRBSP(nalUnitBuf, pcBitstream);
 
   nalu.m_Bitstream = new TComInputBitstream(&nalUnitBuf);
-#if !REMOVE_TILE_MARKERS
-  // copy the tile marker location information
-  nalu.m_Bitstream->setTileMarkerLocationCount( pcBitstream->getTileMarkerLocationCount() );
-  for (UInt uiIdx=0; uiIdx < nalu.m_Bitstream->getTileMarkerLocationCount(); uiIdx++)
-  {
-    nalu.m_Bitstream->setTileMarkerLocation( uiIdx, pcBitstream->getTileMarkerLocation(uiIdx) );
-  }
-#endif
   delete pcBitstream;
   TComInputBitstream& bs = *nalu.m_Bitstream;
 
@@ -139,15 +87,11 @@ void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
   assert(reserved_one_5bits == 1);
   if ( nalu.m_temporalId )
   {
-#if NEW_NAL_UNIT_TYPES
     assert( nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_CRA
          && nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_CRANT
          && nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_BLA
          && nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_BLANT
          && nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_IDR );
-#else
-    assert(nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_CRA && nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_IDR);
-#endif
   }
 }
 //! \}

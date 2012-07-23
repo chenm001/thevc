@@ -97,30 +97,18 @@ public:
   Void  parseTransformSubdivFlag( UInt& ruiSubdivFlag, UInt uiLog2TransformBlockSize );
   Void  parseQtCbf          ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
   Void  parseQtRootCbf      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf );
-#if VPS_INTEGRATION
   Void  parseVPS            ( TComVPS* pcVPS );
-#endif
   Void  parseSPS            ( TComSPS* pcSPS );
-#if !TILES_OR_ENTROPY_FIX
-  Void  parsePPS            ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet);
-#else
   Void  parsePPS            ( TComPPS* pcPPS);
-#endif
   Void  parseSEI(SEImessages&);
   Void  parseAPS            ( TComAPS* pAPS );
-#if AHG6_ALF_OPTION2
   Void  parseSliceHeader    ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager);
-#else
-  Void  parseSliceHeader    ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager, AlfCUCtrlInfo &alfCUCtrl, AlfParamSet& alfParamSet);
-#endif
   Void  parseTerminatingBit ( UInt& ruiBit );
   
   Void  parseMVPIdx         ( Int& riMVPIdx );
   
   Void  parseSkipFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-#if CU_LEVEL_TRANSQUANT_BYPASS
   Void  parseCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
-#endif
   Void parseMergeFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiPUIdx );
   Void parseMergeIndex      ( TComDataCU* pcCU, UInt& ruiMergeIndex, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseSplitFlag       ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
@@ -137,15 +125,9 @@ public:
   
   Void parseDeltaQP         ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseCoeffNxN        ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType );
-#if INTRA_TRANSFORMSKIP
   Void parseTransformSkipFlags ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType);
-#endif
 
   Void parseIPCMInfo        ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth);
-
-#if !REMOVE_TILE_MARKERS
-  Void readTileMarker     ( UInt& uiTileIdx, UInt uiBitsUsed );
-#endif
 
   Void updateContextTables  ( SliceType eSliceType, Int iQp ) { return; }
   Void decodeFlush() {};
@@ -153,33 +135,8 @@ public:
   Void xParsePredWeightTable ( TComSlice* pcSlice );
   Void  parseScalingList               ( TComScalingList* scalingList );
   Void xDecodeScalingList    ( TComScalingList *scalingList, UInt sizeId, UInt listId);
-#if !DBL_HL_SYNTAX
-  Void parseDFFlag         ( UInt& ruiVal, const Char *pSymbolName );
-  Void parseDFSvlc         ( Int&  riVal,  const Char *pSymbolName  );
-#endif
 protected:
-#if !DBL_HL_SYNTAX
-  Void  xParseDblParam       ( TComAPS* aps );
-#endif
-#if !SAO_REMOVE_APS
-  Void  xParseSaoParam       ( SAOParam* pSaoParam );
-#endif
-#if !SAO_CODE_CLEAN_UP
-  Void  xParseSaoOffset      (SaoLcuParam* saoLcuParam);
-#endif
-#if !SAO_REMOVE_APS
-  Void  xParseSaoUnit        (Int rx, Int ry, Int compIdx, SAOParam* saoParam, Bool& repeatedRow );
-#endif
-#if !AHG6_ALF_OPTION2
-  Void  xParseAlfParam(AlfParamSet* pAlfParamSet, Bool bSentInAPS = true, Int firstLCUAddr = 0, Bool acrossSlice = true, Int numLCUInWidth= -1, Int numLCUInHeight= -1);
-  Void  parseAlfParamSet(AlfParamSet* pAlfParamSet, Int firstLCUAddr, Bool alfAcrossSlice);
-  Void  parseAlfFixedLengthRun(UInt& idx, UInt rx, UInt numLCUInWidth);
-  Void  parseAlfStoredFilterIdx(UInt& idx, UInt numFilterSetsInBuffer);
-#endif
   Void  xParseAlfParam       ( ALFParam* pAlfParam );
-#if !AHG6_ALF_OPTION2
-  Void  xParseAlfCuControlParam(AlfCUCtrlInfo& cAlfParam, Int iNumCUsInPic);
-#endif
   Int   xGolombDecode        ( Int k );
   Bool  xMoreRbspData();
 };

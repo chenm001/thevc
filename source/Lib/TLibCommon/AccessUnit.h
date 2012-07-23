@@ -62,7 +62,9 @@ public:
   ~AccessUnit()
   {
     for (AccessUnit::iterator it = this->begin(); it != this->end(); it++)
+    {
       delete *it;
+    }
   }
 };
 

@@ -214,14 +214,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("IntraPeriod,-ip",         m_iIntraPeriod,              -1, "Intra period in frames, (-1: only first frame)")
   ("DecodingRefreshType,-dr", m_iDecodingRefreshType,       0, "Intra refresh type (0:none 1:CRA 2:IDR)")
   ("GOPSize,g",               m_iGOPSize,                   1, "GOP size of temporal structure")
-#if REMOVE_LC
   ("ListCombination,-lc",     m_bUseLComb,               true, "Combined reference list for uni-prediction estimation in B-slices")
-#else
-  ("ListCombination,-lc",     m_bUseLComb,               true, "Combined reference list flag for uni-prediction in B-slices")
-#endif
-#if !REMOVE_LC
-  ("LCModification",          m_bLCMod,                 false, "Enables signalling of combined reference list derivation")
-#endif  
   // motion options
   ("FastSearch",              m_iFastSearch,                1, "0:Full search  1:Diamond  2:PMVFAST")
   ("SearchRange,-sr",         m_iSearchRange,              96, "Motion search range")
@@ -230,9 +223,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("ASR",                     m_bUseASR,                false, "Adaptive motion search range")
 
   // Mode decision parameters
-#if !REMOVE_INTER_4X4
-  ("DisableInter4x4",         m_bDisInter4x4,            true, "Disable Inter 4x4")
-#endif
   ("LambdaModifier0,-LM0", m_adLambdaModifier[ 0 ], ( double )1.0, "Lambda modifier for temporal layer 0")
   ("LambdaModifier1,-LM1", m_adLambdaModifier[ 1 ], ( double )1.0, "Lambda modifier for temporal layer 1")
   ("LambdaModifier2,-LM2", m_adLambdaModifier[ 2 ], ( double )1.0, "Lambda modifier for temporal layer 2")
@@ -269,11 +259,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   
   // Deblocking filter parameters
   ("LoopFilterDisable",              m_bLoopFilterDisable,             false )
-#if DBL_HL_SYNTAX
   ("LoopFilterOffsetInPPS",          m_loopFilterOffsetInPPS,          false )
-#else
-  ("LoopFilterOffsetInAPS",          m_loopFilterOffsetInAPS,          false )
-#endif
   ("LoopFilterBetaOffset_div2",      m_loopFilterBetaOffsetDiv2,           0 )
   ("LoopFilterTcOffset_div2",        m_loopFilterTcOffsetDiv2,             0 )
   ("DeblockingFilterControlPresent", m_DeblockingFilterControlPresent, false )
@@ -282,33 +268,19 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("NSQT",                    m_enableNSQT,              true, "Enable non-square transforms")
   ("AMP",                     m_enableAMP,               true, "Enable asymmetric motion partitions")
   ("LMChroma",                m_bUseLMChroma,            true, "Intra chroma prediction based on reconstructed luma")
-#if INTRA_TRANSFORMSKIP
   ("TS",                      m_useTansformSkip,         false, "Intra transform skipping")
   ("TSFast",                  m_useTansformSkipFast,     false, "Fast intra transform skipping")
-#endif
   ("ALF",                     m_bUseALF,                 true, "Enable Adaptive Loop Filter")
   ("SAO",                     m_bUseSAO,                 true, "Enable Sample Adaptive Offset")   
   ("MaxNumOffsetsPerPic",     m_maxNumOffsetsPerPic,     2048, "Max number of SAO offset per picture (Default: 2048)")   
-#if SAO_REMOVE_APS // encoder renaming
   ("SAOLcuBasedOptimization", m_saoLcuBasedOptimization, true, "0: SAO picture-based optimization, 1: SAO LCU-based optimization ")   
-#else
-  ("SAOInterleaving",         m_saoInterleavingFlag,    false, "0: SAO Picture Mode, 1: SAO Interleaving ")   
-#endif
-#if AHG6_ALF_OPTION2
   ("ALFLowLatencyEncode", m_alfLowLatencyEncoding, false, "Low-latency ALF encoding, 0: picture latency (trained from current frame), 1: LCU latency(trained from previous frame)")
-#else
-  ("ALFEncodePassReduction", m_iALFEncodePassReduction, 0, "0:Original 16-pass, 1: 1-pass, 2: 2-pass encoding")
-
-  ("ALFMaxNumFilter,-ALFMNF", m_iALFMaxNumberFilters, 16, "16: No Constrained, 1-15: Constrained max number of filter")
-  ("ALFParamInSlice", m_bALFParamInSlice, false, "ALF parameters in 0: APS, 1: slice header")
-  ("ALFPicBasedEncode", m_bALFPicBasedEncode, true, "ALF picture-based encoding 0: false, 1: true")
-#endif
     ("SliceMode",            m_iSliceMode,           0, "0: Disable all Recon slice limits, 1: Enforce max # of LCUs, 2: Enforce max # of bytes")
     ("SliceArgument",        m_iSliceArgument,       0, "if SliceMode==1 SliceArgument represents max # of LCUs. if SliceMode==2 SliceArgument represents max # of bytes.")
     ("DependentSliceMode",     m_iDependentSliceMode,    0, "0: Disable all dependent slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based dependent slices")
     ("DependentSliceArgument", m_iDependentSliceArgument,0, "if DependentSliceMode==1 SliceArgument represents max # of LCUs. if DependentSliceMode==2 DependentSliceArgument represents max # of bins.")
 #if DEPENDENT_SLICES
-    ("CabacIndependentFlag", m_bCabacIndependentFlag, true)
+    ("CabacIndependentFlag", m_bCabacIndependentFlag, false)
 #endif
     ("SliceGranularity",     m_iSliceGranularity,    0, "0: Slices always end at LCU borders. 1-3: slices may end at a depth of 1-3 below LCU level.")
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
@@ -320,62 +292,28 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 
     ("PCMInputBitDepthFlag", m_bPCMInputBitDepthFlag, true)
     ("PCMFilterDisableFlag", m_bPCMFilterDisableFlag, false)
-#if LOSSLESS_CODING
     ("LosslessCuEnabled", m_useLossless, false)
-#endif
     ("weighted_pred_flag,-wpP",     m_bUseWeightPred, false, "weighted prediction flag (P-Slices)")
-#if REMOVE_IMPLICIT_WP
     ("weighted_bipred_flag,-wpB",   m_useWeightedBiPred,    false,    "weighted bipred flag (B-Slices)")
-#else
-    ("weighted_bipred_idc,-wpBidc", m_uiBiPredIdc,    0u,    "weighted bipred idc (B-Slices)")
-#endif
-#if !TILES_OR_ENTROPY_FIX
-    ("TileInfoPresentFlag",         m_iColumnRowInfoPresent,         1,          "0: tiles parameters are NOT present in the PPS. 1: tiles parameters are present in the PPS")
-#endif
+    ("Log2ParallelMergeLevel",      m_log2ParallelMergeLevel,     2u,          "Parallel merge estimation region")
     ("UniformSpacingIdc",           m_iUniformSpacingIdr,            0,          "Indicates if the column and row boundaries are distributed uniformly")
     ("NumTileColumnsMinus1",        m_iNumColumnsMinus1,             0,          "Number of columns in a picture minus 1")
     ("ColumnWidthArray",            cfg_ColumnWidth,                 string(""), "Array containing ColumnWidth values in units of LCU")
     ("NumTileRowsMinus1",           m_iNumRowsMinus1,                0,          "Number of rows in a picture minus 1")
     ("RowHeightArray",              cfg_RowHeight,                   string(""), "Array containing RowHeight values in units of LCU")
-#if !EXPLICITLY_SIGNAL_ENTRY_POINTS
-    ("TileLocationInSliceHeaderFlag", m_iTileLocationInSliceHeaderFlag, 0,       "0: Disable transmission of tile location in slice header. 1: Transmit tile locations in slice header.")
-#endif
-#if !REMOVE_TILE_MARKERS
-    ("TileMarkerFlag",                m_iTileMarkerFlag,                0,       "0: Disable transmission of lightweight tile marker. 1: Transmit light weight tile marker.")
-    ("MaxTileMarkerEntryPoints",    m_iMaxTileMarkerEntryPoints,    4,       "Maximum number of uniformly-spaced tile entry points (using light weigh tile markers). Default=4. If number of tiles < MaxTileMarkerEntryPoints then all tiles have entry points.")
-#endif
-#if !TILES_OR_ENTROPY_FIX
-    ("TileControlPresentFlag",       m_iTileBehaviorControlPresentFlag,         1,          "0: tiles behavior control parameters are NOT present in the PPS. 1: tiles behavior control parameters are present in the PPS")
-#endif
     ("LFCrossTileBoundaryFlag",      m_bLFCrossTileBoundaryFlag,             true,          "1: cross-tile-boundary loop filtering. 0:non-cross-tile-boundary loop filtering")
     ("WaveFrontSynchro",            m_iWaveFrontSynchro,             0,          "0: no synchro; 1 synchro with TR; 2 TRR etc")
     ("WaveFrontFlush",              m_iWaveFrontFlush,               0,          "Flush and terminate CABAC coding for each LCU line")
-#if !WPP_SUBSTREAM_PER_ROW
-    ("WaveFrontSubstreams",         m_iWaveFrontSubstreams,          1,          "# coded substreams wanted; per tile if TileBoundaryIndependenceIdc is 1, otherwise per frame")
-#endif
     ("ScalingList",                 m_useScalingListId,              0,          "0: no scaling list, 1: default scaling lists, 2: scaling lists specified in ScalingListFile")
     ("ScalingListFile",             cfg_ScalingListFile,             string(""), "Scaling list file name")
     ("SignHideFlag,-SBH",                m_signHideFlag, 1)
-#if !FIXED_SBH_THRESHOLD
-    ("SignHideThreshold,-TSIG",          m_signHidingThreshold,         4)
-#endif
   /* Misc. */
-#if HASH_TYPE
   ("SEIpictureDigest", m_pictureDigestEnabled, 1, "Control generation of picture_digest SEI messages\n"
                                               "\t3: checksum\n"
                                               "\t2: CRC\n"
                                               "\t1: use MD5\n"
                                               "\t0: disable")
-#else
-  ("SEIpictureDigest", m_pictureDigestEnabled, true, "Control generation of picture_digest SEI messages\n"
-                                              "\t1: use MD5\n"
-                                              "\t0: disable")
-#endif
-#if SLICE_TMVP_ENABLE
   ("TMVPMode", m_TMVPModeId, 1, "TMVP mode 0: TMVP disable for all slices. 1: TMVP enable for all slices (default) 2: TMVP enable for certain slices only")
-#else
-  ("TMVP", m_enableTMVP, true, "Enable TMVP" )
-#endif
   ("FEN", m_bUseFastEnc, false, "fast encoder setting")
   ("ECU", m_bUseEarlyCU, false, "Early CU setting") 
   ("FDM", m_useFastDecisionForMerge, true, "Fast decision for Merge RD Cost") 
@@ -388,10 +326,8 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("1", doOldStyleCmdlineOn, "turn option <name> on")
   ("0", doOldStyleCmdlineOff, "turn option <name> off")
 
-#if CU_LEVEL_TRANSQUANT_BYPASS
   ("TransquantBypassEnableFlag", m_TransquantBypassEnableFlag, false, "transquant_bypass_enable_flag indicator in PPS")
   ("CUTransquantBypassFlagValue", m_CUTransquantBypassFlagValue, false, "Fixed cu_transquant_bypass_flag value, when transquant_bypass_enable_flag is enabled")
-#endif
   ;
   
   for(Int i=1; i<MAX_GOP+1; i++) {
@@ -524,8 +460,12 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
       fclose(fpt);
     }
   }
-#if WPP_SUBSTREAM_PER_ROW
   m_iWaveFrontSubstreams = m_iWaveFrontSynchro ? (m_iSourceHeight + m_uiMaxCUHeight - 1) / m_uiMaxCUHeight : 1;
+#if DEPENDENT_SLICES
+  if( m_iDependentSliceMode )
+  {
+    m_iWaveFrontSubstreams = 1;
+  }
 #endif
   // check validity of input parameters
   xCheckParameter();
@@ -558,10 +498,6 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( (m_iIntraPeriod > 0 && m_iIntraPeriod < m_iGOPSize) || m_iIntraPeriod == 0, "Intra period must be more than GOP size, or -1 , not 0" );
   xConfirmPara( m_iDecodingRefreshType < 0 || m_iDecodingRefreshType > 2,                   "Decoding Refresh Type must be equal to 0, 1 or 2" );
   xConfirmPara( m_iQP <  -6 * ((Int)m_uiInternalBitDepth - 8) || m_iQP > 51,                "QP exceeds supported range (-QpBDOffsety to 51)" );
-#if !AHG6_ALF_OPTION2
-  xConfirmPara( m_iALFEncodePassReduction < 0 || m_iALFEncodePassReduction > 2,             "ALFEncodePassReduction must be equal to 0, 1 or 2");
-  xConfirmPara( m_iALFMaxNumberFilters < 1,                                                 "ALFMaxNumFilter should be larger than 1");  
-#endif
   xConfirmPara( m_loopFilterBetaOffsetDiv2 < -13 || m_loopFilterBetaOffsetDiv2 > 13,          "Loop Filter Beta Offset div. 2 exceeds supported range (-13 to 13)");
   xConfirmPara( m_loopFilterTcOffsetDiv2 < -13 || m_loopFilterTcOffsetDiv2 > 13,              "Loop Filter Tc Offset div. 2 exceeds supported range (-13 to 13)");
   xConfirmPara( m_iFastSearch < 0 || m_iFastSearch > 2,                                     "Fast Search Mode is not supported value (0:Full search  1:Diamond  2:PMVFAST)" );
@@ -635,7 +571,12 @@ Void TAppEncCfg::xCheckParameter()
   bool tileFlag = (m_iNumColumnsMinus1 > 0 || m_iNumRowsMinus1 > 0 );
   xConfirmPara( tileFlag && m_iDependentSliceMode,            "Tile and Dependent Slice can not be applied together");
   xConfirmPara( tileFlag && m_iWaveFrontSynchro,            "Tile and Wavefront can not be applied together");
-  xConfirmPara( m_iWaveFrontSynchro && m_iDependentSliceMode, "Wavefront and Dependent Slice can not be applied together");  
+#if !DEPENDENT_SLICES
+  xConfirmPara( m_iWaveFrontSynchro && m_iDependentSliceMode, "Wavefront and Dependent Slice can not be applied together");
+#endif
+#if DEPENDENT_SLICES
+  xConfirmPara( m_iWaveFrontSynchro && m_bCabacIndependentFlag, "Wavefront and CabacIndependentFlag can not be applied together");
+#endif
 
   //TODO:ChromaFmt assumes 4:2:0 below
   xConfirmPara( m_iSourceWidth  % TComSPS::getCropUnitX(CHROMA_420) != 0, "Picture width must be an integer multiple of the specified chroma subsampling");
@@ -947,9 +888,7 @@ Void TAppEncCfg::xCheckParameter()
   xConfirmPara( m_iWaveFrontSubstreams <= 0, "WaveFrontSubstreams must be positive" );
   xConfirmPara( m_iWaveFrontSubstreams > 1 && !m_iWaveFrontSynchro, "Must have WaveFrontSynchro > 0 in order to have WaveFrontSubstreams > 1" );
 
-#if HASH_TYPE
   xConfirmPara( m_pictureDigestEnabled<0 || m_pictureDigestEnabled>3, "this hash type is not correct!\n");
-#endif
 
   if(m_enableRateCtrl)
   {
@@ -963,9 +902,9 @@ Void TAppEncCfg::xCheckParameter()
     m_iMaxCuDQPDepth    = MAX_CUDQP_DEPTH;
   }
 
-#if CU_LEVEL_TRANSQUANT_BYPASS
   xConfirmPara(!m_TransquantBypassEnableFlag && m_CUTransquantBypassFlagValue, "CUTransquantBypassFlagValue cannot be 1 when TransquantBypassEnableFlag is 0");
-#endif
+
+  xConfirmPara(m_log2ParallelMergeLevel < 2, "Log2ParallelMergeLevel should be larger than or equal to 2");
 
 #undef xConfirmPara
   if (check_failed)
@@ -1043,12 +982,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("GOP size                     : %d\n", m_iGOPSize );
   printf("Internal bit depth           : %d\n", m_uiInternalBitDepth );
   printf("PCM sample bit depth         : %d\n", m_uiPCMBitDepthLuma );
-#if !REMOVE_INTER_4X4
-  if((m_uiMaxCUWidth >> m_uiMaxCUDepth) == 4)
-  {
-    printf("DisableInter4x4              : %d\n", m_bDisInter4x4);  
-  }
-#endif
   printf("RateControl                  : %d\n", m_enableRateCtrl);
   if(m_enableRateCtrl)
   {
@@ -1059,13 +992,7 @@ Void TAppEncCfg::xPrintParameter()
   
   printf("TOOL CFG: ");
   printf("ALF:%d ", m_bUseALF             );
-#if AHG6_ALF_OPTION2
   printf("ALFLowLatencyEncode:%d ", m_alfLowLatencyEncoding?1:0);
-#else
-  printf("ALFMNF:%d ", m_iALFMaxNumberFilters);
-  printf("ALFInSlice:%d ", m_bALFParamInSlice);
-  printf("ALFPicEnc:%d ", m_bALFPicBasedEncode);
-#endif
   printf("IBD:%d ", !!g_uiBitIncrement);
   printf("HAD:%d ", m_bUseHADME           );
   printf("SRD:%d ", m_bUseSBACRD          );
@@ -1073,9 +1000,6 @@ Void TAppEncCfg::xPrintParameter()
   printf("SQP:%d ", m_uiDeltaQpRD         );
   printf("ASR:%d ", m_bUseASR             );
   printf("LComb:%d ", m_bUseLComb         );
-#if !REMOVE_LC
-  printf("LCMod:%d ", m_bLCMod         );
-#endif
   printf("FEN:%d ", m_bUseFastEnc         );
   printf("ECU:%d ", m_bUseEarlyCU         );
   printf("FDM:%d ", m_useFastDecisionForMerge );
@@ -1083,10 +1007,8 @@ Void TAppEncCfg::xPrintParameter()
   printf("ESD:%d ", m_useEarlySkipDetection  );
   printf("RQT:%d ", 1     );
   printf("LMC:%d ", m_bUseLMChroma        ); 
-#if INTRA_TRANSFORMSKIP
   printf("TS:%d ",  m_useTansformSkip              ); 
   printf("TSFast:%d ", m_useTansformSkipFast       ); 
-#endif
   printf("Slice: G=%d M=%d ", m_iSliceGranularity, m_iSliceMode);
   if (m_iSliceMode!=0)
   {
@@ -1100,52 +1022,21 @@ Void TAppEncCfg::xPrintParameter()
   printf("CIP:%d ", m_bUseConstrainedIntraPred);
   printf("SAO:%d ", (m_bUseSAO)?(1):(0));
   printf("PCM:%d ", (m_usePCM && (1<<m_uiPCMLog2MinSize) <= m_uiMaxCUWidth)? 1 : 0);
-#if SAO_REMOVE_APS // encoder renaming
   printf("SAOLcuBasedOptimization:%d ", (m_saoLcuBasedOptimization)?(1):(0));
-#else
-  printf("SAOInterleavingFlag:%d ", (m_saoInterleavingFlag)?(1):(0));
-#endif
 
-#if LOSSLESS_CODING
   printf("LosslessCuEnabled:%d ", (m_useLossless)? 1:0 );
-#endif  
   printf("WPP:%d ", (Int)m_bUseWeightPred);
-#if REMOVE_IMPLICIT_WP
   printf("WPB:%d ", (Int)m_useWeightedBiPred);
-#else
-  printf("WPB:%d ", m_uiBiPredIdc);
-#endif
-#if !EXPLICITLY_SIGNAL_ENTRY_POINTS
-  printf("TileLocationInSliceHdr:%d ", m_iTileLocationInSliceHeaderFlag);
-#endif
-#if !REMOVE_TILE_MARKERS
-  printf("TileMarker:%d", m_iTileMarkerFlag);
-  if (m_iTileMarkerFlag)
-  {
-    printf("[%d] ", m_iMaxTileMarkerEntryPoints);
-  }
-  else
-  {
-    printf(" ");
-  }
-#endif
+  printf("PME:%d ", m_log2ParallelMergeLevel);
   printf(" WaveFrontSynchro:%d WaveFrontFlush:%d WaveFrontSubstreams:%d",
           m_iWaveFrontSynchro, m_iWaveFrontFlush, m_iWaveFrontSubstreams);
   printf(" ScalingList:%d ", m_useScalingListId );
-#if SLICE_TMVP_ENABLE
   printf("TMVPMode:%d ", m_TMVPModeId     );
-#else
-  printf("TMVP:%d ", m_enableTMVP     );
-#endif
 #if ADAPTIVE_QP_SELECTION
   printf("AQpS:%d", m_bUseAdaptQpSelect   );
 #endif
 
-#if  FIXED_SBH_THRESHOLD
   printf(" SignBitHidingFlag:%d ", m_signHideFlag);
-#else
-  printf(" SignBitHidingFlag:%d SignBitHidingThreshold:%d", m_signHideFlag, m_signHidingThreshold);
-#endif
   printf("\n\n");
   
   fflush(stdout);

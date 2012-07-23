@@ -56,9 +56,7 @@ TDecTop::TDecTop()
 #endif
   m_bRefreshPending = 0;
   m_pocCRA = 0;
-#if CRA_BLA_TFD_MODIFICATIONS
   m_prevRAPisBLA = false;
-#endif
   m_pocRandomAccess = MAX_INT;          
   m_prevPOC                = MAX_INT;
   m_bFirstSliceInPicture    = true;
@@ -194,7 +192,7 @@ Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic
 
   // Execute Deblock and ALF only + Cleanup
 
-  m_cGopDecoder.decompressGop(NULL, pcPic, true);
+  m_cGopDecoder.filterPicture(pcPic);
 
   TComSlice::sortPicList( m_cListPic ); // sorting for application output
   ruiPOC              = pcPic->getSlice(m_uiSliceIdx-1)->getPOC();
@@ -272,18 +270,14 @@ Void TDecTop::xActivateParameterSets()
   m_apcSlicePilot->setPPS(pps);
   m_apcSlicePilot->setSPS(sps);
   pps->setSPS(sps);
-#if WPP_SUBSTREAM_PER_ROW
   pps->setNumSubstreams(pps->getTilesOrEntropyCodingSyncIdc() == 2 ? ((sps->getPicHeightInLumaSamples() + sps->getMaxCUHeight() - 1) / sps->getMaxCUHeight()) * (pps->getNumColumnsMinus1() + 1) : 1);
+#if DEPENDENT_SLICES
+  if( pps->getDependentSlicesEnabledFlag() )
+  {
+    pps->setNumSubstreams(1);
+  }
 #endif
-#if DBL_HL_SYNTAX
   if(sps->getUseSAO() || sps->getUseALF())
-#else
-#if SCALING_LIST_HL_SYNTAX
-  if(sps->getUseSAO() || sps->getUseALF()|| sps->getUseDF())
-#else
-  if(sps->getUseSAO() || sps->getUseALF()|| sps->getScalingListFlag() || sps->getUseDF())
-#endif
-#endif
   {
     m_apcSlicePilot->setAPS( m_parameterSetManagerDecoder.getAPS(m_apcSlicePilot->getAPSId())  );
   }
@@ -330,12 +324,7 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   m_apcSlicePilot->setReferenced(nalu.m_nalRefFlag);
   m_apcSlicePilot->setTLayerInfo(nalu.m_temporalId);
 
-#if AHG6_ALF_OPTION2
   m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot, &m_parameterSetManagerDecoder);
-#else
-  // ALF CU parameters should be part of the slice header -> needs to be fixed 
-  m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot, &m_parameterSetManagerDecoder, m_cGopDecoder.getAlfCuCtrlParam(), m_cGopDecoder.getAlfParamSet());
-#endif
 #if !BYTE_ALIGNMENT
   // byte align
   {
@@ -374,13 +363,11 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
     {
       return false;
     }
-#if CRA_BLA_TFD_MODIFICATIONS
     // Skip TFD pictures associated with BLA/BLANT pictures
     if (isSkipPictureForBLA(iPOCLastDisplay))
     {
       return false;
     }
-#endif
   }
   //detect lost reference picture and insert copy of earlier frame.
   Int lostPoc;
@@ -416,10 +403,6 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   UInt uiCummulativeTileHeight;
   UInt i, j, p;
 
-#if !TILES_OR_ENTROPY_FIX
-  if( pcSlice->getPPS()->getColumnRowInfoPresent() == 1 )
-  {
-#endif
   //set NumColumnsMins1 and NumRowsMinus1
   pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getPPS()->getNumColumnsMinus1() );
   pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getPPS()->getNumRowsMinus1() );
@@ -477,70 +460,6 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
       pcPic->getPicSym()->getTComTile(i * (pcSlice->getPPS()->getNumColumnsMinus1()+1) + j)->setTileHeight( pcPic->getPicSym()->getFrameHeightInCU()-uiCummulativeTileHeight );
     }
   }
-#if !TILES_OR_ENTROPY_FIX
-  }
-  else
-  {
-    //set NumColumnsMins1 and NumRowsMinus1
-    pcPic->getPicSym()->setNumColumnsMinus1( pcSlice->getSPS()->getNumColumnsMinus1() );
-    pcPic->getPicSym()->setNumRowsMinus1( pcSlice->getSPS()->getNumRowsMinus1() );
-
-    //create the TComTileArray
-    pcPic->getPicSym()->xCreateTComTileArray();
-
-    //automatically set the column and row boundary if UniformSpacingIdr = 1
-    if( pcSlice->getSPS()->getUniformSpacingIdr() == 1 )
-    {
-      //set the width for each tile
-      for(j=0; j < pcPic->getPicSym()->getNumRowsMinus1()+1; j++)
-      {
-        for(p=0; p < pcPic->getPicSym()->getNumColumnsMinus1()+1; p++)
-        {
-          pcPic->getPicSym()->getTComTile( j * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + p )->
-            setTileWidth( (p+1)*pcPic->getPicSym()->getFrameWidthInCU()/(pcPic->getPicSym()->getNumColumnsMinus1()+1) 
-            - (p*pcPic->getPicSym()->getFrameWidthInCU())/(pcPic->getPicSym()->getNumColumnsMinus1()+1) );
-        }
-      }
-
-      //set the height for each tile
-      for(j=0; j < pcPic->getPicSym()->getNumColumnsMinus1()+1; j++)
-      {
-        for(p=0; p < pcPic->getPicSym()->getNumRowsMinus1()+1; p++)
-        {
-          pcPic->getPicSym()->getTComTile( p * (pcPic->getPicSym()->getNumColumnsMinus1()+1) + j )->
-            setTileHeight( (p+1)*pcPic->getPicSym()->getFrameHeightInCU()/(pcPic->getPicSym()->getNumRowsMinus1()+1) 
-            - (p*pcPic->getPicSym()->getFrameHeightInCU())/(pcPic->getPicSym()->getNumRowsMinus1()+1) );   
-        }
-      }
-    }
-    else
-    {
-      //set the width for each tile
-      for(j=0; j < pcSlice->getSPS()->getNumRowsMinus1()+1; j++)
-      {
-        uiCummulativeTileWidth = 0;
-        for(i=0; i < pcSlice->getSPS()->getNumColumnsMinus1(); i++)
-        {
-          pcPic->getPicSym()->getTComTile(j * (pcSlice->getSPS()->getNumColumnsMinus1()+1) + i)->setTileWidth( pcSlice->getSPS()->getColumnWidth(i) );
-          uiCummulativeTileWidth += pcSlice->getSPS()->getColumnWidth(i);
-        }
-        pcPic->getPicSym()->getTComTile(j * (pcSlice->getSPS()->getNumColumnsMinus1()+1) + i)->setTileWidth( pcPic->getPicSym()->getFrameWidthInCU()-uiCummulativeTileWidth );
-      }
-
-      //set the height for each tile
-      for(j=0; j < pcSlice->getSPS()->getNumColumnsMinus1()+1; j++)
-      {
-        uiCummulativeTileHeight = 0;
-        for(i=0; i < pcSlice->getSPS()->getNumRowsMinus1(); i++)
-        { 
-          pcPic->getPicSym()->getTComTile(i * (pcSlice->getSPS()->getNumColumnsMinus1()+1) + j)->setTileHeight( pcSlice->getSPS()->getRowHeight(i) );
-          uiCummulativeTileHeight += pcSlice->getSPS()->getRowHeight(i);
-        }
-        pcPic->getPicSym()->getTComTile(i * (pcSlice->getSPS()->getNumColumnsMinus1()+1) + j)->setTileHeight( pcPic->getPicSym()->getFrameHeightInCU()-uiCummulativeTileHeight );
-      }
-    }
-  }
-#endif
 
   pcPic->getPicSym()->xInitTiles();
 
@@ -582,17 +501,7 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
 
   if (bNextSlice)
   {
-#if CRA_BLA_TFD_MODIFICATIONS
     pcSlice->checkCRA(pcSlice->getRPS(), m_pocCRA, m_prevRAPisBLA, m_cListPic);
-#else
-    pcSlice->checkCRA(pcSlice->getRPS(), m_pocCRA, m_cListPic); 
-#endif
-#if !SLICE_TMVP_ENABLE
-    if ( !pcSlice->getPPS()->getEnableTMVPFlag() && pcPic->getTLayer() == 0 )
-    {
-      pcSlice->decodingMarkingForNoTMVP( m_cListPic, pcSlice->getPOC() );
-    }
-#endif
     // Set reference list
     pcSlice->setRefPicList( m_cListPic );
 
@@ -634,23 +543,8 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
 
     //---------------
     pcSlice->setRefPOCList();
-#if !REMOVE_LC
-    if(!pcSlice->getRefPicListModificationFlagLC())
-    {
-      pcSlice->generateCombinedList();
-    }
-
-    if( pcSlice->getRefPicListCombinationFlag() && pcSlice->getPPS()->getWPBiPredIdc()==1 && pcSlice->getSliceType()==B_SLICE )
-    {
-      pcSlice->setWpParamforLC();
-    }
-#endif
     pcSlice->setNoBackPredFlag( false );
-#if REMOVE_LC
     if ( pcSlice->getSliceType() == B_SLICE )
-#else
-    if ( pcSlice->getSliceType() == B_SLICE && !pcSlice->getRefPicListCombinationFlag())
-#endif
     {
       if ( pcSlice->getNumRefIdx(RefPicList( 0 ) ) == pcSlice->getNumRefIdx(RefPicList( 1 ) ) )
       {
@@ -670,7 +564,6 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   pcPic->setCurrSliceIdx(m_uiSliceIdx);
   if(pcSlice->getSPS()->getScalingListFlag())
   {
-#if SCALING_LIST_HL_SYNTAX
     pcSlice->setScalingList ( pcSlice->getSPS()->getScalingList()  );
     if(pcSlice->getPPS()->getScalingListPresentFlag())
     {
@@ -681,17 +574,6 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
       pcSlice->setDefaultScalingList();
     }
     m_cTrQuant.setScalingListDec(pcSlice->getScalingList());
-#else
-    if(pcSlice->getAPS()->getScalingListEnabled())
-    {
-      pcSlice->setScalingList ( pcSlice->getAPS()->getScalingList()  );
-      if(pcSlice->getScalingList()->getScalingListPresentFlag())
-      {
-        pcSlice->setDefaultScalingList();
-      }
-      m_cTrQuant.setScalingListDec(pcSlice->getScalingList());
-    }
-#endif
     m_cTrQuant.setUseScalingList(true);
   }
   else
@@ -701,7 +583,7 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   }
 
   //  Decode a picture
-  m_cGopDecoder.decompressGop(nalu.m_Bitstream, pcPic, false);
+  m_cGopDecoder.decompressSlice(nalu.m_Bitstream, pcPic);
 
   m_bFirstSliceInPicture = false;
   m_uiSliceIdx++;
@@ -709,7 +591,6 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   return false;
 }
 
-#if VPS_INTEGRATION
 Void TDecTop::xDecodeVPS()
 {
   TComVPS* vps = new TComVPS();
@@ -717,13 +598,10 @@ Void TDecTop::xDecodeVPS()
   m_cEntropyDecoder.decodeVPS( vps );
   m_parameterSetManagerDecoder.storePrefetchedVPS(vps);  
 }
-#endif
 
 Void TDecTop::xDecodeSPS()
 {
   TComSPS* sps = new TComSPS();
-  TComRPSList* rps = new TComRPSList();
-  sps->setRPSList(rps);
   m_cEntropyDecoder.decodeSPS( sps );
   m_parameterSetManagerDecoder.storePrefetchedSPS(sps);
   m_cAdaptiveLoopFilter.create( sps->getPicWidthInLumaSamples(), sps->getPicHeightInLumaSamples(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
@@ -763,11 +641,10 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
 
   switch (nalu.m_nalUnitType)
   {
-#if VPS_INTEGRATION
     case NAL_UNIT_VPS:
       xDecodeVPS();
       return false;
-#endif
+      
     case NAL_UNIT_SPS:
       xDecodeSPS();
       return false;
@@ -783,7 +660,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
       xDecodeSEI();
       return false;
 
-#if NEW_NAL_UNIT_TYPES
     case NAL_UNIT_CODED_SLICE:
     case NAL_UNIT_CODED_SLICE_TFD:
     case NAL_UNIT_CODED_SLICE_TLA:
@@ -792,12 +668,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
     case NAL_UNIT_CODED_SLICE_BLA:
     case NAL_UNIT_CODED_SLICE_BLANT:
     case NAL_UNIT_CODED_SLICE_IDR:
-#else
-    case NAL_UNIT_CODED_SLICE:
-    case NAL_UNIT_CODED_SLICE_IDR:
-    case NAL_UNIT_CODED_SLICE_CRA:
-    case NAL_UNIT_CODED_SLICE_TLA:
-#endif
       return xDecodeSlice(nalu, iSkipFrame, iPOCLastDisplay);
       break;
     default:
@@ -807,7 +677,6 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
   return false;
 }
 
-#if CRA_BLA_TFD_MODIFICATIONS
 /** Function for checking if picture should be skipped because of association with a previous BLA picture
  * \param iPOCLastDisplay POC of last picture displayed
  * \returns true if the picture should be skipped
@@ -823,7 +692,6 @@ Bool TDecTop::isSkipPictureForBLA(Int& iPOCLastDisplay)
   }
   return false;
 }
-#endif
 
 /** Function for checking if picture should be skipped because of random access
  * \param iSkipFrame skip frame counter
@@ -832,19 +700,11 @@ Bool TDecTop::isSkipPictureForBLA(Int& iPOCLastDisplay)
  * This function checks the skipping of pictures in the case of -s option random access.
  * All pictures prior to the random access point indicated by the counter iSkipFrame are skipped.
  * It also checks the type of Nal unit type at the random access point.
-#if CRA_BLA_TFD_MODIFICATIONS
  * If the random access point is CRA/CRANT/BLA/BLANT, TFD pictures with POC less than the POC of the random access point are skipped.
  * If the random access point is IDR all pictures after the random access point are decoded.
  * If the random access point is none of the above, a warning is issues, and decoding of pictures with POC 
  * equal to or greater than the random access point POC is attempted. For non IDR/CRA/BLA random 
  * access point there is no guarantee that the decoder will not crash.
-#else
- * If the random access point is CRA, pictures with POC equal to or greater than the CRA POC are decoded.
- * If the random access point is IDR all pictures after the random access point are decoded.
- * If the random access point is not IDR or CRA, a warning is issues, and decoding of pictures with POC 
- * equal to or greater than the random access point POC is attempted. For non IDR/CRA random 
- * access point there is no guarantee that the decoder will not crash.
-#endif
  */
 Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
 {
@@ -855,7 +715,6 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
   }
   else if (m_pocRandomAccess == MAX_INT) // start of random access point, m_pocRandomAccess has not been set yet.
   {
-#if CRA_BLA_TFD_MODIFICATIONS
     if (   m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_CRA
         || m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_CRANT
         || m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLA
@@ -864,12 +723,6 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
       // set the POC random access since we need to skip the reordered pictures in the case of CRA/CRANT/BLA/BLANT.
       m_pocRandomAccess = m_apcSlicePilot->getPOC();
     }
-#else
-    if (m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_CRA)
-    {
-      m_pocRandomAccess = m_apcSlicePilot->getPOC(); // set the POC random access since we need to skip the reordered pictures in CRA.
-    }
-#endif
     else if (m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_IDR)
     {
       m_pocRandomAccess = 0; // no need to skip the reordered pictures in IDR, they are decodable.
@@ -885,20 +738,12 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
       return true;
     }
   }
-#if CRA_BLA_TFD_MODIFICATIONS
   // skip the reordered pictures, if necessary
   else if (m_apcSlicePilot->getPOC() < m_pocRandomAccess && m_apcSlicePilot->getNalUnitType() == NAL_UNIT_CODED_SLICE_TFD)
   {
     iPOCLastDisplay++;
     return true;
   }
-#else
-  else if (m_apcSlicePilot->getPOC() < m_pocRandomAccess)  // skip the reordered pictures if necessary
-  {
-    iPOCLastDisplay++;
-    return true;
-  }
-#endif
   // if we reach here, then the picture is not skipped.
   return false; 
 }
@@ -908,9 +753,6 @@ Void TDecTop::allocAPS (TComAPS* pAPS)
   // we don't know the SPS before it has been activated. These fields could exist
   // depending on the corresponding flags in the APS, but SAO/ALF allocation functions will
   // have to be moved for that
-#if !SCALING_LIST_HL_SYNTAX
-  pAPS->createScalingList();
-#endif
   pAPS->createSaoParam();
   m_cSAO.allocSaoParam(pAPS->getSaoParam());
   pAPS->createAlfParam();
