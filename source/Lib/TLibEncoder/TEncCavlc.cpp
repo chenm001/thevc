@@ -335,9 +335,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_CODE( pcSPS->getLevelIdc (),       8,       "level_idc" );
   WRITE_CODE( pcSPS->getProfileCompat (), 32,       "profile_compatibility" );
   WRITE_UVLC( pcSPS->getSPSId (),                   "seq_parameter_set_id" );
-#if VPS_INTEGRATION
   WRITE_UVLC( pcSPS->getVPSId (),                   "video_parameter_set_id" );
-#endif
   WRITE_UVLC( pcSPS->getChromaFormatIdc (),         "chroma_format_idc" );
   WRITE_CODE( pcSPS->getMaxTLayers() - 1,  3,       "max_temporal_layers_minus1" );
   WRITE_UVLC( pcSPS->getPicWidthInLumaSamples (),   "pic_width_in_luma_samples" );
@@ -451,7 +449,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_FLAG( 0, "sps_extension_flag" );
 }
 
-#if VPS_INTEGRATION
 Void TEncCavlc::codeVPS( TComVPS* pcVPS )
 {
   WRITE_CODE( pcVPS->getMaxTLayers() - 1,     3,        "vps_max_temporal_layers_minus1" );
@@ -471,7 +468,6 @@ Void TEncCavlc::codeVPS( TComVPS* pcVPS )
   
   return;
 }
-#endif
 
 Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 {

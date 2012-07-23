@@ -67,7 +67,6 @@ TAppEncTop::~TAppEncTop()
 
 Void TAppEncTop::xInitLibCfg()
 {
-#if VPS_INTEGRATION
   TComVPS vps;
   
   vps.setMaxTLayers                       ( m_maxTempLayer );
@@ -78,7 +77,6 @@ Void TAppEncTop::xInitLibCfg()
     vps.setMaxDecPicBuffering             ( m_maxDecPicBuffering[i], i );
   }
   m_cTEncTop.setVPS(&vps);
-#endif
   m_cTEncTop.setFrameRate                    ( m_iFrameRate );
   m_cTEncTop.setFrameSkip                    ( m_FrameSkip );
   m_cTEncTop.setSourceWidth                  ( m_iSourceWidth );
@@ -452,9 +450,7 @@ void TAppEncTop::rateStatsAccum(const AccessUnit& au, const std::vector<unsigned
     case NAL_UNIT_CODED_SLICE_BLA:
     case NAL_UNIT_CODED_SLICE_BLANT:
     case NAL_UNIT_CODED_SLICE_IDR:
-#if VPS_INTEGRATION
     case NAL_UNIT_VPS:
-#endif
     case NAL_UNIT_SPS:
     case NAL_UNIT_PPS:
       m_essentialBytes += *it_stats;

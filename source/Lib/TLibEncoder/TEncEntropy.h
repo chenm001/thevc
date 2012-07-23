@@ -68,9 +68,7 @@ public:
   virtual UInt  getNumberOfWrittenBits()                = 0;
   virtual UInt  getCoeffCost          ()                = 0;
 
-#if VPS_INTEGRATION
   virtual Void  codeVPS                 ( TComVPS* pcVPS )                                      = 0;
-#endif
   virtual Void  codeSPS                 ( TComSPS* pcSPS )                                      = 0;
   virtual Void  codePPS                 ( TComPPS* pcPPS )                                      = 0;
   virtual void codeSEI(const SEI&) = 0;
@@ -166,9 +164,7 @@ public:
   TEncEntropyIf*      m_pcEntropyCoderIf;
   
 public:
-#if VPS_INTEGRATION
   Void encodeVPS               ( TComVPS* pcVPS);
-#endif
   // SPS
   Void encodeSPS               ( TComSPS* pcSPS );
   Void encodePPS               ( TComPPS* pcPPS );

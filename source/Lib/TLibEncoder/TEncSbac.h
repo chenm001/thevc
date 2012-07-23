@@ -89,9 +89,7 @@ public:
   UInt  getNumberOfWrittenBits ()                { return m_pcBinIf->getNumWrittenBits(); }
   //--SBAC RD
 
-#if VPS_INTEGRATION
   Void  codeVPS                 ( TComVPS* pcVPS );
-#endif
   Void  codeSPS                 ( TComSPS* pcSPS     );
   Void  codePPS                 ( TComPPS* pcPPS     );
   void codeSEI(const SEI&);

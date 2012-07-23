@@ -77,9 +77,7 @@ public:
 
   Void  resetEntropy (TComSlice* pSlice );
   Void  setBitstream              ( TComInputBitstream* p  ) { m_pcBitstream = p; m_pcTDecBinIf->init( p ); }
-#if VPS_INTEGRATION
   Void  parseVPS                  ( TComVPS* pcVPS )  {}
-#endif
   Void  parseSPS                  ( TComSPS* pcSPS         ) {}
   Void  parsePPS                  ( TComPPS* pcPPS         ) {}
   Void  parseAPS                  ( TComAPS* pAPS          ) {}

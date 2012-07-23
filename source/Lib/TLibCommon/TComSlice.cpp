@@ -1181,7 +1181,6 @@ Void  TComSlice::initWpScaling(wpScalingParam  wp[2][MAX_NUM_REF][3])
 // ------------------------------------------------------------------------------------------------
 // Video parameter set (VPS)
 // ------------------------------------------------------------------------------------------------
-#if VPS_INTEGRATION
 TComVPS::TComVPS()
 : m_VPSId                     (  0)
 , m_uiMaxTLayers              (  1)
@@ -1203,8 +1202,6 @@ TComVPS::~TComVPS()
 
 }
 
-#endif
-
 // ------------------------------------------------------------------------------------------------
 // Sequence parameter set (SPS)
 // ------------------------------------------------------------------------------------------------
@@ -1216,9 +1213,7 @@ TComSPS::TComSPS()
 , m_ReservedIndicatorFlags    (  0)
 , m_LevelIdc                  (  0)
 , m_ProfileCompatibility      (  0)
-#if VPS_INTEGRATION
 , m_VPSId                     (  0)
-#endif
 , m_chromaFormatIdc           (CHROMA_420)
 , m_uiMaxTLayers              (  1)
 // Structure
@@ -1813,12 +1808,8 @@ Void TComScalingList::checkDcOfMatrix()
 }
 
 ParameterSetManager::ParameterSetManager()
-#if VPS_INTEGRATION 
 : m_vpsMap(MAX_NUM_VPS)
 , m_spsMap(MAX_NUM_SPS)
-#else
-: m_spsMap(MAX_NUM_SPS)
-#endif
 , m_ppsMap(MAX_NUM_PPS)
 , m_apsMap(MAX_NUM_APS)
 {

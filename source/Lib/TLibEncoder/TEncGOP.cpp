@@ -656,7 +656,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       /* write various header sets. */
       if ( m_bSeqFirst )
       {
-#if VPS_INTEGRATION
         OutputNALUnit nalu(NAL_UNIT_VPS, true);
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodeVPS(m_pcEncTop->getVPS());
@@ -664,9 +663,6 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         accessUnit.push_back(new NALUnitEBSP(nalu));
         
         nalu = NALUnit(NAL_UNIT_SPS, true);
-#else
-        OutputNALUnit nalu(NAL_UNIT_SPS, true);
-#endif
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
         m_pcEntropyCoder->encodeSPS(pcSlice->getSPS());
         writeRBSPTrailingBits(nalu.m_Bitstream);

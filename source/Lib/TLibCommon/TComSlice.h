@@ -183,7 +183,6 @@ private:
   Int      *m_scalingListCoef            [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< quantization matrix
 };
 
-#if VPS_INTEGRATION
 /// VPS class
 
 class TComVPS
@@ -225,8 +224,6 @@ public:
   
 };
 
-#endif
-
 /// SPS class
 class TComSPS
 {
@@ -237,9 +234,7 @@ private:
   Int         m_ReservedIndicatorFlags;
   Int         m_LevelIdc;
   UInt        m_ProfileCompatibility;
-#if VPS_INTEGRATION
   Int         m_VPSId;
-#endif
   Int         m_chromaFormatIdc;
 
   UInt        m_uiMaxTLayers;           // maximum number of temporal layers
@@ -322,10 +317,8 @@ public:
   TComSPS();
   virtual ~TComSPS();
 
-#if VPS_INTEGRATION
   Int  getVPSId       ()         { return m_VPSId;          }
   Void setVPSId       (Int i)    { m_VPSId = i;             }
-#endif
   Int  getSPSId       ()         { return m_SPSId;          }
   Void setSPSId       (Int i)    { m_SPSId = i;             }
   Int  getProfileSpace  ()       { return m_ProfileSpace;   }
@@ -778,9 +771,7 @@ private:
   Bool        m_bRefenced;
   
   // access channel
-#if VPS_INTEGRATION
   TComVPS*    m_pcVPS;
-#endif
   TComSPS*    m_pcSPS;
   TComPPS*    m_pcPPS;
   TComPic*    m_pcPic;
@@ -849,10 +840,8 @@ public:
   Void      initSlice       ();
   Void      initTiles();
 
-#if VPS_INTEGRATION
   Void      setVPS          ( TComVPS* pcVPS ) { m_pcVPS = pcVPS; }
   TComVPS*  getVPS          () { return m_pcVPS; }
-#endif
   Void      setSPS          ( TComSPS* pcSPS ) { m_pcSPS = pcSPS; }
   TComSPS*  getSPS          () { return m_pcSPS; }
   
@@ -1150,13 +1139,12 @@ public:
   ParameterSetManager();
   virtual ~ParameterSetManager();
 
-#if VPS_INTEGRATION
   //! store sequence parameter set and take ownership of it 
   Void storeVPS(TComVPS *vps) { m_vpsMap.storePS( vps->getVPSId(), vps); };
   //! get pointer to existing video parameter set  
   TComVPS* getVPS(Int vpsId)  { return m_vpsMap.getPS(vpsId); };
   TComVPS* getFirstVPS()      { return m_vpsMap.getFirstPS(); };
-#endif
+  
   //! store sequence parameter set and take ownership of it 
   Void storeSPS(TComSPS *sps) { m_spsMap.storePS( sps->getSPSId(), sps); };
   //! get pointer to existing sequence parameter set  
@@ -1176,9 +1164,7 @@ public:
 
 protected:
   
-#if VPS_INTEGRATION
   ParameterSetMap<TComVPS> m_vpsMap;
-#endif
   ParameterSetMap<TComSPS> m_spsMap; 
   ParameterSetMap<TComPPS> m_ppsMap; 
   ParameterSetMap<TComAPS> m_apsMap; 
