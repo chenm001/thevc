@@ -464,11 +464,11 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
       free(rowHeight);  
     }
 
-  if(pcPPS->getNumColumnsMinus1() !=0 || pcPPS->getNumRowsMinus1() !=0)
-  {
-    READ_FLAG ( uiCode, "loop_filter_across_tiles_enabled_flag" );  
-    pcPPS->setLFCrossTileBoundaryFlag( (uiCode == 1)?true:false );
-  }
+    if(pcPPS->getNumColumnsMinus1() !=0 || pcPPS->getNumRowsMinus1() !=0)
+    {
+      READ_FLAG ( uiCode, "loop_filter_across_tiles_enabled_flag" );  
+      pcPPS->setLFCrossTileBoundaryFlag( (uiCode == 1)?true:false );
+    }
   }
 #if DEPENDENT_SLICES
   else if( pcPPS->getTilesOrEntropyCodingSyncIdc()==3 )
@@ -771,7 +771,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       rpcSlice->setNextSlice        ( false );
       rpcSlice->setNextDependentSlice( true  );
 #if BYTE_ALIGNMENT
-       m_pcBitstream->readByteAlignment();
+      m_pcBitstream->readByteAlignment();
 #else
       m_pcBitstream->readOutTrailingBits();
 #endif
@@ -1683,30 +1683,30 @@ Void TDecCavlc::parseScalingList(TComScalingList* scalingList)
 {
   UInt  code, sizeId, listId;
   Bool scalingListPredModeFlag;
-    //for each size
-    for(sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
+  //for each size
+  for(sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
+  {
+    for(listId = 0; listId <  g_scalingListNum[sizeId]; listId++)
     {
-      for(listId = 0; listId <  g_scalingListNum[sizeId]; listId++)
+      READ_FLAG( code, "scaling_list_pred_mode_flag");
+      scalingListPredModeFlag = (code) ? true : false;
+      if(!scalingListPredModeFlag) //Copy Mode
       {
-        READ_FLAG( code, "scaling_list_pred_mode_flag");
-        scalingListPredModeFlag = (code) ? true : false;
-        if(!scalingListPredModeFlag) //Copy Mode
+        READ_UVLC( code, "scaling_list_pred_matrix_id_delta");
+        scalingList->setRefMatrixId (sizeId,listId,(UInt)((Int)(listId)-(code)));
+        if( sizeId > SCALING_LIST_8x8 )
         {
-          READ_UVLC( code, "scaling_list_pred_matrix_id_delta");
-          scalingList->setRefMatrixId (sizeId,listId,(UInt)((Int)(listId)-(code)));
-          if( sizeId > SCALING_LIST_8x8 )
-          {
-            scalingList->setScalingListDC(sizeId,listId,((listId == scalingList->getRefMatrixId (sizeId,listId))? 16 :scalingList->getScalingListDC(sizeId, scalingList->getRefMatrixId (sizeId,listId))));
-          }
-          scalingList->processRefMatrix( sizeId, listId, scalingList->getRefMatrixId (sizeId,listId));
+          scalingList->setScalingListDC(sizeId,listId,((listId == scalingList->getRefMatrixId (sizeId,listId))? 16 :scalingList->getScalingListDC(sizeId, scalingList->getRefMatrixId (sizeId,listId))));
+        }
+        scalingList->processRefMatrix( sizeId, listId, scalingList->getRefMatrixId (sizeId,listId));
 
-        }
-        else //DPCM Mode
-        {
-          xDecodeScalingList(scalingList, sizeId, listId);
-        }
+      }
+      else //DPCM Mode
+      {
+        xDecodeScalingList(scalingList, sizeId, listId);
       }
     }
+  }
 
   return;
 }

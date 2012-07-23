@@ -595,7 +595,7 @@ Void TDecSbac::parsePartSize( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth 
     {
       if (eMode == SIZE_2NxN)
       {
-          m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUAMPSCModel.get( 0, 0, 0 ));
+        m_pcTDecBinIf->decodeBin(uiSymbol, m_cCUAMPSCModel.get( 0, 0, 0 ));
         if (uiSymbol == 0)
         {
           m_pcTDecBinIf->decodeBinEP(uiSymbol);
@@ -790,7 +790,6 @@ Void TDecSbac::parseMvd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPartIdx, UI
   }
   else
   {
-
     m_pcTDecBinIf->decodeBin( uiHorAbs, *pCtx );
     m_pcTDecBinIf->decodeBin( uiVerAbs, *pCtx );
 
@@ -1190,10 +1189,10 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     }
     else
     {
-        UInt uiSigCoeffGroup;
-        UInt uiCtxSig  = TComTrQuant::getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiScanIdx, uiWidth, uiHeight );
-        m_pcTDecBinIf->decodeBin( uiSigCoeffGroup, baseCoeffGroupCtx[ uiCtxSig ] );
-        uiSigCoeffGroupFlag[ iCGBlkPos ] = uiSigCoeffGroup;
+      UInt uiSigCoeffGroup;
+      UInt uiCtxSig  = TComTrQuant::getSigCoeffGroupCtxInc( uiSigCoeffGroupFlag, iCGPosX, iCGPosY, uiScanIdx, uiWidth, uiHeight );
+      m_pcTDecBinIf->decodeBin( uiSigCoeffGroup, baseCoeffGroupCtx[ uiCtxSig ] );
+      uiSigCoeffGroupFlag[ iCGBlkPos ] = uiSigCoeffGroup;
     }
 
     // decode significant_coeff_flag
@@ -1392,6 +1391,7 @@ Void TDecSbac::parseSaoUflc (UInt&  riVal)
 {
   m_pcTDecBinIf->decodeBinsEP ( riVal, 5 );
 }
+
 Void TDecSbac::parseSaoMergeLeft (UInt&  ruiVal, UInt uiCompIdx)
 {
   UInt uiCode;
@@ -1405,6 +1405,7 @@ Void TDecSbac::parseSaoMergeUp (UInt&  ruiVal)
   m_pcTDecBinIf->decodeBin( uiCode, m_cSaoMergeUpSCModel.get( 0, 0, 0 ) );
   ruiVal = (Int)uiCode;
 }
+
 Void TDecSbac::parseSaoTypeIdx (UInt&  ruiVal)
 {
   UInt uiCode;
@@ -1458,6 +1459,7 @@ inline Void copySaoOneLcuParam(SaoLcuParam* psDst,  SaoLcuParam* psSrc)
     }
   }
 }
+
 Void TDecSbac::parseSaoOffset(SaoLcuParam* psSaoLcuParam)
 {
   UInt uiSymbol;

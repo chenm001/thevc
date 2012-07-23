@@ -228,11 +228,9 @@ Void TDecGop::filterPicture(TComPic*& rpcPic)
   {
     if(pcSlice->getSaoEnabledFlag())
     {
-      {
-        pcSlice->getAPS()->getSaoParam()->bSaoFlag[0] = pcSlice->getSaoEnabledFlag();
-        pcSlice->getAPS()->getSaoParam()->bSaoFlag[1] = pcSlice->getSaoEnabledFlagCb();
-        pcSlice->getAPS()->getSaoParam()->bSaoFlag[2] = pcSlice->getSaoEnabledFlagCr();
-      }
+      pcSlice->getAPS()->getSaoParam()->bSaoFlag[0] = pcSlice->getSaoEnabledFlag();
+      pcSlice->getAPS()->getSaoParam()->bSaoFlag[1] = pcSlice->getSaoEnabledFlagCb();
+      pcSlice->getAPS()->getSaoParam()->bSaoFlag[2] = pcSlice->getSaoEnabledFlagCr();
       m_pcSAO->setSaoLcuBasedOptimization(1);
       m_pcSAO->createPicSaoInfo(rpcPic, (Int) m_sliceStartCUAddress.size() - 1);
       m_pcSAO->SAOProcess(rpcPic, pcSlice->getAPS()->getSaoParam());  
@@ -246,8 +244,8 @@ Void TDecGop::filterPicture(TComPic*& rpcPic)
   {
     m_pcAdaptiveLoopFilter->createPicAlfInfo(rpcPic, (Int) m_sliceStartCUAddress.size()-1);
     m_pcAdaptiveLoopFilter->ALFProcess(rpcPic, pcSlice->getAPS()->getAlfParam(), m_sliceAlfEnabled);
-      m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
-      m_pcAdaptiveLoopFilter->destroyPicAlfInfo();
+    m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
+    m_pcAdaptiveLoopFilter->destroyPicAlfInfo();
   }
 
   if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
@@ -344,7 +342,7 @@ static void calcAndPrintHashStatus(TComPicYuv& pic, const SEImessages* seis)
 
   if (seis && seis->picture_digest)
   {
-   ok = "(OK)";
+    ok = "(OK)";
     for(int yuvIdx = 0; yuvIdx < 3; yuvIdx++)
     {
       for (unsigned i = 0; i < numChar; i++)
