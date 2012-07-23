@@ -169,10 +169,6 @@ public:
 
   Int      getScalingListDC               (UInt sizeId, UInt listId)           { return m_scalingListDC[sizeId][listId]; }   //!< get DC value
   Void     checkDcOfMatrix                ();
-#if !SCALING_LIST_SIMPLYFY
-  Void     setUseDefaultScalingMatrixFlag (UInt sizeId, UInt listId, Bool b)   { m_useDefaultScalingMatrixFlag[sizeId][listId] = b;    } //!< set default matrix enabled/disabled in each matrix
-  Bool     getUseDefaultScalingMatrixFlag (UInt sizeId, UInt listId)           { return m_useDefaultScalingMatrixFlag[sizeId][listId]; } //!< get default matrix enabled/disabled in each matrix
-#endif
   Void     processRefMatrix               (UInt sizeId, UInt listId , UInt refListId );
   Bool     xParseScalingList              (char* pchFile);
 
@@ -718,10 +714,6 @@ public:
 
   Int      getScalingListDC               (UInt sizeId, UInt listId)           { return m_scalingListDC[sizeId][listId]; }   //!< get DC value
   Void     checkDcOfMatrix                ();
-#if !SCALING_LIST_SIMPLYFY
-  Void     setUseDefaultScalingMatrixFlag (UInt sizeId, UInt listId, Bool b)   { m_useDefaultScalingMatrixFlag[sizeId][listId] = b;    } //!< set default matrix enabled/disabled in each matrix
-  Bool     getUseDefaultScalingMatrixFlag (UInt sizeId, UInt listId)           { return m_useDefaultScalingMatrixFlag[sizeId][listId]; } //!< get default matrix enabled/disabled in each matrix
-#endif
   Void     processRefMatrix               (UInt sizeId, UInt listId , UInt refListId );
   Bool     xParseScalingList              (char* pchFile);
 

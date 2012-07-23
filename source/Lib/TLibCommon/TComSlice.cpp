@@ -1683,12 +1683,8 @@ Bool TComSlice::checkDefaultScalingList()
   {
     for(UInt listId=0;listId<g_scalingListNum[sizeId];listId++)
     {
-#if SCALING_LIST_SIMPLYFY
       if( !memcmp(getScalingList()->getScalingListAddress(sizeId,listId), getScalingList()->getScalingListDefaultAddress(sizeId, listId),sizeof(Int)*min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId])) // check value of matrix
      && ((sizeId < SCALING_LIST_16x16) || (getScalingList()->getScalingListDC(sizeId,listId) == 16))) // check DC value
-#else
-      if(getScalingList()->getUseDefaultScalingMatrixFlag(sizeId,listId))
-#endif
       {
         defaultCounter++;
       }
@@ -1707,11 +1703,7 @@ Bool TComSlice::checkDefaultScalingList()
  */
 Void TComScalingList::processRefMatrix( UInt sizeId, UInt listId , UInt refListId )
 {
-#if SCALING_LIST_SIMPLYFY
   ::memcpy(getScalingListAddress(sizeId, listId),((listId == refListId)? getScalingListDefaultAddress(sizeId, refListId): getScalingListAddress(sizeId, refListId)),sizeof(Int)*min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId]));
-#else
-  ::memcpy(getScalingListAddress(sizeId, listId),getScalingListAddress(sizeId, refListId),sizeof(Int)*min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId]));
-#endif
 }
 /** parse syntax infomation 
  *  \param pchFile syntax infomation
@@ -1853,9 +1845,6 @@ Int* TComScalingList::getScalingListDefaultAddress(UInt sizeId, UInt listId)
 Void TComScalingList::processDefaultMarix(UInt sizeId, UInt listId)
 {
   ::memcpy(getScalingListAddress(sizeId, listId),getScalingListDefaultAddress(sizeId,listId),sizeof(Int)*min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId]));
-#if !SCALING_LIST_SIMPLYFY
-  setUseDefaultScalingMatrixFlag(sizeId,listId,true);
-#endif
   setScalingListDC(sizeId,listId,SCALING_LIST_DC);
 }
 /** check DC value of matrix for default matrix signaling
@@ -1866,9 +1855,6 @@ Void TComScalingList::checkDcOfMatrix()
   {
     for(UInt listId = 0; listId < g_scalingListNum[sizeId]; listId++)
     {
-#if !SCALING_LIST_SIMPLYFY
-      setUseDefaultScalingMatrixFlag(sizeId,listId,false);
-#endif
       //check default matrix?
       if(getScalingListDC(sizeId,listId) == 0)
       {

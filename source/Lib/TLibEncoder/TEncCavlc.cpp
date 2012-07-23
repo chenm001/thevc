@@ -1347,11 +1347,7 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
         WRITE_FLAG( scalingListPredModeFlag, "scaling_list_pred_mode_flag" );
         if(!scalingListPredModeFlag)// Copy Mode
         {
-#if SCALING_LIST_SIMPLYFY
           WRITE_UVLC( (Int)listId - (Int)scalingList->getRefMatrixId (sizeId,listId), "scaling_list_pred_matrix_id_delta");
-#else
-          WRITE_UVLC( (Int)listId - (Int)scalingList->getRefMatrixId (sizeId,listId) - 1, "scaling_list_pred_matrix_id_delta");
-#endif
         }
         else// DPCM Mode
         {
@@ -1388,18 +1384,6 @@ Void TEncCavlc::xCodeScalingList(TComScalingList* scalingList, UInt sizeId, UInt
   Int nextCoef = SCALING_LIST_START_VALUE;
   Int data;
   Int *src = scalingList->getScalingListAddress(sizeId, listId);
-#if !SCALING_LIST_SIMPLYFY
-  if(sizeId > SCALING_LIST_8x8 && scalingList->getUseDefaultScalingMatrixFlag(sizeId,listId))
-  {
-    WRITE_SVLC( -8, "scaling_list_dc_coef_minus8");
-  }
-  else if(sizeId < SCALING_LIST_16x16 && scalingList->getUseDefaultScalingMatrixFlag(sizeId,listId))
-  {
-    WRITE_SVLC( -8, "scaling_list_delta_coef");
-  }
-  else
-  {
-#endif
     if( sizeId > SCALING_LIST_8x8 )
     {
       WRITE_SVLC( scalingList->getScalingListDC(sizeId,listId) - 8, "scaling_list_dc_coef_minus8");
@@ -1420,26 +1404,14 @@ Void TEncCavlc::xCodeScalingList(TComScalingList* scalingList, UInt sizeId, UInt
 
       WRITE_SVLC( data,  "scaling_list_delta_coef");
     }
-#if !SCALING_LIST_SIMPLYFY
-  }
-#endif
 }
 Bool TComScalingList::checkPredMode(UInt sizeId, UInt listId)
 {
-#if SCALING_LIST_SIMPLYFY
   for(Int predListIdx = (Int)listId ; predListIdx >= 0; predListIdx--)
-#else
-  for(Int predListIdx = (Int)listId -1 ; predListIdx >= 0; predListIdx--)
-#endif
   {
-#if SCALING_LIST_SIMPLYFY
     if( !memcmp(getScalingListAddress(sizeId,listId),((listId == predListIdx) ?
       getScalingListDefaultAddress(sizeId, predListIdx): getScalingListAddress(sizeId, predListIdx)),sizeof(Int)*min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId])) // check value of matrix
      && ((sizeId < SCALING_LIST_16x16) || (getScalingListDC(sizeId,listId) == getScalingListDC(sizeId,predListIdx)))) // check DC value
-#else
-    if( !memcmp(getScalingListAddress(sizeId,listId),getScalingListAddress(sizeId, predListIdx),sizeof(Int)*min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId])) // check value of matrix
-     && ((sizeId < SCALING_LIST_16x16) || (getScalingListDC(sizeId,listId) == getScalingListDC(sizeId,predListIdx)))) // check DC value
-#endif
     {
       setRefMatrixId(sizeId, listId, predListIdx);
       return false;
