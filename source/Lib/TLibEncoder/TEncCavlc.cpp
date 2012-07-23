@@ -1403,9 +1403,7 @@ Void TEncCavlc::xCodeScalingList(TComScalingList* scalingList, UInt sizeId, UInt
     if( sizeId > SCALING_LIST_8x8 )
     {
       WRITE_SVLC( scalingList->getScalingListDC(sizeId,listId) - 8, "scaling_list_dc_coef_minus8");
-#if SCALING_LIST_DPCM_IMPROVEMENT
       nextCoef = scalingList->getScalingListDC(sizeId,listId);
-#endif
     }
     for(Int i=0;i<coefNum;i++)
     {

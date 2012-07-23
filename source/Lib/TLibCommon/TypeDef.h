@@ -167,7 +167,6 @@
 #endif
 
 #define SCALING_LIST_OUTPUT_RESULT    0 //JCTVC-G880/JCTVC-G1016 quantization matrices
-#define SCALING_LIST_DPCM_IMPROVEMENT   1 //JCTVC-I0059. Improved DPCM coding for 16x16 and 32x32 matrices
 #define SCALING_LIST_SIMPLYFY         1 //JCTVC-I0059/I0101. Simplification of Default matrices coding
 #define SCALING_LIST_HL_SYNTAX        1 //JCTVC-I0465. Signalling of quantization matrices in SPS and PPS
 
