@@ -44,11 +44,7 @@
 class  WeightPredAnalysis
 {
   Bool m_weighted_pred_flag;
-#if REMOVE_IMPLICIT_WP
   Bool  m_weighted_bipred_flag;
-#else
-  Int  m_weighted_bipred_idc;
-#endif
   wpScalingParam  m_wp[2][MAX_NUM_REF][3];
 
   Int64   xCalcDCValueSlice(TComSlice *slice, Pel *pPel,Int *iSample);
@@ -69,11 +65,7 @@ public:
   // WP analysis :
   Bool  xCalcACDCParamSlice(TComSlice *slice);
   Bool  xEstimateWPParamSlice(TComSlice *slice);
-#if REMOVE_IMPLICIT_WP
   Void  xStoreWPparam(Bool weighted_pred_flag, Bool weighted_bipred_flag);
-#else
-  Void  xStoreWPparam(Bool weighted_pred_flag, Int weighted_bipred_idc);
-#endif
   Void  xRestoreWPparam(TComSlice *slice);
   Void  xCheckWPEnable(TComSlice *slice);
 };

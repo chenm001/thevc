@@ -398,11 +398,7 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setDependentSliceMode     ( m_pcCfg->getDependentSliceMode()     );
   rpcSlice->setDependentSliceArgument ( m_pcCfg->getDependentSliceArgument() );
   rpcSlice->setMaxNumMergeCand      (MRG_MAX_NUM_CANDS_SIGNALED);
-#if REMOVE_IMPLICIT_WP
   xStoreWPparam( pPPS->getUseWP(), pPPS->getWPBiPred() );
-#else
-  xStoreWPparam( pPPS->getUseWP(), pPPS->getWPBiPredIdc() );
-#endif
 }
 
 
@@ -685,27 +681,14 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
   //  Weighted Prediction parameters estimation.
   //------------------------------------------------------------------------------
   // calculate AC/DC values for current picture
-#if REMOVE_IMPLICIT_WP
   if( pcSlice->getPPS()->getUseWP() || pcSlice->getPPS()->getWPBiPred() )
-#else
-  if( pcSlice->getPPS()->getUseWP() || pcSlice->getPPS()->getWPBiPredIdc() )
-#endif
   {
     xCalcACDCParamSlice(pcSlice);
   }
 
-#if REMOVE_IMPLICIT_WP
   Bool bWp_explicit = (pcSlice->getSliceType()==P_SLICE && pcSlice->getPPS()->getUseWP()) || (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPred());
-#else
-  Bool bWp_explicit = (pcSlice->getSliceType()==P_SLICE && pcSlice->getPPS()->getUseWP()) || (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==1);
-  Bool bWp_implicit = (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPredIdc()==2);
-#endif
 
-#if REMOVE_IMPLICIT_WP
   if ( bWp_explicit )
-#else
-  if ( bWp_explicit || bWp_implicit )
-#endif
   {
     //------------------------------------------------------------------------------
     //  Weighted Prediction implemented at Slice level. SliceMode=2 is not supported yet.
@@ -715,25 +698,11 @@ Void TEncSlice::compressSlice( TComPic*& rpcPic )
       printf("Weighted Prediction is not supported with slice mode determined by max number of bins.\n"); exit(0);
     }
 
-#if !REMOVE_IMPLICIT_WP
-    if( bWp_explicit )
-    {
-#endif
     xEstimateWPParamSlice( pcSlice );
-#if !REMOVE_IMPLICIT_WP
-    }
-#endif    
     pcSlice->initWpScaling();
 
     // check WP on/off
-#if !REMOVE_IMPLICIT_WP
-    if( bWp_explicit )
-    {
-#endif
     xCheckWPEnable( pcSlice );
-#if !REMOVE_IMPLICIT_WP
-    }
-#endif
   }
 
 #if ADAPTIVE_QP_SELECTION

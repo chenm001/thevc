@@ -298,11 +298,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("PCMFilterDisableFlag", m_bPCMFilterDisableFlag, false)
     ("LosslessCuEnabled", m_useLossless, false)
     ("weighted_pred_flag,-wpP",     m_bUseWeightPred, false, "weighted prediction flag (P-Slices)")
-#if REMOVE_IMPLICIT_WP
     ("weighted_bipred_flag,-wpB",   m_useWeightedBiPred,    false,    "weighted bipred flag (B-Slices)")
-#else
-    ("weighted_bipred_idc,-wpBidc", m_uiBiPredIdc,    0u,    "weighted bipred idc (B-Slices)")
-#endif
     ("Log2ParallelMergeLevel",      m_log2ParallelMergeLevel,     2u,          "Parallel merge estimation region")
 #if !TILES_OR_ENTROPY_FIX
     ("TileInfoPresentFlag",         m_iColumnRowInfoPresent,         1,          "0: tiles parameters are NOT present in the PPS. 1: tiles parameters are present in the PPS")
@@ -1048,11 +1044,7 @@ Void TAppEncCfg::xPrintParameter()
 
   printf("LosslessCuEnabled:%d ", (m_useLossless)? 1:0 );
   printf("WPP:%d ", (Int)m_bUseWeightPred);
-#if REMOVE_IMPLICIT_WP
   printf("WPB:%d ", (Int)m_useWeightedBiPred);
-#else
-  printf("WPB:%d ", m_uiBiPredIdc);
-#endif
   printf("PME:%d ", m_log2ParallelMergeLevel);
   printf(" WaveFrontSynchro:%d WaveFrontFlush:%d WaveFrontSubstreams:%d",
           m_iWaveFrontSynchro, m_iWaveFrontFlush, m_iWaveFrontSubstreams);

@@ -595,11 +595,7 @@ Void TEncTop::xInitPPS()
   m_cPPS.setNumSubstreams(m_iWaveFrontSubstreams);
   m_cPPS.setTilesOrEntropyCodingSyncIdc( m_iWaveFrontSynchro ? 2 : ((m_iNumColumnsMinus1 > 0 || m_iNumRowsMinus1 > 0) ? 1 : 0));
   m_cPPS.setUseWP( m_bUseWeightPred );
-#if REMOVE_IMPLICIT_WP
   m_cPPS.setWPBiPred( m_useWeightedBiPred );
-#else
-  m_cPPS.setWPBiPredIdc( m_uiBiPredIdc );
-#endif
   m_cPPS.setOutputFlagPresentFlag( false );
   m_cPPS.setSignHideFlag(getSignHideFlag());
   m_cPPS.setDeblockingFilterControlPresent (m_DeblockingFilterControlPresent );

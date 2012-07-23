@@ -5639,11 +5639,7 @@ Void  TEncSearch::setWpScalingDistParam( TComDataCU* pcCU, Int iRefIdx, RefPicLi
   TComSlice       *pcSlice  = pcCU->getSlice();
   TComPPS         *pps      = pcCU->getSlice()->getPPS();
   wpScalingParam  *wp0 , *wp1;
-#if REMOVE_IMPLICIT_WP
   m_cDistParam.bApplyWeight = ( pcSlice->getSliceType()==P_SLICE && pps->getUseWP() ) || ( pcSlice->getSliceType()==B_SLICE && pps->getWPBiPred() ) ;
-#else
-  m_cDistParam.bApplyWeight = ( pcSlice->getSliceType()==P_SLICE && pps->getUseWP() ) || ( pcSlice->getSliceType()==B_SLICE && pps->getWPBiPredIdc() ) ;
-#endif
   if ( !m_cDistParam.bApplyWeight ) return;
 
   Int iRefIdx0 = ( eRefPicListCur == REF_PIC_LIST_0 ) ? iRefIdx : (-1);

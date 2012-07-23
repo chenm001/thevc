@@ -473,15 +473,9 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 
   READ_FLAG( uiCode, "weighted_pred_flag" );          // Use of Weighting Prediction (P_SLICE)
   pcPPS->setUseWP( uiCode==1 );
-#if REMOVE_IMPLICIT_WP
   READ_FLAG( uiCode, "weighted_bipred_flag" );         // Use of Bi-Directional Weighting Prediction (B_SLICE)
   pcPPS->setWPBiPred( uiCode==1 );
   printf("TDecCavlc::parsePPS():\tm_bUseWeightPred=%d\tm_uiBiPredIdc=%d\n", pcPPS->getUseWP(), pcPPS->getWPBiPred());
-#else
-  READ_CODE( 2, uiCode, "weighted_bipred_idc" );      // Use of Bi-Directional Weighting Prediction (B_SLICE)
-  pcPPS->setWPBiPredIdc( uiCode );
-  printf("TDecCavlc::parsePPS():\tm_bUseWeightPred=%d\tm_uiBiPredIdc=%d\n", pcPPS->getUseWP(), pcPPS->getWPBiPredIdc());
-#endif
 
   READ_FLAG( uiCode, "output_flag_present_flag" );
   pcPPS->setOutputFlagPresentFlag( uiCode==1 );
@@ -1310,11 +1304,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
         rpcSlice->setColRefIdx(uiCode);
       }
     }
-#if REMOVE_IMPLICIT_WP
     if ( (pps->getUseWP() && rpcSlice->getSliceType()==P_SLICE) || (pps->getWPBiPred() && rpcSlice->getSliceType()==B_SLICE) )
-#else
-    if ( (pps->getUseWP() && rpcSlice->getSliceType()==P_SLICE) || (pps->getWPBiPredIdc() && rpcSlice->getSliceType()==B_SLICE) )
-#endif
     {
       xParsePredWeightTable(rpcSlice);
       rpcSlice->initWpScaling();
@@ -1764,16 +1754,10 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
   UInt            uiLog2WeightDenomLuma, uiLog2WeightDenomChroma;
   UInt            uiMode      = 0;
 
-#if REMOVE_IMPLICIT_WP
   if ( (eSliceType==P_SLICE && pps->getUseWP()) || (eSliceType==B_SLICE && pps->getWPBiPred()) )
-#else
-  if ( (eSliceType==P_SLICE && pps->getUseWP()) || (eSliceType==B_SLICE && pps->getWPBiPredIdc()==1) )
-#endif
+  {
     uiMode = 1; // explicit
-#if !REMOVE_IMPLICIT_WP
-  else if ( eSliceType==B_SLICE && pps->getWPBiPredIdc()==2 )
-    uiMode = 2; // implicit
-#endif
+  }
   if ( uiMode == 1 )  // explicit
   {
     printf("\nTDecCavlc::xParsePredWeightTable(poc=%d) explicit...\n", pcSlice->getPOC());
@@ -1854,12 +1838,6 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
       }
     }
   }
-#if !REMOVE_IMPLICIT_WP
-  else if ( uiMode == 2 )  // implicit
-  {
-    printf("\nTDecCavlc::xParsePredWeightTable(poc=%d) implicit...\n", pcSlice->getPOC());
-  }
-#endif
   else
   {
     printf("\n wrong weight pred table syntax \n ");

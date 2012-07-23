@@ -594,11 +594,7 @@ private:
   Int         m_iSliceGranularity;
 
   Bool        m_bUseWeightPred;           // Use of Weighting Prediction (P_SLICE)
-#if REMOVE_IMPLICIT_WP
   Bool        m_useWeightedBiPred;        // Use of Weighting Bi-Prediction (B_SLICE)
-#else
-  UInt        m_uiBiPredIdc;              // Use of Weighting Bi-Prediction (B_SLICE)
-#endif
   Bool        m_OutputFlagPresentFlag;   // Indicates the presence of output_flag in slice header
 
   Bool        m_TransquantBypassEnableFlag; // Indicates presence of cu_transquant_bypass_flag in CUs.
@@ -681,17 +677,9 @@ public:
   UInt      getNumRefIdxL1DefaultActive()           { return m_numRefIdxL1DefaultActive; }
 
   Bool getUseWP                     ()          { return m_bUseWeightPred;  }
-#if REMOVE_IMPLICIT_WP
   Bool getWPBiPred                  ()          { return m_useWeightedBiPred;     }
-#else
-  UInt getWPBiPredIdc               ()          { return m_uiBiPredIdc;     }
-#endif
   Void setUseWP                     ( Bool b )  { m_bUseWeightPred = b;     }
-#if REMOVE_IMPLICIT_WP
   Void setWPBiPred                  ( Bool b )  { m_useWeightedBiPred = b;  }
-#else
-  Void setWPBiPredIdc               ( UInt u )  { m_uiBiPredIdc = u;        }
-#endif
   Void      setOutputFlagPresentFlag( Bool b )  { m_OutputFlagPresentFlag = b;    }
   Bool      getOutputFlagPresentFlag()          { return m_OutputFlagPresentFlag; }
 #if DEPENDENT_SLICES
@@ -1242,11 +1230,7 @@ public:
   Void  resetWpScaling  (wpScalingParam  wp[2][MAX_NUM_REF][3]);
   Void  initWpScaling    (wpScalingParam  wp[2][MAX_NUM_REF][3]);
   Void  initWpScaling   ();
-#if REMOVE_IMPLICIT_WP
   inline Bool applyWP   () { return( (m_eSliceType==P_SLICE && m_pcPPS->getUseWP()) || (m_eSliceType==B_SLICE && m_pcPPS->getWPBiPred()) ); }
-#else
-  inline Bool applyWP   () { return( (m_eSliceType==P_SLICE && m_pcPPS->getUseWP()) || (m_eSliceType==B_SLICE && m_pcPPS->getWPBiPredIdc()) ); }
-#endif
 
   Void  setWpAcDcParam  ( wpACDCParam wp[3] ) { memcpy(m_weightACDCParam, wp, sizeof(wpACDCParam)*3); }
   Void  getWpAcDcParam  ( wpACDCParam *&wp );
