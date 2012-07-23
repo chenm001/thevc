@@ -150,7 +150,7 @@ public:
   Int getNumberOfReferencePictureSets();
   Void setNumberOfReferencePictureSets(Int numberOfReferencePictureSets);
 };
-#if SCALING_LIST_HL_SYNTAX
+
 /// SCALING_LIST class
 class TComScalingList
 {
@@ -182,7 +182,6 @@ private:
   UInt     m_predMatrixId                [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< reference list index
   Int      *m_scalingListCoef            [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< quantization matrix
 };
-#endif
 
 #if VPS_INTEGRATION
 /// VPS class
@@ -309,10 +308,8 @@ private:
   Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
 
   Bool        m_scalingListEnabledFlag;
-#if SCALING_LIST_HL_SYNTAX
   Bool        m_scalingListPresentFlag;
   TComScalingList*     m_scalingList;   //!< ScalingList class pointer
-#endif
   UInt        m_uiMaxDecPicBuffering[MAX_TLAYER]; 
   UInt        m_uiMaxLatencyIncrease[MAX_TLAYER];
 
@@ -466,12 +463,10 @@ public:
 
   Bool getScalingListFlag       ()         { return m_scalingListEnabledFlag;     }
   Void setScalingListFlag       ( Bool b ) { m_scalingListEnabledFlag  = b;       }
-#if SCALING_LIST_HL_SYNTAX
   Bool getScalingListPresentFlag()         { return m_scalingListPresentFlag;     }
   Void setScalingListPresentFlag( Bool b ) { m_scalingListPresentFlag  = b;       }
   Void setScalingList      ( TComScalingList *scalingList);
   TComScalingList* getScalingList ()       { return m_scalingList; }               //!< get ScalingList class pointer in SPS
-#endif
   UInt getMaxDecPicBuffering  (UInt tlayer)            { return m_uiMaxDecPicBuffering[tlayer]; }
   Void setMaxDecPicBuffering  ( UInt ui, UInt tlayer ) { m_uiMaxDecPicBuffering[tlayer] = ui;   }
   UInt getMaxLatencyIncrease  (UInt tlayer)            { return m_uiMaxLatencyIncrease[tlayer];   }
@@ -560,10 +555,8 @@ private:
   Bool     m_loopFilterDisable;
   Int      m_loopFilterBetaOffsetDiv2;    //< beta offset for deblocking filter
   Int      m_loopFilterTcOffsetDiv2;      //< tc offset for deblocking filter
-#if SCALING_LIST_HL_SYNTAX
   Bool        m_scalingListPresentFlag;
   TComScalingList*     m_scalingList;   //!< ScalingList class pointer
-#endif
   UInt m_log2ParallelMergeLevelMinus2;
 public:
   TComPPS();
@@ -671,12 +664,10 @@ public:
   Int      getLoopFilterBetaOffset()           {return m_loopFilterBetaOffsetDiv2; }   //!< get beta offset for deblocking filter
   Void     setLoopFilterTcOffset(Int val)      {m_loopFilterTcOffsetDiv2 = val; }      //!< set tc offset for deblocking filter
   Int      getLoopFilterTcOffset()             {return m_loopFilterTcOffsetDiv2; }     //!< get tc offset for deblocking filter
-#if SCALING_LIST_HL_SYNTAX
   Bool     getScalingListPresentFlag()         { return m_scalingListPresentFlag;     }
   Void     setScalingListPresentFlag( Bool b ) { m_scalingListPresentFlag  = b;       }
   Void     setScalingList      ( TComScalingList *scalingList);
   TComScalingList* getScalingList ()          { return m_scalingList; }         //!< get ScalingList class pointer in PPS
-#endif
   UInt getLog2ParallelMergeLevelMinus2      ()                    { return m_log2ParallelMergeLevelMinus2; }
   Void setLog2ParallelMergeLevelMinus2      (UInt mrgLevel)       { m_log2ParallelMergeLevelMinus2 = mrgLevel; }
 
@@ -685,40 +676,6 @@ public:
   Void setSliceHeaderExtensionPresentFlag   (Bool val)            { m_sliceHeaderExtensionPresentFlag = val; }
 #endif
 };
-
-#if !SCALING_LIST_HL_SYNTAX
-/// SCALING_LIST class
-class TComScalingList
-{
-public:
-  TComScalingList();
-  virtual ~TComScalingList();
-  Void     setScalingListPresentFlag    (Bool b)                               { m_scalingListPresentFlag = b;    }
-  Bool     getScalingListPresentFlag    ()                                     { return m_scalingListPresentFlag; }
-  Int*     getScalingListAddress          (UInt sizeId, UInt listId)           { return m_scalingListCoef[sizeId][listId]; } //!< get matrix coefficient
-  Bool     checkPredMode                  (UInt sizeId, UInt listId);
-  Void     setRefMatrixId                 (UInt sizeId, UInt listId, UInt u)   { m_refMatrixId[sizeId][listId] = u;    }     //!< set reference matrix ID
-  UInt     getRefMatrixId                 (UInt sizeId, UInt listId)           { return m_refMatrixId[sizeId][listId]; }     //!< get reference matrix ID
-  Int*     getScalingListDefaultAddress   (UInt sizeId, UInt listId);                                                        //!< get default matrix coefficient
-  Void     processDefaultMarix            (UInt sizeId, UInt listId);
-  Void     setScalingListDC               (UInt sizeId, UInt listId, UInt u)   { m_scalingListDC[sizeId][listId] = u; }      //!< set DC value
-
-  Int      getScalingListDC               (UInt sizeId, UInt listId)           { return m_scalingListDC[sizeId][listId]; }   //!< get DC value
-  Void     checkDcOfMatrix                ();
-  Void     processRefMatrix               (UInt sizeId, UInt listId , UInt refListId );
-  Bool     xParseScalingList              (char* pchFile);
-
-private:
-  Void     init                    ();
-  Void     destroy                 ();
-  Int      m_scalingListDC               [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< the DC value of the matrix coefficient for 16x16
-  Bool     m_useDefaultScalingMatrixFlag [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< UseDefaultScalingMatrixFlag
-  UInt     m_refMatrixId                 [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< RefMatrixID
-  Bool     m_scalingListPresentFlag;                                                //!< flag for using default matrix
-  UInt     m_predMatrixId                [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< reference list index
-  Int      *m_scalingListCoef            [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< quantization matrix
-};
-#endif
 
 /// APS class
 class TComAPS
@@ -740,22 +697,10 @@ public:
   Void      createAlfParam();   //!< create ALF parameter object
   Void      destroyAlfParam();  //!< destroy ALF parameter object
 
-#if !SCALING_LIST_HL_SYNTAX
-  Void      createScalingList();
-  Void      destroyScalingList();
-  Void      setScalingListEnabled (Bool bVal) { m_scalingListEnabled = bVal; }  //!< set ScalingList enabled/disabled in APS
-  Bool      getScalingListEnabled ()          { return m_scalingListEnabled; }  //!< get ScalingList enabled/disabled in APS
-  TComScalingList* getScalingList ()          { return m_scalingList; }         //!< get ScalingList class pointer in APS
-#endif
-
 private:
   Int         m_apsID;        //!< APS ID
   SAOParam*   m_pSaoParam;    //!< SAO parameter object pointer 
   ALFParam*   m_alfParam[3];
-#if !SCALING_LIST_HL_SYNTAX
-  Bool        m_scalingListEnabled;     //!< ScalingList enabled/disabled in APS (true for enabled)
-  TComScalingList*     m_scalingList;   //!< ScalingList class pointer
-#endif
 public:
   TComAPS& operator= (const TComAPS& src);  //!< "=" operator for APS object
 };

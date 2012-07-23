@@ -1277,16 +1277,12 @@ TComSPS::TComSPS()
     m_uiMaxDecPicBuffering[i] = 0;
     m_numReorderPics[i]       = 0;
   }
-#if SCALING_LIST_HL_SYNTAX
   m_scalingList = new TComScalingList;
-#endif
 }
 
 TComSPS::~TComSPS()
 {
-#if SCALING_LIST_HL_SYNTAX
   delete m_scalingList;
-#endif
   m_RPSList.destroy();
 }
 
@@ -1328,9 +1324,7 @@ TComPPS::TComPPS()
 , m_sliceHeaderExtensionPresentFlag    (false)
 #endif
 {
-#if SCALING_LIST_HL_SYNTAX
   m_scalingList = new TComScalingList;
-#endif
 #if DEPENDENT_SLICES
   m_bDependentSlicesEnabledFlag = false;
   m_bCabacIndependentFlag = false;
@@ -1349,9 +1343,7 @@ TComPPS::~TComPPS()
     if (m_puiRowHeight) delete [] m_puiRowHeight;
     m_puiRowHeight = NULL;
   }
-#if SCALING_LIST_HL_SYNTAX
   delete m_scalingList;
-#endif
 }
 
 TComReferencePictureSet::TComReferencePictureSet()
@@ -1558,10 +1550,6 @@ TComAPS::TComAPS()
   m_apsID = 0;
   m_pSaoParam = NULL;
   m_alfParam[0] = m_alfParam[1] = m_alfParam[2] = NULL;
-#if !SCALING_LIST_HL_SYNTAX
-  m_scalingList = NULL;
-  m_scalingListEnabled = false;
-#endif
 }
 
 TComAPS::~TComAPS()
@@ -1572,9 +1560,6 @@ TComAPS::~TComAPS()
     delete m_alfParam[compIdx];
     m_alfParam[compIdx] = NULL;
   }
-#if !SCALING_LIST_HL_SYNTAX
-  delete m_scalingList;
-#endif
 }
 
 TComAPS& TComAPS::operator= (const TComAPS& src)
@@ -1585,10 +1570,6 @@ TComAPS& TComAPS::operator= (const TComAPS& src)
   {
     m_alfParam[compIdx] = src.m_alfParam[compIdx];
   }
-#if !SCALING_LIST_HL_SYNTAX
-  m_scalingList = src.m_scalingList;
-  m_scalingListEnabled = src.m_scalingListEnabled;
-#endif
   return *this;
 }
 
@@ -1625,17 +1606,6 @@ Void TComAPS::destroyAlfParam()
     }
   }
 }
-
-#if !SCALING_LIST_HL_SYNTAX
-Void TComAPS::createScalingList()
-{
-  m_scalingList = new TComScalingList;
-}
-Void TComAPS::destroyScalingList()
-{
-  delete m_scalingList;
-}
-#endif
 
 TComScalingList::TComScalingList()
 {
@@ -1676,11 +1646,7 @@ Bool TComSlice::checkDefaultScalingList()
       }
     }
   }
-#if SCALING_LIST_HL_SYNTAX
   return (defaultCounter == (SCALING_LIST_NUM * SCALING_LIST_SIZE_NUM - 4)) ? false : true; // -4 for 32x32
-#else
-  return (defaultCounter == (SCALING_LIST_NUM * SCALING_LIST_SIZE_NUM - 4)) ? true : false; // -4 for 32x32
-#endif
 }
 /** get scaling matrix from RefMatrixID
  * \param sizeId size index

@@ -167,7 +167,6 @@
 #endif
 
 #define SCALING_LIST_OUTPUT_RESULT    0 //JCTVC-G880/JCTVC-G1016 quantization matrices
-#define SCALING_LIST_HL_SYNTAX        1 //JCTVC-I0465. Signalling of quantization matrices in SPS and PPS
 
 #define CABAC_INIT_PRESENT_FLAG     1
 

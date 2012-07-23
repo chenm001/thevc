@@ -239,20 +239,14 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       {
         m_pcEncTop->getTrQuant()->setFlatScalingList();
         m_pcEncTop->getTrQuant()->setUseScalingList(false);
-#if SCALING_LIST_HL_SYNTAX
         m_pcEncTop->getSPS()->setScalingListPresentFlag(false);
         m_pcEncTop->getPPS()->setScalingListPresentFlag(false);
-#endif
       }
       else if(m_pcEncTop->getUseScalingListId() == SCALING_LIST_DEFAULT)
       {
         pcSlice->setDefaultScalingList ();
-#if SCALING_LIST_HL_SYNTAX
         m_pcEncTop->getSPS()->setScalingListPresentFlag(false);
         m_pcEncTop->getPPS()->setScalingListPresentFlag(false);
-#else
-        pcSlice->getScalingList()->setScalingListPresentFlag(true);
-#endif
         m_pcEncTop->getTrQuant()->setScalingList(pcSlice->getScalingList());
         m_pcEncTop->getTrQuant()->setUseScalingList(true);
       }
@@ -263,12 +257,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           pcSlice->setDefaultScalingList ();
         }
         pcSlice->getScalingList()->checkDcOfMatrix();
-#if SCALING_LIST_HL_SYNTAX
         m_pcEncTop->getSPS()->setScalingListPresentFlag(pcSlice->checkDefaultScalingList());
         m_pcEncTop->getPPS()->setScalingListPresentFlag(false);
-#else
-        pcSlice->getScalingList()->setScalingListPresentFlag(pcSlice->checkDefaultScalingList());
-#endif
         m_pcEncTop->getTrQuant()->setScalingList(pcSlice->getScalingList());
         m_pcEncTop->getTrQuant()->setUseScalingList(true);
       }
@@ -1224,16 +1214,6 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
 {
 
   cAPS.setAPSID(apsID);
-#if !SCALING_LIST_HL_SYNTAX
-  if(pcSlice->getPOC() == 0)
-  {
-    cAPS.setScalingListEnabled(pcSlice->getSPS()->getScalingListFlag());
-  }
-  else
-  {
-    cAPS.setScalingListEnabled(false);
-  }
-#endif
 
   //assign new APS into APS container
   Int apsBufSize= (Int)vAPS.size();
@@ -1260,12 +1240,6 @@ Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* p
   m_pcEntropyCoder->setBitstream(&APSbs);
 
   m_pcEntropyCoder->encodeAPSInitInfo(pcAPS);
-#if !SCALING_LIST_HL_SYNTAX
-  if(pcAPS->getScalingListEnabled())
-  {
-    m_pcEntropyCoder->encodeScalingList( pcSlice->getScalingList() );
-  }
-#endif
   for(Int compIdx=0; compIdx < 3; compIdx++)
   {
     m_pcEntropyCoder->encodeAlfParam( (pcAPS->getAlfParam())[compIdx]);

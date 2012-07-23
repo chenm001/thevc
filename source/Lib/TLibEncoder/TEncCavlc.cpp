@@ -153,10 +153,6 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
 #endif
   //APS ID
   WRITE_UVLC( pcAPS->getAPSID(), "aps_id" );
-
-#if !SCALING_LIST_HL_SYNTAX
-  WRITE_FLAG( pcAPS->getScalingListEnabled()?1:0, "aps_scaling_list_data_present_flag");
-#endif
 }
 
 Void TEncCavlc::codeDFFlag(UInt uiCode, const Char *pSymbolName)
@@ -313,7 +309,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
       }
     }
   }
-#if SCALING_LIST_HL_SYNTAX
   WRITE_FLAG( pcPPS->getScalingListPresentFlag() ? 1 : 0,                          "pps_scaling_list_data_present_flag" ); 
   if( pcPPS->getScalingListPresentFlag() )
   {
@@ -322,7 +317,6 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #endif
     codeScalingList( m_pcSlice->getScalingList() );
   }
-#endif
   WRITE_UVLC( pcPPS->getLog2ParallelMergeLevelMinus2(), "log2_parallel_merge_level_minus2");
 #if SLICE_HEADER_EXTENSION
   WRITE_FLAG( pcPPS->getSliceHeaderExtensionPresentFlag(), "slice_header_extension_present_flag");
@@ -410,7 +404,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthInter() - 1,                               "max_transform_hierarchy_depth_inter" );
   WRITE_UVLC( pcSPS->getQuadtreeTUMaxDepthIntra() - 1,                               "max_transform_hierarchy_depth_intra" );
   WRITE_FLAG( pcSPS->getScalingListFlag() ? 1 : 0,                                   "scaling_list_enabled_flag" ); 
-#if SCALING_LIST_HL_SYNTAX
   if(pcSPS->getScalingListFlag())
   {
     WRITE_FLAG( pcSPS->getScalingListPresentFlag() ? 1 : 0,                          "sps_scaling_list_data_present_flag" ); 
@@ -422,7 +415,6 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
       codeScalingList( m_pcSlice->getScalingList() );
     }
   }
-#endif
   WRITE_FLAG( pcSPS->getUseLMChroma () ? 1 : 0,                                      "chroma_pred_from_luma_enabled_flag" ); 
   WRITE_FLAG( pcSPS->getUseTransformSkip () ? 1 : 0,                                 "transform_skip_enabled_flag" ); 
   WRITE_FLAG( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0,                            "seq_loop_filter_across_slices_enabled_flag");
@@ -1289,15 +1281,6 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
   startTotalBit = m_pcBitIf->getNumberOfWrittenBits();
 #endif
 
-#if !SCALING_LIST_HL_SYNTAX
-  WRITE_FLAG( scalingList->getScalingListPresentFlag (), "scaling_list_present_flag" );
-
-  if(scalingList->getScalingListPresentFlag () == false)
-  {
-#if SCALING_LIST_OUTPUT_RESULT
-    printf("Header Bit %d\n",m_pcBitIf->getNumberOfWrittenBits()-startBit);
-#endif
-#endif
     //for each size
     for(sizeId = 0; sizeId < SCALING_LIST_SIZE_NUM; sizeId++)
     {
@@ -1321,16 +1304,7 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
 #endif
       }
     }
-#if !SCALING_LIST_HL_SYNTAX
-  }
-#endif
 #if SCALING_LIST_OUTPUT_RESULT
-#if !SCALING_LIST_HL_SYNTAX
-  else
-  {
-    printf("Header Bit %d\n",m_pcBitIf->getNumberOfWrittenBits()-startTotalBit);
-  }
-#endif
   printf("Total Bit %d\n",m_pcBitIf->getNumberOfWrittenBits()-startTotalBit);
 #endif
   return;

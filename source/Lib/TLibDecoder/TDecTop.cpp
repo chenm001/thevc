@@ -564,7 +564,6 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   pcPic->setCurrSliceIdx(m_uiSliceIdx);
   if(pcSlice->getSPS()->getScalingListFlag())
   {
-#if SCALING_LIST_HL_SYNTAX
     pcSlice->setScalingList ( pcSlice->getSPS()->getScalingList()  );
     if(pcSlice->getPPS()->getScalingListPresentFlag())
     {
@@ -575,17 +574,6 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
       pcSlice->setDefaultScalingList();
     }
     m_cTrQuant.setScalingListDec(pcSlice->getScalingList());
-#else
-    if(pcSlice->getAPS()->getScalingListEnabled())
-    {
-      pcSlice->setScalingList ( pcSlice->getAPS()->getScalingList()  );
-      if(pcSlice->getScalingList()->getScalingListPresentFlag())
-      {
-        pcSlice->setDefaultScalingList();
-      }
-      m_cTrQuant.setScalingListDec(pcSlice->getScalingList());
-    }
-#endif
     m_cTrQuant.setUseScalingList(true);
   }
   else
@@ -768,9 +756,6 @@ Void TDecTop::allocAPS (TComAPS* pAPS)
   // we don't know the SPS before it has been activated. These fields could exist
   // depending on the corresponding flags in the APS, but SAO/ALF allocation functions will
   // have to be moved for that
-#if !SCALING_LIST_HL_SYNTAX
-  pAPS->createScalingList();
-#endif
   pAPS->createSaoParam();
   m_cSAO.allocSaoParam(pAPS->getSaoParam());
   pAPS->createAlfParam();
