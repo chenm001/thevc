@@ -513,13 +513,6 @@ Must be a multiple of the chroma resolution (e.g. a multiple of two for
 4:2:0).
 \\
 
-\Option{PAD} &
-\ShortOption{\None} &
-\Default{false} &
-Enables automatic padding of the source to multiples of MAX_PAD_SIZE luma
-samples.
-\\
-
 \Option{CropLeft}%
 \Option{CropRight}%
 \Option{CropTop}%
@@ -784,13 +777,6 @@ based on statistics of previously coded frames.
 %% Entropy coding parameters
 %%
 \begin{OptionTable}{Entropy coding parameters}
-\Option{SymbolMode} &
-\ShortOption{-sym} &
-\Default{1} &
-Defines entropy coder to use. Value 0 is for low-complexity entropy
-coder (LCEC) and 1 for binary arithmetic coder.
-\\
-
 \Option{SBACRD} &
 \ShortOption{\None} &
 \Default{true} &
@@ -870,18 +856,6 @@ be encoded or decoded using one or more cores.
 Flag to disable the loop deblocking filter.
 \\
 
-\Option{LoopFilterAlphaC0Offset} &
-\ShortOption{\None} &
-\Default{0} &
-Defines alpha offset used in-loop deblocking filter.
-\\
-
-\Option{LoopFilterBetaOffset} &
-\ShortOption{\None} &
-\Default{0} &
-Defines beta offset used in-loop deblocking filter.
-\\
-
 \Option{LFCrossSliceBoundaryFlag} &
 \ShortOption{\None} &
 \Default{true} &
@@ -905,12 +879,6 @@ When disabled, the default deblocking filter parameters are used.
 %% Coding tools parameters
 %%
 \begin{OptionTable}{Coding tools parameters}
-\Option{MRG} &
-\ShortOption{\None} &
-\Default{true} &
-Defines use of the merge mode.
-\\
-
 \Option{ALF} &
 \ShortOption{\None} &
 \Default{true} &
