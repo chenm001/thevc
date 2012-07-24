@@ -237,7 +237,7 @@ QPFactor: Weight used during rate distortion optimization. Higher
 values mean lower quality and less bits. Typical range is between
 0.3 and 1.
 
-Temporal_id: Temporal layer of the frame. A frame cannot predict
+temporal_id: Temporal layer of the frame. A frame cannot predict
 from a frame with a higher temporal id. If a frame with higher
 temporal IDs is listed among a frame's reference pictures, it is
 not used, but is kept for possible use in future frames.
@@ -246,7 +246,7 @@ num_ref_pics_active: Size of reference picture lists L0 and L1,
 indicating how many reference pictures in each direction that are
 used during coding.
 
-Ref_pic: A value of 1 indicates that this is a reference picture,
+ref_pic: A value of 1 indicates that this is a reference picture,
 0 that it is a non-reference picture.
 
 num_ref_pics: The number of reference pictures kept for this frame.
@@ -254,7 +254,7 @@ This includes pictures that are used for reference for the
 current picture as well as pictures that will be used for
 reference in the future.
 
-Reference pictures: A space-separated list of num_ref_pics integers,
+reference pictures: A space-separated list of num_ref_pics integers,
 specifying the POC of the reference pictures kept, relative the
 POC of the current frame. The picture list shall be ordered,
 first with negative numbers from largest to smallest, followed by
@@ -263,14 +263,19 @@ Note that any pictures not supplied in this list will be
 discarded and therefore not available as reference pictures
 later.
 
-Predict: Defines the value of the syntax element
+predict: Defines the value of the syntax element
 inter_ref_pic_set_prediction_flag. A value of 0 indicates that
 the reference picture set is encoded without inter RPS prediction
 and the subsequent parameters deltaRIdx-1, deltaRPS, num_ref_idcs
 and Reference_idcs are ignored and do not need to be present. A
 value of 1 indicates that the reference picture set is encoded
-with inter prediction RPS using the subsequent parameters in the
-line.
+with inter prediction RPS using the subsequent parameters deltaRIdx-1,
+deltaRPS, num_ref_idcs and Reference_idcs in the line. A value of 2
+indicates that the reference picture set is encoded with inter RPS but
+only the deltaRIdx-1 parameters is needed. The deltaRPS, num_ref_idcs and
+Reference_idcs values are automatically derived by the encoder based on
+the POC and refPic values of the current line and the RPS pointed to by
+the deltaRIdx-1 parameters.
 
 deltaRIdx-1: The difference between the index of the curent RPS
 and the predictor RPS minus 1.
@@ -282,7 +287,7 @@ num_ref_idcs: The number of ref_idcs to encode for the current RPS.
 The value is equal to the value of  num_ref_pics of the predictor
 RPS plus 1.
 
-Reference idcs: A space-separated list of num_ref_idcs integers,
+reference idcs: A space-separated list of num_ref_idcs integers,
 specifying the ref idcs of the inter RPS prediction. The value of
 ref_idcs may be 0, 1 or 2 indicating that the reference picture
 is a reference picture used by the current picture, a reference
@@ -411,13 +416,13 @@ reference idcs[K][j] [ ]= 0[]
 
 }
 
-reference pictures[M][num_ref_pics[M]] is unavailable and assumed to
+reference pictures[M][num_ref_pics[M]] is does not exist and is assumed to
 be 0.
 
 Note: The above (automatic) generation of the inter RPS parameter
-values can be integrated into the encoder, and be indicated by
+values has been integrated into the encoder, and is activated by
 the value of predict = 2 followed by the value of deltaRIdx-1,
-only.[]
+only, as described above.
 
 
 
