@@ -740,6 +740,13 @@ Defines file name containing list of QP value deltas. The n-th line
 (where n is 0 for the first line) of this file corresponds to the QP
 value delta for the picture with POC value n.
 \\
+
+\Option{AdaptiveQpSelection} &
+\ShortOption{-aqps} &
+\Default{false} &
+Defines whether QP values for non-I frames will be calculated on the fly
+based on statistics of previously coded frames.
+\\
 \end{OptionTable}
 
 
@@ -938,6 +945,17 @@ If enabled specifies that loop-filtering on reconstructed samples of PCM
 blocks is skipped. Otherwise, it specifies that loop-filtering on
 reconstructed samples of PCM blocks is not skipped.
 % 0 = (loop-filtering is not skipped for PCM samples).
+\\
+
+\Option{SignHideFlag} &
+\ShortOption{-SBH} &
+\Default{true} &
+If enabled specifies that for each 4x4 coefficient group for which the
+number of coefficients between the first nonzero coefficient and the
+last nonzero coefficient along the scanning line exceeds 4, the sign bit
+of the first nonzero coefficient will not be directly transmitted in the
+bitstream, but may be inferred from the parity of the sum of all nonzero
+coefficients in the current coefficient group.
 \\
 \end{OptionTable}
 
