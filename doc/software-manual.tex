@@ -922,6 +922,36 @@ Enables the use of specific CABAC probabilities synchronization at the
 beginning of each line of CTBs in order to produce a bitstream that can
 be encoded or decoded using one or more cores.
 \\
+
+\Option{NumTileColumnsMinus1}%
+\Option{NumTileRowsMinus1} &
+\ShortOption{\None} &
+\Default{0} &
+Specifies the tile based picture partitioning geometry as
+$\mathrm{NumTileColumnsMinus1} + 1 \times \mathrm{NumTileRowsMinus1} + 1$
+columns and rows.
+\\
+
+\Option{UniformSpacingIdc} &
+\ShortOption{\None} &
+\Default{0} &
+Controls the mode used to determine per row and column tile sizes.
+\par
+\begin{tabular}{cp{0.45\textwidth}}
+ 0 & Each tile column width and tile row height is explicitly set
+     by ColumnWidthArray and RowHeightArray respectively \\
+ 1 & Tile columns and tile rows are uniformly spaced. \\
+\end{tabular}
+\\
+
+\Option{ColumnWidthArray}%
+\Option{RowHeightArray} &
+\ShortOption{\None} &
+\Default{\NotSet} &
+Specifies a space or comma separated list of widths and heights,
+respectively, of each tile column or tile row.  The first value in the
+list corresponds to the leftmost tile column or topmost tile row.
+\\
 \end{OptionTable}
 
 
