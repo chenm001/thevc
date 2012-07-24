@@ -1023,6 +1023,24 @@ of the first nonzero coefficient will not be directly transmitted in the
 bitstream, but may be inferred from the parity of the sum of all nonzero
 coefficients in the current coefficient group.
 \\
+
+\Option{TS} &
+\ShortOption{\None} &
+\Default{false} &
+Enables or disables transform-skipping mode decision for 4x4 TUs
+\footnote{Enables transform_skip_enabled and per 4x4 TU tests}.
+\\
+
+\Option{TSFast} &
+\ShortOption{\None} &
+\Default{false} &
+Enables or disables reduced testing of the transform-skipping mode
+decision for chroma TUs.  When enabled, no RDO search is performed for
+chroma TUs, instead they are transform-skipped if the four corresponding
+luma TUs are also skipped.
+\par
+This option has no effect if TS is disabled.
+\\
 \end{OptionTable}
 
 
