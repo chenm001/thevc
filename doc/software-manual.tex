@@ -716,6 +716,16 @@ SearchRagne’ = Round( SearchRange * ADAPT_SR_SCALE * abs( POCcur – POCref ) 
 %% Mode decision parameters
 %%
 \begin{OptionTable}{Mode decision parameters}
+\Option{LambdaModifier$N$} &
+\ShortOption{-LM$N$} &
+\Default{1.0} &
+Specifies a value that is multiplied with the Lagrange multiplier
+$\lambda$, for use in the rate-distortion optimised cost calculation
+when encoding temporal layer~$N$.
+\par
+$N$ may be in the range 0--7.
+\\
+
 \Option{FEN} &
 \ShortOption{\None} &
 \Default{false} &
