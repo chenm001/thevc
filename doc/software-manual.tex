@@ -961,6 +961,24 @@ reconstructed samples of PCM blocks is not skipped.
 % 0 = (loop-filtering is not skipped for PCM samples).
 \\
 
+\Option{weighted_pred_flag} &
+\ShortOption{-wpP} &
+\Default{false} &
+Controls the use of weighted prediction in P slices.
+\\
+
+\Option{weighted_bipred_idc} &
+\ShortOption{-wpB} &
+\Default{0} &
+Controls the use of weighted prediction in B slices.
+\par
+\begin{tabular}{cp{0.5\textwidth}}
+0 & Disabled \\
+1 & Explicit weighted prediction \\
+2 & Implicit weighted prediction \\
+\end{tabular}
+\\
+
 \Option{SignHideFlag} &
 \ShortOption{-SBH} &
 \Default{true} &
