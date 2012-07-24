@@ -1041,26 +1041,16 @@ Void TAppEncCfg::xPrintParameter()
 Void TAppEncCfg::xPrintUsage()
 {
   printf( "          <name> = ALF - adaptive loop filter\n");
-  printf( "                   IBD - bit-depth increasement\n");
-  printf( "                   GPB - generalized B instead of P in low-delay mode\n");
   printf( "                   HAD - hadamard ME for fractional-pel\n");
   printf( "                   SRD - SBAC based RD estimation\n");
   printf( "                   RDQ - RDOQ\n");
-  printf( "                   LDC - low-delay mode\n");
-  printf( "                   NRF - non-reference frame marking in last layer\n");
-  printf( "                   BQP - hier-P style QP assignment in low-delay mode\n");
   printf( "                   PAD - automatic source padding of multiple of 16\n");
   printf( "                   ASR - adaptive motion search range\n");
   printf( "                   FEN - fast encoder setting\n");  
   printf( "                   ECU - Early CU setting\n");
   printf( "                   CFM - Cbf fast mode setting\n");
   printf( "                   ESD - Early SKIP detection setting\n");
-  printf( "                   LMC - intra chroma prediction based on luma\n");
   printf( "\n" );
-  printf( "  Example 1) TAppEncoder.exe -c test.cfg -q 32 -g 8 -f 9 -s 64 -h 4\n");
-  printf("              -> QP 32, hierarchical-B GOP 8, 9 frames, 64x64-8x8 CU (~4x4 PU)\n\n");
-  printf( "  Example 2) TAppEncoder.exe -c test.cfg -q 32 -g 4 -f 9 -s 64 -h 4 -1 LDC\n");
-  printf("              -> QP 32, hierarchical-P GOP 4, 9 frames, 64x64-8x8 CU (~4x4 PU)\n\n");
 }
 
 Bool confirmPara(Bool bflag, const char* message)
@@ -1078,10 +1068,6 @@ void translateOldStyleCmdline(const char* value, po::Options& opts, const std::s
 {
   const char* argv[] = {arg.c_str(), value};
   /* replace some short names with their long name varients */
-  if (arg == "LDC")
-  {
-    argv[0] = "LowDelayCoding";
-  }
   else if (arg == "RDQ")
   {
     argv[0] = "RDOQ";
@@ -1094,10 +1080,6 @@ void translateOldStyleCmdline(const char* value, po::Options& opts, const std::s
   {
     argv[0] = "SBACRD";
   }
-  else if (arg == "IBD")
-  {
-    argv[0] = "BitIncrement";
-  }
   /* issue a warning for change in FEN behaviour */
   if (arg == "FEN")
   {
@@ -1108,11 +1090,6 @@ void translateOldStyleCmdline(const char* value, po::Options& opts, const std::s
 
 void doOldStyleCmdlineOn(po::Options& opts, const std::string& arg)
 {
-  if (arg == "IBD")
-  {
-    translateOldStyleCmdline("4", opts, arg);
-    return;
-  }
   translateOldStyleCmdline("1", opts, arg);
 }
 
