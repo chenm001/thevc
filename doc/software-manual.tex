@@ -968,6 +968,32 @@ When set to 1, only pixels from Intra blocks in the same slice as the
 current block will be marked as available for Intra prediction.
 \\
 
+\Option{TransquantBypassEnableFlag} &
+\ShortOption{\None} &
+\Default{false} &
+Enables or disables the ability to bypass the transform,
+quantization and filtering stages at CU level.
+This option corresponds to the value of
+transquant_bypass_enable_flag that is transmitted in the PPS.
+
+See CUTransquantBypassFlagValue for further details.
+\\
+
+\Option{CUTransquantBypassFlagValue} &
+\ShortOption{\None} &
+\Default{0} &
+Controls the per CU transformation, quantization and filtering
+mode decision.
+This option corresponds to the value of the per CU cu_transquant_bypass_flag.
+
+\begin{tabular}{cp{0.45\textwidth}}
+ 0 & Bypass is not performed on any CU \\
+ 1 & Bypass is performed on all CUs \\
+\end{tabular}
+
+This option has no effect if TransquantBypassEnableFlag is disabled.
+\\
+
 \Option{PCMEnabledFlag} &
 \ShortOption{\None} &
 \Default{false} &
