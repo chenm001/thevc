@@ -53,10 +53,6 @@ namespace po = df::program_options_lite;
 //! \ingroup TAppEncoder
 //! \{
 
-/* configuration helper funcs */
-void doOldStyleCmdlineOn(po::Options& opts, const std::string& arg);
-void doOldStyleCmdlineOff(po::Options& opts, const std::string& arg);
-
 // ====================================================================================================================
 // Local constants
 // ====================================================================================================================
@@ -318,9 +314,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("RateCtrl,-rc", m_enableRateCtrl, false, "Rate control on/off")
   ("TargetBitrate,-tbr", m_targetBitrate, 0, "Input target bitrate")
   ("NumLCUInUnit,-nu", m_numLCUInUnit, 0, "Number of LCUs in an Unit")
-  /* Compatability with old style -1 FOO or -0 FOO options. */
-  ("1", doOldStyleCmdlineOn, "turn option <name> on")
-  ("0", doOldStyleCmdlineOff, "turn option <name> off")
 
   ("TransquantBypassEnableFlag", m_TransquantBypassEnableFlag, false, "transquant_bypass_enable_flag indicator in PPS")
   ("CUTransquantBypassFlagValue", m_CUTransquantBypassFlagValue, false, "Fixed cu_transquant_bypass_flag value, when transquant_bypass_enable_flag is enabled")
@@ -343,7 +336,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   {
     /* argc == 1: no options have been specified */
     po::doHelp(cout, opts);
-    xPrintUsage();
     return false;
   }
   
@@ -1038,21 +1030,6 @@ Void TAppEncCfg::xPrintParameter()
   fflush(stdout);
 }
 
-Void TAppEncCfg::xPrintUsage()
-{
-  printf( "          <name> = ALF - adaptive loop filter\n");
-  printf( "                   HAD - hadamard ME for fractional-pel\n");
-  printf( "                   SRD - SBAC based RD estimation\n");
-  printf( "                   RDQ - RDOQ\n");
-  printf( "                   PAD - automatic source padding of multiple of 16\n");
-  printf( "                   ASR - adaptive motion search range\n");
-  printf( "                   FEN - fast encoder setting\n");  
-  printf( "                   ECU - Early CU setting\n");
-  printf( "                   CFM - Cbf fast mode setting\n");
-  printf( "                   ESD - Early SKIP detection setting\n");
-  printf( "\n" );
-}
-
 Bool confirmPara(Bool bflag, const char* message)
 {
   if (!bflag)
@@ -1060,42 +1037,6 @@ Bool confirmPara(Bool bflag, const char* message)
   
   printf("Error: %s\n",message);
   return true;
-}
-
-/* helper function */
-/* for handling "-1/-0 FOO" */
-void translateOldStyleCmdline(const char* value, po::Options& opts, const std::string& arg)
-{
-  const char* argv[] = {arg.c_str(), value};
-  /* replace some short names with their long name varients */
-  else if (arg == "RDQ")
-  {
-    argv[0] = "RDOQ";
-  }
-  else if (arg == "HAD")
-  {
-    argv[0] = "HadamardME";
-  }
-  else if (arg == "SRD")
-  {
-    argv[0] = "SBACRD";
-  }
-  /* issue a warning for change in FEN behaviour */
-  if (arg == "FEN")
-  {
-    /* xxx todo */
-  }
-  po::storePair(opts, argv[0], argv[1]);
-}
-
-void doOldStyleCmdlineOn(po::Options& opts, const std::string& arg)
-{
-  translateOldStyleCmdline("1", opts, arg);
-}
-
-void doOldStyleCmdlineOff(po::Options& opts, const std::string& arg)
-{
-  translateOldStyleCmdline("0", opts, arg);
 }
 
 //! \}
