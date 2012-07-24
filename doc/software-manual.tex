@@ -1024,6 +1024,18 @@ bitstream, but may be inferred from the parity of the sum of all nonzero
 coefficients in the current coefficient group.
 \\
 
+\Option{TMVPMode} &
+\ShortOption{\None} &
+\Default{1} &
+Controls the temporal motion vector prediction mode.
+\par
+\begin{tabular}{cp{0.5\textwidth}}
+  0 & Disabled for all slices. \\
+  1 & Enabled for all slices. \\
+  2 & Disabled only for the first picture of each GOPSize. \\
+\end{tabular}
+\\
+
 \Option{TS} &
 \ShortOption{\None} &
 \Default{false} &
