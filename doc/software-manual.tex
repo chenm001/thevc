@@ -704,6 +704,7 @@ Defines base value of the quantization parameter.
 \ShortOption{\None} &
 \Default{0} &
 Defines max depth of a minimum CuDQP for sub-LCU-level delta QP.
+MaxCuDQPDepth shall be greater than or equal to SliceGranularity.
 \\
 
 \Option{RDOQ} &
@@ -890,13 +891,28 @@ When set to 1, only pixels from Intra blocks in the same slice as the
 current block will be marked as available for Intra prediction.
 \\
 
+\Option{PCMEnabledFlag} &
+\ShortOption{\None} &
+\Default{false} &
+Enables or disables the use of PCM.
+\\
+
+\Option{PCMLog2MaxSize} &
+\ShortOption{\None} &
+\Default{5 ($= \mathrm{log}_2(32)$)} &
+Specifies log2 of the maximum PCM block size. When PCM is enabled, the
+PCM mode is available for 2Nx2N intra PUs smaller than or equal to the
+specified maximum PCM block size
+\\
+
 \Option{PCMLog2MinSize} &
 \ShortOption{\None} &
-\Default{7} &
-Specifies log2 of the minimum PCM block size. PCM mode is available for
-2Nx2N intra PUs larger than or equal to the specified minimum PCM block
-size.
-%Default value is 7 (PCM mode not used).
+\Default{3} &
+Specifies log2 of the minimum PCM block size. When PCM is enabled, the
+PCM mode is available for 2Nx2N intra PUs larger than or equal to the
+specified minimum PCM block size.
+\par
+When larger than PCMLog2MaxSize, PCM mode is not used.
 \\
 
 \Option{PCMInputBitDepthFlag} &
