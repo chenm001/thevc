@@ -1091,13 +1091,102 @@ format: [MD5:d41d8cd98f00b204e9800998ecf8427e].
 %%
 %%
 \subsection{Hardcoded encoder parameters}
-\subsubsection*{CommonDef.h}
-ADAPT_SR_SCALE
+\begin{MacroTable}{CommonDef.h constants}
+ADAPT_SR_SCALE &
+1 &
 Defines a scaling factor used to derive the motion search range is
 adaptive (see ASR configuration parameter). Default value is 1.
+\\
+
+MAX_GOP &
+64 &
+maximum size of value of hierarchical GOP.
+\\
+
+MAX_NUM_REF &
+4 &
+maximum number of multiple reference frames
+\\
+
+MAX_NUM_REF_LC &
+8 &
+maximum number of combined reference frames
+\\
+
+AMVP_MAX_NUM_CANDS &
+2 &
+maximum number of final candidates
+\\
+
+AMVP_MAX_NUM_CANDS_MEM &
+3 &
+\\
+
+MRG_MAX_NUM_CANDS &
+5 &
+\\
+
+DYN_REF_FREE &
+off &
+dynamic free of reference memories
+\\
+
+MAX_TLAYER &
+8 &
+maximum number of temporal layers
+\\
+
+HB_LAMBDA_FOR_LDC &
+on &
+use of B-style lambda for non-key pictures in low-delay mode
+\\
+
+GPB_SIMPLE &
+on &
+Fast estimation of generalized B in low-delay mode
+\\
+
+GPB_SIMPLE_UNI &
+on &
+Fast estimation of generalized B in low-delay mode for uni-direction
+\\
+
+FASTME_SMOOTHER_MV &
+on &
+Fast ME using smoother MV assumption
+\\
+
+ADAPT_SR_SCALE &
+on &
+division factor for adaptive search range
+\\
+
+CLIP_TO_709_RANGE &
+off &
+\\
+
+IBDI_NOCLIP_RANGE &
+off &
+restrict maximum value after IBDI to skip clipping
+\\
+
+EARLY_SKIP_THRES &
+1.5 &
+early skip if RD < EARLY_SKIP_THRES*avg[BestSkipRD]
+\\
+
+MAX_NUM_REF_PICS &
+16 &
+\\
+
+MAX_CHROMA_FORMAT_IDC &
+3 &
+\\
+\end{MacroTable}
 
 \subsubsection*{TypeDef.h}
-TBD
+Numerous constants that guard individual adoptions are defined within
+\url{source/Lib/TLibCommon/TypeDef.h}.
 
 %%
 %%
