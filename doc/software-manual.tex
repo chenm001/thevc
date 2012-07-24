@@ -180,7 +180,6 @@ Linux                & build/linux/makefile \\
 %%%%
 %%%%
 \clearpage
-\newgeometry{tmargin=1.6cm,lmargin=1cm,rmargin=1cm,bmargin=1in,nohead}
 \section{Using the encoder}
 \begin{verbatim}
 TAppEncoder 	[-h] [-c config.cfg] [--parameter=value]
@@ -207,10 +206,226 @@ TAppEncoder 	[-h] [-c config.cfg] [--parameter=value]
 
 Sample configuration files are provided in the cfg/ folder.
 
+\subsection{GOP structure table}
+Defines the cyclic GOP structure that will be used repeatedly
+throughout the sequence. The table should contain GOPSize lines,
+named Frame1, Frame2, etc. The frames are listed in decoding
+order, so Frame1 is the first frame in decoding order, Frame2 is
+the second and so on. Among other things, the table specifies all
+reference pictures kept by the decoder for each frame. This
+includes pictures that are used for reference for the current
+picture as well as pictures that will be used for reference in
+the future. The encoder will not automatically calculate what
+pictures that has to be kept for future references, they have to
+be specified. Note that some specified reference frames for
+pictures encoded in the very first GOP after an IDR frame might
+not be available. This is handled automatically by the encoder,
+so the reference pictures can be given in the GOP structure table
+as if there were infinitely many identical GOPs before the
+current one. Each line in the table contains the parameters used
+for the corresponding frame, separated by whitespace:
+
+Type: Slice type, can be either I, P or B.
+
+POC: Display order of the frame within a GOP, ranging from 1 to
+GOPSize.
+
+QPOffset: QP offset is added to the QP parameter to set the final
+QP value to use for this frame.
+
+QPFactor: Weight used during rate distortion optimization. Higher
+values mean lower quality and less bits. Typical range is between
+0.3 and 1.
+
+Temporal_id: Temporal layer of the frame. A frame cannot predict
+from a frame with a higher temporal id. If a frame with higher
+temporal IDs is listed among a frame's reference pictures, it is
+not used, but is kept for possible use in future frames.
+
+num_ref_pics_active: Size of reference picture lists L0 and L1,
+indicating how many reference pictures in each direction that are
+used during coding.
+
+Ref_pic: A value of 1 indicates that this is a reference picture,
+0 that it is a non-reference picture.
+
+num_ref_pics: The number of reference pictures kept for this frame.
+This includes pictures that are used for reference for the
+current picture as well as pictures that will be used for
+reference in the future.
+
+Reference pictures: A space-separated list of num_ref_pics integers,
+specifying the POC of the reference pictures kept, relative the
+POC of the current frame. The picture list shall be ordered,
+first with negative numbers from largest to smallest, followed by
+positive numbers from smallest to largest (e.g. -1 -3 -5 1 3).
+Note that any pictures not supplied in this list will be
+discarded and therefore not available as reference pictures
+later.
+
+Predict: Defines the value of the syntax element
+inter_ref_pic_set_prediction_flag. A value of 0 indicates that
+the reference picture set is encoded without inter RPS prediction
+and the subsequent parameters deltaRIdx-1, deltaRPS, num_ref_idcs
+and Reference_idcs are ignored and do not need to be present. A
+value of 1 indicates that the reference picture set is encoded
+with inter prediction RPS using the subsequent parameters in the
+line.
+
+deltaRIdx-1: The difference between the index of the curent RPS
+and the predictor RPS minus 1.
+
+deltaRPS: The difference between the POC of the predictor RPS and
+POC the current RPS.
+
+num_ref_idcs: The number of ref_idcs to encode for the current RPS.
+The value is equal to the value of  num_ref_pics of the predictor
+RPS plus 1.
+
+Reference idcs: A space-separated list of num_ref_idcs integers,
+specifying the ref idcs of the inter RPS prediction. The value of
+ref_idcs may be 0, 1 or 2 indicating that the reference picture
+is a reference picture used by the current picture, a reference
+picture used for future picture or not a reference picture
+anymore, respectively. The first num_ref_pics of ref_idcs correspond
+to the Reference pictures in the predictor RPS. The last ref_idcs
+corresponds to the predictor picture.
+
+For example, consider the following coding structure:
+
+This coding structure is of size 4. The pictures are listed in
+decoding order. Frame1 shall therefore describe picture with
+POC=4. It references picture 0, and therefore has -4 as a
+reference picture. Similarly, Frame2 has a POC of 2, and since it
+references pictures 0 and 4, its reference pictures are listed as
+"-2 2". Frame3 is a special case: even though it only references
+pictures with POC 0 and 2, it also needs to include the picture
+with POC 4, which must be kept in order to be used as a reference
+picture in the future. The reference picture list for Frame3
+therefore becomes "-1 1 3". Frame4 has a POC of 3 and its list of
+reference pictures is "-1 1".
+
+Inter RPS prediction may be used for Frame2, Frame3 and Frame4,
+hence the predict parameter is set to 1 for these frames. Frame2
+uses Frame1 as the predictor hence the deltaRIdx-1 is 0.
+Similarly for Frame3 and Frame4 which use Frame2 and Frame3 as
+predictors, respectively. The deltaRPS is equal to the POC of the
+predictor minus the POC of the current picture, therefore the
+deltaRPS for Frame2 is 4 -2 = 2, for Frame3 is 2 - 1 = 1 and for
+Frame4 is 1 - 3 = -2.
+
+In Frame2, reference pictures with POC 0 and 2 are used, so the
+reference idcs for Frame2 are “1 1” indicating that the reference
+picture “-4” in Frame1 is still a reference picture in Frame2 and
+Frame1 is also a reference picture in Frame2. The reference idcs
+for Frame3 are “1 1 1”. The first and second “1”s indicating that
+the reference pictures “-2 2” in Frame2 are still reference
+pictures in Frame3 and the last “1” indicating that Frame2 is
+also a reference picture in Frame3. In Frame 4, the reference
+idcs are ”0 1 1 0”. The first “0” indicates that the reference
+pictures “-1” in Frame 3 is no longer a reference picture in
+Frame4. The next two “1”s indicate that the reference pictures “1
+3” are now reference pictures of Frame4. The final “0” indicates
+that Frame3 is not a reference picture.
+
+In order to specify this to the encoder, the parameters in
+Table~\ref{tab:gop-example} could be used.
+
+\begin{table}[ht]
+\footnotesize
+\caption{GOP structure example}
+\label{tab:gop-example}
+\centering
+\begin{tabular}{lrrrr}
+\hline
+ \thead{} &
+ \thead{Frame1} &
+ \thead{Frame2} &
+ \thead{Frame3} &
+ \thead{Frame4} \\
+\hline
+Type                &   P  &    B   &      B   &       B \\
+POC                 &   4  &    2   &      1   &       3 \\
+QPoffset            &   1  &    2   &      3   &       3 \\
+QPfactor            & 0.5  &  0.5   &    0.5   &     0.5 \\
+temporal_id         &   0  &    1   &      2   &       2 \\
+num_ref_pics_active &   1  &    1   &      1   &       1 \\
+ref_pic             &   1  &    1   &      0   &       0 \\
+num_ref_pics        &   1  &    2   &      3   &       2 \\
+reference pictures  & $-$4 & $-$2 2 & $-$1 1 3 &  $-$1 1 \\
+predict             &   0  &    1   &      1   &       1 \\
+deltaRIdx$-$1       &      &    0   &      0   &       0 \\
+deltaRPS            &      &    2   &      1   &    $-$2 \\
+num_ref_idcs        &      &    2   &      3   &       4 \\
+reference idcs      &      &  1 1   &  1 1 1   & 0 1 1 0 \\
+\hline
+\end{tabular}
+\end{table}
+
+Here, the frames used for prediction have been given higher
+quality by assigning a lower QP offset. Also, the non-reference
+frames have been marked as belonging to a higher temporal layer,
+to make it possible to decode only every other frame. Note: each
+line should contain information for one frame, so this
+configuration would be specified as:
+
+\begin{verbatim}
+Frame1: P 4 1 0.5 0 1 1 1 -4 0
+Frame2: B 2 2 0.5 1 1 1 2 -2 2 1 0 2 2 1 1
+Frame3: B 1 3 0.5 2 1 0 3 -1 1 3 1 0 1 3 1 1 1
+Frame4: B 3 3 0.5 2 1 0 2 -1 1 1 0 -2 4 0 1 1 0
+\end{verbatim}
+
+The values of deltaRIdx-1[, ]deltaRPS, num_ref_idcs and reference
+idcs of FrameK can be derived from the POC value of FrameK and
+the POC, num_ref_pics and reference pictures values of FrameM, where
+K is the index of the RPS to be inter coded and the M is the
+index of the reference RPS, as follows.
+
+deltaRIdx[K] -1 = K - M - 1
+
+deltaRPS[K] [ ]= POC[M] [ ]- POC[K][]
+
+num_ref_idcs[K ]= num_ref_pics[M ]+ 1
+
+for (j=0; j<= num_ref_pics[M]; j++)
+
+{
+
+if ((reference pictures[M][j] + deltaRPS[K]) == reference
+pictures[K][i], 0 <= i < num_ref_idcs[K] ) [ ]{
+
+[ ]reference idcs[K][j] = 1, if reference pictures[K][i] is used
+by the current frame, or[]
+
+[ ]reference idcs[K][j] [ ]= 2, if reference pictures[K][i] [ ]is
+not used by the current frame.
+
+}
+
+else {
+
+reference idcs[K][j] [ ]= 0[]
+
+}
+
+}
+
+reference pictures[M][num_ref_pics[M]] is unavailable and assumed to
+be 0.
+
+Note: The above (automatic) generation of the inter RPS parameter
+values can be integrated into the encoder, and be indicated by
+the value of predict = 2 followed by the value of deltaRIdx-1,
+only.[]
+
+
+
 %%%%
 %%%%
 %%%%
-\subsection*{Encoder parameters}
+\newgeometry{tmargin=1.6cm,lmargin=1cm,rmargin=1cm,bmargin=1in,nohead}
+\subsection{Encoder parameters}
 
 %%
 %% File, I/O and source parameters
@@ -362,7 +577,6 @@ Defines depth of TU tree for inter CUs.
 \end{OptionTable}
 
 
-\clearpage
 %%
 %% Coding structure parameters
 %%
@@ -396,30 +610,14 @@ intra frame period.\par
 Defines size of picture hierarchy.
 \\
 
-\Option{RateGOPSize} &
-\ShortOption{-rg} &
-\Default{GOPSize} &
-Defines size of picture hierarchy for QP assignment.
-\\
-
-\Option{NumOfReference} &
-\ShortOption{-r} &
-\Default{1} &
-Defines number of reference frames used for prediction in P pictures.
-\\
-
-\Option{NumOfReferenceB_L0} &
-\ShortOption{-rb0} &
-\Default{1} &
-Defines number of reference frames used for prediction in B pictures
-(list~0).
-\\
-
-\Option{NumOfReferenceB_L1} &
-\ShortOption{-rb1} &
-\Default{1} &
-Defines number of reference frames used for prediction in B pictures
-(list~1).
+\Option{Frame\emph{N}} &
+\ShortOption{\None} &
+\Default{\NotSet} &
+Multiple options describing a table that defines the cyclic GOP
+structure that will be used repeatedly throughout the equence.
+The table should contain GOPSize elements.
+\par
+See section~\ref{sec:gop-structure} for further details.
 \\
 
 \Option{ListCombination} &
@@ -435,151 +633,8 @@ Defines use of combined reference list for uni-prediction in B-slices.
   are identical and reference list~0 is used as the combined
   reference list.
 \end{itemize}
-NB: LComb can only be 0 if and only if LowDelayCoding and GPB are both 1.
-\\
-
-\Option{LCModification} &
-\ShortOption{\None} &
-\Default{false} &
-Defines the derivation of the combined reference list.
-\begin{itemize}
-\item
-  A value of 0 indicates that the combined reference list is implicitly
-  derived from reference list~0 and reference list 1.
-\item
-  A value of 1 indicates that the derivation of the combined reference
-  list from reference list~0 and reference list~1 is explicitly signaled
-  in the syntax.
-\end{itemize}
-\\
-
-\Option{HierarchicalCoding} &
-\ShortOption{\None} &
-\Default{true} &
-Defines use of hierarchical coding structure.
-\\
-
-\Option{LowDelayCoding} &
-\ShortOption{\None} &
-\Default{false} &
-Defines use of low-delay coding structure, which disables all backward
-inter prediction modes.
-
-Table 1 Combination of parameters and their resultant coding structures.
-
-LowDelayCoding
-GPB
-GOPSize
-Resultant coding structure
-0
-0 / 1
->1
-Hierarchical B (HE default)
-1
-0
->1
-Hierarchical P
-1
-1
->1
-Hierarchical B, no backward prediction
-0 / 1
-0
-1
-IPPP
-0 / 1
-1
-1
-IBBB (LC default)
-
-Default hierarchical-QP assignments vary according to this parameter.
-They can be overridden by the parameter BQP.
-
-Table 2 Example hierarchical QP assignments according to LowDelayCoding
-and BQP.
-
-Temporal Level
-LowDelayCoding=0
-LowDelayCoding=1 and BQP=0
-0 (first frame)
-QP
-QP
-0 (key frame except the first frame)
-QP+1
-QP+1
-1
-QP+2
-QP+4
-2
-QP+3
-QP+5
-3
-QP+4
-QP+6
-\\
-
-\Option{GPB} &
-\ShortOption{\None} &
-\Default{false} &
-Defines use of B pictures for all non-intra pictures. If list~1
-reference list is empty when this option is specified, all entries of
-list~0 reference list are copied into the list~1 reference list.
-\\
-
-\Option{NRF} &
-\ShortOption{\None} &
-\Default{true} &
-Defines marking of pictures in lowest temporal layer as not used for
-reference.
-\\
-
-\Option{BQP} &
-\ShortOption{\None} &
-\Default{false} &
-Defines use of hierarchical QP assignment assuming no delay restriction
-even in low-delay mode. (See Table 2)
-\\
-
-\Option{TLayeringBasedOnCodingStruct} &
-\ShortOption{\None} &
-\Default{false} &
-Defines use of temporal layer ID assignment based on the hierarchical
-coding structure. If this is defined, pictures with higher temporal
-layer ID than current picture’s temporal layer ID will not be used as
-reference.
-\\
-
-\Option{TLayerSwitchingFlag_L0} &
-\ShortOption{\None} &
-\Default{false} &
-Defines temporal layer switching point flag for temporal layer~0. If
-this flag is set, then after decoding(encoding) a picture with temporal
-layer ID equal to 0, all reference pictures with temporal layer ID
-greater than 0 will be marked as unused.
-\\
-
-\Option{TLayerSwitchingFlag_L1} &
-\ShortOption{\None} &
-\Default{false} &
-Defines temporal layer switching point flag for temporal layer~1.
-\par
-See TLayerSwitchingFlag_L0.
-\\
-
-\Option{TLayerSwitchingFlag_L2} &
-\ShortOption{\None} &
-\Default{false} &
-Defines temporal layer switching point flag for temporal layer~2.
-\par
-See TLayerSwitchingFlag_L0.
-\\
-
-\Option{TLayerSwitchingFlag_L3} &
-\ShortOption{\None} &
-\Default{false} &
-Defines temporal layer switching point flag for temporal layer~3.
-\par
-See TLayerSwitchingFlag_L0.
+NB: LComb can only be 0 in low delay coding (more precisely, when list 0
+and list 1 are the same)
 \\
 \end{OptionTable}
 
@@ -684,43 +739,12 @@ Defines file name containing list of QP value deltas. The n-th line
 (where n is 0 for the first line) of this file corresponds to the QP
 value delta for the picture with POC value n.
 \\
-
-\Option{TemporalLayerQPOffset_L0} &
-\ShortOption{-tq0} &
-\Default{52} &
-Defines QP offset relative to the parameter QP for temporal layer 0.
-When this parameter is specified as the value other than 52, default
-hierarchical QP assignments in Table 2 are ignored, and the value
-QP+TemporalLayerQPOffset_L0 is assigned to all slices in the temporal
-layer 0.
-\\
-
-\Option{TemporalLayerQPOffset_L1} &
-\ShortOption{-tq1} &
-\Default{52} &
-Defines QP offset relative to the parameter QP for temporal layer 1.
-See TemporalLayerQPOffset_L0.
-\\
-
-\Option{TemporalLayerQPOffset_L2} &
-\ShortOption{-tq2} &
-\Default{52} &
-Defines QP offset relative to the parameter QP for temporal layer 2.
-See TemporalLayerQPOffset_L0.
-\\
-
-\Option{TemporalLayerQPOffset_L3} &
-\ShortOption{-tq3} &
-\Default{52} &
-Defines QP offset relative to the parameter QP for temporal layer 3.
-See TemporalLayerQPOffset_L0.
-\\
 \end{OptionTable}
 
 
 
 %%
-%% Quantization parameters
+%% Entropy coding parameters
 %%
 \begin{OptionTable}{Entropy coding parameters}
 \Option{SymbolMode} &
