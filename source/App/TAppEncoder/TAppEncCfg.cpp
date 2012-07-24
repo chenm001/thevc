@@ -249,10 +249,6 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("MaxQPAdaptationRange,-aqr",     m_iQPAdaptationRange,           6, "QP adaptation range")
   ("dQPFile,m",                     cfg_dQPFile,           string(""), "dQP file name")
   ("RDOQ",                          m_bUseRDOQ,                  true )
-  ("TemporalLayerQPOffset_L0,-tq0", m_aiTLayerQPOffset[0], MAX_QP + 1, "QP offset of temporal layer 0")
-  ("TemporalLayerQPOffset_L1,-tq1", m_aiTLayerQPOffset[1], MAX_QP + 1, "QP offset of temporal layer 1")
-  ("TemporalLayerQPOffset_L2,-tq2", m_aiTLayerQPOffset[2], MAX_QP + 1, "QP offset of temporal layer 2")
-  ("TemporalLayerQPOffset_L3,-tq3", m_aiTLayerQPOffset[3], MAX_QP + 1, "QP offset of temporal layer 3")
   
   // Entropy coding parameters
   ("SBACRD",                         m_bUseSBACRD,                      true, "SBAC based RD estimation")

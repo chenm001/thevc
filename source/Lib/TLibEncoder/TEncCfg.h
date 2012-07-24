@@ -123,7 +123,6 @@ protected:
   
   Int       m_iQP;                              //  if (AdaptiveQP == OFF)
   
-  Int       m_aiTLayerQPOffset[MAX_TLAYER];
   Int       m_aiPad[2];
   
 
@@ -272,7 +271,6 @@ public:
   
   Void      setQP                           ( Int   i )      { m_iQP = i; }
   
-  Void      setTemporalLayerQPOffset        ( Int*  piTemporalLayerQPOffset )      { for ( Int i = 0; i < MAX_TLAYER; i++ ) m_aiTLayerQPOffset[i] = piTemporalLayerQPOffset[i]; }
   Void      setPad                          ( Int*  iPad                   )      { for ( Int i = 0; i < 2; i++ ) m_aiPad[i] = iPad[i]; }
   
   Int       getMaxRefPicNum                 ()                              { return m_iMaxRefPicNum;           }
@@ -340,7 +338,6 @@ public:
   Int       getNumReorderPics               (UInt tlayer) { return m_numReorderPics[tlayer]; }
   Int       getQP                           ()      { return  m_iQP; }
   
-  Int       getTemporalLayerQPOffset        ( Int i )      { assert (i < MAX_TLAYER ); return  m_aiTLayerQPOffset[i]; }
   Int       getPad                          ( Int i )      { assert (i < 2 );                      return  m_aiPad[i]; }
   
   //======== Transform =============

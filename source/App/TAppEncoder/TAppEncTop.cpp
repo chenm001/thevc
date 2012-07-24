@@ -105,7 +105,6 @@ Void TAppEncTop::xInitLibCfg()
   }
   m_cTEncTop.setQP                           ( m_iQP );
   
-  m_cTEncTop.setTemporalLayerQPOffset        ( m_aiTLayerQPOffset );
   m_cTEncTop.setPad                          ( m_aiPad );
     
   m_cTEncTop.setMaxTempLayer                 ( m_maxTempLayer );
