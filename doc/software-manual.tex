@@ -1,0 +1,1011 @@
+\documentclass[a4paper,11pt]{jctvcdoc}
+
+\usepackage{geometry}[2010/02/12]
+
+\usepackage{hyperref}
+\hypersetup{colorlinks=true}
+\usepackage{color,soul}
+
+\usepackage[position=bottom]{subfig}
+\captionsetup[subfloat]{position=top}
+\usepackage{multirow}
+\usepackage{dcolumn}
+\newcolumntype{.}{D{.}{.}{-1}}
+\usepackage{colortbl}
+\usepackage{makecell}
+\usepackage{longtable}
+\usepackage{array}
+
+\usepackage[strings]{underscore}
+\usepackage{csquotes}
+\MakeOuterQuote{"}
+\EnableQuotes
+
+\newcommand\None{}
+\newcommand\NotSet{}
+\makeatletter
+\newcommand{\Option}[1]{\ifx\optOption\@empty\gdef\optOption{#1}\else\g@addto@macro\optOption{ \\ #1}\fi}
+\newcommand{\ShortOption}[1]{\ifx\optShortOption\@empty\gdef\optShortOption{#1}\else\g@addto@macro\optShortOption{ \\ #1}\fi}
+\newcommand{\Default}[1]{\ifx\optDefault\@empty\gdef\optDefault{#1}\else\g@addto@macro\optDefault{ \\ #1}\fi}
+\newcommand{\clearOptions}{\gdef\optOption{}\gdef\optShortOption{}\gdef\optDefault{}}
+\makeatother
+\newenvironment{OptionTable}[1]{%
+	\footnotesize
+	\def\arraystretch{1.8}
+	\clearOptions
+	\begin{longtable}{l<{\makecell[tl]{\optOption}}%
+	                  >{\texttt\bgroup}l<{\makecell[tl]{\optShortOption}\egroup}%
+	                  c<{\makecell[tc]{\optDefault}}%
+	                  >{\def\arraystretch{1.0}}p{0.5\textwidth}<{\clearOptions}}
+	\caption{#1} \\
+	\hspace*{12em}&&\hspace*{8em}&\kill
+	\hline
+	 \thead{Option} &
+	 \egroup\thead{Shorthand}\bgroup &
+	 \thead{Default} &
+	 \thead{Description} \\
+	\hline
+	\endfirsthead
+	\caption[]{#1 (Continued)} \\
+	\hspace*{12em}&&\hspace*{8em}&\kill
+	\hline
+	 \thead{Option} &
+	 \egroup\thead{Shorthand}\bgroup &
+	 \thead{Default} &
+	 \thead{Description} \\
+	\hline
+	\endhead
+	 \multicolumn{4}{r}{Continued...}\\
+	 \hline
+	\endfoot
+	 \hline
+	\endlastfoot
+}{%
+	\hline
+	\end{longtable}
+}
+
+\newenvironment{MacroTable}[1]{%
+	\footnotesize
+	\def\arraystretch{1.3}
+	\clearOptions
+	\begin{longtable}{lcp{0.5\textwidth}}
+	 \caption{#1} \\
+	%\hspace*{12em}&&\hspace*{8em}&\kill
+	 \hline
+	  \thead{Option} &
+	  \thead{Default} &
+	  \thead{Description} \\
+	 \hline
+	\endfirsthead
+	 \caption[]{#1 (Continued)} \\
+	 \hline
+	  \thead{Option} &
+	  \thead{Default} &
+	  \thead{Description} \\
+	 \hline
+	\endhead
+	 \multicolumn{3}{r}{Continued...}\\
+	 \hline
+	\endfoot
+	 \hline
+	\endlastfoot
+}{%
+	\end{longtable}
+}
+
+\title{HM Software Manual}
+\author{%
+	Frank Bossen
+	\email{bossen@docomoinnovations.com}
+	\and
+	David Flynn
+	\email{davidf@rd.bbc.co.uk}
+	\and
+	Karsten Sühring
+	\email{Karsten.Suehring@hhi.fraunhofer.de}
+}
+
+%\jctvcmeeting{10th Meeting: Stockholm, SE, 11 -- 20 July 2012}
+\jctvcdocnum{Software Manual}
+\jctvcdocstatus{Input Document to JCT-VC}
+\jctvcdocpurpose{Information}
+\jctvcdocsource{AHG chairs}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+This document is a user manual describing usage of reference software
+for the HEVC project. It applies to the latest development version
+of the software.
+\end{abstract}
+
+\tableofcontents
+\listoftables
+
+\section{General Information}
+Reference software is being made available to provide a reference
+implementation of the draft HEVC standard being developed by the Joint
+Collaborative Team on Video Coding (JCT-VC) regrouping experts from
+ITU-T SG 16 and ISO/IEC SC29 WG11. One of the main goals of the
+reference software is to provide a basis upon which to conduct
+experiments in order to determine which coding tools provide desired
+coding performance. It is not meant to be a particularly efficient
+implementation of anything, and one may notice its apparent
+unsuitability for a particular use. It should not be construed to be a
+reflection of how complex a production-quality implementation of a
+future HEVC standard would be.
+
+This document aims to provide guidance on the usage of the reference
+software. It is widely suspected to be incomplete and suggestions for
+improvements are welcome. Such suggestions and general inquiries may be
+sent to the general JCT-VC email reflector on
+\url{jct-vc@lists.rwth-aachen.de} (registration required).
+
+\subsection*{Bug reporting}
+Bugs should be reported on the issue tracker set up at
+\url{http://hevc.kw.bbc.co.uk/trac/}
+
+\section{Installation and compilation}
+The software may be retrieved from one of the following SVN servers
+(mirrored):
+\begin{itemize}
+\item \url{https://hevc.hhi.fraunhofer.de/svn/svn_HEVCSoftware/}
+\item \url{svn://hevc.kw.bbc.co.uk/svn/jctvc-hm/}
+\end{itemize}
+
+Table~\ref{tab:project-files} enumerates various project files that are
+provided for development environments.
+
+\begin{table}[ht]
+\footnotesize
+\caption{Available project files}
+\label{tab:project-files}
+\centering
+\begin{tabular}{ll}
+\hline
+ \thead{Environment} &
+ \thead{Location of project file} \\
+% Environment          & Location of project file \\
+\hline
+MS Visual Studio 8   & build/HM_vc8.sln \\
+MS Visual Studio 9   & build/HM_vc9.sln \\
+Xcode                & HM.xcodeproj \\
+Linux                & build/linux/makefile \\
+\hline
+\end{tabular}
+\end{table}
+
+%%%%
+%%%%
+%%%%
+\clearpage
+\newgeometry{tmargin=1.6cm,lmargin=1cm,rmargin=1cm,bmargin=1in,nohead}
+\section{Using the encoder}
+\begin{verbatim}
+TAppEncoder 	[-h] [-c config.cfg] [--parameter=value]
+\end{verbatim}
+
+\begin{table}[ht]
+\footnotesize
+\centering
+\begin{tabular}{lp{0.5\textwidth}}
+\hline
+ \thead{Option} &
+ \thead{Description} \\
+\hline
+\texttt{-h} & Prints parameter usage. \\
+\texttt{-c} & Defines configuration file to use.  Multiple configuration files
+     may be used with repeated --c options. \\
+\texttt{--}\emph{parameter}\texttt{=}\emph{value}
+    & Assigns value to a given parameter as further described below.
+      Some parameters are also supported by shorthand
+      "--\em{opt}~\emph{value}".\\
+\hline
+\end{tabular}
+\end{table}
+
+Sample configuration files are provided in the cfg/ folder.
+
+%%%%
+%%%%
+%%%%
+\subsection*{Encoder parameters}
+
+%%
+%% File, I/O and source parameters
+%%
+\begin{OptionTable}{File, I/O and source parameters}
+\Option{InputFile} &
+\ShortOption{-i} &
+\Default{\NotSet} &
+Defines source YUV file.
+
+Note: Raw image data is stored in YUV files in planar format. When the bit
+depth of samples is larger than 8, each sample is encoded in 2 bytes (little
+endian, LSB-justified).
+\\
+
+\Option{BistreamFile} &
+\ShortOption{-b} &
+\Default{\NotSet} &
+Defines coded bit stream file.
+\\
+
+\Option{ReconFile} &
+\ShortOption{-o} &
+\Default{\NotSet} &
+Defines reconstructed YUV file.
+\\
+
+\Option{SourceWidth} &
+\ShortOption{-wdt} &
+\Default{0} &
+Defines width of source in luma samples.
+\\
+
+\Option{SourceHeight} &
+\ShortOption{-hgt} &
+\Default{0} &
+Defines height of source in luma samples.
+\\
+
+\Option{InputBitDepth} &
+\ShortOption{\None} &
+\Default{8} &
+Defines the bit depth of the source YUV file.
+\\
+
+\Option{InternalBitDepth} &
+\ShortOption{\None} &
+\Default{0 (InputBitDepth)} &
+Defines the internal bit depth used for coding.
+\\
+
+\Option{OutputBitDepth} &
+\ShortOption{\None} &
+\Default{0 (InternalBitDepth)} &
+Defines the bit depth of the reconstructed YUV file.
+\\
+
+\Option{HorizontalPadding} &
+\ShortOption{-pdx} &
+\Default{0} &
+Defines horizontal padding of source in luma samples.
+\\
+
+\Option{VerticalPadding} &
+\ShortOption{-pdy} &
+\Default{0} &
+Defines vertical padding of source in luma samples.
+\\
+
+\Option{PAD} &
+\ShortOption{\None} &
+\Default{false} &
+Enables automatic padding of the source to multiples of MAX_PAD_SIZE luma
+samples.
+\\
+
+\Option{FrameRate} &
+\ShortOption{-fr} &
+\Default{0} &
+Defines frame rate of source.
+\\
+
+\Option{FrameSkip} &
+\ShortOption{-fs} &
+\Default{0} &
+Defines number of frames to skip at beginning of source.
+\hl{Note: this feature is currently not functional.}
+\\
+
+\Option{FramesToBeEncoded} &
+\ShortOption{-f} &
+\Default{0 (all)} &
+Defines number of frames to be encoded.
+\\
+\end{OptionTable}
+
+
+%%
+%% Unit definition parameters
+%%
+\begin{OptionTable}{Unit definition parameters}
+\Option{MaxCUWidth} &
+\ShortOption{\None} &
+\Default{64} &
+Defines maximum CU width.
+\\
+
+\Option{MaxCUHeight} &
+\ShortOption{\None} &
+\Default{64} &
+Defines maximum CU height.
+\\
+
+\Option{MaxCUSize} &
+\ShortOption{\None} &
+\Default{64} &
+Defines maximum CU size.
+\\
+
+\Option{MaxPartitionDepth} &
+\ShortOption{-h} &
+\Default{4} &
+Defines the depth of the CU tree.
+\\
+
+\Option{QuadtreeTULog2MaxSize} &
+\ShortOption{\None} &
+\Default{6 ($= \mathrm{log}_2(64)$)} &
+Maximum TU size in logarithm base 2.
+\\
+
+\Option{QuadtreeTULog2MinSize} &
+\ShortOption{\None} &
+\Default{2 ($= \mathrm{log}_2(4)$)} &
+Minimum TU size in logarithm base 2.
+\\
+
+\Option{QuadtreeTUMaxDepthIntra} &
+\ShortOption{\None} &
+\Default{1} &
+Defines depth of TU tree for intra CUs.
+\\
+
+\Option{QuadtreeTUMaxDepthInter} &
+\ShortOption{\None} &
+\Default{2} &
+Defines depth of TU tree for inter CUs.
+\\
+\end{OptionTable}
+
+
+\clearpage
+%%
+%% Coding structure parameters
+%%
+\begin{OptionTable}{Coding structure parameters}
+\Option{IntraPeriod} &
+\ShortOption{-ip} &
+\Default{$-1$} &
+Defines intra frame period.
+A value of $-1$ implies an infinite period.
+\\
+
+\Option{DecodingRefreshType} &
+\ShortOption{-dr} &
+\Default{0} &
+Defines the type of decoding refresh to apply for the picture at the
+intra frame period.\par
+\begin{tabular}{cp{0.5\textwidth}}
+%\thead{Value} & \\
+0 & applies an I picture (not a clean random access point). \\
+1 & applies a non-IDR clean random access point (open GOP). \\
+2 & applies an IDR random access point (closed GOP). \\
+\end{tabular}
+%A value of 0 applies an I picture (not a clean random access point).
+%A value of 1 applies a non-IDR clean random access point (opened GOP).
+%A value of 2 applies an IDR random access point (closed GOP).
+\\
+
+\Option{GOPSize} &
+\ShortOption{-g} &
+\Default{1} &
+Defines size of picture hierarchy.
+\\
+
+\Option{RateGOPSize} &
+\ShortOption{-rg} &
+\Default{GOPSize} &
+Defines size of picture hierarchy for QP assignment.
+\\
+
+\Option{NumOfReference} &
+\ShortOption{-r} &
+\Default{1} &
+Defines number of reference frames used for prediction in P pictures.
+\\
+
+\Option{NumOfReferenceB_L0} &
+\ShortOption{-rb0} &
+\Default{1} &
+Defines number of reference frames used for prediction in B pictures
+(list~0).
+\\
+
+\Option{NumOfReferenceB_L1} &
+\ShortOption{-rb1} &
+\Default{1} &
+Defines number of reference frames used for prediction in B pictures
+(list~1).
+\\
+
+\Option{ListCombination} &
+\ShortOption{-lc} &
+\Default{true} &
+Defines use of combined reference list for uni-prediction in B-slices.
+\begin{itemize}
+\item
+  A value of 1 indicates that the combined reference list is derived
+  from reference list~0 and reference list~1.
+\item
+  A value of 0 indicates that reference list~0 and reference list~1
+  are identical and reference list~0 is used as the combined
+  reference list.
+\end{itemize}
+NB: LComb can only be 0 if and only if LowDelayCoding and GPB are both 1.
+\\
+
+\Option{LCModification} &
+\ShortOption{\None} &
+\Default{false} &
+Defines the derivation of the combined reference list.
+\begin{itemize}
+\item
+  A value of 0 indicates that the combined reference list is implicitly
+  derived from reference list~0 and reference list 1.
+\item
+  A value of 1 indicates that the derivation of the combined reference
+  list from reference list~0 and reference list~1 is explicitly signaled
+  in the syntax.
+\end{itemize}
+\\
+
+\Option{HierarchicalCoding} &
+\ShortOption{\None} &
+\Default{true} &
+Defines use of hierarchical coding structure.
+\\
+
+\Option{LowDelayCoding} &
+\ShortOption{\None} &
+\Default{false} &
+Defines use of low-delay coding structure, which disables all backward
+inter prediction modes.
+
+Table 1 Combination of parameters and their resultant coding structures.
+
+LowDelayCoding
+GPB
+GOPSize
+Resultant coding structure
+0
+0 / 1
+>1
+Hierarchical B (HE default)
+1
+0
+>1
+Hierarchical P
+1
+1
+>1
+Hierarchical B, no backward prediction
+0 / 1
+0
+1
+IPPP
+0 / 1
+1
+1
+IBBB (LC default)
+
+Default hierarchical-QP assignments vary according to this parameter.
+They can be overridden by the parameter BQP.
+
+Table 2 Example hierarchical QP assignments according to LowDelayCoding
+and BQP.
+
+Temporal Level
+LowDelayCoding=0
+LowDelayCoding=1 and BQP=0
+0 (first frame)
+QP
+QP
+0 (key frame except the first frame)
+QP+1
+QP+1
+1
+QP+2
+QP+4
+2
+QP+3
+QP+5
+3
+QP+4
+QP+6
+\\
+
+\Option{GPB} &
+\ShortOption{\None} &
+\Default{false} &
+Defines use of B pictures for all non-intra pictures. If list~1
+reference list is empty when this option is specified, all entries of
+list~0 reference list are copied into the list~1 reference list.
+\\
+
+\Option{NRF} &
+\ShortOption{\None} &
+\Default{true} &
+Defines marking of pictures in lowest temporal layer as not used for
+reference.
+\\
+
+\Option{BQP} &
+\ShortOption{\None} &
+\Default{false} &
+Defines use of hierarchical QP assignment assuming no delay restriction
+even in low-delay mode. (See Table 2)
+\\
+
+\Option{TLayeringBasedOnCodingStruct} &
+\ShortOption{\None} &
+\Default{false} &
+Defines use of temporal layer ID assignment based on the hierarchical
+coding structure. If this is defined, pictures with higher temporal
+layer ID than current picture’s temporal layer ID will not be used as
+reference.
+\\
+
+\Option{TLayerSwitchingFlag_L0} &
+\ShortOption{\None} &
+\Default{false} &
+Defines temporal layer switching point flag for temporal layer~0. If
+this flag is set, then after decoding(encoding) a picture with temporal
+layer ID equal to 0, all reference pictures with temporal layer ID
+greater than 0 will be marked as unused.
+\\
+
+\Option{TLayerSwitchingFlag_L1} &
+\ShortOption{\None} &
+\Default{false} &
+Defines temporal layer switching point flag for temporal layer~1.
+\par
+See TLayerSwitchingFlag_L0.
+\\
+
+\Option{TLayerSwitchingFlag_L2} &
+\ShortOption{\None} &
+\Default{false} &
+Defines temporal layer switching point flag for temporal layer~2.
+\par
+See TLayerSwitchingFlag_L0.
+\\
+
+\Option{TLayerSwitchingFlag_L3} &
+\ShortOption{\None} &
+\Default{false} &
+Defines temporal layer switching point flag for temporal layer~3.
+\par
+See TLayerSwitchingFlag_L0.
+\\
+\end{OptionTable}
+
+
+%%
+%% Motion estimation parameters
+%%
+\begin{OptionTable}{Motion estimation parameters}
+\Option{FastSearch} &
+\ShortOption{\None} &
+\Default{true} &
+Defines use of fast motion search. If this parameter has a value of 0,
+full search method is used, otherwise, fast motion estimation method is
+used.
+
+Note: the current software allows the value to range from 0 to 2, but
+only 0 (full) and 1 (fast) are supported.
+\\
+
+\Option{SearchRange} &
+\ShortOption{-sr} &
+\Default{96} &
+Defines the search range used for motion estimation.
+
+Note: the search range is defined around a predictor. Motion vectors
+derived by the motion estimation may thus have values larger than the
+search range.
+\\
+
+\Option{BipredSearchRange} &
+\ShortOption{\None} &
+\Default{4} &
+Defines the search range used for bi-prediction refinement in the motion
+estimation.
+\\
+
+\Option{HadamardME} &
+\ShortOption{\None} &
+\Default{true} &
+Defines use of the Hadamard transform in fractional-pel motion
+estimation. Otherwise, SAD is used instead.
+\\
+
+\Option{ASR} &
+\ShortOption{\None} &
+\Default{false} &
+Defines use of adaptive search range, which dynamically adjusts the
+motion search range according to the POC difference between the current
+and the reference pictures.
+
+SearchRagne’ = Round( SearchRange * ADAPT_SR_SCALE * abs( POCcur – POCref ) / RateGOPSize )
+\\
+\end{OptionTable}
+
+
+%%
+%% Quantization parameters
+%%
+\begin{OptionTable}{Quantization parameters}
+\Option{QP} &
+\ShortOption{-q} &
+\Default{30.0} &
+Defines base value of the quantization parameter.
+\\
+
+\Option{MaxCuDQPDepth} &
+\ShortOption{\None} &
+\Default{0} &
+Defines max depth of a minimum CuDQP for sub-LCU-level delta QP.
+\\
+
+\Option{RDOQ} &
+\ShortOption{\None} &
+\Default{true} &
+Defines whether rate-distortion-optimized quantization is used in the
+encoder.
+\\
+
+\Option{DeltaQpRD} &
+\ShortOption{-dqr} &
+\Default{0} &
+Defines maximum QP offset at slice level for multi-pass slice encoding.
+In the encoder, each slice is tested multiple times by using slice QP
+values in the range [-DeltaQpRD, DeptaQpRD], and the best QP value is
+chosen as the slice QP.
+\\
+
+\Option{MaxDeltaQP} &
+\ShortOption{-d} &
+\Default{0} &
+Defines maximum QP offset at largest coding unit level for block-level
+adaptive QP assignment scheme. In the encoder, each largest coding unit
+is tested multiple times by using the QP values in the range
+[-MaxDeltaQP, MaxDeltaQP], and the best QP value is chosen as the QP
+value of the largest coding unit.
+\\
+
+\Option{dQPFile} &
+\ShortOption{-m} &
+\Default{\NotSet} &
+Defines file name containing list of QP value deltas. The n-th line
+(where n is 0 for the first line) of this file corresponds to the QP
+value delta for the picture with POC value n.
+\\
+
+\Option{TemporalLayerQPOffset_L0} &
+\ShortOption{-tq0} &
+\Default{52} &
+Defines QP offset relative to the parameter QP for temporal layer 0.
+When this parameter is specified as the value other than 52, default
+hierarchical QP assignments in Table 2 are ignored, and the value
+QP+TemporalLayerQPOffset_L0 is assigned to all slices in the temporal
+layer 0.
+\\
+
+\Option{TemporalLayerQPOffset_L1} &
+\ShortOption{-tq1} &
+\Default{52} &
+Defines QP offset relative to the parameter QP for temporal layer 1.
+See TemporalLayerQPOffset_L0.
+\\
+
+\Option{TemporalLayerQPOffset_L2} &
+\ShortOption{-tq2} &
+\Default{52} &
+Defines QP offset relative to the parameter QP for temporal layer 2.
+See TemporalLayerQPOffset_L0.
+\\
+
+\Option{TemporalLayerQPOffset_L3} &
+\ShortOption{-tq3} &
+\Default{52} &
+Defines QP offset relative to the parameter QP for temporal layer 3.
+See TemporalLayerQPOffset_L0.
+\\
+\end{OptionTable}
+
+
+
+%%
+%% Quantization parameters
+%%
+\begin{OptionTable}{Entropy coding parameters}
+\Option{SymbolMode} &
+\ShortOption{-sym} &
+\Default{1} &
+Defines entropy coder to use. Value 0 is for low-complexity entropy
+coder (LCEC) and 1 for binary arithmetic coder.
+\\
+
+\Option{SBACRD} &
+\ShortOption{\None} &
+\Default{true} &
+Defines use of bit counts from arithmetic coder in rate-distortion
+decisions.
+\\
+\end{OptionTable}
+
+
+%%
+%% Slice coding parameters
+%%
+\begin{OptionTable}{Slice coding parameters}
+\Option{SliceGranularity} &
+\ShortOption{\None} &
+\Default{0} &
+Determines the depth in an LCU at which slices may begin and end. A
+value of 0 means that slice addresses are LCU aligned. A value of 1
+means that slices addresses may additionally be aligned with CUs that
+has a width and height that is one half of an LCU. (depth of 1). Values
+between 0 and 3 inclusive are permitted, provided that CUs at the given
+depth are of size 16x16 or larger. For 64x64 LCUs, this means that the
+maximum allowed SliceGranularity is 2 since that gives a CU of 16x16
+which is the smallest allowed.
+\\
+
+\Option{SliceMode} &
+\ShortOption{\None} &
+\Default{0} &
+Enables slice coding. When set to 1, the parameter SliceArgument will
+specify the maximum number of CUs at a depth of SliceGranuarity in a
+slice. When set to 2, the parameter SliceArgument will specify the
+number of bytes in a slice.
+\\
+
+\Option{SliceArgument} &
+\ShortOption{\None} &
+\Default{\NotSet} &
+Defines the maximum number of CUs or bytes in a slice depending on the
+SliceMode setting.
+\\
+
+\Option{EntropySliceMode} &
+\ShortOption{\None} &
+\Default{0} &
+Enables entropy slice coding. When set to 1, the parameter SliceArgument
+will specify the maximum number of CUs in a slice. When set to 2, the
+parameter SliceArgument will specify the number of bytes (LCEC) or bins
+(CABAC) in a slice.
+\\
+
+\Option{EntropySliceArgument} &
+\ShortOption{\None} &
+\Default{\NotSet} &
+Defines the maximum number of CUs or bytes/bins in an entropy slice
+depending on the SliceMode setting.
+\\
+\end{OptionTable}
+
+
+
+%%
+%% Deblocking filter parameters
+%%
+\begin{OptionTable}{Deblocking filter parameters}
+\Option{LoopFilterDisable} &
+\ShortOption{\None} &
+\Default{false} &
+Flag to disable the loop deblocking filter.
+\\
+
+\Option{LoopFilterAlphaC0Offset} &
+\ShortOption{\None} &
+\Default{0} &
+Defines alpha offset used in-loop deblocking filter.
+\\
+
+\Option{LoopFilterBetaOffset} &
+\ShortOption{\None} &
+\Default{0} &
+Defines beta offset used in-loop deblocking filter.
+\\
+
+\Option{LFCrossSliceBoundaryFlag} &
+\ShortOption{\None} &
+\Default{true} &
+Flag to enable in-loop filtering across slice boundaries. When it is set
+to 1, in-loop filtering can cross slice boundaries. When it is set to 0,
+in-loop filtering cannot cross slice boundaries.
+\\
+\end{OptionTable}
+
+
+
+%%
+%% Coding tools parameters
+%%
+\begin{OptionTable}{Coding tools parameters}
+\Option{MRG} &
+\ShortOption{\None} &
+\Default{true} &
+Defines use of the merge mode.
+\\
+
+\Option{ALF} &
+\ShortOption{\None} &
+\Default{true} &
+Defines use of the adaptive loop filter.
+\\
+
+\Option{ALFEncodePassReduction} &
+\ShortOption{\None} &
+\Default{0} &
+Flag to indicate the number of ALF encoding passes. Value 0, 1, 2 are
+for 16-pass, 1-pass, and 2-pass ALF encoding algorithms, respectively.
+\\
+
+\Option{SAO} &
+\ShortOption{\None} &
+\Default{true} &
+Defines use of sample adaptive offset (SAO).
+\\
+
+\Option{LMChroma} &
+\ShortOption{\None} &
+\Default{true} &
+Defines use of the Intra_ChromaFromLuma prediction mode.
+\\
+
+\Option{ConstrainedIntraPred} &
+\ShortOption{\None} &
+\Default{false} &
+When set to 1, only pixels from Intra blocks in the same slice as the
+current block will be marked as available for Intra prediction.
+\\
+
+\Option{PCMLog2MinSize} &
+\ShortOption{\None} &
+\Default{7} &
+Specifies log2 of the minimum PCM block size. PCM mode is available for
+2Nx2N intra PUs larger than or equal to the specified minimum PCM block
+size.
+%Default value is 7 (PCM mode not used).
+\\
+
+\Option{PCMInputBitDepthFlag} &
+\ShortOption{\None} &
+\Default{1} &
+If enabled specifies that PCM sample bit-depth is set equal to
+InputBitDepth. Otherwise, it specifies that PCM sample bit-depth is set
+equal to InternalBitDepth.
+\\
+
+\Option{PCMFilterDisableFlag} &
+\ShortOption{\None} &
+\Default{false} &
+If enabled specifies that loop-filtering on reconstructed samples of PCM
+blocks is skipped. Otherwise, it specifies that loop-filtering on
+reconstructed samples of PCM blocks is not skipped.
+% 0 = (loop-filtering is not skipped for PCM samples).
+\\
+\end{OptionTable}
+
+
+
+%%
+%% Miscellaneous parameters
+%%
+\begin{OptionTable}{Miscellaneous parameters}
+\Option{FEN} &
+\ShortOption{\None} &
+\Default{false} &
+Defines use of fast encoder mode. Default is 0 (false).
+When this option is specified, the following changes apply:
+\begin{itemize}
+\item In the SAD computation for blocks having size larger than 8, only
+      the lines of even rows in the block are considered.
+\item The number of iterations used in the bi-directional motion vector
+      refinement in the motion estimation process is reduced from 4 to 1.
+\end{itemize}
+\\
+
+\Option{SEIPictureDigest} &
+\ShortOption{\None} &
+\Default{true} &
+Enable or disable the calculation and insertion of the picture_digest
+SEI messages.  When this parameter is set to 0, the feature is disabled.
+When set to 1 (default), the feature is enabled and the encoder will
+write the MD5 of each locally decoded picture to the log using the
+format: [MD5:d41d8cd98f00b204e9800998ecf8427e].
+\\
+\end{OptionTable}
+
+%%
+%%
+%%
+\subsection{Hardcoded encoder parameters}
+\subsubsection*{CommonDef.h}
+ADAPT_SR_SCALE
+Defines a scaling factor used to derive the motion search range is
+adaptive (see ASR configuration parameter). Default value is 1.
+
+\subsubsection*{TypeDef.h}
+TBD
+
+\subsubsection*{TAppEncCfg.cpp}
+MAX_PAD_SIZE
+Defines the multiple to which the size of a source picture is padded
+when using the PAD configuration parameter. Default value is 16.
+
+
+%%
+%%
+%%
+\clearpage
+\section{Using the decoder}
+\begin{verbatim}
+TappDecoder -b str.bin -o dec.yuv [options]
+\end{verbatim}
+
+\begin{OptionTable}{Decoder options}
+\Option{} &
+\ShortOption{-h} &
+\Default{\None} &
+Prints usage information.
+\\
+
+\Option{} &
+\ShortOption{-o} &
+\Default{\NotSet} &
+Defines reconstructed YUV file name.
+\\
+
+\Option{} &
+\ShortOption{-s} &
+\Default{0} &
+Defines the number of pictures in decoding order to skip.
+\\
+
+\Option{} &
+\ShortOption{-d} &
+\Default{0 (Native)} &
+Defines the bit depth of the reconstructed YUV file (a value 0 indicates
+that the native bit depth is used)
+\\
+
+\Option{SEIPictureDigest} &
+\ShortOption{\None} &
+\Default{1} &
+Enable or disable verification of any picture_digest SEI messages. When
+this parameter is set to 0, the feature is disabled and all messages are
+ignored. When set to 1 (default), the feature is enabled and the decoder
+has the following behaviour:
+\begin{itemize}
+\item
+  For each decoded picture, the MD5 is calculated and written to the
+  log.  If the input bitstream has a picture_digest SEI message for the
+  corresponding decoded picture, the two MD5s are compared. Decoding
+  will continue even if there is a mismatch.
+
+\item
+  After decoding is complete, if any MD5sum comparison failed, a warning
+  is printed and the decoder exits with the status EXIT_FAILURE
+
+\item
+  The per-picture MD5 log message has the following formats:
+  [MD5:d41d8cd98f00b204e9800998ecf8427e,(OK)],
+  [MD5:d41d8cd98f00b204e9800998ecf8427e,(unk)],
+  [MD5:d41d8cd98f00b204e9800998ecf8427e,(***ERROR***)] [rxMD5:b9e1...]
+  where, "(unk)" implies that no MD5 was signalled for this picture,
+  "(OK)" implies that the decoder agrees with the signalled MD5,
+  "(***ERROR***)" implies that the decoder disagrees with the signalled
+  MD5. "[rxMD5:...]" is the signalled MD5 if different.
+\end{itemize}
+\\
+\end{OptionTable}
+
+
+\end{document}
