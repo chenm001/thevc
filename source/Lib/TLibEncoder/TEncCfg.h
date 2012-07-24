@@ -217,7 +217,6 @@ protected:
   UInt*     m_puiRowHeight;
 
   Int       m_iWaveFrontSynchro;
-  Int       m_iWaveFrontFlush;
   Int       m_iWaveFrontSubstreams;
 
   Int m_pictureDigestEnabled;              ///< Checksum(3)/CRC(2)/MD5(1)/disable(0) acting on SEI picture_digest message
@@ -515,8 +514,6 @@ public:
   Void  xCheckGSParameters();
   Void  setWaveFrontSynchro(Int iWaveFrontSynchro)       { m_iWaveFrontSynchro = iWaveFrontSynchro; }
   Int   getWaveFrontsynchro()                            { return m_iWaveFrontSynchro; }
-  Void  setWaveFrontFlush(Int iWaveFrontFlush)           { m_iWaveFrontFlush = iWaveFrontFlush; }
-  Int   getWaveFrontFlush()                              { return m_iWaveFrontFlush; }
   Void  setWaveFrontSubstreams(Int iWaveFrontSubstreams) { m_iWaveFrontSubstreams = iWaveFrontSubstreams; }
   Int   getWaveFrontSubstreams()                         { return m_iWaveFrontSubstreams; }
   void setPictureDigestEnabled(Int b) { m_pictureDigestEnabled = b; }
