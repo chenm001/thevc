@@ -15,6 +15,7 @@
 \usepackage{makecell}
 \usepackage{longtable}
 \usepackage{array}
+\usepackage{algorithm2e}
 
 \usepackage[strings]{underscore}
 \usepackage{csquotes}
@@ -225,113 +226,118 @@ as if there were infinitely many identical GOPs before the
 current one. Each line in the table contains the parameters used
 for the corresponding frame, separated by whitespace:
 
-Type: Slice type, can be either I, P or B.
+\begin{itemize}
+\item[]\textbf{Type}: Slice type, can be either I, P or B.
 
-POC: Display order of the frame within a GOP, ranging from 1 to
-GOPSize.
+\item[]\textbf{POC}: Display order of the frame within a GOP, ranging
+from 1 to GOPSize.
 
-QPOffset: QP offset is added to the QP parameter to set the final
-QP value to use for this frame.
+\item[]\textbf{QPOffset}: QP offset is added to the QP parameter to set
+the final QP value to use for this frame.
 
-QPFactor: Weight used during rate distortion optimization. Higher
-values mean lower quality and less bits. Typical range is between
+\item[]\textbf{QPFactor}: Weight used during rate distortion
+optimization. Higher values mean lower quality and less bits. Typical
+range is between
 0.3 and 1.
 
-temporal_id: Temporal layer of the frame. A frame cannot predict
-from a frame with a higher temporal id. If a frame with higher
+\item[]\textbf{temporal_id}: Temporal layer of the frame. A frame cannot
+predict from a frame with a higher temporal id. If a frame with higher
 temporal IDs is listed among a frame's reference pictures, it is
 not used, but is kept for possible use in future frames.
 
-num_ref_pics_active: Size of reference picture lists L0 and L1,
-indicating how many reference pictures in each direction that are
-used during coding.
+\item[]\textbf{num_ref_pics_active}: Size of reference picture lists L0
+and L1, indicating how many reference pictures in each direction that
+are used during coding.
 
-ref_pic: A value of 1 indicates that this is a reference picture,
-0 that it is a non-reference picture.
+\item[]\textbf{ref_pic}: A value of 1 indicates that this is a reference
+picture, 0 that it is a non-reference picture.
 
-num_ref_pics: The number of reference pictures kept for this frame.
-This includes pictures that are used for reference for the
-current picture as well as pictures that will be used for
-reference in the future.
+\item[]\textbf{num_ref_pics}: The number of reference pictures kept for
+this frame.  This includes pictures that are used for reference for the
+current picture as well as pictures that will be used for reference in
+the future.
 
-reference pictures: A space-separated list of num_ref_pics integers,
-specifying the POC of the reference pictures kept, relative the
-POC of the current frame. The picture list shall be ordered,
-first with negative numbers from largest to smallest, followed by
-positive numbers from smallest to largest (e.g. -1 -3 -5 1 3).
-Note that any pictures not supplied in this list will be
-discarded and therefore not available as reference pictures
-later.
+\item[]\textbf{reference_pictures}: A space-separated list of
+num_ref_pics integers, specifying the POC of the reference pictures
+kept, relative the POC of the current frame. The picture list shall be
+ordered, first with negative numbers from largest to smallest, followed
+by positive numbers from smallest to largest (e.g. \verb|-1 -3 -5 1 3|).
+Note that any pictures not supplied in this list will be discarded and
+therefore not available as reference pictures later.
 
-predict: Defines the value of the syntax element
-inter_ref_pic_set_prediction_flag. A value of 0 indicates that
-the reference picture set is encoded without inter RPS prediction
-and the subsequent parameters deltaRIdx-1, deltaRPS, num_ref_idcs
-and Reference_idcs are ignored and do not need to be present. A
-value of 1 indicates that the reference picture set is encoded
-with inter prediction RPS using the subsequent parameters deltaRIdx-1,
-deltaRPS, num_ref_idcs and Reference_idcs in the line. A value of 2
-indicates that the reference picture set is encoded with inter RPS but
-only the deltaRIdx-1 parameters is needed. The deltaRPS, num_ref_idcs and
+\item[]\textbf{predict}: Defines the value of the syntax element
+inter_ref_pic_set_prediction_flag. A value of 0 indicates that the
+reference picture set is encoded without inter RPS prediction and the
+subsequent parameters deltaRIdx$-1$, deltaRPS, num_ref_idcs and
+Reference_idcs are ignored and do not need to be present. A value of 1
+indicates that the reference picture set is encoded with inter
+prediction RPS using the subsequent parameters deltaRIdx$-1$, deltaRPS,
+num_ref_idcs and Reference_idcs in the line. A value of 2 indicates that
+the reference picture set is encoded with inter RPS but only the
+deltaRIdx$-1$ parameters is needed. The deltaRPS, num_ref_idcs and
 Reference_idcs values are automatically derived by the encoder based on
 the POC and refPic values of the current line and the RPS pointed to by
-the deltaRIdx-1 parameters.
+the deltaRIdx$-1$ parameters.
 
-deltaRIdx-1: The difference between the index of the curent RPS
-and the predictor RPS minus 1.
+\item[]\textbf{deltaRIdx$-1$}: The difference between the index of the
+curent RPS and the predictor RPS minus 1.
 
-deltaRPS: The difference between the POC of the predictor RPS and
-POC the current RPS.
+\item[]\textbf{deltaRPS}: The difference between the POC of the
+predictor RPS and POC the current RPS.
 
-num_ref_idcs: The number of ref_idcs to encode for the current RPS.
-The value is equal to the value of  num_ref_pics of the predictor
-RPS plus 1.
+\item[]\textbf{num_ref_idcs}: The number of ref_idcs to encode for the
+current RPS.  The value is equal to the value of  num_ref_pics of the
+predictor RPS plus 1.
 
-reference idcs: A space-separated list of num_ref_idcs integers,
-specifying the ref idcs of the inter RPS prediction. The value of
-ref_idcs may be 0, 1 or 2 indicating that the reference picture
-is a reference picture used by the current picture, a reference
-picture used for future picture or not a reference picture
-anymore, respectively. The first num_ref_pics of ref_idcs correspond
-to the Reference pictures in the predictor RPS. The last ref_idcs
-corresponds to the predictor picture.
+\item[]\textbf{reference_idcs}: A space-separated list of num_ref_idcs
+integers, specifying the ref idcs of the inter RPS prediction. The value
+of ref_idcs may be 0, 1 or 2 indicating that the reference picture is a
+reference picture used by the current picture, a reference picture used
+for future picture or not a reference picture anymore, respectively. The
+first num_ref_pics of ref_idcs correspond to the Reference pictures in
+the predictor RPS. The last ref_idcs corresponds to the predictor
+picture.
+\end{itemize}
 
-For example, consider the following coding structure:
+For example, consider the coding structure of Figure~\ref{fig:gop-example}.
+This coding structure is of size 4. The pictures are listed in decoding
+order. Frame1 shall therefore describe picture with $\textrm{POC}=4$. It
+references picture 0, and therefore has $-4$ as a reference picture.
+Similarly, Frame2 has a POC of 2, and since it references pictures 0 and
+4, its reference pictures are listed as \verb|-2 2|. Frame3 is a special
+case: even though it only references pictures with POC 0 and 2, it also
+needs to include the picture with POC 4, which must be kept in order to
+be used as a reference picture in the future. The reference picture list
+for Frame3 therefore becomes \verb|-1 1 3|. Frame4 has a POC of 3 and
+its list of reference pictures is \verb|-1 1|.
 
-This coding structure is of size 4. The pictures are listed in
-decoding order. Frame1 shall therefore describe picture with
-POC=4. It references picture 0, and therefore has -4 as a
-reference picture. Similarly, Frame2 has a POC of 2, and since it
-references pictures 0 and 4, its reference pictures are listed as
-"-2 2". Frame3 is a special case: even though it only references
-pictures with POC 0 and 2, it also needs to include the picture
-with POC 4, which must be kept in order to be used as a reference
-picture in the future. The reference picture list for Frame3
-therefore becomes "-1 1 3". Frame4 has a POC of 3 and its list of
-reference pictures is "-1 1".
+\begin{figure}[h]
+\caption{A GOP structure}
+\label{fig:gop-example}
+\centering
+\includegraphics[width=0.7\textwidth]{gop-structure-example}
+\end{figure}
 
-Inter RPS prediction may be used for Frame2, Frame3 and Frame4,
-hence the predict parameter is set to 1 for these frames. Frame2
-uses Frame1 as the predictor hence the deltaRIdx-1 is 0.
-Similarly for Frame3 and Frame4 which use Frame2 and Frame3 as
-predictors, respectively. The deltaRPS is equal to the POC of the
-predictor minus the POC of the current picture, therefore the
-deltaRPS for Frame2 is 4 -2 = 2, for Frame3 is 2 - 1 = 1 and for
-Frame4 is 1 - 3 = -2.
+Inter RPS prediction may be used for Frame2, Frame3 and Frame4, hence
+the predict parameter is set to 1 for these frames. Frame2 uses Frame1
+as the predictor hence the deltaRIdx$-1$ is 0.  Similarly for Frame3 and
+Frame4 which use Frame2 and Frame3 as predictors, respectively. The
+deltaRPS is equal to the POC of the predictor minus the POC of the
+current picture, therefore the deltaRPS for Frame2 is $4 -2 = 2$, for
+Frame3 is $2 - 1 = 1$ and for Frame4 is $1 - 3 = -2$.
 
 In Frame2, reference pictures with POC 0 and 2 are used, so the
-reference idcs for Frame2 are “1 1” indicating that the reference
-picture “-4” in Frame1 is still a reference picture in Frame2 and
-Frame1 is also a reference picture in Frame2. The reference idcs
-for Frame3 are “1 1 1”. The first and second “1”s indicating that
-the reference pictures “-2 2” in Frame2 are still reference
-pictures in Frame3 and the last “1” indicating that Frame2 is
-also a reference picture in Frame3. In Frame 4, the reference
-idcs are ”0 1 1 0”. The first “0” indicates that the reference
-pictures “-1” in Frame 3 is no longer a reference picture in
-Frame4. The next two “1”s indicate that the reference pictures “1
-3” are now reference pictures of Frame4. The final “0” indicates
-that Frame3 is not a reference picture.
+reference idcs for Frame2 are \verb|1 1| indicating that the reference
+picture, $-4$, in Frame1 is still a reference picture in Frame2 and
+Frame1 is also a reference picture in Frame2. The reference idcs for
+Frame3 are \verb|1 1 1|. The first and second “1”s indicating that
+the reference pictures "$-2$ $2$" in Frame2 are still reference pictures in
+Frame3 and the last “1” indicating that Frame2 is also a reference
+picture in Frame3. In Frame 4, the reference idcs are \verb|0 1 1 0|.
+The first “0” indicates that the reference pictures “-1” in Frame 3 is
+no longer a reference picture in Frame4. The next two “1”s indicate that
+the reference pictures “$1$ $3$” are now reference pictures of Frame4.
+The final “0” indicates that Frame3 is not a reference picture.
 
 In order to specify this to the encoder, the parameters in
 Table~\ref{tab:gop-example} could be used.
@@ -357,12 +363,12 @@ temporal_id         &   0  &    1   &      2   &       2 \\
 num_ref_pics_active &   1  &    1   &      1   &       1 \\
 ref_pic             &   1  &    1   &      0   &       0 \\
 num_ref_pics        &   1  &    2   &      3   &       2 \\
-reference pictures  & $-$4 & $-$2 2 & $-$1 1 3 &  $-$1 1 \\
+reference_pictures  & $-$4 & $-$2 2 & $-$1 1 3 &  $-$1 1 \\
 predict             &   0  &    1   &      1   &       1 \\
 deltaRIdx$-$1       &      &    0   &      0   &       0 \\
 deltaRPS            &      &    2   &      1   &    $-$2 \\
 num_ref_idcs        &      &    2   &      3   &       4 \\
-reference idcs      &      &  1 1   &  1 1 1   & 0 1 1 0 \\
+reference_idcs      &      &  1 1   &  1 1 1   & 0 1 1 0 \\
 \hline
 \end{tabular}
 \end{table}
@@ -381,47 +387,44 @@ Frame3: B 1 3 0.5 2 1 0 3 -1 1 3 1 0 1 3 1 1 1
 Frame4: B 3 3 0.5 2 1 0 2 -1 1 1 0 -2 4 0 1 1 0
 \end{verbatim}
 
-The values of deltaRIdx-1[, ]deltaRPS, num_ref_idcs and reference
-idcs of FrameK can be derived from the POC value of FrameK and
-the POC, num_ref_pics and reference pictures values of FrameM, where
-K is the index of the RPS to be inter coded and the M is the
+The values of deltaRIdx$-1$, deltaRPS, num_ref_idcs and reference
+idcs of Frame$K$ can be derived from the POC value of Frame$_K$ and
+the POC, num_ref_pics and reference_pictures values of Frame$_M$, where
+$K$ is the index of the RPS to be inter coded and the $M$ is the
 index of the reference RPS, as follows.
 
-deltaRIdx[K] -1 = K - M - 1
+\setlength{\algomargin}{2em}
+\begin{algorithm}[h]
+\SetKwData{deltaRIdx}{deltaRIdx}
+\SetKwData{deltaRPS}{deltaRPS}
+\SetKwData{numrefidcs}{num_ref_idcs}
+\SetKwData{numrefpics}{num_ref_pics}
+\SetKwData{referencepictures}{reference_pictures}
+\SetKwData{referenceidcs}{reference_idcs}
+\SetKwData{POC}{POC}
 
-deltaRPS[K] [ ]= POC[M] [ ]- POC[K][]
+$\deltaRIdx_K - 1  \leftarrow  K - M - 1$ \;
+$\deltaRPS_K       \leftarrow  \POC_M - \POC_K$ \;
+$\numrefidcs_K     \leftarrow  \numrefpics_M + 1$ \;
 
-num_ref_idcs[K ]= num_ref_pics[M ]+ 1
-
-for (j=0; j<= num_ref_pics[M]; j++)
-
-{
-
-if ((reference pictures[M][j] + deltaRPS[K]) == reference
-pictures[K][i], 0 <= i < num_ref_idcs[K] ) [ ]{
-
-[ ]reference idcs[K][j] = 1, if reference pictures[K][i] is used
-by the current frame, or[]
-
-[ ]reference idcs[K][j] [ ]= 2, if reference pictures[K][i] [ ]is
-not used by the current frame.
-
+\For{$j \leftarrow 0$ \KwTo $\numrefpics_M$}{
+	\For{$i \leftarrow 0$ \KwTo $\numrefidcs_K$}{
+		\eIf{$\referencepictures_{M,j} + \deltaRPS_K == \referencepictures_{K,i}$}{
+			\lIf{$\referencepictures_{K,i}$ is used by the current frame}{
+				$\referenceidcs_{K,j} = 1$} \;
+			\lElse{$\referenceidcs_{K,j} = 2$} \;
+		}{
+			$\referenceidcs_K[j] = 0$ \;
+		}
+	}
 }
 
-else {
-
-reference idcs[K][j] [ ]= 0[]
-
-}
-
-}
-
-reference pictures[M][num_ref_pics[M]] is does not exist and is assumed to
-be 0.
+\tcc{$\referencepictures_{M,\numrefpics_M}$ does not exist and is assumed to be 0}
+\end{algorithm}
 
 Note: The above (automatic) generation of the inter RPS parameter
 values has been integrated into the encoder, and is activated by
-the value of predict = 2 followed by the value of deltaRIdx-1,
+the value of predict $= 2$ followed by the value of deltaRIdx$-1$,
 only, as described above.
 
 
