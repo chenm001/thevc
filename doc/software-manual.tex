@@ -180,7 +180,6 @@ Linux                & build/linux/makefile \\
 %%%%
 %%%%
 %%%%
-\clearpage
 \section{Using the encoder}
 \begin{verbatim}
 TAppEncoder 	[-h] [-c config.cfg] [--parameter=value]
@@ -442,62 +441,75 @@ only, as described above.
 \Option{InputFile} &
 \ShortOption{-i} &
 \Default{\NotSet} &
-Defines source YUV file.
+Specifies the input video file.
 
-Note: Raw image data is stored in YUV files in planar format. When the bit
-depth of samples is larger than 8, each sample is encoded in 2 bytes (little
-endian, LSB-justified).
+Video data must be in a raw 4:2:0 planar format (Y$'$CbCr).
+
+Note: When the bit depth of samples is larger than 8, each sample is encoded in
+2 bytes (little endian, LSB-justified).
 \\
 
 \Option{BistreamFile} &
 \ShortOption{-b} &
 \Default{\NotSet} &
-Defines coded bit stream file.
+Specifies the output coded bit stream file.
 \\
 
 \Option{ReconFile} &
 \ShortOption{-o} &
 \Default{\NotSet} &
-Defines reconstructed YUV file.
+Specifies the output locally reconstructed video file.
 \\
 
-\Option{SourceWidth} &
-\ShortOption{-wdt} &
-\Default{0} &
-Defines width of source in luma samples.
-\\
-
+\Option{SourceWidth}%
 \Option{SourceHeight} &
+\ShortOption{-wdt}%
 \ShortOption{-hgt} &
+\Default{0}%
 \Default{0} &
-Defines height of source in luma samples.
+Specifies the width and height of the input video in luma samples.
 \\
 
 \Option{InputBitDepth} &
 \ShortOption{\None} &
 \Default{8} &
-Defines the bit depth of the source YUV file.
+Specifies the bit depth of the input video.
 \\
 
 \Option{InternalBitDepth} &
 \ShortOption{\None} &
-\Default{0 (InputBitDepth)} &
-Defines the internal bit depth used for coding.
+\Default{0 \\ (InputBitDepth)} &
+Specifies the bit depth used for coding.
+
+If the input video is a different bit depth to InternalBitDepth, it is
+automatically converted by:
+\begin{displaymath}
+\left\lfloor
+ \frac{\mathrm{Pel} * 2^{\mathrm{InternalBitDepth}}}{
+     2^{\mathrm{InputBitDepth}}}
+\right\rfloor
+\end{displaymath}
+
+Note: The effect of this option is as if the input video is externally
+converted to the InternalBitDepth and then coded with this value as
+InputBitDepth.  The codec has no notion of two different bit depths.
 \\
 
 \Option{OutputBitDepth} &
 \ShortOption{\None} &
-\Default{0 (InternalBitDepth)} &
-Defines the bit depth of the reconstructed YUV file.
+\Default{0 \\ (InternalBitDepth)} &
+Specifies the bit depth of the output locally reconstructed video file.
+
+Note: This option has no effect on the decoding process.
 \\
 
 \Option{CroppingMode} &
 \ShortOption{\None} &
 \Default{0} &
-Defines the cropping/padding parameters to be applied to the source
-file. The following modes are available:
+Specifies the cropping/padding parameters to be applied to the input
+video. The following modes are available:
 \par
-\begin{tabular}{cp{0.5\textwidth}}
+\begin{tabular}{cp{0.45\textwidth}}
 0 & No cropping / padding \\
 1 & Automatic padding to the next minimum CU size \\
 2 & Padding according to parameters HorizontalPadding and VerticalPadding \\
@@ -511,9 +523,9 @@ file. The following modes are available:
 \ShortOption{-pdx}%
 \ShortOption{-pdy} &
 \Default{0} &
-Defines horizontal and vertical padding of source in luma samples.
-Must be a multiple of the chroma resolution (e.g. a multiple of two for
-4:2:0).
+Specifies the horizontal and vertical padding to be applied to the input
+video in luma samples.  Must be a multiple of the chroma resolution
+(e.g. a multiple of two for 4:2:0).
 \\
 
 \Option{CropLeft}%
@@ -522,27 +534,29 @@ Must be a multiple of the chroma resolution (e.g. a multiple of two for
 \Option{CropBottom} &
 \ShortOption{\None} &
 \Default{0} &
-Defines horizontal and vertical cropping of source in luma samples.
-Must be a multiple of the chroma resolution (e.g. a multiple of two for
-4:2:0).
+Specifies the horizontal and vertical cropping to be applied to the
+input video in luma samples.  Must be a multiple of the chroma
+resolution (e.g. a multiple of two for 4:2:0).
 \\
 
 \Option{FrameRate} &
 \ShortOption{-fr} &
 \Default{0} &
-Defines frame rate of source.
+Specifies the frame rate of the input video.
+
+Note: This option only affects the reported bit rates.
 \\
 
 \Option{FrameSkip} &
 \ShortOption{-fs} &
 \Default{0} &
-Defines number of frames to skip at beginning of source.
+Specifies a number of frames to skip at beginning of input video file.
 \\
 
 \Option{FramesToBeEncoded} &
 \ShortOption{-f} &
-\Default{0 (all)} &
-Defines number of frames to be encoded.
+\Default{0 \\ (all)} &
+Specifies the number of frames to be encoded.
 \\
 \end{OptionTable}
 
@@ -554,19 +568,19 @@ Defines number of frames to be encoded.
 \Option{MaxCUWidth} &
 \ShortOption{\None} &
 \Default{64} &
-Defines maximum CU width.
+Defines the maximum CU width.
 \\
 
 \Option{MaxCUHeight} &
 \ShortOption{\None} &
 \Default{64} &
-Defines maximum CU height.
+Defines the maximum CU height.
 \\
 
 \Option{MaxCUSize} &
 \ShortOption{\None} &
 \Default{64} &
-Defines maximum CU size.
+Defines the maximum CU size.
 \\
 
 \Option{MaxPartitionDepth} &
@@ -577,26 +591,26 @@ Defines the depth of the CU tree.
 
 \Option{QuadtreeTULog2MaxSize} &
 \ShortOption{\None} &
-\Default{6 ($= \mathrm{log}_2(64)$)} &
-Maximum TU size in logarithm base 2.
+\Default{6 \\ ($= \mathrm{log}_2(64)$)} &
+Defines the Maximum TU size in logarithm base 2.
 \\
 
 \Option{QuadtreeTULog2MinSize} &
 \ShortOption{\None} &
-\Default{2 ($= \mathrm{log}_2(4)$)} &
-Minimum TU size in logarithm base 2.
+\Default{2 \\ ($= \mathrm{log}_2(4)$)} &
+Defines the Minimum TU size in logarithm base 2.
 \\
 
 \Option{QuadtreeTUMaxDepthIntra} &
 \ShortOption{\None} &
 \Default{1} &
-Defines depth of TU tree for intra CUs.
+Defines the depth of the TU tree for intra CUs.
 \\
 
 \Option{QuadtreeTUMaxDepthInter} &
 \ShortOption{\None} &
 \Default{2} &
-Defines depth of TU tree for inter CUs.
+Defines the depth of the TU tree for inter CUs.
 \\
 \end{OptionTable}
 
@@ -608,38 +622,35 @@ Defines depth of TU tree for inter CUs.
 \Option{IntraPeriod} &
 \ShortOption{-ip} &
 \Default{$-1$} &
-Defines intra frame period.
+Specifies the intra frame period.
 A value of $-1$ implies an infinite period.
 \\
 
 \Option{DecodingRefreshType} &
 \ShortOption{-dr} &
 \Default{0} &
-Defines the type of decoding refresh to apply for the picture at the
-intra frame period.\par
-\begin{tabular}{cp{0.5\textwidth}}
-%\thead{Value} & \\
-0 & applies an I picture (not a clean random access point). \\
-1 & applies a non-IDR clean random access point (open GOP). \\
-2 & applies an IDR random access point (closed GOP). \\
+Specifies the type of decoding refresh to apply at the intra frame period
+picture.
+\par
+\begin{tabular}{cp{0.45\textwidth}}
+0 & Applies an I picture (not a clean random access point). \\
+1 & Applies a non-IDR clean random access point (open GOP). \\
+2 & Applies an IDR random access point (closed GOP). \\
 \end{tabular}
-%A value of 0 applies an I picture (not a clean random access point).
-%A value of 1 applies a non-IDR clean random access point (opened GOP).
-%A value of 2 applies an IDR random access point (closed GOP).
 \\
 
 \Option{GOPSize} &
 \ShortOption{-g} &
 \Default{1} &
-Defines size of picture hierarchy.
+Specifies the size of the cyclic GOP structure.
 \\
 
 \Option{Frame\emph{N}} &
 \ShortOption{\None} &
 \Default{\NotSet} &
-Multiple options describing a table that defines the cyclic GOP
-structure that will be used repeatedly throughout the equence.
-The table should contain GOPSize elements.
+Multiple options that define the cyclic GOP structure that will be used
+repeatedly throughout the sequence.  The table should contain GOPSize
+elements.
 \par
 See section~\ref{sec:gop-structure} for further details.
 \\
@@ -647,16 +658,15 @@ See section~\ref{sec:gop-structure} for further details.
 \Option{ListCombination} &
 \ShortOption{-lc} &
 \Default{true} &
-Defines use of combined reference list for uni-prediction in B-slices.
-\begin{itemize}
-\item
-  A value of 1 indicates that the combined reference list is derived
-  from reference list~0 and reference list~1.
-\item
-  A value of 0 indicates that reference list~0 and reference list~1
-  are identical and reference list~0 is used as the combined
-  reference list.
-\end{itemize}
+Enables or disables the use of the combined reference list for uni-prediction
+in B-slices.
+\par
+\begin{tabular}{cp{0.45\textwidth}}
+  0 & Reference list~0 and reference list~1 are identical and reference
+      list~0 is used as the combined reference list. \\
+  1 & The combined reference list is derived from reference list~0 and
+      reference list~1. \\
+\end{tabular}
 NB: LComb can only be 0 in low delay coding (more precisely, when list 0
 and list 1 are the same)
 \\
@@ -670,18 +680,18 @@ and list 1 are the same)
 \Option{FastSearch} &
 \ShortOption{\None} &
 \Default{true} &
-Defines use of fast motion search. If this parameter has a value of 0,
-full search method is used, otherwise, fast motion estimation method is
-used.
-
-Note: the current software allows the value to range from 0 to 2, but
-only 0 (full) and 1 (fast) are supported.
+Enables or disables the use of a fast motion search.
+\par
+\begin{tabular}{cp{0.45\textwidth}}
+ 0 & Full search method \\
+ 1 & Fast search method \\
+\end{tabular}
 \\
 
 \Option{SearchRange} &
 \ShortOption{-sr} &
 \Default{96} &
-Defines the search range used for motion estimation.
+Specifies the search range used for motion estimation.
 
 Note: the search range is defined around a predictor. Motion vectors
 derived by the motion estimation may thus have values larger than the
@@ -691,25 +701,38 @@ search range.
 \Option{BipredSearchRange} &
 \ShortOption{\None} &
 \Default{4} &
-Defines the search range used for bi-prediction refinement in the motion
+Specifies the search range used for bi-prediction refinement in motion
 estimation.
 \\
 
 \Option{HadamardME} &
 \ShortOption{\None} &
 \Default{true} &
-Defines use of the Hadamard transform in fractional-pel motion
-estimation. Otherwise, SAD is used instead.
+Enables or disables the use of the Hadamard transform in fractional-pel motion
+estimation.
+\par
+\begin{tabular}{cp{0.45\textwidth}}
+ 0 & SAD for cost estimation \\
+ 1 & Hadamard for cost estimation \\
+\end{tabular}
 \\
 
 \Option{ASR} &
 \ShortOption{\None} &
 \Default{false} &
-Defines use of adaptive search range, which dynamically adjusts the
-motion search range according to the POC difference between the current
-and the reference pictures.
-
-SearchRagne’ = Round( SearchRange * ADAPT_SR_SCALE * abs( POCcur – POCref ) / RateGOPSize )
+Enables or disables the use of adaptive search ranges, where the motion
+search range is dynamically adjusted according to the POC difference
+between the current and the reference pictures.
+\begin{displaymath}
+\resizebox{\hsize}{!}{$
+\mathrm{SearchRange}’ = \mathrm{Round}\left(
+                          \mathrm{SearchRange}
+                          * \mathrm{ADAPT\_SR\_SCALE}
+                          * \frac{\mathrm{abs}(
+                                 \mathrm{POCcur} - \mathrm{POCref} )}{
+                                 \mathrm{RateGOPSize}}\right)
+$}
+\end{displaymath}
 \\
 \end{OptionTable}
 
@@ -731,8 +754,8 @@ $N$ may be in the range 0--7.
 \Option{FEN} &
 \ShortOption{\None} &
 \Default{false} &
-Defines use of fast encoder mode. Default is 0 (false).
-When this option is specified, the following changes apply:
+Enables or disables the use of fast encoder mode.  When enabled,
+the following occurs:
 \begin{itemize}
 \item In the SAD computation for blocks having size larger than 8, only
       the lines of even rows in the block are considered.
@@ -744,8 +767,8 @@ When this option is specified, the following changes apply:
 \Option{FDM} &
 \ShortOption{\None} &
 \Default{true} &
-Defines use of fast encoder decision for 2Nx2N merge mode. When this
-option is specify the RD cost for the merge mode of the current
+Enables or disables the use of fast encoder decisions for 2Nx2N merge
+mode.  When enabled, the RD cost for the merge mode of the current
 candidate is not evaluated if the merge skip mode was the best merge
 mode for one of the previous candidates.
 \\
@@ -758,7 +781,7 @@ mode for one of the previous candidates.
 \Option{QP} &
 \ShortOption{-q} &
 \Default{30.0} &
-Defines base value of the quantization parameter.
+Specifies the base value of the quantization parameter.
 \\
 
 \Option{CbQpOffset}%
@@ -767,7 +790,7 @@ Defines base value of the quantization parameter.
 \ShortOption{-crqpofs} &
 \Default{0}%
 \Default{0} &
-Global offset to apply to luma QP to derive QP of Cb and Cr
+Global offset to apply to the luma QP to derive the QP of Cb and Cr
 respectively.  These options correspond to the values of cb_qp_offset
 and cr_qp_offset, that are transmitted in the PPS.  Valid values are in
 the range $[-12, 12]$.
@@ -776,49 +799,48 @@ the range $[-12, 12]$.
 \Option{MaxCuDQPDepth} &
 \ShortOption{\None} &
 \Default{0} &
-Defines max depth of a minimum CuDQP for sub-LCU-level delta QP.
+Defines maximum depth of a minimum CuDQP for sub-LCU-level delta QP.
 MaxCuDQPDepth shall be greater than or equal to SliceGranularity.
 \\
 
 \Option{RDOQ} &
 \ShortOption{\None} &
 \Default{true} &
-Defines whether rate-distortion-optimized quantization is used in the
-encoder.
+Enables or disables rate-distortion-optimized quantization.
 \\
 
 \Option{DeltaQpRD} &
 \ShortOption{-dqr} &
 \Default{0} &
-Defines maximum QP offset at slice level for multi-pass slice encoding.
-In the encoder, each slice is tested multiple times by using slice QP
-values in the range [-DeltaQpRD, DeptaQpRD], and the best QP value is
-chosen as the slice QP.
+Specifies the maximum QP offset at slice level for multi-pass slice
+encoding.  When encoding, each slice is tested multiple times by using
+slice QP values in the range $[-\mathrm{DeltaQpRD}, \mathrm{DeptaQpRD}]$,
+and the best QP value is chosen as the slice QP.
 \\
 
 \Option{MaxDeltaQP} &
 \ShortOption{-d} &
 \Default{0} &
-Defines maximum QP offset at largest coding unit level for block-level
-adaptive QP assignment scheme. In the encoder, each largest coding unit
-is tested multiple times by using the QP values in the range
-[-MaxDeltaQP, MaxDeltaQP], and the best QP value is chosen as the QP
-value of the largest coding unit.
+Specifies the maximum QP offset at the largest coding unit level for
+the block-level adaptive QP assignment scheme. In the encoder, each
+largest coding unit is tested multiple times by using the QP values in
+the range $[-\mathrm{MaxDeltaQP}, \mathrm{MaxDeltaQP}]$, and the best QP
+value is chosen as the QP value of the largest coding unit.
 \\
 
 \Option{dQPFile} &
 \ShortOption{-m} &
 \Default{\NotSet} &
-Defines file name containing list of QP value deltas. The n-th line
-(where n is 0 for the first line) of this file corresponds to the QP
-value delta for the picture with POC value n.
+Specifies a file containing a list of QP deltas. The $n$-th line
+(where $n$ is 0 for the first line) of this file corresponds to the QP
+value delta for the picture with POC value $n$.
 \\
 
 \Option{AdaptiveQpSelection} &
 \ShortOption{-aqps} &
 \Default{false} &
-Defines whether QP values for non-I frames will be calculated on the fly
-based on statistics of previously coded frames.
+Specifies whether QP values for non-I frames will be calculated on the
+fly based on statistics of previously coded frames.
 \\
 \end{OptionTable}
 
@@ -831,8 +853,8 @@ based on statistics of previously coded frames.
 \Option{SBACRD} &
 \ShortOption{\None} &
 \Default{true} &
-Defines use of bit counts from arithmetic coder in rate-distortion
-decisions.
+Enables or disables the use of bit counts from arithmetic coder in
+rate-distortion decisions.
 \\
 \end{OptionTable}
 
@@ -844,29 +866,36 @@ decisions.
 \Option{SliceGranularity} &
 \ShortOption{\None} &
 \Default{0} &
-Determines the depth in an LCU at which slices may begin and end. A
-value of 0 means that slice addresses are LCU aligned. A value of 1
-means that slices addresses may additionally be aligned with CUs that
-has a width and height that is one half of an LCU. (depth of 1). Values
-between 0 and 3 inclusive are permitted, provided that CUs at the given
-depth are of size 16x16 or larger. For 64x64 LCUs, this means that the
-maximum allowed SliceGranularity is 2 since that gives a CU of 16x16
-which is the smallest allowed.
+Determines the depth in an LCU at which slices may begin and end.
+\par
+\begin{tabular}{cp{0.45\textwidth}}
+ 0   & Slice addresses are LCU aligned \\
+ $1 \leq n \leq 3$
+     & Slice start addresses are aligned to CUs at depth $n$ \\
+\end{tabular}
+
+Note: The smallest permissible alignment is 16x16 CUs.
+Values of $n$ must satisfy this constraint, for example, with a 64x64
+LCU, $n$ must be less than or equal to 2.
 \\
 
 \Option{SliceMode} &
 \ShortOption{\None} &
 \Default{0} &
-Enables slice coding. When set to 1, the parameter SliceArgument will
-specify the maximum number of CUs at a depth of SliceGranuarity in a
-slice. When set to 2, the parameter SliceArgument will specify the
-number of bytes in a slice.
+Controls the slice partitioning method in conjunction with
+SliceArgument.
+\par
+\begin{tabular}{cp{0.45\textwidth}}
+ 0 & Single slice \\
+ 1 & Maximum number of CUs (at a depth of SliceGranuarity) per slice \\
+ 2 & Maximum number of bytes per slice \\
+\end{tabular}
 \\
 
 \Option{SliceArgument} &
 \ShortOption{\None} &
 \Default{\NotSet} &
-Defines the maximum number of CUs or bytes in a slice depending on the
+Specifies the maximum number of CUs or bytes in a slice depending on the
 SliceMode setting.
 \\
 
@@ -889,7 +918,7 @@ depending on the SliceMode setting.
 \Option{WaveFrontSynchro} &
 \ShortOption{\None} &
 \Default{false} &
-Defines use of specific CABAC probabilities synchronization at the
+Enables the use of specific CABAC probabilities synchronization at the
 beginning of each line of CTBs in order to produce a bitstream that can
 be encoded or decoded using one or more cores.
 \\
@@ -904,15 +933,14 @@ be encoded or decoded using one or more cores.
 \Option{LoopFilterDisable} &
 \ShortOption{\None} &
 \Default{false} &
-Flag to disable the loop deblocking filter.
+Enables or disables the in-loop deblocking filter.
 \\
 
 \Option{LFCrossSliceBoundaryFlag} &
 \ShortOption{\None} &
 \Default{true} &
-Flag to enable in-loop filtering across slice boundaries. When it is set
-to 1, in-loop filtering can cross slice boundaries. When it is set to 0,
-in-loop filtering cannot cross slice boundaries.
+Enables or disables the use of in-loop filtering across slice
+boundaries.
 \\
 
 \Option{DeblockingFilterControlPresent}&
@@ -933,39 +961,40 @@ When disabled, the default deblocking filter parameters are used.
 \Option{ALF} &
 \ShortOption{\None} &
 \Default{true} &
-Defines use of the adaptive loop filter.
+Enables or disables the adaptive loop filter.
 \\
 
 \Option{ALFLowLatencyEncode} &
 \ShortOption{\None} &
 \Default{false} &
-Defines the operating mode (low latency or high efficiency) of the
+Specifies the operating mode (low latency or high efficiency) of the
 adaptive loop filter.
 \\
 
 \Option{SAO} &
 \ShortOption{\None} &
 \Default{true} &
-Defines use of sample adaptive offset (SAO).
+Enables or disables the sample adaptive offset (SAO) filter.
 \\
 
 \Option{LMChroma} &
 \ShortOption{\None} &
 \Default{true} &
-Defines use of the Intra_ChromaFromLuma prediction mode.
+Enables or disables the intra chroma-from-luma prediction mode.
 \\
 
 \Option{NSQT} &
 \ShortOption{\None} &
 \Default{true} &
-Enables the use of the non-square quadtree transform.
+Enables or disables the non-square quadtree transform.
 \\
 
 \Option{ConstrainedIntraPred} &
 \ShortOption{\None} &
 \Default{false} &
-When set to 1, only pixels from Intra blocks in the same slice as the
-current block will be marked as available for Intra prediction.
+Enables or disables constrained intra prediction.  Constrained intra
+prediction only permits samples from intra blocks in the same slice as the
+current block to be used for intra prediction.
 \\
 
 \Option{TransquantBypassEnableFlag} &
@@ -985,7 +1014,7 @@ See CUTransquantBypassFlagValue for further details.
 Controls the per CU transformation, quantization and filtering
 mode decision.
 This option corresponds to the value of the per CU cu_transquant_bypass_flag.
-
+\par
 \begin{tabular}{cp{0.45\textwidth}}
  0 & Bypass is not performed on any CU \\
  1 & Bypass is performed on all CUs \\
@@ -1002,7 +1031,7 @@ Enables or disables the use of PCM.
 
 \Option{PCMLog2MaxSize} &
 \ShortOption{\None} &
-\Default{5 ($= \mathrm{log}_2(32)$)} &
+\Default{5 \\ ($= \mathrm{log}_2(32)$)} &
 Specifies log2 of the maximum PCM block size. When PCM is enabled, the
 PCM mode is available for 2Nx2N intra PUs smaller than or equal to the
 specified maximum PCM block size
@@ -1046,7 +1075,7 @@ Controls the use of weighted prediction in P slices.
 \Default{0} &
 Controls the use of weighted prediction in B slices.
 \par
-\begin{tabular}{cp{0.5\textwidth}}
+\begin{tabular}{cp{0.45\textwidth}}
 0 & Disabled \\
 1 & Explicit weighted prediction \\
 2 & Implicit weighted prediction \\
@@ -1069,7 +1098,7 @@ coefficients in the current coefficient group.
 \Default{1} &
 Controls the temporal motion vector prediction mode.
 \par
-\begin{tabular}{cp{0.5\textwidth}}
+\begin{tabular}{cp{0.45\textwidth}}
   0 & Disabled for all slices. \\
   1 & Enabled for all slices. \\
   2 & Disabled only for the first picture of each GOPSize. \\
@@ -1104,11 +1133,14 @@ This option has no effect if TS is disabled.
 \Option{SEIPictureDigest} &
 \ShortOption{\None} &
 \Default{true} &
-Enable or disable the calculation and insertion of the picture_digest
-SEI messages.  When this parameter is set to 0, the feature is disabled.
-When set to 1 (default), the feature is enabled and the encoder will
-write the MD5 of each locally decoded picture to the log using the
-format: [MD5:d41d8cd98f00b204e9800998ecf8427e].
+Enables or disables the calculation and insertion of the picture_digest
+SEI messages.
+\par
+\begin{tabular}{cp{0.45\textwidth}}
+  0 & Disabled \\
+  1 & Transmits MD5 in SEI message and writes the value to the encoder
+      log \\
+\end{tabular}
 \\
 \end{OptionTable}
 
@@ -1243,7 +1275,7 @@ Defines the number of pictures in decoding order to skip.
 
 \Option{} &
 \ShortOption{-d} &
-\Default{0 (Native)} &
+\Default{0 \\ (Native)} &
 Defines the bit depth of the reconstructed YUV file (a value 0 indicates
 that the native bit depth is used)
 \\
