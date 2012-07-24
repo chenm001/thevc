@@ -483,16 +483,29 @@ Defines the internal bit depth used for coding.
 Defines the bit depth of the reconstructed YUV file.
 \\
 
-\Option{HorizontalPadding} &
-\ShortOption{-pdx} &
+\Option{CroppingMode} &
+\ShortOption{\None} &
 \Default{0} &
-Defines horizontal padding of source in luma samples.
+Defines the cropping/padding parameters to be applied to the source
+file. The following modes are available:
+\par
+\begin{tabular}{cp{0.5\textwidth}}
+0 & No cropping / padding \\
+1 & Automatic padding to the next minimum CU size \\
+2 & Padding according to parameters HorizontalPadding and VerticalPadding \\
+3 & Cropping according to parameters CropLeft, CropRight, CropTop and
+    CropBottom \\
+\end{tabular}
 \\
 
+\Option{HorizontalPadding}%
 \Option{VerticalPadding} &
+\ShortOption{-pdx}%
 \ShortOption{-pdy} &
 \Default{0} &
-Defines vertical padding of source in luma samples.
+Defines horizontal and vertical padding of source in luma samples.
+Must be a multiple of the chroma resolution (e.g. a multiple of two for
+4:2:0).
 \\
 
 \Option{PAD} &
@@ -500,6 +513,17 @@ Defines vertical padding of source in luma samples.
 \Default{false} &
 Enables automatic padding of the source to multiples of MAX_PAD_SIZE luma
 samples.
+\\
+
+\Option{CropLeft}%
+\Option{CropRight}%
+\Option{CropTop}%
+\Option{CropBottom} &
+\ShortOption{\None} &
+\Default{0} &
+Defines horizontal and vertical cropping of source in luma samples.
+Must be a multiple of the chroma resolution (e.g. a multiple of two for
+4:2:0).
 \\
 
 \Option{FrameRate} &
