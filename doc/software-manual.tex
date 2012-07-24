@@ -812,6 +812,14 @@ parameter SliceArgument will specify the number of bytes (LCEC) or bins
 Defines the maximum number of CUs or bytes/bins in an entropy slice
 depending on the SliceMode setting.
 \\
+
+\Option{WaveFrontSynchro} &
+\ShortOption{\None} &
+\Default{false} &
+Defines use of specific CABAC probabilities synchronization at the
+beginning of each line of CTBs in order to produce a bitstream that can
+be encoded or decoded using one or more cores.
+\\
 \end{OptionTable}
 
 
