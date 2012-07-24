@@ -713,6 +713,25 @@ SearchRagne’ = Round( SearchRange * ADAPT_SR_SCALE * abs( POCcur – POCref ) 
 
 
 %%
+%% Mode decision parameters
+%%
+\begin{OptionTable}{Mode decision parameters}
+\Option{FEN} &
+\ShortOption{\None} &
+\Default{false} &
+Defines use of fast encoder mode. Default is 0 (false).
+When this option is specified, the following changes apply:
+\begin{itemize}
+\item In the SAD computation for blocks having size larger than 8, only
+      the lines of even rows in the block are considered.
+\item The number of iterations used in the bi-directional motion vector
+      refinement in the motion estimation process is reduced from 4 to 1.
+\end{itemize}
+\\
+\end{OptionTable}
+
+
+%%
 %% Quantization parameters
 %%
 \begin{OptionTable}{Quantization parameters}
@@ -994,19 +1013,6 @@ coefficients in the current coefficient group.
 %% Miscellaneous parameters
 %%
 \begin{OptionTable}{Miscellaneous parameters}
-\Option{FEN} &
-\ShortOption{\None} &
-\Default{false} &
-Defines use of fast encoder mode. Default is 0 (false).
-When this option is specified, the following changes apply:
-\begin{itemize}
-\item In the SAD computation for blocks having size larger than 8, only
-      the lines of even rows in the block are considered.
-\item The number of iterations used in the bi-directional motion vector
-      refinement in the motion estimation process is reduced from 4 to 1.
-\end{itemize}
-\\
-
 \Option{SEIPictureDigest} &
 \ShortOption{\None} &
 \Default{true} &
