@@ -759,6 +759,18 @@ mode for one of the previous candidates.
 Defines base value of the quantization parameter.
 \\
 
+\Option{CbQpOffset}%
+\Option{CrQpOffset} &
+\ShortOption{-cbqpofs}%
+\ShortOption{-crqpofs} &
+\Default{0}%
+\Default{0} &
+Global offset to apply to luma QP to derive QP of Cb and Cr
+respectively.  These options correspond to the values of cb_qp_offset
+and cr_qp_offset, that are transmitted in the PPS.  Valid values are in
+the range $[-12, 12]$.
+\\
+
 \Option{MaxCuDQPDepth} &
 \ShortOption{\None} &
 \Default{0} &
