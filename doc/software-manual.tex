@@ -728,8 +728,16 @@ When this option is specified, the following changes apply:
       refinement in the motion estimation process is reduced from 4 to 1.
 \end{itemize}
 \\
-\end{OptionTable}
 
+\Option{FDM} &
+\ShortOption{\None} &
+\Default{true} &
+Defines use of fast encoder decision for 2Nx2N merge mode. When this
+option is specify the RD cost for the merge mode of the current
+candidate is not evaluated if the merge skip mode was the best merge
+mode for one of the previous candidates.
+\\
+\end{OptionTable}
 
 %%
 %% Quantization parameters
