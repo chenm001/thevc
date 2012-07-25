@@ -1584,7 +1584,9 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
   Int             iNbRef       = (eSliceType == B_SLICE ) ? (2) : (1);
   UInt            uiLog2WeightDenomLuma, uiLog2WeightDenomChroma;
   UInt            uiMode      = 0;
-
+#if NUM_WP_LIMIT
+  UInt            uiTotalSignalledWeightFlags = 0;
+#endif
   if ( (eSliceType==P_SLICE && pps->getUseWP()) || (eSliceType==B_SLICE && pps->getWPBiPred()) )
   {
     uiMode = 1; // explicit
@@ -1616,6 +1618,25 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
         UInt  uiCode;
         READ_FLAG( uiCode, "luma_weight_lX_flag" );           // u(1): luma_weight_l0_flag
         wp[0].bPresentFlag = ( uiCode == 1 );
+#if NUM_WP_LIMIT
+        uiTotalSignalledWeightFlags += wp[0].bPresentFlag;
+      }
+      if ( bChroma ) 
+      {
+        UInt  uiCode;
+        for ( Int iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx++ ) 
+        {
+          pcSlice->getWpScaling(eRefPicList, iRefIdx, wp);
+          READ_FLAG( uiCode, "chroma_weight_lX_flag" );      // u(1): chroma_weight_l0_flag
+          wp[1].bPresentFlag = ( uiCode == 1 );
+          wp[2].bPresentFlag = ( uiCode == 1 );
+          uiTotalSignalledWeightFlags += 2*wp[1].bPresentFlag;
+        }
+      }
+      for ( Int iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx++ ) 
+      {
+        pcSlice->getWpScaling(eRefPicList, iRefIdx, wp);
+#endif
         if ( wp[0].bPresentFlag ) 
         {
           Int iDeltaWeight;
@@ -1630,9 +1651,11 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
         }
         if ( bChroma ) 
         {
+#if !NUM_WP_LIMIT
           READ_FLAG( uiCode, "chroma_weight_lX_flag" );      // u(1): chroma_weight_l0_flag
           wp[1].bPresentFlag = ( uiCode == 1 );
           wp[2].bPresentFlag = ( uiCode == 1 );
+#endif
           if ( wp[1].bPresentFlag ) 
           {
             for ( Int j=1 ; j<3 ; j++ ) 
@@ -1668,6 +1691,9 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
         wp[2].bPresentFlag = false;
       }
     }
+#if NUM_WP_LIMIT
+    assert(uiTotalSignalledWeightFlags<=24);
+#endif
   }
   else
   {
