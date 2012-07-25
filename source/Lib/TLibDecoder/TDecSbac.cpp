@@ -739,7 +739,15 @@ Void TDecSbac::parseInterDir( TComDataCU* pcCU, UInt& ruiInterDir, UInt uiAbsPar
   UInt uiSymbol;
   const UInt uiCtx = pcCU->getCtxInterDir( uiAbsPartIdx );
   ContextModel *pCtx = m_cCUInterDirSCModel.get( 0 );
-  m_pcTDecBinIf->decodeBin( uiSymbol, *( pCtx + uiCtx ) );
+#if DISALLOW_BIPRED_IN_8x4_4x8PUS
+  uiSymbol = 0;
+  if (pcCU->getPartitionSize(uiAbsPartIdx) == SIZE_2Nx2N || pcCU->getHeight(uiAbsPartIdx) != 8 )
+  {
+#endif
+    m_pcTDecBinIf->decodeBin( uiSymbol, *( pCtx + uiCtx ) );
+#if DISALLOW_BIPRED_IN_8x4_4x8PUS
+  }
+#endif
 
   if( uiSymbol )
   {
