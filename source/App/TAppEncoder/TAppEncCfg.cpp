@@ -110,7 +110,9 @@ std::istringstream &operator>>(std::istringstream &in, GOPEntry &entry)     //in
 #if AUTO_INTER_RPS
   if (entry.m_interRPSPrediction==1)
   {
+#if !J0234_INTER_RPS_SIMPL
     in>>entry.m_deltaRIdxMinus1;
+#endif
     in>>entry.m_deltaRPS;
     in>>entry.m_numRefIdc;
     for ( Int i = 0; i < entry.m_numRefIdc; i++ )
@@ -120,13 +122,17 @@ std::istringstream &operator>>(std::istringstream &in, GOPEntry &entry)     //in
   }
   else if (entry.m_interRPSPrediction==2)
   {
+#if !J0234_INTER_RPS_SIMPL
     in>>entry.m_deltaRIdxMinus1;
+#endif
     in>>entry.m_deltaRPS;
   }
 #else
   if (entry.m_interRPSPrediction)
   {
+#if !J0234_INTER_RPS_SIMPL
     in>>entry.m_deltaRIdxMinus1;
+#endif
     in>>entry.m_deltaRPS;
     in>>entry.m_numRefIdc;
     for ( Int i = 0; i < entry.m_numRefIdc; i++ )
@@ -773,7 +779,9 @@ Void TAppEncCfg::xCheckParameter()
           m_GOPList[m_iGOPSize+m_extraRPSs].m_interRPSPrediction = 1;  
           m_GOPList[m_iGOPSize+m_extraRPSs].m_numRefIdc = newIdc;
           m_GOPList[m_iGOPSize+m_extraRPSs].m_deltaRPS = refPOC - m_GOPList[m_iGOPSize+m_extraRPSs].m_POC; 
+#if !J0234_INTER_RPS_SIMPL
           m_GOPList[m_iGOPSize+m_extraRPSs].m_deltaRIdxMinus1 = 0; 
+#endif
         }
         curGOP=m_iGOPSize+m_extraRPSs;
         m_extraRPSs++;

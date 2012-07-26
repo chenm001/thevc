@@ -154,9 +154,21 @@ void TDecCavlc::parseShortTermRefPicSet( TComSPS* sps, TComReferencePictureSet* 
   if (interRPSPred) 
   {
     UInt bit;
+#if J0234_INTER_RPS_SIMPL
+    if(idx == sps->getRPSList()->getNumberOfReferencePictureSets())
+      READ_UVLC(code, "delta_idx_minus1" ); // delta index of the Reference Picture Set used for prediction minus 1
+    else
+      code = 0;
+    assert(code <= idx-1 && code >=0); // delta_idx_minus1 shall not be larger than idx-1, otherwise we will predict from a negative row position that does not exist. When idx equals 0 there is no legal value and interRPSPred must be zero. See J0185-r2
+#else
     READ_UVLC(code, "delta_idx_minus1" ); // delta index of the Reference Picture Set used for prediction minus 1
+#endif
     Int rIdx =  idx - 1 - code;
+#if J0234_INTER_RPS_SIMPL
+    assert (rIdx <= idx-1 && rIdx >= 0); // Made assert tighter; if rIdx = idx then prediction is done from itself. rIdx must belong to range 0, idx-1, inclusive, see J0185-r2
+#else
     assert (rIdx <= idx && rIdx >= 0);
+#endif
     TComReferencePictureSet*   rpsRef = sps->getRPSList()->getReferencePictureSet(rIdx);
     Int k = 0, k0 = 0, k1 = 0;
     READ_CODE(1, bit, "delta_rps_sign"); // delta_RPS_sign

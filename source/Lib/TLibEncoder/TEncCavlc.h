@@ -85,7 +85,12 @@ protected:
   Void  xWriteExGolombLevel    ( UInt uiSymbol );
   Void  xWriteUnaryMaxSymbol  ( UInt uiSymbol, UInt uiMaxSymbol );
 
+#if J0234_INTER_RPS_SIMPL
+  Void codeShortTermRefPicSet              ( TComSPS* pcSPS, TComReferencePictureSet* pcRPS, Bool calledFromSliceHeader );
+#else
   Void codeShortTermRefPicSet              ( TComSPS* pcSPS, TComReferencePictureSet* pcRPS );
+#endif
+
   
   UInt  xConvertToUInt        ( Int iValue ) {  return ( iValue <= 0) ? -iValue<<1 : (iValue<<1)-1; }
   

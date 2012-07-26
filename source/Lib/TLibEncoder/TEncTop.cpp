@@ -654,12 +654,21 @@ Void TEncTop::xInitRPS()
     // handle inter RPS intialization from the config file.
 #if AUTO_INTER_RPS
     rps->setInterRPSPrediction(ge.m_interRPSPrediction > 0);  // not very clean, converting anything > 0 to true.
+#if J0234_INTER_RPS_SIMPL
+    rps->setDeltaRIdxMinus1(0);                               // index to the Reference RPS is always the previous one.
+    TComReferencePictureSet*     RPSRef = rpsList->getReferencePictureSet(i-1);  // get the reference RPS
+#else
     rps->setDeltaRIdxMinus1(ge.m_deltaRIdxMinus1);            // index to the Reference RPS
     TComReferencePictureSet*     RPSRef = rpsList->getReferencePictureSet(i-(ge.m_deltaRIdxMinus1+1));  // get the reference RPS
+#endif
 
     if (ge.m_interRPSPrediction == 2)  // Automatic generation of the inter RPS idc based on the RIdx provided.
     {
+#if J0234_INTER_RPS_SIMPL
+      Int deltaRPS = getGOPEntry(i-1).m_POC - ge.m_POC;  // the ref POC - current POC
+#else
       Int deltaRPS = getGOPEntry(i-(ge.m_deltaRIdxMinus1+1)).m_POC - ge.m_POC;  // the ref POC - current POC
+#endif
       Int numRefDeltaPOC = RPSRef->getNumberOfPictures();
 
       rps->setDeltaRPS(deltaRPS);           // set delta RPS
@@ -753,7 +762,11 @@ Void TEncTop::xInitRPS()
     rps->setInterRPSPrediction(ge.m_interRPSPrediction);
     if (ge.m_interRPSPrediction)
     {
+#if J0234_INTER_RPS_SIMPL
+      rps->setDeltaRIdxMinus1(0);
+#else
       rps->setDeltaRIdxMinus1(ge.m_deltaRIdxMinus1);
+#endif
       rps->setDeltaRPS(ge.m_deltaRPS);
       rps->setNumRefIdc(ge.m_numRefIdc);
       for (Int j = 0; j < ge.m_numRefIdc; j++ )
@@ -765,7 +778,11 @@ Void TEncTop::xInitRPS()
       // computed from the RefIdc.  This is not necessary if both are identical. Currently there is no check to see if they are identical.
       numNeg = 0;
       numPos = 0;
+#if J0234_INTER_RPS_SIMPL
+      TComReferencePictureSet*     RPSRef = m_RPSList.getReferencePictureSet(i-1);
+#else
       TComReferencePictureSet*     RPSRef = m_RPSList.getReferencePictureSet(i-(ge.m_deltaRIdxMinus1+1));
+#endif
 
       for (Int j = 0; j < ge.m_numRefIdc; j++ )
       {
