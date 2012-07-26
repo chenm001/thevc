@@ -1246,9 +1246,46 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         }
       }
       Int addr = pcCU->getAddr();
+#if SAO_SINGLE_MERGE
+      allowMergeLeft = allowMergeLeft && (rx>0) && (iCUAddrInSlice!=0);
+      allowMergeUp = allowMergeUp && (ry>0) && (iCUAddrUpInSlice>=0);
+      if( pcSlice->getAPS()->getSaoParam()->bSaoFlag[0] || pcSlice->getAPS()->getSaoParam()->bSaoFlag[1] || pcSlice->getAPS()->getSaoParam()->bSaoFlag[2])
+      {
+        Int mergeLeft = pcSlice->getAPS()->getSaoParam()->saoLcuParam[0][addr].mergeLeftFlag;
+        Int mergeUp = pcSlice->getAPS()->getSaoParam()->saoLcuParam[0][addr].mergeUpFlag;
+        if (allowMergeLeft)
+        {
+          m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoMergeLeft(mergeLeft, 0); 
+        }
+        else
+        {
+          mergeLeft = 0;
+        }
+        if(mergeLeft == 0)
+        {
+          if (allowMergeUp)
+          {
+            m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoMergeUp(mergeUp);
+          }
+          else
+          {
+            mergeUp = 0;
+          }
+          if(mergeUp == 0)
+          {
+            for (Int compIdx=0;compIdx<3;compIdx++)
+            {
+              if( pcSlice->getAPS()->getSaoParam()->bSaoFlag[compIdx])
+                m_pcEntropyCoder->encodeSaoOffset(&pcSlice->getAPS()->getSaoParam()->saoLcuParam[compIdx][addr]);
+            }
+          }
+        }
+      }
+#else
       m_pcEntropyCoder->encodeSaoUnitInterleaving(0, pcSlice->getAPS()->getSaoParam()->bSaoFlag[0], rx, ry, &(pcSlice->getAPS()->getSaoParam()->saoLcuParam[0][addr]), iCUAddrInSlice, iCUAddrUpInSlice, allowMergeLeft, allowMergeUp);
       m_pcEntropyCoder->encodeSaoUnitInterleaving(1, pcSlice->getAPS()->getSaoParam()->bSaoFlag[1], rx, ry, &(pcSlice->getAPS()->getSaoParam()->saoLcuParam[1][addr]), iCUAddrInSlice, iCUAddrUpInSlice, allowMergeLeft, allowMergeUp);
       m_pcEntropyCoder->encodeSaoUnitInterleaving(2, pcSlice->getAPS()->getSaoParam()->bSaoFlag[2], rx, ry, &(pcSlice->getAPS()->getSaoParam()->saoLcuParam[2][addr]), iCUAddrInSlice, iCUAddrUpInSlice, allowMergeLeft, allowMergeUp);
+#endif
     }
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceEnable;

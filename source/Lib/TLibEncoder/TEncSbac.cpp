@@ -1463,11 +1463,19 @@ Void TEncSbac::codeSaoMergeLeft       ( UInt uiCode, UInt uiCompIdx )
 {
   if (uiCode == 0)
   {
+#if SAO_SINGLE_MERGE
+    m_pcBinIf->encodeBin(0,  m_cSaoMergeLeftSCModel.get( 0, 0, 0 ));
+#else
     m_pcBinIf->encodeBin(0,  m_cSaoMergeLeftSCModel.get( 0, 0, uiCompIdx ));
+#endif
   }
   else
   {
+#if SAO_SINGLE_MERGE
+    m_pcBinIf->encodeBin(1,  m_cSaoMergeLeftSCModel.get( 0, 0, 0 ));
+#else
     m_pcBinIf->encodeBin(1,  m_cSaoMergeLeftSCModel.get( 0, 0, uiCompIdx ));
+#endif
   }
 }
 /** Code SAO merge up flag 

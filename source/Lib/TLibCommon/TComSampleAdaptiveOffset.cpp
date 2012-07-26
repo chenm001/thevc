@@ -1308,4 +1308,20 @@ Void TComSampleAdaptiveOffset::resetSaoUnit(SaoLcuParam* saoUnit)
   }
 }
 
+#if SAO_SINGLE_MERGE
+Void TComSampleAdaptiveOffset::copySaoUnit(SaoLcuParam* saoUnitDst, SaoLcuParam* saoUnitSrc )
+{
+  saoUnitDst->mergeLeftFlag = saoUnitSrc->mergeLeftFlag;
+  saoUnitDst->mergeUpFlag   = saoUnitSrc->mergeUpFlag;
+  saoUnitDst->typeIdx       = saoUnitSrc->typeIdx;
+  saoUnitDst->length        = saoUnitSrc->length;
+
+  saoUnitDst->bandPosition  = saoUnitSrc->bandPosition;
+  for (Int i=0;i<4;i++)
+  {
+    saoUnitDst->offset[i] = saoUnitSrc->offset[i];
+  }
+}
+#endif
+
 //! \}

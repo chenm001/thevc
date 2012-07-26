@@ -133,6 +133,9 @@ public:
   Void setSaoLcuBasedOptimization (Bool bVal)  {m_saoLcuBasedOptimization = bVal;}
   Bool getSaoLcuBasedOptimization ()           {return m_saoLcuBasedOptimization;}
   Void resetSaoUnit(SaoLcuParam* saoUnit);
+#if SAO_SINGLE_MERGE
+  Void copySaoUnit(SaoLcuParam* saoUnitDst, SaoLcuParam* saoUnitSrc );
+#endif
 };
 
 //! \}

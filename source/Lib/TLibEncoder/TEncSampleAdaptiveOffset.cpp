@@ -1418,6 +1418,10 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnitAll(SAOParam *saoParam, Double lambda, 
   Int addrLeft = -1;
   Int compIdx = 0;
   Double lambdaComp;
+#if SAO_SINGLE_MERGE 
+  SaoLcuParam mergeSaoParam[3][2];
+  Double compDistortion[3];
+#endif
 
   saoParam->bSaoFlag[0] = true;
   saoParam->bSaoFlag[1] = true;
@@ -1444,6 +1448,49 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnitAll(SAOParam *saoParam, Double lambda, 
       addr     = idxX  + frameWidthInCU*idxY;
       addrUp   = addr < frameWidthInCU ? -1:idxX   + frameWidthInCU*(idxY-1);
       addrLeft = idxX == 0               ? -1:idxX-1 + frameWidthInCU*idxY;
+#if SAO_SINGLE_MERGE
+      Int allowMergeLeft = 1;
+      Int allowMergeUp   = 1;
+      UInt rate;
+      Double bestCost, mergeCost;
+      if (idxX!=0)
+      { 
+        // check tile id and slice id 
+        if ( (m_pcPic->getPicSym()->getTileIdxMap(addr-1) != m_pcPic->getPicSym()->getTileIdxMap(addr)) || (m_pcPic->getCU(addr-1)->getSlice()->getSliceIdx() != m_pcPic->getCU(addr)->getSlice()->getSliceIdx()))
+        {
+          allowMergeLeft = 0;
+        }
+      }
+      else
+      {
+        allowMergeLeft = 0;
+      }
+      if (idxY!=0)
+      {
+        if ( (m_pcPic->getPicSym()->getTileIdxMap(addr-m_iNumCuInWidth) != m_pcPic->getPicSym()->getTileIdxMap(addr)) || (m_pcPic->getCU(addr-m_iNumCuInWidth)->getSlice()->getSliceIdx() != m_pcPic->getCU(addr)->getSlice()->getSliceIdx()))
+        {
+          allowMergeUp = 0;
+        }
+      }
+      else
+      {
+        allowMergeUp = 0;
+      }
+
+      compDistortion[0] = 0; 
+      compDistortion[1] = 0; 
+      compDistortion[2] = 0;
+      m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[0][CI_CURR_BEST]);
+      if (allowMergeLeft)
+      {
+        m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoMergeLeft(0, 0); 
+      }
+      if (allowMergeUp)
+      {
+        m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoMergeUp(0);
+      }
+      m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[0][CI_TEMP_BEST] );
+#endif
       // reset stats Y, Cb, Cr
       for ( compIdx=0;compIdx<3;compIdx++)
       {
@@ -1466,12 +1513,18 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnitAll(SAOParam *saoParam, Double lambda, 
         {
 #endif
           calcSaoStatsCu(addr, compIdx,  compIdx);
+#if SAO_SINGLE_MERGE
+          saoComponentParamDist(idxX, idxY, saoParam, addr, addrUp, addrLeft, compIdx,  lambdaComp, &mergeSaoParam[compIdx][0], &compDistortion[0]);
+#else
           rdoSaoUnit (idxX, idxY, saoParam, addr, addrUp, addrLeft, compIdx,  lambdaComp);
+#endif
 #if SAO_ENCODING_CHOICE
+#if !SAO_SINGLE_MERGE
           if( depth == 0 && saoParam->saoLcuParam[compIdx][addr].typeIdx == -1)
           {
             numNoSao++;
           }
+#endif
         }
 #endif
 #if !REMOVE_SAO_LCU_ENC_CONSTRAINTS_3
@@ -1484,6 +1537,79 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnitAll(SAOParam *saoParam, Double lambda, 
         }
 #endif
       }
+#if SAO_SINGLE_MERGE     
+      if( saoParam->bSaoFlag[0] || saoParam->bSaoFlag[1] || saoParam->bSaoFlag[2])
+      {
+        // Cost of new SAO_params
+        m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[0][CI_CURR_BEST]);
+        m_pcRDGoOnSbacCoder->resetBits();
+        if (allowMergeLeft)
+        {
+          m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoMergeLeft(0, 0); 
+        }
+        if (allowMergeUp)
+        {
+          m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoMergeUp(0);
+        }
+        for ( compIdx=0;compIdx<3;compIdx++)
+        {
+          if( saoParam->bSaoFlag[compIdx])
+          {
+            m_pcEntropyCoder->encodeSaoOffset(&saoParam->saoLcuParam[compIdx][addr]);
+          }
+        }
+
+        rate = m_pcEntropyCoder->getNumberOfWrittenBits();
+        bestCost = compDistortion[0] + (Double)rate;
+        m_pcRDGoOnSbacCoder->store(m_pppcRDSbacCoder[0][CI_TEMP_BEST]);
+
+        // Cost of Merge
+        for(Int mergeUp=0; mergeUp<2; ++mergeUp)
+        {
+          if ( (allowMergeLeft && (mergeUp==0)) || (allowMergeUp && (mergeUp==1)) )
+          {
+            m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[0][CI_CURR_BEST]);
+            m_pcRDGoOnSbacCoder->resetBits();
+            if (allowMergeLeft)
+            {
+              m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoMergeLeft(1-mergeUp, 0); 
+            }
+            if ( allowMergeUp && (mergeUp==1) )
+            {
+              m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoMergeUp(1); 
+            }
+
+            rate = m_pcEntropyCoder->getNumberOfWrittenBits();
+            mergeCost = compDistortion[mergeUp+1] + (Double)rate;
+            if (mergeCost < bestCost)
+            {
+              bestCost = mergeCost;
+              m_pcRDGoOnSbacCoder->store(m_pppcRDSbacCoder[0][CI_TEMP_BEST]);              
+              for ( compIdx=0;compIdx<3;compIdx++)
+              {
+                mergeSaoParam[compIdx][mergeUp].mergeLeftFlag = 1-mergeUp;
+                mergeSaoParam[compIdx][mergeUp].mergeUpFlag = mergeUp;
+                if( saoParam->bSaoFlag[compIdx])
+                {
+                  copySaoUnit(&saoParam->saoLcuParam[compIdx][addr], &mergeSaoParam[compIdx][mergeUp] );             
+                }
+              }
+            }
+          }
+        }
+#if SAO_ENCODING_CHOICE
+        for ( compIdx=0;compIdx<3;compIdx++)
+        {
+          if( depth == 0 && saoParam->saoLcuParam[compIdx][addr].typeIdx == -1)
+          {
+            numNoSao++;
+          }
+        }
+#endif
+        m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[0][CI_TEMP_BEST]);
+        m_pcRDGoOnSbacCoder->store(m_pppcRDSbacCoder[0][CI_CURR_BEST]);
+      }
+#endif
     }
   }
 #if SAO_ENCODING_CHOICE
@@ -1589,6 +1715,150 @@ inline Int64 TEncSampleAdaptiveOffset::estIterOffset(Int typeIdx, Int classIdx, 
   }
   return offsetOutput;
 }
+
+
+#if SAO_SINGLE_MERGE
+Void TEncSampleAdaptiveOffset::saoComponentParamDist(Int allowMergeLeft, Int allowMergeUp, SAOParam *saoParam, Int addr, Int addrUp, Int addrLeft, Int yCbCr, Double lambda, SaoLcuParam *compSaoParam, Double *compDistortion)
+{
+  Int typeIdx;
+
+  Int64 estDist;
+  Int classIdx;
+  Int shift = g_uiBitIncrement << 1;
+  Int64 bestDist;
+
+  SaoLcuParam*  saoLcuParam = &(saoParam->saoLcuParam[yCbCr][addr]);
+  SaoLcuParam*  saoLcuParamNeighbor = NULL; 
+
+  resetSaoUnit(saoLcuParam);
+  resetSaoUnit(&compSaoParam[0]);
+  resetSaoUnit(&compSaoParam[1]);
+
+
+  Double dCostPartBest = MAX_DOUBLE;
+
+  Double  bestRDCostTableBo = MAX_DOUBLE;
+  Int     bestClassTableBo    = 0;
+  Int     currentDistortionTableBo[MAX_NUM_SAO_CLASS];
+  Double  currentRdCostTableBo[MAX_NUM_SAO_CLASS];
+  Int     bestClassTableBoMerge = 0;
+
+  SaoLcuParam   saoLcuParamRdo;   
+  Double   estRate = 0;
+
+  resetSaoUnit(&saoLcuParamRdo);
+
+  m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[0][CI_TEMP_BEST]);
+  m_pcRDGoOnSbacCoder->resetBits();
+  m_pcEntropyCoder->encodeSaoOffset(&saoLcuParamRdo);
+  
+  dCostPartBest = m_pcEntropyCoder->getNumberOfWrittenBits()*lambda ; 
+  copySaoUnit(saoLcuParam, &saoLcuParamRdo );
+  bestDist = 0;
+  
+
+
+  for (typeIdx=0; typeIdx<MAX_NUM_SAO_TYPE; typeIdx++)
+  {
+    estDist = estSaoTypeDist(yCbCr, typeIdx, shift, lambda, currentDistortionTableBo, currentRdCostTableBo);
+
+    if( typeIdx == SAO_BO )
+    {
+      // Estimate Best Position
+      Double currentRDCost = 0.0;
+
+      for(Int i=0; i< SAO_MAX_BO_CLASSES -SAO_BO_LEN +1; i++)
+      {
+        currentRDCost = 0.0;
+        for(UInt uj = i; uj < i+SAO_BO_LEN; uj++)
+        {
+          currentRDCost += currentRdCostTableBo[uj];
+        }
+
+        if( currentRDCost < bestRDCostTableBo)
+        {
+          bestRDCostTableBo = currentRDCost;
+          bestClassTableBo  = i;
+        }
+      }
+
+      // Re code all Offsets
+      // Code Center
+      estDist = 0;
+      for(classIdx = bestClassTableBo; classIdx < bestClassTableBo+SAO_BO_LEN; classIdx++)
+      {
+        estDist += currentDistortionTableBo[classIdx];
+      }
+    }
+    resetSaoUnit(&saoLcuParamRdo);
+    saoLcuParamRdo.length = m_iNumClass[typeIdx];
+    saoLcuParamRdo.typeIdx = typeIdx;
+    saoLcuParamRdo.mergeLeftFlag = 0;
+    saoLcuParamRdo.mergeUpFlag   = 0;
+    saoLcuParamRdo.bandPosition = (typeIdx == SAO_BO) ? bestClassTableBo : 0;
+    for (classIdx = 0; classIdx < saoLcuParamRdo.length; classIdx++)
+    {
+      saoLcuParamRdo.offset[classIdx] = (Int)m_iOffset[yCbCr][typeIdx][classIdx+saoLcuParamRdo.bandPosition+1];
+    }
+    m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[0][CI_TEMP_BEST]);
+    m_pcRDGoOnSbacCoder->resetBits();
+    m_pcEntropyCoder->encodeSaoOffset(&saoLcuParamRdo);
+
+    estRate = m_pcEntropyCoder->getNumberOfWrittenBits();
+    m_dCost[yCbCr][typeIdx] = (Double)((Double)estDist + lambda * (Double) estRate);
+
+    if(m_dCost[yCbCr][typeIdx] < dCostPartBest)
+    {
+      dCostPartBest = m_dCost[yCbCr][typeIdx];
+      copySaoUnit(saoLcuParam, &saoLcuParamRdo );
+      bestDist = estDist;       
+    }
+  }
+  compDistortion[0] += ((Double)bestDist/lambda);
+  m_pcRDGoOnSbacCoder->load(m_pppcRDSbacCoder[0][CI_TEMP_BEST]);
+  m_pcEntropyCoder->encodeSaoOffset(saoLcuParam);
+  m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[0][CI_TEMP_BEST] );
+
+
+  // merge left or merge up
+
+  for (Int idxNeighbor=0;idxNeighbor<2;idxNeighbor++) 
+  {
+    saoLcuParamNeighbor = NULL;
+    if (allowMergeLeft && addrLeft>=0 && idxNeighbor ==0)
+    {
+      saoLcuParamNeighbor = &(saoParam->saoLcuParam[yCbCr][addrLeft]);
+    }
+    else if (allowMergeUp && addrUp>=0 && idxNeighbor ==1)
+    {
+      saoLcuParamNeighbor = &(saoParam->saoLcuParam[yCbCr][addrUp]);
+    }
+    if (saoLcuParamNeighbor!=NULL)
+    {
+        estDist = 0;
+        typeIdx = saoLcuParamNeighbor->typeIdx;
+        if (typeIdx>=0) 
+        {
+          Int mergeBandPosition = (typeIdx == SAO_BO)?saoLcuParamNeighbor->bandPosition:0;
+          Int   merge_iOffset;
+          for(classIdx = 0; classIdx < m_iNumClass[typeIdx]; classIdx++)
+          {
+            merge_iOffset = saoLcuParamNeighbor->offset[classIdx];
+            estDist   += estSaoDist(m_iCount [yCbCr][typeIdx][classIdx+mergeBandPosition+1], merge_iOffset, m_iOffsetOrg[yCbCr][typeIdx][classIdx+mergeBandPosition+1],  shift);
+          }
+        }
+        else
+          estDist = 0;
+
+        copySaoUnit(&compSaoParam[idxNeighbor], saoLcuParamNeighbor );
+        compSaoParam[idxNeighbor].mergeUpFlag   = idxNeighbor;
+        compSaoParam[idxNeighbor].mergeLeftFlag = !idxNeighbor;
+
+        compDistortion[idxNeighbor+1] += ((Double)estDist/lambda);
+    } 
+  } 
+}
+#else
 Void TEncSampleAdaptiveOffset::rdoSaoUnit(Int rx, Int ry, SAOParam *saoParam, Int addr, Int addrUp, Int addrLeft, Int yCbCr, Double lambda)
 {
   Int typeIdx;
@@ -1790,5 +2060,6 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnit(Int rx, Int ry, SAOParam *saoParam, In
   m_pcRDGoOnSbacCoder->load ( m_pppcRDSbacCoder[0][CI_TEMP_BEST] );
   m_pcRDGoOnSbacCoder->store( m_pppcRDSbacCoder[0][CI_CURR_BEST] );
 }
+#endif
 
 //! \}
