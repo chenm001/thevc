@@ -179,7 +179,9 @@ Void TEncCavlc::codeShortTermRefPicSet( TComSPS* pcSPS, TComReferencePictureSet*
     Int deltaRPS = rps->getDeltaRPS();
 #if J0234_INTER_RPS_SIMPL
     if(calledFromSliceHeader)
+    {
       WRITE_UVLC( rps->getDeltaRIdxMinus1(), "delta_idx_minus1" ); // delta index of the Reference Picture Set used for prediction minus 1
+    }
 #else
     WRITE_UVLC( rps->getDeltaRIdxMinus1(), "delta_idx_minus1" ); // delta index of the Reference Picture Set used for prediction minus 1
 #endif
