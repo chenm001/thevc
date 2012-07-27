@@ -777,8 +777,30 @@ Void TDecSbac::parseRefFrmIdx( TComDataCU* pcCU, Int& riRefFrmIdx, UInt uiAbsPar
 
     if( uiSymbol )
     {
+#if REF_IDX_BYPASS
+      UInt uiRefNum = pcCU->getSlice()->getNumRefIdx( eRefList ) - 2;
+      pCtx++;
+      UInt ui;
+      for( ui = 0; ui < uiRefNum; ++ui )
+      {
+        if( ui == 0 )
+        {
+          m_pcTDecBinIf->decodeBin( uiSymbol, *pCtx );
+        }
+        else
+        {
+          m_pcTDecBinIf->decodeBinEP( uiSymbol );
+        }
+        if( uiSymbol == 0 )
+        {
+          break;
+        }
+      }
+      uiSymbol = ui + 1;
+#else
       xReadUnaryMaxSymbol( uiSymbol, pCtx + 1, 1, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
       uiSymbol++;
+#endif
     }
     riRefFrmIdx = uiSymbol;
   }

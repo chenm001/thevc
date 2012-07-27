@@ -784,7 +784,29 @@ Void TEncSbac::codeRefFrmIdx( TComDataCU* pcCU, UInt uiAbsPartIdx, RefPicList eR
     
     if( iRefFrame > 0 )
     {
+#if REF_IDX_BYPASS
+      UInt uiRefNum = pcCU->getSlice()->getNumRefIdx( eRefList ) - 2;
+      pCtx++;
+      iRefFrame--;
+      for( UInt ui = 0; ui < uiRefNum; ++ui )
+      {
+        const UInt uiSymbol = ui == iRefFrame ? 0 : 1;
+        if( ui == 0 )
+        {
+          m_pcBinIf->encodeBin( uiSymbol, *pCtx );       
+        }
+        else
+        {
+          m_pcBinIf->encodeBinEP( uiSymbol );
+        }
+        if( uiSymbol == 0 )
+        {
+          break;
+        }
+      }
+#else
       xWriteUnaryMaxSymbol( iRefFrame - 1, pCtx + 1, 1, pcCU->getSlice()->getNumRefIdx( eRefList )-2 );
+#endif
     }
   }
   return;
