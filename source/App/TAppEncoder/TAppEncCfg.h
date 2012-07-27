@@ -82,7 +82,9 @@ protected:
   Bool      m_bUseLComb;                                      ///< flag for using combined reference list for uni-prediction in B-slices (JCTVC-D421)
   Bool      m_useTansformSkip;                                ///< flag for enabling intra transform skipping
   Bool      m_useTansformSkipFast;                            ///< flag for enabling fast intra transform skipping
+#if !REMOVE_NSQT
   Bool      m_enableNSQT;                                     ///< flag for enabling NSQT
+#endif
   Bool      m_enableAMP;
   // coding quality
   Double    m_fQP;                                            ///< QP value of key-picture (floating point)

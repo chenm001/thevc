@@ -4757,6 +4757,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
 
     trWidth  = trHeight  = 1 << uiLog2TrSize;
     trWidthC = trHeightC = 1 <<uiLog2TrSizeC;
+#if !REMOVE_NSQT
     pcCU->getNSQTSize ( uiTrMode, uiAbsPartIdx, trWidth, trHeight );
     pcCU->getNSQTSize ( uiTrModeC, uiAbsPartIdx, trWidthC, trHeightC );
 
@@ -4764,6 +4765,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
     {  
       absTUPartIdxC = pcCU->getNSAddrChroma( uiLog2TrSizeC, uiTrModeC, uiQuadrant, absTUPartIdx );
     }
+#endif
     pcCU->setTrIdxSubParts( uiDepth - pcCU->getDepth( 0 ), uiAbsPartIdx, uiDepth );
     if (m_pcEncCfg->getUseRDOQ())
     {
@@ -5112,8 +5114,12 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
     const UInt uiQPartNumSubdiv = pcCU->getPic()->getNumPartInCU() >> ((uiDepth + 1 ) << 1);
     for( UInt ui = 0; ui < 4; ++ui )
     {
+#if REMOVE_NSQT
+      UInt nsAddr = uiAbsPartIdx + ui * uiQPartNumSubdiv;
+#else
       UInt nsAddr = 0;
       nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrSize - 1, uiAbsPartIdx + ui * uiQPartNumSubdiv, absTUPartIdx, ui, uiTrMode + 1 );
+#endif
 #if IBDI_DISTORTION
       xEstimateResidualQT( pcCU, ui, uiAbsPartIdx + ui * uiQPartNumSubdiv, nsAddr, pcOrg, pcPred, pcResi, uiDepth + 1, dSubdivCost, uiSubdivBits, uiSubdivDist, bCheckFull ? NULL : puiZeroDist );
 #else
@@ -5260,14 +5266,18 @@ Void TEncSearch::xEncodeResidualQT( TComDataCU* pcCU, UInt uiAbsPartIdx, const U
       {
         Int trWidth  = 1 << uiLog2TrSize;
         Int trHeight = 1 << uiLog2TrSize;
+#if !REMOVE_NSQT
         pcCU->getNSQTSize( uiTrMode, uiAbsPartIdx, trWidth, trHeight );
+#endif
         m_pcEntropyCoder->encodeCoeffNxN( pcCU, pcCoeffCurrY, uiAbsPartIdx, trWidth, trHeight,    uiDepth, TEXT_LUMA );
       }
       if( bCodeChroma )
       {
         Int trWidth  = 1 << uiLog2TrSizeC;
         Int trHeight = 1 << uiLog2TrSizeC;
+#if !REMOVE_NSQT
         pcCU->getNSQTSize( uiTrMode, uiAbsPartIdx, trWidth, trHeight );
+#endif
         if( eType == TEXT_CHROMA_U && pcCU->getCbf( uiAbsPartIdx, TEXT_CHROMA_U, uiTrMode ) )
         {
           m_pcEntropyCoder->encodeCoeffNxN( pcCU, pcCoeffCurrU, uiAbsPartIdx, trWidth, trHeight, uiDepth, TEXT_CHROMA_U );
@@ -5318,11 +5328,14 @@ Void TEncSearch::xSetResidualQTData( TComDataCU* pcCU, UInt uiQuadrant, UInt uiA
     {      
       Int trWidth  = 1 << uiLog2TrSize;
       Int trHeight = 1 << uiLog2TrSize;
+#if !REMOVE_NSQT
       pcCU->getNSQTSize( uiTrMode, uiAbsPartIdx, trWidth, trHeight );
+#endif
       m_pcQTTempTComYuv[uiQTTempAccessLayer].copyPartToPartLuma    ( pcResi, absTUPartIdx, trWidth , trHeight );
 
       if( bCodeChroma )
       {
+#if !REMOVE_NSQT
         Int trWidthC  = 1 << uiLog2TrSizeC;
         Int trHeightC = 1 << uiLog2TrSizeC;
         UInt absTUPartIdxC = absTUPartIdx;
@@ -5334,7 +5347,10 @@ Void TEncSearch::xSetResidualQTData( TComDataCU* pcCU, UInt uiQuadrant, UInt uiA
           m_pcQTTempTComYuv[uiQTTempAccessLayer].copyPartToPartChroma( pcResi, absTUPartIdxC, trWidthC, trHeightC );
         }
         else
+#endif
+        {
           m_pcQTTempTComYuv[uiQTTempAccessLayer].copyPartToPartChroma( pcResi, uiAbsPartIdx, 1 << uiLog2TrSizeC, 1 << uiLog2TrSizeC );
+        }
       }
     }
     else
@@ -5372,11 +5388,17 @@ Void TEncSearch::xSetResidualQTData( TComDataCU* pcCU, UInt uiQuadrant, UInt uiA
   else
   {
     const UInt uiQPartNumSubdiv = pcCU->getPic()->getNumPartInCU() >> ((uiDepth + 1 ) << 1);
+#if !REMOVE_NSQT
     const UInt uiLog2TrSize = g_aucConvertToBit[pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiDepth] + 2;
+#endif
     for( UInt ui = 0; ui < 4; ++ui )
     {
+#if REMOVE_NSQT
+      UInt nsAddr = uiAbsPartIdx + ui * uiQPartNumSubdiv;
+#else
       UInt nsAddr = 0;
       nsAddr = pcCU->getNSAbsPartIdx( uiLog2TrSize-1, uiAbsPartIdx + ui * uiQPartNumSubdiv, absTUPartIdx, ui, uiCurrTrMode + 1);
+#endif
       xSetResidualQTData( pcCU, ui, uiAbsPartIdx + ui * uiQPartNumSubdiv, nsAddr, pcResi, uiDepth + 1, bSpatial );
     }
   }

@@ -1443,6 +1443,7 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
       uiHeight <<= 1;
     }
     Pel* pResi = rpcResidual + uiAddr;
+#if !REMOVE_NSQT
     if( pcCU->useNonSquareTrans( uiTrMode, uiAbsPartIdx ) )
     {
       Int trWidth  = uiWidth;
@@ -1452,6 +1453,7 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
       uiWidth  = trWidth;
       uiHeight = trHeight;
     }
+#endif
     Int scalingListType = (pcCU->isIntra(uiAbsPartIdx) ? 0 : 3) + g_eTTable[(Int)eTxt];
     assert(scalingListType < 6);
     invtransformNxN( pcCU->getCUTransquantBypass(uiAbsPartIdx), eTxt, REG_DCT, pResi, uiStride, rpcCoeff, uiWidth, uiHeight, scalingListType );
@@ -1463,8 +1465,10 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
     uiHeight >>= 1;
     Int trWidth = uiWidth, trHeight = uiHeight;
     Int trLastWidth = uiWidth << 1, trLastHeight = uiHeight << 1;
+#if !REMOVE_NSQT
     pcCU->getNSQTSize ( uiTrMode, uiAbsPartIdx, trWidth, trHeight );
     pcCU->getNSQTSize ( uiTrMode - 1, uiAbsPartIdx, trLastWidth, trLastHeight );
+#endif
     UInt uiAddrOffset = trHeight * uiStride;
     UInt uiCoefOffset = trWidth * trHeight;
     UInt uiPartOffset = pcCU->getTotalNumPart() >> ( uiTrMode << 1 );    

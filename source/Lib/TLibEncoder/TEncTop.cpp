@@ -482,7 +482,9 @@ Void TEncTop::xInitSPS()
   m_cSPS.setMaxTrSize   ( 1 << m_uiQuadtreeTULog2MaxSize );
   
   m_cSPS.setUseLComb    ( m_bUseLComb           );
+#if !REMOVE_NSQT
   m_cSPS.setUseNSQT( m_useNSQT );
+#endif
   
   Int i;
 #if HHI_AMVP_OFF

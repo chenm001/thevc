@@ -55,6 +55,8 @@
 
 #define SLICE_HEADER_EXTENSION           1  ///< II0235: Slice header extension mechanism
 
+#define REMOVE_NSQT 1 ///< Disable NSQT-related code
+
 #define PREVREFPIC_DEFN                  0  ///< J0248: Shall be set equal to 0! (prevRefPic definition reverted to CD definition)
 #define BYTE_ALIGNMENT                   0  ///< I0330: Add byte_alignment() procedure to end of slice header
 
@@ -100,7 +102,11 @@
 #define LEVEL_RANGE                         30     ///< G382: max coefficient level in statistics collection
 #endif
 
+#if REMOVE_NSQT
+#define NS_HAD                               0
+#else
 #define NS_HAD                               1
+#endif
 
 #define APS_BITS_FOR_SAO_BYTE_LENGTH 12           
 #define APS_BITS_FOR_ALF_BYTE_LENGTH 8

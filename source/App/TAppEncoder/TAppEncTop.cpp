@@ -108,7 +108,9 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setPad                          ( m_aiPad );
     
   m_cTEncTop.setMaxTempLayer                 ( m_maxTempLayer );
+#if !REMOVE_NSQT
   m_cTEncTop.setUseNSQT( m_enableNSQT );
+#endif
   m_cTEncTop.setUseAMP( m_enableAMP );
   
   //===== Slice ========
