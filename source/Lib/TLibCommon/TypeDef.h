@@ -57,6 +57,7 @@
 #define TRANS_SPLIT_FLAG_CTX_REDUCTION   1  ///< J0133: Reduce the context number of transform split flag to 3
 
 #define WP_PARAM_RANGE_LIMIT             1  ///< J0221: Range limit of delta_weight and delta_offset for chroma.
+#define J0260 1 ///< Fix in rate control equations
 
 #define SLICE_HEADER_EXTENSION           1  ///< II0235: Slice header extension mechanism
 
