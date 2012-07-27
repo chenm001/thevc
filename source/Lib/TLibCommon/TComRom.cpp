@@ -77,7 +77,7 @@ Void initROM()
 
     c <<= 1;
   }  
-
+#if !REMOVE_NSQT
   g_sigScanNSQT[0] = new UInt[ 64 ];  // 4x16
   g_sigScanNSQT[1] = new UInt[ 256 ]; // 8x32
   g_sigScanNSQT[2] = new UInt[ 64 ];  // 16x4
@@ -134,6 +134,7 @@ Void initROM()
       g_sigScanNSQT[ 3 ][ 16 * i + j ] = 128 * y + 4 * x + 32 * diagScanY[ j ] + diagScanX[ j ];
     }
   }
+#endif
 }
 
 Void destroyROM()
@@ -150,10 +151,12 @@ Void destroyROM()
     delete[] g_auiSigLastScan[2][i];
     delete[] g_auiSigLastScan[3][i];
   }
+#if !REMOVE_NSQT
   for (i = 0; i < 4; i++)
   {
     delete[] g_sigScanNSQT[ i ];    
   }
+#endif
 }
 
 // ====================================================================================================================
@@ -454,6 +457,7 @@ UInt* g_auiFrameScanXY[ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanX [ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanY [ MAX_CU_DEPTH  ];
 UInt* g_auiSigLastScan[4][ MAX_CU_DEPTH ];
+#if !REMOVE_NSQT
 UInt *g_sigScanNSQT[ 4 ]; // scan for non-square partitions
 UInt g_sigCGScanNSQT[ 4 ][ 16 ] =
 {
@@ -462,6 +466,7 @@ UInt g_sigCGScanNSQT[ 4 ][ 16 ] =
   { 0, 1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
   { 0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15 }
 };
+#endif
 
 const UInt g_sigLastScan8x8[ 4 ][ 4 ] =
 {

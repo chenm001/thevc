@@ -4023,7 +4023,6 @@ Void TComDataCU::getNSQTSize(Int trMode, Int absPartIdx, Int &trWidth, Int &trHe
     trHeight = ( m_pePartSize[absPartIdx] == SIZE_Nx2N || m_pePartSize[absPartIdx] == SIZE_nLx2N || m_pePartSize[absPartIdx] == SIZE_nRx2N )? trHeight << 1 : trHeight >> 1;
   }
 }
-#endif
 
 Bool TComDataCU::useNonSquarePU(UInt absPartIdx)
 {
@@ -4052,7 +4051,6 @@ UInt TComDataCU::getInterTUSplitDirection( Int trWidth, Int trHeight, Int trLast
   return interTUSplitDirection;
 }
 
-#if !REMOVE_NSQT
 UInt TComDataCU::getNSAbsPartIdx ( UInt log2TrafoSize, UInt absPartIdx, UInt absTUPartIdx, UInt innerQuadIdx, UInt trMode )
 {
   Int trWidth, trHeight, trLastWidth, trLastHeight;

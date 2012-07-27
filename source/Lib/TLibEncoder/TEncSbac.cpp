@@ -1199,6 +1199,9 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     blockType = 4;
   }
   
+#if REMOVE_NSQT
+  const UInt *scan = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize - 1 ];
+#else
   const UInt * scan;
   if (uiWidth == uiHeight)
   {
@@ -1208,8 +1211,9 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   {
     scan = g_sigScanNSQT[ uiLog2BlockSize - 2 ];
   }
+#endif
   
-  Bool beValid; 
+  Bool beValid;
   if (pcCU->getCUTransquantBypass(uiAbsPartIdx))
   {
     beValid = false;
@@ -1224,7 +1228,9 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   Int posLast;
 
   const UInt * scanCG;
+#if !REMOVE_NSQT
   if (uiWidth == uiHeight)
+#endif
   {
     scanCG = g_auiSigLastScan[ uiScanIdx ][ uiLog2BlockSize > 3 ? uiLog2BlockSize-2-1 : 0 ];
     if( uiLog2BlockSize == 3 )
@@ -1236,10 +1242,12 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       scanCG = g_sigLastScanCG32x32;
     }
   }
+#if !REMOVE_NSQT
   else
   {
     scanCG = g_sigCGScanNSQT[ uiLog2BlockSize - 2 ];
   }
+#endif
   UInt uiSigCoeffGroupFlag[ MLS_GRP_NUM ];
   static const UInt uiShift = MLS_CG_SIZE >> 1;
   const UInt uiNumBlkSide = uiWidth >> uiShift;

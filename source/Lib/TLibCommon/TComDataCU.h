@@ -546,10 +546,8 @@ public:
 #if !REMOVE_NSQT
   Bool          useNonSquareTrans( UInt uiTrMode, Int absPartIdx );
   Void          getNSQTSize(Int trMode, Int absPartIdx, Int &trWidth, Int &trHeight);
-#endif
   Bool          useNonSquarePU   ( UInt absPartIdx);
   UInt          getInterTUSplitDirection ( Int width, Int height, Int trLastWidth, Int trLastHeight );
-#if !REMOVE_NSQT
   UInt          getNSAbsPartIdx  ( UInt log2TrafoSize, UInt absPartIdx, UInt absTUPartIdx, UInt innerQuadIdx, UInt trMode );
   UInt          getNSAddrChroma   ( UInt uiLog2TrSizeC, UInt uiTrModeC, UInt uiQuadrant, UInt absTUPartIdx );
 #endif
