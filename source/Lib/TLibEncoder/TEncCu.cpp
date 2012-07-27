@@ -952,9 +952,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt u
           bEntropyLimit=true;
         }
       }
-#if REMOVE_FGS
-      if(rpcBestCU->getDepth(0)>=0)
-#else
+#if !REMOVE_FGS
       if(rpcBestCU->getDepth(0)>=rpcBestCU->getSlice()->getPPS()->getSliceGranularity())
 #endif
       {
