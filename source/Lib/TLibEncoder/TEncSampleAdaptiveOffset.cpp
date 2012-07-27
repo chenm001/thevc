@@ -1741,7 +1741,6 @@ Void TEncSampleAdaptiveOffset::saoComponentParamDist(Int allowMergeLeft, Int all
   Int     bestClassTableBo    = 0;
   Int     currentDistortionTableBo[MAX_NUM_SAO_CLASS];
   Double  currentRdCostTableBo[MAX_NUM_SAO_CLASS];
-  Int     bestClassTableBoMerge = 0;
 
   SaoLcuParam   saoLcuParamRdo;   
   Double   estRate = 0;
