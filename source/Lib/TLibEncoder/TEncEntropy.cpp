@@ -57,7 +57,11 @@ Void TEncEntropy::encodeSliceHeader ( TComSlice* pcSlice )
     if (pcSlice->getSaoEnabledFlag())
     {
       pcSlice->setSaoEnabledFlagCb   (pcSlice->getAPS()->getSaoParam()->bSaoFlag[1]);
+#if SAO_TYPE_SHARING
+      pcSlice->setSaoEnabledFlagCr   (pcSlice->getAPS()->getSaoParam()->bSaoFlag[1]);
+#else
       pcSlice->setSaoEnabledFlagCr   (pcSlice->getAPS()->getSaoParam()->bSaoFlag[2]);
+#endif
     }
     else
     {
@@ -747,13 +751,24 @@ Void TEncEntropy::estimateBit (estBitsSbacStruct* pcEstBitsSbac, Int width, Int 
 /** Encode SAO Offset
  * \param  saoLcuParam SAO LCU paramters
  */
+#if SAO_TYPE_SHARING 
+Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam, UInt compIdx)
+#else
 Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
+#endif
 {
   UInt uiSymbol;
   Int i;
 
   uiSymbol = saoLcuParam->typeIdx + 1;
+#if SAO_TYPE_SHARING
+  if (compIdx!=2)
+  {
+    m_pcEntropyCoderIf->codeSaoTypeIdx(uiSymbol);
+  }
+#else
   m_pcEntropyCoderIf->codeSaoTypeIdx(uiSymbol);
+#endif
   if (uiSymbol)
   {
 #if FULL_NBIT
@@ -824,7 +839,11 @@ Void TEncEntropy::encodeSaoUnitInterleaving(Int compIdx, Bool saoFlag, Int rx, I
       }
       if (!saoLcuParam->mergeUpFlag)
       {
+#if SAO_TYPE_SHARING 
+        encodeSaoOffset(saoLcuParam, compIdx);
+#else
         encodeSaoOffset(saoLcuParam);
+#endif
       }
     }
   }

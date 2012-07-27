@@ -630,7 +630,9 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
          if (pcSlice->getSaoEnabledFlag() )
          {
            WRITE_FLAG( pcSlice->getAPS()->getSaoParam()->bSaoFlag[1], "SAO on/off flag for Cb in slice header" );
+#if !SAO_TYPE_SHARING
            WRITE_FLAG( pcSlice->getAPS()->getSaoParam()->bSaoFlag[2], "SAO on/off flag for Cr in slice header" );
+#endif
          }
       }
       WRITE_UVLC( pcSlice->getAPS()->getAPSID(), "aps_id");

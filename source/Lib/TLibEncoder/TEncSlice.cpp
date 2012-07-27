@@ -1276,7 +1276,13 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
             for (Int compIdx=0;compIdx<3;compIdx++)
             {
               if( pcSlice->getAPS()->getSaoParam()->bSaoFlag[compIdx])
+              {
+#if SAO_TYPE_SHARING
+                m_pcEntropyCoder->encodeSaoOffset(&pcSlice->getAPS()->getSaoParam()->saoLcuParam[compIdx][addr], compIdx);
+#else
                 m_pcEntropyCoder->encodeSaoOffset(&pcSlice->getAPS()->getSaoParam()->saoLcuParam[compIdx][addr]);
+#endif
+              }
             }
           }
         }

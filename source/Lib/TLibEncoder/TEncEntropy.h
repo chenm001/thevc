@@ -219,7 +219,11 @@ public:
   Void encodeCoeffNxN         ( TComDataCU* pcCU, TCoeff* pcCoeff, UInt uiAbsPartIdx, UInt uiTrWidth, UInt uiTrHeight, UInt uiDepth, TextType eType );
   
   Void estimateBit             ( estBitsSbacStruct* pcEstBitsSbac, Int width, Int height, TextType eTType);
+#if SAO_TYPE_SHARING 
+  Void    encodeSaoOffset(SaoLcuParam* saoLcuParam, UInt compIdx);
+#else
   Void    encodeSaoOffset(SaoLcuParam* saoLcuParam);
+#endif
   Void    encodeSaoUnitInterleaving(Int compIdx, Bool saoFlag, Int rx, Int ry, SaoLcuParam* saoLcuParam, Int cuAddrInSlice, Int cuAddrUpInSlice, Int allowMergeLeft, Int allowMergeUp);
   static Int countNonZeroCoeffs( TCoeff* pcCoef, UInt uiSize );
 

@@ -778,7 +778,11 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   }
   m_saoEnabledFlag = pSrc->m_saoEnabledFlag; 
   m_saoEnabledFlagCb = pSrc->m_saoEnabledFlagCb;
+#if SAO_TYPE_SHARING
+  m_saoEnabledFlagCr = pSrc->m_saoEnabledFlagCb; 
+#else
   m_saoEnabledFlagCr = pSrc->m_saoEnabledFlagCr; 
+#endif
   m_cabacInitFlag                = pSrc->m_cabacInitFlag;
   m_numEntryPointOffsets  = pSrc->m_numEntryPointOffsets;
 
