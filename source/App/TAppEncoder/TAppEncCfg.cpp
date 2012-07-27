@@ -296,7 +296,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("ScalingListFile",             cfg_ScalingListFile,             string(""), "Scaling list file name")
     ("SignHideFlag,-SBH",                m_signHideFlag, 1)
   /* Misc. */
-  ("SEIpictureDigest", m_pictureDigestEnabled, 1, "Control generation of picture_digest SEI messages\n"
+  ("SEIpictureDigest", m_pictureDigestEnabled, 0, "Control generation of picture_digest SEI messages\n"
                                               "\t3: checksum\n"
                                               "\t2: CRC\n"
                                               "\t1: use MD5\n"
