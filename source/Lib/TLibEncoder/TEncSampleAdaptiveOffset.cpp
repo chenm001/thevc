@@ -1867,26 +1867,28 @@ Void TEncSampleAdaptiveOffset::saoComponentParamDist(Int allowMergeLeft, Int all
     }
     if (saoLcuParamNeighbor!=NULL)
     {
-        estDist = 0;
-        typeIdx = saoLcuParamNeighbor->typeIdx;
-        if (typeIdx>=0) 
+      estDist = 0;
+      typeIdx = saoLcuParamNeighbor->typeIdx;
+      if (typeIdx>=0) 
+      {
+        Int mergeBandPosition = (typeIdx == SAO_BO)?saoLcuParamNeighbor->bandPosition:0;
+        Int   merge_iOffset;
+        for(classIdx = 0; classIdx < m_iNumClass[typeIdx]; classIdx++)
         {
-          Int mergeBandPosition = (typeIdx == SAO_BO)?saoLcuParamNeighbor->bandPosition:0;
-          Int   merge_iOffset;
-          for(classIdx = 0; classIdx < m_iNumClass[typeIdx]; classIdx++)
-          {
-            merge_iOffset = saoLcuParamNeighbor->offset[classIdx];
-            estDist   += estSaoDist(m_iCount [yCbCr][typeIdx][classIdx+mergeBandPosition+1], merge_iOffset, m_iOffsetOrg[yCbCr][typeIdx][classIdx+mergeBandPosition+1],  shift);
-          }
+          merge_iOffset = saoLcuParamNeighbor->offset[classIdx];
+          estDist   += estSaoDist(m_iCount [yCbCr][typeIdx][classIdx+mergeBandPosition+1], merge_iOffset, m_iOffsetOrg[yCbCr][typeIdx][classIdx+mergeBandPosition+1],  shift);
         }
-        else
-          estDist = 0;
+      }
+      else
+      {
+        estDist = 0;
+      }
 
-        copySaoUnit(&compSaoParam[idxNeighbor], saoLcuParamNeighbor );
-        compSaoParam[idxNeighbor].mergeUpFlag   = idxNeighbor;
-        compSaoParam[idxNeighbor].mergeLeftFlag = !idxNeighbor;
+      copySaoUnit(&compSaoParam[idxNeighbor], saoLcuParamNeighbor );
+      compSaoParam[idxNeighbor].mergeUpFlag   = idxNeighbor;
+      compSaoParam[idxNeighbor].mergeLeftFlag = !idxNeighbor;
 
-        compDistortion[idxNeighbor+1] += ((Double)estDist/lambda);
+      compDistortion[idxNeighbor+1] += ((Double)estDist/lambda);
     } 
   } 
 }
