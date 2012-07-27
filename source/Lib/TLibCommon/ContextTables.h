@@ -66,7 +66,11 @@
 #define NUM_MV_RES_CTX                2       ///< number of context models for motion vector difference
 
 #define NUM_REF_NO_CTX                4       ///< number of context models for reference index
+#if TRANS_SPLIT_FLAG_CTX_REDUCTION
+#define NUM_TRANS_SUBDIV_FLAG_CTX     3       ///< number of context models for transform subdivision flags
+#else
 #define NUM_TRANS_SUBDIV_FLAG_CTX     10      ///< number of context models for transform subdivision flags
+#endif
 #define NUM_QT_CBF_CTX                5       ///< number of context models for QT CBF
 #define NUM_QT_ROOT_CBF_CTX           1       ///< number of context models for QT ROOT CBF
 #define NUM_DELTA_QP_CTX              3       ///< number of context models for dQP
@@ -369,6 +373,15 @@ INIT_SAO_TYPE_IDX[3][NUM_SAO_TYPE_IDX_CTX] =
   { 160,  140, }, 
 };
 
+#if TRANS_SPLIT_FLAG_CTX_REDUCTION
+static const UChar
+INIT_TRANS_SUBDIV_FLAG[3][NUM_TRANS_SUBDIV_FLAG_CTX] =
+{
+  { 153,  138,  138, },
+  { 124,  138,   94, },
+  { 224,  167,  122, },
+};
+#else
 static const UChar 
 INIT_TRANS_SUBDIV_FLAG[3][NUM_TRANS_SUBDIV_FLAG_CTX] = 
 {
@@ -376,6 +389,7 @@ INIT_TRANS_SUBDIV_FLAG[3][NUM_TRANS_SUBDIV_FLAG_CTX] =
 { CNU,  124,  138,   94,  CNU,  CNU,  CNU,  CNU,  CNU,  CNU, }, 
 { CNU,  224,  167,  122,  CNU,  CNU,  CNU,  CNU,  CNU,  CNU, }, 
 };
+#endif
 
 static const UChar
 INIT_TRANSFORMSKIP_FLAG[3][2*NUM_TRANSFORMSKIP_FLAG_CTX] = 
