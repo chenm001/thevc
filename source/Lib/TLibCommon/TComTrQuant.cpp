@@ -1480,8 +1480,8 @@ Void TComTrQuant::invRecurTransformNxN( TComDataCU* pcCU, UInt uiAbsPartIdx, Tex
     uiWidth  >>= 1;
     uiHeight >>= 1;
     Int trWidth = uiWidth, trHeight = uiHeight;
-    Int trLastWidth = uiWidth << 1, trLastHeight = uiHeight << 1;
 #if !REMOVE_NSQT
+    Int trLastWidth = uiWidth << 1, trLastHeight = uiHeight << 1;
     pcCU->getNSQTSize ( uiTrMode, uiAbsPartIdx, trWidth, trHeight );
     pcCU->getNSQTSize ( uiTrMode - 1, uiAbsPartIdx, trLastWidth, trLastHeight );
 #endif
