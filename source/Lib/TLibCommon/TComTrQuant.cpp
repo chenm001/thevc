@@ -825,6 +825,19 @@ void xTrMxN(short *block,short *coeff, int iWidth, int iHeight, UInt uiMode)
   }
   else if( iWidth == 4 && iHeight == 4)
   {
+#if INTRA_TRANS_SIMP
+    if (uiMode != REG_DCT)
+    {
+      fastForwardDst(block,tmp,shift_1st); // Forward DST BY FAST ALGORITHM, block input, tmp output
+      fastForwardDst(tmp,coeff,shift_2nd); // Forward DST BY FAST ALGORITHM, tmp input, coeff output
+    }
+    else
+    {
+      partialButterfly4(block, tmp, shift_1st, iHeight);
+      partialButterfly4(tmp, coeff, shift_2nd, iWidth);
+    }
+
+#else
     if (uiMode != REG_DCT && (!uiMode || (uiMode>=2 && uiMode <= 25)))    // Check for DCT or DST
     {
       fastForwardDst(block,tmp,shift_1st); // Forward DST BY FAST ALGORITHM, block input, tmp output
@@ -840,7 +853,8 @@ void xTrMxN(short *block,short *coeff, int iWidth, int iHeight, UInt uiMode)
     else  
     {
       partialButterfly4(tmp, coeff, shift_2nd, iWidth);
-    }   
+    }
+#endif
   }
   else if( iWidth == 8 && iHeight == 8)
   {
@@ -896,6 +910,18 @@ void xITrMxN(short *coeff,short *block, int iWidth, int iHeight, UInt uiMode)
   }
   else if( iWidth == 4 && iHeight == 4)
   {
+#if INTRA_TRANS_SIMP
+    if (uiMode != REG_DCT)
+    {
+      fastInverseDst(coeff,tmp,shift_1st);    // Inverse DST by FAST Algorithm, coeff input, tmp output
+      fastInverseDst(tmp,block,shift_2nd); // Inverse DST by FAST Algorithm, tmp input, coeff output
+    }
+    else
+    {
+      partialButterflyInverse4(coeff,tmp,shift_1st,iWidth);
+      partialButterflyInverse4(tmp,block,shift_2nd,iHeight);
+    }
+#else
     if (uiMode != REG_DCT && (!uiMode || (uiMode>=11 && uiMode <= 34)))    // Check for DCT or DST
     {
       fastInverseDst(coeff,tmp,shift_1st);    // Inverse DST by FAST Algorithm, coeff input, tmp output
@@ -911,7 +937,8 @@ void xITrMxN(short *coeff,short *block, int iWidth, int iHeight, UInt uiMode)
     else
     {
       partialButterflyInverse4(tmp,block,shift_2nd,iHeight);
-    }   
+    } 
+#endif
   }
   else if( iWidth == 8 && iHeight == 8)
   {
