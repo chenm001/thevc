@@ -1729,7 +1729,11 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
               READ_SVLC( iDeltaChroma, "delta_chroma_offset_lX" );  // se(v): delta_chroma_offset_l0[i][j]
               Int shift = ((1<<(g_uiBitDepth+g_uiBitIncrement-1)));
               Int pred = ( shift - ( ( shift*wp[j].iWeight)>>(wp[j].uiLog2WeightDenom) ) );
+#if WP_PARAM_RANGE_LIMIT
+              wp[j].iOffset = Clip3(-128, 127, (iDeltaChroma + pred) );
+#else
               wp[j].iOffset = iDeltaChroma + pred;
+#endif
             }
           }
           else 

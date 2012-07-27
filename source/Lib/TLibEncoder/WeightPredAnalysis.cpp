@@ -176,16 +176,33 @@ Void  WeightPredAnalysis::xCheckWPEnable(TComSlice *slice)
 Bool  WeightPredAnalysis::xEstimateWPParamSlice(TComSlice *slice)
 {
   Int iDenom  = 6;
+#if WP_PARAM_RANGE_LIMIT
+  Bool validRangeFlag = false;
+#else
   Int iRealDenom = iDenom + (g_uiBitDepth+g_uiBitIncrement-8);
   Int iRealOffset = ((Int)1<<(iRealDenom-1));
+#endif
 
   if(slice->getNumRefIdx(REF_PIC_LIST_0)>3)
   {
     iDenom  = 7;
+#if WP_PARAM_RANGE_LIMIT
+#else
     iRealDenom = iDenom + (g_uiBitDepth+g_uiBitIncrement-8);
     iRealOffset = ((Int)1<<(iRealDenom-1));
+#endif
   }
-  
+
+#if WP_PARAM_RANGE_LIMIT
+  do
+  {
+    validRangeFlag = xUpdatingWPParameters(slice, m_wp, iDenom);
+    if (!validRangeFlag)
+    {
+      iDenom--; // decrement to satisfy the range limitation
+    }
+  } while (validRangeFlag == false);
+#else
   Int iNumPredDir = slice->isInterP() ? 1 : 2;
   for ( Int iRefList = 0; iRefList < iNumPredDir; iRefList++ )
   {
@@ -217,6 +234,7 @@ Bool  WeightPredAnalysis::xEstimateWPParamSlice(TComSlice *slice)
       }
     }
   }
+#endif
 
   // selecting whether WP is used, or not
   xSelectWP(slice, m_wp, iDenom);
@@ -225,6 +243,66 @@ Bool  WeightPredAnalysis::xEstimateWPParamSlice(TComSlice *slice)
 
   return (true);
 }
+
+#if WP_PARAM_RANGE_LIMIT
+/** update wp tables for explicit wp w.r.t ramge limitation
+ * \param TComSlice *slice
+ * \returns Bool
+ */
+Bool WeightPredAnalysis::xUpdatingWPParameters(TComSlice *slice, wpScalingParam weightPredTable[2][MAX_NUM_REF][3], Int log2Denom)
+{
+  Int realLog2Denom = log2Denom + (g_uiBitDepth+g_uiBitIncrement-8);
+  Int realOffset = ((Int)1<<(realLog2Denom-1));
+
+  Int numPredDir = slice->isInterP() ? 1 : 2;
+  for ( Int refList = 0; refList < numPredDir; refList++ )
+  {
+    RefPicList  eRefPicList = ( refList ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
+    for ( Int refIdxTemp = 0; refIdxTemp < slice->getNumRefIdx(eRefPicList); refIdxTemp++ )
+    {
+      wpACDCParam *currWeightACDCParam, *refWeightACDCParam;
+      slice->getWpAcDcParam(currWeightACDCParam);
+      slice->getRefPic(eRefPicList, refIdxTemp)->getSlice(0)->getWpAcDcParam(refWeightACDCParam);
+
+      for ( Int comp = 0; comp < 3; comp++ )
+      {
+        // current frame
+        Int64 currDC = currWeightACDCParam[comp].iDC;
+        Int64 currAC = currWeightACDCParam[comp].iAC;
+        // reference frame
+        Int64 refDC = refWeightACDCParam[comp].iDC;
+        Int64 refAC = refWeightACDCParam[comp].iAC;
+
+        // calculating iWeight and iOffset params
+        Double dWeight = (refAC==0) ? (Double)1.0 : Clip3( -16.0, 15.0, ((Double)currAC / (Double)refAC) );
+        Int weight = (Int)( 0.5 + dWeight * (Double)(1<<log2Denom) );
+        Int offset = (Int)( ((currDC<<log2Denom) - ((Int64)weight * refDC) + (Int64)realOffset) >> realLog2Denom );
+
+        // Chroma offset range limination
+        if(comp)
+        {
+          Int shift = ((1<<(g_uiBitDepth+g_uiBitIncrement-1)));
+          Int pred = ( shift - ( ( shift*weight)>>(log2Denom) ) );
+          Int deltaOffset = Clip3( -512, 511, (offset - pred) );    // signed 10bit
+          offset = Clip3( -128, 127, (deltaOffset + pred) );        // signed 8bit
+        }
+
+        // Weighting factor limitation
+        Int defaultWeight = (1<<log2Denom);
+        Int deltaWeight = (defaultWeight - weight);
+        if(deltaWeight > 127 || deltaWeight < -128)
+          return (false);
+
+        m_wp[refList][refIdxTemp][comp].bPresentFlag = true;
+        m_wp[refList][refIdxTemp][comp].iWeight = (Int)weight;
+        m_wp[refList][refIdxTemp][comp].iOffset = (Int)offset;
+        m_wp[refList][refIdxTemp][comp].uiLog2WeightDenom = (Int)log2Denom;
+      }
+    }
+  }
+  return (true);
+}
+#endif
 
 /** select whether weighted pred enables or not. 
  * \param TComSlice *slice
