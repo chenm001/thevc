@@ -1608,15 +1608,15 @@ Void TDecSbac::parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, T
   {
     if (rx>0 && iCUAddrInSlice!=0 && allowMergeLeft)
     {
-        parseSaoMergeLeft(uiSymbol, 0); 
-        pSaoParam->saoLcuParam[0][iAddr].mergeLeftFlag = (Bool)uiSymbol;   
+      parseSaoMergeLeft(uiSymbol, 0); 
+      pSaoParam->saoLcuParam[0][iAddr].mergeLeftFlag = (Bool)uiSymbol;   
     }
     if (pSaoParam->saoLcuParam[0][iAddr].mergeLeftFlag==0)
     {
       if ((ry > 0) && (iCUAddrUpInSlice>=0) && allowMergeUp)
       {
-          parseSaoMergeUp(uiSymbol);
-          pSaoParam->saoLcuParam[0][iAddr].mergeUpFlag = (Bool)uiSymbol;
+        parseSaoMergeUp(uiSymbol);
+        pSaoParam->saoLcuParam[0][iAddr].mergeUpFlag = (Bool)uiSymbol;
       }
     }
   }
