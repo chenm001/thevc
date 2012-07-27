@@ -415,6 +415,18 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
   READ_CODE( 2, uiCode, "slice_granularity" );                     pcPPS->setSliceGranularity(uiCode);
 
   // alf_param() ?
+#if CU_DQP_ENABLE_FLAG
+  READ_FLAG( uiCode, "cu_qp_delta_enabled_flag" );            pcPPS->setUseDQP( uiCode ? true : false );
+  if( pcPPS->getUseDQP() )
+  {
+    READ_UVLC( uiCode, "diff_cu_qp_delta_depth" );
+    pcPPS->setMaxCuDQPDepth( uiCode + pcPPS->getSliceGranularity() );
+  }
+  else
+  {
+    pcPPS->setMaxCuDQPDepth( 0 );
+  }
+#else
   READ_UVLC( uiCode, "diff_cu_qp_delta_depth");
   if(uiCode == 0)
   {
@@ -426,6 +438,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
     pcPPS->setUseDQP (true);
     pcPPS->setMaxCuDQPDepth(uiCode + pcPPS->getSliceGranularity() - 1);
   }
+#endif
   READ_SVLC( iCode, "cb_qp_offset");
   pcPPS->setChromaCbQpOffset(iCode);
 

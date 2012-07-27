@@ -243,7 +243,15 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   WRITE_SVLC( pcPPS->getPicInitQPMinus26(),                  "pic_init_qp_minus26");
   WRITE_FLAG( pcPPS->getConstrainedIntraPred() ? 1 : 0,      "constrained_intra_pred_flag" );
   WRITE_CODE( pcPPS->getSliceGranularity(), 2,               "slice_granularity");
+#if CU_DQP_ENABLE_FLAG
+  WRITE_FLAG( pcPPS->getUseDQP() ? 1 : 0, "cu_qp_delta_enabled_flag" );
+  if ( pcPPS->getUseDQP() )
+  {
+    WRITE_UVLC( pcPPS->getMaxCuDQPDepth() - pcPPS->getSliceGranularity(), "diff_cu_qp_delta_depth" );
+  }
+#else
   WRITE_UVLC( pcPPS->getMaxCuDQPDepth() - pcPPS->getSliceGranularity() + pcPPS->getUseDQP(),                   "diff_cu_qp_delta_depth" );
+#endif
   WRITE_SVLC( pcPPS->getChromaCbQpOffset(),                   "cb_qp_offset" );
   WRITE_SVLC( pcPPS->getChromaCrQpOffset(),                   "cr_qp_offset" );
 
