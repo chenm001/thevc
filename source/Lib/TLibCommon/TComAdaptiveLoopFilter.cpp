@@ -466,8 +466,12 @@ Void TComAdaptiveLoopFilter::InitAlfLCUInfo(AlfLCUInfo& rAlfLCU, Int sliceID, In
 Void TComAdaptiveLoopFilter::createPicAlfInfo(TComPic* pcPic, Int numSlicesInPic)
 {
   m_uiNumSlicesInPic = numSlicesInPic;
+#if REMOVE_FGS
+  m_iSGDepth         = 0;
+#else
   m_iSGDepth         = pcPic->getSliceGranularityForNDBFilter();
-
+#endif
+  
   m_bUseNonCrossALF = ( pcPic->getIndependentSliceBoundaryForNDBFilter() || pcPic->getIndependentTileBoundaryForNDBFilter());
   m_pcPic = pcPic;
 

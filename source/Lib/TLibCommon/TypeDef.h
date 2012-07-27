@@ -58,6 +58,7 @@
 
 #define REMOVE_NSQT 1 ///< Disable NSQT-related code
 #define REMOVE_LMCHROMA 1 ///< Disable LM_Chroma-related code
+#define REMOVE_FGS 1 ///< Disable fine-granularity slices code
 
 #define PREVREFPIC_DEFN                  0  ///< J0248: Shall be set equal to 0! (prevRefPic definition reverted to CD definition)
 #define BYTE_ALIGNMENT                   0  ///< I0330: Add byte_alignment() procedure to end of slice header

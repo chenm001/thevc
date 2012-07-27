@@ -82,18 +82,22 @@ protected:
   void  parseShortTermRefPicSet            (TComSPS* pcSPS, TComReferencePictureSet* pcRPS, Int idx);
 private:
   TComInputBitstream*   m_pcBitstream;
+#if !REMOVE_FGS
   Int           m_iSliceGranularity; //!< slice granularity
+#endif
   
 public:
 
   /// rest entropy coder by intial QP and IDC in CABAC
   Void  resetEntropy        ( TComSlice* pcSlice  )     { assert(0); };
   Void  setBitstream        ( TComInputBitstream* p )   { m_pcBitstream = p; }
+#if !REMOVE_FGS
   /// set slice granularity
   Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
 
   /// get slice granularity
   Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
+#endif
   Void  parseTransformSubdivFlag( UInt& ruiSubdivFlag, UInt uiLog2TransformBlockSize );
   Void  parseQtCbf          ( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth, UInt uiDepth );
   Void  parseQtRootCbf      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt& uiQtRootCbf );

@@ -67,7 +67,9 @@ protected:
   TComBitIf*    m_pcBitIf;
   TComSlice*    m_pcSlice;
   UInt          m_uiCoeffCost;
+#if !REMOVE_FGS
   Int           m_iSliceGranularity;  //!< slice granularity
+#endif
   
   Void  xWriteCode            ( UInt uiCode, UInt uiLength );
   Void  xWriteUvlc            ( UInt uiCode );
@@ -133,12 +135,14 @@ public:
   Void codeMergeIndex    ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeApsExtensionFlag ();
 
+#if !REMOVE_FGS
   /// set slice granularity
   Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
 
   ///get slice granularity
   Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
-
+#endif
+  
   Void codeAlfCtrlFlag   ( Int compIdx, UInt code ) {printf("Not supported\n"); assert(0);}
   Void codeInterModeFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt uiEncMode );
   Void codeSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );

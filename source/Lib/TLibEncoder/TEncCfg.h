@@ -210,7 +210,9 @@ protected:
 #if DEPENDENT_SLICES
   Bool      m_bCabacIndependentFlag;
 #endif
+#if !REMOVE_FGS
   Int       m_iSliceGranularity;
+#endif
   Bool      m_bLFCrossSliceBoundaryFlag;
 
   Bool      m_bPCMInputBitDepthFlag;
@@ -444,8 +446,10 @@ public:
   Void  setCabacIndependentFlag            ( Bool  i )      { m_bCabacIndependentFlag = i;       }
   Bool  getCabacIndependentFlag     ()                    { return m_bCabacIndependentFlag;   }
 #endif
+#if !REMOVE_FGS
   Void  setSliceGranularity            ( Int  i )      { m_iSliceGranularity = i;       }
   Int   getSliceGranularity            ()              { return m_iSliceGranularity;    }
+#endif
   Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
   Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   }
 

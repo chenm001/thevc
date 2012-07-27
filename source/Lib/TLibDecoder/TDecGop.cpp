@@ -219,9 +219,15 @@ Void TDecGop::filterPicture(TComPic*& rpcPic)
   pcSlice = rpcPic->getSlice(0);
   if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
   {
+#if !REMOVE_FGS
     Int sliceGranularity = pcSlice->getPPS()->getSliceGranularity();
+#endif
     m_sliceStartCUAddress.push_back(rpcPic->getNumCUsInFrame()* rpcPic->getNumPartInCU());
+#if REMOVE_FGS
+    rpcPic->createNonDBFilterInfo(m_sliceStartCUAddress, 0, &m_LFCrossSliceBoundaryFlag, rpcPic->getPicSym()->getNumTiles(), bLFCrossTileBoundary);
+#else
     rpcPic->createNonDBFilterInfo(m_sliceStartCUAddress, sliceGranularity, &m_LFCrossSliceBoundaryFlag, rpcPic->getPicSym()->getNumTiles(), bLFCrossTileBoundary);
+#endif
   }
 
   if( pcSlice->getSPS()->getUseSAO() )

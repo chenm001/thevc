@@ -84,7 +84,9 @@ TDecSbac::TDecSbac()
 , m_CUTransquantBypassFlagSCModel( 1,          1,               NUM_CU_TRANSQUANT_BYPASS_FLAG_CTX, m_contextModels + m_numContextModels, m_numContextModels)
 {
   assert( m_numContextModels <= MAX_NUM_CTX_MOD );
+#if !REMOVE_FGS
   m_iSliceGranularity = 0;
+#endif
 }
 
 TDecSbac::~TDecSbac()

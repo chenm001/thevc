@@ -275,7 +275,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 #if DEPENDENT_SLICES
     ("CabacIndependentFlag", m_bCabacIndependentFlag, false)
 #endif
+#if !REMOVE_FGS
     ("SliceGranularity",     m_iSliceGranularity,    0, "0: Slices always end at LCU borders. 1-3: slices may end at a depth of 1-3 below LCU level.")
+#endif
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
 
     ("ConstrainedIntraPred", m_bUseConstrainedIntraPred, false, "Constrained Intra Prediction")
@@ -543,19 +545,23 @@ Void TAppEncCfg::xCheckParameter()
   {
     xConfirmPara( m_iSliceArgument < 1 ,         "SliceArgument should be larger than or equal to 1" );
   }
+#if !REMOVE_FGS
   if (m_iSliceMode==3)
   {
     xConfirmPara( m_iSliceGranularity > 0 ,      "When SliceMode == 3 is chosen, the SliceGranularity must be 0" );
   }
+#endif
   xConfirmPara( m_iDependentSliceMode < 0 || m_iDependentSliceMode > 2, "DependentSliceMode exceeds supported range (0 to 2)" );
   if (m_iDependentSliceMode!=0)
   {
     xConfirmPara( m_iDependentSliceArgument < 1 ,         "DependentSliceArgument should be larger than or equal to 1" );
   }
+#if !REMOVE_FGS
   xConfirmPara( m_iSliceGranularity >= m_uiMaxCUDepth, "SliceGranularity must be smaller than maximum cu depth");
   xConfirmPara( m_iSliceGranularity <0 || m_iSliceGranularity > 3, "SliceGranularity exceeds supported range (0 to 3)" );
   xConfirmPara( m_iSliceGranularity > m_iMaxCuDQPDepth, "SliceGranularity must be smaller smaller than or equal to maximum dqp depth" );
-
+#endif
+  
   bool tileFlag = (m_iNumColumnsMinus1 > 0 || m_iNumRowsMinus1 > 0 );
   xConfirmPara( tileFlag && m_iDependentSliceMode,            "Tile and Dependent Slice can not be applied together");
   xConfirmPara( tileFlag && m_iWaveFrontSynchro,            "Tile and Wavefront can not be applied together");
@@ -999,8 +1005,12 @@ Void TAppEncCfg::xPrintParameter()
   printf("LMC:%d ", m_bUseLMChroma        );
 #endif
   printf("TS:%d ",  m_useTansformSkip              );
-  printf("TSFast:%d ", m_useTansformSkipFast       ); 
+  printf("TSFast:%d ", m_useTansformSkipFast       );
+#if REMOVE_FGS
+  printf("Slice: M=%d ", m_iSliceMode);
+#else
   printf("Slice: G=%d M=%d ", m_iSliceGranularity, m_iSliceMode);
+#endif
   if (m_iSliceMode!=0)
   {
     printf("A=%d ", m_iSliceArgument);

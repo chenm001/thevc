@@ -197,18 +197,28 @@ Void TAppEncTop::xInitLibCfg()
   int iNumPartInCU = 1<<(m_uiMaxCUDepth<<1);
   if(m_iDependentSliceMode==SHARP_FIXED_NUMBER_OF_LCU_IN_DEPENDENT_SLICE)
   {
+#if REMOVE_FGS
+    m_cTEncTop.setDependentSliceArgument ( m_iDependentSliceArgument * iNumPartInCU );
+#else
     m_cTEncTop.setDependentSliceArgument ( m_iDependentSliceArgument * ( iNumPartInCU >> ( m_iSliceGranularity << 1 ) ) );
+#endif
   }
   if(m_iSliceMode==AD_HOC_SLICES_FIXED_NUMBER_OF_LCU_IN_SLICE)
   {
+#if REMOVE_FGS
+    m_cTEncTop.setSliceArgument ( m_iSliceArgument * iNumPartInCU );
+#else
     m_cTEncTop.setSliceArgument ( m_iSliceArgument * ( iNumPartInCU >> ( m_iSliceGranularity << 1 ) ) );
+#endif
   }
   if(m_iSliceMode==AD_HOC_SLICES_FIXED_NUMBER_OF_TILES_IN_SLICE)
   {
     m_cTEncTop.setSliceArgument ( m_iSliceArgument );
   }
   
+#if !REMOVE_FGS
   m_cTEncTop.setSliceGranularity        ( m_iSliceGranularity         );
+#endif
   if(m_iSliceMode == 0 )
   {
     m_bLFCrossSliceBoundaryFlag = true;

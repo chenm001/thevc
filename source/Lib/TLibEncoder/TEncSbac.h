@@ -132,16 +132,19 @@ protected:
   //SBAC RD
   UInt          m_uiCoeffCost;
 
+#if !REMOVE_FGS
   Int           m_iSliceGranularity; //!< slice granularity
+#endif
   //--Adaptive loop filter
   
 public:
-
+#if !REMOVE_FGS
   /// set slice granularity
   Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
 
   /// get slice granularity
   Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
+#endif
   Void codeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeMergeFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx );

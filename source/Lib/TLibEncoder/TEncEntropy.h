@@ -114,11 +114,13 @@ public:
   virtual Void codeCoeffNxN      ( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType ) = 0;
   virtual Void codeTransformSkipFlags ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType ) = 0;
   virtual Void codeAlfParam      (ALFParam* alfParam) = 0;
+#if !REMOVE_FGS
   /// set slice granularity
   virtual Void setSliceGranularity(Int iSliceGranularity) = 0;
 
   /// get slice granularity
   virtual Int  getSliceGranularity()                      = 0;
+#endif
   virtual Void codeSAOSign          ( UInt code   ) = 0;
   virtual Void codeSaoMaxUvlc       ( UInt code, UInt maxSymbol ) = 0;
   virtual Void codeSaoMergeLeft    ( UInt   uiCode, UInt uiCompIdx  ) = 0;
@@ -183,8 +185,10 @@ public:
   Void encodeMVPIdxPU     ( TComDataCU* pcSubCU, UInt uiAbsPartIdx, RefPicList eRefList );
   Void encodeMergeFlag    ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPUIdx );
   Void encodeMergeIndex   ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiPUIdx, Bool bRD = false );
+#if !REMOVE_FGS
   /// set slice granularity
   Void setSliceGranularity (Int iSliceGranularity) {m_pcEntropyCoderIf->setSliceGranularity(iSliceGranularity);}
+#endif
   /// encode ALF LCU control flag
   Void encodeAlfCtrlFlag( Int compIdx, UInt code ) {m_pcEntropyCoderIf->codeAlfCtrlFlag(compIdx, code);}
   Void encodeApsExtensionFlag() {m_pcEntropyCoderIf->codeApsExtensionFlag();};

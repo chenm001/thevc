@@ -1328,7 +1328,9 @@ TComPPS::TComPPS()
 , m_chromaCrQpOffset            (0)
 , m_numRefIdxL0DefaultActive    (1)
 , m_numRefIdxL1DefaultActive    (1)
+#if !REMOVE_FGS
 , m_iSliceGranularity           (0)
+#endif
 , m_TransquantBypassEnableFlag  (false)
 , m_bLFCrossTileBoundaryFlag     (true)
 , m_iUniformSpacingIdr           (0)

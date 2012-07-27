@@ -477,7 +477,11 @@ Void TComSampleAdaptiveOffset::createPicSaoInfo(TComPic* pcPic, Int numSlicesInP
 {
   m_pcPic   = pcPic;
   m_uiNumSlicesInPic = numSlicesInPic;
+#if REMOVE_FGS
+  m_iSGDepth = 0;
+#else
   m_iSGDepth         = pcPic->getSliceGranularityForNDBFilter();
+#endif
   m_bUseNIF = ( pcPic->getIndependentSliceBoundaryForNDBFilter() || pcPic->getIndependentTileBoundaryForNDBFilter() );
   if(m_bUseNIF)
   {

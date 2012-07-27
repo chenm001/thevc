@@ -538,7 +538,9 @@ Void TEncTop::xInitSPS()
 Void TEncTop::xInitPPS()
 {
   m_cPPS.setConstrainedIntraPred( m_bUseConstrainedIntraPred );
+#if !REMOVE_FGS
   m_cPPS.setSliceGranularity(m_iSliceGranularity);
+#endif
   Bool bUseDQP = (getMaxCuDQPDepth() > 0)? true : false;
 
   Int lowestQP = - m_cSPS.getQpBDOffsetY();

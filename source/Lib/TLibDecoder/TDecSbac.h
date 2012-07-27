@@ -105,17 +105,21 @@ private:
 private:
   TComInputBitstream* m_pcBitstream;
   TDecBinIf*        m_pcTDecBinIf;
-  
+ 
+#if !REMOVE_FGS
   Int           m_iSliceGranularity; //!< slice granularity
-
+#endif
+  
 public:
   Void parseAlfCtrlFlag   (Int compIdx, UInt& code);
+#if !REMOVE_FGS
   /// set slice granularity
   Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
 
   /// get slice granularity
   Int  getSliceGranularity()                       {return m_iSliceGranularity;             }
-
+#endif
+  
   Void parseSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );
   Void parseSplitFlag     ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth );

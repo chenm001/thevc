@@ -121,7 +121,9 @@ TEncCavlc::TEncCavlc()
 {
   m_pcBitIf           = NULL;
   m_uiCoeffCost       = 0;
+#if !REMOVE_FGS
   m_iSliceGranularity = 0;
+#endif
 }
 
 TEncCavlc::~TEncCavlc()
@@ -242,15 +244,25 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 
   WRITE_SVLC( pcPPS->getPicInitQPMinus26(),                  "pic_init_qp_minus26");
   WRITE_FLAG( pcPPS->getConstrainedIntraPred() ? 1 : 0,      "constrained_intra_pred_flag" );
+#if !REMOVE_FGS
   WRITE_CODE( pcPPS->getSliceGranularity(), 2,               "slice_granularity");
+#endif
 #if CU_DQP_ENABLE_FLAG
   WRITE_FLAG( pcPPS->getUseDQP() ? 1 : 0, "cu_qp_delta_enabled_flag" );
   if ( pcPPS->getUseDQP() )
   {
+#if REMOVE_FGS
+    WRITE_UVLC( pcPPS->getMaxCuDQPDepth(), "diff_cu_qp_delta_depth" );
+#else
     WRITE_UVLC( pcPPS->getMaxCuDQPDepth() - pcPPS->getSliceGranularity(), "diff_cu_qp_delta_depth" );
+#endif
   }
 #else
+#if REMOVE_FGS
+  WRITE_UVLC( pcPPS->getMaxCuDQPDepth() + pcPPS->getUseDQP(),                   "diff_cu_qp_delta_depth" );
+#else
   WRITE_UVLC( pcPPS->getMaxCuDQPDepth() - pcPPS->getSliceGranularity() + pcPPS->getUseDQP(),                   "diff_cu_qp_delta_depth" );
+#endif
 #endif
   WRITE_SVLC( pcPPS->getChromaCbQpOffset(),                   "cb_qp_offset" );
   WRITE_SVLC( pcPPS->getChromaCrQpOffset(),                   "cr_qp_offset" );
@@ -511,7 +523,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     reqBitsOuter++;
   }
   Int maxAddrInner = pcSlice->getPic()->getNumPartInCU()>>(2);
+#if REMOVE_FGS
+  maxAddrInner = 1;
+#else
   maxAddrInner = (1<<(pcSlice->getPPS()->getSliceGranularity()<<1));
+#endif
   Int reqBitsInner = 0;
   
   while(maxAddrInner>(1<<reqBitsInner))
@@ -524,13 +540,21 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   {
     // Calculate slice address
     lCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
+#if REMOVE_FGS
+    innerAddress = 0;
+#else
     innerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+#endif
   }
   else
   {
     // Calculate slice address
     lCUAddress = (pcSlice->getDependentSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
+#if REMOVE_FGS
+    innerAddress = 0;
+#else
     innerAddress = (pcSlice->getDependentSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+#endif
     
   }
   //write slice address

@@ -624,14 +624,20 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       pcSlice = pcPic->getSlice(0);
       if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
       {
+#if !REMOVE_FGS
         Int sliceGranularity = pcSlice->getPPS()->getSliceGranularity();
+#endif
         std::vector<Bool> LFCrossSliceBoundaryFlag;
         for(Int s=0; s< uiNumSlices; s++)
         {
           LFCrossSliceBoundaryFlag.push_back(  ((uiNumSlices==1)?true:pcPic->getSlice(s)->getLFCrossSliceBoundaryFlag()) );
         }
         m_storedStartCUAddrForEncodingSlice.resize(uiNumSlices+1);
+#if REMOVE_FGS
+        pcPic->createNonDBFilterInfo(m_storedStartCUAddrForEncodingSlice, 0, &LFCrossSliceBoundaryFlag ,pcPic->getPicSym()->getNumTiles() ,bLFCrossTileBoundary);
+#else
         pcPic->createNonDBFilterInfo(m_storedStartCUAddrForEncodingSlice, sliceGranularity, &LFCrossSliceBoundaryFlag ,pcPic->getPicSym()->getNumTiles() ,bLFCrossTileBoundary);
+#endif
       }
 
 
