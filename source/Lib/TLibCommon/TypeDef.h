@@ -56,6 +56,7 @@
 #define SLICE_HEADER_EXTENSION           1  ///< II0235: Slice header extension mechanism
 
 #define REMOVE_NSQT 1 ///< Disable NSQT-related code
+#define REMOVE_LMCHROMA 1 ///< Disable LM_Chroma-related code
 
 #define PREVREFPIC_DEFN                  0  ///< J0248: Shall be set equal to 0! (prevRefPic definition reverted to CD definition)
 #define BYTE_ALIGNMENT                   0  ///< I0330: Add byte_alignment() procedure to end of slice header
@@ -130,7 +131,9 @@
 #define ZERO_MVD_EST                          0           ///< Zero Mvd Estimation in normal mode
 
 #define NUM_INTRA_MODE 36
+#if !REMOVE_LM_CHROMA
 #define LM_CHROMA_IDX  35
+#endif
 
 #define IBDI_DISTORTION                0           ///< enable/disable SSE modification when IBDI is used (JCTVC-D152)
 #define FIXED_ROUNDING_FRAME_MEMORY    0           ///< enable/disable fixed rounding to 8-bitdepth of frame memory when IBDI is used  
@@ -148,7 +151,11 @@
 #define VER_IDX                26                    // index for intra VERTICAL   mode
 #define HOR_IDX                10                    // index for intra HORIZONTAL mode
 #define DC_IDX                 1                     // index for intra DC mode
+#if REMOVE_LMCHROMA
+#define NUM_CHROMA_MODE        5                     // total number of chroma modes
+#else
 #define NUM_CHROMA_MODE        6                     // total number of chroma modes
+#endif
 #define DM_CHROMA_IDX          36                    // chroma mode index for derived from luma intra mode
 
 

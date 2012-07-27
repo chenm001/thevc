@@ -729,6 +729,7 @@ Void TComPrediction::xPredIntraPlanar( Int* pSrc, Int srcStride, Pel* rpDst, Int
   }
 }
 
+#if !REMOVE_LMCHROMA
 /** Function for deriving chroma LM intra prediction.
  * \param pcPattern pointer to neighbouring pixel access pattern
  * \param piSrc pointer to reconstructed chroma sample array
@@ -993,6 +994,7 @@ Void TComPrediction::xGetLLSPrediction( TComPattern* pcPattern, Int* pSrc0, Int 
   // <-- end of get prediction
 
 }
+#endif
 
 /** Function for filtering intra DC predictor.
  * \param pSrc pointer to reconstructed sample array

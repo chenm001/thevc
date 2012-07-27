@@ -1262,7 +1262,9 @@ TComSPS::TComSPS()
 , m_pcmLog2MaxSize            (  5)
 , m_uiPCMLog2MinSize          (  7)
 , m_bUseALF                   (false)
+#if !REMOVE_LMCHROMA
 , m_bUseLMChroma              (false)
+#endif
 , m_useTansformSkip           (false)
 , m_useTansformSkipFast       (false)
 , m_bUseLComb                 (false)

@@ -1813,12 +1813,20 @@ Void TComDataCU::getAllowedChromaDir( UInt uiAbsPartIdx, UInt* uiModeList )
   uiModeList[1] = VER_IDX;
   uiModeList[2] = HOR_IDX;
   uiModeList[3] = DC_IDX;
+#if !REMOVE_LMCHROMA
   uiModeList[4] = LM_CHROMA_IDX;
   uiModeList[5] = DM_CHROMA_IDX;
+#else
+  uiModeList[4] = DM_CHROMA_IDX;
+#endif
 
   UInt uiLumaMode = getLumaIntraDir( uiAbsPartIdx );
 
+#if REMOVE_LMCHROMA
+  for( Int i = 0; i < NUM_CHROMA_MODE - 1; i++ )
+#else
   for( Int i = 0; i < NUM_CHROMA_MODE - 2; i++ )
+#endif
   {
     if( uiLumaMode == uiModeList[i] )
     {

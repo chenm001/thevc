@@ -142,8 +142,10 @@ protected:
   Int       m_loopFilterTcOffsetDiv2;                       ///< tc offset for deblocking filter
   Bool      m_DeblockingFilterControlPresent;                 ///< deblocking filter control present flag in PPS
  
+#if !REMOVE_LMCHROMA
   Bool      m_bUseLMChroma;                                  ///< JL: Chroma intra prediction based on luma signal
-
+#endif
+  
   // coding tools (PCM)
   Bool      m_usePCM;                                         ///< flag for using IPCM
   UInt      m_pcmLog2MaxSize;                                 ///< log2 of maximum PCM block size

@@ -708,6 +708,7 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
   } 
   else 
   {
+#if !REMOVE_LMCHROMA
     if( pcCU->getSlice()->getSPS()->getUseLMChroma() )
     {
       m_pcTDecBinIf->decodeBin( uiSymbol, m_cCUChromaPredSCModel.get( 0, 0, 1 ) );
@@ -722,6 +723,7 @@ Void TDecSbac::parseIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt ui
       uiSymbol = LM_CHROMA_IDX;
     } 
     else
+#endif
     {
       UInt uiIPredMode;
       m_pcTDecBinIf->decodeBinsEP( uiIPredMode, 2 );

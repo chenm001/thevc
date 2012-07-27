@@ -267,8 +267,10 @@ private:
   UInt        m_uiPCMLog2MinSize;
   Bool        m_useAMP;
   Bool        m_bUseALF;
+#if !REMOVE_LMCHROMA
   Bool        m_bUseLMChroma; // JL:
-
+#endif
+  
   Bool        m_useTansformSkip;
   Bool        m_useTansformSkipFast;
   
@@ -402,9 +404,11 @@ public:
   Void setUseALF      ( Bool b ) { m_bUseALF  = b;          }
   Void setUseLComb    (Bool b)   { m_bUseLComb = b;         }
   Bool getUseLComb    ()         { return m_bUseLComb;      }
+#if !REMOVE_LMCHROMA
   Bool getUseLMChroma ()         { return m_bUseLMChroma;        }
   Void setUseLMChroma ( Bool b ) { m_bUseLMChroma  = b;          }
-
+#endif
+  
   Bool getUseTransformSkip       ()         { return m_useTansformSkip;     }
   Void setUseTransformSkip       ( Bool b ) { m_useTansformSkip  = b;       }
   Bool getUseTransformSkipFast   ()         { return m_useTansformSkipFast; }

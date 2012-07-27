@@ -168,7 +168,9 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setUseCbfFastMode            ( m_bUseCbfFastMode  );
   m_cTEncTop.setUseEarlySkipDetection            ( m_useEarlySkipDetection );
 
+#if !REMOVE_LMCHROMA
   m_cTEncTop.setUseLMChroma                  ( m_bUseLMChroma );
+#endif
   m_cTEncTop.setUseTransformSkip             ( m_useTansformSkip      );
   m_cTEncTop.setUseTransformSkipFast         ( m_useTansformSkipFast  );
   m_cTEncTop.setUseConstrainedIntraPred      ( m_bUseConstrainedIntraPred );

@@ -715,18 +715,24 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
   if( uiIntraDirChroma == DM_CHROMA_IDX ) 
   {
     m_pcBinIf->encodeBin( 0, m_cCUChromaPredSCModel.get( 0, 0, 0 ) );
-  } 
+  }
+#if !REMOVE_LMCHROMA
   else if( uiIntraDirChroma == LM_CHROMA_IDX )
   {
     m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, 0 ) );
     m_pcBinIf->encodeBin( 0, m_cCUChromaPredSCModel.get( 0, 0, 1 ) );
   }
+#endif
   else
   { 
     UInt uiAllowedChromaDir[ NUM_CHROMA_MODE ];
     pcCU->getAllowedChromaDir( uiAbsPartIdx, uiAllowedChromaDir );
 
+#if REMOVE_LMCHROMA
+    for( Int i = 0; i < NUM_CHROMA_MODE - 1; i++ )
+#else
     for( Int i = 0; i < NUM_CHROMA_MODE - 2; i++ )
+#endif
     {
       if( uiIntraDirChroma == uiAllowedChromaDir[i] )
       {
@@ -736,10 +742,12 @@ Void TEncSbac::codeIntraDirChroma( TComDataCU* pcCU, UInt uiAbsPartIdx )
     }
     m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, 0 ) );
 
+#if !REMOVE_LMCHROMA
     if (pcCU->getSlice()->getSPS()->getUseLMChroma())
     {
       m_pcBinIf->encodeBin( 1, m_cCUChromaPredSCModel.get( 0, 0, 1 ));
     }
+#endif
     m_pcBinIf->encodeBinsEP( uiIntraDirChroma, 2 );
   }
   return;

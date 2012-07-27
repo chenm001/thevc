@@ -258,7 +258,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("NSQT",                    m_enableNSQT,              true, "Enable non-square transforms")
 #endif
   ("AMP",                     m_enableAMP,               true, "Enable asymmetric motion partitions")
+#if !REMOVE_LMCHROMA
   ("LMChroma",                m_bUseLMChroma,            true, "Intra chroma prediction based on reconstructed luma")
+#endif
   ("TS",                      m_useTansformSkip,         false, "Intra transform skipping")
   ("TSFast",                  m_useTansformSkipFast,     false, "Fast intra transform skipping")
   ("ALF",                     m_bUseALF,                 true, "Enable Adaptive Loop Filter")
@@ -993,8 +995,10 @@ Void TAppEncCfg::xPrintParameter()
   printf("CFM:%d ", m_bUseCbfFastMode         );
   printf("ESD:%d ", m_useEarlySkipDetection  );
   printf("RQT:%d ", 1     );
-  printf("LMC:%d ", m_bUseLMChroma        ); 
-  printf("TS:%d ",  m_useTansformSkip              ); 
+#if !REMOVE_LMCHROMA
+  printf("LMC:%d ", m_bUseLMChroma        );
+#endif
+  printf("TS:%d ",  m_useTansformSkip              );
   printf("TSFast:%d ", m_useTansformSkipFast       ); 
   printf("Slice: G=%d M=%d ", m_iSliceGranularity, m_iSliceMode);
   if (m_iSliceMode!=0)

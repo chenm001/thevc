@@ -474,8 +474,9 @@ Void TEncTop::xInitSPS()
   m_cSPS.setTMVPFlagsPresent(false);
   m_cSPS.setUseLossless   ( m_useLossless  );
 
-
+#if !REMOVE_LMCHROMA
   m_cSPS.setUseLMChroma   ( m_bUseLMChroma           );  
+#endif
   
   m_cSPS.setUseTransformSkip ( m_useTansformSkip );
 
