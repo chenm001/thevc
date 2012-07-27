@@ -1233,7 +1233,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
 
 
   const Int  iLastScanSet      = scanPosLast >> LOG2_SCAN_SET_SIZE;
+#if REMOVE_NUM_GREATER1
+  UInt c1 = 1;
+#else
   UInt uiNumOne                = 0;
+#endif
   UInt uiGoRiceParam           = 0;
   Int  iScanPosSig             = scanPosLast;
 
@@ -1314,16 +1318,24 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
     if( numNonZero > 0 )
     {
       Bool signHidden = ( lastNZPosInCG - firstNZPosInCG >= SBH_THRESHOLD );
-
+#if !REMOVE_NUM_GREATER1
       UInt c1 = 1;
+#endif
       UInt uiCtxSet = (iSubSet > 0 && eTType==TEXT_LUMA) ? 2 : 0;
       
+#if REMOVE_NUM_GREATER1
+      if( c1 == 0 )
+#else
       if( uiNumOne > 0 )
+#endif
       {
         uiCtxSet++;
       }
-      
+#if REMOVE_NUM_GREATER1
+      c1 = 1;
+#else
       uiNumOne       >>= 1;
+#endif
       ContextModel *baseCtxMod = ( eTType==TEXT_LUMA ) ? m_cCUOneSCModel.get( 0, 0 ) + 4 * uiCtxSet : m_cCUOneSCModel.get( 0, 0 ) + NUM_ONE_FLAG_CTX_LUMA + 4 * uiCtxSet;
       
       Int numC1Flag = min(numNonZero, C1FLAG_NUMBER);
@@ -1385,15 +1397,19 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           if(absCoeff[ idx ] >= 2)  
           {
             iFirstCoeff2 = 0;
+#if !REMOVE_NUM_GREATER1
             uiNumOne++;
+#endif
           }
         }        
       }
     }
+#if !REMOVE_NUM_GREATER1
     else
     {
       uiNumOne >>= 1;
     }
+#endif
   }
 
   return;

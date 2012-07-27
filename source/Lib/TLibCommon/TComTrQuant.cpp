@@ -1746,7 +1746,9 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   UInt    uiCtxSet            = 0;
   Int     c1                  = 1;
   Int     c2                  = 0;
+#if !REMOVE_NUM_GREATER1
   UInt    uiNumOne            = 0;
+#endif
   Double  d64BaseCost         = 0;
   Int     iLastScanPos        = -1;
   dTemp                       = dErrScale;
@@ -1871,7 +1873,9 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         {
           c1 = 0; 
           c2 += (c2 < 2);
+#if !REMOVE_NUM_GREATER1
           uiNumOne++;
+#endif
           c2Idx ++;
         }
         else if( (c1 < 3) && (c1 > 0) && uiLevel)
@@ -1882,18 +1886,28 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         //===== context set update =====
         if( ( iScanPos % SCAN_SET_SIZE == 0 ) && ( iScanPos > 0 ) )
         {
+#if !REMOVE_NUM_GREATER1
           c1                = 1;
+#endif
           c2                = 0;
           uiGoRiceParam     = 0;
           
           c1Idx   = 0;
           c2Idx   = 0; 
           uiCtxSet          = (iScanPos == SCAN_SET_SIZE || eTType!=TEXT_LUMA) ? 0 : 2;
+#if REMOVE_NUM_GREATER1
+          if( c1 == 0 )
+#else
           if( uiNumOne > 0 )
+#endif
           {
             uiCtxSet++;
           }
+#if REMOVE_NUM_GREATER1
+          c1 = 1;
+#else
           uiNumOne    >>= 1;
+#endif
         }
       }
       else

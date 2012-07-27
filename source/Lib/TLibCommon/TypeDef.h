@@ -40,6 +40,7 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define REMOVE_NUM_GREATER1              1  ///< J0408: numGreater1 removal and ctxset decision with c1 
 #define J0234_INTER_RPS_SIMPL            1  ///< J0234: Do not signal delta_idx_minus1 when building the RPS-list in SPS
 #define NUM_WP_LIMIT                     1  ///< J0571: number of total signalled weight flags <=24
 #define DISALLOW_BIPRED_IN_8x4_4x8PUS    1  ///< J0086: disallow bi-pred for 8x4 and 4x8 inter PUs
