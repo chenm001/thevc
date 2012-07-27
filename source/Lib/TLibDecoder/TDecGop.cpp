@@ -313,19 +313,19 @@ static void calcAndPrintHashStatus(TComPicYuv& pic, const SEImessages* seis)
   int numChar=0;
   const char* hashType;
 
-  if(seis->picture_digest->method == SEIpictureDigest::MD5)
+  if(seis && seis->picture_digest->method == SEIpictureDigest::MD5)
   {
     hashType = "MD5";
     calcMD5(pic, recon_digest);
     numChar = 16;    
   }
-  else if(seis->picture_digest->method == SEIpictureDigest::CRC)
+  else if(seis && seis->picture_digest->method == SEIpictureDigest::CRC)
   {
     hashType = "CRC";
     calcCRC(pic, recon_digest);
     numChar = 2;
   }
-  else if(seis->picture_digest->method == SEIpictureDigest::CHECKSUM)
+  else if(seis && seis->picture_digest->method == SEIpictureDigest::CHECKSUM)
   {
     hashType = "Checksum";
     calcChecksum(pic, recon_digest);
