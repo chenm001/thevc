@@ -1844,11 +1844,13 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
     UInt uiCGBlkPos = scanCG[ iCGScanPos ];
     UInt uiCGPosY   = uiCGBlkPos / uiNumBlkSide;
     UInt uiCGPosX   = uiCGBlkPos - (uiCGPosY * uiNumBlkSide);
+#if !REMOVAL_8x2_2x8_CG
     if( uiWidth == 8 && uiHeight == 8 && (uiScanIdx == SCAN_HOR || uiScanIdx == SCAN_VER) )
     {
       uiCGPosY = (uiScanIdx == SCAN_HOR ? uiCGBlkPos : 0);
       uiCGPosX = (uiScanIdx == SCAN_VER ? uiCGBlkPos : 0);
     }
+#endif
     ::memset( &rdStats, 0, sizeof (coeffGroupRDStats));
     
     const Int patternSigCtx = TComTrQuant::calcPatternSigCtx(uiSigCoeffGroupFlag, uiCGPosX, uiCGPosY, uiWidth, uiHeight);
@@ -1899,7 +1901,11 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
         {
           UInt   uiPosY        = uiBlkPos >> uiLog2BlkSize;
           UInt   uiPosX        = uiBlkPos - ( uiPosY << uiLog2BlkSize );
+#if REMOVAL_8x2_2x8_CG
+          UShort uiCtxSig      = getSigCtxInc( patternSigCtx, uiScanIdx, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
+#else
           UShort uiCtxSig      = getSigCtxInc( patternSigCtx, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
+#endif
           uiLevel              = xGetCodedLevel( pdCostCoeff[ iScanPos ], pdCostCoeff0[ iScanPos ], pdCostSig[ iScanPos ],
                                                 lLevelDouble, uiMaxAbsLevel, uiCtxSig, uiOneCtx, uiAbsCtx, uiGoRiceParam, 
                                                 c1Idx, c2Idx, iQBits, dTemp, 0 );
@@ -2288,7 +2294,11 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
  */
 Int  TComTrQuant::calcPatternSigCtx( const UInt* sigCoeffGroupFlag, UInt posXCG, UInt posYCG, Int width, Int height )
 {
+#if REMOVAL_8x2_2x8_CG
+  if( width == 4 && height == 4 ) return -1;
+#else
   if( width == height && width <= 8 ) return -1;
+#endif
 
   UInt sigRight = 0;
   UInt sigLower = 0;
@@ -2318,6 +2328,9 @@ Int  TComTrQuant::calcPatternSigCtx( const UInt* sigCoeffGroupFlag, UInt posXCG,
  */
 Int TComTrQuant::getSigCtxInc    (
                                    Int                             patternSigCtx,
+#if REMOVAL_8x2_2x8_CG
+                                   UInt                            scanIdx,
+#endif
                                    Int                             posX,
                                    Int                             posY,
                                    Int                             blockType,
@@ -2344,31 +2357,51 @@ Int TComTrQuant::getSigCtxInc    (
     return ctxIndMap[ 4 * posY + posX ];
   }
 
+#if !REMOVAL_8x2_2x8_CG
   if ( blockType == 3 )
   {
     return 9 + ctxIndMap[ 4 * (posY >> 1) + (posX >> 1) ];
   }
 
   Int offset = 18;
-  
+#else
+  Int offset = blockType == 3 ? (scanIdx==SCAN_DIAG ? 9 : 15) : (textureType == TEXT_LUMA ? 21 : 12);
+#endif
+
   Int posXinSubset = posX-((posX>>2)<<2);
   Int posYinSubset = posY-((posY>>2)<<2);
   Int cnt = 0;
   if(patternSigCtx==0)
   {
+#if REMOVAL_8x2_2x8_CG
+    cnt = posXinSubset+posYinSubset<=2 ? (posXinSubset+posYinSubset==0 ? 2 : 1) : 0;
+#else
     cnt = posXinSubset+posYinSubset<=2 ? 1 : 0;
+#endif
   }
   else if(patternSigCtx==1)
   {
+#if REMOVAL_8x2_2x8_CG
+    cnt = posYinSubset<=1 ? (posYinSubset==0 ? 2 : 1) : 0;
+#else
     cnt = posYinSubset<=1 ? 1 : 0;
+#endif
   }
   else if(patternSigCtx==2)
   {
+#if REMOVAL_8x2_2x8_CG
+    cnt = posXinSubset<=1 ? (posXinSubset==0 ? 2 : 1) : 0;
+#else
     cnt = posXinSubset<=1 ? 1 : 0;
+#endif
   }
   else
   {
+#if REMOVAL_8x2_2x8_CG
+    cnt = 2;
+#else
     cnt = posXinSubset+posYinSubset<=4 ? 2 : 1;
+#endif
   }
 
   return (( textureType == TEXT_LUMA && ((posX>>2) + (posY>>2)) > 0 ) ? 3 : 0) + offset + cnt;
@@ -2650,6 +2683,7 @@ UInt TComTrQuant::getSigCoeffGroupCtxInc  ( const UInt*               uiSigCoeff
 
   width >>= 2;
   height >>= 2;
+#if !REMOVAL_8x2_2x8_CG
   if( width == 2 && height == 2 ) // 8x8
   {
     if( scanIdx == SCAN_HOR )  
@@ -2663,6 +2697,7 @@ UInt TComTrQuant::getSigCoeffGroupCtxInc  ( const UInt*               uiSigCoeff
       height = 1;
     }
   }
+#endif
   if( uiCGPosX < width - 1 )
   {
     uiRight = (uiSigCoeffGroupFlag[ uiCGPosY * width + uiCGPosX + 1 ] != 0);

@@ -472,7 +472,11 @@ const UInt g_sigLastScan8x8[ 4 ][ 4 ] =
 {
   {0, 1, 2, 3},
   {0, 1, 2, 3},
+#if REMOVAL_8x2_2x8_CG
+  {0, 2, 1, 3},
+#else
   {0, 1, 2, 3},
+#endif
   {0, 2, 1, 3}
 };
 UInt g_sigLastScanCG32x32[ 64 ];
@@ -609,6 +613,46 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int
   memcpy(pBuffZ, g_auiFrameScanXY[iDepth], sizeof(UInt)*iWidth*iHeight);
 
   UInt uiCnt = 0;
+#if REMOVAL_8x2_2x8_CG
+  if( iWidth > 2 )
+  {
+    UInt numBlkSide = iWidth >> 2;
+    for(Int blkY=0; blkY < numBlkSide; blkY++)
+    {
+      for(Int blkX=0; blkX < numBlkSide; blkX++)
+      {
+        UInt offset    = blkY * 4 * iWidth + blkX * 4;
+        for(Int y=0; y < 4; y++)
+        {
+          for(Int x=0; x < 4; x++)
+          {
+            pBuffH[uiCnt] = y*iWidth + x + offset;
+            uiCnt ++;
+          }
+        }
+      }
+    }
+
+    uiCnt = 0;
+    for(Int blkX=0; blkX < numBlkSide; blkX++)
+    {
+      for(Int blkY=0; blkY < numBlkSide; blkY++)
+      {
+        UInt offset    = blkY * 4 * iWidth + blkX * 4;
+        for(Int x=0; x < 4; x++)
+        {
+          for(Int y=0; y < 4; y++)
+          {
+            pBuffV[uiCnt] = y*iWidth + x + offset;
+            uiCnt ++;
+          }
+        }
+      }
+    }
+  }
+  else
+  {
+#endif
   for(Int iY=0; iY < iHeight; iY++)
   {
     for(Int iX=0; iX < iWidth; iX++)
@@ -627,6 +671,9 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int
       uiCnt ++;
     }
   }    
+#if REMOVAL_8x2_2x8_CG
+  }
+#endif
 }
 
 Void initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight)

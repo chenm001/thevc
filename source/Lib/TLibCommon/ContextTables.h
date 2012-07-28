@@ -81,9 +81,15 @@
 
 #define NUM_SIG_CG_FLAG_CTX           2       ///< number of context models for MULTI_LEVEL_SIGNIFICANCE
 
+#if REMOVAL_8x2_2x8_CG
+#define NUM_SIG_FLAG_CTX              42      ///< number of context models for sig flag
+#define NUM_SIG_FLAG_CTX_LUMA         27      ///< number of context models for luma sig flag
+#define NUM_SIG_FLAG_CTX_CHROMA       15      ///< number of context models for chroma sig flag
+#else
 #define NUM_SIG_FLAG_CTX              45      ///< number of context models for sig flag
 #define NUM_SIG_FLAG_CTX_LUMA         24      ///< number of context models for luma sig flag
 #define NUM_SIG_FLAG_CTX_CHROMA       21      ///< number of context models for chroma sig flag
+#endif
 
 #define NUM_CTX_LAST_FLAG_XY          15      ///< number of context models for last coefficient position
 
@@ -296,9 +302,15 @@ INIT_SIG_CG_FLAG[3][2 * NUM_SIG_CG_FLAG_CTX] =
 static const UChar 
 INIT_SIG_FLAG[3][NUM_SIG_FLAG_CTX] = 
 {
+#if REMOVAL_8x2_2x8_CG
+  { 170,  154,  139,  153,  139,  123,  123,   63,  124,  166,  183,  140,  136,  153,  154,  166,  183,  140,  136,  153,  154,  166,  183,  140,  136,  153,  154,  170,  153,  138,  138,  122,  121,  122,  121,  167,  151,  183,  140,  151,  183,  140,  }, 
+  { 155,  154,  139,  153,  139,  123,  123,   63,  153,  166,  183,  140,  136,  153,  154,  166,  183,  140,  136,  153,  154,  166,  183,  140,  136,  153,  154,  170,  153,  123,  123,  107,  121,  107,  121,  167,  151,  183,  140,  151,  183,  140,  }, 
+  { 111,  111,  125,  110,  110,   94,  124,  108,  124,  107,  125,  141,  179,  153,  125,  107,  125,  141,  179,  153,  125,  107,  125,  141,  179,  153,  125,  140,  139,  182,  182,  152,  136,  152,  136,  153,  136,  139,  111,  136,  139,  111,  }, 
+#else
   { 170,      154,  139,  153,  139,  123,  123,   63,  124,     153, 153, 152, 152, 152, 137, 152, 137, 137,      166,  183,  140,  136,  153,  154,      170,     153, 138, 138,  122, 121,   122, 121,   167,     153,  167,  136,  121,  122,  136,  121,  122,   91,      151,  183,  140,  }, 
   { 155,      154,  139,  153,  139,  123,  123,   63,  153,     153, 153, 152, 152, 152, 137, 152, 137, 122,      166,  183,  140,  136,  153,  154,      170,     153, 123, 123,  107, 121,   107, 121,   167,     153,  167,  136,  149,  107,  136,  121,  122,   91,      151,  183,  140,  }, 
   { 111,      111,  125,  110,  110,   94,  124,  108,  124,     139, 139, 139, 168, 124, 138, 124, 138, 107,      107,  125,  141,  179,  153,  125,      140,     139, 182, 182,  152, 136,   152, 136,   153,     182,  137,  149,  192,  152,  224,  136,   31,  136,      136,  139,  111,  }, 
+#endif
 };
 
 static const UChar 

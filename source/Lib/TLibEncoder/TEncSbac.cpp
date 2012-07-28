@@ -1262,6 +1262,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       UInt uiPosY    = posLast >> uiLog2BlockSize;
       UInt uiPosX    = posLast - ( uiPosY << uiLog2BlockSize );
       UInt uiBlkIdx  = uiNumBlkSide * (uiPosY >> uiShift) + (uiPosX >> uiShift);
+#if !REMOVAL_8x2_2x8_CG
       if( uiWidth == 8 && uiHeight == 8 && (uiScanIdx == SCAN_HOR || uiScanIdx == SCAN_VER) )
       {
         if( uiScanIdx == SCAN_HOR )
@@ -1273,6 +1274,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           uiBlkIdx = uiPosX >> 1;
         }
       }
+#endif
       if( pcCoef[ posLast ] )
       {
         uiSigCoeffGroupFlag[ uiBlkIdx ] = 1;
@@ -1325,11 +1327,13 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
       Int iCGBlkPos = scanCG[ iSubSet ];
       Int iCGPosY   = iCGBlkPos / uiNumBlkSide;
       Int iCGPosX   = iCGBlkPos - (iCGPosY * uiNumBlkSide);
+#if !REMOVAL_8x2_2x8_CG
       if( uiWidth == 8 && uiHeight == 8 && (uiScanIdx == SCAN_HOR || uiScanIdx == SCAN_VER) )
       {
         iCGPosY = (uiScanIdx == SCAN_HOR ? iCGBlkPos : 0);
         iCGPosX = (uiScanIdx == SCAN_VER ? iCGBlkPos : 0);
       }
+#endif
       if( iSubSet == iLastScanSet || iSubSet == 0)
       {
         uiSigCoeffGroupFlag[ iCGBlkPos ] = 1;
@@ -1354,7 +1358,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
           uiSig     = (pcCoef[ uiBlkPos ] != 0);
           if( iScanPosSig > iSubPos || iSubSet == 0 || numNonZero )
           {
+#if REMOVAL_8x2_2x8_CG
+            uiCtxSig  = TComTrQuant::getSigCtxInc( patternSigCtx, uiScanIdx, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
+#else
             uiCtxSig  = TComTrQuant::getSigCtxInc( patternSigCtx, uiPosX, uiPosY, blockType, uiWidth, uiHeight, eTType );
+#endif
             m_pcBinIf->encodeBin( uiSig, baseCtx[ uiCtxSig ] );
           }
           if( uiSig )
@@ -1664,13 +1672,21 @@ Void TEncSbac::estSignificantMapBit( estBitsSbacStruct* pcEstBitsSbac, Int width
   Int firstCtx = 1, numCtx = 8;
   if (max(width, height) >= 16)
   {
+#if REMOVAL_8x2_2x8_CG
+    firstCtx = (eTType == TEXT_LUMA) ? 21 : 12;
+#else
     firstCtx = 18;
+#endif
     numCtx = (eTType == TEXT_LUMA) ? 6 : 3;
   }
   else if (width == 8)
   {
     firstCtx = 9;
+#if REMOVAL_8x2_2x8_CG
+    numCtx = (eTType == TEXT_LUMA) ? 12 : 3;
+#else
     numCtx = 9;
+#endif
   }
   
   if (eTType == TEXT_LUMA )
