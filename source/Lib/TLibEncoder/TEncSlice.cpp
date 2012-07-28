@@ -347,6 +347,11 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
   rpcSlice->setSliceType        ( eSliceType );
 #endif
   
+#if RECALCULATE_QP_ACCORDING_LAMBDA
+  dQP = xGetQPValueAccordingToLambda( dLambda );
+  iQP = max( -pSPS->getQpBDOffsetY(), min( MAX_QP, (Int) floor( dQP + 0.5 ) ) );
+#endif
+
   rpcSlice->setSliceQp          ( iQP );
 #if ADAPTIVE_QP_SELECTION
   rpcSlice->setSliceQpBase      ( iQP );
@@ -1666,4 +1671,12 @@ Void TEncSlice::xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& u
     }
   }
 }
+
+#if RECALCULATE_QP_ACCORDING_LAMBDA
+Double TEncSlice::xGetQPValueAccordingToLambda ( Double lambda )
+{
+  return 4.2005*log(lambda) + 13.7122;
+}
+#endif
+
 //! \}

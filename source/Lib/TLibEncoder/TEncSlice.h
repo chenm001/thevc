@@ -126,6 +126,11 @@ public:
   Void    xDetermineStartAndBoundingCUAddr  ( UInt& uiStartCUAddr, UInt& uiBoundingCUAddr, TComPic*& rpcPic, Bool bEncodeSlice );
   UInt    getSliceIdx()         { return m_uiSliceIdx;                    }
   Void    setSliceIdx(UInt i)   { m_uiSliceIdx = i;                       }
+
+#if RECALCULATE_QP_ACCORDING_LAMBDA
+private:
+  Double  xGetQPValueAccordingToLambda ( Double lambda );
+#endif
 };
 
 //! \}

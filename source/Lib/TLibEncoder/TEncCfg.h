@@ -244,6 +244,9 @@ protected:
   Bool      m_TransquantBypassEnableFlag;                     ///< transquant_bypass_enable_flag setting in PPS.
   Bool      m_CUTransquantBypassFlagValue;                    ///< if transquant_bypass_enable_flag, the fixed value to use for the per-CU cu_transquant_bypass_flag.
   TComVPS                    m_cVPS;
+#if RECALCULATE_QP_ACCORDING_LAMBDA
+  Bool      m_recalculateQPAccordingToLambda;                 ///< recalculate QP value according to the lambda value
+#endif
   
 public:
   TEncCfg()
@@ -563,6 +566,10 @@ public:
   Void      setCUTransquantBypassFlagValue(Bool flag) { m_CUTransquantBypassFlagValue = flag; }
   Void setVPS(TComVPS *p) { m_cVPS = *p; }
   TComVPS *getVPS() { return &m_cVPS; }
+#if RECALCULATE_QP_ACCORDING_LAMBDA
+  Void      setUseRecalculateQPAccordingToLambda ( Bool b ) { m_recalculateQPAccordingToLambda = b;    }
+  Bool      getUseRecalculateQPAccordingToLambda ()         { return m_recalculateQPAccordingToLambda; }
+#endif
 };
 
 //! \}

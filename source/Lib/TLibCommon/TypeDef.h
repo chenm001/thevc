@@ -42,6 +42,7 @@
 //! \{
 #define REF_IDX_BYPASS                   1  ///< J0098: bypass coding starting from the second bin for reference index
 
+#define RECALCULATE_QP_ACCORDING_LAMBDA  1  ///< J0242: recalculate QP value according to lambda value
 #define TU_ZERO_CBF_RDO                  1  ///< J0241: take the bits to represent zero cbf into consideration when doing TU RDO
 #define REMOVE_NUM_GREATER1              1  ///< J0408: numGreater1 removal and ctxset decision with c1 
 

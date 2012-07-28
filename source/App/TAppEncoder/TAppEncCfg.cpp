@@ -319,6 +319,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 
   ("TransquantBypassEnableFlag", m_TransquantBypassEnableFlag, false, "transquant_bypass_enable_flag indicator in PPS")
   ("CUTransquantBypassFlagValue", m_CUTransquantBypassFlagValue, false, "Fixed cu_transquant_bypass_flag value, when transquant_bypass_enable_flag is enabled")
+#if RECALCULATE_QP_ACCORDING_LAMBDA
+  ("RecalculateQPAccordingToLambda", m_recalculateQPAccordingToLambda, false, "Recalculate QP values according to lambda values. Do not suggest to be enabled in all intra case")
+#endif
   ;
   
   for(Int i=1; i<MAX_GOP+1; i++) {
@@ -1038,6 +1041,9 @@ Void TAppEncCfg::xPrintParameter()
 #endif
 
   printf(" SignBitHidingFlag:%d ", m_signHideFlag);
+#if RECALCULATE_QP_ACCORDING_LAMBDA
+  printf("RecalQP:%d", m_recalculateQPAccordingToLambda ? 1 : 0 );
+#endif
   printf("\n\n");
   
   fflush(stdout);
