@@ -244,16 +244,21 @@ Void TDecGop::filterPicture(TComPic*& rpcPic)
   {
     if(pcSlice->getSaoEnabledFlag())
     {
-      pcSlice->getAPS()->getSaoParam()->bSaoFlag[0] = pcSlice->getSaoEnabledFlag();
-      pcSlice->getAPS()->getSaoParam()->bSaoFlag[1] = pcSlice->getSaoEnabledFlagCb();
-#if SAO_TYPE_SHARING
-      pcSlice->getAPS()->getSaoParam()->bSaoFlag[2] = pcSlice->getSaoEnabledFlagCb();
+#if REMOVE_APS
+      SAOParam *saoParam = rpcPic->getPicSym()->getSaoParam();
 #else
-      pcSlice->getAPS()->getSaoParam()->bSaoFlag[2] = pcSlice->getSaoEnabledFlagCr();
+      SAOParam *saoParam = pcSlice->getAPS()->getSaoParam();
+#endif
+      saoParam->bSaoFlag[0] = pcSlice->getSaoEnabledFlag();
+      saoParam->bSaoFlag[1] = pcSlice->getSaoEnabledFlagCb();
+#if SAO_TYPE_SHARING
+      saoParam->bSaoFlag[2] = pcSlice->getSaoEnabledFlagCb();
+#else
+      saoParam->bSaoFlag[2] = pcSlice->getSaoEnabledFlagCr();
 #endif
       m_pcSAO->setSaoLcuBasedOptimization(1);
       m_pcSAO->createPicSaoInfo(rpcPic, (Int) m_sliceStartCUAddress.size() - 1);
-      m_pcSAO->SAOProcess(rpcPic, pcSlice->getAPS()->getSaoParam());
+      m_pcSAO->SAOProcess(rpcPic, saoParam);
 #if !REMOVE_ALF
       m_pcAdaptiveLoopFilter->PCMLFDisableProcess(rpcPic);
 #endif

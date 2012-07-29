@@ -43,6 +43,9 @@
 #include "CommonDef.h"
 #include "TComSlice.h"
 #include "TComDataCU.h"
+#if REMOVE_APS
+class TComSampleAdaptiveOffset;
+#endif
 
 //! \ingroup TLibCommon
 //! \{
@@ -106,6 +109,9 @@ private:
   UInt*         m_puiTileIdxMap;       //the map of the tile index relative to LCU raster scan address 
   UInt*         m_puiInverseCUOrderMap;
 
+#if REMOVE_APS
+  SAOParam *m_saoParam;
+#endif
 public:
   Void        create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt uiMaxHeight, UInt uiMaxDepth );
   Void        destroy ();
@@ -142,6 +148,10 @@ public:
   Void         xCreateTComTileArray();
   Void         xInitTiles();
   UInt         xCalculateNxtCUAddr( UInt uiCurrCUAddr );
+#if REMOVE_APS
+  Void allocSaoParam(TComSampleAdaptiveOffset *sao);
+  SAOParam *getSaoParam() { return m_saoParam; }
+#endif
 };// END CLASS DEFINITION TComPicSym
 
 //! \}

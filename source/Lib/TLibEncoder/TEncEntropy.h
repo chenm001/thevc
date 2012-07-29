@@ -136,7 +136,9 @@ public:
   virtual Void updateContextTables ( SliceType eSliceType, Int iQp, Bool bExecuteFinish )   = 0;
   virtual Void updateContextTables ( SliceType eSliceType, Int iQp )   = 0;
 
+#if !REMOVE_APS
   virtual Void codeAPSInitInfo  (TComAPS* pcAPS)= 0;
+#endif
   virtual Void codeFinish       (Bool bEnd)= 0;
 
   virtual Void codeDFFlag (UInt uiCode, const Char *pSymbolName) = 0;
@@ -219,7 +221,9 @@ public:
   Void updateContextTables     ( SliceType eSliceType, Int iQp, Bool bExecuteFinish )   { m_pcEntropyCoderIf->updateContextTables( eSliceType, iQp, bExecuteFinish );     }
   Void updateContextTables     ( SliceType eSliceType, Int iQp )                        { m_pcEntropyCoderIf->updateContextTables( eSliceType, iQp, true );               }
 
+#if !REMOVE_APS
   Void encodeAPSInitInfo          (TComAPS* pcAPS) {m_pcEntropyCoderIf->codeAPSInitInfo(pcAPS);}
+#endif
   Void encodeFinish               (Bool bEnd) {m_pcEntropyCoderIf->codeFinish(bEnd);}
   Void encodeScalingList       ( TComScalingList* scalingList );
 

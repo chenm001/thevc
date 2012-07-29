@@ -228,7 +228,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       m_pcSliceEncoder->setSliceIdx(0);
       pcPic->setCurrSliceIdx(0);
 
+#if !REMOVE_APS
       std::vector<TComAPS>& vAPS = m_pcEncTop->getAPS();
+#endif
       m_pcSliceEncoder->initEncSlice ( pcPic, iPOCLast, uiPOCCurr, iNumPicRcvd, iGOPid, pcSlice, m_pcEncTop->getSPS(), m_pcEncTop->getPPS() );
       pcSlice->setLastIDR(m_iLastIDR);
       pcSlice->setSliceIdx(0);
@@ -706,10 +708,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #else
       Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
 #endif
+#if !REMOVE_APS
       static Int iCurrAPSIdx = 0;
       Int iCodedAPSIdx = 0;
       TComSlice* pcSliceForAPS = NULL;
-
+#endif
       bool skippedSlice=false;
       while (uiNextCUAddr < uiRealEndAddress) // Iterate over all slices
       {
@@ -974,8 +977,10 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           break;
         case EXECUTE_INLOOPFILTER:
           {
+#if !REMOVE_APS
             TComAPS cAPS;
             allocAPS(&cAPS, pcSlice->getSPS());
+#endif
             // set entropy coder for RD
             m_pcEntropyCoder->setEntropyCoder ( m_pcSbacCoder, pcSlice );
             if ( pcSlice->getSPS()->getUseSAO() )
@@ -983,9 +988,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
               m_pcEntropyCoder->resetEntropy();
               m_pcEntropyCoder->setBitstream( m_pcBitCounter );
               m_pcSAO->startSaoEnc(pcPic, m_pcEntropyCoder, m_pcEncTop->getRDSbacCoder(), m_pcEncTop->getRDGoOnSbacCoder());
+#if REMOVE_APS
+              SAOParam& cSaoParam = *pcSlice->getPic()->getPicSym()->getSaoParam();
+#else
               SAOParam& cSaoParam = *(cAPS.getSaoParam());
+#endif
 
-#if SAO_CHROMA_LAMBDA 
+#if SAO_CHROMA_LAMBDA
 #if SAO_ENCODING_CHOICE
               m_pcSAO->SAOProcess(&cSaoParam, pcPic->getSlice(0)->getLambdaLuma(), pcPic->getSlice(0)->getLambdaChroma(), pcPic->getSlice(0)->getDepth());
 #else
@@ -1022,11 +1031,13 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
               m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
             }
 #endif
+#if !REMOVE_APS
             iCodedAPSIdx = iCurrAPSIdx;
             pcSliceForAPS = pcSlice;
 
             assignNewAPS(cAPS, iCodedAPSIdx, vAPS, pcSliceForAPS);
             iCurrAPSIdx = (iCurrAPSIdx +1)%MAX_NUM_SUPPORTED_APS;
+#endif
             processingState = ENCODE_APS;
 
             //set APS link to the slices
@@ -1043,10 +1054,16 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
               if (pcSlice->getSPS()->getUseSAO())
               {
+#if REMOVE_APS
+                pcPic->getSlice(s)->setSaoEnabledFlag((pcSlice->getPic()->getPicSym()->getSaoParam()->bSaoFlag[0]==1)?true:false);
+#else
                 pcPic->getSlice(s)->setSaoEnabledFlag((cAPS.getSaoParam()->bSaoFlag[0]==1)?true:false);
+#endif
               }
+#if !REMOVE_APS
               pcPic->getSlice(s)->setAPS(&(vAPS[iCodedAPSIdx]));
               pcPic->getSlice(s)->setAPSId(iCodedAPSIdx);
+#endif
             }
 
             /* The destructor of cAPS that is about to be called will free
@@ -1056,7 +1073,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
              *         pointers without the use of smart pointers.
              * The following will clear the saved state before the destructor.
              */
+#if !REMOVE_APS
             cAPS = TComAPS();
+#endif
           }
           break;
         case ENCODE_APS:
@@ -1187,6 +1206,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
   assert ( m_iNumPicCoded == iNumPicRcvd );
 }
 
+#if !REMOVE_APS
 /** Memory allocation for APS
   * \param [out] pAPS APS pointer
   * \param [in] pSPS SPS pointer
@@ -1246,7 +1266,6 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
   vAPS[apsID] = cAPS;
 }
 
-#if !REMOVE_APS
 /** encode APS syntax elements
   * \param [in] pcAPS APS pointer
   * \param [in, out] APSbs bitstream

@@ -53,14 +53,19 @@ Void TEncEntropy::encodeSliceHeader ( TComSlice* pcSlice )
 {
   if (pcSlice->getSPS()->getUseSAO())
   {
-    pcSlice->setSaoEnabledFlag     (pcSlice->getAPS()->getSaoParam()->bSaoFlag[0]);
+#if REMOVE_APS
+    SAOParam *saoParam = pcSlice->getPic()->getPicSym()->getSaoParam();
+#else
+    SAOParam *saoParam = pcSlice->getAPS()->getSaoParam();
+#endif
+    pcSlice->setSaoEnabledFlag     (saoParam->bSaoFlag[0]);
     if (pcSlice->getSaoEnabledFlag())
     {
-      pcSlice->setSaoEnabledFlagCb   (pcSlice->getAPS()->getSaoParam()->bSaoFlag[1]);
+      pcSlice->setSaoEnabledFlagCb   (saoParam->bSaoFlag[1]);
 #if SAO_TYPE_SHARING
-      pcSlice->setSaoEnabledFlagCr   (pcSlice->getAPS()->getSaoParam()->bSaoFlag[1]);
+      pcSlice->setSaoEnabledFlagCr   (saoParam->bSaoFlag[1]);
 #else
-      pcSlice->setSaoEnabledFlagCr   (pcSlice->getAPS()->getSaoParam()->bSaoFlag[2]);
+      pcSlice->setSaoEnabledFlagCr   (saoParam->bSaoFlag[2]);
 #endif
     }
     else

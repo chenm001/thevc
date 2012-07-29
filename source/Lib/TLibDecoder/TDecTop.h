@@ -140,7 +140,9 @@ protected:
 #endif
   Void      xDecodeSEI();
 
+#if !REMOVE_APS
   Void      allocAPS (TComAPS* pAPS); //!< memory allocation for APS
+#endif
 };// END CLASS DEFINITION TDecTop
 
 

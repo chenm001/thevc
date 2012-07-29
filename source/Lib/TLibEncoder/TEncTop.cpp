@@ -122,6 +122,7 @@ Void TEncTop::create ()
   }
 #endif
   
+#if !REMOVE_APS
 #if REMOVE_ALF
   if(m_bUseSAO)
 #else
@@ -130,6 +131,7 @@ Void TEncTop::create ()
   {
     m_vAPS.reserve(MAX_NUM_SUPPORTED_APS);
   }
+#endif
   m_cRateCtrl.create(getIntraPeriod(), getGOPSize(), getFrameRate(), getTargetBitrate(), getQP(), getNumLCUInUnit(), getSourceWidth(), getSourceHeight(), g_uiMaxCUWidth, g_uiMaxCUHeight);
   // if SBAC-based RD optimization is used
   if( m_bUseSBACRD )
@@ -222,13 +224,13 @@ Void TEncTop::destroy ()
     m_cAdaptiveLoopFilter.destroyAlfGlobalBuffers();
   }
 #endif
-  
+#if !REMOVE_APS
   for(Int i=0; i< m_vAPS.size(); i++)
   {
     TComAPS& cAPS = m_vAPS[i];
     m_cGOPEncoder.freeAPS(&cAPS, &m_cSPS);
   }
-
+#endif
   // destroy processing unit classes
   m_cGOPEncoder.        destroy();
   m_cSliceEncoder.      destroy();
@@ -443,6 +445,9 @@ Void TEncTop::xGetNewPicBuffer ( TComPic*& rpcPic )
       rpcPic = new TComPic;
       rpcPic->create( m_iSourceWidth, m_iSourceHeight, g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
     }
+#if REMOVE_APS
+    rpcPic->getPicSym()->allocSaoParam(&m_cEncSAO);
+#endif
     m_cListPic.pushBack( rpcPic );
   }
   rpcPic->setReconMark (false);

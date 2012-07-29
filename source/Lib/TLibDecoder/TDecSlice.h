@@ -94,16 +94,19 @@ public:
   TComSPS* getPrefetchedSPS  (Int spsId);
   Void     storePrefetchedPPS(TComPPS *pps)  { m_ppsBuffer.storePS( pps->getPPSId(), pps); };
   TComPPS* getPrefetchedPPS  (Int ppsId);
+#if !REMOVE_APS
   Void     storePrefetchedAPS(TComAPS *aps)  { m_apsBuffer.storePS( aps->getAPSID(), aps); };
   TComAPS* getPrefetchedAPS  (Int apsId);
-
+#endif
   Void     applyPrefetchedPS();
 
 private:
   ParameterSetMap<TComVPS> m_vpsBuffer;
   ParameterSetMap<TComSPS> m_spsBuffer; 
-  ParameterSetMap<TComPPS> m_ppsBuffer; 
-  ParameterSetMap<TComAPS> m_apsBuffer; 
+  ParameterSetMap<TComPPS> m_ppsBuffer;
+#if !REMOVE_APS
+  ParameterSetMap<TComAPS> m_apsBuffer;
+#endif
 };
 
 

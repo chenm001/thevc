@@ -115,8 +115,12 @@ public:
   Void initSAOParam   (SAOParam *pcSaoParam, Int iPartLevel, Int iPartRow, Int iPartCol, Int iParentPartIdx, Int StartCUX, Int EndCUX, Int StartCUY, Int EndCUY, Int iYCbCr);
   Void allocSaoParam  (SAOParam* pcSaoParam);
   Void resetSAOParam  (SAOParam *pcSaoParam);
+#if REMOVE_APS
+  static Void freeSaoParam   (SAOParam *pcSaoParam);
+#else
   Void freeSaoParam   (SAOParam *pcSaoParam);
-
+#endif
+  
   Void SAOProcess(TComPic* pcPic, SAOParam* pcSaoParam);
   Void processSaoCu(Int iAddr, Int iSaoType, Int iYCbCr);
   Pel* getPicYuvAddr(TComPicYuv* pcPicYuv, Int iYCbCr,Int iAddr = 0);

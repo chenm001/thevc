@@ -67,7 +67,7 @@
 #define REMOVE_LMCHROMA 1 ///< Disable LM_Chroma-related code
 #define REMOVE_FGS 1 ///< Disable fine-granularity slices code
 #define REMOVE_ALF 1 ///< Disable ALF-related code
-#define REMOVE_APS 0 ///< Disable APS-related code
+#define REMOVE_APS 1 ///< Disable APS-related code
 
 #define PREVREFPIC_DEFN                  0  ///< J0248: Shall be set equal to 0! (prevRefPic definition reverted to CD definition)
 #define BYTE_ALIGNMENT                   0  ///< I0330: Add byte_alignment() procedure to end of slice header

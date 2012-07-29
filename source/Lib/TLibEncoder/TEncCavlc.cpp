@@ -63,10 +63,12 @@ Void  xTracePPSHeader (TComPPS *pPPS)
   fprintf( g_hTrace, "=========== Picture Parameter Set ID: %d ===========\n", pPPS->getPPSId() );
 }
 
+#if !REMOVE_APS
 Void  xTraceAPSHeader (TComAPS *pAPS)
 {
   fprintf( g_hTrace, "=========== Adaptation Parameter Set ===========\n");
 }
+#endif
 
 Void  xTraceSliceHeader (TComSlice *pSlice)
 {
@@ -147,6 +149,7 @@ void TEncCavlc::codeSEI(const SEI& sei)
   writeSEImessage(*m_pcBitIf, sei);
 }
 
+#if !REMOVE_APS
 Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
 {
 
@@ -156,6 +159,7 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
   //APS ID
   WRITE_UVLC( pcAPS->getAPSID(), "aps_id" );
 }
+#endif
 
 Void TEncCavlc::codeDFFlag(UInt uiCode, const Char *pSymbolName)
 {
@@ -659,13 +663,20 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
          WRITE_FLAG( pcSlice->getSaoEnabledFlag(), "SAO on/off flag in slice header" );
          if (pcSlice->getSaoEnabledFlag() )
          {
-           WRITE_FLAG( pcSlice->getAPS()->getSaoParam()->bSaoFlag[1], "SAO on/off flag for Cb in slice header" );
+#if REMOVE_APS
+           SAOParam *saoParam = pcSlice->getPic()->getPicSym()->getSaoParam();
+#else
+           SAOParam *saoParam = pcSlice->getAPS()->getSaoParam();
+#endif
+           WRITE_FLAG( saoParam->bSaoFlag[1], "SAO on/off flag for Cb in slice header" );
 #if !SAO_TYPE_SHARING
-           WRITE_FLAG( pcSlice->getAPS()->getSaoParam()->bSaoFlag[2], "SAO on/off flag for Cr in slice header" );
+           WRITE_FLAG( saoParam->bSaoFlag[2], "SAO on/off flag for Cr in slice header" );
 #endif
          }
       }
+#if !REMOVE_APS
       WRITE_UVLC( pcSlice->getAPS()->getAPSID(), "aps_id");
+#endif
     }
 
     //check if numrefidxes match the defaults. If not, override

@@ -732,8 +732,10 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_iLastIDR             = pSrc->m_iLastIDR;
 
   m_pcPic                = pSrc->m_pcPic;
+#if !REMOVE_APS
   m_pcAPS                = pSrc->m_pcAPS;
   m_iAPSId               = pSrc->m_iAPSId;
+#endif
 
   m_uiColDir             = pSrc->m_uiColDir;
   m_colRefIdx            = pSrc->m_colRefIdx;
@@ -1569,6 +1571,7 @@ TComRefPicListModification::~TComRefPicListModification()
 {
 }
 
+#if !REMOVE_APS
 TComAPS::TComAPS()
 {
   m_apsID = 0;
@@ -1637,6 +1640,7 @@ Void TComAPS::destroyAlfParam()
     }
   }
 }
+#endif
 #endif
 
 TComScalingList::TComScalingList()
@@ -1852,7 +1856,9 @@ ParameterSetManager::ParameterSetManager()
 : m_vpsMap(MAX_NUM_VPS)
 , m_spsMap(MAX_NUM_SPS)
 , m_ppsMap(MAX_NUM_PPS)
+#if !REMOVE_APS
 , m_apsMap(MAX_NUM_APS)
+#endif
 {
 }
 

@@ -80,7 +80,9 @@ public:
   Void  parseVPS                  ( TComVPS* pcVPS )  {}
   Void  parseSPS                  ( TComSPS* pcSPS         ) {}
   Void  parsePPS                  ( TComPPS* pcPPS         ) {}
+#if !REMOVE_APS
   Void  parseAPS                  ( TComAPS* pAPS          ) {}
+#endif
   void parseSEI(SEImessages&) {}
 
   Void  parseSliceHeader          ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager) {}

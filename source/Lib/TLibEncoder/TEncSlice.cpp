@@ -1232,7 +1232,12 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );    
     if ( pcSlice->getSPS()->getUseSAO() && pcSlice->getSaoEnabledFlag() )
     {
-      Int iNumCuInWidth     = pcSlice->getAPS()->getSaoParam()->numCuInWidth;
+#if REMOVE_APS
+      SAOParam *saoParam = pcSlice->getPic()->getPicSym()->getSaoParam();
+#else
+      SAOParam *saoParam = pcSlice->getAPS()->getSaoParam();
+#endif
+      Int iNumCuInWidth     = saoParam->numCuInWidth;
       Int iCUAddrInSlice    = uiCUAddr - rpcPic->getPicSym()->getCUOrderMap(pcSlice->getSliceCurStartCUAddr()/rpcPic->getNumPartInCU());
       Int iCUAddrUpInSlice  = iCUAddrInSlice - iNumCuInWidth;
       Int rx = uiCUAddr % iNumCuInWidth;
@@ -1257,10 +1262,10 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
 #if SAO_SINGLE_MERGE
       allowMergeLeft = allowMergeLeft && (rx>0) && (iCUAddrInSlice!=0);
       allowMergeUp = allowMergeUp && (ry>0) && (iCUAddrUpInSlice>=0);
-      if( pcSlice->getAPS()->getSaoParam()->bSaoFlag[0] || pcSlice->getAPS()->getSaoParam()->bSaoFlag[1] || pcSlice->getAPS()->getSaoParam()->bSaoFlag[2])
+      if( saoParam->bSaoFlag[0] || saoParam->bSaoFlag[1] || saoParam->bSaoFlag[2])
       {
-        Int mergeLeft = pcSlice->getAPS()->getSaoParam()->saoLcuParam[0][addr].mergeLeftFlag;
-        Int mergeUp = pcSlice->getAPS()->getSaoParam()->saoLcuParam[0][addr].mergeUpFlag;
+        Int mergeLeft = saoParam->saoLcuParam[0][addr].mergeLeftFlag;
+        Int mergeUp = saoParam->saoLcuParam[0][addr].mergeUpFlag;
         if (allowMergeLeft)
         {
           m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoMergeLeft(mergeLeft, 0); 
@@ -1283,12 +1288,12 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
           {
             for (Int compIdx=0;compIdx<3;compIdx++)
             {
-              if( pcSlice->getAPS()->getSaoParam()->bSaoFlag[compIdx])
+              if( saoParam->bSaoFlag[compIdx])
               {
 #if SAO_TYPE_SHARING
-                m_pcEntropyCoder->encodeSaoOffset(&pcSlice->getAPS()->getSaoParam()->saoLcuParam[compIdx][addr], compIdx);
+                m_pcEntropyCoder->encodeSaoOffset(&saoParam->saoLcuParam[compIdx][addr], compIdx);
 #else
-                m_pcEntropyCoder->encodeSaoOffset(&pcSlice->getAPS()->getSaoParam()->saoLcuParam[compIdx][addr]);
+                m_pcEntropyCoder->encodeSaoOffset(&saoParam->saoLcuParam[compIdx][addr]);
 #endif
               }
             }
@@ -1296,9 +1301,9 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         }
       }
 #else
-      m_pcEntropyCoder->encodeSaoUnitInterleaving(0, pcSlice->getAPS()->getSaoParam()->bSaoFlag[0], rx, ry, &(pcSlice->getAPS()->getSaoParam()->saoLcuParam[0][addr]), iCUAddrInSlice, iCUAddrUpInSlice, allowMergeLeft, allowMergeUp);
-      m_pcEntropyCoder->encodeSaoUnitInterleaving(1, pcSlice->getAPS()->getSaoParam()->bSaoFlag[1], rx, ry, &(pcSlice->getAPS()->getSaoParam()->saoLcuParam[1][addr]), iCUAddrInSlice, iCUAddrUpInSlice, allowMergeLeft, allowMergeUp);
-      m_pcEntropyCoder->encodeSaoUnitInterleaving(2, pcSlice->getAPS()->getSaoParam()->bSaoFlag[2], rx, ry, &(pcSlice->getAPS()->getSaoParam()->saoLcuParam[2][addr]), iCUAddrInSlice, iCUAddrUpInSlice, allowMergeLeft, allowMergeUp);
+      m_pcEntropyCoder->encodeSaoUnitInterleaving(0, saoParam->bSaoFlag[0], rx, ry, &(saoParam->saoLcuParam[0][addr]), iCUAddrInSlice, iCUAddrUpInSlice, allowMergeLeft, allowMergeUp);
+      m_pcEntropyCoder->encodeSaoUnitInterleaving(1, saoParam->bSaoFlag[1], rx, ry, &(saoParam->saoLcuParam[1][addr]), iCUAddrInSlice, iCUAddrUpInSlice, allowMergeLeft, allowMergeUp);
+      m_pcEntropyCoder->encodeSaoUnitInterleaving(2, saoParam->bSaoFlag[2], rx, ry, &(saoParam->saoLcuParam[2][addr]), iCUAddrInSlice, iCUAddrUpInSlice, allowMergeLeft, allowMergeUp);
 #endif
     }
 #if ENC_DEC_TRACE

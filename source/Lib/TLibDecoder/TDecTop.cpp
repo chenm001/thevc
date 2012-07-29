@@ -148,6 +148,9 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
     rpcPic = new TComPic();
     
     rpcPic->create ( pcSlice->getSPS()->getPicWidthInLumaSamples(), pcSlice->getSPS()->getPicHeightInLumaSamples(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, true);
+#if REMOVE_APS
+    rpcPic->getPicSym()->allocSaoParam(&m_cSAO);
+#endif
     m_cListPic.pushBack( rpcPic );
     
     return;
@@ -184,6 +187,9 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
   }
   rpcPic->destroy();
   rpcPic->create ( pcSlice->getSPS()->getPicWidthInLumaSamples(), pcSlice->getSPS()->getPicHeightInLumaSamples(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, true);
+#if REMOVE_APS
+  rpcPic->getPicSym()->allocSaoParam(&m_cSAO);
+#endif
 }
 
 Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame, Int& iPOCLastDisplay)
@@ -283,6 +289,7 @@ Void TDecTop::xActivateParameterSets()
     pps->setNumSubstreams(1);
   }
 #endif
+#if !REMOVE_APS
 #if REMOVE_ALF
   if(sps->getUseSAO())
 #else
@@ -291,6 +298,7 @@ Void TDecTop::xActivateParameterSets()
   {
     m_apcSlicePilot->setAPS( m_parameterSetManagerDecoder.getAPS(m_apcSlicePilot->getAPSId())  );
   }
+#endif
   pps->setMinCuDQPSize( sps->getMaxCUWidth() >> ( pps->getMaxCuDQPDepth()) );
 
   for (Int i = 0; i < sps->getMaxCUDepth() - g_uiAddCUDepth; i++)
@@ -764,6 +772,7 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
   return false; 
 }
 
+#if !REMOVE_APS
 Void TDecTop::allocAPS (TComAPS* pAPS)
 {
   // we don't know the SPS before it has been activated. These fields could exist
@@ -775,5 +784,6 @@ Void TDecTop::allocAPS (TComAPS* pAPS)
   pAPS->createAlfParam();
 #endif
 }
+#endif
 
 //! \}

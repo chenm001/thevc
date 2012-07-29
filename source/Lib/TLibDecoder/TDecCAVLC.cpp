@@ -59,10 +59,12 @@ Void  xTracePPSHeader (TComPPS *pPPS)
   fprintf( g_hTrace, "=========== Picture Parameter Set ID: %d ===========\n", pPPS->getPPSId() );
 }
 
+#if !REMOVE_APS
 Void  xTraceAPSHeader (TComAPS *pAPS)
 {
   fprintf( g_hTrace, "=========== Adaptation Parameter Set ===========\n");
 }
+#endif
 
 Void  xTraceSliceHeader (TComSlice *pSlice)
 {
@@ -1016,7 +1018,9 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
           rpcSlice->setSaoEnabledFlagCr(0);
         }
       }
+#if !REMOVE_APS
       READ_UVLC (    uiCode, "aps_id" );  rpcSlice->setAPSId(uiCode);
+#endif
     }
     if (!rpcSlice->isIntra())
     {

@@ -686,6 +686,7 @@ public:
 #endif
 };
 
+#if !REMOVE_APS
 /// APS class
 class TComAPS
 {
@@ -718,6 +719,7 @@ private:
 public:
   TComAPS& operator= (const TComAPS& src);  //!< "=" operator for APS object
 };
+#endif
 
 typedef struct {
   // Explicit weighted prediction parameters parsed in slice header,
@@ -742,7 +744,9 @@ class TComSlice
   
 private:
   //  Bitstream writing
+#if !REMOVE_APS
   Int         m_iAPSId; //!< APS ID in slice header
+#endif
   Bool       m_alfEnabledFlag[3];
   bool       m_saoEnabledFlag;
   bool       m_saoEnabledFlagCb;      ///< SAO Cb enabled flag
@@ -803,8 +807,9 @@ private:
 #if ADAPTIVE_QP_SELECTION
   TComTrQuant* m_pcTrQuant;
 #endif  
+#if !REMOVE_APS
   TComAPS*    m_pcAPS;  //!< pointer to APS parameter object
-
+#endif
   UInt        m_uiColDir;  // direction to get colocated CUs
   
   UInt        m_colRefIdx;
@@ -880,10 +885,12 @@ public:
 
   Void      setPPSId        ( Int PPSId )         { m_iPPSId = PPSId; }
   Int       getPPSId        () { return m_iPPSId; }
+#if !REMOVE_APS
   Void      setAPS          ( TComAPS* pcAPS ) { m_pcAPS = pcAPS; } //!< set APS pointer
   TComAPS*  getAPS          ()                 { return m_pcAPS;  } //!< get APS pointer
   Void      setAPSId        ( Int Id)          { m_iAPSId =Id;    } //!< set APS ID
   Int       getAPSId        ()                 { return m_iAPSId; } //!< get APS ID
+#endif
   Void      setPicOutputFlag( Bool b )         { m_PicOutputFlag = b;    }
   Bool      getPicOutputFlag()                 { return m_PicOutputFlag; }
   Void      setAlfEnabledFlag(Bool b, Int compIdx) { m_alfEnabledFlag[compIdx] = b;    }
@@ -1190,17 +1197,20 @@ public:
   TComPPS* getPPS(Int ppsId)  { return m_ppsMap.getPS(ppsId); };
   TComPPS* getFirstPPS()      { return m_ppsMap.getFirstPS(); };
 
-  //! store adaptation parameter set and take ownership of it 
+#if !REMOVE_APS
+  //! store adaptation parameter set and take ownership of it
   Void storeAPS(TComAPS *aps) { m_apsMap.storePS( aps->getAPSID(), aps); };
   //! getPointer to existing adaptation parameter set  
   TComAPS* getAPS(Int apsId)  { return m_apsMap.getPS(apsId); };
-
+#endif
 protected:
   
   ParameterSetMap<TComVPS> m_vpsMap;
   ParameterSetMap<TComSPS> m_spsMap; 
-  ParameterSetMap<TComPPS> m_ppsMap; 
-  ParameterSetMap<TComAPS> m_apsMap; 
+  ParameterSetMap<TComPPS> m_ppsMap;
+#if !REMOVE_APS
+  ParameterSetMap<TComAPS> m_apsMap;
+#endif
 };
 
 //! \}
