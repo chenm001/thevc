@@ -113,7 +113,9 @@ private:
 #endif
   
 public:
+#if !REMOVE_ALF
   Void parseAlfCtrlFlag   (Int compIdx, UInt& code);
+#endif
 #if !REMOVE_FGS
   /// set slice granularity
   Void setSliceGranularity(Int iSliceGranularity)  {m_iSliceGranularity = iSliceGranularity;}
