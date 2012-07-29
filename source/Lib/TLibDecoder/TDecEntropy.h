@@ -182,17 +182,11 @@ private:
 public:
   Void decodeCoeff             ( TComDataCU* pcCU                 , UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, Bool& bCodeDQP );
   
-  // ALF-related
-
 #if !REMOVE_FGS
   /// set slice granularity
   Void setSliceGranularity (Int iSliceGranularity) {m_pcEntropyDecoderIf->setSliceGranularity(iSliceGranularity);}
 #endif
   
-  Void decodeSaoParam         (SAOParam* saoParam);
-  void decodeSaoLcu(Int rx, Int ry, Int compIdx, SAOParam* saoParam, Bool &repeatedRow );
-  Void decodeSaoOneLcu(SaoLcuParam* saoLcuParam);
-
   Void decodeFlush() { m_pcEntropyDecoderIf->decodeFlush(); }
 
 };// END CLASS DEFINITION TDecEntropy

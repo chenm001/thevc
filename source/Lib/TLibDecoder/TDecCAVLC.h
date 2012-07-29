@@ -144,8 +144,8 @@ public:
 protected:
 #if !REMOVE_ALF
   Void  xParseAlfParam       ( ALFParam* pAlfParam );
-#endif
   Int   xGolombDecode        ( Int k );
+#endif
   Bool  xMoreRbspData();
 };
 

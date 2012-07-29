@@ -150,7 +150,8 @@ Void TDecCu::decompressCU( TComDataCU* pcCU )
  * \param uiDepth 
  * \returns Bool
  */
-Bool TDecCu::xDecodeSliceEnd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth) {
+Bool TDecCu::xDecodeSliceEnd( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth)
+{
   UInt uiIsLast;
   TComPic* pcPic = pcCU->getPic();
   TComSlice * pcSlice = pcPic->getSlice(pcPic->getCurrSliceIdx());

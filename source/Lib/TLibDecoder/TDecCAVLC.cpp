@@ -377,7 +377,6 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
     }
   }
 }
-#endif
 
 Int TDecCavlc::xGolombDecode(Int k)
 {
@@ -399,6 +398,7 @@ Int TDecCavlc::xGolombDecode(Int k)
 #endif
   return coeff;
 }
+#endif
 
 Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 {
