@@ -55,8 +55,6 @@ struct InputNALUnit;
 //! \ingroup TLibDecoder
 //! \{
 
-#define APS_RESERVED_BUFFER_SIZE 2 //!< must be equal to or larger than 2 to handle bitstream parsing
-
 // ====================================================================================================================
 // Class definition
 // ====================================================================================================================
@@ -67,14 +65,13 @@ class TDecTop
 private:
   Int                     m_iGopSize;
   Bool                    m_bGopSizeSet;
-  int                     m_iMaxRefPicNum;
+  Int                     m_iMaxRefPicNum;
   
   Bool                    m_bRefreshPending;    ///< refresh pending flag
   Int                     m_pocCRA;            ///< POC number of the latest CRA picture
   Bool                    m_prevRAPisBLA;      ///< true if the previous RAP (CRA/CRANT/BLA/BLANT/IDR) picture is a BLA/BLANT picture
   Int                     m_pocRandomAccess;   ///< POC number of the random access point (the first IDR or CRA picture)
 
-  UInt                    m_uiValidPS;
   TComList<TComPic*>      m_cListPic;         //  Dynamic buffer
   ParameterSetManagerDecoder m_parameterSetManagerDecoder;  // storage for parameter sets 
   TComSlice*              m_apcSlicePilot;
@@ -101,7 +98,6 @@ private:
   Bool isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay);
   TComPic*                m_pcPic;
   UInt                    m_uiSliceIdx;
-  UInt                    m_uiLastSliceIdx;
   Int                     m_prevPOC;
   Bool                    m_bFirstSliceInPicture;
   Bool                    m_bFirstSliceInSequence;

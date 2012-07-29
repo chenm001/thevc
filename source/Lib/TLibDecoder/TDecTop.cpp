@@ -48,7 +48,6 @@ TDecTop::TDecTop()
   m_iGopSize      = 0;
   m_bGopSizeSet   = false;
   m_iMaxRefPicNum = 0;
-  m_uiValidPS = 0;
 #if ENC_DEC_TRACE
   g_hTrace = fopen( "TraceDec.txt", "wb" );
   g_bJustDoIt = g_bEncDecTraceDisable;
@@ -74,7 +73,7 @@ Void TDecTop::create()
 {
   m_cGopDecoder.create();
   m_apcSlicePilot = new TComSlice;
-  m_uiSliceIdx = m_uiLastSliceIdx = 0;
+  m_uiSliceIdx = 0;
 }
 
 Void TDecTop::destroy()
@@ -330,7 +329,6 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   if (m_bFirstSliceInPicture)
   {
     m_uiSliceIdx     = 0;
-    m_uiLastSliceIdx = 0;
   }
   m_apcSlicePilot->setSliceIdx(m_uiSliceIdx);
   if (!m_bFirstSliceInPicture)
