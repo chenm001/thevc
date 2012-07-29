@@ -747,7 +747,9 @@ private:
 #if !REMOVE_APS
   Int         m_iAPSId; //!< APS ID in slice header
 #endif
+#if !REMOVE_ALF
   Bool       m_alfEnabledFlag[3];
+#endif
   bool       m_saoEnabledFlag;
   bool       m_saoEnabledFlagCb;      ///< SAO Cb enabled flag
   bool       m_saoEnabledFlagCr;      ///< SAO Cr enabled flag
@@ -893,8 +895,10 @@ public:
 #endif
   Void      setPicOutputFlag( Bool b )         { m_PicOutputFlag = b;    }
   Bool      getPicOutputFlag()                 { return m_PicOutputFlag; }
+#if !REMOVE_ALF
   Void      setAlfEnabledFlag(Bool b, Int compIdx) { m_alfEnabledFlag[compIdx] = b;    }
   Bool      getAlfEnabledFlag(Int compIdx)         { return m_alfEnabledFlag[compIdx]; }
+#endif
   Void      setSaoEnabledFlag(Bool s) {m_saoEnabledFlag =s; }
   Bool      getSaoEnabledFlag() { return m_saoEnabledFlag; }
   Void      setSaoEnabledFlagCb(Bool s) {m_saoEnabledFlagCb =s; }       //!< set SAO Cb enabled flag
