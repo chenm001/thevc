@@ -1061,10 +1061,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           break;
         case ENCODE_APS:
           {
+#if !REMOVE_APS
             OutputNALUnit nalu(NAL_UNIT_APS, true);
             encodeAPS(&(vAPS[iCodedAPSIdx]), nalu.m_Bitstream, pcSliceForAPS);
             accessUnit.push_back(new NALUnitEBSP(nalu));
-
+#endif
             processingState = ENCODE_SLICE;
           }
           break;
@@ -1245,7 +1246,7 @@ Void TEncGOP::assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS,
   vAPS[apsID] = cAPS;
 }
 
-
+#if !REMOVE_APS
 /** encode APS syntax elements
   * \param [in] pcAPS APS pointer
   * \param [in, out] APSbs bitstream
@@ -1268,6 +1269,7 @@ Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* p
   //neither SAO and ALF is enabled
   writeRBSPTrailingBits(APSbs);
 }
+#endif
 
 Void TEncGOP::printOutSummary(UInt uiNumAllPicCoded)
 {

@@ -631,6 +631,7 @@ Void TDecTop::xDecodePPS()
   m_apcSlicePilot->initTiles();
 }
 
+#if !REMOVE_APS
 Void TDecTop::xDecodeAPS()
 {
   TComAPS  *aps = new TComAPS();
@@ -638,6 +639,7 @@ Void TDecTop::xDecodeAPS()
   decodeAPS(aps);
   m_parameterSetManagerDecoder.storePrefetchedAPS(aps);
 }
+#endif
 
 Void TDecTop::xDecodeSEI()
 {
@@ -664,10 +666,12 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
     case NAL_UNIT_PPS:
       xDecodePPS();
       return false;
+#if !REMOVE_APS
     case NAL_UNIT_APS:
       xDecodeAPS();
       return false;
-
+#endif
+      
     case NAL_UNIT_SEI:
       xDecodeSEI();
       return false;

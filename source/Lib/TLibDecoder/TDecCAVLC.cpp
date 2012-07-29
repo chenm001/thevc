@@ -242,6 +242,7 @@ void TDecCavlc::parseShortTermRefPicSet( TComSPS* sps, TComReferencePictureSet* 
 #endif
 }
 
+#if !REMOVE_APS
 Void TDecCavlc::parseAPS(TComAPS* aps)
 {
 #if ENC_DEC_TRACE  
@@ -266,6 +267,7 @@ Void TDecCavlc::parseAPS(TComAPS* aps)
   }
 
 }
+#endif
 
 /** copy SAO parameter
 * \param dst  

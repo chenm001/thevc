@@ -105,7 +105,9 @@ public:
   Void  parseSPS            ( TComSPS* pcSPS );
   Void  parsePPS            ( TComPPS* pcPPS);
   Void  parseSEI(SEImessages&);
+#if !REMOVE_APS
   Void  parseAPS            ( TComAPS* pAPS );
+#endif
   Void  parseSliceHeader    ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager);
   Void  parseTerminatingBit ( UInt& ruiBit );
   
