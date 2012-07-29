@@ -348,8 +348,11 @@ Void TEncSlice::initEncSlice( TComPic* pcPic, Int iPOCLast, UInt uiPOCCurr, Int 
 #endif
   
 #if RECALCULATE_QP_ACCORDING_LAMBDA
-  dQP = xGetQPValueAccordingToLambda( dLambda );
-  iQP = max( -pSPS->getQpBDOffsetY(), min( MAX_QP, (Int) floor( dQP + 0.5 ) ) );
+  if (m_pcCfg->getUseRecalculateQPAccordingToLambda())
+  {
+    dQP = xGetQPValueAccordingToLambda( dLambda );
+    iQP = max( -pSPS->getQpBDOffsetY(), min( MAX_QP, (Int) floor( dQP + 0.5 ) ) );    
+  }
 #endif
 
   rpcSlice->setSliceQp          ( iQP );
