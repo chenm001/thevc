@@ -1265,7 +1265,9 @@ TComSPS::TComSPS()
 , m_usePCM                   (false)
 , m_pcmLog2MaxSize            (  5)
 , m_uiPCMLog2MinSize          (  7)
+#if !REMOVE_ALF
 , m_bUseALF                   (false)
+#endif
 #if !REMOVE_LMCHROMA
 , m_bUseLMChroma              (false)
 #endif
@@ -1571,27 +1573,33 @@ TComAPS::TComAPS()
 {
   m_apsID = 0;
   m_pSaoParam = NULL;
+#if !REMOVE_ALF
   m_alfParam[0] = m_alfParam[1] = m_alfParam[2] = NULL;
+#endif
 }
 
 TComAPS::~TComAPS()
 {
   delete m_pSaoParam;
+#if !REMOVE_ALF
   for(Int compIdx =0; compIdx < 3; compIdx++)
   {
     delete m_alfParam[compIdx];
     m_alfParam[compIdx] = NULL;
   }
+#endif
 }
 
 TComAPS& TComAPS::operator= (const TComAPS& src)
 {
   m_apsID       = src.m_apsID;
-  m_pSaoParam   = src.m_pSaoParam; 
+  m_pSaoParam   = src.m_pSaoParam;
+#if !REMOVE_ALF
   for(Int compIdx =0; compIdx < 3; compIdx++)
   {
     m_alfParam[compIdx] = src.m_alfParam[compIdx];
   }
+#endif
   return *this;
 }
 
@@ -1609,6 +1617,7 @@ Void TComAPS::destroySaoParam()
   }
 }
 
+#if !REMOVE_ALF
 Void TComAPS::createAlfParam()
 {
   for(Int compIdx =0; compIdx < 3; compIdx++)
@@ -1628,6 +1637,7 @@ Void TComAPS::destroyAlfParam()
     }
   }
 }
+#endif
 
 TComScalingList::TComScalingList()
 {

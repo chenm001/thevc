@@ -178,8 +178,10 @@ protected:
   
   //====== Tool list ========
   Bool      m_bUseSBACRD;
+#if !REMOVE_ALF
   Bool      m_bUseALF;
   Bool      m_alfLowLatencyEncoding;
+#endif
   Bool      m_bUseASR;
   Bool      m_bUseHADME;
   Bool      m_bUseLComb;
@@ -383,7 +385,9 @@ public:
   Void      setUseSBACRD                    ( Bool  b )     { m_bUseSBACRD  = b; }
   Void      setUseASR                       ( Bool  b )     { m_bUseASR     = b; }
   Void      setUseHADME                     ( Bool  b )     { m_bUseHADME   = b; }
+#if !REMOVE_ALF
   Void      setUseALF                       ( Bool  b )     { m_bUseALF   = b; }
+#endif
   Void      setUseLComb                     ( Bool  b )     { m_bUseLComb   = b; }
   Void      setUseRDOQ                      ( Bool  b )     { m_bUseRDOQ    = b; }
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
@@ -402,9 +406,11 @@ public:
   Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
   Bool      getUseASR                       ()      { return m_bUseASR;     }
   Bool      getUseHADME                     ()      { return m_bUseHADME;   }
+#if !REMOVE_ALF
   Bool      getUseALF                       ()      { return m_bUseALF;     }
   Void      setALFLowLatencyEncoding        (Bool b) {m_alfLowLatencyEncoding = b;    }
   Bool      getALFLowLatencyEncoding        ()       { return m_alfLowLatencyEncoding;}
+#endif
   Bool      getUseLComb                     ()      { return m_bUseLComb;   }
   Bool      getUseRDOQ                      ()      { return m_bUseRDOQ;    }
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }

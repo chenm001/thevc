@@ -1483,6 +1483,7 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   return;
 }
 
+#if !REMOVE_ALF
 Void TEncSbac::codeAlfCtrlFlag( Int compIdx, UInt code )
 {
   m_pcBinIf->encodeBin( code, m_cCUAlfCtrlFlagSCModel.get( 0, 0, 0) );
@@ -1495,6 +1496,7 @@ Void TEncSbac::codeAlfCtrlFlag( Int compIdx, UInt code )
   DTRACE_CABAC_V( compIdx )
   DTRACE_CABAC_T( "\n" )
 }
+#endif
 
 /** code SAO offset sign
  * \param code sign value

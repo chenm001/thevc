@@ -45,6 +45,7 @@
 #include "TEncSbac.h"
 #include "TLibCommon/TComBitCounter.h"
 
+#if !REMOVE_ALF
 //! \ingroup TLibEncoder
 //! \{
 #define LCUALF_AVOID_USING_BOTTOM_LINES_ENCODER 1 //!< avoid using LCU bottom lines when lcu-based encoder RDO is used
@@ -162,5 +163,5 @@ public:
 };
 
 //! \}
-
+#endif
 #endif

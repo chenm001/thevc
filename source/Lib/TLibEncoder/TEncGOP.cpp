@@ -122,8 +122,10 @@ Void TEncGOP::init ( TEncTop* pcTEncTop )
   m_pcLoopFilter         = pcTEncTop->getLoopFilter();
   m_pcBitCounter         = pcTEncTop->getBitCounter();
   
+#if !REMOVE_ALF
   // Adaptive Loop filter
   m_pcAdaptiveLoopFilter = pcTEncTop->getAdaptiveLoopFilter();
+#endif
   //--Adaptive Loop filter
   m_pcSAO                = pcTEncTop->getSAO();
   m_pcRateCtrl           = pcTEncTop->getRateCtrl();
@@ -622,7 +624,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       m_pcLoopFilter->loopFilterPic( pcPic );
 
       pcSlice = pcPic->getSlice(0);
+#if REMOVE_ALF
+      if(pcSlice->getSPS()->getUseSAO())
+#else
       if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
+#endif
       {
 #if !REMOVE_FGS
         Int sliceGranularity = pcSlice->getPPS()->getSliceGranularity();
@@ -648,13 +654,14 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         m_pcSAO->createPicSaoInfo(pcPic, uiNumSlices);
       }
 
+#if !REMOVE_ALF
       pcSlice = pcPic->getSlice(0);
 
       if(pcSlice->getSPS()->getUseALF())
       {
         m_pcAdaptiveLoopFilter->createPicAlfInfo(pcPic, uiNumSlices);
       }
-
+#endif
       /////////////////////////////////////////////////////////////////////////////////////////////////// File writing
       // Set entropy coder
       m_pcEntropyCoder->setEntropyCoder   ( m_pcCavlcCoder, pcSlice );
@@ -694,8 +701,11 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       uiNextCUAddr                 = 0;
       pcSlice = pcPic->getSlice(uiStartCUAddrSliceIdx);
 
+#if REMOVE_ALF
+      Int processingState = (pcSlice->getSPS()->getUseSAO())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
+#else
       Int processingState = (pcSlice->getSPS()->getUseALF() || pcSlice->getSPS()->getUseSAO())?(EXECUTE_INLOOPFILTER):(ENCODE_SLICE);
-
+#endif
       static Int iCurrAPSIdx = 0;
       Int iCodedAPSIdx = 0;
       TComSlice* pcSliceForAPS = NULL;
@@ -989,13 +999,15 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
 #endif
               m_pcSAO->endSaoEnc();
-
+#if !REMOVE_ALF
               m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
+#endif
             }
 #if SAO_RDO
             m_pcEntropyCoder->setEntropyCoder ( m_pcCavlcCoder, pcSlice );
 #endif
             // adaptive loop filter
+#if !REMOVE_ALF
             if ( pcSlice->getSPS()->getUseALF())
             {
 #if ALF_CHROMA_LAMBDA 
@@ -1009,7 +1021,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
 #endif
               m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
             }
-            iCodedAPSIdx = iCurrAPSIdx;  
+#endif
+            iCodedAPSIdx = iCurrAPSIdx;
             pcSliceForAPS = pcSlice;
 
             assignNewAPS(cAPS, iCodedAPSIdx, vAPS, pcSliceForAPS);
@@ -1019,6 +1032,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             //set APS link to the slices
             for(Int s=0; s< uiNumSlices; s++)
             {
+#if !REMOVE_ALF
               if (pcSlice->getSPS()->getUseALF())
               {
                 for(Int compIdx =0; compIdx< 3; compIdx++)
@@ -1026,6 +1040,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
                   pcPic->getSlice(s)->setAlfEnabledFlag( cAPS.getAlfEnabled(compIdx), compIdx);
                 }
               }
+#endif
               if (pcSlice->getSPS()->getUseSAO())
               {
                 pcPic->getSlice(s)->setSaoEnabledFlag((cAPS.getSaoParam()->bSaoFlag[0]==1)?true:false);
@@ -1062,19 +1077,22 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
       } // end iteration over slices
 
-
+#if REMOVE_ALF
+      if(pcSlice->getSPS()->getUseSAO())
+#else
       if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
+#endif
       {
         if(pcSlice->getSPS()->getUseSAO())
         {
           m_pcSAO->destroyPicSaoInfo();
         }
-
+#if !REMOVE_ALF
         if(pcSlice->getSPS()->getUseALF())
         {
           m_pcAdaptiveLoopFilter->destroyPicAlfInfo();
         }
-
+#endif
         pcPic->destroyNonDBFilterInfo();
       }
 
@@ -1179,7 +1197,9 @@ Void TEncGOP::allocAPS (TComAPS* pAPS, TComSPS* pSPS)
     pAPS->createSaoParam();
     m_pcSAO->allocSaoParam(pAPS->getSaoParam());
   }
+#if !REMOVE_ALF
   pAPS->createAlfParam();
+#endif
 }
 
 /** Memory deallocation for APS
@@ -1197,7 +1217,9 @@ Void TEncGOP::freeAPS (TComAPS* pAPS, TComSPS* pSPS)
 
     }
   }
+#if !REMOVE_ALF
   pAPS->destroyAlfParam();
+#endif
 }
 
 /** Assign APS object into APS container according to APS ID
@@ -1236,10 +1258,12 @@ Void TEncGOP::encodeAPS(TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* p
   m_pcEntropyCoder->setBitstream(&APSbs);
 
   m_pcEntropyCoder->encodeAPSInitInfo(pcAPS);
+#if !REMOVE_ALF
   for(Int compIdx=0; compIdx < 3; compIdx++)
   {
     m_pcEntropyCoder->encodeAlfParam( (pcAPS->getAlfParam())[compIdx]);
   }
+#endif
   m_pcEntropyCoder->encodeApsExtensionFlag();
   //neither SAO and ALF is enabled
   writeRBSPTrailingBits(APSbs);
@@ -1292,7 +1316,11 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
   m_pcEntropyCoder->resetEntropy    ();
   m_pcEntropyCoder->setBitstream    ( m_pcBitCounter );
   pcSlice = pcPic->getSlice(0);
+#if REMOVE_ALF
+  if(pcSlice->getSPS()->getUseSAO())
+#else
   if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
+#endif
   {
     std::vector<Bool> LFCrossSliceBoundaryFlag(1, true);
     std::vector<Int>  sliceStartAddress;
@@ -1301,6 +1329,7 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
     pcPic->createNonDBFilterInfo(sliceStartAddress, 0, &LFCrossSliceBoundaryFlag);
   }
   
+#if !REMOVE_ALF
   // Adaptive Loop filter
   if( pcSlice->getSPS()->getUseALF() )
   {
@@ -1328,7 +1357,12 @@ Void TEncGOP::preLoopFilterPicAll( TComPic* pcPic, UInt64& ruiDist, UInt64& ruiB
     m_pcAdaptiveLoopFilter->PCMLFDisableProcess(pcPic);
     m_pcAdaptiveLoopFilter->destroyPicAlfInfo();
   }
+#endif
+#if REMOVE_ALF
+  if( pcSlice->getSPS()->getUseSAO())
+#else
   if( pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
+#endif
   {
     pcPic->destroyNonDBFilterInfo();
   }

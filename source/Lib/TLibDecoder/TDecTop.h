@@ -92,7 +92,9 @@ private:
   TDecSbac                m_cSbacDecoder;
   TDecBinCABAC            m_cBinCABAC;
   TComLoopFilter          m_cLoopFilter;
+#if !REMOVE_ALF
   TComAdaptiveLoopFilter  m_cAdaptiveLoopFilter;
+#endif
   TComSampleAdaptiveOffset m_cSAO;
 
   Bool isSkipPictureForBLA(Int& iPOCLastDisplay);

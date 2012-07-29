@@ -250,10 +250,12 @@ Void TDecCavlc::parseAPS(TComAPS* aps)
 
   UInt uiCode;
   READ_UVLC(uiCode, "aps_id");                             aps->setAPSID(uiCode);
+#if !REMOVE_ALF
   for(Int compIdx=0; compIdx< 3; compIdx++)
   {
     xParseAlfParam( (aps->getAlfParam())[compIdx]);
   }
+#endif
   READ_FLAG( uiCode, "aps_extension_flag");
   if (uiCode)
   {
@@ -300,7 +302,7 @@ inline Void copySaoOneLcuParam(SaoLcuParam* dst,  SaoLcuParam* src)
   }
 }
 
-
+#if !REMOVE_ALF
 Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
 {
   UInt uiSymbol;
@@ -371,6 +373,7 @@ Void TDecCavlc::xParseAlfParam(ALFParam* pAlfParam)
     }
   }
 }
+#endif
 
 Int TDecCavlc::xGolombDecode(Int k)
 {
@@ -691,7 +694,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   READ_FLAG( uiCode, "non_square_quadtree_enabled_flag" );          pcSPS->setUseNSQT( uiCode );
 #endif
   READ_FLAG( uiCode, "sample_adaptive_offset_enabled_flag" );       pcSPS->setUseSAO ( uiCode ? true : false );
+#if !REMOVE_ALF
   READ_FLAG( uiCode, "adaptive_loop_filter_enabled_flag" );         pcSPS->setUseALF ( uiCode ? true : false );
+#endif
   if( pcSPS->getUsePCM() )
   {
     READ_FLAG( uiCode, "pcm_loop_filter_disable_flag" );           pcSPS->setPCMFilterDisableFlag ( uiCode ? true : false );
@@ -985,7 +990,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
         rpcSlice->setRPS(rps);
       }
     }
+#if REMOVE_ALF
+    if(sps->getUseSAO())
+#else
     if(sps->getUseSAO() || sps->getUseALF())
+#endif
     {
       if (sps->getUseSAO())
       {
@@ -1215,6 +1224,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
 
   if (!bDependentSlice)
   {
+#if !REMOVE_ALF
     if(sps->getUseALF())
     {
       char syntaxString[50];
@@ -1226,9 +1236,14 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       }
     }
     Bool isAlfEnabled = (!rpcSlice->getSPS()->getUseALF())?(false):(rpcSlice->getAlfEnabledFlag(0)||rpcSlice->getAlfEnabledFlag(1)||rpcSlice->getAlfEnabledFlag(2));
+#endif
     Bool isSAOEnabled = (!rpcSlice->getSPS()->getUseSAO())?(false):(rpcSlice->getSaoEnabledFlag());
     Bool isDBFEnabled = (!rpcSlice->getLoopFilterDisable());
+#if REMOVE_ALF
+    if(rpcSlice->getSPS()->getLFCrossSliceBoundaryFlag() && ( isSAOEnabled || isDBFEnabled ))
+#else
     if(rpcSlice->getSPS()->getLFCrossSliceBoundaryFlag() && ( isAlfEnabled || isSAOEnabled || isDBFEnabled ))
+#endif
     {
       READ_FLAG( uiCode, "slice_loop_filter_across_slices_enabled_flag");
     }

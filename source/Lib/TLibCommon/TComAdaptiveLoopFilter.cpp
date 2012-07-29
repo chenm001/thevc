@@ -41,6 +41,7 @@
 #include <stdio.h>
 #include <math.h>
 
+#if !REMOVE_ALF
 //! \ingroup TLibCommon
 //! \{
 
@@ -1143,3 +1144,4 @@ Void TComAdaptiveLoopFilter::xPCMSampleRestoration (TComDataCU* pcCU, UInt uiAbs
   }
 }
 //! \}
+#endif

@@ -91,7 +91,11 @@ Void TDecTop::init()
 {
   // initialize ROM
   initROM();
+#if REMOVE_ALF
+  m_cGopDecoder.init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter, &m_cSAO);
+#else
   m_cGopDecoder.init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter, &m_cAdaptiveLoopFilter, &m_cSAO);
+#endif
   m_cSliceDecoder.init( &m_cEntropyDecoder, &m_cCuDecoder );
   m_cEntropyDecoder.init(&m_cPrediction);
 }
@@ -110,9 +114,11 @@ Void TDecTop::deletePicBuffer ( )
     pcPic = NULL;
   }
   
+#if !REMOVE_ALF
   // destroy ALF temporary buffers
   m_cAdaptiveLoopFilter.destroy();
-
+#endif
+  
   m_cSAO.destroy();
   
   m_cLoopFilter.        destroy();
@@ -277,7 +283,11 @@ Void TDecTop::xActivateParameterSets()
     pps->setNumSubstreams(1);
   }
 #endif
+#if REMOVE_ALF
+  if(sps->getUseSAO())
+#else
   if(sps->getUseSAO() || sps->getUseALF())
+#endif
   {
     m_apcSlicePilot->setAPS( m_parameterSetManagerDecoder.getAPS(m_apcSlicePilot->getAPSId())  );
   }
@@ -604,7 +614,9 @@ Void TDecTop::xDecodeSPS()
   TComSPS* sps = new TComSPS();
   m_cEntropyDecoder.decodeSPS( sps );
   m_parameterSetManagerDecoder.storePrefetchedSPS(sps);
+#if !REMOVE_ALF
   m_cAdaptiveLoopFilter.create( sps->getPicWidthInLumaSamples(), sps->getPicHeightInLumaSamples(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+#endif
 }
 
 Void TDecTop::xDecodePPS()
@@ -755,7 +767,9 @@ Void TDecTop::allocAPS (TComAPS* pAPS)
   // have to be moved for that
   pAPS->createSaoParam();
   m_cSAO.allocSaoParam(pAPS->getSaoParam());
+#if !REMOVE_ALF
   pAPS->createAlfParam();
+#endif
 }
 
 //! \}

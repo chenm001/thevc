@@ -455,7 +455,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   WRITE_FLAG( pcSPS->getUseNSQT(),                                                   "non_square_quadtree_enabled_flag" );
 #endif
   WRITE_FLAG( pcSPS->getUseSAO() ? 1 : 0,                                            "sample_adaptive_offset_enabled_flag");
+#if !REMOVE_ALF
   WRITE_FLAG( pcSPS->getUseALF () ? 1 : 0,                                           "adaptive_loop_filter_enabled_flag");
+#endif
   if( pcSPS->getUsePCM() )
   {
   WRITE_FLAG( pcSPS->getPCMFilterDisableFlag()?1 : 0,                                "pcm_loop_filter_disable_flag");
@@ -646,7 +648,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
         }
       }
     }
+#if REMOVE_ALF
+    if(pcSlice->getSPS()->getUseSAO())
+#else
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
+#endif
     {
       if (pcSlice->getSPS()->getUseSAO())
       {
@@ -801,6 +807,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   assert(MRG_MAX_NUM_CANDS_SIGNALED<=MRG_MAX_NUM_CANDS);
   WRITE_UVLC(MRG_MAX_NUM_CANDS - pcSlice->getMaxNumMergeCand(), "maxNumMergeCand");
 
+#if !REMOVE_ALF
   if (!bDependentSlice)
   {
     if (pcSlice->getSPS()->getUseALF())
@@ -813,12 +820,19 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       }
     }
   }
+#endif
   if(!bDependentSlice)
   {
+#if !REMOVE_ALF
     Bool isAlfEnabled = (!pcSlice->getSPS()->getUseALF())?(false):(pcSlice->getAlfEnabledFlag(0)||pcSlice->getAlfEnabledFlag(1)||pcSlice->getAlfEnabledFlag(2));
+#endif
     Bool isSAOEnabled = (!pcSlice->getSPS()->getUseSAO())?(false):(pcSlice->getSaoEnabledFlag());
     Bool isDBFEnabled = (!pcSlice->getLoopFilterDisable());
+#if REMOVE_ALF
+    if(pcSlice->getSPS()->getLFCrossSliceBoundaryFlag() && ( isSAOEnabled || isDBFEnabled ))
+#else
     if(pcSlice->getSPS()->getLFCrossSliceBoundaryFlag() && ( isAlfEnabled || isSAOEnabled || isDBFEnabled ))
+#endif
     {
       WRITE_FLAG(pcSlice->getLFCrossSliceBoundaryFlag()?1:0, "slice_loop_filter_across_slices_enabled_flag");
     }
@@ -1078,6 +1092,7 @@ Void TEncCavlc::xGolombEncode(Int coeff, Int k)
 
 }
 
+#if !REMOVE_ALF
 Void TEncCavlc::codeAlfParam(ALFParam* alfParam)
 {
   char syntaxString[50];
@@ -1134,6 +1149,7 @@ Void TEncCavlc::codeAlfParam(ALFParam* alfParam)
   }
 
 }
+#endif
 
 Void TEncCavlc::estBit( estBitsSbacStruct* pcEstBitsCabac, Int width, Int height, TextType eTType )
 {
