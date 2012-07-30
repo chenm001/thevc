@@ -311,8 +311,9 @@ private:
   UInt        m_uiMaxTrSize;
   
   Int m_iAMPAcc[MAX_CU_DEPTH];
-
+#if !MOVE_LOOP_FILTER_SLICES_FLAG
   Bool        m_bLFCrossSliceBoundaryFlag;
+#endif
   Bool        m_bUseSAO; 
 
   Bool        m_bTemporalIdNestingFlag; // temporal_id_nesting_flag
@@ -458,10 +459,10 @@ public:
   Void      setQpBDOffsetY  ( Int value  ) { m_qpBDOffsetY = value;  }
   Int       getQpBDOffsetC  ()             { return m_qpBDOffsetC;   }
   Void      setQpBDOffsetC  ( Int value  ) { m_qpBDOffsetC = value;  }
-
+#if !MOVE_LOOP_FILTER_SLICES_FLAG
   Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
   Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   } 
-
+#endif
   Void setUseSAO                  (Bool bVal)  {m_bUseSAO = bVal;}
   Bool getUseSAO                  ()           {return m_bUseSAO;}
 
@@ -570,7 +571,9 @@ private:
 #if SLICE_HEADER_EXTENSION
   Bool     m_sliceHeaderExtensionPresentFlag;
 #endif
-
+#if MOVE_LOOP_FILTER_SLICES_FLAG
+  Bool        m_bLFCrossSliceBoundaryFlag;
+#endif
   Bool     m_DeblockingFilterControlPresent;
   Bool     m_loopFilterOffsetInPPS;
   Bool     m_loopFilterDisable;
@@ -698,7 +701,10 @@ public:
   TComScalingList* getScalingList ()          { return m_scalingList; }         //!< get ScalingList class pointer in PPS
   UInt getLog2ParallelMergeLevelMinus2      ()                    { return m_log2ParallelMergeLevelMinus2; }
   Void setLog2ParallelMergeLevelMinus2      (UInt mrgLevel)       { m_log2ParallelMergeLevelMinus2 = mrgLevel; }
-
+#if MOVE_LOOP_FILTER_SLICES_FLAG
+  Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
+  Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   } 
+#endif
 #if SLICE_HEADER_EXTENSION
   Bool getSliceHeaderExtensionPresentFlag   ()                    { return m_sliceHeaderExtensionPresentFlag; }
   Void setSliceHeaderExtensionPresentFlag   (Bool val)            { m_sliceHeaderExtensionPresentFlag = val; }

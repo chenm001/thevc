@@ -1294,7 +1294,9 @@ TComSPS::TComSPS()
 , m_bPCMFilterDisableFlag     (false)
 , m_uiBitsForPOC              (  8)
 , m_uiMaxTrSize               ( 32)
+#if !MOVE_LOOP_FILTER_SLICES_FLAG
 , m_bLFCrossSliceBoundaryFlag (false)
+#endif
 , m_bUseSAO                   (false) 
 , m_bTemporalIdNestingFlag    (false)
 , m_scalingListEnabledFlag    (false)
@@ -1357,6 +1359,9 @@ TComPPS::TComPPS()
 , m_encCABACTableIdx            (I_SLICE)
 #if SLICE_HEADER_EXTENSION
 , m_sliceHeaderExtensionPresentFlag    (false)
+#endif
+#if MOVE_LOOP_FILTER_SLICES_FLAG
+, m_bLFCrossSliceBoundaryFlag (false)
 #endif
 {
   m_scalingList = new TComScalingList;

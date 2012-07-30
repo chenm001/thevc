@@ -334,6 +334,9 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
     WRITE_FLAG( pcPPS->getCabacIndependentFlag()? 1 : 0,            "cabac_independent_flag" );
   }
 #endif
+#if MOVE_LOOP_FILTER_SLICES_FLAG
+  WRITE_FLAG( pcPPS->getLFCrossSliceBoundaryFlag()?1 : 0,                            "seq_loop_filter_across_slices_enabled_flag");
+#endif
   WRITE_FLAG( pcPPS->getDeblockingFilterControlPresent()?1 : 0, "deblocking_filter_control_present_flag");
   if(pcPPS->getDeblockingFilterControlPresent())
   {
@@ -458,7 +461,9 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #if !PPS_TS_FLAG
   WRITE_FLAG( pcSPS->getUseTransformSkip () ? 1 : 0,                                 "transform_skip_enabled_flag" );
 #endif
+#if !MOVE_LOOP_FILTER_SLICES_FLAG
   WRITE_FLAG( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0,                            "seq_loop_filter_across_slices_enabled_flag");
+#endif
   WRITE_FLAG( pcSPS->getUseAMP(),                                                    "asymmetric_motion_partitions_enabled_flag" );
 #if !REMOVE_NSQT
   WRITE_FLAG( pcSPS->getUseNSQT(),                                                   "non_square_quadtree_enabled_flag" );
@@ -858,8 +863,13 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #endif
     Bool isSAOEnabled = (!pcSlice->getSPS()->getUseSAO())?(false):(pcSlice->getSaoEnabledFlag());
     Bool isDBFEnabled = (!pcSlice->getLoopFilterDisable());
+
 #if REMOVE_ALF
+#if MOVE_LOOP_FILTER_SLICES_FLAG
+    if(pcSlice->getPPS()->getLFCrossSliceBoundaryFlag() && ( isSAOEnabled || isDBFEnabled ))
+#else
     if(pcSlice->getSPS()->getLFCrossSliceBoundaryFlag() && ( isSAOEnabled || isDBFEnabled ))
+#endif
 #else
     if(pcSlice->getSPS()->getLFCrossSliceBoundaryFlag() && ( isAlfEnabled || isSAOEnabled || isDBFEnabled ))
 #endif

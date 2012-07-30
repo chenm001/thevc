@@ -530,6 +530,9 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
     pcPPS->setCabacIndependentFlag( (uiCode == 1)? true : false );
   }
 #endif
+#if MOVE_LOOP_FILTER_SLICES_FLAG
+  READ_FLAG( uiCode, "loop_filter_across_slice_flag" );             pcPPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
+#endif
   READ_FLAG( uiCode, "deblocking_filter_control_present_flag" ); 
   pcPPS->setDeblockingFilterControlPresent( uiCode ? true : false);
   if(pcPPS->getDeblockingFilterControlPresent())
@@ -699,7 +702,9 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #if !PPS_TS_FLAG
   READ_FLAG( uiCode, "transform_skip_enabled_flag" );               pcSPS->setUseTransformSkip ( uiCode ? true : false );
 #endif
+#if !MOVE_LOOP_FILTER_SLICES_FLAG
   READ_FLAG( uiCode, "loop_filter_across_slice_flag" );             pcSPS->setLFCrossSliceBoundaryFlag( uiCode ? true : false);
+#endif
   READ_FLAG( uiCode, "asymmetric_motion_partitions_enabled_flag" ); pcSPS->setUseAMP( uiCode );
 #if !REMOVE_NSQT
   READ_FLAG( uiCode, "non_square_quadtree_enabled_flag" );          pcSPS->setUseNSQT( uiCode );
@@ -1267,8 +1272,13 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
 #endif
     Bool isSAOEnabled = (!rpcSlice->getSPS()->getUseSAO())?(false):(rpcSlice->getSaoEnabledFlag());
     Bool isDBFEnabled = (!rpcSlice->getLoopFilterDisable());
+
 #if REMOVE_ALF
+#if MOVE_LOOP_FILTER_SLICES_FLAG
+    if(rpcSlice->getPPS()->getLFCrossSliceBoundaryFlag() && ( isSAOEnabled || isDBFEnabled ))
+#else
     if(rpcSlice->getSPS()->getLFCrossSliceBoundaryFlag() && ( isSAOEnabled || isDBFEnabled ))
+#endif
 #else
     if(rpcSlice->getSPS()->getLFCrossSliceBoundaryFlag() && ( isAlfEnabled || isSAOEnabled || isDBFEnabled ))
 #endif
@@ -1277,7 +1287,11 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
     }
     else
     {
+#if MOVE_LOOP_FILTER_SLICES_FLAG
+      uiCode = rpcSlice->getPPS()->getLFCrossSliceBoundaryFlag()?1:0;
+#else
       uiCode = rpcSlice->getSPS()->getLFCrossSliceBoundaryFlag()?1:0;
+#endif
     }
     rpcSlice->setLFCrossSliceBoundaryFlag( (uiCode==1)?true:false);
   }

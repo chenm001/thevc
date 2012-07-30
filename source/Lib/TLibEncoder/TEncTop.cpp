@@ -538,7 +538,9 @@ Void TEncTop::xInitSPS()
   m_cSPS.setQpBDOffsetY ( (Int)(6*(g_uiBitDepth + g_uiBitIncrement - 8)) );
   m_cSPS.setQpBDOffsetC ( (Int)(6*(g_uiBitDepth + g_uiBitIncrement - 8)) );
 
+#if !MOVE_LOOP_FILTER_SLICES_FLAG
   m_cSPS.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
+#endif
   m_cSPS.setUseSAO( m_bUseSAO );
 
   m_cSPS.setMaxTLayers( m_maxTempLayer );
@@ -612,7 +614,9 @@ Void TEncTop::xInitPPS()
   m_cPPS.setDeblockingFilterControlPresent (m_DeblockingFilterControlPresent );
   m_cPPS.setLog2ParallelMergeLevelMinus2   (m_log2ParallelMergeLevelMinus2 );
   m_cPPS.setCabacInitPresentFlag(CABAC_INIT_PRESENT_FLAG);
-
+#if MOVE_LOOP_FILTER_SLICES_FLAG
+  m_cPPS.setLFCrossSliceBoundaryFlag( m_bLFCrossSliceBoundaryFlag );
+#endif
   Int histogram[8];
   for(Int i=0; i<8; i++)
   {

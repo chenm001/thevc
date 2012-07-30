@@ -40,6 +40,7 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define MOVE_LOOP_FILTER_SLICES_FLAG     1  ///< J0288: Move seq_loop_filter_across_slices_enabled_flag from SPS to PPS
 #define SPLICING_FRIENDLY_PARAMS         1  ///< J0108: Remove rap_pic_id and move no_output_prior_pic_flag
 
 #define  SKIP_FLAG                       1  ///< J0336: store skip flag
