@@ -127,7 +127,9 @@ private:
   // -------------------------------------------------------------------------------------------------------------------
   // CU data
   // -------------------------------------------------------------------------------------------------------------------
-  
+#if SKIP_FLAG
+  Bool*         m_skipFlag;           ///< array of skip flags
+#endif
   Char*         m_pePartSize;         ///< array of partition sizes
   Char*         m_pePredMode;         ///< array of prediction modes
   Bool*         m_CUTransquantBypass;   ///< array of cu_transquant_bypass flags
@@ -284,6 +286,13 @@ public:
   Void          setPartSizeSubParts   ( PartSize eMode, UInt uiAbsPartIdx, UInt uiDepth );
   Void          setCUTransquantBypassSubParts( bool flag, UInt uiAbsPartIdx, UInt uiDepth );
   
+#if SKIP_FLAG
+  Bool*        getSkipFlag            ()                        { return m_skipFlag;          }
+  Bool         getSkipFlag            (UInt idx)                { return m_skipFlag[idx];     }
+  Void         setSkipFlag           ( UInt idx, Bool skip)     { m_skipFlag[idx] = skip;   }
+  Void         setSkipFlagSubParts   ( Bool skip, UInt absPartIdx, UInt depth );
+#endif
+
   Char*         getPredictionMode     ()                        { return m_pePredMode;        }
   PredMode      getPredictionMode     ( UInt uiIdx )            { return static_cast<PredMode>( m_pePredMode[uiIdx] ); }
   Bool*         getCUTransquantBypass ()                        { return m_CUTransquantBypass;        }

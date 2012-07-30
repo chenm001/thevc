@@ -40,6 +40,9 @@
 
 //! \ingroup TLibCommon
 //! \{
+
+#define  SKIP_FLAG                       1  ///< J0336: store skip flag
+
 #define PPS_TS_FLAG                      1  ///< J0184: move transform_skip_enabled_flag from SPS to PPS
 #if PPS_TS_FLAG
 #define TS_FLAT_QUANTIZATION_MATRIX      1  ///< I0408: set default quantization matrix to be flat if TS is enabled in PPS

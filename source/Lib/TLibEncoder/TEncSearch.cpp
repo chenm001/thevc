@@ -4491,6 +4491,10 @@ Void TEncSearch::encodeResAndCalcRdInterCU( TComDataCU* pcCU, TComYuv* pcYuvOrg,
   //  No residual coding : SKIP mode
   if ( bSkipRes )
   {
+#if SKIP_FLAG
+    pcCU->setSkipFlagSubParts( true, 0, pcCU->getDepth(0) );
+#endif
+
     rpcYuvResi->clear();
     
     pcYuvPred->copyToPartYuv( rpcYuvRec, 0 );
@@ -5841,8 +5845,16 @@ UInt TEncSearch::xUpdateCandList( UInt uiMode, Double uiCost, UInt uiFastCandNum
  */
 Void  TEncSearch::xAddSymbolBitsInter( TComDataCU* pcCU, UInt uiQp, UInt uiTrMode, UInt& ruiBits, TComYuv*& rpcYuvRec, TComYuv*pcYuvPred, TComYuv*& rpcYuvResi )
 {
+#if SKIP_FLAG
+  if(pcCU->getMergeFlag( 0 ) && pcCU->getPartitionSize( 0 ) == SIZE_2Nx2N && !pcCU->getQtRootCbf( 0 ))
+#else
   if ( pcCU->isSkipped( 0 ) )
+#endif
   {
+#if SKIP_FLAG
+    pcCU->setSkipFlagSubParts( true, 0, pcCU->getDepth(0) );
+#endif
+
     m_pcEntropyCoder->resetBits();
     if(pcCU->getSlice()->getPPS()->getTransquantBypassEnableFlag())
     {
