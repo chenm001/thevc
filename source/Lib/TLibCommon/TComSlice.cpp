@@ -1277,8 +1277,10 @@ TComSPS::TComSPS()
 #if !REMOVE_LMCHROMA
 , m_bUseLMChroma              (false)
 #endif
+#if !PPS_TS_FLAG
 , m_useTansformSkip           (false)
 , m_useTansformSkipFast       (false)
+#endif
 , m_bUseLComb                 (false)
 , m_restrictedRefPicListsFlag   (  1)
 , m_listsModificationPresentFlag(  0)
@@ -1340,6 +1342,10 @@ TComPPS::TComPPS()
 , m_iSliceGranularity           (0)
 #endif
 , m_TransquantBypassEnableFlag  (false)
+#if PPS_TS_FLAG
+, m_useTansformSkip             (false)
+, m_useTansformSkipFast         (false)
+#endif
 , m_bLFCrossTileBoundaryFlag     (true)
 , m_iUniformSpacingIdr           (0)
 , m_iNumColumnsMinus1            (0)

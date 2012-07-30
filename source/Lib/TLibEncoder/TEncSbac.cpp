@@ -1180,7 +1180,11 @@ Void TEncSbac::codeCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx
   
   if ( uiNumSig == 0 )
     return;
+#if PPS_TS_FLAG
+  if(pcCU->getSlice()->getPPS()->getUseTransformSkip())
+#else
   if(pcCU->getSlice()->getSPS()->getUseTransformSkip())
+#endif
   {
     codeTransformSkipFlags( pcCU,uiAbsPartIdx, uiWidth, uiHeight, uiDepth, eTType );
   }

@@ -272,10 +272,12 @@ private:
 #if !REMOVE_LMCHROMA
   Bool        m_bUseLMChroma; // JL:
 #endif
-  
+
+#if !PPS_TS_FLAG
   Bool        m_useTansformSkip;
   Bool        m_useTansformSkipFast;
-  
+#endif
+
   Bool        m_bUseLComb;
 #if !REMOVE_NSQT
   Bool        m_useNSQT;
@@ -412,11 +414,13 @@ public:
   Bool getUseLMChroma ()         { return m_bUseLMChroma;        }
   Void setUseLMChroma ( Bool b ) { m_bUseLMChroma  = b;          }
 #endif
-  
+
+#if !PPS_TS_FLAG
   Bool getUseTransformSkip       ()         { return m_useTansformSkip;     }
   Void setUseTransformSkip       ( Bool b ) { m_useTansformSkip  = b;       }
   Bool getUseTransformSkipFast   ()         { return m_useTansformSkipFast; }
   Void setUseTransformSkipFast   ( Bool b ) { m_useTansformSkipFast  = b;   }
+#endif
 
   Bool getUseLossless ()         { return m_useLossless; }
   Void setUseLossless ( Bool b ) { m_useLossless  = b; }
@@ -533,6 +537,11 @@ private:
   Bool        m_useWeightedBiPred;        // Use of Weighting Bi-Prediction (B_SLICE)
   Bool        m_OutputFlagPresentFlag;   // Indicates the presence of output_flag in slice header
 
+#if PPS_TS_FLAG
+  Bool        m_useTansformSkip;
+  Bool        m_useTansformSkipFast;
+#endif
+
   Bool        m_TransquantBypassEnableFlag; // Indicates presence of cu_transquant_bypass_flag in CUs.
 #if DEPENDENT_SLICES
   Bool        m_bDependentSlicesEnabledFlag;   // Indicates the presence of dependent_slices_flag in slice header
@@ -616,6 +625,13 @@ public:
 #endif
   Void      setTransquantBypassEnableFlag( Bool b ) { m_TransquantBypassEnableFlag = b; }
   Bool      getTransquantBypassEnableFlag()         { return m_TransquantBypassEnableFlag; }
+
+#if PPS_TS_FLAG
+  Bool      getUseTransformSkip       ()         { return m_useTansformSkip;     }
+  Void      setUseTransformSkip       ( Bool b ) { m_useTansformSkip  = b;       }
+  Bool      getUseTransformSkipFast   ()         { return m_useTansformSkipFast; }
+  Void      setUseTransformSkipFast   ( Bool b ) { m_useTansformSkipFast  = b;   }
+#endif
 
   Void    setLFCrossTileBoundaryFlag               ( Bool   bValue  )    { m_bLFCrossTileBoundaryFlag = bValue; }
   Bool    getLFCrossTileBoundaryFlag               ()                    { return m_bLFCrossTileBoundaryFlag;   }

@@ -1102,8 +1102,11 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
     uiWidth  = pcCU->getSlice()->getSPS()->getMaxTrSize();
     uiHeight = pcCU->getSlice()->getSPS()->getMaxTrSize();
   }
-
+#if PPS_TS_FLAG
+  if(pcCU->getSlice()->getPPS()->getUseTransformSkip())
+#else
   if(pcCU->getSlice()->getSPS()->getUseTransformSkip())
+#endif
   {
     parseTransformSkipFlags( pcCU, uiAbsPartIdx, uiWidth, uiHeight, uiDepth, eTType);
   }
