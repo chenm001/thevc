@@ -4802,7 +4802,9 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
 #endif
     pcCU->setTrIdxSubParts( uiDepth - pcCU->getDepth( 0 ), uiAbsPartIdx, uiDepth );
 #if INTER_TRANSFORMSKIP
-    Double minCostY, minCostU, minCostV;
+    Double minCostY = MAX_DOUBLE;
+    Double minCostU = MAX_DOUBLE;
+    Double minCostV = MAX_DOUBLE;
 #if PPS_TS_FLAG
     Bool checkTransformSkipY  = pcCU->getSlice()->getPPS()->getUseTransformSkip() && trWidth == 4 && trHeight == 4;
     Bool checkTransformSkipUV = pcCU->getSlice()->getPPS()->getUseTransformSkip() && trWidthC == 4 && trHeightC == 4;
@@ -5239,7 +5241,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
         m_pcEntropyCoder->resetBits();
         m_pcEntropyCoder->encodeQtCbf( pcCU, uiAbsPartIdx, TEXT_LUMA, uiTrMode );
         m_pcEntropyCoder->encodeCoeffNxN( pcCU, pcCoeffCurrY, uiAbsPartIdx, trWidth, trHeight, uiDepth, TEXT_LUMA );
-        const UInt uiSingleBitsY = m_pcEntropyCoder->getNumberOfWrittenBits();
+        const UInt uiTsSingleBitsY = m_pcEntropyCoder->getNumberOfWrittenBits();
 
         m_pcTrQuant->setQPforQuant( pcCU->getQP( 0 ), TEXT_LUMA, pcCU->getSlice()->getSPS()->getQpBDOffsetY(), 0 );
 
@@ -5251,7 +5253,7 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
         uiNonzeroDistY = m_pcRdCost->getDistPart( m_pcQTTempTComYuv[uiQTTempAccessLayer].getLumaAddr( absTUPartIdx ), m_pcQTTempTComYuv[uiQTTempAccessLayer].getStride(),
           pcResi->getLumaAddr( absTUPartIdx ), pcResi->getStride(), trWidth, trHeight );
 
-        dSingleCostY = m_pcRdCost->calcRdCost( uiSingleBitsY, uiNonzeroDistY );
+        dSingleCostY = m_pcRdCost->calcRdCost( uiTsSingleBitsY, uiNonzeroDistY );
       }
 
       if( !uiAbsSumTransformSkipY || minCostY < dSingleCostY )

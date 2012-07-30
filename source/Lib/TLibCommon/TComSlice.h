@@ -544,11 +544,10 @@ private:
   Bool        m_useWeightedBiPred;        // Use of Weighting Bi-Prediction (B_SLICE)
   Bool        m_OutputFlagPresentFlag;   // Indicates the presence of output_flag in slice header
 
+  Bool        m_TransquantBypassEnableFlag; // Indicates presence of cu_transquant_bypass_flag in CUs.
 #if PPS_TS_FLAG
   Bool        m_useTansformSkip;
 #endif
-
-  Bool        m_TransquantBypassEnableFlag; // Indicates presence of cu_transquant_bypass_flag in CUs.
 #if DEPENDENT_SLICES
   Bool        m_bDependentSlicesEnabledFlag;   // Indicates the presence of dependent_slices_flag in slice header
   Bool        m_bCabacIndependentFlag;   // Indicates the presence of dependent_slices_flag in slice header
