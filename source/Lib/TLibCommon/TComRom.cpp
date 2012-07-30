@@ -65,10 +65,12 @@ Void initROM()
   c=2;
   for ( i=0; i<MAX_CU_DEPTH; i++ )
   {
+#if !REMOVE_ZIGZAG_SCAN
     g_auiFrameScanXY[ i ] = new UInt[ c*c ];
     g_auiFrameScanX [ i ] = new UInt[ c*c ];
     g_auiFrameScanY [ i ] = new UInt[ c*c ];
     initFrameScanXY( g_auiFrameScanXY[i], g_auiFrameScanX[i], g_auiFrameScanY[i], c, c );
+#endif
     g_auiSigLastScan[0][i] = new UInt[ c*c ];
     g_auiSigLastScan[1][i] = new UInt[ c*c ];
     g_auiSigLastScan[2][i] = new UInt[ c*c ];
@@ -143,9 +145,11 @@ Void destroyROM()
   
   for ( i=0; i<MAX_CU_DEPTH; i++ )
   {
+#if !REMOVE_ZIGZAG_SCAN
     delete[] g_auiFrameScanXY[i];
     delete[] g_auiFrameScanX [i];
     delete[] g_auiFrameScanY [i];
+#endif
     delete[] g_auiSigLastScan[0][i];
     delete[] g_auiSigLastScan[1][i];
     delete[] g_auiSigLastScan[2][i];
@@ -453,9 +457,11 @@ UInt64 g_nSymbolCounter = 0;
 // ====================================================================================================================
 
 // scanning order table
+#if !REMOVE_ZIGZAG_SCAN
 UInt* g_auiFrameScanXY[ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanX [ MAX_CU_DEPTH  ];
 UInt* g_auiFrameScanY [ MAX_CU_DEPTH  ];
+#endif
 UInt* g_auiSigLastScan[4][ MAX_CU_DEPTH ];
 #if !REMOVE_NSQT
 UInt *g_sigScanNSQT[ 4 ]; // scan for non-square partitions
@@ -497,6 +503,7 @@ const UInt g_auiGoRicePrefixLen[5] =
   8, 7, 6, 5, 4
 };
 
+#if !REMOVE_ZIGZAG_SCAN
 // initialize g_auiFrameScanXY
 Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int iHeight )
 {
@@ -541,6 +548,7 @@ Void initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int i
     if ( c >= iWidth*iHeight ) break;
   }  
 }
+#endif
 
 Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int iWidth, Int iHeight, Int iDepth)
 {
@@ -610,7 +618,9 @@ Void initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int
     }
   }
   
+#if !REMOVE_ZIGZAG_SCAN
   memcpy(pBuffZ, g_auiFrameScanXY[iDepth], sizeof(UInt)*iWidth*iHeight);
+#endif
 
   UInt uiCnt = 0;
 #if REMOVAL_8x2_2x8_CG
