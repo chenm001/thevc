@@ -920,10 +920,12 @@ void TEncSbac::codeTransformSkipFlags (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt
   {
     return;
   }
+#if !INTER_TRANSFORMSKIP
   if(!pcCU->isIntra(uiAbsPartIdx))
   {
     return;
   }
+#endif
   if(width != 4 || height != 4)
   {
     return;

@@ -40,6 +40,8 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define INTER_TRANSFORMSKIP              1  ///< J0237: inter transform skipping (inter-TS)
+
 #define REMOVAL_8x2_2x8_CG               1  ///< J0256: removal of 8x2 / 2x8 coefficient groups
 #define REF_IDX_BYPASS                   1  ///< J0098: bypass coding starting from the second bin for reference index
 

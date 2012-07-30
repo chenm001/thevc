@@ -965,10 +965,12 @@ void TDecSbac::parseTransformSkipFlags (TComDataCU* pcCU, UInt uiAbsPartIdx, UIn
   {
     return;
   }
+#if !INTER_TRANSFORMSKIP
   if(!pcCU->isIntra(uiAbsPartIdx))
   {
     return;
   }
+#endif
   if(width != 4 || height != 4)
   {
     return;
