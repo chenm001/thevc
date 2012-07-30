@@ -1241,7 +1241,9 @@ Void TEncSampleAdaptiveOffset::SAOProcess(SAOParam *pcSaoParam, Double dLambda)
   resetSAOParam(pcSaoParam);
   resetStats();
 
+#if !SAO_TYPE_SHARING
   Int iY  = 0;
+#endif
   Double dCostFinal = 0;
   if ( m_saoLcuBasedOptimization)
   {
@@ -1254,60 +1256,60 @@ Void TEncSampleAdaptiveOffset::SAOProcess(SAOParam *pcSaoParam, Double dLambda)
   else
   {
 #if SAO_TYPE_SHARING
-pcSaoParam->bSaoFlag[0] = 1;
-pcSaoParam->bSaoFlag[1] = 0;
-dCostFinal = 0;
-Double lambdaRdo =  dLambdaLuma;
-resetStats();
-getSaoStats(pcSaoParam->psSaoPart[0], 0);
-runQuadTreeDecision(pcSaoParam->psSaoPart[0], 0, dCostFinal, m_uiMaxSplitLevel, lambdaRdo);
-pcSaoParam->bSaoFlag[0] = dCostFinal < 0 ? 1:0;
-if(pcSaoParam->bSaoFlag[0])
-{
-convertQT2SaoUnit(pcSaoParam, 0, 0);
-assignSaoUnitSyntax(pcSaoParam->saoLcuParam[0],  pcSaoParam->psSaoPart[0], pcSaoParam->oneUnitFlag[0], 0);
-}
+    pcSaoParam->bSaoFlag[0] = 1;
+    pcSaoParam->bSaoFlag[1] = 0;
+    dCostFinal = 0;
+    Double lambdaRdo =  dLambdaLuma;
+    resetStats();
+    getSaoStats(pcSaoParam->psSaoPart[0], 0);
+    runQuadTreeDecision(pcSaoParam->psSaoPart[0], 0, dCostFinal, m_uiMaxSplitLevel, lambdaRdo);
+    pcSaoParam->bSaoFlag[0] = dCostFinal < 0 ? 1:0;
+    if(pcSaoParam->bSaoFlag[0])
+    {
+      convertQT2SaoUnit(pcSaoParam, 0, 0);
+      assignSaoUnitSyntax(pcSaoParam->saoLcuParam[0],  pcSaoParam->psSaoPart[0], pcSaoParam->oneUnitFlag[0], 0);
+    }
 #else
-pcSaoParam->bSaoFlag[0] = 1;
-pcSaoParam->bSaoFlag[1] = 0;
-pcSaoParam->bSaoFlag[2] = 0;
-for (Int compIdx=0;compIdx<3;compIdx++)
-{
-if (pcSaoParam->bSaoFlag[iY])
-{
-dCostFinal = 0;
-Double lambdaRdo = (compIdx==0 ? dLambdaLuma: dLambdaChroma);
-resetStats();
-getSaoStats(pcSaoParam->psSaoPart[compIdx], compIdx);
-runQuadTreeDecision(pcSaoParam->psSaoPart[compIdx], 0, dCostFinal, m_uiMaxSplitLevel, lambdaRdo);
-pcSaoParam->bSaoFlag[compIdx] = dCostFinal < 0 ? 1:0;
-if(pcSaoParam->bSaoFlag[compIdx])
-{
-  convertQT2SaoUnit(pcSaoParam, 0, compIdx);
-  assignSaoUnitSyntax(pcSaoParam->saoLcuParam[compIdx],  pcSaoParam->psSaoPart[compIdx], pcSaoParam->oneUnitFlag[compIdx], compIdx);
-}
-}
-}
+    pcSaoParam->bSaoFlag[0] = 1;
+    pcSaoParam->bSaoFlag[1] = 0;
+    pcSaoParam->bSaoFlag[2] = 0;
+    for (Int compIdx=0;compIdx<3;compIdx++)
+    {
+      if (pcSaoParam->bSaoFlag[iY])
+      {
+        dCostFinal = 0;
+        Double lambdaRdo = (compIdx==0 ? dLambdaLuma: dLambdaChroma);
+        resetStats();
+        getSaoStats(pcSaoParam->psSaoPart[compIdx], compIdx);
+        runQuadTreeDecision(pcSaoParam->psSaoPart[compIdx], 0, dCostFinal, m_uiMaxSplitLevel, lambdaRdo);
+        pcSaoParam->bSaoFlag[compIdx] = dCostFinal < 0 ? 1:0;
+        if(pcSaoParam->bSaoFlag[compIdx])
+        {
+          convertQT2SaoUnit(pcSaoParam, 0, compIdx);
+          assignSaoUnitSyntax(pcSaoParam->saoLcuParam[compIdx],  pcSaoParam->psSaoPart[compIdx], pcSaoParam->oneUnitFlag[compIdx], compIdx);
+        }
+      }
+    }
 #endif
   }
 #if SAO_TYPE_SHARING
-if (pcSaoParam->bSaoFlag[0])
-{
-processSaoUnitAll( pcSaoParam->saoLcuParam[0], pcSaoParam->oneUnitFlag[0], 0);
-}
-if (pcSaoParam->bSaoFlag[1])
-{
-processSaoUnitAll( pcSaoParam->saoLcuParam[1], pcSaoParam->oneUnitFlag[1], 1);
-processSaoUnitAll( pcSaoParam->saoLcuParam[2], pcSaoParam->oneUnitFlag[2], 2);
-}
+  if (pcSaoParam->bSaoFlag[0])
+  {
+    processSaoUnitAll( pcSaoParam->saoLcuParam[0], pcSaoParam->oneUnitFlag[0], 0);
+  }
+  if (pcSaoParam->bSaoFlag[1])
+  {
+    processSaoUnitAll( pcSaoParam->saoLcuParam[1], pcSaoParam->oneUnitFlag[1], 1);
+    processSaoUnitAll( pcSaoParam->saoLcuParam[2], pcSaoParam->oneUnitFlag[2], 2);
+  }
 #else
-for (Int compIdx=0;compIdx<3;compIdx++)
-{
-if (pcSaoParam->bSaoFlag[compIdx])
-{
-processSaoUnitAll( pcSaoParam->saoLcuParam[compIdx], pcSaoParam->oneUnitFlag[compIdx], compIdx);
-}
-}
+  for (Int compIdx=0;compIdx<3;compIdx++)
+  {
+    if (pcSaoParam->bSaoFlag[compIdx])
+    {
+      processSaoUnitAll( pcSaoParam->saoLcuParam[compIdx], pcSaoParam->oneUnitFlag[compIdx], compIdx);
+    }
+  }
 #endif
 }
 /** Check merge SAO unit
