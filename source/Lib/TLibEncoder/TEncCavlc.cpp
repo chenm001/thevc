@@ -571,6 +571,16 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   //write slice address
   Int address = (pcSlice->getPic()->getPicSym()->getCUOrderMap(lCUAddress) << reqBitsInner) + innerAddress;
   WRITE_FLAG( address==0, "first_slice_in_pic_flag" );
+#if SPLICING_FRIENDLY_PARAMS
+    if(   pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_IDR
+       || pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLANT
+       || pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLA
+       || pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_CRANT
+       || pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_CRA )
+    {
+      WRITE_FLAG( 0, "no_output_of_prior_pics_flag" );
+    }
+#endif
   WRITE_UVLC( pcSlice->getPPS()->getPPSId(), "pic_parameter_set_id" );
   if(address>0) 
   {
@@ -592,6 +602,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     {
       WRITE_FLAG( pcSlice->getPicOutputFlag() ? 1 : 0, "pic_output_flag" );
     }
+#if !SPLICING_FRIENDLY_PARAMS
     if(   pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_IDR
        || pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLANT
        || pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLA
@@ -601,6 +612,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       WRITE_UVLC( 0, "rap_pic_id" );
       WRITE_FLAG( 0, "no_output_of_prior_pics_flag" );
     }
+#endif
     if( pcSlice->getNalUnitType() != NAL_UNIT_CODED_SLICE_IDR )
     {
       Int picOrderCntLSB = (pcSlice->getPOC()-pcSlice->getLastIDR()+(1<<pcSlice->getSPS()->getBitsForPOC()))%(1<<pcSlice->getSPS()->getBitsForPOC());
