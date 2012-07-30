@@ -1908,7 +1908,11 @@ Void TEncGOP::arrangeLongtermPicturesInRPS(TComSlice *pcSlice, TComList<TComPic*
     {
       pcPic = *iterPic;
       if( (getLSB(pcPic->getPOC(), maxPicOrderCntLSB) == longtermPicsLSB[i])   &&     // Same LSB
+#if REFERENCE_PICTURE_DEFN
+                                      (pcPic->getSlice(0)->isReferenced())     &&    // Reference picture
+#else
                                       (pcPic->getSlice(0)->getNalRefFlag())     &&    // Reference picture
+#endif
                                         (pcPic->getPOC() != longtermPicsPoc[i])    )  // Not the LTRP itself
       {
         mSBPresentFlag[i] = true;

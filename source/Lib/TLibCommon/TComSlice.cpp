@@ -99,7 +99,9 @@ TComSlice::TComSlice()
 , m_puiSubstreamSizes             ( NULL )
 , m_cabacInitFlag                 ( false )
 , m_numEntryPointOffsets          ( 0 )
+#if !REFERENCE_PICTURE_DEFN
 , m_nalRefFlag                    ( 0 )
+#endif
 , m_enableTMVPFlag                ( true )
 {
   m_aiNumRefIdx[0] = m_aiNumRefIdx[1] = m_aiNumRefIdx[2] = 0;
