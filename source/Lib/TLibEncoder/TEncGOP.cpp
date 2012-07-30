@@ -237,6 +237,9 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       //set default slice level flag to the same as SPS level flag
       pcSlice->setLFCrossSliceBoundaryFlag(  pcSlice->getSPS()->getLFCrossSliceBoundaryFlag()  );
       pcSlice->setScalingList ( m_pcEncTop->getScalingList()  );
+#if TS_FLAT_QUANTIZATION_MATRIX
+      pcSlice->getScalingList()->setUseTransformSkip(m_pcEncTop->getPPS()->getUseTransformSkip());
+#endif
       if(m_pcEncTop->getUseScalingListId() == SCALING_LIST_OFF)
       {
         m_pcEncTop->getTrQuant()->setFlatScalingList();

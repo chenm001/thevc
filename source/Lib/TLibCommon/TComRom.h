@@ -298,6 +298,9 @@ extern Int g_quantInterDefault4x4[16];
 extern Int g_quantInterDefault8x8[64];
 extern Int g_quantInterDefault16x16[256];
 extern Int g_quantInterDefault32x32[1024];
+#if TS_FLAT_QUANTIZATION_MATRIX
+extern Int g_quantTSDefault4x4[16];
+#endif
 extern UInt g_scalingListSize [SCALING_LIST_SIZE_NUM];
 extern UInt g_scalingListSizeX[SCALING_LIST_SIZE_NUM];
 extern UInt g_scalingListNum  [SCALING_LIST_SIZE_NUM];

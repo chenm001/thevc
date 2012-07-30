@@ -41,6 +41,9 @@
 //! \ingroup TLibCommon
 //! \{
 #define PPS_TS_FLAG                      1  ///< J0148: move transform_skip_enabled_flag from SPS to PPS
+#if PPS_TS_FLAG
+#define TS_FLAT_QUANTIZATION_MATRIX      1  ///< I0408: set default quantization matrix to be flat if TS is enabled in PPS
+#endif
 #define INTER_TRANSFORMSKIP              1  ///< J0237: inter transform skipping (inter-TS)
 
 #define REMOVAL_8x2_2x8_CG               1  ///< J0256: removal of 8x2 / 2x8 coefficient groups

@@ -159,6 +159,10 @@ public:
   virtual ~TComScalingList();
   Void     setScalingListPresentFlag    (Bool b)                               { m_scalingListPresentFlag = b;    }
   Bool     getScalingListPresentFlag    ()                                     { return m_scalingListPresentFlag; }
+#if TS_FLAT_QUANTIZATION_MATRIX
+  Bool     getUseTransformSkip    ()                                     { return m_useTransformSkip; }      
+  Void     setUseTransformSkip    (Bool b)                               { m_useTransformSkip = b;    }
+#endif
   Int*     getScalingListAddress          (UInt sizeId, UInt listId)           { return m_scalingListCoef[sizeId][listId]; } //!< get matrix coefficient
   Bool     checkPredMode                  (UInt sizeId, UInt listId);
   Void     setRefMatrixId                 (UInt sizeId, UInt listId, UInt u)   { m_refMatrixId[sizeId][listId] = u;    }     //!< set reference matrix ID
@@ -181,6 +185,9 @@ private:
   Bool     m_scalingListPresentFlag;                                                //!< flag for using default matrix
   UInt     m_predMatrixId                [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< reference list index
   Int      *m_scalingListCoef            [SCALING_LIST_SIZE_NUM][SCALING_LIST_NUM]; //!< quantization matrix
+#if TS_FLAT_QUANTIZATION_MATRIX
+  Bool     m_useTransformSkip;                                                      //!< transform skipping flag for setting default scaling matrix for 4x4
+#endif
 };
 
 /// VPS class
