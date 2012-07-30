@@ -781,10 +781,10 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
     }
   }
   m_saoEnabledFlag = pSrc->m_saoEnabledFlag; 
-  m_saoEnabledFlagCb = pSrc->m_saoEnabledFlagCb;
 #if SAO_TYPE_SHARING
-  m_saoEnabledFlagCr = pSrc->m_saoEnabledFlagCb; 
+  m_saoEnabledFlagChroma = pSrc->m_saoEnabledFlagChroma;
 #else
+  m_saoEnabledFlagCb = pSrc->m_saoEnabledFlagCb;
   m_saoEnabledFlagCr = pSrc->m_saoEnabledFlagCr; 
 #endif
   m_cabacInitFlag                = pSrc->m_cabacInitFlag;

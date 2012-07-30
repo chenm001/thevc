@@ -1012,17 +1012,21 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
         READ_FLAG(uiCode, "slice_sample_adaptive_offset_flag");  rpcSlice->setSaoEnabledFlag((Bool)uiCode);
         if (rpcSlice->getSaoEnabledFlag() )
         {
-          READ_FLAG(uiCode, "sao_cb_enable_flag");  rpcSlice->setSaoEnabledFlagCb((Bool)uiCode);
-#if SAO_TYPE_SHARING
-          rpcSlice->setSaoEnabledFlagCr((Bool)uiCode);
+#if SAO_TYPE_SHARING 
+          READ_FLAG(uiCode, "sao_chroma_enable_flag");  rpcSlice->setSaoEnabledFlagChroma((Bool)uiCode);
 #else
+          READ_FLAG(uiCode, "sao_cb_enable_flag");  rpcSlice->setSaoEnabledFlagCb((Bool)uiCode);
           READ_FLAG(uiCode, "sao_cr_enable_flag");  rpcSlice->setSaoEnabledFlagCr((Bool)uiCode);
 #endif
         }
         else
         {
+#if SAO_TYPE_SHARING
+          rpcSlice->setSaoEnabledFlagChroma(0);
+#else
           rpcSlice->setSaoEnabledFlagCb(0);
           rpcSlice->setSaoEnabledFlagCr(0);
+#endif
         }
       }
 #if !REMOVE_APS

@@ -250,10 +250,10 @@ Void TDecGop::filterPicture(TComPic*& rpcPic)
       SAOParam *saoParam = pcSlice->getAPS()->getSaoParam();
 #endif
       saoParam->bSaoFlag[0] = pcSlice->getSaoEnabledFlag();
-      saoParam->bSaoFlag[1] = pcSlice->getSaoEnabledFlagCb();
 #if SAO_TYPE_SHARING
-      saoParam->bSaoFlag[2] = pcSlice->getSaoEnabledFlagCb();
+      saoParam->bSaoFlag[1] = pcSlice->getSaoEnabledFlagChroma();
 #else
+      saoParam->bSaoFlag[1] = pcSlice->getSaoEnabledFlagCb();
       saoParam->bSaoFlag[2] = pcSlice->getSaoEnabledFlagCr();
 #endif
       m_pcSAO->setSaoLcuBasedOptimization(1);

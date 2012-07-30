@@ -434,7 +434,14 @@ Void TComSampleAdaptiveOffset::resetSAOParam(SAOParam *pcSaoParam)
   Int iNumComponet = 3;
   for(Int c=0; c<iNumComponet; c++)
   {
+#if SAO_TYPE_SHARING
+if (c<2)
+  {
+#endif
     pcSaoParam->bSaoFlag[c] = 0;
+#if SAO_TYPE_SHARING
+  }
+#endif
     for(Int i=0; i< m_aiNumCulPartsLevel[m_uiMaxSplitLevel]; i++)
     {
       pcSaoParam->psSaoPart[c][i].iBestType     = -1;
@@ -1009,17 +1016,24 @@ Void TComSampleAdaptiveOffset::SAOProcess(TComPic* pcPic, SAOParam* pcSaoParam)
     }
     Int iY  = 0;
     processSaoUnitAll( pcSaoParam->saoLcuParam[iY], pcSaoParam->oneUnitFlag[iY], iY);
-
-    Int iCb = 1;
-    Int iCr = 2;
-    if (pcSaoParam->bSaoFlag[iCb])
-    {
-      processSaoUnitAll( pcSaoParam->saoLcuParam[iCb], pcSaoParam->oneUnitFlag[iCb], iCb);
-    }
-    if (pcSaoParam->bSaoFlag[iCr])
-    {
-      processSaoUnitAll( pcSaoParam->saoLcuParam[iCr], pcSaoParam->oneUnitFlag[iCr], iCr);
-    }
+#if SAO_TYPE_SHARING
+if(pcSaoParam->bSaoFlag[1])
+{
+   processSaoUnitAll( pcSaoParam->saoLcuParam[1], pcSaoParam->oneUnitFlag[1], 1);//Cb
+   processSaoUnitAll( pcSaoParam->saoLcuParam[2], pcSaoParam->oneUnitFlag[2], 2);//Cr
+}
+#else
+  Int iCb = 1;
+  Int iCr = 2;
+  if (pcSaoParam->bSaoFlag[iCb])
+  {
+    processSaoUnitAll( pcSaoParam->saoLcuParam[iCb], pcSaoParam->oneUnitFlag[iCb], iCb);
+  }
+  if (pcSaoParam->bSaoFlag[iCr])
+  {
+    processSaoUnitAll( pcSaoParam->saoLcuParam[iCr], pcSaoParam->oneUnitFlag[iCr], iCr);
+  }
+#endif
     m_pcPic = NULL;
   }
 }

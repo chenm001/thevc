@@ -61,17 +61,21 @@ Void TEncEntropy::encodeSliceHeader ( TComSlice* pcSlice )
     pcSlice->setSaoEnabledFlag     (saoParam->bSaoFlag[0]);
     if (pcSlice->getSaoEnabledFlag())
     {
-      pcSlice->setSaoEnabledFlagCb   (saoParam->bSaoFlag[1]);
 #if SAO_TYPE_SHARING
-      pcSlice->setSaoEnabledFlagCr   (saoParam->bSaoFlag[1]);
+      pcSlice->setSaoEnabledFlagChroma   (saoParam->bSaoFlag[1]);
 #else
+      pcSlice->setSaoEnabledFlagCb   (saoParam->bSaoFlag[1]);
       pcSlice->setSaoEnabledFlagCr   (saoParam->bSaoFlag[2]);
 #endif
     }
     else
     {
+#if SAO_TYPE_SHARING
+      pcSlice->setSaoEnabledFlagChroma (0);
+#else
       pcSlice->setSaoEnabledFlagCb   (0);
       pcSlice->setSaoEnabledFlagCr   (0);
+#endif
     }
   }
 

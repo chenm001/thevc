@@ -1549,14 +1549,14 @@ Void TDecSbac::parseSaoOffset(SaoLcuParam* psSaoLcuParam)
   }; 
 
 #if SAO_TYPE_SHARING
-  if (compIdx==2)
-  {
-    uiSymbol = (UInt)( psSaoLcuParam->typeIdx + 1);
-  }
-  else
-  {
-    parseSaoTypeIdx(uiSymbol);
-  }
+if (compIdx==2)
+{
+uiSymbol = (UInt)( psSaoLcuParam->typeIdx + 1);
+}
+else
+{
+parseSaoTypeIdx(uiSymbol);
+}
 #else
   parseSaoTypeIdx(uiSymbol);
 #endif
@@ -1623,7 +1623,11 @@ Void TDecSbac::parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, T
     pSaoParam->saoLcuParam[iCompIdx][iAddr].offset[3]     = 0;
 
   }
-  if (pSaoParam->bSaoFlag[0] || pSaoParam->bSaoFlag[1] || pSaoParam->bSaoFlag[2])
+#if SAO_TYPE_SHARING
+ if (pSaoParam->bSaoFlag[0] || pSaoParam->bSaoFlag[1] )
+#else
+ if (pSaoParam->bSaoFlag[0] || pSaoParam->bSaoFlag[1] || pSaoParam->bSaoFlag[2])
+#endif
   {
     if (rx>0 && iCUAddrInSlice!=0 && allowMergeLeft)
     {
@@ -1653,7 +1657,11 @@ Void TDecSbac::parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, T
     pSaoParam->saoLcuParam[iCompIdx][iAddr].offset[2]     = 0;
     pSaoParam->saoLcuParam[iCompIdx][iAddr].offset[3]     = 0;
 #endif
+#if SAO_TYPE_SHARING
+    if ((iCompIdx == 0  && pSaoParam->bSaoFlag[0]) || (iCompIdx > 0  && pSaoParam->bSaoFlag[1]) )
+#else
     if (pSaoParam->bSaoFlag[iCompIdx])
+#endif
     {
       if (rx>0 && iCUAddrInSlice!=0 && allowMergeLeft)
       {

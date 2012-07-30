@@ -673,9 +673,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #else
            SAOParam *saoParam = pcSlice->getAPS()->getSaoParam();
 #endif
-           WRITE_FLAG( saoParam->bSaoFlag[1], "SAO on/off flag for Cb in slice header" );
-#if !SAO_TYPE_SHARING
-           WRITE_FLAG( saoParam->bSaoFlag[2], "SAO on/off flag for Cr in slice header" );
+#if SAO_TYPE_SHARING 
+          WRITE_FLAG( saoParam->bSaoFlag[1], "SAO on/off flag for Cb&Cr in slice header" );
+#else
+          WRITE_FLAG( saoParam->bSaoFlag[1], "SAO on/off flag for Cb in slice header" );
+          WRITE_FLAG( saoParam->bSaoFlag[2], "SAO on/off flag for Cr in slice header" );
 #endif
          }
       }

@@ -328,7 +328,11 @@ typedef struct _SaoLcuParam
 
 struct SAOParam
 {
+#if SAO_TYPE_SHARING
+  Bool       bSaoFlag[2];
+#else
   Bool       bSaoFlag[3];
+#endif
   SAOQTPart* psSaoPart[3];
   Int        iMaxSplitLevel;
   Int        iNumClass[MAX_NUM_SAO_TYPE];
