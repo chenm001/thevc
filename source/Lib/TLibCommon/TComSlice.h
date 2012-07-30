@@ -546,7 +546,6 @@ private:
 
 #if PPS_TS_FLAG
   Bool        m_useTansformSkip;
-  Bool        m_useTansformSkipFast;
 #endif
 
   Bool        m_TransquantBypassEnableFlag; // Indicates presence of cu_transquant_bypass_flag in CUs.
@@ -636,8 +635,6 @@ public:
 #if PPS_TS_FLAG
   Bool      getUseTransformSkip       ()         { return m_useTansformSkip;     }
   Void      setUseTransformSkip       ( Bool b ) { m_useTansformSkip  = b;       }
-  Bool      getUseTransformSkipFast   ()         { return m_useTansformSkipFast; }
-  Void      setUseTransformSkipFast   ( Bool b ) { m_useTansformSkipFast  = b;   }
 #endif
 
   Void    setLFCrossTileBoundaryFlag               ( Bool   bValue  )    { m_bLFCrossTileBoundaryFlag = bValue; }

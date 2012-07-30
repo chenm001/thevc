@@ -1344,7 +1344,6 @@ TComPPS::TComPPS()
 , m_TransquantBypassEnableFlag  (false)
 #if PPS_TS_FLAG
 , m_useTansformSkip             (false)
-, m_useTansformSkipFast         (false)
 #endif
 , m_bLFCrossTileBoundaryFlag     (true)
 , m_iUniformSpacingIdr           (0)
