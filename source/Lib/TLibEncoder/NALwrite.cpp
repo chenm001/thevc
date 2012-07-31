@@ -46,12 +46,28 @@ using namespace std;
 
 static const char emulation_prevention_three_byte[] = {3};
 
+#if NAL_UNIT_HEADER
+Void writeNalUnitHeader(ostream& out, OutputNALUnit& nalu)       // nal_unit_header()
+{
+TComOutputBitstream bsNALUHeader;
+
+  bsNALUHeader.write(0,1);                    // forbidden_zero_bit
+  bsNALUHeader.write(nalu.m_nalUnitType, 6);  // nal_unit_type
+  bsNALUHeader.write(0, 6);                   // nuh_reserved_zero_6bits
+  bsNALUHeader.write(nalu.m_temporalId+1, 3); // nuh_temporal_id_plus1
+
+  out.write(bsNALUHeader.getByteStream(), bsNALUHeader.getByteStreamLength());
+}
+#endif
 /**
  * write nalu to bytestream out, performing RBSP anti startcode
  * emulation as required.  nalu.m_RBSPayload must be byte aligned.
  */
 void write(ostream& out, OutputNALUnit& nalu)
 {
+#if NAL_UNIT_HEADER
+  writeNalUnitHeader(out, nalu);
+#else
   TComOutputBitstream bsNALUHeader;
 
   bsNALUHeader.write(0,1); // forbidden_zero_flag
@@ -73,7 +89,7 @@ void write(ostream& out, OutputNALUnit& nalu)
 #endif
 
   out.write(bsNALUHeader.getByteStream(), bsNALUHeader.getByteStreamLength());
-
+#endif
   /* write out rsbp_byte's, inserting any required
    * emulation_prevention_three_byte's */
   /* 7.4.1 ...

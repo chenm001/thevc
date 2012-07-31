@@ -62,6 +62,28 @@ static void convertPayloadToRBSP(vector<uint8_t>& nalUnitBuf, TComInputBitstream
   nalUnitBuf.resize(it_write - nalUnitBuf.begin());
 }
 
+#if NAL_UNIT_HEADER
+Void readNalUnitHeader(InputNALUnit& nalu)
+{
+  TComInputBitstream& bs = *nalu.m_Bitstream;
+
+  bool forbidden_zero_bit = bs.read(1);           // forbidden_zero_bit
+  assert(forbidden_zero_bit == 0);
+  nalu.m_nalUnitType = (NalUnitType) bs.read(6);  // nal_unit_type
+  unsigned reserved_one_6bits = bs.read(6);       // nuh_reserved_zero_6bits
+  assert(reserved_one_6bits == 0);
+  nalu.m_temporalId = bs.read(3) - 1;             // nuh_temporal_id_plus1
+
+  if ( nalu.m_temporalId )
+  {
+    assert( nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_CRA
+         && nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_CRANT
+         && nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_BLA
+         && nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_BLANT
+         && nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_IDR );
+  }
+}
+#endif
 /**
  * create a NALunit structure with given header values and storage for
  * a bitstream
@@ -74,6 +96,9 @@ void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
 
   nalu.m_Bitstream = new TComInputBitstream(&nalUnitBuf);
   delete pcBitstream;
+#if NAL_UNIT_HEADER
+  readNalUnitHeader(nalu);
+#else
   TComInputBitstream& bs = *nalu.m_Bitstream;
 
   bool forbidden_zero_bit = bs.read(1);
@@ -106,5 +131,6 @@ void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
          && nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_BLANT
          && nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_IDR );
   }
+#endif
 }
 //! \}
