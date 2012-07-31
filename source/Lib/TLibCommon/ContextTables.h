@@ -105,14 +105,19 @@
 #define NUM_ALF_FLAG_CTX              1       ///< number of context models for ALF flag
 #define NUM_ALF_UVLC_CTX              2       ///< number of context models for ALF UVLC (filter length)
 #define NUM_ALF_SVLC_CTX              3       ///< number of context models for ALF SVLC (filter coeff.)
-
+#if !SAO_ABS_BY_PASS
 #define NUM_SAO_UVLC_CTX              2       ///< number of context models for SAO UVLC
+#endif
+#if SAO_MERGE_ONE_CTX
+#define NUM_SAO_MERGE_FLAG_CTX        1       ///< number of context models for SAO merge flags
+#else
 #if SAO_SINGLE_MERGE
 #define NUM_SAO_MERGE_LEFT_FLAG_CTX   1       ///< number of context models for SAO Merge-Left flag
 #else
 #define NUM_SAO_MERGE_LEFT_FLAG_CTX   3       ///< number of context models for AO SVLC (filter coeff.)
 #endif
 #define NUM_SAO_MERGE_UP_FLAG_CTX     1       ///< number of context models for AO SVLC (filter coeff.)
+#endif
 #if SAO_TYPE_CODING
 #define NUM_SAO_TYPE_IDX_CTX          1       ///< number of context models for SAO type index
 #else
@@ -364,7 +369,7 @@ INIT_ALF_SVLC[3][NUM_ALF_SVLC_CTX] =
   { 141,  154,  189, }, 
   { 187,  154,  159, }, 
 };
-
+#if !SAO_ABS_BY_PASS
 static const UChar 
 INIT_SAO_UVLC[3][NUM_SAO_UVLC_CTX] =  
 {
@@ -372,7 +377,16 @@ INIT_SAO_UVLC[3][NUM_SAO_UVLC_CTX] =
   { 185,  140, }, 
   { 143,  140, }, 
 };
-
+#endif
+#if SAO_MERGE_ONE_CTX
+static const UChar 
+INIT_SAO_MERGE_FLAG[3][NUM_SAO_MERGE_FLAG_CTX] = 
+{
+  { 153,  }, 
+  { 153,  }, 
+  { 153,  }, 
+};
+#else
 static const UChar 
 INIT_SAO_MERGE_LEFT_FLAG[3][NUM_SAO_MERGE_LEFT_FLAG_CTX] = 
 {
@@ -394,6 +408,7 @@ INIT_SAO_MERGE_UP_FLAG[3][NUM_SAO_MERGE_UP_FLAG_CTX] =
   { 153, }, 
   { 175, }, 
 };
+#endif
 
 static const UChar 
 INIT_SAO_TYPE_IDX[3][NUM_SAO_TYPE_IDX_CTX] = 

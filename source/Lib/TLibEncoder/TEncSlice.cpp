@@ -1274,7 +1274,11 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         Int mergeUp = saoParam->saoLcuParam[0][addr].mergeUpFlag;
         if (allowMergeLeft)
         {
+#if SAO_MERGE_ONE_CTX
+          m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoMerge(mergeLeft); 
+#else
           m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoMergeLeft(mergeLeft, 0); 
+#endif
         }
         else
         {
@@ -1284,7 +1288,11 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
         {
           if (allowMergeUp)
           {
+#if SAO_MERGE_ONE_CTX
+            m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoMerge(mergeUp);
+#else
             m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoMergeUp(mergeUp);
+#endif
           }
           else
           {

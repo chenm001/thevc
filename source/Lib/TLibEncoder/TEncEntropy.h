@@ -127,8 +127,12 @@ public:
 #endif
   virtual Void codeSAOSign          ( UInt code   ) = 0;
   virtual Void codeSaoMaxUvlc       ( UInt code, UInt maxSymbol ) = 0;
+#if SAO_MERGE_ONE_CTX
+  virtual Void codeSaoMerge    ( UInt   uiCode  ) = 0;
+#else
   virtual Void codeSaoMergeLeft    ( UInt   uiCode, UInt uiCompIdx  ) = 0;
   virtual Void codeSaoMergeUp      ( UInt   uiCode) = 0;
+#endif
   virtual Void codeSaoTypeIdx      ( UInt   uiCode) = 0;
 #if SAO_TYPE_CODING
   virtual Void codeSaoUflc         ( UInt uiLength, UInt   uiCode ) = 0;

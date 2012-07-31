@@ -105,8 +105,12 @@ public:
 #endif
   Void  codeApsExtensionFlag () { assert (0); return; };
   Void  codeSaoMaxUvlc    ( UInt code, UInt maxSymbol );
+#if SAO_MERGE_ONE_CTX
+  Void  codeSaoMerge  ( UInt  uiCode );
+#else
   Void  codeSaoMergeLeft  ( UInt  uiCode, UInt uiCompIdx );
   Void  codeSaoMergeUp    ( UInt  uiCode);
+#endif
   Void  codeSaoTypeIdx    ( UInt  uiCode);
 #if SAO_TYPE_CODING
   Void  codeSaoUflc       ( UInt uiLength, UInt  uiCode );
@@ -232,9 +236,15 @@ private:
   ContextModel3DBuffer m_cALFUvlcSCModel;
   ContextModel3DBuffer m_cALFSvlcSCModel;
   ContextModel3DBuffer m_cCUAMPSCModel;
+#if !SAO_ABS_BY_PASS
   ContextModel3DBuffer m_cSaoUvlcSCModel;
+#endif
+#if SAO_MERGE_ONE_CTX
+  ContextModel3DBuffer m_cSaoMergeSCModel;
+#else
   ContextModel3DBuffer m_cSaoMergeLeftSCModel;
   ContextModel3DBuffer m_cSaoMergeUpSCModel;
+#endif
   ContextModel3DBuffer m_cSaoTypeIdxSCModel;
   ContextModel3DBuffer m_cTransformSkipSCModel;
   ContextModel3DBuffer m_CUTransquantBypassFlagSCModel;

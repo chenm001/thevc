@@ -67,6 +67,8 @@
 #define SAO_SINGLE_MERGE                 1  ///< J0355: Single SAO merge flag for all color components (per Left and Up merge)
 #define SAO_TYPE_SHARING                 1  ///< J0045: SAO types, merge left/up flags are shared between Cr and Cb
 #define SAO_TYPE_CODING                  1  ///< J0268: SAO type signalling using 1 ctx on/off flag + 1 bp BO/EO flag + 2 bp bins for EO class
+#define SAO_MERGE_ONE_CTX                1  ///< J0041: SAO merge left/up flags share the same ctx
+#define SAO_ABS_BY_PASS                  1  ///< J0043: by pass coding for SAO magnitudes 
 #define CU_DQP_ENABLE_FLAG               1  ///< J0220: cu_qp_delta_enabled_flag in PPS
 #define REMOVE_ZIGZAG_SCAN               1  ///< J0150: removal of zigzag scan
 

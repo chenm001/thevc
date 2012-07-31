@@ -126,8 +126,12 @@ public:
 #endif
   Void codeSAOSign       ( UInt code   ) { printf("Not supported\n"); assert (0); }
   Void codeSaoMaxUvlc    ( UInt   code, UInt maxSymbol ){printf("Not supported\n"); assert (0);}
+#if SAO_MERGE_ONE_CTX
+  Void codeSaoMerge  ( UInt uiCode ){printf("Not supported\n"); assert (0);}
+#else
   Void codeSaoMergeLeft  ( UInt uiCode, UInt compIdx ){printf("Not supported\n"); assert (0);}
   Void codeSaoMergeUp    ( UInt uiCode ){printf("Not supported\n"); assert (0);}
+#endif
   Void codeSaoTypeIdx    ( UInt uiCode ){printf("Not supported\n"); assert (0);}
 #if SAO_TYPE_CODING
   Void codeSaoUflc       ( UInt uiLength, UInt   uiCode ){ assert(uiCode < 32); printf("Not supported\n"); assert (0);}
