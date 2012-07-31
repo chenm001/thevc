@@ -51,6 +51,7 @@
 #define TS_FLAT_QUANTIZATION_MATRIX      1  ///< I0408: set default quantization matrix to be flat if TS is enabled in PPS
 #endif
 #define INTER_TRANSFORMSKIP              1  ///< J0237: inter transform skipping (inter-TS)
+#define INTRA_TRANSFORMSKIP_FAST         1  ///< J0572: fast encoding for intra transform skipping
 
 #define REMOVAL_8x2_2x8_CG               1  ///< J0256: removal of 8x2 / 2x8 coefficient groups
 #define REF_IDX_BYPASS                   1  ///< J0098: bypass coding starting from the second bin for reference index

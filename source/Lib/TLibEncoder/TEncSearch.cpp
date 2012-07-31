@@ -1421,6 +1421,12 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
   checkTransformSkip         &= (widthTransformSkip == 4 && heightTransformSkip == 4);
   checkTransformSkip         &= (!pcCU->getCUTransquantBypass(0));
   checkTransformSkip         &= (!((pcCU->getQP( 0 ) == 0) && (pcCU->getSlice()->getSPS()->getUseLossless())));
+#if INTRA_TRANSFORMSKIP_FAST
+  if ( m_pcEncCfg->getUseTransformSkipFast() )
+  {
+    checkTransformSkip       &= (pcCU->getPartitionSize(uiAbsPartIdx)==SIZE_NxN);
+  }
+#endif
   if( bCheckFull )
   {
     if(checkTransformSkip == true)
@@ -2155,6 +2161,21 @@ TEncSearch::xRecurIntraChromaCodingQT( TComDataCU*  pcCU,
 #endif
     UInt uiLog2TrSize = g_aucConvertToBit[ pcCU->getSlice()->getSPS()->getMaxCUWidth() >> uiFullDepth ] + 2;
     checkTransformSkip &= (uiLog2TrSize <= 3);
+#if INTRA_TRANSFORMSKIP_FAST
+    if ( m_pcEncCfg->getUseTransformSkipFast() )
+    {
+      checkTransformSkip &= (uiLog2TrSize < 3);
+      if (checkTransformSkip)
+      {
+        Int nbLumaSkip = 0;
+        for(UInt absPartIdxSub = uiAbsPartIdx; absPartIdxSub < uiAbsPartIdx + 4; absPartIdxSub ++)
+        {
+          nbLumaSkip += pcCU->getTransformSkip(absPartIdxSub, TEXT_LUMA);
+        }
+        checkTransformSkip &= (nbLumaSkip > 0);
+      }
+    }
+#endif
 
     UInt actualTrDepth = uiTrDepth;
     if( uiLog2TrSize == 2 )
@@ -2170,6 +2191,7 @@ TEncSearch::xRecurIntraChromaCodingQT( TComDataCU*  pcCU,
     }
     if(checkTransformSkip)
     {
+#if INTRA_TRANSFORMSKIP_FAST==0
       Bool checkTSFast = m_pcEncCfg->getUseTransformSkipFast();
       if(checkTSFast)
       {
@@ -2201,6 +2223,7 @@ TEncSearch::xRecurIntraChromaCodingQT( TComDataCU*  pcCU,
       }
       else
       {
+#endif
         //use RDO to decide whether Cr/Cb takes TS
         if( m_bUseSBACRD )
         {
@@ -2288,7 +2311,9 @@ TEncSearch::xRecurIntraChromaCodingQT( TComDataCU*  pcCU,
             }
           }
         }
+#if INTRA_TRANSFORMSKIP_FAST==0
       }
+#endif
     }
     else
     {
@@ -2800,9 +2825,17 @@ TEncSearch::estIntraPredChromaQT( TComDataCU* pcCU,
     pcCU->setChromIntraDirSubParts  ( uiModeList[uiMode], 0, uiDepth );
     xRecurIntraChromaCodingQT       ( pcCU,   0, 0, pcOrgYuv, pcPredYuv, pcResiYuv, uiDist );
 #if PPS_TS_FLAG
+#if INTRA_TRANSFORMSKIP_FAST
+    if( m_bUseSBACRD && pcCU->getSlice()->getPPS()->getUseTransformSkip() )
+#else
     if( m_bUseSBACRD && pcCU->getSlice()->getPPS()->getUseTransformSkip() && !m_pcEncCfg->getUseTransformSkipFast())
+#endif
+#else
+#if INTRA_TRANSFORMSKIP_FAST
+    if( m_bUseSBACRD && pcCU->getSlice()->getSPS()->getUseTransformSkip() )
 #else
     if( m_bUseSBACRD && pcCU->getSlice()->getSPS()->getUseTransformSkip() && !m_pcEncCfg->getUseTransformSkipFast())
+#endif
 #endif
     {
       m_pcRDGoOnSbacCoder->load( m_pppcRDSbacCoder[uiDepth][CI_CURR_BEST] );
