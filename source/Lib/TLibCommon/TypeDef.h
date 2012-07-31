@@ -38,6 +38,12 @@
 #ifndef _TYPEDEF__
 #define _TYPEDEF__
 
+#define CU_DQP_TU_EG                     1 ///< J0089: Bin reduction for delta QP coding
+#if (CU_DQP_TU_EG)
+#define CU_DQP_TU_CMAX 5 //max number bins for truncated unary
+#define CU_DQP_EG_k 0 //expgolomb order
+#endif
+
 //! \ingroup TLibCommon
 //! \{
 #define NAL_UNIT_HEADER                  1  ///< J0550: Define nal_unit_header() method

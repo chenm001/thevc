@@ -897,6 +897,21 @@ Void TEncSbac::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
   Int qpBdOffsetY =  pcCU->getSlice()->getSPS()->getQpBDOffsetY();
   iDQp = (iDQp + 78 + qpBdOffsetY + (qpBdOffsetY/2)) % (52 + qpBdOffsetY) - 26 - (qpBdOffsetY/2);
 
+#if CU_DQP_TU_EG
+  UInt uiAbsDQp = (UInt)((iDQp > 0)? iDQp  : (-iDQp));
+  UInt TUValue = min((Int)uiAbsDQp, CU_DQP_TU_CMAX);
+  xWriteUnaryMaxSymbol( TUValue, &m_cCUDeltaQpSCModel.get( 0, 0, 0 ), 1, CU_DQP_TU_CMAX);
+  if( uiAbsDQp >= CU_DQP_TU_CMAX )
+  {
+    xWriteEpExGolomb( uiAbsDQp - CU_DQP_TU_CMAX, CU_DQP_EG_k );
+  }
+
+  if ( uiAbsDQp > 0)
+  {
+    UInt uiSign = (iDQp > 0 ? 0 : 1);
+    m_pcBinIf->encodeBinEP(uiSign);
+  }
+#else
   if ( iDQp == 0 )
   {
     m_pcBinIf->encodeBin( 0, m_cCUDeltaQpSCModel.get( 0, 0, 0 ) );
@@ -916,7 +931,8 @@ Void TEncSbac::codeDeltaQP( TComDataCU* pcCU, UInt uiAbsPartIdx )
     UInt uiAbsDQpMinus1 = (UInt)((iDQp > 0)? iDQp  : (-iDQp)) - 1;
     xWriteUnaryMaxSymbol( uiAbsDQpMinus1, &m_cCUDeltaQpSCModel.get( 0, 0, 1 ), 1, uiMaxAbsDQpMinus1);
   }
-  
+#endif
+
   return;
 }
 
