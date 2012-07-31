@@ -79,7 +79,11 @@ private:
   Int     m_iOffsetTh;
   Bool    m_bUseSBACRD;
 #if SAO_ENCODING_CHOICE
+#if SAO_ENCODING_CHOICE_CHROMA
+  Double  m_depthSaoRate[2][4];
+#else
   Double  m_depth0SaoRate;
+#endif
 #endif
 
 public:
