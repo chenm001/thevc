@@ -108,7 +108,11 @@ public:
   Void  codeSaoMergeLeft  ( UInt  uiCode, UInt uiCompIdx );
   Void  codeSaoMergeUp    ( UInt  uiCode);
   Void  codeSaoTypeIdx    ( UInt  uiCode);
+#if SAO_TYPE_CODING
+  Void  codeSaoUflc       ( UInt uiLength, UInt  uiCode );
+#else
   Void  codeSaoUflc       ( UInt  uiCode);
+#endif
   Void  codeSAOSign       ( UInt  uiCode);  //<! code SAO offset sign
   Void  codeScalingList      ( TComScalingList* scalingList     ){ assert (0);  return;};
 

@@ -113,7 +113,11 @@
 #define NUM_SAO_MERGE_LEFT_FLAG_CTX   3       ///< number of context models for AO SVLC (filter coeff.)
 #endif
 #define NUM_SAO_MERGE_UP_FLAG_CTX     1       ///< number of context models for AO SVLC (filter coeff.)
+#if SAO_TYPE_CODING
+#define NUM_SAO_TYPE_IDX_CTX          1       ///< number of context models for SAO type index
+#else
 #define NUM_SAO_TYPE_IDX_CTX          2       ///< number of context models for AO SVLC (filter coeff.)
+#endif
 
 #define NUM_TRANSFORMSKIP_FLAG_CTX    1       ///< number of context models for transform skipping 
 #define NUM_CU_TRANSQUANT_BYPASS_FLAG_CTX  1 
@@ -394,9 +398,15 @@ INIT_SAO_MERGE_UP_FLAG[3][NUM_SAO_MERGE_UP_FLAG_CTX] =
 static const UChar 
 INIT_SAO_TYPE_IDX[3][NUM_SAO_TYPE_IDX_CTX] = 
 {
+#if SAO_TYPE_CODING
+  { 200, }, 
+  { 185, }, 
+  { 160, }, 
+#else
   { 200,  140, }, 
   { 185,  140, }, 
   { 160,  140, }, 
+#endif
 };
 
 #if TRANS_SPLIT_FLAG_CTX_REDUCTION

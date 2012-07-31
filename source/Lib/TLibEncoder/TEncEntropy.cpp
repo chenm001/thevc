@@ -775,6 +775,16 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
 #endif
   if (uiSymbol)
   {
+#if SAO_TYPE_CODING
+#if SAO_TYPE_SHARING
+    if (saoLcuParam->typeIdx < 4 && compIdx != 2)
+#else
+    if (saoLcuParam->typeIdx < 4)
+#endif
+    {
+      saoLcuParam->subTypeIdx = saoLcuParam->typeIdx;
+    }
+#endif
 #if FULL_NBIT
     Int offsetTh = 1 << ( min((Int)(g_uiBitDepth + (g_uiBitDepth-8)-5),5) );
 #else
@@ -782,9 +792,11 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
 #endif
     if( saoLcuParam->typeIdx == SAO_BO )
     {
+#if !SAO_TYPE_CODING
       // Code Left Band Index
       uiSymbol = (UInt) (saoLcuParam->bandPosition);
       m_pcEntropyCoderIf->codeSaoUflc(uiSymbol);
+#endif
       for( i=0; i< saoLcuParam->length; i++)
       {
         UInt absOffset = ( (saoLcuParam->offset[i] < 0) ? -saoLcuParam->offset[i] : saoLcuParam->offset[i]);
@@ -806,6 +818,18 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
       m_pcEntropyCoderIf->codeSaoMaxUvlc(-saoLcuParam->offset[2], offsetTh-1);
       m_pcEntropyCoderIf->codeSaoMaxUvlc(-saoLcuParam->offset[3], offsetTh-1);
     }
+#if SAO_TYPE_CODING
+#if SAO_TYPE_SHARING
+      if (compIdx!=2)
+      {
+        uiSymbol = (UInt) (saoLcuParam->subTypeIdx);
+        m_pcEntropyCoderIf->codeSaoUflc(saoLcuParam->typeIdx==SAO_BO? 5 : 2, uiSymbol);
+      }
+#else
+      uiSymbol = (UInt) (saoLcuParam->subTypeIdx);
+      m_pcEntropyCoderIf->codeSaoUflc(saoLcuParam->typeIdx==SAO_BO? 5 : 2, uiSymbol);
+#endif
+#endif
   }
 }
 

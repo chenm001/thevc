@@ -129,7 +129,11 @@ public:
   Void codeSaoMergeLeft  ( UInt uiCode, UInt compIdx ){printf("Not supported\n"); assert (0);}
   Void codeSaoMergeUp    ( UInt uiCode ){printf("Not supported\n"); assert (0);}
   Void codeSaoTypeIdx    ( UInt uiCode ){printf("Not supported\n"); assert (0);}
+#if SAO_TYPE_CODING
+  Void codeSaoUflc       ( UInt uiLength, UInt   uiCode ){ assert(uiCode < 32); printf("Not supported\n"); assert (0);}
+#else
   Void codeSaoUflc       ( UInt uiCode ){ assert(uiCode < 32); printf("Not supported\n"); assert (0);}
+#endif
 
   Void codeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx );
   Void codeSkipFlag      ( TComDataCU* pcCU, UInt uiAbsPartIdx );

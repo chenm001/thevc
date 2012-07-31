@@ -1457,12 +1457,17 @@ Void TDecSbac::parseSaoMaxUvlc ( UInt& val, UInt maxSymbol )
 
   val = i;
 }
-
+#if SAO_TYPE_CODING
+Void TDecSbac::parseSaoUflc (UInt uiLength, UInt&  riVal)
+{
+  m_pcTDecBinIf->decodeBinsEP ( riVal, uiLength );
+}
+#else
 Void TDecSbac::parseSaoUflc (UInt&  riVal)
 {
   m_pcTDecBinIf->decodeBinsEP ( riVal, 5 );
 }
-
+#endif
 Void TDecSbac::parseSaoMergeLeft (UInt&  ruiVal, UInt uiCompIdx)
 {
   UInt uiCode;
@@ -1484,6 +1489,25 @@ Void TDecSbac::parseSaoMergeUp (UInt&  ruiVal)
 Void TDecSbac::parseSaoTypeIdx (UInt&  ruiVal)
 {
   UInt uiCode;
+#if SAO_TYPE_CODING
+  m_pcTDecBinIf->decodeBin( uiCode, m_cSaoTypeIdxSCModel.get( 0, 0, 0 ) );
+  if (uiCode == 0) 
+  {
+    ruiVal = 0;
+  }
+  else
+  {
+    m_pcTDecBinIf->decodeBinEP( uiCode ); 
+    if (uiCode == 0)
+    {
+      ruiVal = 5;
+    }
+    else
+    {
+      ruiVal = 1;
+    }
+  }
+#else
   Int  i;
   m_pcTDecBinIf->decodeBin( uiCode, m_cSaoTypeIdxSCModel.get( 0, 0, 0 ) );
   if ( uiCode == 0 )
@@ -1502,6 +1526,7 @@ Void TDecSbac::parseSaoTypeIdx (UInt&  ruiVal)
     i++;
   }
   ruiVal = i;
+#endif
 }
 
 inline Void copySaoOneLcuParam(SaoLcuParam* psDst,  SaoLcuParam* psSrc)
@@ -1511,6 +1536,9 @@ inline Void copySaoOneLcuParam(SaoLcuParam* psDst,  SaoLcuParam* psSrc)
   psDst->typeIdx    = psSrc->typeIdx;
   if (psDst->typeIdx != -1)
   {
+#if SAO_TYPE_CODING
+    psDst->subTypeIdx = psSrc->subTypeIdx ;
+#else
     if (psDst->typeIdx == SAO_BO)
     {
       psDst->bandPosition = psSrc->bandPosition ;
@@ -1519,6 +1547,7 @@ inline Void copySaoOneLcuParam(SaoLcuParam* psDst,  SaoLcuParam* psSrc)
     {
       psDst->bandPosition = 0;
     }
+#endif
     psDst->length  = psSrc->length;
     for (i=0;i<psDst->length;i++)
     {
@@ -1575,9 +1604,11 @@ parseSaoTypeIdx(uiSymbol);
 
     if( psSaoLcuParam->typeIdx == SAO_BO )
     {
-      // Parse Left Band Index
-      parseSaoUflc( uiSymbol );
-      psSaoLcuParam->bandPosition = uiSymbol;
+#if !SAO_TYPE_CODING
+    // Parse Left Band Index
+    parseSaoUflc( uiSymbol );
+    psSaoLcuParam->bandPosition = uiSymbol;
+#endif
       for(Int i=0; i< psSaoLcuParam->length; i++)
       {
         parseSaoMaxUvlc(uiSymbol, offsetTh -1 );
@@ -1602,6 +1633,27 @@ parseSaoTypeIdx(uiSymbol);
       parseSaoMaxUvlc(uiSymbol, offsetTh -1 ); psSaoLcuParam->offset[2] = -(Int)uiSymbol;
       parseSaoMaxUvlc(uiSymbol, offsetTh -1 ); psSaoLcuParam->offset[3] = -(Int)uiSymbol;
     }
+#if SAO_TYPE_CODING
+#if SAO_TYPE_SHARING
+    if (compIdx != 2)
+    {
+      parseSaoUflc(psSaoLcuParam->typeIdx? 5:2, uiSymbol );
+      psSaoLcuParam->subTypeIdx = uiSymbol;
+      if (psSaoLcuParam->typeIdx != SAO_BO)
+      {
+        psSaoLcuParam->typeIdx += psSaoLcuParam->subTypeIdx;
+      }
+    }
+#else
+    parseSaoUflc(psSaoLcuParam->typeIdx? 5:2, uiSymbol );
+
+    psSaoLcuParam->subTypeIdx = uiSymbol;
+    if (psSaoLcuParam->typeIdx != SAO_BO)
+    {
+      psSaoLcuParam->typeIdx += psSaoLcuParam->subTypeIdx;
+    }
+#endif
+#endif
   }
   else
   {
@@ -1618,7 +1670,11 @@ Void TDecSbac::parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, T
   {
     pSaoParam->saoLcuParam[iCompIdx][iAddr].mergeUpFlag    = 0;
     pSaoParam->saoLcuParam[iCompIdx][iAddr].mergeLeftFlag  = 0;
+#if SAO_TYPE_CODING
+    pSaoParam->saoLcuParam[iCompIdx][iAddr].subTypeIdx     = 0;
+#else
     pSaoParam->saoLcuParam[iCompIdx][iAddr].bandPosition   = 0;
+#endif
     pSaoParam->saoLcuParam[iCompIdx][iAddr].typeIdx        = -1;
     pSaoParam->saoLcuParam[iCompIdx][iAddr].offset[0]     = 0;
     pSaoParam->saoLcuParam[iCompIdx][iAddr].offset[1]     = 0;
@@ -1715,7 +1771,11 @@ Void TDecSbac::parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, T
     else
     {
       pSaoParam->saoLcuParam[iCompIdx][iAddr].typeIdx = -1;
+#if SAO_TYPE_CODING
+      pSaoParam->saoLcuParam[iCompIdx][iAddr].subTypeIdx = 0;
+#else
       pSaoParam->saoLcuParam[iCompIdx][iAddr].bandPosition = 0;
+#endif
     }
   }
 }
