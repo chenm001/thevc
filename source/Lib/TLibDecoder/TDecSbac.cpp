@@ -1658,6 +1658,10 @@ parseSaoTypeIdx(uiSymbol);
           }
         }
       }
+#if SAO_TYPE_CODING
+      parseSaoUflc(5, uiSymbol );
+      psSaoLcuParam->subTypeIdx = uiSymbol;
+#endif
     }
     else if( psSaoLcuParam->typeIdx < 4 )
     {
@@ -1665,28 +1669,21 @@ parseSaoTypeIdx(uiSymbol);
       parseSaoMaxUvlc(uiSymbol, offsetTh -1 ); psSaoLcuParam->offset[1] = uiSymbol;
       parseSaoMaxUvlc(uiSymbol, offsetTh -1 ); psSaoLcuParam->offset[2] = -(Int)uiSymbol;
       parseSaoMaxUvlc(uiSymbol, offsetTh -1 ); psSaoLcuParam->offset[3] = -(Int)uiSymbol;
-    }
 #if SAO_TYPE_CODING
 #if SAO_TYPE_SHARING
-    if (compIdx != 2)
-    {
-      parseSaoUflc(psSaoLcuParam->typeIdx? 5:2, uiSymbol );
-      psSaoLcuParam->subTypeIdx = uiSymbol;
-      if (psSaoLcuParam->typeIdx != SAO_BO)
-      {
-        psSaoLcuParam->typeIdx += psSaoLcuParam->subTypeIdx;
-      }
-    }
+     if (compIdx != 2)
+     {
+       parseSaoUflc(2, uiSymbol );
+       psSaoLcuParam->subTypeIdx = uiSymbol;
+       psSaoLcuParam->typeIdx += psSaoLcuParam->subTypeIdx;
+     }
 #else
-    parseSaoUflc(psSaoLcuParam->typeIdx? 5:2, uiSymbol );
-
-    psSaoLcuParam->subTypeIdx = uiSymbol;
-    if (psSaoLcuParam->typeIdx != SAO_BO)
-    {
-      psSaoLcuParam->typeIdx += psSaoLcuParam->subTypeIdx;
-    }
+     parseSaoUflc(2, uiSymbol );
+     psSaoLcuParam->subTypeIdx = uiSymbol;
+     psSaoLcuParam->typeIdx += psSaoLcuParam->subTypeIdx;
 #endif
 #endif
+   }
   }
   else
   {

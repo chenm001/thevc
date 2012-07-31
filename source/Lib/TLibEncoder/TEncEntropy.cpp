@@ -810,6 +810,10 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
           m_pcEntropyCoderIf->codeSAOSign(sign);
         }
       }
+#if SAO_TYPE_CODING
+      uiSymbol = (UInt) (saoLcuParam->subTypeIdx);
+      m_pcEntropyCoderIf->codeSaoUflc(5, uiSymbol);
+#endif
     }
     else if( saoLcuParam->typeIdx < 4 )
     {
@@ -817,19 +821,19 @@ Void TEncEntropy::encodeSaoOffset(SaoLcuParam* saoLcuParam)
       m_pcEntropyCoderIf->codeSaoMaxUvlc( saoLcuParam->offset[1], offsetTh-1);
       m_pcEntropyCoderIf->codeSaoMaxUvlc(-saoLcuParam->offset[2], offsetTh-1);
       m_pcEntropyCoderIf->codeSaoMaxUvlc(-saoLcuParam->offset[3], offsetTh-1);
-    }
 #if SAO_TYPE_CODING
 #if SAO_TYPE_SHARING
       if (compIdx!=2)
       {
         uiSymbol = (UInt) (saoLcuParam->subTypeIdx);
-        m_pcEntropyCoderIf->codeSaoUflc(saoLcuParam->typeIdx==SAO_BO? 5 : 2, uiSymbol);
+        m_pcEntropyCoderIf->codeSaoUflc(2, uiSymbol);
       }
 #else
-      uiSymbol = (UInt) (saoLcuParam->subTypeIdx);
-      m_pcEntropyCoderIf->codeSaoUflc(saoLcuParam->typeIdx==SAO_BO? 5 : 2, uiSymbol);
+     uiSymbol = (UInt) (saoLcuParam->subTypeIdx);
+     m_pcEntropyCoderIf->codeSaoUflc(2, uiSymbol);
 #endif
 #endif
+    }
   }
 }
 
