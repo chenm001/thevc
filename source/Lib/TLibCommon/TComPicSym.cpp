@@ -130,6 +130,7 @@ Void TComPicSym::destroy()
     delete m_apcTComTile[i];
   }
   delete [] m_apcTComTile;
+
   m_apcTComTile = NULL;
 
   delete [] m_puiCUOrderMap;

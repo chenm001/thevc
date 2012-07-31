@@ -337,7 +337,11 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   }
 
   m_apcSlicePilot->setNalUnitType(nalu.m_nalUnitType);
+#if REMOVE_NAL_REF_FLAG
+  m_apcSlicePilot->setReferenced(true); // Putting this as true ensures that picture is referenced the first time it is in an RPS
+#else
   m_apcSlicePilot->setReferenced(nalu.m_nalRefFlag);
+#endif
   m_apcSlicePilot->setTLayerInfo(nalu.m_temporalId);
 
   m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot, &m_parameterSetManagerDecoder);
