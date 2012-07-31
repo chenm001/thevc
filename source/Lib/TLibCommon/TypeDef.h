@@ -40,6 +40,8 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define TEMPORAL_ID_PLUS1                1  ///< J0550: Signal temporal_id_plus1 instead of temporal_id in NAL unit, and change reserved_one_5bits
+                                            ///<        value to zero
 #define REFERENCE_PICTURE_DEFN           1  ///< J0118: Reflect change of defn. of referece picture in semantics of delta_poc_msb_present_flag
 #define MOVE_LOOP_FILTER_SLICES_FLAG     1  ///< J0288: Move seq_loop_filter_across_slices_enabled_flag from SPS to PPS
 #define SPLICING_FRIENDLY_PARAMS         1  ///< J0108: Remove rap_pic_id and move no_output_prior_pic_flag

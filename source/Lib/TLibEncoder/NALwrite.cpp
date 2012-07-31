@@ -57,8 +57,14 @@ void write(ostream& out, OutputNALUnit& nalu)
   bsNALUHeader.write(0,1); // forbidden_zero_flag
   bsNALUHeader.write(nalu.m_nalRefFlag? 1 : 0, 1); // nal_ref_flag
   bsNALUHeader.write(nalu.m_nalUnitType, 6);          // nal_unit_type
+#if TEMPORAL_ID_PLUS1
+  bsNALUHeader.write(nalu.m_temporalId+1, 3); // temporal_id_plus1
+  bsNALUHeader.write(0, 5); // reserved_one_5bits
+#else
   bsNALUHeader.write(nalu.m_temporalId, 3); // temporal_id
   bsNALUHeader.write(1, 5); // reserved_one_5bits
+#endif
+
   out.write(bsNALUHeader.getByteStream(), bsNALUHeader.getByteStreamLength());
 
   /* write out rsbp_byte's, inserting any required

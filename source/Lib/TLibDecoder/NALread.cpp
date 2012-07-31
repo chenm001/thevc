@@ -81,10 +81,16 @@ void read(InputNALUnit& nalu, vector<uint8_t>& nalUnitBuf)
 
   nalu.m_nalRefFlag  = (bs.read(1) != 0 );
   nalu.m_nalUnitType = (NalUnitType) bs.read(6);
-
+#if TEMPORAL_ID_PLUS1
+  nalu.m_temporalId = bs.read(3) - 1;
+  unsigned reserved_one_5bits = bs.read(5);
+  assert(reserved_one_5bits == 0);
+#else
   nalu.m_temporalId = bs.read(3);
   unsigned reserved_one_5bits = bs.read(5);
   assert(reserved_one_5bits == 1);
+#endif
+
   if ( nalu.m_temporalId )
   {
     assert( nalu.m_nalUnitType != NAL_UNIT_CODED_SLICE_CRA
