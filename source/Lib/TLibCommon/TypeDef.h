@@ -88,6 +88,7 @@
 #define SAO_TYPE_CODING                  1  ///< J0268: SAO type signalling using 1 ctx on/off flag + 1 bp BO/EO flag + 2 bp bins for EO class
 #define SAO_MERGE_ONE_CTX                1  ///< J0041: SAO merge left/up flags share the same ctx
 #define SAO_ABS_BY_PASS                  1  ///< J0043: by pass coding for SAO magnitudes 
+#define MODIFIED_CROSS_SLICE             1  ///< J0266: SAO slice boundary control for GDR
 #define CU_DQP_ENABLE_FLAG               1  ///< J0220: cu_qp_delta_enabled_flag in PPS
 #define REMOVE_ZIGZAG_SCAN               1  ///< J0150: removal of zigzag scan
 

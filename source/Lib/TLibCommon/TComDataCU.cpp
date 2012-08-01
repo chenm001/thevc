@@ -4215,7 +4215,9 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
 {
   UInt numSUInLCU = numSUInLCUWidth*numSUInLCUHeight;
   Int* pSliceIDMapLCU = m_piSliceSUMap;
-
+#if MODIFIED_CROSS_SLICE
+  Bool onlyOneSliceInPic = ((Int)LFCrossSliceBoundary.size() == 1);
+#endif
   UInt uiLPelX, uiTPelY;
   UInt width, height;
   Bool bPicRBoundary, bPicBBoundary, bPicTBoundary, bPicLBoundary;
@@ -4243,8 +4245,9 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
     uiTPelY = rSGU.posY;
     width   = rSGU.width;
     height  = rSGU.height;
+#if !MODIFIED_CROSS_SLICE
     Bool bIndependentSliceBoundaryEnabled = !(LFCrossSliceBoundary[sliceID]);
-
+#endif
     rTLSU     = g_auiZscanToRaster[ rSGU.startSU ];
     rBRSU     = g_auiZscanToRaster[ rSGU.endSU   ];
     widthSU   = rSGU.widthSU;
@@ -4268,7 +4271,11 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
     {
       *pbAvail = false;
     }
+#if MODIFIED_CROSS_SLICE
+    else if (onlyOneSliceInPic)
+#else
     else if (!bIndependentSliceBoundaryEnabled)
+#endif
     {
       *pbAvail = true;
     }
@@ -4287,7 +4294,11 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
         pRefMapLCU  = pSliceIDMapLCU;
       }
       pRefID = pRefMapLCU + zRefSU;
+#if MODIFIED_CROSS_SLICE
+      *pbAvail = (*pRefID == sliceID)?(true):((*pRefID > sliceID)?(LFCrossSliceBoundary[*pRefID]):(LFCrossSliceBoundary[sliceID]));
+#else
       *pbAvail = (*pRefID == sliceID)?(true):(false);
+#endif
     }
 
     //       SGU_R
@@ -4296,7 +4307,11 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
     {
       *pbAvail = false;
     }
+#if MODIFIED_CROSS_SLICE
+    else if (onlyOneSliceInPic)
+#else
     else if (!bIndependentSliceBoundaryEnabled)
+#endif
     {
       *pbAvail = true;
     }
@@ -4315,7 +4330,11 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
         pRefMapLCU  = pSliceIDMapLCU;
       }
       pRefID = pRefMapLCU + zRefSU;
+#if MODIFIED_CROSS_SLICE
+      *pbAvail = (*pRefID == sliceID)?(true):((*pRefID > sliceID)?(LFCrossSliceBoundary[*pRefID]):(LFCrossSliceBoundary[sliceID]));
+#else
       *pbAvail = (*pRefID == sliceID)?(true):(false);
+#endif
     }
 
     //       SGU_T
@@ -4324,7 +4343,11 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
     {
       *pbAvail = false;
     }
+#if MODIFIED_CROSS_SLICE
+    else if (onlyOneSliceInPic)
+#else
     else if (!bIndependentSliceBoundaryEnabled)
+#endif
     {
       *pbAvail = true;
     }
@@ -4343,7 +4366,11 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
         pRefMapLCU  = pSliceIDMapLCU;
       }
       pRefID = pRefMapLCU + zRefSU;
+#if MODIFIED_CROSS_SLICE
+      *pbAvail = (*pRefID == sliceID)?(true):((*pRefID > sliceID)?(LFCrossSliceBoundary[*pRefID]):(LFCrossSliceBoundary[sliceID]));
+#else
       *pbAvail = (*pRefID == sliceID)?(true):(false);
+#endif
     }
 
     //       SGU_B
@@ -4352,7 +4379,11 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
     {
       *pbAvail = false;
     }
+#if MODIFIED_CROSS_SLICE
+    else if (onlyOneSliceInPic)
+#else
     else if (!bIndependentSliceBoundaryEnabled)
+#endif
     {
       *pbAvail = true;
     }
@@ -4371,7 +4402,11 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
         pRefMapLCU  = pSliceIDMapLCU;
       }
       pRefID = pRefMapLCU + zRefSU;
+#if MODIFIED_CROSS_SLICE
+      *pbAvail = (*pRefID == sliceID)?(true):((*pRefID > sliceID)?(LFCrossSliceBoundary[*pRefID]):(LFCrossSliceBoundary[sliceID]));
+#else
       *pbAvail = (*pRefID == sliceID)?(true):(false);
+#endif
     }
 
     //       SGU_TL
@@ -4380,7 +4415,11 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
     {
       *pbAvail = false;
     }
+#if MODIFIED_CROSS_SLICE
+    else if (onlyOneSliceInPic)
+#else
     else if (!bIndependentSliceBoundaryEnabled)
+#endif
     {
       *pbAvail = true;
     }
@@ -4407,7 +4446,11 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
         pRefMapLCU  = pSliceIDMapLCU;
       }
       pRefID = pRefMapLCU + zRefSU;
+#if MODIFIED_CROSS_SLICE
+      *pbAvail = (*pRefID == sliceID)?(true):((*pRefID > sliceID)?(LFCrossSliceBoundary[*pRefID]):(LFCrossSliceBoundary[sliceID]));
+#else
       *pbAvail = (*pRefID == sliceID)?(true):(false);
+#endif
     }
 
     //       SGU_TR
@@ -4416,7 +4459,11 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
     {
       *pbAvail = false;
     }
+#if MODIFIED_CROSS_SLICE
+    else if (onlyOneSliceInPic)
+#else
     else if (!bIndependentSliceBoundaryEnabled)
+#endif
     {
       *pbAvail = true;
     }
@@ -4443,7 +4490,11 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
         pRefMapLCU  = pSliceIDMapLCU;
       }
       pRefID = pRefMapLCU + zRefSU;
+#if MODIFIED_CROSS_SLICE
+      *pbAvail = (*pRefID == sliceID)?(true):((*pRefID > sliceID)?(LFCrossSliceBoundary[*pRefID]):(LFCrossSliceBoundary[sliceID]));
+#else
       *pbAvail = (*pRefID == sliceID)?(true):(false);
+#endif
     }
 
     //       SGU_BL
@@ -4452,7 +4503,11 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
     {
       *pbAvail = false;
     }
+#if MODIFIED_CROSS_SLICE
+    else if (onlyOneSliceInPic)
+#else
     else if (!bIndependentSliceBoundaryEnabled)
+#endif
     {
       *pbAvail = true;
     }
@@ -4479,7 +4534,11 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
         pRefMapLCU  = pSliceIDMapLCU;
       }
       pRefID = pRefMapLCU + zRefSU;
+#if MODIFIED_CROSS_SLICE
+      *pbAvail = (*pRefID == sliceID)?(true):((*pRefID > sliceID)?(LFCrossSliceBoundary[*pRefID]):(LFCrossSliceBoundary[sliceID]));
+#else
       *pbAvail = (*pRefID == sliceID)?(true):(false);
+#endif
     }
 
     //       SGU_BR
@@ -4488,7 +4547,11 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
     {
       *pbAvail = false;
     }
+#if MODIFIED_CROSS_SLICE
+    else if (onlyOneSliceInPic)
+#else
     else if (!bIndependentSliceBoundaryEnabled)
+#endif
     {
       *pbAvail = true;
     }
@@ -4515,7 +4578,11 @@ Void TComDataCU::setNDBFilterBlockBorderAvailability(UInt numLCUInPicWidth, UInt
         pRefMapLCU = pSliceIDMapLCU;
       }
       pRefID = pRefMapLCU + zRefSU;
+#if MODIFIED_CROSS_SLICE
+      *pbAvail = (*pRefID == sliceID)?(true):((*pRefID > sliceID)?(LFCrossSliceBoundary[*pRefID]):(LFCrossSliceBoundary[sliceID]));
+#else
       *pbAvail = (*pRefID == sliceID)?(true):(false);
+#endif
     }
 
     if(bIndependentTileBoundaryEnabled)
