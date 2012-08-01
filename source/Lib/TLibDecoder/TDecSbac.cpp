@@ -324,15 +324,24 @@ Void TDecSbac::xReadCoefRemainExGolomb ( UInt &rSymbol, UInt &rParam )
   codeWord  = 1 - codeWord;
   prefix -= codeWord;
   codeWord=0;
+#if COEF_REMAIN_BIN_REDUCTION
+  if (prefix < COEF_REMAIN_BIN_REDUCTION )
+#else
   if (prefix < 8 )
+#endif
   {
     m_pcTDecBinIf->decodeBinsEP(codeWord,rParam);
     rSymbol = (prefix<<rParam) + codeWord;
   }
   else
   {
+#if COEF_REMAIN_BIN_REDUCTION
+    m_pcTDecBinIf->decodeBinsEP(codeWord,prefix-COEF_REMAIN_BIN_REDUCTION+rParam);
+    rSymbol = (((1<<(prefix-COEF_REMAIN_BIN_REDUCTION))+COEF_REMAIN_BIN_REDUCTION-1)<<rParam)+codeWord;
+#else
     m_pcTDecBinIf->decodeBinsEP(codeWord,prefix-8+rParam);
     rSymbol = (((1<<(prefix-8))+8-1)<<rParam)+codeWord;
+#endif
   }
 }
 

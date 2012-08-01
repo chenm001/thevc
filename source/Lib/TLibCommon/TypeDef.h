@@ -38,14 +38,21 @@
 #ifndef _TYPEDEF__
 #define _TYPEDEF__
 
+
+
+//! \ingroup TLibCommon
+//! \{
+
+#define COEF_REMAIN_BIN_REDUCTION        3 ///< J0142: Maximum codeword length of coeff_abs_level_remaining reduced to 32.
+                                           ///< COEF_REMAIN_BIN_REDUCTION is also used to indicate the level at which the VLC 
+                                           ///< transitions from Golomb-Rice to TU+EG(k)
+
 #define CU_DQP_TU_EG                     1 ///< J0089: Bin reduction for delta QP coding
 #if (CU_DQP_TU_EG)
 #define CU_DQP_TU_CMAX 5 //max number bins for truncated unary
 #define CU_DQP_EG_k 0 //expgolomb order
 #endif
 
-//! \ingroup TLibCommon
-//! \{
 #define NAL_UNIT_HEADER                  1  ///< J0550: Define nal_unit_header() method
 #define REMOVE_NAL_REF_FLAG              1  ///< J0550: Remove nal_ref_flag, and allocate extra bit to reserved bits, and re-order syntax to put reserved bits after nal_unit_type
 #define TEMPORAL_ID_PLUS1                1  ///< J0550: Signal temporal_id_plus1 instead of temporal_id in NAL unit, and change reserved_one_5bits

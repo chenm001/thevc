@@ -2504,7 +2504,11 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
   {    
     UInt symbol     = uiAbsLevel - baseLevel;
     UInt length;
+#if COEF_REMAIN_BIN_REDUCTION
+    if (symbol < (COEF_REMAIN_BIN_REDUCTION << ui16AbsGoRice))
+#else
     if (symbol < (8 << ui16AbsGoRice))
+#endif
     {
       length = symbol>>ui16AbsGoRice;
       iRate += (length+1+ui16AbsGoRice)<< 15;
@@ -2512,12 +2516,20 @@ __inline Double TComTrQuant::xGetICRateCost  ( UInt                            u
     else
     {
       length = ui16AbsGoRice;
+#if COEF_REMAIN_BIN_REDUCTION
+      symbol  = symbol - ( COEF_REMAIN_BIN_REDUCTION << ui16AbsGoRice); 
+#else
       symbol  = symbol - ( 8 << ui16AbsGoRice);    
+#endif
       while (symbol >= (1<<length))
       {
         symbol -=  (1<<(length++));    
       }
+#if COEF_REMAIN_BIN_REDUCTION
+      iRate += (COEF_REMAIN_BIN_REDUCTION+length+1-ui16AbsGoRice+length)<< 15;
+#else
       iRate += (8+length+1-ui16AbsGoRice+length)<< 15;
+#endif
     }
     if (c1Idx < C1FLAG_NUMBER)
     {

@@ -421,7 +421,11 @@ Void TEncSbac::xWriteCoefRemainExGolomb ( UInt symbol, UInt &rParam )
 {
   Int codeNumber  = (Int)symbol;
   UInt length;
+#if COEF_REMAIN_BIN_REDUCTION
+  if (codeNumber < (COEF_REMAIN_BIN_REDUCTION << rParam))
+#else
   if (codeNumber < (8 << rParam))
+#endif
   {
     length = codeNumber>>rParam;
     m_pcBinIf->encodeBinsEP( (1<<(length+1))-2 , length+1);
@@ -430,12 +434,20 @@ Void TEncSbac::xWriteCoefRemainExGolomb ( UInt symbol, UInt &rParam )
   else
   {
     length = rParam;
+#if COEF_REMAIN_BIN_REDUCTION
+    codeNumber  = codeNumber - ( COEF_REMAIN_BIN_REDUCTION << rParam);
+#else
     codeNumber  = codeNumber - ( 8 << rParam);    
+#endif
     while (codeNumber >= (1<<length))
     {
       codeNumber -=  (1<<(length++));    
     }
+#if COEF_REMAIN_BIN_REDUCTION
+    m_pcBinIf->encodeBinsEP((1<<(COEF_REMAIN_BIN_REDUCTION+length+1-rParam))-2,COEF_REMAIN_BIN_REDUCTION+length+1-rParam);
+#else
     m_pcBinIf->encodeBinsEP((1<<(8+length+1-rParam))-2,8+length+1-rParam);
+#endif
     m_pcBinIf->encodeBinsEP(codeNumber,length);
   }
 }
