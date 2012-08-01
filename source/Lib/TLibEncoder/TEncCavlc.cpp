@@ -273,6 +273,9 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 #endif
   WRITE_SVLC( pcPPS->getChromaCbQpOffset(),                   "cb_qp_offset" );
   WRITE_SVLC( pcPPS->getChromaCrQpOffset(),                   "cr_qp_offset" );
+#if CHROMA_QP_EXTENSION
+  WRITE_FLAG( pcPPS->getSliceChromaQpFlag() ? 1 : 0,          "slicelevel_chroma_qp_flag" );
+#endif
 
   WRITE_FLAG( pcPPS->getUseWP() ? 1 : 0,  "weighted_pred_flag" );   // Use of Weighting Prediction (P_SLICE)
   WRITE_FLAG( pcPPS->getWPBiPred() ? 1 : 0, "weighted_bipred_flag" );  // Use of Weighting Bi-Prediction (B_SLICE)
@@ -800,6 +803,15 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   {
     Int iCode = pcSlice->getSliceQp() - ( pcSlice->getPPS()->getPicInitQPMinus26() + 26 );
     WRITE_SVLC( iCode, "slice_qp_delta" ); 
+#if CHROMA_QP_EXTENSION
+    if (pcSlice->getPPS()->getSliceChromaQpFlag())
+    {
+      iCode = pcSlice->getSliceQpDeltaCb();
+      WRITE_SVLC( iCode, "slice_qp_delta_cb" );
+      iCode = pcSlice->getSliceQpDeltaCr();
+      WRITE_SVLC( iCode, "slice_qp_delta_cr" );
+    }
+#endif
     if (pcSlice->getPPS()->getDeblockingFilterControlPresent())
     {
       if (pcSlice->getPPS()->getLoopFilterOffsetInPPS() )

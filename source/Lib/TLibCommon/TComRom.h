@@ -116,7 +116,11 @@ extern const short g_aiT32[32][32];
 // Luma QP to Chroma QP mapping
 // ====================================================================================================================
 
+#if CHROMA_QP_EXTENSION
+extern const UChar  g_aucChromaScale      [58];
+#else
 extern const UChar  g_aucChromaScale      [52];
+#endif
 
 // ====================================================================================================================
 // Scanning order & context mapping table

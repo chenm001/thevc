@@ -469,9 +469,22 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
 #endif
   READ_SVLC( iCode, "cb_qp_offset");
   pcPPS->setChromaCbQpOffset(iCode);
+#if CHROMA_QP_EXTENSION
+  assert( pcPPS->getChromaCbQpOffset() >= -12 );
+  assert( pcPPS->getChromaCbQpOffset() <=  12 );
+#endif
 
   READ_SVLC( iCode, "cr_qp_offset");
   pcPPS->setChromaCrQpOffset(iCode);
+#if CHROMA_QP_EXTENSION
+  assert( pcPPS->getChromaCrQpOffset() >= -12 );
+  assert( pcPPS->getChromaCrQpOffset() <=  12 );
+#endif
+
+#if CHROMA_QP_EXTENSION
+  READ_FLAG( uiCode, "slicelevel_chroma_qp_flag" );
+  pcPPS->setSliceChromaQpFlag( uiCode ? true : false );
+#endif
 
   READ_FLAG( uiCode, "weighted_pred_flag" );          // Use of Weighting Prediction (P_SLICE)
   pcPPS->setUseWP( uiCode==1 );
@@ -1204,6 +1217,25 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
 
     assert( rpcSlice->getSliceQp() >= -sps->getQpBDOffsetY() );
     assert( rpcSlice->getSliceQp() <=  51 );
+
+#if CHROMA_QP_EXTENSION
+    if (rpcSlice->getPPS()->getSliceChromaQpFlag())
+    {
+      READ_SVLC( iCode, "slice_qp_delta_cb" );
+      rpcSlice->setSliceQpDeltaCb( iCode );
+      assert( rpcSlice->getSliceQpDeltaCb() >= -12 );
+      assert( rpcSlice->getSliceQpDeltaCb() <=  12 );
+      assert( (rpcSlice->getPPS()->getChromaCbQpOffset() + rpcSlice->getSliceQpDeltaCb()) >= -12 );
+      assert( (rpcSlice->getPPS()->getChromaCbQpOffset() + rpcSlice->getSliceQpDeltaCb()) <=  12 );
+
+      READ_SVLC( iCode, "slice_qp_delta_cr" );
+      rpcSlice->setSliceQpDeltaCr( iCode );
+      assert( rpcSlice->getSliceQpDeltaCr() >= -12 );
+      assert( rpcSlice->getSliceQpDeltaCr() <=  12 );
+      assert( (rpcSlice->getPPS()->getChromaCrQpOffset() + rpcSlice->getSliceQpDeltaCr()) >= -12 );
+      assert( (rpcSlice->getPPS()->getChromaCrQpOffset() + rpcSlice->getSliceQpDeltaCr()) <=  12 );
+    }
+#endif
 
     if (rpcSlice->getPPS()->getDeblockingFilterControlPresent())
     {

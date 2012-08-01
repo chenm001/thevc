@@ -63,6 +63,10 @@ TComSlice::TComSlice()
 , m_bRefPicListCombinationFlag    ( false )
 , m_bCheckLDC                     ( false )
 , m_iSliceQpDelta                 ( 0 )
+#if CHROMA_QP_EXTENSION
+, m_iSliceQpDeltaCb               ( 0 )
+, m_iSliceQpDeltaCr               ( 0 )
+#endif
 , m_iDepth                        ( 0 )
 , m_bRefenced                     ( false )
 , m_pcSPS                         ( NULL )
@@ -190,6 +194,10 @@ Void TComSlice::initSlice()
   m_bRefPicListCombinationFlag = false;
   m_bRefPicListModificationFlagLC = false;
   m_bCheckLDC = false;
+#if CHROMA_QP_EXTENSION
+  m_iSliceQpDeltaCb = 0;
+  m_iSliceQpDeltaCr = 0;
+#endif
 
   m_aiNumRefIdx[REF_PIC_LIST_C]      = 0;
 
@@ -716,6 +724,10 @@ Void TComSlice::copySliceInfo(TComSlice *pSrc)
   m_bRefPicListCombinationFlag    = pSrc->m_bRefPicListCombinationFlag;
   m_bCheckLDC             = pSrc->m_bCheckLDC;
   m_iSliceQpDelta        = pSrc->m_iSliceQpDelta;
+#if CHROMA_QP_EXTENSION
+  m_iSliceQpDeltaCb      = pSrc->m_iSliceQpDeltaCb;
+  m_iSliceQpDeltaCr      = pSrc->m_iSliceQpDeltaCr;
+#endif
   for (i = 0; i < 2; i++)
   {
     for (j = 0; j < MAX_NUM_REF; j++)
@@ -1335,6 +1347,9 @@ TComPPS::TComPPS()
 , m_picInitQPMinus26            (0)
 , m_useDQP                      (false)
 , m_bConstrainedIntraPred       (false)
+#if CHROMA_QP_EXTENSION
+, m_bSliceChromaQpFlag          (false)
+#endif
 , m_pcSPS                       (NULL)
 , m_uiMaxCuDQPDepth             (0)
 , m_uiMinCuDQPSize              (0)

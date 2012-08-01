@@ -525,7 +525,10 @@ private:
   Int         m_picInitQPMinus26;
   Bool        m_useDQP;
   Bool        m_bConstrainedIntraPred;    // constrained_intra_pred_flag
- 
+#if CHROMA_QP_EXTENSION
+  Bool        m_bSliceChromaQpFlag;       // slicelevel_chroma_qp_flag
+#endif
+
   // access channel
   TComSPS*    m_pcSPS;
   UInt        m_uiMaxCuDQPDepth;
@@ -601,6 +604,10 @@ public:
   Void      setUseDQP ( Bool b )           { m_useDQP   = b;         }
   Bool      getConstrainedIntraPred ()         { return  m_bConstrainedIntraPred; }
   Void      setConstrainedIntraPred ( Bool b ) { m_bConstrainedIntraPred = b;     }
+#if CHROMA_QP_EXTENSION
+  Bool      getSliceChromaQpFlag ()         { return  m_bSliceChromaQpFlag; }
+  Void      setSliceChromaQpFlag ( Bool b ) { m_bSliceChromaQpFlag = b;     }
+#endif
 
   Void      setSPS              ( TComSPS* pcSPS ) { m_pcSPS = pcSPS; }
   TComSPS*  getSPS              ()         { return m_pcSPS;          }
@@ -823,6 +830,10 @@ private:
 
   //  Data
   Int         m_iSliceQpDelta;
+#if CHROMA_QP_EXTENSION
+  Int         m_iSliceQpDeltaCb;
+  Int         m_iSliceQpDeltaCr;
+#endif
   TComPic*    m_apcRefPicList [2][MAX_NUM_REF+1];
   Int         m_aiRefPOCList  [2][MAX_NUM_REF+1];
   Int         m_iDepth;
@@ -966,6 +977,10 @@ public:
   Int       getSliceQpBase  ()                          { return  m_iSliceQpBase;       }
 #endif
   Int       getSliceQpDelta ()                          { return  m_iSliceQpDelta;      }
+#if CHROMA_QP_EXTENSION
+  Int       getSliceQpDeltaCb ()                          { return  m_iSliceQpDeltaCb;      }
+  Int       getSliceQpDeltaCr ()                          { return  m_iSliceQpDeltaCr;      }
+#endif
   Bool      getLoopFilterDisable()                      { return  m_bLoopFilterDisable; }
   Bool      getLoopFilterOffsetInPPS()                  { return  m_loopFilterOffsetInPPS;}
   Bool      getInheritDblParamFromPPS()                 { return  m_inheritDblParamFromPPS; }
@@ -1019,6 +1034,10 @@ public:
   Void      setSliceQpBase      ( Int i )                       { m_iSliceQpBase      = i;      }
 #endif
   Void      setSliceQpDelta     ( Int i )                       { m_iSliceQpDelta     = i;      }
+#if CHROMA_QP_EXTENSION
+  Void      setSliceQpDeltaCb   ( Int i )                       { m_iSliceQpDeltaCb   = i;      }
+  Void      setSliceQpDeltaCr   ( Int i )                       { m_iSliceQpDeltaCr   = i;      }
+#endif
   Void      setLoopFilterDisable( Bool b )                      { m_bLoopFilterDisable= b;      }
   Void      setLoopFilterOffsetInPPS( Bool b )                  { m_loopFilterOffsetInPPS = b;}
   Void      setInheritDblParamFromPPS( Bool b )                 { m_inheritDblParamFromPPS = b; }
