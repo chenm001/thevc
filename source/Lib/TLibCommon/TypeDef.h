@@ -42,6 +42,7 @@
 
 //! \ingroup TLibCommon
 //! \{
+#define SIMPLE_LUMA_CBF_CTX_DERIVATION   1  ///< J0303: simplified luma_CBF context derivation
 
 #define COEF_REMAIN_BIN_REDUCTION        3 ///< J0142: Maximum codeword length of coeff_abs_level_remaining reduced to 32.
                                            ///< COEF_REMAIN_BIN_REDUCTION is also used to indicate the level at which the VLC 

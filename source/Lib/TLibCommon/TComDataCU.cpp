@@ -2022,9 +2022,13 @@ UInt TComDataCU::getCtxQtCbf( UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth 
   }
   else
   {
+#if SIMPLE_LUMA_CBF_CTX_DERIVATION
+    const UInt uiCtx = ( uiTrDepth == 0 ? 1 : 0 );
+#else
     const UInt uiDepth = getDepth( uiAbsPartIdx );
     const UInt uiLog2TrafoSize = g_aucConvertToBit[ getSlice()->getSPS()->getMaxCUWidth() ] + 2 - uiDepth - uiTrDepth;
     const UInt uiCtx = uiTrDepth == 0 || uiLog2TrafoSize == getSlice()->getSPS()->getQuadtreeTULog2MaxSize() ? 1 : 0;
+#endif
     return uiCtx;
   }
 }
