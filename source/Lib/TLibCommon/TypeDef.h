@@ -42,6 +42,8 @@
 
 //! \ingroup TLibCommon
 //! \{
+
+#define SAO_LUM_CHROMA_ONOFF_FLAGS       1  ///< J0087: slice-level independent luma/chroma SAO on/off flag 
 #define LTRP_IN_SPS                      1  ///< J0116: Include support for signalling LTRP LSBs in the SPS, and index them in the slice header.
 #define CHROMA_QP_EXTENSION              1  ///< J0342: Extend mapping table from luma QP to chroma QP, introduce slice-level chroma offsets, apply limits on offset values
 #define SIMPLE_LUMA_CBF_CTX_DERIVATION   1  ///< J0303: simplified luma_CBF context derivation
@@ -90,6 +92,7 @@
 #define SAO_TYPE_CODING                  1  ///< J0268: SAO type signalling using 1 ctx on/off flag + 1 bp BO/EO flag + 2 bp bins for EO class
 #define SAO_MERGE_ONE_CTX                1  ///< J0041: SAO merge left/up flags share the same ctx
 #define SAO_ABS_BY_PASS                  1  ///< J0043: by pass coding for SAO magnitudes 
+#define SAO_LCU_BOUNDARY                 1  ///< J0139: SAO parameter estimation using non-deblocked pixels for LCU bottom and right boundary areas
 #define MODIFIED_CROSS_SLICE             1  ///< J0266: SAO slice boundary control for GDR
 #define CU_DQP_ENABLE_FLAG               1  ///< J0220: cu_qp_delta_enabled_flag in PPS
 #define REMOVE_ZIGZAG_SCAN               1  ///< J0150: removal of zigzag scan
@@ -124,6 +127,7 @@
 #define SAO_SKIP_RIGHT                   1  ///< H1101: disallow using unavailable pixel during RDO
 
 #define SAO_ENCODING_CHOICE              1  ///< I0184: picture early termination
+#define PICTURE_SAO_RDO_FIX              0  ///< J0097: picture-based SAO optimization fix
 #if SAO_ENCODING_CHOICE
 #define SAO_ENCODING_RATE                0.75
 #define SAO_ENCODING_CHOICE_CHROMA       1 ///< J0044: picture early termination Luma and Chroma are handled separatenly
