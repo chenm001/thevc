@@ -749,6 +749,20 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
     parseShortTermRefPicSet(pcSPS,rps,i);
   }
   READ_FLAG( uiCode, "long_term_ref_pics_present_flag" );          pcSPS->setLongTermRefsPresent(uiCode);
+#if LTRP_IN_SPS
+  if (pcSPS->getLongTermRefsPresent()) 
+  {
+    READ_UVLC( uiCode, "num_long_term_ref_pic_sps" );
+    pcSPS->setNumLongTermRefPicSPS(uiCode);
+    for (UInt k = 0; k < pcSPS->getNumLongTermRefPicSPS(); k++)
+    {
+      READ_CODE( pcSPS->getBitsForPOC(), uiCode, "lt_ref_pic_poc_lsb_sps" );
+      pcSPS->setLtRefPicPocLsbSps(uiCode, k);
+      READ_FLAG( uiCode,  "used_by_curr_pic_lt_sps_flag[i]");
+      pcSPS->setUsedByCurrPicLtSPSFlag(k, uiCode?1:0);
+    }
+  }
+#endif
   READ_FLAG( uiCode, "sps_temporal_mvp_enable_flag" );            pcSPS->setTMVPFlagsPresent(uiCode);
   // AMVP mode for each depth (AM_NONE or AM_EXPL)
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
@@ -976,12 +990,50 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       if(sps->getLongTermRefsPresent())
       {
         Int offset = rps->getNumberOfNegativePictures()+rps->getNumberOfPositivePictures();
+#if LTRP_IN_SPS
+        UInt numOfLtrp = 0;
+        UInt numLtrpInSPS = 0;
+        if (rpcSlice->getSPS()->getNumLongTermRefPicSPS() > 0)
+        {
+          READ_UVLC( uiCode, "num_long_term_sps");
+          numLtrpInSPS = uiCode;
+          numOfLtrp += numLtrpInSPS;
+          rps->setNumberOfLongtermPictures(numOfLtrp);
+        }
+        Int bitsForLtrpInSPS = 1;
+        while (rpcSlice->getSPS()->getNumLongTermRefPicSPS() > (1 << bitsForLtrpInSPS))
+          bitsForLtrpInSPS++;
         READ_UVLC( uiCode, "num_long_term_pics");             rps->setNumberOfLongtermPictures(uiCode);
+        numOfLtrp += uiCode;
+        rps->setNumberOfLongtermPictures(numOfLtrp);
+#else
+        READ_UVLC( uiCode, "num_long_term_pics");             rps->setNumberOfLongtermPictures(uiCode);
+#endif
         Int maxPicOrderCntLSB = 1 << rpcSlice->getSPS()->getBitsForPOC();
         Int prevLSB = 0, prevDeltaMSB = 0, deltaPocMSBCycleLT = 0;;
+#if LTRP_IN_SPS
+        for(Int j=offset+rps->getNumberOfLongtermPictures()-1, k = 0; k < numOfLtrp; j--, k++)
+#else
         for(Int j=offset+rps->getNumberOfLongtermPictures()-1 ; j > offset-1; j--)
+#endif
         {
+#if LTRP_IN_SPS
+          if (k < numLtrpInSPS)
+          {
+            READ_CODE(bitsForLtrpInSPS, uiCode, "lt_idx_sps[i]");
+            Int usedByCurrFromSPS=rpcSlice->getSPS()->getUsedByCurrPicLtSPSFlag(uiCode);
+
+            uiCode = rpcSlice->getSPS()->getLtRefPicPocLsbSps(uiCode);
+            rps->setUsed(j,usedByCurrFromSPS);
+          }
+          else
+          {
+            READ_CODE(rpcSlice->getSPS()->getBitsForPOC(), uiCode, "poc_lsb_lt"); 
+            READ_FLAG( uiCode, "used_by_curr_pic_lt_flag");     rps->setUsed(j,uiCode);
+          }
+#else
           READ_CODE(rpcSlice->getSPS()->getBitsForPOC(), uiCode, "poc_lsb_lt"); 
+#endif
           Int poc_lsb_lt = uiCode;
           READ_FLAG(uiCode,"delta_poc_msb_present_flag");
           Bool mSBPresentFlag = uiCode ? true : false;
@@ -989,8 +1041,13 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
           {
             READ_UVLC( uiCode, "delta_poc_msb_cycle_lt[i]" );
             Bool deltaFlag = false;
+#if LTRP_IN_SPS
+            //            First LTRP                               || First LTRP from SH           || curr LSB    != prev LSB
+            if( (j == offset+rps->getNumberOfLongtermPictures()-1) || (j == offset+(numOfLtrp-numLtrpInSPS)-1) || (poc_lsb_lt != prevLSB) )
+#else
             //            First LTRP                               || curr LSB    != prev LSB
             if( (j == offset+rps->getNumberOfLongtermPictures()-1) || (poc_lsb_lt != prevLSB) )
+#endif
             {
               deltaFlag = true;
             }
@@ -1015,7 +1072,9 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
             rps->setDeltaPOC(j, - rpcSlice->getPOC() + poc_lsb_lt);
             rps->setCheckLTMSBPresent(j,false);  
           }
-          READ_FLAG( uiCode, "used_by_curr_pic_lt_flag");     rps->setUsed(j,uiCode);
+#if !LTRP_IN_SPS
+        READ_FLAG( uiCode, "used_by_curr_pic_lt_flag");     rps->setUsed(j,uiCode);
+#endif
           prevLSB = poc_lsb_lt;
           prevDeltaMSB = deltaPocMSBCycleLT;
         }

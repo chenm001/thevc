@@ -74,6 +74,11 @@ private:
   //  Data
   Bool                    m_bLongtermTestPictureHasBeenCoded;
   Bool                    m_bLongtermTestPictureHasBeenCoded2;
+#if LTRP_IN_SPS
+  UInt            m_numLongTermRefPicSPS;
+  UInt            m_ltRefPicPocLsbSps[33];
+  Bool            m_ltRefPicUsedByCurrPicFlag[33];
+#endif
   Int                     m_iLastIDR;
   Int                     m_iGopSize;
   Int                     m_iNumPicCoded;

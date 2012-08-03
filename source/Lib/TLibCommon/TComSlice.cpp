@@ -1307,6 +1307,9 @@ TComSPS::TComSPS()
 , m_uiPCMBitDepthChroma       (  8)
 , m_bPCMFilterDisableFlag     (false)
 , m_uiBitsForPOC              (  8)
+#if LTRP_IN_SPS
+, m_numLongTermRefPicSPS    (  0)  
+#endif
 , m_uiMaxTrSize               ( 32)
 #if !MOVE_LOOP_FILTER_SLICES_FLAG
 , m_bLFCrossSliceBoundaryFlag (false)
@@ -1324,6 +1327,10 @@ TComSPS::TComSPS()
     m_numReorderPics[i]       = 0;
   }
   m_scalingList = new TComScalingList;
+#if LTRP_IN_SPS
+  ::memset(m_ltRefPicPocLsbSps, 0, sizeof(m_ltRefPicPocLsbSps));
+  ::memset(m_usedByCurrPicLtSPSFlag, 0, sizeof(m_usedByCurrPicLtSPSFlag));
+#endif
 }
 
 TComSPS::~TComSPS()

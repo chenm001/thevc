@@ -87,7 +87,11 @@ TEncGOP::TEncGOP()
   
   m_bRefreshPending     = 0;
   m_pocCRA            = 0;
-
+#if LTRP_IN_SPS
+  m_numLongTermRefPicSPS = 0;
+  ::memset(m_ltRefPicPocLsbSps, 0, sizeof(m_ltRefPicPocLsbSps));
+  ::memset(m_ltRefPicUsedByCurrPicFlag, 0, sizeof(m_ltRefPicUsedByCurrPicFlag));
+#endif
   return;
 }
 
@@ -283,6 +287,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       }
       // Set the nal unit type
       pcSlice->setNalUnitType(getNalUnitType(uiPOCCurr));
+
       // Do decoding refresh marking if any 
       pcSlice->decodingRefreshMarking(m_pocCRA, m_bRefreshPending, rcListPic);
       m_pcEncTop->selectReferencePictureSet(pcSlice, uiPOCCurr, iGOPid,rcListPic);
@@ -694,6 +699,17 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         nalu = NALUnit(NAL_UNIT_SPS, true);
 #endif
         m_pcEntropyCoder->setBitstream(&nalu.m_Bitstream);
+#if LTRP_IN_SPS
+        if (m_bSeqFirst)
+        {
+          pcSlice->getSPS()->setNumLongTermRefPicSPS(m_numLongTermRefPicSPS);
+          for (Int k = 0; k < m_numLongTermRefPicSPS; k++)
+          {
+             pcSlice->getSPS()->setLtRefPicPocLsbSps(k, m_ltRefPicPocLsbSps[k]);
+             pcSlice->getSPS()->setUsedByCurrPicLtSPSFlag(k, m_ltRefPicUsedByCurrPicFlag[k]);
+          }
+        }
+#endif
         m_pcEntropyCoder->encodeSPS(pcSlice->getSPS());
         writeRBSPTrailingBits(nalu.m_Bitstream);
         accessUnit.push_back(new NALUnitEBSP(nalu));
