@@ -153,6 +153,9 @@ protected:
   Bool      m_DeblockingFilterControlPresent;
   Bool      m_bUseSAO;
   Int       m_maxNumOffsetsPerPic;
+#if SAO_LCU_BOUNDARY
+  Bool      m_saoLcuBoundary;
+#endif
   Bool      m_saoLcuBasedOptimization;
 
   //====== Lossless ========
@@ -466,6 +469,10 @@ public:
   Bool      getUseSAO                  ()              {return m_bUseSAO;}
   Void  setMaxNumOffsetsPerPic                   (Int iVal)            { m_maxNumOffsetsPerPic = iVal; }
   Int   getMaxNumOffsetsPerPic                   ()                    { return m_maxNumOffsetsPerPic; }
+#if SAO_LCU_BOUNDARY
+  Void  setSaoLcuBoundary              (bool bVal)     { m_saoLcuBoundary = bVal; }
+  Bool  getSaoLcuBoundary              ()              { return m_saoLcuBoundary; }
+#endif
   Void  setSaoLcuBasedOptimization               (bool bVal)           { m_saoLcuBasedOptimization = bVal; }
   Bool  getSaoLcuBasedOptimization               ()                    { return m_saoLcuBasedOptimization; }
   Void  setLFCrossTileBoundaryFlag               ( Bool   bValue  )    { m_bLFCrossTileBoundaryFlag = bValue; }

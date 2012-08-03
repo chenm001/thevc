@@ -132,6 +132,9 @@ protected:
   Bool      m_useLossless;                                    ///< flag for using lossless coding
   Bool      m_bUseSAO; 
   Int       m_maxNumOffsetsPerPic;                            ///< SAO maximun number of offset per picture
+#if SAO_LCU_BOUNDARY
+  Bool      m_saoLcuBoundary;                                 ///< SAO parameter estimation using non-deblocked pixels for LCU bottom and right boundary areas
+#endif
   Bool      m_saoLcuBasedOptimization;                        ///< SAO LCU-based optimization
   // coding tools (loop filter)
 #if !REMOVE_ALF

@@ -753,7 +753,9 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       if (pcSlice->getSPS()->getUseSAO())
       {
          WRITE_FLAG( pcSlice->getSaoEnabledFlag(), "SAO on/off flag in slice header" );
+#if !SAO_LUM_CHROMA_ONOFF_FLAGS
          if (pcSlice->getSaoEnabledFlag() )
+#endif
          {
 #if REMOVE_APS
            SAOParam *saoParam = pcSlice->getPic()->getPicSym()->getSaoParam();

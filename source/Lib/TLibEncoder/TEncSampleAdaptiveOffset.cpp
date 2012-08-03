@@ -109,7 +109,11 @@ inline Double xRoundIbdi(Double x)
 /** process SAO for one partition
  * \param  *psQTPart, iPartIdx, dLambda
  */
+#if PICTURE_SAO_RDO_FIX
+Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, Double dLambda, Int yCbCr)
+#else
 Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, Double dLambda)
+#endif
 {
   Int iTypeIdx;
   Int iNumTotalType = MAX_NUM_SAO_TYPE;
@@ -127,6 +131,14 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
   Int     currentDistortionTableBo[MAX_NUM_SAO_CLASS];
   Double  currentRdCostTableBo[MAX_NUM_SAO_CLASS];
 
+#if PICTURE_SAO_RDO_FIX
+  Int addr;
+  Int allowMergeLeft;
+  Int allowMergeUp;
+  Int iFrameWidthInCU = m_pcPic->getFrameWidthInCU();
+  SaoLcuParam  saoLcuParamRdo;
+#endif
+
   for (iTypeIdx=-1; iTypeIdx<iNumTotalType; iTypeIdx++)
   {
     if( m_bUseSBACRD )
@@ -142,7 +154,59 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
 
     iEstDist = 0;
 
+#if PICTURE_SAO_RDO_FIX
+    if (iTypeIdx == -1)
+    {      
+      for (Int ry = pOnePart->StartCUY; ry<= pOnePart->EndCUY; ry++)
+      {
+        for (Int rx = pOnePart->StartCUX; rx <= pOnePart->EndCUX; rx++)
+        {
+          addr = ry * iFrameWidthInCU + rx;          
+
+          // get bits for iTypeIdx = -1
+          allowMergeLeft = 1;
+          allowMergeUp   = 1;
+          if (rx != 0)
+          { 
+            // check tile id and slice id 
+            if ( (m_pcPic->getPicSym()->getTileIdxMap(addr-1) != m_pcPic->getPicSym()->getTileIdxMap(addr)) || (m_pcPic->getCU(addr-1)->getSlice()->getSliceIdx() != m_pcPic->getCU(addr)->getSlice()->getSliceIdx()))
+            {
+              allowMergeLeft = 0;
+            }
+          }
+          if (ry!=0)
+          {
+            if ( (m_pcPic->getPicSym()->getTileIdxMap(addr-m_iNumCuInWidth) != m_pcPic->getPicSym()->getTileIdxMap(addr)) || (m_pcPic->getCU(addr-m_iNumCuInWidth)->getSlice()->getSliceIdx() != m_pcPic->getCU(addr)->getSlice()->getSliceIdx()))
+            {
+              allowMergeUp = 0;
+            }
+          }
+
+          // reset
+          resetSaoUnit(&saoLcuParamRdo);
+
+          // set merge flag
+          saoLcuParamRdo.mergeUpFlag   = 1;
+          saoLcuParamRdo.mergeLeftFlag = 1;
+
+          if (ry == pOnePart->StartCUY) 
+          {
+            saoLcuParamRdo.mergeUpFlag = 0;
+          } 
+          
+          if (rx == pOnePart->StartCUX) 
+          {
+            saoLcuParamRdo.mergeLeftFlag = 0;
+          }
+
+          m_pcEntropyCoder->encodeSaoUnitInterleaving(yCbCr, 1, rx, ry,  &saoLcuParamRdo, 1,  1,  allowMergeLeft, allowMergeUp);
+
+        }
+      }
+    }
+#else
     m_pcEntropyCoder->m_pcEntropyCoderIf->codeSaoTypeIdx(iTypeIdx+1);
+#endif
 
     if (iTypeIdx>=0)
     {
@@ -174,6 +238,73 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
           iEstDist += currentDistortionTableBo[iClassIdx];
         }
       }
+
+#if PICTURE_SAO_RDO_FIX      
+      for (Int ry = pOnePart->StartCUY; ry<= pOnePart->EndCUY; ry++)
+      {
+        for (Int rx = pOnePart->StartCUX; rx <= pOnePart->EndCUX; rx++)
+        {
+          addr = ry * iFrameWidthInCU + rx;          
+
+          // get bits for iTypeIdx = -1
+          allowMergeLeft = 1;
+          allowMergeUp   = 1;
+          if (rx != 0)
+          { 
+            // check tile id and slice id 
+            if ( (m_pcPic->getPicSym()->getTileIdxMap(addr-1) != m_pcPic->getPicSym()->getTileIdxMap(addr)) || (m_pcPic->getCU(addr-1)->getSlice()->getSliceIdx() != m_pcPic->getCU(addr)->getSlice()->getSliceIdx()))
+            {
+              allowMergeLeft = 0;
+            }
+          }
+          if (ry!=0)
+          {
+            if ( (m_pcPic->getPicSym()->getTileIdxMap(addr-m_iNumCuInWidth) != m_pcPic->getPicSym()->getTileIdxMap(addr)) || (m_pcPic->getCU(addr-m_iNumCuInWidth)->getSlice()->getSliceIdx() != m_pcPic->getCU(addr)->getSlice()->getSliceIdx()))
+            {
+              allowMergeUp = 0;
+            }
+          }
+
+          // reset
+          resetSaoUnit(&saoLcuParamRdo);
+          
+          // set merge flag
+          saoLcuParamRdo.mergeUpFlag   = 1;
+          saoLcuParamRdo.mergeLeftFlag = 1;
+
+          if (ry == pOnePart->StartCUY) 
+          {
+            saoLcuParamRdo.mergeUpFlag = 0;
+          } 
+          
+          if (rx == pOnePart->StartCUX) 
+          {
+            saoLcuParamRdo.mergeLeftFlag = 0;
+          }
+
+          // set type and offsets
+          saoLcuParamRdo.typeIdx = iTypeIdx;
+#if SAO_TYPE_CODING
+          saoLcuParamRdo.subTypeIdx = (iTypeIdx==SAO_BO)?bestClassTableBo:0;
+#else
+          saoLcuParamRdo.bandPosition = (iTypeIdx==SAO_BO)?bestClassTableBo:0;
+#endif        
+          saoLcuParamRdo.length = m_iNumClass[iTypeIdx];
+          for (iClassIdx = 0; iClassIdx < saoLcuParamRdo.length; iClassIdx++)
+          {
+#if SAO_TYPE_CODING
+            saoLcuParamRdo.offset[iClassIdx] = (Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx+saoLcuParamRdo.subTypeIdx+1];
+#else
+            saoLcuParamRdo.offset[iClassIdx] = (Int)m_iOffset[iPartIdx][iTypeIdx][iClassIdx+saoLcuParamRdo.bandPosition+1];
+#endif            
+          }
+
+          m_pcEntropyCoder->encodeSaoUnitInterleaving(yCbCr, 1, rx, ry,  &saoLcuParamRdo, 1,  1,  allowMergeLeft, allowMergeUp);
+
+        }
+      }
+#else // #if PICTURE_SAO_RDO_FIX 
+
       SaoLcuParam  saoLcuParamRdo;   
       resetSaoUnit(&saoLcuParamRdo);
       saoLcuParamRdo.typeIdx = iTypeIdx;
@@ -198,6 +329,8 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
 #else
       m_pcEntropyCoder->encodeSaoOffset(&saoLcuParamRdo);
 #endif
+#endif // #if PICTURE_SAO_RDO_FIX 
+
       m_iDist[iPartIdx][iTypeIdx] = iEstDist;
       m_iRate[iPartIdx][iTypeIdx] = m_pcEntropyCoder->getNumberOfWrittenBits();
 
@@ -279,7 +412,11 @@ Void TEncSampleAdaptiveOffset::disablePartTree(SAOQTPart *psQTPart, Int iPartIdx
 /** Run quadtree decision function
  * \param  iPartIdx, pcPicOrg, pcPicDec, pcPicRest, &dCostFinal
  */
+#if PICTURE_SAO_RDO_FIX
+Void TEncSampleAdaptiveOffset::runQuadTreeDecision(SAOQTPart *psQTPart, Int iPartIdx, Double &dCostFinal, Int iMaxLevel, Double dLambda, Int yCbCr)
+#else
 Void TEncSampleAdaptiveOffset::runQuadTreeDecision(SAOQTPart *psQTPart, Int iPartIdx, Double &dCostFinal, Int iMaxLevel, Double dLambda)
+#endif
 {
   SAOQTPart*  pOnePart = &(psQTPart[iPartIdx]);
 
@@ -294,7 +431,11 @@ Void TEncSampleAdaptiveOffset::runQuadTreeDecision(SAOQTPart *psQTPart, Int iPar
   //SAO for this part
   if(!pOnePart->bProcessed)
   {
+#if PICTURE_SAO_RDO_FIX
+    rdoSaoOnePart (psQTPart, iPartIdx, dLambda, yCbCr);
+#else
     rdoSaoOnePart (psQTPart, iPartIdx, dLambda);
+#endif
   }
 
   //SAO for sub 4 parts
@@ -316,7 +457,11 @@ Void TEncSampleAdaptiveOffset::runQuadTreeDecision(SAOQTPart *psQTPart, Int iPar
           m_pppcRDSbacCoder[uhNextDepth][CI_CURR_BEST]->load(m_pppcRDSbacCoder[uhNextDepth][CI_NEXT_BEST]);
         }
       }  
+#if PICTURE_SAO_RDO_FIX
+      runQuadTreeDecision(psQTPart, pOnePart->DownPartsIdx[i], dCostFinal, iMaxLevel, dLambda, yCbCr);
+#else
       runQuadTreeDecision(psQTPart, pOnePart->DownPartsIdx[i], dCostFinal, iMaxLevel, dLambda);
+#endif
       dCostSplit += dCostFinal;
       if( m_bUseSBACRD )
       {
@@ -438,6 +583,51 @@ Void TEncSampleAdaptiveOffset::destroyEncBuffer()
   {
     delete [] m_iOffsetOrg ; m_iOffsetOrg = NULL;
   }
+#if SAO_LCU_BOUNDARY
+  Int iNumLcu = m_iNumCuInWidth * m_iNumCuInHeight;
+
+  for (Int i=0;i<iNumLcu;i++)
+  {
+    for (Int j=0;j<3;j++)
+    {
+      for (Int k=0;k<MAX_NUM_SAO_TYPE;k++)
+      {
+        if (m_iCount_PreDblk [i][j][k])
+        {
+          delete [] m_iCount_PreDblk [i][j][k]; 
+        }
+        if (m_iOffsetOrg_PreDblk[i][j][k])
+        {
+          delete [] m_iOffsetOrg_PreDblk[i][j][k];
+        }
+      }
+      if (m_iCount_PreDblk [i][j])
+      {
+        delete [] m_iCount_PreDblk [i][j]; 
+      }
+      if (m_iOffsetOrg_PreDblk[i][j])
+      {
+        delete [] m_iOffsetOrg_PreDblk[i][j]; 
+      }
+    }
+    if (m_iCount_PreDblk [i])
+    {
+      delete [] m_iCount_PreDblk [i]; 
+    }
+    if (m_iOffsetOrg_PreDblk[i])
+    {
+      delete [] m_iOffsetOrg_PreDblk[i]; 
+    }
+  }
+  if (m_iCount_PreDblk)
+  {
+    delete [] m_iCount_PreDblk  ; m_iCount_PreDblk = NULL;
+  }
+  if (m_iOffsetOrg_PreDblk)
+  {
+    delete [] m_iOffsetOrg_PreDblk ; m_iOffsetOrg_PreDblk = NULL;
+  }
+#endif
 
   Int iMaxDepth = 4;
   Int iDepth;
@@ -494,6 +684,28 @@ Void TEncSampleAdaptiveOffset::createEncBuffer()
       m_iOffsetOrg[i][j]= new Int64 [MAX_NUM_SAO_CLASS]; 
     }
   }
+#if SAO_LCU_BOUNDARY
+  Int iNumLcu = m_iNumCuInWidth * m_iNumCuInHeight;
+  m_iCount_PreDblk  = new Int64 ***[iNumLcu];
+  m_iOffsetOrg_PreDblk = new Int64 ***[iNumLcu];
+  for (Int i=0; i<iNumLcu; i++)
+  {
+    m_iCount_PreDblk[i]  = new Int64 **[3];
+    m_iOffsetOrg_PreDblk[i] = new Int64 **[3];
+
+    for (Int j=0;j<3;j++)
+    {
+      m_iCount_PreDblk [i][j] = new Int64 *[MAX_NUM_SAO_TYPE]; 
+      m_iOffsetOrg_PreDblk[i][j] = new Int64 *[MAX_NUM_SAO_TYPE]; 
+
+      for (Int k=0;k<MAX_NUM_SAO_TYPE;k++)
+      {
+        m_iCount_PreDblk [i][j][k]   = new Int64 [MAX_NUM_SAO_CLASS]; 
+        m_iOffsetOrg_PreDblk[i][j][k]= new Int64 [MAX_NUM_SAO_CLASS]; 
+      }
+    }
+  }
+#endif
 
   Int iMaxDepth = 4;
   m_pppcRDSbacCoder = new TEncSbac** [iMaxDepth+1];
@@ -913,6 +1125,13 @@ Void TEncSampleAdaptiveOffset::calcSaoStatsCuOrg(Int iAddr, Int iPartIdx, Int iY
 
 //if(iSaoType == BO_0 || iSaoType == BO_1)
   {
+#if SAO_LCU_BOUNDARY
+    if( m_saoLcuBasedOptimization && m_saoLcuBoundary )
+    {
+      numSkipLine = iIsChroma? 1:3;
+      numSkipLineRight = iIsChroma? 2:4;
+    }
+#endif
     iStats = m_iOffsetOrg[iPartIdx][SAO_BO];
     iCount = m_iCount    [iPartIdx][SAO_BO];
 
@@ -956,6 +1175,13 @@ Void TEncSampleAdaptiveOffset::calcSaoStatsCuOrg(Int iAddr, Int iPartIdx, Int iY
   {
   //if (iSaoType == EO_0)
     {
+#if SAO_LCU_BOUNDARY
+      if( m_saoLcuBasedOptimization && m_saoLcuBoundary )
+      {
+        numSkipLine = iIsChroma? 1:3;
+        numSkipLineRight = iIsChroma? 3:5;
+      }
+#endif
       iStats = m_iOffsetOrg[iPartIdx][SAO_EO_0];
       iCount = m_iCount    [iPartIdx][SAO_EO_0];
 
@@ -987,6 +1213,13 @@ Void TEncSampleAdaptiveOffset::calcSaoStatsCuOrg(Int iAddr, Int iPartIdx, Int iY
 
   //if (iSaoType == EO_1)
     {
+#if SAO_LCU_BOUNDARY
+      if( m_saoLcuBasedOptimization && m_saoLcuBoundary )
+      {
+        numSkipLine = iIsChroma? 2:4;
+        numSkipLineRight = iIsChroma? 2:4;
+      }
+#endif
       iStats = m_iOffsetOrg[iPartIdx][SAO_EO_1];
       iCount = m_iCount    [iPartIdx][SAO_EO_1];
 
@@ -1029,6 +1262,13 @@ Void TEncSampleAdaptiveOffset::calcSaoStatsCuOrg(Int iAddr, Int iPartIdx, Int iY
     }
   //if (iSaoType == EO_2)
     {
+#if SAO_LCU_BOUNDARY
+      if( m_saoLcuBasedOptimization && m_saoLcuBoundary )
+      {
+        numSkipLine = iIsChroma? 2:4;
+        numSkipLineRight = iIsChroma? 3:5;
+      }
+#endif
       iStats = m_iOffsetOrg[iPartIdx][SAO_EO_2];
       iCount = m_iCount    [iPartIdx][SAO_EO_2];
 
@@ -1076,6 +1316,13 @@ Void TEncSampleAdaptiveOffset::calcSaoStatsCuOrg(Int iAddr, Int iPartIdx, Int iY
     } 
   //if (iSaoType == EO_3  )
     {
+#if SAO_LCU_BOUNDARY
+      if( m_saoLcuBasedOptimization && m_saoLcuBoundary )
+      {
+        numSkipLine = iIsChroma? 2:4;
+        numSkipLineRight = iIsChroma? 3:5;
+      }
+#endif
       iStats = m_iOffsetOrg[iPartIdx][SAO_EO_3];
       iCount = m_iCount    [iPartIdx][SAO_EO_3];
 
@@ -1120,6 +1367,313 @@ Void TEncSampleAdaptiveOffset::calcSaoStatsCuOrg(Int iAddr, Int iPartIdx, Int iY
     } 
   }
 }
+
+
+#if SAO_LCU_BOUNDARY
+Void TEncSampleAdaptiveOffset::calcSaoStatsCu_BeforeDblk( TComPic* pcPic )
+//(Int iAddr, Int iPartIdx, Int iYCbCr)
+{
+  Int iAddr, iYCbCr;
+  Int x,y;
+  TComSPS *pTmpSPS =  pcPic->getSlice(0)->getSPS();
+
+  Pel* pOrg;
+  Pel* pRec;
+  Int iStride;
+  Int iLcuWidth  = pTmpSPS->getMaxCUHeight();
+  Int iLcuHeight = pTmpSPS->getMaxCUWidth();
+  UInt uiRPelX;
+  UInt uiBPelY;
+  Int64* iStats;
+  Int64* iCount;
+  Int iClassIdx;
+  Int iPicWidthTmp = 0;
+  Int iPicHeightTmp = 0;
+  Int iStartX;
+  Int iStartY;
+  Int iEndX;
+  Int iEndY;
+  Int iFirstX, iFirstY;
+
+  Int idxY;
+  Int idxX;
+  Int frameHeightInCU = m_iNumCuInHeight;
+  Int frameWidthInCU  = m_iNumCuInWidth;
+  Int j, k;
+
+  Int iIsChroma;
+  Int numSkipLine, numSkipLineRight;
+
+  UInt uiLPelX, uiTPelY;
+  TComDataCU *pTmpCu;
+
+  for (idxY = 0; idxY< frameHeightInCU; idxY++)
+  {
+    for (idxX = 0; idxX< frameWidthInCU; idxX++)
+    {
+      iLcuWidth  = pTmpSPS->getMaxCUHeight();
+      iLcuHeight = pTmpSPS->getMaxCUWidth();
+      iAddr     = idxX  + frameWidthInCU*idxY;
+      pTmpCu = pcPic->getCU(iAddr);
+      uiLPelX   = pTmpCu->getCUPelX();
+      uiTPelY   = pTmpCu->getCUPelY();
+      for( iYCbCr = 0; iYCbCr < 3; iYCbCr++ )
+      {
+        iIsChroma = (iYCbCr!=0)? 1:0;
+
+        for ( j=0;j<MAX_NUM_SAO_TYPE;j++)
+        {
+          for ( k=0;k< MAX_NUM_SAO_CLASS;k++)
+          {
+            m_iCount_PreDblk    [iAddr][iYCbCr][j][k] = 0;
+            m_iOffsetOrg_PreDblk[iAddr][iYCbCr][j][k] = 0;
+          }  
+        }
+        if( iYCbCr == 0 )
+        {
+          iPicWidthTmp  = m_iPicWidth;
+          iPicHeightTmp = m_iPicHeight;
+        }
+        else if( iYCbCr == 1 )
+        {
+          iPicWidthTmp  = m_iPicWidth  >> iIsChroma;
+          iPicHeightTmp = m_iPicHeight >> iIsChroma;
+          iLcuWidth     = iLcuWidth    >> iIsChroma;
+          iLcuHeight    = iLcuHeight   >> iIsChroma;
+          uiLPelX       = uiLPelX      >> iIsChroma;
+          uiTPelY       = uiTPelY      >> iIsChroma;
+        }
+        uiRPelX       = uiLPelX + iLcuWidth  ;
+        uiBPelY       = uiTPelY + iLcuHeight ;
+        uiRPelX       = uiRPelX > iPicWidthTmp  ? iPicWidthTmp  : uiRPelX;
+        uiBPelY       = uiBPelY > iPicHeightTmp ? iPicHeightTmp : uiBPelY;
+        iLcuWidth     = uiRPelX - uiLPelX;
+        iLcuHeight    = uiBPelY - uiTPelY;
+
+        iStride    =  (iYCbCr == 0)? pcPic->getStride(): pcPic->getCStride();
+
+        //if(iSaoType == BO)
+
+        numSkipLine = iIsChroma? 1:3;
+        numSkipLineRight = iIsChroma? 2:4;
+
+        iStats = m_iOffsetOrg_PreDblk[iAddr][iYCbCr][SAO_BO];
+        iCount = m_iCount_PreDblk[iAddr][iYCbCr][SAO_BO];
+
+        pOrg = getPicYuvAddr(pcPic->getPicYuvOrg(), iYCbCr, iAddr);
+        pRec = getPicYuvAddr(pcPic->getPicYuvRec(), iYCbCr, iAddr);
+
+        iStartX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth : iLcuWidth-numSkipLineRight;
+        iStartY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight : iLcuHeight-numSkipLine;
+
+        for (y=0; y<iLcuHeight; y++)
+        {
+          for (x=0; x<iLcuWidth; x++)
+          {
+            if( x < iStartX && y < iStartY )
+              continue;
+
+            iClassIdx = m_lumaTableBo[pRec[x]];
+            if (iClassIdx)
+            {
+              iStats[iClassIdx] += (pOrg[x] - pRec[x]); 
+              iCount[iClassIdx] ++;
+            }
+          }
+          pOrg += iStride;
+          pRec += iStride;
+        }
+
+        Int iSignLeft;
+        Int iSignRight;
+        Int iSignDown;
+        Int iSignDown1;
+        Int iSignDown2;
+
+        UInt uiEdgeType;
+
+        //if (iSaoType == EO_0)
+
+        numSkipLine = iIsChroma? 1:3;
+        numSkipLineRight = iIsChroma? 3:5;
+
+        iStats = m_iOffsetOrg_PreDblk[iAddr][iYCbCr][SAO_EO_0];
+        iCount = m_iCount_PreDblk[iAddr][iYCbCr][SAO_EO_0];
+
+        pOrg = getPicYuvAddr(pcPic->getPicYuvOrg(), iYCbCr, iAddr);
+        pRec = getPicYuvAddr(pcPic->getPicYuvRec(), iYCbCr, iAddr);
+
+        iStartX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth-numSkipLineRight;
+        iStartY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight : iLcuHeight-numSkipLine;
+        iFirstX   = (uiLPelX == 0) ? 1 : 0;
+        iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth;
+
+        for (y=0; y<iLcuHeight; y++)
+        {
+          iSignLeft = xSign(pRec[iFirstX] - pRec[iFirstX-1]);
+          for (x=iFirstX; x< iEndX; x++)
+          {
+            iSignRight =  xSign(pRec[x] - pRec[x+1]); 
+            uiEdgeType =  iSignRight + iSignLeft + 2;
+            iSignLeft  = -iSignRight;
+
+            if( x < iStartX && y < iStartY )
+              continue;
+
+            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+            iCount[m_auiEoTable[uiEdgeType]] ++;
+          }
+          pOrg += iStride;
+          pRec += iStride;
+        }
+
+        //if (iSaoType == EO_1)
+
+        numSkipLine = iIsChroma? 2:4;
+        numSkipLineRight = iIsChroma? 2:4;
+
+        iStats = m_iOffsetOrg_PreDblk[iAddr][iYCbCr][SAO_EO_1];
+        iCount = m_iCount_PreDblk[iAddr][iYCbCr][SAO_EO_1];
+
+        pOrg = getPicYuvAddr(pcPic->getPicYuvOrg(), iYCbCr, iAddr);
+        pRec = getPicYuvAddr(pcPic->getPicYuvRec(), iYCbCr, iAddr);
+
+        iStartX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth : iLcuWidth-numSkipLineRight;
+        iStartY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight-numSkipLine;
+        iFirstY = (uiTPelY == 0) ? 1 : 0;
+        iEndY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight;
+        if (iFirstY == 1)
+        {
+          pOrg += iStride;
+          pRec += iStride;
+        }
+
+        for (x=0; x< iLcuWidth; x++)
+        {
+          m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride]);
+        }
+        for (y=iFirstY; y<iEndY; y++)
+        {
+          for (x=0; x<iLcuWidth; x++)
+          {
+            iSignDown     =  xSign(pRec[x] - pRec[x+iStride]); 
+            uiEdgeType    =  iSignDown + m_iUpBuff1[x] + 2;
+            m_iUpBuff1[x] = -iSignDown;
+
+            if( x < iStartX && y < iStartY )
+              continue;
+
+            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+            iCount[m_auiEoTable[uiEdgeType]] ++;
+          }
+          pOrg += iStride;
+          pRec += iStride;
+        }
+
+        //if (iSaoType == EO_2)
+
+        numSkipLine = iIsChroma? 2:4;
+        numSkipLineRight = iIsChroma? 3:5;
+
+        iStats = m_iOffsetOrg_PreDblk[iAddr][iYCbCr][SAO_EO_2];
+        iCount = m_iCount_PreDblk[iAddr][iYCbCr][SAO_EO_2];
+
+        pOrg = getPicYuvAddr(pcPic->getPicYuvOrg(), iYCbCr, iAddr);
+        pRec = getPicYuvAddr(pcPic->getPicYuvRec(), iYCbCr, iAddr);
+
+        iStartX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth-numSkipLineRight;
+        iStartY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight-numSkipLine;
+        iFirstX   = (uiLPelX == 0) ? 1 : 0;
+        iFirstY = (uiTPelY == 0) ? 1 : 0;
+        iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth;
+        iEndY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight;
+        if (iFirstY == 1)
+        {
+          pOrg += iStride;
+          pRec += iStride;
+        }
+
+        for (x=iFirstX; x<iEndX; x++)
+        {
+          m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride-1]);
+        }
+        for (y=iFirstY; y<iEndY; y++)
+        {
+          iSignDown2 = xSign(pRec[iStride+iStartX] - pRec[iStartX-1]);
+          for (x=iFirstX; x<iEndX; x++)
+          {
+            iSignDown1      =  xSign(pRec[x] - pRec[x+iStride+1]) ;
+            uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
+            m_iUpBufft[x+1] = -iSignDown1; 
+
+            if( x < iStartX && y < iStartY )
+              continue;
+
+            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+            iCount[m_auiEoTable[uiEdgeType]] ++;
+          }
+          m_iUpBufft[iFirstX] = iSignDown2;
+          ipSwap     = m_iUpBuff1;
+          m_iUpBuff1 = m_iUpBufft;
+          m_iUpBufft = ipSwap;
+
+          pRec += iStride;
+          pOrg += iStride;
+        }
+
+        //if (iSaoType == EO_3)
+
+        numSkipLine = iIsChroma? 2:4;
+        numSkipLineRight = iIsChroma? 3:5;
+
+        iStats = m_iOffsetOrg_PreDblk[iAddr][iYCbCr][SAO_EO_3];
+        iCount = m_iCount_PreDblk[iAddr][iYCbCr][SAO_EO_3];
+
+        pOrg = getPicYuvAddr(pcPic->getPicYuvOrg(), iYCbCr, iAddr);
+        pRec = getPicYuvAddr(pcPic->getPicYuvRec(), iYCbCr, iAddr);
+
+        iStartX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth-numSkipLineRight;
+        iStartY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight-numSkipLine;
+        iFirstX   = (uiLPelX == 0) ? 1 : 0;
+        iFirstY = (uiTPelY == 0) ? 1 : 0;
+        iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth;
+        iEndY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight;
+        if (iFirstY == 1)
+        {
+          pOrg += iStride;
+          pRec += iStride;
+        }
+
+        for (x=iFirstX-1; x<iEndX; x++)
+        {
+          m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride+1]);
+        }
+
+        for (y=iFirstY; y<iEndY; y++)
+        {
+          for (x=iFirstX; x<iEndX; x++)
+          {
+            iSignDown1      =  xSign(pRec[x] - pRec[x+iStride-1]) ;
+            uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
+            m_iUpBuff1[x-1] = -iSignDown1; 
+
+            if( x < iStartX && y < iStartY )
+              continue;
+
+            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+            iCount[m_auiEoTable[uiEdgeType]] ++;
+          }
+          m_iUpBuff1[iEndX-1] = xSign(pRec[iEndX-1 + iStride] - pRec[iEndX]);
+
+          pRec += iStride;
+          pOrg += iStride;
+        }
+      }
+    }
+  }
+}
+#endif
+
 
 /** get SAO statistics
  * \param  *psQTPart,  iYCbCr
@@ -1262,8 +1816,14 @@ Void TEncSampleAdaptiveOffset::SAOProcess(SAOParam *pcSaoParam, Double dLambda)
   m_iOffsetTh = 1 << ( min((Int)(g_uiBitDepth + g_uiBitIncrement-5),5) );
 #endif
   resetSAOParam(pcSaoParam);
+#if SAO_LCU_BOUNDARY
+  if( !m_saoLcuBasedOptimization || !m_saoLcuBoundary )
+  {
+    resetStats();
+  }
+#else
   resetStats();
-
+#endif
 #if !SAO_TYPE_SHARING
   Int iY  = 0;
 #endif
@@ -1285,7 +1845,11 @@ Void TEncSampleAdaptiveOffset::SAOProcess(SAOParam *pcSaoParam, Double dLambda)
     Double lambdaRdo =  dLambdaLuma;
     resetStats();
     getSaoStats(pcSaoParam->psSaoPart[0], 0);
+#if PICTURE_SAO_RDO_FIX
+    runQuadTreeDecision(pcSaoParam->psSaoPart[0], 0, dCostFinal, m_uiMaxSplitLevel, lambdaRdo, 0);
+#else
     runQuadTreeDecision(pcSaoParam->psSaoPart[0], 0, dCostFinal, m_uiMaxSplitLevel, lambdaRdo);
+#endif
     pcSaoParam->bSaoFlag[0] = dCostFinal < 0 ? 1:0;
     if(pcSaoParam->bSaoFlag[0])
     {
@@ -1304,7 +1868,12 @@ Void TEncSampleAdaptiveOffset::SAOProcess(SAOParam *pcSaoParam, Double dLambda)
         Double lambdaRdo = (compIdx==0 ? dLambdaLuma: dLambdaChroma);
         resetStats();
         getSaoStats(pcSaoParam->psSaoPart[compIdx], compIdx);
+#if PICTURE_SAO_RDO_FIX
+        runQuadTreeDecision(pcSaoParam->psSaoPart[compIdx], 0, dCostFinal, m_uiMaxSplitLevel, lambdaRdo, compIdx);        
+#else
         runQuadTreeDecision(pcSaoParam->psSaoPart[compIdx], 0, dCostFinal, m_uiMaxSplitLevel, lambdaRdo);
+#endif
+
         pcSaoParam->bSaoFlag[compIdx] = dCostFinal < 0 ? 1:0;
         if(pcSaoParam->bSaoFlag[compIdx])
         {
@@ -1590,9 +2159,22 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnitAll(SAOParam *saoParam, Double lambda, 
         {
           for ( k=0;k< MAX_NUM_SAO_CLASS;k++)
           {
+#if SAO_LCU_BOUNDARY
+            m_iOffset   [compIdx][j][k] = 0;
+            if( m_saoLcuBasedOptimization && m_saoLcuBoundary ){
+              m_iCount    [compIdx][j][k] = m_iCount_PreDblk    [addr][compIdx][j][k];
+              m_iOffsetOrg[compIdx][j][k] = m_iOffsetOrg_PreDblk[addr][compIdx][j][k];
+            }
+            else
+            {
+              m_iCount    [compIdx][j][k] = 0;
+              m_iOffsetOrg[compIdx][j][k] = 0;
+            }
+#else
             m_iCount    [compIdx][j][k] = 0;
             m_iOffset   [compIdx][j][k] = 0;
             m_iOffsetOrg[compIdx][j][k] = 0;
+#endif
           }  
         }
         saoParam->saoLcuParam[compIdx][addr].typeIdx       =  -1;

@@ -1102,7 +1102,9 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
       if (sps->getUseSAO())
       {
         READ_FLAG(uiCode, "slice_sample_adaptive_offset_flag");  rpcSlice->setSaoEnabledFlag((Bool)uiCode);
+#if !SAO_LUM_CHROMA_ONOFF_FLAGS
         if (rpcSlice->getSaoEnabledFlag() )
+#endif
         {
 #if SAO_TYPE_SHARING 
           READ_FLAG(uiCode, "sao_chroma_enable_flag");  rpcSlice->setSaoEnabledFlagChroma((Bool)uiCode);
@@ -1111,6 +1113,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
           READ_FLAG(uiCode, "sao_cr_enable_flag");  rpcSlice->setSaoEnabledFlagCr((Bool)uiCode);
 #endif
         }
+#if !SAO_LUM_CHROMA_ONOFF_FLAGS
         else
         {
 #if SAO_TYPE_SHARING
@@ -1120,6 +1123,7 @@ Void TDecCavlc::parseSliceHeader (TComSlice*& rpcSlice, ParameterSetManagerDecod
           rpcSlice->setSaoEnabledFlagCr(0);
 #endif
         }
+#endif
       }
 #if !REMOVE_APS
       READ_UVLC (    uiCode, "aps_id" );  rpcSlice->setAPSId(uiCode);
