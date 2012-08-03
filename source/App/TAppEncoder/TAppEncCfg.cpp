@@ -269,7 +269,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("SAO",                     m_bUseSAO,                 true, "Enable Sample Adaptive Offset")
   ("MaxNumOffsetsPerPic",     m_maxNumOffsetsPerPic,     2048, "Max number of SAO offset per picture (Default: 2048)")   
 #if SAO_LCU_BOUNDARY
-  ("SAOLcuBoundary",          m_saoLcuBoundary,          true, "0: right/bottom LCU boundary areas skipped from SAO parameter estimation, 1: non-deblocked pixels are used for those areas")
+  ("SAOLcuBoundary",          m_saoLcuBoundary,          false, "0: right/bottom LCU boundary areas skipped from SAO parameter estimation, 1: non-deblocked pixels are used for those areas")
 #endif
   ("SAOLcuBasedOptimization", m_saoLcuBasedOptimization, true, "0: SAO picture-based optimization, 1: SAO LCU-based optimization ")
 #if !REMOVE_ALF
