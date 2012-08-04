@@ -63,10 +63,12 @@ Void  xTracePPSHeader (TComPPS *pPPS)
   fprintf( g_hTrace, "=========== Picture Parameter Set ID: %d ===========\n", pPPS->getPPSId() );
 }
 
+#if !REMOVE_APS
 Void  xTraceAPSHeader (TComAPS *pAPS)
 {
   fprintf( g_hTrace, "=========== Adaptation Parameter Set ===========\n");
 }
+#endif
 
 Void  xTraceSliceHeader (TComSlice *pSlice)
 {
@@ -121,7 +123,9 @@ TEncCavlc::TEncCavlc()
 {
   m_pcBitIf           = NULL;
   m_uiCoeffCost       = 0;
+#if !REMOVE_FGS
   m_iSliceGranularity = 0;
+#endif
 }
 
 TEncCavlc::~TEncCavlc()
@@ -145,6 +149,7 @@ void TEncCavlc::codeSEI(const SEI& sei)
   writeSEImessage(*m_pcBitIf, sei);
 }
 
+#if !REMOVE_APS
 Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
 {
 
@@ -154,6 +159,7 @@ Void  TEncCavlc::codeAPSInitInfo(TComAPS* pcAPS)
   //APS ID
   WRITE_UVLC( pcAPS->getAPSID(), "aps_id" );
 }
+#endif
 
 Void TEncCavlc::codeDFFlag(UInt uiCode, const Char *pSymbolName)
 {
@@ -164,7 +170,11 @@ Void TEncCavlc::codeDFSvlc(Int iCode, const Char *pSymbolName)
   WRITE_SVLC(iCode, pSymbolName);
 }
 
+#if J0234_INTER_RPS_SIMPL
+Void TEncCavlc::codeShortTermRefPicSet( TComSPS* pcSPS, TComReferencePictureSet* rps, Bool calledFromSliceHeader)
+#else
 Void TEncCavlc::codeShortTermRefPicSet( TComSPS* pcSPS, TComReferencePictureSet* rps )
+#endif
 {
 #if PRINT_RPS_INFO
   int lastBits = getNumberOfWrittenBits();
@@ -173,7 +183,15 @@ Void TEncCavlc::codeShortTermRefPicSet( TComSPS* pcSPS, TComReferencePictureSet*
   if (rps->getInterRPSPrediction()) 
   {
     Int deltaRPS = rps->getDeltaRPS();
+#if J0234_INTER_RPS_SIMPL
+    if(calledFromSliceHeader)
+    {
+      WRITE_UVLC( rps->getDeltaRIdxMinus1(), "delta_idx_minus1" ); // delta index of the Reference Picture Set used for prediction minus 1
+    }
+#else
     WRITE_UVLC( rps->getDeltaRIdxMinus1(), "delta_idx_minus1" ); // delta index of the Reference Picture Set used for prediction minus 1
+#endif
+
     WRITE_CODE( (deltaRPS >=0 ? 0: 1), 1, "delta_rps_sign" ); //delta_rps_sign
     WRITE_UVLC( abs(deltaRPS) - 1, "abs_delta_rps_minus1"); // absolute delta RPS minus 1
 
@@ -230,10 +248,34 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 
   WRITE_SVLC( pcPPS->getPicInitQPMinus26(),                  "pic_init_qp_minus26");
   WRITE_FLAG( pcPPS->getConstrainedIntraPred() ? 1 : 0,      "constrained_intra_pred_flag" );
+#if PPS_TS_FLAG
+  WRITE_FLAG( pcPPS->getUseTransformSkip() ? 1 : 0,  "transform_skip_enabled_flag" ); 
+#endif
+#if !REMOVE_FGS
   WRITE_CODE( pcPPS->getSliceGranularity(), 2,               "slice_granularity");
+#endif
+#if CU_DQP_ENABLE_FLAG
+  WRITE_FLAG( pcPPS->getUseDQP() ? 1 : 0, "cu_qp_delta_enabled_flag" );
+  if ( pcPPS->getUseDQP() )
+  {
+#if REMOVE_FGS
+    WRITE_UVLC( pcPPS->getMaxCuDQPDepth(), "diff_cu_qp_delta_depth" );
+#else
+    WRITE_UVLC( pcPPS->getMaxCuDQPDepth() - pcPPS->getSliceGranularity(), "diff_cu_qp_delta_depth" );
+#endif
+  }
+#else
+#if REMOVE_FGS
+  WRITE_UVLC( pcPPS->getMaxCuDQPDepth() + pcPPS->getUseDQP(),                   "diff_cu_qp_delta_depth" );
+#else
   WRITE_UVLC( pcPPS->getMaxCuDQPDepth() - pcPPS->getSliceGranularity() + pcPPS->getUseDQP(),                   "diff_cu_qp_delta_depth" );
+#endif
+#endif
   WRITE_SVLC( pcPPS->getChromaCbQpOffset(),                   "cb_qp_offset" );
   WRITE_SVLC( pcPPS->getChromaCrQpOffset(),                   "cr_qp_offset" );
+#if CHROMA_QP_EXTENSION
+  WRITE_FLAG( pcPPS->getSliceChromaQpFlag() ? 1 : 0,          "slicelevel_chroma_qp_flag" );
+#endif
 
   WRITE_FLAG( pcPPS->getUseWP() ? 1 : 0,  "weighted_pred_flag" );   // Use of Weighting Prediction (P_SLICE)
   WRITE_FLAG( pcPPS->getWPBiPred() ? 1 : 0, "weighted_bipred_flag" );  // Use of Weighting Bi-Prediction (B_SLICE)
@@ -294,6 +336,9 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
   {
     WRITE_FLAG( pcPPS->getCabacIndependentFlag()? 1 : 0,            "cabac_independent_flag" );
   }
+#endif
+#if MOVE_LOOP_FILTER_SLICES_FLAG
+  WRITE_FLAG( pcPPS->getLFCrossSliceBoundaryFlag()?1 : 0,                            "seq_loop_filter_across_slices_enabled_flag");
 #endif
   WRITE_FLAG( pcPPS->getDeblockingFilterControlPresent()?1 : 0, "deblocking_filter_control_present_flag");
   if(pcPPS->getDeblockingFilterControlPresent())
@@ -413,13 +458,23 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
       codeScalingList( m_pcSlice->getScalingList() );
     }
   }
-  WRITE_FLAG( pcSPS->getUseLMChroma () ? 1 : 0,                                      "chroma_pred_from_luma_enabled_flag" ); 
-  WRITE_FLAG( pcSPS->getUseTransformSkip () ? 1 : 0,                                 "transform_skip_enabled_flag" ); 
+#if !REMOVE_LMCHROMA
+  WRITE_FLAG( pcSPS->getUseLMChroma () ? 1 : 0,                                      "chroma_pred_from_luma_enabled_flag" );
+#endif
+#if !PPS_TS_FLAG
+  WRITE_FLAG( pcSPS->getUseTransformSkip () ? 1 : 0,                                 "transform_skip_enabled_flag" );
+#endif
+#if !MOVE_LOOP_FILTER_SLICES_FLAG
   WRITE_FLAG( pcSPS->getLFCrossSliceBoundaryFlag()?1 : 0,                            "seq_loop_filter_across_slices_enabled_flag");
+#endif
   WRITE_FLAG( pcSPS->getUseAMP(),                                                    "asymmetric_motion_partitions_enabled_flag" );
+#if !REMOVE_NSQT
   WRITE_FLAG( pcSPS->getUseNSQT(),                                                   "non_square_quadtree_enabled_flag" );
+#endif
   WRITE_FLAG( pcSPS->getUseSAO() ? 1 : 0,                                            "sample_adaptive_offset_enabled_flag");
+#if !REMOVE_ALF
   WRITE_FLAG( pcSPS->getUseALF () ? 1 : 0,                                           "adaptive_loop_filter_enabled_flag");
+#endif
   if( pcSPS->getUsePCM() )
   {
   WRITE_FLAG( pcSPS->getPCMFilterDisableFlag()?1 : 0,                                "pcm_loop_filter_disable_flag");
@@ -436,9 +491,24 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   for(Int i=0; i < rpsList->getNumberOfReferencePictureSets(); i++)
   {
     rps = rpsList->getReferencePictureSet(i);
+#if J0234_INTER_RPS_SIMPL
+    codeShortTermRefPicSet(pcSPS,rps,false);
+#else
     codeShortTermRefPicSet(pcSPS,rps);
+#endif
   }    
   WRITE_FLAG( pcSPS->getLongTermRefsPresent() ? 1 : 0,         "long_term_ref_pics_present_flag" );
+#if LTRP_IN_SPS
+  if (pcSPS->getLongTermRefsPresent()) 
+  {
+    WRITE_UVLC(pcSPS->getNumLongTermRefPicSPS(), "num_long_term_ref_pic_sps" );
+    for (UInt k = 0; k < pcSPS->getNumLongTermRefPicSPS(); k++)
+    {
+      WRITE_CODE( pcSPS->getLtRefPicPocLsbSps(k), pcSPS->getBitsForPOC(), "lt_ref_pic_poc_lsb_sps");
+      WRITE_FLAG( pcSPS->getUsedByCurrPicLtSPSFlag(k), "used_by_curr_pic_lt_sps_flag");
+    }
+  }
+#endif
   WRITE_FLAG( pcSPS->getTMVPFlagsPresent()  ? 1 : 0,           "sps_temporal_mvp_enable_flag" );
   // AMVP mode for each depth
   for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
@@ -483,7 +553,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     reqBitsOuter++;
   }
   Int maxAddrInner = pcSlice->getPic()->getNumPartInCU()>>(2);
+#if REMOVE_FGS
+  maxAddrInner = 1;
+#else
   maxAddrInner = (1<<(pcSlice->getPPS()->getSliceGranularity()<<1));
+#endif
   Int reqBitsInner = 0;
   
   while(maxAddrInner>(1<<reqBitsInner))
@@ -496,18 +570,36 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   {
     // Calculate slice address
     lCUAddress = (pcSlice->getSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
+#if REMOVE_FGS
+    innerAddress = 0;
+#else
     innerAddress = (pcSlice->getSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+#endif
   }
   else
   {
     // Calculate slice address
     lCUAddress = (pcSlice->getDependentSliceCurStartCUAddr()/pcSlice->getPic()->getNumPartInCU());
+#if REMOVE_FGS
+    innerAddress = 0;
+#else
     innerAddress = (pcSlice->getDependentSliceCurStartCUAddr()%(pcSlice->getPic()->getNumPartInCU()))>>((pcSlice->getSPS()->getMaxCUDepth()-pcSlice->getPPS()->getSliceGranularity())<<1);
+#endif
     
   }
   //write slice address
   Int address = (pcSlice->getPic()->getPicSym()->getCUOrderMap(lCUAddress) << reqBitsInner) + innerAddress;
   WRITE_FLAG( address==0, "first_slice_in_pic_flag" );
+#if SPLICING_FRIENDLY_PARAMS
+    if(   pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_IDR
+       || pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLANT
+       || pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLA
+       || pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_CRANT
+       || pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_CRA )
+    {
+      WRITE_FLAG( 0, "no_output_of_prior_pics_flag" );
+    }
+#endif
   WRITE_UVLC( pcSlice->getPPS()->getPPSId(), "pic_parameter_set_id" );
   if(address>0) 
   {
@@ -529,6 +621,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
     {
       WRITE_FLAG( pcSlice->getPicOutputFlag() ? 1 : 0, "pic_output_flag" );
     }
+#if !SPLICING_FRIENDLY_PARAMS
     if(   pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_IDR
        || pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLANT
        || pcSlice->getNalUnitType() == NAL_UNIT_CODED_SLICE_BLA
@@ -538,6 +631,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       WRITE_UVLC( 0, "rap_pic_id" );
       WRITE_FLAG( 0, "no_output_of_prior_pics_flag" );
     }
+#endif
     if( pcSlice->getNalUnitType() != NAL_UNIT_CODED_SLICE_IDR )
     {
       Int picOrderCntLSB = (pcSlice->getPOC()-pcSlice->getLastIDR()+(1<<pcSlice->getSPS()->getBitsForPOC()))%(1<<pcSlice->getSPS()->getBitsForPOC());
@@ -546,7 +640,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       if(pcSlice->getRPSidx() < 0)
       {
         WRITE_FLAG( 0, "short_term_ref_pic_set_sps_flag");
+#if J0234_INTER_RPS_SIMPL
+        codeShortTermRefPicSet(pcSlice->getSPS(), rps, true);
+#else
         codeShortTermRefPicSet(pcSlice->getSPS(), rps);
+#endif
       }
       else
       {
@@ -555,21 +653,75 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       }
       if(pcSlice->getSPS()->getLongTermRefsPresent())
       {
+#if LTRP_IN_SPS
+        //Int maxPocLsb = 1<<pcSlice->getSPS()->getBitsForPOC();
+        Int numLtrpInSH = rps->getNumberOfLongtermPictures();
+        Int ltrpInSPS[MAX_NUM_REF_PICS];
+        //Int ltrpInSH[MAX_NUM_REF_PICS];
+        Int numLtrpInSPS = 0;
+        UInt ltrpIndex;
+        Int counter = 0;
+        for(Int k = rps->getNumberOfPictures()-1; k > rps->getNumberOfPictures()-rps->getNumberOfLongtermPictures()-1; k--) 
+        {
+          if (findMatchingLTRP(pcSlice, &ltrpIndex, rps->getPOC(k), rps->getUsed(k))) 
+          {
+            ltrpInSPS[numLtrpInSPS] = ltrpIndex;
+            numLtrpInSPS++;
+          }
+          else
+          {
+            //ltrpInSH[counter] = rps->getPOC(k) % maxPocLsb;
+            counter++;
+          }
+        }
+        numLtrpInSH -= numLtrpInSPS;
+
+        Int bitsForLtrpInSPS = 1;
+        while (pcSlice->getSPS()->getNumLongTermRefPicSPS() > (1 << bitsForLtrpInSPS))
+        {
+          bitsForLtrpInSPS++;
+        }
+        if (pcSlice->getSPS()->getNumLongTermRefPicSPS() > 0) 
+        {
+          WRITE_UVLC( numLtrpInSPS, "num_long_term_sps");
+        }
+        WRITE_UVLC( numLtrpInSH, "num_long_term_pics");
+
+
+#else
         WRITE_UVLC( rps->getNumberOfLongtermPictures(), "num_long_term_pics");
+#endif
         // Note that the LSBs of the LT ref. pic. POCs must be sorted before.
         // Not sorted here because LT ref indices will be used in setRefPicList()
         Int prevDeltaMSB = 0, prevLSB = 0;
         Int offset = rps->getNumberOfNegativePictures() + rps->getNumberOfPositivePictures();
         for(Int i=rps->getNumberOfPictures()-1 ; i > offset-1; i--)
         {
+#if LTRP_IN_SPS
+          if (counter < numLtrpInSPS)
+          {
+            WRITE_CODE( ltrpInSPS[counter], bitsForLtrpInSPS, "lt_idx_sps[i]");
+          }
+          else 
+          {
+            WRITE_CODE( rps->getPocLSBLT(i), pcSlice->getSPS()->getBitsForPOC(), "poc_lsb_lt");
+            WRITE_FLAG( rps->getUsed(i), "used_by_curr_pic_lt_flag"); 
+          }
+#else
           WRITE_CODE( rps->getPocLSBLT(i), pcSlice->getSPS()->getBitsForPOC(), "poc_lsb_lt");
+#endif
           WRITE_FLAG( rps->getDeltaPocMSBPresentFlag(i), "delta_poc_msb_present_flag");
 
           if(rps->getDeltaPocMSBPresentFlag(i))
           {
             Bool deltaFlag = false;
+#if LTRP_IN_SPS
+            //  First LTRP from SPS                 ||  First LTRP from SH                              || curr LSB            != prev LSB
+            if( (i == rps->getNumberOfPictures()-1) || (i == rps->getNumberOfPictures()-1-numLtrpInSPS) || (rps->getPocLSBLT(i) != prevLSB) )
+#else
             //   First LTRP                         ||  curr LSB            != prev LSB
             if( (i == rps->getNumberOfPictures()-1) || (rps->getPocLSBLT(i) != prevLSB) )
+#endif
             {
               deltaFlag = true;
             }
@@ -586,22 +738,41 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
             prevLSB = rps->getPocLSBLT(i);
             prevDeltaMSB = rps->getDeltaPocMSBCycleLT(i);
           }
+#if !LTRP_IN_SPS
           WRITE_FLAG( rps->getUsed(i), "used_by_curr_pic_lt_flag"); 
+#endif
         }
       }
     }
+#if REMOVE_ALF
+    if(pcSlice->getSPS()->getUseSAO())
+#else
     if(pcSlice->getSPS()->getUseSAO() || pcSlice->getSPS()->getUseALF())
+#endif
     {
       if (pcSlice->getSPS()->getUseSAO())
       {
          WRITE_FLAG( pcSlice->getSaoEnabledFlag(), "SAO on/off flag in slice header" );
+#if !SAO_LUM_CHROMA_ONOFF_FLAGS
          if (pcSlice->getSaoEnabledFlag() )
+#endif
          {
-           WRITE_FLAG( pcSlice->getAPS()->getSaoParam()->bSaoFlag[1], "SAO on/off flag for Cb in slice header" );
-           WRITE_FLAG( pcSlice->getAPS()->getSaoParam()->bSaoFlag[2], "SAO on/off flag for Cr in slice header" );
+#if REMOVE_APS
+           SAOParam *saoParam = pcSlice->getPic()->getPicSym()->getSaoParam();
+#else
+           SAOParam *saoParam = pcSlice->getAPS()->getSaoParam();
+#endif
+#if SAO_TYPE_SHARING 
+          WRITE_FLAG( saoParam->bSaoFlag[1], "SAO on/off flag for Cb&Cr in slice header" );
+#else
+          WRITE_FLAG( saoParam->bSaoFlag[1], "SAO on/off flag for Cb in slice header" );
+          WRITE_FLAG( saoParam->bSaoFlag[2], "SAO on/off flag for Cr in slice header" );
+#endif
          }
       }
+#if !REMOVE_APS
       WRITE_UVLC( pcSlice->getAPS()->getAPSID(), "aps_id");
+#endif
     }
 
     //check if numrefidxes match the defaults. If not, override
@@ -701,6 +872,15 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   {
     Int iCode = pcSlice->getSliceQp() - ( pcSlice->getPPS()->getPicInitQPMinus26() + 26 );
     WRITE_SVLC( iCode, "slice_qp_delta" ); 
+#if CHROMA_QP_EXTENSION
+    if (pcSlice->getPPS()->getSliceChromaQpFlag())
+    {
+      iCode = pcSlice->getSliceQpDeltaCb();
+      WRITE_SVLC( iCode, "slice_qp_delta_cb" );
+      iCode = pcSlice->getSliceQpDeltaCr();
+      WRITE_SVLC( iCode, "slice_qp_delta_cr" );
+    }
+#endif
     if (pcSlice->getPPS()->getDeblockingFilterControlPresent())
     {
       if (pcSlice->getPPS()->getLoopFilterOffsetInPPS() )
@@ -743,6 +923,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
   assert(MRG_MAX_NUM_CANDS_SIGNALED<=MRG_MAX_NUM_CANDS);
   WRITE_UVLC(MRG_MAX_NUM_CANDS - pcSlice->getMaxNumMergeCand(), "maxNumMergeCand");
 
+#if !REMOVE_ALF
   if (!bDependentSlice)
   {
     if (pcSlice->getSPS()->getUseALF())
@@ -755,12 +936,24 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       }
     }
   }
+#endif
   if(!bDependentSlice)
   {
+#if !REMOVE_ALF
     Bool isAlfEnabled = (!pcSlice->getSPS()->getUseALF())?(false):(pcSlice->getAlfEnabledFlag(0)||pcSlice->getAlfEnabledFlag(1)||pcSlice->getAlfEnabledFlag(2));
+#endif
     Bool isSAOEnabled = (!pcSlice->getSPS()->getUseSAO())?(false):(pcSlice->getSaoEnabledFlag());
     Bool isDBFEnabled = (!pcSlice->getLoopFilterDisable());
+
+#if REMOVE_ALF
+#if MOVE_LOOP_FILTER_SLICES_FLAG
+    if(pcSlice->getPPS()->getLFCrossSliceBoundaryFlag() && ( isSAOEnabled || isDBFEnabled ))
+#else
+    if(pcSlice->getSPS()->getLFCrossSliceBoundaryFlag() && ( isSAOEnabled || isDBFEnabled ))
+#endif
+#else
     if(pcSlice->getSPS()->getLFCrossSliceBoundaryFlag() && ( isAlfEnabled || isSAOEnabled || isDBFEnabled ))
+#endif
     {
       WRITE_FLAG(pcSlice->getLFCrossSliceBoundaryFlag()?1:0, "slice_loop_filter_across_slices_enabled_flag");
     }
@@ -935,6 +1128,17 @@ Void TEncCavlc::codeQtRootCbf( TComDataCU* pcCU, UInt uiAbsPartIdx )
   assert(0);
 }
 
+#if TU_ZERO_CBF_RDO
+Void TEncCavlc::codeQtCbfZero( TComDataCU* pcCU, UInt uiAbsPartIdx, TextType eType, UInt uiTrDepth )
+{
+  assert(0);
+}
+Void TEncCavlc::codeQtRootCbfZero( TComDataCU* pcCU, UInt uiAbsPartIdx )
+{
+  assert(0);
+}
+#endif
+
 Void TEncCavlc::codeTransformSkipFlags (TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType )
 {
   assert(0);
@@ -1009,6 +1213,7 @@ Void TEncCavlc::xGolombEncode(Int coeff, Int k)
 
 }
 
+#if !REMOVE_ALF
 Void TEncCavlc::codeAlfParam(ALFParam* alfParam)
 {
   char syntaxString[50];
@@ -1065,6 +1270,7 @@ Void TEncCavlc::codeAlfParam(ALFParam* alfParam)
   }
 
 }
+#endif
 
 Void TEncCavlc::estBit( estBitsSbacStruct* pcEstBitsCabac, Int width, Int height, TextType eTType )
 {
@@ -1201,17 +1407,21 @@ Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
   Bool            bChroma     = true; // color always present in HEVC ?
   Int             iNbRef       = (pcSlice->getSliceType() == B_SLICE ) ? (2) : (1);
   Bool            bDenomCoded  = false;
-
   UInt            uiMode = 0;
+#if NUM_WP_LIMIT
+  UInt            uiTotalSignalledWeightFlags = 0;
+#endif
   if ( (pcSlice->getSliceType()==P_SLICE && pcSlice->getPPS()->getUseWP()) || (pcSlice->getSliceType()==B_SLICE && pcSlice->getPPS()->getWPBiPred()) )
   {
     uiMode = 1; // explicit
   }
   if(uiMode == 1)
   {
+
     for ( Int iNumRef=0 ; iNumRef<iNbRef ; iNumRef++ ) 
     {
       RefPicList  eRefPicList = ( iNumRef ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
+
       for ( Int iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx++ ) 
       {
         pcSlice->getWpScaling(eRefPicList, iRefIdx, wp);
@@ -1227,9 +1437,24 @@ Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
           }
           bDenomCoded = true;
         }
-
         WRITE_FLAG( wp[0].bPresentFlag, "luma_weight_lX_flag" );               // u(1): luma_weight_lX_flag
+#if NUM_WP_LIMIT
+        uiTotalSignalledWeightFlags += wp[0].bPresentFlag;
+      }
+      if (bChroma) 
+      {
+        for ( Int iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx++ ) 
+        {
+          pcSlice->getWpScaling(eRefPicList, iRefIdx, wp);
+          WRITE_FLAG( wp[1].bPresentFlag, "chroma_weight_lX_flag" );           // u(1): chroma_weight_lX_flag
+          uiTotalSignalledWeightFlags += 2*wp[1].bPresentFlag;
+        }
+      }
 
+      for ( Int iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx++ ) 
+      {
+        pcSlice->getWpScaling(eRefPicList, iRefIdx, wp);
+#endif
         if ( wp[0].bPresentFlag ) 
         {
           Int iDeltaWeight = (wp[0].iWeight - (1<<wp[0].uiLog2WeightDenom));
@@ -1239,8 +1464,9 @@ Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
 
         if ( bChroma ) 
         {
+#if !NUM_WP_LIMIT
           WRITE_FLAG( wp[1].bPresentFlag, "chroma_weight_lX_flag" );           // u(1): chroma_weight_lX_flag
-
+#endif
           if ( wp[1].bPresentFlag )
           {
             for ( Int j=1 ; j<3 ; j++ ) 
@@ -1257,6 +1483,9 @@ Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
         }
       }
     }
+#if NUM_WP_LIMIT
+    assert(uiTotalSignalledWeightFlags<=24);
+#endif
   }
 }
 
@@ -1311,7 +1540,11 @@ Void TEncCavlc::codeScalingList( TComScalingList* scalingList )
 Void TEncCavlc::xCodeScalingList(TComScalingList* scalingList, UInt sizeId, UInt listId)
 {
   Int coefNum = min(MAX_MATRIX_COEF_NUM,(Int)g_scalingListSize[sizeId]);
+#if REMOVE_ZIGZAG_SCAN
+  UInt* scan  = (sizeId == 0) ? g_auiSigLastScan [ SCAN_DIAG ] [ 1 ] :  g_sigLastScanCG32x32;
+#else
   UInt* scan    = g_auiFrameScanXY [ (sizeId == 0)? 1 : 2];
+#endif
   Int nextCoef = SCALING_LIST_START_VALUE;
   Int data;
   Int *src = scalingList->getScalingListAddress(sizeId, listId);
@@ -1336,6 +1569,22 @@ Void TEncCavlc::xCodeScalingList(TComScalingList* scalingList, UInt sizeId, UInt
       WRITE_SVLC( data,  "scaling_list_delta_coef");
     }
 }
+#if LTRP_IN_SPS
+Bool TEncCavlc::findMatchingLTRP ( TComSlice* pcSlice, UInt *ltrpsIndex, Int ltrpPOC, Bool usedFlag )
+{
+  // bool state = true, state2 = false;
+  Int lsb = ltrpPOC % (1<<pcSlice->getSPS()->getBitsForPOC());
+  for (Int k = 0; k < pcSlice->getSPS()->getNumLongTermRefPicSPS(); k++)
+  {
+    if ( (lsb == pcSlice->getSPS()->getLtRefPicPocLsbSps(k)) && (usedFlag == pcSlice->getSPS()->getUsedByCurrPicLtSPSFlag(k)) )
+    {
+      *ltrpsIndex = k;
+      return true;
+    }
+  }
+  return false;
+}
+#endif
 Bool TComScalingList::checkPredMode(UInt sizeId, UInt listId)
 {
   for(Int predListIdx = (Int)listId ; predListIdx >= 0; predListIdx--)

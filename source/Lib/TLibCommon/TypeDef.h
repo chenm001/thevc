@@ -38,14 +38,80 @@
 #ifndef _TYPEDEF__
 #define _TYPEDEF__
 
+
+
 //! \ingroup TLibCommon
 //! \{
 
+#define SAO_LUM_CHROMA_ONOFF_FLAGS       1  ///< J0087: slice-level independent luma/chroma SAO on/off flag 
+#define LTRP_IN_SPS                      1  ///< J0116: Include support for signalling LTRP LSBs in the SPS, and index them in the slice header.
+#define CHROMA_QP_EXTENSION              1  ///< J0342: Extend mapping table from luma QP to chroma QP, introduce slice-level chroma offsets, apply limits on offset values
+#define SIMPLE_LUMA_CBF_CTX_DERIVATION   1  ///< J0303: simplified luma_CBF context derivation
+
+#define COEF_REMAIN_BIN_REDUCTION        3 ///< J0142: Maximum codeword length of coeff_abs_level_remaining reduced to 32.
+                                           ///< COEF_REMAIN_BIN_REDUCTION is also used to indicate the level at which the VLC 
+                                           ///< transitions from Golomb-Rice to TU+EG(k)
+
+#define CU_DQP_TU_EG                     1 ///< J0089: Bin reduction for delta QP coding
+#if (CU_DQP_TU_EG)
+#define CU_DQP_TU_CMAX 5 //max number bins for truncated unary
+#define CU_DQP_EG_k 0 //expgolomb order
+#endif
+
+#define NAL_UNIT_HEADER                  1  ///< J0550: Define nal_unit_header() method
+#define REMOVE_NAL_REF_FLAG              1  ///< J0550: Remove nal_ref_flag, and allocate extra bit to reserved bits, and re-order syntax to put reserved bits after nal_unit_type
+#define TEMPORAL_ID_PLUS1                1  ///< J0550: Signal temporal_id_plus1 instead of temporal_id in NAL unit, and change reserved_one_5bits
+                                            ///<        value to zero
+#define REFERENCE_PICTURE_DEFN           1  ///< J0118: Reflect change of defn. of referece picture in semantics of delta_poc_msb_present_flag
+#define MOVE_LOOP_FILTER_SLICES_FLAG     1  ///< J0288: Move seq_loop_filter_across_slices_enabled_flag from SPS to PPS
+#define SPLICING_FRIENDLY_PARAMS         1  ///< J0108: Remove rap_pic_id and move no_output_prior_pic_flag
+
+#define  SKIP_FLAG                       1  ///< J0336: store skip flag
+
+#define PPS_TS_FLAG                      1  ///< J0184: move transform_skip_enabled_flag from SPS to PPS
+#if PPS_TS_FLAG
+#define TS_FLAT_QUANTIZATION_MATRIX      1  ///< I0408: set default quantization matrix to be flat if TS is enabled in PPS
+#endif
+#define INTER_TRANSFORMSKIP              1  ///< J0237: inter transform skipping (inter-TS)
+#define INTRA_TRANSFORMSKIP_FAST         1  ///< J0572: fast encoding for intra transform skipping
+
+#define REMOVAL_8x2_2x8_CG               1  ///< J0256: removal of 8x2 / 2x8 coefficient groups
+#define REF_IDX_BYPASS                   1  ///< J0098: bypass coding starting from the second bin for reference index
+
+#define RECALCULATE_QP_ACCORDING_LAMBDA  1  ///< J0242: recalculate QP value according to lambda value
+#define TU_ZERO_CBF_RDO                  1  ///< J0241: take the bits to represent zero cbf into consideration when doing TU RDO
+#define REMOVE_NUM_GREATER1              1  ///< J0408: numGreater1 removal and ctxset decision with c1 
+
+#define INTRA_TRANS_SIMP                 1  ///< J0035: Use DST for 4x4 luma intra TU's (regardless of the intra prediction direction)
+
+#define J0234_INTER_RPS_SIMPL            1  ///< J0234: Do not signal delta_idx_minus1 when building the RPS-list in SPS
+#define NUM_WP_LIMIT                     1  ///< J0571: number of total signalled weight flags <=24
+#define DISALLOW_BIPRED_IN_8x4_4x8PUS    1  ///< J0086: disallow bi-pred for 8x4 and 4x8 inter PUs
+#define SAO_SINGLE_MERGE                 1  ///< J0355: Single SAO merge flag for all color components (per Left and Up merge)
+#define SAO_TYPE_SHARING                 1  ///< J0045: SAO types, merge left/up flags are shared between Cr and Cb
+#define SAO_TYPE_CODING                  1  ///< J0268: SAO type signalling using 1 ctx on/off flag + 1 bp BO/EO flag + 2 bp bins for EO class
+#define SAO_MERGE_ONE_CTX                1  ///< J0041: SAO merge left/up flags share the same ctx
+#define SAO_ABS_BY_PASS                  1  ///< J0043: by pass coding for SAO magnitudes 
+#define SAO_LCU_BOUNDARY                 1  ///< J0139: SAO parameter estimation using non-deblocked pixels for LCU bottom and right boundary areas
+#define MODIFIED_CROSS_SLICE             1  ///< J0266: SAO slice boundary control for GDR
+#define CU_DQP_ENABLE_FLAG               1  ///< J0220: cu_qp_delta_enabled_flag in PPS
+#define REMOVE_ZIGZAG_SCAN               1  ///< J0150: removal of zigzag scan
+
+#define TRANS_SPLIT_FLAG_CTX_REDUCTION   1  ///< J0133: Reduce the context number of transform split flag to 3
+
+#define WP_PARAM_RANGE_LIMIT             1  ///< J0221: Range limit of delta_weight and delta_offset for chroma.
+#define J0260 1 ///< Fix in rate control equations
+
 #define SLICE_HEADER_EXTENSION           1  ///< II0235: Slice header extension mechanism
 
-#define PREVREFPIC_DEFN                  1  ///< I0345: prevRefPic defined as previous reference picture that is at same or lower 
-                                            ///< temporal layer.
-#define BYTE_ALIGNMENT                   0  ///< I0330: Add byte_alignment() procedure to end of slice header
+#define REMOVE_NSQT 1 ///< Disable NSQT-related code
+#define REMOVE_LMCHROMA 1 ///< Disable LM_Chroma-related code
+#define REMOVE_FGS 1 ///< Disable fine-granularity slices code
+#define REMOVE_ALF 1 ///< Disable ALF-related code
+#define REMOVE_APS 1 ///< Disable APS-related code
+
+#define PREVREFPIC_DEFN                  0  ///< J0248: Shall be set equal to 0! (prevRefPic definition reverted to CD definition)
+#define BYTE_ALIGNMENT                   1  ///< I0330: Add byte_alignment() procedure to end of slice header
 
 #define SBH_THRESHOLD                    4  ///< I0156: value of the fixed SBH controlling threshold
   
@@ -61,8 +127,13 @@
 #define SAO_SKIP_RIGHT                   1  ///< H1101: disallow using unavailable pixel during RDO
 
 #define SAO_ENCODING_CHOICE              1  ///< I0184: picture early termination
+#define PICTURE_SAO_RDO_FIX              0  ///< J0097: picture-based SAO optimization fix
 #if SAO_ENCODING_CHOICE
 #define SAO_ENCODING_RATE                0.75
+#define SAO_ENCODING_CHOICE_CHROMA       1 ///< J0044: picture early termination Luma and Chroma are handled separatenly
+#if SAO_ENCODING_CHOICE_CHROMA
+#define SAO_ENCODING_RATE_CHROMA         0.5
+#endif
 #endif
 
 #define MAX_NUM_SPS                32
@@ -89,7 +160,11 @@
 #define LEVEL_RANGE                         30     ///< G382: max coefficient level in statistics collection
 #endif
 
+#if REMOVE_NSQT
+#define NS_HAD                               0
+#else
 #define NS_HAD                               1
+#endif
 
 #define APS_BITS_FOR_SAO_BYTE_LENGTH 12           
 #define APS_BITS_FOR_ALF_BYTE_LENGTH 8
@@ -113,7 +188,9 @@
 #define ZERO_MVD_EST                          0           ///< Zero Mvd Estimation in normal mode
 
 #define NUM_INTRA_MODE 36
+#if !REMOVE_LM_CHROMA
 #define LM_CHROMA_IDX  35
+#endif
 
 #define IBDI_DISTORTION                0           ///< enable/disable SSE modification when IBDI is used (JCTVC-D152)
 #define FIXED_ROUNDING_FRAME_MEMORY    0           ///< enable/disable fixed rounding to 8-bitdepth of frame memory when IBDI is used  
@@ -131,7 +208,11 @@
 #define VER_IDX                26                    // index for intra VERTICAL   mode
 #define HOR_IDX                10                    // index for intra HORIZONTAL mode
 #define DC_IDX                 1                     // index for intra DC mode
+#if REMOVE_LMCHROMA
+#define NUM_CHROMA_MODE        5                     // total number of chroma modes
+#else
 #define NUM_CHROMA_MODE        6                     // total number of chroma modes
+#endif
 #define DM_CHROMA_IDX          36                    // chroma mode index for derived from luma intra mode
 
 
@@ -247,7 +328,11 @@ typedef struct _SaoQTPart
 {
   Int         iBestType;
   Int         iLength;
+#if SAO_TYPE_CODING
+  Int         subTypeIdx ;                 ///< indicates EO class or BO band position
+#else
   Int         bandPosition ;
+#endif
   Int         iOffset[4];
   Int         StartCUX;
   Int         StartCUY;
@@ -277,7 +362,11 @@ typedef struct _SaoLcuParam
   Bool       mergeUpFlag;
   Bool       mergeLeftFlag;
   Int        typeIdx;
+#if SAO_TYPE_CODING
+  Int        subTypeIdx;                  ///< indicates EO class or BO band position
+#else
   Int        bandPosition;
+#endif
   Int        offset[4];
   Int        partIdx;
   Int        partIdxTmp;
@@ -286,7 +375,11 @@ typedef struct _SaoLcuParam
 
 struct SAOParam
 {
+#if SAO_TYPE_SHARING
+  Bool       bSaoFlag[2];
+#else
   Bool       bSaoFlag[3];
+#endif
   SAOQTPart* psSaoPart[3];
   Int        iMaxSplitLevel;
   Int        iNumClass[MAX_NUM_SAO_TYPE];
@@ -297,6 +390,7 @@ struct SAOParam
   ~SAOParam();
 };
 
+#if !REMOVE_ALF
 struct ALFParam
 {
   Int alf_flag;                           ///< indicates use of ALF
@@ -318,6 +412,7 @@ private:
   Void destroy();
   Void copy(const ALFParam& src);
 };
+#endif
 
 /// parameters for deblocking filter
 typedef struct _LFCUParam

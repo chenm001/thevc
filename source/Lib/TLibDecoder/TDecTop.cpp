@@ -48,7 +48,6 @@ TDecTop::TDecTop()
   m_iGopSize      = 0;
   m_bGopSizeSet   = false;
   m_iMaxRefPicNum = 0;
-  m_uiValidPS = 0;
 #if ENC_DEC_TRACE
   g_hTrace = fopen( "TraceDec.txt", "wb" );
   g_bJustDoIt = g_bEncDecTraceDisable;
@@ -74,7 +73,7 @@ Void TDecTop::create()
 {
   m_cGopDecoder.create();
   m_apcSlicePilot = new TComSlice;
-  m_uiSliceIdx = m_uiLastSliceIdx = 0;
+  m_uiSliceIdx = 0;
 }
 
 Void TDecTop::destroy()
@@ -91,7 +90,11 @@ Void TDecTop::init()
 {
   // initialize ROM
   initROM();
+#if REMOVE_ALF
+  m_cGopDecoder.init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter, &m_cSAO);
+#else
   m_cGopDecoder.init( &m_cEntropyDecoder, &m_cSbacDecoder, &m_cBinCABAC, &m_cCavlcDecoder, &m_cSliceDecoder, &m_cLoopFilter, &m_cAdaptiveLoopFilter, &m_cSAO);
+#endif
   m_cSliceDecoder.init( &m_cEntropyDecoder, &m_cCuDecoder );
   m_cEntropyDecoder.init(&m_cPrediction);
 }
@@ -110,9 +113,11 @@ Void TDecTop::deletePicBuffer ( )
     pcPic = NULL;
   }
   
+#if !REMOVE_ALF
   // destroy ALF temporary buffers
   m_cAdaptiveLoopFilter.destroy();
-
+#endif
+  
   m_cSAO.destroy();
   
   m_cLoopFilter.        destroy();
@@ -142,6 +147,9 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
     rpcPic = new TComPic();
     
     rpcPic->create ( pcSlice->getSPS()->getPicWidthInLumaSamples(), pcSlice->getSPS()->getPicHeightInLumaSamples(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, true);
+#if REMOVE_APS
+    rpcPic->getPicSym()->allocSaoParam(&m_cSAO);
+#endif
     m_cListPic.pushBack( rpcPic );
     
     return;
@@ -178,6 +186,9 @@ Void TDecTop::xGetNewPicBuffer ( TComSlice* pcSlice, TComPic*& rpcPic )
   }
   rpcPic->destroy();
   rpcPic->create ( pcSlice->getSPS()->getPicWidthInLumaSamples(), pcSlice->getSPS()->getPicHeightInLumaSamples(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth, true);
+#if REMOVE_APS
+  rpcPic->getPicSym()->allocSaoParam(&m_cSAO);
+#endif
 }
 
 Void TDecTop::executeDeblockAndAlf(UInt& ruiPOC, TComList<TComPic*>*& rpcListPic, Int& iSkipFrame, Int& iPOCLastDisplay)
@@ -277,10 +288,16 @@ Void TDecTop::xActivateParameterSets()
     pps->setNumSubstreams(1);
   }
 #endif
+#if !REMOVE_APS
+#if REMOVE_ALF
+  if(sps->getUseSAO())
+#else
   if(sps->getUseSAO() || sps->getUseALF())
+#endif
   {
     m_apcSlicePilot->setAPS( m_parameterSetManagerDecoder.getAPS(m_apcSlicePilot->getAPSId())  );
   }
+#endif
   pps->setMinCuDQPSize( sps->getMaxCUWidth() >> ( pps->getMaxCuDQPDepth()) );
 
   for (Int i = 0; i < sps->getMaxCUDepth() - g_uiAddCUDepth; i++)
@@ -312,7 +329,6 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   if (m_bFirstSliceInPicture)
   {
     m_uiSliceIdx     = 0;
-    m_uiLastSliceIdx = 0;
   }
   m_apcSlicePilot->setSliceIdx(m_uiSliceIdx);
   if (!m_bFirstSliceInPicture)
@@ -321,7 +337,11 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
   }
 
   m_apcSlicePilot->setNalUnitType(nalu.m_nalUnitType);
+#if REMOVE_NAL_REF_FLAG
+  m_apcSlicePilot->setReferenced(true); // Putting this as true ensures that picture is referenced the first time it is in an RPS
+#else
   m_apcSlicePilot->setReferenced(nalu.m_nalRefFlag);
+#endif
   m_apcSlicePilot->setTLayerInfo(nalu.m_temporalId);
 
   m_cEntropyDecoder.decodeSliceHeader (m_apcSlicePilot, &m_parameterSetManagerDecoder);
@@ -569,6 +589,9 @@ Bool TDecTop::xDecodeSlice(InputNALUnit &nalu, Int &iSkipFrame, Int iPOCLastDisp
     {
       pcSlice->setScalingList ( pcSlice->getPPS()->getScalingList()  );
     }
+#if TS_FLAT_QUANTIZATION_MATRIX
+    pcSlice->getScalingList()->setUseTransformSkip(pcSlice->getPPS()->getUseTransformSkip());
+#endif
     if(!pcSlice->getPPS()->getScalingListPresentFlag() && !pcSlice->getSPS()->getScalingListPresentFlag())
     {
       pcSlice->setDefaultScalingList();
@@ -604,7 +627,9 @@ Void TDecTop::xDecodeSPS()
   TComSPS* sps = new TComSPS();
   m_cEntropyDecoder.decodeSPS( sps );
   m_parameterSetManagerDecoder.storePrefetchedSPS(sps);
+#if !REMOVE_ALF
   m_cAdaptiveLoopFilter.create( sps->getPicWidthInLumaSamples(), sps->getPicHeightInLumaSamples(), g_uiMaxCUWidth, g_uiMaxCUHeight, g_uiMaxCUDepth );
+#endif
 }
 
 Void TDecTop::xDecodePPS()
@@ -619,6 +644,7 @@ Void TDecTop::xDecodePPS()
   m_apcSlicePilot->initTiles();
 }
 
+#if !REMOVE_APS
 Void TDecTop::xDecodeAPS()
 {
   TComAPS  *aps = new TComAPS();
@@ -626,6 +652,7 @@ Void TDecTop::xDecodeAPS()
   decodeAPS(aps);
   m_parameterSetManagerDecoder.storePrefetchedAPS(aps);
 }
+#endif
 
 Void TDecTop::xDecodeSEI()
 {
@@ -652,10 +679,12 @@ Bool TDecTop::decode(InputNALUnit& nalu, Int& iSkipFrame, Int& iPOCLastDisplay)
     case NAL_UNIT_PPS:
       xDecodePPS();
       return false;
+#if !REMOVE_APS
     case NAL_UNIT_APS:
       xDecodeAPS();
       return false;
-
+#endif
+      
     case NAL_UNIT_SEI:
       xDecodeSEI();
       return false;
@@ -748,6 +777,7 @@ Bool TDecTop::isRandomAccessSkipPicture(Int& iSkipFrame,  Int& iPOCLastDisplay)
   return false; 
 }
 
+#if !REMOVE_APS
 Void TDecTop::allocAPS (TComAPS* pAPS)
 {
   // we don't know the SPS before it has been activated. These fields could exist
@@ -755,7 +785,10 @@ Void TDecTop::allocAPS (TComAPS* pAPS)
   // have to be moved for that
   pAPS->createSaoParam();
   m_cSAO.allocSaoParam(pAPS->getSaoParam());
+#if !REMOVE_ALF
   pAPS->createAlfParam();
+#endif
 }
+#endif
 
 //! \}

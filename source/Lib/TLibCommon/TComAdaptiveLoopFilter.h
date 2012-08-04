@@ -41,6 +41,7 @@
 #include "CommonDef.h"
 #include "TComPic.h"
 
+#if !REMOVE_ALF
 //! \ingroup TLibCommon
 //! \{
 
@@ -190,5 +191,6 @@ public: //public methods, interface functions
 };
 
 //! \}
+#endif
 
 #endif

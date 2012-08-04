@@ -110,7 +110,9 @@ std::istringstream &operator>>(std::istringstream &in, GOPEntry &entry)     //in
 #if AUTO_INTER_RPS
   if (entry.m_interRPSPrediction==1)
   {
+#if !J0234_INTER_RPS_SIMPL
     in>>entry.m_deltaRIdxMinus1;
+#endif
     in>>entry.m_deltaRPS;
     in>>entry.m_numRefIdc;
     for ( Int i = 0; i < entry.m_numRefIdc; i++ )
@@ -120,13 +122,17 @@ std::istringstream &operator>>(std::istringstream &in, GOPEntry &entry)     //in
   }
   else if (entry.m_interRPSPrediction==2)
   {
+#if !J0234_INTER_RPS_SIMPL
     in>>entry.m_deltaRIdxMinus1;
+#endif
     in>>entry.m_deltaRPS;
   }
 #else
   if (entry.m_interRPSPrediction)
   {
+#if !J0234_INTER_RPS_SIMPL
     in>>entry.m_deltaRIdxMinus1;
+#endif
     in>>entry.m_deltaRPS;
     in>>entry.m_numRefIdc;
     for ( Int i = 0; i < entry.m_numRefIdc; i++ )
@@ -248,24 +254,37 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
   ("DeblockingFilterControlPresent", m_DeblockingFilterControlPresent, false )
 
   // Coding tools
+#if !REMOVE_NSQT
   ("NSQT",                    m_enableNSQT,              true, "Enable non-square transforms")
+#endif
   ("AMP",                     m_enableAMP,               true, "Enable asymmetric motion partitions")
+#if !REMOVE_LMCHROMA
   ("LMChroma",                m_bUseLMChroma,            true, "Intra chroma prediction based on reconstructed luma")
+#endif
   ("TS",                      m_useTansformSkip,         false, "Intra transform skipping")
   ("TSFast",                  m_useTansformSkipFast,     false, "Fast intra transform skipping")
+#if !REMOVE_ALF
   ("ALF",                     m_bUseALF,                 true, "Enable Adaptive Loop Filter")
-  ("SAO",                     m_bUseSAO,                 true, "Enable Sample Adaptive Offset")   
+#endif
+  ("SAO",                     m_bUseSAO,                 true, "Enable Sample Adaptive Offset")
   ("MaxNumOffsetsPerPic",     m_maxNumOffsetsPerPic,     2048, "Max number of SAO offset per picture (Default: 2048)")   
-  ("SAOLcuBasedOptimization", m_saoLcuBasedOptimization, true, "0: SAO picture-based optimization, 1: SAO LCU-based optimization ")   
+#if SAO_LCU_BOUNDARY
+  ("SAOLcuBoundary",          m_saoLcuBoundary,          false, "0: right/bottom LCU boundary areas skipped from SAO parameter estimation, 1: non-deblocked pixels are used for those areas")
+#endif
+  ("SAOLcuBasedOptimization", m_saoLcuBasedOptimization, true, "0: SAO picture-based optimization, 1: SAO LCU-based optimization ")
+#if !REMOVE_ALF
   ("ALFLowLatencyEncode", m_alfLowLatencyEncoding, false, "Low-latency ALF encoding, 0: picture latency (trained from current frame), 1: LCU latency(trained from previous frame)")
-    ("SliceMode",            m_iSliceMode,           0, "0: Disable all Recon slice limits, 1: Enforce max # of LCUs, 2: Enforce max # of bytes")
+#endif
+  ("SliceMode",            m_iSliceMode,           0, "0: Disable all Recon slice limits, 1: Enforce max # of LCUs, 2: Enforce max # of bytes")
     ("SliceArgument",        m_iSliceArgument,       0, "if SliceMode==1 SliceArgument represents max # of LCUs. if SliceMode==2 SliceArgument represents max # of bytes.")
     ("DependentSliceMode",     m_iDependentSliceMode,    0, "0: Disable all dependent slice limits, 1: Enforce max # of LCUs, 2: Enforce constraint based dependent slices")
     ("DependentSliceArgument", m_iDependentSliceArgument,0, "if DependentSliceMode==1 SliceArgument represents max # of LCUs. if DependentSliceMode==2 DependentSliceArgument represents max # of bins.")
 #if DEPENDENT_SLICES
     ("CabacIndependentFlag", m_bCabacIndependentFlag, false)
 #endif
+#if !REMOVE_FGS
     ("SliceGranularity",     m_iSliceGranularity,    0, "0: Slices always end at LCU borders. 1-3: slices may end at a depth of 1-3 below LCU level.")
+#endif
     ("LFCrossSliceBoundaryFlag", m_bLFCrossSliceBoundaryFlag, true)
 
     ("ConstrainedIntraPred", m_bUseConstrainedIntraPred, false, "Constrained Intra Prediction")
@@ -290,7 +309,7 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
     ("ScalingListFile",             cfg_ScalingListFile,             string(""), "Scaling list file name")
     ("SignHideFlag,-SBH",                m_signHideFlag, 1)
   /* Misc. */
-  ("SEIpictureDigest", m_pictureDigestEnabled, 1, "Control generation of picture_digest SEI messages\n"
+  ("SEIpictureDigest", m_pictureDigestEnabled, 0, "Control generation of picture_digest SEI messages\n"
                                               "\t3: checksum\n"
                                               "\t2: CRC\n"
                                               "\t1: use MD5\n"
@@ -307,6 +326,9 @@ Bool TAppEncCfg::parseCfg( Int argc, Char* argv[] )
 
   ("TransquantBypassEnableFlag", m_TransquantBypassEnableFlag, false, "transquant_bypass_enable_flag indicator in PPS")
   ("CUTransquantBypassFlagValue", m_CUTransquantBypassFlagValue, false, "Fixed cu_transquant_bypass_flag value, when transquant_bypass_enable_flag is enabled")
+#if RECALCULATE_QP_ACCORDING_LAMBDA
+  ("RecalculateQPAccordingToLambda", m_recalculateQPAccordingToLambda, false, "Recalculate QP values according to lambda values. Do not suggest to be enabled in all intra case")
+#endif
   ;
   
   for(Int i=1; i<MAX_GOP+1; i++) {
@@ -533,19 +555,23 @@ Void TAppEncCfg::xCheckParameter()
   {
     xConfirmPara( m_iSliceArgument < 1 ,         "SliceArgument should be larger than or equal to 1" );
   }
+#if !REMOVE_FGS
   if (m_iSliceMode==3)
   {
     xConfirmPara( m_iSliceGranularity > 0 ,      "When SliceMode == 3 is chosen, the SliceGranularity must be 0" );
   }
+#endif
   xConfirmPara( m_iDependentSliceMode < 0 || m_iDependentSliceMode > 2, "DependentSliceMode exceeds supported range (0 to 2)" );
   if (m_iDependentSliceMode!=0)
   {
     xConfirmPara( m_iDependentSliceArgument < 1 ,         "DependentSliceArgument should be larger than or equal to 1" );
   }
+#if !REMOVE_FGS
   xConfirmPara( m_iSliceGranularity >= m_uiMaxCUDepth, "SliceGranularity must be smaller than maximum cu depth");
   xConfirmPara( m_iSliceGranularity <0 || m_iSliceGranularity > 3, "SliceGranularity exceeds supported range (0 to 3)" );
   xConfirmPara( m_iSliceGranularity > m_iMaxCuDQPDepth, "SliceGranularity must be smaller smaller than or equal to maximum dqp depth" );
-
+#endif
+  
   bool tileFlag = (m_iNumColumnsMinus1 > 0 || m_iNumRowsMinus1 > 0 );
   xConfirmPara( tileFlag && m_iDependentSliceMode,            "Tile and Dependent Slice can not be applied together");
   xConfirmPara( tileFlag && m_iWaveFrontSynchro,            "Tile and Wavefront can not be applied together");
@@ -773,7 +799,9 @@ Void TAppEncCfg::xCheckParameter()
           m_GOPList[m_iGOPSize+m_extraRPSs].m_interRPSPrediction = 1;  
           m_GOPList[m_iGOPSize+m_extraRPSs].m_numRefIdc = newIdc;
           m_GOPList[m_iGOPSize+m_extraRPSs].m_deltaRPS = refPOC - m_GOPList[m_iGOPSize+m_extraRPSs].m_POC; 
+#if !J0234_INTER_RPS_SIMPL
           m_GOPList[m_iGOPSize+m_extraRPSs].m_deltaRIdxMinus1 = 0; 
+#endif
         }
         curGOP=m_iGOPSize+m_extraRPSs;
         m_extraRPSs++;
@@ -968,8 +996,10 @@ Void TAppEncCfg::xPrintParameter()
   printf("\n");
   
   printf("TOOL CFG: ");
+#if !REMOVE_ALF
   printf("ALF:%d ", m_bUseALF             );
   printf("ALFLowLatencyEncode:%d ", m_alfLowLatencyEncoding?1:0);
+#endif
   printf("IBD:%d ", !!g_uiBitIncrement);
   printf("HAD:%d ", m_bUseHADME           );
   printf("SRD:%d ", m_bUseSBACRD          );
@@ -983,10 +1013,16 @@ Void TAppEncCfg::xPrintParameter()
   printf("CFM:%d ", m_bUseCbfFastMode         );
   printf("ESD:%d ", m_useEarlySkipDetection  );
   printf("RQT:%d ", 1     );
-  printf("LMC:%d ", m_bUseLMChroma        ); 
-  printf("TS:%d ",  m_useTansformSkip              ); 
-  printf("TSFast:%d ", m_useTansformSkipFast       ); 
+#if !REMOVE_LMCHROMA
+  printf("LMC:%d ", m_bUseLMChroma        );
+#endif
+  printf("TS:%d ",  m_useTansformSkip              );
+  printf("TSFast:%d ", m_useTansformSkipFast       );
+#if REMOVE_FGS
+  printf("Slice: M=%d ", m_iSliceMode);
+#else
   printf("Slice: G=%d M=%d ", m_iSliceGranularity, m_iSliceMode);
+#endif
   if (m_iSliceMode!=0)
   {
     printf("A=%d ", m_iSliceArgument);
@@ -1014,6 +1050,9 @@ Void TAppEncCfg::xPrintParameter()
 #endif
 
   printf(" SignBitHidingFlag:%d ", m_signHideFlag);
+#if RECALCULATE_QP_ACCORDING_LAMBDA
+  printf("RecalQP:%d", m_recalculateQPAccordingToLambda ? 1 : 0 );
+#endif
   printf("\n\n");
   
   fflush(stdout);

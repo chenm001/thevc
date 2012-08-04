@@ -70,7 +70,9 @@ public:
   virtual Void  parseVPS                  ( TComVPS* pcVPS )                       = 0;
   virtual Void  parseSPS                  ( TComSPS* pcSPS )                                      = 0;
   virtual Void  parsePPS                  ( TComPPS* pcPPS )                                      = 0;
+#if !REMOVE_APS
   virtual Void  parseAPS                  ( TComAPS* pAPS  )                                      = 0;
+#endif
   virtual void parseSEI(SEImessages&) = 0;
 
   virtual Void parseSliceHeader          ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager)       = 0;
@@ -106,12 +108,13 @@ public:
 
   virtual Void parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartIdx, UInt uiWidth, UInt uiHeight, UInt uiDepth, TextType eTType ) = 0;
   virtual Void parseTransformSkipFlags ( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt width, UInt height, UInt uiDepth, TextType eTType) = 0;
+#if !REMOVE_FGS
   /// set slice granularity
   virtual Void setSliceGranularity(Int iSliceGranularity) = 0;
 
   /// get slice granularity
   virtual Int  getSliceGranularity()                      = 0;
-
+#endif
   virtual Void updateContextTables( SliceType eSliceType, Int iQp ) = 0;
   
   virtual ~TDecEntropyIf() {}
@@ -141,7 +144,9 @@ public:
   Void    decodeVPS                   ( TComVPS* pcVPS ) { m_pcEntropyDecoderIf->parseVPS(pcVPS); }
   Void    decodeSPS                   ( TComSPS* pcSPS     )    { m_pcEntropyDecoderIf->parseSPS(pcSPS);                    }
   Void    decodePPS                   ( TComPPS* pcPPS, ParameterSetManagerDecoder *parameterSet    )    { m_pcEntropyDecoderIf->parsePPS(pcPPS);                    }
+#if !REMOVE_APS
   Void    decodeAPS                   ( TComAPS* pAPS      )    { m_pcEntropyDecoderIf->parseAPS(pAPS);}
+#endif
   void decodeSEI(SEImessages& seis) { m_pcEntropyDecoderIf->parseSEI(seis); }
 
   Void    decodeSliceHeader           ( TComSlice*& rpcSlice, ParameterSetManagerDecoder *parameterSetManager)  { m_pcEntropyDecoderIf->parseSliceHeader(rpcSlice, parameterSetManager);         }
@@ -177,15 +182,11 @@ private:
 public:
   Void decodeCoeff             ( TComDataCU* pcCU                 , UInt uiAbsPartIdx, UInt uiDepth, UInt uiWidth, UInt uiHeight, Bool& bCodeDQP );
   
-  // ALF-related
-
+#if !REMOVE_FGS
   /// set slice granularity
   Void setSliceGranularity (Int iSliceGranularity) {m_pcEntropyDecoderIf->setSliceGranularity(iSliceGranularity);}
-
-  Void decodeSaoParam         (SAOParam* saoParam);
-  void decodeSaoLcu(Int rx, Int ry, Int compIdx, SAOParam* saoParam, Bool &repeatedRow );
-  Void decodeSaoOneLcu(SaoLcuParam* saoLcuParam);
-
+#endif
+  
   Void decodeFlush() { m_pcEntropyDecoderIf->decodeFlush(); }
 
 };// END CLASS DEFINITION TDecEntropy

@@ -40,6 +40,7 @@
 #include <stdio.h>
 #include <math.h>
 
+#if !REMOVE_ALF
 //! \ingroup TLibEncoder
 //! \{
 // ====================================================================================================================
@@ -2431,5 +2432,5 @@ UInt TEncAdaptiveLoopFilter::ALFParamBitrateEstimate(ALFParam* alfParam)
   }
   return bitrate;
 }
-
+#endif
 //! \}

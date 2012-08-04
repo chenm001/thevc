@@ -61,7 +61,9 @@
 
 Void         initROM();
 Void         destroyROM();
+#if !REMOVE_ZIGZAG_SCAN
 Void         initFrameScanXY( UInt* pBuff, UInt* pBuffX, UInt* pBuffY, Int iWidth, Int iHeight );
+#endif
 Void         initSigLastScan(UInt* pBuffZ, UInt* pBuffH, UInt* pBuffV, UInt* pBuffD, Int iWidth, Int iHeight, Int iDepth);
 Void         initNonSquareSigLastScan(UInt* pBuffZ, UInt uiWidth, UInt uiHeight);
 // ====================================================================================================================
@@ -114,18 +116,26 @@ extern const short g_aiT32[32][32];
 // Luma QP to Chroma QP mapping
 // ====================================================================================================================
 
+#if CHROMA_QP_EXTENSION
+extern const UChar  g_aucChromaScale      [58];
+#else
 extern const UChar  g_aucChromaScale      [52];
+#endif
 
 // ====================================================================================================================
 // Scanning order & context mapping table
 // ====================================================================================================================
 
+#if !REMOVE_ZIGZAG_SCAN
 extern       UInt*  g_auiFrameScanXY[ MAX_CU_DEPTH  ];    // raster index     from scanning index
 extern       UInt*  g_auiFrameScanX [ MAX_CU_DEPTH  ];    // raster index (x) from scanning index
 extern       UInt*  g_auiFrameScanY [ MAX_CU_DEPTH  ];    // raster index (y) from scanning index
+#endif
 extern       UInt*  g_auiSigLastScan[4][ MAX_CU_DEPTH ];  // raster index from scanning index (zigzag, hor, ver, diag)
+#if !REMOVE_NSQT
 extern UInt *g_sigScanNSQT[ 4 ]; // scan for non-square partitions
 extern UInt g_sigCGScanNSQT[ 4 ][ 16 ]; // coarse-grain scan for non-square partitions
+#endif
 
 extern       UInt*  g_auiNonSquareSigLastScan[ 4 ];      // raster index from scanning index (zigzag)
 
@@ -296,6 +306,9 @@ extern Int g_quantInterDefault4x4[16];
 extern Int g_quantInterDefault8x8[64];
 extern Int g_quantInterDefault16x16[256];
 extern Int g_quantInterDefault32x32[1024];
+#if TS_FLAT_QUANTIZATION_MATRIX
+extern Int g_quantTSDefault4x4[16];
+#endif
 extern UInt g_scalingListSize [SCALING_LIST_SIZE_NUM];
 extern UInt g_scalingListSizeX[SCALING_LIST_SIZE_NUM];
 extern UInt g_scalingListNum  [SCALING_LIST_SIZE_NUM];

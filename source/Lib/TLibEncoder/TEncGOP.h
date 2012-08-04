@@ -74,6 +74,11 @@ private:
   //  Data
   Bool                    m_bLongtermTestPictureHasBeenCoded;
   Bool                    m_bLongtermTestPictureHasBeenCoded2;
+#if LTRP_IN_SPS
+  UInt            m_numLongTermRefPicSPS;
+  UInt            m_ltRefPicPocLsbSps[33];
+  Bool            m_ltRefPicUsedByCurrPicFlag[33];
+#endif
   Int                     m_iLastIDR;
   Int                     m_iGopSize;
   Int                     m_iNumPicCoded;
@@ -91,8 +96,10 @@ private:
   TEncBinCABAC*           m_pcBinCABAC;
   TComLoopFilter*         m_pcLoopFilter;
   
+#if !REMOVE_ALF
   // Adaptive Loop filter
   TEncAdaptiveLoopFilter* m_pcAdaptiveLoopFilter;
+#endif
   //--Adaptive Loop filter
   TEncSampleAdaptiveOffset*  m_pcSAO;
   TComBitCounter*         m_pcBitCounter;
@@ -129,12 +136,16 @@ public:
   
   TEncSlice*  getSliceEncoder()   { return m_pcSliceEncoder; }
   NalUnitType getNalUnitType( UInt uiPOCCurr );
+#if !REMOVE_APS
   Void freeAPS     (TComAPS* pAPS, TComSPS* pSPS);
   Void allocAPS    (TComAPS* pAPS, TComSPS* pSPS);
+#endif
   Void arrangeLongtermPicturesInRPS(TComSlice *, TComList<TComPic*>& );
 protected:
+#if !REMOVE_APS
   Void encodeAPS   (TComAPS* pcAPS, TComOutputBitstream& APSbs, TComSlice* pcSlice);            //!< encode APS syntax elements
   Void assignNewAPS(TComAPS& cAPS, Int apsID, std::vector<TComAPS>& vAPS, TComSlice* pcSlice);  //!< Assign APS object into APS container
+#endif
   TEncRateCtrl* getRateCtrl()       { return m_pcRateCtrl;  }
 
 protected:

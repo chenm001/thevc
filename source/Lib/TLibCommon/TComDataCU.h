@@ -127,14 +127,18 @@ private:
   // -------------------------------------------------------------------------------------------------------------------
   // CU data
   // -------------------------------------------------------------------------------------------------------------------
-  
+#if SKIP_FLAG
+  Bool*         m_skipFlag;           ///< array of skip flags
+#endif
   Char*         m_pePartSize;         ///< array of partition sizes
   Char*         m_pePredMode;         ///< array of prediction modes
   Bool*         m_CUTransquantBypass;   ///< array of cu_transquant_bypass flags
   Char*         m_phQP;               ///< array of QP values
   UChar*        m_puhTrIdx;           ///< array of transform indices
   UChar*        m_puhTransformSkip[3];///< array of transform skipping flags
+#if !REMOVE_NSQT
   UChar*        m_nsqtPartIdx;        ///< array of absPartIdx mapping table, map zigzag to NSQT
+#endif
   UChar*        m_puhCbf[3];          ///< array of coded block flags (CBF)
   TComCUMvField m_acCUMvField[2];     ///< array of motion vectors
   TCoeff*       m_pcTrCoeffY;         ///< transformed coefficient buffer (Y)
@@ -282,6 +286,13 @@ public:
   Void          setPartSizeSubParts   ( PartSize eMode, UInt uiAbsPartIdx, UInt uiDepth );
   Void          setCUTransquantBypassSubParts( bool flag, UInt uiAbsPartIdx, UInt uiDepth );
   
+#if SKIP_FLAG
+  Bool*        getSkipFlag            ()                        { return m_skipFlag;          }
+  Bool         getSkipFlag            (UInt idx)                { return m_skipFlag[idx];     }
+  Void         setSkipFlag           ( UInt idx, Bool skip)     { m_skipFlag[idx] = skip;   }
+  Void         setSkipFlagSubParts   ( Bool skip, UInt absPartIdx, UInt depth );
+#endif
+
   Char*         getPredictionMode     ()                        { return m_pePredMode;        }
   PredMode      getPredictionMode     ( UInt uiIdx )            { return static_cast<PredMode>( m_pePredMode[uiIdx] ); }
   Bool*         getCUTransquantBypass ()                        { return m_CUTransquantBypass;        }
@@ -310,10 +321,12 @@ public:
   Char          getCodedQP            ()                        { return m_codedQP;           }
 
   Bool          isLosslessCoded(UInt absPartIdx);
+#if !REMOVE_NSQT
   UChar*        getNSQTPartIdx        ()                        { return m_nsqtPartIdx;        }
   UChar         getNSQTPartIdx        ( UInt idx )              { return m_nsqtPartIdx[idx];   }
   Void          setNSQTIdxSubParts    ( UInt absPartIdx, UInt depth );
   Void          setNSQTIdxSubParts    ( UInt log2TrafoSize, UInt absPartIdx, UInt absTUPartIdx, UInt trMode );
+#endif
   
   UChar*        getTransformIdx       ()                        { return m_puhTrIdx;          }
   UChar         getTransformIdx       ( UInt uiIdx )            { return m_puhTrIdx[uiIdx];   }
@@ -539,12 +552,14 @@ public:
 
   UInt          getCoefScanIdx(UInt uiAbsPartIdx, UInt uiWidth, Bool bIsLuma, Bool bIsIntra);
 
+#if !REMOVE_NSQT
   Bool          useNonSquareTrans( UInt uiTrMode, Int absPartIdx );
   Void          getNSQTSize(Int trMode, Int absPartIdx, Int &trWidth, Int &trHeight);
   Bool          useNonSquarePU   ( UInt absPartIdx);
   UInt          getInterTUSplitDirection ( Int width, Int height, Int trLastWidth, Int trLastHeight );
   UInt          getNSAbsPartIdx  ( UInt log2TrafoSize, UInt absPartIdx, UInt absTUPartIdx, UInt innerQuadIdx, UInt trMode );
   UInt          getNSAddrChroma   ( UInt uiLog2TrSizeC, UInt uiTrModeC, UInt uiQuadrant, UInt absTUPartIdx );
+#endif
 };
 
 namespace RasterAddress

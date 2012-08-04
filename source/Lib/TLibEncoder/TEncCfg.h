@@ -63,7 +63,9 @@ struct GOPEntry
 #else
   Bool m_interRPSPrediction;
 #endif
+#if !J0234_INTER_RPS_SIMPL
   Int m_deltaRIdxMinus1;
+#endif
   Int m_deltaRPS;
   Int m_numRefIdc;
   Int m_refIdc[MAX_NUM_REF_PICS+1];
@@ -77,7 +79,9 @@ struct GOPEntry
   , m_sliceType('P')
   , m_numRefPics(0)
   , m_interRPSPrediction(false)
+#if !J0234_INTER_RPS_SIMPL
   , m_deltaRIdxMinus1(0)
+#endif
   , m_deltaRPS(0)
   , m_numRefIdc(0)
   {
@@ -137,7 +141,9 @@ protected:
   UInt      m_uiQuadtreeTUMaxDepthInter;
   UInt      m_uiQuadtreeTUMaxDepthIntra;
   
+#if !REMOVE_NSQT
   Bool      m_useNSQT;
+#endif
   
   //====== Loop/Deblock Filter ========
   Bool      m_bLoopFilterDisable;
@@ -147,6 +153,9 @@ protected:
   Bool      m_DeblockingFilterControlPresent;
   Bool      m_bUseSAO;
   Int       m_maxNumOffsetsPerPic;
+#if SAO_LCU_BOUNDARY
+  Bool      m_saoLcuBoundary;
+#endif
   Bool      m_saoLcuBasedOptimization;
 
   //====== Lossless ========
@@ -172,8 +181,10 @@ protected:
   
   //====== Tool list ========
   Bool      m_bUseSBACRD;
+#if !REMOVE_ALF
   Bool      m_bUseALF;
   Bool      m_alfLowLatencyEncoding;
+#endif
   Bool      m_bUseASR;
   Bool      m_bUseHADME;
   Bool      m_bUseLComb;
@@ -183,7 +194,9 @@ protected:
   Bool      m_useFastDecisionForMerge;
   Bool      m_bUseCbfFastMode;
   Bool      m_useEarlySkipDetection;
-  Bool      m_bUseLMChroma; 
+#if !REMOVE_LMCHROMA
+  Bool      m_bUseLMChroma;
+#endif
   Bool      m_useTansformSkip;
   Bool      m_useTansformSkipFast;
   Int*      m_aidQP;
@@ -202,7 +215,9 @@ protected:
 #if DEPENDENT_SLICES
   Bool      m_bCabacIndependentFlag;
 #endif
+#if !REMOVE_FGS
   Int       m_iSliceGranularity;
+#endif
   Bool      m_bLFCrossSliceBoundaryFlag;
 
   Bool      m_bPCMInputBitDepthFlag;
@@ -234,6 +249,9 @@ protected:
   Bool      m_TransquantBypassEnableFlag;                     ///< transquant_bypass_enable_flag setting in PPS.
   Bool      m_CUTransquantBypassFlagValue;                    ///< if transquant_bypass_enable_flag, the fixed value to use for the per-CU cu_transquant_bypass_flag.
   TComVPS                    m_cVPS;
+#if RECALCULATE_QP_ACCORDING_LAMBDA
+  Bool      m_recalculateQPAccordingToLambda;                 ///< recalculate QP value according to the lambda value
+#endif
   
 public:
   TEncCfg()
@@ -283,7 +301,9 @@ public:
   Void      setQuadtreeTUMaxDepthInter      ( UInt  u )      { m_uiQuadtreeTUMaxDepthInter = u; }
   Void      setQuadtreeTUMaxDepthIntra      ( UInt  u )      { m_uiQuadtreeTUMaxDepthIntra = u; }
   
+#if !REMOVE_NSQT
   Void setUseNSQT( Bool b ) { m_useNSQT = b; }
+#endif
   Void setUseAMP( Bool b ) { m_useAMP = b; }
   
   //====== Loop/Deblock Filter ========
@@ -368,7 +388,9 @@ public:
   Void      setUseSBACRD                    ( Bool  b )     { m_bUseSBACRD  = b; }
   Void      setUseASR                       ( Bool  b )     { m_bUseASR     = b; }
   Void      setUseHADME                     ( Bool  b )     { m_bUseHADME   = b; }
+#if !REMOVE_ALF
   Void      setUseALF                       ( Bool  b )     { m_bUseALF   = b; }
+#endif
   Void      setUseLComb                     ( Bool  b )     { m_bUseLComb   = b; }
   Void      setUseRDOQ                      ( Bool  b )     { m_bUseRDOQ    = b; }
   Void      setUseFastEnc                   ( Bool  b )     { m_bUseFastEnc = b; }
@@ -387,9 +409,11 @@ public:
   Bool      getUseSBACRD                    ()      { return m_bUseSBACRD;  }
   Bool      getUseASR                       ()      { return m_bUseASR;     }
   Bool      getUseHADME                     ()      { return m_bUseHADME;   }
+#if !REMOVE_ALF
   Bool      getUseALF                       ()      { return m_bUseALF;     }
   Void      setALFLowLatencyEncoding        (Bool b) {m_alfLowLatencyEncoding = b;    }
   Bool      getALFLowLatencyEncoding        ()       { return m_alfLowLatencyEncoding;}
+#endif
   Bool      getUseLComb                     ()      { return m_bUseLComb;   }
   Bool      getUseRDOQ                      ()      { return m_bUseRDOQ;    }
   Bool      getUseFastEnc                   ()      { return m_bUseFastEnc; }
@@ -398,17 +422,21 @@ public:
   Bool      getUseCbfFastMode           ()      { return m_bUseCbfFastMode; }
   Bool      getUseEarlySkipDetection        ()      { return m_useEarlySkipDetection; }
   Bool      getUseConstrainedIntraPred      ()      { return m_bUseConstrainedIntraPred; }
+#if !REMOVE_NSQT
 #if NS_HAD
   Bool      getUseNSQT                      ()      { return m_useNSQT; }
 #endif
-  Bool      getPCMInputBitDepthFlag         ()      { return m_bPCMInputBitDepthFlag;   } 
+#endif
+  Bool      getPCMInputBitDepthFlag         ()      { return m_bPCMInputBitDepthFlag;   }
   Bool      getPCMFilterDisableFlag         ()      { return m_bPCMFilterDisableFlag;   } 
   Bool      getUsePCM                       ()      { return m_usePCM;                 }
   UInt      getPCMLog2MaxSize               ()      { return m_pcmLog2MaxSize;  }
   UInt      getPCMLog2MinSize               ()      { return  m_uiPCMLog2MinSize;  }
 
+#if !REMOVE_LMCHROMA
   Bool getUseLMChroma                       ()      { return m_bUseLMChroma;        }
   Void setUseLMChroma                       ( Bool b ) { m_bUseLMChroma  = b;       }
+#endif
   Bool getUseTransformSkip                             ()      { return m_useTansformSkip;        }
   Void setUseTransformSkip                             ( Bool b ) { m_useTansformSkip  = b;       }
   Bool getUseTransformSkipFast                         ()      { return m_useTansformSkipFast;    }
@@ -430,8 +458,10 @@ public:
   Void  setCabacIndependentFlag            ( Bool  i )      { m_bCabacIndependentFlag = i;       }
   Bool  getCabacIndependentFlag     ()                    { return m_bCabacIndependentFlag;   }
 #endif
+#if !REMOVE_FGS
   Void  setSliceGranularity            ( Int  i )      { m_iSliceGranularity = i;       }
   Int   getSliceGranularity            ()              { return m_iSliceGranularity;    }
+#endif
   Void      setLFCrossSliceBoundaryFlag     ( Bool   bValue  )    { m_bLFCrossSliceBoundaryFlag = bValue; }
   Bool      getLFCrossSliceBoundaryFlag     ()                    { return m_bLFCrossSliceBoundaryFlag;   }
 
@@ -439,6 +469,10 @@ public:
   Bool      getUseSAO                  ()              {return m_bUseSAO;}
   Void  setMaxNumOffsetsPerPic                   (Int iVal)            { m_maxNumOffsetsPerPic = iVal; }
   Int   getMaxNumOffsetsPerPic                   ()                    { return m_maxNumOffsetsPerPic; }
+#if SAO_LCU_BOUNDARY
+  Void  setSaoLcuBoundary              (bool bVal)     { m_saoLcuBoundary = bVal; }
+  Bool  getSaoLcuBoundary              ()              { return m_saoLcuBoundary; }
+#endif
   Void  setSaoLcuBasedOptimization               (bool bVal)           { m_saoLcuBasedOptimization = bVal; }
   Bool  getSaoLcuBasedOptimization               ()                    { return m_saoLcuBasedOptimization; }
   Void  setLFCrossTileBoundaryFlag               ( Bool   bValue  )    { m_bLFCrossTileBoundaryFlag = bValue; }
@@ -545,6 +579,10 @@ public:
   Void      setCUTransquantBypassFlagValue(Bool flag) { m_CUTransquantBypassFlagValue = flag; }
   Void setVPS(TComVPS *p) { m_cVPS = *p; }
   TComVPS *getVPS() { return &m_cVPS; }
+#if RECALCULATE_QP_ACCORDING_LAMBDA
+  Void      setUseRecalculateQPAccordingToLambda ( Bool b ) { m_recalculateQPAccordingToLambda = b;    }
+  Bool      getUseRecalculateQPAccordingToLambda ()         { return m_recalculateQPAccordingToLambda; }
+#endif
 };
 
 //! \}

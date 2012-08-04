@@ -117,7 +117,7 @@
 \maketitle
 \begin{abstract}
 This document is a user manual describing usage of reference software
-for the HEVC project. It applies to the latest development version
+for the HEVC project. It applies to version 8.0
 of the software.
 \end{abstract}
 
@@ -842,6 +842,11 @@ value delta for the picture with POC value $n$.
 Specifies whether QP values for non-I frames will be calculated on the
 fly based on statistics of previously coded frames.
 \\
+\Option{RecalculateQPAccordingToLambda} &
+\ShortOption{\None} &
+\Default{false} &
+Recalculate QP values according to lambda values. Do not suggest to be enabled in all intra case.
+\\
 \end{OptionTable}
 
 
@@ -863,21 +868,21 @@ rate-distortion decisions.
 %% Slice coding parameters
 %%
 \begin{OptionTable}{Slice coding parameters}
-\Option{SliceGranularity} &
-\ShortOption{\None} &
-\Default{0} &
-Determines the depth in an LCU at which slices may begin and end.
-\par
-\begin{tabular}{cp{0.45\textwidth}}
- 0   & Slice addresses are LCU aligned \\
- $1 \leq n \leq 3$
-     & Slice start addresses are aligned to CUs at depth $n$ \\
-\end{tabular}
-
-Note: The smallest permissible alignment is 16x16 CUs.
-Values of $n$ must satisfy this constraint, for example, with a 64x64
-LCU, $n$ must be less than or equal to 2.
-\\
+%\Option{SliceGranularity} &
+%\ShortOption{\None} &
+%\Default{0} &
+%Determines the depth in an LCU at which slices may begin and end.
+%\par
+%\begin{tabular}{cp{0.45\textwidth}}
+% 0   & Slice addresses are LCU aligned \\
+% $1 \leq n \leq 3$
+%     & Slice start addresses are aligned to CUs at depth $n$ \\
+%\end{tabular}
+%
+%Note: The smallest permissible alignment is 16x16 CUs.
+%Values of $n$ must satisfy this constraint, for example, with a 64x64
+%LCU, $n$ must be less than or equal to 2.
+%\\
 
 \Option{SliceMode} &
 \ShortOption{\None} &
@@ -988,18 +993,18 @@ When disabled, the default deblocking filter parameters are used.
 %% Coding tools parameters
 %%
 \begin{OptionTable}{Coding tools parameters}
-\Option{ALF} &
-\ShortOption{\None} &
-\Default{true} &
-Enables or disables the adaptive loop filter.
-\\
+%\Option{ALF} &
+%\ShortOption{\None} &
+%\Default{true} &
+%Enables or disables the adaptive loop filter.
+%\\
 
-\Option{ALFLowLatencyEncode} &
-\ShortOption{\None} &
-\Default{false} &
-Specifies the operating mode (low latency or high efficiency) of the
-adaptive loop filter.
-\\
+%\Option{ALFLowLatencyEncode} &
+%\ShortOption{\None} &
+%\Default{false} &
+%Specifies the operating mode (low latency or high efficiency) of the
+%adaptive loop filter.
+%\\
 
 \Option{SAO} &
 \ShortOption{\None} &
@@ -1007,17 +1012,17 @@ adaptive loop filter.
 Enables or disables the sample adaptive offset (SAO) filter.
 \\
 
-\Option{LMChroma} &
-\ShortOption{\None} &
-\Default{true} &
-Enables or disables the intra chroma-from-luma prediction mode.
-\\
+%\Option{LMChroma} &
+%\ShortOption{\None} &
+%\Default{true} &
+%Enables or disables the intra chroma-from-luma prediction mode.
+%\\
 
-\Option{NSQT} &
-\ShortOption{\None} &
-\Default{true} &
-Enables or disables the non-square quadtree transform.
-\\
+%\Option{NSQT} &
+%\ShortOption{\None} &
+%\Default{true} &
+%Enables or disables the non-square quadtree transform.
+%\\
 
 \Option{ConstrainedIntraPred} &
 \ShortOption{\None} &
@@ -1162,7 +1167,7 @@ This option has no effect if TS is disabled.
 \begin{OptionTable}{Miscellaneous parameters}
 \Option{SEIPictureDigest} &
 \ShortOption{\None} &
-\Default{true} &
+\Default{0} &
 Enables or disables the calculation and insertion of the picture_digest
 SEI messages.
 \par

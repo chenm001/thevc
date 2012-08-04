@@ -308,13 +308,22 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
 #endif
     if ( pcSlice->getSPS()->getUseSAO() && pcSlice->getSaoEnabledFlag() )
     {
-      pcSlice->getAPS()->getSaoParam()->bSaoFlag[0] = pcSlice->getSaoEnabledFlag();
+#if REMOVE_APS
+      SAOParam *saoParam = rpcPic->getPicSym()->getSaoParam();
+#else
+      SAOParam *saoParam = pcSlice->getAPS()->getSaoParam();
+#endif
+      saoParam->bSaoFlag[0] = pcSlice->getSaoEnabledFlag();
       if (iCUAddr == iStartCUAddr)
       {
-        pcSlice->getAPS()->getSaoParam()->bSaoFlag[1] = pcSlice->getSaoEnabledFlagCb();
-        pcSlice->getAPS()->getSaoParam()->bSaoFlag[2] = pcSlice->getSaoEnabledFlagCr();
+#if SAO_TYPE_SHARING
+        saoParam->bSaoFlag[1] = pcSlice->getSaoEnabledFlagChroma();
+#else
+        saoParam->bSaoFlag[1] = pcSlice->getSaoEnabledFlagCb();
+        saoParam->bSaoFlag[2] = pcSlice->getSaoEnabledFlagCr();
+#endif
       }
-      Int numCuInWidth     = pcSlice->getAPS()->getSaoParam()->numCuInWidth;
+      Int numCuInWidth     = saoParam->numCuInWidth;
       Int cuAddrInSlice = iCUAddr - rpcPic->getPicSym()->getCUOrderMap(pcSlice->getSliceCurStartCUAddr()/rpcPic->getNumPartInCU());
       Int cuAddrUpInSlice  = cuAddrInSlice - numCuInWidth;
       Int rx = iCUAddr % numCuInWidth;
@@ -335,8 +344,9 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
           allowMergeUp = 0;
         }
       }
-      pcSbacDecoder->parseSaoOneLcuInterleaving(rx, ry, pcSlice->getAPS()->getSaoParam(),pcCU, cuAddrInSlice, cuAddrUpInSlice, allowMergeLeft, allowMergeUp);
+      pcSbacDecoder->parseSaoOneLcuInterleaving(rx, ry, saoParam,pcCU, cuAddrInSlice, cuAddrUpInSlice, allowMergeLeft, allowMergeUp);
     }
+#if !REMOVE_ALF
     if(pcSlice->getSPS()->getUseALF())
     {
       UInt alfEnabledFlag;
@@ -350,7 +360,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
         pcCU->setAlfLCUEnabled((alfEnabledFlag==1)?true:false, compIdx);
       }
     }
-
+#endif
     m_pcCuDecoder->decodeCU     ( pcCU, uiIsLast );
     m_pcCuDecoder->decompressCU ( pcCU );
     
@@ -394,7 +404,9 @@ ParameterSetManagerDecoder::ParameterSetManagerDecoder()
 : m_vpsBuffer(MAX_NUM_VPS)
 ,m_spsBuffer(256)
 , m_ppsBuffer(16)
+#if !REMOVE_APS
 , m_apsBuffer(64)
+#endif
 {
 
 }
@@ -441,6 +453,7 @@ TComPPS* ParameterSetManagerDecoder::getPrefetchedPPS  (Int ppsId)
   }
 }
 
+#if !REMOVE_APS
 TComAPS* ParameterSetManagerDecoder::getPrefetchedAPS  (Int apsId)
 {
   if (m_apsBuffer.getPS(apsId) != NULL )
@@ -452,11 +465,14 @@ TComAPS* ParameterSetManagerDecoder::getPrefetchedAPS  (Int apsId)
     return getAPS(apsId);
   }
 }
+#endif
 
 Void     ParameterSetManagerDecoder::applyPrefetchedPS()
 {
   m_vpsMap.mergePSList(m_vpsBuffer);
+#if !REMOVE_APS
   m_apsMap.mergePSList(m_apsBuffer);
+#endif
   m_ppsMap.mergePSList(m_ppsBuffer);
   m_spsMap.mergePSList(m_spsBuffer);
 }

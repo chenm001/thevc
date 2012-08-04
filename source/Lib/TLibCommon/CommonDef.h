@@ -218,7 +218,11 @@ enum NalUnitType
   NAL_UNIT_VPS,                   // 25
   NAL_UNIT_SPS,                   // 26
   NAL_UNIT_PPS,                   // 27
+#if REMOVE_APS
+  NAL_UNIT_RESERVED_28,
+#else
   NAL_UNIT_APS,                   // 28
+#endif
   NAL_UNIT_ACCESS_UNIT_DELIMITER, // 29
   NAL_UNIT_FILLER_DATA,           // 30
   NAL_UNIT_SEI,                   // 31
