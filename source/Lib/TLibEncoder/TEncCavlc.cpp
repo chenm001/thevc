@@ -654,10 +654,10 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
       if(pcSlice->getSPS()->getLongTermRefsPresent())
       {
 #if LTRP_IN_SPS
-        Int maxPocLsb = 1<<pcSlice->getSPS()->getBitsForPOC();
+        //Int maxPocLsb = 1<<pcSlice->getSPS()->getBitsForPOC();
         Int numLtrpInSH = rps->getNumberOfLongtermPictures();
         Int ltrpInSPS[MAX_NUM_REF_PICS];
-        Int ltrpInSH[MAX_NUM_REF_PICS];
+        //Int ltrpInSH[MAX_NUM_REF_PICS];
         Int numLtrpInSPS = 0;
         UInt ltrpIndex;
         Int counter = 0;
@@ -670,7 +670,7 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
           }
           else
           {
-            ltrpInSH[counter] = rps->getPOC(k) % maxPocLsb;
+            //ltrpInSH[counter] = rps->getPOC(k) % maxPocLsb;
             counter++;
           }
         }
