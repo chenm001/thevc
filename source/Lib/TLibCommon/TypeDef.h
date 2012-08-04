@@ -111,7 +111,7 @@
 #define REMOVE_APS 1 ///< Disable APS-related code
 
 #define PREVREFPIC_DEFN                  0  ///< J0248: Shall be set equal to 0! (prevRefPic definition reverted to CD definition)
-#define BYTE_ALIGNMENT                   0  ///< I0330: Add byte_alignment() procedure to end of slice header
+#define BYTE_ALIGNMENT                   1  ///< I0330: Add byte_alignment() procedure to end of slice header
 
 #define SBH_THRESHOLD                    4  ///< I0156: value of the fixed SBH controlling threshold
   
