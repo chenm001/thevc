@@ -135,7 +135,7 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
   Int addr;
   Int allowMergeLeft;
   Int allowMergeUp;
-  Int iFrameWidthInCU = m_pcPic->getFrameWidthInCU();
+  Int frameWidthInCU = m_pcPic->getFrameWidthInCU();
   SaoLcuParam  saoLcuParamRdo;
 #endif
 
@@ -161,7 +161,7 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
       {
         for (Int rx = pOnePart->StartCUX; rx <= pOnePart->EndCUX; rx++)
         {
-          addr = ry * iFrameWidthInCU + rx;          
+          addr = ry * frameWidthInCU + rx;          
 
           // get bits for iTypeIdx = -1
           allowMergeLeft = 1;
@@ -244,7 +244,7 @@ Void TEncSampleAdaptiveOffset::rdoSaoOnePart(SAOQTPart *psQTPart, Int iPartIdx, 
       {
         for (Int rx = pOnePart->StartCUX; rx <= pOnePart->EndCUX; rx++)
         {
-          addr = ry * iFrameWidthInCU + rx;          
+          addr = ry * frameWidthInCU + rx;          
 
           // get bits for iTypeIdx = -1
           allowMergeLeft = 1;
@@ -584,48 +584,48 @@ Void TEncSampleAdaptiveOffset::destroyEncBuffer()
     delete [] m_iOffsetOrg ; m_iOffsetOrg = NULL;
   }
 #if SAO_LCU_BOUNDARY
-  Int iNumLcu = m_iNumCuInWidth * m_iNumCuInHeight;
+  Int numLcu = m_iNumCuInWidth * m_iNumCuInHeight;
 
-  for (Int i=0;i<iNumLcu;i++)
+  for (Int i=0;i<numLcu;i++)
   {
     for (Int j=0;j<3;j++)
     {
       for (Int k=0;k<MAX_NUM_SAO_TYPE;k++)
       {
-        if (m_iCount_PreDblk [i][j][k])
+        if (m_count_PreDblk [i][j][k])
         {
-          delete [] m_iCount_PreDblk [i][j][k]; 
+          delete [] m_count_PreDblk [i][j][k]; 
         }
-        if (m_iOffsetOrg_PreDblk[i][j][k])
+        if (m_offsetOrg_PreDblk[i][j][k])
         {
-          delete [] m_iOffsetOrg_PreDblk[i][j][k];
+          delete [] m_offsetOrg_PreDblk[i][j][k];
         }
       }
-      if (m_iCount_PreDblk [i][j])
+      if (m_count_PreDblk [i][j])
       {
-        delete [] m_iCount_PreDblk [i][j]; 
+        delete [] m_count_PreDblk [i][j]; 
       }
-      if (m_iOffsetOrg_PreDblk[i][j])
+      if (m_offsetOrg_PreDblk[i][j])
       {
-        delete [] m_iOffsetOrg_PreDblk[i][j]; 
+        delete [] m_offsetOrg_PreDblk[i][j]; 
       }
     }
-    if (m_iCount_PreDblk [i])
+    if (m_count_PreDblk [i])
     {
-      delete [] m_iCount_PreDblk [i]; 
+      delete [] m_count_PreDblk [i]; 
     }
-    if (m_iOffsetOrg_PreDblk[i])
+    if (m_offsetOrg_PreDblk[i])
     {
-      delete [] m_iOffsetOrg_PreDblk[i]; 
+      delete [] m_offsetOrg_PreDblk[i]; 
     }
   }
-  if (m_iCount_PreDblk)
+  if (m_count_PreDblk)
   {
-    delete [] m_iCount_PreDblk  ; m_iCount_PreDblk = NULL;
+    delete [] m_count_PreDblk  ; m_count_PreDblk = NULL;
   }
-  if (m_iOffsetOrg_PreDblk)
+  if (m_offsetOrg_PreDblk)
   {
-    delete [] m_iOffsetOrg_PreDblk ; m_iOffsetOrg_PreDblk = NULL;
+    delete [] m_offsetOrg_PreDblk ; m_offsetOrg_PreDblk = NULL;
   }
 #endif
 
@@ -685,23 +685,23 @@ Void TEncSampleAdaptiveOffset::createEncBuffer()
     }
   }
 #if SAO_LCU_BOUNDARY
-  Int iNumLcu = m_iNumCuInWidth * m_iNumCuInHeight;
-  m_iCount_PreDblk  = new Int64 ***[iNumLcu];
-  m_iOffsetOrg_PreDblk = new Int64 ***[iNumLcu];
-  for (Int i=0; i<iNumLcu; i++)
+  Int numLcu = m_iNumCuInWidth * m_iNumCuInHeight;
+  m_count_PreDblk  = new Int64 ***[numLcu];
+  m_offsetOrg_PreDblk = new Int64 ***[numLcu];
+  for (Int i=0; i<numLcu; i++)
   {
-    m_iCount_PreDblk[i]  = new Int64 **[3];
-    m_iOffsetOrg_PreDblk[i] = new Int64 **[3];
+    m_count_PreDblk[i]  = new Int64 **[3];
+    m_offsetOrg_PreDblk[i] = new Int64 **[3];
 
     for (Int j=0;j<3;j++)
     {
-      m_iCount_PreDblk [i][j] = new Int64 *[MAX_NUM_SAO_TYPE]; 
-      m_iOffsetOrg_PreDblk[i][j] = new Int64 *[MAX_NUM_SAO_TYPE]; 
+      m_count_PreDblk [i][j] = new Int64 *[MAX_NUM_SAO_TYPE]; 
+      m_offsetOrg_PreDblk[i][j] = new Int64 *[MAX_NUM_SAO_TYPE]; 
 
       for (Int k=0;k<MAX_NUM_SAO_TYPE;k++)
       {
-        m_iCount_PreDblk [i][j][k]   = new Int64 [MAX_NUM_SAO_CLASS]; 
-        m_iOffsetOrg_PreDblk[i][j][k]= new Int64 [MAX_NUM_SAO_CLASS]; 
+        m_count_PreDblk [i][j][k]   = new Int64 [MAX_NUM_SAO_CLASS]; 
+        m_offsetOrg_PreDblk[i][j][k]= new Int64 [MAX_NUM_SAO_CLASS]; 
       }
     }
   }
@@ -1371,29 +1371,28 @@ Void TEncSampleAdaptiveOffset::calcSaoStatsCuOrg(Int iAddr, Int iPartIdx, Int iY
 
 #if SAO_LCU_BOUNDARY
 Void TEncSampleAdaptiveOffset::calcSaoStatsCu_BeforeDblk( TComPic* pcPic )
-//(Int iAddr, Int iPartIdx, Int iYCbCr)
 {
-  Int iAddr, iYCbCr;
+  Int addr, yCbCr;
   Int x,y;
   TComSPS *pTmpSPS =  pcPic->getSlice(0)->getSPS();
 
   Pel* pOrg;
   Pel* pRec;
-  Int iStride;
-  Int iLcuWidth  = pTmpSPS->getMaxCUHeight();
-  Int iLcuHeight = pTmpSPS->getMaxCUWidth();
-  UInt uiRPelX;
-  UInt uiBPelY;
-  Int64* iStats;
-  Int64* iCount;
-  Int iClassIdx;
-  Int iPicWidthTmp = 0;
-  Int iPicHeightTmp = 0;
-  Int iStartX;
-  Int iStartY;
-  Int iEndX;
-  Int iEndY;
-  Int iFirstX, iFirstY;
+  Int stride;
+  Int lcuWidth  = pTmpSPS->getMaxCUHeight();
+  Int lcuHeight = pTmpSPS->getMaxCUWidth();
+  UInt rPelX;
+  UInt bPelY;
+  Int64* stats;
+  Int64* count;
+  Int classIdx;
+  Int picWidthTmp = 0;
+  Int picHeightTmp = 0;
+  Int startX;
+  Int startY;
+  Int endX;
+  Int endY;
+  Int firstX, firstY;
 
   Int idxY;
   Int idxX;
@@ -1401,272 +1400,272 @@ Void TEncSampleAdaptiveOffset::calcSaoStatsCu_BeforeDblk( TComPic* pcPic )
   Int frameWidthInCU  = m_iNumCuInWidth;
   Int j, k;
 
-  Int iIsChroma;
+  Int isChroma;
   Int numSkipLine, numSkipLineRight;
 
-  UInt uiLPelX, uiTPelY;
+  UInt lPelX, tPelY;
   TComDataCU *pTmpCu;
 
   for (idxY = 0; idxY< frameHeightInCU; idxY++)
   {
     for (idxX = 0; idxX< frameWidthInCU; idxX++)
     {
-      iLcuWidth  = pTmpSPS->getMaxCUHeight();
-      iLcuHeight = pTmpSPS->getMaxCUWidth();
-      iAddr     = idxX  + frameWidthInCU*idxY;
-      pTmpCu = pcPic->getCU(iAddr);
-      uiLPelX   = pTmpCu->getCUPelX();
-      uiTPelY   = pTmpCu->getCUPelY();
-      for( iYCbCr = 0; iYCbCr < 3; iYCbCr++ )
+      lcuWidth  = pTmpSPS->getMaxCUHeight();
+      lcuHeight = pTmpSPS->getMaxCUWidth();
+      addr     = idxX  + frameWidthInCU*idxY;
+      pTmpCu = pcPic->getCU(addr);
+      lPelX   = pTmpCu->getCUPelX();
+      tPelY   = pTmpCu->getCUPelY();
+      for( yCbCr = 0; yCbCr < 3; yCbCr++ )
       {
-        iIsChroma = (iYCbCr!=0)? 1:0;
+        isChroma = (yCbCr!=0)? 1:0;
 
         for ( j=0;j<MAX_NUM_SAO_TYPE;j++)
         {
           for ( k=0;k< MAX_NUM_SAO_CLASS;k++)
           {
-            m_iCount_PreDblk    [iAddr][iYCbCr][j][k] = 0;
-            m_iOffsetOrg_PreDblk[iAddr][iYCbCr][j][k] = 0;
+            m_count_PreDblk    [addr][yCbCr][j][k] = 0;
+            m_offsetOrg_PreDblk[addr][yCbCr][j][k] = 0;
           }  
         }
-        if( iYCbCr == 0 )
+        if( yCbCr == 0 )
         {
-          iPicWidthTmp  = m_iPicWidth;
-          iPicHeightTmp = m_iPicHeight;
+          picWidthTmp  = m_iPicWidth;
+          picHeightTmp = m_iPicHeight;
         }
-        else if( iYCbCr == 1 )
+        else if( yCbCr == 1 )
         {
-          iPicWidthTmp  = m_iPicWidth  >> iIsChroma;
-          iPicHeightTmp = m_iPicHeight >> iIsChroma;
-          iLcuWidth     = iLcuWidth    >> iIsChroma;
-          iLcuHeight    = iLcuHeight   >> iIsChroma;
-          uiLPelX       = uiLPelX      >> iIsChroma;
-          uiTPelY       = uiTPelY      >> iIsChroma;
+          picWidthTmp  = m_iPicWidth  >> isChroma;
+          picHeightTmp = m_iPicHeight >> isChroma;
+          lcuWidth     = lcuWidth    >> isChroma;
+          lcuHeight    = lcuHeight   >> isChroma;
+          lPelX       = lPelX      >> isChroma;
+          tPelY       = tPelY      >> isChroma;
         }
-        uiRPelX       = uiLPelX + iLcuWidth  ;
-        uiBPelY       = uiTPelY + iLcuHeight ;
-        uiRPelX       = uiRPelX > iPicWidthTmp  ? iPicWidthTmp  : uiRPelX;
-        uiBPelY       = uiBPelY > iPicHeightTmp ? iPicHeightTmp : uiBPelY;
-        iLcuWidth     = uiRPelX - uiLPelX;
-        iLcuHeight    = uiBPelY - uiTPelY;
+        rPelX       = lPelX + lcuWidth  ;
+        bPelY       = tPelY + lcuHeight ;
+        rPelX       = rPelX > picWidthTmp  ? picWidthTmp  : rPelX;
+        bPelY       = bPelY > picHeightTmp ? picHeightTmp : bPelY;
+        lcuWidth     = rPelX - lPelX;
+        lcuHeight    = bPelY - tPelY;
 
-        iStride    =  (iYCbCr == 0)? pcPic->getStride(): pcPic->getCStride();
+        stride    =  (yCbCr == 0)? pcPic->getStride(): pcPic->getCStride();
 
         //if(iSaoType == BO)
 
-        numSkipLine = iIsChroma? 1:3;
-        numSkipLineRight = iIsChroma? 2:4;
+        numSkipLine = isChroma? 1:3;
+        numSkipLineRight = isChroma? 2:4;
 
-        iStats = m_iOffsetOrg_PreDblk[iAddr][iYCbCr][SAO_BO];
-        iCount = m_iCount_PreDblk[iAddr][iYCbCr][SAO_BO];
+        stats = m_offsetOrg_PreDblk[addr][yCbCr][SAO_BO];
+        count = m_count_PreDblk[addr][yCbCr][SAO_BO];
 
-        pOrg = getPicYuvAddr(pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-        pRec = getPicYuvAddr(pcPic->getPicYuvRec(), iYCbCr, iAddr);
+        pOrg = getPicYuvAddr(pcPic->getPicYuvOrg(), yCbCr, addr);
+        pRec = getPicYuvAddr(pcPic->getPicYuvRec(), yCbCr, addr);
 
-        iStartX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth : iLcuWidth-numSkipLineRight;
-        iStartY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight : iLcuHeight-numSkipLine;
+        startX   = (rPelX == picWidthTmp) ? lcuWidth : lcuWidth-numSkipLineRight;
+        startY   = (bPelY == picHeightTmp) ? lcuHeight : lcuHeight-numSkipLine;
 
-        for (y=0; y<iLcuHeight; y++)
+        for (y=0; y<lcuHeight; y++)
         {
-          for (x=0; x<iLcuWidth; x++)
+          for (x=0; x<lcuWidth; x++)
           {
-            if( x < iStartX && y < iStartY )
+            if( x < startX && y < startY )
               continue;
 
-            iClassIdx = m_lumaTableBo[pRec[x]];
-            if (iClassIdx)
+            classIdx = m_lumaTableBo[pRec[x]];
+            if (classIdx)
             {
-              iStats[iClassIdx] += (pOrg[x] - pRec[x]); 
-              iCount[iClassIdx] ++;
+              stats[classIdx] += (pOrg[x] - pRec[x]); 
+              count[classIdx] ++;
             }
           }
-          pOrg += iStride;
-          pRec += iStride;
+          pOrg += stride;
+          pRec += stride;
         }
 
-        Int iSignLeft;
-        Int iSignRight;
-        Int iSignDown;
-        Int iSignDown1;
-        Int iSignDown2;
+        Int signLeft;
+        Int signRight;
+        Int signDown;
+        Int signDown1;
+        Int signDown2;
 
         UInt uiEdgeType;
 
         //if (iSaoType == EO_0)
 
-        numSkipLine = iIsChroma? 1:3;
-        numSkipLineRight = iIsChroma? 3:5;
+        numSkipLine = isChroma? 1:3;
+        numSkipLineRight = isChroma? 3:5;
 
-        iStats = m_iOffsetOrg_PreDblk[iAddr][iYCbCr][SAO_EO_0];
-        iCount = m_iCount_PreDblk[iAddr][iYCbCr][SAO_EO_0];
+        stats = m_offsetOrg_PreDblk[addr][yCbCr][SAO_EO_0];
+        count = m_count_PreDblk[addr][yCbCr][SAO_EO_0];
 
-        pOrg = getPicYuvAddr(pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-        pRec = getPicYuvAddr(pcPic->getPicYuvRec(), iYCbCr, iAddr);
+        pOrg = getPicYuvAddr(pcPic->getPicYuvOrg(), yCbCr, addr);
+        pRec = getPicYuvAddr(pcPic->getPicYuvRec(), yCbCr, addr);
 
-        iStartX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth-numSkipLineRight;
-        iStartY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight : iLcuHeight-numSkipLine;
-        iFirstX   = (uiLPelX == 0) ? 1 : 0;
-        iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth;
+        startX   = (rPelX == picWidthTmp) ? lcuWidth-1 : lcuWidth-numSkipLineRight;
+        startY   = (bPelY == picHeightTmp) ? lcuHeight : lcuHeight-numSkipLine;
+        firstX   = (lPelX == 0) ? 1 : 0;
+        endX   = (rPelX == picWidthTmp) ? lcuWidth-1 : lcuWidth;
 
-        for (y=0; y<iLcuHeight; y++)
+        for (y=0; y<lcuHeight; y++)
         {
-          iSignLeft = xSign(pRec[iFirstX] - pRec[iFirstX-1]);
-          for (x=iFirstX; x< iEndX; x++)
+          signLeft = xSign(pRec[firstX] - pRec[firstX-1]);
+          for (x=firstX; x< endX; x++)
           {
-            iSignRight =  xSign(pRec[x] - pRec[x+1]); 
-            uiEdgeType =  iSignRight + iSignLeft + 2;
-            iSignLeft  = -iSignRight;
+            signRight =  xSign(pRec[x] - pRec[x+1]); 
+            uiEdgeType =  signRight + signLeft + 2;
+            signLeft  = -signRight;
 
-            if( x < iStartX && y < iStartY )
+            if( x < startX && y < startY )
               continue;
 
-            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-            iCount[m_auiEoTable[uiEdgeType]] ++;
+            stats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+            count[m_auiEoTable[uiEdgeType]] ++;
           }
-          pOrg += iStride;
-          pRec += iStride;
+          pOrg += stride;
+          pRec += stride;
         }
 
         //if (iSaoType == EO_1)
 
-        numSkipLine = iIsChroma? 2:4;
-        numSkipLineRight = iIsChroma? 2:4;
+        numSkipLine = isChroma? 2:4;
+        numSkipLineRight = isChroma? 2:4;
 
-        iStats = m_iOffsetOrg_PreDblk[iAddr][iYCbCr][SAO_EO_1];
-        iCount = m_iCount_PreDblk[iAddr][iYCbCr][SAO_EO_1];
+        stats = m_offsetOrg_PreDblk[addr][yCbCr][SAO_EO_1];
+        count = m_count_PreDblk[addr][yCbCr][SAO_EO_1];
 
-        pOrg = getPicYuvAddr(pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-        pRec = getPicYuvAddr(pcPic->getPicYuvRec(), iYCbCr, iAddr);
+        pOrg = getPicYuvAddr(pcPic->getPicYuvOrg(), yCbCr, addr);
+        pRec = getPicYuvAddr(pcPic->getPicYuvRec(), yCbCr, addr);
 
-        iStartX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth : iLcuWidth-numSkipLineRight;
-        iStartY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight-numSkipLine;
-        iFirstY = (uiTPelY == 0) ? 1 : 0;
-        iEndY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight;
-        if (iFirstY == 1)
+        startX   = (rPelX == picWidthTmp) ? lcuWidth : lcuWidth-numSkipLineRight;
+        startY   = (bPelY == picHeightTmp) ? lcuHeight-1 : lcuHeight-numSkipLine;
+        firstY = (tPelY == 0) ? 1 : 0;
+        endY   = (bPelY == picHeightTmp) ? lcuHeight-1 : lcuHeight;
+        if (firstY == 1)
         {
-          pOrg += iStride;
-          pRec += iStride;
+          pOrg += stride;
+          pRec += stride;
         }
 
-        for (x=0; x< iLcuWidth; x++)
+        for (x=0; x< lcuWidth; x++)
         {
-          m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride]);
+          m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-stride]);
         }
-        for (y=iFirstY; y<iEndY; y++)
+        for (y=firstY; y<endY; y++)
         {
-          for (x=0; x<iLcuWidth; x++)
+          for (x=0; x<lcuWidth; x++)
           {
-            iSignDown     =  xSign(pRec[x] - pRec[x+iStride]); 
-            uiEdgeType    =  iSignDown + m_iUpBuff1[x] + 2;
-            m_iUpBuff1[x] = -iSignDown;
+            signDown     =  xSign(pRec[x] - pRec[x+stride]); 
+            uiEdgeType    =  signDown + m_iUpBuff1[x] + 2;
+            m_iUpBuff1[x] = -signDown;
 
-            if( x < iStartX && y < iStartY )
+            if( x < startX && y < startY )
               continue;
 
-            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-            iCount[m_auiEoTable[uiEdgeType]] ++;
+            stats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+            count[m_auiEoTable[uiEdgeType]] ++;
           }
-          pOrg += iStride;
-          pRec += iStride;
+          pOrg += stride;
+          pRec += stride;
         }
 
         //if (iSaoType == EO_2)
 
-        numSkipLine = iIsChroma? 2:4;
-        numSkipLineRight = iIsChroma? 3:5;
+        numSkipLine = isChroma? 2:4;
+        numSkipLineRight = isChroma? 3:5;
 
-        iStats = m_iOffsetOrg_PreDblk[iAddr][iYCbCr][SAO_EO_2];
-        iCount = m_iCount_PreDblk[iAddr][iYCbCr][SAO_EO_2];
+        stats = m_offsetOrg_PreDblk[addr][yCbCr][SAO_EO_2];
+        count = m_count_PreDblk[addr][yCbCr][SAO_EO_2];
 
-        pOrg = getPicYuvAddr(pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-        pRec = getPicYuvAddr(pcPic->getPicYuvRec(), iYCbCr, iAddr);
+        pOrg = getPicYuvAddr(pcPic->getPicYuvOrg(), yCbCr, addr);
+        pRec = getPicYuvAddr(pcPic->getPicYuvRec(), yCbCr, addr);
 
-        iStartX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth-numSkipLineRight;
-        iStartY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight-numSkipLine;
-        iFirstX   = (uiLPelX == 0) ? 1 : 0;
-        iFirstY = (uiTPelY == 0) ? 1 : 0;
-        iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth;
-        iEndY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight;
-        if (iFirstY == 1)
+        startX   = (rPelX == picWidthTmp) ? lcuWidth-1 : lcuWidth-numSkipLineRight;
+        startY   = (bPelY == picHeightTmp) ? lcuHeight-1 : lcuHeight-numSkipLine;
+        firstX   = (lPelX == 0) ? 1 : 0;
+        firstY = (tPelY == 0) ? 1 : 0;
+        endX   = (rPelX == picWidthTmp) ? lcuWidth-1 : lcuWidth;
+        endY   = (bPelY == picHeightTmp) ? lcuHeight-1 : lcuHeight;
+        if (firstY == 1)
         {
-          pOrg += iStride;
-          pRec += iStride;
+          pOrg += stride;
+          pRec += stride;
         }
 
-        for (x=iFirstX; x<iEndX; x++)
+        for (x=firstX; x<endX; x++)
         {
-          m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride-1]);
+          m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-stride-1]);
         }
-        for (y=iFirstY; y<iEndY; y++)
+        for (y=firstY; y<endY; y++)
         {
-          iSignDown2 = xSign(pRec[iStride+iStartX] - pRec[iStartX-1]);
-          for (x=iFirstX; x<iEndX; x++)
+          signDown2 = xSign(pRec[stride+startX] - pRec[startX-1]);
+          for (x=firstX; x<endX; x++)
           {
-            iSignDown1      =  xSign(pRec[x] - pRec[x+iStride+1]) ;
-            uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
-            m_iUpBufft[x+1] = -iSignDown1; 
+            signDown1      =  xSign(pRec[x] - pRec[x+stride+1]) ;
+            uiEdgeType      =  signDown1 + m_iUpBuff1[x] + 2;
+            m_iUpBufft[x+1] = -signDown1; 
 
-            if( x < iStartX && y < iStartY )
+            if( x < startX && y < startY )
               continue;
 
-            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-            iCount[m_auiEoTable[uiEdgeType]] ++;
+            stats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+            count[m_auiEoTable[uiEdgeType]] ++;
           }
-          m_iUpBufft[iFirstX] = iSignDown2;
+          m_iUpBufft[firstX] = signDown2;
           ipSwap     = m_iUpBuff1;
           m_iUpBuff1 = m_iUpBufft;
           m_iUpBufft = ipSwap;
 
-          pRec += iStride;
-          pOrg += iStride;
+          pRec += stride;
+          pOrg += stride;
         }
 
         //if (iSaoType == EO_3)
 
-        numSkipLine = iIsChroma? 2:4;
-        numSkipLineRight = iIsChroma? 3:5;
+        numSkipLine = isChroma? 2:4;
+        numSkipLineRight = isChroma? 3:5;
 
-        iStats = m_iOffsetOrg_PreDblk[iAddr][iYCbCr][SAO_EO_3];
-        iCount = m_iCount_PreDblk[iAddr][iYCbCr][SAO_EO_3];
+        stats = m_offsetOrg_PreDblk[addr][yCbCr][SAO_EO_3];
+        count = m_count_PreDblk[addr][yCbCr][SAO_EO_3];
 
-        pOrg = getPicYuvAddr(pcPic->getPicYuvOrg(), iYCbCr, iAddr);
-        pRec = getPicYuvAddr(pcPic->getPicYuvRec(), iYCbCr, iAddr);
+        pOrg = getPicYuvAddr(pcPic->getPicYuvOrg(), yCbCr, addr);
+        pRec = getPicYuvAddr(pcPic->getPicYuvRec(), yCbCr, addr);
 
-        iStartX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth-numSkipLineRight;
-        iStartY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight-numSkipLine;
-        iFirstX   = (uiLPelX == 0) ? 1 : 0;
-        iFirstY = (uiTPelY == 0) ? 1 : 0;
-        iEndX   = (uiRPelX == iPicWidthTmp) ? iLcuWidth-1 : iLcuWidth;
-        iEndY   = (uiBPelY == iPicHeightTmp) ? iLcuHeight-1 : iLcuHeight;
-        if (iFirstY == 1)
+        startX   = (rPelX == picWidthTmp) ? lcuWidth-1 : lcuWidth-numSkipLineRight;
+        startY   = (bPelY == picHeightTmp) ? lcuHeight-1 : lcuHeight-numSkipLine;
+        firstX   = (lPelX == 0) ? 1 : 0;
+        firstY = (tPelY == 0) ? 1 : 0;
+        endX   = (rPelX == picWidthTmp) ? lcuWidth-1 : lcuWidth;
+        endY   = (bPelY == picHeightTmp) ? lcuHeight-1 : lcuHeight;
+        if (firstY == 1)
         {
-          pOrg += iStride;
-          pRec += iStride;
+          pOrg += stride;
+          pRec += stride;
         }
 
-        for (x=iFirstX-1; x<iEndX; x++)
+        for (x=firstX-1; x<endX; x++)
         {
-          m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-iStride+1]);
+          m_iUpBuff1[x] = xSign(pRec[x] - pRec[x-stride+1]);
         }
 
-        for (y=iFirstY; y<iEndY; y++)
+        for (y=firstY; y<endY; y++)
         {
-          for (x=iFirstX; x<iEndX; x++)
+          for (x=firstX; x<endX; x++)
           {
-            iSignDown1      =  xSign(pRec[x] - pRec[x+iStride-1]) ;
-            uiEdgeType      =  iSignDown1 + m_iUpBuff1[x] + 2;
-            m_iUpBuff1[x-1] = -iSignDown1; 
+            signDown1      =  xSign(pRec[x] - pRec[x+stride-1]) ;
+            uiEdgeType      =  signDown1 + m_iUpBuff1[x] + 2;
+            m_iUpBuff1[x-1] = -signDown1; 
 
-            if( x < iStartX && y < iStartY )
+            if( x < startX && y < startY )
               continue;
 
-            iStats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
-            iCount[m_auiEoTable[uiEdgeType]] ++;
+            stats[m_auiEoTable[uiEdgeType]] += (pOrg[x] - pRec[x]);
+            count[m_auiEoTable[uiEdgeType]] ++;
           }
-          m_iUpBuff1[iEndX-1] = xSign(pRec[iEndX-1 + iStride] - pRec[iEndX]);
+          m_iUpBuff1[endX-1] = xSign(pRec[endX-1 + stride] - pRec[endX]);
 
-          pRec += iStride;
-          pOrg += iStride;
+          pRec += stride;
+          pOrg += stride;
         }
       }
     }
@@ -2162,8 +2161,8 @@ Void TEncSampleAdaptiveOffset::rdoSaoUnitAll(SAOParam *saoParam, Double lambda, 
 #if SAO_LCU_BOUNDARY
             m_iOffset   [compIdx][j][k] = 0;
             if( m_saoLcuBasedOptimization && m_saoLcuBoundary ){
-              m_iCount    [compIdx][j][k] = m_iCount_PreDblk    [addr][compIdx][j][k];
-              m_iOffsetOrg[compIdx][j][k] = m_iOffsetOrg_PreDblk[addr][compIdx][j][k];
+              m_iCount    [compIdx][j][k] = m_count_PreDblk    [addr][compIdx][j][k];
+              m_iOffsetOrg[compIdx][j][k] = m_offsetOrg_PreDblk[addr][compIdx][j][k];
             }
             else
             {
