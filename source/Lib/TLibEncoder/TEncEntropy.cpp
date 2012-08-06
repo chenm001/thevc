@@ -134,6 +134,17 @@ Void TEncEntropy::encodeSPS( TComSPS* pcSPS )
 
 Void TEncEntropy::encodeCUTransquantBypassFlag( TComDataCU* pcCU, UInt uiAbsPartIdx, Bool bRD )
 {
+  if( bRD )
+  {
+    uiAbsPartIdx = 0;
+  }
+  if( !bRD )
+  {
+    if( pcCU->getLastCUSucIPCMFlag() && pcCU->getIPCMFlag(uiAbsPartIdx) )
+    {
+      return;
+    }
+  }
   m_pcEntropyCoderIf->codeCUTransquantBypassFlag( pcCU, uiAbsPartIdx );
 }
 

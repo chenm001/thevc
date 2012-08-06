@@ -287,7 +287,7 @@ Void TDecCu::xDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth, UInt&
     pcCU->setQPSubParts( pcCU->getRefQP(uiAbsPartIdx), uiAbsPartIdx, uiDepth ); // set QP to default QP
   }
 
-  if (pcCU->getSlice()->getPPS()->getTransquantBypassEnableFlag())
+  if (pcCU->getSlice()->getPPS()->getTransquantBypassEnableFlag() && pcCU->getNumSucIPCM() == 0 )
   {
     m_pcEntropyDecoder->decodeCUTransquantBypassFlag( pcCU, uiAbsPartIdx, uiDepth );
   }

@@ -1470,6 +1470,8 @@ Void TEncCu::xCheckIntraPCM( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
 {
   UInt uiDepth = rpcTempCU->getDepth( 0 );
 
+  rpcTempCU->setCUTransquantBypassSubParts(false, 0, uiDepth);
+
 #if SKIP_FLAG
   rpcTempCU->setSkipFlagSubParts( false, 0, uiDepth );
 #endif
