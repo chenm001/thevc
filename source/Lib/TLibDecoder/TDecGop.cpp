@@ -242,7 +242,11 @@ Void TDecGop::filterPicture(TComPic*& rpcPic)
 
   if( pcSlice->getSPS()->getUseSAO() )
   {
+#if !SAO_LUM_CHROMA_ONOFF_FLAGS
     if(pcSlice->getSaoEnabledFlag())
+#else
+    if(pcSlice->getSaoEnabledFlag()||pcSlice->getSaoEnabledFlagChroma())
+#endif
     {
 #if REMOVE_APS
       SAOParam *saoParam = rpcPic->getPicSym()->getSaoParam();

@@ -942,7 +942,11 @@ Void TEncCavlc::codeSliceHeader         ( TComSlice* pcSlice )
 #if !REMOVE_ALF
     Bool isAlfEnabled = (!pcSlice->getSPS()->getUseALF())?(false):(pcSlice->getAlfEnabledFlag(0)||pcSlice->getAlfEnabledFlag(1)||pcSlice->getAlfEnabledFlag(2));
 #endif
+#if !SAO_LUM_CHROMA_ONOFF_FLAGS
     Bool isSAOEnabled = (!pcSlice->getSPS()->getUseSAO())?(false):(pcSlice->getSaoEnabledFlag());
+#else
+    Bool isSAOEnabled = (!pcSlice->getSPS()->getUseSAO())?(false):(pcSlice->getSaoEnabledFlag()||pcSlice->getSaoEnabledFlagChroma());
+#endif
     Bool isDBFEnabled = (!pcSlice->getLoopFilterDisable());
 
 #if REMOVE_ALF

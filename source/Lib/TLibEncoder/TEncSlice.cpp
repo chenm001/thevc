@@ -1236,7 +1236,11 @@ Void TEncSlice::encodeSlice   ( TComPic*& rpcPic, TComOutputBitstream* pcBitstre
     }
 
     TComDataCU*& pcCU = rpcPic->getCU( uiCUAddr );    
+#if !SAO_LUM_CHROMA_ONOFF_FLAGS
     if ( pcSlice->getSPS()->getUseSAO() && pcSlice->getSaoEnabledFlag() )
+#else
+    if ( pcSlice->getSPS()->getUseSAO() && (pcSlice->getSaoEnabledFlag()||pcSlice->getSaoEnabledFlagChroma()) )
+#endif
     {
 #if REMOVE_APS
       SAOParam *saoParam = pcSlice->getPic()->getPicSym()->getSaoParam();

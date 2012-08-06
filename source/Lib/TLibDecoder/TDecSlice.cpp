@@ -306,7 +306,11 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
 #if ENC_DEC_TRACE
     g_bJustDoIt = g_bEncDecTraceEnable;
 #endif
+#if !SAO_LUM_CHROMA_ONOFF_FLAGS
     if ( pcSlice->getSPS()->getUseSAO() && pcSlice->getSaoEnabledFlag() )
+#else
+    if ( pcSlice->getSPS()->getUseSAO() && (pcSlice->getSaoEnabledFlag()||pcSlice->getSaoEnabledFlagChroma()) )
+#endif
     {
 #if REMOVE_APS
       SAOParam *saoParam = rpcPic->getPicSym()->getSaoParam();
