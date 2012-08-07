@@ -3,7 +3,7 @@ SHELL=/bin/bash
 DOCNUM:=software-manual
 
 LATEX:=$(shell which xelatex || which pdflatex || which latex)
-BIBTOOL:=$(shell which bibtool || echo '# skipping bibtool')
+BIBTOOL:=$(shell which bibtool || echo \\\# skipping bibtool )
 BIBTOOL_DB=~/mpeg/doc/bib/jctvc.bib
 
 all: $(DOCNUM).pdf
