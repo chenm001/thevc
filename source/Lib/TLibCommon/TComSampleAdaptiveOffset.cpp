@@ -1004,7 +1004,13 @@ Void TComSampleAdaptiveOffset::processSaoCuOrg(Int iAddr, Int iSaoType, Int iYCb
  */
 Void TComSampleAdaptiveOffset::SAOProcess(TComPic* pcPic, SAOParam* pcSaoParam)
 {
+#if SAO_LUM_CHROMA_ONOFF_FLAGS && SAO_TYPE_SHARING
+  if (pcSaoParam->bSaoFlag[0] || pcSaoParam->bSaoFlag[1])
+#elif SAO_LUM_CHROMA_ONOFF_FLAGS
+  if (pcSaoParam->bSaoFlag[0] || pcSaoParam->bSaoFlag[1] || pcSaoParam->bSaoFlag[2])
+#else
   if (pcSaoParam->bSaoFlag[0])
+#endif
   {
 #if FULL_NBIT
     m_uiSaoBitIncrease = g_uiBitDepth + (g_uiBitDepth-8) - min((Int)(g_uiBitDepth + (g_uiBitDepth-8)), 10);
@@ -1023,24 +1029,29 @@ Void TComSampleAdaptiveOffset::SAOProcess(TComPic* pcPic, SAOParam* pcSaoParam)
       pcSaoParam->oneUnitFlag[2] = 0;  
     }
     Int iY  = 0;
-    processSaoUnitAll( pcSaoParam->saoLcuParam[iY], pcSaoParam->oneUnitFlag[iY], iY);
+#if SAO_LUM_CHROMA_ONOFF_FLAGS
+    if (pcSaoParam->bSaoFlag[0])
+#endif
+    {
+      processSaoUnitAll( pcSaoParam->saoLcuParam[iY], pcSaoParam->oneUnitFlag[iY], iY);
+    }
 #if SAO_TYPE_SHARING
-if(pcSaoParam->bSaoFlag[1])
-{
-   processSaoUnitAll( pcSaoParam->saoLcuParam[1], pcSaoParam->oneUnitFlag[1], 1);//Cb
-   processSaoUnitAll( pcSaoParam->saoLcuParam[2], pcSaoParam->oneUnitFlag[2], 2);//Cr
-}
+    if(pcSaoParam->bSaoFlag[1])
+    {
+       processSaoUnitAll( pcSaoParam->saoLcuParam[1], pcSaoParam->oneUnitFlag[1], 1);//Cb
+       processSaoUnitAll( pcSaoParam->saoLcuParam[2], pcSaoParam->oneUnitFlag[2], 2);//Cr
+    }
 #else
-  Int iCb = 1;
-  Int iCr = 2;
-  if (pcSaoParam->bSaoFlag[iCb])
-  {
-    processSaoUnitAll( pcSaoParam->saoLcuParam[iCb], pcSaoParam->oneUnitFlag[iCb], iCb);
-  }
-  if (pcSaoParam->bSaoFlag[iCr])
-  {
-    processSaoUnitAll( pcSaoParam->saoLcuParam[iCr], pcSaoParam->oneUnitFlag[iCr], iCr);
-  }
+    Int iCb = 1;
+    Int iCr = 2;
+    if (pcSaoParam->bSaoFlag[iCb])
+    {
+      processSaoUnitAll( pcSaoParam->saoLcuParam[iCb], pcSaoParam->oneUnitFlag[iCb], iCb);
+    }
+    if (pcSaoParam->bSaoFlag[iCr])
+    {
+      processSaoUnitAll( pcSaoParam->saoLcuParam[iCr], pcSaoParam->oneUnitFlag[iCr], iCr);
+    }
 #endif
     m_pcPic = NULL;
   }
