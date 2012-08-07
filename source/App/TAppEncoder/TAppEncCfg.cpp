@@ -487,6 +487,15 @@ Bool confirmPara(Bool bflag, const char* message);
 
 Void TAppEncCfg::xCheckParameter()
 {
+  if (!m_pictureDigestEnabled)
+  {
+    fprintf(stderr, "*************************************************************\n");
+    fprintf(stderr, "** WARNING: --SEIpictureDigest is now disabled by default. **\n");
+    fprintf(stderr, "**          Automatic verification of decoded pictures by  **\n");
+    fprintf(stderr, "**          a decoder requires this option to be enabled.  **\n");
+    fprintf(stderr, "*************************************************************\n");
+  }
+
   bool check_failed = false; /* abort if there is a fatal configuration problem */
 #define xConfirmPara(a,b) check_failed |= confirmPara(a,b)
   // check range of parameters
