@@ -698,12 +698,13 @@ TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth )
     return;
   }
 
-  for( UInt uiPU = 0; uiPU < uiNumPart; uiPU++ )
+  UInt uiPU;
+  for( uiPU = 0; uiPU < uiNumPart; uiPU++ )
   {
     xIntraLumaRecQT( pcCU, uiInitTrDepth, uiPU * uiNumQParts, m_ppcYuvReco[uiDepth], m_ppcYuvReco[uiDepth], m_ppcYuvResi[uiDepth] );
   }  
 
-  for( UInt uiPU = 0; uiPU < uiNumPart; uiPU++ )
+  for( uiPU = 0; uiPU < uiNumPart; uiPU++ )
   {
     xIntraChromaRecQT( pcCU, uiInitTrDepth, uiPU * uiNumQParts, m_ppcYuvReco[uiDepth], m_ppcYuvReco[uiDepth], m_ppcYuvResi[uiDepth] );
   }
@@ -934,9 +935,10 @@ Void TDecCu::xFillPCMBuffer(TComDataCU* pCU, UInt absPartIdx, UInt depth)
 
   UInt stride = m_ppcYuvReco[depth]->getStride();
 
-  for(Int y = 0; y < height; y++ )
+  Int x, y;
+  for(y = 0; y < height; y++ )
   {
-    for(Int x = 0; x < width; x++ )
+    for(x = 0; x < width; x++ )
     {
       pPcmY[x] = pRecoY[x];
     }
@@ -955,9 +957,9 @@ Void TDecCu::xFillPCMBuffer(TComDataCU* pCU, UInt absPartIdx, UInt depth)
 
   UInt strideC = m_ppcYuvReco[depth]->getCStride();
 
-  for(Int y = 0; y < heightC; y++ )
+  for(y = 0; y < heightC; y++ )
   {
-    for(Int x = 0; x < widthC; x++ )
+    for(x = 0; x < widthC; x++ )
     {
       pPcmCb[x] = pRecoCb[x];
       pPcmCr[x] = pRecoCr[x];

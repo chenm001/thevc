@@ -1857,9 +1857,10 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   
   UInt uiCGNum = uiWidth * uiHeight >> MLS_CG_SIZE;
   Int iScanPos;
+  Int iCGScanPos;
   coeffGroupRDStats rdStats;     
   
-  for (Int iCGScanPos = uiCGNum-1; iCGScanPos >= 0; iCGScanPos--)
+  for (iCGScanPos = uiCGNum-1; iCGScanPos >= 0; iCGScanPos--)
   {
     UInt uiCGBlkPos = scanCG[ iCGScanPos ];
     UInt uiCGPosY   = uiCGBlkPos / uiNumBlkSide;
@@ -2115,7 +2116,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   }
   
   Bool bFoundLast = false;
-  for (Int iCGScanPos = iCGLastScanPos; iCGScanPos >= 0; iCGScanPos--)
+  for (iCGScanPos = iCGLastScanPos; iCGScanPos >= 0; iCGScanPos--)
   {
     UInt uiCGBlkPos = scanCG[ iCGScanPos ];
     
@@ -2160,8 +2161,8 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
       }
     } // end if (uiSigCoeffGroupFlag[ uiCGBlkPos ])
   } // end for 
-  
-  for ( Int scanPos = 0; scanPos < iBestLastIdxP1; scanPos++ )
+  Int scanPos;
+  for ( scanPos = 0; scanPos < iBestLastIdxP1; scanPos++ )
   {
     Int blkPos = scan[ scanPos ];
     Int level  = piDstCoeff[ blkPos ];
@@ -2170,7 +2171,7 @@ Void TComTrQuant::xRateDistOptQuant                 ( TComDataCU*               
   }
   
   //===== clean uncoded coefficients =====
-  for ( Int scanPos = iBestLastIdxP1; scanPos <= iLastScanPos; scanPos++ )
+  for ( scanPos = iBestLastIdxP1; scanPos <= iLastScanPos; scanPos++ )
   {
     piDstCoeff[ scan[ scanPos ] ] = 0;
   }

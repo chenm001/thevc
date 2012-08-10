@@ -487,6 +487,7 @@ Bool confirmPara(Bool bflag, const char* message);
 
 Void TAppEncCfg::xCheckParameter()
 {
+  Int i, j;
   if (!m_pictureDigestEnabled)
   {
     fprintf(stderr, "*************************************************************\n");
@@ -626,14 +627,14 @@ Void TAppEncCfg::xCheckParameter()
   Int refList[MAX_NUM_REF_PICS+1];
   refList[0]=0;
   Bool isOK[MAX_GOP];
-  for(Int i=0; i<MAX_GOP; i++) 
+  for(i=0; i<MAX_GOP; i++) 
   {
     isOK[i]=false;
   }
   Int numOK=0;
   xConfirmPara( m_iIntraPeriod >=0&&(m_iIntraPeriod%m_iGOPSize!=0), "Intra period must be a multiple of GOPSize, or -1" );
 
-  for(Int i=0; i<m_iGOPSize; i++)
+  for(i=0; i<m_iGOPSize; i++)
   {
     if(m_GOPList[i].m_POC==m_iGOPSize)
     {
@@ -725,14 +726,14 @@ Void TAppEncCfg::xCheckParameter()
           if(offPOC>=0&&m_GOPList[offGOP].m_refPic&&m_GOPList[offGOP].m_temporalId<=m_GOPList[curGOP].m_temporalId) 
           {
             Bool newRef=false;
-            for(Int i=0; i<numRefs; i++)
+            for(i=0; i<numRefs; i++)
             {
               if(refList[i]==offPOC)
               {
                 newRef=true;
               }
             }
-            for(Int i=0; i<newRefs; i++) 
+            for(i=0; i<newRefs; i++) 
             {
               if(m_GOPList[m_iGOPSize+m_extraRPSs].m_referencePics[i]==offPOC-curPOC)
               {
@@ -743,7 +744,7 @@ Void TAppEncCfg::xCheckParameter()
             {
               Int insertPoint=newRefs;
               //this picture can be added, find appropriate place in list and insert it.
-              for(Int j=0; j<newRefs; j++)
+              for(j=0; j<newRefs; j++)
               {
                 if(m_GOPList[m_iGOPSize+m_extraRPSs].m_referencePics[j]<offPOC-curPOC||m_GOPList[m_iGOPSize+m_extraRPSs].m_referencePics[j]>0)
                 {
@@ -753,7 +754,7 @@ Void TAppEncCfg::xCheckParameter()
               }
               Int prev = offPOC-curPOC;
               Int prevUsed = m_GOPList[offGOP].m_temporalId<=m_GOPList[curGOP].m_temporalId;
-              for(Int j=insertPoint; j<newRefs+1; j++)
+              for(j=insertPoint; j<newRefs+1; j++)
               {
                 Int newPrev = m_GOPList[m_iGOPSize+m_extraRPSs].m_referencePics[j];
                 Int newUsed = m_GOPList[m_iGOPSize+m_extraRPSs].m_usedByCurrPic[j];
@@ -783,12 +784,12 @@ Void TAppEncCfg::xCheckParameter()
           Int refPOC = m_GOPList[rIdx].m_POC;
           Int refPics = m_GOPList[rIdx].m_numRefPics;
           Int newIdc=0;
-          for(Int i = 0; i<= refPics; i++) 
+          for(i = 0; i<= refPics; i++) 
           {
             Int deltaPOC = ((i != refPics)? m_GOPList[rIdx].m_referencePics[i] : 0);  // check if the reference abs POC is >= 0
             Int absPOCref = refPOC+deltaPOC;
             Int refIdc = 0;
-            for (Int j = 0; j < m_GOPList[m_iGOPSize+m_extraRPSs].m_numRefPics; j++)
+            for (j = 0; j < m_GOPList[m_iGOPSize+m_extraRPSs].m_numRefPics; j++)
             {
               if ( (absPOCref - curPOC) == m_GOPList[m_iGOPSize+m_extraRPSs].m_referencePics[j])
               {
@@ -816,7 +817,7 @@ Void TAppEncCfg::xCheckParameter()
         m_extraRPSs++;
       }
       numRefs=0;
-      for(Int i = 0; i< m_GOPList[curGOP].m_numRefPics; i++) 
+      for(i = 0; i< m_GOPList[curGOP].m_numRefPics; i++) 
       {
         Int absPOC = curPOC+m_GOPList[curGOP].m_referencePics[i];
         if(absPOC >= 0) 
@@ -832,7 +833,7 @@ Void TAppEncCfg::xCheckParameter()
   }
   xConfirmPara(errorGOP,"Invalid GOP structure given");
   m_maxTempLayer = 1;
-  for(Int i=0; i<m_iGOPSize; i++) 
+  for(i=0; i<m_iGOPSize; i++) 
   {
     if(m_GOPList[i].m_temporalId >= m_maxTempLayer)
     {
@@ -840,19 +841,19 @@ Void TAppEncCfg::xCheckParameter()
     }
     xConfirmPara(m_GOPList[i].m_sliceType!='B'&&m_GOPList[i].m_sliceType!='P', "Slice type must be equal to B or P");
   }
-  for(Int i=0; i<MAX_TLAYER; i++)
+  for(i=0; i<MAX_TLAYER; i++)
   {
     m_numReorderPics[i] = 0;
     m_maxDecPicBuffering[i] = 0;
   }
-  for(Int i=0; i<m_iGOPSize; i++) 
+  for(i=0; i<m_iGOPSize; i++) 
   {
     if(m_GOPList[i].m_numRefPics > m_maxDecPicBuffering[m_GOPList[i].m_temporalId])
     {
       m_maxDecPicBuffering[m_GOPList[i].m_temporalId] = m_GOPList[i].m_numRefPics;
     }
     Int highestDecodingNumberWithLowerPOC = 0; 
-    for(Int j=0; j<m_iGOPSize; j++)
+    for(j=0; j<m_iGOPSize; j++)
     {
       if(m_GOPList[j].m_POC <= m_GOPList[i].m_POC)
       {
@@ -860,7 +861,7 @@ Void TAppEncCfg::xCheckParameter()
       }
     }
     Int numReorder = 0;
-    for(Int j=0; j<highestDecodingNumberWithLowerPOC; j++)
+    for(j=0; j<highestDecodingNumberWithLowerPOC; j++)
     {
       if(m_GOPList[j].m_temporalId <= m_GOPList[i].m_temporalId && 
         m_GOPList[j].m_POC > m_GOPList[i].m_POC)
@@ -873,7 +874,7 @@ Void TAppEncCfg::xCheckParameter()
       m_numReorderPics[m_GOPList[i].m_temporalId] = numReorder;
     }
   }
-  for(Int i=0; i<MAX_TLAYER-1; i++) 
+  for(i=0; i<MAX_TLAYER-1; i++) 
   {
     // a lower layer can not have higher value of m_numReorderPics than a higher layer
     if(m_numReorderPics[i+1] < m_numReorderPics[i])

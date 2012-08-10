@@ -1698,9 +1698,10 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
     UInt  uiSrcStride = m_pcQTTempTComYuv[ uiQTLayer ].getStride  ();
     Pel*  piDes       = pcCU->getPic()->getPicYuvRec()->getLumaAddr( pcCU->getAddr(), uiZOrder );
     UInt  uiDesStride = pcCU->getPic()->getPicYuvRec()->getStride  ();
-    for( UInt uiY = 0; uiY < uiHeight; uiY++, piSrc += uiSrcStride, piDes += uiDesStride )
+    UInt uiX, uiY;
+    for( uiY = 0; uiY < uiHeight; uiY++, piSrc += uiSrcStride, piDes += uiDesStride )
     {
-      for( UInt uiX = 0; uiX < uiWidth; uiX++ )
+      for( uiX = 0; uiX < uiWidth; uiX++ )
       {
         piDes[ uiX ] = piSrc[ uiX ];
       }
@@ -1713,18 +1714,18 @@ TEncSearch::xRecurIntraCodingQT( TComDataCU*  pcCU,
       uiSrcStride = m_pcQTTempTComYuv[ uiQTLayer ].getCStride ();
       piDes       = pcCU->getPic()->getPicYuvRec()->getCbAddr ( pcCU->getAddr(), uiZOrder );
       uiDesStride = pcCU->getPic()->getPicYuvRec()->getCStride();
-      for( UInt uiY = 0; uiY < uiHeight; uiY++, piSrc += uiSrcStride, piDes += uiDesStride )
+      for( uiY = 0; uiY < uiHeight; uiY++, piSrc += uiSrcStride, piDes += uiDesStride )
       {
-        for( UInt uiX = 0; uiX < uiWidth; uiX++ )
+        for( uiX = 0; uiX < uiWidth; uiX++ )
         {
           piDes[ uiX ] = piSrc[ uiX ];
         }
       }
       piSrc       = m_pcQTTempTComYuv[ uiQTLayer ].getCrAddr  ( uiAbsPartIdx );
       piDes       = pcCU->getPic()->getPicYuvRec()->getCrAddr ( pcCU->getAddr(), uiZOrder );
-      for( UInt uiY = 0; uiY < uiHeight; uiY++, piSrc += uiSrcStride, piDes += uiDesStride )
+      for( uiY = 0; uiY < uiHeight; uiY++, piSrc += uiSrcStride, piDes += uiDesStride )
       {
-        for( UInt uiX = 0; uiX < uiWidth; uiX++ )
+        for( uiX = 0; uiX < uiWidth; uiX++ )
         {
           piDes[ uiX ] = piSrc[ uiX ];
         }
@@ -1946,9 +1947,10 @@ TEncSearch::xLoadIntraResultQT( TComDataCU* pcCU,
   UInt    uiHeight          = pcCU     ->getHeight  ( 0 ) >> uiTrDepth;
   Pel* pRecQt     = piRecQt;
   Pel* pRecIPred  = piRecIPred;
-  for( UInt uiY = 0; uiY < uiHeight; uiY++ )
+  UInt uiX, uiY;
+  for( uiY = 0; uiY < uiHeight; uiY++ )
   {
-    for( UInt uiX = 0; uiX < uiWidth; uiX++ )
+    for( uiX = 0; uiX < uiWidth; uiX++ )
     {
       pRecIPred[ uiX ] = pRecQt   [ uiX ];
     }
@@ -1962,9 +1964,9 @@ TEncSearch::xLoadIntraResultQT( TComDataCU* pcCU,
     piRecQt    = m_pcQTTempTComYuv[ uiQTLayer ].getCbAddr( uiAbsPartIdx );
     pRecQt     = piRecQt;
     pRecIPred  = piRecIPred;
-    for( UInt uiY = 0; uiY < uiHeight; uiY++ )
+    for( uiY = 0; uiY < uiHeight; uiY++ )
     {
-      for( UInt uiX = 0; uiX < uiWidth; uiX++ )
+      for( uiX = 0; uiX < uiWidth; uiX++ )
       {
         pRecIPred[ uiX ] = pRecQt[ uiX ];
       }
@@ -1976,9 +1978,9 @@ TEncSearch::xLoadIntraResultQT( TComDataCU* pcCU,
     piRecQt    = m_pcQTTempTComYuv[ uiQTLayer ].getCrAddr( uiAbsPartIdx );
     pRecQt     = piRecQt;
     pRecIPred  = piRecIPred;
-    for( UInt uiY = 0; uiY < uiHeight; uiY++ )
+    for( uiY = 0; uiY < uiHeight; uiY++ )
     {
-      for( UInt uiX = 0; uiX < uiWidth; uiX++ )
+      for( uiX = 0; uiX < uiWidth; uiX++ )
       {
         pRecIPred[ uiX ] = pRecQt[ uiX ];
       }
@@ -2723,9 +2725,10 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
       UInt    uiDesStride   = pcCU->getPic()->getPicYuvRec()->getStride();
       Pel*    piSrc         = pcRecoYuv->getLumaAddr( uiPartOffset );
       UInt    uiSrcStride   = pcRecoYuv->getStride();
-      for( UInt uiY = 0; uiY < uiCompHeight; uiY++, piSrc += uiSrcStride, piDes += uiDesStride )
+      UInt    uiX, uiY;
+      for( uiY = 0; uiY < uiCompHeight; uiY++, piSrc += uiSrcStride, piDes += uiDesStride )
       {
-        for( UInt uiX = 0; uiX < uiCompWidth; uiX++ )
+        for( uiX = 0; uiX < uiCompWidth; uiX++ )
         {
           piDes[ uiX ] = piSrc[ uiX ];
         }
@@ -2741,18 +2744,18 @@ TEncSearch::estIntraPredQT( TComDataCU* pcCU,
         uiDesStride   = pcCU->getPic()->getPicYuvRec()->getCStride();
         piSrc         = pcRecoYuv->getCbAddr( uiPartOffset );
         uiSrcStride   = pcRecoYuv->getCStride();
-        for( UInt uiY = 0; uiY < uiCompHeight; uiY++, piSrc += uiSrcStride, piDes += uiDesStride )
+        for( uiY = 0; uiY < uiCompHeight; uiY++, piSrc += uiSrcStride, piDes += uiDesStride )
         {
-          for( UInt uiX = 0; uiX < uiCompWidth; uiX++ )
+          for( uiX = 0; uiX < uiCompWidth; uiX++ )
           {
             piDes[ uiX ] = piSrc[ uiX ];
           }
         }
         piDes         = pcCU->getPic()->getPicYuvRec()->getCrAddr( pcCU->getAddr(), uiZOrder );
         piSrc         = pcRecoYuv->getCrAddr( uiPartOffset );
-        for( UInt uiY = 0; uiY < uiCompHeight; uiY++, piSrc += uiSrcStride, piDes += uiDesStride )
+        for( uiY = 0; uiY < uiCompHeight; uiY++, piSrc += uiSrcStride, piDes += uiDesStride )
         {
-          for( UInt uiX = 0; uiX < uiCompWidth; uiX++ )
+          for( uiX = 0; uiX < uiCompWidth; uiX++ )
           {
             piDes[ uiX ] = piSrc[ uiX ];
           }
@@ -5579,7 +5582,8 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
     Double dSubdivCost = 0.0;
     
     const UInt uiQPartNumSubdiv = pcCU->getPic()->getNumPartInCU() >> ((uiDepth + 1 ) << 1);
-    for( UInt ui = 0; ui < 4; ++ui )
+    UInt ui;
+    for( ui = 0; ui < 4; ++ui )
     {
 #if REMOVE_NSQT
       UInt nsAddr = uiAbsPartIdx + ui * uiQPartNumSubdiv;
@@ -5597,13 +5601,13 @@ Void TEncSearch::xEstimateResidualQT( TComDataCU* pcCU, UInt uiQuadrant, UInt ui
     UInt uiYCbf = 0;
     UInt uiUCbf = 0;
     UInt uiVCbf = 0;
-    for( UInt ui = 0; ui < 4; ++ui )
+    for( ui = 0; ui < 4; ++ui )
     {
       uiYCbf |= pcCU->getCbf( uiAbsPartIdx + ui * uiQPartNumSubdiv, TEXT_LUMA,     uiTrMode + 1 );
       uiUCbf |= pcCU->getCbf( uiAbsPartIdx + ui * uiQPartNumSubdiv, TEXT_CHROMA_U, uiTrMode + 1 );
       uiVCbf |= pcCU->getCbf( uiAbsPartIdx + ui * uiQPartNumSubdiv, TEXT_CHROMA_V, uiTrMode + 1 );
     }
-    for( UInt ui = 0; ui < 4 * uiQPartNumSubdiv; ++ui )
+    for( ui = 0; ui < 4 * uiQPartNumSubdiv; ++ui )
     {
       pcCU->getCbf( TEXT_LUMA     )[uiAbsPartIdx + ui] |= uiYCbf << uiTrMode;
       pcCU->getCbf( TEXT_CHROMA_U )[uiAbsPartIdx + ui] |= uiUCbf << uiTrMode;

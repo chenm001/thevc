@@ -68,10 +68,11 @@ TAppEncTop::~TAppEncTop()
 Void TAppEncTop::xInitLibCfg()
 {
   TComVPS vps;
+  Int i;
   
   vps.setMaxTLayers                       ( m_maxTempLayer );
   vps.setMaxLayers                        ( 1 );
-  for(Int i = 0; i < MAX_TLAYER; i++)
+  for(i = 0; i < MAX_TLAYER; i++)
   {
     vps.setNumReorderPics                 ( m_numReorderPics[i], i );
     vps.setMaxDecPicBuffering             ( m_maxDecPicBuffering[i], i );
@@ -94,7 +95,7 @@ Void TAppEncTop::xInitLibCfg()
   m_cTEncTop.setGOPSize                      ( m_iGOPSize );
   m_cTEncTop.setGopList                      ( m_GOPList );
   m_cTEncTop.setExtraRPSs                    ( m_extraRPSs );
-  for(Int i = 0; i < MAX_TLAYER; i++)
+  for(i = 0; i < MAX_TLAYER; i++)
   {
     m_cTEncTop.setNumReorderPics             ( m_numReorderPics[i], i );
     m_cTEncTop.setMaxDecPicBuffering         ( m_maxDecPicBuffering[i], i );

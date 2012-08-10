@@ -1759,9 +1759,10 @@ Void TEncCu::xFillPCMBuffer     ( TComDataCU*& pCU, TComYuv* pOrgYuv )
   Pel*   pDstY = pCU->getPCMSampleY();
   UInt   srcStride = pOrgYuv->getStride();
 
-  for(Int y = 0; y < height; y++ )
+  Int x, y;
+  for(y = 0; y < height; y++ )
   {
-    for(Int x = 0; x < width; x++ )
+    for(x = 0; x < width; x++ )
     {
       pDstY[x] = pSrcY[x];
     }
@@ -1779,9 +1780,9 @@ Void TEncCu::xFillPCMBuffer     ( TComDataCU*& pCU, TComYuv* pOrgYuv )
   UInt heightC   = height >> 1;
   UInt widthC    = width  >> 1;
 
-  for(Int y = 0; y < heightC; y++ )
+  for(y = 0; y < heightC; y++ )
   {
-    for(Int x = 0; x < widthC; x++ )
+    for(x = 0; x < widthC; x++ )
     {
       pDstCb[x] = pSrcCb[x];
       pDstCr[x] = pSrcCr[x];

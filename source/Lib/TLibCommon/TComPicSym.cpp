@@ -106,9 +106,10 @@ Void TComPicSym::create  ( Int iPicWidth, Int iPicHeight, UInt uiMaxWidth, UInt 
 
 Void TComPicSym::destroy()
 {
+  Int i;
   if (m_uiNumAllocatedSlice>0)
   {
-    for (Int i = 0; i<m_uiNumAllocatedSlice ; i++ )
+    for (i = 0; i<m_uiNumAllocatedSlice ; i++ )
     {
       delete m_apcTComSlice[i];
     }
@@ -116,7 +117,7 @@ Void TComPicSym::destroy()
   }
   m_apcTComSlice = NULL;
   
-  for (Int i = 0; i < m_uiNumCUsInFrame; i++)
+  for (i = 0; i < m_uiNumCUsInFrame; i++)
   {
     m_apcTComDataCU[i]->destroy();
     delete m_apcTComDataCU[i];
@@ -125,7 +126,7 @@ Void TComPicSym::destroy()
   delete [] m_apcTComDataCU;
   m_apcTComDataCU = NULL;
 
-  for(Int i = 0; i < (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1); i++ )
+  for(i = 0; i < (m_iNumColumnsMinus1+1)*(m_iNumRowsMinus1+1); i++ )
   {
     delete m_apcTComTile[i];
   }

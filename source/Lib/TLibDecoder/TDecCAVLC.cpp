@@ -220,7 +220,8 @@ void TDecCavlc::parseShortTermRefPicSet( TComSPS* sps, TComReferencePictureSet* 
     READ_UVLC(code, "num_positive_pics");           rps->setNumberOfPositivePictures(code);
     Int prev = 0;
     Int poc;
-    for(Int j=0 ; j < rps->getNumberOfNegativePictures(); j++)
+    Int j;
+    for(j=0 ; j < rps->getNumberOfNegativePictures(); j++)
     {
       READ_UVLC(code, "delta_poc_s0_minus1");
       poc = prev-code-1;
@@ -229,7 +230,7 @@ void TDecCavlc::parseShortTermRefPicSet( TComSPS* sps, TComReferencePictureSet* 
       READ_FLAG(code, "used_by_curr_pic_s0_flag");  rps->setUsed(j,code);
     }
     prev = 0;
-    for(Int j=rps->getNumberOfNegativePictures(); j < rps->getNumberOfNegativePictures()+rps->getNumberOfPositivePictures(); j++)
+    for(j=rps->getNumberOfNegativePictures(); j < rps->getNumberOfNegativePictures()+rps->getNumberOfPositivePictures(); j++)
     {
       READ_UVLC(code, "delta_poc_s1_minus1");
       poc = prev+code+1;
@@ -516,7 +517,8 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
     if( pcPPS->getUniformSpacingIdr() == 0 )
     {
       UInt* columnWidth = (UInt*)malloc(pcPPS->getNumColumnsMinus1()*sizeof(UInt));
-      for(UInt i=0; i<pcPPS->getNumColumnsMinus1(); i++)
+      UInt i;
+      for(i=0; i<pcPPS->getNumColumnsMinus1(); i++)
       { 
         READ_UVLC( uiCode, "column_width" );  
         columnWidth[i] = uiCode;  
@@ -525,7 +527,7 @@ Void TDecCavlc::parsePPS(TComPPS* pcPPS)
       free(columnWidth);
 
       UInt* rowHeight = (UInt*)malloc(pcPPS->getNumRowsMinus1()*sizeof(UInt));
-      for(UInt i=0; i<pcPPS->getNumRowsMinus1(); i++)
+      for(i=0; i<pcPPS->getNumRowsMinus1(); i++)
       {
         READ_UVLC( uiCode, "row_height" );  
         rowHeight[i] = uiCode;  
@@ -599,6 +601,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #endif
 
   UInt  uiCode;
+  UInt i, k;
 
   READ_CODE( 3,  uiCode, "profile_space" );                      pcSPS->setProfileSpace( uiCode );
   READ_CODE( 5,  uiCode, "profile_idc" );                        pcSPS->setProfileIdc( uiCode );
@@ -655,7 +658,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   }
 
   READ_UVLC( uiCode,    "log2_max_pic_order_cnt_lsb_minus4" );   pcSPS->setBitsForPOC( 4 + uiCode );
-  for(UInt i=0; i <= pcSPS->getMaxTLayers()-1; i++)
+  for(i=0; i <= pcSPS->getMaxTLayers()-1; i++)
   {
     READ_UVLC ( uiCode, "max_dec_pic_buffering");
     pcSPS->setMaxDecPicBuffering( uiCode, i);
@@ -743,7 +746,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   TComRPSList* rpsList = pcSPS->getRPSList();
   TComReferencePictureSet* rps;
 
-  for(UInt i=0; i< rpsList->getNumberOfReferencePictureSets(); i++)
+  for(i=0; i< rpsList->getNumberOfReferencePictureSets(); i++)
   {
     rps = rpsList->getReferencePictureSet(i);
     parseShortTermRefPicSet(pcSPS,rps,i);
@@ -754,7 +757,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
   {
     READ_UVLC( uiCode, "num_long_term_ref_pic_sps" );
     pcSPS->setNumLongTermRefPicSPS(uiCode);
-    for (UInt k = 0; k < pcSPS->getNumLongTermRefPicSPS(); k++)
+    for (k = 0; k < pcSPS->getNumLongTermRefPicSPS(); k++)
     {
       READ_CODE( pcSPS->getBitsForPOC(), uiCode, "lt_ref_pic_poc_lsb_sps" );
       pcSPS->setLtRefPicPocLsbSps(uiCode, k);
@@ -765,7 +768,7 @@ Void TDecCavlc::parseSPS(TComSPS* pcSPS)
 #endif
   READ_FLAG( uiCode, "sps_temporal_mvp_enable_flag" );            pcSPS->setTMVPFlagsPresent(uiCode);
   // AMVP mode for each depth (AM_NONE or AM_EXPL)
-  for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
+  for (i = 0; i < pcSPS->getMaxCUDepth(); i++)
   {
     xReadFlag( uiCode );
     pcSPS->setAMVPMode( i, (AMVP_MODE)uiCode );
@@ -1825,10 +1828,11 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
       uiLog2WeightDenomChroma = (UInt)(iDeltaDenom + uiLog2WeightDenomLuma);
     }
 
+    Int iRefIdx;
     for ( Int iNumRef=0 ; iNumRef<iNbRef ; iNumRef++ ) 
     {
       RefPicList  eRefPicList = ( iNumRef ? REF_PIC_LIST_1 : REF_PIC_LIST_0 );
-      for ( Int iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx++ ) 
+      for ( iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx++ ) 
       {
         pcSlice->getWpScaling(eRefPicList, iRefIdx, wp);
 
@@ -1845,7 +1849,7 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
       if ( bChroma ) 
       {
         UInt  uiCode;
-        for ( Int iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx++ ) 
+        for ( iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx++ ) 
         {
           pcSlice->getWpScaling(eRefPicList, iRefIdx, wp);
           READ_FLAG( uiCode, "chroma_weight_lX_flag" );      // u(1): chroma_weight_l0_flag
@@ -1854,7 +1858,7 @@ Void TDecCavlc::xParsePredWeightTable( TComSlice* pcSlice )
           uiTotalSignalledWeightFlags += 2*wp[1].bPresentFlag;
         }
       }
-      for ( Int iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx++ ) 
+      for ( iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx++ ) 
       {
         pcSlice->getWpScaling(eRefPicList, iRefIdx, wp);
 #endif

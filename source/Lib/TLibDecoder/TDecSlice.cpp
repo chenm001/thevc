@@ -129,12 +129,13 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
   // allocate new decoders based on tile numbaer
   m_pcBufferSbacDecoders = new TDecSbac    [uiTilesAcross];  
   m_pcBufferBinCABACs    = new TDecBinCABAC[uiTilesAcross];
-  for (UInt ui = 0; ui < uiTilesAcross; ui++)
+  UInt ui;
+  for (ui = 0; ui < uiTilesAcross; ui++)
   {
     m_pcBufferSbacDecoders[ui].init(&m_pcBufferBinCABACs[ui]);
   }
   //save init. state
-  for (UInt ui = 0; ui < uiTilesAcross; ui++)
+  for (ui = 0; ui < uiTilesAcross; ui++)
   {
     m_pcBufferSbacDecoders[ui].load(pcSbacDecoder);
   }
@@ -150,12 +151,12 @@ Void TDecSlice::decompressSlice(TComInputBitstream* pcBitstream, TComInputBitstr
   }
   m_pcBufferLowLatSbacDecoders = new TDecSbac    [uiTilesAcross];  
   m_pcBufferLowLatBinCABACs    = new TDecBinCABAC[uiTilesAcross];
-  for (UInt ui = 0; ui < uiTilesAcross; ui++)
+  for (ui = 0; ui < uiTilesAcross; ui++)
   {
     m_pcBufferLowLatSbacDecoders[ui].init(&m_pcBufferLowLatBinCABACs[ui]);
   }
   //save init. state
-  for (UInt ui = 0; ui < uiTilesAcross; ui++)
+  for (ui = 0; ui < uiTilesAcross; ui++)
   {
     m_pcBufferLowLatSbacDecoders[ui].load(pcSbacDecoder);
   }

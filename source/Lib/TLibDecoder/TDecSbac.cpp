@@ -1376,7 +1376,8 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
       Int numC1Flag = min(numNonZero, C1FLAG_NUMBER);
       Int firstC2FlagIdx = -1;
 
-      for( Int idx = 0; idx < numC1Flag; idx++ )
+      Int idx;
+      for( idx = 0; idx < numC1Flag; idx++ )
       {
         m_pcTDecBinIf->decodeBin( uiBin, baseCtxMod[c1] );
         if( uiBin == 1 )
@@ -1444,7 +1445,7 @@ Void TDecSbac::parseCoeffNxN( TComDataCU* pcCU, TCoeff* pcCoef, UInt uiAbsPartId
         }
       }
 
-      for( Int idx = 0; idx < numNonZero; idx++ )
+      for( idx = 0; idx < numNonZero; idx++ )
       {
         Int blkPos = pos[ idx ];
         // Signs applied later.
@@ -1681,12 +1682,13 @@ parseSaoTypeIdx(uiSymbol);
     parseSaoUflc( uiSymbol );
     psSaoLcuParam->bandPosition = uiSymbol;
 #endif
-      for(Int i=0; i< psSaoLcuParam->length; i++)
+      Int i;
+      for(i=0; i< psSaoLcuParam->length; i++)
       {
         parseSaoMaxUvlc(uiSymbol, offsetTh -1 );
         psSaoLcuParam->offset[i] = uiSymbol;
       }   
-      for(Int i=0; i< psSaoLcuParam->length; i++)
+      for(i=0; i< psSaoLcuParam->length; i++)
       {
         if (psSaoLcuParam->offset[i] != 0) 
         {
@@ -1734,8 +1736,9 @@ Void TDecSbac::parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, T
 {
   Int iAddr = pcCU->getAddr();
   UInt uiSymbol;
+  Int iCompIdx;
 #if SAO_SINGLE_MERGE
-  for (Int iCompIdx=0; iCompIdx<3; iCompIdx++)
+  for (iCompIdx=0; iCompIdx<3; iCompIdx++)
   {
     pSaoParam->saoLcuParam[iCompIdx][iAddr].mergeUpFlag    = 0;
     pSaoParam->saoLcuParam[iCompIdx][iAddr].mergeLeftFlag  = 0;
@@ -1783,7 +1786,7 @@ Void TDecSbac::parseSaoOneLcuInterleaving(Int rx, Int ry, SAOParam* pSaoParam, T
   }
 #endif
 
-  for (Int iCompIdx=0; iCompIdx<3; iCompIdx++)
+  for (iCompIdx=0; iCompIdx<3; iCompIdx++)
   {
 #if !SAO_SINGLE_MERGE
     pSaoParam->saoLcuParam[iCompIdx][iAddr].mergeUpFlag    = 0;

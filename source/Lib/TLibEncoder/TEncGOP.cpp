@@ -162,7 +162,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
       
       //select uiColDir
       Int iCloseLeft=1, iCloseRight=-1;
-      for(Int i = 0; i<m_pcCfg->getGOPEntry(iGOPid).m_numRefPics; i++) 
+      Int i;
+      for(i = 0; i<m_pcCfg->getGOPEntry(iGOPid).m_numRefPics; i++) 
       {
         Int iRef = m_pcCfg->getGOPEntry(iGOPid).m_referencePics[i];
         if(iRef>0&&(iRef<iCloseRight||iCloseRight==-1))
@@ -187,7 +188,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
         }
       }
       Int iLeftQP=0, iRightQP=0;
-      for(Int i=0; i<m_iGopSize; i++)
+      for(i=0; i<m_iGopSize; i++)
       {
         if(m_pcCfg->getGOPEntry(i).m_POC==(iCloseLeft%m_iGopSize)+1)
         {
@@ -936,7 +937,8 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
           {
             uiNumSubstreamsPerTile /= pcPic->getPicSym()->getNumTiles();
           }
-          for ( UInt ui = 0 ; ui < iNumSubstreams; ui++ )
+          UInt ui;
+          for ( ui = 0 ; ui < iNumSubstreams; ui++ )
           {
             // Flush all substreams -- this includes empty ones.
             // Terminating bit and flush.
@@ -993,7 +995,7 @@ Void TEncGOP::compressGOP( Int iPOCLast, Int iNumPicRcvd, TComList<TComPic*>& rc
             }
           }
 #endif
-          for ( UInt ui = 0 ; ui < pcSlice->getPPS()->getNumSubstreams(); ui++ )
+          for ( ui = 0 ; ui < pcSlice->getPPS()->getNumSubstreams(); ui++ )
           {
             pcOut->addSubstream(&pcSubstreamsOut[ui]);
           }

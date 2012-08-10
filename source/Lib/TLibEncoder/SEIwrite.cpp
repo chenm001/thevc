@@ -95,12 +95,13 @@ void writeSEImessage(TComBitIf& bs, const SEI& sei)
  */
 static void writeSEIuserDataUnregistered(TComBitIf& bs, const SEIuserDataUnregistered &sei)
 {
-  for (unsigned i = 0; i < 16; i++)
+  unsigned i;
+  for (i = 0; i < 16; i++)
   {
     bs.write(sei.uuid_iso_iec_11578[i], 8);
   }
 
-  for (unsigned i = 0; i < sei.userDataLength; i++)
+  for (i = 0; i < sei.userDataLength; i++)
   {
     bs.write(sei.userData[i], 8);
   }

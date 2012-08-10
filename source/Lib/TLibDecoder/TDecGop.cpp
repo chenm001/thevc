@@ -137,13 +137,14 @@ Void TDecGop::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPic)
   ppcSubstreams    = new TComInputBitstream*[uiNumSubstreams];
   m_pcSbacDecoders = new TDecSbac[uiNumSubstreams];
   m_pcBinCABACs    = new TDecBinCABAC[uiNumSubstreams];
-  for ( UInt ui = 0 ; ui < uiNumSubstreams ; ui++ )
+  UInt ui;
+  for ( ui = 0 ; ui < uiNumSubstreams ; ui++ )
   {
     m_pcSbacDecoders[ui].init(&m_pcBinCABACs[ui]);
     ppcSubstreams[ui] = pcBitstream->extractSubstream(ui+1 < uiNumSubstreams ? puiSubstreamSizes[ui] : pcBitstream->getNumBitsLeft());
   }
 
-  for ( UInt ui = 0 ; ui+1 < uiNumSubstreams; ui++ )
+  for ( ui = 0 ; ui+1 < uiNumSubstreams; ui++ )
   {
     m_pcEntropyDecoder->setEntropyDecoder ( &m_pcSbacDecoders[uiNumSubstreams - 1 - ui] );
     m_pcEntropyDecoder->setBitstream      (  ppcSubstreams   [uiNumSubstreams - 1 - ui] );
@@ -186,7 +187,7 @@ Void TDecGop::decompressSlice(TComInputBitstream* pcBitstream, TComPic*& rpcPic)
   m_pcSliceDecoder->decompressSlice( pcBitstream, ppcSubstreams, rpcPic, m_pcSbacDecoder, m_pcSbacDecoders);
   m_pcEntropyDecoder->setBitstream(  ppcSubstreams[uiNumSubstreams-1] );
   // deallocate all created substreams, including internal buffers.
-  for (UInt ui = 0; ui < uiNumSubstreams; ui++)
+  for (ui = 0; ui < uiNumSubstreams; ui++)
   {
     ppcSubstreams[ui]->deleteFifo();
     delete ppcSubstreams[ui];

@@ -47,13 +47,14 @@ static void parseSEIpictureDigest(TComInputBitstream& bs, SEIpictureDigest& sei,
 void parseSEImessage(TComInputBitstream& bs, SEImessages& seis)
 {
   unsigned payloadType = 0;
-  for (unsigned char byte = 0xff; 0xff == byte; )
+  unsigned char byte;
+  for (byte = 0xff; 0xff == byte; )
   {
     payloadType += byte = bs.read(8);
   }
 
   unsigned payloadSize = 0;
-  for (unsigned char byte = 0xff; 0xff == byte; )
+  for (byte = 0xff; 0xff == byte; )
   {
     payloadSize += byte = bs.read(8);
   }
@@ -80,7 +81,8 @@ void parseSEImessage(TComInputBitstream& bs, SEImessages& seis)
 static void parseSEIuserDataUnregistered(TComInputBitstream& bs, SEIuserDataUnregistered &sei, unsigned payloadSize)
 {
   assert(payloadSize >= 16);
-  for (unsigned i = 0; i < 16; i++)
+  unsigned i;
+  for (i = 0; i < 16; i++)
   {
     sei.uuid_iso_iec_11578[i] = bs.read(8);
   }
@@ -93,7 +95,7 @@ static void parseSEIuserDataUnregistered(TComInputBitstream& bs, SEIuserDataUnre
   }
 
   sei.userData = new unsigned char[sei.userDataLength];
-  for (unsigned i = 0; i < sei.userDataLength; i++)
+  for (i = 0; i < sei.userDataLength; i++)
   {
     sei.userData[i] = bs.read(8);
   }

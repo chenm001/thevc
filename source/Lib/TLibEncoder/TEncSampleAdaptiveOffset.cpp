@@ -504,9 +504,10 @@ Void TEncSampleAdaptiveOffset::runQuadTreeDecision(SAOQTPart *psQTPart, Int iPar
  */
 Void TEncSampleAdaptiveOffset::destroyEncBuffer()
 {
-  for (Int i=0;i<m_iNumTotalParts;i++)
+  Int i, j, k;
+  for (i=0;i<m_iNumTotalParts;i++)
   {
-    for (Int j=0;j<MAX_NUM_SAO_TYPE;j++)
+    for (j=0;j<MAX_NUM_SAO_TYPE;j++)
     {
       if (m_iCount [i][j])
       {
@@ -586,11 +587,11 @@ Void TEncSampleAdaptiveOffset::destroyEncBuffer()
 #if SAO_LCU_BOUNDARY
   Int numLcu = m_iNumCuInWidth * m_iNumCuInHeight;
 
-  for (Int i=0;i<numLcu;i++)
+  for (i=0;i<numLcu;i++)
   {
-    for (Int j=0;j<3;j++)
+    for (j=0;j<3;j++)
     {
-      for (Int k=0;k<MAX_NUM_SAO_TYPE;k++)
+      for (k=0;k<MAX_NUM_SAO_TYPE;k++)
       {
         if (m_count_PreDblk [i][j][k])
         {
@@ -655,6 +656,7 @@ Void TEncSampleAdaptiveOffset::destroyEncBuffer()
  */
 Void TEncSampleAdaptiveOffset::createEncBuffer()
 {
+  Int i, j, k;
   m_iDistOrg = new Int64 [m_iNumTotalParts]; 
   m_dCostPartBest = new Double [m_iNumTotalParts]; 
   m_iTypePartBest = new Int [m_iNumTotalParts]; 
@@ -667,7 +669,7 @@ Void TEncSampleAdaptiveOffset::createEncBuffer()
   m_iOffset = new Int64 **[m_iNumTotalParts];
   m_iOffsetOrg = new Int64 **[m_iNumTotalParts];
 
-  for (Int i=0;i<m_iNumTotalParts;i++)
+  for (i=0;i<m_iNumTotalParts;i++)
   {
     m_iRate[i] = new Int64  [MAX_NUM_SAO_TYPE];
     m_iDist[i] = new Int64  [MAX_NUM_SAO_TYPE]; 
@@ -677,7 +679,7 @@ Void TEncSampleAdaptiveOffset::createEncBuffer()
     m_iOffset[i] = new Int64 *[MAX_NUM_SAO_TYPE]; 
     m_iOffsetOrg[i] = new Int64 *[MAX_NUM_SAO_TYPE]; 
 
-    for (Int j=0;j<MAX_NUM_SAO_TYPE;j++)
+    for (j=0;j<MAX_NUM_SAO_TYPE;j++)
     {
       m_iCount [i][j]   = new Int64 [MAX_NUM_SAO_CLASS]; 
       m_iOffset[i][j]   = new Int64 [MAX_NUM_SAO_CLASS]; 
@@ -688,17 +690,17 @@ Void TEncSampleAdaptiveOffset::createEncBuffer()
   Int numLcu = m_iNumCuInWidth * m_iNumCuInHeight;
   m_count_PreDblk  = new Int64 ***[numLcu];
   m_offsetOrg_PreDblk = new Int64 ***[numLcu];
-  for (Int i=0; i<numLcu; i++)
+  for (i=0; i<numLcu; i++)
   {
     m_count_PreDblk[i]  = new Int64 **[3];
     m_offsetOrg_PreDblk[i] = new Int64 **[3];
 
-    for (Int j=0;j<3;j++)
+    for (j=0;j<3;j++)
     {
       m_count_PreDblk [i][j] = new Int64 *[MAX_NUM_SAO_TYPE]; 
       m_offsetOrg_PreDblk[i][j] = new Int64 *[MAX_NUM_SAO_TYPE]; 
 
-      for (Int k=0;k<MAX_NUM_SAO_TYPE;k++)
+      for (k=0;k<MAX_NUM_SAO_TYPE;k++)
       {
         m_count_PreDblk [i][j][k]   = new Int64 [MAX_NUM_SAO_CLASS]; 
         m_offsetOrg_PreDblk[i][j][k]= new Int64 [MAX_NUM_SAO_CLASS]; 

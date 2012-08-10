@@ -364,7 +364,7 @@ const NDBFBlockInfo& NDBFBlockInfo::operator= (const NDBFBlockInfo& src)
  */
 Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
 {
-
+  int i;
   m_pcPic              = pcPic;
   m_pcSlice            = pcPic->getSlice(pcPic->getCurrSliceIdx());
   m_uiCUAddr           = iCUAddr;
@@ -379,7 +379,7 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
   m_numSucIPCM       = 0;
   m_lastCUSucIPCMFlag   = false;
 
-  for(int i=0; i<pcPic->getNumPartInCU(); i++) 
+  for(i=0; i<pcPic->getNumPartInCU(); i++) 
   {
     if(pcPic->getPicSym()->getInverseCUOrderMap(iCUAddr)*pcPic->getNumPartInCU()+i>=getSlice()->getSliceCurStartCUAddr())
     {
@@ -390,7 +390,7 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
       m_uiSliceStartCU[i]=pcPic->getCU(getAddr())->m_uiSliceStartCU[i];
     }
   }
-  for(int i=0; i<pcPic->getNumPartInCU(); i++) 
+  for(i=0; i<pcPic->getNumPartInCU(); i++) 
   {
     if(pcPic->getPicSym()->getInverseCUOrderMap(iCUAddr)*pcPic->getNumPartInCU()+i>=getSlice()->getDependentSliceCurStartCUAddr())
     {
@@ -507,7 +507,7 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
     TComDataCU * pcFrom = pcPic->getCU(getAddr());
     m_acCUMvField[0].copyFrom(&pcFrom->m_acCUMvField[0],m_uiNumPartition,0);
     m_acCUMvField[1].copyFrom(&pcFrom->m_acCUMvField[1],m_uiNumPartition,0);
-    for(int i=0; i<uiTmp; i++) 
+    for(i=0; i<uiTmp; i++) 
     {
       m_pcTrCoeffY[i]=pcFrom->m_pcTrCoeffY[i];
 #if ADAPTIVE_QP_SELECTION
@@ -515,7 +515,7 @@ Void TComDataCU::initCU( TComPic* pcPic, UInt iCUAddr )
 #endif
       m_pcIPCMSampleY[i]=pcFrom->m_pcIPCMSampleY[i];
     }
-    for(int i=0; i<(uiTmp>>2); i++) 
+    for(i=0; i<(uiTmp>>2); i++) 
     {
       m_pcTrCoeffCb[i]=pcFrom->m_pcTrCoeffCb[i];
       m_pcTrCoeffCr[i]=pcFrom->m_pcTrCoeffCr[i];
@@ -780,7 +780,8 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, 
     pcCU->m_acCUMvField[1].copyTo(&m_acCUMvField[1],minui,uiPartOffset,m_uiNumPartition);
     UInt uiCoffOffset = uiMaxCuWidth*uiMaxCuHeight*m_uiAbsIdxInLCU/pcCU->getPic()->getNumPartInCU();
     uiTmp = uhWidth*uhHeight;
-    for(int i=0; i<uiTmp; i++) 
+    int i;
+    for(i=0; i<uiTmp; i++) 
     {
       m_pcTrCoeffY[i]=bigCU->m_pcTrCoeffY[uiCoffOffset+i];
 #if ADAPTIVE_QP_SELECTION
@@ -790,7 +791,7 @@ Void TComDataCU::initSubCU( TComDataCU* pcCU, UInt uiPartUnitIdx, UInt uiDepth, 
     }
     uiTmp>>=2;
     uiCoffOffset>>=2;
-    for(int i=0; i<uiTmp; i++) 
+    for(i=0; i<uiTmp; i++) 
     {
       m_pcTrCoeffCr[i]=bigCU->m_pcTrCoeffCr[uiCoffOffset+i];
       m_pcTrCoeffCb[i]=bigCU->m_pcTrCoeffCb[uiCoffOffset+i];

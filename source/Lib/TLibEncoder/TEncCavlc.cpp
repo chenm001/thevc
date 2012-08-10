@@ -210,14 +210,15 @@ Void TEncCavlc::codeShortTermRefPicSet( TComSPS* pcSPS, TComReferencePictureSet*
     WRITE_UVLC( rps->getNumberOfNegativePictures(), "num_negative_pics" );
     WRITE_UVLC( rps->getNumberOfPositivePictures(), "num_positive_pics" );
     Int prev = 0;
-    for(Int j=0 ; j < rps->getNumberOfNegativePictures(); j++)
+    Int j;
+    for(j=0 ; j < rps->getNumberOfNegativePictures(); j++)
     {
       WRITE_UVLC( prev-rps->getDeltaPOC(j)-1, "delta_poc_s0_minus1" );
       prev = rps->getDeltaPOC(j);
       WRITE_FLAG( rps->getUsed(j), "used_by_curr_pic_s0_flag"); 
     }
     prev = 0;
-    for(Int j=rps->getNumberOfNegativePictures(); j < rps->getNumberOfNegativePictures()+rps->getNumberOfPositivePictures(); j++)
+    for(j=rps->getNumberOfNegativePictures(); j < rps->getNumberOfNegativePictures()+rps->getNumberOfPositivePictures(); j++)
     {
       WRITE_UVLC( rps->getDeltaPOC(j)-prev-1, "delta_poc_s1_minus1" );
       prev = rps->getDeltaPOC(j);
@@ -317,11 +318,12 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
     WRITE_FLAG( pcPPS->getUniformSpacingIdr(),                                   "uniform_spacing_flag" );
     if( pcPPS->getUniformSpacingIdr() == 0 )
     {
-      for(UInt i=0; i<pcPPS->getNumColumnsMinus1(); i++)
+      UInt i;
+      for(i=0; i<pcPPS->getNumColumnsMinus1(); i++)
       {
         WRITE_UVLC( pcPPS->getColumnWidth(i),                                    "column_width" );
       }
-      for(UInt i=0; i<pcPPS->getNumRowsMinus1(); i++)
+      for(i=0; i<pcPPS->getNumRowsMinus1(); i++)
       {
         WRITE_UVLC( pcPPS->getRowHeight(i),                                      "row_height" );
       }
@@ -371,6 +373,7 @@ Void TEncCavlc::codePPS( TComPPS* pcPPS )
 
 Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 {
+  Int i;
 #if ENC_DEC_TRACE  
   xTraceSPSHeader (pcSPS);
 #endif
@@ -414,7 +417,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   }
 
   WRITE_UVLC( pcSPS->getBitsForPOC()-4,                 "log2_max_pic_order_cnt_lsb_minus4" );
-  for(UInt i=0; i <= pcSPS->getMaxTLayers()-1; i++)
+  for(i=0; i <= pcSPS->getMaxTLayers()-1; i++)
   {
     WRITE_UVLC( pcSPS->getMaxDecPicBuffering(i),           "max_dec_pic_buffering[i]" );
     WRITE_UVLC( pcSPS->getNumReorderPics(i),               "num_reorder_pics[i]" );
@@ -488,7 +491,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
   TComReferencePictureSet*      rps;
 
   WRITE_UVLC(rpsList->getNumberOfReferencePictureSets(), "num_short_term_ref_pic_sets" );
-  for(Int i=0; i < rpsList->getNumberOfReferencePictureSets(); i++)
+  for(i=0; i < rpsList->getNumberOfReferencePictureSets(); i++)
   {
     rps = rpsList->getReferencePictureSet(i);
 #if J0234_INTER_RPS_SIMPL
@@ -511,7 +514,7 @@ Void TEncCavlc::codeSPS( TComSPS* pcSPS )
 #endif
   WRITE_FLAG( pcSPS->getTMVPFlagsPresent()  ? 1 : 0,           "sps_temporal_mvp_enable_flag" );
   // AMVP mode for each depth
-  for (Int i = 0; i < pcSPS->getMaxCUDepth(); i++)
+  for (i = 0; i < pcSPS->getMaxCUDepth(); i++)
   {
     xWriteFlag( pcSPS->getAMVPMode(i) ? 1 : 0);
   }
@@ -1014,8 +1017,9 @@ Void  TEncCavlc::codeTilesWPPEntryPoint( TComSlice* pSlice )
   {
     Int  numZeroSubstreamsAtEndOfSlice  = 0;
     UInt* pSubstreamSizes               = pSlice->getSubstreamSizes();
+    Int idx;
     // Find number of zero substreams at the end of slice
-    for (Int idx=pSlice->getPPS()->getNumSubstreams()-2; idx>=0; idx--)
+    for (idx=pSlice->getPPS()->getNumSubstreams()-2; idx>=0; idx--)
     {
       if ( pSubstreamSizes[ idx ] ==  0 )
       {
@@ -1028,7 +1032,7 @@ Void  TEncCavlc::codeTilesWPPEntryPoint( TComSlice* pSlice )
     }
     numEntryPointOffsets       = pSlice->getPPS()->getNumSubstreams() - 1 - numZeroSubstreamsAtEndOfSlice;
     entryPointOffset           = new UInt[numEntryPointOffsets];
-    for (Int idx=0; idx<numEntryPointOffsets; idx++)
+    for (idx=0; idx<numEntryPointOffsets; idx++)
     {
       entryPointOffset[ idx ] = ( pSubstreamSizes[ idx ] >> 3 ) ;
       if ( entryPointOffset[ idx ] > maxOffset )
@@ -1447,7 +1451,8 @@ Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
       }
       if (bChroma) 
       {
-        for ( Int iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx++ ) 
+        Int iRefIdx;
+        for ( iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx++ ) 
         {
           pcSlice->getWpScaling(eRefPicList, iRefIdx, wp);
           WRITE_FLAG( wp[1].bPresentFlag, "chroma_weight_lX_flag" );           // u(1): chroma_weight_lX_flag
@@ -1455,7 +1460,7 @@ Void TEncCavlc::xCodePredWeightTable( TComSlice* pcSlice )
         }
       }
 
-      for ( Int iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx++ ) 
+      for ( iRefIdx=0 ; iRefIdx<pcSlice->getNumRefIdx(eRefPicList) ; iRefIdx++ ) 
       {
         pcSlice->getWpScaling(eRefPicList, iRefIdx, wp);
 #endif
